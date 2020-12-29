@@ -28,5 +28,22 @@ export default {
   'gt1d': '超过一天',
   'hour': '时',
   'minute': '分',
-  'second': '秒'
+  'second': '秒',
+  'button-add': '添加',
+  'button-service': '服务',
+  'button-config-edit': '配置修改',
+  'button-version-switch': '切换版本',
+  'button-log-error': '错误日志',
+  'button-log-run': '运行日志',
+  'button-log-slow': '慢日志',
+  'button-log-fpm': 'FPM日志',
+  'button-extend': '扩展',
+  'button-open': '打开',
+  'button-refresh': '刷新',
+  'button-install': '安装',
+  'button-clean': '清空',
+  'button-start': '启动',
+  'button-stop': '停止',
+  'button-restart': '重启',
+  'button-reload': '重载配置'
 }

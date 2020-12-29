@@ -115,6 +115,14 @@
           </el-switch>
         </li>
 
+        <li @click="nav('/tools',$event)" :class="'non-draggable' + (currentPage === '/tools' ? ' active' : '')">
+          <div class="left">
+            <div class="icon-block">
+              <mo-icon name="tool" width="30" height="30" />
+            </div>
+            <span class="title">Tools</span>
+          </div>
+        </li>
 
       </ul>
 
@@ -134,6 +142,7 @@
   import '@/components/Icons/php'
   import '@/components/Icons/memcached'
   import '@/components/Icons/redis'
+  import '@/components/Icons/tool'
   import { hasClass } from '@shared/utils'
   export default {
     name: 'mo-aside',
@@ -348,7 +357,7 @@
       }
       &.active {
         color: #fff;
-        background-color: #001e27;
+        background-color: #1d2033;
       }
       .left{
         height: 100%;

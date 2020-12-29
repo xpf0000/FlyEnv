@@ -1,10 +1,9 @@
 import store from '@/store'
 import CommandManager from './CommandManager'
 import { Message } from 'element-ui'
-import { getLocaleManager } from '@/components/Locale'
+import { I18n } from '@/components/Locale'
 
 const commands = new CommandManager()
-const i18n = getLocaleManager().getI18n()
 
 function updateSystemTheme (theme) {
   store.dispatch('app/updateSystemTheme', theme)
@@ -20,10 +19,10 @@ function reciveTaskLog (log) {
 
 function taskResult (r) {
   if (r === 'SUCCESS') {
-    Message.success(i18n.t('task.task-success'))
+    Message.success(I18n.t('task.task-success'))
     commands.$EveBus.$emit('vue:task-versions-success')
   } else {
-    Message.error(i18n.t('task.task-fail'))
+    Message.error(I18n.t('task.task-fail'))
   }
   store.dispatch('task/result', r)
 }
@@ -41,9 +40,9 @@ function taskEndApache () {
 }
 function taskResultApache (r) {
   if (r === 'SUCCESS') {
-    Message.success(i18n.t('task.task-success'))
+    Message.success(I18n.t('task.task-success'))
   } else {
-    Message.error(i18n.t('task.task-fail'))
+    Message.error(I18n.t('task.task-fail'))
   }
   store.dispatch('apache/result', r)
 }
@@ -56,9 +55,9 @@ function taskEndNginx () {
 }
 function taskResultNginx (r) {
   if (r === 'SUCCESS') {
-    Message.success(i18n.t('task.task-success'))
+    Message.success(I18n.t('task.task-success'))
   } else {
-    Message.error(i18n.t('task.task-fail'))
+    Message.error(I18n.t('task.task-fail'))
   }
   store.dispatch('nginx/result', r)
 }
@@ -71,9 +70,9 @@ function taskEndMysql () {
 }
 function taskResultMysql (r) {
   if (r === 'SUCCESS') {
-    Message.success(i18n.t('task.task-success'))
+    Message.success(I18n.t('task.task-success'))
   } else {
-    Message.error(i18n.t('task.task-fail'))
+    Message.error(I18n.t('task.task-fail'))
   }
   store.dispatch('mysql/result', r)
 }
@@ -86,9 +85,9 @@ function taskEndPhp () {
 }
 function taskResultPhp (r) {
   if (r === 'SUCCESS') {
-    Message.success(i18n.t('task.task-success'))
+    Message.success(I18n.t('task.task-success'))
   } else {
-    Message.error(i18n.t('task.task-fail'))
+    Message.error(I18n.t('task.task-fail'))
   }
   store.dispatch('php/result', r)
 }
@@ -101,9 +100,9 @@ function taskEndMemcached () {
 }
 function taskResultMemcached (r) {
   if (r === 'SUCCESS') {
-    Message.success(i18n.t('task.task-success'))
+    Message.success(I18n.t('task.task-success'))
   } else {
-    Message.error(i18n.t('task.task-fail'))
+    Message.error(I18n.t('task.task-fail'))
   }
   store.dispatch('memcached/result', r)
 }
@@ -116,9 +115,9 @@ function taskEndRedis () {
 }
 function taskResultRedis (r) {
   if (r === 'SUCCESS') {
-    Message.success(i18n.t('task.task-success'))
+    Message.success(I18n.t('task.task-success'))
   } else {
-    Message.error(i18n.t('task.task-fail'))
+    Message.error(I18n.t('task.task-fail'))
   }
   store.dispatch('redis/result', r)
 }

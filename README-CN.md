@@ -17,6 +17,7 @@ BuildPhp 是一款mac下PHP和web开发环境管理工具,包含php,nginx,apache
 - 日志文件即时查看
 - host管理
 - 常见PHP项目url rewrite一键设置
+- 一键生成SSL自签名证书
 
 ## 💽 安装稳定版
 
@@ -67,6 +68,10 @@ npm run build
 ```
 
 完成之后可以在项目的 `release` 目录看到编译打包好的应用文件
+
+### Mysql初始账号和密码
+
+Mysql初始账号密码是root root, 可以使用phpmyadmin或其他db工具使用
 
 ## 🛠 技术栈
 

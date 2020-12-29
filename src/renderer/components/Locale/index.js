@@ -8,3 +8,5 @@ const localeManager = new LocaleManager({
 export function getLocaleManager () {
   return localeManager
 }
+
+export const I18n = localeManager.getI18n()

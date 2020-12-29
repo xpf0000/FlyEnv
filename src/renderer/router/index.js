@@ -53,6 +53,12 @@ export default new Router({
           alias: '/',
           component: require('@/components/Redis/Index').default,
           props: true
+        },
+        {
+          path: '/tools',
+          alias: '/',
+          component: require('@/components/Tools/Index').default,
+          props: true
         }
       ]
     },

@@ -1,6 +1,6 @@
 {
   "name": "BuildPhp",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "PHP and Web develop environment manager for Mac",
   "homepage": "https://phpstudy.xpfme.com",
   "author": {
@@ -61,7 +61,6 @@
     },
     "mac": {
       "icon": "build/Icon.icns",
-      "compression": "store",
       "target": [
         "dmg",
         "zip"

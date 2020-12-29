@@ -134,7 +134,9 @@ class HostManager {
         let hostname = host.name
         let nvhost = join(nginxvpath, `${hostname}.conf`)
         let avhost = join(apachevpath, `${hostname}.conf`)
-        let hostalias = host.alias ? host.alias.split('\n').join(' ') : host.name
+        let hostalias = host.alias ? host.alias.split('\n').filter((item) => {
+          return item && item.length > 0
+        }).join(' ') : host.name
         let ntmpl = readFileSync(nginxtmpl, 'utf-8')
           .replace(/#Server_Alias#/g, hostalias)
           .replace(/#Server_Root#/g, host.root)

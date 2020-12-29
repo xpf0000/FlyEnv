@@ -17,6 +17,7 @@ BuildPhp is a develop environment manager for Mac,include php,nginx,apache,msyql
 - Log file immediate view
 - Host manage
 - Common PHP project URL rewriting one-click settings
+- Ease generation of SSL self signed certificate
 
 ## 💽 Installation
 
@@ -58,6 +59,10 @@ npm run build
 ```
 
 After building, the application will be found in the project's release directory.
+
+### Mysql Initial account and password
+
+Mysql Initial account and password is root root, you can use phpmyadmin or other db tool to use it
 
 ## 🛠 Technology Stack
 
