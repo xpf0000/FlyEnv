@@ -52,6 +52,13 @@ class PhpManager extends BaseManager {
     })
   }
 
+  _doInstall (rb) {
+    return new Promise((resolve, reject) => {
+      const child = spawn('brew', ['install', '--verbose', rb], { env: Shell.env })
+      this._childHandle(child, resolve, resolve)
+    })
+  }
+
   _installVersion (version) {
     let rbtmpl = join(global.Server.BrewPhp, `${version}.rb`)
     let brewVersion = version.replace('-', '@')

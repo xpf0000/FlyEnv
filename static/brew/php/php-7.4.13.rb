@@ -1,16 +1,23 @@
-class PhpAT7228 < Formula
+class PhpAT7413 < Formula
   desc "General-purpose scripting language"
   homepage "https://www.php.net/"
   # Should only be updated if the new version is announced on the homepage, https://www.php.net/
-  url "https://www.php.net/distributions/php-7.2.28.tar.xz"
-  sha256 "afe1863301da572dee2e0bad8014813bcced162f980ddc8ec8e41fd72263eb2d"
+  url "https://www.php.net/distributions/php-7.4.13.tar.xz"
+  mirror "https://fossies.org/linux/www/php-7.4.13.tar.xz"
+  sha256 "aead303e3abac23106529560547baebbedba0bb2943b91d5aa08fff1f41680f4"
+  license "PHP-3.01"
+  revision 1
 
   bottle do
     root_url "https://raw.githubusercontent.com/xpf0000/BuildPhp/master/source/php"
-    sha256 "296b186e25c5a7597f15a5b6ec1ab4aa71993bba5d4b49e084f52f735b3a4a2d" => :catalina
+    sha256 "e683a053e962e61766f1ea677f0196aea96c98a45c520a2f367517939105d8a7" => :big_sur
+    sha256 "37d7534ee02ee92f06f7c9a85e452af7e79528a6bbd98cec8a0e98f588c519ba" => :arm64_big_sur
+    sha256 "a1d6d804935b5c38799a8ca11d90219092ee908017f0800608969c0cb5f30f1c" => :catalina
   end
 
   keg_only :versioned_formula
+
+  deprecate! date: "2022-11-28", because: :versioned_formula
 
   depends_on "httpd" => [:build, :test]
   depends_on "pkg-config" => :build
@@ -19,24 +26,25 @@ class PhpAT7228 < Formula
   depends_on "argon2"
   depends_on "aspell"
   depends_on "autoconf"
-  depends_on "curl-openssl"
+  depends_on "curl"
   depends_on "freetds"
-  depends_on "freetype"
+  depends_on "gd"
   depends_on "gettext"
   depends_on "glib"
   depends_on "gmp"
   depends_on "icu4c"
-  depends_on "jpeg"
-  depends_on "libpng"
+  depends_on "krb5"
+  depends_on "libffi"
   depends_on "libpq"
   depends_on "libsodium"
   depends_on "libzip"
+  depends_on "oniguruma"
   depends_on "openldap"
   depends_on "openssl@1.1"
+  depends_on "pcre2"
   depends_on "sqlite"
   depends_on "tidy-html5"
   depends_on "unixodbc"
-  depends_on "webp"
 
   # PHP build system incorrectly links system libraries
   # see https://github.com/php/php-src/pull/3472
@@ -44,15 +52,13 @@ class PhpAT7228 < Formula
 
   def install
     # Ensure that libxml2 will be detected correctly in older MacOS
-    if MacOS.version == :el_capitan || MacOS.version == :sierra
-      ENV["SDKROOT"] = MacOS.sdk_path
-    end
+    ENV["SDKROOT"] = MacOS.sdk_path if MacOS.version == :el_capitan || MacOS.version == :sierra
 
     # buildconf required due to system library linking bug patch
     system "./buildconf", "--force"
 
     inreplace "configure" do |s|
-      s.gsub! "APACHE_THREADED_MPM=`$APXS_HTTPD -V | grep 'threaded:.*yes'`",
+      s.gsub! "APACHE_THREADED_MPM=`$APXS_HTTPD -V 2>/dev/null | grep 'threaded:.*yes'`",
               "APACHE_THREADED_MPM="
       s.gsub! "APXS_LIBEXECDIR='$(INSTALL_ROOT)'`$APXS -q LIBEXECDIR`",
               "APXS_LIBEXECDIR='$(INSTALL_ROOT)#{lib}/httpd/modules'"
@@ -77,15 +83,16 @@ class PhpAT7228 < Formula
 
     inreplace "sapi/fpm/php-fpm.conf.in", ";daemonize = yes", "daemonize = no"
 
-    # Required due to icu4c dependency
-    ENV.cxx11
-
-    config_path = etc/"php/#{php_version}"
+    config_path = etc/"php/#{version.major_minor}"
     # Prevent system pear config from inhibiting pear install
     (config_path/"pear.conf").delete if (config_path/"pear.conf").exist?
 
     # Prevent homebrew from harcoding path to sed shim in phpize script
     ENV["lt_cv_path_SED"] = "sed"
+
+    # system pkg-config missing
+    ENV["SASL_CFLAGS"] = "-I#{MacOS.sdk_path_if_needed}/usr/include/sasl"
+    ENV["SASL_LIBS"] = "-lsasl2"
 
     # Each extension that is built on Mojave needs a direct reference to the
     # sdk path or it won't find the headers
@@ -98,6 +105,7 @@ class PhpAT7228 < Formula
       --with-config-file-path=#{config_path}
       --with-config-file-scan-dir=#{config_path}/conf.d
       --with-pear=#{pkgshare}/pear
+      --with-os-sdkpath=#{MacOS.sdk_path_if_needed}
       --enable-bcmath
       --enable-calendar
       --enable-dba
@@ -105,13 +113,14 @@ class PhpAT7228 < Formula
       --enable-exif
       --enable-ftp
       --enable-fpm
+      --enable-gd
       --enable-intl
       --enable-mbregex
       --enable-mbstring
       --enable-mysqlnd
-      --enable-opcache-file
       --enable-pcntl
       --enable-phpdbg
+      --enable-phpdbg-readline
       --enable-phpdbg-webhelper
       --enable-shmop
       --enable-soap
@@ -119,50 +128,45 @@ class PhpAT7228 < Formula
       --enable-sysvmsg
       --enable-sysvsem
       --enable-sysvshm
-      --enable-wddx
-      --enable-zip
       --with-apxs2=#{Formula["httpd"].opt_bin}/apxs
       --with-bz2#{headers_path}
-      --with-curl=#{Formula["curl-openssl"].opt_prefix}
+      --with-curl
+      --with-external-gd
+      --with-external-pcre
+      --with-ffi
       --with-fpm-user=_www
       --with-fpm-group=_www
-      --with-freetype-dir=#{Formula["freetype"].opt_prefix}
-      --with-gd
       --with-gettext=#{Formula["gettext"].opt_prefix}
       --with-gmp=#{Formula["gmp"].opt_prefix}
       --with-iconv#{headers_path}
-      --with-icu-dir=#{Formula["icu4c"].opt_prefix}
-      --with-jpeg-dir=#{Formula["jpeg"].opt_prefix}
-      --with-kerberos#{headers_path}
+      --with-kerberos
       --with-layout=GNU
       --with-ldap=#{Formula["openldap"].opt_prefix}
-      --with-ldap-sasl#{headers_path}
-      --with-libxml-dir#{headers_path}
-      --with-libedit#{headers_path}
-      --with-libzip
+      --with-ldap-sasl
+      --with-libxml
+      --with-libedit
       --with-mhash#{headers_path}
       --with-mysql-sock=/tmp/mysql.sock
       --with-mysqli=mysqlnd
       --with-ndbm#{headers_path}
-      --with-openssl=#{Formula["openssl@1.1"].opt_prefix}
+      --with-openssl
       --with-password-argon2=#{Formula["argon2"].opt_prefix}
       --with-pdo-dblib=#{Formula["freetds"].opt_prefix}
       --with-pdo-mysql=mysqlnd
       --with-pdo-odbc=unixODBC,#{Formula["unixodbc"].opt_prefix}
       --with-pdo-pgsql=#{Formula["libpq"].opt_prefix}
-      --with-pdo-sqlite=#{Formula["sqlite"].opt_prefix}
+      --with-pdo-sqlite
       --with-pgsql=#{Formula["libpq"].opt_prefix}
       --with-pic
-      --with-png-dir=#{Formula["libpng"].opt_prefix}
       --with-pspell=#{Formula["aspell"].opt_prefix}
-      --with-sodium=#{Formula["libsodium"].opt_prefix}
-      --with-sqlite3=#{Formula["sqlite"].opt_prefix}
+      --with-sodium
+      --with-sqlite3
       --with-tidy=#{Formula["tidy-html5"].opt_prefix}
-      --with-unixODBC=#{Formula["unixodbc"].opt_prefix}
-      --with-webp-dir=#{Formula["webp"].opt_prefix}
+      --with-unixODBC
       --with-xmlrpc
-      --with-xsl#{headers_path}
-      --with-zlib#{headers_path}
+      --with-xsl
+      --with-zip
+      --with-zlib
     ]
 
     system "./configure", *args
@@ -170,17 +174,18 @@ class PhpAT7228 < Formula
     system "make", "install"
 
     # Allow pecl to install outside of Cellar
-    extension_dir = Utils.popen_read("#{bin}/php-config --extension-dir").chomp
+    extension_dir = Utils.safe_popen_read("#{bin}/php-config", "--extension-dir").chomp
     orig_ext_dir = File.basename(extension_dir)
     inreplace bin/"php-config", lib/"php", prefix/"pecl"
     inreplace "php.ini-development", %r{; ?extension_dir = "\./"},
       "extension_dir = \"#{HOMEBREW_PREFIX}/lib/php/pecl/#{orig_ext_dir}\""
 
     # Use OpenSSL cert bundle
+    openssl = Formula["openssl@1.1"]
     inreplace "php.ini-development", /; ?openssl\.cafile=/,
-      "openssl.cafile = \"#{etc}/openssl@1.1/cert.pem\""
+      "openssl.cafile = \"#{openssl.pkgetc}/cert.pem\""
     inreplace "php.ini-development", /; ?openssl\.capath=/,
-      "openssl.capath = \"#{etc}/openssl@1.1/certs\""
+      "openssl.capath = \"#{openssl.pkgetc}/certs\""
 
     config_files = {
       "php.ini-development"   => "php.ini",
@@ -221,15 +226,15 @@ class PhpAT7228 < Formula
     # Custom location for extensions installed via pecl
     pecl_path = HOMEBREW_PREFIX/"lib/php/pecl"
     ln_s pecl_path, prefix/"pecl" unless (prefix/"pecl").exist?
-    extension_dir = Utils.popen_read("#{bin}/php-config --extension-dir").chomp
+    extension_dir = Utils.safe_popen_read("#{bin}/php-config", "--extension-dir").chomp
     php_basename = File.basename(extension_dir)
     php_ext_dir = opt_prefix/"lib/php"/php_basename
 
     # fix pear config to install outside cellar
-    pear_path = HOMEBREW_PREFIX/"share/pear@#{php_version}"
+    pear_path = HOMEBREW_PREFIX/"share/pear@#{version.major_minor}"
     cp_r pkgshare/"pear/.", pear_path
     {
-      "php_ini"  => etc/"php/#{php_version}/php.ini",
+      "php_ini"  => etc/"php/#{version.major_minor}/php.ini",
       "php_dir"  => pear_path,
       "doc_dir"  => pear_path/"doc",
       "ext_dir"  => pecl_path/php_basename,
@@ -250,7 +255,7 @@ class PhpAT7228 < Formula
     %w[
       opcache
     ].each do |e|
-      ext_config_path = etc/"php/#{php_version}/conf.d/ext-#{e}.ini"
+      ext_config_path = etc/"php/#{version.major_minor}/conf.d/ext-#{e}.ini"
       extension_type = (e == "opcache") ? "zend_extension" : "extension"
       if ext_config_path.exist?
         inreplace ext_config_path,
@@ -277,39 +282,36 @@ class PhpAT7228 < Formula
           DirectoryIndex index.php index.html
 
       The php.ini and php-fpm.ini file can be found in:
-          #{etc}/php/#{php_version}/
+          #{etc}/php/#{version.major_minor}/
     EOS
   end
 
-  def php_version
-    version.to_s.split(".")[0..1].join(".")
-  end
+  plist_options manual: "php-fpm"
 
-  plist_options :manual => "php-fpm"
-
-  def plist; <<~EOS
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-      <dict>
-        <key>KeepAlive</key>
-        <true/>
-        <key>Label</key>
-        <string>#{plist_name}</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>#{opt_sbin}/php-fpm</string>
-          <string>--nodaemonize</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-        <key>WorkingDirectory</key>
-        <string>#{var}</string>
-        <key>StandardErrorPath</key>
-        <string>#{var}/log/php-fpm.log</string>
-      </dict>
-    </plist>
-  EOS
+  def plist
+    <<~EOS
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+        <dict>
+          <key>KeepAlive</key>
+          <true/>
+          <key>Label</key>
+          <string>#{plist_name}</string>
+          <key>ProgramArguments</key>
+          <array>
+            <string>#{opt_sbin}/php-fpm</string>
+            <string>--nodaemonize</string>
+          </array>
+          <key>RunAtLoad</key>
+          <true/>
+          <key>WorkingDirectory</key>
+          <string>#{var}</string>
+          <key>StandardErrorPath</key>
+          <string>#{var}/log/php-fpm.log</string>
+        </dict>
+      </plist>
+    EOS
   end
 
   test do
@@ -326,14 +328,8 @@ class PhpAT7228 < Formula
     assert_no_match /^snmp$/, shell_output("#{bin}/php -m"),
       "SNMP extension doesn't work reliably with Homebrew on High Sierra"
     begin
-      require "socket"
-
-      server = TCPServer.new(0)
-      port = server.addr[1]
-      server_fpm = TCPServer.new(0)
-      port_fpm = server_fpm.addr[1]
-      server.close
-      server_fpm.close
+      port = free_port
+      port_fpm = free_port
 
       expected_output = /^Hello world!$/
       (testpath/"index.php").write <<~EOS
@@ -354,10 +350,16 @@ class PhpAT7228 < Formula
         DirectoryIndex index.php
       EOS
 
+      php_module = if head?
+        "LoadModule php_module #{lib}/httpd/modules/libphp.so"
+      else
+        "LoadModule php7_module #{lib}/httpd/modules/libphp7.so"
+      end
+
       (testpath/"httpd.conf").write <<~EOS
         #{main_config}
         LoadModule mpm_prefork_module lib/httpd/modules/mod_mpm_prefork.so
-        LoadModule php7_module #{lib}/httpd/modules/libphp7.so
+        #{php_module}
         <FilesMatch \\.(php|phar)$>
           SetHandler application/x-httpd-php
         </FilesMatch>
@@ -418,65 +420,44 @@ class PhpAT7228 < Formula
 end
 
 __END__
-diff --git a/acinclude.m4 b/acinclude.m4
-index 168c465f8d..6c087d152f 100644
---- a/acinclude.m4
-+++ b/acinclude.m4
-@@ -441,7 +441,11 @@ dnl
- dnl Adds a path to linkpath/runpath (LDFLAGS)
+diff --git a/build/php.m4 b/build/php.m4
+index 3624a33a8e..d17a635c2c 100644
+--- a/build/php.m4
++++ b/build/php.m4
+@@ -425,7 +425,7 @@ dnl
+ dnl Adds a path to linkpath/runpath (LDFLAGS).
  dnl
  AC_DEFUN([PHP_ADD_LIBPATH],[
 -  if test "$1" != "/usr/$PHP_LIBDIR" && test "$1" != "/usr/lib"; then
-+  case "$1" in
-+  "/usr/$PHP_LIBDIR"|"/usr/lib"[)] ;;
-+  /Library/Developer/CommandLineTools/SDKs/*/usr/lib[)] ;;
-+  /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/*/usr/lib[)] ;;
-+  *[)]
++  if test "$1" != "$PHP_OS_SDKPATH/usr/$PHP_LIBDIR" && test "$1" != "/usr/lib"; then
      PHP_EXPAND_PATH($1, ai_p)
      ifelse([$2],,[
        _PHP_ADD_LIBPATH_GLOBAL([$ai_p])
-@@ -452,8 +456,8 @@ AC_DEFUN([PHP_ADD_LIBPATH],[
-       else
-         _PHP_ADD_LIBPATH_GLOBAL([$ai_p])
-       fi
--    ])
--  fi
-+    ]) ;;
-+  esac
- ])
-
- dnl
-@@ -487,7 +491,11 @@ dnl add an include path.
- dnl if before is 1, add in the beginning of INCLUDES.
+@@ -470,7 +470,7 @@ dnl
+ dnl Add an include path. If before is 1, add in the beginning of INCLUDES.
  dnl
  AC_DEFUN([PHP_ADD_INCLUDE],[
 -  if test "$1" != "/usr/include"; then
-+  case "$1" in
-+  "/usr/include"[)] ;;
-+  /Library/Developer/CommandLineTools/SDKs/*/usr/include[)] ;;
-+  /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/*/usr/include[)] ;;
-+  *[)]
++  if test "$1" != "$PHP_OS_SDKPATH/usr/include"; then
      PHP_EXPAND_PATH($1, ai_p)
      PHP_RUN_ONCE(INCLUDEPATH, $ai_p, [
        if test "$2"; then
-@@ -495,8 +503,8 @@ AC_DEFUN([PHP_ADD_INCLUDE],[
-       else
-         INCLUDES="$INCLUDES -I$ai_p"
-       fi
--    ])
--  fi
-+    ]) ;;
-+  esac
- ])
+diff --git a/configure.ac b/configure.ac
+index 36c6e5e3e2..71b1a16607 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -190,6 +190,14 @@ PHP_ARG_WITH([libdir],
+   [lib],
+   [no])
 
- dnl internal, don't use
-@@ -2411,7 +2419,8 @@ AC_DEFUN([PHP_SETUP_ICONV], [
-     fi
-
-     if test -f $ICONV_DIR/$PHP_LIBDIR/lib$iconv_lib_name.a ||
--       test -f $ICONV_DIR/$PHP_LIBDIR/lib$iconv_lib_name.$SHLIB_SUFFIX_NAME
-+       test -f $ICONV_DIR/$PHP_LIBDIR/lib$iconv_lib_name.$SHLIB_SUFFIX_NAME ||
-+       test -f $ICONV_DIR/$PHP_LIBDIR/lib$iconv_lib_name.tbd
-     then
-       PHP_CHECK_LIBRARY($iconv_lib_name, libiconv, [
-         found_iconv=yes
++dnl Support systems with system libraries/includes in e.g. /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk.
++PHP_ARG_WITH([os-sdkpath],
++  [for system SDK directory],
++  [AS_HELP_STRING([--with-os-sdkpath=NAME],
++    [Ignore system libraries and includes in NAME rather than /])],
++  [],
++  [no])
++
+ PHP_ARG_ENABLE([rpath],
+   [whether to enable runpaths],
+   [AS_HELP_STRING([--disable-rpath],
