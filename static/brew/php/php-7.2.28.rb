@@ -7,7 +7,7 @@ class PhpAT7228 < Formula
 
   bottle do
     root_url "https://raw.githubusercontent.com/xpf0000/BuildPhp/master/source/php"
-    sha256 "296b186e25c5a7597f15a5b6ec1ab4aa71993bba5d4b49e084f52f735b3a4a2d" => :catalina
+    sha256 "c081e5bddedbadf806f39e0f6482881d1a070d796c1ccd1adfa0a3dfec5d9651" => :catalina
   end
 
   keg_only :versioned_formula

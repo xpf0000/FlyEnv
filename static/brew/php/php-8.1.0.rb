@@ -8,10 +8,9 @@ class PhpAT810 < Formula
 
   bottle do
     root_url "https://raw.githubusercontent.com/xpf0000/BuildPhp/master/source/php"
-    rebuild 101
-    sha256 "fd3b4835bb1ceb00511a4b069e618bc690afb81d4b5e57cb4c30fa7eb7abd392" => :big_sur
-    sha256 "2c6c59250e47b2bfbeaa9064af87289c6a307614597077565e21a34b9fb98163" => :arm64_big_sur
-    sha256 "14c424592c3d4eefb42c7c8e70f24f34b16aecb252e48550b44f9b50b4f918c4" => :catalina
+    sha256 "f4d75737cbccc388d43ab6f64341dfbfebe9f68287e16ef851831de1419101ef" => :big_sur
+    sha256 "fa3bc5daae87738c9b7e0167629b50bc14f706b4e4011442e2e7a09645718447" => :arm64_big_sur
+    sha256 "45d41aa2464b12e71b44cd434ff06ed1d4c54f7c1e15d4074075a4d65bbd9a73" => :catalina
   end
 
   keg_only :versioned_formula

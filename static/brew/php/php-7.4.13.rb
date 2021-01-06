@@ -6,13 +6,12 @@ class PhpAT7413 < Formula
   mirror "https://fossies.org/linux/www/php-7.4.13.tar.xz"
   sha256 "aead303e3abac23106529560547baebbedba0bb2943b91d5aa08fff1f41680f4"
   license "PHP-3.01"
-  revision 1
 
   bottle do
     root_url "https://raw.githubusercontent.com/xpf0000/BuildPhp/master/source/php"
-    sha256 "e683a053e962e61766f1ea677f0196aea96c98a45c520a2f367517939105d8a7" => :big_sur
-    sha256 "37d7534ee02ee92f06f7c9a85e452af7e79528a6bbd98cec8a0e98f588c519ba" => :arm64_big_sur
-    sha256 "a1d6d804935b5c38799a8ca11d90219092ee908017f0800608969c0cb5f30f1c" => :catalina
+    sha256 "0be538984e4ec3cfbeb7ebb04597e7e695976b7536530562060ca3e59dc54891" => :big_sur
+    sha256 "578df8acfbaee384d8d60cd39a671aea411360bbda99ae4c99d9846bb14b15ef" => :arm64_big_sur
+    sha256 "4b4b72b26519e8d6fc568473c9769ee3d53d01e0ebd9f255249d1451d8a2bdbf" => :catalina
   end
 
   keg_only :versioned_formula

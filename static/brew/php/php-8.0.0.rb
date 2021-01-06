@@ -6,15 +6,13 @@ class PhpAT800 < Formula
   mirror "https://fossies.org/linux/www/php-8.0.0.tar.xz"
   sha256 "b5278b3eef584f0c075d15666da4e952fa3859ee509d6b0cc2ed13df13f65ebb"
   license "PHP-3.01"
-  revision 1
   version "8.0.0"
 
   bottle do
     root_url "https://raw.githubusercontent.com/xpf0000/BuildPhp/master/source/php"
-    rebuild 1
-    sha256 "4fdc201df6c33abe8b222e3f0a6c63b1b969c86301745d330343a879cb0612ce" => :big_sur
-    sha256 "e3a18c8bd2e468394408751733a8d3a6ef72981aae24052f5368ade917aef37c" => :arm64_big_sur
-    sha256 "123b98628b8b0f0efd63b685ca22e584220a1c3b1d4ac7f60643e65b1fb0256e" => :catalina
+    sha256 "094a6693c5d9cd4349d64f5b48cbce1e810be9affecb6ed19bf52b0247f9f05f" => :big_sur
+    sha256 "fa41631f82590296f41179ce87a43b839df98d3a72a87543d817525baf7c3325" => :arm64_big_sur
+    sha256 "34f1560d24dbeec38f23fc607db356a051dc57460fbe4705a39c1f35e83c280a" => :catalina
   end
 
   head do

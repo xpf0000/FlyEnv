@@ -7,7 +7,6 @@ class PhpAT5640 < Formula
 
   bottle do
     root_url "https://raw.githubusercontent.com/xpf0000/BuildPhp/master/source/php"
-    rebuild 6
     sha256 "afe91a60883d7b4c554d9b416a624aa27a6d7b15e7fb94d6d67ab68d21635ae4" => :big_sur
     sha256 "8941ee59d6d830b20e657825c22ae5aca9224efbca460cad9ed8101ec4077360" => :arm64_big_sur
     sha256 "047ddd6ca7e8d3f8cef84f10f7fbbe555204d0514535bff90fc69ad6929862b0" => :catalina
