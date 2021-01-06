@@ -5,6 +5,10 @@
         <mo-icon name="sslmake" width="30" height="30" />
         <span>SSL Make</span>
       </li>
+      <li @click="showPage('fileinfo')">
+        <mo-icon name="fileinfo" width="30" height="30" />
+        <span>File Info</span>
+      </li>
     </ul>
     <el-drawer
       size="60%"
@@ -22,9 +26,11 @@
 
 <script>
   import '@/components/Icons/sslmake'
+  import '@/components/Icons/fileinfo'
   import SSLMake from './SSLMake'
+  import FileInfo from './FileInfo'
   export default {
-    components: { SSLMake },
+    components: {},
     data () {
       return {
         show: false,
@@ -38,6 +44,9 @@
         switch (flag) {
           case 'sslmake':
             this.component = SSLMake
+            break
+          case 'fileinfo':
+            this.component = FileInfo
             break
         }
       },
@@ -70,6 +79,7 @@
       padding-top: 5px;
       cursor: pointer;
       transition: all 0.25s;
+      user-select: none;
 
       &:hover {
         transform: scale(1.1);

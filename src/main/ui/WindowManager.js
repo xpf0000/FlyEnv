@@ -94,6 +94,18 @@ export default class WindowManager extends EventEmitter {
       shell.openExternal(url)
     })
 
+    let contents = window.webContents
+    const localShortcut = require('electron-localshortcut')
+    localShortcut.register(window, 'CommandOrControl+A', () => {
+      contents.selectAll()
+    })
+    localShortcut.register(window, 'CommandOrControl+C', () => {
+      contents.copy()
+    })
+    localShortcut.register(window, 'CommandOrControl+V', () => {
+      contents.paste()
+    })
+
     if (pageOptions.url) {
       window.loadURL(pageOptions.url)
     }

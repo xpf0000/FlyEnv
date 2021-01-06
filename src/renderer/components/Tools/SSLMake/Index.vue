@@ -194,6 +194,7 @@ subjectAltName=@alt_names
       padding: 0 20px;
       background: #282b3d;
       .left{
+        cursor: pointer;
         display: flex;
         align-items: center;
         padding: 6px 0;
