@@ -10,7 +10,7 @@ class PhpAT7133 < Formula
     rebuild 5
     sha256 "5bf53470d0d1992beaaaebb02e6738fcdc762b4645c44c7d234917e57170d57d" => :big_sur
     sha256 "dbd2baae953191d48e78331d016c95101ecbf1c5cf6f197cdf3e9761bbef03f4" => :arm64_big_sur
-    sha256 "722d4317dffe9f481cee228e4bee572a1e4927b3cbd859c4c49a59bf14b151fe" => :catalina
+    sha256 "aed3e86db041717719374335dfb9a3981aba59d81c457420d84d064b59082d4e" => :catalina
   end
 
   keg_only :versioned_formula

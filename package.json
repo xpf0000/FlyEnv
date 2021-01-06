@@ -86,7 +86,7 @@
   "dependencies": {
     "@panter/vue-i18next": "^0.15.1",
     "assign-deep": "^1.0.1",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "blob-util": "^2.0.2",
     "child-process-promise": "^2.2.1",
     "clipboard-polyfill": "^2.8.1",
