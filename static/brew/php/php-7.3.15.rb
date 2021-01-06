@@ -6,7 +6,7 @@ class PhpAT7315 < Formula
   sha256 "de7ae7cf3d1dbb2824975b26b32991dac2b732886ec22075b8c53b261b018166"
 
   bottle do
-    root_url "https://raw.githubusercontent.com/xpf0000/DevSource/master/php"
+    root_url "https://source.xpfme.com/php"
     sha256 "a99e3ed594f33631202e7c13e90d39c844a160f17ef1cbc85fa245de28b2d87b" => :catalina
   end
 

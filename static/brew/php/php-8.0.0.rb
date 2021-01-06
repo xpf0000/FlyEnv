@@ -9,7 +9,7 @@ class PhpAT800 < Formula
   version "8.0.0"
 
   bottle do
-    root_url "https://raw.githubusercontent.com/xpf0000/DevSource/master/php"
+    root_url "https://source.xpfme.com/php"
     sha256 "094a6693c5d9cd4349d64f5b48cbce1e810be9affecb6ed19bf52b0247f9f05f" => :big_sur
     sha256 "fa41631f82590296f41179ce87a43b839df98d3a72a87543d817525baf7c3325" => :arm64_big_sur
     sha256 "34f1560d24dbeec38f23fc607db356a051dc57460fbe4705a39c1f35e83c280a" => :catalina
