@@ -126,7 +126,7 @@ class PhpManager extends BaseManager {
             return
           }
           let subv = version.replace('php-', '').split('.')
-          Utils.downFile(`https://raw.githubusercontent.com/xpf0000/BuildPhp/master/source/ioncube/ioncube_loader_dar_${subv[0]}.${subv[1]}.so`, join(extendsDir, 'ioncube.so')).then(res => {
+          Utils.downFile(`https://raw.githubusercontent.com/xpf0000/DevSource/master/ioncube/ioncube_loader_dar_${subv[0]}.${subv[1]}.so`, join(extendsDir, 'ioncube.so')).then(res => {
             resolve(true)
           }).catch(err => {
             reject(err)

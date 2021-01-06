@@ -6,7 +6,7 @@ class PhpAT7133 < Formula
   license "PHP-3.01"
 
   bottle do
-    root_url "https://raw.githubusercontent.com/xpf0000/BuildPhp/master/source/php"
+    root_url "https://raw.githubusercontent.com/xpf0000/DevSource/master/php"
     sha256 "4e440722f8a80853fd2c804db06066d0ebf337c711f3740bcb960ef1f16ac6a4" => :big_sur
     sha256 "70b800e57324148d3b1431dfde3a4a1f71694c0efd13c265cc7f6db202d248c8" => :arm64_big_sur
     sha256 "aed3e86db041717719374335dfb9a3981aba59d81c457420d84d064b59082d4e" => :catalina
