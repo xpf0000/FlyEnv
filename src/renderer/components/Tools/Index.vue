@@ -11,7 +11,7 @@
       </li>
     </ul>
     <el-drawer
-      size="60%"
+      size="65%"
       title="我是标题"
       :visible.sync="show"
       :wrapperClosable="false"

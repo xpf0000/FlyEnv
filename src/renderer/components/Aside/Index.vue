@@ -115,6 +115,15 @@
           </el-switch>
         </li>
 
+        <li @click="nav('/node',$event)" :class="'non-draggable' + (currentPage === '/node' ? ' active' : '')">
+          <div class="left">
+            <div class="icon-block">
+              <mo-icon name="nodejs" width="28" height="28" />
+            </div>
+            <span class="title">NodeJS</span>
+          </div>
+        </li>
+
         <li @click="nav('/tools',$event)" :class="'non-draggable' + (currentPage === '/tools' ? ' active' : '')">
           <div class="left">
             <div class="icon-block">
@@ -143,6 +152,7 @@
   import '@/components/Icons/memcached'
   import '@/components/Icons/redis'
   import '@/components/Icons/tool'
+  import '@/components/Icons/nodejs'
   import { hasClass } from '@shared/utils'
   export default {
     name: 'mo-aside',

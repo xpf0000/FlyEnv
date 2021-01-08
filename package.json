@@ -1,6 +1,6 @@
 {
   "name": "BuildPhp",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "PHP and Web develop environment manager for Mac",
   "homepage": "https://phpstudy.xpfme.com",
   "author": {
@@ -99,11 +99,8 @@
     "forever-monitor": "^2.0.0",
     "i18next": "^19.1.0",
     "lodash": "^4.17.19",
-    "log4js": "^6.1.2",
     "moment": "^2.29.1",
     "normalize.css": "^8.0.1",
-    "parse-torrent": "^7.0.1",
-    "randomatic": "^3.1.1",
     "shelljs": "^0.8.3",
     "svg-innerhtml": "^1.1.0",
     "vue": "^2.6.10",

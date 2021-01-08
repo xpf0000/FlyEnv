@@ -55,6 +55,12 @@ export default new Router({
           props: true
         },
         {
+          path: '/node',
+          alias: '/',
+          component: require('@/components/Nodejs/Index').default,
+          props: true
+        },
+        {
           path: '/tools',
           alias: '/',
           component: require('@/components/Tools/Index').default,

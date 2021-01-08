@@ -149,16 +149,22 @@ export default {
         console.log(res)
         this.info.md5 = res.stdout.split(' = ')[1]
         console.log(this.info.md5)
+      }).catch(() => {
+        this.info.md5 = ''
       })
       exec(`shasum -a 1 ${this.path}`).then(res => {
         console.log(res)
         this.info.sha1 = res.stdout.split(' ')[0]
         console.log(this.info.sha1)
+      }).catch(() => {
+        this.info.sha1 = ''
       })
       exec(`shasum -a 256 ${this.path}`).then(res => {
         console.log(res)
         this.info.sha256 = res.stdout.split(' ')[0]
         console.log(this.info.sha256)
+      }).catch(() => {
+        this.info.sha256 = ''
       })
       this.$nextTick(() => {
         let container = this.$el.querySelector('.main-wapper')
