@@ -3,6 +3,7 @@
   <div class="php-config">
     <el-input class="block" type="textarea" v-model="config"></el-input>
     <div class="tool">
+      <el-button @click="openConfig" >打开</el-button>
       <el-button @click="saveConfig" >保存</el-button>
       <el-button @click="getDefault" >加载默认</el-button>
     </div>
@@ -30,15 +31,16 @@
     watch: {
     },
     methods: {
+      openConfig () {
+        this.$electron.remote.shell.showItemInFolder(this.configpath)
+      },
       saveConfig () {
-        let configpath = join(global.Server.PhpDir, 'common/conf/php.ini')
-        FileUtil.writeFileAsync(configpath, this.config).then(conf => {
+        FileUtil.writeFileAsync(this.configpath, this.config).then(conf => {
           this.$message.success('配置文件保存成功')
         })
       },
       getConfig () {
-        let configpath = join(global.Server.PhpDir, 'common/conf/php.ini')
-        FileUtil.readFileAsync(configpath).then(conf => {
+        FileUtil.readFileAsync(this.configpath).then(conf => {
           this.config = conf
         })
       },
@@ -54,6 +56,7 @@
       }
     },
     created: function () {
+      this.configpath = join(global.Server.PhpDir, 'common/conf/php.ini')
       this.getConfig()
     }
   }

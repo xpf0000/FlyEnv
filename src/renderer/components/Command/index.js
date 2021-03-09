@@ -27,6 +27,11 @@ function taskResult (r) {
   store.dispatch('task/result', r)
 }
 
+function taskCallBack (data) {
+  console.log(data)
+  commands.$EveBus.$emit(`${data.module}-${data.action}`, data.res)
+}
+
 function taskEnd () {
   console.log('taskEnd !!!!!!!!!')
   store.dispatch('task/end')
@@ -166,6 +171,7 @@ commands.register('application:theme', updateTheme)
 commands.register('application:task-log', reciveTaskLog)
 commands.register('application:task-end', taskEnd)
 commands.register('application:task-result', taskResult)
+commands.register('application:task-callback', taskCallBack)
 
 commands.register('application:task-apache-log', reciveTaskLogApache)
 commands.register('application:task-apache-end', taskEndApache)

@@ -64,6 +64,26 @@ After building, the application will be found in the project's release directory
 
 Mysql Initial account and password is root root, you can use phpmyadmin or other db tool to use it
 
+### PHP Extensions
+
+now one click installation include ionCube memcache memcached redis swoole
+
+Feedback will be collected and added to one click installation
+
+If it is not added to one click installation, use the following method to install and replace it with your own PHP version
+
+```bash
+CD extension directory
+
+/usr/local/Cellar/ php@7.2.34/7.2.34/bin/phpize
+
+./configure --with-php-config=/usr/local/Cellar/ php@7.2.34/7.2.34/bin/php-config
+
+make
+
+make install
+```
+
 ## 🛠 Technology Stack
 
 - [Electron](https://electronjs.org/)

@@ -3,6 +3,7 @@
   <div class="apache-config">
     <el-input class="block" type="textarea" v-model="config"></el-input>
     <div class="tool">
+      <el-button @click="openConfig" >打开</el-button>
       <el-button :disabled="!version" @click="saveConfig" >保存</el-button>
       <el-button :disabled="!version" @click="getDefault" >加载默认</el-button>
     </div>
@@ -34,21 +35,22 @@
     watch: {
     },
     methods: {
+      openConfig () {
+        this.$electron.remote.shell.showItemInFolder(this.configpath)
+      },
       _versionPath () {
         let brewVersion = this.version.replace('-', '@')
         let subVersion = brewVersion.replace('apache@', '')
         return join(global.Server.BrewCellar, brewVersion, subVersion)
       },
       saveConfig () {
-        let configpath = join(this._versionPath(), 'conf/httpd.conf')
-        FileUtil.writeFileAsync(configpath, this.config).then(conf => {
+        FileUtil.writeFileAsync(this.configpath, this.config).then(conf => {
           this.$message.success('配置文件保存成功!')
         })
       },
       getConfig () {
         if (this.version) {
-          let configpath = join(this._versionPath(), 'conf/httpd.conf')
-          FileUtil.readFileAsync(configpath).then(conf => {
+          FileUtil.readFileAsync(this.configpath).then(conf => {
             this.config = conf
           })
         } else {
@@ -67,6 +69,7 @@
       }
     },
     created: function () {
+      this.configpath = join(this._versionPath(), 'conf/httpd.conf')
       this.getConfig()
     }
   }

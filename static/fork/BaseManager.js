@@ -277,6 +277,7 @@ class BaseManager {
       }
     })
     child.stderr.on('data', err => {
+      console.log('err: ', err.toString())
       let str = err.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
       stderr += str
       if (str.endsWith('<br/>') || str.endsWith('%')) {

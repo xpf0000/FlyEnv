@@ -1,3 +1,4 @@
+import { basename } from "path"
 <template>
   <div class="php-extends">
   <el-table
@@ -39,7 +40,7 @@
   import { mapState } from 'vuex'
   import '@/components/Icons/task-start.js'
   import '@/components/Icons/task-stop.js'
-  import { join } from 'path'
+  import { join, basename } from 'path'
   import FileUtil from '@shared/FileUtil'
   import { execAsync } from '@shared/utils'
   export default {
@@ -78,6 +79,14 @@
           status: false,
           soname: 'redis.so',
           inistr: '[redis]\nextension=redis.so'
+        }, {
+          name: 'swoole',
+          type: '网络通信',
+          info: '异步、并行、高性能网络通信引擎',
+          installed: false,
+          status: false,
+          soname: 'swoole.so',
+          inistr: '[swoole]\nextension=swoole.so'
         }],
         iniPath: '',
         abc: '',
@@ -120,12 +129,13 @@
           let brewVersion = this.version.replace('-', '@')
           let subVersion = brewVersion.replace('php@', '')
           let vpath = join(global.Server.BrewCellar, brewVersion, subVersion)
+          console.log('vpath: ', vpath)
           let pkconfig = join(vpath, 'bin/php-config')
           let extdir = execAsync(pkconfig, ['--extension-dir'])
           let self = this
           Promise.all([extdir, config]).then(res => {
             console.log('res: ', res)
-            self.extensionDir = res[0]
+            self.extensionDir = join(vpath, 'lib/php', basename(res[0]))
             let all = FileUtil.getAllFile(self.extensionDir, false)
             all = all.filter(s => { return s.indexOf('.so') >= 0 })
             console.log('all: ', all)
@@ -149,14 +159,17 @@
           case 'ioncube':
             this.tableData[0].status = info.status
             break
-          case 'redis':
-            this.tableData[3].status = info.status
-            break
           case 'memcache':
             this.tableData[1].status = info.status
             break
           case 'memcached':
             this.tableData[2].status = info.status
+            break
+          case 'redis':
+            this.tableData[3].status = info.status
+            break
+          case 'swoole':
+            this.tableData[4].status = info.status
             break
         }
       })

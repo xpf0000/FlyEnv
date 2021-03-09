@@ -25,7 +25,7 @@
       <el-button :loading="current_task === 'reload'" :disabled="isRunning || !version || !serverRunning" class="ml-30" @click="serviceDo('reload')" >重载配置</el-button>
     </div>
 
-    <ul class="logs mt-20">
+    <ul class="logs mt-20" ref="logs">
       <li class="mb-5" v-for="log in logs" v-html="log"></li>
     </ul>
 
@@ -63,9 +63,20 @@
         if (!nv) {
           this.current_task = ''
         }
+      },
+      logs () {
+        this.$nextTick(() => {
+          this.logScroll()
+        })
       }
     },
     methods: {
+      logScroll () {
+        let container = this.$refs.logs
+        if (container) {
+          container.scrollTop = container.scrollHeight
+        }
+      },
       serviceDo (flag) {
         this.current_task = flag
         this.$store.dispatch('php/start', { type: 'php-service', v: this.version })
@@ -89,6 +100,11 @@
       if (!this.$store.state.php.taskRunning) {
         this.$store.dispatch('php/cleanLog')
       }
+    },
+    mounted () {
+      this.$nextTick(() => {
+        this.logScroll()
+      })
     }
   }
 </script>

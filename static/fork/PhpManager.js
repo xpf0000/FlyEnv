@@ -30,6 +30,7 @@ class PhpManager extends BaseManager {
       process.send({ command: 'application:task-php-result', info: 'SUCCESS' })
       process.send({ command: 'application:task-php-end', info: 0 })
     }).catch(err => {
+      console.log('err: ', err)
       process.send({ command: 'application:task-php-log', info: `${err}<br/>` })
       process.send({ command: 'application:task-php-result', info: 'FAIL' })
       process.send({ command: 'application:task-php-end', info: 1 })
@@ -201,6 +202,39 @@ class PhpManager extends BaseManager {
             reject(err)
           })
           break
+        case 'swoole':
+          if (existsSync(join(extendsDir, 'swoole.so'))) {
+            resolve(true)
+            return
+          }
+          sh = join(global.Server.Static, 'sh/php-swoole.sh')
+          copyfile = join(global.Server.Cache, 'php-swoole.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          Utils.readFileAsync(sh).then(content => {
+            return Utils.writeFileAsync(copyfile, content)
+          }).then(res => {
+            Utils.chmod(copyfile, '0777')
+            let extendv = ''
+            if (version.indexOf('php-5.3.') >= 0 || version.indexOf('php-5.4.') >= 0) {
+              extendv = '1.10.5'
+            } else if (version.indexOf('php-5.5.') >= 0 || version.indexOf('php-5.6.') >= 0) {
+              extendv = '2.2.0'
+            } else if (version.indexOf('php-7.0.') >= 0 || version.indexOf('php-7.1.') >= 0) {
+              extendv = '4.5.11'
+            } else {
+              extendv = '4.6.3'
+            }
+            let phpv = version.replace('php-', '')
+            console.log([copyfile, global.Server.Cache, phpv, extendv])
+            const child = spawn('bash', [copyfile, global.Server.Cache, phpv, extendv], { env: Shell.env })
+            this._childHandle(child, resolve, reject)
+          }).catch(err => {
+            console.log('err: ', err)
+            reject(err)
+          })
+          break
       }
     })
   }
@@ -221,6 +255,9 @@ class PhpManager extends BaseManager {
             break
           case 'memcached':
             str = '[memcached]\nextension=memcached.so'
+            break
+          case 'swoole':
+            str = '[swoole]\nextension=swoole.so'
             break
         }
         if (add) {

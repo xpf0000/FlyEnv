@@ -73,6 +73,23 @@ npm run build
 
 Mysql初始账号密码是root root, 可以使用phpmyadmin或其他db工具使用
 
+### PHP扩展
+
+当前一键安装包括: ionCube memcache memcached redis swoole
+
+这边会收集反馈, 添加到一键安装里
+
+未添加到一键安装里的 使用如下方法安装 替换成自己的PHP版本
+
+```bash
+cd 扩展目录
+/usr/local/Cellar/php@7.2.34/7.2.34/bin/phpize
+./configure --with-php-config=/usr/local/Cellar/php@7.2.34/7.2.34/bin/php-config
+make
+make install
+```
+
+
 ## 🛠 技术栈
 
 - [Electron](https://electronjs.org/)

@@ -434,7 +434,8 @@ export default class Application extends EventEmitter {
         return
       }
       let list = ['nginx', 'php', 'mysql', 'apache', 'host', 'memcached', 'redis']
-      if (list.indexOf(command) >= 0) {
+      if (list.includes(command)) {
+        let module = command
         let child = fork(join(__static, `fork/${command}`))
         console.log('Server: ', global.Server)
         child.send({ Server: global.Server })
@@ -447,6 +448,13 @@ export default class Application extends EventEmitter {
           }
           self.sendCommandToAll(command, info)
           if (command.indexOf('task-') >= 0 && command.indexOf('-end') >= 0) {
+            let action = args[0]
+            console.log('action: ', action)
+            self.sendCommandToAll('application:task-callback', {
+              res: info,
+              module: module,
+              action: action
+            })
             child.disconnect()
             child.kill()
           }
