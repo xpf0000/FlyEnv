@@ -149,6 +149,9 @@ class PhpManager extends BaseManager {
             Utils.chmod(copyfile, '0777')
             let redisv = version.indexOf('php-5.') >= 0 ? '4.3.0' : '5.2.0'
             let phpv = version.replace('php-', '')
+            console.log('Cache: ', global.Server.Cache)
+            console.log('phpv: ', phpv)
+            console.log('redisv: ', redisv)
             const child = spawn('bash', [copyfile, global.Server.Cache, phpv, redisv], { env: Shell.env })
             this._childHandle(child, resolve, reject)
           }).catch(err => {

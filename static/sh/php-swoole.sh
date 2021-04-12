@@ -18,7 +18,8 @@ if [ ! -d $lib ]; then
   brew install openssl
 fi
 cd "swoole-$extendV"
-/usr/local/Cellar/php@$phpv/$phpv/bin/phpize
-./configure --with-php-config=/usr/local/Cellar/php@$phpv/$phpv/bin/php-config
+cellar=$(brew --Cellar)
+$cellar/php@$phpv/$phpv/bin/phpize
+./configure --with-php-config=$cellar/php@$phpv/$phpv/bin/php-config
 make
 make install

@@ -19,7 +19,8 @@ if [ ! -d $lib ]; then
   brew install libmemcached
 fi
 cd "memcached-$memcachedv"
-/usr/local/Cellar/php@$phpv/$phpv/bin/phpize
-./configure --with-php-config=/usr/local/Cellar/php@$phpv/$phpv/bin/php-config --with-libmemcached-dir=$lib --with-zlib-dir=$zlib
+cellar=$(brew --Cellar)
+$cellar/php@$phpv/$phpv/bin/phpize
+./configure --with-php-config=$cellar/php@$phpv/$phpv/bin/php-config --with-libmemcached-dir=$lib --with-zlib-dir=$zlib
 make
 make install

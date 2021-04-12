@@ -13,7 +13,8 @@ else
   exit 1
 fi
 cd "redis-$redisv"
-/usr/local/Cellar/php@$phpv/$phpv/bin/phpize
-./configure --with-php-config=/usr/local/Cellar/php@$phpv/$phpv/bin/php-config
+cellar=$(brew --Cellar)
+$cellar/php@$phpv/$phpv/bin/phpize
+./configure --with-php-config=$cellar/php@$phpv/$phpv/bin/php-config
 make
 make install

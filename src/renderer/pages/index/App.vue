@@ -83,10 +83,7 @@
         if (!server[type]) {
           server[type] = {}
         }
-        console.log('vue:task-versions-success: type: ', type)
-        console.log('vue:task-versions-success: version: ', this.taskVersion)
         server[type].current = this.taskVersion
-        console.log('vue:task-versions-success: server: ', server)
         this.$store.dispatch('preference/save', { server: server })
         this.$store.dispatch('task/result', '')
       })
@@ -146,4 +143,7 @@
 </script>
 
 <style>
+  .el-drawer__body {
+    background: #1d2033;
+  }
 </style>

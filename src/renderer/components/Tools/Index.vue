@@ -9,6 +9,14 @@
         <mo-icon name="fileinfo" width="30" height="30" />
         <span>File Info</span>
       </li>
+      <li @click="showPage('timestamp')">
+        <mo-icon name="time" width="30" height="30" style="padding: 2px;" />
+        <span>Timestamp</span>
+      </li>
+      <li @click="showPage('decode')">
+        <mo-icon name="decode" width="30" height="30" style="padding: 2px;" />
+        <span>Decode/Encode</span>
+      </li>
     </ul>
     <el-drawer
       size="65%"
@@ -27,8 +35,12 @@
 <script>
   import '@/components/Icons/sslmake'
   import '@/components/Icons/fileinfo'
+  import '@/components/Icons/time'
+  import '@/components/Icons/decode'
   import SSLMake from './SSLMake'
   import FileInfo from './FileInfo'
+  import Timestamp from './Timestamp'
+  import Decode from './Decode'
   export default {
     components: {},
     data () {
@@ -47,6 +59,12 @@
             break
           case 'fileinfo':
             this.component = FileInfo
+            break
+          case 'timestamp':
+            this.component = Timestamp
+            break
+          case 'decode':
+            this.component = Decode
             break
         }
       },

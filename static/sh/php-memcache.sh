@@ -14,7 +14,8 @@ else
 fi
 zlib=$(brew --prefix)/opt/zlib
 cd "memcache-$memcachev"
-/usr/local/Cellar/php@$phpv/$phpv/bin/phpize
-./configure --with-php-config=/usr/local/Cellar/php@$phpv/$phpv/bin/php-config --with-zlib-dir=$zlib
+cellar=$(brew --Cellar)
+$cellar/php@$phpv/$phpv/bin/phpize
+./configure --with-php-config=$cellar/php@$phpv/$phpv/bin/php-config --with-zlib-dir=$zlib
 make
 make install

@@ -5,6 +5,11 @@ const state = {
   taskResult: ''
 }
 
+const getters = {
+  running: (state) => state.taskRunning,
+  log: (state) => state.taskLog
+}
+
 const mutations = {
   SET_TASK_VERSION (state, v) {
     state.taskVersion = v
@@ -48,6 +53,7 @@ const actions = {
 export default {
   namespaced: true,
   state,
+  getters,
   mutations,
   actions
 }

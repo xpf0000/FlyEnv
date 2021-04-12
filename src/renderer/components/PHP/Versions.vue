@@ -11,7 +11,7 @@
           :value="item">
         </el-option>
       </el-select>
-      <el-button class="ml-20" :disabled="isRunning" @click="versionChange" :loading="isRunning">切换</el-button>
+      <el-button class="ml-20" :disabled="isRunning || phpRunning" @click="versionChange" :loading="isRunning">切换</el-button>
     </div>
 
     <ul class="logs" ref="logs" v-if="currentType === 'php-versions'">
@@ -24,7 +24,7 @@
 <script>
   import FileUtil from '@shared/FileUtil'
   import { join, basename } from 'path'
-  import { mapState } from 'vuex'
+  import { mapState, mapGetters } from 'vuex'
   import { execAsync } from '@shared/utils'
   export default {
     name: 'mo-php-versions',
@@ -58,6 +58,9 @@
         isRunning: state => state.taskRunning,
         logs: state => state.taskLog,
         taskResult: state => state.taskResult
+      }),
+      ...mapGetters('php', {
+        phpRunning: 'running'
       })
     },
     watch: {
@@ -113,26 +116,24 @@
         let vpath = join(global.Server.BrewCellar, brewVersion, subVersion)
         let pkconfig = join(vpath, 'bin/php-config')
         let phpize = join(vpath, 'bin/phpize')
+        FileUtil.chmod(pkconfig, '0755')
+        FileUtil.chmod(phpize, '0755')
         execAsync(pkconfig, ['--prefix']).then(res => {
-          if (res !== vpath) {
-            FileUtil.chmod(pkconfig, '0755')
-            FileUtil.chmod(phpize, '0755')
-            FileUtil.readFileAsync(pkconfig).then(content => {
-              content = content.replace(new RegExp(`${res}/pecl/`, 'g'), `${vpath}/lib/php/`)
-              content = content.replace(new RegExp(res, 'g'), vpath)
-              FileUtil.writeFileAsync(pkconfig, content).then(res => {
-                this.updateIniExtensionDir(pkconfig, configpath, vpath)
-              })
+          FileUtil.readFileAsync(pkconfig).then(content => {
+            content = content.replace(new RegExp(`${res}/pecl/`, 'g'), `${vpath}/lib/php/`)
+            content = content.replace(new RegExp(res, 'g'), vpath)
+            FileUtil.writeFileAsync(pkconfig, content).then(res => {
+              this.updateIniExtensionDir(pkconfig, configpath, vpath)
             })
-            FileUtil.readFileAsync(phpize).then(content => {
-              content = content.replace(new RegExp(`${res}/pecl/`, 'g'), `${vpath}/lib/php/`)
-              content = content.replace(new RegExp(res, 'g'), vpath)
-              FileUtil.writeFileAsync(phpize, content).then(res => {
-              })
-            })
-          } else {
-            this.updateIniExtensionDir(pkconfig, configpath, vpath)
-          }
+          })
+        })
+        FileUtil.readFileAsync(phpize).then(content => {
+          let reg = new RegExp(`(\nprefix=')(.*?)('\n)`, 'g')
+          let prefix = reg.exec(content)[2]
+          content = content.replace(new RegExp(`${prefix}/pecl/`, 'g'), `${vpath}/lib/php/`)
+          content = content.replace(new RegExp(prefix, 'g'), vpath)
+          FileUtil.writeFileAsync(phpize, content).then(res => {
+          })
         })
       },
       updateIniExtensionDir (pkconfig, configpath, vpath) {
