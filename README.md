@@ -18,6 +18,7 @@ BuildPhp is a develop environment manager for Mac,include php,nginx,apache,msyql
 - Host manage
 - Common PHP project URL rewriting one-click settings
 - Ease generation of SSL self signed certificate
+- Common tools in development, Unix timestamp, Decode/Encode...
 
 ## 💽 Installation
 
