@@ -143,7 +143,11 @@
 </script>
 
 <style>
+  .el-drawer {
+    background: #1d2033 !important;
+    background-color: #1d2033 !important;
+  }
   .el-drawer__body {
-    background: #1d2033;
+    background: #1d2033 !important;
   }
 </style>

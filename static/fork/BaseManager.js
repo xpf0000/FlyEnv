@@ -49,8 +49,32 @@ class BaseManager {
       Utils.readFileAsync(sh).then(content => {
         return Utils.writeFileAsync(copyfile, content)
       }).then(res => {
-        const child = spawn('zsh', [copyfile], { env: Shell.env })
-        this._childHandle(child, resolve, reject)
+        let stdout = ''
+        let stderr = ''
+        const child = spawn('zsh', [copyfile, global.Server.Password])
+        child.stdout.on('data', (d) => {
+          let data = d.toString()
+          this._handleStd(d, stdout)
+          if (data.indexOf('请选择一个下载镜像') >= 0) {
+            child.stdin.write(Buffer.from('1\n'))
+          } else if (data.indexOf('是否现在开始执行脚本（N/Y）') >= 0) {
+            child.stdin.write(Buffer.from('Y\n'))
+          } else if (data.indexOf('如果继续运行脚本应该输入Y或者y') >= 0) {
+            child.stdin.write(Buffer.from('Y\n'))
+          } else if (data.indexOf('开机密码') >= 0) {
+            child.stdin.write(Buffer.from(global.Server.Password + '\n\r'))
+          }
+        })
+        child.stderr.on('data', (d) => {
+          this._handleStd(d, stderr)
+        })
+        child.on('close', (code) => {
+          if (code === 0) {
+            resolve(code)
+          } else {
+            reject(new Error('Brew安装失败'))
+          }
+        })
       }).catch(err => {
         console.log('err: ', err)
         reject(err)
@@ -259,37 +283,30 @@ class BaseManager {
     })
   }
 
+  _handleStd (buffer, out) {
+    let str = buffer.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
+    out += str
+    if (str.endsWith('<br/>') || str.endsWith('%')) {
+      this._handlChildOut && this._handlChildOut(out)
+      out = out.replace(/ /g, '&ensp;')
+      if (this.isInstall) {
+        process.send({ command: 'application:task-log', info: out })
+      } else {
+        process.send({ command: `application:task-${this.type}-log`, info: out })
+      }
+      out = ''
+    }
+    return out
+  }
+
   _childHandle (child, resolve, reject) {
     let stdout = ''
     let stderr = ''
     child.stdout.on('data', data => {
-      let str = data.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
-      stdout += str
-      if (str.endsWith('<br/>') || str.endsWith('%')) {
-        this._handlChildOut && this._handlChildOut(stdout)
-        stdout = stdout.replace(/ /g, '&ensp;')
-        if (this.isInstall) {
-          process.send({ command: 'application:task-log', info: stdout })
-        } else {
-          process.send({ command: `application:task-${this.type}-log`, info: stdout })
-        }
-        stdout = ''
-      }
+      stdout = this._handleStd(data, stdout)
     })
     child.stderr.on('data', err => {
-      console.log('err: ', err.toString())
-      let str = err.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
-      stderr += str
-      if (str.endsWith('<br/>') || str.endsWith('%')) {
-        this._handlChildOut && this._handlChildOut(stderr)
-        stderr = stderr.replace(/ /g, '&ensp;')
-        if (this.isInstall) {
-          process.send({ command: 'application:task-log', info: stderr })
-        } else {
-          process.send({ command: `application:task-${this.type}-log`, info: stderr })
-        }
-        stderr = ''
-      }
+      stderr = this._handleStd(err, stderr)
     })
     child.on('close', function (code) {
       console.log('close: ', code)
