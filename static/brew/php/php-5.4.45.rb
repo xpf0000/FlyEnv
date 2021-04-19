@@ -6,9 +6,10 @@ class PhpAT5445 < Formula
   sha256 "25bc4723955f4e352935258002af14a14a9810b491a19400d76fcdfa9d04b28f"
 
   bottle do
-    sha256 "ddd14746138f0212dfd8d2c0944d573ce05c3ba900c2579440f7e8defa63b0c7" => :catalina
-    sha256 "fcc85c9f550df021a7f505d57c43e19672940c37ef7a1f909eec2d1d13202cef" => :mojave
-    sha256 "edfcefb109b356338ed324305f7317659df02bb5a8252b67a696180e75e81b1c" => :high_sierra
+    root_url "https://source.xpfme.com/php"
+    sha256 "e5d2cd48b851aa8402804e7a4124edd52ddddf9eafe6b8d17ccd955263ccf376" => :catalina
+    sha256 "e5d2cd48b851aa8402804e7a4124edd52ddddf9eafe6b8d17ccd955263ccf376" => :mojave
+    sha256 "e5d2cd48b851aa8402804e7a4124edd52ddddf9eafe6b8d17ccd955263ccf376" => :high_sierra
   end
 
   depends_on "pkg-config" => :build

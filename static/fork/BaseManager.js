@@ -109,7 +109,15 @@ class BaseManager {
       this._installVersion(version)
     } else {
       process.send({ command: 'application:task-log', info: `${version} 已安装,开始切换,请稍候...<br/>` })
-      this._stopServer().then(code => {
+      let f
+      if (this._doInitDepends) {
+        f = this._doInitDepends(version).then(_ => {
+          return this._stopServer()
+        })
+      } else {
+        f = this._stopServer()
+      }
+      f.then(code => {
         return this._startServer(version)
       }).then(code => {
         process.send({ command: 'application:server-stat', info: this._getStat(true) })

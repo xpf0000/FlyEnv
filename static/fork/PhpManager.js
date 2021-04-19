@@ -3,7 +3,7 @@ const existsSync = require('fs').existsSync
 const unlinkSync = require('fs').unlinkSync
 const copyFileSync = require('fs').copyFileSync
 const Shell = require('shelljs')
-const { spawn } = require('child_process')
+const { spawn, execSync } = require('child_process')
 const Utils = require('./Utils')
 const BaseManager = require('./BaseManager')
 class PhpManager extends BaseManager {
@@ -53,6 +53,50 @@ class PhpManager extends BaseManager {
     })
   }
 
+  _doInitDepends (version) {
+    return new Promise((resolve, reject) => {
+      const sh = join(global.Server.Static, 'sh/php.sh')
+      const copyfile = join(global.Server.Cache, 'php.sh')
+      copyFileSync(sh, copyfile)
+      let reinstall = ''
+      let v = version.replace('php-', '').split('.')
+      v = parseInt(v[0] + v[1])
+      console.log('v: ', v)
+      if (v > 55) {
+        let current = ''
+        try {
+          current = execSync('brew info icu4c').toString()
+        } catch (e) {}
+        console.log('current: ', current)
+        if (current.indexOf('icu4c: stable 67') < 0 || current.indexOf('Not installed') > 0) {
+          copyFileSync(join(global.Server.BrewPhp, 'icu4c@67.1.rb'), join(global.Server.BrewFormula, 'icu4c.rb'))
+          reinstall = 'icu4c'
+        }
+      } else {
+        let current = ''
+        try {
+          current = execSync('brew info icu4c@56.2').toString()
+        } catch (e) {}
+        if (current.indexOf('icu4c@56.2: stable 56.2') < 0 || current.indexOf('Not installed') > 0) {
+          copyFileSync(join(global.Server.BrewPhp, 'icu4c@56.2.rb'), join(global.Server.BrewFormula, 'icu4c@56.2.rb'))
+          reinstall = 'icu4c@56.2'
+        }
+        let openssl = ''
+        try {
+          openssl = execSync('brew info openssl@1.0.2u').toString()
+        } catch (e) {}
+        console.log('openssl: ', openssl)
+        if (openssl.indexOf('Built from source on') < 0) {
+          copyFileSync(join(global.Server.BrewPhp, 'openssl@1.0.2u.rb'), join(global.Server.BrewFormula, 'openssl@1.0.2u.rb'))
+          reinstall = reinstall.length === 0 ? 'openssl@1.0.2u' : reinstall + ' openssl@1.0.2u'
+        }
+      }
+      console.log('reinstall: ', reinstall)
+      const child = spawn('zsh', [copyfile, reinstall], { env: Shell.env })
+      this._childHandle(child, resolve, reject)
+    })
+  }
+
   _doInstall (rb) {
     return new Promise((resolve, reject) => {
       const child = spawn('brew', ['install', '--verbose', rb], { env: Shell.env })
@@ -66,17 +110,13 @@ class PhpManager extends BaseManager {
     let ngrb = join(global.Server.BrewFormula, `${brewVersion}.rb`)
     copyFileSync(rbtmpl, ngrb)
 
-    if (version.indexOf('php-5.') >= 0 || version.indexOf('php-7.0.') >= 0) {
-      copyFileSync(join(global.Server.BrewPhp, 'openssl@1.0.2u.rb'), join(global.Server.BrewFormula, 'openssl@1.0.2u.rb'))
-      copyFileSync(join(global.Server.BrewPhp, 'icu4c@56.2.rb'), join(global.Server.BrewFormula, 'icu4c@56.2.rb'))
-    }
-
     try {
       Shell.env['HOMEBREW_NO_AUTO_UPDATE'] = true
       Shell.env['HOMEBREW_NO_SANDBOX'] = 1
       Shell.env['PATH'] = `/usr/local/bin:${Shell.env['PATH']}`
-
-      this._doInstall(brewVersion).then(code => {
+      this._doInitDepends(version).then(_ => {
+        return this._doInstall(brewVersion)
+      }).then(code => {
         return this._stopServer()
       })
         .then(code => {

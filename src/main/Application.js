@@ -90,13 +90,19 @@ export default class Application extends EventEmitter {
     global.Server.BrewRedis = join(__static, 'brew/redis')
     global.Server.Password = this.configManager.getUserConfig('password')
     console.log('global.Server.Password: ', global.Server.Password)
+    console.log('process.env: ', process.env)
     execAsync('which', ['brew']).then(res => {
-      console.log('which res: ', res)
+      console.log('which brew: ', res)
+      execAsync('brew', ['--config']).then(p => {
+        console.log('brew --config: ', p)
+      })
       execAsync('brew', ['--repo']).then(p => {
+        console.log('brew --repo: ', p)
         global.Server.BrewHome = p
         global.Server.BrewFormula = join(p, 'Library/Taps/homebrew/homebrew-core/Formula')
       })
       execAsync('brew', ['--cellar']).then(c => {
+        console.log('brew --cellar: ', c)
         global.Server.BrewCellar = c
       })
     }).catch(e => {
