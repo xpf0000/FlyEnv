@@ -1,0 +1,87 @@
+<template>
+  <div class="memcached-panel main-right-panel">
+    <ul class="top-tab">
+      <li
+        v-for="(item, index) in tabs"
+        :key="index"
+        :class="current_tab === index ? 'active' : ''"
+        @click="current_tab = index"
+        >{{ item }}</li
+      >
+    </ul>
+    <div class="main-block">
+      <Service v-if="current_tab === 0" type-flag="memcached"></Service>
+      <Versions v-if="current_tab === 1" type-flag="memcached"></Versions>
+      <Manager v-else-if="current_tab === 2" type-flag="memcached"></Manager>
+      <mo-memcached-logs v-if="current_tab === 3"></mo-memcached-logs>
+    </div>
+  </div>
+</template>
+
+<script>
+  import Versions from '../VersionSwtich/index.vue'
+  import Service from '../ServiceManager/index.vue'
+  import Logs from './Logs.vue'
+  import Manager from '../VersionManager/index.vue'
+
+  export default {
+    name: 'MoMemcachedPanel',
+    components: {
+      Versions,
+      Service,
+      [Logs.name]: Logs,
+      Manager
+    },
+    props: {},
+    data() {
+      return {
+        current_tab: 0,
+        tabs: ['服务', '切换版本', '版本管理', '运行日志']
+      }
+    },
+    computed: {},
+    watch: {},
+    created: function () {},
+    methods: {}
+  }
+</script>
+
+<style lang="scss">
+  .memcached-panel {
+    height: 100%;
+    overflow: auto;
+    line-height: 1.75;
+    padding: 30px 18px;
+    display: flex;
+    flex-direction: column;
+    > .top-tab {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+      > li {
+        user-select: none;
+        cursor: pointer;
+        width: 100px;
+        height: 36px;
+        margin-right: 20px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        &:hover {
+          background-color: #3e4257;
+        }
+        &.active {
+          background: #3e4257;
+        }
+      }
+    }
+    .main-block {
+      flex: 1;
+      width: 100%;
+      overflow: hidden;
+    }
+  }
+</style>

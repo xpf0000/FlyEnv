@@ -1,7 +1,0 @@
-{
-  "cmd-n": "application:new-task",
-  "cmd-shift-n": "application:new-bt-task",
-  "cmd-o": "application:open-file",
-  "cmd-shift-p": "application:pause-all-task",
-  "cmd-shift-r": "application:resume-all-task"
-}

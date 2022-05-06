@@ -15,9 +15,13 @@ require('electron-debug')({
 
 // Install `vue-devtools`
 require('electron').app.on('ready', () => {
+    console.log('electron ready !!!!!!')
   let installExtension = require('electron-devtools-installer')
-  installExtension.default(installExtension.VUEJS_DEVTOOLS)
-    .then(() => {})
+    const vue_devtools_beta = { id: "ljjemllljcmogpfapbkkighbhhppjdbg", electron: ">=1.2.1" }
+    installExtension.default(vue_devtools_beta)
+    .then(() => {
+        console.log('VUEJS_DEVTOOLS !!!')
+    })
     .catch(err => {
       console.log('Unable to install `vue-devtools`: \n', err)
     })

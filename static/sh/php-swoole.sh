@@ -1,6 +1,6 @@
 #!/bin/bash
 cachedir=$1
-phpv=$2
+phpdir=$2
 extendV=$3
 cd $cachedir
 curl -C - -O -s http://pecl.php.net/get/swoole-$extendV.tgz
@@ -19,7 +19,7 @@ if [ ! -d $lib ]; then
 fi
 cd "swoole-$extendV"
 cellar=$(brew --Cellar)
-$cellar/php@$phpv/$phpv/bin/phpize
-./configure --with-php-config=$cellar/php@$phpv/$phpv/bin/php-config
+$phpdir/bin/phpize
+./configure --with-php-config=$phpdir/bin/php-config
 make
 make install

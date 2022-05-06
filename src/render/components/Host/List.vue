@@ -1,0 +1,206 @@
+<template>
+  <ul class="host-list">
+    <li
+      v-for="(item, index) in hosts"
+      :key="index"
+      :class="'host-item' + (current_row === index ? ' active' : '')"
+      @click="current_row = index"
+    >
+      <div class="left">
+        <div class="icon-block">
+          <yb-icon :svg="import('@/svg/link.svg?raw')" width="22" height="22" />
+        </div>
+        <div class="info">
+          <span class="name" v-text="item.name"> </span>
+          <span class="url" v-text="item.url"> </span>
+        </div>
+      </div>
+
+      <el-popover
+        effect="dark"
+        :ref="'host-list-poper-' + index"
+        popper-class="host-list-poper"
+        placement="bottom-end"
+        width="150"
+        trigger="click"
+      >
+        <ul class="host-list-menu">
+          <li @click="action(item, index, 'open')">
+            <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
+            <span class="ml-15">打开</span>
+          </li>
+          <li @click="action(item, index, 'edit')">
+            <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
+            <span class="ml-15">编辑</span>
+          </li>
+          <li @click="action(item, index, 'log')">
+            <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
+            <span class="ml-15">日志</span>
+          </li>
+          <li @click="action(item, index, 'del')">
+            <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
+            <span class="ml-15">删除</span>
+          </li>
+        </ul>
+
+        <template #reference>
+          <div class="right">
+            <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+          </div>
+        </template>
+      </el-popover>
+    </li>
+  </ul>
+</template>
+
+<script>
+  import { mapGetters } from 'vuex'
+  import { handleHost } from '@/util/Host.js'
+  const { shell } = require('@electron/remote')
+
+  export default {
+    name: 'MoHostList',
+    components: {},
+    props: {},
+    data() {
+      return {
+        current_row: 0,
+        extensionDir: '',
+        task_index: 0
+      }
+    },
+    computed: {
+      ...mapGetters('app', {
+        hosts: 'hosts'
+      })
+    },
+    watch: {},
+    created: function () {
+      console.log('this.hosts: ', this.hosts)
+    },
+    unmounted() {},
+    methods: {
+      action(item, index, flag) {
+        console.log('item: ', item)
+        this.task_index = index
+        switch (flag) {
+          case 'open':
+            shell.showItemInFolder(item.root)
+            break
+          case 'edit':
+            this.$baseEventBus.emit('Host-Edit-Item', item)
+            break
+          case 'log':
+            this.$baseEventBus.emit('Host-Logs-Item', item)
+            break
+          case 'del':
+            this.$baseConfirm('确认删除?', null, {
+              customClass: 'confirm-del',
+              type: 'warning'
+            })
+              .then(() => {
+                handleHost(item, 'del')
+              })
+              .catch(() => {})
+            break
+        }
+        const poper = this.$refs['host-list-poper-' + this.task_index][0]
+        console.log('poper: ', poper)
+        poper && poper.hide()
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+  .confirm-del {
+    background: #32364a !important;
+    border: 1px solid #32364a !important;
+    color: #fff !important;
+    .el-message-box__message,
+    .el-message-box__close {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+  }
+  .host-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    .host-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      align-items: center;
+      width: 100%;
+      height: 64px;
+      &.active {
+        background: #32364a;
+        .left .info {
+          color: #fff;
+        }
+      }
+      &:hover {
+        background: #3e4257;
+      }
+      .left {
+        display: flex;
+        align-items: center;
+        .icon-block {
+          width: 44px;
+          height: 44px;
+          border-radius: 25px;
+          background: #004878;
+          margin-right: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .info {
+          line-height: 1.5;
+          display: flex;
+          flex-direction: column;
+          color: rgba(255, 255, 255, 0.7);
+          .name {
+            font-size: 15px;
+          }
+          .url {
+            font-size: 12px;
+          }
+        }
+      }
+      .right {
+        height: 39px;
+        width: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 7px;
+        cursor: pointer;
+        &:hover {
+          background: #282b3d;
+        }
+      }
+    }
+  }
+  .host-list-menu {
+    display: flex;
+    flex-direction: column;
+    background: #3f4358;
+    user-select: none;
+    > li {
+      display: flex;
+      align-items: center;
+      padding: 8px 15px;
+      cursor: pointer;
+      &:hover {
+        background: rgb(79, 82, 105);
+      }
+    }
+  }
+  .host-list-poper {
+    background: #32364a !important;
+    border: none !important;
+    color: #fff !important;
+    padding: 0 !important;
+  }
+</style>

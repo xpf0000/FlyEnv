@@ -1,110 +1,98 @@
-import { app } from 'electron'
-import is from 'electron-is'
 import Store from 'electron-store'
-import {
-  getLogPath,
-  getSessionPath
-} from '../utils/index'
-import {
-  EMPTY_STRING,
-  APP_RUN_MODE
-} from '@shared/constants'
 
 export default class ConfigManager {
-  constructor () {
-    this.systemConfig = {}
-    this.userConfig = {}
-
+  constructor() {
+    this.config = {}
     this.init()
   }
 
-  init () {
-    this.initSystemConfig()
-    this.initUserConfig()
+  init() {
+    this.initConfig()
   }
 
-  initSystemConfig () {
-    this.systemConfig = new Store({
-      name: 'system',
-      defaults: {
-        'rpc-listen-port': 16800,
-        'rpc-secret': EMPTY_STRING
-      }
-    })
-  }
-
-  initUserConfig () {
-    this.userConfig = new Store({
+  initConfig() {
+    this.config = new Store({
       name: 'user',
       defaults: {
-        'auto-check-update': is.macOS(),
-        'hide-app-menu': is.windows() || is.linux(),
         'last-check-update-time': 0,
-        'locale': app.getLocale(),
-        'log-path': getLogPath(),
-        'open-at-login': false,
-        'run-mode': APP_RUN_MODE.STANDARD,
-        'keep-window-state': true,
-        'session-path': getSessionPath(),
-        'theme': 'auto',
         'update-channel': 'latest',
         'window-state': {},
-        'server': {
-          'nginx': {
-            current: ''
+        server: {
+          nginx: {
+            current: {}
           },
-          'php': {
-            current: ''
+          php: {
+            current: {}
           },
-          'mysql': {
-            current: ''
+          mysql: {
+            current: {}
           },
-          'apache': {
-            current: ''
+          apache: {
+            current: {}
+          },
+          memcached: {
+            current: {}
+          },
+          redis: {
+            current: {}
           }
         },
-        'password': ''
+        password: '',
+        setup: {
+          common: {
+            showItem: {
+              Hosts: true,
+              Nginx: true,
+              Apache: true,
+              Mysql: true,
+              Php: true,
+              Memcached: true,
+              Redis: true,
+              NodeJS: true,
+              Tools: true
+            }
+          },
+          nginx: {
+            dirs: []
+          },
+          apache: {
+            dirs: []
+          },
+          mysql: {
+            dirs: []
+          },
+          php: {
+            dirs: []
+          },
+          memcached: {
+            dirs: []
+          },
+          redis: {
+            dirs: []
+          }
+        }
       }
     })
-    console.log('userConfig: ', this.userConfig.get('server'))
-    this.fixUserConfig()
-  }
 
-  fixUserConfig () {
-  }
-
-  getSystemConfig (key, defaultValue) {
-    if (typeof key === 'undefined' &&
-        typeof defaultValue === 'undefined') {
-      return this.systemConfig.store
+    if (!this.config.has('setup') || !this.config.has('setup.redis')) {
+      const password = this.config.get('password', '')
+      this.config.clear()
+      this.config.set('password', password)
     }
-
-    return this.systemConfig.get(key, defaultValue)
   }
 
-  getUserConfig (key, defaultValue) {
-    if (typeof key === 'undefined' &&
-        typeof defaultValue === 'undefined') {
-      return this.userConfig.store
+  getConfig(key, defaultValue) {
+    if (typeof key === 'undefined' && typeof defaultValue === 'undefined') {
+      return this.config.store
     }
-
-    return this.userConfig.get(key, defaultValue)
+    return this.config.get(key, defaultValue)
   }
 
-  getLocale () {
-    return this.getUserConfig('locale') || app.getLocale()
+  setConfig(...args) {
+    this.config.set(...args)
   }
 
-  setSystemConfig (...args) {
-    this.systemConfig.set(...args)
-  }
-
-  setUserConfig (...args) {
-    this.userConfig.set(...args)
-  }
-
-  reset () {
-    this.systemConfig.clear()
-    this.userConfig.clear()
+  reset() {
+    this.config.clear()
   }
 }

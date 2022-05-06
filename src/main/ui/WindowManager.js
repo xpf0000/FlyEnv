@@ -1,9 +1,11 @@
-import { join } from 'path'
 import { EventEmitter } from 'events'
-import { app, shell, screen, BrowserWindow } from 'electron'
-import is from 'electron-is'
+import { app, BrowserWindow, screen, shell } from 'electron'
 import pageConfig from '../configs/page'
 import { debounce } from 'lodash'
+
+const { initialize, enable } = require('@electron/remote/main')
+
+initialize()
 
 const defaultBrowserOptions = {
   titleBarStyle: 'hiddenInset',
@@ -11,16 +13,21 @@ const defaultBrowserOptions = {
   width: 1024,
   height: 768,
   webPreferences: {
-    nodeIntegration: true
+    nodeIntegration: true,
+    contextIsolation: false,
+    enableRemoteModule: false,
+    webSecurity: false
   }
 }
-
 export default class WindowManager extends EventEmitter {
-  constructor (options = {}) {
+  constructor(options = {}) {
     super()
-    this.userConfig = options.userConfig || {}
+    this.configManager = options.configManager
+    this.userConfig = this.configManager.getConfig()
 
     this.windows = {}
+
+    this.captureWins = []
 
     this.willQuit = false
 
@@ -29,48 +36,30 @@ export default class WindowManager extends EventEmitter {
     this.handleAllWindowClosed()
   }
 
-  setWillQuit (flag) {
+  setWillQuit(flag) {
     this.willQuit = flag
   }
 
-  getPageOptions (page) {
+  getPageOptions(page) {
     const result = pageConfig[page] || {}
-    const hideAppMenu = this.userConfig['hide-app-menu']
-    if (hideAppMenu) {
-      result.attrs.frame = false
-    }
-
     // Optimized for small screen users
     const { width, height } = screen.getPrimaryDisplay().workAreaSize
     const widthScale = width >= 1280 ? 1 : 0.875
     const heightScale = height >= 800 ? 1 : 0.875
     result.attrs.width *= widthScale
     result.attrs.height *= heightScale
-
-    // fix AppImage Dock Icon Missing
-    // https://github.com/AppImage/AppImageKit/wiki/Bundling-Electron-apps
-    if (is.linux()) {
-      result.attrs.icon = join(__static, './512x512.png')
-    }
-
     return result
   }
 
-  getPageBounds (page) {
-    const enabled = this.userConfig['keep-window-state']
+  getPageBounds(page) {
     const windowStateMap = this.userConfig['window-state'] || {}
-    let result = null
-    if (enabled) {
-      result = windowStateMap[page]
-    }
-
-    return result
+    return windowStateMap[page]
   }
 
-  openWindow (page, options = {}) {
+  openWindow(page, options = {}) {
     const pageOptions = this.getPageOptions(page)
     const { hidden } = options
-
+    console.log('pageOptions: ', pageOptions)
     let window = this.windows[page] || null
     if (window) {
       window.show()
@@ -82,7 +71,8 @@ export default class WindowManager extends EventEmitter {
       ...defaultBrowserOptions,
       ...pageOptions.attrs
     })
-
+    // window.webContents.openDevTools()
+    enable(window.webContents)
     const bounds = this.getPageBounds(page)
     console.log('bounds ====>', bounds)
     if (bounds) {
@@ -91,23 +81,11 @@ export default class WindowManager extends EventEmitter {
 
     window.webContents.on('new-window', (e, url) => {
       e.preventDefault()
-      shell.openExternal(url)
-    })
-
-    let contents = window.webContents
-    const localShortcut = require('electron-localshortcut')
-    localShortcut.register(window, 'CommandOrControl+A', () => {
-      contents.selectAll()
-    })
-    localShortcut.register(window, 'CommandOrControl+C', () => {
-      contents.copy()
-    })
-    localShortcut.register(window, 'CommandOrControl+V', () => {
-      contents.paste()
+      shell.openExternal(url).then()
     })
 
     if (pageOptions.url) {
-      window.loadURL(pageOptions.url)
+      window.loadURL(pageOptions.url).then()
     }
 
     window.once('ready-to-show', () => {
@@ -126,23 +104,23 @@ export default class WindowManager extends EventEmitter {
     return window
   }
 
-  getWindow (page) {
+  getWindow(page) {
     return this.windows[page]
   }
 
-  getWindows () {
+  getWindows() {
     return this.windows || {}
   }
 
-  getWindowList () {
+  getWindowList() {
     return Object.values(this.getWindows())
   }
 
-  addWindow (page, window) {
+  addWindow(page, window) {
     this.windows[page] = window
   }
 
-  destroyWindow (page) {
+  destroyWindow(page) {
     const win = this.getWindow(page)
     this.removeWindow(page)
     win.removeListener('closed')
@@ -151,29 +129,35 @@ export default class WindowManager extends EventEmitter {
     win.destroy()
   }
 
-  removeWindow (page) {
+  removeWindow(page) {
     this.windows[page] = null
   }
 
-  bindAfterClosed (page, window) {
-    window.on('closed', (event) => {
+  bindAfterClosed(page, window) {
+    window.on('closed', () => {
       this.removeWindow(page)
     })
   }
 
-  handleWindowState (page, window) {
-    window.on('resize', debounce(() => {
-      const bounds = window.getBounds()
-      this.emit('window-resized', { page, bounds })
-    }, 500))
+  handleWindowState(page, window) {
+    window.on(
+      'resize',
+      debounce(() => {
+        const bounds = window.getBounds()
+        this.emit('window-resized', { page, bounds })
+      }, 500)
+    )
 
-    window.on('move', debounce(() => {
-      const bounds = window.getBounds()
-      this.emit('window-moved', { page, bounds })
-    }, 500))
+    window.on(
+      'move',
+      debounce(() => {
+        const bounds = window.getBounds()
+        this.emit('window-moved', { page, bounds })
+      }, 500)
+    )
   }
 
-  handleWindowClose (pageOptions, page, window) {
+  handleWindowClose(pageOptions, page, window) {
     window.on('close', (event) => {
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
@@ -184,7 +168,7 @@ export default class WindowManager extends EventEmitter {
     })
   }
 
-  showWindow (page) {
+  showWindow(page) {
     const window = this.getWindow(page)
     if (!window) {
       return
@@ -192,7 +176,7 @@ export default class WindowManager extends EventEmitter {
     window.show()
   }
 
-  hideWindow (page) {
+  hideWindow(page) {
     const window = this.getWindow(page)
     if (!window) {
       return
@@ -200,13 +184,13 @@ export default class WindowManager extends EventEmitter {
     window.hide()
   }
 
-  hideAllWindow () {
+  hideAllWindow() {
     this.getWindowList().forEach((window) => {
       window.hide()
     })
   }
 
-  toggleWindow (page) {
+  toggleWindow(page) {
     const window = this.getWindow(page)
     if (!window) {
       return
@@ -218,30 +202,30 @@ export default class WindowManager extends EventEmitter {
     }
   }
 
-  getFocusedWindow () {
+  getFocusedWindow() {
     return BrowserWindow.getFocusedWindow()
   }
 
-  handleBeforeQuit () {
+  handleBeforeQuit() {
     app.on('before-quit', () => {
       this.setWillQuit(true)
     })
   }
 
-  handleAllWindowClosed () {
+  handleAllWindowClosed() {
     app.on('window-all-closed', (event) => {
       event.preventDefault()
     })
   }
 
-  sendCommandTo (window, command, ...args) {
+  sendCommandTo(window, command, ...args) {
     if (!window) {
       return
     }
     window.webContents.send('command', command, ...args)
   }
 
-  sendMessageTo (window, channel, ...args) {
+  sendMessageTo(window, channel, ...args) {
     if (!window) {
       return
     }

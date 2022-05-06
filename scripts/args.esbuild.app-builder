@@ -1,0 +1,9 @@
+--platform=node
+--bundle
+--external:vite
+--external:esbuild
+--external:electron-builder
+--external:consolidate
+--external:@vue/compiler-sfc
+scripts/app-builder.ts
+--outfile=electron/app-builder.js

@@ -1,6 +1,6 @@
 #!/bin/bash
 cachedir=$1
-phpv=$2
+phpdir=$2
 redisv=$3
 cd $cachedir
 curl -C - -O -s http://pecl.php.net/get/redis-$redisv.tgz
@@ -13,8 +13,7 @@ else
   exit 1
 fi
 cd "redis-$redisv"
-cellar=$(brew --Cellar)
-$cellar/php@$phpv/$phpv/bin/phpize
-./configure --with-php-config=$cellar/php@$phpv/$phpv/bin/php-config
+$phpdir/bin/phpize
+./configure --with-php-config=$phpdir/bin/php-config
 make
 make install

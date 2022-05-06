@@ -1,0 +1,15 @@
+/* Normalize.css
+-------------------------- */
+@import 'normalize.css/normalize.css';
+
+/* Element UI
+-------------------------- */
+@import "element-plus/theme-chalk/index.css";
+
+/* Theme Light (default)
+-------------------------- */
+@import './Default.scss';
+
+/* Theme Dark
+-------------------------- */
+@import './Dark.scss';

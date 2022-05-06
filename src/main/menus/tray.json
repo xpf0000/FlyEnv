@@ -1,0 +1,5 @@
+[
+  { "id": "app.show", "command": "application:show", "command-arg": "index" },
+  { "type": "separator" },
+  { "id": "app.quit", "role": "quit" }
+]

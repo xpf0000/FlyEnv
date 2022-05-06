@@ -1,0 +1,31 @@
+{
+  "menu": [
+    {
+      "label": "应用",
+      "id": "menu.app",
+      "submenu": [
+        { "id": "app.about", "label": "关于", "command": "application:about", "command-before": "application:show,index" },
+        { "type": "separator" },
+        { "id": "app.check-for-updates", "label": "检测更新", "command": "application:check-for-updates" },
+        { "type": "separator" },
+        { "id": "app.hide", "role": "hide", "label": "隐藏当前窗口"},
+        { "id": "app.hide-others", "role": "hideothers", "label": "隐藏其他窗口" },
+        { "id": "app.unhide", "role": "unhide", "label": "显示所有窗口"},
+        { "type": "separator" },
+        { "id": "app.quit", "role": "quit", "label": "退出"}
+      ]
+    },
+    {
+      "label": "窗口",
+      "id": "menu.window",
+      "submenu": [
+        { "id": "window.close", "role": "close", "label": "关闭" },
+        { "id": "window.minimize", "role": "minimize", "label": "最小化" },
+        { "id": "window.zoom", "role": "zoom", "label": "缩放" },
+        { "id": "window.toggle-fullscreen", "role": "togglefullscreen", "label": "全屏切换" },
+        { "type": "separator" },
+        { "id": "window.front", "role": "front", "label": "窗口置顶" }
+      ]
+    }
+  ]
+}

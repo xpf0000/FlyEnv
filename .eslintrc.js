@@ -1,27 +1,61 @@
 module.exports = {
-  root: true,
-  parser: 'babel-eslint',
+  parser: 'vue-eslint-parser',
   parserOptions: {
-    sourceType: 'module'
+    parser: '@typescript-eslint/parser',
+    ecmaVersion: 2020,
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true
+    }
   },
-  env: {
-    browser: true,
-    node: true
-  },
-  extends: 'standard',
-  globals: {
-    appId: true,
-    __static: true
-  },
-  plugins: [
-    'html'
+  extends: [
+    'plugin:vue/vue3-recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:prettier/recommended'
   ],
-  'rules': {
-    // allow paren-less arrow functions
-    'arrow-parens': 0,
-    // allow async-await
-    'generator-star-spacing': 0,
-    // allow debugger during development
-    'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0
+  rules: {
+    '@typescript-eslint/ban-ts-ignore': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
+    '@typescript-eslint/no-empty-function': 'off',
+    'vue/custom-event-name-casing': 'off',
+    'no-use-before-define': 'off',
+    // 'no-use-before-define': [
+    //   'error',
+    //   {
+    //     functions: false,
+    //     classes: true,
+    //   },
+    // ],
+    '@typescript-eslint/no-use-before-define': 'off',
+    // '@typescript-eslint/no-use-before-define': [
+    //   'error',
+    //   {
+    //     functions: false,
+    //     classes: true,
+    //   },
+    // ],
+    '@typescript-eslint/ban-ts-comment': 'off',
+    '@typescript-eslint/ban-types': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^h$',
+        varsIgnorePattern: '^h$'
+      }
+    ],
+    'no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^h$',
+        varsIgnorePattern: '^h$'
+      }
+    ],
+    'space-before-function-paren': 'off',
+    quotes: ['error', 'single'],
+    'comma-dangle': ['error', 'never']
   }
 }

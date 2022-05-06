@@ -1,80 +1,38 @@
 const join = require('path').join
 const existsSync = require('fs').existsSync
-const readFileSync = require('fs').readFileSync
-const writeFileSync = require('fs').writeFileSync
-// const copyFileSync = require('fs').copyFileSync
-const Shell = require('shelljs')
 const BaseManager = require('./BaseManager')
 const execPromise = require('child-process-promise').exec
 
 class NginxManager extends BaseManager {
-  // eslint-disable-next-line no-useless-constructor
-  constructor () {
+  constructor() {
     super()
     this.type = 'nginx'
   }
 
-  init () {
+  init() {
     this.pidPath = join(global.Server.NginxDir, 'common/logs/nginx.pid')
   }
 
-  _installVersion (version) {
-    let rbtmpl = join(global.Server.BrewNginx, `${version}.rb`)
-    let brewVersion = version.replace('-', '@')
-    let ngrb = join(global.Server.BrewFormula, `${brewVersion}.rb`)
-    let content = readFileSync(rbtmpl, 'utf-8')
-    let errorpath = join(global.Server.NginxDir, 'common/logs/error.log')
-    let pid = join(global.Server.NginxDir, 'common/logs/nginx.pid')
-    content = content.replace('#ErrorLogPath#', errorpath).replace('#PIDPath#', pid)
-    writeFileSync(ngrb, content)
-    // copyFileSync(rbtmpl, ngrb)
-
-    try {
-      Shell.env['HOMEBREW_NO_AUTO_UPDATE'] = true
-      Shell.env['HOMEBREW_NO_SANDBOX'] = 1
-      Shell.env['PATH'] = `/usr/local/bin:${Shell.env['PATH']}`
-
-      this._doInstall(brewVersion).then(code => {
-        return this._stopServer()
-      }).then(code => {
-        return this._startServer(version)
-      }).then(code => {
-        process.send({ command: 'application:server-stat', info: { nginx: true } })
-        process.send({ command: 'application:task-log', info: `安装成功,${version}已成功运行<br/>` })
-        process.send({ command: 'application:task-result', info: 'SUCCESS' })
-        process.send({ command: 'application:task-end', info: 0 })
-      }).catch(code => {
-        process.send({ command: 'application:task-log', info: '安装失败<br/>' })
-        process.send({ command: 'application:task-result', info: 'FAIL' })
-        process.send({ command: 'application:task-end', info: 1 })
-      })
-    } catch (e) {
-      process.send({ command: 'application:task-log', info: `${e}<br/>` })
-      process.send({ command: 'application:task-result', info: 'FAIL' })
-      process.send({ command: 'application:task-end', info: 1 })
-    }
-  }
-
-  _startServer (version) {
+  _startServer(version) {
     return new Promise((resolve, reject) => {
-      let vpath = this._versionPath(version)
-      let bin = join(vpath, 'sbin/nginx')
+      let bin = version.bin
       if (!existsSync(bin)) {
-        reject(new Error('启动文件不存在,服务器启动失败'))
+        reject(new Error('启动文件不存在,服务启动失败'))
         return
       }
       let c = join(global.Server.NginxDir, 'common/conf/nginx.conf')
       let pid = join(global.Server.NginxDir, 'common/logs/nginx.pid')
       let errlog = join(global.Server.NginxDir, 'common/logs/error.log')
       let g = `pid ${pid};error_log ${errlog};`
-      // process.send({ command: 'application:task-log', info: `sudo ${bin} -c ${c} -g ${g}<br/>` })
-      execPromise(`echo '${global.Server.Password}' | sudo -S ${bin} -c ${c} -g '${g}'`).then(res => {
-        this._handleLog(res.stdout)
-        resolve(0)
-      }).catch(err => {
-        this._handleLog(err)
-        reject(new Error(''))
-      })
+      execPromise(`echo '${global.Server.Password}' | sudo -S ${bin} -c ${c} -g '${g}'`)
+        .then((res) => {
+          this._handleLog(res.stdout)
+          resolve(0)
+        })
+        .catch((err) => {
+          this._handleLog(err)
+          reject(err)
+        })
     })
   }
 }

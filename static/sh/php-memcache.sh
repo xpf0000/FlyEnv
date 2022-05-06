@@ -1,6 +1,6 @@
 #!/bin/bash
 cachedir=$1
-phpv=$2
+phpdir=$2
 memcachev=$3
 cd $cachedir
 curl -C - -O -s http://pecl.php.net/get/memcache-$memcachev.tgz
@@ -14,8 +14,7 @@ else
 fi
 zlib=$(brew --prefix)/opt/zlib
 cd "memcache-$memcachev"
-cellar=$(brew --Cellar)
-$cellar/php@$phpv/$phpv/bin/phpize
-./configure --with-php-config=$cellar/php@$phpv/$phpv/bin/php-config --with-zlib-dir=$zlib
+$phpdir/bin/phpize
+./configure --with-php-config=$phpdir/bin/php-config --with-zlib-dir=$zlib
 make
 make install

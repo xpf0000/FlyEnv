@@ -5,23 +5,17 @@ import is from 'electron-is'
 import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
-import {
-  splitArgv
-} from './utils'
-import { EMPTY_STRING } from '@shared/constants'
+import { splitArgv } from './utils'
 
 export default class Launcher extends EventEmitter {
-  constructor () {
+  constructor() {
     super()
-    this.url = EMPTY_STRING
-    this.file = EMPTY_STRING
-
     this.makeSingleInstance(() => {
       this.init()
     })
   }
 
-  makeSingleInstance (callback) {
+  makeSingleInstance(callback) {
     // Mac App Store Sandboxed App not support requestSingleInstanceLock
     if (is.mas()) {
       callback()
@@ -45,12 +39,10 @@ export default class Launcher extends EventEmitter {
     }
   }
 
-  init () {
+  init() {
     this.exceptionHandler = new ExceptionHandler()
 
-    this.openedAtLogin = is.macOS()
-      ? app.getLoginItemSettings().wasOpenedAtLogin
-      : false
+    this.openedAtLogin = is.macOS() ? app.getLoginItemSettings().wasOpenedAtLogin : false
 
     if (process.argv.length > 1) {
       this.handleAppLaunchArgv(process.argv)
@@ -61,7 +53,7 @@ export default class Launcher extends EventEmitter {
     this.handleAppEvents()
   }
 
-  handleAppEvents () {
+  handleAppEvents() {
     this.handelAppReady()
     this.handleAppWillQuit()
   }
@@ -71,7 +63,7 @@ export default class Launcher extends EventEmitter {
    * For Windows, Linux
    * @param {array} argv
    */
-  handleAppLaunchArgv (argv) {
+  handleAppLaunchArgv(argv) {
     logger.info('handleAppLaunchArgv===>', argv)
     // args: array, extra: map
     const { args, extra } = splitArgv(argv)
@@ -82,32 +74,33 @@ export default class Launcher extends EventEmitter {
     }
   }
 
-  handelAppReady () {
+  handelAppReady() {
     app.on('ready', () => {
+      console.log('app on ready !!!!!!')
       global.application = new Application()
       const { openedAtLogin } = this
       global.application.start('index', {
         openedAtLogin
       })
-      global.application.on('ready', () => {
-      })
+      global.application.on('ready', () => {})
     })
 
     app.on('activate', () => {
+      console.log('app on activate !!!!!!')
       if (global.application) {
-        logger.info('[BuildPhp] activate')
+        logger.info('[WebMaker] activate')
         global.application.showPage('index')
       }
     })
   }
 
-  handleAppWillQuit () {
+  handleAppWillQuit() {
     app.on('will-quit', () => {
-      logger.info('[BuildPhp] will-quit')
+      logger.info('[WebMaker] will-quit')
       if (global.application) {
         global.application.stop()
       } else {
-        logger.info('[BuildPhp] global.application is null !!!')
+        logger.info('[WebMaker] global.application is null !!!')
       }
     })
   }

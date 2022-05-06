@@ -1,0 +1,385 @@
+html,
+body {
+  padding: 0;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+*{
+  box-sizing: border-box;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: "Monospaced Number", "Chinese Quote", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-variant: tabular-nums;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+::-webkit-scrollbar-thumb:window-inactive {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-resizer {
+  display: none;
+}
+
+img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.clearfix {
+  @include clearfix();
+}
+
+/*常用设置-开始*/
+.h-p100 {
+  height: 100%!important;
+}
+.w-p100 {
+  width: 100%!important;
+}
+.h-0{
+  height: 0 !important;
+}
+
+.ml-5 {
+  margin-left: 5px!important;
+}
+.ml-10 {
+  margin-left: 10px!important;
+}
+.ml-15 {
+  margin-left: 15px!important;
+}
+.ml-20 {
+  margin-left: 20px!important;
+}
+.ml-25 {
+  margin-left: 25px!important;
+}
+.ml-30 {
+  margin-left: 30px!important;
+}
+.ml-80 {
+  margin-left: 80px!important;
+}
+
+.mr-5{
+  margin-right: 5px!important;
+}
+
+.mr-10{
+  margin-right: 10px!important;
+}
+
+.mt-10{
+  margin-top: 10px!important;
+}
+
+.mt-20{
+  margin-top: 20px!important;
+}
+.mt-30{
+  margin-top: 30px!important;
+}
+.mb-5 {
+  margin-bottom: 5px!important;
+}
+.mb-10{
+  margin-bottom: 10px!important;
+}
+.mb-15{
+  margin-bottom: 15px!important;
+}
+.mb-20{
+  margin-bottom: 20px!important;
+}
+.mx-20{
+  margin-left: 20px !important;
+  margin-right: 20px !important;
+}
+.p-0{
+  padding: 0 !important;
+}
+
+.pt-10{
+  padding-top: 10px !important;
+}
+.px-10 {
+  padding-right: 10px!important;
+  padding-left: 10px!important;
+}
+.px-15 {
+  padding-right: 15px!important;
+  padding-left: 15px!important;
+}
+.px-20{
+  padding-right: 20px!important;
+  padding-left: 20px!important;
+}
+.padding-0-12 {
+  padding: 0 12px !important;
+}
+.padding-12-0 {
+  padding: 12px 0 !important;
+}
+.pt-20{
+  padding-top: 20px !important;
+}
+.pb-0{
+  padding-bottom: 0 !important;
+}
+/*常用设置-结束*/
+
+/* Element UI
+-------------------------- */
+.el-progress-bar__inner {
+  transition: all 0.4s cubic-bezier(0.08, 0.82, 0.17, 1) 0s;
+}
+
+.el-progress--line.is-text {
+  .el-progress-bar__inner::before {
+    content: "";
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #fff;
+    border-radius: 10px;
+    animation: mo-progress-active 2.4s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  }
+}
+
+@keyframes mo-progress-active {
+  0% {
+    opacity: 0.1;
+    width: 0;
+  }
+  20% {
+    opacity: 0.5;
+    width: 0;
+  }
+  100% {
+    opacity: 0;
+    width: 100%;
+  }
+}
+
+.el-message-box__wrapper {
+  outline: none;
+}
+
+.el-message__content {
+  line-height: 18px;
+  word-break: break-all;
+  a {
+    color: $--link-color;
+  }
+}
+
+.tab-title-dialog {
+  .el-dialog__header {
+    padding: 0 20px;
+    position: relative;
+    z-index: 10;
+  }
+  .el-dialog__body {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+.el-form-item--mini .el-form-item__info {
+  padding-top: 1px;
+}
+
+.el-form-item__info {
+  font-size: 12px;
+  line-height: 1;
+  padding-top: 4px;
+  color: $--color-info;
+}
+
+.el-input-number.el-input-number--mini {
+  &.is-controls-left .el-input__inner {
+    padding-left: 34px;
+    padding-right: 5px;
+  }
+  &.is-controls-right .el-input__inner {
+    padding-left: 5px;
+    padding-right: 34px;
+  }
+}
+
+/* App Main
+-------------------------- */
+#app {
+  background-color: $--app-background;
+  display: flex;
+  flex-direction: column;
+}
+#container {
+  background-color: #1d2033;
+  overflow: hidden;
+}
+
+.aside {
+  background: $--app-background;
+  color: $--aside-text-color;
+}
+
+.swith-power{
+  &.on{
+    color: $--switch-power-on;
+  }
+}
+
+.subnav {
+  background-color: $--subnav-background;
+  color: $--subnav-text-color;
+}
+
+.subnav-inner {
+  margin-top: 44px;
+  padding: 0 16px;
+  user-select: none;
+
+  h3 {
+    font-size: 16px;
+    color: $--subnav-title-color;
+    font-weight: normal;
+    line-height: 24px;
+    margin: 0 0 28px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    cursor: default;
+
+    li {
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      font-size: 0;
+      line-height: 20px;
+      border-radius: 3px;
+      cursor: pointer;
+
+      i,
+      span {
+        display: inline-block;
+        vertical-align: middle;
+        font-size: 14px;
+      }
+
+      &:hover,
+      &.active {
+        background-color: $--subnav-active-background;
+
+        i,
+        span,
+        svg {
+          color: $--subnav-active-text-color;
+        }
+      }
+    }
+  }
+}
+
+.subnav-icon {
+  padding: 2px;
+  height: 16px;
+  margin-right: 12px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.content {
+  padding: 0;
+}
+
+.panel {
+  background: $--panel-background;
+  .panel-header {
+    position: relative;
+    padding: 44px 0 12px;
+    margin: 0 36px;
+    border-bottom: 2px solid $--panel-border-color;
+    user-select: none;
+    h4 {
+      margin: 0;
+      color: $--panel-title-color;
+      font-size: 16px;
+      font-weight: normal;
+      line-height: 24px;
+    }
+  }
+  .panel-content {
+    position: relative;
+    padding: 16px 36px 64px;
+    height: 100%;
+  }
+}
+
+.form-actions {
+  background: $--form-actions-background;
+}
+
+@media only screen and (max-width:567px) {
+  .hidden-xs-only {
+    display:none!important
+  }
+}
+
+@media only screen and (min-width: 568px) {
+  .hidden-sm-and-up {
+    display: none !important;
+  }
+}
+@media only screen and (min-width: 568px) and (max-width: 991px) {
+  .hidden-sm-only {
+    display: none !important;
+  }
+}
+
+@media only screen and (max-width: 791px) {
+  .hidden-sm-and-down {
+    display: none !important;
+  }
+}
+
+@media only screen and (min-width: 792px) {
+  .hidden-md-and-up {
+    display: none !important;
+  }
+}

@@ -4,36 +4,26 @@ import is from 'electron-is'
 import { autoUpdater } from 'electron-updater'
 import { resolve } from 'path'
 import logger from './Logger'
-import { getI18n } from '@/ui/Locale'
 
 if (is.dev()) {
-  autoUpdater.updateConfigPath = resolve(__dirname, '../../../app-update.yml')
+  autoUpdater.updateConfigPath = resolve(__dirname, '../../app-update.yml')
 }
 
 export default class UpdateManager extends EventEmitter {
-  constructor (options = {}) {
+  constructor(options = {}) {
     super()
     this.options = options
-    this.i18n = getI18n()
-
     this.updater = autoUpdater
     this.updater.autoDownload = false
     this.updater.logger = logger
     this.autoCheckData = {
-      checkEnable: this.options.autoCheck,
+      checkEnable: true,
       userCheck: false
     }
     this.init()
   }
 
-  init () {
-    // Event: error
-    // Event: checking-for-update
-    // Event: update-available
-    // Event: update-not-available
-    // Event: download-progress
-    // Event: update-downloaded
-
+  init() {
     this.updater.on('checking-for-update', this.checkingForUpdate.bind(this))
     this.updater.on('update-available', this.updateAvailable.bind(this))
     this.updater.on('update-not-available', this.updateNotAvailable.bind(this))
@@ -47,36 +37,38 @@ export default class UpdateManager extends EventEmitter {
     }
   }
 
-  check () {
+  check() {
     this.autoCheckData.userCheck = true
     this.updater.checkForUpdates()
   }
 
-  checkingForUpdate () {
+  checkingForUpdate() {
     this.emit('checking')
   }
 
-  updateAvailable (event, info) {
+  updateAvailable(event, info) {
     this.emit('update-available', info)
-    dialog.showMessageBox({
-      type: 'info',
-      title: this.i18n.t('app.check-for-updates-title'),
-      message: this.i18n.t('app.update-available-message'),
-      buttons: [this.i18n.t('app.yes'), this.i18n.t('app.no')],
-      cancelId: 1
-    }).then(({ response }) => {
-      if (response === 0) {
-        this.updater.downloadUpdate()
-      }
-    })
+    dialog
+      .showMessageBox({
+        type: 'info',
+        title: '检查更新',
+        message: '发现新版本，是否现在更新？',
+        buttons: ['是', '否'],
+        cancelId: 1
+      })
+      .then(({ response }) => {
+        if (response === 0) {
+          this.updater.downloadUpdate()
+        }
+      })
   }
 
-  updateNotAvailable (event, info) {
+  updateNotAvailable(event, info) {
     this.emit('update-not-available', info)
     if (this.autoCheckData.userCheck) {
       dialog.showMessageBox({
-        title: this.i18n.t('app.check-for-updates-title'),
-        message: this.i18n.t('app.update-not-available-message')
+        title: '检查更新',
+        message: '已是最新版'
       })
     }
   }
@@ -90,29 +82,29 @@ export default class UpdateManager extends EventEmitter {
    * total,
    * transferred
    */
-  updateDownloadProgress (event) {
+  updateDownloadProgress(event) {
     this.emit('download-progress', event)
   }
 
-  updateDownloaded (event, info) {
+  updateDownloaded(event, info) {
     this.emit('update-downloaded', info)
     this.updater.logger.log(`Update Downloaded: ${info}`)
-    dialog.showMessageBox({
-      title: this.i18n.t('app.check-for-updates-title'),
-      message: this.i18n.t('app.update-downloaded-message')
-    }).then(_ => {
-      this.emit('will-updated')
-      setImmediate(() => {
-        this.updater.quitAndInstall()
+    dialog
+      .showMessageBox({
+        title: '检查更新',
+        message: '更新下载完成，应用程序将退出并开始更新...'
       })
-    })
+      .then((_) => {
+        this.emit('will-updated')
+        setImmediate(() => {
+          this.updater.quitAndInstall()
+        })
+      })
   }
 
-  updateError (event, error) {
+  updateError(event, error) {
     this.emit('update-error', error)
-    const msg = (error == null)
-      ? this.i18n.t('update-error-message')
-      : (error.stack || error).toString()
+    const msg = error == null ? '检查更新失败' : (error.stack || error).toString()
 
     this.updater.logger.warn(`[Motrix] update-error: ${msg}`)
     dialog.showErrorBox(msg)

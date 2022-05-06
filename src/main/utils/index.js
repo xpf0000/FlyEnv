@@ -4,28 +4,24 @@ import { resolve } from 'path'
 import { existsSync, lstatSync } from 'fs'
 import logger from '../core/Logger'
 
-export function getLogPath () {
+export function getLogPath() {
   return logger.transports.file.file
 }
 
-export function getDhtPath (protocol) {
+export function getDhtPath(protocol) {
   const name = protocol === 6 ? 'dht6.dat' : 'dht.dat'
   return resolve(app.getPath('userData'), `./${name}`)
 }
 
-export function getSessionPath () {
-  return resolve(app.getPath('userData'), './download.session')
-}
-
-export function getUserDataPath () {
+export function getUserDataPath() {
   return app.getPath('userData')
 }
 
-export function getUserDownloadsPath () {
+export function getUserDownloadsPath() {
   return app.getPath('downloads')
 }
 
-export function transformConfig (config) {
+export function transformConfig(config) {
   let result = []
   for (const [k, v] of Object.entries(config)) {
     if (v !== '') {
@@ -35,7 +31,7 @@ export function transformConfig (config) {
   return result
 }
 
-export function isRunningInDmg () {
+export function isRunningInDmg() {
   if (!is.macOS() || is.dev()) {
     return false
   }
@@ -44,7 +40,7 @@ export function isRunningInDmg () {
   return result
 }
 
-export function moveAppToApplicationsFolder (errorMsg = '') {
+export function moveAppToApplicationsFolder(errorMsg = '') {
   return new Promise((resolve, reject) => {
     try {
       const result = app.moveToApplicationsFolder()
@@ -59,7 +55,7 @@ export function moveAppToApplicationsFolder (errorMsg = '') {
   })
 }
 
-export function splitArgv (argv) {
+export function splitArgv(argv) {
   const args = []
   const extra = {}
   for (const arg of argv) {
@@ -75,7 +71,7 @@ export function splitArgv (argv) {
   return { args, extra }
 }
 
-export function parseArgvAsUrl (argv) {
+export function parseArgvAsUrl(argv) {
   let arg = argv[1]
   if (!arg) {
     return
@@ -86,7 +82,7 @@ export function parseArgvAsUrl (argv) {
   }
 }
 
-export function checkIsSupportedSchema (url = '') {
+export function checkIsSupportedSchema(url = '') {
   const str = url.toLowerCase()
   if (
     str.startsWith('mo:') ||
@@ -103,11 +99,11 @@ export function checkIsSupportedSchema (url = '') {
   }
 }
 
-export function isDirectory (path) {
+export function isDirectory(path) {
   return existsSync(path) && lstatSync(path).isDirectory()
 }
 
-export function parseArgvAsFile (argv) {
+export function parseArgvAsFile(argv) {
   let arg = argv[1]
   if (!arg || isDirectory(arg)) {
     return
@@ -117,4 +113,13 @@ export function parseArgvAsFile (argv) {
     arg = arg.replace('file://', '')
   }
   return arg
+}
+
+export function uuid(length = 32) {
+  const num = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
+  let str = ''
+  for (let i = 0; i < length; i++) {
+    str += num.charAt(Math.floor(Math.random() * num.length))
+  }
+  return str
 }

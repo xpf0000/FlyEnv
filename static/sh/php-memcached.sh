@@ -1,6 +1,6 @@
 #!/bin/bash
 cachedir=$1
-phpv=$2
+phpdir=$2
 memcachedv=$3
 cd $cachedir
 curl -C - -O -s http://pecl.php.net/get/memcached-$memcachedv.tgz
@@ -20,7 +20,7 @@ if [ ! -d $lib ]; then
 fi
 cd "memcached-$memcachedv"
 cellar=$(brew --Cellar)
-$cellar/php@$phpv/$phpv/bin/phpize
-./configure --with-php-config=$cellar/php@$phpv/$phpv/bin/php-config --with-libmemcached-dir=$lib --with-zlib-dir=$zlib
+$phpdir/bin/phpize
+./configure --with-php-config=$phpdir/bin/php-config --with-libmemcached-dir=$lib --with-zlib-dir=$zlib
 make
 make install

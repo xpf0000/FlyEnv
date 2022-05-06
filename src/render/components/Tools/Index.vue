@@ -1,0 +1,113 @@
+<template>
+  <div class="main-right-panel">
+    <ul class="tools-panel">
+      <li @click="showPage('sslmake')">
+        <yb-icon :svg="import('@/svg/sslmake.svg?raw')" width="30" height="30" />
+        <span>SSL Make</span>
+      </li>
+      <li @click="showPage('fileinfo')">
+        <yb-icon :svg="import('@/svg/fileinfo.svg?raw')" width="30" height="30" />
+        <span>File Info</span>
+      </li>
+      <li @click="showPage('timestamp')">
+        <yb-icon :svg="import('@/svg/time.svg?raw')" width="30" height="30" style="padding: 2px" />
+        <span>Timestamp</span>
+      </li>
+      <li @click="showPage('decode')">
+        <yb-icon
+          :svg="import('@/svg/decode.svg?raw')"
+          width="30"
+          height="30"
+          style="padding: 2px"
+        />
+        <span>Decode/Encode</span>
+      </li>
+    </ul>
+    <el-drawer
+      ref="host-edit-drawer"
+      v-model="show"
+      size="65%"
+      title="我是标题"
+      :destroy-on-close="true"
+      custom-class="host-edit-drawer"
+      :with-header="false"
+    >
+      <component :is="component" @doClose="hidePage"></component>
+    </el-drawer>
+  </div>
+</template>
+
+<script>
+  import { markRaw } from 'vue'
+  import SSLMake from './SSLMake/index.vue'
+  import FileInfo from './FileInfo/index.vue'
+  import Timestamp from './Timestamp/index.vue'
+  import Decode from './Decode/index.vue'
+  export default {
+    components: {},
+    data() {
+      return {
+        show: false,
+        component: null
+      }
+    },
+    computed: {},
+    methods: {
+      showPage(flag) {
+        this.show = true
+        switch (flag) {
+          case 'sslmake':
+            this.component = markRaw(SSLMake)
+            break
+          case 'fileinfo':
+            this.component = markRaw(FileInfo)
+            break
+          case 'timestamp':
+            this.component = markRaw(Timestamp)
+            break
+          case 'decode':
+            this.component = markRaw(Decode)
+            break
+        }
+      },
+      hidePage() {
+        this.component = null
+        this.show = false
+      }
+    }
+  }
+</script>
+
+<style lang="scss">
+  .tools-panel {
+    padding: 40px;
+    display: grid;
+    grid-row-gap: 40px;
+    grid-column-gap: 40px;
+    grid-template-columns: repeat(auto-fill, 120px);
+    grid-template-rows: repeat(auto-fill, 150px);
+
+    > li {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 120px;
+      height: 150px;
+      background: #32364a;
+      border-radius: 5px;
+      padding-top: 5px;
+      cursor: pointer;
+      transition: all 0.25s;
+      user-select: none;
+
+      &:hover {
+        transform: scale(1.1);
+      }
+
+      > span {
+        margin-top: 25px;
+      }
+    }
+  }
+</style>

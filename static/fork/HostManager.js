@@ -5,90 +5,190 @@ const writeFileSync = require('fs').writeFileSync
 const unlinkSync = require('fs').unlinkSync
 const Utils = require('./Utils')
 class HostManager {
-  // eslint-disable-next-line no-useless-constructor
-  constructor () {}
-  exec (commands) {
+  constructor() {
+    this.ipcCommand = ''
+    this.ipcCommandKey = ''
+  }
+  exec(commands) {
+    this.ipcCommand = commands[0]
+    console.log('this.ipcCommand: ', this.ipcCommand)
+    commands.splice(0, 1)
+    this.ipcCommandKey = commands[0]
+    console.log('this.ipcCommandKey: ', this.ipcCommandKey)
+    commands.splice(0, 1)
+
     let fn = commands[0]
     console.log('fn: ', fn)
     commands.splice(0, 1)
     console.log('commands: ', commands)
-    this[fn](commands)
+    this[fn](...commands)
   }
 
-  hostList () {
+  hostList() {
     let hostfile = join(global.Server.BaseDir, 'host.json')
     if (!existsSync(hostfile)) {
       Utils.writeFileAsync(hostfile, '[]')
-      process.send({ command: 'application:host-list', info: [] })
-      process.send({ command: 'application:task-host-end', info: 0 })
+      process.send({
+        command: this.ipcCommand,
+        key: this.ipcCommandKey,
+        info: {
+          code: 0,
+          msg: 'SUCCESS',
+          hosts: []
+        }
+      })
       return
     }
-    Utils.readFileAsync(hostfile).then(json => {
+    Utils.readFileAsync(hostfile).then((json) => {
       json = JSON.parse(json)
-      this._initHost(json).then(res => {
-        process.send({ command: 'application:host-list', info: json })
-        process.send({ command: 'application:task-host-end', info: 0 })
-      }).catch(_ => {
-      })
+      this._initHost(json)
+        .then(() => {
+          process.send({
+            command: this.ipcCommand,
+            key: this.ipcCommandKey,
+            info: {
+              code: 0,
+              msg: 'SUCCESS',
+              hosts: json
+            }
+          })
+        })
+        .catch(() => {})
     })
   }
 
-  updateHostList (args) {
-    let list = args[0]
+  handleHost(host, flag, old) {
+    console.log('handleHost: ', host, flag, old)
     let hostfile = join(global.Server.BaseDir, 'host.json')
-    Utils.writeFileAsync(hostfile, JSON.stringify(list)).then(res => {
-      process.send({ command: 'application:task-host-end', info: 0 })
-    }).catch(err => {
-      console.log('err: ', err)
-      process.send({ command: 'application:task-host-end', info: 0 })
-    })
-  }
-
-  handleHost (args) {
-    let host = args[0]; let flag = args[1]; let old = args[2]
+    let hostList = []
+    if (existsSync(hostfile)) {
+      try {
+        hostList = JSON.parse(readFileSync(hostfile, 'utf-8'))
+      } catch (e) {
+        console.log(e)
+      }
+    }
     switch (flag) {
       case 'add':
-        this._addVhost(host).then(code => {
-          return this._addHost(host)
-        }).then(code => {
-          process.send({ command: 'application:host-add', info: true })
-          process.send({ command: 'application:task-host-end', info: 0 })
-        }).catch(err => {
-          process.send({ command: 'application:host-add', info: { err: err } })
-          process.send({ command: 'application:task-host-end', info: 0 })
-        })
+        this._addVhost(host)
+          .then(() => {
+            return this._addHost(host)
+          })
+          .then(() => {
+            console.log('hostfile: ', hostfile)
+            hostList.push(host)
+            writeFileSync(hostfile, JSON.stringify(hostList))
+            process.send({
+              command: this.ipcCommand,
+              key: this.ipcCommandKey,
+              info: {
+                code: 0,
+                msg: 'SUCCESS',
+                hosts: hostList
+              }
+            })
+          })
+          .catch((err) => {
+            console.log(err)
+            process.send({
+              command: this.ipcCommand,
+              key: this.ipcCommandKey,
+              info: {
+                code: 1,
+                msg: err
+              }
+            })
+          })
         break
       case 'del':
-        this._delVhost(host).then(code => {
-          return this._delHost(host)
-        }).then(code => {
-          process.send({ command: 'application:host-del', info: true })
-          process.send({ command: 'application:task-host-end', info: 0 })
-        }).catch(err => {
-          process.send({ command: 'application:host-del', info: { err: err } })
-          process.send({ command: 'application:task-host-end', info: 0 })
-        })
+        this._delVhost(host)
+          .then(() => {
+            return this._delHost(host)
+          })
+          .then(() => {
+            let index = -1
+            hostList.some((h, i) => {
+              if (h.id === host.id) {
+                index = i
+                return true
+              }
+              return false
+            })
+            if (index >= 0) {
+              hostList.splice(index, 1)
+            }
+            writeFileSync(hostfile, JSON.stringify(hostList))
+            process.send({
+              command: this.ipcCommand,
+              key: this.ipcCommandKey,
+              info: {
+                code: 0,
+                msg: 'SUCCESS',
+                hosts: hostList
+              }
+            })
+          })
+          .catch((err) => {
+            process.send({
+              command: this.ipcCommand,
+              key: this.ipcCommandKey,
+              info: {
+                code: 1,
+                msg: err
+              }
+            })
+          })
         break
       case 'edit':
-        this._delVhost(old).then(code => {
-          return this._delHost(old)
-        }).then(code => {
-          return this._addVhost(host)
-        }).then(code => {
-          return this._addHost(host)
-        }).then(code => {
-          process.send({ command: 'application:host-edit', info: true })
-          process.send({ command: 'application:task-host-end', info: 0 })
-        }).catch(err => {
-          process.send({ command: 'application:host-edit', info: { err: err } })
-          process.send({ command: 'application:task-host-end', info: 0 })
-        })
+        this._delVhost(old)
+          .then(() => {
+            return this._delHost(old)
+          })
+          .then(() => {
+            return this._addVhost(host)
+          })
+          .then(() => {
+            return this._addHost(host)
+          })
+          .then(() => {
+            let index = -1
+            hostList.some((h, i) => {
+              if (h.id === old.id) {
+                index = i
+                return true
+              }
+              return false
+            })
+            if (index >= 0) {
+              hostList[index] = host
+            }
+            writeFileSync(hostfile, JSON.stringify(hostList))
+            process.send({
+              command: this.ipcCommand,
+              key: this.ipcCommandKey,
+              info: {
+                code: 0,
+                msg: 'SUCCESS',
+                hosts: hostList
+              }
+            })
+          })
+          .catch((err) => {
+            process.send({
+              command: this.ipcCommand,
+              key: this.ipcCommandKey,
+              info: {
+                code: 1,
+                msg: err
+              }
+            })
+          })
         break
     }
   }
 
-  _delVhost (host) {
-    return new Promise((resolve, reject) => {
+  _delVhost(host) {
+    return new Promise((resolve) => {
       let nginxvpath = join(global.Server.BaseDir, 'vhost/nginx')
       let apachevpath = join(global.Server.BaseDir, 'vhost/apache')
       let rewritepath = join(global.Server.BaseDir, 'vhost/rewrite')
@@ -111,7 +211,7 @@ class HostManager {
     })
   }
 
-  _addVhost (host) {
+  _addVhost(host) {
     return new Promise((resolve, reject) => {
       try {
         let nginxvpath = join(global.Server.BaseDir, 'vhost/nginx')
@@ -134,9 +234,14 @@ class HostManager {
         let hostname = host.name
         let nvhost = join(nginxvpath, `${hostname}.conf`)
         let avhost = join(apachevpath, `${hostname}.conf`)
-        let hostalias = host.alias ? host.alias.split('\n').filter((item) => {
-          return item && item.length > 0
-        }).join(' ') : host.name
+        let hostalias = host.alias
+          ? host.alias
+              .split('\n')
+              .filter((item) => {
+                return item && item.length > 0
+              })
+              .join(' ')
+          : host.name
         let ntmpl = readFileSync(nginxtmpl, 'utf-8')
           .replace(/#Server_Alias#/g, hostalias)
           .replace(/#Server_Root#/g, host.root)
@@ -170,26 +275,30 @@ class HostManager {
     })
   }
 
-  _delHost (item) {
+  _delHost(item) {
     return new Promise((resolve, reject) => {
       let alias = item.alias ? item.alias.split('\n').join(' ') : item.name
-      Utils.readFileAsync('/private/etc/hosts').then(content => {
-        let x = `127.0.0.1     ${alias}\n`
-        content = content.replace(x, '')
-        Utils.writeFileAsync('/private/etc/hosts', content).then(code => {
-          console.log('host update success !!!!!!')
-          resolve(true)
-        }).catch(err => {
-          console.log('host update fail: ', err)
+      Utils.readFileAsync('/private/etc/hosts')
+        .then((content) => {
+          let x = `127.0.0.1     ${alias}\n`
+          content = content.replace(x, '')
+          Utils.writeFileAsync('/private/etc/hosts', content)
+            .then(() => {
+              console.log('host update success !!!!!!')
+              resolve(true)
+            })
+            .catch((err) => {
+              console.log('host update fail: ', err)
+              reject(err)
+            })
+        })
+        .catch((err) => {
           reject(err)
         })
-      }).catch(err => {
-        reject(err)
-      })
     })
   }
 
-  _initHost (list) {
+  _initHost(list) {
     return new Promise((resolve, reject) => {
       if (list.length === 0) {
         resolve(true)
@@ -200,61 +309,69 @@ class HostManager {
         let alias = item.alias ? item.alias.split('\n').join(' ') : item.name
         host += `127.0.0.1     ${alias}\n`
       }
-      Utils.readFileAsync('/private/etc/hosts').then(content => {
-        let x = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-        if (x && x[0]) {
-          x = x[0]
-          content = content.replace(x, '')
-        }
-        x = `#X-HOSTS-BEGIN#\n${host}#X-HOSTS-END#`
-        content = content.trim()
-        content += `\n${x}`
-        Utils.writeFileAsync('/private/etc/hosts', content).then(code => {
-          resolve(true)
-        }).catch(err => {
+      Utils.readFileAsync('/private/etc/hosts')
+        .then((content) => {
+          let x = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
+          if (x && x[0]) {
+            x = x[0]
+            content = content.replace(x, '')
+          }
+          x = `#X-HOSTS-BEGIN#\n${host}#X-HOSTS-END#`
+          content = content.trim()
+          content += `\n${x}`
+          Utils.writeFileAsync('/private/etc/hosts', content)
+            .then(() => {
+              resolve(true)
+            })
+            .catch((err) => {
+              reject(err)
+            })
+        })
+        .catch((err) => {
           reject(err)
         })
-      }).catch(err => {
-        reject(err)
-      })
     })
   }
 
-  _addHost (item) {
+  _addHost(item) {
     return new Promise((resolve, reject) => {
       let alias = item.alias ? item.alias.split('\n').join(' ') : item.name
-      Utils.readFileAsync('/private/etc/hosts').then(content => {
-        console.log('content: ', content)
-        let x = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-        console.log('x: ', x)
-        if (!x) {
-          x = `#X-HOSTS-BEGIN#\n127.0.0.1     ${alias}\n#X-HOSTS-END#`
-        } else {
-          x = x[0]
-          content = content.replace(x, '')
-          if (x.indexOf(alias) < 0) {
-            x = x.replace('#X-HOSTS-END#', '')
-            x += `127.0.0.1     ${alias}\n#X-HOSTS-END#`
+      Utils.readFileAsync('/private/etc/hosts')
+        .then((content) => {
+          console.log('content: ', content)
+          let x = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
+          console.log('x: ', x)
+          if (!x) {
+            x = `#X-HOSTS-BEGIN#\n127.0.0.1     ${alias}\n#X-HOSTS-END#`
           } else {
-            console.log('host has exits !!!!')
-            resolve(true)
-            return
+            x = x[0]
+            content = content.replace(x, '')
+            if (x.indexOf(alias) < 0) {
+              x = x.replace('#X-HOSTS-END#', '')
+              x += `127.0.0.1     ${alias}\n#X-HOSTS-END#`
+            } else {
+              console.log('host has exits !!!!')
+              resolve(true)
+              return
+            }
           }
-        }
-        content = content.trim()
-        content += `\n${x}`
-        console.log('x: ', x)
-        console.log('content: ', content)
-        Utils.writeFileAsync('/private/etc/hosts', content).then(code => {
-          console.log('host update success !!!!!!')
-          resolve(true)
-        }).catch(err => {
-          console.log('host update fail: ', err)
+          content = content.trim()
+          content += `\n${x}`
+          console.log('x: ', x)
+          console.log('content: ', content)
+          Utils.writeFileAsync('/private/etc/hosts', content)
+            .then(() => {
+              console.log('host update success !!!!!!')
+              resolve(true)
+            })
+            .catch((err) => {
+              console.log('host update fail: ', err)
+              reject(err)
+            })
+        })
+        .catch((err) => {
           reject(err)
         })
-      }).catch(err => {
-        reject(err)
-      })
     })
   }
 }

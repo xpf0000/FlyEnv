@@ -3,22 +3,23 @@ import { join } from 'path'
 import { TouchBar, nativeImage } from 'electron'
 import { handleCommand } from '../utils/menu'
 import logger from '../core/Logger'
+import Tmpl from '../menus/touchBar.json'
 
 const { TouchBarButton, TouchBarLabel, TouchBarSpacer, TouchBarGroup } = TouchBar
 
 export default class TouchBarManager extends EventEmitter {
-  constructor (options) {
+  constructor(options) {
     super()
     this.options = options
     this.bars = {}
     this.load()
   }
 
-  load () {
-    this.template = require(`../menus/touchBar.json`)
+  load() {
+    this.template = Tmpl
   }
 
-  getClickFn (item) {
+  getClickFn(item) {
     let fn = () => {}
     if (item.command) {
       fn = () => {
@@ -28,7 +29,7 @@ export default class TouchBarManager extends EventEmitter {
     return fn
   }
 
-  getIconImage (icon) {
+  getIconImage(icon) {
     if (!icon) {
       return
     }
@@ -36,7 +37,7 @@ export default class TouchBarManager extends EventEmitter {
     return nativeImage.createFromPath(img)
   }
 
-  buildItem (type, options) {
+  buildItem(type, options) {
     let result = null
     const { label, backgroundColor, textColor, size } = options
 
@@ -74,11 +75,11 @@ export default class TouchBarManager extends EventEmitter {
     return result
   }
 
-  build (template) {
+  build(template) {
     const result = []
 
-    template.forEach(tpl => {
-      const { id, type, ...rest } = tpl
+    template.forEach((tpl) => {
+      const { type, ...rest } = tpl
       let options = { ...rest }
       if (type === 'group') {
         options = { type, items: this.build(options.items) }
@@ -89,7 +90,7 @@ export default class TouchBarManager extends EventEmitter {
     return result
   }
 
-  getTouchBarByPage (page) {
+  getTouchBarByPage(page) {
     let bar = this.bars[page] || null
     if (!bar) {
       try {
@@ -103,7 +104,7 @@ export default class TouchBarManager extends EventEmitter {
     return bar
   }
 
-  setup (page, window) {
+  setup(page, window) {
     const bar = this.getTouchBarByPage(page)
     window.setTouchBar(bar)
   }

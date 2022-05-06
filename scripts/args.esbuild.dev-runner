@@ -1,0 +1,8 @@
+--platform=node
+--bundle
+--external:vite
+--external:esbuild
+--external:consolidate
+--external:@vue/compiler-sfc
+scripts/dev-runner.ts
+--outfile=electron/dev-runner.js

@@ -1,5 +1,5 @@
-export function concat (template, submenu, submenuToAdd) {
-  submenuToAdd.forEach(sub => {
+export function concat(template, submenu, submenuToAdd) {
+  submenuToAdd.forEach((sub) => {
     let relativeItem = null
     if (sub.position) {
       switch (sub.position) {
@@ -35,7 +35,7 @@ export function concat (template, submenu, submenuToAdd) {
   })
 }
 
-export function merge (template, item) {
+export function merge(template, item) {
   if (item.id) {
     let matched = findById(template, item.id)
     if (matched) {
@@ -53,7 +53,7 @@ export function merge (template, item) {
   }
 }
 
-function findById (template, id) {
+function findById(template, id) {
   for (let i in template) {
     let item = template[i]
     if (item.id === id) {
@@ -71,21 +71,11 @@ function findById (template, id) {
   return null
 }
 
-export function translateTemplate (template, keystrokesByCommand, i18n) {
+export function translateTemplate(template, keystrokesByCommand) {
   for (let i in template) {
     let item = template[i]
     if (item.command) {
       item.accelerator = acceleratorForCommand(item.command, keystrokesByCommand)
-    }
-
-    // If label is specified, label is used as the key of i18n.t(key),
-    // which mainly solves the inaccurate translation of item.id.
-    if (i18n) {
-      if (item.label) {
-        item.label = i18n.t(item.label)
-      } else if (item.id) {
-        item.label = i18n.t(item.id)
-      }
     }
 
     item.click = () => {
@@ -93,63 +83,61 @@ export function translateTemplate (template, keystrokesByCommand, i18n) {
     }
 
     if (item.submenu) {
-      translateTemplate(item.submenu, keystrokesByCommand, i18n)
+      translateTemplate(item.submenu, keystrokesByCommand)
     }
   }
   return template
 }
 
-export function handleCommand (item) {
+export function handleCommand(item) {
   handleCommandBefore(item)
 
-  const args = item['command-arg']
-    ? [item.command, item['command-arg']]
-    : [item.command]
+  const args = item['command-arg'] ? [item.command, item['command-arg']] : [item.command]
 
   global.application.sendCommandToAll(...args)
 
   handleCommandAfter(item)
 }
 
-function handleCommandBefore (item) {
+function handleCommandBefore(item) {
   console.log('handleCommandBefore==1=>', item)
   if (!item['command-before']) {
     return
   }
-  const [ command, ...args ] = item['command-before'].split(',')
+  const [command, ...args] = item['command-before'].split(',')
   console.log('handleCommandBefore==2=>', command, ...args)
   global.application.sendCommandToAll(command, ...args)
 }
 
-function handleCommandAfter (item) {
+function handleCommandAfter(item) {
   console.log('handleCommandAfter==1=>', item)
   if (!item['command-after']) {
     return
   }
-  const [ command, ...args ] = item['command-after'].split(',')
+  const [command, ...args] = item['command-after'].split(',')
   console.log('handleCommandAfter==2=>', command, ...args)
   global.application.sendCommandToAll(command, ...args)
 }
 
-function acceleratorForCommand (command, keystrokesByCommand) {
+function acceleratorForCommand(command, keystrokesByCommand) {
   const keystroke = keystrokesByCommand[command]
   if (keystroke) {
     let modifiers = keystroke.split(/-(?=.)/)
-    let key = modifiers.pop().toUpperCase()
-      .replace('+', 'Plus')
-      .replace('MINUS', '-')
+    let key = modifiers.pop().toUpperCase().replace('+', 'Plus').replace('MINUS', '-')
     modifiers = modifiers.map((modifier) => {
       if (process.platform === 'darwin') {
-        return modifier.replace(/cmdctrl/ig, 'Cmd')
-          .replace(/shift/ig, 'Shift')
-          .replace(/cmd/ig, 'Cmd')
-          .replace(/ctrl/ig, 'Ctrl')
-          .replace(/alt/ig, 'Alt')
+        return modifier
+          .replace(/cmdctrl/gi, 'Cmd')
+          .replace(/shift/gi, 'Shift')
+          .replace(/cmd/gi, 'Cmd')
+          .replace(/ctrl/gi, 'Ctrl')
+          .replace(/alt/gi, 'Alt')
       } else {
-        return modifier.replace(/cmdctrl/ig, 'Ctrl')
-          .replace(/shift/ig, 'Shift')
-          .replace(/ctrl/ig, 'Ctrl')
-          .replace(/alt/ig, 'Alt')
+        return modifier
+          .replace(/cmdctrl/gi, 'Ctrl')
+          .replace(/shift/gi, 'Shift')
+          .replace(/ctrl/gi, 'Ctrl')
+          .replace(/alt/gi, 'Alt')
       }
     })
     let keys = modifiers.concat([key])
@@ -158,9 +146,9 @@ function acceleratorForCommand (command, keystrokesByCommand) {
   return null
 }
 
-export function flattenMenuItems (menu) {
+export function flattenMenuItems(menu) {
   let flattenItems = {}
-  menu.items.forEach(item => {
+  menu.items.forEach((item) => {
     if (item.id) {
       flattenItems[item.id] = item
       if (item.submenu) {
@@ -171,7 +159,7 @@ export function flattenMenuItems (menu) {
   return flattenItems
 }
 
-export function updateStates (itemsById, visibleStates, enabledStates, checkedStates) {
+export function updateStates(itemsById, visibleStates, enabledStates, checkedStates) {
   if (visibleStates) {
     for (let command in visibleStates) {
       let item = itemsById[command]

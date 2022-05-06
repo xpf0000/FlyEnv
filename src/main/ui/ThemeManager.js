@@ -1,20 +1,20 @@
 import { EventEmitter } from 'events'
 import { nativeTheme, systemPreferences } from 'electron'
 import is from 'electron-is'
-import { LIGHT_THEME, DARK_THEME } from '@shared/constants'
+import { LIGHT_THEME, DARK_THEME } from '../../shared/constants.js'
 
 export default class ThemeManager extends EventEmitter {
-  constructor (options = {}) {
+  constructor() {
     super()
 
     this.init()
   }
 
-  init () {
+  init() {
     this.handleEvents()
   }
 
-  getSystemTheme () {
+  getSystemTheme() {
     let result = LIGHT_THEME
     if (!is.macOS()) {
       return result
@@ -23,7 +23,7 @@ export default class ThemeManager extends EventEmitter {
     return result
   }
 
-  handleEvents () {
+  handleEvents() {
     if (!is.macOS()) {
       return
     }
@@ -35,7 +35,7 @@ export default class ThemeManager extends EventEmitter {
     })
   }
 
-  updateAppAppearance (theme) {
+  updateAppAppearance(theme) {
     if (!is.macOS() || theme !== LIGHT_THEME || theme !== DARK_THEME) {
       return
     }
