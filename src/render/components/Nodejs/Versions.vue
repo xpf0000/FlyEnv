@@ -34,6 +34,7 @@
 
 <script>
   import { mapGetters } from 'vuex'
+  import IPC from '@/util/IPC.js'
   const { exec } = require('child-process-promise')
 
   export default {
@@ -66,7 +67,6 @@
       }
     },
     created: function () {
-      console.log('this.task: ', this.task)
       this.checkNvm()
         .then(() => {
           if (this.task.versions.length === 0) {
@@ -93,39 +93,31 @@
             resolve(true)
             return
           }
-          exec(
-            '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";echo $NVM_DIR'
-          )
-            .then((res) => {
-              console.log(res)
-              console.log('$NVM_DIR: ', res.stdout.trim())
-              let NVM_DIR = res.stdout.trim()
-              // 已安装
-              if (NVM_DIR.length > 0) {
-                this.task.NVM_DIR = NVM_DIR
-                resolve(true)
-              } else {
-                reject(new Error('NVM_DIR未找到'))
-              }
-            })
-            .catch(() => {
+          IPC.send('app-fork:node', 'nvmDir').then((key, res) => {
+            IPC.off(key)
+            if (res?.NVM_DIR) {
+              this.task.NVM_DIR = res.NVM_DIR
+              resolve(true)
+            } else {
               reject(new Error('NVM_DIR未找到'))
-            })
+            }
+          })
         })
       },
       installNvm() {
         this.task.isRunning = true
         this.task.btnTxt = 'nvm安装中...'
-        exec('curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash')
-          .then(() => {
-            this.task.isRunning = false
+        IPC.send('app-fork:node', 'installNvm').then((key, res) => {
+          IPC.off(key)
+          this.task.isRunning = false
+          if (res?.code === 0) {
             this.checkNvm().then(() => {
               this.getAllVersion()
             })
-          })
-          .catch(() => {
-            this.task.isRunning = false
-          })
+          } else {
+            this.$message.error('NVM安装失败')
+          }
+        })
       },
       getAllVersion() {
         if (this.task.getVersioning || this.task.versions.length > 0) {
@@ -133,76 +125,47 @@
         }
         this.task.btnTxt = '版本获取中...'
         this.task.getVersioning = true
-        exec(
-          '[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";[ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion";nvm ls-remote',
-          {
-            env: {
-              NVM_DIR: this.task.NVM_DIR
-            }
+        IPC.send('app-fork:node', 'allVersion', this.task.NVM_DIR).then((key, res) => {
+          IPC.off(key)
+          if (res?.versions) {
+            this.task.versions = res.versions
+            this.task.getVersioning = false
+            this.task.btnTxt = '切换'
+          } else {
+            this.task.btnTxt = '切换'
+            this.task.getVersioning = false
+            this.$message.error('Node可用版本获取失败')
           }
-        )
-          .then((res) => {
-            console.log(res)
-            let str = res.stdout
-            let all = str.match(/\sv\d+(\.\d+){1,4}\s/g).map((v) => {
-              return v.trim().replace('v', '')
-            })
-            this.task.versions = all.reverse()
-            console.log(all)
-            this.task.getVersioning = false
-            this.task.btnTxt = '切换'
-          })
-          .catch((err) => {
-            console.log(err)
-            this.task.btnTxt = '切换'
-            this.task.getVersioning = false
-          })
+        })
       },
       getLocalVersion() {
-        exec(
-          '[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";[ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion";nvm ls',
-          {
-            env: {
-              NVM_DIR: this.task.NVM_DIR
-            }
-          }
-        )
-          .then((res) => {
-            let str = res.stdout
-            let ls = str.split('default')[0]
-            let localVersions = ls.match(/\d+(\.\d+){1,4}/g)
+        IPC.send('app-fork:node', 'localVersion', this.task.NVM_DIR).then((key, res) => {
+          IPC.off(key)
+          if (res?.versions) {
             this.localVersions.splice(0)
-            this.localVersions.push(...localVersions)
-            let reg = /default.*?(\d+(\.\d+){1,4}).*?\(/g
-            let current = reg.exec(str)
-            if (current.length > 1) {
-              current = current[1]
-              this.current = current
-            }
-          })
-          .catch(() => {})
+            this.localVersions.push(...res.versions)
+            this.current = res.current
+          }
+        })
       },
       versionChange() {
         this.task.isRunning = true
         this.task.btnTxt = '切换中...'
-        exec(
-          `[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";[ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion";nvm install v${this.select};nvm alias default ${this.select}`,
-          {
-            env: {
-              NVM_DIR: this.task.NVM_DIR
+        IPC.send('app-fork:node', 'versionChange', this.task.NVM_DIR, this.select).then(
+          (key, res) => {
+            IPC.off(key)
+            if (res?.code === 0) {
+              this.task.btnTxt = '切换'
+              this.task.isRunning = false
+              this.current = this.select
+              this.$message.success('操作成功')
+            } else {
+              this.task.btnTxt = '切换'
+              this.task.isRunning = false
+              this.$message.error('版本切换失败')
             }
           }
         )
-          .then(() => {
-            this.task.btnTxt = '切换'
-            this.task.isRunning = false
-            this.current = this.select
-            this.$message.success('操作成功')
-          })
-          .catch(() => {
-            this.task.btnTxt = '切换'
-            this.task.isRunning = false
-          })
       }
     }
   }

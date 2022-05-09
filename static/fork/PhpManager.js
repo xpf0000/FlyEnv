@@ -1,5 +1,5 @@
 const join = require('path').join
-const { existsSync, unlinkSync, copyFileSync } = require('fs')
+const { existsSync, unlinkSync } = require('fs')
 const { spawn } = require('child_process')
 const Utils = require('./Utils')
 const BaseManager = require('./BaseManager')
@@ -19,47 +19,21 @@ class PhpManager extends BaseManager {
       .then(() => {
         const installedSo = join(installExtensionDir, `${extend}.so`)
         if (existsSync(installedSo)) {
-          process.send({
-            command: this.ipcCommand,
-            key: this.ipcCommandKey,
-            info: {
-              code: 0,
-              msg: 'SUCCESS'
-            }
-          })
+          this._thenSuccess()
         } else {
-          process.send({
-            command: this.ipcCommand,
-            key: this.ipcCommandKey,
-            info: {
-              code: 1,
-              msg: '扩展安装失败'
-            }
+          this._processSend({
+            code: 1,
+            msg: '扩展安装失败'
           })
         }
       })
       .catch((error) => {
-        console.log(error)
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 1,
-            msg: `${error}`
-          }
-        })
+        this._catchError(error)
       })
   }
 
-  unInstallExtends(args) {
-    process.send({
-      command: this.ipcCommand,
-      key: this.ipcCommandKey,
-      info: {
-        code: 0,
-        msg: 'SUCCESS'
-      }
-    })
+  unInstallExtends() {
+    this._thenSuccess()
   }
 
   _startServer(version) {

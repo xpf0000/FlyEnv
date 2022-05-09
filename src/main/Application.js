@@ -346,6 +346,7 @@ export default class Application extends EventEmitter {
     this.emit(command, ...args)
     let window
     switch (command) {
+      case 'app-fork:node':
       case 'app-fork:brew':
       case 'app-fork:nginx':
       case 'app-fork:apache':

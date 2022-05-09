@@ -11,16 +11,12 @@ class HostManager {
   }
   exec(commands) {
     this.ipcCommand = commands[0]
-    console.log('this.ipcCommand: ', this.ipcCommand)
     commands.splice(0, 1)
     this.ipcCommandKey = commands[0]
-    console.log('this.ipcCommandKey: ', this.ipcCommandKey)
     commands.splice(0, 1)
 
     let fn = commands[0]
-    console.log('fn: ', fn)
     commands.splice(0, 1)
-    console.log('commands: ', commands)
     this[fn](...commands)
   }
 

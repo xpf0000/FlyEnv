@@ -12,13 +12,9 @@ class BrewManager extends BaseManager {
     let brew = await this._checkBrew()
     if (brew !== 0) {
       let info = brew ? brew.toString() : '切换失败'
-      process.send({
-        command: this.ipcCommand,
-        key: this.ipcCommandKey,
-        info: {
-          code: 1,
-          msg: `${info}<br/>`
-        }
+      this._processSend({
+        code: 1,
+        msg: `${info}<br/>`
       })
     } else {
       if (!global.Server.BrewCellar) {
@@ -32,14 +28,7 @@ class BrewManager extends BaseManager {
           key: 'application:global-server-updata',
           info: global.Server
         })
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 0,
-            msg: 'SUCCESS'
-          }
-        })
+        this._thenSuccess()
       }
     }
   }
@@ -60,51 +49,11 @@ class BrewManager extends BaseManager {
   }
 
   install(name) {
-    this._doInstall(name)
-      .then(() => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 0,
-            msg: 'SUCCESS'
-          }
-        })
-      })
-      .catch(() => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 1,
-            msg: 'FAIL'
-          }
-        })
-      })
+    this._doInstall(name).then(this._thenSuccess).catch(this._catchError)
   }
 
   uninstall(name) {
-    this._doUnInstall(name)
-      .then(() => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 0,
-            msg: 'SUCCESS'
-          }
-        })
-      })
-      .catch(() => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 1,
-            msg: 'FAIL'
-          }
-        })
-      })
+    this._doUnInstall(name).then(this._thenSuccess).catch(this._catchError)
   }
 
   brewinfo(name) {
@@ -119,24 +68,16 @@ class BrewManager extends BaseManager {
           installed,
           name
         }
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 0,
-            msg: 'SUCCESS',
-            data: obj
-          }
+        this._processSend({
+          code: 0,
+          msg: 'SUCCESS',
+          data: obj
         })
       })
       .catch((err) => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 1,
-            msg: err.stderr
-          }
+        this._processSend({
+          code: 1,
+          msg: err.stderr
         })
       })
   }
@@ -152,23 +93,15 @@ class BrewManager extends BaseManager {
         }
       })
       .then(() => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 0,
-            msg: `Brew install tap ${name} SUCCESS`
-          }
+        this._processSend({
+          code: 0,
+          msg: `Brew install tap ${name} SUCCESS`
         })
       })
       .catch((err) => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 1,
-            msg: err.stderr
-          }
+        this._processSend({
+          code: 1,
+          msg: err.stderr
         })
       })
   }
@@ -177,13 +110,9 @@ class BrewManager extends BaseManager {
     let reg = null
     let command = ''
     const handleCatch = (err) => {
-      process.send({
-        command: this.ipcCommand,
-        key: this.ipcCommandKey,
-        info: {
-          code: 1,
-          msg: err.stderr
-        }
+      this._processSend({
+        code: 1,
+        msg: err.stderr
       })
     }
     const handleThen = (res) => {
@@ -193,14 +122,10 @@ class BrewManager extends BaseManager {
         version = reg.exec(str)[2].trim()
       } catch (e) {}
       if (version) {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 0,
-            msg: 'Success',
-            version
-          }
+        this._processSend({
+          code: 0,
+          msg: 'Success',
+          version
         })
       } else {
         handleCatch({

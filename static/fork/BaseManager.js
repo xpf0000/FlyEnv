@@ -6,8 +6,9 @@ const Utils = require('./Utils')
 const { spawn } = require('child_process')
 const execPromise = require('child-process-promise').exec
 class BaseManager {
-  // eslint-disable-next-line no-useless-constructor
   constructor() {
+    this._thenSuccess = this._thenSuccess.bind(this)
+    this._catchError = this._catchError.bind(this)
     this.type = ''
     this.pidPath = ''
     this.ipcCommand = ''
@@ -15,35 +16,28 @@ class BaseManager {
   }
   exec(commands) {
     this.ipcCommand = commands[0]
-    console.log('this.ipcCommand: ', this.ipcCommand)
     commands.splice(0, 1)
     this.ipcCommandKey = commands[0]
-    console.log('this.ipcCommandKey: ', this.ipcCommandKey)
     commands.splice(0, 1)
 
     let fn = commands[0]
-    console.log('fn: ', fn)
     commands.splice(0, 1)
-    console.log('commands: ', commands)
     execPromise(`echo '${global.Server.Password}' | sudo -S chmod 777 /private/etc/hosts`)
       .then(() => {
-        this[fn](...commands)
+        if (this[fn]) {
+          this[fn](...commands)
+        }
       })
-      .catch((err) => {
+      .catch(() => {
         process.send({
           command: 'application:need-password',
           key: 'application:need-password',
           info: false
         })
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 1,
-            msg: 'sudo需要电脑密码,请输入<br/>'
-          }
+        this._processSend({
+          code: 1,
+          msg: 'sudo需要电脑密码,请输入<br/>'
         })
-        console.log(err)
       })
   }
 
@@ -135,77 +129,28 @@ class BaseManager {
         return this._startServer(version)
       })
       .then(() => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 0,
-            msg: 'SUCCESS',
-            version
-          }
+        this._processSend({
+          code: 0,
+          msg: 'SUCCESS',
+          version
         })
       })
       .catch((code) => {
         let info = code ? code.toString() : '切换失败'
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 1,
-            msg: info,
-            version
-          }
+        this._processSend({
+          code: 1,
+          msg: info,
+          version
         })
       })
   }
 
   stopService() {
-    this._stopServer()
-      .then(() => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 0,
-            msg: 'SUCCESS'
-          }
-        })
-      })
-      .catch((error) => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 1,
-            msg: `${error}`
-          }
-        })
-      })
+    this._stopServer().then(this._thenSuccess).catch(this._catchError)
   }
 
   reloadService() {
-    console.log('reloadService !!!!!!')
-    this._reloadServer()
-      .then(() => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 0,
-            msg: 'SUCCESS'
-          }
-        })
-      })
-      .catch((error) => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 1,
-            msg: `${error}`
-          }
-        })
-      })
+    this._reloadServer().then(this._thenSuccess).catch(this._catchError)
   }
 
   startService(version) {
@@ -213,26 +158,8 @@ class BaseManager {
       .then(() => {
         return this._startServer(version)
       })
-      .then(() => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 0,
-            msg: 'SUCCESS'
-          }
-        })
-      })
-      .catch((error) => {
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 1,
-            msg: `${error}`
-          }
-        })
-      })
+      .then(this._thenSuccess)
+      .catch(this._catchError)
   }
 
   _doInstall(rb) {
@@ -376,6 +303,28 @@ class BaseManager {
         code: 200,
         msg: str
       }
+    })
+  }
+
+  _processSend(info) {
+    process.send({
+      command: this.ipcCommand,
+      key: this.ipcCommandKey,
+      info: info
+    })
+  }
+
+  _thenSuccess() {
+    this._processSend({
+      code: 0,
+      msg: 'SUCCESS'
+    })
+  }
+
+  _catchError(error) {
+    this._processSend({
+      code: 1,
+      msg: `${error}`
     })
   }
 }

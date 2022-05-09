@@ -21,7 +21,6 @@ class RedisManager extends BaseManager {
       }
       let realConf = join(global.Server.RedisDir, 'common/redis.conf')
       let command = `echo '${global.Server.Password}' | sudo -S ${bin} ${realConf}`
-      console.log('_startServer command: ', command)
       execPromise(command)
         .then((res) => {
           console.log('res: ', res)
