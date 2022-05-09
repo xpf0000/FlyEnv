@@ -26,6 +26,13 @@ const state = {
   redis: {
     running: false,
     log: []
+  },
+  node: {
+    isRunning: false,
+    getVersioning: false,
+    btnTxt: '切换',
+    versions: [],
+    NVM_DIR: ''
   }
 }
 const getters = {
@@ -34,7 +41,8 @@ const getters = {
   php: (state) => state.php,
   memcached: (state) => state.memcached,
   mysql: (state) => state.mysql,
-  redis: (state) => state.redis
+  redis: (state) => state.redis,
+  node: (state) => state.node
 }
 const mutations = {}
 const actions = {}

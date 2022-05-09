@@ -2,7 +2,7 @@
   <div class="nodejs-versions">
     <div class="current-version">
       <span>当前版本</span>
-      <span class="version" v-text="current"></span>
+      <span class="version">{{ current }}</span>
     </div>
     <div class="block">
       <span>选择版本</span>
@@ -25,23 +25,17 @@
         :disabled="task.isRunning"
         :loading="task.isRunning || task.getVersioning"
         @click="versionChange"
-        v-text="task.btnTxt"
       >
+        {{ task.btnTxt }}
       </el-button>
     </div>
   </div>
 </template>
 
 <script>
+  import { mapGetters } from 'vuex'
   const { exec } = require('child-process-promise')
 
-  const NodeTask = {
-    isRunning: false,
-    getVersioning: false,
-    btnTxt: '切换',
-    versions: [],
-    NVM_DIR: ''
-  }
   export default {
     name: 'MoNodejsVersions',
     components: {},
@@ -50,11 +44,14 @@
       return {
         current: '获取中...',
         select: '',
-        localVersions: [],
-        task: NodeTask
+        localVersions: []
       }
     },
-    computed: {},
+    computed: {
+      ...mapGetters('task', {
+        task: 'node'
+      })
+    },
     watch: {
       currentType(nv, ov) {
         console.log(`currentType: nv: ${nv}, ov: ${ov}`)
@@ -69,6 +66,7 @@
       }
     },
     created: function () {
+      console.log('this.task: ', this.task)
       this.checkNvm()
         .then(() => {
           if (this.task.versions.length === 0) {
@@ -91,6 +89,10 @@
     methods: {
       checkNvm() {
         return new Promise((resolve, reject) => {
+          if (this.task.NVM_DIR) {
+            resolve(true)
+            return
+          }
           exec(
             '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";echo $NVM_DIR'
           )
