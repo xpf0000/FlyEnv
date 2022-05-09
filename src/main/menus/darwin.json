@@ -35,7 +35,8 @@
         { "id": "window.zoom", "role": "zoom", "label": "缩放" },
         { "id": "window.toggle-fullscreen", "role": "togglefullscreen", "label": "全屏切换" },
         { "type": "separator" },
-        { "id": "window.front", "role": "front", "label": "窗口置顶" }
+        { "id": "window.front", "role": "front", "label": "窗口置顶" },
+        { "id": "window.dev", "label": "打开调试窗口", "command": "application:open-dev-window" }
       ]
     }
   ]

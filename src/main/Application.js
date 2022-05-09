@@ -341,71 +341,82 @@ export default class Application extends EventEmitter {
     })
   }
 
+  handleCommand(command, key, ...args) {
+    console.log('handleIpcMessages: ', command, key, ...args)
+    this.emit(command, ...args)
+    let window
+    switch (command) {
+      case 'app-fork:brew':
+      case 'app-fork:nginx':
+      case 'app-fork:apache':
+      case 'app-fork:php':
+      case 'app-fork:mysql':
+      case 'app-fork:memcached':
+      case 'app-fork:redis':
+      case 'app-fork:host':
+        let forkFile = command.replace('app-fork:', '')
+        let child = fork(join(__static, `fork/${forkFile}.js`))
+        child.send({ Server: global.Server })
+        child.send([command, key, ...args])
+        child.on('message', ({ command, key, info }) => {
+          if (command === 'application:global-server-updata') {
+            console.log('child on message: ', info)
+            global.Server = JSON.parse(JSON.stringify(info))
+            this.sendCommandToAll(command, key, global.Server)
+            return
+          }
+          this.sendCommandToAll(command, key, info)
+          // 0 成功 1 失败 200 过程
+          if (typeof info === 'object' && (info?.code === 0 || info?.code === 1)) {
+            child.disconnect()
+            child.kill()
+          }
+        })
+        break
+      case 'app:password-check':
+        let pass = args[0]
+        console.log('pass: ', pass)
+        execPromise(`echo '${pass}' | sudo -S chmod 777 /private/etc/hosts`)
+          .then((res) => {
+            console.log(res)
+            this.configManager.setConfig('password', pass)
+            global.Server.Password = pass
+            this.sendCommandToAll(command, key, pass)
+          })
+          .catch((err) => {
+            console.log('err: ', err)
+            this.sendCommandToAll(command, key, false)
+          })
+        return
+      case 'app:brew-install':
+        this.windowManager.getFocusedWindow().minimize()
+        break
+      case 'Application:APP-Minimize':
+        this.windowManager.getFocusedWindow().minimize()
+        break
+      case 'Application:APP-Maximize':
+        window = this.windowManager.getFocusedWindow()
+        if (window.isMaximized()) {
+          window.unmaximize()
+        } else {
+          window.maximize()
+        }
+        break
+      case 'Application:APP-Close':
+        this.windowManager.getFocusedWindow().close()
+        break
+      case 'application:open-dev-window':
+        this.mainWindow.webContents.openDevTools()
+        break
+      case 'application:about':
+        this.sendCommandToAll(command, key)
+        break
+    }
+  }
+
   handleIpcMessages() {
     ipcMain.on('command', (event, command, key, ...args) => {
-      this.emit(command, ...args)
-      let window
-      switch (command) {
-        case 'app-fork:brew':
-        case 'app-fork:nginx':
-        case 'app-fork:apache':
-        case 'app-fork:php':
-        case 'app-fork:mysql':
-        case 'app-fork:memcached':
-        case 'app-fork:redis':
-        case 'app-fork:host':
-          let forkFile = command.replace('app-fork:', '')
-          let child = fork(join(__static, `fork/${forkFile}.js`))
-          child.send({ Server: global.Server })
-          child.send([command, key, ...args])
-          child.on('message', ({ command, key, info }) => {
-            if (command === 'application:global-server-updata') {
-              console.log('child on message: ', info)
-              global.Server = JSON.parse(JSON.stringify(info))
-              this.sendCommandToAll(command, key, global.Server)
-              return
-            }
-            this.sendCommandToAll(command, key, info)
-            // 0 成功 1 失败 200 过程
-            if (typeof info === 'object' && (info?.code === 0 || info?.code === 1)) {
-              child.disconnect()
-              child.kill()
-            }
-          })
-          break
-        case 'app:password-check':
-          let pass = args[0]
-          console.log('pass: ', pass)
-          execPromise(`echo '${pass}' | sudo -S chmod 777 /private/etc/hosts`)
-            .then((res) => {
-              console.log(res)
-              this.configManager.setConfig('password', pass)
-              global.Server.Password = pass
-              this.sendCommandToAll(command, key, pass)
-            })
-            .catch((err) => {
-              console.log('err: ', err)
-              this.sendCommandToAll(command, key, false)
-            })
-          return
-        case 'app:brew-install':
-          this.windowManager.getFocusedWindow().minimize()
-          break
-        case 'Application:APP-Minimize':
-          this.windowManager.getFocusedWindow().minimize()
-          break
-        case 'Application:APP-Maximize':
-          window = this.windowManager.getFocusedWindow()
-          if (window.isMaximized()) {
-            window.unmaximize()
-          } else {
-            window.maximize()
-          }
-          break
-        case 'Application:APP-Close':
-          this.windowManager.getFocusedWindow().close()
-          break
-      }
+      this.handleCommand(command, key, ...args)
     })
     ipcMain.on('event', (event, eventName, ...args) => {
       console.log('receive event', eventName, ...args)

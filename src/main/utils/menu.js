@@ -92,9 +92,11 @@ export function translateTemplate(template, keystrokesByCommand) {
 export function handleCommand(item) {
   handleCommandBefore(item)
 
-  const args = item['command-arg'] ? [item.command, item['command-arg']] : [item.command]
+  const args = item['command-arg']
+    ? [item.command, item.command, item['command-arg']]
+    : [item.command, item.command]
 
-  global.application.sendCommandToAll(...args)
+  global.application.handleCommand(...args)
 
   handleCommandAfter(item)
 }
@@ -106,7 +108,7 @@ function handleCommandBefore(item) {
   }
   const [command, ...args] = item['command-before'].split(',')
   console.log('handleCommandBefore==2=>', command, ...args)
-  global.application.sendCommandToAll(command, ...args)
+  global.application.handleCommand(command, command, ...args)
 }
 
 function handleCommandAfter(item) {
@@ -116,7 +118,7 @@ function handleCommandAfter(item) {
   }
   const [command, ...args] = item['command-after'].split(',')
   console.log('handleCommandAfter==2=>', command, ...args)
-  global.application.sendCommandToAll(command, ...args)
+  global.application.handleCommand(command, command, ...args)
 }
 
 function acceleratorForCommand(command, keystrokesByCommand) {
