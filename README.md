@@ -7,6 +7,9 @@
 [![GitHub release](https://img.shields.io/github/release/xpf0000/PhpWebStudy.svg)](https://github.com/xpf0000/PhpWebStudy/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/PhpWebStudy/total.svg)](https://github.com/xpf0000/PhpWebStudy/releases)
 
 PhpWebStudy 是一款mac上的PHP和web开发环境管理工具,包含php,nginx,apache,msyql,memcached,redis以及host管理
+
+访问网站查看详细介绍以及使用教程: [https://www.macphpstudy.com](https://www.macphpstudy.com)
+
 ## ✨ 特性
 
 - 简洁明了的图形操作界面
