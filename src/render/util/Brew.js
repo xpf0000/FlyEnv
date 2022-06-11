@@ -18,7 +18,8 @@ export const passwordCheck = () => {
         customClass: 'password-prompt',
         beforeClose: (action, instance, done) => {
           if (action === 'confirm') {
-            if (instance.inputValue && instance.inputValue.trim().length > 0) {
+            // 去除trim, 有些电脑的密码是空格...
+            if (instance.inputValue) {
               IPC.send('app:password-check', instance.inputValue).then((key, res) => {
                 IPC.off(key)
                 if (res === false) {

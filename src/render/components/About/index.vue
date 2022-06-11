@@ -12,7 +12,7 @@
     <el-row class="copyright">
       <el-col class="copyright-left">
         <a target="_blank" href="javascript:" rel="noopener noreferrer" @click="toHome($event)">
-          PhpWebStudy 壹佰网络科技
+          PhpWebStudy - https://www.macphpstudy.com
         </a>
       </el-col>
     </el-row>
@@ -34,7 +34,7 @@
     methods: {
       toHome(e) {
         e.preventDefault()
-        shell.openExternal('https://www.ybyun.wang/')
+        shell.openExternal('https://www.macphpstudy.com')
       }
     }
   }
