@@ -1,8 +1,11 @@
-version: 1.0.0
+version: 1.0.14
 files:
-  - url: BuildPhp-1.0.1.dmg
-    sha512: 9e20707e1f6bcce8c5f8a1c98ec5a5cb7749dfaf5d769ab69a1c270fb34c14ccbaee00874a013ec372b64271676939a1ccb60eb0b04a45a89d13b23b0cee277e
-    size: 196422279
-path: BuildPhp-1.0.1.dmg
-sha512: 9e20707e1f6bcce8c5f8a1c98ec5a5cb7749dfaf5d769ab69a1c270fb34c14ccbaee00874a013ec372b64271676939a1ccb60eb0b04a45a89d13b23b0cee277e
-releaseDate: '2020-05-26T11:30:30.220Z'
+  - url: PhpWebStudy-1.0.14-mac.zip
+    sha512: 2MaLqo8VP2qjdljDqZvyNg7KkOpiRD2uqTKG069OCodfzgi+vL6/n+/jzNQSoQ6BI5nZcOBYJ87Ht6dlp7kObw==
+    size: 93756093
+  - url: PhpWebStudy-1.0.14.dmg
+    sha512: bM3CdmOF3GmS8WaRe0ZKXS7MZZcAGn6SaWntSQR5YJVvmxyqWcItQhBW1UXUphyx7ZrA56Itc+Kr4r5UxAiyAg==
+    size: 97709075
+path: PhpWebStudy-1.0.14-mac.zip
+sha512: 2MaLqo8VP2qjdljDqZvyNg7KkOpiRD2uqTKG069OCodfzgi+vL6/n+/jzNQSoQ6BI5nZcOBYJ87Ht6dlp7kObw==
+releaseDate: '2022-06-11T06:53:11.002Z'
