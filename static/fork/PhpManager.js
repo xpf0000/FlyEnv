@@ -16,9 +16,11 @@ class PhpManager extends BaseManager {
   #cleanDefaultIni(dir) {
     let ini = execSync(`${dir}/bin/php -i | grep php.ini`).toString().trim()
     ini = ini.split('=>').pop().trim()
-    let iniContent = readFileSync(ini, 'utf-8')
-    iniContent = iniContent.replace('zend_extension="xdebug.so"\n', '')
-    writeFileSync(ini, iniContent)
+    if (ini && existsSync(ini)) {
+      let iniContent = readFileSync(ini, 'utf-8')
+      iniContent = iniContent.replace('zend_extension="xdebug.so"\n', '')
+      writeFileSync(ini, iniContent)
+    }
   }
 
   installExtends(args) {
