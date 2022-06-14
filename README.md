@@ -84,7 +84,7 @@ yarn run build
 
 ### PHP扩展
 
-当前一键安装包括: ionCube memcache memcached redis swoole
+当前一键安装包括: ionCube memcache memcached redis swoole xdebug
 
 未添加到一键安装里的 使用如下方法安装 替换成自己的PHP版本
 

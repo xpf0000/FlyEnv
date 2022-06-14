@@ -1,6 +1,6 @@
 const join = require('path').join
-const { existsSync, unlinkSync } = require('fs')
-const { spawn } = require('child_process')
+const { existsSync, unlinkSync, writeFileSync, readFileSync } = require('fs')
+const { spawn, execSync } = require('child_process')
 const Utils = require('./Utils')
 const BaseManager = require('./BaseManager')
 class PhpManager extends BaseManager {
@@ -13,12 +13,23 @@ class PhpManager extends BaseManager {
     this.pidPath = join(global.Server.PhpDir, 'common/var/run/php-fpm.pid')
   }
 
+  #cleanDefaultIni(dir) {
+    let ini = execSync(`${dir}/bin/php -i | grep php.ini`).toString().trim()
+    ini = ini.split('=>').pop().trim()
+    let iniContent = readFileSync(ini, 'utf-8')
+    iniContent = iniContent.replace('zend_extension="xdebug.so"\n', '')
+    writeFileSync(ini, iniContent)
+  }
+
   installExtends(args) {
     const { version, versionNumber, extend, installExtensionDir } = args
     this._doInstallExtends(version, versionNumber, extend, installExtensionDir)
       .then(() => {
         const installedSo = join(installExtensionDir, `${extend}.so`)
         if (existsSync(installedSo)) {
+          if (extend === 'xdebug') {
+            this.#cleanDefaultIni(version.path)
+          }
           this._thenSuccess()
         } else {
           this._processSend({
@@ -175,6 +186,43 @@ class PhpManager extends BaseManager {
                 extendv = '4.8.9'
               }
               const child = spawn('bash', [copyfile, global.Server.Cache, version.path, extendv])
+              this._childHandle(child, resolve, reject)
+            })
+            .catch((err) => {
+              console.log('err: ', err)
+              reject(err)
+            })
+          break
+        case 'xdebug':
+          if (existsSync(join(extendsDir, 'xdebug.so'))) {
+            resolve(true)
+            return
+          }
+          sh = join(global.Server.Static, 'sh/php-xdebug.sh')
+          copyfile = join(global.Server.Cache, 'php-xdebug.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          Utils.readFileAsync(sh)
+            .then((content) => {
+              return Utils.writeFileAsync(copyfile, content)
+            })
+            .then(() => {
+              this.#cleanDefaultIni(version.path)
+              Utils.chmod(copyfile, '0777')
+              let extendv = ''
+              if (versionNumber < 7.2) {
+                extendv = '2.5.5'
+              } else {
+                extendv = '3.1.5'
+              }
+              const child = spawn('bash', [
+                copyfile,
+                global.Server.password,
+                global.Server.Cache,
+                version.path,
+                extendv
+              ])
               this._childHandle(child, resolve, reject)
             })
             .catch((err) => {

@@ -36,13 +36,19 @@ import {join} from "path";import {basename} from "path";
         </template>
       </el-table-column>
 
-      <el-table-column align="center" label="操作">
+      <el-table-column align="left" label="操作">
         <template #default="scope">
           <el-button v-if="scope.row.status" type="text" @click="copyLink(scope.$index, scope.row)"
             >复制链接</el-button
           >
           <el-button v-else type="text" @click="handleEdit(scope.$index, scope.row)"
             >安装</el-button
+          >
+          <el-button
+            v-if="scope.row.status && scope.row.name === 'xdebug'"
+            type="text"
+            @click="copyXDebugTmpl(scope.$index, scope.row)"
+            >复制配置模板</el-button
           >
         </template>
       </el-table-column>
@@ -109,6 +115,15 @@ import {join} from "path";import {basename} from "path";
             installed: false,
             status: false,
             soname: 'swoole.so'
+          },
+          {
+            name: 'xdebug',
+            type: '调试器',
+            info: '开源的PHP程序调试器',
+            installed: false,
+            status: false,
+            soname: 'xdebug.so',
+            extendPre: 'zend_extension='
           }
         ],
         showTableData: []
@@ -271,6 +286,30 @@ import {join} from "path";import {basename} from "path";
         const txt = `${pre}${row.soPath}`
         clipboard.writeText(txt)
         this.$message.success('扩展链接已复制到剪贴板')
+      },
+      copyXDebugTmpl(index, row) {
+        console.log(index, row)
+        const txt = `[xdebug]
+;这里给出一个通用模板,需要根据自己修改具体配置项
+;适用与xdebug-3.x版本, 2.x版本的请自行修改
+zend_extension = "${row.soPath}"
+xdebug.idekey = "PHPSTORM"
+xdebug.client_host = localhost
+;端口ID,phpstorm 设置须一致
+xdebug.client_port = 9003
+;开启xdebug支持，不同的mode的不同的用途，详细说明请看官方文档
+;如果要多个模式一起开启，就用 ',' 分隔开就行
+xdebug.mode = debug
+xdebug.profiler_append = 0
+xdebug.profiler_output_name = cachegrind.out.%p
+;这里与原来不同了，原来如果要开启trace或profile,用的是enable_trace,enable_profile等字段
+xdebug.start_with_request = yes
+;这里就是原来的profile_trigger_value,trace_trigger_value
+xdebug.trigger_value=StartProfileForMe
+;输出文件路径，原来是output_profiler_dir,trace_dir分别设置,现在统一用这个设置就可以
+xdebug.output_dir = /tmp`
+        clipboard.writeText(txt)
+        this.$message.success('xdebug配置模板已复制到剪贴板')
       }
     }
   }
