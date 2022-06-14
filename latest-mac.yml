@@ -1,11 +1,11 @@
-version: 1.0.14
+version: 1.0.15
 files:
-  - url: PhpWebStudy-1.0.14-mac.zip
-    sha512: 2MaLqo8VP2qjdljDqZvyNg7KkOpiRD2uqTKG069OCodfzgi+vL6/n+/jzNQSoQ6BI5nZcOBYJ87Ht6dlp7kObw==
-    size: 93756093
-  - url: PhpWebStudy-1.0.14.dmg
-    sha512: bM3CdmOF3GmS8WaRe0ZKXS7MZZcAGn6SaWntSQR5YJVvmxyqWcItQhBW1UXUphyx7ZrA56Itc+Kr4r5UxAiyAg==
-    size: 97709075
-path: PhpWebStudy-1.0.14-mac.zip
-sha512: 2MaLqo8VP2qjdljDqZvyNg7KkOpiRD2uqTKG069OCodfzgi+vL6/n+/jzNQSoQ6BI5nZcOBYJ87Ht6dlp7kObw==
-releaseDate: '2022-06-11T06:53:11.002Z'
+  - url: PhpWebStudy-1.0.15-mac.zip
+    sha512: d71E588/ELrUTsb4cmx5p5NDXFbCqHcKZT+v4kPQzdsRbo+lwltbwwLpwq9f2gYPiHnQUwZLGzqaRP1SXkD5tw==
+    size: 93756352
+  - url: PhpWebStudy-1.0.15.dmg
+    sha512: cTXpBxPzvCJ2KMtLn/hRnjFyOU1AYGd8blsCSDi5ltzWJ1wz+5Ns8kBHLqfvX4UWbj69NW36YUJJt2upA088VA==
+    size: 97703690
+path: PhpWebStudy-1.0.15-mac.zip
+sha512: d71E588/ELrUTsb4cmx5p5NDXFbCqHcKZT+v4kPQzdsRbo+lwltbwwLpwq9f2gYPiHnQUwZLGzqaRP1SXkD5tw==
+releaseDate: '2022-06-14T04:09:45.975Z'
