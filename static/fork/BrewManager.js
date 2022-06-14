@@ -1,10 +1,24 @@
 const join = require('path').join
-const { execSync, spawn } = require('child_process')
+const { spawn } = require('child_process')
 const { exec } = require('child-process-promise')
+const Utils = require('./Utils.js')
 const BaseManager = require('./BaseManager')
 class BrewManager extends BaseManager {
   constructor() {
     super()
+  }
+
+  #fixEnv() {
+    let optdefault = { env: process.env }
+    if (!optdefault.env['PATH']) {
+      optdefault.env['PATH'] =
+        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+    } else {
+      optdefault.env[
+        'PATH'
+      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
+    }
+    return optdefault
   }
 
   async installBrew() {
@@ -18,8 +32,10 @@ class BrewManager extends BaseManager {
       })
     } else {
       if (!global.Server.BrewCellar) {
-        let repo = execSync('brew --repo').toString().trim()
-        let cellar = execSync('brew --cellar').toString().trim()
+        let repo = await Utils.execAsync('brew', ['--repo'])
+        let cellar = await Utils.execAsync('brew', ['--cellar'])
+        repo = repo.trim()
+        cellar = cellar.trim()
         global.Server.BrewHome = repo
         global.Server.BrewFormula = join(repo, 'Library/Taps/homebrew/homebrew-core/Formula')
         global.Server.BrewCellar = cellar
@@ -35,7 +51,8 @@ class BrewManager extends BaseManager {
 
   _doInstall(rb) {
     return new Promise((resolve, reject) => {
-      const child = spawn('brew', ['install', '--verbose', rb])
+      const opt = this.#fixEnv()
+      const child = spawn('brew', ['install', '--verbose', rb], opt)
       this._childHandle(child, resolve, reject)
     })
   }
@@ -43,7 +60,8 @@ class BrewManager extends BaseManager {
   _doUnInstall(rb) {
     return new Promise((resolve, reject) => {
       console.log('_doUnInstall: ', rb)
-      const child = spawn('brew', ['uninstall', '--verbose', rb])
+      const opt = this.#fixEnv()
+      const child = spawn('brew', ['uninstall', '--verbose', rb], opt)
       this._childHandle(child, resolve, reject)
     })
   }
@@ -57,11 +75,20 @@ class BrewManager extends BaseManager {
   }
 
   brewinfo(name) {
-    exec(`brew info ${name}`)
-      .then((res) => {
-        const info = res.stdout
+    let Info = ''
+    Utils.execAsync('brew', ['info', name])
+      .then((info) => {
+        Info = info
+        this._processSend({
+          code: 200,
+          info: info
+        })
+        console.log('info')
         const reg = new RegExp('(stable )([\\s\\S]*?)( \\(bottled\\))', 'g')
-        const version = reg.exec(info)[2]
+        let version = ''
+        try {
+          version = reg.exec(info)[2]
+        } catch (e) {}
         const installed = !info.includes('Not installed')
         const obj = {
           version,
@@ -77,19 +104,19 @@ class BrewManager extends BaseManager {
       .catch((err) => {
         this._processSend({
           code: 1,
-          msg: err.stderr
+          msg: err.toString(),
+          brewInfo: Info
         })
       })
   }
 
   addTap(name) {
-    exec('brew tap')
-      .then((res) => {
-        const stdout = res.stdout
+    Utils.execAsync('brew', ['tap'])
+      .then((stdout) => {
         if (stdout.includes(name)) {
           return null
         } else {
-          return exec(`brew tap ${name}`)
+          return Utils.execAsync('brew', ['tap', name])
         }
       })
       .then(() => {
@@ -101,7 +128,7 @@ class BrewManager extends BaseManager {
       .catch((err) => {
         this._processSend({
           code: 1,
-          msg: err.stderr
+          msg: err.toString()
         })
       })
   }
@@ -161,7 +188,8 @@ class BrewManager extends BaseManager {
         break
     }
     console.log('binVersion command: ', command)
-    exec(command).then(handleThen).catch(handleCatch)
+    const opt = this.#fixEnv()
+    exec(command, opt).then(handleThen).catch(handleCatch)
   }
 }
 module.exports = BrewManager

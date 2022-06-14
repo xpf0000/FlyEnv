@@ -1,6 +1,7 @@
 const axios = require('axios')
 const path = require('path')
 const fs = require('fs')
+const { spawn } = require('child_process')
 
 class Utils {
   static chmod(fp, mode) {
@@ -80,6 +81,41 @@ class Utils {
         .catch((err) => {
           reject(err)
         })
+    })
+  }
+
+  static execAsync(command, arg = [], options = {}) {
+    return new Promise((resolve, reject) => {
+      let optdefault = { env: process.env }
+      if (!optdefault.env['PATH']) {
+        optdefault.env['PATH'] =
+          '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+      } else {
+        optdefault.env[
+          'PATH'
+        ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
+      }
+      let opt = { ...optdefault, ...options }
+      const cp = spawn(command, arg, opt)
+      let stdout = []
+      let stderr = []
+      cp.stdout.on('data', (data) => {
+        stdout.push(data)
+      })
+
+      cp.stderr.on('data', (data) => {
+        stderr.push(data)
+      })
+
+      cp.on('close', (code) => {
+        const out = Buffer.concat(stdout)
+        const err = Buffer.concat(stderr)
+        if (code === 0) {
+          resolve(out.toString().trim())
+        } else {
+          reject(new Error(err.toString().trim()))
+        }
+      })
     })
   }
 }

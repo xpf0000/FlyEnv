@@ -132,11 +132,12 @@ export function brewSearchList(key) {
 export function brewInfo(key) {
   return new Promise((resolve, reject) => {
     IPC.send('app-fork:brew', 'brewinfo', key).then((key, res) => {
-      IPC.off(key)
       if (res.code === 0) {
+        IPC.off(key)
         resolve(res.data)
-      } else {
-        reject(new Error(`未找到Brew库${key}`))
+      } else if (res.code === 1) {
+        IPC.off(key)
+        reject(new Error(res))
       }
     })
   })

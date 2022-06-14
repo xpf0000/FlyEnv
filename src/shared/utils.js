@@ -4,11 +4,12 @@ export function execAsync(command, arg = [], options = {}) {
   return new Promise((resolve, reject) => {
     let optdefault = { env: process.env }
     if (!optdefault.env['PATH']) {
-      optdefault.env['PATH'] = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+      optdefault.env['PATH'] =
+        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
     } else {
-      if (optdefault.env['PATH'].indexOf('/usr/local/bin') < 0) {
-        optdefault.env['PATH'] = `/usr/local/bin:${optdefault.env['PATH']}`
-      }
+      optdefault.env[
+        'PATH'
+      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
     }
     let opt = { ...optdefault, ...options }
     const cp = spawn(command, arg, opt)
