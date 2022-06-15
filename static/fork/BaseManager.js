@@ -162,13 +162,6 @@ class BaseManager {
       .catch(this._catchError)
   }
 
-  _doInstall(rb) {
-    return new Promise((resolve, reject) => {
-      const child = spawn('brew', ['install', '--verbose', rb, '--build-from-source'])
-      this._childHandle(child, resolve, reject)
-    })
-  }
-
   _stopServer() {
     return new Promise((resolve, reject) => {
       try {

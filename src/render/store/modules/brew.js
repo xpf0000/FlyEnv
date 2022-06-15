@@ -2,6 +2,7 @@ const state = {
   cardHeadTitle: '当前版本库',
   brewRunning: false,
   showInstallLog: false,
+  brewSrc: '',
   log: [],
   nginx: {
     getListing: false,
@@ -41,6 +42,7 @@ const state = {
   }
 }
 const getters = {
+  brewSrc: (state) => state.brewSrc,
   cardHeadTitle: (state) => state.cardHeadTitle,
   showInstallLog: (state) => state.showInstallLog,
   log: (state) => state.log,
@@ -53,6 +55,9 @@ const getters = {
   redis: (state) => state.redis
 }
 const mutations = {
+  SET_BREW_SRC(state, val) {
+    state.brewSrc = val
+  },
   RESET_BREW_INSTALLED_INITED(state, typeFlag) {
     state[typeFlag].installedInited = false
   },

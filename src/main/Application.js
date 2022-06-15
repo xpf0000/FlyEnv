@@ -12,7 +12,7 @@ import { join } from 'path'
 import { existsSync, copyFile } from 'fs'
 import { fork } from 'child_process'
 const { createFolder, chmod, readFileAsync, writeFileAsync } = require('../shared/file.js')
-const { execAsync } = require('../shared/utils.js')
+const { execAsync, isAppleSilicon } = require('../shared/utils.js')
 const compressing = require('compressing')
 const execPromise = require('child-process-promise').exec
 
@@ -40,6 +40,7 @@ export default class Application extends EventEmitter {
     console.log('userData: ', app.getPath('userData'))
     let runpath = app.getPath('userData').replace('Application Support/', '')
     global.Server = {}
+    global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
     createFolder(global.Server.BaseDir)
     global.Server.NginxDir = join(runpath, 'server/nginx')
@@ -76,6 +77,20 @@ export default class Application extends EventEmitter {
           console.log('brew --repo: ', p)
           global.Server.BrewHome = p
           global.Server.BrewFormula = join(p, 'Library/Taps/homebrew/homebrew-core/Formula')
+          execAsync('git', [
+            'config',
+            '--global',
+            '--add',
+            'safe.directory',
+            join(p, 'Library/Taps/homebrew/homebrew-core')
+          ]).then()
+          execAsync('git', [
+            'config',
+            '--global',
+            '--add',
+            'safe.directory',
+            join(p, 'Library/Taps/homebrew/homebrew-cask')
+          ]).then()
         })
         execAsync('brew', ['--cellar']).then((c) => {
           console.log('brew --cellar: ', c)

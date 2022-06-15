@@ -3,6 +3,7 @@ const { spawn } = require('child_process')
 const { exec } = require('child-process-promise')
 const Utils = require('./Utils.js')
 const BaseManager = require('./BaseManager')
+const { existsSync, unlinkSync } = require('fs')
 class BrewManager extends BaseManager {
   constructor() {
     super()
@@ -39,6 +40,20 @@ class BrewManager extends BaseManager {
         global.Server.BrewHome = repo
         global.Server.BrewFormula = join(repo, 'Library/Taps/homebrew/homebrew-core/Formula')
         global.Server.BrewCellar = cellar
+        Utils.execAsync('git', [
+          'config',
+          '--global',
+          '--add',
+          'safe.directory',
+          join(repo, 'Library/Taps/homebrew/homebrew-core')
+        ]).then()
+        Utils.execAsync('git', [
+          'config',
+          '--global',
+          '--add',
+          'safe.directory',
+          join(repo, 'Library/Taps/homebrew/homebrew-cask')
+        ]).then()
         process.send({
           command: 'application:global-server-updata',
           key: 'application:global-server-updata',
@@ -49,29 +64,34 @@ class BrewManager extends BaseManager {
     }
   }
 
-  _doInstall(rb) {
+  _doInstallOrUnInstall(rb, action) {
     return new Promise((resolve, reject) => {
       const opt = this.#fixEnv()
-      const child = spawn('brew', ['install', '--verbose', rb], opt)
-      this._childHandle(child, resolve, reject)
-    })
-  }
-
-  _doUnInstall(rb) {
-    return new Promise((resolve, reject) => {
-      console.log('_doUnInstall: ', rb)
-      const opt = this.#fixEnv()
-      const child = spawn('brew', ['uninstall', '--verbose', rb], opt)
-      this._childHandle(child, resolve, reject)
+      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+      const name = rb
+      const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
+      const copyfile = join(global.Server.Cache, 'brew-cmd.sh')
+      if (existsSync(copyfile)) {
+        unlinkSync(copyfile)
+      }
+      Utils.readFileAsync(sh)
+        .then((content) => {
+          return Utils.writeFileAsync(copyfile, content)
+        })
+        .then(() => {
+          Utils.chmod(copyfile, '0777')
+          const child = spawn('bash', [copyfile, arch, action, name], opt)
+          this._childHandle(child, resolve, reject)
+        })
     })
   }
 
   install(name) {
-    this._doInstall(name).then(this._thenSuccess).catch(this._catchError)
+    this._doInstallOrUnInstall(name, 'install').then(this._thenSuccess).catch(this._catchError)
   }
 
   uninstall(name) {
-    this._doUnInstall(name).then(this._thenSuccess).catch(this._catchError)
+    this._doInstallOrUnInstall(name, 'uninstall').then(this._thenSuccess).catch(this._catchError)
   }
 
   brewinfo(name) {
@@ -190,6 +210,67 @@ class BrewManager extends BaseManager {
     console.log('binVersion command: ', command)
     const opt = this.#fixEnv()
     exec(command, opt).then(handleThen).catch(handleCatch)
+  }
+
+  currentSrc() {
+    Utils.execAsync('git', ['remote', '-v'], {
+      cwd: global.Server.BrewHome
+    })
+      .then((src) => {
+        let value = 'default'
+        if (src.includes('tsinghua.edu.cn')) {
+          value = 'tsinghua'
+        } else if (src.includes('bfsu.edu.cn')) {
+          value = 'bfsu'
+        } else if (src.includes('cloud.tencent.com')) {
+          value = 'tencent'
+        } else if (src.includes('aliyun.com')) {
+          value = 'aliyun'
+        } else if (src.includes('ustc.edu.cn')) {
+          value = 'ustc'
+        }
+        this._processSend({
+          code: 0,
+          msg: 'SUCCESS',
+          data: value
+        })
+      })
+      .catch((err) => {
+        console.log('brew currentSrc err: ', err)
+        this._processSend({
+          code: 1,
+          msg: err.toString()
+        })
+      })
+  }
+
+  changeSrc(srcFlag) {
+    const sh = join(global.Server.Static, 'sh/brew-src.sh')
+    const copyfile = join(global.Server.Cache, 'brew-src.sh')
+    if (existsSync(copyfile)) {
+      unlinkSync(copyfile)
+    }
+    Utils.readFileAsync(sh)
+      .then((content) => {
+        return Utils.writeFileAsync(copyfile, content)
+      })
+      .then(() => {
+        Utils.chmod(copyfile, '0777')
+        return Utils.execAsync('bash', [copyfile, srcFlag, global.Server.BrewHome])
+      })
+      .then(() => {
+        this._processSend({
+          code: 0,
+          msg: 'SUCCESS'
+        })
+      })
+      .catch((err) => {
+        console.log('brew changeSrc err: ', err)
+        this._processSend({
+          code: 1,
+          msg: err.toString()
+        })
+      })
   }
 }
 module.exports = BrewManager

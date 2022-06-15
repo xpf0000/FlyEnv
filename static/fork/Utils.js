@@ -96,6 +96,10 @@ class Utils {
         ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
       }
       let opt = { ...optdefault, ...options }
+      if (global.Server.isAppleSilicon) {
+        arg.unshift('-arm64', command)
+        command = 'arch'
+      }
       const cp = spawn(command, arg, opt)
       let stdout = []
       let stderr = []

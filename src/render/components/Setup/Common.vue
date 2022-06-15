@@ -58,13 +58,19 @@
         </el-row>
       </el-form>
     </div>
+    <div class="plant-title">Brew源切换</div>
+    <div class="main brew-src">
+      <BrewSrc></BrewSrc>
+    </div>
   </div>
 </template>
 
 <script>
   import { mapGetters } from 'vuex'
+  import BrewSrc from './BrewSrc/index.vue'
+
   export default {
-    components: {},
+    components: { BrewSrc },
     props: {},
     data() {
       return {}
@@ -115,6 +121,16 @@
         .el-form-item__content {
           flex: unset !important;
         }
+      }
+    }
+
+    .main.brew-src {
+      padding: 30px 20px;
+      flex-direction: row;
+      align-items: center;
+
+      > .el-select {
+        margin-right: 20px;
       }
     }
   }

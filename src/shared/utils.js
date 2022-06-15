@@ -1,4 +1,5 @@
 const { spawn } = require('child_process')
+const os = require('os')
 
 export function execAsync(command, arg = [], options = {}) {
   return new Promise((resolve, reject) => {
@@ -12,6 +13,10 @@ export function execAsync(command, arg = [], options = {}) {
       ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
     }
     let opt = { ...optdefault, ...options }
+    if (global.Server.isAppleSilicon) {
+      arg.unshift('-arm64', command)
+      command = 'arch'
+    }
     const cp = spawn(command, arg, opt)
     let stdout = []
     let stderr = []
@@ -55,4 +60,9 @@ export function formatBytes(bytes, decimals = 2) {
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+}
+
+export function isAppleSilicon() {
+  let cpuCore = os.cpus()
+  return cpuCore[0].model.includes('Apple')
 }
