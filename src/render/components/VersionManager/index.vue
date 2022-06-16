@@ -302,6 +302,7 @@
         .logs {
           height: 100%;
           overflow: auto;
+          word-break: break-word;
 
           &::-webkit-scrollbar {
             display: none;

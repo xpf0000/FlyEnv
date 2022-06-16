@@ -300,7 +300,7 @@
       overflow: auto;
       > li {
         width: 100%;
-        word-break: break-all;
+        word-break: break-word;
       }
     }
   }
