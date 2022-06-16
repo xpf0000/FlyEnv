@@ -201,9 +201,12 @@
           brewCheck().then(() => {
             console.log('getData !!!')
             if (this.typeFlag === 'php') {
-              IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key) => {
+              IPC.send('app-fork:host', 'githubFix').then((key) => {
                 IPC.off(key)
-                this.fetchData(list)
+                IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key) => {
+                  IPC.off(key)
+                  this.fetchData(list)
+                })
               })
             } else {
               this.fetchData(list)

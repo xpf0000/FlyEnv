@@ -70,6 +70,7 @@ export const brewCheck = () => {
                 IPC.off(key)
                 store.commit('brew/SET_SHOW_INSTALL_LOG', false)
                 store.commit('brew/SET_BREW_RUNNING', false)
+                global.Server = info.data
                 resolve(true)
               } else if (info.code === 1) {
                 IPC.off(key)

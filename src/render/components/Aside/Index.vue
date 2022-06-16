@@ -40,7 +40,7 @@
           </div>
 
           <el-switch
-            :disabled="!nginxVersion || taskNginx.running"
+            :disabled="!nginxVersion?.version || taskNginx.running"
             :value="nginxRunning"
             @change="switchChange('nginx')"
           >
@@ -60,7 +60,7 @@
           </div>
 
           <el-switch
-            :disabled="!apacheVersion || taskApache.running"
+            :disabled="!apacheVersion?.version || taskApache.running"
             :value="apacheRunning"
             @change="switchChange('apache')"
           >
@@ -81,7 +81,7 @@
           </div>
 
           <el-switch
-            :disabled="!mysqlVersion || taskMysql.running"
+            :disabled="!mysqlVersion?.version || taskMysql.running"
             :value="mysqlRunning"
             @change="switchChange('mysql')"
           >
@@ -101,7 +101,7 @@
           </div>
 
           <el-switch
-            :disabled="!phpVersion || taskPhp.running"
+            :disabled="!phpVersion?.version || taskPhp.running"
             :value="phpRunning"
             @change="switchChange('php')"
           >
@@ -121,7 +121,7 @@
           </div>
 
           <el-switch
-            :disabled="!memcachedVersion || taskMemcached.running"
+            :disabled="!memcachedVersion?.version || taskMemcached.running"
             :value="memcachedRunning"
             @change="switchChange('memcached')"
           >
@@ -141,7 +141,7 @@
           </div>
 
           <el-switch
-            :disabled="!redisVersion || taskRedis.running"
+            :disabled="!redisVersion?.version || taskRedis.running"
             :value="redisRunning"
             @change="switchChange('redis')"
           >

@@ -7,7 +7,7 @@
   import TitleBar from './components/Native/TitleBar.vue'
   import { mapGetters } from 'vuex'
   import { EventBus } from './global.js'
-  import { passwordCheck } from '@/util/Brew.js'
+  import { brewCheck, passwordCheck } from '@/util/Brew.js'
   import IPC from '@/util/IPC.js'
   const { getGlobal } = require('@electron/remote')
 
@@ -46,7 +46,9 @@
           .show()
       },
       checkPassword() {
-        passwordCheck().then()
+        passwordCheck().then(() => {
+          brewCheck().then()
+        })
       }
     }
   }

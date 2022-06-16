@@ -59,7 +59,11 @@ class BrewManager extends BaseManager {
           key: 'application:global-server-updata',
           info: global.Server
         })
-        this._thenSuccess()
+        this._processSend({
+          code: 0,
+          msg: 'SUCCESS',
+          data: global.Server
+        })
       }
     }
   }
@@ -104,7 +108,7 @@ class BrewManager extends BaseManager {
           info: info
         })
         console.log('info')
-        const reg = new RegExp('(stable )([\\s\\S]*?)( \\(bottled\\))', 'g')
+        const reg = new RegExp('(stable )([\\s\\S]*?)( )', 'g')
         let version = ''
         try {
           version = reg.exec(info)[2]
