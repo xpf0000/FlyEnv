@@ -2,8 +2,13 @@ const axios = require('axios')
 const path = require('path')
 const fs = require('fs')
 const { spawn } = require('child_process')
+const crypto = require('crypto')
 
 class Utils {
+  static md5(str) {
+    const md5 = crypto.createHash('md5')
+    return md5.update(str).digest('hex')
+  }
   static chmod(fp, mode) {
     if (fs.statSync(fp).isFile()) {
       fs.chmodSync(fp, mode)

@@ -46,7 +46,7 @@
           .show()
       },
       checkPassword() {
-        passwordCheck()
+        passwordCheck().then()
       }
     }
   }

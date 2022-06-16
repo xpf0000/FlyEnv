@@ -1,9 +1,13 @@
-const join = require('path').join
+const { join, dirname } = require('path')
 const existsSync = require('fs').existsSync
 const readFileSync = require('fs').readFileSync
 const writeFileSync = require('fs').writeFileSync
 const unlinkSync = require('fs').unlinkSync
+const { execSync } = require('child_process')
 const Utils = require('./Utils')
+const dns = require('dns')
+const util = require('util')
+
 class HostManager {
   constructor() {
     this.ipcCommand = ''
@@ -207,6 +211,31 @@ class HostManager {
     })
   }
 
+  #setDirRole(dir, depth = 0) {
+    if (!dir || dir === '/') {
+      return
+    }
+    const arr = dir.split('/').filter((d) => {
+      return d.trim().length > 0
+    })
+    if (arr.length <= 2) {
+      return
+    }
+    try {
+      if (existsSync(dir)) {
+        if (depth === 0) {
+          execSync(`echo '${global.Server.Password}' | sudo -S chmod -R 755 ${dir}`)
+        } else {
+          execSync(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
+        }
+        const parentDir = dirname(dir)
+        this.#setDirRole(parentDir, depth + 1)
+      }
+    } catch (e) {
+      console.log('setDirRole err: ', e)
+    }
+  }
+
   _addVhost(host) {
     return new Promise((resolve, reject) => {
       try {
@@ -264,6 +293,7 @@ class HostManager {
 
         let rewrite = host.nginx.rewrite.trim()
         writeFileSync(join(rewritepath, `${hostname}.conf`), rewrite)
+        this.#setDirRole(host.root)
         resolve(true)
       } catch (e) {
         reject(e)
@@ -367,6 +397,74 @@ class HostManager {
         })
         .catch((err) => {
           reject(err)
+        })
+    })
+  }
+
+  githubFix() {
+    const hosts = [
+      'github.com',
+      'github.global.ssl.fastly.net',
+      'assets-cdn.github.com',
+      'raw.githubusercontent.com',
+      'macphpstudy.com'
+    ]
+    dns.setServers(['8.8.8.8', '8.8.4.4', '64.6.64.6', '64.6.65.6', '168.95.192.1', '168.95.1.1'])
+    const all = []
+    for (const host of hosts) {
+      all.push(util.promisify(dns.resolve)(host))
+    }
+    Promise.all(all).then((arr) => {
+      console.log(arr)
+      const list = ['#GITHUB-HOSTS-BEGIN#']
+      arr.forEach((ips, i) => {
+        const host = hosts[i]
+        ips.forEach((ip) => {
+          list.push(`${ip}  ${host}`)
+        })
+      })
+      list.push('#GITHUB-HOSTS-END#')
+
+      Utils.readFileAsync('/private/etc/hosts')
+        .then((content) => {
+          let x = content.match(/(#GITHUB-HOSTS-BEGIN#)([\s\S]*?)(#GITHUB-HOSTS-END#)/g)
+          if (x && x[0]) {
+            x = x[0]
+            content = content.replace(x, '')
+          }
+          content = content.trim()
+          content += `\n${list.join('\n')}`
+          Utils.writeFileAsync('/private/etc/hosts', content)
+            .then(() => {
+              process.send({
+                command: this.ipcCommand,
+                key: this.ipcCommandKey,
+                info: {
+                  code: 0,
+                  msg: 'SUCCESS'
+                }
+              })
+            })
+            .catch(() => {
+              process.send({
+                command: this.ipcCommand,
+                key: this.ipcCommandKey,
+                info: {
+                  code: 1,
+                  msg: '/private/etc/hosts文件写入失败'
+                }
+              })
+            })
+        })
+        .catch(() => {
+          process.send({
+            command: this.ipcCommand,
+            key: this.ipcCommandKey,
+            info: {
+              code: 1,
+              msg: '/private/etc/hosts文件读取失败'
+            }
+          })
         })
     })
   }

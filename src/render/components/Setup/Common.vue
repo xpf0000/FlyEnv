@@ -62,15 +62,20 @@
     <div class="main brew-src">
       <BrewSrc></BrewSrc>
     </div>
+    <div class="plant-title">修复Github访问问题</div>
+    <div class="main brew-src">
+      <GitHubFix></GitHubFix>
+    </div>
   </div>
 </template>
 
 <script>
   import { mapGetters } from 'vuex'
   import BrewSrc from './BrewSrc/index.vue'
+  import GitHubFix from './GithubFix/index.vue'
 
   export default {
-    components: { BrewSrc },
+    components: { BrewSrc, GitHubFix },
     props: {},
     data() {
       return {}

@@ -5,7 +5,9 @@
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
         <span class="ml-15">添加站点</span>
       </div>
-      <el-button class="shrink0" @click="doSave">保存</el-button>
+      <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave"
+        >保存</el-button
+      >
     </div>
 
     <div class="main-wapper">
@@ -155,6 +157,7 @@
     props: {},
     data() {
       return {
+        running: false,
         item: {
           id: 0,
           name: '',
@@ -336,6 +339,7 @@
         if (!this.checkItem()) {
           return
         }
+        this.running = true
         let flag = this.isEdit ? 'edit' : 'add'
         let access = false
         try {
@@ -352,13 +356,18 @@
                 return exec(`echo '${this.password}' | sudo -S chmod 777 /private/etc/hosts`)
               })
               .then(() => {
-                handleHost(this.item, flag, this.edit)
+                handleHost(this.item, flag, this.edit).then(() => {
+                  this.running = false
+                })
               })
               .catch(() => {
                 this.$message.error('操作失败,hosts文件权限不正确')
+                this.running = false
               })
           } else {
-            handleHost(this.item, flag, this.edit)
+            handleHost(this.item, flag, this.edit).then(() => {
+              this.running = false
+            })
           }
         })
       }

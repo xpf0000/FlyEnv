@@ -3,6 +3,7 @@ import IPC from './IPC.js'
 import Base from '@/core/Base.js'
 import store from '@/store/index.js'
 import { ElMessageBox } from 'element-plus'
+const { getGlobal } = require('@electron/remote')
 
 /**
  * 电脑密码检测, 很多操作需要电脑密码
@@ -10,6 +11,7 @@ import { ElMessageBox } from 'element-plus'
  */
 export const passwordCheck = () => {
   return new Promise((resolve) => {
+    global.Server = getGlobal('Server')
     if (!global.Server.Password) {
       ElMessageBox.prompt('请输入电脑用户密码', {
         confirmButtonText: '确定',

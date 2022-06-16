@@ -25,15 +25,19 @@ const handleHostEnd = (arr) => {
 }
 
 export const handleHost = (host, flag, old = {}) => {
-  host = JSON.parse(JSON.stringify(host))
-  old = JSON.parse(JSON.stringify(old))
-  IPC.send('app-fork:host', 'handleHost', host, flag, old).then((key, res) => {
-    if (res.code === 0) {
-      IPC.off(key)
-      handleHostEnd(res.hosts)
-    } else if (res.code === 1) {
-      IPC.off(key)
-      Base.MessageError(res.msg)
-    }
+  return new Promise((resolve) => {
+    host = JSON.parse(JSON.stringify(host))
+    old = JSON.parse(JSON.stringify(old))
+    IPC.send('app-fork:host', 'handleHost', host, flag, old).then((key, res) => {
+      if (res.code === 0) {
+        IPC.off(key)
+        handleHostEnd(res.hosts)
+        resolve(true)
+      } else if (res.code === 1) {
+        IPC.off(key)
+        Base.MessageError(res.msg)
+        resolve(false)
+      }
+    })
   })
 }
