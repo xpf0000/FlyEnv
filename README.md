@@ -18,6 +18,7 @@ PhpWebStudy 是一款mac上的PHP和web开发环境管理工具,包含php,nginx,
 - 日志文件即时查看
 - host管理
 - 常见PHP项目url rewrite一键设置
+- 一键切换brew国内源, 解决brew安装更新慢的问题
 - 一键生成SSL自签名证书
 - 开发中常用的小工具, 时间戳转换, 编码/解码
 
@@ -42,7 +43,7 @@ brew install phpwebstudy
 ![05.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/05.png)
 ![06.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/06.png)
 ![07.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/07.png)
-![08.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/08.png)
+![08.png](https://www.macphpstudy.com/assets/D43137AB-B785-41FE-AD9B-8536066221AE.png)
 ![09.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/09.png)
 
 ## ⌨️ 本地开发
