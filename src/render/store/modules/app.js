@@ -78,6 +78,9 @@ const getters = {
 }
 
 const mutations = {
+  UPDATE_SERVER_CURRENT(state, { flag, data }) {
+    Object.assign(state.config.server[flag].current, data)
+  },
   UPDATE_SERVER_STAT(state, stat) {
     state.stat = { ...state.stat, ...stat }
   },

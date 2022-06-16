@@ -261,7 +261,10 @@
         ).then((key, res) => {
           if (res.code === 0) {
             IPC.off(key)
-            this.server[this.typeFlag].current = res.version
+            this.$store.commit('app/UPDATE_SERVER_CURRENT', {
+              flag: this.typeFlag,
+              data: res.version
+            })
             this.$store.dispatch('app/saveConfig').then()
             this.stat[this.typeFlag] = true
             this.$message.success('操作成功')

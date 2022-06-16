@@ -218,12 +218,12 @@
         memcachedRunning: (state) => state.stat.memcached,
         redisRunning: (state) => state.stat.redis,
 
-        nginxVersion: (state) => state.config?.server?.nginx?.current ?? '',
-        phpVersion: (state) => state.config?.server?.php?.current ?? '',
-        mysqlVersion: (state) => state.config?.server?.mysql?.current ?? '',
-        apacheVersion: (state) => state.config?.server?.apache?.current ?? '',
-        memcachedVersion: (state) => state.config?.server?.memcached?.current ?? '',
-        redisVersion: (state) => state.config?.server?.redis?.current ?? ''
+        nginxVersion: (state) => state.config?.server?.nginx?.current ?? {},
+        phpVersion: (state) => state.config?.server?.php?.current ?? {},
+        mysqlVersion: (state) => state.config?.server?.mysql?.current ?? {},
+        apacheVersion: (state) => state.config?.server?.apache?.current ?? {},
+        memcachedVersion: (state) => state.config?.server?.memcached?.current ?? {},
+        redisVersion: (state) => state.config?.server?.redis?.current ?? {}
       }),
       ...mapGetters('task', {
         taskApache: 'apache',
