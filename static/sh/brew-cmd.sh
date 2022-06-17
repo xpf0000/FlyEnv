@@ -1,3 +1,4 @@
+#!/bin/zsh
 source ~/.bash_profile
 source ~/.zshrc
 arch=$1
