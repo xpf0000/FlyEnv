@@ -22,6 +22,15 @@
         />
         <span>Decode/Encode</span>
       </li>
+      <li @click="showPage('portkill')">
+        <yb-icon
+          :svg="import('@/svg/portkill.svg?raw')"
+          width="30"
+          height="30"
+          style="padding: 0"
+        />
+        <span>Port Kill</span>
+      </li>
     </ul>
     <el-drawer
       ref="host-edit-drawer"
@@ -43,6 +52,8 @@
   import FileInfo from './FileInfo/index.vue'
   import Timestamp from './Timestamp/index.vue'
   import Decode from './Decode/index.vue'
+  import PortKill from './PortKill/index.vue'
+
   export default {
     components: {},
     data() {
@@ -67,6 +78,9 @@
             break
           case 'decode':
             this.component = markRaw(Decode)
+            break
+          case 'portkill':
+            this.component = markRaw(PortKill)
             break
         }
       },
