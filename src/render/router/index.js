@@ -1,14 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Main from '@/components/Main.vue'
-import Host from '@/components/Host/Index.vue'
-import Nginx from '@/components/Nginx/Index.vue'
-import PHP from '@/components/PHP/Index.vue'
-import Mysql from '@/components/Mysql/Index.vue'
-import Apache from '@/components/Apache/Index.vue'
-import Memcached from '@/components/Memcached/Index.vue'
-import Redis from '@/components/Redis/Index.vue'
-import Nodejs from '@/components/Nodejs/Index.vue'
-import Tools from '@/components/Tools/Index.vue'
 
 const routes = [
   {
@@ -19,39 +10,39 @@ const routes = [
     children: [
       {
         path: '/host',
-        component: Host
+        component: () => import('@/components/Host/Index.vue')
       },
       {
         path: '/nginx',
-        component: Nginx
+        component: () => import('@/components/Nginx/Index.vue')
       },
       {
         path: '/php',
-        component: PHP
+        component: () => import('@/components/PHP/Index.vue')
       },
       {
         path: '/mysql',
-        component: Mysql
+        component: () => import('@/components/Mysql/Index.vue')
       },
       {
         path: '/apache',
-        component: Apache
+        component: () => import('@/components/Apache/Index.vue')
       },
       {
         path: '/memcached',
-        component: Memcached
+        component: () => import('@/components/Memcached/Index.vue')
       },
       {
         path: '/redis',
-        component: Redis
+        component: () => import('@/components/Redis/Index.vue')
       },
       {
         path: '/node',
-        component: Nodejs
+        component: () => import('@/components/Nodejs/Index.vue')
       },
       {
         path: '/tools',
-        component: Tools
+        component: () => import('@/components/Tools/Index.vue')
       },
       {
         path: '/setup',

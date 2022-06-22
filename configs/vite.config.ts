@@ -2,6 +2,7 @@ import type { UserConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import * as path from 'path'
 import { AssetsPlugin } from './vite.plugs.assets'
+import { ViteDevPort } from './vite.port'
 
 const renderPath = path.resolve(__dirname, '../src/render/')
 const sharePath = path.resolve(__dirname, '../src/shared/')
@@ -30,15 +31,17 @@ const config: UserConfig = {
 
 const serverConfig: UserConfig = {
   server: {
-    port: 3000
+    port: ViteDevPort,
+    hmr: true
   },
   ...config
 }
 
 const serveConfig: UserConfig = {
   server: {
-    port: 3000,
-    open: true
+    port: ViteDevPort,
+    open: true,
+    hmr: true
   },
   ...config
 }

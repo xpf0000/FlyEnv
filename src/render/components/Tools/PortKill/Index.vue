@@ -3,7 +3,7 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-        <span class="ml-15">SSL Make</span>
+        <span class="ml-15">Port Kill</span>
       </div>
     </div>
 
@@ -25,8 +25,9 @@
             >
           </div>
           <el-table
+            height="100%"
             :data="arrs"
-            size="medium"
+            size="default"
             style="width: 100%"
             @selection-change="handleSelectionChange"
           >
@@ -42,6 +43,7 @@
 </template>
 
 <script>
+  import { markRaw } from 'vue'
   import { Search } from '@element-plus/icons-vue'
   import { passwordCheck } from '@/util/Brew'
   const { execSync } = require('child_process')
@@ -52,7 +54,7 @@
     props: {},
     data() {
       return {
-        Search,
+        Search: markRaw(Search),
         port: '',
         arrs: [],
         select: []
@@ -151,6 +153,10 @@
               COMMAND
             }
           })
+        if (arr.length === 0) {
+          this.$message.warning('此端口未被占用')
+          return
+        }
         this.arrs.splice(0)
         this.arrs.push(...arr)
       }
@@ -205,10 +211,10 @@
       .main {
         background: #32364a;
         border-radius: 8px;
-        padding: 20px;
+        padding: 20px 20px 10px 20px;
         display: flex;
         flex-direction: column;
-        max-height: 100%;
+        height: 100%;
         overflow: hidden;
 
         > .el-input {
@@ -220,6 +226,7 @@
           padding: 30px 0;
           display: flex;
           flex-direction: column;
+          overflow: hidden;
 
           .btn-cell {
             flex-shrink: 0;

@@ -1,5 +1,6 @@
 import is from 'electron-is'
 import path from 'path'
+import { ViteDevPort } from '../../../configs/vite.port.ts'
 const index = path.resolve(__dirname, '../render/index.html')
 export default {
   index: {
@@ -13,6 +14,6 @@ export default {
       transparent: !is.windows()
     },
     bindCloseToHide: true,
-    url: is.dev() ? 'http://localhost:3000' : `file://${index}`
+    url: is.dev() ? `http://localhost:${ViteDevPort}` : `file://${index}`
   }
 }

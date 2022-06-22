@@ -47,12 +47,7 @@
 </template>
 
 <script>
-  import { markRaw } from 'vue'
-  import SSLMake from './SSLMake/index.vue'
-  import FileInfo from './FileInfo/index.vue'
-  import Timestamp from './Timestamp/index.vue'
-  import Decode from './Decode/index.vue'
-  import PortKill from './PortKill/index.vue'
+  import { markRaw, defineAsyncComponent } from 'vue'
 
   export default {
     components: {},
@@ -68,19 +63,19 @@
         this.show = true
         switch (flag) {
           case 'sslmake':
-            this.component = markRaw(SSLMake)
+            this.component = markRaw(defineAsyncComponent(() => import('./SSLMake/index.vue')))
             break
           case 'fileinfo':
-            this.component = markRaw(FileInfo)
+            this.component = markRaw(defineAsyncComponent(() => import('./FileInfo/index.vue')))
             break
           case 'timestamp':
-            this.component = markRaw(Timestamp)
+            this.component = markRaw(defineAsyncComponent(() => import('./Timestamp/index.vue')))
             break
           case 'decode':
-            this.component = markRaw(Decode)
+            this.component = markRaw(defineAsyncComponent(() => import('./Decode/index.vue')))
             break
           case 'portkill':
-            this.component = markRaw(PortKill)
+            this.component = markRaw(defineAsyncComponent(() => import('./PortKill/index.vue')))
             break
         }
       },
