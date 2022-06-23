@@ -220,7 +220,7 @@ class PhpManager extends BaseManager {
               }
               const child = spawn('bash', [
                 copyfile,
-                global.Server.password,
+                global.Server.Password,
                 global.Server.Cache,
                 version.path,
                 extendv
