@@ -259,14 +259,7 @@ class HostManager {
         let hostname = host.name
         let nvhost = join(nginxvpath, `${hostname}.conf`)
         let avhost = join(apachevpath, `${hostname}.conf`)
-        let hostalias = host.alias
-          ? host.alias
-              .split('\n')
-              .filter((item) => {
-                return item && item.length > 0
-              })
-              .join(' ')
-          : host.name
+        let hostalias = this.#hostAlias(host)
         let ntmpl = readFileSync(nginxtmpl, 'utf-8')
           .replace(/#Server_Alias#/g, hostalias)
           .replace(/#Server_Root#/g, host.root)
@@ -303,7 +296,7 @@ class HostManager {
 
   _delHost(item) {
     return new Promise((resolve, reject) => {
-      let alias = item.alias ? item.alias.split('\n').join(' ') : item.name
+      let alias = this.#hostAlias(item)
       Utils.readFileAsync('/private/etc/hosts')
         .then((content) => {
           let x = `127.0.0.1     ${alias}\n`
@@ -324,6 +317,15 @@ class HostManager {
     })
   }
 
+  #hostAlias(item) {
+    let alias = item.alias
+      ? item.alias.split('\n').filter((n) => {
+          return n && n.length > 0
+        })
+      : []
+    return [item.name, ...alias].join(' ')
+  }
+
   _initHost(list) {
     return new Promise((resolve, reject) => {
       if (list.length === 0) {
@@ -332,7 +334,7 @@ class HostManager {
       }
       let host = ''
       for (let item of list) {
-        let alias = item.alias ? item.alias.split('\n').join(' ') : item.name
+        let alias = this.#hostAlias(item)
         host += `127.0.0.1     ${alias}\n`
       }
       Utils.readFileAsync('/private/etc/hosts')
@@ -361,7 +363,7 @@ class HostManager {
 
   _addHost(item) {
     return new Promise((resolve, reject) => {
-      let alias = item.alias ? item.alias.split('\n').join(' ') : item.name
+      let alias = this.#hostAlias(item)
       Utils.readFileAsync('/private/etc/hosts')
         .then((content) => {
           console.log('content: ', content)

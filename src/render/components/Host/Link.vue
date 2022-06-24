@@ -1,60 +1,14 @@
 <template>
-  <ul class="host-list">
-    <li
-      v-for="(item, index) in hosts"
-      :key="index"
-      :class="'host-item' + (current_row === index ? ' active' : '')"
-      @click="current_row = index"
-    >
-      <div class="left">
-        <div class="icon-block">
-          <yb-icon :svg="import('@/svg/link.svg?raw')" width="22" height="22" />
-        </div>
-        <div class="info">
-          <span class="name" v-text="item.name"> </span>
-          <span class="url" v-text="item.url"> </span>
-        </div>
-      </div>
-
-      <el-popover
-        effect="dark"
-        :ref="'host-list-poper-' + index"
-        popper-class="host-list-poper"
-        placement="bottom-end"
-        width="150"
-        trigger="click"
-      >
-        <ul class="host-list-menu">
-          <li @click.stop="action(item, index, 'open')">
-            <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-            <span class="ml-15">打开</span>
-          </li>
-          <li @click.stop="action(item, index, 'edit')">
-            <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-            <span class="ml-15">编辑</span>
-          </li>
-          <li @click.stop="action(item, index, 'link')">
-            <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-            <span class="ml-15">链接</span>
-          </li>
-          <li @click.stop="action(item, index, 'log')">
-            <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-            <span class="ml-15">日志</span>
-          </li>
-          <li @click.stop="action(item, index, 'del')">
-            <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-            <span class="ml-15">删除</span>
-          </li>
-        </ul>
-
-        <template #reference>
-          <div class="right">
-            <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
-          </div>
-        </template>
-      </el-popover>
-    </li>
-  </ul>
+  <div class="host-link">
+    <el-input v-model="formLabelAlign.name" >
+      <template #append>
+        <el-button-group>
+          <el-button>复制</el-button>
+          <el-button>打开</el-button>
+        </el-button-group>
+      </template>
+    </el-input>
+  </div>
 </template>
 
 <script>
@@ -63,14 +17,15 @@
   const { shell } = require('@electron/remote')
 
   export default {
-    name: 'MoHostList',
+    name: 'MoHostLink',
     components: {},
     props: {},
     data() {
       return {
-        current_row: 0,
-        extensionDir: '',
-        task_index: 0
+        hosts: [
+          'http://mysql.xpf.com',
+          'http://sql.xpf.com'
+        ]
       }
     },
     computed: {

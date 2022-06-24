@@ -227,14 +227,10 @@ class BaseManager {
             ? '-HUP'
             : '-USR2'
         execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sign} ${pid}`)
-          .then((res) => {
-            if (!res.stderr) {
-              setTimeout(() => {
-                resolve(0)
-              }, 1000)
-            } else {
-              reject(res.stderr)
-            }
+          .then(() => {
+            setTimeout(() => {
+              resolve(0)
+            }, 1000)
           })
           .catch((err) => {
             reject(err)
