@@ -76,9 +76,8 @@
       }
       this.$nextTick(() => {
         const data = this.data
-        this.vm = VueExtend(this.component)
+        this.vm = VueExtend(this.component, data)
         this.vmInstance = this.vm.mount(this.$refs.contentWapper)
-        extend(this.vmInstance.$data, data)
         this.vmInstance.callBack = this.callBack
       })
     },

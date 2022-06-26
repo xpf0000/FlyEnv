@@ -69,7 +69,7 @@ class BaseDialog {
     const document = window?.parent?.document ?? window.document
     let dom = document.createElement('div')
     dom.style.position = 'relative'
-    dom.style.zIndex = '9999999'
+    dom.style.zIndex = '2000'
     document.body.appendChild(dom)
     this._component.then((res) => {
       const view = res.default

@@ -17,8 +17,8 @@
       </div>
 
       <el-popover
-        effect="dark"
         :ref="'host-list-poper-' + index"
+        effect="dark"
         popper-class="host-list-poper"
         placement="bottom-end"
         width="150"
@@ -36,6 +36,18 @@
           <li @click.stop="action(item, index, 'link')">
             <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
             <span class="ml-15">链接</span>
+          </li>
+          <li>
+            <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+            <el-dropdown @command="showConfig">
+              <span class="ml-15"> 配置文件 </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item :command="{ flag: 'nginx', item }">Nginx</el-dropdown-item>
+                  <el-dropdown-item :command="{ flag: 'apache', item }">Apache</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </li>
           <li @click.stop="action(item, index, 'log')">
             <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
@@ -55,22 +67,37 @@
       </el-popover>
     </li>
   </ul>
+  <el-drawer
+    ref="host-edit-drawer"
+    v-model="show"
+    size="65%"
+    title="我是标题"
+    :close-on-click-modal="false"
+    :destroy-on-close="true"
+    custom-class="host-edit-drawer"
+    :with-header="false"
+  >
+    <ConfigView :item="configItem" @doClose="show = false"></ConfigView>
+  </el-drawer>
 </template>
 
 <script>
   import { mapGetters } from 'vuex'
   import { handleHost } from '@/util/Host.js'
+  import ConfigView from './Vhost.vue'
   const { shell } = require('@electron/remote')
 
   export default {
     name: 'MoHostList',
-    components: {},
+    components: { ConfigView },
     props: {},
     data() {
       return {
+        show: false,
         current_row: 0,
         extensionDir: '',
-        task_index: 0
+        task_index: 0,
+        configItem: {}
       }
     },
     computed: {
@@ -84,6 +111,11 @@
     },
     unmounted() {},
     methods: {
+      showConfig(flag) {
+        console.log(global.Server, flag)
+        this.configItem = flag
+        this.show = true
+      },
       action(item, index, flag) {
         console.log('item: ', item)
         this.task_index = index
@@ -109,6 +141,13 @@
             break
           case 'link':
             console.log('item: ', item)
+            this.$baseDialog(import('./Link.vue'))
+              .data({
+                host: item
+              })
+              .noFooter()
+              .title('站点链接')
+              .show()
             break
         }
         const poper = this.$refs['host-list-poper-' + this.task_index][0]
@@ -199,6 +238,9 @@
       align-items: center;
       padding: 8px 15px;
       cursor: pointer;
+      .el-dropdown {
+        color: #fff;
+      }
       &:hover {
         background: rgb(79, 82, 105);
       }
