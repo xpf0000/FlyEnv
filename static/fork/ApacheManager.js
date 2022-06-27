@@ -59,7 +59,13 @@ class ApacheManager extends BaseManager {
             }
             const logs = join(global.Server.ApacheDir, 'common/logs/')
             const vhost = join(global.Server.BaseDir, 'vhost/apache/')
-            content = content.replace(new RegExp(path, 'g'), logs)
+            content = content
+              .replace(new RegExp(path, 'g'), logs)
+              .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
+              .replace('#LoadModule proxy_module', 'LoadModule proxy_module')
+              .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')
+              .replace('#LoadModule ssl_module', 'LoadModule ssl_module')
+
             content += `\nPidFile "${logs}httpd.pid"
 IncludeOptional "${vhost}*.conf"`
             writeFileSync(defaultFile, content)
