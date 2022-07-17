@@ -10,6 +10,8 @@ PhpWebStudy 是一款mac上的PHP和web开发环境管理工具,包含php,nginx,
 
 访问网站查看详细介绍以及使用教程: [https://www.macphpstudy.com](https://www.macphpstudy.com)
 
+[https://www.phpwebstudy.cn](https://www.phpwebstudy.cn)
+
 ## ✨ 特性
 
 - 简洁明了的图形操作界面
