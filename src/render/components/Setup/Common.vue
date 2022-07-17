@@ -66,6 +66,10 @@
     <div class="main brew-src">
       <GitHubFix></GitHubFix>
     </div>
+    <div class="plant-title">重设电脑密码</div>
+    <div class="main reset-pass">
+      <RestPassword></RestPassword>
+    </div>
   </div>
 </template>
 
@@ -73,9 +77,10 @@
   import { mapGetters } from 'vuex'
   import BrewSrc from './BrewSrc/index.vue'
   import GitHubFix from './GithubFix/index.vue'
+  import RestPassword from './RestPassword/index.vue'
 
   export default {
-    components: { BrewSrc, GitHubFix },
+    components: { BrewSrc, GitHubFix, RestPassword },
     props: {},
     data() {
       return {}
@@ -136,6 +141,17 @@
 
       > .el-select {
         margin-right: 20px;
+      }
+    }
+
+    .main.reset-pass {
+      padding: 30px 20px;
+      flex-direction: row;
+      align-items: center;
+
+      > .el-input {
+        margin-right: 10px;
+        width: 198px;
       }
     }
   }

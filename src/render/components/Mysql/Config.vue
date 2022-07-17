@@ -1,16 +1,16 @@
 <template>
   <div class="mysql-config">
-    <el-input v-model="config" class="block" type="textarea"></el-input>
+    <el-input v-model="config" class="block" :disabled="!currentVersion" type="textarea"></el-input>
     <div class="tool">
-      <el-button :disabled="!version" @click="openConfig">打开</el-button>
-      <el-button :disabled="!version" @click="saveConfig">保存</el-button>
-      <el-button :disabled="!version" @click="getDefault">加载默认</el-button>
+      <el-button :disabled="!currentVersion" @click="openConfig">打开</el-button>
+      <el-button :disabled="!currentVersion" @click="saveConfig">保存</el-button>
+      <el-button :disabled="!currentVersion" @click="getDefault">加载默认</el-button>
     </div>
   </div>
 </template>
 
 <script>
-  import { writeFileAsync, readFileAsync } from '@shared/file.js'
+  import { readFileAsync, writeFileAsync } from '@shared/file.js'
   import { AppMixins } from '@/mixins/AppMixins.js'
 
   const { existsSync } = require('fs')
@@ -30,9 +30,19 @@
         typeFlag: 'mysql'
       }
     },
+    computed: {
+      currentVersion() {
+        return this?.server?.mysql?.current?.version
+      }
+    },
     watch: {},
     created: function () {
-      this.configPath = join(global.Server.MysqlDir, 'my.cnf')
+      console.log('this.server: ', this.server)
+      if (!this.version || !this.version.version) {
+        this.config = '请先选择版本'
+        return
+      }
+      this.configPath = join(global.Server.MysqlDir, `my-${this.version.version}.cnf`)
       this.getConfig()
     },
     methods: {
@@ -45,19 +55,29 @@
         })
       },
       getConfig() {
+        if (!existsSync(this.configPath)) {
+          this.config = '版本已变更, 请重新切换选择版本'
+          this.server.mysql.current = {}
+          this.$store.dispatch('app/saveConfig').then()
+          return
+        }
         readFileAsync(this.configPath).then((conf) => {
           this.config = conf
         })
       },
       getDefault() {
-        let configPath = join(global.Server.MysqlDir, 'my.cnf.default')
-        if (!existsSync(configPath)) {
-          this.$message.error('未找到默认配置文件!')
-          return
-        }
-        readFileAsync(configPath).then((conf) => {
-          this.config = conf
-        })
+        const oldm = join(global.Server.MysqlDir, 'my.cnf')
+        const dataDir = join(global.Server.MysqlDir, `data-${this.currentVersion}`)
+        this.config = `[mysqld]
+# Only allow connections from localhost
+bind-address = 127.0.0.1
+sql-mode=NO_ENGINE_SUBSTITUTION
+
+#设置数据目录
+#brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
+#如果配置文件已更改, 原配置文件在: ${oldm}
+#可以复制原配置文件的内容, 使用原来的配置
+datadir=${dataDir}`
       }
     }
   }

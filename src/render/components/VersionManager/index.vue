@@ -93,7 +93,7 @@
           ],
           memcached: ['memcached'],
           mysql: ['mysql', 'mysql@5.6', 'mysql@5.7'],
-          redis: ['redis', 'redis@3.2', 'redis@4.0']
+          redis: ['redis', 'redis@3.2', 'redis@4.0', 'redis@6.2']
         }
       }
     },

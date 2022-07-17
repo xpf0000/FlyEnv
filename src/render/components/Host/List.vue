@@ -24,7 +24,7 @@
         width="150"
         trigger="click"
       >
-        <ul class="host-list-menu">
+        <ul class="host-list-menu" v-poper-fix>
           <li @click.stop="action(item, index, 'open')">
             <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
             <span class="ml-15">打开</span>
@@ -171,8 +171,11 @@
   .host-list {
     display: flex;
     flex-direction: column;
-    max-height: 100%;
+    flex: 1;
+    overflow: auto;
+
     .host-item {
+      flex-shrink: 0;
       display: flex;
       justify-content: space-between;
       padding: 0 20px;

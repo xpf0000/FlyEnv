@@ -67,6 +67,17 @@ class PhpManager extends BaseManager {
 
   _doInstallExtends(version, versionNumber, extend, extendsDir) {
     return new Promise((resolve, reject) => {
+      let optdefault = { env: process.env }
+      if (!optdefault.env['PATH']) {
+        optdefault.env[
+          'PATH'
+        ] = `${version.path}bin/:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin`
+      } else {
+        optdefault.env[
+          'PATH'
+        ] = `${version.path}bin/:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
+      }
+
       let sh = ''
       let copyfile = ''
       switch (extend) {
@@ -103,7 +114,11 @@ class PhpManager extends BaseManager {
             .then(() => {
               Utils.chmod(copyfile, '0777')
               let redisv = versionNumber < 7.0 ? '4.3.0' : '5.3.7'
-              const child = spawn('bash', [copyfile, global.Server.Cache, version.path, redisv])
+              const child = spawn(
+                'bash',
+                [copyfile, global.Server.Cache, version.path, redisv],
+                optdefault
+              )
               this._childHandle(child, resolve, reject)
             })
             .catch((err) => {
@@ -128,7 +143,11 @@ class PhpManager extends BaseManager {
             .then(() => {
               Utils.chmod(copyfile, '0777')
               let redisv = versionNumber < 7.0 ? '3.0.8' : versionNumber >= 8.0 ? '8.0' : '4.0.5.2'
-              const child = spawn('bash', [copyfile, global.Server.Cache, version.path, redisv])
+              const child = spawn(
+                'bash',
+                [copyfile, global.Server.Cache, version.path, redisv],
+                optdefault
+              )
               this._childHandle(child, resolve, reject)
             })
             .catch((err) => {
@@ -153,7 +172,11 @@ class PhpManager extends BaseManager {
             .then(() => {
               Utils.chmod(copyfile, '0777')
               let redisv = versionNumber < 7.0 ? '2.2.0' : '3.2.0'
-              const child = spawn('bash', [copyfile, global.Server.Cache, version.path, redisv])
+              const child = spawn(
+                'bash',
+                [copyfile, global.Server.Cache, version.path, redisv],
+                optdefault
+              )
               this._childHandle(child, resolve, reject)
             })
             .catch((err) => {
@@ -187,7 +210,11 @@ class PhpManager extends BaseManager {
               } else {
                 extendv = '4.8.9'
               }
-              const child = spawn('bash', [copyfile, global.Server.Cache, version.path, extendv])
+              const child = spawn(
+                'bash',
+                [copyfile, global.Server.Cache, version.path, extendv],
+                optdefault
+              )
               this._childHandle(child, resolve, reject)
             })
             .catch((err) => {
@@ -218,13 +245,45 @@ class PhpManager extends BaseManager {
               } else {
                 extendv = '3.1.5'
               }
-              const child = spawn('bash', [
+              const param = [
                 copyfile,
                 global.Server.Password,
                 global.Server.Cache,
                 version.path,
                 extendv
-              ])
+              ]
+              console.log('param: ', param.join(' '))
+
+              const child = spawn('bash', param, optdefault)
+              this._childHandle(child, resolve, reject)
+            })
+            .catch((err) => {
+              console.log('err: ', err)
+              reject(err)
+            })
+          break
+        case 'ssh2':
+          if (existsSync(join(extendsDir, 'ssh2.so'))) {
+            resolve(true)
+            return
+          }
+          sh = join(global.Server.Static, 'sh/php-ssh2.sh')
+          copyfile = join(global.Server.Cache, 'php-ssh2.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          Utils.readFileAsync(sh)
+            .then((content) => {
+              return Utils.writeFileAsync(copyfile, content)
+            })
+            .then(() => {
+              Utils.chmod(copyfile, '0777')
+              let ev = versionNumber < 7.0 ? '1.1.2' : '1.3.1'
+              const child = spawn(
+                'bash',
+                [copyfile, global.Server.Cache, version.path, ev],
+                optdefault
+              )
               this._childHandle(child, resolve, reject)
             })
             .catch((err) => {

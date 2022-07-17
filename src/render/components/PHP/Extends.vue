@@ -124,6 +124,14 @@ import {join} from "path";import {basename} from "path";
             status: false,
             soname: 'xdebug.so',
             extendPre: 'zend_extension='
+          },
+          {
+            name: 'ssh2',
+            type: '通用扩展',
+            info: 'libssh2 php扩展',
+            installed: false,
+            status: false,
+            soname: 'ssh2.so'
           }
         ],
         showTableData: []

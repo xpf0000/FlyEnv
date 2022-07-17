@@ -4,11 +4,13 @@ import router from '../router/index.js'
 import Base from './Base.js'
 import ElementPlus from 'element-plus'
 import SVGIcons from '../components/YbSvgIcon/index.js'
+import PoperFix from './directive/PoperFix/index.ts'
 
 export function VueExtend(App, data = null) {
   const app = createApp(App, data)
   app.use(store)
   app.use(router)
+  app.use(PoperFix)
   app.use(SVGIcons, 'ybIcon')
   Base.init(app)
   app.use(ElementPlus, { size: 'default' })

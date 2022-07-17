@@ -1,0 +1,92 @@
+<template>
+  <el-input
+    v-if="show"
+    v-model="password"
+    type="text"
+    placeholder="Please input password"
+    readonly
+  />
+  <el-input
+    v-else
+    v-model="password"
+    type="password"
+    placeholder="Please input password"
+    readonly
+  />
+  <el-button-group>
+    <el-button @click="show = !show">
+      <yb-icon v-if="show" :svg="import('@/svg/eye.svg?raw')" :width="15" :height="15"></yb-icon>
+      <yb-icon v-else :svg="import('@/svg/eye-slash.svg?raw')" :width="15" :height="15"></yb-icon>
+    </el-button>
+    <el-button @click="resetPassword">
+      <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" :width="15" :height="15"></yb-icon>
+    </el-button>
+  </el-button-group>
+</template>
+
+<script>
+  import IPC from '@/util/IPC.js'
+  import { mapGetters } from 'vuex'
+  import { ElMessageBox } from 'element-plus'
+  import store from '@/store/index.js'
+  export default {
+    components: {},
+    props: {},
+    data() {
+      return {
+        show: false
+      }
+    },
+    computed: {
+      ...mapGetters('app', {
+        password: 'password'
+      })
+    },
+    methods: {
+      resetPassword() {
+        ElMessageBox.prompt('请输入电脑用户密码', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputType: 'password',
+          customClass: 'password-prompt',
+          beforeClose: (action, instance, done) => {
+            if (action === 'confirm') {
+              // 去除trim, 有些电脑的密码是空格...
+              if (instance.inputValue) {
+                IPC.send('app:password-check', instance.inputValue).then((key, res) => {
+                  IPC.off(key)
+                  if (res === false) {
+                    instance.editorErrorMessage = '密码错误,请重新输入'
+                  } else {
+                    global.Server.Password = res
+                    store.dispatch('app/initConfig').then(() => {
+                      done && done()
+                      this.$message.success('密码重设成功')
+                    })
+                  }
+                })
+              }
+            } else {
+              done()
+            }
+          }
+        })
+          .then(() => {})
+          .catch((err) => {
+            console.log('err: ', err)
+          })
+      }
+    }
+  }
+</script>
+<style lang="scss">
+  .password-prompt {
+    background: #32364a !important;
+    border: 1px solid #32364a !important;
+    color: #fff !important;
+    .el-message-box__message,
+    .el-message-box__close {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+  }
+</style>

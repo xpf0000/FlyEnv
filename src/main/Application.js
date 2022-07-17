@@ -114,13 +114,6 @@ export default class Application extends EventEmitter {
       })
     }
 
-    let mysqlcong = join(global.Server.MysqlDir, 'my.cnf')
-    if (!existsSync(mysqlcong)) {
-      const staticMycnf = join(__static, 'tmpl/my.cnf')
-      copyFile(staticMycnf, mysqlcong, () => {})
-      copyFile(staticMycnf, join(global.Server.MysqlDir, 'my.cnf.default'), () => {})
-    }
-
     let ngconf = join(global.Server.NginxDir, 'common/conf/nginx.conf')
     if (!existsSync(ngconf)) {
       compressing.zip

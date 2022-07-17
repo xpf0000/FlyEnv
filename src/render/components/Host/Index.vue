@@ -102,7 +102,7 @@
   }
   .host-panel {
     height: 100%;
-    overflow: auto;
+    overflow: hidden;
     line-height: 1.75;
     padding: 30px 18px;
     display: flex;
