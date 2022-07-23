@@ -52,9 +52,16 @@ datadir=${dataDir}`
       let needRestart = false
       if (!existsSync(dataDir)) {
         needRestart = true
-        params.push('--initialize')
         Utils.createFolder(dataDir)
         Utils.chmod(dataDir, '0777')
+        if (version.version.indexOf('5.6.') === 0) {
+          bin = join(version.path, 'scripts/mysql_install_db')
+          params.splice(0)
+          params.push(`--datadir=${dataDir}`)
+          params.push(`--basedir=${version.path}`)
+        } else {
+          params.push('--initialize-insecure')
+        }
       }
       console.log('mysql start: ', bin, params.join(' '))
       process.send({
