@@ -1,3 +1,4 @@
+import { reactive } from 'vue'
 import IPC from '@/util/IPC.js'
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
@@ -86,7 +87,9 @@ const mutations = {
   },
   UPDATE_HOSTS(state, hosts) {
     state.hosts.splice(0)
-    state.hosts.push(...hosts)
+    hosts.forEach((host) => {
+      state.hosts.push(reactive(host))
+    })
   },
   INIT_CONFIG(state, obj) {
     state.config = obj

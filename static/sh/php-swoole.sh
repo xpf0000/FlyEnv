@@ -2,6 +2,7 @@
 cachedir=$1
 phpdir=$2
 extendV=$3
+arch=$4
 cd $cachedir
 curl -C - -O -s http://pecl.php.net/get/swoole-$extendV.tgz
 if [ -d "swoole-$extendV" ]; then
@@ -15,7 +16,7 @@ fi
 prefix=$(brew --prefix)
 lib=$prefix/opt/openssl
 if [ ! -d $lib ]; then
-  brew install openssl
+  arch $arch brew install openssl
 fi
 cd "swoole-$extendV"
 cellar=$(brew --Cellar)

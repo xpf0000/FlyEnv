@@ -78,7 +78,6 @@ import {join} from "path";import {basename} from "path";
           {
             name: 'ionCube',
             type: '脚本解密',
-            info: '用于解密ionCube Encoder加密脚本!',
             installed: false,
             status: false,
             soname: 'ioncube.so',
@@ -87,7 +86,6 @@ import {join} from "path";import {basename} from "path";
           {
             name: 'memcache',
             type: '缓存器',
-            info: '强大的内容缓存器',
             installed: false,
             status: false,
             soname: 'memcache.so'
@@ -95,7 +93,6 @@ import {join} from "path";import {basename} from "path";
           {
             name: 'memcached',
             type: '缓存器',
-            info: '比memcache支持更多高级功能',
             installed: false,
             status: false,
             soname: 'memcached.so'
@@ -103,7 +100,6 @@ import {join} from "path";import {basename} from "path";
           {
             name: 'redis',
             type: '缓存器',
-            info: '基于内存亦可持久化的Key-Value数据库',
             installed: false,
             status: false,
             soname: 'redis.so'
@@ -111,7 +107,6 @@ import {join} from "path";import {basename} from "path";
           {
             name: 'swoole',
             type: '网络通信',
-            info: '异步、并行、高性能网络通信引擎',
             installed: false,
             status: false,
             soname: 'swoole.so'
@@ -119,7 +114,6 @@ import {join} from "path";import {basename} from "path";
           {
             name: 'xdebug',
             type: '调试器',
-            info: '开源的PHP程序调试器',
             installed: false,
             status: false,
             soname: 'xdebug.so',
@@ -128,10 +122,23 @@ import {join} from "path";import {basename} from "path";
           {
             name: 'ssh2',
             type: '通用扩展',
-            info: 'libssh2 php扩展',
             installed: false,
             status: false,
             soname: 'ssh2.so'
+          },
+          {
+            name: 'pdo_sqlsrv',
+            type: 'MSSQLServer扩展',
+            installed: false,
+            status: false,
+            soname: 'pdo_sqlsrv.so'
+          },
+          {
+            name: 'imagick',
+            type: 'ImageMagick扩展',
+            installed: false,
+            status: false,
+            soname: 'imagick.so'
           }
         ],
         showTableData: []

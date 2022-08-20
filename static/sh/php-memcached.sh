@@ -2,6 +2,7 @@
 cachedir=$1
 phpdir=$2
 memcachedv=$3
+arch=$4
 cd $cachedir
 curl -C - -O -s http://pecl.php.net/get/memcached-$memcachedv.tgz
 if [ -d "memcached-$memcachedv" ]; then
@@ -16,7 +17,7 @@ prefix=$(brew --prefix)
 zlib=$prefix/opt/zlib
 lib=$prefix/opt/libmemcached
 if [ ! -d $lib ]; then
-  brew install libmemcached
+  arch $arch brew install libmemcached
 fi
 cd "memcached-$memcachedv"
 cellar=$(brew --Cellar)

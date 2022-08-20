@@ -2,6 +2,7 @@
 cachedir=$1
 phpdir=$2
 version=$3
+arch=$4
 cd $cachedir
 curl -C - -O -s https://pecl.php.net/get/ssh2-$version.tgz
 if [ -d "ssh2-$version" ]; then
@@ -15,7 +16,7 @@ fi
 prefix=$(brew --prefix)
 lib=$prefix/opt/libssh2
 if [ ! -d $lib ]; then
-  brew install libssh2
+  arch $arch brew install libssh2
 fi
 cd "ssh2-$version"
 $phpdir/bin/phpize

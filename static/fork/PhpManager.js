@@ -77,7 +77,7 @@ class PhpManager extends BaseManager {
           'PATH'
         ] = `${version.path}bin/:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
       }
-
+      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
       let sh = ''
       let copyfile = ''
       switch (extend) {
@@ -116,7 +116,7 @@ class PhpManager extends BaseManager {
               let redisv = versionNumber < 7.0 ? '4.3.0' : '5.3.7'
               const child = spawn(
                 'bash',
-                [copyfile, global.Server.Cache, version.path, redisv],
+                [copyfile, global.Server.Cache, version.path, redisv, arch],
                 optdefault
               )
               this._childHandle(child, resolve, reject)
@@ -145,7 +145,7 @@ class PhpManager extends BaseManager {
               let redisv = versionNumber < 7.0 ? '3.0.8' : versionNumber >= 8.0 ? '8.0' : '4.0.5.2'
               const child = spawn(
                 'bash',
-                [copyfile, global.Server.Cache, version.path, redisv],
+                [copyfile, global.Server.Cache, version.path, redisv, arch],
                 optdefault
               )
               this._childHandle(child, resolve, reject)
@@ -174,7 +174,7 @@ class PhpManager extends BaseManager {
               let redisv = versionNumber < 7.0 ? '2.2.0' : '3.2.0'
               const child = spawn(
                 'bash',
-                [copyfile, global.Server.Cache, version.path, redisv],
+                [copyfile, global.Server.Cache, version.path, redisv, arch],
                 optdefault
               )
               this._childHandle(child, resolve, reject)
@@ -207,12 +207,14 @@ class PhpManager extends BaseManager {
                 extendv = '2.2.0'
               } else if (versionNumber < 7.2) {
                 extendv = '4.5.11'
+              } else if (versionNumber < 8.0) {
+                extendv = '4.8.11'
               } else {
-                extendv = '4.8.9'
+                extendv = '5.0.0'
               }
               const child = spawn(
                 'bash',
-                [copyfile, global.Server.Cache, version.path, extendv],
+                [copyfile, global.Server.Cache, version.path, extendv, arch],
                 optdefault
               )
               this._childHandle(child, resolve, reject)
@@ -250,7 +252,8 @@ class PhpManager extends BaseManager {
                 global.Server.Password,
                 global.Server.Cache,
                 version.path,
-                extendv
+                extendv,
+                arch
               ]
               console.log('param: ', param.join(' '))
 
@@ -281,7 +284,72 @@ class PhpManager extends BaseManager {
               let ev = versionNumber < 7.0 ? '1.1.2' : '1.3.1'
               const child = spawn(
                 'bash',
-                [copyfile, global.Server.Cache, version.path, ev],
+                [copyfile, global.Server.Cache, version.path, ev, arch],
+                optdefault
+              )
+              this._childHandle(child, resolve, reject)
+            })
+            .catch((err) => {
+              console.log('err: ', err)
+              reject(err)
+            })
+          break
+        case 'pdo_sqlsrv':
+          if (existsSync(join(extendsDir, 'pdo_sqlsrv.so'))) {
+            resolve(true)
+            return
+          }
+          sh = join(global.Server.Static, 'sh/php-pdo_sqlsrv.sh')
+          copyfile = join(global.Server.Cache, 'php-pdo_sqlsrv.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          Utils.readFileAsync(sh)
+            .then((content) => {
+              return Utils.writeFileAsync(copyfile, content)
+            })
+            .then(() => {
+              Utils.chmod(copyfile, '0777')
+              let extendv = ''
+              if (versionNumber < 7.0) {
+                extendv = '3.0.1'
+              } else if (versionNumber < 7.3) {
+                extendv = '4.3.0'
+              } else {
+                extendv = '5.10.1'
+              }
+              const child = spawn(
+                'bash',
+                [copyfile, global.Server.Cache, version.path, extendv, arch],
+                optdefault
+              )
+              this._childHandle(child, resolve, reject)
+            })
+            .catch((err) => {
+              console.log('err: ', err)
+              reject(err)
+            })
+          break
+        case 'imagick':
+          if (existsSync(join(extendsDir, 'imagick.so'))) {
+            resolve(true)
+            return
+          }
+          sh = join(global.Server.Static, 'sh/php-imagick.sh')
+          copyfile = join(global.Server.Cache, 'php-imagick.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          Utils.readFileAsync(sh)
+            .then((content) => {
+              return Utils.writeFileAsync(copyfile, content)
+            })
+            .then(() => {
+              Utils.chmod(copyfile, '0777')
+              let extendv = '3.7.0'
+              const child = spawn(
+                'bash',
+                [copyfile, global.Server.Cache, version.path, extendv, arch],
                 optdefault
               )
               this._childHandle(child, resolve, reject)

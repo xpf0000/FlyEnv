@@ -24,6 +24,8 @@ export default class Application extends EventEmitter {
   }
 
   init() {
+    this.handleCommands()
+    this.handleIpcMessages()
     this.configManager = new ConfigManager()
     this.menuManager = new MenuManager()
     this.menuManager.setup()
@@ -31,8 +33,6 @@ export default class Application extends EventEmitter {
     this.initWindowManager()
     this.initThemeManager()
     this.initUpdaterManager()
-    this.handleCommands()
-    this.handleIpcMessages()
     this.initServerDir()
   }
 
