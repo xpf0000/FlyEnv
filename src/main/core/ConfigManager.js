@@ -49,6 +49,7 @@ export default class ConfigManager {
               Memcached: true,
               Redis: true,
               NodeJS: true,
+              HttpServe: true,
               Tools: true
             }
           },
@@ -70,7 +71,8 @@ export default class ConfigManager {
           redis: {
             dirs: []
           }
-        }
+        },
+        httpServe: []
       }
     })
 
@@ -78,6 +80,9 @@ export default class ConfigManager {
       const password = this.config.get('password', '')
       this.config.clear()
       this.config.set('password', password)
+    }
+    if (!this.config.has('setup.common.showItem.HttpServe')) {
+      this.config.set('setup.common.showItem.HttpServe', true)
     }
   }
 

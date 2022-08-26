@@ -162,6 +162,24 @@
         </li>
 
         <li
+          v-if="common.showItem.HttpServe"
+          :class="'non-draggable' + (currentPage === '/httpServe' ? ' active' : '')"
+          @click="nav('/httpServe', $event)"
+        >
+          <div class="left">
+            <div class="icon-block">
+              <yb-icon
+                style="padding: 4.5px"
+                :svg="import('@/svg/http.svg?raw')"
+                width="28"
+                height="28"
+              />
+            </div>
+            <span class="title">Http Serve</span>
+          </div>
+        </li>
+
+        <li
           v-if="common.showItem.Tools"
           :class="'non-draggable' + (currentPage === '/tools' ? ' active' : '')"
           @click="nav('/tools', $event)"

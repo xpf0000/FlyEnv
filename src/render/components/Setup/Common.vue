@@ -51,10 +51,20 @@
             </el-form-item>
           </el-col>
           <el-col :span="8">
+            <el-form-item label="Http Serve">
+              <el-switch v-model="common.showItem.HttpServe" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row>
+          <el-col :span="8">
             <el-form-item label="Tools">
               <el-switch v-model="common.showItem.Tools" />
             </el-form-item>
           </el-col>
+          <el-col :span="8"> </el-col>
+          <el-col :span="8"> </el-col>
         </el-row>
       </el-form>
     </div>

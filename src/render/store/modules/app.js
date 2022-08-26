@@ -67,11 +67,13 @@ const state = {
         dirs: []
       }
     }
-  }
+  },
+  httpServe: []
 }
 const getters = {
   stat: (state) => state.stat,
   hosts: (state) => state.hosts,
+  httpServe: (state) => state.httpServe,
   config: (state) => state.config,
   server: (state) => state.config?.server ?? {},
   password: (state) => state.config?.password ?? '',
@@ -93,6 +95,9 @@ const mutations = {
   },
   INIT_CONFIG(state, obj) {
     state.config = obj
+  },
+  INIT_HTTP_SERVE(state, obj) {
+    state.httpServe = obj
   },
   SET_CUSTOM_DIR(state, { typeFlag, dir, index }) {
     const common = state.config.setup[typeFlag]
@@ -146,13 +151,15 @@ const actions = {
       password: config.password,
       setup: config.setup
     })
+    commit('INIT_HTTP_SERVE', config.httpServe ?? [])
   },
   saveConfig({ state }) {
     const args = JSON.parse(
       JSON.stringify({
         server: state.config.server,
         password: state.config.password,
-        setup: state.config.setup
+        setup: state.config.setup,
+        httpServe: state.httpServe
       })
     )
     IPC.send('application:save-preference', args)

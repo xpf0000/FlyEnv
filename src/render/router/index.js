@@ -41,6 +41,10 @@ const routes = [
         component: () => import('@/components/Nodejs/Index.vue')
       },
       {
+        path: '/httpServe',
+        component: () => import('@/components/HttpServe/Index.vue')
+      },
+      {
         path: '/tools',
         component: () => import('@/components/Tools/Index.vue')
       },

@@ -9,23 +9,24 @@ import TouchBarManager from './ui/TouchBarManager'
 import ThemeManager from './ui/ThemeManager'
 import UpdateManager from './core/UpdateManager'
 import { join } from 'path'
-import { existsSync, copyFile } from 'fs'
-import { fork } from 'child_process'
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
+import { fork, execSync } from 'child_process'
 const { createFolder, chmod, readFileAsync, writeFileAsync } = require('../shared/file.js')
 const { execAsync, isAppleSilicon } = require('../shared/utils.js')
 const compressing = require('compressing')
 const execPromise = require('child-process-promise').exec
+const ServeHandler = require('serve-handler')
+const Http = require('http')
 
 export default class Application extends EventEmitter {
   constructor() {
     super()
     this.isReady = false
+    this.httpServes = {}
     this.init()
   }
 
   init() {
-    this.handleCommands()
-    this.handleIpcMessages()
     this.configManager = new ConfigManager()
     this.menuManager = new MenuManager()
     this.menuManager.setup()
@@ -34,6 +35,8 @@ export default class Application extends EventEmitter {
     this.initThemeManager()
     this.initUpdaterManager()
     this.initServerDir()
+    this.handleCommands()
+    this.handleIpcMessages()
   }
 
   initServerDir() {
@@ -208,6 +211,7 @@ export default class Application extends EventEmitter {
     win.once('ready-to-show', () => {
       this.isReady = true
       this.emit('ready')
+      this.sendCommandToAll('APP-Ready-To-Show', 'APP-Ready-To-Show', true)
     })
     if (is.macOS()) {
       this.touchBarManager.setup(page, win)
@@ -239,7 +243,68 @@ export default class Application extends EventEmitter {
     this.stopServer()
   }
 
-  stopServer() {}
+  stopServerByPid(pidfile, type) {
+    if (!existsSync(pidfile)) {
+      return
+    }
+    const dis = {
+      php: 'php-fpm',
+      nginx: 'nginx',
+      apache: 'httpd',
+      mysql: 'mysqld',
+      memcached: 'memcached',
+      redis: 'redis-server'
+    }
+    try {
+      if (existsSync(pidfile)) {
+        unlinkSync(pidfile)
+      }
+      let serverName = dis[type]
+      let command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12}'`
+      const res = execSync(command).toString().trim()
+      let pids = res.split('\n')
+      let arr = []
+      for (let p of pids) {
+        if (
+          p.indexOf(' grep ') >= 0 ||
+          p.indexOf(' /bin/sh -c') >= 0 ||
+          p.indexOf('/Contents/MacOS/') >= 0
+        ) {
+          continue
+        }
+        arr.push(p.split(' ')[0])
+      }
+      if (arr.length > 0) {
+        arr = arr.join(' ')
+        let sig = this.type === 'mysql' ? '-9' : '-INT'
+        execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${arr}`)
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  stopServer() {
+    // 停止nginx服务
+    let pidfile = join(global.Server.NginxDir, 'common/logs/nginx.pid')
+    this.stopServerByPid(pidfile, 'nginx')
+    pidfile = join(global.Server.PhpDir, 'common/var/run/php-fpm.pid')
+    this.stopServerByPid(pidfile, 'php')
+    pidfile = join(global.Server.MysqlDir, 'mysql.pid')
+    this.stopServerByPid(pidfile, 'mysql')
+    pidfile = join(global.Server.ApacheDir, 'common/logs/httpd.pid')
+    this.stopServerByPid(pidfile, 'apache')
+    pidfile = join(global.Server.MemcachedDir, 'logs/memcached.pid')
+    this.stopServerByPid(pidfile, 'memcached')
+    pidfile = join(global.Server.RedisDir, 'common/run/redis.pid')
+    this.stopServerByPid(pidfile, 'redis')
+    let hosts = readFileSync('/private/etc/hosts', 'utf-8')
+    let x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
+    if (x) {
+      hosts = hosts.replace(x[0], '')
+      writeFileSync('/private/etc/hosts', hosts)
+    }
+  }
 
   sendCommand(command, ...args) {
     if (!this.emit(command, ...args)) {
@@ -419,6 +484,49 @@ export default class Application extends EventEmitter {
         break
       case 'application:about':
         this.sendCommandToAll(command, key)
+        break
+      case 'app-http-serve-run':
+        const path = args[0]
+        const httpServe = this.httpServes[path]
+        if (httpServe) {
+          httpServe.server.close()
+          delete this.httpServes[path]
+        }
+        const server = Http.createServer((request, response) => {
+          response.setHeader('Access-Control-Allow-Origin', '*')
+          response.setHeader('Access-Control-Allow-Headers', '*')
+          response.setHeader('Access-Control-Allow-Methods', '*')
+          return ServeHandler(request, response, {
+            public: path
+          })
+        })
+        server.listen(0, () => {
+          console.log('server.address(): ', server.address())
+          const port = server.address().port
+          const host = `http://localhost:${port}/`
+          this.httpServes[path] = {
+            server,
+            port,
+            host
+          }
+          this.sendCommandToAll(command, key, {
+            path,
+            port,
+            host
+          })
+        })
+        break
+      case 'app-http-serve-stop':
+        const path1 = args[0]
+        const httpServe1 = this.httpServes[path1]
+        console.log('httpServe1: ', httpServe1)
+        if (httpServe1) {
+          httpServe1.server.close()
+          delete this.httpServes[path1]
+        }
+        this.sendCommandToAll(command, key, {
+          path: path1
+        })
         break
     }
   }
