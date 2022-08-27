@@ -3,6 +3,8 @@ import store from '../store/index.js'
 import router from '../router/index.js'
 import Base from './Base.js'
 import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+import 'element-plus/theme-chalk/dark/css-vars.css'
 import SVGIcons from '../components/YbSvgIcon/index.js'
 import PoperFix from './directive/PoperFix/index.ts'
 

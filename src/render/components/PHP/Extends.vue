@@ -37,7 +37,7 @@ import {join} from "path";import {basename} from "path";
       </el-table-column>
 
       <el-table-column align="left" label="操作">
-        <template #default="scope">
+        <template v-if="version?.version" #default="scope">
           <el-button v-if="scope.row.status" type="text" @click="copyLink(scope.$index, scope.row)"
             >复制链接</el-button
           >
@@ -175,7 +175,7 @@ import {join} from "path";import {basename} from "path";
       headerTitle() {
         if (this.currentExtend) {
           return `${this.extendAction} ${this.currentExtend}`
-        } else if (this.version) {
+        } else if (this?.version?.version) {
           return `PHP 版本${this.version.version} 可用扩展`
         } else {
           return '请先选择PHP版本'
@@ -225,9 +225,6 @@ import {join} from "path";import {basename} from "path";
         }
         this.taskPhp.extendRefreshing = true
         this.showTableData = JSON.parse(JSON.stringify(this.tableData))
-        if (this.versionNumber > 0 && (this.versionNumber < 5.4 || this.versionNumber > 7.4)) {
-          this.showTableData.splice(0, 1)
-        }
         this.checkStatus()
       },
       checkStatus() {

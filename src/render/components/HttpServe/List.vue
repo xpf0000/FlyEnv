@@ -150,6 +150,11 @@
         }
         this.httpServe.push(path)
         this.$store.dispatch('app/saveConfig').then()
+        this.$nextTick().then(() => {
+          const item = Serves[path]
+          console.log(item)
+          this.doRun(path, item)
+        })
       },
       doRun(path, item) {
         IPC.send('app-http-serve-run', path).then((key, info) => {

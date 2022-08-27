@@ -37,10 +37,9 @@
               v-model="timestamp1"
               class="w-p100"
               type="datetime"
-              value-format="timestamp"
+              value-format="x"
               placeholder="Date time"
-            >
-            </el-date-picker>
+            />
           </div>
           <yb-icon
             :svg="import('@/svg/back.svg?raw')"

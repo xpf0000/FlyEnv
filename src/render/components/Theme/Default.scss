@@ -157,40 +157,6 @@ img {
 
 /* Element UI
 -------------------------- */
-.el-progress-bar__inner {
-  transition: all 0.4s cubic-bezier(0.08, 0.82, 0.17, 1) 0s;
-}
-
-.el-progress--line.is-text {
-  .el-progress-bar__inner::before {
-    content: "";
-    opacity: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: #fff;
-    border-radius: 10px;
-    animation: mo-progress-active 2.4s cubic-bezier(0.23, 1, 0.32, 1) infinite;
-  }
-}
-
-@keyframes mo-progress-active {
-  0% {
-    opacity: 0.1;
-    width: 0;
-  }
-  20% {
-    opacity: 0.5;
-    width: 0;
-  }
-  100% {
-    opacity: 0;
-    width: 100%;
-  }
-}
-
 .el-message-box__wrapper {
   outline: none;
 }
@@ -201,22 +167,6 @@ img {
   a {
     color: $--link-color;
   }
-}
-
-.tab-title-dialog {
-  .el-dialog__header {
-    padding: 0 20px;
-    position: relative;
-    z-index: 10;
-  }
-  .el-dialog__body {
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-}
-
-.el-form-item--mini .el-form-item__info {
-  padding-top: 1px;
 }
 
 .el-form-item__info {
@@ -261,99 +211,8 @@ img {
   }
 }
 
-.subnav {
-  background-color: $--subnav-background;
-  color: $--subnav-text-color;
-}
-
-.subnav-inner {
-  margin-top: 44px;
-  padding: 0 16px;
-  user-select: none;
-
-  h3 {
-    font-size: 16px;
-    color: $--subnav-title-color;
-    font-weight: normal;
-    line-height: 24px;
-    margin: 0 0 28px;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    cursor: default;
-
-    li {
-      margin-bottom: 8px;
-      padding: 8px 10px;
-      font-size: 0;
-      line-height: 20px;
-      border-radius: 3px;
-      cursor: pointer;
-
-      i,
-      span {
-        display: inline-block;
-        vertical-align: middle;
-        font-size: 14px;
-      }
-
-      &:hover,
-      &.active {
-        background-color: $--subnav-active-background;
-
-        i,
-        span,
-        svg {
-          color: $--subnav-active-text-color;
-        }
-      }
-    }
-  }
-}
-
-.subnav-icon {
-  padding: 2px;
-  height: 16px;
-  margin-right: 12px;
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-}
-
 .content {
   padding: 0;
-}
-
-.panel {
-  background: $--panel-background;
-  .panel-header {
-    position: relative;
-    padding: 44px 0 12px;
-    margin: 0 36px;
-    border-bottom: 2px solid $--panel-border-color;
-    user-select: none;
-    h4 {
-      margin: 0;
-      color: $--panel-title-color;
-      font-size: 16px;
-      font-weight: normal;
-      line-height: 24px;
-    }
-  }
-  .panel-content {
-    position: relative;
-    padding: 16px 36px 64px;
-    height: 100%;
-  }
-}
-
-.form-actions {
-  background: $--form-actions-background;
 }
 
 @media only screen and (max-width:567px) {
