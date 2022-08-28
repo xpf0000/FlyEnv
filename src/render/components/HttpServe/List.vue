@@ -291,8 +291,8 @@
         }
 
         svg {
-          width: 22px;
-          height: 22px;
+          width: 21px;
+          height: 21px;
           cursor: pointer;
 
           &:hover {
