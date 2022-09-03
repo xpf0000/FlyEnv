@@ -2,6 +2,10 @@
   <div class="host-panel main-right-panel">
     <ul class="top-tab">
       <li class="active" @click="drawer = true">添加</li>
+      <li style="width: auto; padding: 0 15px">
+        <span style="margin-right: 10px">hosts: </span>
+        <el-switch v-model="hostsSet.write"></el-switch>
+      </li>
     </ul>
     <mo-host-list></mo-host-list>
     <el-drawer
@@ -33,6 +37,8 @@
   import Edit from './Edit.vue'
   import List from './List.vue'
   import Logs from './Logs.vue'
+  import { mapGetters } from 'vuex'
+  import IPC from '@/util/IPC.js'
   export default {
     name: 'MoHostPanel',
     components: {
@@ -49,8 +55,25 @@
         logshow: false
       }
     },
-    computed: {},
-    watch: {},
+    computed: {
+      ...mapGetters('app', {
+        setup: 'setup'
+      }),
+      hostsSet() {
+        return this.setup.hosts
+      }
+    },
+    watch: {
+      'hostsSet.write': {
+        handler(val) {
+          IPC.send('app-fork:host', 'writeHosts', val).then((key) => {
+            IPC.off(key)
+            this.$message.success('操作成功')
+          })
+          this.$store.dispatch('app/saveConfig').then()
+        }
+      }
+    },
     created: function () {
       this.$baseEventBus.on('Host-Edit-Close', this.HostEditClose)
       this.$baseEventBus.on('Host-Edit-Item', this.HostEditItem)

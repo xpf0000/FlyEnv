@@ -24,7 +24,7 @@
         width="150"
         trigger="click"
       >
-        <ul class="host-list-menu" v-poper-fix>
+        <ul v-poper-fix class="host-list-menu">
           <li @click.stop="action(item, index, 'open')">
             <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
             <span class="ml-15">打开</span>
@@ -85,6 +85,7 @@
   import { mapGetters } from 'vuex'
   import { handleHost } from '@/util/Host.js'
   import ConfigView from './Vhost.vue'
+  import IPC from '@/util/IPC.js'
   const { shell } = require('@electron/remote')
 
   export default {
@@ -102,12 +103,21 @@
     },
     computed: {
       ...mapGetters('app', {
-        hosts: 'hosts'
+        hosts: 'hosts',
+        writeHosts: 'writeHosts'
       })
     },
     watch: {},
     created: function () {
       console.log('this.hosts: ', this.hosts)
+      if (!this.hosts || this.hosts.length === 0) {
+        this.$store.dispatch('app/initHost')
+      }
+    },
+    mounted() {
+      IPC.send('app-fork:host', 'writeHosts', this.writeHosts).then((key) => {
+        IPC.off(key)
+      })
     },
     unmounted() {},
     methods: {

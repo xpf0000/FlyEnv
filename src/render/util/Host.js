@@ -20,6 +20,12 @@ const handleHostEnd = (arr) => {
   const hosts = store.getters['app/hosts']
   hosts.splice(0)
   hosts.push(...arr)
+
+  const writeHosts = store.getters['app/writeHosts']
+  IPC.send('app-fork:host', 'writeHosts', writeHosts).then((key) => {
+    IPC.off(key)
+  })
+
   Base.MessageSuccess('操作成功')
   EventBus.emit('Host-Edit-Close')
 }

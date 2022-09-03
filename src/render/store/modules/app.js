@@ -65,6 +65,9 @@ const state = {
       },
       redis: {
         dirs: []
+      },
+      hosts: {
+        write: true
       }
     }
   },
@@ -77,7 +80,8 @@ const getters = {
   config: (state) => state.config,
   server: (state) => state.config?.server ?? {},
   password: (state) => state.config?.password ?? '',
-  setup: (state) => state.config?.setup ?? {}
+  setup: (state) => state.config?.setup ?? {},
+  writeHosts: (state) => state.config?.setup?.hosts?.write
 }
 
 const mutations = {

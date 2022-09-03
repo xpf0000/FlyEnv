@@ -196,26 +196,9 @@
       }
     },
     computed: {
-      ...mapGetters('task', {
-        taskApache: 'apache',
-        taskNginx: 'nginx'
-      }),
-      apacheTaskRunning() {
-        return this.taskApache.running
-      },
-      nginxTaskRunning() {
-        return this.taskNginx.running
-      },
       ...mapGetters('app', {
-        stat: 'stat',
         hosts: 'hosts'
-      }),
-      apacheRunning() {
-        return this.stat.apache
-      },
-      nginxRunning() {
-        return this.stat.nginx
-      }
+      })
     },
     watch: {
       item: {

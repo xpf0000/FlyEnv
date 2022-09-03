@@ -41,19 +41,15 @@ class HostManager {
     }
     Utils.readFileAsync(hostfile).then((json) => {
       json = JSON.parse(json)
-      this._initHost(json)
-        .then(() => {
-          process.send({
-            command: this.ipcCommand,
-            key: this.ipcCommandKey,
-            info: {
-              code: 0,
-              msg: 'SUCCESS',
-              hosts: json
-            }
-          })
-        })
-        .catch(() => {})
+      process.send({
+        command: this.ipcCommand,
+        key: this.ipcCommandKey,
+        info: {
+          code: 0,
+          msg: 'SUCCESS',
+          hosts: json
+        }
+      })
     })
   }
 
@@ -71,9 +67,6 @@ class HostManager {
     switch (flag) {
       case 'add':
         this._addVhost(host)
-          .then(() => {
-            return this._addHost(host)
-          })
           .then(() => {
             console.log('hostfile: ', hostfile)
             hostList.push(host)
@@ -102,9 +95,6 @@ class HostManager {
         break
       case 'del':
         this._delVhost(host)
-          .then(() => {
-            return this._delHost(host)
-          })
           .then(() => {
             let index = -1
             hostList.some((h, i) => {
@@ -142,13 +132,7 @@ class HostManager {
       case 'edit':
         this._delVhost(old)
           .then(() => {
-            return this._delHost(old)
-          })
-          .then(() => {
             return this._addVhost(host)
-          })
-          .then(() => {
-            return this._addHost(host)
           })
           .then(() => {
             let index = -1
@@ -294,29 +278,6 @@ class HostManager {
     })
   }
 
-  _delHost(item) {
-    return new Promise((resolve, reject) => {
-      let alias = this.#hostAlias(item)
-      Utils.readFileAsync('/private/etc/hosts')
-        .then((content) => {
-          let x = `127.0.0.1     ${alias}\n`
-          content = content.replace(x, '')
-          Utils.writeFileAsync('/private/etc/hosts', content)
-            .then(() => {
-              console.log('host update success !!!!!!')
-              resolve(true)
-            })
-            .catch((err) => {
-              console.log('host update fail: ', err)
-              reject(err)
-            })
-        })
-        .catch((err) => {
-          reject(err)
-        })
-    })
-  }
-
   #hostAlias(item) {
     let alias = item.alias
       ? item.alias.split('\n').filter((n) => {
@@ -337,69 +298,25 @@ class HostManager {
         let alias = this.#hostAlias(item)
         host += `127.0.0.1     ${alias}\n`
       }
-      Utils.readFileAsync('/private/etc/hosts')
-        .then((content) => {
-          let x = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-          if (x && x[0]) {
-            x = x[0]
-            content = content.replace(x, '')
-          }
-          x = `#X-HOSTS-BEGIN#\n${host}#X-HOSTS-END#`
-          content = content.trim()
-          content += `\n${x}`
-          Utils.writeFileAsync('/private/etc/hosts', content)
-            .then(() => {
-              resolve(true)
-            })
-            .catch((err) => {
-              reject(err)
-            })
-        })
-        .catch((err) => {
-          reject(err)
-        })
-    })
-  }
-
-  _addHost(item) {
-    return new Promise((resolve, reject) => {
-      let alias = this.#hostAlias(item)
-      Utils.readFileAsync('/private/etc/hosts')
-        .then((content) => {
-          console.log('content: ', content)
-          let x = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-          console.log('x: ', x)
-          if (!x) {
-            x = `#X-HOSTS-BEGIN#\n127.0.0.1     ${alias}\n#X-HOSTS-END#`
-          } else {
-            x = x[0]
-            content = content.replace(x, '')
-            if (x.indexOf(alias) < 0) {
-              x = x.replace('#X-HOSTS-END#', '')
-              x += `127.0.0.1     ${alias}\n#X-HOSTS-END#`
-            } else {
-              console.log('host has exits !!!!')
-              resolve(true)
-              return
-            }
-          }
-          content = content.trim()
-          content += `\n${x}`
-          console.log('x: ', x)
-          console.log('content: ', content)
-          Utils.writeFileAsync('/private/etc/hosts', content)
-            .then(() => {
-              console.log('host update success !!!!!!')
-              resolve(true)
-            })
-            .catch((err) => {
-              console.log('host update fail: ', err)
-              reject(err)
-            })
-        })
-        .catch((err) => {
-          reject(err)
-        })
+      const filePath = '/private/etc/hosts'
+      if (!existsSync(filePath)) {
+        reject(new Error('hosts文件不存在'))
+        return
+      }
+      console.log('_initHost host: ', host)
+      let content = readFileSync(filePath, 'utf-8')
+      console.log('content 000: ', content)
+      let x = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
+      if (x && x[0]) {
+        x = x[0]
+        content = content.replace(x, '')
+      }
+      x = `#X-HOSTS-BEGIN#\n${host}#X-HOSTS-END#`
+      content = content.trim()
+      content += `\n${x}`
+      console.log('content: ', content)
+      writeFileSync(filePath, content)
+      resolve(true)
     })
   }
 
@@ -468,6 +385,42 @@ class HostManager {
             }
           })
         })
+    })
+  }
+
+  writeHosts(write = true) {
+    if (write) {
+      let hostfile = join(global.Server.BaseDir, 'host.json')
+      if (!existsSync(hostfile)) {
+        process.send({
+          command: this.ipcCommand,
+          key: this.ipcCommandKey,
+          info: {
+            code: 0,
+            msg: 'SUCCESS'
+          }
+        })
+        return
+      }
+      let json = readFileSync(hostfile, 'utf-8')
+      json = JSON.parse(json)
+      console.log('writeHosts json: ', json)
+      this._initHost(json).then()
+    } else {
+      let hosts = readFileSync('/private/etc/hosts', 'utf-8')
+      let x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
+      if (x) {
+        hosts = hosts.replace(x[0], '')
+        writeFileSync('/private/etc/hosts', hosts)
+      }
+    }
+    process.send({
+      command: this.ipcCommand,
+      key: this.ipcCommandKey,
+      info: {
+        code: 0,
+        msg: 'SUCCESS'
+      }
     })
   }
 }

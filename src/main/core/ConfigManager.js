@@ -70,6 +70,9 @@ export default class ConfigManager {
           },
           redis: {
             dirs: []
+          },
+          hosts: {
+            write: true
           }
         },
         httpServe: []
@@ -83,6 +86,11 @@ export default class ConfigManager {
     }
     if (!this.config.has('setup.common.showItem.HttpServe')) {
       this.config.set('setup.common.showItem.HttpServe', true)
+    }
+    if (!this.config.has('setup.hosts')) {
+      this.config.set('setup.hosts', {
+        write: true
+      })
     }
   }
 
