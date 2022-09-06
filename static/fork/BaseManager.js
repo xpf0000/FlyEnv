@@ -3,7 +3,7 @@ const existsSync = require('fs').existsSync
 const readFileSync = require('fs').readFileSync
 const unlinkSync = require('fs').unlinkSync
 const Utils = require('./Utils')
-const { spawn } = require('child_process')
+const { spawn, execSync } = require('child_process')
 const execPromise = require('child-process-promise').exec
 class BaseManager {
   constructor() {
@@ -39,6 +39,19 @@ class BaseManager {
           msg: 'sudo需要电脑密码,请输入<br/>'
         })
       })
+  }
+
+  _fixEnv() {
+    let optdefault = { env: process.env }
+    if (!optdefault.env['PATH']) {
+      optdefault.env['PATH'] =
+        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+    } else {
+      optdefault.env[
+        'PATH'
+      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
+    }
+    return optdefault
   }
 
   _checkBrew() {
@@ -123,10 +136,41 @@ class BaseManager {
 
   _startServer() {}
 
+  _linkVersion(version) {
+    return new Promise((resolve) => {
+      if (version && version?.bin) {
+        try {
+          const v = version.bin
+            .split(global.Server.BrewCellar + '/')
+            .pop()
+            ?.split('/')?.[0]
+          if (v) {
+            const opt = this._fixEnv()
+            const command = `brew unlink ${v} && brew link --overwrite --force ${v}`
+            console.log('_linkVersion command: ', command)
+            execPromise(command, opt)
+              .then((res) => {
+                console.log('_linkVersion res: ', res.stdout)
+              })
+              .catch((err) => {
+                console.log('_linkVersion command err: ', err)
+              })
+          }
+        } catch (e) {
+          console.log('_linkVersion err: ', e)
+        }
+      }
+      resolve(true)
+    })
+  }
+
   switchVersion(version) {
     this._stopServer()
       .then(() => {
         return this._startServer(version)
+      })
+      .then(() => {
+        return this._linkVersion(version)
       })
       .then(() => {
         this._processSend({

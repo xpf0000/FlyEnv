@@ -9,19 +9,6 @@ class BrewManager extends BaseManager {
     super()
   }
 
-  #fixEnv() {
-    let optdefault = { env: process.env }
-    if (!optdefault.env['PATH']) {
-      optdefault.env['PATH'] =
-        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
-    } else {
-      optdefault.env[
-        'PATH'
-      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
-    }
-    return optdefault
-  }
-
   async installBrew() {
     console.log('installBrew !!!!!')
     let brew = await this._checkBrew()
@@ -70,7 +57,7 @@ class BrewManager extends BaseManager {
 
   _doInstallOrUnInstall(rb, action) {
     return new Promise((resolve, reject) => {
-      const opt = this.#fixEnv()
+      const opt = this._fixEnv()
       const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
       const name = rb
       const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
@@ -212,7 +199,7 @@ class BrewManager extends BaseManager {
         break
     }
     console.log('binVersion command: ', command)
-    const opt = this.#fixEnv()
+    const opt = this._fixEnv()
     exec(command, opt).then(handleThen).catch(handleCatch)
   }
 
