@@ -139,6 +139,20 @@ import {join} from "path";import {basename} from "path";
             installed: false,
             status: false,
             soname: 'imagick.so'
+          },
+          {
+            name: 'mongodb',
+            type: 'MongoDB扩展',
+            installed: false,
+            status: false,
+            soname: 'mongodb.so'
+          },
+          {
+            name: 'yaf',
+            type: '高性能PHP框架',
+            installed: false,
+            status: false,
+            soname: 'yaf.so'
           }
         ],
         showTableData: []

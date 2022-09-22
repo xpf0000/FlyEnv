@@ -3,7 +3,7 @@ const existsSync = require('fs').existsSync
 const readFileSync = require('fs').readFileSync
 const unlinkSync = require('fs').unlinkSync
 const Utils = require('./Utils')
-const { spawn, execSync } = require('child_process')
+const { spawn } = require('child_process')
 const execPromise = require('child-process-promise').exec
 class BaseManager {
   constructor() {
@@ -307,6 +307,7 @@ class BaseManager {
   _childHandle(child, resolve, reject) {
     let stdout = ''
     let stderr = ''
+    let exit = false
     child.stdout.on('data', (data) => {
       stdout = this._handleStd(data, stdout)
       console.log('_childHandle stdout: ', stdout)
@@ -315,8 +316,23 @@ class BaseManager {
       stderr = this._handleStd(err, stderr)
       console.log('_childHandle stderr: ', stderr)
     })
+    child.on('error', function (err) {
+      console.log('error: ', err)
+    })
+    child.on('exit', function (code) {
+      console.log('exit: ', code)
+      if (exit) return
+      exit = true
+      if (code === 0) {
+        resolve(code)
+      } else {
+        reject(code)
+      }
+    })
     child.on('close', function (code) {
       console.log('close: ', code)
+      if (exit) return
+      exit = true
       if (code === 0) {
         resolve(code)
       } else {

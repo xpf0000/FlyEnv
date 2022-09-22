@@ -94,7 +94,6 @@ class BrewManager extends BaseManager {
           code: 200,
           info: info
         })
-        console.log('info')
         const reg = new RegExp('(stable )([\\s\\S]*?)( )', 'g')
         let version = ''
         try {

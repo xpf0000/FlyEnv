@@ -60,7 +60,8 @@ class PhpManager extends BaseManager {
       let y = join(global.Server.PhpDir, 'common/conf/php-fpm.conf')
       let c = join(global.Server.PhpDir, 'common/conf/php.ini')
       console.log(`${bin} -p ${p} -y ${y} -c ${c}`)
-      const child = spawn(bin, ['-p', p, '-y', y, '-c', c])
+      let opt = this._fixEnv()
+      const child = spawn(bin, ['-p', p, '-y', y, '-c', c], opt)
       this._childHandle(child, resolve, reject)
     })
   }
@@ -352,6 +353,62 @@ class PhpManager extends BaseManager {
                 [copyfile, global.Server.Cache, version.path, extendv, arch],
                 optdefault
               )
+              this._childHandle(child, resolve, reject)
+            })
+            .catch((err) => {
+              console.log('err: ', err)
+              reject(err)
+            })
+          break
+        case 'mongodb':
+          if (existsSync(join(extendsDir, 'mongodb.so'))) {
+            resolve(true)
+            return
+          }
+          sh = join(global.Server.Static, 'sh/php-mongodb.sh')
+          copyfile = join(global.Server.Cache, 'php-mongodb.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          Utils.readFileAsync(sh)
+            .then((content) => {
+              return Utils.writeFileAsync(copyfile, content)
+            })
+            .then(() => {
+              Utils.chmod(copyfile, '0777')
+              let redisv = versionNumber < 7.2 ? '1.7.5' : '1.14.1'
+              const child = spawn(
+                'bash',
+                [copyfile, global.Server.Cache, version.path, redisv, arch],
+                optdefault
+              )
+              this._childHandle(child, resolve, reject)
+            })
+            .catch((err) => {
+              console.log('err: ', err)
+              reject(err)
+            })
+          break
+        case 'yaf':
+          if (existsSync(join(extendsDir, 'yaf.so'))) {
+            resolve(true)
+            return
+          }
+          sh = join(global.Server.Static, 'sh/php-yaf.sh')
+          copyfile = join(global.Server.Cache, 'php-yaf.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          Utils.readFileAsync(sh)
+            .then((content) => {
+              return Utils.writeFileAsync(copyfile, content)
+            })
+            .then(() => {
+              Utils.chmod(copyfile, '0777')
+              let redisv = versionNumber < 7.0 ? '2.3.5' : '3.3.5'
+              const ars = [copyfile, global.Server.Cache, version.path, redisv, arch]
+              console.log('yaf: ', ars.join(' '))
+              const child = spawn('bash', ars, optdefault)
               this._childHandle(child, resolve, reject)
             })
             .catch((err) => {
