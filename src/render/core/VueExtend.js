@@ -14,7 +14,6 @@ export function VueExtend(App, data = null) {
   app.use(router)
   app.use(PoperFix)
   app.use(SVGIcons, 'ybIcon')
-  Base.init(app)
   app.use(ElementPlus, { size: 'default' })
   app.mixin({
     beforeCreate() {
@@ -41,5 +40,6 @@ export function VueExtend(App, data = null) {
       toRaw
     }
   })
+  Base.init(app)
   return app
 }

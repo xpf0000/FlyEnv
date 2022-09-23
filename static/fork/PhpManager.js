@@ -1,5 +1,5 @@
 const join = require('path').join
-const { existsSync, unlinkSync, writeFileSync, readFileSync } = require('fs')
+const { existsSync, unlinkSync, writeFileSync, readFileSync, copyFileSync } = require('fs')
 const { spawn, execSync } = require('child_process')
 const Utils = require('./Utils')
 const BaseManager = require('./BaseManager')
@@ -21,6 +21,38 @@ class PhpManager extends BaseManager {
       iniContent = iniContent.replace('zend_extension="xdebug.so"\n', '')
       writeFileSync(ini, iniContent)
     }
+  }
+
+  getIniPath(dir) {
+    let ini = execSync(`${dir}/bin/php -i | grep php.ini`).toString().trim()
+    ini = ini.split('=>').pop().trim()
+    if (ini) {
+      if (!existsSync(ini)) {
+        Utils.createFolder(ini)
+        const iniPath = join(global.Server.PhpDir, 'common/conf/php.ini')
+        const iniDefaultPath = join(global.Server.PhpDir, 'common/conf/php.ini.default')
+        if (existsSync(iniPath)) {
+          copyFileSync(iniPath, ini)
+        } else if (existsSync(iniDefaultPath)) {
+          copyFileSync(iniPath, ini)
+        }
+      }
+      if (existsSync(ini)) {
+        const iniDefault = `${ini}.default`
+        if (!existsSync(iniDefault)) {
+          copyFileSync(ini, iniDefault)
+        }
+        this._processSend({
+          code: 0,
+          iniPath: ini
+        })
+        return
+      }
+    }
+    this._processSend({
+      code: 1,
+      msg: 'php.ini文件不存在'
+    })
   }
 
   installExtends(args) {
@@ -58,10 +90,9 @@ class PhpManager extends BaseManager {
       }
       let p = join(global.Server.PhpDir, 'common/var')
       let y = join(global.Server.PhpDir, 'common/conf/php-fpm.conf')
-      let c = join(global.Server.PhpDir, 'common/conf/php.ini')
-      console.log(`${bin} -p ${p} -y ${y} -c ${c}`)
+      console.log(`${bin} -p ${p} -y ${y}`)
       let opt = this._fixEnv()
-      const child = spawn(bin, ['-p', p, '-y', y, '-c', c], opt)
+      const child = spawn(bin, ['-p', p, '-y', y], opt)
       this._childHandle(child, resolve, reject)
     })
   }

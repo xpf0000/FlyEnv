@@ -22,9 +22,10 @@ class MysqlManager extends BaseManager {
         reject(new Error('启动文件不存在,服务启动失败'))
         return
       }
-      let m = join(global.Server.MysqlDir, `my-${version.version}.cnf`)
+      const v = version.version.split('.').slice(0, 2).join('.')
+      let m = join(global.Server.MysqlDir, `my-${v}.cnf`)
       const oldm = join(global.Server.MysqlDir, 'my.cnf')
-      const dataDir = join(global.Server.MysqlDir, `data-${version.version}`)
+      const dataDir = join(global.Server.MysqlDir, `data-${v}`)
       if (!existsSync(m)) {
         let conf = `[mysqld]
 # Only allow connections from localhost

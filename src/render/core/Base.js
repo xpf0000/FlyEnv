@@ -22,6 +22,20 @@ class Base {
     app.config.globalProperties.$baseAlert = this.Alert
     app.config.globalProperties.$baseConfirm = this._Confirm
     app.config.globalProperties.$baseDialog = this.Dialog
+    app.config.globalProperties.$message = {
+      success: (msg) => {
+        return this._Message(msg, 'success')
+      },
+      warning: (msg) => {
+        return this._Message(msg, 'warning')
+      },
+      info: (msg) => {
+        return this._Message(msg, 'info')
+      },
+      error: (msg) => {
+        return this._Message(msg, 'error')
+      }
+    }
   }
 
   LoadingClose() {
