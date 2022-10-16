@@ -19,9 +19,9 @@
         </el-button>
       </div>
     </template>
-    <ul v-if="showInstallLog || showNextBtn" ref="logs" class="logs">
-      <li v-for="(log, index) in log" :key="index" class="mb-5" v-html="log"></li>
-    </ul>
+    <template v-if="showLog">
+      <div ref="logs" class="logs"></div>
+    </template>
     <el-table
       v-else
       empty-text="可用版本获取中..."
@@ -61,6 +61,8 @@
   import { brewInfo, brewCheck } from '@/util/Brew.js'
   import { mapGetters } from 'vuex'
   import IPC from '@/util/IPC.js'
+  import XTerm from '@/util/XTerm.ts'
+
   export default {
     components: {},
     props: {
@@ -128,9 +130,27 @@
       },
       logLength() {
         return this.log.length
+      },
+      showLog() {
+        return this.showInstallLog || this.showNextBtn
       }
     },
     watch: {
+      showLog: {
+        handler(val) {
+          this.$nextTick().then(() => {
+            if (val) {
+              const dom = this.$refs.logs
+              this.xterm = new XTerm()
+              this.xterm.mount(dom)
+            } else {
+              this.xterm && this.xterm.destory()
+              this.xterm = null
+            }
+          })
+        },
+        immediate: true
+      },
       brewRunning(val) {
         if (!val) {
           this.getData()
@@ -157,7 +177,10 @@
         this.$store.commit('brew/SET_CARD_HEAD_TITLE', '当前版本库')
       }
     },
-    unmounted() {},
+    unmounted() {
+      this.xterm && this.xterm.destory()
+      this.xterm = null
+    },
     methods: {
       reGetData() {
         const list = this.currentType.list
@@ -198,20 +221,24 @@
         if (Object.keys(list).length === 0) {
           console.log(global.Server)
           this.currentType.getListing = true
-          brewCheck().then(() => {
-            console.log('getData !!!')
-            if (this.typeFlag === 'php') {
-              IPC.send('app-fork:host', 'githubFix').then((key) => {
-                IPC.off(key)
-                IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key) => {
+          brewCheck()
+            .then(() => {
+              console.log('getData !!!')
+              if (this.typeFlag === 'php') {
+                IPC.send('app-fork:host', 'githubFix').then((key) => {
                   IPC.off(key)
-                  this.fetchData(list)
+                  IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key) => {
+                    IPC.off(key)
+                    this.fetchData(list)
+                  })
                 })
-              })
-            } else {
-              this.fetchData(list)
-            }
-          })
+              } else {
+                this.fetchData(list)
+              }
+            })
+            .catch(() => {
+              this.currentType.getListing = false
+            })
         }
       },
       handleEdit(index, row) {

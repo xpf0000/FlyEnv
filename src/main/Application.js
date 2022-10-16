@@ -17,6 +17,7 @@ const compressing = require('compressing')
 const execPromise = require('child-process-promise').exec
 const ServeHandler = require('serve-handler')
 const Http = require('http')
+const Pty = require('node-pty')
 
 export default class Application extends EventEmitter {
   constructor() {
@@ -35,8 +36,50 @@ export default class Application extends EventEmitter {
     this.initThemeManager()
     this.initUpdaterManager()
     this.initServerDir()
+    this.initNodePty()
     this.handleCommands()
     this.handleIpcMessages()
+  }
+
+  _fixEnv() {
+    const env = process.env
+    if (!env['PATH']) {
+      env['PATH'] =
+        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+    } else {
+      env[
+        'PATH'
+      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/usr/local/bin:${env['PATH']}`
+    }
+    return env
+  }
+
+  initNodePty() {
+    this.pty = Pty.spawn(process.env['SHELL'], [], {
+      name: 'xterm-color',
+      cols: 80,
+      rows: 34,
+      cwd: process.cwd(),
+      env: this._fixEnv(),
+      encoding: 'utf8'
+    })
+    this.pty.onData((data) => {
+      console.log('pty.onData: ', data)
+      this.sendCommandToAll('NodePty:data', 'NodePty:data', data)
+      if (data.includes('\r')) {
+        this.ptyLastData = data
+      } else {
+        this.ptyLastData += data
+      }
+      if (this.ptyLastData.endsWith('% \x1B[K\x1B[?2004h')) {
+        console.log('cammand finished !!!')
+        if (this.ptyLast) {
+          const { command, key } = this.ptyLast
+          this.sendCommandToAll(command, key, true)
+          this.ptyLast = null
+        }
+      }
+    })
   }
 
   initServerDir() {
@@ -73,9 +116,6 @@ export default class Application extends EventEmitter {
     execAsync('which', ['brew'])
       .then((res) => {
         console.log('which brew: ', res)
-        execAsync('brew', ['--config']).then((p) => {
-          console.log('brew --config: ', p)
-        })
         execAsync('brew', ['--repo']).then((p) => {
           console.log('brew --repo: ', p)
           global.Server.BrewHome = p
@@ -527,6 +567,20 @@ export default class Application extends EventEmitter {
         this.sendCommandToAll(command, key, {
           path: path1
         })
+        break
+      case 'NodePty:write':
+        if (args?.[1] !== false && !this.ptyLast) {
+          this.ptyLast = {
+            command,
+            key
+          }
+        }
+        this.pty.write(args[0])
+        break
+      case 'NodePty:resize':
+        const { cols, rows } = args[0]
+        console.log('NodePty:resize: ', cols, rows)
+        this.pty.resize(cols, rows)
         break
     }
   }

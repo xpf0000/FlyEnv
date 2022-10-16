@@ -7,7 +7,7 @@ const dev: BuildOptions = {
   outfile: 'dist/electron/main.js',
   minify: false,
   bundle: true,
-  external: ['electron', 'path', 'fs'],
+  external: ['electron', 'path', 'fs', 'node-pty'],
   plugins: [BuildPlugin()]
 }
 
@@ -17,7 +17,7 @@ const dist: BuildOptions = {
   outfile: 'dist/electron/main.js',
   minify: true,
   bundle: true,
-  external: ['electron', 'path', 'fs'],
+  external: ['electron', 'path', 'fs', 'node-pty'],
   plugins: [BuildPlugin()]
 }
 

@@ -1,5 +1,5 @@
 import type { Configuration } from 'electron-builder'
-import PublishConfig from './publish'
+// import PublishConfig from './publish'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
@@ -56,7 +56,7 @@ const conf: Configuration = {
     gatekeeperAssess: false
   },
   afterSign: 'build/notarize.js',
-  publish: [PublishConfig]
+  // publish: [PublishConfig]
 }
 
 export default conf

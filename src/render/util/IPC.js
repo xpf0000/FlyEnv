@@ -4,7 +4,7 @@ class IPC {
   constructor() {
     this.listens = {}
     ipcRenderer.on('command', (e, command, key, ...args) => {
-      console.log('command: ', command, key, args)
+      console.log('command on: ', command, key, args, this.listens[key])
       if (this.listens[key]) {
         this.listens[key](key, ...args)
       } else if (this.listens[command]) {
@@ -14,6 +14,7 @@ class IPC {
   }
   send(command, ...args) {
     const key = 'IPC-Key-' + uuid()
+    console.log('command send: ', command, key, args)
     ipcRenderer.send('command', command, key, ...args)
     return {
       then: (callback) => {

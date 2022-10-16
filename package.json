@@ -12,7 +12,8 @@
     "web": "yarn run build-dev-runner && cross-env NODE_ENV=development TEST=browser node electron/dev-runner.js",
     "dev": "rm -rf dist/* && yarn run build-dev-runner && cross-env NODE_ENV=development TEST=electron node electron/dev-runner.js",
     "clean": "rm -rf dist/*",
-    "build": "cat scripts/args.esbuild.app-builder | xargs npx esbuild && cross-env NODE_ENV=production node electron/app-builder.js"
+    "build": "cat scripts/args.esbuild.app-builder | xargs npx esbuild && cross-env NODE_ENV=production node electron/app-builder.js",
+    "postinstall": "electron-builder install-app-deps"
   },
   "main": "./dist/electron/main.js",
   "optionalDependencies": {
@@ -21,6 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@electron/remote": "^2.0.5",
+    "ansi-escapes": "^6.0.0",
     "axios": "^0.25.0",
     "child-process-promise": "^2.2.1",
     "compressing": "^1.5.1",
@@ -32,6 +34,7 @@
     "fs-extra": "^10.0.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.3",
+    "node-pty": "^0.10.1",
     "normalize.css": "^8.0.1",
     "path-browserify": "^1.0.1",
     "serve": "^14.0.1",
@@ -39,7 +42,9 @@
     "tiny-emitter": "^2.1.0",
     "vue": "^3.2.25",
     "vue-router": "4",
-    "vuex": "^4.0.2"
+    "vuex": "^4.0.2",
+    "xterm": "^5.0.0",
+    "xterm-addon-fit": "^0.6.0"
   },
   "devDependencies": {
     "@babel/core": "^7.15.0",

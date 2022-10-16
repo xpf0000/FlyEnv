@@ -10,48 +10,61 @@ class BrewManager extends BaseManager {
   }
 
   async installBrew() {
-    console.log('installBrew !!!!!')
-    let brew = await this._checkBrew()
-    if (brew !== 0) {
-      let info = brew ? brew.toString() : '切换失败'
-      this._processSend({
-        code: 1,
-        msg: `${info}<br/>`
-      })
+    if (!global.Server.BrewCellar) {
+      Utils.execAsync('which', ['brew'])
+        .then(() => {
+          Utils.execAsync('brew', ['--repo'])
+            .then((p) => {
+              global.Server.BrewHome = p
+              global.Server.BrewFormula = join(p, 'Library/Taps/homebrew/homebrew-core/Formula')
+              Utils.execAsync('git', [
+                'config',
+                '--global',
+                '--add',
+                'safe.directory',
+                join(p, 'Library/Taps/homebrew/homebrew-core')
+              ]).then()
+              Utils.execAsync('git', [
+                'config',
+                '--global',
+                '--add',
+                'safe.directory',
+                join(p, 'Library/Taps/homebrew/homebrew-cask')
+              ]).then()
+              return Utils.execAsync('brew', ['--cellar'])
+            })
+            .then((c) => {
+              console.log('brew --cellar: ', c)
+              global.Server.BrewCellar = c
+              process.send({
+                command: 'application:global-server-updata',
+                key: 'application:global-server-updata',
+                info: global.Server
+              })
+              this._processSend({
+                code: 0,
+                msg: 'SUCCESS',
+                data: global.Server
+              })
+            })
+        })
+        .catch(() => {
+          this._processSend({
+            code: 1,
+            msg: '未找到brew'
+          })
+        })
     } else {
-      if (!global.Server.BrewCellar) {
-        let repo = await Utils.execAsync('brew', ['--repo'])
-        let cellar = await Utils.execAsync('brew', ['--cellar'])
-        repo = repo.trim()
-        cellar = cellar.trim()
-        global.Server.BrewHome = repo
-        global.Server.BrewFormula = join(repo, 'Library/Taps/homebrew/homebrew-core/Formula')
-        global.Server.BrewCellar = cellar
-        Utils.execAsync('git', [
-          'config',
-          '--global',
-          '--add',
-          'safe.directory',
-          join(repo, 'Library/Taps/homebrew/homebrew-core')
-        ]).then()
-        Utils.execAsync('git', [
-          'config',
-          '--global',
-          '--add',
-          'safe.directory',
-          join(repo, 'Library/Taps/homebrew/homebrew-cask')
-        ]).then()
-        process.send({
-          command: 'application:global-server-updata',
-          key: 'application:global-server-updata',
-          info: global.Server
-        })
-        this._processSend({
-          code: 0,
-          msg: 'SUCCESS',
-          data: global.Server
-        })
-      }
+      process.send({
+        command: 'application:global-server-updata',
+        key: 'application:global-server-updata',
+        info: global.Server
+      })
+      this._processSend({
+        code: 0,
+        msg: 'SUCCESS',
+        data: global.Server
+      })
     }
   }
 

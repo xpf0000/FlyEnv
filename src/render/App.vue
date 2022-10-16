@@ -46,9 +46,7 @@
           .show()
       },
       checkPassword() {
-        passwordCheck().then(() => {
-          brewCheck().then()
-        })
+        passwordCheck().then(() => {})
       }
     }
   }

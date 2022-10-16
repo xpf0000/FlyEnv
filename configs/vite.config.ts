@@ -10,6 +10,7 @@ const sharePath = path.resolve(__dirname, '../src/shared/')
 const config: UserConfig = {
   base: './',
   plugins: [vue(), AssetsPlugin()],
+  assetsInclude: ['**/*.node'],
   root: renderPath,
   resolve: {
     alias: {

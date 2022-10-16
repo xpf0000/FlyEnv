@@ -3,7 +3,11 @@ import IPC from './IPC.js'
 import Base from '@/core/Base.js'
 import store from '@/store/index.js'
 import { ElMessageBox } from 'element-plus'
+import { chmod } from '@shared/file'
+import XTerm from '@/util/XTerm.ts'
 const { getGlobal } = require('@electron/remote')
+const { join } = require('path')
+const { existsSync, unlinkSync, copyFileSync } = require('fs')
 
 /**
  * 电脑密码检测, 很多操作需要电脑密码
@@ -55,37 +59,48 @@ export const passwordCheck = () => {
  * @returns {Promise<unknown>}
  */
 export const brewCheck = () => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     passwordCheck().then(() => {
       if (!global.Server.BrewHome) {
         if (!store.getters['brew/brewRunning']) {
-          Base.ConfirmInfo('检测到您未安装Brew, 是否现在安装?').then(() => {
-            store.commit('brew/SET_BREW_RUNNING', true)
-            const log = store.getters['brew/log']
-            log.splice(0)
-            store.commit('brew/SET_SHOW_INSTALL_LOG', true)
-            IPC.send('app-fork:brew', 'installBrew').then((key, info) => {
-              console.log('key: ', key, 'info: ', info)
-              if (info.code === 0) {
-                IPC.off(key)
-                store.commit('brew/SET_SHOW_INSTALL_LOG', false)
-                store.commit('brew/SET_BREW_RUNNING', false)
-                global.Server = info.data
-                resolve(true)
-              } else if (info.code === 1) {
-                IPC.off(key)
-                store.commit('brew/SET_SHOW_INSTALL_LOG', false)
-                store.commit('brew/SET_BREW_RUNNING', false)
-                Base.MessageError('Brew安装失败, 请尝试自行安装')
-              } else if (info.code === 200) {
-                const msg = info.msg.replace('<br/>', '').trim()
-                if (msg.endsWith('%')) {
-                  log.pop()
-                }
-                log.push(msg)
+          Base.ConfirmInfo('检测到您未安装Brew, 是否现在安装?')
+            .then(() => {
+              store.commit('brew/SET_BREW_RUNNING', true)
+              const log = store.getters['brew/log']
+              log.splice(0)
+              store.commit('brew/SET_SHOW_INSTALL_LOG', true)
+
+              const sh = join(global.Server.Static, 'sh/brew-install.sh')
+              const copyfile = join(global.Server.Cache, 'brew-install.sh')
+              if (existsSync(copyfile)) {
+                unlinkSync(copyfile)
               }
+              copyFileSync(sh, copyfile)
+              chmod(copyfile, '0777')
+
+              XTerm.send(copyfile + ' ' + global.Server.Password).then((key) => {
+                IPC.off(key)
+                IPC.send('app-fork:brew', 'installBrew').then((key, info) => {
+                  console.log('key: ', key, 'info: ', info)
+                  if (info.code === 0) {
+                    IPC.off(key)
+                    store.commit('brew/SET_SHOW_INSTALL_LOG', false)
+                    store.commit('brew/SET_BREW_RUNNING', false)
+                    global.Server = info.data
+                    resolve(true)
+                  } else if (info.code === 1) {
+                    IPC.off(key)
+                    store.commit('brew/SET_SHOW_INSTALL_LOG', false)
+                    store.commit('brew/SET_BREW_RUNNING', false)
+                    Base.MessageError('Brew安装失败')
+                    reject(new Error('Brew安装失败'))
+                  }
+                })
+              })
             })
-          })
+            .catch(() => {
+              reject(new Error('用户未选择安装'))
+            })
         }
       } else {
         resolve(true)
