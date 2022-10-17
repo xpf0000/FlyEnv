@@ -13,13 +13,17 @@ if [ -f "swoole-$extendV.tgz" ]; then
 else
   exit 1
 fi
+export HOMEBREW_NO_AUTO_UPDATE=1
+arch $arch brew install pkg-config autoconf automake libtool
+arch $arch brew install openssl
+arch $arch brew install pcre2
 prefix=$(brew --prefix)
+export CFLAGS=-I$prefix/include
 lib=$prefix/opt/openssl
-if [ ! -d $lib ]; then
-  arch $arch brew install openssl
+if ! [ -f "$phpdir/include/php/ext/pcre/pcre2.h" ]; then
+ln -s $prefix/include/pcre2.h $phpdir/include/php/ext/pcre/pcre2.h
 fi
 cd "swoole-$extendV"
-cellar=$(brew --Cellar)
 $phpdir/bin/phpize
 ./configure --with-php-config=$phpdir/bin/php-config
 make

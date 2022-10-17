@@ -78,7 +78,10 @@ class XTerm implements XTermType {
       allowProposedApi: true,
       cursorWidth: 5,
       cursorStyle: 'bar',
-      logLevel: 'off'
+      logLevel: 'off',
+      theme: {
+        background: '#2a2b2c' //背景色
+      }
     })
     const fitaddon = new FitAddon()
     this.xterm.loadAddon(fitaddon)
@@ -147,7 +150,7 @@ class XTerm implements XTermType {
   }
 
   /**
-   * 光标后腿
+   * 光标后退
    * @param n
    */
   cursorMoveBack(n: number) {
@@ -180,7 +183,10 @@ class XTerm implements XTermType {
 
   initEvent() {
     /**
-     * 处理粘贴操作
+     * 处理组合键操作
+     * 粘贴
+     * ctrl+c 中断
+     * alt + k 清屏
      */
     this.xterm!.attachCustomKeyEventHandler((e) => {
       if (e.key === 'v' && e.metaKey) {

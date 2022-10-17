@@ -13,12 +13,14 @@ if [ -f "memcached-$memcachedv.tgz" ]; then
 else
   exit 1
 fi
+export HOMEBREW_NO_AUTO_UPDATE=1
+arch $arch brew install pkg-config autoconf automake libtool
+arch $arch brew install zlib
+arch $arch brew install libmemcached
 prefix=$(brew --prefix)
+export CFLAGS=-I$prefix/include
 zlib=$prefix/opt/zlib
 lib=$prefix/opt/libmemcached
-if [ ! -d $lib ]; then
-  arch $arch brew install libmemcached
-fi
 cd "memcached-$memcachedv"
 cellar=$(brew --Cellar)
 $phpdir/bin/phpize

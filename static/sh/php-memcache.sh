@@ -2,6 +2,7 @@
 cachedir=$1
 phpdir=$2
 memcachev=$3
+arch=$4
 cd $cachedir
 curl -C - -O -s http://pecl.php.net/get/memcache-$memcachev.tgz
 if [ -d "memcache-$memcachev" ]; then
@@ -12,7 +13,12 @@ if [ -f "memcache-$memcachev.tgz" ]; then
 else
   exit 1
 fi
-zlib=$(brew --prefix)/opt/zlib
+export HOMEBREW_NO_AUTO_UPDATE=1
+arch $arch brew install pkg-config autoconf automake libtool
+arch $arch brew install zlib
+prefix=$(brew --prefix)
+export CFLAGS=-I$prefix/include
+zlib=$prefix/opt/zlib
 cd "memcache-$memcachev"
 $phpdir/bin/phpize
 ./configure --with-php-config=$phpdir/bin/php-config --with-zlib-dir=$zlib

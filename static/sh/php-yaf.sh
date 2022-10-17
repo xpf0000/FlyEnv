@@ -14,6 +14,10 @@ if [ -f "yaf-$yafv.tgz" ]; then
 else
   exit 1
 fi
+export HOMEBREW_NO_AUTO_UPDATE=1
+arch $arch brew install pkg-config autoconf automake libtool
+prefix=$(brew --prefix)
+export CFLAGS=-I$prefix/include
 cd "yaf-$yafv"
 $phpdir/bin/phpize
 ./configure --with-php-config=$phpdir/bin/php-config

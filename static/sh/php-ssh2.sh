@@ -13,11 +13,12 @@ if [ -f "ssh2-$version.tgz" ]; then
 else
   exit 1
 fi
+export HOMEBREW_NO_AUTO_UPDATE=1
+arch $arch brew install pkg-config autoconf automake libtool
+arch $arch brew install libssh2
 prefix=$(brew --prefix)
+export CFLAGS=-I$prefix/include
 lib=$prefix/opt/libssh2
-if [ ! -d $lib ]; then
-  arch $arch brew install libssh2
-fi
 cd "ssh2-$version"
 $phpdir/bin/phpize
 ./configure --with-ssh2=$lib --with-php-config=$phpdir/bin/php-config

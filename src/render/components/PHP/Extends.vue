@@ -41,7 +41,11 @@ import {join} from "path";import {basename} from "path";
           <el-button v-if="scope.row.status" type="text" @click="copyLink(scope.$index, scope.row)"
             >复制链接</el-button
           >
-          <el-button v-else type="text" @click="handleEdit(scope.$index, scope.row)"
+          <el-button
+            v-else
+            :disabled="brewRunning"
+            type="text"
+            @click="handleEdit(scope.$index, scope.row)"
             >安装</el-button
           >
           <el-button
@@ -159,6 +163,9 @@ import {join} from "path";import {basename} from "path";
       }
     },
     computed: {
+      ...mapGetters('brew', {
+        brewRunning: 'brewRunning'
+      }),
       ...mapGetters('task', {
         taskPhp: 'php'
       }),

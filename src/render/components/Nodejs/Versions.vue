@@ -15,10 +15,16 @@
         placeholder="请选择"
         class="ml-30"
       >
-        <el-option v-for="item in task.versions" :key="item" :label="item" :value="item">
-          <span v-if="localVersions.includes(item)" style="float: left" v-text="item"></span>
-          <span v-if="localVersions.includes(item)" style="float: right">已安装</span>
-        </el-option>
+        <template v-for="item in localVersions" :key="item">
+          <el-option :label="item" :value="item">
+            <span style="float: left" v-text="item"></span>
+            <span style="float: right">已安装</span>
+          </el-option>
+        </template>
+        <template v-for="item in task.versions" :key="item">
+          <template v-if="!localVersions.includes(item)"></template>
+          <el-option :label="item" :value="item"></el-option>
+        </template>
       </el-select>
       <el-button
         class="ml-20"

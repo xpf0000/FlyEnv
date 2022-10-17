@@ -12,6 +12,12 @@ if [ -f "pdo_sqlsrv-$extendv.tgz" ]; then
 else
   exit 1
 fi
+export HOMEBREW_NO_AUTO_UPDATE=1
+arch $arch brew install pkg-config autoconf automake libtool
+prefix=$(brew --prefix)
+export CFLAGS=-I$prefix/include
+export CXXFLAGS=-I$prefix/include
+export LDFLAGS=-L$prefix/lib
 cd "pdo_sqlsrv-$extendv"
 $phpdir/bin/phpize
 ./configure --with-php-config=$phpdir/bin/php-config

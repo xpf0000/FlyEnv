@@ -62,6 +62,9 @@
   import { mapGetters } from 'vuex'
   import IPC from '@/util/IPC.js'
   import XTerm from '@/util/XTerm.ts'
+  import { chmod } from '@shared/file'
+  const { join } = require('path')
+  const { existsSync, unlinkSync, copyFileSync } = require('fs')
 
   export default {
     components: {},
@@ -257,26 +260,27 @@
           fn = 'install'
           this.$store.commit('brew/SET_CARD_HEAD_TITLE', `Brew 安装 ${row.name}`)
         }
-        IPC.send('app-fork:brew', fn, row.name).then((key, res) => {
+
+        const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+        const name = row.name
+        const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
+        const copyfile = join(global.Server.Cache, 'brew-cmd.sh')
+        if (existsSync(copyfile)) {
+          unlinkSync(copyfile)
+        }
+        copyFileSync(sh, copyfile)
+        chmod(copyfile, '0777')
+
+        const params = [copyfile, arch, fn, name].join(' ')
+
+        XTerm.send(params).then((key, res) => {
           console.log(res)
-          if (res.code === 0) {
-            IPC.off(key)
-            this.showNextBtn = true
-            this.$store.commit('brew/SET_BREW_RUNNING', false)
-            this.$store.commit('brew/SET_SHOW_INSTALL_LOG', false)
-            this.$store.commit('brew/RESET_BREW_INSTALLED_INITED', this.typeFlag)
-            this.reGetData()
-            this.$message.success('操作成功')
-          } else if (res.code === 1) {
-            IPC.off(key)
-            this.showNextBtn = true
-            this.$store.commit('brew/SET_BREW_RUNNING', false)
-            this.$store.commit('brew/SET_SHOW_INSTALL_LOG', false)
-            this.reGetData()
-            this.$message.error('操作失败')
-          } else if (res.code === 200) {
-            this.log.push(res.msg)
-          }
+          IPC.off(key)
+          this.showNextBtn = true
+          this.$store.commit('brew/SET_BREW_RUNNING', false)
+          this.$store.commit('brew/SET_SHOW_INSTALL_LOG', false)
+          this.$store.commit('brew/RESET_BREW_INSTALLED_INITED', this.typeFlag)
+          this.reGetData()
         })
       },
       toNext() {
