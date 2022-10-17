@@ -18,7 +18,8 @@ const dist: BuildOptions = {
   minify: true,
   bundle: true,
   external: ['electron', 'path', 'fs', 'node-pty'],
-  plugins: [BuildPlugin()]
+  plugins: [BuildPlugin()],
+  drop: ['debugger', 'console']
 }
 
 export default {

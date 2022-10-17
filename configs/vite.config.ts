@@ -66,6 +66,7 @@ const buildConfig: UserConfig = {
         }
       }
     },
+    minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,

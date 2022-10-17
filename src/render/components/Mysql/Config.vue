@@ -38,7 +38,7 @@
     watch: {},
     created: function () {
       console.log('this.server: ', this.server)
-      if (!this.version || !this.version.version) {
+      if (!this.version || !this?.version?.version) {
         this.config = '请先选择版本'
         return
       }

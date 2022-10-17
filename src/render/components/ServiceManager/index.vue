@@ -112,11 +112,11 @@
         return this.stat[this.typeFlag]
       },
       disabled() {
-        return this.isRunning || !this.version?.version
+        return this.isRunning || !this?.version?.version || !this?.version?.path
       },
       versionTxt() {
-        const v = this.version?.version
-        const p = this.version?.path
+        const v = this?.version?.version
+        const p = this?.version?.path
         if (v && p) {
           return `${v} - ${p}`
         }
@@ -137,6 +137,9 @@
     },
     methods: {
       serviceDo(flag) {
+        if (!this?.version?.version || !this?.version?.path) {
+          return
+        }
         this.logs.splice(0)
         this.current_task = flag
         switch (flag) {
