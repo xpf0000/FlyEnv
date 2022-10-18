@@ -42,7 +42,8 @@
         this.config = '请先选择版本'
         return
       }
-      this.configPath = join(global.Server.MysqlDir, `my-${this.version.version}.cnf`)
+      const v = this.version.version.split('.').slice(0, 2).join('.')
+      this.configPath = join(global.Server.MysqlDir, `my-${v}.cnf`)
       this.getConfig()
     },
     methods: {

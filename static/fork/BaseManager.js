@@ -1,9 +1,6 @@
-const join = require('path').join
 const existsSync = require('fs').existsSync
 const readFileSync = require('fs').readFileSync
 const unlinkSync = require('fs').unlinkSync
-const Utils = require('./Utils')
-const { spawn } = require('child_process')
 const execPromise = require('child-process-promise').exec
 class BaseManager {
   constructor() {
@@ -22,7 +19,7 @@ class BaseManager {
 
     let fn = commands[0]
     commands.splice(0, 1)
-    execPromise(`echo '${global.Server.Password}' | sudo -S chmod 777 /private/etc/hosts`)
+    execPromise(`echo '${global.Server.Password}' | sudo -S -k -l`)
       .then(() => {
         if (this[fn]) {
           this[fn](...commands)

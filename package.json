@@ -10,9 +10,9 @@
   "scripts": {
     "build-dev-runner": "cat scripts/args.esbuild.dev-runner | xargs npx esbuild",
     "web": "yarn run build-dev-runner && cross-env NODE_ENV=development TEST=browser node electron/dev-runner.js",
-    "dev": "rm -rf dist/* && yarn run build-dev-runner && cross-env NODE_ENV=development TEST=electron node electron/dev-runner.js",
+    "dev": "yarn run clean && yarn run postinstall && yarn run build-dev-runner && cross-env NODE_ENV=development TEST=electron node electron/dev-runner.js",
     "clean": "rm -rf dist/*;rm -rf node_modules/node-pty/build/*",
-    "build": "cat scripts/args.esbuild.app-builder | xargs npx esbuild && cross-env NODE_ENV=production node electron/app-builder.js",
+    "build": "yarn run clean && cat scripts/args.esbuild.app-builder | xargs npx esbuild && cross-env NODE_ENV=production node electron/app-builder.js",
     "postinstall": "electron-builder install-app-deps"
   },
   "main": "./dist/electron/main.js",

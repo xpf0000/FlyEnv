@@ -27,7 +27,7 @@ class HostManager {
   hostList() {
     let hostfile = join(global.Server.BaseDir, 'host.json')
     if (!existsSync(hostfile)) {
-      Utils.writeFileAsync(hostfile, '[]')
+      Utils.writeFileAsync(hostfile, JSON.stringify([]))
       process.send({
         command: this.ipcCommand,
         key: this.ipcCommandKey,
@@ -40,14 +40,17 @@ class HostManager {
       return
     }
     Utils.readFileAsync(hostfile).then((json) => {
-      json = JSON.parse(json)
+      let host = []
+      try {
+        host = JSON.parse(json)
+      } catch (e) {}
       process.send({
         command: this.ipcCommand,
         key: this.ipcCommandKey,
         info: {
           code: 0,
           msg: 'SUCCESS',
-          hosts: json
+          hosts: host
         }
       })
     })

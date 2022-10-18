@@ -45,7 +45,7 @@ export default class Application extends EventEmitter {
     const env = process.env
     if (!env['PATH']) {
       env['PATH'] =
-        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/usr/local/bin:/bin:/usr/sbin:/sbin'
     } else {
       env[
         'PATH'
@@ -71,7 +71,7 @@ export default class Application extends EventEmitter {
       } else {
         this.ptyLastData += data
       }
-      if (this.ptyLastData.endsWith('% \x1B[K\x1B[?2004h')) {
+      if (this.ptyLastData.endsWith(' \x1B[K\x1B[?2004h')) {
         console.log('cammand finished !!!')
         if (this.ptyLast) {
           const { command, key } = this.ptyLast
@@ -490,7 +490,7 @@ export default class Application extends EventEmitter {
       case 'app:password-check':
         let pass = args[0]
         console.log('pass: ', pass)
-        execPromise(`echo '${pass}' | sudo -S chmod 777 /private/etc/hosts`)
+        execPromise(`echo '${pass}' | sudo -S -k -l`)
           .then((res) => {
             console.log(res)
             this.configManager.setConfig('password', pass)
