@@ -98,7 +98,7 @@ class Utils {
       } else {
         optdefault.env[
           'PATH'
-        ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
+        ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:${optdefault.env['PATH']}`
       }
       let opt = { ...optdefault, ...options }
       if (global.Server.isAppleSilicon) {
