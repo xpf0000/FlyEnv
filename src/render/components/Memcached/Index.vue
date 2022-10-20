@@ -23,6 +23,7 @@
   import Service from '../ServiceManager/index.vue'
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
+  import { mapGetters } from 'vuex'
 
   export default {
     name: 'MoMemcachedPanel',
@@ -39,9 +40,20 @@
         tabs: ['服务', '切换版本', '版本管理', '运行日志']
       }
     },
-    computed: {},
+    computed: {
+      ...mapGetters('app', {
+        server: 'server'
+      }),
+      version() {
+        return this.server?.memcached?.current?.version
+      }
+    },
     watch: {},
-    created: function () {},
+    created: function () {
+      if (!this.version) {
+        this.current_tab = 2
+      }
+    },
     methods: {}
   }
 </script>

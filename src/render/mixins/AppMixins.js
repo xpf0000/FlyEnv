@@ -8,9 +8,9 @@ export const AppMixins = {
     }),
     version() {
       if (!this.typeFlag) {
-        return ''
+        return {}
       }
-      return this.server?.[this.typeFlag]?.current ?? ''
+      return this.server?.[this.typeFlag]?.current ?? {}
     }
   }
 }

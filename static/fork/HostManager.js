@@ -72,7 +72,7 @@ class HostManager {
         this._addVhost(host)
           .then(() => {
             console.log('hostfile: ', hostfile)
-            hostList.push(host)
+            hostList.unshift(host)
             writeFileSync(hostfile, JSON.stringify(hostList))
             process.send({
               command: this.ipcCommand,

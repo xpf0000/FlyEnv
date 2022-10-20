@@ -28,6 +28,7 @@
   import Logs from './Logs.vue'
   import Extends from './Extends.vue'
   import Manager from '../VersionManager/index.vue'
+  import { mapGetters } from 'vuex'
 
   export default {
     name: 'MoPhpPanel',
@@ -46,10 +47,20 @@
         tabs: ['服务', '配置文件', '切换版本', '版本管理', 'FPM日志', '慢日志', '扩展']
       }
     },
-    computed: {},
+    computed: {
+      ...mapGetters('app', {
+        server: 'server'
+      }),
+      version() {
+        return this.server?.php?.current?.version
+      }
+    },
     watch: {},
-    created: function () {},
-    methods: {}
+    created: function () {
+      if (!this.version) {
+        this.current_tab = 3
+      }
+    }
   }
 </script>
 

@@ -25,6 +25,7 @@
   import Config from './Config.vue'
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
+  import { mapGetters } from 'vuex'
 
   export default {
     name: 'MoRedisPanel',
@@ -42,10 +43,20 @@
         tabs: ['服务', '配置修改', '切换版本', '版本管理', '日志']
       }
     },
-    computed: {},
+    computed: {
+      ...mapGetters('app', {
+        server: 'server'
+      }),
+      version() {
+        return this.server?.redis?.current?.version
+      }
+    },
     watch: {},
-    created: function () {},
-    methods: {}
+    created: function () {
+      if (!this.version) {
+        this.current_tab = 3
+      }
+    }
   }
 </script>
 
