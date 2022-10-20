@@ -1,11 +1,11 @@
-version: 1.0.29
+version: 1.0.30
 files:
-  - url: PhpWebStudy-1.0.29-universal-mac.zip
-    sha512: FSKCShrWQlOm1cQsUll0Ck6KeoqkdJTRqCre9/qXGhI3Wznq7Tnt7TF3GNC6tlPc18VLPk1S5QsucA6nTi452w==
-    size: 170212033
-  - url: PhpWebStudy-1.0.29-universal.dmg
-    sha512: 8xnkNReRsZyvz297xMFToQnpgomhwLcb9MK2ecYSEroae4BilOWFCwP+rk3+x8rm46CebUUROf+WjTqpoZS6hQ==
-    size: 176856725
-path: PhpWebStudy-1.0.29-universal-mac.zip
-sha512: FSKCShrWQlOm1cQsUll0Ck6KeoqkdJTRqCre9/qXGhI3Wznq7Tnt7TF3GNC6tlPc18VLPk1S5QsucA6nTi452w==
-releaseDate: '2022-10-18T09:51:09.884Z'
+  - url: PhpWebStudy-1.0.30-universal-mac.zip
+    sha512: WCj6E5c7TSRP2iXTJA2+0Sa0yJZkHDRH0DqdS+6thRWKmqHVq4SIJiryr8P3b8c8kdKLStw9pwChoKrFZMjmtw==
+    size: 170211833
+  - url: PhpWebStudy-1.0.30-universal.dmg
+    sha512: kcBn9PnXOhdR9Xf/kxhOI4ER6wPCFNiOp2cNjHpGA7Ir7bzEhwmc7XGXErlkOshFkTQbUSpxo8ZlvqwEMdySmg==
+    size: 176849988
+path: PhpWebStudy-1.0.30-universal-mac.zip
+sha512: WCj6E5c7TSRP2iXTJA2+0Sa0yJZkHDRH0DqdS+6thRWKmqHVq4SIJiryr8P3b8c8kdKLStw9pwChoKrFZMjmtw==
+releaseDate: '2022-10-20T03:53:29.279Z'
