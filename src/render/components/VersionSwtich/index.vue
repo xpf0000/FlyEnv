@@ -35,6 +35,7 @@
   import IPC from '@/util/IPC.js'
   import { AppMixins } from '@/mixins/AppMixins.js'
 
+  const { getGlobal } = require('@electron/remote')
   const { join } = require('path')
   const { existsSync, realpathSync } = require('fs')
 
@@ -169,6 +170,10 @@
               installed.add(bin)
             }
           })
+
+          if (!global?.Server?.BrewCellar) {
+            global.Server = getGlobal('Server')
+          }
 
           const base = global.Server?.BrewCellar ?? ''
           if (base) {
