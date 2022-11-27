@@ -34,6 +34,7 @@ const state = {
       }
     },
     password: '',
+    showTour: true,
     setup: {
       common: {
         showItem: {
@@ -80,6 +81,7 @@ const getters = {
   config: (state) => state.config,
   server: (state) => state.config?.server ?? {},
   password: (state) => state.config?.password ?? '',
+  showTour: (state) => state.config?.showTour ?? true,
   setup: (state) => state.config?.setup ?? {},
   writeHosts: (state) => state.config?.setup?.hosts?.write
 }
@@ -128,34 +130,41 @@ const actions = {
     commit('UPDATE_HOSTS', hosts)
   },
   initHost({ commit }) {
-    IPC.send('app-fork:host', 'hostList').then((key, res) => {
-      IPC.off(key)
-      if (res?.hosts) {
-        commit('UPDATE_HOSTS', res.hosts)
-      }
+    return new Promise((resolve) => {
+      IPC.send('app-fork:host', 'hostList').then((key, res) => {
+        IPC.off(key)
+        if (res?.hosts) {
+          commit('UPDATE_HOSTS', res.hosts)
+        }
+        resolve(true)
+      })
     })
   },
   initConfig({ commit }) {
-    const config = application.configManager.getConfig()
-    if (!config.password) {
-      config.password = ''
-    }
-    if (!config.server.memcached) {
-      config.server.memcached = {
-        current: {}
+    return new Promise((resolve) => {
+      const config = application.configManager.getConfig()
+      if (!config.password) {
+        config.password = ''
       }
-    }
-    if (!config.server.redis) {
-      config.server.redis = {
-        current: {}
+      if (!config.server.memcached) {
+        config.server.memcached = {
+          current: {}
+        }
       }
-    }
-    commit('INIT_CONFIG', {
-      server: config.server,
-      password: config.password,
-      setup: config.setup
+      if (!config.server.redis) {
+        config.server.redis = {
+          current: {}
+        }
+      }
+      commit('INIT_CONFIG', {
+        server: config.server,
+        password: config.password,
+        setup: config.setup,
+        showTour: config?.showTour ?? true
+      })
+      commit('INIT_HTTP_SERVE', config.httpServe ?? [])
+      resolve(true)
     })
-    commit('INIT_HTTP_SERVE', config.httpServe ?? [])
   },
   saveConfig({ state }) {
     const args = JSON.parse(
@@ -163,7 +172,8 @@ const actions = {
         server: state.config.server,
         password: state.config.password,
         setup: state.config.setup,
-        httpServe: state.httpServe
+        httpServe: state.httpServe,
+        showTour: state.config.showTour
       })
     )
     IPC.send('application:save-preference', args)

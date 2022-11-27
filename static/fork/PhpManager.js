@@ -110,6 +110,29 @@ class PhpManager extends BaseManager {
         ] = `${version.path}bin/:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
       }
       const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+
+      const doRun = (copyfile, extendVersion) => {
+        const params = [
+          copyfile,
+          global.Server.Cache,
+          version.path,
+          extendVersion,
+          arch,
+          global.Server.Password
+        ]
+        process.send({
+          command: this.ipcCommand,
+          key: this.ipcCommandKey,
+          info: {
+            code: 200,
+            msg: `安装扩展执行命令:<br/>${params.join(
+              ' '
+            )}<br/>如安装失败, 可尝试复制命令自行尝试安装<br/>`
+          }
+        })
+        const child = spawn('zsh', params, optdefault)
+        this._childHandle(child, resolve, reject)
+      }
       let sh = ''
       let copyfile = ''
       switch (extend) {
@@ -145,13 +168,8 @@ class PhpManager extends BaseManager {
             })
             .then(() => {
               Utils.chmod(copyfile, '0777')
-              let redisv = versionNumber < 7.0 ? '4.3.0' : '5.3.7'
-              const child = spawn(
-                'bash',
-                [copyfile, global.Server.Cache, version.path, redisv, arch],
-                optdefault
-              )
-              this._childHandle(child, resolve, reject)
+              let extendv = versionNumber < 7.0 ? '4.3.0' : '5.3.7'
+              doRun(copyfile, extendv)
             })
             .catch((err) => {
               console.log('err: ', err)
@@ -174,13 +192,8 @@ class PhpManager extends BaseManager {
             })
             .then(() => {
               Utils.chmod(copyfile, '0777')
-              let redisv = versionNumber < 7.0 ? '3.0.8' : versionNumber >= 8.0 ? '8.0' : '4.0.5.2'
-              const child = spawn(
-                'bash',
-                [copyfile, global.Server.Cache, version.path, redisv, arch],
-                optdefault
-              )
-              this._childHandle(child, resolve, reject)
+              let extendv = versionNumber < 7.0 ? '3.0.8' : versionNumber >= 8.0 ? '8.0' : '4.0.5.2'
+              doRun(copyfile, extendv)
             })
             .catch((err) => {
               console.log('err: ', err)
@@ -203,13 +216,8 @@ class PhpManager extends BaseManager {
             })
             .then(() => {
               Utils.chmod(copyfile, '0777')
-              let redisv = versionNumber < 7.0 ? '2.2.0' : '3.2.0'
-              const child = spawn(
-                'bash',
-                [copyfile, global.Server.Cache, version.path, redisv, arch],
-                optdefault
-              )
-              this._childHandle(child, resolve, reject)
+              let extendv = versionNumber < 7.0 ? '2.2.0' : '3.2.0'
+              doRun(copyfile, extendv)
             })
             .catch((err) => {
               console.log('err: ', err)
@@ -244,12 +252,7 @@ class PhpManager extends BaseManager {
               } else {
                 extendv = '5.0.0'
               }
-              const child = spawn(
-                'bash',
-                [copyfile, global.Server.Cache, version.path, extendv, arch],
-                optdefault
-              )
-              this._childHandle(child, resolve, reject)
+              doRun(copyfile, extendv)
             })
             .catch((err) => {
               console.log('err: ', err)
@@ -279,18 +282,7 @@ class PhpManager extends BaseManager {
               } else {
                 extendv = '3.1.5'
               }
-              const param = [
-                copyfile,
-                global.Server.Password,
-                global.Server.Cache,
-                version.path,
-                extendv,
-                arch
-              ]
-              console.log('param: ', param.join(' '))
-
-              const child = spawn('bash', param, optdefault)
-              this._childHandle(child, resolve, reject)
+              doRun(copyfile, extendv)
             })
             .catch((err) => {
               console.log('err: ', err)
@@ -313,13 +305,8 @@ class PhpManager extends BaseManager {
             })
             .then(() => {
               Utils.chmod(copyfile, '0777')
-              let ev = versionNumber < 7.0 ? '1.1.2' : '1.3.1'
-              const child = spawn(
-                'bash',
-                [copyfile, global.Server.Cache, version.path, ev, arch],
-                optdefault
-              )
-              this._childHandle(child, resolve, reject)
+              let extendv = versionNumber < 7.0 ? '1.1.2' : '1.3.1'
+              doRun(copyfile, extendv)
             })
             .catch((err) => {
               console.log('err: ', err)
@@ -350,12 +337,7 @@ class PhpManager extends BaseManager {
               } else {
                 extendv = '5.10.1'
               }
-              const child = spawn(
-                'bash',
-                [copyfile, global.Server.Cache, version.path, extendv, arch],
-                optdefault
-              )
-              this._childHandle(child, resolve, reject)
+              doRun(copyfile, extendv)
             })
             .catch((err) => {
               console.log('err: ', err)
@@ -379,12 +361,7 @@ class PhpManager extends BaseManager {
             .then(() => {
               Utils.chmod(copyfile, '0777')
               let extendv = '3.7.0'
-              const child = spawn(
-                'bash',
-                [copyfile, global.Server.Cache, version.path, extendv, arch],
-                optdefault
-              )
-              this._childHandle(child, resolve, reject)
+              doRun(copyfile, extendv)
             })
             .catch((err) => {
               console.log('err: ', err)
@@ -407,13 +384,8 @@ class PhpManager extends BaseManager {
             })
             .then(() => {
               Utils.chmod(copyfile, '0777')
-              let redisv = versionNumber < 7.2 ? '1.7.5' : '1.14.1'
-              const child = spawn(
-                'bash',
-                [copyfile, global.Server.Cache, version.path, redisv, arch],
-                optdefault
-              )
-              this._childHandle(child, resolve, reject)
+              let extendv = versionNumber < 7.2 ? '1.7.5' : '1.14.1'
+              doRun(copyfile, extendv)
             })
             .catch((err) => {
               console.log('err: ', err)
@@ -436,11 +408,8 @@ class PhpManager extends BaseManager {
             })
             .then(() => {
               Utils.chmod(copyfile, '0777')
-              let redisv = versionNumber < 7.0 ? '2.3.5' : '3.3.5'
-              const ars = [copyfile, global.Server.Cache, version.path, redisv, arch]
-              console.log('yaf: ', ars.join(' '))
-              const child = spawn('bash', ars, optdefault)
-              this._childHandle(child, resolve, reject)
+              let extendv = versionNumber < 7.0 ? '2.3.5' : '3.3.5'
+              doRun(copyfile, extendv)
             })
             .catch((err) => {
               console.log('err: ', err)

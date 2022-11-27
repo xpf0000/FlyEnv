@@ -1,5 +1,17 @@
 <template>
-  <div class="host-edit">
+  <div
+    v-tour="{
+      position: 'left',
+      group: 'custom',
+      index: 5,
+      count: 7,
+      title: '使用指引',
+      component: Step6,
+      onPre: onStep6Pre,
+      onNext: onStep6Next
+    }"
+    class="host-edit"
+  >
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -51,7 +63,21 @@
         </div>
 
         <div class="port-set mb-20">
-          <div class="port-type"> Apache </div>
+          <div class="port-type">
+            <span>Apache</span>
+            <el-popover placement="top-start" title="注意" :width="300" trigger="hover">
+              <template #reference>
+                <yb-icon
+                  :svg="import('@/svg/question.svg?raw')"
+                  width="12"
+                  height="12"
+                  style="margin-left: 5px"
+                ></yb-icon>
+              </template>
+              <p>Apache各个站点和配置文件中监听的端口全部不能重复, 否则会导致apache无法启动</p>
+              <p>此处设置的端口,会在站点vhost配置文件中添加端口监听,如果重复,请自行手动删除</p>
+            </el-popover>
+          </div>
           <input
             v-model.number="item.port.apache"
             type="number"
@@ -120,7 +146,20 @@
         </div>
       </div>
 
-      <div class="plant-title">Nginx</div>
+      <div class="plant-title">
+        <span>Nginx</span>
+        <el-popover placement="top-start" title="注意" :width="300" trigger="hover">
+          <template #reference>
+            <yb-icon
+              :svg="import('@/svg/question.svg?raw')"
+              width="12"
+              height="12"
+              style="margin-left: 5px"
+            ></yb-icon>
+          </template>
+          <p>此处设置Nginx的Url Rewrite, Apache请在项目文件中自行设置</p>
+        </el-popover>
+      </div>
 
       <div class="main">
         <el-select v-model="rewriteKey" placeholder="当前" @change="rewriteChange">
@@ -144,6 +183,11 @@
   import { AppMixins } from '@/mixins/AppMixins.js'
   import { passwordCheck } from '@/util/Brew.js'
   import { handleHost } from '@/util/Host.js'
+  import Step6 from '@/components/Tour/Step6.vue'
+  import { markRaw, nextTick, toRaw } from 'vue'
+  import { EventBus } from '@/global.js'
+  import { TourCenter } from '@/core/directive/Tour/index.ts'
+
   const { exec } = require('child-process-promise')
   const { dialog } = require('@electron/remote')
   const { accessSync, constants } = require('fs')
@@ -157,6 +201,7 @@
     props: {},
     data() {
       return {
+        Step6: markRaw(toRaw(Step6)),
         running: false,
         item: {
           id: 0,
@@ -225,6 +270,26 @@
     },
     unmounted() {},
     methods: {
+      onStep6Pre() {
+        return new Promise((resolve) => {
+          this.doClose()
+          nextTick().then(() => {
+            resolve(true)
+          })
+        })
+      },
+      onStep6Next() {
+        return new Promise((resolve) => {
+          this.doClose()
+          TourCenter.poper.style.opacity = 0.0
+          nextTick().then(() => {
+            setTimeout(() => {
+              EventBus.emit('TourStep', 6)
+              resolve(true)
+            }, 150)
+          })
+        })
+      },
       rewriteChange(item) {
         if (!rewrites[item]) {
           let file = join(this.rewritePath, `${item}.conf`)
@@ -481,9 +546,11 @@
           display: flex;
           align-items: flex-end;
           .port-type {
-            width: 50px;
+            width: 70px;
             margin-right: 30px;
             flex-shrink: 0;
+            display: flex;
+            align-items: baseline;
           }
           .input {
             flex: 1;

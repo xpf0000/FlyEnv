@@ -17,6 +17,7 @@
       :destroy-on-close="true"
       custom-class="host-edit-drawer"
       :with-header="false"
+      @opened="drawerOpened"
     >
       <mo-host-edit ref="host-edit"></mo-host-edit>
     </el-drawer>
@@ -39,6 +40,8 @@
   import Logs from './Logs.vue'
   import { mapGetters } from 'vuex'
   import IPC from '@/util/IPC.js'
+  import { EventBus } from '@/global.js'
+  import { TourCenter } from '@/core/directive/Tour/index.ts'
   export default {
     name: 'MoHostPanel',
     components: {
@@ -78,13 +81,30 @@
       this.$baseEventBus.on('Host-Edit-Close', this.HostEditClose)
       this.$baseEventBus.on('Host-Edit-Item', this.HostEditItem)
       this.$baseEventBus.on('Host-Logs-Item', this.HostLogsItem)
+      EventBus.on('TourStep', this.onTourStep)
     },
     unmounted() {
       this.$baseEventBus.off('Host-Edit-Close', this.HostEditClose)
       this.$baseEventBus.off('Host-Edit-Item', this.HostEditItem)
       this.$baseEventBus.off('Host-Logs-Item', this.HostLogsItem)
+      EventBus.off('TourStep', this.onTourStep)
     },
     methods: {
+      drawerOpened() {
+        TourCenter?.updateRect()
+        TourCenter.poper.style.opacity = 1.0
+      },
+      onTourStep(step) {
+        console.log('host index onTourStep: ', step)
+        switch (step) {
+          case 5:
+            this.drawer = true
+            break
+          case 8:
+            this.drawer = false
+            break
+        }
+      },
       HostLogsItem(data) {
         this.logshow = true
         this.$nextTick(() => {

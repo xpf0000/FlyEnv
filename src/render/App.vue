@@ -7,9 +7,9 @@
   import TitleBar from './components/Native/TitleBar.vue'
   import { mapGetters } from 'vuex'
   import { EventBus } from './global.js'
-  import { brewCheck, passwordCheck } from '@/util/Brew.js'
+  import { passwordCheck } from '@/util/Brew.js'
   import IPC from '@/util/IPC.js'
-  const { getGlobal } = require('@electron/remote')
+  import { TourCenter } from '@/core/directive/Tour/index.ts'
 
   export default {
     name: 'App',
@@ -19,17 +19,26 @@
     },
     computed: {
       ...mapGetters('app', {
-        password: 'password'
+        password: 'password',
+        showTour: 'showTour',
+        config: 'config'
       })
     },
     watch: {},
     created() {
-      console.log('this.$baseEventBus !!!', this.$baseEventBus)
-      global.Server = getGlobal('Server')
-      console.log('global.Server: ', global.Server)
       EventBus.on('vue:need-password', this.checkPassword)
-      this.checkPassword()
       IPC.on('application:about').then(this.showAbout)
+      if (!this.showTour) {
+        this.checkPassword()
+      } else {
+        TourCenter.groupShow('custom')
+      }
+      TourCenter.onHide(() => {
+        console.log('TourCenter.onHide !!!!')
+        this.config.showTour = false
+        this.$store.dispatch('app/saveConfig').then()
+        EventBus.emit('TourStep', 8)
+      })
     },
     unmounted() {
       EventBus.off('vue:need-password', this.checkPassword)

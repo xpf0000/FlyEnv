@@ -209,6 +209,9 @@ img {
   &.on{
     color: $--switch-power-on;
   }
+  &.disabled {
+    cursor: not-allowed !important;
+  }
 }
 
 .content {

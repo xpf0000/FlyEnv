@@ -7,6 +7,7 @@ import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import SVGIcons from '../components/YbSvgIcon/index.js'
 import PoperFix from './directive/PoperFix/index.ts'
+import Tour from './directive/Tour/index.ts'
 
 export function VueExtend(App, data = null) {
   const app = createApp(App, data)
@@ -15,6 +16,7 @@ export function VueExtend(App, data = null) {
   app.use(PoperFix)
   app.use(SVGIcons, 'ybIcon')
   app.use(ElementPlus, { size: 'default' })
+  app.use(Tour)
   app.mixin({
     beforeCreate() {
       this.$children = new Set()

@@ -100,22 +100,16 @@ class BrewManager extends BaseManager {
 
   brewinfo(name) {
     let Info = ''
-    Utils.execAsync('brew', ['info', name])
+    Utils.execAsync('brew', ['info', name, '--json'])
       .then((info) => {
-        Info = info
-        this._processSend({
-          code: 200,
-          info: info
-        })
-        const reg = new RegExp('(stable )([\\s\\S]*?)( )', 'g')
-        let version = ''
         try {
-          version = reg.exec(info)[2]
-        } catch (e) {}
-        const installed = !info.includes('Not installed')
+          Info = JSON.parse(info)[0]
+        } catch (e) {
+          Info = {}
+        }
         const obj = {
-          version,
-          installed,
+          version: Info?.versions?.stable ?? '',
+          installed: Info?.installed?.length > 0,
           name
         }
         this._processSend({

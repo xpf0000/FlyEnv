@@ -6,13 +6,11 @@ class Manager extends BaseManager {
   }
 
   allVersion(dir) {
+    const env = this._fixEnv()
+    env.env.NVM_DIR = dir
     exec(
       '[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";[ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion";nvm ls-remote',
-      {
-        env: {
-          NVM_DIR: dir
-        }
-      }
+      env
     )
       .then((res) => {
         let str = res.stdout
@@ -34,13 +32,11 @@ class Manager extends BaseManager {
   }
 
   localVersion(dir) {
+    const env = this._fixEnv()
+    env.env.NVM_DIR = dir
     exec(
       '[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";[ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion";nvm ls',
-      {
-        env: {
-          NVM_DIR: dir
-        }
-      }
+      env
     )
       .then((res) => {
         let str = res.stdout
@@ -69,27 +65,27 @@ class Manager extends BaseManager {
   }
 
   versionChange(dir, select) {
+    const env = this._fixEnv()
+    env.env.NVM_DIR = dir
     exec(
       `[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";[ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion";nvm install v${select};nvm alias default ${select}`,
-      {
-        env: {
-          NVM_DIR: dir
-        }
-      }
+      env
     )
       .then(this._thenSuccess)
       .catch(this._catchError)
   }
 
   installNvm() {
-    exec('curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash')
+    exec('curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash')
       .then(this._thenSuccess)
       .catch(this._catchError)
   }
 
   nvmDir() {
+    const env = this._fixEnv()
     exec(
-      '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";echo $NVM_DIR'
+      '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";echo $NVM_DIR',
+      env
     )
       .then((res) => {
         console.log('$NVM_DIR: ', res.stdout.trim())

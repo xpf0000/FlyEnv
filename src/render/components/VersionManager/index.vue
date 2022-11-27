@@ -94,7 +94,8 @@
             'shivammathur/php/php@7.3',
             'shivammathur/php/php@7.4',
             'shivammathur/php/php@8.0',
-            'shivammathur/php/php@8.2'
+            'shivammathur/php/php@8.2',
+            'shivammathur/php/php@8.3'
           ],
           memcached: ['memcached'],
           mysql: ['mysql', 'mysql@5.6', 'mysql@5.7'],
@@ -192,29 +193,28 @@
         }
         this.getData()
       },
-      fetchData(list) {
+      fetchData(list, i = 0) {
         const arr = this.searchKeys[this.typeFlag]
+        if (i === 0) {
+          arr.forEach((name) => {
+            list[name] = {}
+          })
+        }
         const count = arr.length
-        let i = 0
-        arr.forEach((name) => {
-          list[name] = {}
-          brewInfo(name)
-            .then((res) => {
-              list[name] = res
-              i += 1
-              if (i === count) {
-                this.currentType.getListing = false
-                console.log('Brew Info End !!!')
-              }
-            })
-            .catch(() => {
-              i += 1
-              if (i === count) {
-                this.currentType.getListing = false
-                console.log('Brew Info End !!!')
-              }
-            })
-        })
+        if (i >= count) {
+          this.currentType.getListing = false
+          console.log('Brew Info End !!!')
+          return
+        }
+        const name = arr[i]
+        brewInfo(name)
+          .then((res) => {
+            list[name] = res
+            this.fetchData(list, i + 1)
+          })
+          .catch(() => {
+            this.fetchData(list, i + 1)
+          })
       },
       getData() {
         if (this.brewRunning || this.currentType.getListing) {

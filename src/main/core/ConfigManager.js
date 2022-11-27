@@ -38,6 +38,7 @@ export default class ConfigManager {
           }
         },
         password: '',
+        showTour: true,
         setup: {
           common: {
             showItem: {
@@ -91,6 +92,9 @@ export default class ConfigManager {
       this.config.set('setup.hosts', {
         write: true
       })
+    }
+    if (!this.config.has('showTour')) {
+      this.config.set('showTour', true)
     }
   }
 

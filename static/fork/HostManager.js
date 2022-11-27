@@ -269,6 +269,7 @@ class HostManager {
           .replace(/#Server_CertKey#/g, host.ssl.key)
           .replace(/#Port_Apache#/g, host.port.apache)
           .replace(/#Port_Apache_SSL#/g, host.port.apache_ssl)
+
         writeFileSync(avhost, atmpl)
 
         let rewrite = host.nginx.rewrite.trim()

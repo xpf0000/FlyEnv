@@ -3,10 +3,18 @@
     <div class="aside-inner">
       <ul class="top-tool">
         <li
-          :class="
-            'non-draggable swith-power' +
-            (nginxRunning || apacheRunning || mysqlRunning || phpRunning ? ' on' : '')
-          "
+          :class="{
+            'non-draggable': true,
+            'swith-power': true,
+            on:
+              nginxRunning ||
+              apacheRunning ||
+              mysqlRunning ||
+              phpRunning ||
+              redisRunning ||
+              memcachedRunning,
+            disabled: !groupDoEnable
+          }"
           @click="groupDo"
         >
           <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
@@ -16,6 +24,16 @@
       <ul class="menu top-menu">
         <li
           v-if="common.showItem.Hosts"
+          v-tour="{
+            position: 'bottom',
+            group: 'custom',
+            index: 4,
+            count: 7,
+            title: '使用指引',
+            component: Step5,
+            onPre: onStep5Pre,
+            onNext: onStep5Next
+          }"
           :class="'non-draggable' + (currentPage === '/host' ? ' active' : '')"
           @click="nav('/host', $event)"
         >
@@ -90,6 +108,16 @@
 
         <li
           v-if="common.showItem.Php"
+          v-tour="{
+            position: 'right',
+            group: 'custom',
+            index: 0,
+            count: 7,
+            title: '使用指引',
+            component: Step1,
+            onNext: onStep0Next,
+            onShow: onStep0Show
+          }"
           :class="'non-draggable' + (currentPage === '/php' ? ' active' : '')"
           @click="nav('/php', $event)"
         >
@@ -210,15 +238,24 @@
 </template>
 
 <script>
+  import { markRaw, nextTick, toRaw } from 'vue'
   import { mapGetters, mapState } from 'vuex'
   import { startService, stopService } from '@/util/Service.js'
+  import { EventBus } from '@/global.js'
+  import Step1 from '@/components/Tour/Step1.vue'
+  import Step5 from '@/components/Tour/Step5.vue'
+  import { TourCenter } from '@/core/directive/Tour/index.ts'
+  import { passwordCheck } from '@/util/Brew.js'
+
   const is = require('electron-is')
   export default {
     name: 'MoAside',
     components: {},
     data: function () {
       return {
-        currentPage: '/host'
+        currentPage: '/host',
+        Step1: markRaw(toRaw(Step1)),
+        Step5: markRaw(toRaw(Step5))
       }
     },
     computed: {
@@ -253,6 +290,16 @@
       }),
       asideDraggable: function () {
         return is.macOS()
+      },
+      groupDoEnable() {
+        return (
+          this.nginxVersion?.version ||
+          this.phpVersion?.version ||
+          this.mysqlVersion?.version ||
+          this.apacheVersion?.version ||
+          this.memcachedVersion?.version ||
+          this.redisVersion?.version
+        )
       }
     },
     watch: {
@@ -260,9 +307,69 @@
         console.log('currentPage : ', this.currentPage)
       }
     },
+    created() {
+      EventBus.on('TourStep', this.onTourStep)
+    },
     methods: {
+      onTourStep(step) {
+        switch (step) {
+          case 0:
+            this.nav('/php')
+            break
+          case 4:
+            this.nav('/host')
+            break
+          case 6:
+            this.nav('/setup').then(() => {
+              nextTick().then(() => {
+                TourCenter.poper.style.opacity = 1.0
+              })
+            })
+            break
+          case 7:
+            this.nav('/host').then(() => {
+              nextTick().then(() => {
+                EventBus.emit('TourStep', 5)
+              })
+            })
+            break
+          case 8:
+            this.nav('/host').then(() => {
+              nextTick().then(() => {
+                EventBus.emit('vue:need-password')
+              })
+            })
+            break
+        }
+      },
+      onStep0Next() {
+        return new Promise((resolve) => {
+          EventBus.emit('TourStep', 1)
+          resolve(true)
+        })
+      },
+      onStep0Show() {
+        return new Promise((resolve) => {
+          this.onTourStep(0)
+          resolve(true)
+        })
+      },
+      onStep5Pre() {
+        return new Promise((resolve) => {
+          this.onTourStep(0)
+          resolve(true)
+        })
+      },
+      onStep5Next() {
+        return new Promise((resolve) => {
+          EventBus.emit('TourStep', 5)
+          TourCenter.poper.style.opacity = 0.0
+          resolve(true)
+        })
+      },
       groupDo() {
         if (
+          !this.groupDoEnable ||
           this.taskApache.running ||
           this.taskNginx.running ||
           this.taskPhp.running ||
@@ -272,94 +379,113 @@
         ) {
           return
         }
-        let running = false
-        if (this.common.showItem.Nginx && this.nginxRunning) {
-          running = true
-          stopService('nginx', this.nginxVersion)
-        }
-        if (this.common.showItem.Apache && this.apacheRunning) {
-          running = true
-          stopService('apache', this.apacheVersion)
-        }
-        if (this.common.showItem.Php && this.phpRunning) {
-          running = true
-          stopService('php', this.phpVersion)
-        }
-        if (this.common.showItem.Mysql && this.mysqlRunning) {
-          running = true
-          stopService('mysql', this.mysqlVersion)
-        }
-        if (this.common.showItem.Memcached && this.memcachedRunning) {
-          running = true
-          stopService('memcached', this.memcachedVersion)
-        }
-        if (this.common.showItem.Redis && this.redisRunning) {
-          running = true
-          stopService('redis', this.redisVersion)
-        }
-        if (!running) {
-          if (this.common.showItem.Nginx && this.nginxVersion) {
-            startService('nginx', this.nginxVersion)
+        passwordCheck().then(() => {
+          let running = false
+          if (this.common.showItem.Nginx && this.nginxRunning && this.nginxVersion?.version) {
+            running = true
+            stopService('nginx', this.nginxVersion)
           }
-          if (this.common.showItem.Apache && this.apacheVersion) {
-            startService('apache', this.apacheVersion)
+          if (this.common.showItem.Apache && this.apacheRunning && this.apacheVersion?.version) {
+            running = true
+            stopService('apache', this.apacheVersion)
           }
-          if (this.common.showItem.Php && this.phpVersion) {
-            startService('php', this.phpVersion)
+          if (this.common.showItem.Php && this.phpRunning && this.phpVersion?.version) {
+            running = true
+            stopService('php', this.phpVersion)
           }
-          if (this.common.showItem.Mysql && this.mysqlVersion) {
-            startService('mysql', this.mysqlVersion)
+          if (this.common.showItem.Mysql && this.mysqlRunning && this.mysqlVersion?.version) {
+            running = true
+            stopService('mysql', this.mysqlVersion)
           }
-          if (this.common.showItem.Memcached && this.memcachedVersion) {
-            startService('memcached', this.memcachedVersion)
+          if (
+            this.common.showItem.Memcached &&
+            this.memcachedRunning &&
+            this.memcachedVersion?.version
+          ) {
+            running = true
+            stopService('memcached', this.memcachedVersion)
           }
-          if (this.common.showItem.Redis && this.redisVersion) {
-            startService('redis', this.redisVersion)
+          if (this.common.showItem.Redis && this.redisRunning && this.redisVersion?.version) {
+            running = true
+            stopService('redis', this.redisVersion)
           }
-        }
+          if (!running) {
+            if (this.common.showItem.Nginx && this.nginxVersion?.version) {
+              startService('nginx', this.nginxVersion)
+            }
+            if (this.common.showItem.Apache && this.apacheVersion?.version) {
+              startService('apache', this.apacheVersion)
+            }
+            if (this.common.showItem.Php && this.phpVersion?.version) {
+              startService('php', this.phpVersion)
+            }
+            if (this.common.showItem.Mysql && this.mysqlVersion?.version) {
+              startService('mysql', this.mysqlVersion)
+            }
+            if (this.common.showItem.Memcached && this.memcachedVersion?.version) {
+              startService('memcached', this.memcachedVersion)
+            }
+            if (this.common.showItem.Redis && this.redisVersion?.version) {
+              startService('redis', this.redisVersion)
+            }
+          }
+        })
       },
       switchChange(flag) {
-        let fn = null
-        switch (flag) {
-          case 'nginx':
-            fn = this.nginxRunning ? stopService : startService
-            fn('nginx', this.nginxVersion)
-            break
-          case 'php':
-            fn = this.phpRunning ? stopService : startService
-            fn('php', this.phpVersion)
-            break
-          case 'mysql':
-            fn = this.mysqlRunning ? stopService : startService
-            fn('mysql', this.mysqlVersion)
-            break
-          case 'apache':
-            fn = this.apacheRunning ? stopService : startService
-            fn('apache', this.apacheVersion)
-            break
-          case 'memcached':
-            fn = this.memcachedRunning ? stopService : startService
-            fn('memcached', this.memcachedVersion)
-            break
-          case 'redis':
-            fn = this.redisRunning ? stopService : startService
-            fn('redis', this.redisVersion)
-            break
-        }
+        passwordCheck().then(() => {
+          let fn = null
+          switch (flag) {
+            case 'nginx':
+              if (!this.nginxVersion?.version) return
+              fn = this.nginxRunning ? stopService : startService
+              fn('nginx', this.nginxVersion)
+              break
+            case 'php':
+              if (!this.phpVersion?.version) return
+              fn = this.phpRunning ? stopService : startService
+              fn('php', this.phpVersion)
+              break
+            case 'mysql':
+              if (!this.mysqlVersion?.version) return
+              fn = this.mysqlRunning ? stopService : startService
+              fn('mysql', this.mysqlVersion)
+              break
+            case 'apache':
+              if (!this.apacheVersion?.version) return
+              fn = this.apacheRunning ? stopService : startService
+              fn('apache', this.apacheVersion)
+              break
+            case 'memcached':
+              if (!this.memcachedVersion?.version) return
+              fn = this.memcachedRunning ? stopService : startService
+              fn('memcached', this.memcachedVersion)
+              break
+            case 'redis':
+              if (!this.redisVersion?.version) return
+              fn = this.redisRunning ? stopService : startService
+              fn('redis', this.redisVersion)
+              break
+          }
+        })
       },
       nav(page) {
-        if (this.currentPage === page) {
-          return
-        }
-        this.$router
-          .push({
-            path: page
-          })
-          .then(() => {})
-          .catch((err) => {
-            console.log('router err: ', err)
-          })
-        this.currentPage = page
+        return new Promise((resolve) => {
+          if (this.currentPage === page) {
+            resolve(true)
+          }
+          this.$router
+            .push({
+              path: page
+            })
+            .then(() => {
+              resolve(true)
+            })
+            .catch((err) => {
+              console.log('router err: ', err)
+              resolve(true)
+            })
+          this.currentPage = page
+        })
       }
     }
   }

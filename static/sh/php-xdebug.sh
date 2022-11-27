@@ -1,9 +1,11 @@
 #!/bin/bash
-password=$1
-echo "$password" | sudo -S -v
-cachedir=$2
-phpdir=$3
-extendV=$4
+cachedir=$1
+phpdir=$2
+extendV=$3
+arch=$4
+password=$5
+echo "$password" | sudo -S -k -l
+
 cd $cachedir
 curl -C - -O -s https://xdebug.org/files/xdebug-$extendV.tgz
 if [ ! -f "xdebug-$extendV.tgz" ]; then

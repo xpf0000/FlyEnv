@@ -249,6 +249,7 @@ export default class Application extends EventEmitter {
     })
     this.mainWindow = win
     win.once('ready-to-show', () => {
+      console.log('ready-to-show !!!')
       this.isReady = true
       this.emit('ready')
       this.sendCommandToAll('APP-Ready-To-Show', 'APP-Ready-To-Show', true)
