@@ -95,6 +95,8 @@ export default class ConfigManager {
     }
     if (!this.config.has('showTour')) {
       this.config.set('showTour', true)
+      this.config.set('setup.common.showItem.Hosts', true)
+      this.config.set('setup.common.showItem.Php', true)
     }
   }
 
