@@ -273,7 +273,7 @@
 
         const params = [copyfile, arch, fn, name].join(' ')
 
-        XTerm.send(params).then((key, res) => {
+        XTerm.send(`${params};exit 0;`, true).then((key, res) => {
           console.log(res)
           IPC.off(key)
           this.showNextBtn = true

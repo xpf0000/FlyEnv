@@ -2,7 +2,11 @@
   <div class="apache-service">
     <div class="block">
       <span>当前版本:</span>
-      <span class="ml-30" v-text="versionTxt"></span>
+      <span
+        class="ml-30 version-txt"
+        :class="{ disabled: !version?.version }"
+        v-text="versionTxt"
+      ></span>
     </div>
 
     <div class="block mt-20">
@@ -120,7 +124,7 @@
         if (v && p) {
           return `${v} - ${p}`
         }
-        return ''
+        return '请先在版本管理中安装版本, 然后在切换版本中选择使用版本'
       }
     },
     watch: {
@@ -169,6 +173,11 @@
       display: flex;
       align-items: center;
       flex-shrink: 0;
+
+      .version-txt.disabled {
+        color: #f56c6c;
+      }
+
       .status {
         display: flex;
         align-items: center;

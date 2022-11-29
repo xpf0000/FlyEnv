@@ -36,7 +36,6 @@ export default class Application extends EventEmitter {
     this.initThemeManager()
     this.initUpdaterManager()
     this.initServerDir()
-    this.initNodePty()
     this.handleCommands()
     this.handleIpcMessages()
   }
@@ -71,15 +70,26 @@ export default class Application extends EventEmitter {
       } else {
         this.ptyLastData += data
       }
-      if (this.ptyLastData.endsWith(' \x1B[K\x1B[?2004h')) {
-        console.log('cammand finished !!!')
-        if (this.ptyLast) {
-          const { command, key } = this.ptyLast
-          this.sendCommandToAll(command, key, true)
-          this.ptyLast = null
-        }
-      }
     })
+    this.pty.onExit((e) => {
+      console.log('this.pty.onExit !!!!!!', e)
+      this.exitNodePty()
+    })
+  }
+
+  exitNodePty() {
+    try {
+      if (this?.pty?.pid) {
+        process.kill(this.pty.pid)
+      }
+      this?.pty?.kill()
+    } catch (e) {}
+    if (this.ptyLast) {
+      const { command, key } = this.ptyLast
+      this.sendCommandToAll(command, key, true)
+      this.ptyLast = null
+    }
+    this.pty = null
   }
 
   initServerDir() {
@@ -570,7 +580,10 @@ export default class Application extends EventEmitter {
         })
         break
       case 'NodePty:write':
-        if (args?.[1] !== false && !this.ptyLast) {
+        if (!this.pty) {
+          this.initNodePty()
+        }
+        if (!this.ptyLast) {
           this.ptyLast = {
             command,
             key
@@ -578,10 +591,21 @@ export default class Application extends EventEmitter {
         }
         this.pty.write(args[0])
         break
+      case 'NodePty:clear':
+        if (!this.pty) {
+          this.initNodePty()
+        }
+        this.pty.write('clear\r')
+        break
       case 'NodePty:resize':
+        if (!this.pty) {
+          this.initNodePty()
+        }
         const { cols, rows } = args[0]
-        console.log('NodePty:resize: ', cols, rows)
         this.pty.resize(cols, rows)
+        break
+      case 'NodePty:stop':
+        this.exitNodePty()
         break
     }
   }

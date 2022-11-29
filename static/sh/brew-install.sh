@@ -17,6 +17,7 @@ hasBrew=$(which brew)
 if ! [[ "$hasBrew" == "brew not found" ]]; then
     echo -n "${tty_green}
     检测到brew已安装, 安装脚本自动退出${tty_reset}"
+    echo "PhpWebStudy-Brew安装结束"
     exit 0
 fi
 
@@ -49,7 +50,7 @@ case $MY_DOWN_NUM in
   echo "
   brew国内安装脚本
   "
-  MY_DOWN_NUM = "2"
+  MY_DOWN_NUM="2"
 ;;
 esac
 echo -n "${tty_green}
@@ -66,6 +67,7 @@ echo "--> 脚本开始执行"
 *)
 echo "你输入了 $MY_Del_Old ，安装退出, 如果继续运行脚本应该输入Y或者y
 "
+echo "PhpWebStudy-Brew安装结束"
 exit 0
 ;;
 esac
@@ -79,3 +81,4 @@ case $MY_DOWN_NUM in
   /bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
 ;;
 esac
+echo "PhpWebStudy-Brew安装结束"

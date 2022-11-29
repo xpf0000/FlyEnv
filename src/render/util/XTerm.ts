@@ -207,9 +207,9 @@ class XTerm implements XTermType {
           this.storeCurrentCursor()
         })
       } else if (e.key === 'c' && e.ctrlKey) {
-        IPC.send('NodePty:write', '\0o3\r', false)
+        IPC.send('NodePty:stop')
       } else if (e.key === 'k' && e.metaKey) {
-        IPC.send('NodePty:write', 'clear\r', false)
+        IPC.send('NodePty:clear')
       }
       return true
     })
@@ -346,9 +346,9 @@ class XTerm implements XTermType {
     this.historyIndex = 0
   }
 
-  static send(cammand: string) {
+  static send(cammand: string, exit = false) {
     return new Promise((resolve) => {
-      IPC.send('NodePty:write', cammand + '\r').then((key: string) => {
+      IPC.send('NodePty:write', cammand + '\r', exit).then((key: string) => {
         console.log('static cammand finished: ', cammand)
         IPC.off(key)
         logs.splice(0)
