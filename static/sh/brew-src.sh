@@ -17,7 +17,7 @@ echo "
 echo "
     你选择了清华大学国内源
     "
-        USER_HOMEBREW_BOTTLE_DOMAIN=https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/
+       USER_HOMEBREW_BOTTLE_DOMAIN=https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/
        #HomeBrew基础框架
        USER_BREW_GIT=https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git
        #HomeBrew Core
@@ -83,13 +83,17 @@ if [ $srcFlag != "default" ]; then
   echo "export HOMEBREW_BOTTLE_DOMAIN=$USER_HOMEBREW_BOTTLE_DOMAIN" >> ~/.bash_profile
   source ~/.bash_profile
 fi
-cd "$brewHome"
-git remote set-url origin $USER_BREW_GIT
 
-cd "$brewHome/Library/Taps/homebrew/homebrew-core"
-git remote set-url origin $USER_CORE_GIT
+if cd "$brewHome"; then
+ git remote set-url origin $USER_BREW_GIT
+fi
 
-cd "$brewHome/Library/Taps/homebrew/homebrew-cask"
-git remote set-url origin $USER_CASK_GIT
+if cd "$brewHome/Library/Taps/homebrew/homebrew-core"; then
+ git remote set-url origin $USER_CORE_GIT
+fi
+
+if cd "$brewHome/Library/Taps/homebrew/homebrew-cask"; then
+ git remote set-url origin $USER_CASK_GIT
+fi
 
 echo "brew源更新成功"
