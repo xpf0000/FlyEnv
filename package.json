@@ -1,6 +1,6 @@
 {
   "name": "PhpWebStudy",
-  "version": "1.0.31",
+  "version": "1.0.32",
   "description": "PHP and Web develop environment manager for Mac/Mac上的PHP&Web开发环境管理工具",
   "author": {
     "name": "pengfei xu",
@@ -33,6 +33,7 @@
     "fs-extra": "^10.0.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.3",
+    "monaco-editor": "^0.34.1",
     "node-pty": "^0.10.1",
     "normalize.css": "^8.0.1",
     "path-browserify": "^1.0.1",

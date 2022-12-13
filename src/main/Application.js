@@ -336,6 +336,8 @@ export default class Application extends EventEmitter {
   }
 
   stopServer() {
+    this.ptyLast = null
+    this.exitNodePty()
     // 停止nginx服务
     let pidfile = join(global.Server.NginxDir, 'common/logs/nginx.pid')
     this.stopServerByPid(pidfile, 'nginx')
@@ -349,12 +351,14 @@ export default class Application extends EventEmitter {
     this.stopServerByPid(pidfile, 'memcached')
     pidfile = join(global.Server.RedisDir, 'common/run/redis.pid')
     this.stopServerByPid(pidfile, 'redis')
-    let hosts = readFileSync('/private/etc/hosts', 'utf-8')
-    let x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-    if (x) {
-      hosts = hosts.replace(x[0], '')
-      writeFileSync('/private/etc/hosts', hosts)
-    }
+    try {
+      let hosts = readFileSync('/private/etc/hosts', 'utf-8')
+      let x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
+      if (x) {
+        hosts = hosts.replace(x[0], '')
+        writeFileSync('/private/etc/hosts', hosts)
+      }
+    } catch (e) {}
   }
 
   sendCommand(command, ...args) {

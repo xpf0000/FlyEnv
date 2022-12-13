@@ -1,6 +1,6 @@
 <template>
   <div class="redis-config">
-    <el-input v-model="config" class="block" type="textarea"></el-input>
+    <div ref="input" class="block"></div>
     <div class="tool">
       <el-button :disabled="!version" @click="openConfig">打开</el-button>
       <el-button :disabled="!version" @click="saveConfig">保存</el-button>
@@ -12,6 +12,10 @@
 <script>
   import { writeFileAsync, readFileAsync } from '@shared/file.js'
   import { AppMixins } from '@/mixins/AppMixins.js'
+  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
+  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { nextTick } from 'vue'
 
   const { existsSync } = require('fs')
   const { join } = require('path')
@@ -35,12 +39,22 @@
       this.configPath = join(global.Server.RedisDir, 'common/redis.conf')
       this.getConfig()
     },
+    mounted() {
+      nextTick().then(() => {
+        this.initEditor()
+      })
+    },
+    unmounted() {
+      this.monacoInstance && this.monacoInstance.dispose()
+      this.monacoInstance = null
+    },
     methods: {
       openConfig() {
         shell.showItemInFolder(this.configPath)
       },
       saveConfig() {
-        writeFileAsync(this.configPath, this.config).then(() => {
+        const content = this.monacoInstance.getValue()
+        writeFileAsync(this.configPath, content).then(() => {
           this.$message.success('配置文件保存成功!')
         })
       },
@@ -48,6 +62,7 @@
         console.log('this.configPath: ', this.configPath)
         readFileAsync(this.configPath).then((conf) => {
           this.config = conf
+          this.initEditor()
         })
       },
       getDefault() {
@@ -58,7 +73,25 @@
         }
         readFileAsync(configPath).then((conf) => {
           this.config = conf
+          this.initEditor()
         })
+      },
+      initEditor() {
+        if (!this.monacoInstance) {
+          if (!this?.$refs?.input?.style) {
+            return
+          }
+          this.monacoInstance = editor.create(this.$refs.input, {
+            value: this.config,
+            language: 'ini',
+            theme: 'vs-dark',
+            scrollBeyondLastLine: true,
+            overviewRulerBorder: true,
+            automaticLayout: true
+          })
+        } else {
+          this.monacoInstance.setValue(this.config)
+        }
       }
     }
   }
@@ -69,15 +102,12 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    width: 100%;
     padding: 20px 0 0 20px;
     .block {
-      display: flex;
-      align-items: center;
+      width: 100%;
       flex: 1;
-      font-size: 15px;
-      textarea {
-        height: 100%;
-      }
+      overflow: hidden;
     }
     .tool {
       flex-shrink: 0;

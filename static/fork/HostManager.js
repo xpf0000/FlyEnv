@@ -7,6 +7,7 @@ const { execSync } = require('child_process')
 const Utils = require('./Utils')
 const dns = require('dns')
 const util = require('util')
+const { accessSync, constants } = require('fs')
 
 class HostManager {
   constructor() {
@@ -392,7 +393,26 @@ class HostManager {
     })
   }
 
+  _fixHostsRole() {
+    let access = false
+    try {
+      accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
+      access = true
+      console.log('可以读写')
+    } catch (err) {
+      console.error('无权访问')
+    }
+    if (!access) {
+      const password = global.Server.Password
+      try {
+        execSync(`echo '${password}' | sudo -S chmod 777 /private/etc`)
+        execSync(`echo '${password}' | sudo -S chmod 777 /private/etc/hosts`)
+      } catch (e) {}
+    }
+  }
+
   writeHosts(write = true) {
+    this._fixHostsRole()
     if (write) {
       let hostfile = join(global.Server.BaseDir, 'host.json')
       if (!existsSync(hostfile)) {

@@ -3,7 +3,7 @@ import PublishConfig from './publish'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
-  buildVersion: '1.0.31',
+  buildVersion: '1.0.32',
   electronVersion: '16.0.7',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -42,7 +42,7 @@ const conf: Configuration = {
     icon: 'build/Icon.icns',
     target: {
       target: 'default',
-      arch: 'universal'
+      arch: ['x64', 'arm64']
     },
     extendInfo: {
       'Icon file': 'icon.icns'

@@ -8,7 +8,7 @@
     </div>
 
     <div class="main-wapper">
-      <el-input v-model="config" class="block" type="textarea"></el-input>
+      <div ref="input" class="block"></div>
       <div class="tool">
         <el-button @click="openConfig">打开</el-button>
         <el-button @click="saveConfig">保存</el-button>
@@ -19,6 +19,11 @@
 
 <script>
   import { readFileAsync, writeFileAsync } from '@shared/file'
+  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
+  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { nextTick } from 'vue'
+
   const { shell } = require('@electron/remote')
   const { join } = require('path')
 
@@ -46,7 +51,15 @@
       console.log('this.configpath: ', this.configpath)
       this.getConfig()
     },
-    unmounted() {},
+    mounted() {
+      nextTick().then(() => {
+        this.initEditor()
+      })
+    },
+    unmounted() {
+      this.monacoInstance && this.monacoInstance.dispose()
+      this.monacoInstance = null
+    },
     methods: {
       doClose() {
         this.$emit('doClose')
@@ -55,14 +68,33 @@
         shell.showItemInFolder(this.configpath)
       },
       saveConfig() {
-        writeFileAsync(this.configpath, this.config).then(() => {
+        const content = this.monacoInstance.getValue()
+        writeFileAsync(this.configpath, content).then(() => {
           this.$message.success('配置文件保存成功')
         })
       },
       getConfig() {
         readFileAsync(this.configpath).then((conf) => {
           this.config = conf
+          this.initEditor()
         })
+      },
+      initEditor() {
+        if (!this.monacoInstance) {
+          if (!this?.$refs?.input?.style) {
+            return
+          }
+          this.monacoInstance = editor.create(this.$refs.input, {
+            value: this.config,
+            language: 'ini',
+            theme: 'vs-dark',
+            scrollBeyondLastLine: true,
+            overviewRulerBorder: true,
+            automaticLayout: true
+          })
+        } else {
+          this.monacoInstance.setValue(this.config)
+        }
       }
     }
   }
@@ -94,23 +126,16 @@
     .main-wapper {
       flex: 1;
       width: 100%;
-      overflow: auto;
+      overflow: hidden;
       padding: 12px;
       color: rgba(255, 255, 255, 0.7);
       display: flex;
       flex-direction: column;
 
-      &::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-        display: none;
-      }
-      .el-textarea {
+      > .block {
+        width: 100%;
         flex: 1;
-
-        > textarea {
-          height: 100%;
-        }
+        overflow: hidden;
       }
       .tool {
         flex-shrink: 0;
