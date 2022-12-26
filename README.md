@@ -34,7 +34,9 @@ brew install phpwebstudy
 
 2. [GitHub](https://github.com/xpf0000/PhpWebStudy/releases) 提供了已经编译好的稳定版安装包
 
-3. 当然你也可以自己克隆代码编译打包。
+最新版intel和Apple M安装包已经分开了, 带arm64的适用于Apple M, 不带的适用于intel, 注意不要下错了
+
+4. 当然你也可以自己克隆代码编译打包。
 
 ## 🖥 应用界面
 
