@@ -48,6 +48,11 @@ class BaseManager {
         'PATH'
       ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
     }
+    if (global.Server.Proxy) {
+      for (const k in global.Server.Proxy) {
+        optdefault.env[k] = global.Server.Proxy[k]
+      }
+    }
     return optdefault
   }
 

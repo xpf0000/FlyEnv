@@ -16,3 +16,4 @@ configs/publish.ts
 latest-mac.yml
 .idea
 /test.js
+/static/brew

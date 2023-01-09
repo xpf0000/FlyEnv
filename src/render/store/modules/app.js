@@ -69,6 +69,11 @@ const state = {
       },
       hosts: {
         write: true
+      },
+      proxy: {
+        on: false,
+        fastProxy: '',
+        proxy: ''
       }
     }
   },
@@ -83,7 +88,8 @@ const getters = {
   password: (state) => state.config?.password ?? '',
   showTour: (state) => state.config?.showTour ?? true,
   setup: (state) => state.config?.setup ?? {},
-  writeHosts: (state) => state.config?.setup?.hosts?.write
+  writeHosts: (state) => state.config?.setup?.hosts?.write,
+  proxy: (state) => state.config?.setup?.proxy ?? {}
 }
 
 const mutations = {

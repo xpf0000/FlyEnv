@@ -331,7 +331,8 @@ class HostManager {
       'github.global.ssl.fastly.net',
       'assets-cdn.github.com',
       'raw.githubusercontent.com',
-      'macphpstudy.com'
+      'macphpstudy.com',
+      'pkg-containers.githubusercontent.com'
     ]
     dns.setServers(['8.8.8.8', '8.8.4.4', '64.6.64.6', '64.6.65.6', '168.95.192.1', '168.95.1.1'])
     const all = []
@@ -409,6 +410,18 @@ class HostManager {
         execSync(`echo '${password}' | sudo -S chmod 777 /private/etc/hosts`)
       } catch (e) {}
     }
+  }
+
+  doFixHostsRole() {
+    this._fixHostsRole()
+    process.send({
+      command: this.ipcCommand,
+      key: this.ipcCommandKey,
+      info: {
+        code: 0,
+        msg: 'SUCCESS'
+      }
+    })
   }
 
   writeHosts(write = true) {

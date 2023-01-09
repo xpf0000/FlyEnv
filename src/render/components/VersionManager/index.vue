@@ -104,6 +104,9 @@
       }
     },
     computed: {
+      ...mapGetters('app', {
+        proxy: 'proxy'
+      }),
       ...mapGetters('brew', {
         cardHeadTitle: 'cardHeadTitle',
         brewRunning: 'brewRunning',
@@ -116,6 +119,12 @@
         showInstallLog: 'showInstallLog',
         log: 'log'
       }),
+      proxyStr() {
+        if (!this?.proxy?.on) {
+          return undefined
+        }
+        return this.proxy.proxy
+      },
       currentType() {
         return this[this.typeFlag]
       },
@@ -271,8 +280,10 @@
         copyFileSync(sh, copyfile)
         chmod(copyfile, '0777')
 
-        const params = [copyfile, arch, fn, name].join(' ')
-
+        let params = [copyfile, arch, fn, name].join(' ')
+        if (this.proxyStr) {
+          params = `${this.proxyStr};${params}`
+        }
         XTerm.send(`${params};exit 0;`, true).then((key, res) => {
           console.log(res)
           IPC.off(key)

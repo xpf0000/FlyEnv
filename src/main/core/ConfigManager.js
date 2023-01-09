@@ -74,6 +74,11 @@ export default class ConfigManager {
           },
           hosts: {
             write: true
+          },
+          proxy: {
+            on: false,
+            fastProxy: '',
+            proxy: ''
           }
         },
         httpServe: []
@@ -91,6 +96,13 @@ export default class ConfigManager {
     if (!this.config.has('setup.hosts')) {
       this.config.set('setup.hosts', {
         write: true
+      })
+    }
+    if (!this.config.has('setup.proxy')) {
+      this.config.set('setup.proxy', {
+        on: false,
+        fastProxy: '',
+        proxy: ''
       })
     }
     if (!this.config.has('showTour')) {

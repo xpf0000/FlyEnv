@@ -84,8 +84,17 @@ export const brewCheck = () => {
                 }
                 copyFileSync(sh, copyfile)
                 chmod(copyfile, '0777')
+                let params = copyfile + ' ' + global.Server.Password + ';exit 0;'
 
-                XTerm.send(copyfile + ' ' + global.Server.Password + ';exit 0;').then((key) => {
+                const proxy = store.getters['app/proxy']
+                if (proxy?.on) {
+                  const proxyStr = proxy?.proxy
+                  if (proxyStr) {
+                    params = `${proxyStr};${params}`
+                  }
+                }
+
+                XTerm.send(params).then((key) => {
                   IPC.off(key)
                   IPC.send('app-fork:brew', 'installBrew').then((key, info) => {
                     console.log('key: ', key, 'info: ', info)

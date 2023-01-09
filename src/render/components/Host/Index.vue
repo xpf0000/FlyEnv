@@ -6,6 +6,9 @@
         <span style="margin-right: 10px">hosts: </span>
         <el-switch v-model="hostsSet.write"></el-switch>
       </li>
+      <li class="no-hover" style="width: auto; padding: 0 15px">
+        <el-button @click="openHosts">打开hosts</el-button>
+      </li>
     </ul>
     <mo-host-list></mo-host-list>
     <el-drawer
@@ -128,6 +131,11 @@
       HostEditClose() {
         console.log('HostEditClose !!!!!!')
         this.drawer = false
+      },
+      openHosts() {
+        import('./Hosts.vue').then((res) => {
+          res.default.show().then()
+        })
       }
     }
   }
@@ -171,6 +179,9 @@
         }
         &.active {
           background: #3e4257;
+        }
+        &.no-hover:hover {
+          background: transparent;
         }
       }
     }

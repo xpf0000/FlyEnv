@@ -96,6 +96,7 @@ export default class Application extends EventEmitter {
     console.log('userData: ', app.getPath('userData'))
     let runpath = app.getPath('userData').replace('Application Support/', '')
     global.Server = {}
+    this.setProxy()
     global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
     createFolder(global.Server.BaseDir)
@@ -469,6 +470,21 @@ export default class Application extends EventEmitter {
     })
   }
 
+  setProxy() {
+    const proxy = this.configManager.getConfig('setup.proxy')
+    if (proxy.on) {
+      const proxyDict = {}
+      proxy.proxy
+        .split(' ')
+        .filter((s) => s.indexOf('=') > 0)
+        .forEach((s) => {
+          const dict = s.split('=')
+          proxyDict[dict[0]] = dict[1]
+        })
+      global.Server.Proxy = proxyDict
+    }
+  }
+
   handleCommand(command, key, ...args) {
     console.log('handleIpcMessages: ', command, key, ...args)
     this.emit(command, ...args)
@@ -485,6 +501,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:host':
         let forkFile = command.replace('app-fork:', '')
         let child = fork(join(__static, `fork/${forkFile}.js`))
+        this.setProxy()
         child.send({ Server: global.Server })
         child.send([command, key, ...args])
         child.on('message', ({ command, key, info }) => {

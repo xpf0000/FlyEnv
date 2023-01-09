@@ -101,6 +101,11 @@ class Utils {
         ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:${optdefault.env['PATH']}`
       }
       let opt = { ...optdefault, ...options }
+      if (global.Server.Proxy) {
+        for (const k in global.Server.Proxy) {
+          opt.env[k] = global.Server.Proxy[k]
+        }
+      }
       if (global.Server.isAppleSilicon) {
         arg.unshift('-arm64', command)
         command = 'arch'

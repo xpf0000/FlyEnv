@@ -109,6 +109,11 @@ class PhpManager extends BaseManager {
           'PATH'
         ] = `${version.path}bin/:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
       }
+      if (global.Server.Proxy) {
+        for (const k in global.Server.Proxy) {
+          optdefault.env[k] = global.Server.Proxy[k]
+        }
+      }
       const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
 
       const doRun = (copyfile, extendVersion) => {

@@ -87,6 +87,10 @@
     <div class="main brew-src">
       <GitHubFix></GitHubFix>
     </div>
+    <div class="plant-title">代理设置</div>
+    <div class="main proxy-set">
+      <ProxySet></ProxySet>
+    </div>
     <div class="plant-title">重设电脑密码</div>
     <div class="main reset-pass">
       <RestPassword></RestPassword>
@@ -103,9 +107,10 @@
   import { markRaw, nextTick, toRaw } from 'vue'
   import { TourCenter } from '@/core/directive/Tour/index.ts'
   import Step7 from '@/components/Tour/Step7.vue'
+  import ProxySet from './ProxySet/index.vue'
 
   export default {
-    components: { BrewSrc, GitHubFix, RestPassword },
+    components: { BrewSrc, GitHubFix, RestPassword, ProxySet },
     props: {},
     data() {
       return {
@@ -179,6 +184,24 @@
 
       > .el-select {
         margin-right: 20px;
+      }
+    }
+
+    .main.proxy-set {
+      padding-bottom: 30px;
+
+      .el-form-item__content {
+        width: 100%;
+      }
+
+      .el-form-item--default {
+        justify-content: flex-start;
+        margin-top: 20px !important;
+        margin-bottom: 0 !important;
+
+        &:first-of-type {
+          margin-top: 0 !important;
+        }
       }
     }
 
