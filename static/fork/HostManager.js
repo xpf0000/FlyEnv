@@ -203,12 +203,6 @@ class HostManager {
     if (!dir || dir === '/') {
       return
     }
-    const arr = dir.split('/').filter((d) => {
-      return d.trim().length > 0
-    })
-    if (arr.length <= 2) {
-      return
-    }
     try {
       if (existsSync(dir)) {
         if (depth === 0) {

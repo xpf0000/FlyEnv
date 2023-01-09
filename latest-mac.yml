@@ -1,17 +1,17 @@
-version: 1.0.32
+version: 1.0.33
 files:
-  - url: PhpWebStudy-1.0.32-mac.zip
-    sha512: to1gnnmOoK9JfJt1C8viURtmVhXBQ954dxqHa6UQi8Hyd8SN7rTZqJACJkEKJCjOR4uSVsLW+qi5AO4J4uFvow==
-    size: 111446793
-  - url: PhpWebStudy-1.0.32-arm64-mac.zip
-    sha512: qp0b0Xqv0hnrgrFpiadkYcp8NftwG6zLybqiE4cYsabLbSg7QeaEhcz+7Xs7s0ut0aXKczPLMWbPPHvvKFW7DA==
-    size: 113728025
-  - url: PhpWebStudy-1.0.32.dmg
-    sha512: TGMcjg+9RXdErAhYsfj7WaII0jJ5H8RMfMd50CbDUMFMaBVXbCy90PjDBva4pyvlJm4qR0uax96NcPZqS/v4YA==
-    size: 116390544
-  - url: PhpWebStudy-1.0.32-arm64.dmg
-    sha512: eKOSv+qtFj9ppPgt+6HufqNJ5schJJNEu0hlrTakxiewmGEendh+Tl5RdEZ6YSRbsjHARwGI18/uzTxwOW+utg==
-    size: 118945965
-path: PhpWebStudy-1.0.32-mac.zip
-sha512: to1gnnmOoK9JfJt1C8viURtmVhXBQ954dxqHa6UQi8Hyd8SN7rTZqJACJkEKJCjOR4uSVsLW+qi5AO4J4uFvow==
-releaseDate: '2022-12-13T10:12:06.353Z'
+  - url: PhpWebStudy-1.0.33-mac.zip
+    sha512: a4zSo8dhGIlk9C1tfLBNEcOebkVMrEkEQB/V4Ij5kuoom4JLpsJY0W/lf+VUyBrGL9juAnqwO5gEWU+5LtyqaQ==
+    size: 111463298
+  - url: PhpWebStudy-1.0.33-arm64-mac.zip
+    sha512: XTISp3QoSgC+Fui9Btbgz14SQRzqKL+xMYWcte4PBQj7ApyZIqkS1SqDy0HqWX3DLliarQ0PerR6euCtuz10AA==
+    size: 113743733
+  - url: PhpWebStudy-1.0.33.dmg
+    sha512: iMOpzcwo0yhsFLp6oBOlhoAQvFJK/l5ioLkbZ8Dbil2siKBBBYb/Sp0ppj457VtH9ndpajv6BtdLPd+Ub5pqEw==
+    size: 116381121
+  - url: PhpWebStudy-1.0.33-arm64.dmg
+    sha512: ukwHdd/joyVF4kHtPPd9TzTBDsKGOfXYP293OBQA5QzcqYqBbow1dlGjO6/e8ZL/J5SJDwmwFVZq2XiaK0F71A==
+    size: 118997830
+path: PhpWebStudy-1.0.33-mac.zip
+sha512: a4zSo8dhGIlk9C1tfLBNEcOebkVMrEkEQB/V4Ij5kuoom4JLpsJY0W/lf+VUyBrGL9juAnqwO5gEWU+5LtyqaQ==
+releaseDate: '2023-01-09T07:31:01.312Z'

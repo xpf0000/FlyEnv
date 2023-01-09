@@ -321,7 +321,7 @@
         this.$baseEventBus.emit('Host-Edit-Close')
       },
       chooseRoot(flag, choosefile = false) {
-        let opt = ['openDirectory', 'createDirectory']
+        let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
         if (choosefile) {
           opt.push('openFile')
         }
