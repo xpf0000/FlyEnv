@@ -50,6 +50,22 @@
         </div>
       </div>
 
+      <div class="plant-title">PHP版本</div>
+      <div class="main">
+        <div class="port-set">
+          <el-select
+            v-model="item.phpVersion"
+            :class="{ error: errs?.phpVersion }"
+            class="w-p100"
+            placeholder="请选择PHP版本"
+          >
+            <template v-for="(v, i) in phpVersions" :key="i">
+              <el-option :value="v.num" :label="v.version"></el-option>
+            </template>
+          </el-select>
+        </div>
+      </div>
+
       <div class="plant-title">Port</div>
       <div class="main">
         <div class="port-set mb-20">
@@ -243,7 +259,13 @@
     computed: {
       ...mapGetters('app', {
         hosts: 'hosts'
-      })
+      }),
+      ...mapGetters('brew', {
+        php: 'php'
+      }),
+      phpVersions() {
+        return this.php?.installed ?? []
+      }
     },
     watch: {
       item: {
@@ -353,6 +375,10 @@
         }
         if (!Number.isInteger(this.item.port.apache)) {
           this.errs['port_apache'] = true
+        }
+
+        if (!this.item.phpVersion) {
+          this.errs['phpVersion'] = true
         }
 
         if (this.item.useSSL) {
@@ -513,6 +539,13 @@
         &.nginx-rewrite {
           height: 140px;
           margin-top: 20px;
+        }
+      }
+      .el-select {
+        &.error {
+          .el-input__wrapper {
+            box-shadow: 0 0 0 1px #cc5441 inset;
+          }
         }
       }
       .main {

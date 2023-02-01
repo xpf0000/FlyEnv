@@ -9,7 +9,7 @@ import TouchBarManager from './ui/TouchBarManager'
 import ThemeManager from './ui/ThemeManager'
 import UpdateManager from './core/UpdateManager'
 import { join } from 'path'
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
+import { copyFile, copyFileSync, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { fork, execSync } from 'child_process'
 const { createFolder, chmod, readFileAsync, writeFileAsync } = require('../shared/file.js')
 const { execAsync, isAppleSilicon } = require('../shared/utils.js')
@@ -183,13 +183,16 @@ export default class Application extends EventEmitter {
         })
         .catch()
     }
-    let phpconf = join(global.Server.PhpDir, 'common/conf/php.ini')
-    if (!existsSync(phpconf)) {
-      compressing.zip
-        .uncompress(join(__static, 'zip/php-common.zip'), global.Server.PhpDir)
-        .then(() => {})
-        .catch(() => {})
+    let enablePhpConf = join(global.Server.NginxDir, 'common/conf/enable-php-80.conf')
+    if (!existsSync(enablePhpConf)) {
+      const arrs = [56, 70, 71, 72, 73, 74, 80, 81, 82]
+      arrs.forEach((v) => {
+        const tmplConf = join(__static, `tmpl/enable-php-${v}.conf`)
+        enablePhpConf = join(global.Server.NginxDir, `common/conf/enable-php-${v}.conf`)
+        copyFile(tmplConf, enablePhpConf)
+      })
     }
+
     let redisconf = join(global.Server.RedisDir, 'common/redis.conf')
     const handleRedisConf = () => {
       const dbDir = join(global.Server.RedisDir, 'common/db')
@@ -296,7 +299,7 @@ export default class Application extends EventEmitter {
   }
 
   stopServerByPid(pidfile, type) {
-    if (!existsSync(pidfile)) {
+    if (!existsSync(pidfile) && type !== 'php') {
       return
     }
     const dis = {

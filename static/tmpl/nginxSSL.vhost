@@ -14,7 +14,7 @@ server
     ssl_session_cache shared:SSL:10m;
     ssl_session_timeout 10m;
 
-    #PHP-INFO-START  PHP引用配置，可以注释或修改
+    #PHP-INFO-START
     include enable-php.conf;
     #PHP-INFO-END
 

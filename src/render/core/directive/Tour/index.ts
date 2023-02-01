@@ -136,7 +136,6 @@ interface Props {
 }
 
 const addOrUpdate = (el: HTMLElement, value: Props) => {
-  console.log('addOrUpdate: ', el, value)
   const groupName = value.group
   if (!TourCenter.group?.[groupName]) {
     TourCenter.group[groupName] = reactive(new TourGroupClass())

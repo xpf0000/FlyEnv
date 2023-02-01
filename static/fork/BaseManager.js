@@ -111,8 +111,8 @@ class BaseManager {
       })
   }
 
-  stopService() {
-    this._stopServer().then(this._thenSuccess).catch(this._catchError)
+  stopService(version) {
+    this._stopServer(version).then(this._thenSuccess).catch(this._catchError)
   }
 
   reloadService() {
@@ -120,7 +120,7 @@ class BaseManager {
   }
 
   startService(version) {
-    this._stopServer()
+    this._stopServer(version)
       .then(() => {
         return this._startServer(version)
       })
@@ -128,8 +128,8 @@ class BaseManager {
       .catch(this._catchError)
   }
 
-  _stopServer() {
-    return new Promise((resolve, reject) => {
+  _stopServer(version) {
+    return new Promise((resolve) => {
       try {
         if (existsSync(this.pidPath)) {
           unlinkSync(this.pidPath)
@@ -159,7 +159,13 @@ class BaseManager {
             ) {
               continue
             }
-            arr.push(p.split(' ')[0])
+            if (this.type === 'php' && version?.path) {
+              if (p.includes(version.path)) {
+                arr.push(p.split(' ')[0])
+              }
+            } else {
+              arr.push(p.split(' ')[0])
+            }
           }
           console.log('pids 0: ', arr)
           if (arr.length === 0) {
@@ -176,9 +182,10 @@ class BaseManager {
             resolve(0)
           }, 1000)
         })
-        .catch((err) => {
-          console.log('_stopServer err: ', err.stderr)
-          reject(err)
+        .catch(() => {
+          setTimeout(() => {
+            resolve(0)
+          }, 1000)
         })
     })
   }

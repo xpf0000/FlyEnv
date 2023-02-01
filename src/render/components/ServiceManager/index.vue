@@ -4,7 +4,7 @@
       <span>当前版本:</span>
       <span
         class="ml-30 version-txt"
-        :class="{ disabled: !version?.version }"
+        :class="{ disabled: !currentVersion?.version }"
         v-text="versionTxt"
       ></span>
     </div>
@@ -84,6 +84,14 @@
       showReloadBtn() {
         return this.typeFlag !== 'memcached'
       },
+      ...mapGetters('brew', {
+        php: 'php',
+        nginx: 'nginx',
+        apache: 'apache',
+        memcached: 'memcached',
+        mysql: 'mysql',
+        redis: 'redis'
+      }),
       ...mapGetters('task', {
         taskApache: 'apache',
         taskNginx: 'nginx',
@@ -92,6 +100,11 @@
         taskMysql: 'mysql',
         taskRedis: 'redis'
       }),
+      currentVersion() {
+        return this?.[this.typeFlag]?.installed?.find(
+          (i) => i.path === this?.version?.path && i.version === this?.version?.version
+        )
+      },
       currentTask() {
         const dict = {
           apache: this.taskApache,
@@ -104,23 +117,20 @@
         return dict[this.typeFlag]
       },
       isRunning() {
-        return this.currentTask.running
+        return this?.currentVersion?.running
       },
       logs() {
         return this.currentTask.log
       },
-      ...mapGetters('app', {
-        stat: 'stat'
-      }),
       serverRunning() {
-        return this.stat[this.typeFlag]
+        return this?.currentVersion?.run
       },
       disabled() {
-        return this.isRunning || !this?.version?.version || !this?.version?.path
+        return this.isRunning || !this?.currentVersion?.version || !this?.currentVersion?.path
       },
       versionTxt() {
-        const v = this?.version?.version
-        const p = this?.version?.path
+        const v = this?.currentVersion?.version
+        const p = this?.currentVersion?.path
         if (v && p) {
           return `${v} - ${p}`
         }
@@ -141,21 +151,21 @@
     },
     methods: {
       serviceDo(flag) {
-        if (!this?.version?.version || !this?.version?.path) {
+        if (!this?.currentVersion?.version || !this?.currentVersion?.path) {
           return
         }
         this.logs.splice(0)
         this.current_task = flag
         switch (flag) {
           case 'stop':
-            stopService(this.typeFlag, this.version)
+            stopService(this.typeFlag, this.currentVersion)
             break
           case 'start':
           case 'restart':
-            startService(this.typeFlag, this.version)
+            startService(this.typeFlag, this.currentVersion)
             break
           case 'reload':
-            reloadService(this.typeFlag, this.version)
+            reloadService(this.typeFlag, this.currentVersion)
             break
         }
       }

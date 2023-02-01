@@ -1,79 +1,120 @@
-import {join} from "path";import {basename} from "path";
 <template>
-  <el-card class="version-manager">
-    <template #header>
-      <div class="card-header">
-        <span> {{ headerTitle }} </span>
-        <el-button v-if="showNextBtn" type="primary" @click="toNext">确定</el-button>
-        <el-button
-          v-else
-          class="button"
-          :disabled="extendRefreshing || extendRunning"
-          type="text"
-          @click="getTableData"
-        >
-          <yb-icon
-            :svg="import('@/svg/icon_refresh.svg?raw')"
-            class="refresh-icon"
-            :class="{ 'fa-spin': extendRefreshing || extendRunning }"
-          ></yb-icon>
-        </el-button>
+  <el-drawer
+    v-model="show"
+    size="80%"
+    :destroy-on-close="true"
+    :with-header="false"
+    :close-on-click-modal="false"
+    @closed="onDrawerClosed"
+  >
+    <div class="host-vhost">
+      <div class="nav">
+        <div class="left" @click="close">
+          <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
+          <span class="ml-15">PHP扩展</span>
+        </div>
       </div>
-    </template>
-    <ul v-if="currentExtend" ref="logs" class="logs">
-      <li v-for="(log, index) in logs" :key="index" class="mb-5" v-html="log"></li>
-    </ul>
-    <el-table v-else height="100%" :data="showTableData" size="medium" style="width: 100%">
-      <el-table-column prop="name" label="名称"> </el-table-column>
-      <el-table-column prop="type" label="类型"> </el-table-column>
-      <el-table-column align="center" label="状态">
-        <template #default="scope">
-          <yb-icon
-            v-if="scope.row.status"
-            :svg="import('@/svg/ok.svg?raw')"
-            class="installed"
-          ></yb-icon>
-        </template>
-      </el-table-column>
+      <div class="main-wapper">
+        <el-card class="version-manager">
+          <template #header>
+            <div class="card-header">
+              <span> {{ headerTitle }} </span>
+              <el-button v-if="showNextBtn" type="primary" @click="toNext">确定</el-button>
+              <el-button
+                v-else
+                class="button"
+                :disabled="extendRefreshing || extendRunning"
+                type="text"
+                @click="getTableData"
+              >
+                <yb-icon
+                  :svg="import('@/svg/icon_refresh.svg?raw')"
+                  class="refresh-icon"
+                  :class="{ 'fa-spin': extendRefreshing || extendRunning }"
+                ></yb-icon>
+              </el-button>
+            </div>
+          </template>
+          <ul v-if="currentExtend" ref="logs" class="logs">
+            <li v-for="(log, index) in logs" :key="index" class="mb-5" v-html="log"></li>
+          </ul>
+          <el-table v-else height="100%" :data="showTableData" size="medium" style="width: 100%">
+            <el-table-column prop="name" label="名称"> </el-table-column>
+            <el-table-column prop="type" label="类型"> </el-table-column>
+            <el-table-column align="center" label="状态">
+              <template #default="scope">
+                <yb-icon
+                  v-if="scope.row.status"
+                  :svg="import('@/svg/ok.svg?raw')"
+                  class="installed"
+                ></yb-icon>
+              </template>
+            </el-table-column>
 
-      <el-table-column align="left" label="操作">
-        <template v-if="version?.version" #default="scope">
-          <el-button v-if="scope.row.status" type="text" @click="copyLink(scope.$index, scope.row)"
-            >复制链接</el-button
-          >
-          <el-button
-            v-else
-            :disabled="brewRunning"
-            type="text"
-            @click="handleEdit(scope.$index, scope.row)"
-            >安装</el-button
-          >
-          <el-button
-            v-if="scope.row.status && scope.row.name === 'xdebug'"
-            type="text"
-            @click="copyXDebugTmpl(scope.$index, scope.row)"
-            >复制配置模板</el-button
-          >
-        </template>
-      </el-table-column>
-    </el-table>
-  </el-card>
+            <el-table-column align="left" label="操作">
+              <template v-if="version?.version" #default="scope">
+                <el-button
+                  v-if="scope.row.status"
+                  type="text"
+                  @click="copyLink(scope.$index, scope.row)"
+                  >复制链接</el-button
+                >
+                <el-button
+                  v-else
+                  :disabled="brewRunning"
+                  type="text"
+                  @click="handleEdit(scope.$index, scope.row)"
+                  >安装</el-button
+                >
+                <el-button
+                  v-if="scope.row.status && scope.row.name === 'xdebug'"
+                  type="text"
+                  @click="copyXDebugTmpl(scope.$index, scope.row)"
+                  >复制配置模板</el-button
+                >
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+      </div>
+    </div>
+  </el-drawer>
 </template>
 
 <script>
   import IPC from '@/util/IPC.js'
-  import { AppMixins } from '@/mixins/AppMixins.js'
   import { mapGetters } from 'vuex'
   import { getAllFile } from '@shared/file.js'
   import { execAsync } from '@shared/utils.js'
   import { reloadService } from '@/util/Service.js'
+  import { VueExtend } from '@/core/VueExtend.js'
 
   const { join } = require('path')
   const { clipboard } = require('@electron/remote')
 
   export default {
+    show(data) {
+      return new Promise(() => {
+        let dom = document.createElement('div')
+        document.body.appendChild(dom)
+        let vm = VueExtend(this, data)
+        const intance = vm.mount(dom)
+        intance.onClosed = () => {
+          dom && dom.remove()
+          dom = null
+          console.log('intance.onClosed !!!!!!')
+        }
+      })
+    },
     components: {},
-    mixins: [AppMixins],
+    props: {
+      version: {
+        type: Object,
+        default() {
+          return {}
+        }
+      }
+    },
     data() {
       return {
         showNextBtn: false,
@@ -159,7 +200,8 @@ import {join} from "path";import {basename} from "path";
             soname: 'yaf.so'
           }
         ],
-        showTableData: []
+        showTableData: [],
+        show: true
       }
     },
     computed: {
@@ -169,14 +211,8 @@ import {join} from "path";import {basename} from "path";
       ...mapGetters('task', {
         taskPhp: 'php'
       }),
-      ...mapGetters('app', {
-        stat: 'stat'
-      }),
       serverRunning() {
-        return this.stat.php
-      },
-      isRunning() {
-        return this.taskPhp.running
+        return this.version?.run
       },
       logs() {
         return this.taskPhp.log
@@ -240,6 +276,14 @@ import {join} from "path";import {basename} from "path";
     },
     unmounted() {},
     methods: {
+      close() {
+        this.show = false
+        this.$destroy()
+        this.onClosed()
+      },
+      onDrawerClosed() {
+        this.onClosed()
+      },
       getTableData() {
         if (this.extendRefreshing) {
           return
@@ -347,3 +391,48 @@ xdebug.output_dir = /tmp`
     }
   }
 </script>
+<style lang="scss">
+  .host-vhost {
+    width: 100%;
+    height: 100%;
+    background: #1d2033;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    .nav {
+      height: 76px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: #282b3d;
+      .left {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 6px 0;
+      }
+    }
+
+    .main-wapper {
+      flex: 1;
+      width: 100%;
+      overflow: hidden;
+      padding: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      display: flex;
+      flex-direction: column;
+
+      > .block {
+        width: 100%;
+        flex: 1;
+        overflow: hidden;
+      }
+      .tool {
+        flex-shrink: 0;
+        padding: 30px 0 20px 0;
+      }
+    }
+  }
+</style>

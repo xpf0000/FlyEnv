@@ -1,5 +1,5 @@
-Listen #Port_Apache#
-NameVirtualHost *:#Port_Apache#
+Listen #Listen_Port_Apache#
+NameVirtualHost *:#Listen_Port_Apache#
 <VirtualHost *:#Port_Apache#>
     ServerAdmin webmaster@example.com
     DocumentRoot "#Server_Root#"

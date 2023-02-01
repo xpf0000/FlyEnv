@@ -18,7 +18,7 @@
         @click="versionChange"
         >切换</el-button
       >
-      <el-button :disabled="initing" class="ml-20" :loading="initing" @click="reinit"
+      <el-button :disabled="initing || disabled" class="ml-20" :loading="initing" @click="reinit"
         >刷新</el-button
       >
     </div>
@@ -30,14 +30,10 @@
 </template>
 
 <script>
-  import { getSubDir } from '@shared/file.js'
   import { mapGetters } from 'vuex'
   import IPC from '@/util/IPC.js'
   import { AppMixins } from '@/mixins/AppMixins.js'
-
-  const { getGlobal } = require('@electron/remote')
-  const { join } = require('path')
-  const { existsSync, realpathSync } = require('fs')
+  import installedVersions from '@/util/InstalledVersions.js'
 
   export default {
     components: {},
@@ -51,23 +47,7 @@
     data() {
       return {
         current: '',
-        initing: false,
-        searchNames: {
-          apache: 'httpd',
-          nginx: 'nginx',
-          php: 'php',
-          mysql: 'mysql',
-          memcached: 'memcached',
-          redis: 'redis'
-        },
-        binNames: {
-          apache: 'apachectl',
-          nginx: 'nginx',
-          php: 'php-fpm',
-          mysql: 'mysqld_safe',
-          memcached: 'memcached',
-          redis: 'redis-server'
-        }
+        initing: false
       }
     },
     computed: {
@@ -119,9 +99,9 @@
         return this[this.typeFlag].installed
       },
       currentVersion() {
-        if (this.server?.[this.typeFlag]?.current?.version) {
-          const v = this.server[this.typeFlag].current.version
-          const p = this.server[this.typeFlag].current.path
+        if (this.version?.version) {
+          const v = this.version.version
+          const p = this.version.path
           return `${v} - ${p}`
         }
         return ''
@@ -154,92 +134,10 @@
         if (this.initing) {
           return
         }
-        this.getInstalled()
-      },
-      getInstalled() {
-        const data = this[this.typeFlag]
-        if (!data.installedInited) {
-          this.initing = true
-          data.installed.splice(0)
-          const searchName = this.searchNames[this.typeFlag]
-          const installed = new Set()
-          const systemDirs = ['/', '/opt', '/usr']
-          systemDirs.forEach((s) => {
-            const bin = this.findInstalled(s, 0, 1)
-            if (bin) {
-              installed.add(bin)
-            }
-          })
-
-          if (!global?.Server?.BrewCellar) {
-            global.Server = getGlobal('Server')
-          }
-
-          const base = global.Server?.BrewCellar ?? ''
-          if (base) {
-            getSubDir(base)
-              .filter((f) => {
-                return f.includes(searchName)
-              })
-              .forEach((f) => {
-                getSubDir(f).forEach((s) => {
-                  const bin = this.findInstalled(s)
-                  if (bin) {
-                    installed.add(bin)
-                  }
-                })
-              })
-          }
-
-          this.customDirs.forEach((s) => {
-            const bin = this.findInstalled(s, 0, 1)
-            if (bin) {
-              installed.add(bin)
-            }
-          })
-          console.log('installed: ', installed)
-          const binName = this.binNames[this.typeFlag]
-          const count = installed.size
-          let index = 0
-          installed.forEach((i) => {
-            const path = i.replace(`/sbin/${binName}`, '').replace(`/bin/${binName}`, '')
-            IPC.send('app-fork:brew', 'binVersion', i, binName).then((key, res) => {
-              IPC.off(key)
-              if (res?.version) {
-                data.installed.push({
-                  version: res.version,
-                  bin: i,
-                  path: `${path}/`
-                })
-              }
-              index += 1
-              if (index === count) {
-                this.initing = false
-                data.installedInited = true
-              }
-            })
-          })
-        }
-      },
-      findInstalled(dir, depth = 0, maxDepth = 2) {
-        let res = false
-        const binName = this.binNames[this.typeFlag]
-        let binPath = join(dir, `bin/${binName}`)
-        if (existsSync(binPath)) {
-          return realpathSync(binPath)
-        }
-        binPath = join(dir, `sbin/${binName}`)
-        if (existsSync(binPath)) {
-          return realpathSync(binPath)
-        }
-        if (depth >= maxDepth) {
-          return res
-        }
-        const sub = getSubDir(dir)
-        sub.forEach((s) => {
-          res = res || this.findInstalled(s, depth + 1, maxDepth)
+        this.initing = true
+        installedVersions.allInstalledVersions(this.typeFlag).then(() => {
+          this.initing = false
         })
-        return res
       },
       getCurrenVersion() {
         this.current = this.currentVersion
@@ -259,6 +157,8 @@
           }
           return false
         })
+        data.run = false
+        data.running = true
         IPC.send(
           `app-fork:${this.typeFlag}`,
           'switchVersion',
@@ -274,14 +174,16 @@
             this.stat[this.typeFlag] = true
             this.$message.success('操作成功')
             this.currentTask.running = false
+            data.run = true
+            data.running = false
           } else if (res.code === 1) {
             IPC.off(key)
             this.$message.error('操作失败')
             this.currentTask.running = false
+            data.running = false
           } else if (res.code === 200) {
             this.log.push(res.msg)
           }
-          console.log('res: ', res)
         })
       }
     }

@@ -68,9 +68,22 @@ class HostManager {
         console.log(e)
       }
     }
+
+    let addApachePort = true
+    let addApachePortSSL = true
+
+    hostList.forEach((h) => {
+      if (h.port.apache === host.port.apache) {
+        addApachePort = false
+      }
+      if (h.port.apache_ssl === host.port.apache_ssl) {
+        addApachePortSSL = false
+      }
+    })
+
     switch (flag) {
       case 'add':
-        this._addVhost(host)
+        this._addVhost(host, addApachePort, addApachePortSSL)
           .then(() => {
             console.log('hostfile: ', hostfile)
             hostList.unshift(host)
@@ -136,7 +149,7 @@ class HostManager {
       case 'edit':
         this._delVhost(old)
           .then(() => {
-            return this._addVhost(host)
+            return this._addVhost(host, addApachePort, addApachePortSSL)
           })
           .then(() => {
             let index = -1
@@ -218,7 +231,7 @@ class HostManager {
     }
   }
 
-  _addVhost(host) {
+  _addVhost(host, addApachePort = true, addApachePortSSL = true) {
     return new Promise((resolve, reject) => {
       try {
         let nginxvpath = join(global.Server.BaseDir, 'vhost/nginx')
@@ -252,6 +265,7 @@ class HostManager {
           .replace(/#Server_CertKey#/g, host.ssl.key)
           .replace(/#Port_Nginx#/g, host.port.nginx)
           .replace(/#Port_Nginx_SSL#/g, host.port.nginx_ssl)
+          .replace(/include enable-php\.conf;/g, `include enable-php-${host.phpVersion}.conf;`)
         writeFileSync(nvhost, ntmpl)
 
         let atmpl = readFileSync(apachetmpl, 'utf-8')
@@ -264,6 +278,26 @@ class HostManager {
           .replace(/#Server_CertKey#/g, host.ssl.key)
           .replace(/#Port_Apache#/g, host.port.apache)
           .replace(/#Port_Apache_SSL#/g, host.port.apache_ssl)
+          .replace(
+            /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
+            `SetHandler "proxy:unix:/tmp/php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
+          )
+
+        if (addApachePort) {
+          atmpl = atmpl.replace(/#Listen_Port_Apache#/g, host.port.apache)
+        } else {
+          atmpl = atmpl
+            .replace('Listen #Listen_Port_Apache#\n', '')
+            .replace('NameVirtualHost *:#Listen_Port_Apache#\n', '')
+        }
+
+        if (addApachePortSSL) {
+          atmpl = atmpl.replace(/#Listen_Port_Apache_SSL#/g, host.port.apache_ssl)
+        } else {
+          atmpl = atmpl
+            .replace('Listen #Listen_Port_Apache_SSL#\n', '')
+            .replace('NameVirtualHost *:#Listen_Port_Apache_SSL#\n', '')
+        }
 
         writeFileSync(avhost, atmpl)
 

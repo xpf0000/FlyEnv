@@ -81,6 +81,91 @@ class PhpManager extends BaseManager {
     this._thenSuccess()
   }
 
+  startService(version) {
+    this._stopServer(version)
+      .then(() => {
+        return this._startServer(version)
+      })
+      .then(() => {
+        return this._resetEnablePhpConf(version)
+      })
+      .then(() => {
+        return this._updateVhostPhpVersion(version)
+      })
+      .then(this._thenSuccess)
+      .catch(this._catchError)
+  }
+
+  _resetEnablePhpConf(version) {
+    return new Promise((resolve) => {
+      const confPath = join(global.Server.NginxDir, 'common/conf/enable-php.conf')
+      if (existsSync(confPath)) {
+        let content = readFileSync(confPath, 'utf-8')
+        const find = content.match(/fastcgi_pass  unix:\/tmp\/php-cgi-([\d]+?)\.sock;/g)
+        const find1 = content.match(/fastcgi_pass  127\.0\.0\.1:9000;/g)
+        const v = version.version.split('.').slice(0, 2).join('')
+        const replace = `fastcgi_pass  unix:/tmp/php-cgi-${v}.sock;`
+        if (find1) {
+          content = content.replace(find1[0], replace)
+        }
+        if (find) {
+          content = content.replace(find[0], replace)
+        }
+        writeFileSync(confPath, content)
+      }
+      resolve(true)
+    })
+  }
+
+  _updateVhostPhpVersion(version) {
+    return new Promise((resolve) => {
+      const hostFile = join(global.Server.BaseDir, 'host.json')
+      let hostList = []
+      if (existsSync(hostFile)) {
+        try {
+          hostList = JSON.parse(readFileSync(hostFile, 'utf-8'))
+        } catch (e) {
+          console.log(e)
+        }
+      }
+      const setPhpVersion = (host) => {
+        const name = host.name
+        let nginxvpath = join(global.Server.BaseDir, 'vhost/nginx')
+        let apachevpath = join(global.Server.BaseDir, 'vhost/apache')
+
+        let nvhost = join(nginxvpath, `${name}.conf`)
+        let avhost = join(apachevpath, `${name}.conf`)
+
+        const v = version.version.split('.').slice(0, 2).join('')
+
+        if (existsSync(nvhost)) {
+          let content = readFileSync(nvhost, 'utf-8')
+          const find = content.match(/include enable-php(.*?)\.conf;/g)
+          const replace = `include enable-php-${v}.conf;`
+          content = content.replace(find, replace)
+          writeFileSync(nvhost, content)
+        }
+
+        if (existsSync(avhost)) {
+          let content = readFileSync(avhost, 'utf-8')
+          const find = content.match(/SetHandler "proxy:(.*?)"/g)
+          const replace = `SetHandler "proxy:unix:/tmp/php-cgi-${v}.sock|fcgi://localhost"`
+          content = content.replace(find, replace)
+          writeFileSync(avhost, content)
+        }
+
+        host.phpVersion = Number(v)
+      }
+      hostList.forEach((h) => {
+        if (!h?.phpVersion) {
+          setPhpVersion(h)
+        }
+      })
+      writeFileSync(hostFile, JSON.stringify(hostList))
+      resolve(true)
+    })
+  }
+
   _startServer(version) {
     return new Promise((resolve, reject) => {
       let bin = version.bin
@@ -88,11 +173,28 @@ class PhpManager extends BaseManager {
         reject(new Error('启动文件不存在,服务启动失败'))
         return
       }
-      let p = join(global.Server.PhpDir, 'common/var')
-      let y = join(global.Server.PhpDir, 'common/conf/php-fpm.conf')
-      console.log(`${bin} -p ${p} -y ${y}`)
+      const v = version.version.split('.').slice(0, 2).join('')
+      const confPath = join(global.Server.PhpDir, v, 'conf')
+      const varPath = join(global.Server.PhpDir, v, 'var')
+      const logPath = join(varPath, 'log')
+      const runPath = join(varPath, 'run')
+      Utils.createFolder(confPath)
+      Utils.createFolder(varPath)
+      Utils.createFolder(logPath)
+      Utils.createFolder(runPath)
+
+      const phpFpmConf = join(confPath, 'php-fpm.conf')
+      console.log('phpFpmConf: ', phpFpmConf)
+      if (!existsSync(phpFpmConf)) {
+        const phpFpmConfTmpl = join(global.Server.Static, 'tmpl/php-fpm.conf')
+        console.log('phpFpmConfTmpl: ', phpFpmConfTmpl)
+        let content = readFileSync(phpFpmConfTmpl, 'utf-8')
+        content = content.replace('##PHP-CGI-VERSION##', v)
+        writeFileSync(phpFpmConf, content)
+      }
+
       let opt = this._fixEnv()
-      const child = spawn(bin, ['-p', p, '-y', y], opt)
+      const child = spawn(bin, ['-p', varPath, '-y', phpFpmConf], opt)
       this._childHandle(child, resolve, reject)
     })
   }

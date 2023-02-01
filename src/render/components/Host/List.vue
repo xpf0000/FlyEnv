@@ -22,7 +22,6 @@
         popper-class="host-list-poper"
         placement="bottom-end"
         width="150"
-        trigger="click"
       >
         <ul v-poper-fix class="host-list-menu">
           <li @click.stop="action(item, index, 'open')">

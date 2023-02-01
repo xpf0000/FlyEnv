@@ -14,24 +14,14 @@
         }"
         :class="current_tab === 0 ? 'active' : ''"
         @click="current_tab = 0"
-        >{{ tabs[0] }}</li
-      >
-      <li :class="current_tab === 1 ? 'active' : ''" @click="current_tab = 1">{{ tabs[1] }}</li>
-      <li
-        v-tour="{
-          position: 'right',
-          group: 'custom',
-          index: 2,
-          count: 7,
-          title: '使用指引',
-          component: Step3,
-          onPre: onStep2Pre,
-          onNext: onStep2Next
-        }"
-        :class="current_tab === 2 ? 'active' : ''"
-        @click="current_tab = 2"
-        >{{ tabs[2] }}</li
-      >
+        >{{ tabs[0] }}
+        <yb-icon
+          :svg="import('@/svg/icon_refresh.svg?raw')"
+          width="18"
+          height="18"
+          @click.stop="refreshVersions"
+        />
+      </li>
       <li
         v-tour="{
           group: 'custom',
@@ -45,44 +35,28 @@
         @click="current_tab = 3"
         >{{ tabs[3] }}</li
       >
-      <li :class="current_tab === 4 ? 'active' : ''" @click="current_tab = 4">{{ tabs[4] }}</li>
-      <li :class="current_tab === 5 ? 'active' : ''" @click="current_tab = 5">{{ tabs[5] }}</li>
-      <li :class="current_tab === 6 ? 'active' : ''" @click="current_tab = 6">{{ tabs[6] }}</li>
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="php"></Service>
-      <mo-php-config v-if="current_tab === 1"></mo-php-config>
-      <Versions v-if="current_tab === 2" type-flag="php"></Versions>
+      <Service v-if="current_tab === 0" ref="service" type-flag="php"></Service>
       <Manager v-else-if="current_tab === 3" type-flag="php"></Manager>
-      <mo-php-logs v-if="current_tab === 4" type="php-fpm"></mo-php-logs>
-      <mo-php-logs v-if="current_tab === 5" type="php-fpm-slow"></mo-php-logs>
-      <Extends v-if="current_tab === 6"></Extends>
     </div>
   </div>
 </template>
 
 <script>
-  import Versions from '../VersionSwtich/index.vue'
-  import Service from '../ServiceManager/index.vue'
-  import Config from './Config.vue'
-  import Logs from './Logs.vue'
-  import Extends from './Extends.vue'
+  import Service from './List.vue'
   import Manager from '../VersionManager/index.vue'
   import { mapGetters } from 'vuex'
   import { EventBus } from '@/global.js'
   import Step2 from '@/components/Tour/Step2.vue'
   import Step3 from '@/components/Tour/Step3.vue'
   import Step4 from '@/components/Tour/Step4.vue'
-  import { markRaw, nextTick, toRaw } from 'vue'
+  import { markRaw, toRaw } from 'vue'
 
   export default {
     name: 'MoPhpPanel',
     components: {
-      [Config.name]: Config,
-      Versions,
       Service,
-      [Logs.name]: Logs,
-      Extends,
       Manager
     },
     props: {},
@@ -114,6 +88,9 @@
       EventBus.off('TourStep', this.onTourStep)
     },
     methods: {
+      refreshVersions() {
+        this.$refs.service?.reinit()
+      },
       onStep1Next() {
         return new Promise((resolve) => {
           this.current_tab = 2
@@ -184,6 +161,19 @@
         }
         &.active {
           background: #3e4257;
+          > svg {
+            display: block;
+          }
+        }
+
+        > svg {
+          margin-left: 8px;
+          cursor: pointer;
+          display: none;
+
+          &:hover {
+            color: #409eff;
+          }
         }
       }
     }

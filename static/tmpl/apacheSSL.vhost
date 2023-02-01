@@ -1,5 +1,5 @@
-Listen #Port_Apache#
-NameVirtualHost *:#Port_Apache#
+Listen #Listen_Port_Apache#
+NameVirtualHost *:#Listen_Port_Apache#
 
 <VirtualHost *:#Port_Apache#>
     ServerAdmin webmaster@example.com
@@ -30,8 +30,8 @@ NameVirtualHost *:#Port_Apache#
     </Directory>
 </VirtualHost>
 
-Listen #Port_Apache_SSL#
-NameVirtualHost *:#Port_Apache_SSL#
+Listen #Listen_Port_Apache_SSL#
+NameVirtualHost *:#Listen_Port_Apache_SSL#
 
 <VirtualHost *:#Port_Apache_SSL#>
     ServerAdmin webmasterexample.com

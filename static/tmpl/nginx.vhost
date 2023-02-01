@@ -5,7 +5,7 @@ server
     index index.php index.html index.htm default.php default.htm default.html;
     root #Server_Root#;
 
-    #PHP-INFO-START  PHP引用配置，可以注释或修改
+    #PHP-INFO-START
     include enable-php.conf;
     #PHP-INFO-END
 

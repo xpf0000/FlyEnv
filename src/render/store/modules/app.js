@@ -95,6 +95,7 @@ const getters = {
 const mutations = {
   UPDATE_SERVER_CURRENT(state, { flag, data }) {
     Object.assign(state.config.server[flag].current, data)
+    console.log('UPDATE_SERVER_CURRENT: ', flag, data, state.config.server)
   },
   UPDATE_SERVER_STAT(state, stat) {
     state.stat = { ...state.stat, ...stat }
@@ -106,10 +107,10 @@ const mutations = {
     })
   },
   INIT_CONFIG(state, obj) {
-    state.config = obj
+    state.config = reactive(obj)
   },
   INIT_HTTP_SERVE(state, obj) {
-    state.httpServe = obj
+    state.httpServe = reactive(obj)
   },
   SET_CUSTOM_DIR(state, { typeFlag, dir, index }) {
     const common = state.config.setup[typeFlag]
@@ -119,13 +120,13 @@ const mutations = {
     } else {
       dirs.push(dir)
     }
-    common.dirs = dirs
+    common.dirs = reactive(dirs)
   },
   DEL_CUSTOM_DIR(state, { typeFlag, index }) {
     const common = state.config.setup[typeFlag]
     const dirs = JSON.parse(JSON.stringify(common.dirs))
     dirs.splice(index, 1)
-    common.dirs = dirs
+    common.dirs = reactive(dirs)
   }
 }
 const actions = {
@@ -182,6 +183,7 @@ const actions = {
         showTour: state.config.showTour
       })
     )
+    console.log('saveConfig: ', args)
     IPC.send('application:save-preference', args)
   }
 }
