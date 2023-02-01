@@ -105,12 +105,8 @@ class PhpManager extends BaseManager {
         const find1 = content.match(/fastcgi_pass  127\.0\.0\.1:9000;/g)
         const v = version.version.split('.').slice(0, 2).join('')
         const replace = `fastcgi_pass  unix:/tmp/php-cgi-${v}.sock;`
-        if (find1) {
-          content = content.replace(find1[0], replace)
-        }
-        if (find) {
-          content = content.replace(find[0], replace)
-        }
+        content = content.replace(find1?.[0], replace)
+        content = content.replace(find?.[0], replace)
         writeFileSync(confPath, content)
       }
       resolve(true)
@@ -142,7 +138,7 @@ class PhpManager extends BaseManager {
           let content = readFileSync(nvhost, 'utf-8')
           const find = content.match(/include enable-php(.*?)\.conf;/g)
           const replace = `include enable-php-${v}.conf;`
-          content = content.replace(find, replace)
+          content = content.replace(find?.[0], replace)
           writeFileSync(nvhost, content)
         }
 
@@ -150,7 +146,7 @@ class PhpManager extends BaseManager {
           let content = readFileSync(avhost, 'utf-8')
           const find = content.match(/SetHandler "proxy:(.*?)"/g)
           const replace = `SetHandler "proxy:unix:/tmp/php-cgi-${v}.sock|fcgi://localhost"`
-          content = content.replace(find, replace)
+          content = content.replace(find?.[0], replace)
           writeFileSync(avhost, content)
         }
 

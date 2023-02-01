@@ -38,13 +38,14 @@ class ApacheManager extends BaseManager {
             reject(new Error('配置文件不存在,服务器启动失败'))
             return
           }
-          console.log('file: ', file)
           const defaultFile = join(
             global.Server.ApacheDir,
             `common/conf/${Utils.md5(version.bin)}.conf`
           )
-          console.log('defaultFile: ', defaultFile)
-          let defaultConf = ''
+          const defaultFileBack = join(
+            global.Server.ApacheDir,
+            `common/conf/${Utils.md5(version.bin)}.default.conf`
+          )
           if (!existsSync(defaultFile)) {
             let content = readFileSync(file, 'utf-8')
             const reg = new RegExp('(CustomLog ")([\\s\\S]*?)(access_log")', 'g')
@@ -66,17 +67,16 @@ class ApacheManager extends BaseManager {
               .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')
               .replace('#LoadModule ssl_module', 'LoadModule ssl_module')
 
+            let find = content.match(/\nUser _www(.*?)\n/g)
+            content = content.replace(find?.[0], '\n#User _www\n')
+            find = content.match(/\nGroup _www(.*?)\n/g)
+            content = content.replace(find?.[0], '\n#Group _www\n')
+
             content += `\nPidFile "${logs}httpd.pid"
 IncludeOptional "${vhost}*.conf"`
             writeFileSync(defaultFile, content)
-            defaultConf = content
-          } else {
-            defaultConf = readFileSync(defaultFile, 'utf-8')
+            writeFileSync(defaultFileBack, content)
           }
-          const conf = join(global.Server.ApacheDir, 'common/conf/httpd.conf')
-          const confDefault = join(global.Server.ApacheDir, 'common/conf/httpd.conf.default')
-          writeFileSync(conf, defaultConf)
-          writeFileSync(confDefault, defaultConf)
           resolve(true)
         })
         .catch((err) => {
@@ -119,8 +119,7 @@ IncludeOptional "${vhost}*.conf"`
         reject(new Error('启动文件不存在,服务启动失败'))
         return
       }
-
-      const conf = join(global.Server.ApacheDir, 'common/conf/httpd.conf')
+      const conf = join(global.Server.ApacheDir, `common/conf/${Utils.md5(version.bin)}.conf`)
       if (!existsSync(conf)) {
         reject(new Error('配置文件不存在,服务器启动失败'))
         return

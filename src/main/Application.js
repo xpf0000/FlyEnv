@@ -9,7 +9,7 @@ import TouchBarManager from './ui/TouchBarManager'
 import ThemeManager from './ui/ThemeManager'
 import UpdateManager from './core/UpdateManager'
 import { join } from 'path'
-import { copyFile, copyFileSync, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
+import { copyFile, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { fork, execSync } from 'child_process'
 const { createFolder, chmod, readFileAsync, writeFileAsync } = require('../shared/file.js')
 const { execAsync, isAppleSilicon } = require('../shared/utils.js')
@@ -157,16 +157,6 @@ export default class Application extends EventEmitter {
 
     let httpdcong = join(global.Server.ApacheDir, 'common/conf/')
     createFolder(httpdcong)
-    httpdcong = join(httpdcong, 'httpd.conf')
-    if (!existsSync(httpdcong)) {
-      readFileAsync(join(__static, 'tmpl/httpd.conf')).then((str) => {
-        const logs = join(global.Server.ApacheDir, 'common/logs')
-        const vhost = join(global.Server.BaseDir, 'vhost/apache')
-        str = str.replace(/#LOGPATH#/g, logs).replace(/#VHOSTPATH#/g, vhost)
-        writeFileAsync(httpdcong, str).then()
-        writeFileAsync(join(global.Server.ApacheDir, 'common/conf/httpd.conf.default'), str).then()
-      })
-    }
 
     let ngconf = join(global.Server.NginxDir, 'common/conf/nginx.conf')
     if (!existsSync(ngconf)) {

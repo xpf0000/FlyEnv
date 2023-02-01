@@ -16,6 +16,7 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick } from 'vue'
+  import { md5 } from '@/util/Index.js'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
@@ -34,7 +35,6 @@
     },
     watch: {},
     created: function () {
-      this.configpath = join(global.Server.ApacheDir, 'common/conf/httpd.conf')
       this.getConfig()
     },
     mounted() {
@@ -57,13 +57,32 @@
         })
       },
       getConfig() {
+        if (!this?.version?.version) {
+          this.config = '请先选择版本'
+          this.$message.error(this.config)
+          this.initEditor()
+          return
+        }
+        const name = md5(this.version.bin)
+        this.configpath = join(global.Server.ApacheDir, `common/conf/${name}.conf`)
+        if (!existsSync(this.configpath)) {
+          this.config = '未找到配置文件, 请重新选择版本'
+          this.$message.error(this.config)
+          this.initEditor()
+          return
+        }
         readFileAsync(this.configpath).then((conf) => {
           this.config = conf
           this.initEditor()
         })
       },
       getDefault() {
-        let configpath = join(global.Server.ApacheDir, 'common/conf/httpd.conf.default')
+        if (!this?.version?.version) {
+          this.$message.error('请先选择版本')
+          return
+        }
+        const name = md5(this.version.bin)
+        const configpath = join(global.Server.ApacheDir, `common/conf/${name}.default.conf`)
         if (!existsSync(configpath)) {
           this.$message.error('未找到默认配置文件')
           return

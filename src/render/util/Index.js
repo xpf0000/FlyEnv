@@ -1,3 +1,10 @@
+const crypto = require('crypto')
+
+export function md5(str) {
+  const md5 = crypto.createHash('md5')
+  return md5.update(str).digest('hex')
+}
+
 export function parseTime(time, cFormat) {
   if (arguments.length === 0) {
     return null
