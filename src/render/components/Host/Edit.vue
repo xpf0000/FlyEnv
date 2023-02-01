@@ -184,7 +184,6 @@
 <script>
   import { readFileAsync, getAllFileAsync } from '@shared/file.js'
   import { mapGetters } from 'vuex'
-  import { AppMixins } from '@/mixins/AppMixins.js'
   import { passwordCheck } from '@/util/Brew.js'
   import { handleHost } from '@/util/Host.js'
 
@@ -197,7 +196,6 @@
   export default {
     name: 'MoHostEdit',
     components: {},
-    mixins: [AppMixins],
     props: {},
     data() {
       return {
@@ -241,7 +239,8 @@
     },
     computed: {
       ...mapGetters('app', {
-        hosts: 'hosts'
+        hosts: 'hosts',
+        password: 'password'
       }),
       ...mapGetters('brew', {
         php: 'php'

@@ -94,8 +94,9 @@ const getters = {
 
 const mutations = {
   UPDATE_SERVER_CURRENT(state, { flag, data }) {
-    Object.assign(state.config.server[flag].current, data)
-    console.log('UPDATE_SERVER_CURRENT: ', flag, data, state.config.server)
+    const server = JSON.parse(JSON.stringify(state.config.server))
+    server[flag].current = reactive(data)
+    state.config.server = reactive(server)
   },
   UPDATE_SERVER_STAT(state, stat) {
     state.stat = { ...state.stat, ...stat }

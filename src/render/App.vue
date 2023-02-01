@@ -19,10 +19,18 @@
     computed: {
       ...mapGetters('app', {
         password: 'password',
-        config: 'config'
+        config: 'config',
+        server: 'server'
       })
     },
-    watch: {},
+    watch: {
+      server: {
+        handler(v) {
+          console.log('APP watch server: ', v)
+        },
+        deep: true
+      }
+    },
     created() {
       EventBus.on('vue:need-password', this.checkPassword)
       IPC.on('application:about').then(this.showAbout)
@@ -32,7 +40,9 @@
       EventBus.off('vue:need-password', this.checkPassword)
       IPC.off('application:about')
     },
-    mounted() {},
+    mounted() {
+      console.log('App mounted server: ', this.server)
+    },
     methods: {
       showAbout() {
         this.$baseDialog(import('./components/About/index.vue'))

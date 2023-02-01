@@ -32,12 +32,10 @@
 <script>
   import { mapGetters } from 'vuex'
   import IPC from '@/util/IPC.js'
-  import { AppMixins } from '@/mixins/AppMixins.js'
   import installedVersions from '@/util/InstalledVersions.js'
 
   export default {
     components: {},
-    mixins: [AppMixins],
     props: {
       typeFlag: {
         type: String,
@@ -70,7 +68,8 @@
       }),
       ...mapGetters('app', {
         stat: 'stat',
-        setup: 'setup'
+        setup: 'setup',
+        server: 'server'
       }),
       customDirs() {
         return this.setup[this.typeFlag].dirs
@@ -98,6 +97,12 @@
       versions() {
         return this[this.typeFlag].installed
       },
+      version() {
+        if (!this.typeFlag) {
+          return {}
+        }
+        return this.server?.[this.typeFlag]?.current ?? {}
+      },
       currentVersion() {
         if (this.version?.version) {
           const v = this.version.version
@@ -115,6 +120,12 @@
             container.scrollTop = container.scrollHeight
           }
         })
+      },
+      server: {
+        handler(v) {
+          console.log('Switch watch server: ', v)
+        },
+        deep: true
       }
     },
     created: function () {
@@ -123,6 +134,9 @@
       }
       this.getCurrenVersion()
       this.init()
+    },
+    mounted() {
+      console.log('Switch mounted server: ', this.server)
     },
     methods: {
       reinit() {
@@ -148,27 +162,19 @@
         }
         this.log.splice(0)
         this.currentTask.running = true
-        let data = null
-        this.versions.some((v) => {
+        let data = this.versions.find((v) => {
           const txt = `${v.version} - ${v.path}`
-          if (txt === this.current) {
-            data = v
-            return true
-          }
-          return false
+          return txt === this.current
         })
         data.run = false
         data.running = true
-        IPC.send(
-          `app-fork:${this.typeFlag}`,
-          'switchVersion',
-          JSON.parse(JSON.stringify(data))
-        ).then((key, res) => {
+        const param = JSON.parse(JSON.stringify(data))
+        IPC.send(`app-fork:${this.typeFlag}`, 'switchVersion', param).then((key, res) => {
           if (res.code === 0) {
             IPC.off(key)
             this.$store.commit('app/UPDATE_SERVER_CURRENT', {
               flag: this.typeFlag,
-              data: res.version
+              data: param
             })
             this.$store.dispatch('app/saveConfig').then()
             this.stat[this.typeFlag] = true

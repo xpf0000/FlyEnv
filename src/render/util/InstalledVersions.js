@@ -60,7 +60,9 @@ class InstalledVersions {
 
     const callBack = () => {
       this._cb.forEach((cb) => {
-        cb(true)
+        if (typeof cb === 'function') {
+          cb(true)
+        }
       })
       this._cb = []
       delete this.task[flag]

@@ -1,5 +1,5 @@
 <template>
-  <el-aside width="280px" :class="['aside', 'hidden-sm-and-down', { draggable: asideDraggable }]">
+  <el-aside width="280px" class="aside">
     <div class="aside-inner">
       <ul class="top-tool">
         <li
@@ -42,7 +42,7 @@
           </div>
 
           <el-switch
-            :disabled="!nginxVersion?.version || nginxVersion?.running"
+            :disabled="nginxDisabled"
             :value="nginxRunning"
             @change="switchChange('nginx')"
           >
@@ -62,7 +62,7 @@
           </div>
 
           <el-switch
-            :disabled="!apacheVersion?.version || apacheVersion?.running"
+            :disabled="apacheDisabled"
             :value="apacheRunning"
             @change="switchChange('apache')"
           >
@@ -83,7 +83,7 @@
           </div>
 
           <el-switch
-            :disabled="!mysqlVersion?.version || mysqlVersion?.running"
+            :disabled="mysqlDisabled"
             :value="mysqlRunning"
             @change="switchChange('mysql')"
           >
@@ -118,7 +118,7 @@
           </div>
 
           <el-switch
-            :disabled="!memcachedVersion?.version || memcachedVersion?.running"
+            :disabled="memcachedDisabled"
             :value="memcachedRunning"
             @change="switchChange('memcached')"
           >
@@ -138,7 +138,7 @@
           </div>
 
           <el-switch
-            :disabled="!redisVersion?.version || redisVersion?.running"
+            :disabled="redisDisabled"
             :value="redisRunning"
             @change="switchChange('redis')"
           >
@@ -209,11 +209,9 @@
 <script>
   import { mapGetters } from 'vuex'
   import { startService, stopService } from '@/util/Service.js'
-  import { EventBus } from '@/global.js'
   import { passwordCheck } from '@/util/Brew.js'
   import installedVersions from '@/util/InstalledVersions.js'
 
-  const is = require('electron-is')
   export default {
     name: 'MoAside',
     components: {},
@@ -259,9 +257,8 @@
         if (!current) {
           return undefined
         }
-        console.log('apacheVersion: ', current)
         const installed = this?.apache?.installed
-        return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+        return installed?.find((i) => i.path === current.path && i.version === current.version)
       },
       memcachedVersion() {
         const current = this.server?.memcached?.current
@@ -278,6 +275,21 @@
         }
         const installed = this?.redis?.installed
         return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+      },
+      nginxDisabled() {
+        return !this.nginxVersion?.version || this?.nginx?.installed?.some((v) => v.running)
+      },
+      apacheDisabled() {
+        return !this.apacheVersion?.version || this?.apache?.installed?.some((v) => v.running)
+      },
+      mysqlDisabled() {
+        return !this.mysqlVersion?.version || this?.mysql?.installed?.some((v) => v.running)
+      },
+      memcachedDisabled() {
+        return !this.memcachedVersion?.version || this?.memcached?.installed?.some((v) => v.running)
+      },
+      redisDisabled() {
+        return !this.redisVersion?.version || this?.redis?.installed?.some((v) => v.running)
       },
       nginxRunning() {
         return this.nginxVersion?.run
@@ -335,9 +347,6 @@
           this.memcachedRunning
         )
       },
-      asideDraggable: function () {
-        return is.macOS()
-      },
       groupDisabled() {
         const a =
           this.nginxVersion?.version ||
@@ -359,7 +368,12 @@
       }
     },
     watch: {
-      currentPage() {}
+      server: {
+        handler(v) {
+          console.log('watch server: ', v)
+        },
+        deep: true
+      }
     },
     created() {
       installedVersions.allInstalledVersions('php')
@@ -368,6 +382,9 @@
       installedVersions.allInstalledVersions('apache')
       installedVersions.allInstalledVersions('memcached')
       installedVersions.allInstalledVersions('redis')
+    },
+    mounted() {
+      console.log('Aside mounted server: ', this.server)
     },
     methods: {
       groupDo() {
