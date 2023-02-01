@@ -15,11 +15,6 @@ const { existsSync, unlinkSync, copyFileSync } = require('fs')
  */
 export const passwordCheck = () => {
   return new Promise((resolve, reject) => {
-    const showTour = store.getters['app/showTour']
-    if (showTour) {
-      reject(new Error('用户指引显示中'))
-      return
-    }
     global.Server = getGlobal('Server')
     if (!global.Server.Password) {
       ElMessageBox.prompt('请输入电脑用户密码', {

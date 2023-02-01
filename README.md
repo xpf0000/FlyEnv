@@ -87,9 +87,25 @@ yarn run build
 
 完成之后可以在项目的 `release` 目录看到编译打包好的应用文件
 
+### PHP版本
+
+brew自身库并不支持太老的PHP版本, 所以想要使用较老的PHP版本, 需要使用brew的第三方库
+例如:
+
+[shivammathur/php](https://github.com/shivammathur/homebrew-php)
+
+[phpbrew/phpbrew](https://github.com/phpbrew/phpbrew)
+
+本应用使用的是shivammathur/php, 默认会自动添加shivammathur/php库到brew中, 但是因为'网络问题', 可能会添加失败,
+用户可以自行添加, 添加命令:
+
+```
+brew tap shivammathur/php
+```
+
 ### PHP扩展
 
-当前一键安装包括: ionCube memcache memcached redis swoole xdebug
+当前一键安装包括: ionCube memcache memcached redis swoole xdebug ssh2 pdo_sqlsrv imagick mongodb yaf
 
 未添加到一键安装里的 使用如下方法安装 替换成自己的PHP版本
 

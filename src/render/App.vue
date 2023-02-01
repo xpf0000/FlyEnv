@@ -9,7 +9,6 @@
   import { EventBus } from './global.js'
   import { passwordCheck } from '@/util/Brew.js'
   import IPC from '@/util/IPC.js'
-  import { TourCenter } from '@/core/directive/Tour/index.ts'
 
   export default {
     name: 'App',
@@ -20,7 +19,6 @@
     computed: {
       ...mapGetters('app', {
         password: 'password',
-        showTour: 'showTour',
         config: 'config'
       })
     },
@@ -28,17 +26,7 @@
     created() {
       EventBus.on('vue:need-password', this.checkPassword)
       IPC.on('application:about').then(this.showAbout)
-      if (!this.showTour) {
-        this.checkPassword()
-      } else {
-        TourCenter.groupShow('custom')
-      }
-      TourCenter.onHide(() => {
-        console.log('TourCenter.onHide !!!!')
-        this.config.showTour = false
-        this.$store.dispatch('app/saveConfig').then()
-        EventBus.emit('TourStep', 8)
-      })
+      this.checkPassword()
     },
     unmounted() {
       EventBus.off('vue:need-password', this.checkPassword)

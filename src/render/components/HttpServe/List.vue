@@ -45,7 +45,6 @@
   import { reactive } from 'vue'
   import { mapGetters } from 'vuex'
   import IPC from '@/util/IPC.js'
-  import { handleHost } from '@/util/Host.js'
   const { dialog, shell } = require('@electron/remote')
   const { pathExistsSync, statSync } = require('fs-extra')
   const Serves = reactive({})

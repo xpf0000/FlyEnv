@@ -18,16 +18,6 @@
       <ul class="menu top-menu">
         <li
           v-if="common.showItem.Hosts"
-          v-tour="{
-            position: 'bottom',
-            group: 'custom',
-            index: 4,
-            count: 7,
-            title: '使用指引',
-            component: Step5,
-            onPre: onStep5Pre,
-            onNext: onStep5Next
-          }"
           :class="'non-draggable' + (currentPage === '/host' ? ' active' : '')"
           @click="nav('/host', $event)"
         >
@@ -102,16 +92,6 @@
 
         <li
           v-if="common.showItem.Php"
-          v-tour="{
-            position: 'right',
-            group: 'custom',
-            index: 0,
-            count: 7,
-            title: '使用指引',
-            component: Step1,
-            onNext: onStep0Next,
-            onShow: onStep0Show
-          }"
           :class="'non-draggable' + (currentPage === '/php' ? ' active' : '')"
           @click="nav('/php', $event)"
         >
@@ -227,13 +207,9 @@
 </template>
 
 <script>
-  import { markRaw, nextTick, toRaw } from 'vue'
   import { mapGetters } from 'vuex'
   import { startService, stopService } from '@/util/Service.js'
   import { EventBus } from '@/global.js'
-  import Step1 from '@/components/Tour/Step1.vue'
-  import Step5 from '@/components/Tour/Step5.vue'
-  import { TourCenter } from '@/core/directive/Tour/index.ts'
   import { passwordCheck } from '@/util/Brew.js'
   import installedVersions from '@/util/InstalledVersions.js'
 
@@ -243,9 +219,7 @@
     components: {},
     data: function () {
       return {
-        currentPage: '/host',
-        Step1: markRaw(toRaw(Step1)),
-        Step5: markRaw(toRaw(Step5))
+        currentPage: '/host'
       }
     },
     computed: {
@@ -385,12 +359,9 @@
       }
     },
     watch: {
-      currentPage() {
-        console.log('currentPage : ', this.currentPage)
-      }
+      currentPage() {}
     },
     created() {
-      EventBus.on('TourStep', this.onTourStep)
       installedVersions.allInstalledVersions('php')
       installedVersions.allInstalledVersions('nginx')
       installedVersions.allInstalledVersions('mysql')
@@ -399,62 +370,6 @@
       installedVersions.allInstalledVersions('redis')
     },
     methods: {
-      onTourStep(step) {
-        switch (step) {
-          case 0:
-            this.nav('/php')
-            break
-          case 4:
-            this.nav('/host')
-            break
-          case 6:
-            this.nav('/setup').then(() => {
-              nextTick().then(() => {
-                TourCenter.poper.style.opacity = 1.0
-              })
-            })
-            break
-          case 7:
-            this.nav('/host').then(() => {
-              nextTick().then(() => {
-                EventBus.emit('TourStep', 5)
-              })
-            })
-            break
-          case 8:
-            this.nav('/host').then(() => {
-              nextTick().then(() => {
-                EventBus.emit('vue:need-password')
-              })
-            })
-            break
-        }
-      },
-      onStep0Next() {
-        return new Promise((resolve) => {
-          EventBus.emit('TourStep', 1)
-          resolve(true)
-        })
-      },
-      onStep0Show() {
-        return new Promise((resolve) => {
-          this.onTourStep(0)
-          resolve(true)
-        })
-      },
-      onStep5Pre() {
-        return new Promise((resolve) => {
-          this.onTourStep(0)
-          resolve(true)
-        })
-      },
-      onStep5Next() {
-        return new Promise((resolve) => {
-          EventBus.emit('TourStep', 5)
-          TourCenter.poper.style.opacity = 0.0
-          resolve(true)
-        })
-      },
       groupDo() {
         if (this.groupDisabled) {
           return

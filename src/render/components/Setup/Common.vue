@@ -69,18 +69,7 @@
       </el-form>
     </div>
     <div class="plant-title">Brew源切换</div>
-    <div
-      v-tour="{
-        position: 'top',
-        group: 'custom',
-        index: 6,
-        count: 7,
-        title: '使用指引',
-        component: Step7,
-        onPre: onStep7Pre
-      }"
-      class="main brew-src"
-    >
+    <div class="main brew-src">
       <BrewSrc></BrewSrc>
     </div>
     <div class="plant-title">修复Github访问问题</div>
@@ -103,19 +92,13 @@
   import BrewSrc from './BrewSrc/index.vue'
   import GitHubFix from './GithubFix/index.vue'
   import RestPassword from './RestPassword/index.vue'
-  import { EventBus } from '@/global.js'
-  import { markRaw, nextTick, toRaw } from 'vue'
-  import { TourCenter } from '@/core/directive/Tour/index.ts'
-  import Step7 from '@/components/Tour/Step7.vue'
   import ProxySet from './ProxySet/index.vue'
 
   export default {
     components: { BrewSrc, GitHubFix, RestPassword, ProxySet },
     props: {},
     data() {
-      return {
-        Step7: markRaw(toRaw(Step7))
-      }
+      return {}
     },
     computed: {
       ...mapGetters('app', {
@@ -135,17 +118,7 @@
     },
     created: function () {},
     unmounted() {},
-    methods: {
-      onStep7Pre() {
-        return new Promise((resolve) => {
-          TourCenter.poper.style.opacity = 0.0
-          EventBus.emit('TourStep', 7)
-          nextTick().then(() => {
-            resolve(true)
-          })
-        })
-      }
-    }
+    methods: {}
   }
 </script>
 

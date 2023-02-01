@@ -1,17 +1,5 @@
 <template>
-  <div
-    v-tour="{
-      position: 'left',
-      group: 'custom',
-      index: 5,
-      count: 7,
-      title: '使用指引',
-      component: Step6,
-      onPre: onStep6Pre,
-      onNext: onStep6Next
-    }"
-    class="host-edit"
-  >
+  <div class="host-edit">
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -199,10 +187,6 @@
   import { AppMixins } from '@/mixins/AppMixins.js'
   import { passwordCheck } from '@/util/Brew.js'
   import { handleHost } from '@/util/Host.js'
-  import Step6 from '@/components/Tour/Step6.vue'
-  import { markRaw, nextTick, toRaw } from 'vue'
-  import { EventBus } from '@/global.js'
-  import { TourCenter } from '@/core/directive/Tour/index.ts'
 
   const { exec } = require('child-process-promise')
   const { dialog } = require('@electron/remote')
@@ -217,7 +201,6 @@
     props: {},
     data() {
       return {
-        Step6: markRaw(toRaw(Step6)),
         running: false,
         item: {
           id: 0,
@@ -292,26 +275,6 @@
     },
     unmounted() {},
     methods: {
-      onStep6Pre() {
-        return new Promise((resolve) => {
-          this.doClose()
-          nextTick().then(() => {
-            resolve(true)
-          })
-        })
-      },
-      onStep6Next() {
-        return new Promise((resolve) => {
-          this.doClose()
-          TourCenter.poper.style.opacity = 0.0
-          nextTick().then(() => {
-            setTimeout(() => {
-              EventBus.emit('TourStep', 6)
-              resolve(true)
-            }, 150)
-          })
-        })
-      },
       rewriteChange(item) {
         if (!rewrites[item]) {
           let file = join(this.rewritePath, `${item}.conf`)

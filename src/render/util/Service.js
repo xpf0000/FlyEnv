@@ -20,6 +20,12 @@ const exec = (typeFlag, version, fn, status) => {
         }
         version.run = fn !== 'stopService'
         version.running = false
+        if (typeFlag === 'php' && fn === 'startService') {
+          const hosts = store.getters['app/hosts']
+          if (hosts && hosts?.[0] && !hosts?.[0]?.phpVersion) {
+            store.dispatch('app/initHost').then()
+          }
+        }
         resolve(true)
       } else if (res.code === 1) {
         IPC.off(key)

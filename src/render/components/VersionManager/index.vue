@@ -63,6 +63,7 @@
   import IPC from '@/util/IPC.js'
   import XTerm from '@/util/XTerm.ts'
   import { chmod } from '@shared/file'
+  import installedVersions from '@/util/InstalledVersions.js'
   const { join } = require('path')
   const { existsSync, unlinkSync, copyFileSync } = require('fs')
 
@@ -292,6 +293,7 @@
           this.$store.commit('brew/SET_SHOW_INSTALL_LOG', false)
           this.$store.commit('brew/RESET_BREW_INSTALLED_INITED', this.typeFlag)
           this.reGetData()
+          installedVersions.allInstalledVersions(this.typeFlag).then()
         })
       },
       toNext() {

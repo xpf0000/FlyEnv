@@ -185,11 +185,13 @@ export default class Application extends EventEmitter {
     }
     let enablePhpConf = join(global.Server.NginxDir, 'common/conf/enable-php-80.conf')
     if (!existsSync(enablePhpConf)) {
+      const confDir = join(global.Server.NginxDir, 'common/conf/')
+      createFolder(confDir)
       const arrs = [56, 70, 71, 72, 73, 74, 80, 81, 82]
       arrs.forEach((v) => {
         const tmplConf = join(__static, `tmpl/enable-php-${v}.conf`)
         enablePhpConf = join(global.Server.NginxDir, `common/conf/enable-php-${v}.conf`)
-        copyFile(tmplConf, enablePhpConf)
+        copyFile(tmplConf, enablePhpConf, () => {})
       })
     }
 

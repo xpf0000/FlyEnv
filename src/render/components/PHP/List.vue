@@ -1,5 +1,8 @@
 <template>
   <ul ref="fileDroper" class="php-versions-list">
+    <li v-if="!versions?.length" class="http-serve-item none">
+      未检测到已安装版本, 请在版本管理里安装或者自行安装PHP版本
+    </li>
     <li v-for="(item, key) in versions" :key="key" class="http-serve-item">
       <div class="left">
         <div class="title">
@@ -196,6 +199,7 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    height: 100%;
     overflow: auto;
 
     .http-serve-item {
