@@ -110,6 +110,12 @@ export default class ConfigManager {
       this.config.set('setup.common.showItem.Hosts', true)
       this.config.set('setup.common.showItem.Php', true)
     }
+    if (!this.config.has('appFix')) {
+      this.config.set('appFix', {})
+    }
+    if (!this.config.has('appFix.nginxEnablePhp')) {
+      this.config.set('appFix.nginxEnablePhp', false)
+    }
   }
 
   getConfig(key, defaultValue) {

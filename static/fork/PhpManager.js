@@ -98,13 +98,13 @@ class PhpManager extends BaseManager {
 
   _resetEnablePhpConf(version) {
     return new Promise((resolve) => {
-      const confPath = join(global.Server.NginxDir, 'common/conf/enable-php.conf')
+      const v = version.version.split('.').slice(0, 2).join('')
+      let confPath = join(global.Server.NginxDir, 'common/conf/enable-php.conf')
       if (existsSync(confPath)) {
         let content = readFileSync(confPath, 'utf-8')
-        const find = content.match(/fastcgi_pass  unix:\/tmp\/php-cgi-([\d]+?)\.sock;/g)
+        const find = content.match(/fastcgi_pass  unix:\/tmp\/php(.*?)\.sock;/g)
         const find1 = content.match(/fastcgi_pass  127\.0\.0\.1:9000;/g)
-        const v = version.version.split('.').slice(0, 2).join('')
-        const replace = `fastcgi_pass  unix:/tmp/php-cgi-${v}.sock;`
+        const replace = `fastcgi_pass  unix:/tmp/phpwebstudy-php-cgi-${v}.sock;`
         content = content.replace(find1?.[0], replace)
         content = content.replace(find?.[0], replace)
         writeFileSync(confPath, content)
@@ -117,12 +117,17 @@ class PhpManager extends BaseManager {
     return new Promise((resolve) => {
       const hostFile = join(global.Server.BaseDir, 'host.json')
       let hostList = []
+      let hasError = false
       if (existsSync(hostFile)) {
         try {
           hostList = JSON.parse(readFileSync(hostFile, 'utf-8'))
         } catch (e) {
+          hasError = true
           console.log(e)
         }
+      }
+      if (hasError) {
+        resolve(true)
       }
       const setPhpVersion = (host) => {
         const name = host.name
@@ -145,7 +150,7 @@ class PhpManager extends BaseManager {
         if (existsSync(avhost)) {
           let content = readFileSync(avhost, 'utf-8')
           const find = content.match(/SetHandler "proxy:(.*?)"/g)
-          const replace = `SetHandler "proxy:unix:/tmp/php-cgi-${v}.sock|fcgi://localhost"`
+          const replace = `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${v}.sock|fcgi://localhost"`
           content = content.replace(find?.[0], replace)
           writeFileSync(avhost, content)
         }

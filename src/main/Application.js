@@ -11,7 +11,13 @@ import UpdateManager from './core/UpdateManager'
 import { join } from 'path'
 import { copyFile, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { fork, execSync } from 'child_process'
-const { createFolder, chmod, readFileAsync, writeFileAsync } = require('../shared/file.js')
+const {
+  createFolder,
+  chmod,
+  readFileAsync,
+  writeFileAsync,
+  getAllFile
+} = require('../shared/file.js')
 const { execAsync, isAppleSilicon } = require('../shared/utils.js')
 const compressing = require('compressing')
 const execPromise = require('child-process-promise').exec
@@ -174,6 +180,34 @@ export default class Application extends EventEmitter {
         .catch()
     }
     let enablePhpConf = join(global.Server.NginxDir, 'common/conf/enable-php-80.conf')
+    if (!this.configManager.getConfig('appFix.nginxEnablePhp')) {
+      if (existsSync(enablePhpConf)) {
+        unlinkSync(enablePhpConf)
+      }
+      const vhostPath = join(global.Server.BaseDir, 'vhost/apache')
+      const files = getAllFile(vhostPath)
+      files.forEach((f) => {
+        let content = readFileSync(f, 'utf-8')
+        content = content.replace(
+          'proxy:unix:/tmp/php-cgi-',
+          'proxy:unix:/tmp/phpwebstudy-php-cgi-'
+        )
+        writeFileSync(f, content)
+      })
+      const enablePhpBaseConf = join(global.Server.NginxDir, 'common/conf/enable-php.conf')
+      if (existsSync(enablePhpBaseConf)) {
+        let content = readFileSync(enablePhpBaseConf, 'utf-8')
+        content = content.replace('unix:/tmp/php-cgi-', 'unix:/tmp/phpwebstudy-php-cgi-')
+        writeFileSync(enablePhpBaseConf, content)
+      }
+      const phpDirFiles = getAllFile(global.Server.PhpDir)
+      phpDirFiles.forEach((f) => {
+        if (f.includes('php-fpm.conf')) {
+          unlinkSync(f)
+        }
+      })
+      this.configManager.setConfig('appFix.nginxEnablePhp', true)
+    }
     if (!existsSync(enablePhpConf)) {
       const confDir = join(global.Server.NginxDir, 'common/conf/')
       createFolder(confDir)

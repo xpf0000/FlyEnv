@@ -66,14 +66,14 @@ export function getSubDir(fp, fullpath = true) {
     return arr
   }
   const stat = fs.statSync(fp)
-  if (stat.isDirectory()) {
+  if (stat.isDirectory() && !stat.isSymbolicLink()) {
     try {
       let files = fs.readdirSync(fp)
       files.forEach(function (item) {
         let fPath = path.join(fp, item)
         if (fs.existsSync(fPath)) {
           let stat = fs.statSync(fPath)
-          if (stat.isDirectory()) {
+          if (stat.isDirectory() && !stat.isSymbolicLink()) {
             arr.push(fullpath ? fPath : item)
           }
         }

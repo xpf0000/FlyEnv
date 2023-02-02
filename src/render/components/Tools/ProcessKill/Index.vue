@@ -3,15 +3,19 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-        <span class="ml-15">Port Kill</span>
+        <span class="ml-15">Process Kill</span>
       </div>
     </div>
 
     <div class="main-wapper">
       <div class="main">
-        <el-input v-model.number="port" placeholder="Please input port" class="input-with-select">
+        <el-input
+          v-model="searchKey"
+          placeholder="Please input search key"
+          class="input-with-select"
+        >
           <template #append>
-            <el-button :icon="Search" :disabled="!port" @click="doSearch" />
+            <el-button :icon="Search" :disabled="!searchKey" @click="doSearch" />
           </template>
         </el-input>
 
@@ -32,9 +36,9 @@
             @selection-change="handleSelectionChange"
           >
             <el-table-column type="selection" width="55" />
+            <el-table-column prop="USER" label="USER" width="110"> </el-table-column>
+            <el-table-column prop="PID" label="PID" width="90"> </el-table-column>
             <el-table-column prop="COMMAND" label="COMMAND"> </el-table-column>
-            <el-table-column prop="PID" label="PID"> </el-table-column>
-            <el-table-column prop="USER" label="USER"> </el-table-column>
           </el-table>
         </div>
       </div>
@@ -49,13 +53,12 @@
   const { execSync } = require('child_process')
 
   export default {
-    name: 'MoPortKill',
     components: {},
     props: {},
     data() {
       return {
         Search: markRaw(Search),
-        port: '',
+        searchKey: '',
         arrs: [],
         select: []
       }
@@ -121,21 +124,26 @@
       doSearch() {
         this.arrs.splice(0)
         const res = execSync(
-          `echo '${global.Server.Password}' | sudo -S lsof -nP -i:${this.port} | awk '{print $1,$2,$3}'`
+          `echo '${global.Server.Password}' | sudo -S ps aux | grep '${this.searchKey}'`
         )
           .toString()
           .trim()
         const arr = res
           .split('\n')
-          .filter((v, i) => {
-            return i > 0
+          .filter((v) => {
+            return !v.includes(`grep ${this.searchKey}`) && !v.includes(`grep '${this.searchKey}'`)
           })
           .map((a) => {
             const list = a.split(' ').filter((s) => {
               return s.trim().length > 0
             })
-            const USER = list.pop()
-            const PID = list.pop()
+            const USER = list.shift()
+            const PID = list.shift()
+            Array(8)
+              .fill(0)
+              .forEach(() => {
+                list.shift()
+              })
             const COMMAND = list.join(' ')
             return {
               USER,
@@ -144,7 +152,7 @@
             }
           })
         if (arr.length === 0) {
-          this.$message.warning('此端口未被占用')
+          this.$message.warning('未查询到相关进程')
           return
         }
         this.arrs.splice(0)

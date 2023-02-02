@@ -31,6 +31,10 @@
         />
         <span>Port Kill</span>
       </li>
+      <li @click="showPage('processkill')">
+        <yb-icon :svg="import('@/svg/process.svg?raw')" width="30" height="30" style="padding: 0" />
+        <span>Process Kill</span>
+      </li>
     </ul>
     <el-drawer
       ref="host-edit-drawer"
@@ -76,6 +80,9 @@
             break
           case 'portkill':
             this.component = markRaw(defineAsyncComponent(() => import('./PortKill/index.vue')))
+            break
+          case 'processkill':
+            this.component = markRaw(defineAsyncComponent(() => import('./ProcessKill/index.vue')))
             break
         }
       },

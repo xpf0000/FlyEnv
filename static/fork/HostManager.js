@@ -69,6 +69,31 @@ class HostManager {
       }
     }
 
+    const writeHostFile = () => {
+      writeFileSync(hostfile, JSON.stringify(hostList))
+      process.send({
+        command: this.ipcCommand,
+        key: this.ipcCommandKey,
+        info: {
+          code: 0,
+          msg: 'SUCCESS',
+          hosts: hostList
+        }
+      })
+    }
+
+    const sendError = (err) => {
+      console.log(err)
+      process.send({
+        command: this.ipcCommand,
+        key: this.ipcCommandKey,
+        info: {
+          code: 1,
+          msg: err
+        }
+      })
+    }
+
     let addApachePort = true
     let addApachePortSSL = true
 
@@ -87,63 +112,23 @@ class HostManager {
           .then(() => {
             console.log('hostfile: ', hostfile)
             hostList.unshift(host)
-            writeFileSync(hostfile, JSON.stringify(hostList))
-            process.send({
-              command: this.ipcCommand,
-              key: this.ipcCommandKey,
-              info: {
-                code: 0,
-                msg: 'SUCCESS',
-                hosts: hostList
-              }
-            })
+            writeHostFile()
           })
           .catch((err) => {
-            console.log(err)
-            process.send({
-              command: this.ipcCommand,
-              key: this.ipcCommandKey,
-              info: {
-                code: 1,
-                msg: err
-              }
-            })
+            sendError(err)
           })
         break
       case 'del':
         this._delVhost(host)
           .then(() => {
-            let index = -1
-            hostList.some((h, i) => {
-              if (h.id === host.id) {
-                index = i
-                return true
-              }
-              return false
-            })
+            const index = hostList.findIndex((h) => h.id === host.id)
             if (index >= 0) {
               hostList.splice(index, 1)
             }
-            writeFileSync(hostfile, JSON.stringify(hostList))
-            process.send({
-              command: this.ipcCommand,
-              key: this.ipcCommandKey,
-              info: {
-                code: 0,
-                msg: 'SUCCESS',
-                hosts: hostList
-              }
-            })
+            writeHostFile()
           })
           .catch((err) => {
-            process.send({
-              command: this.ipcCommand,
-              key: this.ipcCommandKey,
-              info: {
-                code: 1,
-                msg: err
-              }
-            })
+            sendError(err)
           })
         break
       case 'edit':
@@ -152,37 +137,14 @@ class HostManager {
             return this._addVhost(host, addApachePort, addApachePortSSL)
           })
           .then(() => {
-            let index = -1
-            hostList.some((h, i) => {
-              if (h.id === old.id) {
-                index = i
-                return true
-              }
-              return false
-            })
+            const index = hostList.findIndex((h) => h.id === old.id)
             if (index >= 0) {
               hostList[index] = host
             }
-            writeFileSync(hostfile, JSON.stringify(hostList))
-            process.send({
-              command: this.ipcCommand,
-              key: this.ipcCommandKey,
-              info: {
-                code: 0,
-                msg: 'SUCCESS',
-                hosts: hostList
-              }
-            })
+            writeHostFile()
           })
           .catch((err) => {
-            process.send({
-              command: this.ipcCommand,
-              key: this.ipcCommandKey,
-              info: {
-                code: 1,
-                msg: err
-              }
-            })
+            sendError(err)
           })
         break
     }
@@ -280,7 +242,7 @@ class HostManager {
           .replace(/#Port_Apache_SSL#/g, host.port.apache_ssl)
           .replace(
             /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
-            `SetHandler "proxy:unix:/tmp/php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
+            `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
           )
 
         if (addApachePort) {
