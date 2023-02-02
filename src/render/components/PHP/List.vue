@@ -54,6 +54,10 @@
               <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
               <span class="ml-15">扩展</span>
             </li>
+            <li @click.stop="action(item, key, 'brewLink')">
+              <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
+              <span class="ml-15">设置为全局版本</span>
+            </li>
           </ul>
 
           <template #reference>
@@ -71,6 +75,7 @@
   import { mapGetters } from 'vuex'
   import { startService, stopService } from '@/util/Service.js'
   import installedVersions from '@/util/InstalledVersions.js'
+  import IPC from '@/util/IPC.js'
   const { shell } = require('@electron/remote')
 
   export default {
@@ -164,6 +169,18 @@
                 })
                 .then()
             })
+            break
+          case 'brewLink':
+            IPC.send('app-fork:php', 'doLinkVersion', JSON.parse(JSON.stringify(item))).then(
+              (key, res) => {
+                IPC.off(key)
+                if (res?.code === 0) {
+                  this.$message.success('操作成功')
+                } else {
+                  this.$message.error(res.msg)
+                }
+              }
+            )
             break
         }
       },

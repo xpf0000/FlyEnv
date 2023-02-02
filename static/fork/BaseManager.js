@@ -69,20 +69,31 @@ class BaseManager {
           if (v) {
             const opt = this._fixEnv()
             const command = `brew unlink ${v} && brew link --overwrite --force ${v}`
-            console.log('_linkVersion command: ', command)
             execPromise(command, opt)
-              .then((res) => {
-                console.log('_linkVersion res: ', res.stdout)
+              .then(() => {
+                resolve(true)
               })
-              .catch((err) => {
-                console.log('_linkVersion command err: ', err)
+              .catch((e) => {
+                resolve(e.toString())
               })
+          } else {
+            resolve('版本有误,请重新选择')
           }
         } catch (e) {
-          console.log('_linkVersion err: ', e)
+          resolve(e.toString())
         }
+      } else {
+        resolve('请先选择版本')
       }
-      resolve(true)
+    })
+  }
+
+  doLinkVersion(version) {
+    this._linkVersion(version).then((res) => {
+      this._processSend({
+        code: typeof res === 'boolean' ? 0 : 1,
+        msg: res
+      })
     })
   }
 
