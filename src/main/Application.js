@@ -180,6 +180,7 @@ export default class Application extends EventEmitter {
         .catch()
     }
     let enablePhpConf = join(global.Server.NginxDir, 'common/conf/enable-php-80.conf')
+    // 修复1.0.33预览版本的问题 php的sock改成phpwebstudy-php-cgi-xx.sock, 避免和其他应用冲突
     if (!this.configManager.getConfig('appFix.nginxEnablePhp')) {
       if (existsSync(enablePhpConf)) {
         unlinkSync(enablePhpConf)

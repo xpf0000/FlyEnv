@@ -100,13 +100,11 @@ class PhpManager extends BaseManager {
     return new Promise((resolve) => {
       const v = version.version.split('.').slice(0, 2).join('')
       let confPath = join(global.Server.NginxDir, 'common/conf/enable-php.conf')
-      if (existsSync(confPath)) {
-        let content = readFileSync(confPath, 'utf-8')
-        const find = content.match(/fastcgi_pass  unix:\/tmp\/php(.*?)\.sock;/g)
-        const find1 = content.match(/fastcgi_pass  127\.0\.0\.1:9000;/g)
+      let tmplPath = join(global.Server.Static, 'tmpl/enable-php.conf')
+      if (existsSync(tmplPath)) {
+        let content = readFileSync(tmplPath, 'utf-8')
         const replace = `fastcgi_pass  unix:/tmp/phpwebstudy-php-cgi-${v}.sock;`
-        content = content.replace(find1?.[0], replace)
-        content = content.replace(find?.[0], replace)
+        content = content.replace('fastcgi_pass  unix:/tmp/phpwebstudy-php-cgi-80.sock;', replace)
         writeFileSync(confPath, content)
       }
       resolve(true)
