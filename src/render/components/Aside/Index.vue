@@ -211,6 +211,7 @@
   import { startService, stopService } from '@/util/Service.js'
   import { passwordCheck } from '@/util/Brew.js'
   import installedVersions from '@/util/InstalledVersions.js'
+  import IPC from '@/util/IPC.js'
 
   export default {
     name: 'MoAside',
@@ -365,12 +366,66 @@
           this.mysqlVersion?.running ||
           this.redisVersion?.running
         )
+      },
+      trayStore() {
+        return {
+          apache: {
+            show: this.common.showItem.Apache,
+            disabled: this.apacheDisabled,
+            run: this.apacheVersion?.run,
+            running: this.apacheVersion?.running
+          },
+          memcached: {
+            show: this.common.showItem.Memcached,
+            disabled: this.memcachedDisabled,
+            run: this.memcachedVersion?.run,
+            running: this.memcachedVersion?.running
+          },
+          mysql: {
+            show: this.common.showItem.Mysql,
+            disabled: this.mysqlDisabled,
+            run: this.mysqlVersion?.run,
+            running: this.mysqlVersion?.running
+          },
+          nginx: {
+            show: this.common.showItem.Nginx,
+            disabled: this.nginxDisabled,
+            run: this.nginxVersion?.run,
+            running: this.nginxVersion?.running
+          },
+          password: this?.config?.password,
+          php: {
+            show: this.common.showItem.Php,
+            disabled: this.phpDisable,
+            run: this.phpRunning,
+            running: this.phpVersions.some((v) => v.running)
+          },
+          redis: {
+            show: this.common.showItem.Redis,
+            disabled: this.redisDisabled,
+            run: this.redisVersion?.run,
+            running: this.redisVersion?.running
+          }
+        }
       }
     },
     watch: {
       server: {
         handler(v) {
           console.log('watch server: ', v)
+        },
+        deep: true
+      },
+      groupIsRunning(val) {
+        IPC.send('Application:tray-status-change', val).then((key) => {
+          IPC.off(key)
+        })
+      },
+      trayStore: {
+        handler(v) {
+          IPC.send('APP:Tray-Store-Sync', JSON.parse(JSON.stringify(v))).then((key) => {
+            IPC.off(key)
+          })
         },
         deep: true
       }
@@ -382,6 +437,10 @@
       installedVersions.allInstalledVersions('apache')
       installedVersions.allInstalledVersions('memcached')
       installedVersions.allInstalledVersions('redis')
+      IPC.on('APP:Tray-Command').then((key, fn, arg) => {
+        console.log('on APP:Tray-Command', key, fn, arg)
+        this?.[fn] && this[fn](arg)
+      })
     },
     mounted() {
       console.log('Aside mounted server: ', this.server)

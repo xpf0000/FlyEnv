@@ -2,12 +2,14 @@ import { EventEmitter } from 'events'
 import { app, BrowserWindow, screen, shell } from 'electron'
 import pageConfig from '../configs/page'
 import { debounce } from 'lodash'
+import Event = Electron.Main.Event
+import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions
 
 const { initialize, enable } = require('@electron/remote/main')
 
 initialize()
 
-const defaultBrowserOptions = {
+const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
   show: false,
   width: 1024,
@@ -15,52 +17,96 @@ const defaultBrowserOptions = {
   webPreferences: {
     nodeIntegration: true,
     contextIsolation: false,
-    enableRemoteModule: false,
+    webSecurity: false
+  }
+}
+const trayBrowserOptions: BrowserWindowConstructorOptions = {
+  autoHideMenuBar: true,
+  disableAutoHideCursor: true,
+  frame: false,
+  movable: false,
+  resizable: false,
+  show: false,
+  width: 300,
+  height: 500,
+  transparent: true,
+  webPreferences: {
+    nodeIntegration: true,
+    contextIsolation: false,
     webSecurity: false
   }
 }
 export default class WindowManager extends EventEmitter {
-  constructor(options = {}) {
+  configManager: any
+  userConfig: any
+  windows: { [key: string]: BrowserWindow }
+  willQuit: boolean
+
+  constructor(options: { [key: string]: any } = {}) {
     super()
     this.configManager = options.configManager
     this.userConfig = this.configManager.getConfig()
-
     this.windows = {}
-
-    this.captureWins = []
-
     this.willQuit = false
-
     this.handleBeforeQuit()
-
     this.handleAllWindowClosed()
   }
 
-  setWillQuit(flag) {
+  setWillQuit(flag: boolean) {
     this.willQuit = flag
   }
 
-  getPageOptions(page) {
-    const result = pageConfig[page] || {}
-    // Optimized for small screen users
+  getPageOptions(page: string) {
+    const result = pageConfig[page]
     const { width, height } = screen.getPrimaryDisplay().workAreaSize
     const widthScale = width >= 1280 ? 1 : 0.875
     const heightScale = height >= 800 ? 1 : 0.875
-    result.attrs.width *= widthScale
-    result.attrs.height *= heightScale
+    if (result?.attrs?.width) {
+      result.attrs.width *= widthScale
+    }
+    if (result?.attrs?.height) {
+      result.attrs.height *= heightScale
+    }
     return result
   }
 
-  getPageBounds(page) {
+  getPageBounds(page: string) {
     const windowStateMap = this.userConfig['window-state'] || {}
     return windowStateMap[page]
   }
 
-  openWindow(page, options = {}) {
+  openTrayWindow() {
+    const page = 'tray'
+    let window = this.windows.tray
+    if (window) {
+      window.show()
+      window.focus()
+      return window
+    }
+    const pageOptions = this.getPageOptions(page)
+    window = new BrowserWindow(trayBrowserOptions)
+    enable(window.webContents)
+    window.loadURL(pageOptions.url).then()
+    window.on('close', (event: Event) => {
+      if (pageOptions.bindCloseToHide && !this.willQuit) {
+        event.preventDefault()
+        window.hide()
+      }
+    })
+    window.on('blur', (event: Event) => {
+      event.preventDefault()
+      window.hide()
+    })
+    this.bindAfterClosed(page, window)
+    this.addWindow(page, window)
+    return window
+  }
+
+  openWindow(page: string, options: { [key: string]: any } = {}) {
     const pageOptions = this.getPageOptions(page)
     const { hidden } = options
     console.log('pageOptions: ', pageOptions)
-    let window = this.windows[page] || null
+    let window = this.windows[page]
     if (window) {
       window.show()
       window.focus()
@@ -71,7 +117,6 @@ export default class WindowManager extends EventEmitter {
       ...defaultBrowserOptions,
       ...pageOptions.attrs
     })
-    // window.webContents.openDevTools()
     enable(window.webContents)
     const bounds = this.getPageBounds(page)
     console.log('bounds ====>', bounds)
@@ -104,7 +149,7 @@ export default class WindowManager extends EventEmitter {
     return window
   }
 
-  getWindow(page) {
+  getWindow(page: string): BrowserWindow {
     return this.windows[page]
   }
 
@@ -116,30 +161,33 @@ export default class WindowManager extends EventEmitter {
     return Object.values(this.getWindows())
   }
 
-  addWindow(page, window) {
+  addWindow(page: string, window: BrowserWindow) {
     this.windows[page] = window
   }
 
-  destroyWindow(page) {
+  destroyWindow(page: string) {
     const win = this.getWindow(page)
     this.removeWindow(page)
-    win.removeListener('closed')
-    win.removeListener('move')
-    win.removeListener('resize')
+    win.removeAllListeners('closed')
+    win.removeAllListeners('move')
+    win.removeAllListeners('resize')
     win.destroy()
   }
 
-  removeWindow(page) {
-    this.windows[page] = null
+  removeWindow(page: string) {
+    delete this.windows[page]
   }
 
-  bindAfterClosed(page, window) {
+  bindAfterClosed(page: string, window: BrowserWindow) {
     window.on('closed', () => {
       this.removeWindow(page)
     })
   }
 
-  handleWindowState(page, window) {
+  handleWindowState(page: string, window: BrowserWindow) {
+    if (page !== 'index') {
+      return
+    }
     window.on(
       'resize',
       debounce(() => {
@@ -157,26 +205,28 @@ export default class WindowManager extends EventEmitter {
     )
   }
 
-  handleWindowClose(pageOptions, page, window) {
-    window.on('close', (event) => {
+  handleWindowClose(pageOptions: { [key: string]: any }, page: string, window: BrowserWindow) {
+    window.on('close', (event: Event) => {
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
         window.hide()
+        app.dock.hide()
       }
       const bounds = window.getBounds()
       this.emit('window-closed', { page, bounds })
     })
   }
 
-  showWindow(page) {
+  showWindow(page: string) {
     const window = this.getWindow(page)
     if (!window) {
       return
     }
     window.show()
+    app.dock.show().then()
   }
 
-  hideWindow(page) {
+  hideWindow(page: string) {
     const window = this.getWindow(page)
     if (!window) {
       return
@@ -190,7 +240,7 @@ export default class WindowManager extends EventEmitter {
     })
   }
 
-  toggleWindow(page) {
+  toggleWindow(page: string) {
     const window = this.getWindow(page)
     if (!window) {
       return
@@ -213,19 +263,19 @@ export default class WindowManager extends EventEmitter {
   }
 
   handleAllWindowClosed() {
-    app.on('window-all-closed', (event) => {
+    app.on('window-all-closed', (event: Event) => {
       event.preventDefault()
     })
   }
 
-  sendCommandTo(window, command, ...args) {
+  sendCommandTo(window: BrowserWindow, command: string, ...args: any) {
     if (!window) {
       return
     }
     window.webContents.send('command', command, ...args)
   }
 
-  sendMessageTo(window, channel, ...args) {
+  sendMessageTo(window: BrowserWindow, channel: string, ...args: any) {
     if (!window) {
       return
     }

@@ -3,14 +3,13 @@ import { app, ipcMain } from 'electron'
 import is from 'electron-is'
 import logger from './core/Logger'
 import ConfigManager from './core/ConfigManager'
-import WindowManager from './ui/WindowManager'
+import WindowManager from './ui/WindowManager.ts'
 import MenuManager from './ui/MenuManager'
-import TouchBarManager from './ui/TouchBarManager'
-import ThemeManager from './ui/ThemeManager'
 import UpdateManager from './core/UpdateManager'
 import { join } from 'path'
 import { copyFile, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { fork, execSync } from 'child_process'
+import TrayManager from './ui/TrayManager.js'
 const {
   createFolder,
   chmod,
@@ -37,13 +36,30 @@ export default class Application extends EventEmitter {
     this.configManager = new ConfigManager()
     this.menuManager = new MenuManager()
     this.menuManager.setup()
-    this.initTouchBarManager()
     this.initWindowManager()
-    this.initThemeManager()
+    this.initTrayManager()
     this.initUpdaterManager()
     this.initServerDir()
     this.handleCommands()
     this.handleIpcMessages()
+  }
+
+  initTrayManager() {
+    this.trayManager = new TrayManager()
+    this.trayManager.on('click', (x, poperX) => {
+      if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
+        this?.trayWindow?.setPosition(x, 0)
+        this?.trayWindow?.show()
+        this.windowManager.sendCommandTo(
+          this.trayWindow,
+          'APP:Poper-Left',
+          'APP:Poper-Left',
+          poperX
+        )
+      } else {
+        this?.trayWindow?.hide()
+      }
+    })
   }
 
   _fixEnv() {
@@ -70,7 +86,7 @@ export default class Application extends EventEmitter {
     })
     this.pty.onData((data) => {
       console.log('pty.onData: ', data)
-      this.sendCommandToAll('NodePty:data', 'NodePty:data', data)
+      this.windowManager.sendCommandTo(this.mainWindow, 'NodePty:data', 'NodePty:data', data)
       if (data.includes('\r')) {
         this.ptyLastData = data
       } else {
@@ -92,7 +108,7 @@ export default class Application extends EventEmitter {
     } catch (e) {}
     if (this.ptyLast) {
       const { command, key } = this.ptyLast
-      this.sendCommandToAll(command, key, true)
+      this.windowManager.sendCommandTo(this.mainWindow, command, key, true)
       this.ptyLast = null
     }
     this.pty = null
@@ -293,11 +309,13 @@ export default class Application extends EventEmitter {
       console.log('ready-to-show !!!')
       this.isReady = true
       this.emit('ready')
-      this.sendCommandToAll('APP-Ready-To-Show', 'APP-Ready-To-Show', true)
+      this.windowManager.sendCommandTo(win, 'APP-Ready-To-Show', true)
+      const trayWin = this.windowManager.openTrayWindow()
+      this.trayWindow = trayWin
+      trayWin.once('ready-to-show', () => {
+        this.windowManager.sendCommandTo(win, 'APP-Store-Sync')
+      })
     })
-    if (is.macOS()) {
-      this.touchBarManager.setup(page, win)
-    }
   }
 
   show(page = 'index') {
@@ -415,13 +433,6 @@ export default class Application extends EventEmitter {
     })
   }
 
-  initThemeManager() {
-    this.themeManager = new ThemeManager()
-    this.themeManager.on('system-theme-changed', (theme) => {
-      this.sendCommandToAll('application:system-theme', 'application:system-theme', theme)
-    })
-  }
-
   initUpdaterManager() {
     if (is.mas()) {
       return
@@ -432,13 +443,6 @@ export default class Application extends EventEmitter {
     } catch (err) {
       console.log('initUpdaterManager err: ', err)
     }
-  }
-
-  initTouchBarManager() {
-    if (!is.macOS()) {
-      return
-    }
-    this.touchBarManager = new TouchBarManager()
   }
 
   relaunch() {
@@ -475,11 +479,6 @@ export default class Application extends EventEmitter {
     this.on('application:reset', () => {
       this.configManager.reset()
       this.relaunch()
-    })
-
-    this.on('application:change-theme', (theme) => {
-      this.themeManager.updateAppAppearance(theme)
-      this.sendCommandToAll('application:theme', 'application:theme', theme)
     })
 
     this.on('application:change-menu-states', (visibleStates, enabledStates, checkedStates) => {
@@ -538,10 +537,10 @@ export default class Application extends EventEmitter {
           if (command === 'application:global-server-updata') {
             console.log('child on message: ', info)
             global.Server = JSON.parse(JSON.stringify(info))
-            this.sendCommandToAll(command, key, global.Server)
+            this.windowManager.sendCommandTo(this.mainWindow, command, key, global.Server)
             return
           }
-          this.sendCommandToAll(command, key, info)
+          this.windowManager.sendCommandTo(this.mainWindow, command, key, info)
           // 0 成功 1 失败 200 过程
           if (typeof info === 'object' && (info?.code === 0 || info?.code === 1)) {
             child.disconnect()
@@ -557,11 +556,11 @@ export default class Application extends EventEmitter {
             console.log(res)
             this.configManager.setConfig('password', pass)
             global.Server.Password = pass
-            this.sendCommandToAll(command, key, pass)
+            this.windowManager.sendCommandTo(this.mainWindow, command, key, pass)
           })
           .catch((err) => {
             console.log('err: ', err)
-            this.sendCommandToAll(command, key, false)
+            this.windowManager.sendCommandTo(this.mainWindow, command, key, false)
           })
         return
       case 'app:brew-install':
@@ -578,6 +577,15 @@ export default class Application extends EventEmitter {
           window.maximize()
         }
         break
+      case 'Application:tray-status-change':
+        this.trayManager.iconChange(args[0])
+        break
+      case 'APP:Tray-Store-Sync':
+        this.windowManager.sendCommandTo(this.trayWindow, command, command, args[0])
+        break
+      case 'APP:Tray-Command':
+        this.windowManager.sendCommandTo(this.mainWindow, command, command, ...args)
+        break
       case 'Application:APP-Close':
         this.windowManager.getFocusedWindow().close()
         break
@@ -585,7 +593,7 @@ export default class Application extends EventEmitter {
         this.mainWindow.webContents.openDevTools()
         break
       case 'application:about':
-        this.sendCommandToAll(command, key)
+        this.windowManager.sendCommandTo(this.mainWindow, command, key)
         break
       case 'app-http-serve-run':
         const path = args[0]
@@ -611,7 +619,7 @@ export default class Application extends EventEmitter {
             port,
             host
           }
-          this.sendCommandToAll(command, key, {
+          this.windowManager.sendCommandTo(this.mainWindow, command, key, {
             path,
             port,
             host
@@ -626,7 +634,7 @@ export default class Application extends EventEmitter {
           httpServe1.server.close()
           delete this.httpServes[path1]
         }
-        this.sendCommandToAll(command, key, {
+        this.windowManager.sendCommandTo(this.mainWindow, command, key, {
           path: path1
         })
         break

@@ -53,6 +53,10 @@ const buildConfig: UserConfig = {
     outDir: '../../dist/render',
     assetsDir: 'static',
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, '../src/render/index.html'),
+        iframe: path.resolve(__dirname, 'src/renderIframe/index.html')
+      },
       output: {
         entryFileNames: 'static/js/[name].[hash].js',
         chunkFileNames: 'static/js/[name].[hash].js',

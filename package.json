@@ -37,6 +37,7 @@
     "node-pty": "^0.10.1",
     "normalize.css": "^8.0.1",
     "path-browserify": "^1.0.1",
+    "pinia": "^2.0.30",
     "serve": "^14.0.1",
     "svg-inline-loader": "^0.8.2",
     "tiny-emitter": "^2.1.0",
