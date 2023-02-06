@@ -55,7 +55,7 @@ const buildConfig: UserConfig = {
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, '../src/render/index.html'),
-        iframe: path.resolve(__dirname, 'src/renderIframe/index.html')
+        tray: path.resolve(__dirname, '../src/render/tray.html')
       },
       output: {
         entryFileNames: 'static/js/[name].[hash].js',
