@@ -80,14 +80,16 @@
   </el-drawer>
 </template>
 
-<script>
-  import { mapGetters } from 'vuex'
-  import { handleHost } from '@/util/Host.js'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { handleHost } from '@/util/Host'
   import ConfigView from './Vhost.vue'
-  import IPC from '@/util/IPC.js'
+  import IPC from '@/util/IPC'
+  import { AppStore } from '@/store/app'
+  import { EventBus } from '@/global'
   const { shell } = require('@electron/remote')
 
-  export default {
+  export default defineComponent({
     name: 'MoHostList',
     components: { ConfigView },
     props: {},
@@ -101,31 +103,33 @@
       }
     },
     computed: {
-      ...mapGetters('app', {
-        hosts: 'hosts',
-        writeHosts: 'writeHosts'
-      })
+      hosts() {
+        return AppStore().hosts
+      },
+      writeHosts() {
+        return AppStore().config.setup.hosts.write
+      }
     },
     watch: {},
     created: function () {
       console.log('this.hosts: ', this.hosts)
       if (!this.hosts || this.hosts.length === 0) {
-        this.$store.dispatch('app/initHost')
+        AppStore().initHost()
       }
     },
     mounted() {
-      IPC.send('app-fork:host', 'writeHosts', this.writeHosts).then((key) => {
+      IPC.send('app-fork:host', 'writeHosts', this.writeHosts).then((key: string) => {
         IPC.off(key)
       })
     },
     unmounted() {},
     methods: {
-      showConfig(flag) {
+      showConfig(flag: string) {
         console.log(global.Server, flag)
         this.configItem = flag
         this.show = true
       },
-      action(item, index, flag) {
+      action(item: any, index: number, flag: string) {
         console.log('item: ', item)
         this.task_index = index
         switch (flag) {
@@ -133,13 +137,13 @@
             shell.showItemInFolder(item.root)
             break
           case 'edit':
-            this.$baseEventBus.emit('Host-Edit-Item', item)
+            EventBus.emit('Host-Edit-Item', item)
             break
           case 'log':
-            this.$baseEventBus.emit('Host-Logs-Item', item)
+            EventBus.emit('Host-Logs-Item', item)
             break
           case 'del':
-            this.$baseConfirm('确认删除?', null, {
+            this.$baseConfirm('确认删除?', undefined, {
               customClass: 'confirm-del',
               type: 'warning'
             })
@@ -159,12 +163,13 @@
               .show()
             break
         }
-        const poper = this.$refs['host-list-poper-' + this.task_index][0]
+        // @ts-ignore
+        const poper = this?.$refs?.['host-list-poper-' + this.task_index]?.[0]
         console.log('poper: ', poper)
         poper && poper.hide()
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

@@ -20,15 +20,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+  import { defineComponent } from 'vue'
   import Versions from '../VersionSwtich/index.vue'
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
-  import { mapGetters } from 'vuex'
+  import { AppStore } from '@/store/app'
 
-  export default {
+  export default defineComponent({
     name: 'MoNginxPanel',
     components: {
       [Config.name]: Config,
@@ -45,11 +46,8 @@
       }
     },
     computed: {
-      ...mapGetters('app', {
-        server: 'server'
-      }),
       version() {
-        return this.server?.nginx?.current?.version
+        return AppStore().config.server?.nginx?.current?.version
       }
     },
     watch: {},
@@ -59,7 +57,7 @@
       }
     },
     methods: {}
-  }
+  })
 </script>
 
 <style lang="scss">

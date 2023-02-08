@@ -81,21 +81,23 @@
   </el-drawer>
 </template>
 
-<script>
-  import IPC from '@/util/IPC.js'
-  import { mapGetters } from 'vuex'
-  import { getAllFile } from '@shared/file.js'
-  import { execAsync } from '@shared/utils.js'
-  import { reloadService } from '@/util/Service.js'
-  import { VueExtend } from '@/core/VueExtend.js'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import IPC from '@/util/IPC'
+  import { getAllFile } from '@shared/file'
+  import { execAsync } from '@shared/utils'
+  import { reloadService } from '@/util/Service'
+  import { VueExtend } from '@/core/VueExtend'
+  import { BrewStore, SoftInstalled } from '@/store/brew'
+  import { TaskStore } from '@/store/task'
 
   const { join } = require('path')
   const { clipboard } = require('@electron/remote')
 
-  export default {
-    show(data) {
+  export default defineComponent({
+    show(data: any) {
       return new Promise(() => {
-        let dom = document.createElement('div')
+        let dom: HTMLElement | null = document.createElement('div')
         document.body.appendChild(dom)
         let vm = VueExtend(this, data)
         const intance = vm.mount(dom)
@@ -205,12 +207,12 @@
       }
     },
     computed: {
-      ...mapGetters('brew', {
-        brewRunning: 'brewRunning'
-      }),
-      ...mapGetters('task', {
-        taskPhp: 'php'
-      }),
+      brewRunning() {
+        return BrewStore().brewRunning
+      },
+      taskPhp() {
+        return TaskStore().php
+      },
       serverRunning() {
         return this.version?.run
       },
@@ -261,7 +263,7 @@
       },
       logLength() {
         this.$nextTick(() => {
-          let container = this.$refs['logs']
+          let container: HTMLElement = this.$refs['logs'] as HTMLElement
           if (container) {
             container.scrollTop = container.scrollHeight
           }
@@ -302,16 +304,16 @@
               return s.indexOf('.so') >= 0
             })
             console.log('all: ', all)
-            for (let item of this.showTableData) {
+            this.showTableData.forEach((item: any) => {
               item.installed = all.indexOf(item.soname) >= 0
               item.status = item.installed
               item.soPath = join(this.installExtensionDir, item.soname)
-            }
+            })
             this.taskPhp.extendRefreshing = false
           })
         }
       },
-      handleEdit(index, row) {
+      handleEdit(index: number, row: any) {
         console.log(index, row)
         if (this.extendRunning) {
           return
@@ -329,13 +331,13 @@
             installExtensionDir: this.installExtensionDir
           })
         )
-        IPC.send('app-fork:php', fn, args).then((key, res) => {
+        IPC.send('app-fork:php', fn, args).then((key: string, res: any) => {
           console.log(res)
           if (res.code === 0) {
             IPC.off(key)
             this.taskPhp.extendRunning = false
             if (this.serverRunning) {
-              reloadService('php', this.version)
+              reloadService('php', this.version as SoftInstalled)
             }
             this.$message.success('操作成功')
             this.getTableData()
@@ -357,14 +359,14 @@
         this.taskPhp.currentExtend = ''
         this.taskPhp.extendAction = ''
       },
-      copyLink(index, row) {
+      copyLink(index: number, row: any) {
         console.log(index, row)
         const pre = row?.extendPre ?? 'extension='
         const txt = `${pre}${row.soPath}`
         clipboard.writeText(txt)
         this.$message.success('扩展链接已复制到剪贴板')
       },
-      copyXDebugTmpl(index, row) {
+      copyXDebugTmpl(index: number, row: any) {
         console.log(index, row)
         const txt = `[xdebug]
 ;这里给出一个通用模板,需要根据自己修改具体配置项
@@ -389,7 +391,7 @@ xdebug.output_dir = /tmp`
         this.$message.success('xdebug配置模板已复制到剪贴板')
       }
     }
-  }
+  })
 </script>
 <style lang="scss">
   .host-vhost {

@@ -1,17 +1,15 @@
 import { createApp, toRaw, markRaw } from 'vue'
-import store from '../store/index.js'
-import router from '../router/index.js'
-import Base from './Base.js'
+import router from '../router/index'
+import Base from './Base'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
-import SVGIcons from '../components/YbSvgIcon/index.js'
-import PoperFix from './directive/PoperFix/index.ts'
-import Tour from './directive/Tour/index.ts'
+import SVGIcons from '../components/YbSvgIcon/index'
+import PoperFix from './directive/PoperFix/index'
+import Tour from './directive/Tour/index'
 
-export function VueExtend(App, data = null) {
+export function VueExtend(App: any, data?: any) {
   const app = createApp(App, data)
-  app.use(store)
   app.use(router)
   app.use(PoperFix)
   app.use(SVGIcons, 'ybIcon')

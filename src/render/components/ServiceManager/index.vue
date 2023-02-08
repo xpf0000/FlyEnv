@@ -61,14 +61,15 @@
   </div>
 </template>
 
-<script>
-  import { mapGetters } from 'vuex'
-  import { AppMixins } from '@/mixins/AppMixins.js'
-  import { reloadService, startService, stopService } from '@/util/Service.js'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { reloadService, startService, stopService } from '@/util/Service'
+  import { AppSofts, AppStore } from '@/store/app'
+  import { BrewStore } from '@/store/brew'
+  import { TaskStore } from '@/store/task'
 
-  export default {
+  export default defineComponent({
     components: {},
-    mixins: [AppMixins],
     props: {
       typeFlag: {
         type: String,
@@ -84,37 +85,19 @@
       showReloadBtn() {
         return this.typeFlag !== 'memcached'
       },
-      ...mapGetters('brew', {
-        php: 'php',
-        nginx: 'nginx',
-        apache: 'apache',
-        memcached: 'memcached',
-        mysql: 'mysql',
-        redis: 'redis'
-      }),
-      ...mapGetters('task', {
-        taskApache: 'apache',
-        taskNginx: 'nginx',
-        taskPhp: 'php',
-        taskMemcached: 'memcached',
-        taskMysql: 'mysql',
-        taskRedis: 'redis'
-      }),
+      version() {
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        return AppStore().config.server[flag].current
+      },
       currentVersion() {
-        return this?.[this.typeFlag]?.installed?.find(
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        return BrewStore()[flag].installed?.find(
           (i) => i.path === this?.version?.path && i.version === this?.version?.version
         )
       },
       currentTask() {
-        const dict = {
-          apache: this.taskApache,
-          nginx: this.taskNginx,
-          php: this.taskPhp,
-          memcached: this.taskMemcached,
-          mysql: this.taskMysql,
-          redis: this.taskRedis
-        }
-        return dict[this.typeFlag]
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        return TaskStore()[flag]
       },
       isRunning() {
         return this?.currentVersion?.running
@@ -126,7 +109,12 @@
         return this?.currentVersion?.run
       },
       disabled() {
-        return this.isRunning || !this?.currentVersion?.version || !this?.currentVersion?.path
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        return (
+          BrewStore()[flag].installed?.some((i) => i.running) ||
+          !this?.currentVersion?.version ||
+          !this?.currentVersion?.path
+        )
       },
       versionTxt() {
         const v = this?.currentVersion?.version
@@ -150,27 +138,28 @@
       }
     },
     methods: {
-      serviceDo(flag) {
+      serviceDo(flag: string) {
         if (!this?.currentVersion?.version || !this?.currentVersion?.path) {
           return
         }
         this.logs.splice(0)
         this.current_task = flag
+        const typeFlag: keyof typeof AppSofts = this.typeFlag as any
         switch (flag) {
           case 'stop':
-            stopService(this.typeFlag, this.currentVersion)
+            stopService(typeFlag, this.currentVersion)
             break
           case 'start':
           case 'restart':
-            startService(this.typeFlag, this.currentVersion)
+            startService(typeFlag, this.currentVersion)
             break
           case 'reload':
-            reloadService(this.typeFlag, this.currentVersion)
+            reloadService(typeFlag, this.currentVersion)
             break
         }
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

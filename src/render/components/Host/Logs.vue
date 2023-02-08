@@ -23,32 +23,39 @@
   </div>
 </template>
 
-<script>
-  import { writeFileAsync, readFileAsync } from '@shared/file.js'
-  import { AppMixins } from '@/mixins/AppMixins.js'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { writeFileAsync, readFileAsync } from '@shared/file'
+  import { AppStore } from '@/store/app'
+  import { EventBus } from '@/global'
 
   const { existsSync } = require('fs')
   const { exec } = require('child-process-promise')
   const { join } = require('path')
   const { shell } = require('@electron/remote')
 
-  export default {
+  export default defineComponent({
     name: 'MoHostLogs',
     components: {},
-    mixins: [AppMixins],
     props: {},
     data() {
       return {
         type: '',
         name: '',
         filepath: '',
-        log: ''
+        log: '',
+        logfile: {}
+      }
+    },
+    computed: {
+      password() {
+        return AppStore().config.password
       }
     },
     watch: {},
     created: function () {},
     methods: {
-      logDo(flag) {
+      logDo(flag: string) {
         switch (flag) {
           case 'open':
             shell.showItemInFolder(this.filepath)
@@ -64,14 +71,14 @@
               })
               .catch(() => {
                 if (!this.password) {
-                  this.$baseEventBus.emit('vue:need-password')
+                  EventBus.emit('vue:need-password')
                 } else {
                   exec(`echo '${this.password}' | sudo -S chmod 777 ${this.filepath}`)
                     .then(() => {
                       this.logDo('clean')
                     })
                     .catch(() => {
-                      this.$baseEventBus.emit('vue:need-password')
+                      EventBus.emit('vue:need-password')
                     })
                 }
               })
@@ -93,9 +100,10 @@
           this.log = '当前无日志'
         }
       },
-      initType(type) {
+      initType(type: string) {
         this.type = type
-        this.filepath = this.logfile[type]
+        const logFile: { [key: string]: string } = this.logfile
+        this.filepath = logFile[type]
         this.getLog()
       },
       init() {
@@ -112,7 +120,7 @@
         }
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

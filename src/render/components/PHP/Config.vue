@@ -27,25 +27,26 @@
   </el-drawer>
 </template>
 
-<script>
-  import { readFileAsync, writeFileAsync } from '@shared/file.js'
-  import { reloadService } from '@/util/Service.js'
+<script lang="ts">
+  import { readFileAsync, writeFileAsync } from '@shared/file'
+  import { reloadService } from '@/util/Service'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import IPC from '@/util/IPC.js'
-  import { nextTick } from 'vue'
-  import { VueExtend } from '@/core/VueExtend.js'
+  import IPC from '@/util/IPC'
+  import { nextTick, defineComponent } from 'vue'
+  import { VueExtend } from '@/core/VueExtend'
+  import type { SoftInstalled } from '@/store/brew'
 
   const { existsSync } = require('fs')
   const { shell } = require('@electron/remote')
 
-  const IniFiles = {}
+  const IniFiles: { [key: string]: any } = {}
 
-  export default {
-    show(data) {
+  export default defineComponent({
+    show(data: any) {
       return new Promise(() => {
-        let dom = document.createElement('div')
+        let dom: HTMLElement | null = document.createElement('div')
         document.body.appendChild(dom)
         let vm = VueExtend(this, data)
         const intance = vm.mount(dom)
@@ -122,7 +123,7 @@
         writeFileAsync(this.configpath, content).then(() => {
           this.$message.success('配置文件保存成功')
           if (this.phpRunning) {
-            reloadService('php', this.version)
+            reloadService('php', this.version as SoftInstalled)
           }
         })
       },
@@ -139,7 +140,7 @@
           })
         }
         if (!IniFiles[this.versionDir]) {
-          IPC.send('app-fork:php', 'getIniPath', this.versionDir).then((key, res) => {
+          IPC.send('app-fork:php', 'getIniPath', this.versionDir).then((key: string, res: any) => {
             console.log(res)
             IPC.off(key)
             if (res.code === 0) {
@@ -170,10 +171,11 @@
       },
       initEditor() {
         if (!this.monacoInstance) {
-          if (!this?.$refs?.input?.style) {
+          const input: HTMLElement = this?.$refs?.input as HTMLElement
+          if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(this.$refs.input, {
+          this.monacoInstance = editor.create(input, {
             value: this.config,
             language: 'ini',
             theme: 'vs-dark',
@@ -186,7 +188,7 @@
         }
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

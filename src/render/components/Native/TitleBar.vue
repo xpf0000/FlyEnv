@@ -1,43 +1,18 @@
 <template>
   <div class="title-bar">
     <div class="title-bar-dragger"></div>
-    <ul v-if="isWin" class="window-actions">
-      <li @click="handleMinimize">
-        <yb-icon :svg="import('../../svg/minimize.svg?raw')" width="12" height="12" />
-      </li>
-      <li @click="handleMaximize">
-        <yb-icon :svg="import('../../svg/maximize.svg?raw')" width="12" height="12" />
-      </li>
-      <li class="win-close-btn" @click="handleClose">
-        <yb-icon :svg="import('../../svg/close.svg?raw')" width="12" height="12" />
-      </li>
-    </ul>
   </div>
 </template>
 
 <script>
-  import IPC from '../../util/IPC.js'
-
   export default {
     name: 'MoTitleBar',
     props: {},
     data() {
-      return {
-        isWin: process.platform === 'win32'
-      }
+      return {}
     },
     computed: {},
-    methods: {
-      handleMinimize: function () {
-        IPC.send('Application:APP-Minimize')
-      },
-      handleMaximize: function () {
-        IPC.send('Application:APP-Maximize')
-      },
-      handleClose: function () {
-        IPC.send('Application:APP-Close')
-      }
-    }
+    methods: {}
   }
 </script>
 
@@ -61,7 +36,7 @@
       -webkit-user-select: none;
     }
     .window-actions {
-      opacity: 1.0;
+      opacity: 1;
       transition: $--fade-transition;
       list-style: none;
       padding: 0;

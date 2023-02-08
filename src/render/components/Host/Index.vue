@@ -36,14 +36,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+  import { defineComponent } from 'vue'
   import Edit from './Edit.vue'
   import List from './List.vue'
   import Logs from './Logs.vue'
-  import { mapGetters } from 'vuex'
-  import IPC from '@/util/IPC.js'
-  import { EventBus } from '@/global.js'
-  export default {
+  import IPC from '@/util/IPC'
+  import { AppStore } from '@/store/app'
+  import { EventBus } from '@/global'
+  export default defineComponent({
     name: 'MoHostPanel',
     components: {
       [Edit.name]: Edit,
@@ -60,49 +61,46 @@
       }
     },
     computed: {
-      ...mapGetters('app', {
-        setup: 'setup'
-      }),
       hostsSet() {
-        return this.setup.hosts
+        return AppStore().config.setup.hosts
       }
     },
     watch: {
       'hostsSet.write': {
         handler(val) {
-          IPC.send('app-fork:host', 'writeHosts', val).then((key) => {
+          IPC.send('app-fork:host', 'writeHosts', val).then((key: string) => {
             IPC.off(key)
             this.$message.success('操作成功')
           })
-          this.$store.dispatch('app/saveConfig').then()
+          AppStore().saveConfig()
         }
       }
     },
     created: function () {
-      this.$baseEventBus.on('Host-Edit-Close', this.HostEditClose)
-      this.$baseEventBus.on('Host-Edit-Item', this.HostEditItem)
-      this.$baseEventBus.on('Host-Logs-Item', this.HostLogsItem)
+      EventBus.on('Host-Edit-Close', this.HostEditClose)
+      EventBus.on('Host-Edit-Item', this.HostEditItem)
+      EventBus.on('Host-Logs-Item', this.HostLogsItem)
     },
     unmounted() {
-      this.$baseEventBus.off('Host-Edit-Close', this.HostEditClose)
-      this.$baseEventBus.off('Host-Edit-Item', this.HostEditItem)
-      this.$baseEventBus.off('Host-Logs-Item', this.HostLogsItem)
+      EventBus.off('Host-Edit-Close', this.HostEditClose)
+      EventBus.off('Host-Edit-Item', this.HostEditItem)
+      EventBus.off('Host-Logs-Item', this.HostLogsItem)
     },
     methods: {
-      HostLogsItem(data) {
+      HostLogsItem(data: any) {
         this.logshow = true
         this.$nextTick(() => {
-          let ref = this.$refs['host-logs']
+          let ref = this.$refs['host-logs'] as any
           ref.name = data.name
           ref.type = 'nginx-access'
           ref.init()
           ref.initType(ref.type)
         })
       },
-      HostEditItem(data) {
+      HostEditItem(data: any) {
         this.drawer = true
         this.$nextTick(() => {
-          let ref = this.$refs['host-edit']
+          let ref = this.$refs['host-edit'] as any
           let item = Object.assign(ref.item, JSON.parse(JSON.stringify(data)))
           ref.item = item
           ref.edit = JSON.parse(JSON.stringify(item))
@@ -119,7 +117,7 @@
         })
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

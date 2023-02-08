@@ -36,10 +36,12 @@
   </div>
 </template>
 
-<script>
-  import { mapGetters } from 'vuex'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { AppSofts, AppStore } from '@/store/app'
+  import { BrewStore } from '@/store/brew'
   const { dialog } = require('@electron/remote')
-  export default {
+  export default defineComponent({
     components: {},
     props: {
       typeFlag: {
@@ -51,11 +53,12 @@
       return {}
     },
     computed: {
-      ...mapGetters('app', {
-        setup: 'setup'
-      }),
+      setup() {
+        return AppStore().config.setup
+      },
       common() {
-        return this.setup[this.typeFlag]
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        return this.setup[flag]
       },
       dirs() {
         return this.common.dirs
@@ -64,43 +67,46 @@
     watch: {
       dirs: {
         handler() {
-          this.$store.dispatch('app/saveConfig')
-          this.$store.commit('brew/RESET_BREW_INSTALLED_INITED', this.typeFlag)
+          const flag: keyof typeof AppSofts = this.typeFlag as any
+          AppStore().saveConfig()
+          BrewStore()[flag].installedInited = false
         },
         deep: true
       }
     },
     created: function () {},
     methods: {
-      addDir(index) {
+      addDir(index: number) {
         let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
         dialog
           .showOpenDialog({
             properties: opt
           })
-          .then(({ canceled, filePaths }) => {
+          .then(({ canceled, filePaths }: any) => {
             if (canceled || filePaths.length === 0) {
               return
             }
             const [path] = filePaths
-            this.$store.commit('app/SET_CUSTOM_DIR', {
-              typeFlag: this.typeFlag,
+            const flag: keyof typeof AppSofts = this.typeFlag as any
+            AppStore().SET_CUSTOM_DIR({
+              typeFlag: flag,
               dir: path,
               index: index
             })
           })
       },
-      chooseDir(index) {
+      chooseDir(index: number) {
         this.addDir(index)
       },
-      delDir(index) {
-        this.$store.commit('app/DEL_CUSTOM_DIR', {
-          typeFlag: this.typeFlag,
+      delDir(index: number) {
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        AppStore().DEL_CUSTOM_DIR({
+          typeFlag: flag,
           index: index
         })
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

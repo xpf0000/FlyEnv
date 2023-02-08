@@ -1,6 +1,8 @@
-import { ipcRenderer } from '../global.js'
-import { uuid } from './Index.js'
+import { ipcRenderer } from '@/global'
+import { uuid } from './Index'
 class IPC {
+  listens: { [key: string]: Function }
+
   constructor() {
     this.listens = {}
     ipcRenderer.on('command', (e, command, key, ...args) => {
@@ -12,24 +14,24 @@ class IPC {
       }
     })
   }
-  send(command, ...args) {
+  send(command: string, ...args: any) {
     const key = 'IPC-Key-' + uuid()
     console.log('command send: ', command, key, args)
     ipcRenderer.send('command', command, key, ...args)
     return {
-      then: (callback) => {
+      then: (callback: Function) => {
         this.listens[key] = callback
       }
     }
   }
-  on(command) {
+  on(command: string) {
     return {
-      then: (callback) => {
+      then: (callback: Function) => {
         this.listens[command] = callback
       }
     }
   }
-  off(command) {
+  off(command: string) {
     delete this.listens[command]
   }
 }

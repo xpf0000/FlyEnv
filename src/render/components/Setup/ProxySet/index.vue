@@ -49,10 +49,11 @@
   </el-form>
 </template>
 
-<script>
-  import { mapGetters } from 'vuex'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { AppStore } from '@/store/app'
   const { clipboard } = require('@electron/remote')
-  export default {
+  export default defineComponent({
     components: {},
     props: {},
     data() {
@@ -64,14 +65,14 @@
       }
     },
     computed: {
-      ...mapGetters('app', {
-        proxy: 'proxy'
-      })
+      proxy() {
+        return AppStore().config.setup.proxy
+      }
     },
     watch: {
       'proxy.on': {
         handler() {
-          this.$store.dispatch('app/saveConfig').then()
+          AppStore().saveConfig()
         }
       }
     },
@@ -84,7 +85,7 @@
         this.proxy.fastProxy = this.fastProxy
         this.proxy.proxy = `export https_proxy=http://${this.fastProxy} http_proxy=http://${this.fastProxy} all_proxy=socks5://${this.fastProxy} HTTPS_PROXY=http://${this.fastProxy} HTTP_PROXY=http://${this.fastProxy} ALL_PROXY=socks5://${this.fastProxy}`
         this.fastEdit = false
-        this.$store.dispatch('app/saveConfig').then()
+        AppStore().saveConfig()
       },
       copyProxy() {
         clipboard.writeText(this?.proxy?.proxy ?? '')
@@ -97,8 +98,8 @@
       proxySubmit() {
         this.proxy.proxy = this.proxyStr
         this.proxyEdit = false
-        this.$store.dispatch('app/saveConfig').then()
+        AppStore().saveConfig()
       }
     }
-  }
+  })
 </script>

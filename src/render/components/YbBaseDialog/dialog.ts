@@ -1,10 +1,17 @@
 import DialogView from './index.vue'
-import { VueExtend } from '../../core/VueExtend.js'
+import { VueExtend } from '@/core/VueExtend'
 import { markRaw, toRaw } from 'vue'
 class BaseDialog {
-  constructor(component) {
+  private _component: any
+  private _resolve: Function | undefined
+  private _componentData: Object
+  private _dialogWidth: string
+  private _dialogClassName: string
+  private _dialogTitle: string
+  private _dialogFooter: undefined | boolean
+
+  constructor(component: any) {
     this._component = component
-    this._resolve = null
     this._componentData = {}
     this._dialogWidth = '50%'
     this._dialogClassName = ''
@@ -17,7 +24,7 @@ class BaseDialog {
    * @param d
    * @returns {Dialog}
    */
-  data(d) {
+  data(d: Object) {
     this._componentData = d
     return this
   }
@@ -27,7 +34,7 @@ class BaseDialog {
    * @param w
    * @returns {Dialog}
    */
-  width(w) {
+  width(w: string) {
     this._dialogWidth = w
     return this
   }
@@ -37,7 +44,7 @@ class BaseDialog {
    * @param c
    * @returns {Dialog}
    */
-  className(c) {
+  className(c: string) {
     this._dialogClassName = c
     return this
   }
@@ -47,7 +54,7 @@ class BaseDialog {
    * @param t
    * @returns {Dialog}
    */
-  title(t) {
+  title(t: string) {
     this._dialogTitle = t
     return this
   }
@@ -67,17 +74,17 @@ class BaseDialog {
    */
   show() {
     const document = window?.parent?.document ?? window.document
-    let dom = document.createElement('div')
+    let dom: HTMLElement | null = document.createElement('div')
     dom.style.position = 'relative'
     dom.style.zIndex = '2000'
     document.body.appendChild(dom)
-    this._component.then((res) => {
+    this._component.then((res: any) => {
       const view = res.default
       // 弹窗标题 优先级 方法设置 > 页面设置
-      let title = view.title ?? this._dialogTitle ?? '弹窗标题'
+      const title = view.title ?? this._dialogTitle ?? '弹窗标题'
       // 是否显示底部按钮 默认显示 优先级 方法设置 > 页面设置
-      let footer = this._dialogFooter ?? view.dialogFooterShow ?? true
-      let opt = {
+      const footer = this._dialogFooter ?? view.dialogFooterShow ?? true
+      const opt = {
         show: true,
         footerShow: footer,
         title: title,
@@ -86,15 +93,15 @@ class BaseDialog {
         width: this._dialogWidth,
         className: this._dialogClassName
       }
-      let vm = VueExtend(DialogView, opt)
-      let intance = vm.mount(dom)
+      let vm = VueExtend(DialogView, opt) as any
+      const intance = vm.mount(dom!) as any
       intance.onClosed = () => {
-        dom.remove()
+        dom?.remove()
         dom = null
         vm.unmount()
         vm = null
       }
-      intance.callBack = (res, close = true) => {
+      intance.callBack = (res: any, close = true) => {
         if (close) {
           intance.close()
         }
@@ -109,7 +116,7 @@ class BaseDialog {
    * @param callBack
    * @returns {Dialog}
    */
-  then(callBack) {
+  then(callBack: Function) {
     this._resolve = callBack
     return this
   }

@@ -9,18 +9,20 @@
   </div>
 </template>
 
-<script>
-  import { writeFileAsync, readFileAsync } from '@shared/file.js'
-  import { AppMixins } from '@/mixins/AppMixins.js'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { writeFileAsync, readFileAsync } from '@shared/file'
+  import { AppStore } from '@/store/app'
+  import { EventBus } from '@/global'
 
   const { existsSync } = require('fs')
   const { exec } = require('child-process-promise')
   const { join } = require('path')
   const { shell } = require('@electron/remote')
-  export default {
+
+  export default defineComponent({
     name: 'MoRedisLogs',
     components: {},
-    mixins: [AppMixins],
     props: {},
     data() {
       return {
@@ -28,12 +30,17 @@
         log: ''
       }
     },
+    computed: {
+      password() {
+        return AppStore().config.password
+      }
+    },
     watch: {},
     created: function () {
       this.init()
     },
     methods: {
-      logDo(flag) {
+      logDo(flag: string) {
         switch (flag) {
           case 'open':
             shell.showItemInFolder(this.filepath)
@@ -49,14 +56,14 @@
               })
               .catch(() => {
                 if (!this.password) {
-                  this.$baseEventBus.emit('vue:need-password')
+                  EventBus.emit('vue:need-password')
                 } else {
                   exec(`echo '${this.password}' | sudo -S chmod 777 ${this.filepath}`)
                     .then(() => {
                       this.logDo('clean')
                     })
                     .catch(() => {
-                      this.$baseEventBus.emit('vue:need-password')
+                      EventBus.emit('vue:need-password')
                     })
                 }
               })
@@ -83,7 +90,7 @@
         this.getLog()
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

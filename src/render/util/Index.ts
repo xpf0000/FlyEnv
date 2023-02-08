@@ -1,11 +1,11 @@
 const crypto = require('crypto')
 
-export function md5(str) {
+export function md5(str: string) {
   const md5 = crypto.createHash('md5')
   return md5.update(str).digest('hex')
 }
 
-export function parseTime(time, cFormat) {
+export function parseTime(time: any, cFormat: string) {
   if (arguments.length === 0) {
     return null
   }
@@ -22,7 +22,7 @@ export function parseTime(time, cFormat) {
     }
     date = new Date(time)
   }
-  const formatObj = {
+  const formatObj: { [key: string]: any } = {
     y: date.getFullYear(),
     m: date.getMonth() + 1,
     d: date.getDate(),
@@ -44,7 +44,7 @@ export function parseTime(time, cFormat) {
   return time_str
 }
 
-export function formatTime(time, option) {
+export function formatTime(time: any, option: string) {
   if (('' + time).length === 10) {
     time = parseInt(time) * 1000
   } else {
@@ -53,6 +53,7 @@ export function formatTime(time, option) {
   const d = new Date(time)
   const now = Date.now()
 
+  // @ts-ignore
   const diff = (now - d) / 1000
 
   if (diff < 30) {
@@ -74,7 +75,7 @@ export function formatTime(time, option) {
   }
 }
 
-export function paramObj(url) {
+export function paramObj(url: string) {
   const search = url.split('?')[1]
   if (!search) {
     return {}
@@ -90,75 +91,33 @@ export function paramObj(url) {
   )
 }
 
-export function translateDataToTree(data) {
-  const parent = data.filter((value) => value.parentId === 'undefined' || value.parentId == null)
-  const children = data.filter((value) => value.parentId !== 'undefined' && value.parentId != null)
-  const translator = (parent, children) => {
-    parent.forEach((parent) => {
-      children.forEach((current, index) => {
-        if (current.parentId === parent.id) {
-          const temp = JSON.parse(JSON.stringify(children))
-          temp.splice(index, 1)
-          translator([current], temp)
-          typeof parent.children !== 'undefined'
-            ? parent.children.push(current)
-            : (parent.children = [current])
-        }
-      })
-    })
-  }
-  translator(parent, children)
-  return parent
-}
-
-export function translateTreeToData(data) {
-  const result = []
-  data.forEach((item) => {
-    const loop = (data) => {
-      result.push({
-        id: data.id,
-        name: data.name,
-        parentId: data.parentId
-      })
-      const child = data.children
-      if (child) {
-        for (let i = 0; i < child.length; i++) {
-          loop(child[i])
-        }
-      }
-    }
-    loop(item)
-  })
-  return result
-}
-
-export function tenBitTimestamp(time) {
+export function tenBitTimestamp(time: number) {
   const date = new Date(time * 1000)
   const y = date.getFullYear()
-  let m = date.getMonth() + 1
+  let m: number | string = date.getMonth() + 1
   m = m < 10 ? '' + m : m
-  let d = date.getDate()
+  let d: number | string = date.getDate()
   d = d < 10 ? '' + d : d
-  let h = date.getHours()
+  let h: number | string = date.getHours()
   h = h < 10 ? '0' + h : h
-  let minute = date.getMinutes()
-  let second = date.getSeconds()
+  let minute: number | string = date.getMinutes()
+  let second: number | string = date.getSeconds()
   minute = minute < 10 ? '0' + minute : minute
   second = second < 10 ? '0' + second : second
   return y + '年' + m + '月' + d + '日 ' + h + ':' + minute + ':' + second // 组合
 }
 
-export function thirteenBitTimestamp(time) {
+export function thirteenBitTimestamp(time: number) {
   const date = new Date(time / 1)
   const y = date.getFullYear()
-  let m = date.getMonth() + 1
+  let m: number | string = date.getMonth() + 1
   m = m < 10 ? '' + m : m
-  let d = date.getDate()
+  let d: number | string = date.getDate()
   d = d < 10 ? '' + d : d
-  let h = date.getHours()
+  let h: number | string = date.getHours()
   h = h < 10 ? '0' + h : h
-  let minute = date.getMinutes()
-  let second = date.getSeconds()
+  let minute: number | string = date.getMinutes()
+  let second: number | string = date.getSeconds()
   minute = minute < 10 ? '0' + minute : minute
   second = second < 10 ? '0' + second : second
   return y + '年' + m + '月' + d + '日 ' + h + ':' + minute + ':' + second // 组合
@@ -173,35 +132,19 @@ export function uuid(length = 32) {
   return str
 }
 
-export function random(m, n) {
+export function random(m: number, n: number) {
   return Math.floor(Math.random() * (m - n) + n)
 }
 
-export const on = (function () {
-  return function (element, event, handler, useCapture = false) {
-    if (element && event && handler) {
-      element.addEventListener(event, handler, useCapture)
-    }
-  }
-})()
-
-export const off = (function () {
-  return function (element, event, handler, useCapture = false) {
-    if (element && event) {
-      element.removeEventListener(event, handler, useCapture)
-    }
-  }
-})()
-
-export async function componentParse(component) {
-  let type = Object.prototype.toString.call(component)
+export async function componentParse(component: any) {
+  const type = Object.prototype.toString.call(component)
   let view
   switch (type) {
     case '[object Module]':
       view = component.default
       break
     case '[object Promise]':
-      let res = await component
+      const res = await component
       view = res.default
       break
     default:

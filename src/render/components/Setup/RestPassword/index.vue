@@ -24,12 +24,12 @@
   </el-button-group>
 </template>
 
-<script>
-  import IPC from '@/util/IPC.js'
-  import { mapGetters } from 'vuex'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import IPC from '@/util/IPC'
   import { ElMessageBox } from 'element-plus'
-  import store from '@/store/index.js'
-  export default {
+  import { AppStore } from '@/store/app'
+  export default defineComponent({
     components: {},
     props: {},
     data() {
@@ -38,9 +38,9 @@
       }
     },
     computed: {
-      ...mapGetters('app', {
-        password: 'password'
-      })
+      password() {
+        return AppStore().config.password
+      }
     },
     methods: {
       resetPassword() {
@@ -53,18 +53,22 @@
             if (action === 'confirm') {
               // 去除trim, 有些电脑的密码是空格...
               if (instance.inputValue) {
-                IPC.send('app:password-check', instance.inputValue).then((key, res) => {
-                  IPC.off(key)
-                  if (res === false) {
-                    instance.editorErrorMessage = '密码错误,请重新输入'
-                  } else {
-                    global.Server.Password = res
-                    store.dispatch('app/initConfig').then(() => {
-                      done && done()
-                      this.$message.success('密码重设成功')
-                    })
+                IPC.send('app:password-check', instance.inputValue).then(
+                  (key: string, res: any) => {
+                    IPC.off(key)
+                    if (res === false) {
+                      instance.editorErrorMessage = '密码错误,请重新输入'
+                    } else {
+                      global.Server.Password = res
+                      AppStore()
+                        .initConfig()
+                        .then(() => {
+                          done && done()
+                          this.$message.success('密码重设成功')
+                        })
+                    }
                   }
-                })
+                )
               }
             } else {
               done()
@@ -77,7 +81,7 @@
           })
       }
     }
-  }
+  })
 </script>
 <style lang="scss">
   .password-prompt {

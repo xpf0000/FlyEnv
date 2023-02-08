@@ -123,3 +123,10 @@ export function uuid(length = 32) {
   }
   return str
 }
+
+export function getLanguage(locale) {
+  if (locale) {
+    return locale
+  }
+  return app.getLocale().split('-')[0]
+}

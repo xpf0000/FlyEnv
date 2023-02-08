@@ -1,9 +1,13 @@
 const { spawn } = require('child_process')
 const os = require('os')
 
-export function execAsync(command, arg = [], options = {}) {
+export function execAsync(
+  command: string,
+  arg: Array<string> = [],
+  options: { [key: string]: any } = {}
+) {
   return new Promise((resolve, reject) => {
-    let optdefault = { env: process.env }
+    const optdefault = { env: process.env }
     if (!optdefault.env['PATH']) {
       optdefault.env['PATH'] =
         '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
@@ -12,7 +16,7 @@ export function execAsync(command, arg = [], options = {}) {
         'PATH'
       ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
     }
-    let opt = { ...optdefault, ...options }
+    const opt = { ...optdefault, ...options }
     if (global.Server.Proxy) {
       for (const k in global.Server.Proxy) {
         opt.env[k] = global.Server.Proxy[k]
@@ -23,17 +27,17 @@ export function execAsync(command, arg = [], options = {}) {
       command = 'arch'
     }
     const cp = spawn(command, arg, opt)
-    let stdout = []
-    let stderr = []
-    cp.stdout.on('data', (data) => {
+    const stdout: Array<Buffer> = []
+    const stderr: Array<Buffer> = []
+    cp.stdout.on('data', (data: Buffer) => {
       stdout.push(data)
     })
 
-    cp.stderr.on('data', (data) => {
+    cp.stderr.on('data', (data: Buffer) => {
       stderr.push(data)
     })
 
-    cp.on('close', (code) => {
+    cp.on('close', (code: number) => {
       const out = Buffer.concat(stdout)
       const err = Buffer.concat(stderr)
       if (code === 0) {
@@ -54,11 +58,7 @@ export function uuid(length = 32) {
   return str
 }
 
-export function hasClass(element, cls) {
-  return (' ' + element.className + ' ').indexOf(cls) > -1
-}
-
-export function formatBytes(bytes, decimals = 2) {
+export function formatBytes(bytes: number, decimals = 2) {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
   const dm = decimals < 0 ? 0 : decimals
@@ -68,6 +68,6 @@ export function formatBytes(bytes, decimals = 2) {
 }
 
 export function isAppleSilicon() {
-  let cpuCore = os.cpus()
+  const cpuCore = os.cpus()
   return cpuCore[0].model.includes('Apple')
 }

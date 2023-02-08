@@ -38,12 +38,12 @@
   </div>
 </template>
 
-<script>
-  import { mapGetters } from 'vuex'
-  import IPC from '@/util/IPC.js'
-  const { exec } = require('child-process-promise')
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import IPC from '@/util/IPC'
+  import { TaskStore } from '@/store/task'
 
-  export default {
+  export default defineComponent({
     name: 'MoNodejsVersions',
     components: {},
     props: {},
@@ -55,9 +55,9 @@
       }
     },
     computed: {
-      ...mapGetters('task', {
-        task: 'node'
-      })
+      task() {
+        return TaskStore().node
+      }
     },
     watch: {
       currentType(nv, ov) {
@@ -84,7 +84,7 @@
           if (this.task.isRunning) {
             return
           }
-          this.$baseConfirm('NodeJS版本管理工具nvm未安装,现在安装?', null, {
+          this.$baseConfirm('NodeJS版本管理工具nvm未安装,现在安装?', undefined, {
             customClass: 'confirm-del',
             type: 'warning'
           }).then(() => {
@@ -99,7 +99,7 @@
             resolve(true)
             return
           }
-          IPC.send('app-fork:node', 'nvmDir').then((key, res) => {
+          IPC.send('app-fork:node', 'nvmDir').then((key: string, res: any) => {
             IPC.off(key)
             if (res?.NVM_DIR) {
               this.task.NVM_DIR = res.NVM_DIR
@@ -113,7 +113,7 @@
       installNvm() {
         this.task.isRunning = true
         this.task.btnTxt = 'nvm安装中...'
-        IPC.send('app-fork:node', 'installNvm').then((key, res) => {
+        IPC.send('app-fork:node', 'installNvm').then((key: string, res: any) => {
           IPC.off(key)
           this.task.isRunning = false
           if (res?.code === 0) {
@@ -131,7 +131,7 @@
         }
         this.task.btnTxt = '版本获取中...'
         this.task.getVersioning = true
-        IPC.send('app-fork:node', 'allVersion', this.task.NVM_DIR).then((key, res) => {
+        IPC.send('app-fork:node', 'allVersion', this.task.NVM_DIR).then((key: string, res: any) => {
           IPC.off(key)
           if (res?.versions) {
             this.task.versions = res.versions
@@ -145,20 +145,23 @@
         })
       },
       getLocalVersion() {
-        IPC.send('app-fork:node', 'localVersion', this.task.NVM_DIR).then((key, res) => {
-          IPC.off(key)
-          if (res?.versions) {
-            this.localVersions.splice(0)
-            this.localVersions.push(...res.versions)
-            this.current = res.current
+        IPC.send('app-fork:node', 'localVersion', this.task.NVM_DIR).then(
+          (key: string, res: any) => {
+            IPC.off(key)
+            if (res?.versions) {
+              const localVersions: Array<any> = this.localVersions
+              localVersions.splice(0)
+              localVersions.push(...res.versions)
+              this.current = res.current
+            }
           }
-        })
+        )
       },
       versionChange() {
         this.task.isRunning = true
         this.task.btnTxt = '切换中...'
         IPC.send('app-fork:node', 'versionChange', this.task.NVM_DIR, this.select).then(
-          (key, res) => {
+          (key: string, res: any) => {
             IPC.off(key)
             if (res?.code === 0) {
               this.task.btnTxt = '切换'
@@ -174,7 +177,7 @@
         )
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

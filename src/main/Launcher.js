@@ -30,11 +30,8 @@ export default class Launcher extends EventEmitter {
       app.on('second-instance', (event, argv, workingDirectory) => {
         logger.warn('second-instance====>', argv, workingDirectory)
         global.application.showPage('index')
-        if (!is.macOS() && argv.length > 1) {
-          this.handleAppLaunchArgv(argv)
-        }
+        app.dock.show().then()
       })
-
       callback()
     }
   }

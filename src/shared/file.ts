@@ -1,20 +1,20 @@
 const fs = require('fs')
 const path = require('path')
 
-export function getAllFile(fp, fullpath = true) {
-  let arr = []
+export function getAllFile(fp: string, fullpath = true) {
+  let arr: Array<string> = []
   if (!fs.existsSync(fp)) {
     return arr
   }
   if (fs.statSync(fp).isFile()) {
     return [fp]
   }
-  let files = fs.readdirSync(fp)
-  files.forEach(function (item) {
-    let fPath = path.join(fp, item)
-    let stat = fs.statSync(fPath)
+  const files = fs.readdirSync(fp)
+  files.forEach(function (item: string) {
+    const fPath = path.join(fp, item)
+    const stat = fs.statSync(fPath)
     if (stat.isDirectory()) {
-      let sub = getAllFile(fPath, fullpath)
+      const sub = getAllFile(fPath, fullpath)
       arr = arr.concat(sub)
     }
     if (stat.isFile()) {
@@ -24,18 +24,18 @@ export function getAllFile(fp, fullpath = true) {
   return arr
 }
 
-export function getAllFileAsync(fp, fullpath = true) {
-  return new Promise((resolve) => {
-    fs.stat(fp, (_, stat) => {
+export function getAllFileAsync(fp: string, fullpath = true) {
+  return new Promise<Array<string>>((resolve) => {
+    fs.stat(fp, (_: any, stat: any) => {
       if (stat.isFile()) {
         resolve([fp])
       } else if (stat.isDirectory()) {
-        let arr = []
-        let subs = []
-        fs.readdir(fp, (_, paths) => {
+        let arr: Array<string> = []
+        const subs: Array<Promise<Array<string>>> = []
+        fs.readdir(fp, (_: any, paths: Array<string>) => {
           paths.forEach((item, index) => {
-            let fPath = path.join(fp, item)
-            fs.stat(fPath, (_, stat) => {
+            const fPath = path.join(fp, item)
+            fs.stat(fPath, (_: any, stat: any) => {
               if (stat.isDirectory()) {
                 subs.push(getAllFileAsync(fPath, fullpath))
               }
@@ -60,19 +60,19 @@ export function getAllFileAsync(fp, fullpath = true) {
   })
 }
 
-export function getSubDir(fp, fullpath = true) {
-  let arr = []
+export function getSubDir(fp: string, fullpath = true) {
+  const arr: Array<string> = []
   if (!fs.existsSync(fp)) {
     return arr
   }
   const stat = fs.statSync(fp)
   if (stat.isDirectory() && !stat.isSymbolicLink()) {
     try {
-      let files = fs.readdirSync(fp)
-      files.forEach(function (item) {
-        let fPath = path.join(fp, item)
+      const files = fs.readdirSync(fp)
+      files.forEach(function (item: string) {
+        const fPath = path.join(fp, item)
         if (fs.existsSync(fPath)) {
-          let stat = fs.statSync(fPath)
+          const stat = fs.statSync(fPath)
           if (stat.isDirectory() && !stat.isSymbolicLink()) {
             arr.push(fullpath ? fPath : item)
           }
@@ -85,30 +85,30 @@ export function getSubDir(fp, fullpath = true) {
   return arr
 }
 
-export function chmod(fp, mode) {
+export function chmod(fp: string, mode: string) {
   if (fs.statSync(fp).isFile()) {
     fs.chmodSync(fp, mode)
     return
   }
-  let files = fs.readdirSync(fp)
-  files.forEach(function (item) {
-    let fPath = path.join(fp, item)
+  const files = fs.readdirSync(fp)
+  files.forEach(function (item: string) {
+    const fPath = path.join(fp, item)
     fs.chmodSync(fPath, mode)
-    let stat = fs.statSync(fPath)
+    const stat = fs.statSync(fPath)
     if (stat.isDirectory() === true) {
       chmod(fPath, mode)
     }
   })
 }
 
-export function createFolder(fp) {
+export function createFolder(fp: string) {
   fp = fp.replace(/\\/g, '/')
   if (fs.existsSync(fp)) {
     return true
   }
   const arr = fp.split('/')
   let dir = '/'
-  for (let p of arr) {
+  for (const p of arr) {
     dir = path.join(dir, p)
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir)
@@ -117,9 +117,9 @@ export function createFolder(fp) {
   return fs.existsSync(fp)
 }
 
-export function writeFileAsync(fp, content) {
+export function writeFileAsync(fp: string, content: string) {
   return new Promise((resolve, reject) => {
-    fs.writeFile(fp, content, (err) => {
+    fs.writeFile(fp, content, (err: Error) => {
       if (err) {
         reject(err)
       } else {
@@ -129,12 +129,12 @@ export function writeFileAsync(fp, content) {
   })
 }
 
-export function readFileAsync(fp, encode = 'utf-8') {
-  return new Promise((resolve, reject) => {
+export function readFileAsync(fp: string, encode = 'utf-8') {
+  return new Promise<string>((resolve, reject) => {
     if (!fs.existsSync(fp)) {
       reject(new Error(`文件不存在: ${fp}`))
     }
-    fs.readFile(fp, encode, (err, data) => {
+    fs.readFile(fp, encode, (err: Error, data: string) => {
       if (err) {
         reject(err)
       } else {

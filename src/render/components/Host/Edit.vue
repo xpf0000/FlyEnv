@@ -181,19 +181,22 @@
   </div>
 </template>
 
-<script>
-  import { readFileAsync, getAllFileAsync } from '@shared/file.js'
-  import { mapGetters } from 'vuex'
-  import { passwordCheck } from '@/util/Brew.js'
-  import { handleHost } from '@/util/Host.js'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { readFileAsync, getAllFileAsync } from '@shared/file'
+  import { passwordCheck } from '@/util/Brew'
+  import { handleHost } from '@/util/Host'
+  import { AppHost, AppStore } from '@/store/app'
+  import { AppSoftInstalledItem, BrewStore, SoftInstalled } from '@/store/brew'
+  import { EventBus } from '@/global'
 
   const { exec } = require('child-process-promise')
   const { dialog } = require('@electron/remote')
   const { accessSync, constants } = require('fs')
   const { join } = require('path')
 
-  let rewrites = {}
-  export default {
+  let rewrites: { [key: string]: any } = {}
+  export default defineComponent({
     name: 'MoHostEdit',
     components: {},
     props: {},
@@ -219,7 +222,8 @@
             rewrite: ''
           },
           url: '',
-          root: ''
+          root: '',
+          phpVersion: 0
         },
         edit: {},
         errs: {
@@ -230,22 +234,26 @@
           port_nginx: false,
           port_apache: false,
           port_nginx_ssl: false,
-          port_apache_ssl: false
+          port_apache_ssl: false,
+          phpVersion: false
         },
         isEdit: false,
         rewrites: [],
-        rewriteKey: ''
+        rewriteKey: '',
+        rewritePath: ''
       }
     },
     computed: {
-      ...mapGetters('app', {
-        hosts: 'hosts',
-        password: 'password'
-      }),
-      ...mapGetters('brew', {
-        php: 'php'
-      }),
-      phpVersions() {
+      hosts() {
+        return AppStore().hosts
+      },
+      password() {
+        return AppStore().config.password
+      },
+      php(): AppSoftInstalledItem {
+        return BrewStore().php
+      },
+      phpVersions(): Array<SoftInstalled> {
         return this.php?.installed ?? []
       }
     },
@@ -253,6 +261,7 @@
       item: {
         handler() {
           for (let k in this.errs) {
+            // @ts-ignore
             this.errs[k] = false
           }
         },
@@ -274,7 +283,7 @@
     },
     unmounted() {},
     methods: {
-      rewriteChange(item) {
+      rewriteChange(item: any) {
         if (!rewrites[item]) {
           let file = join(this.rewritePath, `${item}.conf`)
           readFileAsync(file).then((content) => {
@@ -286,6 +295,7 @@
         }
       },
       loadRewrite() {
+        const list: Array<string> = this.rewrites
         this.rewritePath = join(global.Server.Static, 'rewrite')
         if (Object.keys(rewrites).length === 0) {
           getAllFileAsync(this.rewritePath, false).then((files) => {
@@ -293,18 +303,17 @@
             for (let file of files) {
               let k = file.replace('.conf', '')
               rewrites[k] = ''
-              this.rewrites.push(k)
+              list.push(k)
             }
           })
         } else {
-          this.rewrites.push(...Object.keys(rewrites))
+          list.push(...Object.keys(rewrites))
         }
       },
       doClose() {
-        console.log('doClose click !!!', this.$baseEventBus)
-        this.$baseEventBus.emit('Host-Edit-Close')
+        EventBus.emit('Host-Edit-Close')
       },
-      chooseRoot(flag, choosefile = false) {
+      chooseRoot(flag: string, choosefile = false) {
         let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
         if (choosefile) {
           opt.push('openFile')
@@ -313,7 +322,7 @@
           .showOpenDialog({
             properties: opt
           })
-          .then(({ canceled, filePaths }) => {
+          .then(({ canceled, filePaths }: any) => {
             if (canceled || filePaths.length === 0) {
               return
             }
@@ -365,6 +374,7 @@
           }
         }
         for (let k in this.errs) {
+          // @ts-ignore
           if (this.errs[k]) {
             return false
           }
@@ -392,7 +402,7 @@
                 return exec(`echo '${this.password}' | sudo -S chmod 777 /private/etc/hosts`)
               })
               .then(() => {
-                handleHost(this.item, flag, this.edit).then(() => {
+                handleHost(this.item, flag, this.edit as AppHost).then(() => {
                   this.running = false
                 })
               })
@@ -401,14 +411,14 @@
                 this.running = false
               })
           } else {
-            handleHost(this.item, flag, this.edit).then(() => {
+            handleHost(this.item, flag, this.edit as AppHost).then(() => {
               this.running = false
             })
           }
         })
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

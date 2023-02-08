@@ -3,7 +3,7 @@
 </template>
 
 <script>
-  import IPC from '@/util/IPC.js'
+  import IPC from '@/util/IPC.ts'
   export default {
     components: {},
     props: {},

@@ -139,7 +139,7 @@ class BaseManager {
       .catch(this._catchError)
   }
 
-  _stopServer(version) {
+  _stopServer() {
     return new Promise((resolve) => {
       try {
         if (existsSync(this.pidPath)) {
@@ -170,13 +170,7 @@ class BaseManager {
             ) {
               continue
             }
-            if (this.type === 'php' && version?.path) {
-              if (p.includes(version.path)) {
-                arr.push(p.split(' ')[0])
-              }
-            } else {
-              arr.push(p.split(' ')[0])
-            }
+            arr.push(p.split(' ')[0])
           }
           console.log('pids 0: ', arr)
           if (arr.length === 0) {

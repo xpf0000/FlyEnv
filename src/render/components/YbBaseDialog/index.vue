@@ -18,14 +18,14 @@
   </el-dialog>
 </template>
 
-<script>
+<script lang="ts">
   /**
    * @author 徐鹏飞 250881478@qq.com
    * @desc 全局通用弹窗组件
    */
-  import { VueExtend } from '../../core/VueExtend.js'
-  import { extend } from 'lodash'
-  export default {
+  import { VueExtend } from '@/core/VueExtend'
+  import { defineComponent } from 'vue'
+  export default defineComponent({
     props: {
       footerShow: {
         type: Boolean,
@@ -102,7 +102,7 @@
         this.vmInstance.onSubmit && this.vmInstance.onSubmit()
       }
     }
-  }
+  })
 </script>
 <style>
   .el-dialog {

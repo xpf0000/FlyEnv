@@ -2,15 +2,7 @@
   <el-aside width="280px" class="aside">
     <div class="aside-inner">
       <ul class="top-tool">
-        <li
-          :class="{
-            'non-draggable': true,
-            'swith-power': true,
-            on: groupIsRunning,
-            disabled: groupDisabled
-          }"
-          @click="groupDo"
-        >
+        <li :class="groupClass" @click="groupDo">
           <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
         </li>
       </ul>
@@ -19,7 +11,7 @@
         <li
           v-if="common.showItem.Hosts"
           :class="'non-draggable' + (currentPage === '/host' ? ' active' : '')"
-          @click="nav('/host', $event)"
+          @click="nav('/host')"
         >
           <div class="left">
             <div class="icon-block">
@@ -32,7 +24,7 @@
         <li
           v-if="common.showItem.Nginx"
           :class="'non-draggable' + (currentPage === '/nginx' ? ' active' : '')"
-          @click="nav('/nginx', $event)"
+          @click="nav('/nginx')"
         >
           <div class="left">
             <div class="icon-block">
@@ -52,7 +44,7 @@
         <li
           v-if="common.showItem.Apache"
           :class="'non-draggable' + (currentPage === '/apache' ? ' active' : '')"
-          @click="nav('/apache', $event)"
+          @click="nav('/apache')"
         >
           <div class="left">
             <div class="icon-block">
@@ -73,7 +65,7 @@
           v-if="common.showItem.Mysql"
           class="non-draggable"
           :class="'non-draggable' + (currentPage === '/mysql' ? ' active' : '')"
-          @click="nav('/mysql', $event)"
+          @click="nav('/mysql')"
         >
           <div class="left">
             <div class="icon-block">
@@ -93,7 +85,7 @@
         <li
           v-if="common.showItem.Php"
           :class="'non-draggable' + (currentPage === '/php' ? ' active' : '')"
-          @click="nav('/php', $event)"
+          @click="nav('/php')"
         >
           <div class="left">
             <div class="icon-block">
@@ -108,7 +100,7 @@
         <li
           v-if="common.showItem.Memcached"
           :class="'non-draggable' + (currentPage === '/memcached' ? ' active' : '')"
-          @click="nav('/memcached', $event)"
+          @click="nav('/memcached')"
         >
           <div class="left">
             <div class="icon-block">
@@ -128,7 +120,7 @@
         <li
           v-if="common.showItem.Redis"
           :class="'non-draggable' + (currentPage === '/redis' ? ' active' : '')"
-          @click="nav('/redis', $event)"
+          @click="nav('/redis')"
         >
           <div class="left">
             <div class="icon-block">
@@ -148,7 +140,7 @@
         <li
           v-if="common.showItem.NodeJS"
           :class="'non-draggable' + (currentPage === '/node' ? ' active' : '')"
-          @click="nav('/node', $event)"
+          @click="nav('/node')"
         >
           <div class="left">
             <div class="icon-block">
@@ -161,7 +153,7 @@
         <li
           v-if="common.showItem.HttpServe"
           :class="'non-draggable' + (currentPage === '/httpServe' ? ' active' : '')"
-          @click="nav('/httpServe', $event)"
+          @click="nav('/httpServe')"
         >
           <div class="left">
             <div class="icon-block">
@@ -179,7 +171,7 @@
         <li
           v-if="common.showItem.Tools"
           :class="'non-draggable' + (currentPage === '/tools' ? ' active' : '')"
-          @click="nav('/tools', $event)"
+          @click="nav('/tools')"
         >
           <div class="left">
             <div class="icon-block">
@@ -192,7 +184,7 @@
       <ul class="menu setup-menu">
         <li
           :class="'non-draggable' + (currentPage === '/setup' ? ' active' : '')"
-          @click="nav('/setup', $event)"
+          @click="nav('/setup')"
         >
           <div class="left">
             <div class="icon-block">
@@ -206,14 +198,17 @@
   </el-aside>
 </template>
 
-<script>
-  import { mapGetters } from 'vuex'
-  import { startService, stopService } from '@/util/Service.js'
-  import { passwordCheck } from '@/util/Brew.js'
-  import installedVersions from '@/util/InstalledVersions.js'
-  import IPC from '@/util/IPC.js'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { startService, stopService } from '@/util/Service'
+  import { passwordCheck } from '@/util/Brew'
+  import installedVersions from '@/util/InstalledVersions'
+  import IPC from '@/util/IPC'
+  import { AppStore } from '@/store/app'
+  import { BrewStore } from '@/store/brew'
+  import type { TrayState } from '@/tray/store/app'
 
-  export default {
+  export default defineComponent({
     name: 'MoAside',
     components: {},
     data: function () {
@@ -222,103 +217,96 @@
       }
     },
     computed: {
-      ...mapGetters('app', {
-        config: 'config',
-        server: 'server'
-      }),
       common() {
-        return this.config?.setup?.common ?? {}
+        return AppStore().config?.setup?.common ?? {}
       },
-      ...mapGetters('brew', {
-        php: 'php',
-        nginx: 'nginx',
-        apache: 'apache',
-        memcached: 'memcached',
-        mysql: 'mysql',
-        redis: 'redis'
-      }),
       nginxVersion() {
-        const current = this.server?.nginx?.current
+        const current = AppStore().config.server?.nginx?.current
         if (!current) {
           return undefined
         }
-        const installed = this?.nginx?.installed
+        const installed = BrewStore()?.nginx?.installed
         return installed?.find((i) => i.path === current?.path && i.version === current?.version)
       },
       mysqlVersion() {
-        const current = this.server?.mysql?.current
+        const current = AppStore().config.server?.mysql?.current
         if (!current) {
           return undefined
         }
-        const installed = this?.mysql?.installed
+        const installed = BrewStore()?.mysql?.installed
         return installed?.find((i) => i.path === current?.path && i.version === current?.version)
       },
       apacheVersion() {
-        const current = this.server?.apache?.current
+        const current = AppStore().config.server?.apache?.current
         if (!current) {
           return undefined
         }
-        const installed = this?.apache?.installed
+        const installed = BrewStore()?.apache?.installed
         return installed?.find((i) => i.path === current.path && i.version === current.version)
       },
       memcachedVersion() {
-        const current = this.server?.memcached?.current
+        const current = AppStore().config.server?.memcached?.current
         if (!current) {
           return undefined
         }
-        const installed = this?.memcached?.installed
+        const installed = BrewStore()?.memcached?.installed
         return installed?.find((i) => i.path === current?.path && i.version === current?.version)
       },
       redisVersion() {
-        const current = this.server?.redis?.current
+        const current = AppStore().config.server?.redis?.current
         if (!current) {
           return undefined
         }
-        const installed = this?.redis?.installed
+        const installed = BrewStore()?.redis?.installed
         return installed?.find((i) => i.path === current?.path && i.version === current?.version)
       },
-      nginxDisabled() {
-        return !this.nginxVersion?.version || this?.nginx?.installed?.some((v) => v.running)
+      nginxDisabled(): boolean {
+        return !this.nginxVersion?.version || BrewStore()?.nginx?.installed?.some((v) => v.running)
       },
-      apacheDisabled() {
-        return !this.apacheVersion?.version || this?.apache?.installed?.some((v) => v.running)
+      apacheDisabled(): boolean {
+        return (
+          !this.apacheVersion?.version || BrewStore()?.apache?.installed?.some((v) => v.running)
+        )
       },
-      mysqlDisabled() {
-        return !this.mysqlVersion?.version || this?.mysql?.installed?.some((v) => v.running)
+      mysqlDisabled(): boolean {
+        return !this.mysqlVersion?.version || BrewStore()?.mysql?.installed?.some((v) => v.running)
       },
-      memcachedDisabled() {
-        return !this.memcachedVersion?.version || this?.memcached?.installed?.some((v) => v.running)
+      memcachedDisabled(): boolean {
+        return (
+          !this.memcachedVersion?.version ||
+          BrewStore()?.memcached?.installed?.some((v) => v.running)
+        )
       },
-      redisDisabled() {
-        return !this.redisVersion?.version || this?.redis?.installed?.some((v) => v.running)
+      redisDisabled(): boolean {
+        return !this.redisVersion?.version || BrewStore()?.redis?.installed?.some((v) => v.running)
       },
-      nginxRunning() {
-        return this.nginxVersion?.run
+      nginxRunning(): boolean {
+        return this.nginxVersion?.run === true
       },
-      mysqlRunning() {
-        return this.mysqlVersion?.run
+      mysqlRunning(): boolean {
+        return this.mysqlVersion?.run === true
       },
-      apacheRunning() {
-        return this.apacheVersion?.run
+      apacheRunning(): boolean {
+        return this.apacheVersion?.run === true
       },
-      memcachedRunning() {
-        return this.memcachedVersion?.run
+      memcachedRunning(): boolean {
+        return this.memcachedVersion?.run === true
       },
-      redisRunning() {
-        return this.redisVersion?.run
+      redisRunning(): boolean {
+        return this.redisVersion?.run === true
       },
       phpVersions() {
-        return this?.php?.installed ?? []
+        return BrewStore()?.php?.installed ?? []
       },
-      phpDisable() {
+      phpDisable(): boolean {
         return this.phpVersions.length === 0 || this.phpVersions.some((v) => v.running)
       },
       phpRunning: {
-        get() {
+        get(): boolean {
           return this.phpVersions.length > 0 && this.phpVersions.some((v) => v.run)
         },
-        set(v) {
-          const all = []
+        set(v: boolean) {
+          const all: Array<Promise<any>> = []
           if (v) {
             this.phpVersions.forEach((v) => {
               all.push(startService('php', v))
@@ -338,7 +326,7 @@
           })
         }
       },
-      groupIsRunning() {
+      groupIsRunning(): boolean {
         return (
           this.nginxRunning ||
           this.apacheRunning ||
@@ -348,63 +336,69 @@
           this.memcachedRunning
         )
       },
-      groupDisabled() {
-        const a =
-          this.nginxVersion?.version ||
-          this.mysqlVersion?.version ||
-          this.apacheVersion?.version ||
-          this.memcachedVersion?.version ||
-          this.redisVersion?.version ||
-          this.phpVersions.length > 0
-        const isPhpTasking = this.phpVersions.some((v) => v.running)
-        return (
-          !a ||
-          this.apacheVersion?.running ||
-          this.nginxVersion?.running ||
-          isPhpTasking ||
-          this.memcachedVersion?.running ||
-          this.mysqlVersion?.running ||
-          this.redisVersion?.running
-        )
+      groupDisabled(): boolean {
+        const allDisabled =
+          this.apacheDisabled &&
+          this.memcachedDisabled &&
+          this.mysqlDisabled &&
+          this.nginxDisabled &&
+          this.phpDisable &&
+          this.redisDisabled
+        const running =
+          this?.apacheVersion?.running === true ||
+          this?.memcachedVersion?.running === true ||
+          this?.mysqlVersion?.running === true ||
+          this?.nginxVersion?.running === true ||
+          this.phpVersions.some((v) => v.running) ||
+          this?.redisVersion?.running === true
+        return allDisabled || running
       },
-      trayStore() {
+      groupClass(): { [ksy: string]: boolean } {
+        return {
+          'non-draggable': true,
+          'swith-power': true,
+          on: this.groupIsRunning,
+          disabled: this.groupDisabled
+        }
+      },
+      trayStore(): TrayState {
         return {
           apache: {
             show: this.common.showItem.Apache,
             disabled: this.apacheDisabled,
-            run: this.apacheVersion?.run,
-            running: this.apacheVersion?.running
+            run: this.apacheVersion?.run === true,
+            running: this.apacheVersion?.running === true
           },
           memcached: {
             show: this.common.showItem.Memcached,
             disabled: this.memcachedDisabled,
-            run: this.memcachedVersion?.run,
-            running: this.memcachedVersion?.running
+            run: this.memcachedVersion?.run === true,
+            running: this.memcachedVersion?.running === true
           },
           mysql: {
             show: this.common.showItem.Mysql,
             disabled: this.mysqlDisabled,
-            run: this.mysqlVersion?.run,
-            running: this.mysqlVersion?.running
+            run: this.mysqlVersion?.run === true,
+            running: this.mysqlVersion?.running === true
           },
           nginx: {
             show: this.common.showItem.Nginx,
             disabled: this.nginxDisabled,
-            run: this.nginxVersion?.run,
-            running: this.nginxVersion?.running
+            run: this.nginxVersion?.run === true,
+            running: this.nginxVersion?.running === true
           },
-          password: this?.config?.password,
+          password: AppStore()?.config?.password,
           php: {
             show: this.common.showItem.Php,
             disabled: this.phpDisable,
-            run: this.phpRunning,
+            run: this.phpRunning === true,
             running: this.phpVersions.some((v) => v.running)
           },
           redis: {
             show: this.common.showItem.Redis,
             disabled: this.redisDisabled,
-            run: this.redisVersion?.run,
-            running: this.redisVersion?.running
+            run: this.redisVersion?.run === true,
+            running: this.redisVersion?.running === true
           }
         }
       }
@@ -417,13 +411,13 @@
         deep: true
       },
       groupIsRunning(val) {
-        IPC.send('Application:tray-status-change', val).then((key) => {
+        IPC.send('Application:tray-status-change', val).then((key: string) => {
           IPC.off(key)
         })
       },
       trayStore: {
         handler(v) {
-          IPC.send('APP:Tray-Store-Sync', JSON.parse(JSON.stringify(v))).then((key) => {
+          IPC.send('APP:Tray-Store-Sync', JSON.parse(JSON.stringify(v))).then((key: string) => {
             IPC.off(key)
           })
         },
@@ -437,14 +431,17 @@
       installedVersions.allInstalledVersions('apache')
       installedVersions.allInstalledVersions('memcached')
       installedVersions.allInstalledVersions('redis')
-      IPC.on('APP:Tray-Command').then((key, fn, arg) => {
+      IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
         console.log('on APP:Tray-Command', key, fn, arg)
+        if (fn === 'switchChange' && arg === 'php') {
+          this.phpRunning = !this.phpRunning
+          return
+        }
+        // @ts-ignore
         this?.[fn] && this[fn](arg)
       })
     },
-    mounted() {
-      console.log('Aside mounted server: ', this.server)
-    },
+    mounted() {},
     methods: {
       groupDo() {
         if (this.groupDisabled) {
@@ -498,9 +495,9 @@
           if (all.length > 0) {
             Promise.all(all)
               .then((res) => {
-                let find = res.find((s) => typeof s === 'string')
+                let find = res.find((s: boolean | string) => typeof s === 'string')
                 if (find) {
-                  this.$message.error(find)
+                  this.$message.error(find as string)
                 } else {
                   this.$message.success('操作成功')
                 }
@@ -511,10 +508,10 @@
           }
         })
       },
-      switchChange(flag) {
+      switchChange(flag: string) {
         passwordCheck().then(() => {
           let fn = null
-          let promise = null
+          let promise: Promise<any> | null = null
           switch (flag) {
             case 'nginx':
               if (!this.nginxVersion?.version) return
@@ -542,7 +539,7 @@
               promise = fn('redis', this.redisVersion)
               break
           }
-          promise.then((res) => {
+          promise?.then((res) => {
             if (typeof res === 'string') {
               this.$message.error(res)
             } else {
@@ -551,7 +548,7 @@
           })
         })
       },
-      nav(page) {
+      nav(page: string) {
         return new Promise((resolve) => {
           if (this.currentPage === page) {
             resolve(true)
@@ -571,7 +568,7 @@
         })
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

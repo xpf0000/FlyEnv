@@ -33,22 +33,22 @@
   </el-drawer>
 </template>
 
-<script>
-  import { writeFileAsync, readFileAsync } from '@shared/file.js'
+<script lang="ts">
+  import { writeFileAsync, readFileAsync } from '@shared/file'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { VueExtend } from '@/core/VueExtend.js'
-  import { nextTick } from 'vue'
+  import { VueExtend } from '@/core/VueExtend'
+  import { nextTick, defineComponent } from 'vue'
 
   const { existsSync } = require('fs')
   const { join } = require('path')
   const { shell } = require('@electron/remote')
 
-  export default {
-    show(data) {
+  export default defineComponent({
+    show(data: any) {
       return new Promise(() => {
-        let dom = document.createElement('div')
+        let dom: HTMLElement | null = document.createElement('div')
         document.body.appendChild(dom)
         let vm = VueExtend(this, data)
         const intance = vm.mount(dom)
@@ -102,7 +102,7 @@
       onDrawerClosed() {
         this.onClosed()
       },
-      logDo(flag) {
+      logDo(flag: string) {
         switch (flag) {
           case 'open':
             shell.showItemInFolder(this.filepath)
@@ -145,10 +145,11 @@
       },
       initEditor() {
         if (!this.monacoInstance) {
-          if (!this?.$refs?.input?.style) {
+          const input: HTMLElement = this?.$refs?.input as HTMLElement
+          if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(this.$refs.input, {
+          this.monacoInstance = editor.create(input, {
             value: this.log,
             language: 'ini',
             theme: 'vs-dark',
@@ -164,7 +165,7 @@
         }
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

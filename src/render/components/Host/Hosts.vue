@@ -26,13 +26,13 @@
 </template>
 
 <script>
-  import { readFileAsync, writeFileAsync } from '@shared/file'
+  import { readFileAsync, writeFileAsync } from '@shared/file.ts'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick } from 'vue'
-  import IPC from '@/util/IPC.js'
-  import { VueExtend } from '@/core/VueExtend.js'
+  import IPC from '@/util/IPC.ts'
+  import { VueExtend } from '@/core/VueExtend.ts'
 
   const { shell } = require('@electron/remote')
 

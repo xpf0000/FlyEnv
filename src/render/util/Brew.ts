@@ -1,10 +1,11 @@
-import { execAsync } from '@shared/utils.js'
-import IPC from './IPC.js'
-import Base from '@/core/Base.js'
-import store from '@/store/index.js'
+import { execAsync } from '@shared/utils'
+import IPC from './IPC'
+import Base from '@/core/Base'
 import { ElMessageBox } from 'element-plus'
 import { chmod } from '@shared/file'
-import XTerm from '@/util/XTerm.ts'
+import XTerm from '@/util/XTerm'
+import { AppStore } from '@/store/app'
+import { BrewStore } from '@/store/brew'
 const { getGlobal } = require('@electron/remote')
 const { join } = require('path')
 const { existsSync, unlinkSync, copyFileSync } = require('fs')
@@ -26,16 +27,18 @@ export const passwordCheck = () => {
           if (action === 'confirm') {
             // 去除trim, 有些电脑的密码是空格...
             if (instance.inputValue) {
-              IPC.send('app:password-check', instance.inputValue).then((key, res) => {
+              IPC.send('app:password-check', instance.inputValue).then((key: string, res: any) => {
                 IPC.off(key)
                 if (res === false) {
                   instance.editorErrorMessage = '密码错误,请重新输入'
                 } else {
                   global.Server.Password = res
-                  store.dispatch('app/initConfig').then(() => {
-                    done && done()
-                    resolve(true)
-                  })
+                  AppStore()
+                    .initConfig()
+                    .then(() => {
+                      done && done()
+                      resolve(true)
+                    })
                 }
               })
             }
@@ -64,13 +67,15 @@ export const brewCheck = () => {
     passwordCheck()
       .then(() => {
         if (!global.Server.BrewHome) {
-          if (!store.getters['brew/brewRunning']) {
+          const brewStore = BrewStore()
+          const appStore = AppStore()
+          if (!brewStore.brewRunning) {
             Base.ConfirmInfo('检测到您未安装Brew, 是否现在安装?')
               .then(() => {
-                store.commit('brew/SET_BREW_RUNNING', true)
-                const log = store.getters['brew/log']
+                brewStore.brewRunning = true
+                const log = brewStore.log
                 log.splice(0)
-                store.commit('brew/SET_SHOW_INSTALL_LOG', true)
+                brewStore.showInstallLog = true
 
                 const sh = join(global.Server.Static, 'sh/brew-install.sh')
                 const copyfile = join(global.Server.Cache, 'brew-install.sh')
@@ -81,7 +86,7 @@ export const brewCheck = () => {
                 chmod(copyfile, '0777')
                 let params = copyfile + ' ' + global.Server.Password + ';exit 0;'
 
-                const proxy = store.getters['app/proxy']
+                const proxy = appStore.config.setup.proxy
                 if (proxy?.on) {
                   const proxyStr = proxy?.proxy
                   if (proxyStr) {
@@ -89,20 +94,20 @@ export const brewCheck = () => {
                   }
                 }
 
-                XTerm.send(params).then((key) => {
+                XTerm.send(params).then((key: string) => {
                   IPC.off(key)
-                  IPC.send('app-fork:brew', 'installBrew').then((key, info) => {
+                  IPC.send('app-fork:brew', 'installBrew').then((key: string, info: any) => {
                     console.log('key: ', key, 'info: ', info)
                     if (info.code === 0) {
                       IPC.off(key)
-                      store.commit('brew/SET_SHOW_INSTALL_LOG', false)
-                      store.commit('brew/SET_BREW_RUNNING', false)
+                      brewStore.showInstallLog = false
+                      brewStore.brewRunning = false
                       global.Server = info.data
                       resolve(true)
                     } else if (info.code === 1) {
                       IPC.off(key)
-                      store.commit('brew/SET_SHOW_INSTALL_LOG', false)
-                      store.commit('brew/SET_BREW_RUNNING', false)
+                      brewStore.showInstallLog = false
+                      brewStore.brewRunning = false
                       Base.MessageError('Brew安装失败')
                       reject(new Error('Brew安装失败'))
                     }
@@ -126,7 +131,7 @@ export const brewCheck = () => {
 export function brewInstalledList() {
   return new Promise((resolve) => {
     brewCheck().then(() => {
-      execAsync('brew', ['ls']).then((res) => {
+      execAsync('brew', ['ls']).then((res: string) => {
         const arr = res
           .split('\n==> Casks')[0]
           .replace('==> Formulae\n', '')
@@ -143,10 +148,10 @@ export function brewInstalledList() {
 
 const SearchExclude = ['shivammathur/php/php']
 
-export function brewSearchList(key) {
+export function brewSearchList(key: string) {
   return new Promise((resolve) => {
     brewCheck().then(() => {
-      execAsync('brew', ['search', `/${key}\[@\]\?/`]).then((res) => {
+      execAsync('brew', ['search', `/${key}\[@\]\?/`]).then((res: string) => {
         const arr = res
           .split('\n==> Casks')[0]
           .replace('==> Formulae\n', '')
@@ -161,9 +166,9 @@ export function brewSearchList(key) {
   })
 }
 
-export function brewInfo(key) {
+export function brewInfo(key: string) {
   return new Promise((resolve, reject) => {
-    IPC.send('app-fork:brew', 'brewinfo', key).then((key, res) => {
+    IPC.send('app-fork:brew', 'brewinfo', key).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
         resolve(res.data)

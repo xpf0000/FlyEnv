@@ -3,34 +3,21 @@
   <router-view />
 </template>
 
-<script>
+<script lang="ts">
+  import { defineComponent } from 'vue'
   import TitleBar from './components/Native/TitleBar.vue'
-  import { mapGetters } from 'vuex'
-  import { EventBus } from './global.js'
-  import { passwordCheck } from '@/util/Brew.js'
-  import IPC from '@/util/IPC.js'
+  import { EventBus } from './global'
+  import { passwordCheck } from '@/util/Brew'
+  import IPC from '@/util/IPC'
 
-  export default {
+  export default defineComponent({
     name: 'App',
     components: { TitleBar },
     data() {
       return {}
     },
-    computed: {
-      ...mapGetters('app', {
-        password: 'password',
-        config: 'config',
-        server: 'server'
-      })
-    },
-    watch: {
-      server: {
-        handler(v) {
-          console.log('APP watch server: ', v)
-        },
-        deep: true
-      }
-    },
+    computed: {},
+    watch: {},
     created() {
       EventBus.on('vue:need-password', this.checkPassword)
       IPC.on('application:about').then(this.showAbout)
@@ -40,23 +27,20 @@
       EventBus.off('vue:need-password', this.checkPassword)
       IPC.off('application:about')
     },
-    mounted() {
-      console.log('App mounted server: ', this.server)
-    },
+    mounted() {},
     methods: {
       showAbout() {
         this.$baseDialog(import('./components/About/index.vue'))
           .className('about-dialog')
           .title('关于我们')
           .noFooter()
-          .then()
           .show()
       },
       checkPassword() {
         passwordCheck().then(() => {})
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

@@ -58,7 +58,7 @@
 </template>
 
 <script>
-  import { formatBytes } from '@shared/utils.js'
+  import { formatBytes } from '@shared/utils.ts'
   import moment from 'moment'
 
   const { exec } = require('child-process-promise')

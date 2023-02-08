@@ -57,17 +57,19 @@
   </el-card>
 </template>
 
-<script>
-  import { brewInfo, brewCheck } from '@/util/Brew.js'
-  import { mapGetters } from 'vuex'
-  import IPC from '@/util/IPC.js'
-  import XTerm from '@/util/XTerm.ts'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { brewInfo, brewCheck } from '@/util/Brew'
+  import IPC from '@/util/IPC'
+  import XTerm from '@/util/XTerm'
   import { chmod } from '@shared/file'
-  import installedVersions from '@/util/InstalledVersions.js'
+  import installedVersions from '@/util/InstalledVersions'
+  import { AppSofts, AppStore } from '@/store/app'
+  import { BrewStore } from '@/store/brew'
   const { join } = require('path')
   const { existsSync, unlinkSync, copyFileSync } = require('fs')
 
-  export default {
+  export default defineComponent({
     components: {},
     props: {
       typeFlag: {
@@ -105,21 +107,21 @@
       }
     },
     computed: {
-      ...mapGetters('app', {
-        proxy: 'proxy'
-      }),
-      ...mapGetters('brew', {
-        cardHeadTitle: 'cardHeadTitle',
-        brewRunning: 'brewRunning',
-        apache: 'apache',
-        nginx: 'nginx',
-        php: 'php',
-        memcached: 'memcached',
-        mysql: 'mysql',
-        redis: 'redis',
-        showInstallLog: 'showInstallLog',
-        log: 'log'
-      }),
+      proxy() {
+        return AppStore().config.setup.proxy
+      },
+      cardHeadTitle() {
+        return BrewStore().cardHeadTitle
+      },
+      brewRunning() {
+        return BrewStore().brewRunning
+      },
+      showInstallLog() {
+        return BrewStore().showInstallLog
+      },
+      log() {
+        return BrewStore().log
+      },
       proxyStr() {
         if (!this?.proxy?.on) {
           return undefined
@@ -127,11 +129,12 @@
         return this.proxy.proxy
       },
       currentType() {
-        return this[this.typeFlag]
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        return BrewStore()[flag]
       },
       tableData() {
         const arr = []
-        const list = this[this.typeFlag].list
+        const list = this.currentType.list
         for (let name in list) {
           const value = list[name]
           arr.push({
@@ -176,7 +179,7 @@
       logLength() {
         if (this.showInstallLog) {
           this.$nextTick(() => {
-            let container = this.$refs['logs']
+            let container: HTMLElement = this.$refs['logs'] as HTMLElement
             if (container) {
               container.scrollTop = container.scrollHeight
             }
@@ -188,7 +191,7 @@
       console.log('created typeFlag: ', this.typeFlag)
       this.getData()
       if (!this.brewRunning) {
-        this.$store.commit('brew/SET_CARD_HEAD_TITLE', '当前版本库')
+        BrewStore().cardHeadTitle = '当前版本库'
       }
     },
     unmounted() {
@@ -203,10 +206,11 @@
         }
         this.getData()
       },
-      fetchData(list, i = 0) {
-        const arr = this.searchKeys[this.typeFlag]
+      fetchData(list: any, i = 0) {
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        const arr = this.searchKeys[flag]
         if (i === 0) {
-          arr.forEach((name) => {
+          arr.forEach((name: string) => {
             list[name] = {}
           })
         }
@@ -232,15 +236,14 @@
         }
         const list = this.currentType.list
         if (Object.keys(list).length === 0) {
-          console.log(global.Server)
           this.currentType.getListing = true
           brewCheck()
             .then(() => {
               console.log('getData !!!')
               if (this.typeFlag === 'php') {
-                IPC.send('app-fork:host', 'githubFix').then((key) => {
+                IPC.send('app-fork:host', 'githubFix').then((key: string) => {
                   IPC.off(key)
-                  IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key) => {
+                  IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string) => {
                     IPC.off(key)
                     this.fetchData(list)
                   })
@@ -254,21 +257,22 @@
             })
         }
       },
-      handleEdit(index, row) {
+      handleEdit(index: number, row: any) {
         console.log(index, row)
         if (this.brewRunning) {
           return
         }
         this.log.splice(0)
-        this.$store.commit('brew/SET_SHOW_INSTALL_LOG', true)
-        this.$store.commit('brew/SET_BREW_RUNNING', true)
+        const brewStore = BrewStore()
+        brewStore.showInstallLog = true
+        brewStore.brewRunning = true
         let fn = ''
         if (row.installed) {
           fn = 'uninstall'
-          this.$store.commit('brew/SET_CARD_HEAD_TITLE', `Brew 卸载 ${row.name}`)
+          brewStore.cardHeadTitle = `Brew 卸载 ${row.name}`
         } else {
           fn = 'install'
-          this.$store.commit('brew/SET_CARD_HEAD_TITLE', `Brew 安装 ${row.name}`)
+          brewStore.cardHeadTitle = `Brew 安装 ${row.name}`
         }
 
         const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
@@ -285,23 +289,23 @@
         if (this.proxyStr) {
           params = `${this.proxyStr};${params}`
         }
-        XTerm.send(`${params};exit 0;`, true).then((key, res) => {
-          console.log(res)
+        XTerm.send(`${params};exit 0;`, true).then((key: string) => {
           IPC.off(key)
           this.showNextBtn = true
-          this.$store.commit('brew/SET_BREW_RUNNING', false)
-          this.$store.commit('brew/SET_SHOW_INSTALL_LOG', false)
-          this.$store.commit('brew/RESET_BREW_INSTALLED_INITED', this.typeFlag)
+          brewStore.showInstallLog = false
+          brewStore.brewRunning = false
+          this.currentType.installedInited = false
           this.reGetData()
-          installedVersions.allInstalledVersions(this.typeFlag)
+          const flag: keyof typeof AppSofts = this.typeFlag as any
+          installedVersions.allInstalledVersions(flag)
         })
       },
       toNext() {
         this.showNextBtn = false
-        this.$store.commit('brew/SET_CARD_HEAD_TITLE', '当前版本库')
+        BrewStore().cardHeadTitle = '当前版本库'
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

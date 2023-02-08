@@ -1,25 +1,29 @@
-import store from '@/store/index.js'
-import { getSubDir } from '@shared/file.js'
+import { getSubDir } from '@shared/file'
 import IPC from '@/util/IPC.js'
 import { reactive } from 'vue'
+import { BrewStore } from '@/store/brew'
+import type { AppSofts } from '@/store/app'
+import { AppStore } from '@/store/app'
 
 const { getGlobal } = require('@electron/remote')
 const { join } = require('path')
 const { existsSync, realpathSync } = require('fs')
 
 class InstalledVersions {
+  _cb: Array<Function>
+  task: { [key: string]: boolean }
   constructor() {
     this._cb = []
     this.task = {}
   }
-  allInstalledVersions(flag) {
+  allInstalledVersions(flag: keyof typeof AppSofts) {
     if (this.task[flag]) {
       return this
     }
     this.task[flag] = true
-    const data = store.getters[`brew/${flag}`]
+    const data = BrewStore()[flag]
     console.log('allInstalledVersions: ', data)
-    const searchNames = {
+    const searchNames: { [key: string]: string } = {
       apache: 'httpd',
       nginx: 'nginx',
       php: 'php',
@@ -27,7 +31,7 @@ class InstalledVersions {
       memcached: 'memcached',
       redis: 'redis'
     }
-    const binNames = {
+    const binNames: { [key: string]: string } = {
       apache: 'apachectl',
       nginx: 'nginx',
       php: 'php-fpm',
@@ -35,10 +39,11 @@ class InstalledVersions {
       memcached: 'memcached',
       redis: 'redis-server'
     }
-    const customDirs = store.getters['app/setup']?.[flag]?.dirs ?? []
+
+    const customDirs: Array<string> = AppStore()?.config?.setup?.[flag]?.dirs ?? []
     const binName = binNames[flag]
 
-    const findInstalled = (dir, depth = 0, maxDepth = 2) => {
+    const findInstalled = (dir: string, depth = 0, maxDepth = 2) => {
       let res = false
       let binPath = join(dir, `bin/${binName}`)
       if (existsSync(binPath)) {
@@ -52,7 +57,7 @@ class InstalledVersions {
         return res
       }
       const sub = getSubDir(dir)
-      sub.forEach((s) => {
+      sub.forEach((s: string) => {
         res = res || findInstalled(s, depth + 1, maxDepth)
       })
       return res
@@ -88,11 +93,11 @@ class InstalledVersions {
       const base = global.Server?.BrewCellar ?? ''
       if (base) {
         getSubDir(base)
-          .filter((f) => {
+          .filter((f: string) => {
             return f.includes(searchName)
           })
-          .forEach((f) => {
-            getSubDir(f).forEach((s) => {
+          .forEach((f: string) => {
+            getSubDir(f).forEach((s: string) => {
               const bin = findInstalled(s)
               if (bin) {
                 installed.add(bin)
@@ -101,7 +106,7 @@ class InstalledVersions {
           })
       }
 
-      customDirs.forEach((s) => {
+      customDirs.forEach((s: string) => {
         const bin = findInstalled(s, 0, 1)
         if (bin) {
           installed.add(bin)
@@ -118,9 +123,9 @@ class InstalledVersions {
         return this
       }
       let index = 0
-      installed.forEach((i) => {
+      installed.forEach((i: string) => {
         const path = i.replace(`/sbin/${binName}`, '').replace(`/bin/${binName}`, '')
-        IPC.send('app-fork:brew', 'binVersion', i, binName).then((key, res) => {
+        IPC.send('app-fork:brew', 'binVersion', i, binName).then((key: string, res: any) => {
           IPC.off(key)
           if (res?.version) {
             const num = Number(res.version.split('.').slice(0, 2).join(''))
@@ -139,7 +144,7 @@ class InstalledVersions {
           index += 1
           if (index === count) {
             data.installedInited = true
-            data.installed.sort((a, b) => {
+            data.installed.sort((a: any, b: any) => {
               return b.num - a.num
             })
             old.splice(0)
@@ -155,7 +160,7 @@ class InstalledVersions {
 
     return this
   }
-  then(cb) {
+  then(cb: Function) {
     this._cb.push(cb)
   }
 }

@@ -46,7 +46,7 @@
 </template>
 
 <script>
-  import { uuid } from '@shared/utils.js'
+  import { uuid } from '@shared/utils.ts'
 
   const { existsSync, writeFileSync } = require('fs')
   const { execSync } = require('child_process')

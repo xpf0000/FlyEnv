@@ -3,6 +3,7 @@ const { existsSync, unlinkSync, writeFileSync, readFileSync, copyFileSync } = re
 const { spawn, execSync } = require('child_process')
 const Utils = require('./Utils')
 const BaseManager = require('./BaseManager')
+const { exec: execPromise } = require('child-process-promise')
 class PhpManager extends BaseManager {
   constructor() {
     super()
@@ -79,6 +80,51 @@ class PhpManager extends BaseManager {
 
   unInstallExtends() {
     this._thenSuccess()
+  }
+
+  _stopServer(version) {
+    return new Promise((resolve, reject) => {
+      const v = version.version.split('.').slice(0, 2).join('')
+      const pidFile = join(global.Server.PhpDir, v, 'var/run/php-fpm.pid')
+      let pid = 0
+      try {
+        if (existsSync(pidFile)) {
+          pid = readFileSync(pidFile, 'utf-8')
+        }
+      } catch (e) {}
+      if (pid) {
+        const check = (times = 0) => {
+          if (!existsSync(pidFile)) {
+            resolve(0)
+            return
+          }
+          if (times > 4) {
+            reject(new Error(`PHP${version.version}停止失败, 请尝试手动停止`))
+            return
+          }
+          setTimeout(() => {
+            check(times + 1)
+          }, 500)
+        }
+        execPromise(`echo '${global.Server.Password}' | sudo -S kill -INT ${pid}`)
+          .then(() => {
+            check()
+          })
+          .catch((e) => {
+            const err = e.toString()
+            if (err.includes('No such process')) {
+              if (existsSync(pidFile)) {
+                unlinkSync(pidFile)
+                resolve(0)
+              } else {
+                reject(new Error(err))
+              }
+            }
+          })
+      } else {
+        resolve(0)
+      }
+    })
   }
 
   startService(version) {

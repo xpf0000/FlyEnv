@@ -18,14 +18,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+  import { defineComponent } from 'vue'
   import Versions from '../VersionSwtich/index.vue'
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
-  import { mapGetters } from 'vuex'
-  export default {
+  import { AppStore } from '@/store/app'
+  export default defineComponent({
     name: 'MoApachePanel',
     components: {
       [Config.name]: Config,
@@ -42,11 +43,8 @@
       }
     },
     computed: {
-      ...mapGetters('app', {
-        server: 'server'
-      }),
       version() {
-        return this.server?.apache?.current?.version
+        return AppStore().config.server?.apache?.current?.version
       }
     },
     watch: {},
@@ -55,7 +53,7 @@
         this.current_tab = 3
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

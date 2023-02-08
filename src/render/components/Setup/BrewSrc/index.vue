@@ -12,10 +12,11 @@
   >
 </template>
 
-<script>
-  import { mapGetters } from 'vuex'
-  import IPC from '@/util/IPC.js'
-  export default {
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import IPC from '@/util/IPC'
+  import { BrewStore } from '@/store/brew'
+  export default defineComponent({
     components: {},
     props: {},
     data() {
@@ -33,41 +34,46 @@
       }
     },
     computed: {
-      ...mapGetters('brew', {
-        brewRunning: 'brewRunning',
-        brewStoreSrc: 'brewSrc'
-      })
+      brewRunning() {
+        return BrewStore().brewRunning
+      },
+      brewStoreSrc() {
+        return BrewStore().brewSrc
+      }
     },
     created: function () {
+      const brewStore = BrewStore()
       this.running = true
-      this.$store.commit('brew/SET_BREW_SRC', '')
-      IPC.send('app-fork:brew', 'currentSrc').then((key, info) => {
+      brewStore.brewSrc = ''
+      IPC.send('app-fork:brew', 'currentSrc').then((key: string, info: any) => {
         IPC.off(key)
         console.log('info: ', info)
         if (info.data) {
           this.currentBrewSrc = info.data
-          this.$store.commit('brew/SET_BREW_SRC', info.data)
+          brewStore.brewSrc = info.data
         }
         this.running = false
       })
     },
     methods: {
       changeBrewSrc() {
-        console.log('currentBrewSrc: ', this.currentBrewSrc)
-        this.$store.commit('brew/SET_BREW_RUNNING', true)
-        IPC.send('app-fork:brew', 'changeSrc', this.currentBrewSrc).then((key, info) => {
-          IPC.off(key)
-          console.log('info: ', info)
-          if (info.code === 0) {
-            this.$store.commit('brew/SET_BREW_SRC', this.currentBrewSrc)
-            this.$message.success('Brew源已切换')
-          } else {
-            this.currentBrewSrc = this.brewStoreSrc
-            this.$message.error('Brew源切换失败')
+        const brewStore = BrewStore()
+        brewStore.brewRunning = true
+        IPC.send('app-fork:brew', 'changeSrc', this.currentBrewSrc).then(
+          (key: string, info: any) => {
+            IPC.off(key)
+            console.log('info: ', info)
+            if (info.code === 0) {
+              brewStore.brewSrc = this.currentBrewSrc
+              this.$message.success('Brew源已切换')
+            } else {
+              this.currentBrewSrc = this.brewStoreSrc
+              this.$message.error('Brew源切换失败')
+            }
+            brewStore.brewRunning = false
           }
-          this.$store.commit('brew/SET_BREW_RUNNING', false)
-        })
+        )
       }
     }
-  }
+  })
 </script>

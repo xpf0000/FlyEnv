@@ -10,6 +10,7 @@ import { join } from 'path'
 import { copyFile, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { fork, execSync } from 'child_process'
 import TrayManager from './ui/TrayManager.js'
+import { getLanguage } from './utils/index.js'
 const {
   createFolder,
   chmod,
@@ -17,7 +18,7 @@ const {
   writeFileAsync,
   getAllFile
 } = require('../shared/file.js')
-const { execAsync, isAppleSilicon } = require('../shared/utils.js')
+const { execAsync, isAppleSilicon } = require('../shared/utils.ts')
 const compressing = require('compressing')
 const execPromise = require('child-process-promise').exec
 const ServeHandler = require('serve-handler')
@@ -40,8 +41,16 @@ export default class Application extends EventEmitter {
     this.initTrayManager()
     this.initUpdaterManager()
     this.initServerDir()
+    this.initLang()
     this.handleCommands()
     this.handleIpcMessages()
+  }
+
+  initLang() {
+    const lang = getLanguage(this.configManager.getConfig('setup.lang'))
+    if (lang) {
+      this.configManager.setConfig('setup.lang', lang)
+    }
   }
 
   initTrayManager() {

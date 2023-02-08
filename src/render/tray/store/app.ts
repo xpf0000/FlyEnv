@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 
-interface State {
+export interface TrayState {
   password: string
   nginx: {
     show: boolean
@@ -40,7 +40,7 @@ interface State {
   }
 }
 
-const state: State = {
+const state: TrayState = {
   apache: { show: true, disabled: true, run: false, running: false },
   memcached: { show: true, disabled: true, run: false, running: false },
   mysql: { show: true, disabled: true, run: false, running: false },
@@ -51,7 +51,7 @@ const state: State = {
 }
 
 export const AppStore = defineStore('app', {
-  state: (): State => state,
+  state: (): TrayState => state,
   getters: {
     groupIsRunning(): boolean {
       return (

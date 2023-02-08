@@ -87,31 +87,29 @@
   </div>
 </template>
 
-<script>
-  import { mapGetters } from 'vuex'
+<script lang="ts">
   import BrewSrc from './BrewSrc/index.vue'
   import GitHubFix from './GithubFix/index.vue'
   import RestPassword from './RestPassword/index.vue'
   import ProxySet from './ProxySet/index.vue'
+  import { AppStore } from '@/store/app'
+  import { defineComponent } from 'vue'
 
-  export default {
+  export default defineComponent({
     components: { BrewSrc, GitHubFix, RestPassword, ProxySet },
     props: {},
     data() {
       return {}
     },
     computed: {
-      ...mapGetters('app', {
-        config: 'config'
-      }),
       common() {
-        return this.config?.setup?.common ?? {}
+        return AppStore().config.setup.common
       }
     },
     watch: {
       'common.showItem': {
         handler() {
-          this.$store.dispatch('app/saveConfig')
+          AppStore().saveConfig()
         },
         deep: true
       }
@@ -119,7 +117,7 @@
     created: function () {},
     unmounted() {},
     methods: {}
-  }
+  })
 </script>
 
 <style lang="scss">

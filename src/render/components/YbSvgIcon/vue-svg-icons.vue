@@ -1,10 +1,3 @@
-<!--<template>-->
-<!--  <svg version="1.1" class="yb-icon" :viewBox="box" :style="style">-->
-<!--    <template v-if="!backgroundImage && icon && icon.raw" v-html="raw">-->
-<!--      <g v-bind="icon.g" v-html="raw"></g>-->
-<!--    </template>-->
-<!--  </svg>-->
-<!--</template>-->
 <style>
   .yb-icon {
     display: inline-block;

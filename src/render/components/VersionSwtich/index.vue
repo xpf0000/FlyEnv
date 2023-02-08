@@ -29,12 +29,15 @@
   </div>
 </template>
 
-<script>
-  import { mapGetters } from 'vuex'
-  import IPC from '@/util/IPC.js'
-  import installedVersions from '@/util/InstalledVersions.js'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import IPC from '@/util/IPC'
+  import installedVersions from '@/util/InstalledVersions'
+  import { BrewStore } from '@/store/brew'
+  import { AppSofts, AppStore } from '@/store/app'
+  import { TaskStore } from '@/store/task'
 
-  export default {
+  export default defineComponent({
     components: {},
     props: {
       typeFlag: {
@@ -49,44 +52,29 @@
       }
     },
     computed: {
-      ...mapGetters('brew', {
-        brewRunning: 'brewRunning',
-        apache: 'apache',
-        nginx: 'nginx',
-        php: 'php',
-        memcached: 'memcached',
-        mysql: 'mysql',
-        redis: 'redis'
-      }),
-      ...mapGetters('task', {
-        taskApache: 'apache',
-        taskNginx: 'nginx',
-        taskPhp: 'php',
-        taskMemcached: 'memcached',
-        taskMysql: 'mysql',
-        taskRedis: 'redis'
-      }),
-      ...mapGetters('app', {
-        stat: 'stat',
-        setup: 'setup',
-        server: 'server'
-      }),
-      customDirs() {
-        return this.setup[this.typeFlag].dirs
+      brewRunning() {
+        return BrewStore().brewRunning
       },
-      currentTask() {
-        const dict = {
-          apache: this.taskApache,
-          nginx: this.taskNginx,
-          php: this.taskPhp,
-          memcached: this.taskMemcached,
-          mysql: this.taskMysql,
-          redis: this.taskRedis
-        }
-        return dict[this.typeFlag]
+      server() {
+        return AppStore().config.server
+      },
+      customDirs() {
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        return AppStore().config.setup[flag].dirs
+      },
+      versions() {
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        return BrewStore()[flag].installed
       },
       disabled() {
-        return this.brewRunning || this.currentTask.running
+        return this.brewRunning || this.taskRunning
+      },
+      taskRunning() {
+        return this.versions.some((v) => v.running)
+      },
+      currentTask() {
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        return TaskStore()[flag]
       },
       log() {
         return this.currentTask.log
@@ -94,14 +82,12 @@
       logLength() {
         return this.log.length
       },
-      versions() {
-        return this[this.typeFlag].installed
-      },
       version() {
         if (!this.typeFlag) {
           return {}
         }
-        return this.server?.[this.typeFlag]?.current ?? {}
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        return this.server?.[flag]?.current ?? {}
       },
       currentVersion() {
         if (this.version?.version) {
@@ -129,7 +115,7 @@
       }
     },
     created: function () {
-      if (!this.currentTask.running) {
+      if (!this.taskRunning) {
         this.log.splice(0)
       }
       this.getCurrenVersion()
@@ -140,7 +126,8 @@
     },
     methods: {
       reinit() {
-        const data = this[this.typeFlag]
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        const data = BrewStore()[flag]
         data.installedInited = false
         this.init()
       },
@@ -149,7 +136,8 @@
           return
         }
         this.initing = true
-        installedVersions.allInstalledVersions(this.typeFlag).then(() => {
+        const flag: keyof typeof AppSofts = this.typeFlag as any
+        installedVersions.allInstalledVersions(flag).then(() => {
           this.initing = false
         })
       },
@@ -161,39 +149,39 @@
           return
         }
         this.log.splice(0)
-        this.currentTask.running = true
         let data = this.versions.find((v) => {
           const txt = `${v.version} - ${v.path}`
           return txt === this.current
-        })
+        })!
         data.run = false
         data.running = true
         const param = JSON.parse(JSON.stringify(data))
-        IPC.send(`app-fork:${this.typeFlag}`, 'switchVersion', param).then((key, res) => {
-          if (res.code === 0) {
-            IPC.off(key)
-            this.$store.commit('app/UPDATE_SERVER_CURRENT', {
-              flag: this.typeFlag,
-              data: param
-            })
-            this.$store.dispatch('app/saveConfig').then()
-            this.stat[this.typeFlag] = true
-            this.$message.success('操作成功')
-            this.currentTask.running = false
-            data.run = true
-            data.running = false
-          } else if (res.code === 1) {
-            IPC.off(key)
-            this.$message.error('操作失败')
-            this.currentTask.running = false
-            data.running = false
-          } else if (res.code === 200) {
-            this.log.push(res.msg)
+        IPC.send(`app-fork:${this.typeFlag}`, 'switchVersion', param).then(
+          (key: string, res: any) => {
+            if (res.code === 0) {
+              IPC.off(key)
+              const appStore = AppStore()
+              const flag: keyof typeof AppSofts = this.typeFlag as any
+              appStore.UPDATE_SERVER_CURRENT({
+                flag: flag,
+                data: param
+              })
+              appStore.saveConfig()
+              this.$message.success('操作成功')
+              data.run = true
+              data.running = false
+            } else if (res.code === 1) {
+              IPC.off(key)
+              this.$message.error('操作失败')
+              data.running = false
+            } else if (res.code === 200) {
+              this.log.push(res.msg)
+            }
           }
-        })
+        )
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

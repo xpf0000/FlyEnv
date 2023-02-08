@@ -9,28 +9,33 @@
   </div>
 </template>
 
-<script>
-  import { writeFileAsync, readFileAsync } from '@shared/file.js'
-  import { AppMixins } from '@/mixins/AppMixins.js'
+<script lang="ts">
+  import { writeFileAsync, readFileAsync } from '@shared/file'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { nextTick } from 'vue'
-  import { md5 } from '@/util/Index.js'
+  import { nextTick, defineComponent } from 'vue'
+  import { md5 } from '@/util/Index'
+  import { AppStore } from '@/store/app'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
   const { existsSync } = require('fs')
 
-  export default {
+  export default defineComponent({
     name: 'MoApacheConfig',
     components: {},
-    mixins: [AppMixins],
     props: {},
     data() {
       return {
         config: '',
-        typeFlag: 'apache'
+        typeFlag: 'apache',
+        configpath: ''
+      }
+    },
+    computed: {
+      version() {
+        return AppStore().config.server?.apache?.current
       }
     },
     watch: {},
@@ -63,7 +68,7 @@
           this.initEditor()
           return
         }
-        const name = md5(this.version.bin)
+        const name = md5(this.version.bin!)
         this.configpath = join(global.Server.ApacheDir, `common/conf/${name}.conf`)
         if (!existsSync(this.configpath)) {
           this.config = '未找到配置文件, 请重新选择版本'
@@ -81,7 +86,7 @@
           this.$message.error('请先选择版本')
           return
         }
-        const name = md5(this.version.bin)
+        const name = md5(this.version.bin!)
         const configpath = join(global.Server.ApacheDir, `common/conf/${name}.default.conf`)
         if (!existsSync(configpath)) {
           this.$message.error('未找到默认配置文件')
@@ -94,10 +99,11 @@
       },
       initEditor() {
         if (!this.monacoInstance) {
-          if (!this?.$refs?.input?.style) {
+          const input: HTMLElement = this?.$refs?.input as HTMLElement
+          if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(this.$refs.input, {
+          this.monacoInstance = editor.create(input, {
             value: this.config,
             language: 'ini',
             theme: 'vs-dark',
@@ -110,7 +116,7 @@
         }
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

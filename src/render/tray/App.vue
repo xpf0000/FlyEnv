@@ -107,14 +107,15 @@
 <script lang="ts">
   import { defineComponent } from 'vue'
   import { AppStore } from './store/app'
-  // @ts-ignore
-  import IPC from '../util/IPC.js'
+  import IPC from '../util/IPC'
 
   export default defineComponent({
     name: 'App',
     data() {
       return {
         left: null
+      } as {
+        left: string | null
       }
     },
     computed: {
@@ -147,7 +148,7 @@
       }
     },
     created() {
-      IPC.on('APP:Poper-Left').then((key, res) => {
+      IPC.on('APP:Poper-Left').then((key: string, res: any) => {
         console.log('APP:Poper-Left: ', key, res)
         this.left = `${res}px`
       })

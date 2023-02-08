@@ -18,7 +18,7 @@
 </template>
 
 <script>
-  import { readFileAsync, writeFileAsync } from '@shared/file'
+  import { readFileAsync, writeFileAsync } from '@shared/file.ts'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'

@@ -18,14 +18,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+  import { defineComponent } from 'vue'
   import Versions from '../VersionSwtich/index.vue'
   import Service from '../ServiceManager/index.vue'
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
-  import { mapGetters } from 'vuex'
+  import { AppStore } from '@/store/app'
 
-  export default {
+  export default defineComponent({
     name: 'MoMemcachedPanel',
     components: {
       Versions,
@@ -41,11 +42,8 @@
       }
     },
     computed: {
-      ...mapGetters('app', {
-        server: 'server'
-      }),
       version() {
-        return this.server?.memcached?.current?.version
+        return AppStore().config.server?.memcached?.current?.version
       }
     },
     watch: {},
@@ -55,7 +53,7 @@
       }
     },
     methods: {}
-  }
+  })
 </script>
 
 <style lang="scss">

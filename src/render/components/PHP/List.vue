@@ -71,35 +71,36 @@
   </ul>
 </template>
 
-<script>
-  import { mapGetters } from 'vuex'
-  import { startService, stopService } from '@/util/Service.js'
-  import installedVersions from '@/util/InstalledVersions.js'
-  import IPC from '@/util/IPC.js'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { startService, stopService } from '@/util/Service'
+  import installedVersions from '@/util/InstalledVersions'
+  import IPC from '@/util/IPC'
+  import { AppSoftInstalledItem, BrewStore, SoftInstalled } from '@/store/brew'
+  import { AppStore } from '@/store/app'
   const { shell } = require('@electron/remote')
 
-  export default {
+  export default defineComponent({
     components: {},
     props: {},
     data() {
       return {
-        ondrop: false
+        ondrop: false,
+        initing: false
       }
     },
     computed: {
-      ...mapGetters('brew', {
-        brewRunning: 'brewRunning',
-        php: 'php'
-      }),
-      versions() {
+      brewRunning() {
+        return BrewStore().brewRunning
+      },
+      php(): AppSoftInstalledItem {
+        return BrewStore().php
+      },
+      versions(): Array<SoftInstalled> {
         return this?.php?.installed ?? []
       },
-      ...mapGetters('app', {
-        stat: 'stat',
-        setup: 'setup'
-      }),
       customDirs() {
-        return this.setup?.php?.dirs ?? []
+        return AppStore().config.setup?.php?.dirs ?? []
       }
     },
     watch: {},
@@ -109,7 +110,7 @@
     mounted() {},
     unmounted() {},
     methods: {
-      doRun(item) {
+      doRun(item: SoftInstalled) {
         startService('php', item).then((res) => {
           if (typeof res === 'string') {
             this.$message.error(res)
@@ -118,7 +119,7 @@
           }
         })
       },
-      doStop(item) {
+      doStop(item: SoftInstalled) {
         stopService('php', item).then((res) => {
           if (typeof res === 'string') {
             this.$message.error(res)
@@ -127,7 +128,7 @@
           }
         })
       },
-      action(item, index, flag) {
+      action(item: SoftInstalled, index: number, flag: string) {
         switch (flag) {
           case 'open':
             shell.openPath(item.path)
@@ -172,7 +173,7 @@
             break
           case 'brewLink':
             IPC.send('app-fork:php', 'doLinkVersion', JSON.parse(JSON.stringify(item))).then(
-              (key, res) => {
+              (key: string, res: any) => {
                 IPC.off(key)
                 if (res?.code === 0) {
                   this.$message.success('操作成功')
@@ -199,7 +200,7 @@
         })
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

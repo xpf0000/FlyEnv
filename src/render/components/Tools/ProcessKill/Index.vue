@@ -49,7 +49,7 @@
 <script>
   import { markRaw } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { passwordCheck } from '@/util/Brew'
+  import { passwordCheck } from '@/util/Brew.ts'
   const { execSync } = require('child_process')
 
   export default {

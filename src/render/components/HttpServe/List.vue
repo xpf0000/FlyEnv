@@ -41,14 +41,14 @@
   </ul>
 </template>
 
-<script>
-  import { reactive } from 'vue'
-  import { mapGetters } from 'vuex'
-  import IPC from '@/util/IPC.js'
+<script lang="ts">
+  import { reactive, defineComponent } from 'vue'
+  import IPC from '@/util/IPC'
+  import { AppStore } from '@/store/app'
   const { dialog, shell } = require('@electron/remote')
   const { pathExistsSync, statSync } = require('fs-extra')
-  const Serves = reactive({})
-  export default {
+  const Serves: { [key: string]: any } = reactive({})
+  export default defineComponent({
     components: {},
     props: {},
     data() {
@@ -57,9 +57,9 @@
       }
     },
     computed: {
-      ...mapGetters('app', {
-        httpServe: 'httpServe'
-      }),
+      httpServe() {
+        return AppStore().httpServe
+      },
       serves() {
         for (const serve of this.httpServe) {
           if (!Serves[serve]) {
@@ -79,9 +79,7 @@
       }
     },
     watch: {},
-    created: function () {
-      console.log('this.hosts: ', this.hosts)
-    },
+    created: function () {},
     mounted() {
       this.initDroper()
     },
@@ -93,7 +91,7 @@
           .showOpenDialog({
             properties: opt
           })
-          .then(({ canceled, filePaths }) => {
+          .then(({ canceled, filePaths }: any) => {
             if (canceled || filePaths.length === 0) {
               return
             }
@@ -102,8 +100,8 @@
           })
       },
       initDroper() {
-        let selecter = this.$refs.fileDroper
-        selecter.addEventListener('drop', (e) => {
+        let selecter: HTMLElement = this.$refs.fileDroper as HTMLElement
+        selecter.addEventListener('drop', (e: any) => {
           e.preventDefault()
           e.stopPropagation()
           // 获得拖拽的文件集合
@@ -137,7 +135,7 @@
           false
         )
       },
-      addPath(path) {
+      addPath(path: string) {
         if (!pathExistsSync(path)) return
         const stat = statSync(path)
         if (!stat.isDirectory()) {
@@ -148,15 +146,15 @@
           return
         }
         this.httpServe.push(path)
-        this.$store.dispatch('app/saveConfig').then()
+        AppStore().saveConfig()
         this.$nextTick().then(() => {
           const item = Serves[path]
           console.log(item)
           this.doRun(path, item)
         })
       },
-      doRun(path, item) {
-        IPC.send('app-http-serve-run', path).then((key, info) => {
+      doRun(path: string, item: any) {
+        IPC.send('app-http-serve-run', path).then((key: string, info: any) => {
           IPC.off(key)
           console.log(info)
           if (info?.path && info.path === path) {
@@ -166,8 +164,8 @@
           }
         })
       },
-      doStop(path, item) {
-        IPC.send('app-http-serve-stop', path).then((key, info) => {
+      doStop(path: string, item: any) {
+        IPC.send('app-http-serve-stop', path).then((key: string, info: any) => {
           IPC.off(key)
           if (info?.path && info.path === path) {
             item.run = false
@@ -176,25 +174,25 @@
           }
         })
       },
-      doDel(path) {
-        this.$baseConfirm('确认删除?', null, {
+      doDel(path: string) {
+        this.$baseConfirm('确认删除?', undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
           .then(() => {
-            IPC.send('app-http-serve-stop', path).then((key) => {
+            IPC.send('app-http-serve-stop', path).then((key: string) => {
               IPC.off(key)
             })
             this.httpServe.splice(this.httpServe.indexOf(path), 1)
-            this.$store.dispatch('app/saveConfig').then()
+            AppStore().saveConfig()
           })
           .catch(() => {})
       },
-      doJump(host) {
+      doJump(host: string) {
         shell.openExternal(host)
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

@@ -42,22 +42,28 @@
   </div>
 </template>
 
-<script>
-  import { markRaw } from 'vue'
+<script lang="ts">
+  import { markRaw, defineComponent } from 'vue'
   import { Search } from '@element-plus/icons-vue'
   import { passwordCheck } from '@/util/Brew'
   const { execSync } = require('child_process')
 
-  export default {
+  const SearchIcon = markRaw(Search)
+  export default defineComponent({
     name: 'MoPortKill',
     components: {},
     props: {},
     data() {
       return {
-        Search: markRaw(Search),
+        Search: SearchIcon,
         port: '',
         arrs: [],
         select: []
+      } as {
+        Search: any
+        port: string
+        arrs: Array<any>
+        select: Array<any>
       }
     },
     computed: {},
@@ -69,13 +75,13 @@
     unmounted() {},
     methods: {
       cleanSelect() {
-        this.$baseConfirm('确认结束所选进程?', null, {
+        this.$baseConfirm('确认结束所选进程?', undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
           .then(() => {
             const pids = this.select
-              .map((s) => {
+              .map((s: any) => {
                 return s.PID
               })
               .join(' ')
@@ -90,13 +96,13 @@
           .catch(() => {})
       },
       cleanAll() {
-        this.$baseConfirm('确认结束全部进程?', null, {
+        this.$baseConfirm('确认结束全部进程?', undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
           .then(() => {
             const pids = this.arrs
-              .map((s) => {
+              .map((s: any) => {
                 return s.PID
               })
               .join(' ')
@@ -110,7 +116,7 @@
           })
           .catch(() => {})
       },
-      handleSelectionChange(select) {
+      handleSelectionChange(select: Array<any>) {
         console.log(...arguments)
         this.select.splice(0)
         this.select.push(...select)
@@ -127,11 +133,11 @@
           .trim()
         const arr = res
           .split('\n')
-          .filter((v, i) => {
+          .filter((v: any, i: number) => {
             return i > 0
           })
-          .map((a) => {
-            const list = a.split(' ').filter((s) => {
+          .map((a: any) => {
+            const list = a.split(' ').filter((s: string) => {
               return s.trim().length > 0
             })
             const USER = list.pop()
@@ -151,7 +157,7 @@
         this.arrs.push(...arr)
       }
     }
-  }
+  })
 </script>
 
 <style lang="scss">

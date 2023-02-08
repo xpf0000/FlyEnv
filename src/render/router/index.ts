@@ -53,12 +53,6 @@ const routes = [
         component: () => import('@/components/Setup/Index.vue')
       }
     ]
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    name: '404',
-    component: () => import('../components/HelloWorld.vue'),
-    hidden: true
   }
 ]
 
