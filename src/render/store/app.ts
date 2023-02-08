@@ -208,7 +208,7 @@ export const AppStore = defineStore('app', {
       common.dirs = reactive(dirs)
     },
     DEL_CUSTOM_DIR({ typeFlag, index }: { typeFlag: keyof typeof AppSofts; index: number }) {
-      const common = state.config.setup[typeFlag]
+      const common = this.config.setup[typeFlag]
       const dirs = JSON.parse(JSON.stringify(common.dirs))
       dirs.splice(index, 1)
       common.dirs = reactive(dirs)

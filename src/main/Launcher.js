@@ -87,6 +87,7 @@ export default class Launcher extends EventEmitter {
       if (global.application) {
         logger.info('[WebMaker] activate')
         global.application.showPage('index')
+        app.dock.show().then()
       }
     })
   }

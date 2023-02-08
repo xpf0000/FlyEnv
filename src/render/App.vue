@@ -9,6 +9,7 @@
   import { EventBus } from './global'
   import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
+  import installedVersions from '@/util/InstalledVersions'
 
   export default defineComponent({
     name: 'App',
@@ -37,7 +38,14 @@
           .show()
       },
       checkPassword() {
-        passwordCheck().then(() => {})
+        passwordCheck().then(() => {
+          installedVersions.allInstalledVersions('php')
+          installedVersions.allInstalledVersions('nginx')
+          installedVersions.allInstalledVersions('mysql')
+          installedVersions.allInstalledVersions('apache')
+          installedVersions.allInstalledVersions('memcached')
+          installedVersions.allInstalledVersions('redis')
+        })
       }
     }
   })

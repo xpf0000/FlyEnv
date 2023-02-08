@@ -202,7 +202,6 @@
   import { defineComponent } from 'vue'
   import { startService, stopService } from '@/util/Service'
   import { passwordCheck } from '@/util/Brew'
-  import installedVersions from '@/util/InstalledVersions'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
@@ -425,12 +424,6 @@
       }
     },
     created() {
-      installedVersions.allInstalledVersions('php')
-      installedVersions.allInstalledVersions('nginx')
-      installedVersions.allInstalledVersions('mysql')
-      installedVersions.allInstalledVersions('apache')
-      installedVersions.allInstalledVersions('memcached')
-      installedVersions.allInstalledVersions('redis')
       IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
         console.log('on APP:Tray-Command', key, fn, arg)
         if (fn === 'switchChange' && arg === 'php') {
