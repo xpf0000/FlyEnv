@@ -37,8 +37,8 @@ const handleHostEnd = (arr: Array<AppHost>) => {
 export const handleHost = (host: AppHost, flag: string, old?: AppHost) => {
   return new Promise((resolve) => {
     host = JSON.parse(JSON.stringify(host))
-    old = JSON.parse(JSON.stringify(old))
-    IPC.send('app-fork:host', 'handleHost', host, flag, old ?? {}).then((key: string, res: any) => {
+    old = JSON.parse(JSON.stringify(old ?? {}))
+    IPC.send('app-fork:host', 'handleHost', host, flag, old).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
         handleHostEnd(res.hosts)
