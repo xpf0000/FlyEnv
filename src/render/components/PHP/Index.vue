@@ -33,7 +33,15 @@
     data() {
       return {
         current_tab: 0,
-        tabs: ['服务', '配置文件', '切换版本', '版本管理', 'FPM日志', '慢日志', '扩展']
+        tabs: [
+          this.$t('base.service'),
+          this.$t('base.configFile'),
+          this.$t('base.versionSwitch'),
+          this.$t('base.versionManager'),
+          'FPM日志',
+          this.$t('base.slowLog'),
+          '扩展'
+        ]
       }
     },
     computed: {},
@@ -65,7 +73,8 @@
       > li {
         user-select: none;
         cursor: pointer;
-        width: 100px;
+        min-width: 100px;
+        padding: 0 12px;
         height: 36px;
         margin-right: 20px;
         border-radius: 6px;

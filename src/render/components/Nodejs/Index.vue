@@ -26,7 +26,7 @@
     data() {
       return {
         current_tab: 0,
-        tabs: ['切换版本']
+        tabs: [this.$t('base.versionSwitch')]
       }
     },
     computed: {},
@@ -53,7 +53,8 @@
       > li {
         user-select: none;
         cursor: pointer;
-        width: 100px;
+        min-width: 100px;
+        padding: 0 12px;
         height: 36px;
         margin-right: 20px;
         border-radius: 6px;

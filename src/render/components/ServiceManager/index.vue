@@ -1,7 +1,7 @@
 <template>
   <div class="apache-service">
     <div class="block">
-      <span>当前版本:</span>
+      <span class="left-title">{{ $t('base.currentVersion') }}:</span>
       <span
         class="ml-30 version-txt"
         :class="{ disabled: !currentVersion?.version }"
@@ -10,38 +10,38 @@
     </div>
 
     <div class="block mt-20">
-      <span>当前状态:</span>
+      <span class="left-title">{{ $t('base.currentStatus') }}:</span>
       <div v-if="serverRunning" class="ml-30 status running">
-        <span class="mr-10">运行中</span>
+        <span class="mr-10">{{ $t('base.runningStatus') }}</span>
         <yb-icon :svg="import('@/svg/task-start.svg?raw')" width="16" height="16" />
       </div>
       <div v-else class="ml-30 status">
-        <span class="mr-10">未运行</span>
+        <span class="mr-10">{{ $t('base.noRunningStatus') }}</span>
         <yb-icon :svg="import('@/svg/task-stop.svg?raw')" width="16" height="16" />
       </div>
     </div>
 
-    <div class="block mt-20">
+    <div class="block mt-30">
       <el-button
         v-if="serverRunning"
         :loading="current_task === 'stop'"
         :disabled="disabled"
         @click="serviceDo('stop')"
-        >停止</el-button
+        >{{ $t('base.serviceStop') }}</el-button
       >
       <el-button
         v-else
         :loading="current_task === 'start'"
         :disabled="disabled"
         @click="serviceDo('start')"
-        >启动</el-button
+        >{{ $t('base.serviceStart') }}</el-button
       >
       <el-button
         :loading="current_task === 'restart'"
         :disabled="disabled"
         class="ml-30"
         @click="serviceDo('restart')"
-        >重启</el-button
+        >{{ $t('base.serviceReStart') }}</el-button
       >
       <el-button
         v-if="showReloadBtn"
@@ -49,7 +49,7 @@
         :disabled="disabled || !serverRunning"
         class="ml-30"
         @click="serviceDo('reload')"
-        >重载配置</el-button
+        >{{ $t('base.serviceReLoad') }}</el-button
       >
     </div>
 
@@ -122,7 +122,7 @@
         if (v && p) {
           return `${v} - ${p}`
         }
-        return '请先在版本管理中安装版本, 然后在切换版本中选择使用版本'
+        return this.$t('base.noVersionTips')
       }
     },
     watch: {
@@ -170,8 +170,11 @@
     padding: 40px 0 0 40px;
     .block {
       display: flex;
-      align-items: center;
       flex-shrink: 0;
+
+      > .left-title {
+        flex-shrink: 0;
+      }
 
       .version-txt.disabled {
         color: #f56c6c;

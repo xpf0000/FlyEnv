@@ -1,15 +1,15 @@
 <template>
-  <el-form label-width="100px" label-position="left" @submit.prevent>
-    <el-form-item label="使用代理">
+  <el-form label-width="130px" label-position="left" @submit.prevent>
+    <el-form-item :label="$t('base.useProxy')">
       <el-switch v-model="proxy.on"></el-switch>
     </el-form-item>
-    <el-form-item label="代理设置">
+    <el-form-item :label="$t('base.quickSetup')">
       <template v-if="fastEdit">
         <el-input v-model.trim="fastProxy" placeholder="eg: 12.0.0.1:8090">
           <template #append>
             <el-button-group>
-              <el-button @click="fastEdit = false">取消</el-button>
-              <el-button @click="fastSetSubmit">确定</el-button>
+              <el-button @click="fastEdit = false">{{ $t('base.cancel') }}</el-button>
+              <el-button @click="fastSetSubmit">{{ $t('base.confirm') }}</el-button>
             </el-button-group>
           </template>
         </el-input>
@@ -18,19 +18,19 @@
         <el-input v-model="proxy.fastProxy" readonly placeholder="eg: 12.0.0.1:8090">
           <template #append>
             <el-button-group>
-              <el-button @click="fastSet">快速设置</el-button>
+              <el-button @click="fastSet">{{ $t('base.quickSetup') }}</el-button>
             </el-button-group>
           </template>
         </el-input>
       </template>
     </el-form-item>
-    <el-form-item label="当前代理">
+    <el-form-item :label="$t('base.currentProxy')">
       <template v-if="proxyEdit">
         <el-input v-model.trim="proxyStr">
           <template #append>
             <el-button-group>
-              <el-button @click="proxyEdit = false">取消</el-button>
-              <el-button @click="proxySubmit">确定</el-button>
+              <el-button @click="proxyEdit = false">{{ $t('base.cancel') }}</el-button>
+              <el-button @click="proxySubmit">{{ $t('base.confirm') }}</el-button>
             </el-button-group>
           </template>
         </el-input>
@@ -39,8 +39,8 @@
         <el-input v-model="proxy.proxy" readonly>
           <template #append>
             <el-button-group>
-              <el-button @click="copyProxy">复制</el-button>
-              <el-button @click="editProxy">编辑</el-button>
+              <el-button @click="copyProxy">{{ $t('base.copy') }}</el-button>
+              <el-button @click="editProxy">{{ $t('base.edit') }}</el-button>
             </el-button-group>
           </template>
         </el-input>

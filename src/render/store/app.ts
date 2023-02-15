@@ -23,7 +23,7 @@ export interface AppHost {
   }
   url: string
   root: string
-  phpVersion: number
+  phpVersion?: number
 }
 
 export interface AppServerCurrent {
@@ -260,7 +260,9 @@ export const AppStore = defineStore('app', {
           showTour: this.config.showTour
         })
       )
-      IPC.send('application:save-preference', args)
+      IPC.send('application:save-preference', args).then((key: string) => {
+        IPC.off(key)
+      })
     }
   }
 })

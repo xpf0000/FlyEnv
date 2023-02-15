@@ -1,6 +1,7 @@
 export default {
   add: 'Add',
   open: 'Open',
+  openHosts: 'Open hosts',
   edit: 'Edit',
   link: 'Link',
   configFile: 'Config File',
@@ -11,6 +12,9 @@ export default {
   host: 'Host',
   save: 'Save',
   select: 'Select',
+  lang: 'Language',
+  changeLang: 'Change Language',
+  setupBase: 'Setting',
   apachePortTips1:
     'The ports that Apache listens to in each site and config file cannot be repeated, otherwise, Apache will fail to start',
   apachePortTips2:
@@ -29,6 +33,8 @@ export default {
   versionManager: 'Version Manager',
   error: 'Error',
   running: 'Running',
+  errorLog: 'Error Log',
+  runLog: 'Run Log',
   loadDefault: 'Load Default',
   switch: 'Switch',
   isInstalled: 'IsInstalled',
@@ -74,5 +80,22 @@ export default {
   nvmInstallfailed: 'NVM Install Failed',
   nodeVersionNoFound: 'Node available version acquisition failed',
   showMainWin: 'Show Main Window',
-  exit: 'Exit'
+  exit: 'Exit',
+  default: 'Default',
+  copy: 'Copy',
+  hostsTitle: 'System Hosts',
+  phpVersion: 'PHP Version',
+  selectPhpVersion: 'Select PHP Version',
+  siteLinks: 'Site Links',
+  vhostConTitle: 'Vhost Config File',
+  currentVersion: 'Current Version',
+  noVersionTips:
+    'Please install the version in the Version Manager first, and then choose to use the version in the Version Switch',
+  currentStatus: 'Current Status',
+  runningStatus: 'Running',
+  noRunningStatus: 'Not Running',
+  serviceStop: 'Stop',
+  serviceStart: 'Start',
+  serviceReStart: 'Restart',
+  serviceReLoad: 'Reload Config File'
 }

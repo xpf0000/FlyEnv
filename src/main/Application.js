@@ -589,6 +589,9 @@ export default class Application extends EventEmitter {
       case 'Application:tray-status-change':
         this.trayManager.iconChange(args[0])
         break
+      case 'application:save-preference':
+        this.windowManager.sendCommandTo(this.mainWindow, command, key)
+        break
       case 'APP:Tray-Store-Sync':
         this.windowManager.sendCommandTo(this.trayWindow, command, command, args[0])
         break

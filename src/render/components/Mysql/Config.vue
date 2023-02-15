@@ -2,9 +2,11 @@
   <div class="mysql-config">
     <div ref="input" class="block"></div>
     <div class="tool">
-      <el-button :disabled="!currentVersion" @click="openConfig">打开</el-button>
-      <el-button :disabled="!currentVersion" @click="saveConfig">保存</el-button>
-      <el-button :disabled="!currentVersion" @click="getDefault">加载默认</el-button>
+      <el-button :disabled="!currentVersion" @click="openConfig">{{ $t('base.open') }}</el-button>
+      <el-button :disabled="!currentVersion" @click="saveConfig">{{ $t('base.save') }}</el-button>
+      <el-button :disabled="!currentVersion" @click="getDefault">{{
+        $t('base.loadDefault')
+      }}</el-button>
     </div>
   </div>
 </template>

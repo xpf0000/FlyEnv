@@ -1,5 +1,7 @@
 <template>
-  <el-button :loading="running" :disabled="running" @click="doFix"> 尝试修复 </el-button>
+  <el-button :loading="running" :disabled="running" @click="doFix">
+    {{ $t('base.tryToFix') }}
+  </el-button>
 </template>
 
 <script>

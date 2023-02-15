@@ -38,7 +38,12 @@
     data() {
       return {
         current_tab: 0,
-        tabs: ['服务', '切换版本', '版本管理', '运行日志']
+        tabs: [
+          this.$t('base.service'),
+          this.$t('base.versionSwitch'),
+          this.$t('base.versionManager'),
+          this.$t('base.log')
+        ]
       }
     },
     computed: {
@@ -73,7 +78,8 @@
       > li {
         user-select: none;
         cursor: pointer;
-        width: 100px;
+        min-width: 100px;
+        padding: 0 12px;
         height: 36px;
         margin-right: 20px;
         border-radius: 6px;

@@ -1,6 +1,10 @@
 <template>
   <div class="setup-common">
-    <div class="plant-title">显示项目</div>
+    <div class="plant-title">{{ $t('base.lang') }}</div>
+    <div class="main brew-src">
+      <LangeSet></LangeSet>
+    </div>
+    <div class="plant-title">{{ $t('base.showItem') }}</div>
     <div class="main">
       <el-form label-position="left" label-width="100px">
         <el-row>
@@ -68,19 +72,19 @@
         </el-row>
       </el-form>
     </div>
-    <div class="plant-title">Brew源切换</div>
+    <div class="plant-title">{{ $t('base.brewSrcSwitch') }}</div>
     <div class="main brew-src">
       <BrewSrc></BrewSrc>
     </div>
-    <div class="plant-title">修复Github访问问题</div>
+    <div class="plant-title">{{ $t('base.githubFixTitle') }}</div>
     <div class="main brew-src">
       <GitHubFix></GitHubFix>
     </div>
-    <div class="plant-title">代理设置</div>
+    <div class="plant-title">{{ $t('base.proxySetting') }}</div>
     <div class="main proxy-set">
       <ProxySet></ProxySet>
     </div>
-    <div class="plant-title">重设电脑密码</div>
+    <div class="plant-title">{{ $t('base.resetPassword') }}</div>
     <div class="main reset-pass">
       <RestPassword></RestPassword>
     </div>
@@ -92,11 +96,12 @@
   import GitHubFix from './GithubFix/index.vue'
   import RestPassword from './RestPassword/index.vue'
   import ProxySet from './ProxySet/index.vue'
+  import LangeSet from './Lang/index.vue'
   import { AppStore } from '@/store/app'
   import { defineComponent } from 'vue'
 
   export default defineComponent({
-    components: { BrewSrc, GitHubFix, RestPassword, ProxySet },
+    components: { BrewSrc, GitHubFix, RestPassword, ProxySet, LangeSet },
     props: {},
     data() {
       return {}

@@ -7,6 +7,9 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import SVGIcons from '../components/YbSvgIcon/index'
 import PoperFix from './directive/PoperFix/index'
 import Tour from './directive/Tour/index'
+import { AppStore } from '@/store/app'
+import { AppI18n } from '@shared/lang'
+import { createPinia } from 'pinia'
 
 export function VueExtend(App: any, data?: any) {
   const app = createApp(App, data)
@@ -15,6 +18,9 @@ export function VueExtend(App: any, data?: any) {
   app.use(SVGIcons, 'ybIcon')
   app.use(ElementPlus, { size: 'default' })
   app.use(Tour)
+  app.use(createPinia())
+  const appStore = AppStore()
+  app.use(AppI18n(appStore.config?.setup?.lang))
   app.mixin({
     beforeCreate() {
       this.$children = new Set()
