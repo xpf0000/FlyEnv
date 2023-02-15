@@ -14,20 +14,29 @@
         >Apache-Error</li
       >
     </ul>
-    <el-input v-model="log" resize="none" class="block" :readonly="true" type="textarea"></el-input>
+    <div ref="input" class="block"></div>
     <div class="tool">
-      <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">打开</el-button>
-      <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">刷新</el-button>
-      <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">清空</el-button>
+      <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
+        $t('base.open')
+      }}</el-button>
+      <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
+        $t('base.refresh')
+      }}</el-button>
+      <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
+        $t('base.clean')
+      }}</el-button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-  import { defineComponent } from 'vue'
+  import { defineComponent, nextTick } from 'vue'
   import { writeFileAsync, readFileAsync } from '@shared/file'
   import { AppStore } from '@/store/app'
   import { EventBus } from '@/global'
+  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
+  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
 
   const { existsSync } = require('fs')
   const { exec } = require('child-process-promise')
@@ -52,10 +61,49 @@
         return AppStore().config.password
       }
     },
-    watch: {},
+    watch: {
+      log() {
+        nextTick().then(() => {
+          this.initEditor()
+        })
+      }
+    },
     created: function () {},
+    mounted() {
+      nextTick().then(() => {
+        this.initEditor()
+      })
+    },
+    unmounted() {
+      this.monacoInstance && this.monacoInstance.dispose()
+      this.monacoInstance = null
+    },
     methods: {
+      initEditor() {
+        if (!this.monacoInstance) {
+          const input: HTMLElement = this?.$refs?.input as HTMLElement
+          if (!input || !input?.style) {
+            return
+          }
+          this.monacoInstance = editor.create(input, {
+            value: this.log,
+            language: 'ini',
+            theme: 'vs-dark',
+            readOnly: true,
+            scrollBeyondLastLine: true,
+            overviewRulerBorder: true,
+            automaticLayout: true,
+            wordWrap: 'on'
+          })
+        } else {
+          this.monacoInstance.setValue(this.log)
+        }
+      },
       logDo(flag: string) {
+        if (!existsSync(this.filepath)) {
+          this.$message.error(this.$t('base.noFoundLogFile'))
+          return
+        }
         switch (flag) {
           case 'open':
             shell.showItemInFolder(this.filepath)
@@ -67,7 +115,7 @@
             writeFileAsync(this.filepath, '')
               .then(() => {
                 this.log = ''
-                this.$message.success('日志清空成功')
+                this.$message.success(this.$t('base.success'))
               })
               .catch(() => {
                 if (!this.password) {
@@ -97,7 +145,7 @@
             })
           })
         } else {
-          this.log = '当前无日志'
+          this.log = this.$t('base.noLogs')
         }
       },
       initType(type: string) {

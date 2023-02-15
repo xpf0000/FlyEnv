@@ -3,7 +3,9 @@
     <template #header>
       <div class="card-header">
         <span> {{ cardHeadTitle }} </span>
-        <el-button v-if="showNextBtn" type="primary" @click="toNext">确定</el-button>
+        <el-button v-if="showNextBtn" type="primary" @click="toNext">{{
+          $t('base.confirm')
+        }}</el-button>
         <el-button
           v-else
           class="button"
@@ -24,15 +26,15 @@
     </template>
     <el-table
       v-else
-      empty-text="可用版本获取中..."
+      :empty-text="$t('base.gettingVersion')"
       height="100%"
       :data="tableData"
       size="medium"
       style="width: 100%"
     >
-      <el-table-column prop="name" label="brew库"> </el-table-column>
-      <el-table-column prop="version" label="版本"> </el-table-column>
-      <el-table-column align="center" label="是否安装" width="120">
+      <el-table-column prop="name" :label="$t('base.brewLibrary')"> </el-table-column>
+      <el-table-column prop="version" :label="$t('base.version')"> </el-table-column>
+      <el-table-column align="center" :label="$t('base.isInstalled')" width="120">
         <template #default="scope">
           <yb-icon
             v-if="scope.row.installed"
@@ -42,14 +44,14 @@
         </template>
       </el-table-column>
 
-      <el-table-column align="center" label="操作" width="150">
+      <el-table-column align="center" :label="$t('base.operation')" width="150">
         <template #default="scope">
           <el-button
             type="text"
             :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
             :disabled="brewRunning"
             @click="handleEdit(scope.$index, scope.row)"
-            >{{ scope.row.installed ? '卸载' : '安装' }}</el-button
+            >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
           >
         </template>
       </el-table-column>
@@ -191,7 +193,7 @@
       console.log('created typeFlag: ', this.typeFlag)
       this.getData()
       if (!this.brewRunning) {
-        BrewStore().cardHeadTitle = '当前版本库'
+        BrewStore().cardHeadTitle = this.$t('base.currentVersionLib')
       }
     },
     unmounted() {
@@ -269,10 +271,10 @@
         let fn = ''
         if (row.installed) {
           fn = 'uninstall'
-          brewStore.cardHeadTitle = `Brew 卸载 ${row.name}`
+          brewStore.cardHeadTitle = `Brew ${this.$t('base.uninstall')} ${row.name}`
         } else {
           fn = 'install'
-          brewStore.cardHeadTitle = `Brew 安装 ${row.name}`
+          brewStore.cardHeadTitle = `Brew ${this.$t('base.install')} ${row.name}`
         }
 
         const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
@@ -302,7 +304,7 @@
       },
       toNext() {
         this.showNextBtn = false
-        BrewStore().cardHeadTitle = '当前版本库'
+        BrewStore().cardHeadTitle = this.$t('base.currentVersionLib')
       }
     }
   })

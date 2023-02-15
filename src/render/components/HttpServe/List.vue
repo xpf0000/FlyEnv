@@ -4,7 +4,7 @@
       <li class="empty" @click.stop="choosePath">
         <div class="wapper" :class="{ ondrop: ondrop }">
           <yb-icon :svg="import('../../svg/upload.svg?raw')" class="icon" />
-          <span>将文件夹拖到此处,或点击选择文件夹</span>
+          <span>{{ $t('base.httpServerTips') }}</span>
         </div>
       </li>
     </template>
@@ -12,13 +12,13 @@
       <li v-for="(item, key) in serves" :key="key" class="http-serve-item">
         <div class="left">
           <div class="title">
-            <span class="name"> 路径:</span>
-            <span class="url">链接:</span>
+            <span class="name"> {{ $t('base.path') }}:</span>
+            <span class="url">{{ $t('base.link') }}:</span>
           </div>
           <div class="value">
             <span class="name">{{ key }} </span>
             <template v-if="!item.host">
-              <span class="url empty">无</span>
+              <span class="url empty">{{ $t('base.none') }}</span>
             </template>
             <template v-else>
               <span class="url" @click="doJump(item.host)">{{ item.host }} </span>
@@ -139,7 +139,7 @@
         if (!pathExistsSync(path)) return
         const stat = statSync(path)
         if (!stat.isDirectory()) {
-          this.$message.error('请选择文件夹!')
+          this.$message.error(this.$t('base.needSelectDir'))
           return
         }
         if (this.httpServe.includes(path)) {
@@ -175,7 +175,7 @@
         })
       },
       doDel(path: string) {
-        this.$baseConfirm('确认删除?', undefined, {
+        this.$baseConfirm(this.$t('base.delAlertContent'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })

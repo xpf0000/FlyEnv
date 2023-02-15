@@ -26,20 +26,20 @@
         <ul v-poper-fix class="host-list-menu">
           <li @click.stop="action(item, index, 'open')">
             <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-            <span class="ml-15">打开</span>
+            <span class="ml-15">{{ $t('base.open') }}</span>
           </li>
           <li @click.stop="action(item, index, 'edit')">
             <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-            <span class="ml-15">编辑</span>
+            <span class="ml-15">{{ $t('base.edit') }}</span>
           </li>
           <li @click.stop="action(item, index, 'link')">
             <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-            <span class="ml-15">链接</span>
+            <span class="ml-15">{{ $t('base.link') }}</span>
           </li>
           <li>
             <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
             <el-dropdown @command="showConfig">
-              <span class="ml-15"> 配置文件 </span>
+              <span class="ml-15"> {{ $t('base.configFile') }} </span>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item :command="{ flag: 'nginx', item }">Nginx</el-dropdown-item>
@@ -50,11 +50,11 @@
           </li>
           <li @click.stop="action(item, index, 'log')">
             <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-            <span class="ml-15">日志</span>
+            <span class="ml-15">{{ $t('base.log') }}</span>
           </li>
           <li @click.stop="action(item, index, 'del')">
             <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-            <span class="ml-15">删除</span>
+            <span class="ml-15">{{ $t('base.del') }}</span>
           </li>
         </ul>
 
@@ -70,7 +70,6 @@
     ref="host-edit-drawer"
     v-model="show"
     size="65%"
-    title="我是标题"
     :close-on-click-modal="false"
     :destroy-on-close="true"
     custom-class="host-edit-drawer"
@@ -159,7 +158,8 @@
                 host: item
               })
               .noFooter()
-              .title('站点链接')
+              // @ts-ignore
+              .title(this.$t('base.siteLinks'))
               .show()
             break
         }
@@ -268,5 +268,6 @@
     border: none !important;
     color: #fff !important;
     padding: 0 !important;
+    width: auto !important;
   }
 </style>

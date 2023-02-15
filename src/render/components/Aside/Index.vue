@@ -320,7 +320,7 @@
             if (find) {
               this.$message.error(find)
             } else {
-              this.$message.success('操作成功')
+              this.$message.success(this.$t('base.success'))
             }
           })
         }
@@ -403,12 +403,6 @@
       }
     },
     watch: {
-      server: {
-        handler(v) {
-          console.log('watch server: ', v)
-        },
-        deep: true
-      },
       groupIsRunning(val) {
         IPC.send('Application:tray-status-change', val).then((key: string) => {
           IPC.off(key)
@@ -492,11 +486,11 @@
                 if (find) {
                   this.$message.error(find as string)
                 } else {
-                  this.$message.success('操作成功')
+                  this.$message.success(this.$t('base.success'))
                 }
               })
               .catch(() => {
-                this.$message.error('操作失败')
+                this.$message.error(this.$t('base.fail'))
               })
           }
         })
@@ -536,7 +530,7 @@
             if (typeof res === 'string') {
               this.$message.error(res)
             } else {
-              this.$message.success('操作成功')
+              this.$message.success(this.$t('base.success'))
             }
           })
         })

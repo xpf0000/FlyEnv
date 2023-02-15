@@ -18,9 +18,11 @@
       <div class="main-wapper">
         <div ref="input" class="block"></div>
         <div class="tool">
-          <el-button :disabled="!configpath" @click="openConfig">打开</el-button>
-          <el-button :disabled="!configpath" @click="saveConfig">保存</el-button>
-          <el-button :disabled="!configpath" @click="getDefault">加载默认</el-button>
+          <el-button :disabled="!configpath" @click="openConfig">{{ $t('base.open') }}</el-button>
+          <el-button :disabled="!configpath" @click="saveConfig">{{ $t('base.save') }}</el-button>
+          <el-button :disabled="!configpath" @click="getDefault">{{
+            $t('base.loadDefault')
+          }}</el-button>
         </div>
       </div>
     </div>

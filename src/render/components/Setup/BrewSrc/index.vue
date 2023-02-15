@@ -1,14 +1,17 @@
 <template>
   <el-select v-model="currentBrewSrc" placeholder="请选择Brew下载源">
     <template v-for="(label, value) in brewSrc" :key="value">
-      <el-option :label="label" :value="value"></el-option>
+      <el-option
+        :label="value === 'default' ? $t(`base.${value}`) : label"
+        :value="value"
+      ></el-option>
     </template>
   </el-select>
   <el-button
     :loading="brewRunning"
     :disabled="running || !currentBrewSrc || brewRunning || currentBrewSrc === brewStoreSrc"
     @click="changeBrewSrc"
-    >切换</el-button
+    >{{ $t('base.switch') }}</el-button
   >
 </template>
 

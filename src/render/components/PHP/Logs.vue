@@ -18,15 +18,15 @@
       <div class="main-wapper">
         <div ref="input" class="block"></div>
         <div class="tool">
-          <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('open')"
-            >打开</el-button
-          >
-          <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('refresh')"
-            >刷新</el-button
-          >
-          <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('clean')"
-            >清空</el-button
-          >
+          <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('open')">{{
+            $t('base.open')
+          }}</el-button>
+          <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('refresh')">{{
+            $t('base.refresh')
+          }}</el-button>
+          <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('clean')">{{
+            $t('base.clean')
+          }}</el-button>
         </div>
       </div>
     </div>
@@ -82,7 +82,7 @@
     },
     computed: {
       title() {
-        return this.type === 'php-fpm-slow' ? '慢日志' : 'FPM日志'
+        return this.type === 'php-fpm-slow' ? this.$t('base.slowLog') : 'FPM日志'
       }
     },
     created: function () {
@@ -113,7 +113,7 @@
           case 'clean':
             writeFileAsync(this.filepath, '').then(() => {
               this.log = ''
-              this.$message.success('日志清空成功')
+              this.$message.success(this.$t('base.success'))
             })
             break
         }

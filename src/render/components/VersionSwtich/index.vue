@@ -18,9 +18,9 @@
         @click="versionChange"
         >切换</el-button
       >
-      <el-button :disabled="initing || disabled" class="ml-20" :loading="initing" @click="reinit"
-        >刷新</el-button
-      >
+      <el-button :disabled="initing || disabled" class="ml-20" :loading="initing" @click="reinit">{{
+        $t('base.refresh')
+      }}</el-button>
     </div>
 
     <ul id="logs" class="logs">

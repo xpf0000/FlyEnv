@@ -2,9 +2,9 @@
   <div class="redis-config">
     <div ref="input" class="block"></div>
     <div class="tool">
-      <el-button :disabled="!version" @click="openConfig">打开</el-button>
-      <el-button :disabled="!version" @click="saveConfig">保存</el-button>
-      <el-button :disabled="!version" @click="getDefault">加载默认</el-button>
+      <el-button :disabled="!version" @click="openConfig">{{ $t('base.open') }}</el-button>
+      <el-button :disabled="!version" @click="saveConfig">{{ $t('base.save') }}</el-button>
+      <el-button :disabled="!version" @click="getDefault">{{ $t('base.loadDefault') }}</el-button>
     </div>
   </div>
 </template>
@@ -60,7 +60,7 @@
       saveConfig() {
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configPath, content).then(() => {
-          this.$message.success('配置文件保存成功!')
+          this.$message.success(this.$t('base.success'))
         })
       },
       getConfig() {

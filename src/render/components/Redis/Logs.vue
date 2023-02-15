@@ -2,9 +2,15 @@
   <div class="redis-config">
     <el-input v-model="log" resize="none" class="block" :readonly="true" type="textarea"></el-input>
     <div class="tool">
-      <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">打开</el-button>
-      <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">刷新</el-button>
-      <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">清空</el-button>
+      <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
+        $t('base.open')
+      }}</el-button>
+      <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
+        $t('base.refresh')
+      }}</el-button>
+      <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
+        $t('base.clean')
+      }}</el-button>
     </div>
   </div>
 </template>
@@ -52,7 +58,7 @@
             writeFileAsync(this.filepath, '')
               .then(() => {
                 this.log = ''
-                this.$message.success('日志清空成功')
+                this.$message.success(this.$t('base.success'))
               })
               .catch(() => {
                 if (!this.password) {
@@ -82,7 +88,7 @@
             })
           })
         } else {
-          this.log = '当前无日志'
+          this.log = this.$t('base.noLogs')
         }
       },
       init() {

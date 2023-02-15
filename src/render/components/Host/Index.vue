@@ -1,13 +1,13 @@
 <template>
   <div class="host-panel main-right-panel">
     <ul class="top-tab">
-      <li class="active" @click="drawer = true">添加</li>
+      <li class="active" @click="drawer = true">{{ $t('base.add') }}</li>
       <li style="width: auto; padding: 0 15px">
         <span style="margin-right: 10px">hosts: </span>
         <el-switch v-model="hostsSet.write"></el-switch>
       </li>
       <li class="no-hover" style="width: auto; padding: 0 15px">
-        <el-button @click="openHosts">打开hosts</el-button>
+        <el-button @click="openHosts">{{ $t('base.openHosts') }}</el-button>
       </li>
     </ul>
     <mo-host-list></mo-host-list>
@@ -15,7 +15,6 @@
       ref="host-edit-drawer"
       v-model="drawer"
       size="460px"
-      title="我是标题"
       :close-on-click-modal="false"
       :destroy-on-close="true"
       custom-class="host-edit-drawer"
@@ -24,13 +23,7 @@
       <mo-host-edit ref="host-edit"></mo-host-edit>
     </el-drawer>
 
-    <el-drawer
-      v-model="logshow"
-      size="60%"
-      title="我是标题"
-      :destroy-on-close="true"
-      :with-header="false"
-    >
+    <el-drawer v-model="logshow" size="60%" :destroy-on-close="true" :with-header="false">
       <mo-host-logs ref="host-logs"></mo-host-logs>
     </el-drawer>
   </div>
@@ -70,7 +63,7 @@
         handler(val) {
           IPC.send('app-fork:host', 'writeHosts', val).then((key: string) => {
             IPC.off(key)
-            this.$message.success('操作成功')
+            this.$message.success(this.$t('base.success'))
           })
           AppStore().saveConfig()
         }
@@ -146,7 +139,8 @@
       > li {
         user-select: none;
         cursor: pointer;
-        width: 100px;
+        min-width: 100px;
+        padding: 0 12px;
         height: 36px;
         margin-right: 20px;
         border-radius: 6px;

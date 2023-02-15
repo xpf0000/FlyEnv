@@ -2,9 +2,9 @@
   <div class="apache-config">
     <div ref="input" class="block"></div>
     <div class="tool">
-      <el-button @click="openConfig">打开</el-button>
-      <el-button :disabled="!version" @click="saveConfig">保存</el-button>
-      <el-button :disabled="!version" @click="getDefault">加载默认</el-button>
+      <el-button :disabled="disabled" @click="openConfig">{{ $t('base.open') }}</el-button>
+      <el-button :disabled="disabled" @click="saveConfig">{{ $t('base.save') }}</el-button>
+      <el-button :disabled="disabled" @click="getDefault">{{ $t('base.loadDefault') }}</el-button>
     </div>
   </div>
 </template>
@@ -36,13 +36,15 @@
     computed: {
       version() {
         return AppStore().config.server?.apache?.current
+      },
+      disabled() {
+        return !this.version?.version
       }
     },
     watch: {},
-    created: function () {
-      this.getConfig()
-    },
+    created: function () {},
     mounted() {
+      this.getConfig()
       nextTick().then(() => {
         this.initEditor()
       })
@@ -58,12 +60,12 @@
       saveConfig() {
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configpath, content).then(() => {
-          this.$message.success('配置文件保存成功!')
+          this.$message.success(this.$t('base.success'))
         })
       },
       getConfig() {
         if (!this?.version?.version) {
-          this.config = '请先选择版本'
+          this.config = this.$t('base.needSelectVersion')
           this.$message.error(this.config)
           this.initEditor()
           return
@@ -71,7 +73,7 @@
         const name = md5(this.version.bin!)
         this.configpath = join(global.Server.ApacheDir, `common/conf/${name}.conf`)
         if (!existsSync(this.configpath)) {
-          this.config = '未找到配置文件, 请重新选择版本'
+          this.config = this.$t('base.configNoFound')
           this.$message.error(this.config)
           this.initEditor()
           return
@@ -83,13 +85,13 @@
       },
       getDefault() {
         if (!this?.version?.version) {
-          this.$message.error('请先选择版本')
+          this.$message.error(this.$t('base.needSelectVersion'))
           return
         }
         const name = md5(this.version.bin!)
         const configpath = join(global.Server.ApacheDir, `common/conf/${name}.default.conf`)
         if (!existsSync(configpath)) {
-          this.$message.error('未找到默认配置文件')
+          this.$message.error(this.$t('base.defaultConFileNoFound'))
           return
         }
         readFileAsync(configpath).then((conf) => {
@@ -107,12 +109,16 @@
             value: this.config,
             language: 'ini',
             theme: 'vs-dark',
+            readOnly: this.disabled,
             scrollBeyondLastLine: true,
             overviewRulerBorder: true,
             automaticLayout: true
           })
         } else {
           this.monacoInstance.setValue(this.config)
+          this.monacoInstance.updateOptions({
+            readOnly: this.disabled
+          })
         }
       }
     }

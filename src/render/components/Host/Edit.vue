@@ -3,11 +3,11 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-        <span class="ml-15">添加站点</span>
+        <span class="ml-15">{{ isEdit ? $t('base.edit') : $t('base.add') }}</span>
       </div>
-      <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave"
-        >保存</el-button
-      >
+      <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
+        $t('base.save')
+      }}</el-button>
     </div>
 
     <div class="main-wapper">
@@ -38,14 +38,14 @@
         </div>
       </div>
 
-      <div class="plant-title">PHP版本</div>
+      <div class="plant-title">{{ $t('base.phpVersion') }}</div>
       <div class="main">
         <div class="port-set">
           <el-select
             v-model="item.phpVersion"
             :class="{ error: errs?.phpVersion }"
             class="w-p100"
-            placeholder="请选择PHP版本"
+            :placeholder="$t('base.selectPhpVersion')"
           >
             <template v-for="(v, i) in phpVersions" :key="i">
               <el-option :value="v.num" :label="v.version"></el-option>
@@ -78,8 +78,8 @@
                   style="margin-left: 5px"
                 ></yb-icon>
               </template>
-              <p>Apache各个站点和配置文件中监听的端口全部不能重复, 否则会导致apache无法启动</p>
-              <p>此处设置的端口,会在站点vhost配置文件中添加端口监听,如果重复,请自行手动删除</p>
+              <p>{{ $t('base.apachePortTips1') }}</p>
+              <p>{{ $t('base.apachePortTips2') }}</p>
             </el-popover>
           </div>
           <input
@@ -152,7 +152,12 @@
 
       <div class="plant-title">
         <span>Nginx</span>
-        <el-popover placement="top-start" title="注意" :width="300" trigger="hover">
+        <el-popover
+          placement="top-start"
+          :title="$t('base.attention')"
+          :width="300"
+          trigger="hover"
+        >
           <template #reference>
             <yb-icon
               :svg="import('@/svg/question.svg?raw')"
@@ -161,12 +166,16 @@
               style="margin-left: 5px"
             ></yb-icon>
           </template>
-          <p>此处设置Nginx的Url Rewrite, Apache请在项目文件中自行设置</p>
+          <p>{{ $t('base.nginxRewriteTips') }}</p>
         </el-popover>
       </div>
 
       <div class="main">
-        <el-select v-model="rewriteKey" placeholder="当前" @change="rewriteChange">
+        <el-select
+          v-model="rewriteKey"
+          :placeholder="$t('base.commonTemplates')"
+          @change="rewriteChange"
+        >
           <el-option v-for="key in rewrites" :key="key" :label="key" :value="key"> </el-option>
         </el-select>
 
@@ -223,7 +232,7 @@
           },
           url: '',
           root: '',
-          phpVersion: 0
+          phpVersion: undefined
         },
         edit: {},
         errs: {
@@ -407,7 +416,7 @@
                 })
               })
               .catch(() => {
-                this.$message.error('操作失败,hosts文件权限不正确')
+                this.$message.error(this.$t('base.hostNoRole'))
                 this.running = false
               })
           } else {

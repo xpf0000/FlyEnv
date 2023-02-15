@@ -50,7 +50,7 @@ const state: TrayState = {
   redis: { show: true, disabled: true, run: false, running: false }
 }
 
-export const AppStore = defineStore('app', {
+export const AppStore = defineStore('trayApp', {
   state: (): TrayState => state,
   getters: {
     groupIsRunning(): boolean {

@@ -17,3 +17,4 @@ latest-mac.yml
 .idea
 /test.js
 /static/brew
+yarn-error.log

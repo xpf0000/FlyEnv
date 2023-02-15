@@ -10,15 +10,15 @@
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-          <span class="ml-15">系统Hosts</span>
+          <span class="ml-15">{{ $t('base.hostsTitle') }}</span>
         </div>
       </div>
 
       <div class="main-wapper">
         <div ref="input" class="block"></div>
         <div class="tool">
-          <el-button @click="openConfig">打开</el-button>
-          <el-button @click="saveConfig">保存</el-button>
+          <el-button @click="openConfig">{{ $t('base.open') }}</el-button>
+          <el-button @click="saveConfig">{{ $t('base.save') }}</el-button>
         </div>
       </div>
     </div>
@@ -91,10 +91,10 @@
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configpath, content)
           .then(() => {
-            this.$message.success('系统Hosts保存成功')
+            this.$message.success(this.$t('base.success'))
           })
           .catch(() => {
-            this.$message.error('系统Hosts保存失败, 请查看文件是否存在, 文件权限是否正确')
+            this.$message.error(this.$t('base.hostsSaveFailed'))
           })
       },
       getConfig() {
@@ -104,7 +104,7 @@
             this.initEditor()
           })
           .catch(() => {
-            this.config = '/private/etc/hosts 文件读取失败, 请查看文件是否存在, 文件权限是否正确'
+            this.config = this.$t('base.hostsReadFailed')
             this.initEditor()
           })
       },

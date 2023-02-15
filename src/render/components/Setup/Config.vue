@@ -1,7 +1,7 @@
 <template>
   <div class="setup-config">
     <div class="plant-title">
-      <span>自定义版本路径</span>
+      <span>{{ $t('base.customVersionDir') }}</span>
       <yb-icon
         :svg="import('@/svg/add.svg?raw')"
         class="add"

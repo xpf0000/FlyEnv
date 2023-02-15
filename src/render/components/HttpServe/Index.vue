@@ -1,7 +1,7 @@
 <template>
   <div class="host-panel main-right-panel">
     <ul class="top-tab">
-      <li class="active" @click="doAdd">添加</li>
+      <li class="active" @click="doAdd">{{ $t('base.add') }}</li>
     </ul>
     <List ref="list"></List>
   </div>
@@ -11,17 +11,6 @@
   import List from './List.vue'
   export default {
     components: { List },
-    props: {},
-    data() {
-      return {
-        current_tab: 0,
-        tabs: ['添加']
-      }
-    },
-    computed: {},
-    watch: {},
-    created: function () {},
-    unmounted() {},
     methods: {
       doAdd() {
         this.$refs.list.choosePath()
@@ -47,7 +36,8 @@
       > li {
         user-select: none;
         cursor: pointer;
-        width: 100px;
+        min-width: 100px;
+        padding: 0 12px;
         height: 36px;
         margin-right: 20px;
         border-radius: 6px;

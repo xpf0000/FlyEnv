@@ -2,9 +2,11 @@
   <div class="mysql-config">
     <div ref="input" class="block"></div>
     <div class="tool">
-      <el-button :disabled="!currentVersion" @click="openConfig">打开</el-button>
-      <el-button :disabled="!currentVersion" @click="saveConfig">保存</el-button>
-      <el-button :disabled="!currentVersion" @click="getDefault">加载默认</el-button>
+      <el-button :disabled="!currentVersion" @click="openConfig">{{ $t('base.open') }}</el-button>
+      <el-button :disabled="!currentVersion" @click="saveConfig">{{ $t('base.save') }}</el-button>
+      <el-button :disabled="!currentVersion" @click="getDefault">{{
+        $t('base.loadDefault')
+      }}</el-button>
     </div>
   </div>
 </template>
@@ -39,16 +41,16 @@
       }
     },
     watch: {},
-    created: function () {
-      if (!this.currentVersion) {
-        this.config = '请先选择版本'
-        return
-      }
-      const v = this.currentVersion.split('.').slice(0, 2).join('.')
-      this.configPath = join(global.Server.MysqlDir, `my-${v}.cnf`)
-      this.getConfig()
-    },
+    created: function () {},
     mounted() {
+      if (!this.currentVersion) {
+        this.config = this.$t('base.needSelectVersion')
+        this.$message.error(this.config)
+      } else {
+        const v = this.currentVersion.split('.').slice(0, 2).join('.')
+        this.configPath = join(global.Server.MysqlDir, `my-${v}.cnf`)
+        this.getConfig()
+      }
       nextTick().then(() => {
         this.initEditor()
       })
@@ -64,12 +66,12 @@
       saveConfig() {
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configPath, content).then(() => {
-          this.$message.success('配置文件保存成功!')
+          this.$message.success(this.$t('base.success'))
         })
       },
       getConfig() {
         if (!existsSync(this.configPath)) {
-          this.config = '版本已变更, 请重新切换选择版本'
+          this.config = this.$t('base.needSelectVersion')
           const appStore = AppStore()
           appStore.config.server.mysql.current = {}
           appStore.saveConfig()
@@ -105,12 +107,16 @@ datadir=${dataDir}`
             value: this.config,
             language: 'ini',
             theme: 'vs-dark',
+            readOnly: !this.currentVersion,
             scrollBeyondLastLine: true,
             overviewRulerBorder: true,
             automaticLayout: true
           })
         } else {
           this.monacoInstance.setValue(this.config)
+          this.monacoInstance.updateOptions({
+            readOnly: !this.currentVersion
+          })
         }
       }
     }
@@ -123,7 +129,7 @@ datadir=${dataDir}`
     flex-direction: column;
     height: 100%;
     width: 100%;
-    padding: 20px 0 0 20px;
+    padding: 10px 0 0 20px;
     .block {
       width: 100%;
       flex: 1;
@@ -134,7 +140,7 @@ datadir=${dataDir}`
       width: 100%;
       display: flex;
       align-items: center;
-      padding: 30px 0;
+      padding: 30px 0 0;
     }
   }
 </style>

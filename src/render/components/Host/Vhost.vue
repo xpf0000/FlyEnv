@@ -3,15 +3,15 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-        <span class="ml-15">Vhost配置文件</span>
+        <span class="ml-15">{{ $t('base.vhostConTitle') }}</span>
       </div>
     </div>
 
     <div class="main-wapper">
       <div ref="input" class="block"></div>
       <div class="tool">
-        <el-button @click="openConfig">打开</el-button>
-        <el-button @click="saveConfig">保存</el-button>
+        <el-button @click="openConfig">{{ $t('base.open') }}</el-button>
+        <el-button @click="saveConfig">{{ $t('base.save') }}</el-button>
       </div>
     </div>
   </div>
@@ -70,7 +70,7 @@
       saveConfig() {
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configpath, content).then(() => {
-          this.$message.success('配置文件保存成功')
+          this.$message.success(this.$t('base.success'))
         })
       },
       getConfig() {

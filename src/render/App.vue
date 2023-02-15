@@ -10,6 +10,7 @@
   import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import installedVersions from '@/util/InstalledVersions'
+  import { AppStore } from '@/store/app'
 
   export default defineComponent({
     name: 'App',
@@ -17,8 +18,20 @@
     data() {
       return {}
     },
-    computed: {},
-    watch: {},
+    computed: {
+      lang() {
+        return AppStore().config.setup.lang
+      }
+    },
+    watch: {
+      lang: {
+        handler(val) {
+          const body = document.body
+          body.className = `lang-${val}`
+        },
+        immediate: true
+      }
+    },
     created() {
       EventBus.on('vue:need-password', this.checkPassword)
       IPC.on('application:about').then(this.showAbout)
@@ -33,7 +46,7 @@
       showAbout() {
         this.$baseDialog(import('./components/About/index.vue'))
           .className('about-dialog')
-          .title('关于我们')
+          .title(this.$t('base.about'))
           .noFooter()
           .show()
       },
@@ -67,6 +80,18 @@
     .el-drawer__body {
       background: #1d2033 !important;
       padding: 0 !important;
+    }
+  }
+
+  .el-table .cell {
+    padding: 0 12px;
+  }
+
+  body.lang-en {
+    .apache-service {
+      .left-title {
+        width: 110px;
+      }
     }
   }
 </style>

@@ -6,7 +6,7 @@
         :key="index"
         :class="current_tab === index ? 'active' : ''"
         @click="current_tab = index"
-        >{{ item }}</li
+        >{{ index === 0 ? $t(`base.${item}`) : item }}</li
       >
     </ul>
     <div class="main-block">
@@ -34,7 +34,7 @@
     data() {
       return {
         current_tab: 0,
-        tabs: ['通用', 'Nginx', 'Apache', 'Mysql', 'Php', 'Memcached', 'Redis']
+        tabs: ['setupBase', 'Nginx', 'Apache', 'Mysql', 'Php', 'Memcached', 'Redis']
       }
     },
     computed: {},
@@ -60,7 +60,8 @@
       > li {
         user-select: none;
         cursor: pointer;
-        width: 100px;
+        min-width: 100px;
+        padding: 0 12px;
         height: 36px;
         margin-right: 20px;
         border-radius: 6px;
