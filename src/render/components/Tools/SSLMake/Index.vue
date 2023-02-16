@@ -5,7 +5,9 @@
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
         <span class="ml-15">SSL Make</span>
       </div>
-      <el-button class="shrink0" :loading="running" @click="doSave">生成</el-button>
+      <el-button class="shrink0" :loading="running" @click="doSave">{{
+        $t('base.generate')
+      }}</el-button>
     </div>
 
     <div class="main-wapper">
@@ -176,19 +178,15 @@ subjectAltName=@alt_names
         command += `openssl x509 -req -in ${saveName}.csr -out ${saveName}.crt -extfile ${saveName}.ext -CA ${caFile}.crt -CAkey ${caFile}.key -CAcreateserial -sha256 -days 365;`
         execSync(command, opt)
         if (existsSync(join(this.item.savePath, `${saveName}.crt`))) {
-          this.$alert(
-            `SSL自签名证书生成成功,请在打开的钥匙串中,找到Dev Root CA ${caFileName},并修改为"始终信任"该证书`,
-            '提示',
-            {
-              confirmButtonText: '确定',
-              callback: () => {
-                this.doClose()
-                shell.showItemInFolder(`${caFile}.crt`)
-              }
+          this.$alert(this.$t('base.sslMakeAlert', { caFileName }), this.$t('base.prompt'), {
+            confirmButtonText: this.$t('base.confirm'),
+            callback: () => {
+              this.doClose()
+              shell.showItemInFolder(`${caFile}.crt`)
             }
-          )
+          })
         } else {
-          this.$message.error('操作失败')
+          this.$message.error(this.$t('base.fail'))
           this.running = false
         }
       }

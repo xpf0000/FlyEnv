@@ -34,9 +34,9 @@
     watch: {},
     created: function () {
       this.configpath = join(global.Server.NginxDir, 'common/conf/nginx.conf')
-      this.getConfig()
     },
     mounted() {
+      this.getConfig()
       nextTick().then(() => {
         this.initEditor()
       })
@@ -52,7 +52,7 @@
       saveConfig() {
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configpath, content).then(() => {
-          this.$message.success('配置文件保存成功')
+          this.$message.success(this.$t('base.success'))
         })
       },
       getConfig() {
@@ -64,7 +64,7 @@
       getDefault() {
         let configpath = join(global.Server.NginxDir, 'common/conf/nginx.conf.default')
         if (!existsSync(configpath)) {
-          this.$message.error('未找到默认配置文件')
+          this.$message.error(this.$t('base.defaultConFileNoFound'))
           return
         }
         readFileAsync(configpath).then((conf) => {
@@ -100,7 +100,7 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
-    padding: 20px 0 0 20px;
+    padding: 10px 0 0 20px;
     .block {
       width: 100%;
       flex: 1;
@@ -111,7 +111,7 @@
       width: 100%;
       display: flex;
       align-items: center;
-      padding: 30px 0;
+      padding: 30px 0 0;
     }
   }
 </style>

@@ -72,7 +72,7 @@
     size="65%"
     :close-on-click-modal="false"
     :destroy-on-close="true"
-    custom-class="host-edit-drawer"
+    class="host-edit-drawer"
     :with-header="false"
   >
     <ConfigView :item="configItem" @doClose="show = false"></ConfigView>

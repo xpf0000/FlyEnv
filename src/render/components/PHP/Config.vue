@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-          <span class="ml-15">配置文件</span>
+          <span class="ml-15">php.ini</span>
         </div>
       </div>
 
@@ -123,7 +123,7 @@
         }
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configpath, content).then(() => {
-          this.$message.success('配置文件保存成功')
+          this.$message.success(this.$t('base.success'))
           if (this.phpRunning) {
             reloadService('php', this.version as SoftInstalled)
           }
@@ -131,7 +131,7 @@
       },
       getConfig() {
         if (!this.versionDir) {
-          this.config = '请先选择PHP版本'
+          this.config = this.$t('base.selectPhpVersion')
           return
         }
         const readConfig = () => {
@@ -149,8 +149,9 @@
               IniFiles[this.versionDir] = res.iniPath
               readConfig()
             } else {
-              this.$message.error('php.ini文件获取失败')
-              this.config = 'php.ini文件获取失败'
+              const err = this.$t('php.phpiniNoFound')
+              this.$message.error(err)
+              this.config = err
             }
           })
         } else {
@@ -163,7 +164,7 @@
         }
         let configpath = `${this.configpath}.default`
         if (!existsSync(configpath)) {
-          this.$message.error('未找到默认配置文件')
+          this.$message.error(this.$t('base.defaultConFileNoFound'))
           return
         }
         readFileAsync(configpath).then((conf) => {

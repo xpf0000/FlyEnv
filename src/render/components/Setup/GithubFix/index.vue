@@ -20,9 +20,9 @@
         IPC.send('app-fork:host', 'githubFix').then((key, info) => {
           IPC.off(key)
           if (info.code === 0) {
-            this.$message.success('修复完成,可以访问Github试下')
+            this.$message.success(this.$t('base.success'))
           } else {
-            this.$message.error('修复失败')
+            this.$message.error(this.$t('base.fail'))
           }
           this.running = false
         })

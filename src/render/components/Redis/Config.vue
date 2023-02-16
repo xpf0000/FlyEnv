@@ -73,7 +73,7 @@
       getDefault() {
         let configPath = join(global.Server.RedisDir, 'common/redis.conf.default')
         if (!existsSync(configPath)) {
-          this.$message.error('未找到默认配置文件!')
+          this.$message.error(this.$t('base.defaultConFileNoFound'))
           return
         }
         readFileAsync(configPath).then((conf) => {
@@ -109,7 +109,7 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
-    padding: 20px 0 0 20px;
+    padding: 10px 0 0 20px;
     .block {
       width: 100%;
       flex: 1;
@@ -120,7 +120,7 @@
       width: 100%;
       display: flex;
       align-items: center;
-      padding: 30px 0;
+      padding: 30px 0 0;
     }
   }
 </style>

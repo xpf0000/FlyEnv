@@ -1,14 +1,18 @@
-import EN from './en/base'
-import ZH from './zh/base'
+import ENBase from './en/base'
+import ZHBase from './zh/base'
+import ENPHP from './en/php'
+import ZHPHP from './zh/php'
 import * as VueI18n from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 
 export const lang = {
   en: {
-    base: EN
+    base: ENBase,
+    php: ENPHP
   },
   zh: {
-    base: ZH
+    base: ZHBase,
+    php: ZHPHP
   }
 }
 

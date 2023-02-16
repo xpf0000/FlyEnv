@@ -44,9 +44,9 @@
     },
     methods: {
       resetPassword() {
-        ElMessageBox.prompt('请输入电脑用户密码', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+        ElMessageBox.prompt(this.$t('base.inputPassword'), {
+          confirmButtonText: this.$t('base.confirm'),
+          cancelButtonText: this.$t('base.cancel'),
           inputType: 'password',
           customClass: 'password-prompt',
           beforeClose: (action, instance, done) => {
@@ -57,14 +57,14 @@
                   (key: string, res: any) => {
                     IPC.off(key)
                     if (res === false) {
-                      instance.editorErrorMessage = '密码错误,请重新输入'
+                      instance.editorErrorMessage = this.$t('base.passwordError')
                     } else {
                       global.Server.Password = res
                       AppStore()
                         .initConfig()
                         .then(() => {
                           done && done()
-                          this.$message.success('密码重设成功')
+                          this.$message.success(this.$t('base.success'))
                         })
                     }
                   }

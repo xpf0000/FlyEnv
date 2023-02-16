@@ -1,5 +1,5 @@
 <template>
-  <el-select v-model="currentBrewSrc" placeholder="请选择Brew下载源">
+  <el-select v-model="currentBrewSrc">
     <template v-for="(label, value) in brewSrc" :key="value">
       <el-option
         :label="value === 'default' ? $t(`base.${value}`) : label"
@@ -68,10 +68,10 @@
             console.log('info: ', info)
             if (info.code === 0) {
               brewStore.brewSrc = this.currentBrewSrc
-              this.$message.success('Brew源已切换')
+              this.$message.success(this.$t('base.success'))
             } else {
               this.currentBrewSrc = this.brewStoreSrc
-              this.$message.error('Brew源切换失败')
+              this.$message.error(this.$t('base.fail'))
             }
             brewStore.brewRunning = false
           }

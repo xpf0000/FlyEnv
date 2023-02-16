@@ -10,7 +10,7 @@
           v-else
           class="button"
           :disabled="currentType.getListing || brewRunning"
-          type="text"
+          link
           @click="reGetData"
         >
           <yb-icon
@@ -47,7 +47,8 @@
       <el-table-column align="center" :label="$t('base.operation')" width="150">
         <template #default="scope">
           <el-button
-            type="text"
+            type="primary"
+            link
             :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
             :disabled="brewRunning"
             @click="handleEdit(scope.$index, scope.row)"

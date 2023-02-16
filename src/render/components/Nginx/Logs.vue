@@ -1,6 +1,6 @@
 <template>
   <div class="nginx-config">
-    <el-input v-model="log" resize="none" class="block" :readonly="true" type="textarea"></el-input>
+    <div ref="input" class="block"></div>
     <div class="tool">
       <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
         $t('base.open')
@@ -16,10 +16,13 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent } from 'vue'
+  import { defineComponent, nextTick } from 'vue'
   import { writeFileAsync, readFileAsync } from '@shared/file'
   import { AppStore } from '@/store/app'
   import { EventBus } from '@/global'
+  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
+  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
 
   const { existsSync } = require('fs')
   const { exec } = require('child-process-promise')
@@ -49,13 +52,51 @@
     watch: {
       type() {
         this.init()
+      },
+      log() {
+        nextTick().then(() => {
+          this.initEditor()
+        })
       }
     },
     created: function () {
       this.init()
     },
+    mounted() {
+      nextTick().then(() => {
+        this.initEditor()
+      })
+    },
+    unmounted() {
+      this.monacoInstance && this.monacoInstance.dispose()
+      this.monacoInstance = null
+    },
     methods: {
+      initEditor() {
+        if (!this.monacoInstance) {
+          const input: HTMLElement = this?.$refs?.input as HTMLElement
+          if (!input || !input?.style) {
+            return
+          }
+          this.monacoInstance = editor.create(input, {
+            value: this.log,
+            language: 'ini',
+            theme: 'vs-dark',
+            readOnly: true,
+            scrollBeyondLastLine: true,
+            overviewRulerBorder: true,
+            automaticLayout: true,
+            wordWrap: 'on'
+          })
+        } else {
+          this.monacoInstance.setValue(this.log)
+        }
+      },
       logDo(flag: string) {
+        if (!existsSync(this.filepath)) {
+          this.$message.error(this.$t('base.noFoundLogFile'))
+          return
+        }
         switch (flag) {
           case 'open':
             shell.showItemInFolder(this.filepath)
@@ -113,7 +154,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 20px 0 0 20px;
+    padding: 10px 0 0 20px;
     .block {
       display: flex;
       align-items: center;
@@ -128,7 +169,7 @@
       width: 100%;
       display: flex;
       align-items: center;
-      padding: 30px 0;
+      padding: 30px 0 0;
       .shrink0 {
         flex-shrink: 0;
       }

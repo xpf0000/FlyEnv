@@ -40,9 +40,8 @@
       ref="host-edit-drawer"
       v-model="show"
       size="65%"
-      title="我是标题"
       :destroy-on-close="true"
-      custom-class="host-edit-drawer"
+      class="host-edit-drawer"
       :with-header="false"
     >
       <component :is="component" @doClose="hidePage"></component>

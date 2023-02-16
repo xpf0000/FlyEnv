@@ -21,12 +21,12 @@
 
         <div class="table-wapper">
           <div class="btn-cell">
-            <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect"
-              >清除选择</el-button
-            >
-            <el-button type="danger" :disabled="arrs.length === 0" @click="cleanAll"
-              >清除全部</el-button
-            >
+            <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect">{{
+              $t('base.cleanSelect')
+            }}</el-button>
+            <el-button type="danger" :disabled="arrs.length === 0" @click="cleanAll">{{
+              $t('base.cleanAll')
+            }}</el-button>
           </div>
           <el-table
             height="100%"
@@ -72,7 +72,7 @@
     unmounted() {},
     methods: {
       cleanSelect() {
-        this.$baseConfirm('确认结束所选进程?', null, {
+        this.$baseConfirm(this.$t('base.killProcessConfim'), null, {
           customClass: 'confirm-del',
           type: 'warning'
         })
@@ -84,16 +84,16 @@
               .join(' ')
             try {
               execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
-              this.$message.success('操作成功')
+              this.$message.success(this.$t('base.success'))
               this.doSearch()
             } catch (e) {
-              this.$message.error('操作失败')
+              this.$message.error(this.$t('base.fail'))
             }
           })
           .catch(() => {})
       },
       cleanAll() {
-        this.$baseConfirm('确认结束全部进程?', null, {
+        this.$baseConfirm(this.$t('base.killAllProcessConfim'), null, {
           customClass: 'confirm-del',
           type: 'warning'
         })
@@ -105,10 +105,10 @@
               .join(' ')
             try {
               execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
-              this.$message.success('操作成功')
+              this.$message.success(this.$t('base.success'))
               this.doSearch()
             } catch (e) {
-              this.$message.error('操作失败')
+              this.$message.error(this.$t('base.fail'))
             }
           })
           .catch(() => {})
@@ -152,7 +152,7 @@
             }
           })
         if (arr.length === 0) {
-          this.$message.warning('未查询到相关进程')
+          this.$message.warning(this.$t('base.processNoFound'))
           return
         }
         this.arrs.splice(0)

@@ -82,7 +82,7 @@
     },
     computed: {
       title() {
-        return this.type === 'php-fpm-slow' ? this.$t('base.slowLog') : 'FPM日志'
+        return this.type === 'php-fpm-slow' ? this.$t('base.slowLog') : this.$t('php.fpmLog')
       }
     },
     created: function () {

@@ -1,24 +1,23 @@
 <template>
   <div class="nodejs-versions">
     <div class="current-version">
-      <span>当前版本</span>
+      <span class="left-title">{{ $t('base.currentVersion') }}</span>
       <span class="version">{{ current }}</span>
     </div>
     <div class="block">
-      <span>选择版本</span>
+      <span class="left-title">{{ $t('base.selectVersion') }}</span>
       <el-select
         v-model="select"
         filterable
         :loading="task.getVersioning"
-        loading-text="版本获取中..."
+        :loading-text="$t('base.gettingVersion')"
         :disabled="task.getVersioning || task.isRunning"
-        placeholder="请选择"
         class="ml-30"
       >
         <template v-for="item in localVersions" :key="item">
           <el-option :label="item" :value="item">
             <span style="float: left" v-text="item"></span>
-            <span style="float: right">已安装</span>
+            <span style="float: right">{{ $t('base.installed') }}</span>
           </el-option>
         </template>
         <template v-for="item in task.versions" :key="item">
@@ -49,7 +48,7 @@
     props: {},
     data() {
       return {
-        current: '获取中...',
+        current: this.$t('base.gettingVersion'),
         select: '',
         localVersions: []
       }
@@ -84,7 +83,7 @@
           if (this.task.isRunning) {
             return
           }
-          this.$baseConfirm('NodeJS版本管理工具nvm未安装,现在安装?', undefined, {
+          this.$baseConfirm(this.$t('base.nvmNoInstallTips'), undefined, {
             customClass: 'confirm-del',
             type: 'warning'
           }).then(() => {
@@ -105,14 +104,14 @@
               this.task.NVM_DIR = res.NVM_DIR
               resolve(true)
             } else {
-              reject(new Error('NVM_DIR未找到'))
+              reject(new Error(this.$t('base.nvmDirNoFound')))
             }
           })
         })
       },
       installNvm() {
         this.task.isRunning = true
-        this.task.btnTxt = 'nvm安装中...'
+        this.task.btnTxt = this.$t('base.installingNVM')
         IPC.send('app-fork:node', 'installNvm').then((key: string, res: any) => {
           IPC.off(key)
           this.task.isRunning = false
@@ -121,7 +120,7 @@
               this.getAllVersion()
             })
           } else {
-            this.$message.error('NVM安装失败')
+            this.$message.error(this.$t('base.fail'))
           }
         })
       },
@@ -129,18 +128,18 @@
         if (this.task.getVersioning || this.task.versions.length > 0) {
           return
         }
-        this.task.btnTxt = '版本获取中...'
+        this.task.btnTxt = this.$t('base.gettingVersion')
         this.task.getVersioning = true
         IPC.send('app-fork:node', 'allVersion', this.task.NVM_DIR).then((key: string, res: any) => {
           IPC.off(key)
           if (res?.versions) {
             this.task.versions = res.versions
             this.task.getVersioning = false
-            this.task.btnTxt = '切换'
+            this.task.btnTxt = this.$t('base.switch')
           } else {
-            this.task.btnTxt = '切换'
+            this.task.btnTxt = this.$t('base.switch')
             this.task.getVersioning = false
-            this.$message.error('Node可用版本获取失败')
+            this.$message.error(this.$t('base.fail'))
           }
         })
       },
@@ -159,19 +158,19 @@
       },
       versionChange() {
         this.task.isRunning = true
-        this.task.btnTxt = '切换中...'
+        this.task.btnTxt = this.$t('base.switching')
         IPC.send('app-fork:node', 'versionChange', this.task.NVM_DIR, this.select).then(
           (key: string, res: any) => {
             IPC.off(key)
             if (res?.code === 0) {
-              this.task.btnTxt = '切换'
+              this.task.btnTxt = this.$t('base.switch')
               this.task.isRunning = false
               this.current = this.select
-              this.$message.success('操作成功')
+              this.$message.success(this.$t('base.success'))
             } else {
-              this.task.btnTxt = '切换'
+              this.task.btnTxt = this.$t('base.switch')
               this.task.isRunning = false
-              this.$message.error('版本切换失败')
+              this.$message.error(this.$t('base.fail'))
             }
           }
         )

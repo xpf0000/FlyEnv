@@ -1,8 +1,8 @@
 <template>
   <div class="redis-versions">
     <div class="block">
-      <span>选择版本</span>
-      <el-select v-model="current" :disabled="disabled" placeholder="请选择" class="ml-30">
+      <span>{{ $t('base.selectVersion') }}</span>
+      <el-select v-model="current" :disabled="disabled" class="ml-30">
         <el-option
           v-for="(item, index) in versions"
           :key="index"
@@ -16,7 +16,7 @@
         class="ml-20"
         :loading="currentTask.running"
         @click="versionChange"
-        >切换</el-button
+        >{{ $t('base.switch') }}</el-button
       >
       <el-button :disabled="initing || disabled" class="ml-20" :loading="initing" @click="reinit">{{
         $t('base.refresh')
@@ -167,12 +167,12 @@
                 data: param
               })
               appStore.saveConfig()
-              this.$message.success('操作成功')
+              this.$message.success(this.$t('base.success'))
               data.run = true
               data.running = false
             } else if (res.code === 1) {
               IPC.off(key)
-              this.$message.error('操作失败')
+              this.$message.error(this.$t('base.fail'))
               data.running = false
             } else if (res.code === 200) {
               this.log.push(res.msg)

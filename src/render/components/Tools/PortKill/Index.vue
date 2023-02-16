@@ -17,12 +17,12 @@
 
         <div class="table-wapper">
           <div class="btn-cell">
-            <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect"
-              >清除选择</el-button
-            >
-            <el-button type="danger" :disabled="arrs.length === 0" @click="cleanAll"
-              >清除全部</el-button
-            >
+            <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect">{{
+              $t('base.cleanSelect')
+            }}</el-button>
+            <el-button type="danger" :disabled="arrs.length === 0" @click="cleanAll">{{
+              $t('base.cleanAll')
+            }}</el-button>
           </div>
           <el-table
             height="100%"
@@ -53,6 +53,7 @@
     name: 'MoPortKill',
     components: {},
     props: {},
+    emits: ['doClose'],
     data() {
       return {
         Search: SearchIcon,
@@ -75,7 +76,7 @@
     unmounted() {},
     methods: {
       cleanSelect() {
-        this.$baseConfirm('确认结束所选进程?', undefined, {
+        this.$baseConfirm(this.$t('base.killProcessConfim'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
@@ -87,16 +88,16 @@
               .join(' ')
             try {
               execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
-              this.$message.success('操作成功')
+              this.$message.success(this.$t('base.success'))
               this.doSearch()
             } catch (e) {
-              this.$message.error('操作失败')
+              this.$message.error(this.$t('base.fail'))
             }
           })
           .catch(() => {})
       },
       cleanAll() {
-        this.$baseConfirm('确认结束全部进程?', undefined, {
+        this.$baseConfirm(this.$t('base.killAllProcessConfim'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
@@ -108,10 +109,10 @@
               .join(' ')
             try {
               execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
-              this.$message.success('操作成功')
+              this.$message.success(this.$t('base.success'))
               this.doSearch()
             } catch (e) {
-              this.$message.error('操作失败')
+              this.$message.error(this.$t('base.fail'))
             }
           })
           .catch(() => {})
@@ -150,7 +151,7 @@
             }
           })
         if (arr.length === 0) {
-          this.$message.warning('此端口未被占用')
+          this.$message.warning(this.$t('base.portNotUse'))
           return
         }
         this.arrs.splice(0)

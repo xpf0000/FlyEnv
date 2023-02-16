@@ -1,13 +1,13 @@
 <template>
   <ul ref="fileDroper" class="php-versions-list">
     <li v-if="!versions?.length" class="http-serve-item none">
-      未检测到已安装版本, 请在版本管理里安装或者自行安装PHP版本
+      {{ $t('php.noVersionTips') }}
     </li>
     <li v-for="(item, key) in versions" :key="key" class="http-serve-item">
       <div class="left">
         <div class="title">
-          <span class="name"> 路径:</span>
-          <span class="url">版本:</span>
+          <span class="name"> {{ $t('base.path') }}:</span>
+          <span class="url">{{ $t('base.version') }}:</span>
         </div>
         <div class="value">
           <span class="name">{{ item.path }} </span>
@@ -36,27 +36,27 @@
           <ul v-poper-fix class="host-list-menu">
             <li @click.stop="action(item, key, 'open')">
               <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-              <span class="ml-15">打开路径</span>
+              <span class="ml-15">{{ $t('base.open') }}</span>
             </li>
             <li @click.stop="action(item, key, 'conf')">
               <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-              <span class="ml-15"> 配置文件 </span>
+              <span class="ml-15"> {{ $t('base.configFile') }} </span>
             </li>
             <li @click.stop="action(item, key, 'log-fpm')">
               <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-              <span class="ml-15">FPM日志</span>
+              <span class="ml-15">{{ $t('php.fpmLog') }}</span>
             </li>
             <li @click.stop="action(item, key, 'log-slow')">
               <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-              <span class="ml-15">慢日志</span>
+              <span class="ml-15">{{ $t('base.slowLog') }}</span>
             </li>
             <li @click.stop="action(item, key, 'extend')">
               <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-              <span class="ml-15">扩展</span>
+              <span class="ml-15">{{ $t('php.extension') }}</span>
             </li>
             <li @click.stop="action(item, key, 'brewLink')">
               <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-              <span class="ml-15">设置为全局版本</span>
+              <span class="ml-15">{{ $t('php.phpSetGlobal') }}</span>
             </li>
           </ul>
 
@@ -115,7 +115,7 @@
           if (typeof res === 'string') {
             this.$message.error(res)
           } else {
-            this.$message.success('操作成功')
+            this.$message.success(this.$t('base.success'))
           }
         })
       },
@@ -124,7 +124,7 @@
           if (typeof res === 'string') {
             this.$message.error(res)
           } else {
-            this.$message.success('操作成功')
+            this.$message.success(this.$t('base.success'))
           }
         })
       },
@@ -176,7 +176,7 @@
               (key: string, res: any) => {
                 IPC.off(key)
                 if (res?.code === 0) {
-                  this.$message.success('操作成功')
+                  this.$message.success(this.$t('base.success'))
                 } else {
                   this.$message.error(res.msg)
                 }

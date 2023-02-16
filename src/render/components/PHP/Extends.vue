@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-          <span class="ml-15">PHP扩展</span>
+          <span class="ml-15">{{ $t('php.phpExtension') }}</span>
         </div>
       </div>
       <div class="main-wapper">
@@ -19,12 +19,14 @@
           <template #header>
             <div class="card-header">
               <span> {{ headerTitle }} </span>
-              <el-button v-if="showNextBtn" type="primary" @click="toNext">确定</el-button>
+              <el-button v-if="showNextBtn" type="primary" @click="toNext">{{
+                $t('base.confirm')
+              }}</el-button>
               <el-button
                 v-else
                 class="button"
                 :disabled="extendRefreshing || extendRunning"
-                type="text"
+                link
                 @click="getTableData"
               >
                 <yb-icon
@@ -39,9 +41,8 @@
             <li v-for="(log, index) in logs" :key="index" class="mb-5" v-html="log"></li>
           </ul>
           <el-table v-else height="100%" :data="showTableData" size="medium" style="width: 100%">
-            <el-table-column prop="name" label="名称"> </el-table-column>
-            <el-table-column prop="type" label="类型"> </el-table-column>
-            <el-table-column align="center" label="状态">
+            <el-table-column prop="name" :label="$t('base.name')"> </el-table-column>
+            <el-table-column align="center" :label="$t('base.status')">
               <template #default="scope">
                 <yb-icon
                   v-if="scope.row.status"
@@ -51,26 +52,29 @@
               </template>
             </el-table-column>
 
-            <el-table-column align="left" label="操作">
+            <el-table-column width="300px" align="left" :label="$t('base.operation')">
               <template v-if="version?.version" #default="scope">
                 <el-button
                   v-if="scope.row.status"
-                  type="text"
+                  type="primary"
+                  link
                   @click="copyLink(scope.$index, scope.row)"
-                  >复制链接</el-button
+                  >{{ $t('base.copyLink') }}</el-button
                 >
                 <el-button
                   v-else
                   :disabled="brewRunning"
-                  type="text"
+                  type="primary"
+                  link
                   @click="handleEdit(scope.$index, scope.row)"
-                  >安装</el-button
+                  >{{ $t('base.install') }}</el-button
                 >
                 <el-button
                   v-if="scope.row.status && scope.row.name === 'xdebug'"
-                  type="text"
+                  type="primary"
+                  link
                   @click="copyXDebugTmpl(scope.$index, scope.row)"
-                  >复制配置模板</el-button
+                  >{{ $t('php.copyConfTemplate') }}</el-button
                 >
               </template>
             </el-table-column>
@@ -124,7 +128,6 @@
         tableData: [
           {
             name: 'ionCube',
-            type: '脚本解密',
             installed: false,
             status: false,
             soname: 'ioncube.so',
@@ -132,35 +135,30 @@
           },
           {
             name: 'memcache',
-            type: '缓存器',
             installed: false,
             status: false,
             soname: 'memcache.so'
           },
           {
             name: 'memcached',
-            type: '缓存器',
             installed: false,
             status: false,
             soname: 'memcached.so'
           },
           {
             name: 'redis',
-            type: '缓存器',
             installed: false,
             status: false,
             soname: 'redis.so'
           },
           {
             name: 'swoole',
-            type: '网络通信',
             installed: false,
             status: false,
             soname: 'swoole.so'
           },
           {
             name: 'xdebug',
-            type: '调试器',
             installed: false,
             status: false,
             soname: 'xdebug.so',
@@ -168,35 +166,30 @@
           },
           {
             name: 'ssh2',
-            type: '通用扩展',
             installed: false,
             status: false,
             soname: 'ssh2.so'
           },
           {
             name: 'pdo_sqlsrv',
-            type: 'MSSQLServer扩展',
             installed: false,
             status: false,
             soname: 'pdo_sqlsrv.so'
           },
           {
             name: 'imagick',
-            type: 'ImageMagick扩展',
             installed: false,
             status: false,
             soname: 'imagick.so'
           },
           {
             name: 'mongodb',
-            type: 'MongoDB扩展',
             installed: false,
             status: false,
             soname: 'mongodb.so'
           },
           {
             name: 'yaf',
-            type: '高性能PHP框架',
             installed: false,
             status: false,
             soname: 'yaf.so'
@@ -235,9 +228,9 @@
         if (this.currentExtend) {
           return `${this.extendAction} ${this.currentExtend}`
         } else if (this?.version?.version) {
-          return `PHP 版本${this.version.version} 可用扩展`
+          return this.$t('php.availableExtensions')
         } else {
-          return '请先选择PHP版本'
+          return this.$t('base.selectPhpVersion')
         }
       },
       versionNumber() {
@@ -321,7 +314,7 @@
         this.logs.splice(0)
         this.taskPhp.extendRunning = true
         this.taskPhp.currentExtend = row.name
-        this.taskPhp.extendAction = row.status ? '卸载' : '安装'
+        this.taskPhp.extendAction = row.status ? this.$t('base.uninstall') : this.$t('base.install')
         const fn = row.status ? 'unInstallExtends' : 'installExtends'
         const args = JSON.parse(
           JSON.stringify({
@@ -339,7 +332,7 @@
             if (this.serverRunning) {
               reloadService('php', this.version as SoftInstalled)
             }
-            this.$message.success('操作成功')
+            this.$message.success(this.$t('base.success'))
             this.getTableData()
             this.toNext()
           } else if (res.code === 1) {
@@ -347,7 +340,7 @@
             this.logs.push(res.msg)
             this.taskPhp.extendRunning = false
             this.showNextBtn = true
-            this.$message.error('操作失败')
+            this.$message.error(this.$t('base.fail'))
             this.getTableData()
           } else if (res.code === 200) {
             this.logs.push(res.msg)
@@ -364,7 +357,7 @@
         const pre = row?.extendPre ?? 'extension='
         const txt = `${pre}${row.soPath}`
         clipboard.writeText(txt)
-        this.$message.success('扩展链接已复制到剪贴板')
+        this.$message.success(this.$t('php.extensionCopySuccess'))
       },
       copyXDebugTmpl(index: number, row: any) {
         console.log(index, row)
@@ -388,7 +381,7 @@ xdebug.trigger_value=StartProfileForMe
 ;输出文件路径，原来是output_profiler_dir,trace_dir分别设置,现在统一用这个设置就可以
 xdebug.output_dir = /tmp`
         clipboard.writeText(txt)
-        this.$message.success('xdebug配置模板已复制到剪贴板')
+        this.$message.success(this.$t('php.xdebugConfCopySuccess'))
       }
     }
   })

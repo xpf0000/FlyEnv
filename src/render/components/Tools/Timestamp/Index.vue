@@ -17,8 +17,8 @@
           <div class="left">
             <el-input v-model="timestamp0" placeholder="Unix Timestamp"></el-input>
             <el-select v-model="flag0">
-              <el-option :value="0" label="秒">秒</el-option>
-              <el-option :value="1" label="毫秒">毫秒</el-option>
+              <el-option :value="0" :label="$t('base.second')"></el-option>
+              <el-option :value="1" :label="$t('base.millisecond')"></el-option>
             </el-select>
           </div>
           <yb-icon
@@ -50,8 +50,8 @@
           <div class="right">
             <el-input v-model="timestamp1str" readonly placeholder="Unix Timestamp"></el-input>
             <el-select v-model="flag1">
-              <el-option :value="0" label="秒">秒</el-option>
-              <el-option :value="1" label="毫秒">毫秒</el-option>
+              <el-option :value="0" :label="$t('base.second')"></el-option>
+              <el-option :value="1" :label="$t('base.millisecond')"></el-option>
             </el-select>
           </div>
         </div>
@@ -65,6 +65,7 @@
     name: 'MoUnixTimestamp',
     components: {},
     props: {},
+    emits: ['doClose'],
     data() {
       return {
         current: 0,

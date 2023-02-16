@@ -4,7 +4,7 @@ phpdir=$2
 extendV=$3
 arch=$4
 password=$5
-echo "$password" | sudo -S -k -l
+echo "$password" | sudo -S -v
 
 cd $cachedir
 curl -C - -O -s https://xdebug.org/files/xdebug-$extendV.tgz

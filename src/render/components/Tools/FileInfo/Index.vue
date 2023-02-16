@@ -11,7 +11,7 @@
       <div class="select-dir-wapper">
         <div id="selectDir" @click.stop="choosePath">
           <yb-icon :svg="import('@/svg/upload.svg?raw')" class="icon" />
-          <span>将文件拖到此处,或点击选择文件</span>
+          <span>{{ $t('base.fileInfoTips') }}</span>
         </div>
       </div>
       <ul v-if="path" class="info-wapper">

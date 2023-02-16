@@ -17,7 +17,7 @@
       size="460px"
       :close-on-click-modal="false"
       :destroy-on-close="true"
-      custom-class="host-edit-drawer"
+      class="host-edit-drawer"
       :with-header="false"
     >
       <mo-host-edit ref="host-edit"></mo-host-edit>

@@ -85,10 +85,17 @@
 
   .el-table .cell {
     padding: 0 12px;
+    line-height: 2.3;
   }
 
   body.lang-en {
     .apache-service {
+      .left-title {
+        width: 110px;
+      }
+    }
+
+    .nodejs-versions {
       .left-title {
         width: 110px;
       }
