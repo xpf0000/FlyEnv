@@ -1,5 +1,7 @@
 const { exec } = require('child-process-promise')
 const BaseManager = require('./BaseManager')
+const { AppI18n } = require('./lang/index')
+const {I18nT} = require("./lang/index.js");
 class Manager extends BaseManager {
   constructor() {
     super()
@@ -100,7 +102,7 @@ class Manager extends BaseManager {
         } else {
           this._processSend({
             code: 1,
-            msg: 'NVM_DIR未找到'
+            msg: I18nT('fork.nvmDirNoFound')
           })
         }
       })
@@ -112,6 +114,7 @@ let manager = new Manager()
 process.on('message', function (args) {
   if (args.Server) {
     global.Server = args.Server
+    AppI18n(global.Server.Lang)
   } else {
     manager.exec(args)
   }

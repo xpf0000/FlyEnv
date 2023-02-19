@@ -97,8 +97,8 @@
       </li>
     </ul>
     <ul class="bottom-tool">
-      <li @click="showMainWin"> 显示主界面 </li>
-      <li @click="doExit"> 退出 </li>
+      <li @click="showMainWin"> {{ $t('tray.showMainWin') }} </li>
+      <li @click="doExit"> {{ $t('tray.exit') }} </li>
     </ul>
   </div>
   <span class="popper-arrow" :style="{ left: left }"></span>
@@ -111,11 +111,9 @@
 
   export default defineComponent({
     name: 'App',
-    data() {
+    data(): any {
       return {
         left: null
-      } as {
-        left: string | null
       }
     },
     computed: {

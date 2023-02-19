@@ -1,17 +1,87 @@
 import Store from 'electron-store'
+import { AppI18n } from '../lang'
+import type ElectronStore from 'electron-store'
+
+interface ConfigOptions {
+  'last-check-update-time': number
+  'update-channel': string
+  'window-state': { [key: string]: any }
+  server: {
+    nginx: {
+      current: { [key: string]: any }
+    }
+    php: {
+      current: { [key: string]: any }
+    }
+    mysql: {
+      current: { [key: string]: any }
+    }
+    apache: {
+      current: { [key: string]: any }
+    }
+    memcached: {
+      current: { [key: string]: any }
+    }
+    redis: {
+      current: { [key: string]: any }
+    }
+  }
+  password: string
+  showTour: boolean
+  setup: {
+    common: {
+      showItem: {
+        Hosts: boolean
+        Nginx: boolean
+        Apache: boolean
+        Mysql: boolean
+        Php: boolean
+        Memcached: boolean
+        Redis: boolean
+        NodeJS: boolean
+        HttpServe: boolean
+        Tools: boolean
+      }
+    }
+    nginx: {
+      dirs: Array<string>
+    }
+    apache: {
+      dirs: Array<string>
+    }
+    mysql: {
+      dirs: Array<string>
+    }
+    php: {
+      dirs: Array<string>
+    }
+    memcached: {
+      dirs: Array<string>
+    }
+    redis: {
+      dirs: Array<string>
+    }
+    hosts: {
+      write: boolean
+    }
+    proxy: {
+      on: boolean
+      fastProxy: string
+      proxy: string
+    }
+  }
+  httpServe: Array<string>
+}
 
 export default class ConfigManager {
-  constructor() {
-    this.config = {}
-    this.init()
-  }
+  config?: ElectronStore<ConfigOptions>
 
-  init() {
+  constructor() {
     this.initConfig()
   }
 
   initConfig() {
-    this.config = new Store({
+    const options: ElectronStore.Options<ConfigOptions> = {
       name: 'user',
       defaults: {
         'last-check-update-time': 0,
@@ -83,7 +153,8 @@ export default class ConfigManager {
         },
         httpServe: []
       }
-    })
+    }
+    this.config = new Store<ConfigOptions>(options)
 
     if (!this.config.has('setup') || !this.config.has('setup.redis')) {
       const password = this.config.get('password', '')
@@ -118,18 +189,21 @@ export default class ConfigManager {
     }
   }
 
-  getConfig(key, defaultValue) {
+  getConfig(key?: any, defaultValue?: any) {
     if (typeof key === 'undefined' && typeof defaultValue === 'undefined') {
-      return this.config.store
+      return this.config?.store
     }
-    return this.config.get(key, defaultValue)
+    return this.config?.get(key, defaultValue)
   }
 
-  setConfig(...args) {
-    this.config.set(...args)
+  setConfig(key: string, ...args: any) {
+    // @ts-ignore
+    this.config?.set(key, ...args)
+    const lang: string = this.config?.get('setup.lang') ?? ''
+    AppI18n(lang)
   }
 
   reset() {
-    this.config.clear()
+    this.config?.clear()
   }
 }

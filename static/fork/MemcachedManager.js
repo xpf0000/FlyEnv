@@ -2,6 +2,7 @@ const join = require('path').join
 const existsSync = require('fs').existsSync
 const BaseManager = require('./BaseManager')
 const Utils = require('./Utils')
+const { I18nT } = require('./lang/index.js')
 const execPromise = require('child-process-promise').exec
 class MemcachedManager extends BaseManager {
   constructor() {
@@ -17,7 +18,7 @@ class MemcachedManager extends BaseManager {
     return new Promise((resolve, reject) => {
       let bin = version.bin
       if (!existsSync(bin)) {
-        reject(new Error('启动文件不存在,服务启动失败'))
+        reject(new Error(I18nT('fork.binNoFound')))
         return
       }
       let common = join(global.Server.MemcachedDir, 'logs')
@@ -32,7 +33,7 @@ class MemcachedManager extends BaseManager {
             if (existsSync(pid)) {
               resolve(0)
             } else {
-              reject(new Error('启动失败,请查看日志文件'))
+              reject(new Error(I18nT('fork.startFail')))
             }
           }, 600)
         })

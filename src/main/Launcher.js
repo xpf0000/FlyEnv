@@ -2,10 +2,10 @@ import { EventEmitter } from 'events'
 import { app } from 'electron'
 import is from 'electron-is'
 
-import ExceptionHandler from './core/ExceptionHandler'
-import logger from './core/Logger'
-import Application from './Application'
-import { splitArgv } from './utils'
+import ExceptionHandler from './core/ExceptionHandler.ts'
+import logger from './core/Logger.ts'
+import Application from './Application.js'
+import { splitArgv } from './utils/index.ts'
 
 export default class Launcher extends EventEmitter {
   constructor() {
@@ -85,7 +85,7 @@ export default class Launcher extends EventEmitter {
     app.on('activate', () => {
       console.log('app on activate !!!!!!')
       if (global.application) {
-        logger.info('[WebMaker] activate')
+        logger.info('[PhpWebStudy] activate')
         global.application.showPage('index')
         app.dock.show().then()
       }
@@ -94,11 +94,11 @@ export default class Launcher extends EventEmitter {
 
   handleAppWillQuit() {
     app.on('will-quit', () => {
-      logger.info('[WebMaker] will-quit')
+      logger.info('[PhpWebStudy] will-quit')
       if (global.application) {
         global.application.stop()
       } else {
-        logger.info('[WebMaker] global.application is null !!!')
+        logger.info('[PhpWebStudy] global.application is null !!!')
       }
     })
   }

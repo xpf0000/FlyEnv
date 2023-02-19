@@ -7,7 +7,8 @@ const { execSync } = require('child_process')
 const Utils = require('./Utils')
 const dns = require('dns')
 const util = require('util')
-const { accessSync, constants } = require('fs')
+const { accessSync, constants, copyFileSync } = require('fs')
+const { I18nT } = require('./lang/index.js')
 
 class HostManager {
   constructor() {
@@ -28,7 +29,7 @@ class HostManager {
   hostList() {
     let hostfile = join(global.Server.BaseDir, 'host.json')
     if (!existsSync(hostfile)) {
-      Utils.writeFileAsync(hostfile, JSON.stringify([]))
+      Utils.writeFileAsync(hostfile, JSON.stringify([])).then()
       process.send({
         command: this.ipcCommand,
         key: this.ipcCommandKey,
@@ -58,7 +59,6 @@ class HostManager {
   }
 
   handleHost(host, flag, old) {
-    console.log('handleHost: ', host, flag, old)
     let hostfile = join(global.Server.BaseDir, 'host.json')
     let hostList = []
     if (existsSync(hostfile)) {
@@ -110,7 +110,6 @@ class HostManager {
       case 'add':
         this._addVhost(host, addApachePort, addApachePortSSL)
           .then(() => {
-            console.log('hostfile: ', hostfile)
             hostList.unshift(host)
             writeHostFile()
           })
@@ -132,10 +131,21 @@ class HostManager {
           })
         break
       case 'edit':
-        this._delVhost(old)
-          .then(() => {
+        const nginxConfPath = join(global.Server.BaseDir, 'vhost/nginx/', `${old.name}.conf`)
+        const apacheConfPath = join(global.Server.BaseDir, 'vhost/apache/', `${old.name}.conf`)
+        let primose
+        if (
+          !existsSync(nginxConfPath) ||
+          !existsSync(apacheConfPath) ||
+          host.useSSL !== old.useSSL
+        ) {
+          primose = this._delVhost(old).then(() => {
             return this._addVhost(host, addApachePort, addApachePortSSL)
           })
+        } else {
+          primose = this._editVhost(host, old, addApachePort, addApachePortSSL)
+        }
+        primose
           .then(() => {
             const index = hostList.findIndex((h) => h.id === old.id)
             if (index >= 0) {
@@ -191,6 +201,183 @@ class HostManager {
     } catch (e) {
       console.log('setDirRole err: ', e)
     }
+  }
+
+  /**
+   * 增量更新
+   * @param host
+   * @param old
+   * @param addApachePort
+   * @param addApachePortSSL
+   * @private
+   */
+  _editVhost(host, old, addApachePort = true, addApachePortSSL = true) {
+    return new Promise((resolve) => {
+      let nginxvpath = join(global.Server.BaseDir, 'vhost/nginx')
+      let apachevpath = join(global.Server.BaseDir, 'vhost/apache')
+      let rewritepath = join(global.Server.BaseDir, 'vhost/rewrite')
+      let logpath = join(global.Server.BaseDir, 'vhost/logs')
+      if (host.name !== old.name) {
+        const nvhost = {
+          oldFile: join(nginxvpath, `${old.name}.conf`),
+          newFile: join(nginxvpath, `${host.name}.conf`)
+        }
+        const avhost = {
+          oldFile: join(apachevpath, `${old.name}.conf`),
+          newFile: join(apachevpath, `${host.name}.conf`)
+        }
+        const rewritep = {
+          oldFile: join(rewritepath, `${old.name}.conf`),
+          newFile: join(rewritepath, `${host.name}.conf`)
+        }
+        const accesslogng = {
+          oldFile: join(logpath, `${old.name}.log`),
+          newFile: join(logpath, `${host.name}.log`)
+        }
+        const errorlogng = {
+          oldFile: join(logpath, `${old.name}.error.log`),
+          newFile: join(logpath, `${host.name}.error.log`)
+        }
+        const accesslogap = {
+          oldFile: join(logpath, `${old.name}-access_log`),
+          newFile: join(logpath, `${host.name}-access_log`)
+        }
+        const errorlogap = {
+          oldFile: join(logpath, `${old.name}-error_log`),
+          newFile: join(logpath, `${host.name}-error_log`)
+        }
+        const arr = [nvhost, avhost, rewritep, accesslogng, errorlogng, accesslogap, errorlogap]
+        for (let f of arr) {
+          if (existsSync(f.oldFile)) {
+            copyFileSync(f.oldFile, f.newFile)
+            unlinkSync(f.oldFile)
+          }
+        }
+      }
+      const nginxConfPath = join(nginxvpath, `${host.name}.conf`)
+      const apacheConfPath = join(apachevpath, `${host.name}.conf`)
+      let hasChanged = false
+
+      let contentNginxConf = readFileSync(nginxConfPath, 'utf-8')
+      let contentApacheConf = readFileSync(apacheConfPath, 'utf-8')
+      const find = []
+      const replace = []
+      if (host.name !== old.name) {
+        hasChanged = true
+        find.push(
+          ...[
+            `include ${rewritepath}/${old.name}.conf;`,
+            `access_log  ${logpath}/${old.name}.log;`,
+            `error_log  ${logpath}/${old.name}.error.log;`,
+            `ServerName ${old.name}`,
+            `ErrorLog "${logpath}/${old.name}-error_log"`,
+            `CustomLog "${logpath}/${old.name}-access_log" combined`,
+            `ServerName SSL.${old.name}`
+          ]
+        )
+        replace.push(
+          ...[
+            `include ${rewritepath}/${host.name}.conf;`,
+            `access_log  ${logpath}/${host.name}.log;`,
+            `error_log  ${logpath}/${host.name}.error.log;`,
+            `ServerName ${host.name}`,
+            `ErrorLog "${logpath}/${host.name}-error_log"`,
+            `CustomLog "${logpath}/${host.name}-access_log" combined`,
+            `ServerName SSL.${host.name}`
+          ]
+        )
+      }
+      if (host.alias !== old.alias || host.name !== old.name) {
+        let oldAlias = this.#hostAlias(old)
+        let newAlias = this.#hostAlias(host)
+        hasChanged = true
+        find.push(...[`server_name ${oldAlias};`, `ServerAlias ${oldAlias}`])
+        replace.push(...[`server_name ${newAlias};`, `ServerAlias ${newAlias}`])
+      }
+      if (host.ssl.cert !== old.ssl.cert) {
+        hasChanged = true
+        find.push(...[`ssl_certificate    ${old.ssl.cert};`, `SSLCertificateFile ${old.ssl.cert}`])
+        replace.push(
+          ...[`ssl_certificate    ${host.ssl.cert};`, `SSLCertificateFile ${host.ssl.cert}`]
+        )
+      }
+      if (host.ssl.key !== old.ssl.key) {
+        hasChanged = true
+        find.push(
+          ...[`ssl_certificate_key    ${old.ssl.key};`, `SSLCertificateKeyFile ${old.ssl.key}`]
+        )
+        replace.push(
+          ...[`ssl_certificate_key    ${host.ssl.key};`, `SSLCertificateKeyFile ${host.ssl.key}`]
+        )
+      }
+      if (host.port.nginx !== old.port.nginx) {
+        hasChanged = true
+        find.push(...[`listen ${old.port.nginx};`])
+        replace.push(...[`listen ${host.port.nginx};`])
+      }
+      if (host.port.nginx_ssl !== old.port.nginx_ssl) {
+        hasChanged = true
+        find.push(...[`listen ${old.port.nginx_ssl} ssl http2;`])
+        replace.push(...[`listen ${host.port.nginx_ssl} ssl http2;`])
+      }
+      if (host.port.apache !== old.port.apache) {
+        hasChanged = true
+        find.push(...[`Listen ${old.port.apache}\nNameVirtualHost *:${old.port.apache}\n`])
+        if (addApachePort) {
+          replace.push(...[`Listen ${host.port.apache}\nNameVirtualHost *:${host.port.apache}\n`])
+        } else {
+          replace.push('')
+        }
+      }
+      if (host.port.apache_ssl !== old.port.apache_ssl) {
+        hasChanged = true
+        find.push(...[`Listen ${old.port.apache_ssl}\nNameVirtualHost *:${old.port.apache_ssl}\n`])
+        if (addApachePortSSL) {
+          replace.push(
+            ...[`Listen ${host.port.apache_ssl}\nNameVirtualHost *:${host.port.apache_ssl}\n`]
+          )
+        } else {
+          replace.push('')
+        }
+      }
+      if (host.root !== old.root) {
+        hasChanged = true
+        find.push(
+          ...[`root ${old.root};`, `DocumentRoot "${old.root}"`, `<Directory "${old.root}">`]
+        )
+        replace.push(
+          ...[`root ${host.root};`, `DocumentRoot "${host.root}"`, `<Directory "${host.root}">`]
+        )
+      }
+      if (host.phpVersion !== old.phpVersion) {
+        hasChanged = true
+        find.push(
+          ...[
+            `include enable-php-${old.phpVersion}.conf;`,
+            `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${old.phpVersion}.sock\\|fcgi://localhost"`
+          ]
+        )
+        replace.push(
+          ...[
+            `include enable-php-${host.phpVersion}.conf;`,
+            `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
+          ]
+        )
+      }
+      if (hasChanged) {
+        find.forEach((s, i) => {
+          contentNginxConf = contentNginxConf.replace(new RegExp(s, 'g'), replace[i])
+          contentApacheConf = contentApacheConf.replace(new RegExp(s, 'g'), replace[i])
+        })
+        writeFileSync(nginxConfPath, contentNginxConf)
+        writeFileSync(apacheConfPath, contentApacheConf)
+      }
+      if (host.nginx.rewrite.trim() !== old.nginx.rewrite.trim()) {
+        const nginxRewriteConfPath = join(rewritepath, `${host.name}.conf`)
+        writeFileSync(nginxRewriteConfPath, host.nginx.rewrite.trim())
+      }
+      resolve(true)
+    })
   }
 
   _addVhost(host, addApachePort = true, addApachePortSSL = true) {
@@ -295,7 +482,7 @@ class HostManager {
       }
       const filePath = '/private/etc/hosts'
       if (!existsSync(filePath)) {
-        reject(new Error('hosts文件不存在'))
+        reject(new Error(I18nT('fork.hostsFileNoFound')))
         return
       }
       console.log('_initHost host: ', host)
@@ -366,7 +553,7 @@ class HostManager {
                 key: this.ipcCommandKey,
                 info: {
                   code: 1,
-                  msg: '/private/etc/hosts文件写入失败'
+                  msg: I18nT('fork.hostsWriteFail')
                 }
               })
             })
@@ -377,7 +564,7 @@ class HostManager {
             key: this.ipcCommandKey,
             info: {
               code: 1,
-              msg: '/private/etc/hosts文件读取失败'
+              msg: I18nT('fork.hostsReadFail')
             }
           })
         })

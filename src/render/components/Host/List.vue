@@ -11,7 +11,7 @@
           <yb-icon :svg="import('@/svg/link.svg?raw')" width="22" height="22" />
         </div>
         <div class="info">
-          <span class="name" v-text="item.name"> </span>
+          <span class="name" @click.stop="openSite(item)" v-text="item.name"> </span>
           <span class="url" v-text="item.url"> </span>
         </div>
       </div>
@@ -86,6 +86,7 @@
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { EventBus } from '@/global'
+  import { BrewStore } from '@/store/brew'
   const { shell } = require('@electron/remote')
 
   export default defineComponent({
@@ -123,6 +124,22 @@
     },
     unmounted() {},
     methods: {
+      openSite(item: any) {
+        console.log('openSite: ', item)
+        const host = item.name
+        const brewStore = BrewStore()
+        const nginxRunning = brewStore.nginx.installed.find((i) => i.run)
+        const apacheRunning = brewStore.apache.installed.find((i) => i.run)
+        let port = 80
+        if (nginxRunning) {
+          port = item.port.nginx
+        } else if (apacheRunning) {
+          port = item.port.apache
+        }
+        const portStr = port === 80 ? '' : `:${port}`
+        const url = `http://${host}${portStr}`
+        shell.openExternal(url)
+      },
       showConfig(flag: string) {
         console.log(global.Server, flag)
         this.configItem = flag
@@ -225,6 +242,11 @@
           color: rgba(255, 255, 255, 0.7);
           .name {
             font-size: 15px;
+            cursor: pointer;
+
+            &:hover {
+              color: #409eff;
+            }
           }
           .url {
             font-size: 12px;

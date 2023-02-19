@@ -15,10 +15,15 @@ export interface ServerType {
   MemcachedDir?: string
   BaseDir?: string
   ApacheDir?: string
+  Lang?: string
 }
 
 declare global {
   // eslint-disable-next-line no-var
   var Server: ServerType
+  // eslint-disable-next-line no-var
+  var application: any
+  // eslint-disable-next-line no-var
+  var __static: string
 }
 export {}

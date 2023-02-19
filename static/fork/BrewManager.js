@@ -4,6 +4,7 @@ const { exec } = require('child-process-promise')
 const Utils = require('./Utils.js')
 const BaseManager = require('./BaseManager')
 const { existsSync, unlinkSync } = require('fs')
+const { I18nT } = require('./lang/index.js')
 class BrewManager extends BaseManager {
   constructor() {
     super()
@@ -51,7 +52,7 @@ class BrewManager extends BaseManager {
         .catch(() => {
           this._processSend({
             code: 1,
-            msg: '未找到brew'
+            msg: I18nT('fork.brewNoFound')
           })
         })
     } else {
@@ -173,7 +174,7 @@ class BrewManager extends BaseManager {
         })
       } else {
         handleCatch({
-          stderr: '获取版本号失败'
+          stderr: I18nT('fork.getVersionNumFail')
         })
       }
     }

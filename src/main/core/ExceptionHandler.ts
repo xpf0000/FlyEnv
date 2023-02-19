@@ -6,7 +6,8 @@ const defaults = {
   showDialog: !is.dev()
 }
 export default class ExceptionHandler {
-  constructor(options) {
+  options: any
+  constructor(options: any) {
     this.options = {
       ...defaults,
       ...options
@@ -22,7 +23,7 @@ export default class ExceptionHandler {
     const { showDialog } = this.options
     process.on('uncaughtException', (err) => {
       const { message, stack } = err
-      logger.error(`[WebMaker] Uncaught exception: ${message}`)
+      logger.error(`[PhpWebStudy] Uncaught exception: ${message}`)
       logger.error(stack)
 
       if (showDialog && app.isReady()) {

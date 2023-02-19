@@ -1,16 +1,17 @@
-// @ts-ignore
-import { VueExtend } from './core/VueExtend.js'
+import { VueExtend } from './core/VueExtend'
 import App from './tray/App.vue'
 import '@/components/Theme/Index.scss'
 import { createPinia } from 'pinia'
-// @ts-ignore
-import IPC from './util/IPC.js'
+import IPC from './util/IPC'
 import { AppStore } from './tray/store/app'
+import { AppI18n } from '@shared/lang'
 
 const pinia = createPinia()
 const app = VueExtend(App)
 app.use(pinia)
 app.mount('#app')
 IPC.on('APP:Tray-Store-Sync').then((key: string, res: any) => {
-  Object.assign(AppStore(), res)
+  const appStore = AppStore()
+  Object.assign(appStore, res)
+  AppI18n(appStore.lang)
 })

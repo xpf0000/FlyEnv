@@ -20,7 +20,7 @@ export function VueExtend(App: any, data?: any) {
   app.use(Tour)
   app.use(createPinia())
   const appStore = AppStore()
-  app.use(AppI18n(appStore.config?.setup?.lang))
+  app.use(AppI18n(appStore?.config?.setup?.lang))
   app.mixin({
     beforeCreate() {
       this.$children = new Set()

@@ -1,47 +1,38 @@
 import { EventEmitter } from 'events'
 import { join } from 'path'
 import { Tray, nativeImage, screen } from 'electron'
-let tray = null
+import NativeImage = Electron.NativeImage
 
 export default class TrayManager extends EventEmitter {
+  normalIcon: NativeImage
+  activeIcon: NativeImage
+  active: boolean
+  tray: Tray
   constructor() {
     super()
-    this.menu = null
-    this.load()
-    this.init()
-    this.handleEvents()
-  }
-
-  load() {
+    this.active = false
     this.normalIcon = nativeImage.createFromPath(join(__static, '32x32.png'))
     this.activeIcon = nativeImage.createFromPath(join(__static, '32x32_active.png'))
+    this.tray = new Tray(this.normalIcon)
+    this.tray.setToolTip('PhpWebStudy')
+    this.tray.on('click', this.handleTrayClick)
   }
 
-  init() {
-    this.active = false
-    tray = new Tray(this.normalIcon)
-    tray.setToolTip('PhpWebStudy')
-  }
-
-  handleEvents() {
-    tray.on('click', this.handleTrayClick)
-  }
-
-  iconChange(status) {
+  iconChange(status: boolean) {
     this.active = status
-    tray.setImage(this.active ? this.activeIcon : this.normalIcon)
+    this.tray.setImage(this.active ? this.activeIcon : this.normalIcon)
   }
 
-  handleTrayClick = (event) => {
+  handleTrayClick = (event: any) => {
     event?.preventDefault && event?.preventDefault()
-    const bounds = tray.getBounds()
+    const bounds = this.tray.getBounds()
     const screenWidth = screen.getPrimaryDisplay().workAreaSize.width
-    let x = Math.min(bounds.x - 150 + bounds.width * 0.5, screenWidth - 300)
+    const x = Math.min(bounds.x - 150 + bounds.width * 0.5, screenWidth - 300)
     const poperX = Math.max(15, bounds.x + bounds.width * 0.5 - x - 6)
     this.emit('click', x, poperX)
   }
 
   destroy() {
-    tray.destroy()
+    this.tray.destroy()
   }
 }

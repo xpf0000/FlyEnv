@@ -1,42 +1,39 @@
 {
   "menu": [
     {
-      "label": "应用",
       "id": "menu.app",
       "submenu": [
-        { "id": "app.about", "label": "关于", "command": "application:about", "command-before": "application:show,index" },
+        { "id": "menu.about", "command": "application:about", "command-before": "application:show,index" },
         { "type": "separator" },
-        { "id": "app.check-for-updates", "label": "检测更新", "command": "application:check-for-updates" },
+        { "id": "menu.checkForUpdates", "command": "application:check-for-updates" },
         { "type": "separator" },
-        { "id": "app.hide", "role": "hide", "label": "隐藏当前窗口"},
-        { "id": "app.hide-others", "role": "hideothers", "label": "隐藏其他窗口" },
-        { "id": "app.unhide", "role": "unhide", "label": "显示所有窗口"},
+        { "id": "menu.hide", "role": "hide"},
+        { "id": "menu.hideOthers", "role": "hideothers"},
+        { "id": "menu.unhide", "role": "unhide"},
         { "type": "separator" },
-        { "id": "app.quit", "role": "quit", "label": "退出"}
+        { "id": "menu.quit", "role": "quit"}
       ]
     },
     {
       "role": "edit",
-      "label": "编辑",
       "id": "menu.edit",
       "submenu": [
-        { "label": "剪切", "accelerator": "CmdOrCtrl+X", "selector": "cut:", "role": "cut" },
-        { "label": "复制", "accelerator": "CmdOrCtrl+C", "selector": "copy:", "role": "copy"},
-        { "label": "粘贴", "accelerator": "CmdOrCtrl+V", "selector": "paste:", "role": "paste" },
-        { "label": "全选", "accelerator": "CmdOrCtrl+A", "selector": "selectAll:", "role": "selectAll" }
+        { "id": "menu.cut", "accelerator": "CmdOrCtrl+X", "selector": "cut:", "role": "cut" },
+        { "id": "menu.copy", "accelerator": "CmdOrCtrl+C", "selector": "copy:", "role": "copy"},
+        { "id": "menu.paste", "accelerator": "CmdOrCtrl+V", "selector": "paste:", "role": "paste" },
+        { "id": "menu.selectAll", "accelerator": "CmdOrCtrl+A", "selector": "selectAll:", "role": "selectAll" }
       ]
     },
     {
-      "label": "窗口",
       "id": "menu.window",
       "submenu": [
-        { "id": "window.close", "role": "close", "label": "关闭" },
-        { "id": "window.minimize", "role": "minimize", "label": "最小化" },
-        { "id": "window.zoom", "role": "zoom", "label": "缩放" },
-        { "id": "window.toggle-fullscreen", "role": "togglefullscreen", "label": "全屏切换" },
+        { "id": "menu.close", "role": "close"},
+        { "id": "menu.minimize", "role": "minimize"},
+        { "id": "menu.zoom", "role": "zoom"},
+        { "id": "menu.fullscreen", "role": "togglefullscreen"},
         { "type": "separator" },
-        { "id": "window.front", "role": "front", "label": "窗口置顶" },
-        { "id": "window.dev", "label": "打开调试窗口", "command": "application:open-dev-window" }
+        { "id": "menu.front", "role": "front"},
+        { "id": "menu.dev", "command": "application:open-dev-window" }
       ]
     }
   ]

@@ -2,6 +2,7 @@ const join = require('path').join
 const { existsSync, readFileSync, writeFileSync } = require('fs')
 const Utils = require('./Utils')
 const BaseManager = require('./BaseManager')
+const { I18nT } = require('./lang/index.js')
 const execPromise = require('child-process-promise').exec
 
 class ApacheManager extends BaseManager {
@@ -20,7 +21,7 @@ class ApacheManager extends BaseManager {
       Utils.createFolder(logs)
       let bin = version.bin
       if (!existsSync(bin)) {
-        reject(new Error('启动文件不存在,服务启动失败'))
+        reject(new Error(I18nT('fork.binNoFound')))
         return
       }
       // 获取httpd的默认配置文件路径
@@ -35,7 +36,7 @@ class ApacheManager extends BaseManager {
           } catch (e) {}
           file = file.trim()
           if (!file || !existsSync(file)) {
-            reject(new Error('配置文件不存在,服务器启动失败'))
+            reject(new Error(I18nT('fork.confNoFound')))
             return
           }
           const defaultFile = join(
@@ -55,7 +56,7 @@ class ApacheManager extends BaseManager {
             } catch (e) {}
             path = path.trim()
             if (!path) {
-              reject(new Error('配置文件日志路径有误, 切换失败'))
+              reject(new Error(I18nT('fork.apacheLogPathErr')))
               return
             }
             const logs = join(global.Server.ApacheDir, 'common/logs/')
@@ -101,7 +102,7 @@ IncludeOptional "${vhost}*.conf"`
         })
       })
       .catch((code) => {
-        let info = code ? code.toString() : '切换失败'
+        let info = code ? code.toString() : I18nT('fork.switchFail')
         this._processSend({
           code: 1,
           msg: info,
@@ -116,12 +117,12 @@ IncludeOptional "${vhost}*.conf"`
       Utils.createFolder(logs)
       let bin = version.bin
       if (!existsSync(bin)) {
-        reject(new Error('启动文件不存在,服务启动失败'))
+        reject(new Error(I18nT('fork.binNoFound')))
         return
       }
       const conf = join(global.Server.ApacheDir, `common/conf/${Utils.md5(version.bin)}.conf`)
       if (!existsSync(conf)) {
-        reject(new Error('配置文件不存在,服务器启动失败'))
+        reject(new Error(I18nT('fork.confNoFound')))
         return
       }
       execPromise(`echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`)

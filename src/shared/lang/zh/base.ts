@@ -70,8 +70,6 @@ export default {
   processNoFound: '未查询到相关进程',
   nvmInstallfailed: 'NVM安装失败',
   nodeVersionNoFound: 'Node可用版本获取失败',
-  showMainWin: '显示主界面',
-  exit: '退出',
   default: '默认',
   copy: '复制',
   hostsTitle: '系统Hosts',

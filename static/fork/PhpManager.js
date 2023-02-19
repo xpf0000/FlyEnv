@@ -4,6 +4,7 @@ const { spawn, execSync } = require('child_process')
 const Utils = require('./Utils')
 const BaseManager = require('./BaseManager')
 const { exec: execPromise } = require('child-process-promise')
+const { I18nT } = require('./lang/index.js')
 class PhpManager extends BaseManager {
   constructor() {
     super()
@@ -52,7 +53,7 @@ class PhpManager extends BaseManager {
     }
     this._processSend({
       code: 1,
-      msg: 'php.ini文件不存在'
+      msg: I18nT('fork.phpiniNoFound')
     })
   }
 
@@ -69,7 +70,7 @@ class PhpManager extends BaseManager {
         } else {
           this._processSend({
             code: 1,
-            msg: '扩展安装失败'
+            msg: I18nT('fork.ExtensionInstallFail')
           })
         }
       })
@@ -99,7 +100,7 @@ class PhpManager extends BaseManager {
             return
           }
           if (times > 4) {
-            reject(new Error(`PHP${version.version}停止失败, 请尝试手动停止`))
+            reject(new Error(I18nT('fork.phpStopFail', { version: version.version })))
             return
           }
           setTimeout(() => {
@@ -215,7 +216,7 @@ class PhpManager extends BaseManager {
     return new Promise((resolve, reject) => {
       let bin = version.bin
       if (!existsSync(bin)) {
-        reject(new Error('启动文件不存在,服务启动失败'))
+        reject(new Error(I18nT('fork.binNoFound')))
         return
       }
       const v = version.version.split('.').slice(0, 2).join('')
@@ -272,14 +273,13 @@ class PhpManager extends BaseManager {
           arch,
           global.Server.Password
         ]
+        const command = params.join(' ')
         process.send({
           command: this.ipcCommand,
           key: this.ipcCommandKey,
           info: {
             code: 200,
-            msg: `安装扩展执行命令:<br/>${params.join(
-              ' '
-            )}<br/>如安装失败, 可尝试复制命令自行尝试安装<br/>`
+            msg: I18nT('fork.ExtensionInstallFailTips', { command })
           }
         })
         const child = spawn('zsh', params, optdefault)

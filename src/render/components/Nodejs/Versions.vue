@@ -185,6 +185,8 @@
     flex-direction: column;
     height: 100%;
     .current-version {
+      display: flex;
+      align-items: center;
       margin: 20px 40px 0 40px;
       .version {
         margin-left: 25px;

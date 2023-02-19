@@ -6,6 +6,7 @@ import { chmod } from '@shared/file'
 import XTerm from '@/util/XTerm'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
+import { I18nT } from '@shared/lang'
 const { getGlobal } = require('@electron/remote')
 const { join } = require('path')
 const { existsSync, unlinkSync, copyFileSync } = require('fs')
@@ -18,9 +19,9 @@ export const passwordCheck = () => {
   return new Promise((resolve, reject) => {
     global.Server = getGlobal('Server')
     if (!global.Server.Password) {
-      ElMessageBox.prompt('请输入电脑用户密码', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      ElMessageBox.prompt(I18nT('base.inputPassword'), {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
         inputType: 'password',
         customClass: 'password-prompt',
         beforeClose: (action, instance, done) => {
@@ -30,7 +31,7 @@ export const passwordCheck = () => {
               IPC.send('app:password-check', instance.inputValue).then((key: string, res: any) => {
                 IPC.off(key)
                 if (res === false) {
-                  instance.editorErrorMessage = '密码错误,请重新输入'
+                  instance.editorErrorMessage = I18nT('base.passwordError')
                 } else {
                   global.Server.Password = res
                   AppStore()
@@ -70,7 +71,7 @@ export const brewCheck = () => {
           const brewStore = BrewStore()
           const appStore = AppStore()
           if (!brewStore.brewRunning) {
-            Base.ConfirmInfo('检测到您未安装Brew, 是否现在安装?')
+            Base.ConfirmInfo(I18nT('util.noBrewTips'))
               .then(() => {
                 brewStore.brewRunning = true
                 const log = brewStore.log
@@ -108,14 +109,14 @@ export const brewCheck = () => {
                       IPC.off(key)
                       brewStore.showInstallLog = false
                       brewStore.brewRunning = false
-                      Base.MessageError('Brew安装失败')
-                      reject(new Error('Brew安装失败'))
+                      Base.MessageError(I18nT('util.brewInstallFail')).then()
+                      reject(new Error(I18nT('util.brewInstallFail')))
                     }
                   })
                 })
               })
               .catch(() => {
-                reject(new Error('用户未选择安装'))
+                reject(new Error(I18nT('util.userNoInstall')))
               })
           }
         } else {

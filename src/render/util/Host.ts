@@ -5,6 +5,7 @@ import { EventBus } from '@/global'
 import type { AppHost } from '@/store/app'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
+import { I18nT } from '@shared/lang'
 
 const handleHostEnd = (arr: Array<AppHost>) => {
   const appStore = AppStore()
@@ -30,7 +31,7 @@ const handleHostEnd = (arr: Array<AppHost>) => {
     IPC.off(key)
   })
 
-  Base.MessageSuccess('操作成功')
+  Base.MessageSuccess(I18nT('base.success')).then()
   EventBus.emit('Host-Edit-Close')
 }
 
@@ -45,7 +46,7 @@ export const handleHost = (host: AppHost, flag: string, old?: AppHost) => {
         resolve(true)
       } else if (res.code === 1) {
         IPC.off(key)
-        Base.MessageError(res.msg)
+        Base.MessageError(res.msg).then()
         resolve(false)
       }
     })

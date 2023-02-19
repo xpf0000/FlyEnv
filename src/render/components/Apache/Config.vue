@@ -37,7 +37,7 @@
       version() {
         return AppStore().config.server?.apache?.current
       },
-      disabled() {
+      disabled(): boolean {
         return !this.version?.version
       }
     },

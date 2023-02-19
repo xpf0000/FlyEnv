@@ -4,12 +4,20 @@ import is from 'electron-is'
 import { autoUpdater } from 'electron-updater'
 import { resolve } from 'path'
 import logger from './Logger'
+import { I18nT } from '../lang'
+import type { AppUpdater } from 'electron-updater/out/AppUpdater'
 
 if (is.dev()) {
   autoUpdater.updateConfigPath = resolve(__dirname, '../../app-update.yml')
 }
 
 export default class UpdateManager extends EventEmitter {
+  options: { [key: string]: any }
+  updater: AppUpdater
+  autoCheckData: {
+    checkEnable: boolean
+    userCheck: boolean
+  }
   constructor(options = {}) {
     super()
     this.options = options
@@ -33,43 +41,45 @@ export default class UpdateManager extends EventEmitter {
 
     if (this.autoCheckData.checkEnable) {
       this.autoCheckData.userCheck = false
-      this.updater.checkForUpdates()
+      this.updater.checkForUpdates().then()
     }
   }
 
   check() {
     this.autoCheckData.userCheck = true
-    this.updater.checkForUpdates()
+    this.updater.checkForUpdates().then()
   }
 
   checkingForUpdate() {
     this.emit('checking')
   }
 
-  updateAvailable(event, info) {
+  updateAvailable(event: any, info: any) {
     this.emit('update-available', info)
     dialog
       .showMessageBox({
         type: 'info',
-        title: '检查更新',
-        message: '发现新版本，是否现在更新？',
-        buttons: ['是', '否'],
+        title: I18nT('update.checkForUpdates'),
+        message: I18nT('update.update-available-message'),
+        buttons: [I18nT('update.yes'), I18nT('update.no')],
         cancelId: 1
       })
       .then(({ response }) => {
         if (response === 0) {
-          this.updater.downloadUpdate()
+          this.updater.downloadUpdate().then()
         }
       })
   }
 
-  updateNotAvailable(event, info) {
+  updateNotAvailable(event: any, info: any) {
     this.emit('update-not-available', info)
     if (this.autoCheckData.userCheck) {
-      dialog.showMessageBox({
-        title: '检查更新',
-        message: '已是最新版'
-      })
+      dialog
+        .showMessageBox({
+          title: I18nT('update.checkForUpdates'),
+          message: I18nT('update.update-not-available-message')
+        })
+        .then()
     }
   }
 
@@ -82,19 +92,19 @@ export default class UpdateManager extends EventEmitter {
    * total,
    * transferred
    */
-  updateDownloadProgress(event) {
+  updateDownloadProgress(event: any) {
     this.emit('download-progress', event)
   }
 
-  updateDownloaded(event, info) {
+  updateDownloaded(event: any, info: any) {
     this.emit('update-downloaded', info)
-    this.updater.logger.log(`Update Downloaded: ${info}`)
+    this.updater?.logger?.info(`Update Downloaded: ${info}`)
     dialog
       .showMessageBox({
-        title: '检查更新',
-        message: '更新下载完成，应用程序将退出并开始更新...'
+        title: I18nT('update.checkForUpdates'),
+        message: I18nT('update.update-downloaded-message')
       })
-      .then((_) => {
+      .then(() => {
         this.emit('will-updated')
         setImmediate(() => {
           this.updater.quitAndInstall()
@@ -102,11 +112,12 @@ export default class UpdateManager extends EventEmitter {
       })
   }
 
-  updateError(event, error) {
+  updateError(event: any, error: any) {
     this.emit('update-error', error)
-    const msg = error == null ? '检查更新失败' : (error.stack || error).toString()
+    const msg =
+      error == null ? I18nT('update.update-error-message') : (error.stack || error).toString()
 
-    this.updater.logger.warn(`[Motrix] update-error: ${msg}`)
-    dialog.showErrorBox(msg)
+    this.updater?.logger?.warn(`[PhpWebStudy] update-error: ${msg}`)
+    dialog.showErrorBox(I18nT('update.checkForUpdates'), msg)
   }
 }

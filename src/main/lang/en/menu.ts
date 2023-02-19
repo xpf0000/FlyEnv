@@ -1,0 +1,21 @@
+export default {
+  about: 'About',
+  app: 'PhpWebStudy',
+  checkForUpdates: 'Check for Updates...',
+  hide: 'Hide PhpWebStudy',
+  hideOthers: 'Hide Others',
+  unhide: 'Show All',
+  quit: 'Quit PhpWebStudy',
+  edit: 'Edit',
+  cut: 'Cut',
+  copy: 'Copy',
+  paste: 'Paste',
+  selectAll: 'Select All',
+  window: 'Window',
+  close: 'Close',
+  minimize: 'Minimize',
+  zoom: 'Zoom',
+  fullscreen: 'Enter Full Screen',
+  front: 'Bring PhpWebStudy to Front',
+  dev: 'Open Debug Window'
+}

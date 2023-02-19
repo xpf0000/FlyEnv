@@ -2,25 +2,33 @@ import ENBase from './en/base'
 import ZHBase from './zh/base'
 import ENPHP from './en/php'
 import ZHPHP from './zh/php'
-import * as VueI18n from 'vue-i18n'
+import ENTray from './en/tray'
+import ZHTray from './zh/tray'
+import ENUtil from './en/util'
+import ZHUtil from './zh/util'
+import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 
 export const lang = {
   en: {
     base: ENBase,
-    php: ENPHP
+    php: ENPHP,
+    tray: ENTray,
+    util: ENUtil
   },
   zh: {
     base: ZHBase,
-    php: ZHPHP
+    php: ZHPHP,
+    tray: ZHTray,
+    util: ZHUtil
   }
 }
 
 let i18n: I18n
 
-export const AppI18n = (l: string): I18n => {
+export const AppI18n = (l?: string): I18n => {
   if (!i18n) {
-    i18n = VueI18n.createI18n({
+    i18n = createI18n({
       legacy: true,
       locale: l || 'en',
       fallbackLocale: 'en',
@@ -31,4 +39,9 @@ export const AppI18n = (l: string): I18n => {
     i18n.global.locale = l
   }
   return i18n
+}
+
+export const I18nT = (...args: any) => {
+  // @ts-ignore
+  return i18n.global.t(...args)
 }

@@ -3,6 +3,7 @@ const { existsSync, writeFileSync } = require('fs')
 const { spawn } = require('child_process')
 const BaseManager = require('./BaseManager')
 const Utils = require('./Utils')
+const { I18nT } = require('./lang/index.js')
 
 class MysqlManager extends BaseManager {
   constructor() {
@@ -19,7 +20,7 @@ class MysqlManager extends BaseManager {
       console.log('version: ', version)
       let bin = version.bin
       if (!existsSync(bin)) {
-        reject(new Error('启动文件不存在,服务启动失败'))
+        reject(new Error(I18nT('fork.binNoFound')))
         return
       }
       const v = version.version.split('.').slice(0, 2).join('.')
@@ -70,7 +71,7 @@ datadir=${dataDir}`
         key: this.ipcCommandKey,
         info: {
           code: 200,
-          msg: `启动命令: ${bin} ${params.join(' ')}`
+          msg: I18nT('fork.command') + `: ${bin} ${params.join(' ')}`
         }
       })
       const child = spawn(bin, params)
@@ -94,7 +95,6 @@ datadir=${dataDir}`
 
       child.stdout.on('data', (data) => {
         let str = data.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
-        console.log('stdout: ', str)
         process.send({
           command: this.ipcCommand,
           key: this.ipcCommandKey,
@@ -107,7 +107,6 @@ datadir=${dataDir}`
       })
       child.stderr.on('data', (err) => {
         let str = err.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
-        console.log('stderr: ', str)
         process.send({
           command: this.ipcCommand,
           key: this.ipcCommandKey,

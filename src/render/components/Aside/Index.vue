@@ -361,6 +361,7 @@
         }
       },
       trayStore(): TrayState {
+        const appStore = AppStore()
         return {
           apache: {
             show: this.common.showItem.Apache,
@@ -386,7 +387,8 @@
             run: this.nginxVersion?.run === true,
             running: this.nginxVersion?.running === true
           },
-          password: AppStore()?.config?.password,
+          password: appStore?.config?.password,
+          lang: appStore?.config?.setup?.lang,
           php: {
             show: this.common.showItem.Php,
             disabled: this.phpDisable,

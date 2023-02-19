@@ -428,6 +428,9 @@ xdebug.output_dir = /tmp`
         flex-shrink: 0;
         padding: 30px 0 20px 0;
       }
+      ul.logs {
+        user-select: text;
+      }
     }
   }
 </style>

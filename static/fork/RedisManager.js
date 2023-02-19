@@ -1,6 +1,7 @@
 const join = require('path').join
 const existsSync = require('fs').existsSync
 const BaseManager = require('./BaseManager')
+const { I18nT } = require('./lang/index.js')
 const execPromise = require('child-process-promise').exec
 class RedisManager extends BaseManager {
   constructor() {
@@ -16,7 +17,7 @@ class RedisManager extends BaseManager {
     return new Promise((resolve, reject) => {
       let bin = version.bin
       if (!existsSync(bin)) {
-        reject(new Error('启动文件不存在,服务启动失败'))
+        reject(new Error(I18nT('fork.binNoFound')))
         return
       }
       let realConf = join(global.Server.RedisDir, 'common/redis.conf')
@@ -28,7 +29,7 @@ class RedisManager extends BaseManager {
             if (existsSync(this.pidPath)) {
               resolve(0)
             } else {
-              reject(new Error('启动失败,请查看日志文件'))
+              reject(new Error(I18nT('fork.startFail')))
             }
           }, 600)
         })

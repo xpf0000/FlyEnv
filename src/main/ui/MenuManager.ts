@@ -2,35 +2,24 @@ import { EventEmitter } from 'events'
 import { Menu } from 'electron'
 import { flattenMenuItems, translateTemplate, updateStates } from '../utils/menu'
 import MenuDarwin from '../menus/darwin.json'
-import MenuWin32 from '../menus/win32.json'
-
-const menuTmpl = {
-  darwin: MenuDarwin,
-  win32: MenuWin32
-}
 
 export default class MenuManager extends EventEmitter {
+  items: { [key: string]: any }
+  template: { [key: string]: any }
   constructor() {
     super()
-    this.keymap = {}
     this.items = {}
+    this.template = {}
     this.load()
     this.setup()
   }
 
   load() {
-    const platform = process.platform
-    console.log('platform: ', platform)
-    let template = menuTmpl[platform]
-    this.template = template['menu']
+    this.template = MenuDarwin['menu']
   }
 
   build() {
     const keystrokesByCommand = {}
-    for (let item in this.keymap) {
-      keystrokesByCommand[this.keymap[item]] = item
-    }
-
     // Deepclone the menu template to refresh menu
     const template = JSON.parse(JSON.stringify(this.template))
     const tpl = translateTemplate(template, keystrokesByCommand)
@@ -47,18 +36,18 @@ export default class MenuManager extends EventEmitter {
     this.setup()
   }
 
-  updateMenuStates(visibleStates, enabledStates, checkedStates) {
+  updateMenuStates(visibleStates: any, enabledStates: any, checkedStates: any) {
     updateStates(this.items, visibleStates, enabledStates, checkedStates)
   }
 
-  updateMenuItemVisibleState(id, flag) {
+  updateMenuItemVisibleState(id: string, flag: any) {
     const visibleStates = {
       [id]: flag
     }
     this.updateMenuStates(visibleStates, null, null)
   }
 
-  updateMenuItemEnabledState(id, flag) {
+  updateMenuItemEnabledState(id: string, flag: any) {
     const enabledStates = {
       [id]: flag
     }

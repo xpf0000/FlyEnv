@@ -8,5 +8,5 @@ export default {
   noVersionTips: '未检测到已安装版本,请在版本管理里安装或自行安装PHP版本',
   fpmLog: 'FPM日志',
   extension: '扩展',
-  phpSetGlobal: '设置为全局版本',
+  phpSetGlobal: '设置为全局版本'
 }

@@ -75,8 +75,6 @@ export default {
   processNoFound: 'No processes found',
   nvmInstallfailed: 'NVM Install Failed',
   nodeVersionNoFound: 'Node available version acquisition failed',
-  showMainWin: 'Show Main Window',
-  exit: 'Exit',
   default: 'Default',
   copy: 'Copy',
   hostsTitle: 'System Hosts',

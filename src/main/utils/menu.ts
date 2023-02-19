@@ -1,5 +1,7 @@
-export function concat(template, submenu, submenuToAdd) {
-  submenuToAdd.forEach((sub) => {
+import { I18nT } from '../lang'
+
+export function concat(template: any, submenu: any, submenuToAdd: any) {
+  submenuToAdd.forEach((sub: any) => {
     let relativeItem = null
     if (sub.position) {
       switch (sub.position) {
@@ -12,16 +14,16 @@ export function concat(template, submenu, submenuToAdd) {
         case 'before':
           relativeItem = findById(template, sub['relative-id'])
           if (relativeItem) {
-            let array = relativeItem.__parent
-            let index = array.indexOf(relativeItem)
+            const array = relativeItem.__parent
+            const index = array.indexOf(relativeItem)
             array.splice(index, 0, sub)
           }
           break
         case 'after':
           relativeItem = findById(template, sub['relative-id'])
           if (relativeItem) {
-            let array = relativeItem.__parent
-            let index = array.indexOf(relativeItem)
+            const array = relativeItem.__parent
+            const index = array.indexOf(relativeItem)
             array.splice(index + 1, 0, sub)
           }
           break
@@ -35,34 +37,16 @@ export function concat(template, submenu, submenuToAdd) {
   })
 }
 
-export function merge(template, item) {
-  if (item.id) {
-    let matched = findById(template, item.id)
-    if (matched) {
-      if (item.submenu && Array.isArray(item.submenu)) {
-        if (!Array.isArray(matched.submenu)) {
-          matched.submenu = []
-        }
-        concat(template, matched.submenu, item.submenu)
-      }
-    } else {
-      concat(template, template, [item])
-    }
-  } else {
-    template.push(item)
-  }
-}
-
-function findById(template, id) {
-  for (let i in template) {
-    let item = template[i]
+function findById(template: any, id: string): any {
+  for (const i in template) {
+    const item = template[i]
     if (item.id === id) {
       // Returned item need to have a reference to parent Array (.__parent).
       // This is required to handle `position` and `relative-id`
       item.__parent = template
       return item
     } else if (Array.isArray(item.submenu)) {
-      let result = findById(item.submenu, id)
+      const result = findById(item.submenu, id)
       if (result) {
         return result
       }
@@ -71,11 +55,15 @@ function findById(template, id) {
   return null
 }
 
-export function translateTemplate(template, keystrokesByCommand) {
-  for (let i in template) {
-    let item = template[i]
+export function translateTemplate(template: any, keystrokesByCommand: any) {
+  for (const i in template) {
+    const item = template[i]
     if (item.command) {
       item.accelerator = acceleratorForCommand(item.command, keystrokesByCommand)
+    }
+
+    if (item?.id) {
+      item.label = I18nT(item.id)
     }
 
     item.click = () => {
@@ -89,7 +77,7 @@ export function translateTemplate(template, keystrokesByCommand) {
   return template
 }
 
-export function handleCommand(item) {
+export function handleCommand(item: any) {
   handleCommandBefore(item)
 
   const args = item['command-arg']
@@ -101,7 +89,7 @@ export function handleCommand(item) {
   handleCommandAfter(item)
 }
 
-function handleCommandBefore(item) {
+function handleCommandBefore(item: any) {
   console.log('handleCommandBefore==1=>', item)
   if (!item['command-before']) {
     return
@@ -111,7 +99,7 @@ function handleCommandBefore(item) {
   global.application.handleCommand(command, command, ...args)
 }
 
-function handleCommandAfter(item) {
+function handleCommandAfter(item: any) {
   console.log('handleCommandAfter==1=>', item)
   if (!item['command-after']) {
     return
@@ -121,12 +109,12 @@ function handleCommandAfter(item) {
   global.application.handleCommand(command, command, ...args)
 }
 
-function acceleratorForCommand(command, keystrokesByCommand) {
+function acceleratorForCommand(command: string, keystrokesByCommand: any) {
   const keystroke = keystrokesByCommand[command]
   if (keystroke) {
     let modifiers = keystroke.split(/-(?=.)/)
-    let key = modifiers.pop().toUpperCase().replace('+', 'Plus').replace('MINUS', '-')
-    modifiers = modifiers.map((modifier) => {
+    const key = modifiers.pop().toUpperCase().replace('+', 'Plus').replace('MINUS', '-')
+    modifiers = modifiers.map((modifier: string) => {
       if (process.platform === 'darwin') {
         return modifier
           .replace(/cmdctrl/gi, 'Cmd')
@@ -142,15 +130,15 @@ function acceleratorForCommand(command, keystrokesByCommand) {
           .replace(/alt/gi, 'Alt')
       }
     })
-    let keys = modifiers.concat([key])
+    const keys = modifiers.concat([key])
     return keys.join('+')
   }
   return null
 }
 
-export function flattenMenuItems(menu) {
-  let flattenItems = {}
-  menu.items.forEach((item) => {
+export function flattenMenuItems(menu: any) {
+  const flattenItems: { [key: string]: any } = {}
+  menu.items.forEach((item: any) => {
     if (item.id) {
       flattenItems[item.id] = item
       if (item.submenu) {
@@ -161,26 +149,31 @@ export function flattenMenuItems(menu) {
   return flattenItems
 }
 
-export function updateStates(itemsById, visibleStates, enabledStates, checkedStates) {
+export function updateStates(
+  itemsById: any,
+  visibleStates: any,
+  enabledStates: any,
+  checkedStates: any
+) {
   if (visibleStates) {
-    for (let command in visibleStates) {
-      let item = itemsById[command]
+    for (const command in visibleStates) {
+      const item = itemsById[command]
       if (item) {
         item.visible = visibleStates[command]
       }
     }
   }
   if (enabledStates) {
-    for (let command in enabledStates) {
-      let item = itemsById[command]
+    for (const command in enabledStates) {
+      const item = itemsById[command]
       if (item) {
         item.enabled = enabledStates[command]
       }
     }
   }
   if (checkedStates) {
-    for (let id in checkedStates) {
-      let item = itemsById[id]
+    for (const id in checkedStates) {
+      const item = itemsById[id]
       if (item) {
         item.checked = checkedStates[id]
       }

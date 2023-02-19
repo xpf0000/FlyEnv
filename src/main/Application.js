@@ -1,16 +1,17 @@
 import { EventEmitter } from 'events'
 import { app, ipcMain } from 'electron'
 import is from 'electron-is'
-import logger from './core/Logger'
-import ConfigManager from './core/ConfigManager'
+import logger from './core/Logger.ts'
+import ConfigManager from './core/ConfigManager.ts'
 import WindowManager from './ui/WindowManager.ts'
-import MenuManager from './ui/MenuManager'
-import UpdateManager from './core/UpdateManager'
+import MenuManager from './ui/MenuManager.ts'
+import UpdateManager from './core/UpdateManager.ts'
 import { join } from 'path'
 import { copyFile, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { fork, execSync } from 'child_process'
-import TrayManager from './ui/TrayManager.js'
-import { getLanguage } from './utils/index.js'
+import TrayManager from './ui/TrayManager.ts'
+import { getLanguage } from './utils/index.ts'
+import { AppI18n } from './lang/index.ts'
 const {
   createFolder,
   chmod,
@@ -35,13 +36,13 @@ export default class Application extends EventEmitter {
 
   init() {
     this.configManager = new ConfigManager()
+    this.initLang()
     this.menuManager = new MenuManager()
     this.menuManager.setup()
     this.initWindowManager()
     this.initTrayManager()
     this.initUpdaterManager()
     this.initServerDir()
-    this.initLang()
     this.handleCommands()
     this.handleIpcMessages()
   }
@@ -50,6 +51,7 @@ export default class Application extends EventEmitter {
     const lang = getLanguage(this.configManager.getConfig('setup.lang'))
     if (lang) {
       this.configManager.setConfig('setup.lang', lang)
+      AppI18n(lang)
     }
   }
 
@@ -348,7 +350,7 @@ export default class Application extends EventEmitter {
   }
 
   stop() {
-    logger.info('[WebMaker] application stop !!!')
+    logger.info('[PhpWebStudy] application stop !!!')
     this.stopServer()
   }
 
@@ -464,6 +466,7 @@ export default class Application extends EventEmitter {
     this.on('application:save-preference', (config) => {
       console.log('application:save-preference.config====>', config)
       this.configManager.setConfig(config)
+      this.menuManager.rebuild()
     })
 
     this.on('application:relaunch', () => {
@@ -540,6 +543,7 @@ export default class Application extends EventEmitter {
         let forkFile = command.replace('app-fork:', '')
         let child = fork(join(__static, `fork/${forkFile}.js`))
         this.setProxy()
+        global.Server.Lang = this.configManager.getConfig('setup.lang')
         child.send({ Server: global.Server })
         child.send([command, key, ...args])
         child.on('message', ({ command, key, info }) => {

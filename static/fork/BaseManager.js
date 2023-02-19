@@ -1,3 +1,4 @@
+const { I18nT } = require('./lang/index.js')
 const existsSync = require('fs').existsSync
 const readFileSync = require('fs').readFileSync
 const unlinkSync = require('fs').unlinkSync
@@ -33,7 +34,7 @@ class BaseManager {
         })
         this._processSend({
           code: 1,
-          msg: 'sudo需要电脑密码,请输入<br/>'
+          msg: I18nT('fork.needPassWord') + '<br/>'
         })
       })
   }
@@ -77,13 +78,13 @@ class BaseManager {
                 resolve(e.toString())
               })
           } else {
-            resolve('版本有误,请重新选择')
+            resolve(I18nT('fork.versionError'))
           }
         } catch (e) {
           resolve(e.toString())
         }
       } else {
-        resolve('请先选择版本')
+        resolve(I18nT('fork.needSelectVersion'))
       }
     })
   }
@@ -113,7 +114,7 @@ class BaseManager {
         })
       })
       .catch((code) => {
-        let info = code ? code.toString() : '切换失败'
+        let info = code ? code.toString() : I18nT('fork.switchFail')
         this._processSend({
           code: 1,
           msg: info,
@@ -214,7 +215,7 @@ class BaseManager {
             reject(err)
           })
       } else {
-        reject(new Error('服务未运行'))
+        reject(new Error(I18nT('fork.serviceNoRun')))
       }
     })
   }
@@ -244,14 +245,9 @@ class BaseManager {
     let exit = false
     child.stdout.on('data', (data) => {
       stdout = this._handleStd(data, stdout)
-      console.log('_childHandle stdout: ', stdout)
     })
     child.stderr.on('data', (err) => {
       stderr = this._handleStd(err, stderr)
-      console.log('_childHandle stderr: ', stderr)
-    })
-    child.on('error', function (err) {
-      console.log('error: ', err)
     })
     child.on('exit', function (code) {
       console.log('exit: ', code)
