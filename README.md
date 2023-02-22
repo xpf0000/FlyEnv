@@ -141,4 +141,6 @@ make install
 
 ## 📜 开源许可
 
-基于 [MIT license](https://opensource.org/licenses/MIT) 许可进行开源。
+[BSD 3-Clause License](https://github.com/xpf0000/PhpWebStudy/blob/master/LICENSE)
+
+Copyright (c) 2023, 徐鹏飞
