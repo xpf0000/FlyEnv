@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
 
 export interface SoftInstalled {
-  version: string
+  version: string | null
   bin: string
   path: string
-  num: number
+  num: number | null
+  enable: boolean
   run: boolean
   running: boolean
 }

@@ -156,8 +156,9 @@ class BrewManager extends BaseManager {
     let command = ''
     const handleCatch = (err) => {
       this._processSend({
-        code: 1,
-        msg: err.stderr
+        code: 0,
+        msg: err.stderr,
+        version: null
       })
     }
     const handleThen = (res) => {
@@ -166,17 +167,12 @@ class BrewManager extends BaseManager {
       try {
         version = reg.exec(str)[2].trim()
       } catch (e) {}
-      if (version) {
-        this._processSend({
-          code: 0,
-          msg: 'Success',
-          version
-        })
-      } else {
-        handleCatch({
-          stderr: I18nT('fork.getVersionNumFail')
-        })
-      }
+      version = !isNaN(parseInt(version)) ? version : null
+      this._processSend({
+        code: 0,
+        msg: 'Success',
+        version
+      })
     }
     switch (name) {
       case 'apachectl':
@@ -189,7 +185,7 @@ class BrewManager extends BaseManager {
         break
       case 'php-fpm':
         reg = new RegExp('(PHP )([\\s\\S]*?)( )', 'g')
-        command = `${bin} -v`
+        command = `${bin} -n -v`
         break
       case 'mysqld_safe':
         bin = bin.replace('_safe', '')

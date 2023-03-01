@@ -88,6 +88,11 @@
     line-height: 2.3;
   }
 
+  .version-error-tips {
+    max-width: 50vw !important;
+    font-size: 14px !important;
+  }
+
   body.lang-en {
     .apache-service {
       .left-title {

@@ -3,13 +3,25 @@
     <div class="block">
       <span>{{ $t('base.selectVersion') }}</span>
       <el-select v-model="current" :disabled="disabled" class="ml-30">
-        <el-option
-          v-for="(item, index) in versions"
-          :key="index"
-          :label="item.version + ' - ' + item.path"
-          :value="item.version + ' - ' + item.path"
-        >
-        </el-option>
+        <template v-for="(item, index) in versions" :key="index">
+          <template v-if="!item?.version">
+            <el-tooltip :content="$t('base.versionErrorTips')" popper-class="version-error-tips">
+              <el-option
+                :disabled="true"
+                :label="$t('base.versionError') + ' - ' + item.path"
+                :value="$t('base.versionError') + ' - ' + item.path"
+              >
+              </el-option>
+            </el-tooltip>
+          </template>
+          <template v-else>
+            <el-option
+              :label="item?.version + ' - ' + item.path"
+              :value="item?.version + ' - ' + item.path"
+            >
+            </el-option>
+          </template>
+        </template>
       </el-select>
       <el-button
         :disabled="disabled || current === currentVersion"

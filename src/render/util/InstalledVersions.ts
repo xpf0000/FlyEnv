@@ -127,13 +127,14 @@ class InstalledVersions {
         const path = i.replace(`/sbin/${binName}`, '').replace(`/bin/${binName}`, '')
         IPC.send('app-fork:brew', 'binVersion', i, binName).then((key: string, res: any) => {
           IPC.off(key)
-          if (res?.version) {
-            const num = Number(res.version.split('.').slice(0, 2).join(''))
+          if (res?.code === 0) {
+            const num = res?.version ? Number(res.version.split('.').slice(0, 2).join('')) : null
             const item = {
               version: res.version,
               bin: i,
               path: `${path}/`,
               num,
+              enable: res?.version !== null,
               run: false,
               running: false
             }

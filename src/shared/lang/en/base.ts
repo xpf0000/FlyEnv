@@ -121,5 +121,8 @@ export default {
   second: 'Second',
   millisecond: 'MilliSecond',
   loadCustom: 'Load Custom',
-  saveCustom: 'Save Custom'
+  saveCustom: 'Save Custom',
+  versionError: 'Version Fetch Fail',
+  versionErrorTips:
+    'The version has been installed, but there is an error that prevents it from running, this problem is basically due to missing software dependencies or incorrect dependency version, try to run the command "brew update && brew upgrade" to fix it'
 }

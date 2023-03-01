@@ -11,7 +11,16 @@
         </div>
         <div class="value">
           <span class="name">{{ item.path }} </span>
-          <span class="url">{{ item.version }} </span>
+          <template v-if="item.version">
+            <span class="url">{{ item.version }} </span>
+          </template>
+          <template v-else>
+            <span class="url error">
+              <el-tooltip :content="$t('base.versionErrorTips')" popper-class="version-error-tips">
+                {{ $t('base.versionError') }}
+              </el-tooltip>
+            </span>
+          </template>
         </div>
       </div>
       <div class="right">
@@ -23,7 +32,7 @@
             <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="doRun(item)" />
           </div>
         </template>
-        <div v-else class="status" :class="{ disabled: item.running }">
+        <div v-else class="status" :class="{ disabled: item.running || !item.version }">
           <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="doRun(item)" />
         </div>
         <el-popover
@@ -264,6 +273,10 @@
           .url {
             margin-top: 10px;
             color: #409eff;
+
+            &.error {
+              color: #f56c6c;
+            }
 
             &.empty {
               color: #fff;

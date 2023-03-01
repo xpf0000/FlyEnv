@@ -29,7 +29,6 @@
       :empty-text="$t('base.gettingVersion')"
       height="100%"
       :data="tableData"
-      size="medium"
       style="width: 100%"
     >
       <el-table-column prop="name" :label="$t('base.brewLibrary')"> </el-table-column>

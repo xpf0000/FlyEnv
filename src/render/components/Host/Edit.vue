@@ -69,7 +69,12 @@
         <div class="port-set mb-20">
           <div class="port-type">
             <span>Apache</span>
-            <el-popover placement="top-start" title="注意" :width="300" trigger="hover">
+            <el-popover
+              placement="top-start"
+              :title="$t('base.attention')"
+              :width="300"
+              trigger="hover"
+            >
               <template #reference>
                 <yb-icon
                   :svg="import('@/svg/question.svg?raw')"
