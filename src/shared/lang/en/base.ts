@@ -119,5 +119,7 @@ export default {
   sslMakeAlert:
     'The SSL self-signed certificate is generated successfully, please find Dev Root CA {caFileName} in the opened keychain, and modify it to "always trust" the certificate',
   second: 'Second',
-  millisecond: 'MilliSecond'
+  millisecond: 'MilliSecond',
+  loadCustom: 'Load Custom',
+  saveCustom: 'Save Custom'
 }

@@ -23,6 +23,14 @@
           <el-button :disabled="!configpath" @click="getDefault">{{
             $t('base.loadDefault')
           }}</el-button>
+          <el-button-group style="margin-left: 12px">
+            <el-button :disabled="!configpath" @click="loadCustom">{{
+              $t('base.loadCustom')
+            }}</el-button>
+            <el-button :disabled="!configpath" @click="saveCustom">{{
+              $t('base.saveCustom')
+            }}</el-button>
+          </el-button-group>
         </div>
       </div>
     </div>
@@ -42,7 +50,7 @@
 
   const { existsSync } = require('fs')
   const { shell } = require('@electron/remote')
-
+  const { dialog } = require('@electron/remote')
   const IniFiles: { [key: string]: any } = {}
 
   export default defineComponent({
@@ -104,6 +112,45 @@
       this.monacoInstance = null
     },
     methods: {
+      loadCustom() {
+        let opt = ['openFile', 'showHiddenFiles']
+        dialog
+          .showOpenDialog({
+            properties: opt
+          })
+          .then(({ canceled, filePaths }: any) => {
+            if (canceled || filePaths.length === 0) {
+              return
+            }
+            const file = filePaths[0]
+            readFileAsync(file).then((conf) => {
+              this.config = conf
+              this.initEditor()
+            })
+          })
+      },
+      saveCustom() {
+        let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
+        dialog
+          .showSaveDialog({
+            properties: opt,
+            defaultPath: 'php-custom.ini',
+            filters: [
+              {
+                extensions: ['ini']
+              }
+            ]
+          })
+          .then(({ canceled, filePath }: any) => {
+            if (canceled || !filePath) {
+              return
+            }
+            const content = this.monacoInstance.getValue()
+            writeFileAsync(filePath, content).then(() => {
+              this.$message.success(this.$t('base.success'))
+            })
+          })
+      },
       close() {
         this.show = false
         this.$destroy()

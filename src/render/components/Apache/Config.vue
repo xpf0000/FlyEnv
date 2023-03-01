@@ -5,6 +5,10 @@
       <el-button :disabled="disabled" @click="openConfig">{{ $t('base.open') }}</el-button>
       <el-button :disabled="disabled" @click="saveConfig">{{ $t('base.save') }}</el-button>
       <el-button :disabled="disabled" @click="getDefault">{{ $t('base.loadDefault') }}</el-button>
+      <el-button-group style="margin-left: 12px">
+        <el-button :disabled="disabled" @click="loadCustom">{{ $t('base.loadCustom') }}</el-button>
+        <el-button :disabled="disabled" @click="saveCustom">{{ $t('base.saveCustom') }}</el-button>
+      </el-button-group>
     </div>
   </div>
 </template>
@@ -18,6 +22,7 @@
   import { md5 } from '@/util/Index'
   import { AppStore } from '@/store/app'
 
+  const { dialog } = require('@electron/remote')
   const { shell } = require('@electron/remote')
   const { join } = require('path')
   const { existsSync } = require('fs')
@@ -54,6 +59,45 @@
       this.monacoInstance = null
     },
     methods: {
+      loadCustom() {
+        let opt = ['openFile', 'showHiddenFiles']
+        dialog
+          .showOpenDialog({
+            properties: opt
+          })
+          .then(({ canceled, filePaths }: any) => {
+            if (canceled || filePaths.length === 0) {
+              return
+            }
+            const file = filePaths[0]
+            readFileAsync(file).then((conf) => {
+              this.config = conf
+              this.initEditor()
+            })
+          })
+      },
+      saveCustom() {
+        let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
+        dialog
+          .showSaveDialog({
+            properties: opt,
+            defaultPath: 'apache-custom.conf',
+            filters: [
+              {
+                extensions: ['conf']
+              }
+            ]
+          })
+          .then(({ canceled, filePath }: any) => {
+            if (canceled || !filePath) {
+              return
+            }
+            const content = this.monacoInstance.getValue()
+            writeFileAsync(filePath, content).then(() => {
+              this.$message.success(this.$t('base.success'))
+            })
+          })
+      },
       openConfig() {
         shell.showItemInFolder(this.configpath)
       },

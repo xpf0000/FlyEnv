@@ -113,5 +113,7 @@ export default {
   sslMakeAlert:
     'SSL自签名证书生成成功,请在打开的钥匙串中,找到Dev Root CA {caFileName},并修改为"始终信任"该证书',
   second: '秒',
-  millisecond: '毫秒'
+  millisecond: '毫秒',
+  loadCustom: '加载自定义',
+  saveCustom: '保存自定义'
 }
