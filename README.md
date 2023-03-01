@@ -2,26 +2,29 @@
 
 <img src="http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/512x512.png" width="256" alt="App Icon" />
 
-## Mac上的PHP&Web开发环境管理工具
+## Php and Web development environment manage tool for MacOS system
 
 [![GitHub release](https://img.shields.io/github/release/xpf0000/PhpWebStudy.svg)](https://github.com/xpf0000/PhpWebStudy/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/PhpWebStudy/total.svg)](https://github.com/xpf0000/PhpWebStudy/releases)
 
-PhpWebStudy 是一款mac上的PHP和web开发环境管理工具,包含php,nginx,apache,msyql,memcached,redis以及host管理
+PhpWebStudy is an open source, free personal project, created for PHP and Web engineers using MacOS systems for development, to provide a more simple and useful tool to manage the local server environment.
 
-访问网站查看详细介绍以及使用教程:
+By integrating the tedious tasks such as start/restart commands for each software, configuration file viewing and modification, and log file checking into one software, developers can focus more on the real development work.
+
+Visit the website for detailed descriptions and tutorials on how to use it:
 
 [https://www.macphpstudy.com](https://www.macphpstudy.com)
 
-[使用帮助](https://www.macphpstudy.com/help-0-1.html)
+[Documentation](https://www.macphpstudy.com/help-0-1.html)
 
 [https://www.phpwebstudy.com](https://www.phpwebstudy.com)
 
-[使用帮助](https://www.phpwebstudy.com/help-0-1.html)
+[Documentation](https://www.phpwebstudy.com/help-0-1.html)
 
 ## ✨ 特性
 
 - 简洁明了的图形操作界面
-- 版本切换 根据开发需要 选择对应的版本进行开发调试
+- 同时运行多个PHP版本, 支持 PHP5.x - PHP8.x
+- 各软件版本切换 根据开发需要 选择对应的版本进行开发调试
 - 各软件自定义配置
 - 日志文件即时查看
 - host管理
@@ -32,29 +35,28 @@ PhpWebStudy 是一款mac上的PHP和web开发环境管理工具,包含php,nginx,
 
 ## 💽 安装稳定版
 
-1. 使用brew安装
+1. [GitHub](https://github.com/xpf0000/PhpWebStudy/releases) 提供了已经编译好的稳定版安装包
+
+最新版intel和Apple M安装包已经分开了, 带arm64的适用于Apple M, 不带的适用于intel, 注意不要下错了
+
+
+2. 使用brew安装
 
 ```
 brew install phpwebstudy
 ```
 
-2. [GitHub](https://github.com/xpf0000/PhpWebStudy/releases) 提供了已经编译好的稳定版安装包
-
-最新版intel和Apple M安装包已经分开了, 带arm64的适用于Apple M, 不带的适用于intel, 注意不要下错了
-
-4. 当然你也可以自己克隆代码编译打包。
+3. 当然你也可以自己克隆代码编译打包。
 
 ## 🖥 应用界面
 
-![01.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/01.png)
-![02.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/02.png)
-![03.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/03.png)
+![01.png](https://www.macphpstudy.com/image/index/main.png)
+![02.png](https://www.macphpstudy.com/image/index/screen3.png)
+![03.png](https://www.macphpstudy.com/image/index/screen4.png)
 ![04.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/04.png)
 ![05.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/05.png)
-![06.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/06.png)
-![07.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/07.png)
-![08.png](https://www.macphpstudy.com/assets/D43137AB-B785-41FE-AD9B-8536066221AE.png)
-![09.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/09.png)
+![08.png](https://www.macphpstudy.com/image/index/screen7.png)
+![07.png](https://www.macphpstudy.com/image/index/screen8.png)
 
 ## ⌨️ 本地开发
 
