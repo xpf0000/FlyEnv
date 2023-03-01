@@ -95,6 +95,7 @@ interface State {
     }
   }
   httpServe: Array<string>
+  versionInited: boolean
 }
 
 const state: State = {
@@ -165,7 +166,8 @@ const state: State = {
       lang: ''
     }
   },
-  httpServe: []
+  httpServe: [],
+  versionInited: false
 }
 
 export const AppStore = defineStore('app', {

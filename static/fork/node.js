@@ -1,7 +1,7 @@
 const { exec } = require('child-process-promise')
 const BaseManager = require('./BaseManager')
 const { AppI18n } = require('./lang/index')
-const {I18nT} = require("./lang/index.js");
+const { I18nT } = require('./lang/index.js')
 class Manager extends BaseManager {
   constructor() {
     super()

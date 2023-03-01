@@ -5,6 +5,7 @@ export interface SoftInstalled {
   bin: string
   path: string
   num: number | null
+  error?: string
   enable: boolean
   run: boolean
   running: boolean

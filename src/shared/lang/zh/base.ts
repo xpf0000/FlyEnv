@@ -118,5 +118,6 @@ export default {
   saveCustom: '保存自定义',
   versionError: '版本获取失败',
   versionErrorTips:
-    '版本已安装, 但是有错误导致无法运行, 此问题基本都是软件依赖项缺失或者依赖项版本不正确, 可尝试运行命令"brew update && brew upgrade"修复'
+    '版本已安装, 但是有错误导致无法运行, 此问题基本都是软件依赖项缺失或者依赖项版本不正确, 可尝试运行命令"brew update && brew upgrade"修复',
+  fileBigErr: '文件过大, 请选择正确的配置文件'
 }

@@ -39,6 +39,8 @@ export interface TrayState {
     running: boolean
     disabled: boolean
   }
+  groupIsRunning: boolean
+  groupDisabled: boolean
 }
 
 const state: TrayState = {
@@ -49,39 +51,13 @@ const state: TrayState = {
   nginx: { show: true, disabled: true, run: false, running: false },
   password: '',
   php: { show: true, disabled: true, run: false, running: false },
-  redis: { show: true, disabled: true, run: false, running: false }
+  redis: { show: true, disabled: true, run: false, running: false },
+  groupIsRunning: false,
+  groupDisabled: true
 }
 
 export const AppStore = defineStore('trayApp', {
   state: (): TrayState => state,
-  getters: {
-    groupIsRunning(): boolean {
-      return (
-        this.apache?.run ||
-        this.memcached?.run ||
-        this.mysql?.run ||
-        this.nginx?.run ||
-        this.php?.run ||
-        this.redis?.run
-      )
-    },
-    groupDisabled(): boolean {
-      const allDisabled =
-        this.apache?.disabled &&
-        this.memcached?.disabled &&
-        this.mysql?.disabled &&
-        this.nginx?.disabled &&
-        this.php?.disabled &&
-        this.redis?.disabled
-      const running =
-        this.apache?.running ||
-        this.memcached?.running ||
-        this.mysql?.running ||
-        this.nginx?.running ||
-        this.php?.running ||
-        this.redis?.running
-      return allDisabled || running
-    }
-  },
+  getters: {},
   actions: {}
 })

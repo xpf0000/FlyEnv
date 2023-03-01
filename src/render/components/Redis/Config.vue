@@ -23,7 +23,7 @@
   import { AppStore } from '@/store/app'
 
   const { dialog } = require('@electron/remote')
-  const { existsSync } = require('fs')
+  const { existsSync, statSync } = require('fs')
   const { join } = require('path')
   const { shell } = require('@electron/remote')
 
@@ -70,6 +70,11 @@
               return
             }
             const file = filePaths[0]
+            const state = statSync(file)
+            if (state.size > 5 * 1024 * 1024) {
+              this.$message.error(this.$t('base.fileBigErr'))
+              return
+            }
             readFileAsync(file).then((conf) => {
               this.config = conf
               this.initEditor()

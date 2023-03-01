@@ -204,7 +204,7 @@
           return
         }
         this.initing = true
-        installedVersions.allInstalledVersions('php').then(() => {
+        installedVersions.allInstalledVersions(['php']).then(() => {
           this.initing = false
         })
       }

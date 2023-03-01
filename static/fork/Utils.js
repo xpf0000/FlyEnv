@@ -5,6 +5,28 @@ const { spawn } = require('child_process')
 const crypto = require('crypto')
 
 class Utils {
+  static getSubDir(fp, fullpath = true) {
+    const arr = []
+    if (!fs.existsSync(fp)) {
+      return arr
+    }
+    const stat = fs.statSync(fp)
+    if (stat.isDirectory() && !stat.isSymbolicLink()) {
+      try {
+        const files = fs.readdirSync(fp)
+        files.forEach(function (item) {
+          const fPath = path.join(fp, item)
+          if (fs.existsSync(fPath)) {
+            const stat = fs.statSync(fPath)
+            if (stat.isDirectory() && !stat.isSymbolicLink()) {
+              arr.push(fullpath ? fPath : item)
+            }
+          }
+        })
+      } catch (e) {}
+    }
+    return arr
+  }
   static md5(str) {
     const md5 = crypto.createHash('md5')
     return md5.update(str).digest('hex')
@@ -47,7 +69,6 @@ class Utils {
       })
     })
   }
-
   static createFolder(fp) {
     fp = fp.replace(/\\/g, '/')
     if (fs.existsSync(fp)) {
@@ -63,7 +84,6 @@ class Utils {
     }
     return fs.existsSync(fp)
   }
-
   static downFile(url, savepath) {
     return new Promise((resolve, reject) => {
       axios({
@@ -88,7 +108,6 @@ class Utils {
         })
     })
   }
-
   static execAsync(command, arg = [], options = {}) {
     return new Promise((resolve, reject) => {
       let optdefault = { env: process.env }

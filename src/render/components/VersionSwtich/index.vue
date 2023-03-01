@@ -149,7 +149,7 @@
         }
         this.initing = true
         const flag: keyof typeof AppSofts = this.typeFlag as any
-        installedVersions.allInstalledVersions(flag).then(() => {
+        installedVersions.allInstalledVersions([flag]).then(() => {
           this.initing = false
         })
       },

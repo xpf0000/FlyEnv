@@ -299,7 +299,7 @@
           this.currentType.installedInited = false
           this.reGetData()
           const flag: keyof typeof AppSofts = this.typeFlag as any
-          installedVersions.allInstalledVersions(flag)
+          installedVersions.allInstalledVersions([flag])
         })
       },
       toNext() {

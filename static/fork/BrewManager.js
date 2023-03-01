@@ -151,61 +151,6 @@ class BrewManager extends BaseManager {
       })
   }
 
-  binVersion(bin, name) {
-    let reg = null
-    let command = ''
-    const handleCatch = (err) => {
-      this._processSend({
-        code: 0,
-        msg: err.stderr,
-        version: null
-      })
-    }
-    const handleThen = (res) => {
-      const str = res.stdout + res.stderr
-      let version = ''
-      try {
-        version = reg.exec(str)[2].trim()
-      } catch (e) {}
-      version = !isNaN(parseInt(version)) ? version : null
-      this._processSend({
-        code: 0,
-        msg: 'Success',
-        version
-      })
-    }
-    switch (name) {
-      case 'apachectl':
-        reg = new RegExp('(Apache/)([\\s\\S]*?)( )', 'g')
-        command = `${bin} -v`
-        break
-      case 'nginx':
-        reg = new RegExp('(nginx/)([\\s\\S]*?)(\\n)', 'g')
-        command = `${bin} -v`
-        break
-      case 'php-fpm':
-        reg = new RegExp('(PHP )([\\s\\S]*?)( )', 'g')
-        command = `${bin} -n -v`
-        break
-      case 'mysqld_safe':
-        bin = bin.replace('_safe', '')
-        reg = new RegExp('(Ver )([\\s\\S]*?)( )', 'g')
-        command = `${bin} -V`
-        break
-      case 'memcached':
-        reg = new RegExp('(memcached )([\\s\\S]*?)(\\n)', 'g')
-        command = `${bin} -V`
-        break
-      case 'redis-server':
-        reg = new RegExp('(server v=)([\\s\\S]*?)( )', 'g')
-        command = `${bin} -v`
-        break
-    }
-    console.log('binVersion command: ', command)
-    const opt = this._fixEnv()
-    exec(command, opt).then(handleThen).catch(handleCatch)
-  }
-
   currentSrc() {
     Utils.execAsync('git', ['remote', '-v'], {
       cwd: global.Server.BrewHome

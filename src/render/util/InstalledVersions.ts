@@ -1,67 +1,21 @@
-import { getSubDir } from '@shared/file'
 import IPC from '@/util/IPC.js'
-import { reactive } from 'vue'
-import { BrewStore } from '@/store/brew'
+import { BrewStore, SoftInstalled } from '@/store/brew'
 import type { AppSofts } from '@/store/app'
 import { AppStore } from '@/store/app'
-
-const { getGlobal } = require('@electron/remote')
-const { join } = require('path')
-const { existsSync, realpathSync } = require('fs')
+import { reactive } from 'vue'
 
 class InstalledVersions {
   _cb: Array<Function>
-  task: { [key: string]: boolean }
+  taskRunning: boolean
   constructor() {
     this._cb = []
-    this.task = {}
+    this.taskRunning = false
   }
-  allInstalledVersions(flag: keyof typeof AppSofts) {
-    if (this.task[flag]) {
+  allInstalledVersions(flags: Array<keyof typeof AppSofts>) {
+    if (this.taskRunning) {
       return this
     }
-    this.task[flag] = true
-    const data = BrewStore()[flag]
-    console.log('allInstalledVersions: ', data)
-    const searchNames: { [key: string]: string } = {
-      apache: 'httpd',
-      nginx: 'nginx',
-      php: 'php',
-      mysql: 'mysql',
-      memcached: 'memcached',
-      redis: 'redis'
-    }
-    const binNames: { [key: string]: string } = {
-      apache: 'apachectl',
-      nginx: 'nginx',
-      php: 'php-fpm',
-      mysql: 'mysqld_safe',
-      memcached: 'memcached',
-      redis: 'redis-server'
-    }
-
-    const customDirs: Array<string> = AppStore()?.config?.setup?.[flag]?.dirs ?? []
-    const binName = binNames[flag]
-
-    const findInstalled = (dir: string, depth = 0, maxDepth = 2) => {
-      let res = false
-      let binPath = join(dir, `bin/${binName}`)
-      if (existsSync(binPath)) {
-        return realpathSync(binPath)
-      }
-      binPath = join(dir, `sbin/${binName}`)
-      if (existsSync(binPath)) {
-        return realpathSync(binPath)
-      }
-      if (depth >= maxDepth) {
-        return res
-      }
-      const sub = getSubDir(dir)
-      sub.forEach((s: string) => {
-        res = res || findInstalled(s, depth + 1, maxDepth)
-      })
-      return res
-    }
+    this.taskRunning = true
 
     const callBack = () => {
       this._cb.forEach((cb) => {
@@ -70,95 +24,39 @@ class InstalledVersions {
         }
       })
       this._cb = []
-      delete this.task[flag]
+      this.taskRunning = false
     }
-
-    if (!data.installedInited) {
-      const old = [...data.installed]
-      data.installed.splice(0)
-      const searchName = searchNames[flag]
-      const installed = new Set()
-      const systemDirs = ['/', '/opt', '/usr']
-      systemDirs.forEach((s) => {
-        const bin = findInstalled(s, 0, 1)
-        if (bin) {
-          installed.add(bin)
-        }
-      })
-
-      if (!global?.Server?.BrewCellar) {
-        global.Server = getGlobal('Server')
-      }
-
-      const base = global.Server?.BrewCellar ?? ''
-      if (base) {
-        getSubDir(base)
-          .filter((f: string) => {
-            return f.includes(searchName)
-          })
-          .forEach((f: string) => {
-            getSubDir(f).forEach((s: string) => {
-              const bin = findInstalled(s)
-              if (bin) {
-                installed.add(bin)
-              }
-            })
-          })
-      }
-
-      customDirs.forEach((s: string) => {
-        const bin = findInstalled(s, 0, 1)
-        if (bin) {
-          installed.add(bin)
-        }
-      })
-      console.log('installed: ', installed)
-      const count = installed.size
-      if (count === 0) {
-        setTimeout(() => {
-          data.installedInited = true
-          old.splice(0)
-          callBack()
-        }, 30)
-        return this
-      }
-      let index = 0
-      installed.forEach((i: string) => {
-        const path = i.replace(`/sbin/${binName}`, '').replace(`/bin/${binName}`, '')
-        IPC.send('app-fork:brew', 'binVersion', i, binName).then((key: string, res: any) => {
-          IPC.off(key)
-          if (res?.code === 0) {
-            const num = res?.version ? Number(res.version.split('.').slice(0, 2).join('')) : null
-            const item = {
-              version: res.version,
-              bin: i,
-              path: `${path}/`,
-              num,
-              enable: res?.version !== null,
-              run: false,
-              running: false
-            }
-            const find = old.find((o) => o.path === item.path && o.version === item.version)
-            Object.assign(item, find)
-            data.installed.push(reactive(item))
-          }
-          index += 1
-          if (index === count) {
-            data.installedInited = true
-            data.installed.sort((a: any, b: any) => {
-              return b.num - a.num
-            })
-            old.splice(0)
-            callBack()
-          }
-        })
-      })
-    } else {
+    const brewStore = BrewStore()
+    const setup = JSON.parse(JSON.stringify(AppStore().config.setup))
+    const arrs = flags.filter((f) => !brewStore[f].installedInited)
+    if (arrs.length === 0) {
       setTimeout(() => {
         callBack()
       }, 30)
+      return this
     }
-
+    IPC.send('app-fork:version', 'allInstalledVersions', arrs, setup).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        const versions: { [key in AppSofts]: Array<SoftInstalled> } = res?.versions ?? {}
+        for (const f in versions) {
+          const flag: keyof typeof AppSofts = f as keyof typeof AppSofts
+          let installed = versions[flag]
+          const data = brewStore[flag]
+          const old = [...data.installed]
+          installed = installed.map((item) => {
+            const find = old.find((o) => o.path === item.path && o.version === item.version)
+            Object.assign(item, find)
+            return reactive(item)
+          })
+          data.installed.splice(0)
+          data.installed.push(...installed)
+          data.installedInited = true
+          old.splice(0)
+          callBack()
+        }
+      }
+    )
     return this
   }
   then(cb: Function) {

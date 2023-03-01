@@ -206,7 +206,7 @@
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import type { TrayState } from '@/tray/store/app'
-
+  let lastTray = ''
   export default defineComponent({
     name: 'MoAside',
     components: {},
@@ -260,24 +260,39 @@
         return installed?.find((i) => i.path === current?.path && i.version === current?.version)
       },
       nginxDisabled(): boolean {
-        return !this.nginxVersion?.version || BrewStore()?.nginx?.installed?.some((v) => v.running)
+        return (
+          !this.nginxVersion?.version ||
+          BrewStore()?.nginx?.installed?.some((v) => v.running) ||
+          !AppStore().versionInited
+        )
       },
       apacheDisabled(): boolean {
         return (
-          !this.apacheVersion?.version || BrewStore()?.apache?.installed?.some((v) => v.running)
+          !this.apacheVersion?.version ||
+          BrewStore()?.apache?.installed?.some((v) => v.running) ||
+          !AppStore().versionInited
         )
       },
       mysqlDisabled(): boolean {
-        return !this.mysqlVersion?.version || BrewStore()?.mysql?.installed?.some((v) => v.running)
+        return (
+          !this.mysqlVersion?.version ||
+          BrewStore()?.mysql?.installed?.some((v) => v.running) ||
+          !AppStore().versionInited
+        )
       },
       memcachedDisabled(): boolean {
         return (
           !this.memcachedVersion?.version ||
-          BrewStore()?.memcached?.installed?.some((v) => v.running)
+          BrewStore()?.memcached?.installed?.some((v) => v.running) ||
+          !AppStore().versionInited
         )
       },
       redisDisabled(): boolean {
-        return !this.redisVersion?.version || BrewStore()?.redis?.installed?.some((v) => v.running)
+        return (
+          !this.redisVersion?.version ||
+          BrewStore()?.redis?.installed?.some((v) => v.running) ||
+          !AppStore().versionInited
+        )
       },
       nginxRunning(): boolean {
         return this.nginxVersion?.run === true
@@ -298,7 +313,11 @@
         return BrewStore()?.php?.installed ?? []
       },
       phpDisable(): boolean {
-        return this.phpVersions.length === 0 || this.phpVersions.some((v) => v.running)
+        return (
+          this.phpVersions.length === 0 ||
+          this.phpVersions.some((v) => v.running) ||
+          !AppStore().versionInited
+        )
       },
       phpRunning: {
         get(): boolean {
@@ -350,7 +369,7 @@
           this?.nginxVersion?.running === true ||
           this.phpVersions.some((v) => v.running) ||
           this?.redisVersion?.running === true
-        return allDisabled || running
+        return allDisabled || running || !AppStore().versionInited
       },
       groupClass(): { [ksy: string]: boolean } {
         return {
@@ -400,7 +419,9 @@
             disabled: this.redisDisabled,
             run: this.redisVersion?.run === true,
             running: this.redisVersion?.running === true
-          }
+          },
+          groupDisabled: this.groupDisabled,
+          groupIsRunning: this.groupIsRunning
         }
       }
     },
@@ -412,9 +433,14 @@
       },
       trayStore: {
         handler(v) {
-          IPC.send('APP:Tray-Store-Sync', JSON.parse(JSON.stringify(v))).then((key: string) => {
-            IPC.off(key)
-          })
+          const current = JSON.stringify(v)
+          if (lastTray !== current) {
+            lastTray = current
+            console.log('trayStore changed: ', current)
+            IPC.send('APP:Tray-Store-Sync', JSON.parse(current)).then((key: string) => {
+              IPC.off(key)
+            })
+          }
         },
         deep: true
       }

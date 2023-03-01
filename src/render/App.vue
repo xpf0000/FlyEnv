@@ -51,14 +51,20 @@
           .show()
       },
       checkPassword() {
-        passwordCheck().then(() => {
-          installedVersions.allInstalledVersions('php')
-          installedVersions.allInstalledVersions('nginx')
-          installedVersions.allInstalledVersions('mysql')
-          installedVersions.allInstalledVersions('apache')
-          installedVersions.allInstalledVersions('memcached')
-          installedVersions.allInstalledVersions('redis')
-        })
+        passwordCheck()
+          .then(() => {
+            installedVersions.allInstalledVersions([
+              'php',
+              'nginx',
+              'mysql',
+              'apache',
+              'memcached',
+              'redis'
+            ])
+          })
+          .then(() => {
+            AppStore().versionInited = true
+          })
       }
     }
   })
