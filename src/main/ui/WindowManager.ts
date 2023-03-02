@@ -79,6 +79,9 @@ export default class WindowManager extends EventEmitter {
   openTrayWindow() {
     const page = 'tray'
     let window = this.windows.tray
+    if (window) {
+      return window
+    }
     const pageOptions = this.getPageOptions(page)
     window = new BrowserWindow(trayBrowserOptions)
     enable(window.webContents)
