@@ -130,12 +130,6 @@
         if (existsSync(this.filepath)) {
           readFileAsync(this.filepath).then((log) => {
             this.log = log
-            this.$nextTick(() => {
-              let container = this.$el.querySelector('textarea')
-              if (container) {
-                container.scrollTop = container.scrollHeight
-              }
-            })
           })
         } else {
           this.log = this.$t('base.noLogs')

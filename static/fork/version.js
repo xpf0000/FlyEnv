@@ -56,6 +56,10 @@ class Manager extends BaseManager {
           reg = new RegExp('(server v=)([\\s\\S]*?)( )', 'g')
           command = `${bin} -v`
           break
+        case 'mongod':
+          reg = new RegExp('("version": ")([\\s\\S]*?)(",)', 'g')
+          command = `${bin} --version`
+          break
       }
       const opt = this._fixEnv()
       exec(command, opt).then(handleThen).catch(handleCatch)
@@ -69,7 +73,8 @@ class Manager extends BaseManager {
       php: 'php',
       mysql: 'mysql',
       memcached: 'memcached',
-      redis: 'redis'
+      redis: 'redis',
+      mongodb: 'mongodb-'
     }
     const binNames = {
       apache: 'apachectl',
@@ -77,7 +82,8 @@ class Manager extends BaseManager {
       php: 'php-fpm',
       mysql: 'mysqld_safe',
       memcached: 'memcached',
-      redis: 'redis-server'
+      redis: 'redis-server',
+      mongodb: 'mongod'
     }
     const fetchVersion = (flag) => {
       return new Promise((resolve) => {

@@ -37,6 +37,10 @@ const routes = [
         component: () => import('@/components/Redis/Index.vue')
       },
       {
+        path: '/mongodb',
+        component: () => import('@/components/MongoDB/Index.vue')
+      },
+      {
         path: '/node',
         component: () => import('@/components/Nodejs/Index.vue')
       },

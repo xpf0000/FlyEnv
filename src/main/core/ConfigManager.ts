@@ -25,6 +25,9 @@ interface ConfigOptions {
     redis: {
       current: { [key: string]: any }
     }
+    mongodb: {
+      current: { [key: string]: any }
+    }
   }
   password: string
   showTour: boolean
@@ -39,6 +42,7 @@ interface ConfigOptions {
         Memcached: boolean
         Redis: boolean
         NodeJS: boolean
+        MongoDB: boolean
         HttpServe: boolean
         Tools: boolean
       }
@@ -59,6 +63,9 @@ interface ConfigOptions {
       dirs: Array<string>
     }
     redis: {
+      dirs: Array<string>
+    }
+    mongodb: {
       dirs: Array<string>
     }
     hosts: {
@@ -105,6 +112,9 @@ export default class ConfigManager {
           },
           redis: {
             current: {}
+          },
+          mongodb: {
+            current: {}
           }
         },
         password: '',
@@ -119,6 +129,7 @@ export default class ConfigManager {
               Php: true,
               Memcached: true,
               Redis: true,
+              MongoDB: true,
               NodeJS: true,
               HttpServe: true,
               Tools: true
@@ -142,6 +153,9 @@ export default class ConfigManager {
           redis: {
             dirs: []
           },
+          mongodb: {
+            dirs: []
+          },
           hosts: {
             write: true
           },
@@ -163,6 +177,19 @@ export default class ConfigManager {
     }
     if (!this.config.has('setup.common.showItem.HttpServe')) {
       this.config.set('setup.common.showItem.HttpServe', true)
+    }
+    if (!this.config.has('setup.common.showItem.MongoDB')) {
+      this.config.set('setup.common.showItem.MongoDB', true)
+    }
+    if (!this.config.has('server.mongodb')) {
+      this.config.set('server.mongodb', {
+        current: {}
+      })
+    }
+    if (!this.config.has('setup.mongodb')) {
+      this.config.set('setup.mongodb', {
+        dirs: []
+      })
     }
     if (!this.config.has('setup.hosts')) {
       this.config.set('setup.hosts', {

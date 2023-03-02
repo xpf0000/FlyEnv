@@ -138,6 +138,27 @@
         </li>
 
         <li
+          v-if="common.showItem.MongoDB"
+          class="non-draggable"
+          :class="'non-draggable' + (currentPage === '/mongodb' ? ' active' : '')"
+          @click="nav('/mongodb')"
+        >
+          <div class="left">
+            <div class="icon-block">
+              <yb-icon :svg="import('@/svg/MongoDB.svg?raw')" width="30" height="30" />
+            </div>
+            <span class="title">MongoDB</span>
+          </div>
+
+          <el-switch
+            :disabled="mongodbDisabled"
+            :value="mongodbRunning"
+            @change="switchChange('mongodb')"
+          >
+          </el-switch>
+        </li>
+
+        <li
           v-if="common.showItem.NodeJS"
           :class="'non-draggable' + (currentPage === '/node' ? ' active' : '')"
           @click="nav('/node')"
@@ -259,6 +280,14 @@
         const installed = BrewStore()?.redis?.installed
         return installed?.find((i) => i.path === current?.path && i.version === current?.version)
       },
+      mongodbVersion() {
+        const current = AppStore().config.server?.mongodb?.current
+        if (!current) {
+          return undefined
+        }
+        const installed = BrewStore()?.mongodb?.installed
+        return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+      },
       nginxDisabled(): boolean {
         return (
           !this.nginxVersion?.version ||
@@ -294,6 +323,13 @@
           !AppStore().versionInited
         )
       },
+      mongodbDisabled(): boolean {
+        return (
+          !this.mongodbVersion?.version ||
+          BrewStore()?.mongodb?.installed?.some((v) => v.running) ||
+          !AppStore().versionInited
+        )
+      },
       nginxRunning(): boolean {
         return this.nginxVersion?.run === true
       },
@@ -308,6 +344,9 @@
       },
       redisRunning(): boolean {
         return this.redisVersion?.run === true
+      },
+      mongodbRunning(): boolean {
+        return this.mongodbVersion?.run === true
       },
       phpVersions() {
         return BrewStore()?.php?.installed ?? []
@@ -351,7 +390,8 @@
           this.mysqlRunning ||
           this.phpRunning ||
           this.redisRunning ||
-          this.memcachedRunning
+          this.memcachedRunning ||
+          this.mongodbRunning
         )
       },
       groupDisabled(): boolean {
@@ -361,14 +401,16 @@
           this.mysqlDisabled &&
           this.nginxDisabled &&
           this.phpDisable &&
-          this.redisDisabled
+          this.redisDisabled &&
+          this.mongodbDisabled
         const running =
           this?.apacheVersion?.running === true ||
           this?.memcachedVersion?.running === true ||
           this?.mysqlVersion?.running === true ||
           this?.nginxVersion?.running === true ||
           this.phpVersions.some((v) => v.running) ||
-          this?.redisVersion?.running === true
+          this?.redisVersion?.running === true ||
+          this?.mongodbVersion?.running === true
         return allDisabled || running || !AppStore().versionInited
       },
       groupClass(): { [ksy: string]: boolean } {
@@ -419,6 +461,12 @@
             disabled: this.redisDisabled,
             run: this.redisVersion?.run === true,
             running: this.redisVersion?.running === true
+          },
+          mongodb: {
+            show: this.common.showItem.MongoDB,
+            disabled: this.mongodbDisabled,
+            run: this.mongodbVersion?.run === true,
+            running: this.mongodbVersion?.running === true
           },
           groupDisabled: this.groupDisabled,
           groupIsRunning: this.groupIsRunning

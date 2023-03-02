@@ -95,6 +95,22 @@
         <el-switch :disabled="redis?.disabled" :value="redis?.run" @change="switchChange('redis')">
         </el-switch>
       </li>
+
+      <li v-if="mongodb?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block">
+            <yb-icon :svg="import('@/svg/MongoDB.svg?raw')" width="28" height="28" />
+          </div>
+          <span class="title">MongoDB</span>
+        </div>
+
+        <el-switch
+          :disabled="mongodb?.disabled"
+          :value="mongodb?.run"
+          @change="switchChange('mongodb')"
+        >
+        </el-switch>
+      </li>
     </ul>
     <ul class="bottom-tool">
       <li @click="showMainWin"> {{ $t('tray.showMainWin') }} </li>
@@ -137,6 +153,9 @@
       },
       redis() {
         return AppStore().redis
+      },
+      mongodb() {
+        return AppStore().mongodb
       },
       groupIsRunning() {
         return AppStore().groupIsRunning

@@ -1,5 +1,5 @@
 <template>
-  <div class="mysql-config">
+  <div class="mongodb-config">
     <div ref="input" class="block"></div>
     <div class="tool">
       <el-button :disabled="!currentVersion" @click="openConfig">{{ $t('base.open') }}</el-button>
@@ -33,7 +33,6 @@
   const { shell } = require('@electron/remote')
 
   export default defineComponent({
-    name: 'MoMysqlConfig',
     components: {},
     props: {},
     data() {
@@ -41,12 +40,12 @@
         config: '',
         realDir: '',
         configPath: '',
-        typeFlag: 'mysql'
+        typeFlag: 'mongodb'
       }
     },
     computed: {
       currentVersion() {
-        return AppStore().config?.server?.mysql?.current?.version
+        return AppStore().config?.server?.mongodb?.current?.version
       }
     },
     watch: {},
@@ -57,7 +56,7 @@
         this.$message.error(this.config)
       } else {
         const v = this.currentVersion.split('.').slice(0, 2).join('.')
-        this.configPath = join(global.Server.MysqlDir, `my-${v}.cnf`)
+        this.configPath = join(global.Server.MongoDBDir, `mongodb-${v}.conf`)
         this.getConfig()
       }
       nextTick().then(() => {
@@ -96,10 +95,10 @@
         dialog
           .showSaveDialog({
             properties: opt,
-            defaultPath: 'mysql-custom.cnf',
+            defaultPath: 'mongodb-custom.conf',
             filters: [
               {
-                extensions: ['cnf']
+                extensions: ['conf']
               }
             ]
           })
@@ -126,7 +125,7 @@
         if (!existsSync(this.configPath)) {
           this.config = this.$t('base.needSelectVersion')
           const appStore = AppStore()
-          appStore.config.server.mysql.current = {}
+          appStore.config.server.mongodb.current = {}
           appStore.saveConfig()
           return
         }
@@ -137,19 +136,12 @@
       },
       getDefault() {
         const v = this?.currentVersion?.split('.')?.slice(0, 2)?.join('.') ?? ''
-        const oldm = join(global.Server.MysqlDir, 'my.cnf')
-        const dataDir = join(global.Server.MysqlDir, `data-${v}`)
-        this.config = `[mysqld]
-# Only allow connections from localhost
-bind-address = 127.0.0.1
-sql-mode=NO_ENGINE_SUBSTITUTION
-
-#设置数据目录
-#brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
-#如果配置文件已更改, 原配置文件在: ${oldm}
-#可以复制原配置文件的内容, 使用原来的配置
-datadir=${dataDir}`
-        this.initEditor()
+        const tmpl = join(global.Server.Static, 'tmpl/mongodb.conf')
+        const dataDir = join(global.Server.MongoDBDir, `data-${v}`)
+        readFileAsync(tmpl).then((conf) => {
+          this.config = conf.replace('##DB-PATH##', dataDir)
+          this.initEditor()
+        })
       },
       initEditor() {
         if (!this.monacoInstance) {
@@ -178,7 +170,7 @@ datadir=${dataDir}`
 </script>
 
 <style lang="scss">
-  .mysql-config {
+  .mongodb-config {
     display: flex;
     flex-direction: column;
     height: 100%;

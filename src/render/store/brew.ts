@@ -25,6 +25,7 @@ interface State {
   mysql: AppSoftInstalledItem
   redis: AppSoftInstalledItem
   php: AppSoftInstalledItem
+  mongodb: AppSoftInstalledItem
   cardHeadTitle: string
   brewRunning: boolean
   showInstallLog: boolean
@@ -69,6 +70,12 @@ const state: State = {
     list: {}
   },
   redis: {
+    getListing: false,
+    installedInited: false,
+    installed: [],
+    list: {}
+  },
+  mongodb: {
     getListing: false,
     installedInited: false,
     installed: [],

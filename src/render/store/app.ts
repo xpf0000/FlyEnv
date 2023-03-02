@@ -38,7 +38,8 @@ export enum AppSofts {
   mysql = 'mysql',
   apache = 'apache',
   memcached = 'memcached',
-  redis = 'redis'
+  redis = 'redis',
+  mongodb = 'mongodb'
 }
 
 interface State {
@@ -61,6 +62,7 @@ interface State {
           Php: boolean
           Memcached: boolean
           Redis: boolean
+          MongoDB: boolean
           NodeJS: boolean
           Tools: boolean
         }
@@ -92,6 +94,9 @@ interface State {
       redis: {
         dirs: Array<string>
       }
+      mongodb: {
+        dirs: Array<string>
+      }
     }
   }
   httpServe: Array<string>
@@ -119,6 +124,9 @@ const state: State = {
       },
       redis: {
         current: {}
+      },
+      mongodb: {
+        current: {}
       }
     },
     password: '',
@@ -133,6 +141,7 @@ const state: State = {
           Php: true,
           Memcached: true,
           Redis: true,
+          MongoDB: true,
           NodeJS: true,
           Tools: true
         }
@@ -153,6 +162,9 @@ const state: State = {
         dirs: []
       },
       redis: {
+        dirs: []
+      },
+      mongodb: {
         dirs: []
       },
       hosts: {

@@ -16,7 +16,6 @@ class BrewManager extends BaseManager {
           Utils.execAsync('brew', ['--repo'])
             .then((p) => {
               global.Server.BrewHome = p
-              global.Server.BrewFormula = join(p, 'Library/Taps/homebrew/homebrew-core/Formula')
               Utils.execAsync('git', [
                 'config',
                 '--global',

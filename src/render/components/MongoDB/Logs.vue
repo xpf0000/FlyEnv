@@ -1,5 +1,5 @@
 <template>
-  <div class="nginx-config">
+  <div class="mysql-config">
     <div ref="input" class="block"></div>
     <div class="tool">
       <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
@@ -30,14 +30,8 @@
   const { shell } = require('@electron/remote')
 
   export default defineComponent({
-    name: 'MoNginxLogs',
     components: {},
-    props: {
-      type: {
-        type: String,
-        default: ''
-      }
-    },
+    props: {},
     data() {
       return {
         filepath: '',
@@ -47,10 +41,13 @@
     computed: {
       password() {
         return AppStore().config.password
+      },
+      currentVersion() {
+        return AppStore().config?.server?.mongodb?.current?.version
       }
     },
     watch: {
-      type() {
+      currentVersion() {
         this.init()
       },
       log() {
@@ -59,7 +56,7 @@
         })
       }
     },
-    created: function () {
+    created() {
       this.init()
     },
     mounted() {
@@ -132,11 +129,16 @@
             this.log = log
           })
         } else {
-          this.log = this.$t('base.noLogs')
+          this.log = this.$t('base.needSelectVersion')
         }
       },
       init() {
-        this.filepath = join(global.Server.NginxDir, `common/logs/${this.type}.log`)
+        const v = this?.currentVersion?.split('.')?.slice(0, 2)?.join('.')
+        if (v) {
+          this.filepath = join(global.Server.MongoDBDir, `mongodb-${v}.log`)
+        } else {
+          this.filepath = ''
+        }
         this.getLog()
       }
     }
@@ -144,7 +146,7 @@
 </script>
 
 <style lang="scss">
-  .nginx-config {
+  .mysql-config {
     display: flex;
     flex-direction: column;
     height: 100%;

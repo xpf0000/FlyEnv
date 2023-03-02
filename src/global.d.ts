@@ -9,6 +9,7 @@ export interface ServerType {
   Static?: string
   Cache?: string
   RedisDir?: string
+  MongoDBDir?: string
   PhpDir?: string
   NginxDir?: string
   MysqlDir?: string

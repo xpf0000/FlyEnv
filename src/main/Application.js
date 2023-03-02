@@ -140,22 +140,18 @@ export default class Application extends EventEmitter {
     global.Server.ApacheDir = join(runpath, 'server/apache')
     global.Server.MemcachedDir = join(runpath, 'server/memcached')
     global.Server.RedisDir = join(runpath, 'server/redis')
+    global.Server.MongoDBDir = join(runpath, 'server/mongodb')
     createFolder(global.Server.NginxDir)
     createFolder(global.Server.PhpDir)
     createFolder(global.Server.MysqlDir)
     createFolder(global.Server.ApacheDir)
     createFolder(global.Server.MemcachedDir)
     createFolder(global.Server.RedisDir)
+    createFolder(global.Server.MongoDBDir)
     global.Server.Cache = join(runpath, 'server/cache')
     createFolder(global.Server.Cache)
     chmod(global.Server.Cache, '0777')
     global.Server.Static = __static
-    global.Server.BrewNginx = join(__static, 'brew/nginx')
-    global.Server.BrewPhp = join(__static, 'brew/php')
-    global.Server.BrewMysql = join(__static, 'brew/mysql')
-    global.Server.BrewApache = join(__static, 'brew/apache')
-    global.Server.BrewMemcached = join(__static, 'brew/memcached')
-    global.Server.BrewRedis = join(__static, 'brew/redis')
     global.Server.Password = this.configManager.getConfig('password')
     console.log('global.Server.Password: ', global.Server.Password)
     execAsync('which', ['brew'])
@@ -164,7 +160,6 @@ export default class Application extends EventEmitter {
         execAsync('brew', ['--repo']).then((p) => {
           console.log('brew --repo: ', p)
           global.Server.BrewHome = p
-          global.Server.BrewFormula = join(p, 'Library/Taps/homebrew/homebrew-core/Formula')
           execAsync('git', [
             'config',
             '--global',
@@ -538,6 +533,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:redis':
       case 'app-fork:host':
       case 'app-fork:version':
+      case 'app-fork:mongodb':
         let forkFile = command.replace('app-fork:', '')
         let child = fork(join(__static, `fork/${forkFile}.js`))
         this.setProxy()

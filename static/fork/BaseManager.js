@@ -153,7 +153,8 @@ class BaseManager {
         apache: 'httpd',
         mysql: 'mysqld',
         memcached: 'memcached',
-        redis: 'redis-server'
+        redis: 'redis-server',
+        mongodb: 'mongod'
       }
       let serverName = dis[this.type]
       let command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12}'`
@@ -179,7 +180,18 @@ class BaseManager {
           } else {
             arr = arr.join(' ')
             console.log('pids 1: ', arr)
-            let sig = this.type === 'mysql' ? '-9' : '-INT'
+            let sig = ''
+            switch (this.type) {
+              case 'mysql':
+                sig = '-9'
+                break
+              case 'mongodb':
+                sig = '-2'
+                break
+              default:
+                sig = '-INT'
+                break
+            }
             return execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${arr}`)
           }
         })

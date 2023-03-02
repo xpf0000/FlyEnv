@@ -104,7 +104,17 @@
           ],
           memcached: ['memcached'],
           mysql: ['mysql', 'mysql@5.6', 'mysql@5.7'],
-          redis: ['redis', 'redis@3.2', 'redis@4.0', 'redis@6.2']
+          redis: ['redis', 'redis@3.2', 'redis@4.0', 'redis@6.2'],
+          mongodb: [
+            'mongodb/brew/mongodb-community',
+            'mongodb/brew/mongodb-community@5.0',
+            'mongodb/brew/mongodb-community@4.4',
+            'mongodb/brew/mongodb-community@4.2',
+            'mongodb/brew/mongodb-enterprise',
+            'mongodb/brew/mongodb-enterprise@5.0',
+            'mongodb/brew/mongodb-enterprise@4.4',
+            'mongodb/brew/mongodb-enterprise@4.2'
+          ]
         }
       }
     },
@@ -239,6 +249,14 @@
                 IPC.send('app-fork:host', 'githubFix').then((key: string) => {
                   IPC.off(key)
                   IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string) => {
+                    IPC.off(key)
+                    this.fetchData(list)
+                  })
+                })
+              } else if (this.typeFlag === 'mongodb') {
+                IPC.send('app-fork:host', 'githubFix').then((key: string) => {
+                  IPC.off(key)
+                  IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string) => {
                     IPC.off(key)
                     this.fetchData(list)
                   })
