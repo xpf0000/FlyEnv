@@ -9,7 +9,7 @@
 
       <ul class="menu top-menu">
         <li
-          v-if="common.showItem.Hosts"
+          v-if="showItem.Hosts"
           :class="'non-draggable' + (currentPage === '/host' ? ' active' : '')"
           @click="nav('/host')"
         >
@@ -22,7 +22,7 @@
         </li>
 
         <li
-          v-if="common.showItem.Nginx"
+          v-if="showItem.Nginx"
           :class="'non-draggable' + (currentPage === '/nginx' ? ' active' : '')"
           @click="nav('/nginx')"
         >
@@ -42,7 +42,7 @@
         </li>
 
         <li
-          v-if="common.showItem.Apache"
+          v-if="showItem.Apache"
           :class="'non-draggable' + (currentPage === '/apache' ? ' active' : '')"
           @click="nav('/apache')"
         >
@@ -62,7 +62,7 @@
         </li>
 
         <li
-          v-if="common.showItem.Mysql"
+          v-if="showItem.Mysql"
           class="non-draggable"
           :class="'non-draggable' + (currentPage === '/mysql' ? ' active' : '')"
           @click="nav('/mysql')"
@@ -83,7 +83,7 @@
         </li>
 
         <li
-          v-if="common.showItem.Php"
+          v-if="showItem.Php"
           :class="'non-draggable' + (currentPage === '/php' ? ' active' : '')"
           @click="nav('/php')"
         >
@@ -98,7 +98,7 @@
         </li>
 
         <li
-          v-if="common.showItem.Memcached"
+          v-if="showItem.Memcached"
           :class="'non-draggable' + (currentPage === '/memcached' ? ' active' : '')"
           @click="nav('/memcached')"
         >
@@ -118,7 +118,7 @@
         </li>
 
         <li
-          v-if="common.showItem.Redis"
+          v-if="showItem.Redis"
           :class="'non-draggable' + (currentPage === '/redis' ? ' active' : '')"
           @click="nav('/redis')"
         >
@@ -143,7 +143,7 @@
         </li>
 
         <li
-          v-if="common.showItem.MongoDB"
+          v-if="showItem.MongoDB"
           class="non-draggable"
           :class="'non-draggable' + (currentPage === '/mongodb' ? ' active' : '')"
           @click="nav('/mongodb')"
@@ -169,7 +169,7 @@
         </li>
 
         <li
-          v-if="common.showItem.NodeJS"
+          v-if="showItem.NodeJS"
           :class="'non-draggable' + (currentPage === '/node' ? ' active' : '')"
           @click="nav('/node')"
         >
@@ -182,7 +182,7 @@
         </li>
 
         <li
-          v-if="common.showItem.HttpServe"
+          v-if="showItem.HttpServe"
           :class="'non-draggable' + (currentPage === '/httpServe' ? ' active' : '')"
           @click="nav('/httpServe')"
         >
@@ -200,7 +200,7 @@
         </li>
 
         <li
-          v-if="common.showItem.Tools"
+          v-if="showItem.Tools"
           :class="'non-draggable' + (currentPage === '/tools' ? ' active' : '')"
           @click="nav('/tools')"
         >
@@ -247,8 +247,8 @@
       }
     },
     computed: {
-      common() {
-        return AppStore().config?.setup?.common ?? {}
+      showItem() {
+        return AppStore().config.setup.common.showItem
       },
       nginxVersion() {
         const current = AppStore().config.server?.nginx?.current
@@ -435,25 +435,25 @@
         const appStore = AppStore()
         return {
           apache: {
-            show: this.common.showItem.Apache,
+            show: this.showItem.Apache,
             disabled: this.apacheDisabled,
             run: this.apacheVersion?.run === true,
             running: this.apacheVersion?.running === true
           },
           memcached: {
-            show: this.common.showItem.Memcached,
+            show: this.showItem.Memcached,
             disabled: this.memcachedDisabled,
             run: this.memcachedVersion?.run === true,
             running: this.memcachedVersion?.running === true
           },
           mysql: {
-            show: this.common.showItem.Mysql,
+            show: this.showItem.Mysql,
             disabled: this.mysqlDisabled,
             run: this.mysqlVersion?.run === true,
             running: this.mysqlVersion?.running === true
           },
           nginx: {
-            show: this.common.showItem.Nginx,
+            show: this.showItem.Nginx,
             disabled: this.nginxDisabled,
             run: this.nginxVersion?.run === true,
             running: this.nginxVersion?.running === true
@@ -461,19 +461,19 @@
           password: appStore?.config?.password,
           lang: appStore?.config?.setup?.lang,
           php: {
-            show: this.common.showItem.Php,
+            show: this.showItem.Php,
             disabled: this.phpDisable,
             run: this.phpRunning === true,
             running: this.phpVersions.some((v) => v.running)
           },
           redis: {
-            show: this.common.showItem.Redis,
+            show: this.showItem.Redis,
             disabled: this.redisDisabled,
             run: this.redisVersion?.run === true,
             running: this.redisVersion?.running === true
           },
           mongodb: {
-            show: this.common.showItem.MongoDB,
+            show: this.showItem.MongoDB,
             disabled: this.mongodbDisabled,
             run: this.mongodbVersion?.run === true,
             running: this.mongodbVersion?.running === true
@@ -524,52 +524,48 @@
         passwordCheck().then(() => {
           const all = []
           if (this.groupIsRunning) {
-            if (this.common.showItem.Nginx && this.nginxRunning && this.nginxVersion?.version) {
+            if (this.showItem.Nginx && this.nginxRunning && this.nginxVersion?.version) {
               all.push(stopService('nginx', this.nginxVersion))
             }
-            if (this.common.showItem.Apache && this.apacheRunning && this.apacheVersion?.version) {
+            if (this.showItem.Apache && this.apacheRunning && this.apacheVersion?.version) {
               all.push(stopService('apache', this.apacheVersion))
             }
-            if (this.common.showItem.Mysql && this.mysqlRunning && this.mysqlVersion?.version) {
+            if (this.showItem.Mysql && this.mysqlRunning && this.mysqlVersion?.version) {
               all.push(stopService('mysql', this.mysqlVersion))
             }
             if (
-              this.common.showItem.Memcached &&
+              this.showItem.Memcached &&
               this.memcachedRunning &&
               this.memcachedVersion?.version
             ) {
               all.push(stopService('memcached', this.memcachedVersion))
             }
-            if (this.common.showItem.Redis && this.redisRunning && this.redisVersion?.version) {
+            if (this.showItem.Redis && this.redisRunning && this.redisVersion?.version) {
               all.push(stopService('redis', this.redisVersion))
             }
-            if (
-              this.common.showItem.MongoDB &&
-              this.mongodbRunning &&
-              this.mongodbVersion?.version
-            ) {
+            if (this.showItem.MongoDB && this.mongodbRunning && this.mongodbVersion?.version) {
               all.push(stopService('mongodb', this.mongodbVersion))
             }
             this.phpVersions.forEach((v) => {
               all.push(stopService('php', v))
             })
           } else {
-            if (this.common.showItem.Nginx && this.nginxVersion?.version) {
+            if (this.showItem.Nginx && this.nginxVersion?.version) {
               all.push(startService('nginx', this.nginxVersion))
             }
-            if (this.common.showItem.Apache && this.apacheVersion?.version) {
+            if (this.showItem.Apache && this.apacheVersion?.version) {
               all.push(startService('apache', this.apacheVersion))
             }
-            if (this.common.showItem.Mysql && this.mysqlVersion?.version) {
+            if (this.showItem.Mysql && this.mysqlVersion?.version) {
               all.push(startService('mysql', this.mysqlVersion))
             }
-            if (this.common.showItem.Memcached && this.memcachedVersion?.version) {
+            if (this.showItem.Memcached && this.memcachedVersion?.version) {
               all.push(startService('memcached', this.memcachedVersion))
             }
-            if (this.common.showItem.Redis && this.redisVersion?.version) {
+            if (this.showItem.Redis && this.redisVersion?.version) {
               all.push(startService('redis', this.redisVersion))
             }
-            if (this.common.showItem.MongoDB && this.mongodbVersion?.version) {
+            if (this.showItem.MongoDB && this.mongodbVersion?.version) {
               all.push(startService('mongodb', this.mongodbVersion))
             }
             this.phpVersions.forEach((v) => {

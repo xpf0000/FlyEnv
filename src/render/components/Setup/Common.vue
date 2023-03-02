@@ -10,17 +10,17 @@
         <el-row>
           <el-col :span="8">
             <el-form-item label="Hosts">
-              <el-switch v-model="common.showItem.Hosts" />
+              <el-switch v-model="showItem.Hosts" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="Nginx">
-              <el-switch v-model="common.showItem.Nginx" />
+              <el-switch v-model="showItem.Nginx" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="Apache">
-              <el-switch v-model="common.showItem.Apache" />
+              <el-switch v-model="showItem.Apache" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -28,17 +28,17 @@
         <el-row>
           <el-col :span="8">
             <el-form-item label="Mysql">
-              <el-switch v-model="common.showItem.Mysql" />
+              <el-switch v-model="showItem.Mysql" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="Php">
-              <el-switch v-model="common.showItem.Php" />
+              <el-switch v-model="showItem.Php" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="Memcached">
-              <el-switch v-model="common.showItem.Memcached" />
+              <el-switch v-model="showItem.Memcached" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -46,28 +46,32 @@
         <el-row>
           <el-col :span="8">
             <el-form-item label="Redis">
-              <el-switch v-model="common.showItem.Redis" />
+              <el-switch v-model="showItem.Redis" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="MongoDB">
+              <el-switch v-model="showItem.MongoDB" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="NodeJS">
-              <el-switch v-model="common.showItem.NodeJS" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="Http Serve">
-              <el-switch v-model="common.showItem.HttpServe" />
+              <el-switch v-model="showItem.NodeJS" />
             </el-form-item>
           </el-col>
         </el-row>
 
         <el-row>
           <el-col :span="8">
-            <el-form-item label="Tools">
-              <el-switch v-model="common.showItem.Tools" />
+            <el-form-item label="Http Serve">
+              <el-switch v-model="showItem.HttpServe" />
             </el-form-item>
           </el-col>
-          <el-col :span="8"> </el-col>
+          <el-col :span="8">
+            <el-form-item label="Tools">
+              <el-switch v-model="showItem.Tools" />
+            </el-form-item>
+          </el-col>
           <el-col :span="8"> </el-col>
         </el-row>
       </el-form>
@@ -107,12 +111,12 @@
       return {}
     },
     computed: {
-      common() {
-        return AppStore().config.setup.common
+      showItem() {
+        return AppStore().config.setup.common.showItem
       }
     },
     watch: {
-      'common.showItem': {
+      showItem: {
         handler() {
           AppStore().saveConfig()
         },
