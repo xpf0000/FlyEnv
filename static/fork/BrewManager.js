@@ -1,6 +1,5 @@
 const join = require('path').join
 const { spawn } = require('child_process')
-const { exec } = require('child-process-promise')
 const Utils = require('./Utils.js')
 const BaseManager = require('./BaseManager')
 const { existsSync, unlinkSync } = require('fs')
@@ -99,31 +98,31 @@ class BrewManager extends BaseManager {
     this._doInstallOrUnInstall(name, 'uninstall').then(this._thenSuccess).catch(this._catchError)
   }
 
-  brewinfo(name) {
-    let Info = ''
-    Utils.execAsync('brew', ['info', name, '--json'])
+  brewinfo(names) {
+    const Info = {}
+    Utils.execAsync('brew', ['info', ...names, '--json'])
       .then((info) => {
+        let arr = []
         try {
-          Info = JSON.parse(info)[0]
-        } catch (e) {
-          Info = {}
-        }
-        const obj = {
-          version: Info?.versions?.stable ?? '',
-          installed: Info?.installed?.length > 0,
-          name
-        }
+          arr = JSON.parse(info.toString())
+        } catch (e) {}
+        arr.forEach((item) => {
+          Info[item.full_name] = {
+            version: item?.versions?.stable ?? '',
+            installed: item?.installed?.length > 0,
+            name: item.full_name
+          }
+        })
         this._processSend({
           code: 0,
           msg: 'SUCCESS',
-          data: obj
+          data: Info
         })
       })
       .catch((err) => {
         this._processSend({
           code: 1,
-          msg: err.toString(),
-          brewInfo: Info
+          msg: err.toString()
         })
       })
   }

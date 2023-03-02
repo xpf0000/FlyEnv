@@ -167,16 +167,18 @@ export function brewSearchList(key: string) {
   })
 }
 
-export function brewInfo(key: string) {
+export function brewInfo(keys: Array<string>) {
   return new Promise((resolve, reject) => {
-    IPC.send('app-fork:brew', 'brewinfo', key).then((key: string, res: any) => {
-      if (res.code === 0) {
-        IPC.off(key)
-        resolve(res.data)
-      } else if (res.code === 1) {
-        IPC.off(key)
-        reject(new Error(res))
+    IPC.send('app-fork:brew', 'brewinfo', JSON.parse(JSON.stringify(keys))).then(
+      (key: string, res: any) => {
+        if (res.code === 0) {
+          IPC.off(key)
+          resolve(res.data)
+        } else if (res.code === 1) {
+          IPC.off(key)
+          reject(new Error(res))
+        }
       }
-    })
+    )
   })
 }

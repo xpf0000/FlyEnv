@@ -60,7 +60,7 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent } from 'vue'
+  import { defineComponent, reactive } from 'vue'
   import { brewInfo, brewCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import XTerm from '@/util/XTerm'
@@ -208,28 +208,21 @@
         }
         this.getData()
       },
-      fetchData(list: any, i = 0) {
+      fetchData(list: any) {
         const flag: keyof typeof AppSofts = this.typeFlag as any
         const arr = this.searchKeys[flag]
-        if (i === 0) {
-          arr.forEach((name: string) => {
-            list[name] = {}
-          })
+        for (const k in list) {
+          delete list[k]
         }
-        const count = arr.length
-        if (i >= count) {
-          this.currentType.getListing = false
-          console.log('Brew Info End !!!')
-          return
-        }
-        const name = arr[i]
-        brewInfo(name)
-          .then((res) => {
-            list[name] = res
-            this.fetchData(list, i + 1)
+        brewInfo(arr)
+          .then((res: any) => {
+            for (const name in res) {
+              list[name] = reactive(res[name])
+            }
+            this.currentType.getListing = false
           })
           .catch(() => {
-            this.fetchData(list, i + 1)
+            this.currentType.getListing = false
           })
       },
       getData() {
