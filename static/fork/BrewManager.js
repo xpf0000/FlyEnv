@@ -100,7 +100,11 @@ class BrewManager extends BaseManager {
 
   brewinfo(names) {
     const Info = {}
-    Utils.execAsync('brew', ['info', ...names, '--json'])
+    Utils.execAsync('brew', ['info', ...names, '--json'], {
+      env: {
+        HOMEBREW_NO_INSTALL_FROM_API: 1
+      }
+    })
       .then((info) => {
         let arr = []
         try {

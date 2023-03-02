@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, screen, shell } from 'electron'
+import { app, BrowserWindow, screen } from 'electron'
 import pageConfig from '../configs/page'
 import { debounce } from 'lodash'
 import Event = Electron.Main.Event
@@ -29,6 +29,7 @@ const trayBrowserOptions: BrowserWindowConstructorOptions = {
   show: false,
   width: 300,
   height: 500,
+  opacity: 0,
   transparent: true,
   webPreferences: {
     nodeIntegration: true,
@@ -78,11 +79,6 @@ export default class WindowManager extends EventEmitter {
   openTrayWindow() {
     const page = 'tray'
     let window = this.windows.tray
-    if (window) {
-      window.show()
-      window.focus()
-      return window
-    }
     const pageOptions = this.getPageOptions(page)
     window = new BrowserWindow(trayBrowserOptions)
     enable(window.webContents)
@@ -123,11 +119,6 @@ export default class WindowManager extends EventEmitter {
     if (bounds) {
       window.setBounds(bounds)
     }
-
-    window.webContents.on('new-window', (e, url) => {
-      e.preventDefault()
-      shell.openExternal(url).then()
-    })
 
     if (pageOptions.url) {
       window.loadURL(pageOptions.url).then()

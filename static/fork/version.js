@@ -15,7 +15,7 @@ class Manager extends BaseManager {
       let command = ''
       const handleCatch = (err) => {
         resolve({
-          error: command + '<br/>' + err.toString(),
+          error: command + '<br/>' + err.toString().trim().replace(new RegExp('\n', 'g'), '<br/>'),
           version: null
         })
       }

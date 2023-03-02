@@ -60,6 +60,7 @@ export default class Application extends EventEmitter {
     this.trayManager.on('click', (x, poperX) => {
       if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
         this?.trayWindow?.setPosition(x, 0)
+        this?.trayWindow?.setOpacity(1.0)
         this?.trayWindow?.show()
         this.windowManager.sendCommandTo(
           this.trayWindow,
@@ -317,16 +318,12 @@ export default class Application extends EventEmitter {
     })
     this.mainWindow = win
     win.once('ready-to-show', () => {
-      console.log('ready-to-show !!!')
       this.isReady = true
       this.emit('ready')
       this.windowManager.sendCommandTo(win, 'APP-Ready-To-Show', true)
-      const trayWin = this.windowManager.openTrayWindow()
-      this.trayWindow = trayWin
-      trayWin.once('ready-to-show', () => {
-        this.windowManager.sendCommandTo(win, 'APP-Store-Sync')
-      })
     })
+    const trayWin = this.windowManager.openTrayWindow()
+    this.trayWindow = trayWin
   }
 
   show(page = 'index') {

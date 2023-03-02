@@ -16,7 +16,11 @@
           </template>
           <template v-else>
             <span class="url error">
-              <el-tooltip :content="$t('base.versionErrorTips')" popper-class="version-error-tips">
+              <el-tooltip
+                :raw-content="true"
+                :content="item?.error ?? $t('base.versionErrorTips')"
+                popper-class="version-error-tips"
+              >
                 {{ $t('base.versionError') }}
               </el-tooltip>
             </span>

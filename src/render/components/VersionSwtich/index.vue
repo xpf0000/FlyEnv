@@ -5,7 +5,11 @@
       <el-select v-model="current" :disabled="disabled" class="ml-30">
         <template v-for="(item, index) in versions" :key="index">
           <template v-if="!item?.version">
-            <el-tooltip :content="$t('base.versionErrorTips')" popper-class="version-error-tips">
+            <el-tooltip
+              :raw-content="true"
+              :content="item?.error ?? $t('base.versionErrorTips')"
+              popper-class="version-error-tips"
+            >
               <el-option
                 :disabled="true"
                 :label="$t('base.versionError') + ' - ' + item.path"

@@ -442,6 +442,7 @@
             })
           }
         },
+        immediate: true,
         deep: true
       }
     },
