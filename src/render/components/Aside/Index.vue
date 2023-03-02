@@ -124,7 +124,12 @@
         >
           <div class="left">
             <div class="icon-block">
-              <yb-icon :svg="import('@/svg/redis.svg?raw')" width="28" height="28" />
+              <yb-icon
+                style="padding: 7px"
+                :svg="import('@/svg/redis.svg?raw')"
+                width="28"
+                height="28"
+              />
             </div>
             <span class="title">Redis</span>
           </div>
@@ -145,7 +150,12 @@
         >
           <div class="left">
             <div class="icon-block">
-              <yb-icon :svg="import('@/svg/MongoDB.svg?raw')" width="30" height="30" />
+              <yb-icon
+                style="padding: 5px"
+                :svg="import('@/svg/MongoDB.svg?raw')"
+                width="30"
+                height="30"
+              />
             </div>
             <span class="title">MongoDB</span>
           </div>
@@ -533,6 +543,13 @@
             if (this.common.showItem.Redis && this.redisRunning && this.redisVersion?.version) {
               all.push(stopService('redis', this.redisVersion))
             }
+            if (
+              this.common.showItem.MongoDB &&
+              this.mongodbRunning &&
+              this.mongodbVersion?.version
+            ) {
+              all.push(stopService('mongodb', this.mongodbVersion))
+            }
             this.phpVersions.forEach((v) => {
               all.push(stopService('php', v))
             })
@@ -551,6 +568,9 @@
             }
             if (this.common.showItem.Redis && this.redisVersion?.version) {
               all.push(startService('redis', this.redisVersion))
+            }
+            if (this.common.showItem.MongoDB && this.mongodbVersion?.version) {
+              all.push(startService('mongodb', this.mongodbVersion))
             }
             this.phpVersions.forEach((v) => {
               all.push(startService('php', v))
@@ -601,6 +621,11 @@
               if (!this.redisVersion?.version) return
               fn = this.redisRunning ? stopService : startService
               promise = fn('redis', this.redisVersion)
+              break
+            case 'mongodb':
+              if (!this.mongodbVersion?.version) return
+              fn = this.mongodbRunning ? stopService : startService
+              promise = fn('mongodb', this.mongodbVersion)
               break
           }
           promise?.then((res) => {

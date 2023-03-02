@@ -6,35 +6,30 @@
         :key="index"
         :class="current_tab === index ? 'active' : ''"
         @click="current_tab = index"
-        >{{ index === 0 ? $t(`base.${item}`) : item }}</li
+        >{{ $t(`base.${item}`) }}</li
       >
     </ul>
     <div class="main-block">
       <Common v-if="current_tab === 0"></Common>
-      <Config v-if="current_tab === 1" type-flag="nginx"></Config>
-      <Config v-if="current_tab === 2" type-flag="apache"></Config>
-      <Config v-if="current_tab === 3" type-flag="mysql"></Config>
-      <Config v-if="current_tab === 4" type-flag="php"></Config>
-      <Config v-if="current_tab === 5" type-flag="memcached"></Config>
-      <Config v-if="current_tab === 6" type-flag="redis"></Config>
+      <CustomDir v-if="current_tab === 1"></CustomDir>
     </div>
   </div>
 </template>
 
 <script>
   import Common from './Common.vue'
-  import Config from './Config.vue'
+  import CustomDir from './CustomDir/index.vue'
 
   export default {
     components: {
       Common,
-      Config
+      CustomDir
     },
     props: {},
     data() {
       return {
         current_tab: 0,
-        tabs: ['setupBase', 'Nginx', 'Apache', 'Mysql', 'Php', 'Memcached', 'Redis']
+        tabs: ['setupBase', 'CustomVersionDir']
       }
     },
     computed: {},

@@ -83,7 +83,7 @@
     },
     computed: {
       showReloadBtn() {
-        return this.typeFlag !== 'memcached'
+        return this.typeFlag !== 'memcached' && this.typeFlag !== 'mongodb'
       },
       version() {
         const flag: keyof typeof AppSofts = this.typeFlag as any
@@ -145,18 +145,26 @@
         this.logs.splice(0)
         this.current_task = flag
         const typeFlag: keyof typeof AppSofts = this.typeFlag as any
+        let action: any
         switch (flag) {
           case 'stop':
-            stopService(typeFlag, this.currentVersion)
+            action = stopService(typeFlag, this.currentVersion)
             break
           case 'start':
           case 'restart':
-            startService(typeFlag, this.currentVersion)
+            action = startService(typeFlag, this.currentVersion)
             break
           case 'reload':
-            reloadService(typeFlag, this.currentVersion)
+            action = reloadService(typeFlag, this.currentVersion)
             break
         }
+        action.then((res: any) => {
+          if (typeof res === 'string') {
+            this.$message.error(res)
+          } else {
+            this.$message.success(this.$t('base.success'))
+          }
+        })
       }
     }
   })

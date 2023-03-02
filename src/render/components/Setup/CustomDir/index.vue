@@ -1,4 +1,13 @@
 <template>
+  <el-radio-group v-model="typeFlag" class="custom-dir-tabs">
+    <el-radio-button label="nginx">Nginx</el-radio-button>
+    <el-radio-button label="apache">Apache</el-radio-button>
+    <el-radio-button label="mysql">Mysql</el-radio-button>
+    <el-radio-button label="php">Php</el-radio-button>
+    <el-radio-button label="memcached">Memcached</el-radio-button>
+    <el-radio-button label="redis">Redis</el-radio-button>
+    <el-radio-button label="mongodb">Mongodb</el-radio-button>
+  </el-radio-group>
   <div class="setup-config">
     <div class="plant-title">
       <span>{{ $t('base.customVersionDir') }}</span>
@@ -43,14 +52,11 @@
   const { dialog } = require('@electron/remote')
   export default defineComponent({
     components: {},
-    props: {
-      typeFlag: {
-        type: String,
-        default: ''
-      }
-    },
+    props: {},
     data() {
-      return {}
+      return {
+        typeFlag: 'nginx'
+      }
     },
     computed: {
       setup() {
@@ -110,9 +116,21 @@
 </script>
 
 <style lang="scss">
+  .custom-dir-tabs {
+    width: 100% !important;
+    margin: 10px 0;
+
+    > .el-radio-button {
+      flex: 1;
+
+      > .el-radio-button__inner {
+        width: 100%;
+      }
+    }
+  }
   .setup-config {
     .plant-title {
-      padding: 22px 24px;
+      padding: 22px 12px 22px 5px;
       font-size: 15px;
       font-weight: 600;
       display: flex;

@@ -87,7 +87,12 @@
       <li v-if="redis?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block">
-            <yb-icon :svg="import('@/svg/redis.svg?raw')" width="28" height="28" />
+            <yb-icon
+              style="padding: 7px"
+              :svg="import('@/svg/redis.svg?raw')"
+              width="28"
+              height="28"
+            />
           </div>
           <span class="title">Redis</span>
         </div>
@@ -99,7 +104,12 @@
       <li v-if="mongodb?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block">
-            <yb-icon :svg="import('@/svg/MongoDB.svg?raw')" width="28" height="28" />
+            <yb-icon
+              style="padding: 5px"
+              :svg="import('@/svg/MongoDB.svg?raw')"
+              width="28"
+              height="28"
+            />
           </div>
           <span class="title">MongoDB</span>
         </div>

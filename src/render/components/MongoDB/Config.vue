@@ -23,7 +23,7 @@
   import { readFileAsync, writeFileAsync } from '@shared/file'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import 'monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution.js'
   import { nextTick, defineComponent } from 'vue'
   import { AppStore } from '@/store/app'
 
@@ -151,7 +151,7 @@
           }
           this.monacoInstance = editor.create(input, {
             value: this.config,
-            language: 'ini',
+            language: 'yaml',
             theme: 'vs-dark',
             readOnly: !this.currentVersion,
             scrollBeyondLastLine: true,
