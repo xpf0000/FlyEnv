@@ -11,6 +11,10 @@ class Manager extends BaseManager {
     this.type = 'mongodb'
   }
 
+  init() {
+    this.pidPath = join(global.Server.MongoDBDir, 'mongodb.pid')
+  }
+
   _startServer(version) {
     return new Promise((resolve, reject) => {
       const bin = version.bin
@@ -32,8 +36,7 @@ class Manager extends BaseManager {
         writeFileSync(m, conf)
       }
       const logPath = join(global.Server.MongoDBDir, `mongodb-${v}.log`)
-      const pidPath = join(global.Server.MongoDBDir, `mongodb-${v}.pid`)
-      const params = ['--config', m, '--logpath', logPath, '--pidfilepath', pidPath, '--fork']
+      const params = ['--config', m, '--logpath', logPath, '--pidfilepath', this.pidPath, '--fork']
       process.send({
         command: this.ipcCommand,
         key: this.ipcCommandKey,
@@ -54,6 +57,7 @@ process.on('message', function (args) {
   if (args.Server) {
     global.Server = args.Server
     AppI18n(global.Server.Lang)
+    manager.init()
   } else {
     manager.exec(args)
   }

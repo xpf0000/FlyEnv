@@ -356,12 +356,10 @@ export default class Application extends EventEmitter {
       apache: 'httpd',
       mysql: 'mysqld',
       memcached: 'memcached',
-      redis: 'redis-server'
+      redis: 'redis-server',
+      mongodb: 'mongod'
     }
     try {
-      if (existsSync(pidfile)) {
-        unlinkSync(pidfile)
-      }
       let serverName = dis[type]
       let command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12}'`
       const res = execSync(command).toString().trim()
@@ -379,8 +377,22 @@ export default class Application extends EventEmitter {
       }
       if (arr.length > 0) {
         arr = arr.join(' ')
-        let sig = this.type === 'mysql' ? '-9' : '-INT'
+        let sig = ''
+        switch (type) {
+          case 'mysql':
+            sig = '-9'
+            break
+          case 'mongodb':
+            sig = '-2'
+            break
+          default:
+            sig = '-INT'
+            break
+        }
         execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${arr}`)
+      }
+      if (existsSync(pidfile)) {
+        unlinkSync(pidfile)
       }
     } catch (e) {
       console.log(e)
@@ -403,6 +415,8 @@ export default class Application extends EventEmitter {
     this.stopServerByPid(pidfile, 'memcached')
     pidfile = join(global.Server.RedisDir, 'common/run/redis.pid')
     this.stopServerByPid(pidfile, 'redis')
+    pidfile = join(global.Server.MongoDBDir, 'mongodb.pid')
+    this.stopServerByPid(pidfile, 'mongodb')
     try {
       let hosts = readFileSync('/private/etc/hosts', 'utf-8')
       let x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)

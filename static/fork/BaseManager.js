@@ -142,11 +142,13 @@ class BaseManager {
 
   _stopServer() {
     return new Promise((resolve) => {
-      try {
-        if (existsSync(this.pidPath)) {
-          unlinkSync(this.pidPath)
-        }
-      } catch (e) {}
+      const cleanPid = () => {
+        try {
+          if (existsSync(this.pidPath)) {
+            unlinkSync(this.pidPath)
+          }
+        } catch (e) {}
+      }
       let dis = {
         php: 'php-fpm',
         nginx: 'nginx',
@@ -176,6 +178,7 @@ class BaseManager {
           }
           console.log('pids 0: ', arr)
           if (arr.length === 0) {
+            cleanPid()
             resolve(0)
           } else {
             arr = arr.join(' ')
@@ -197,11 +200,13 @@ class BaseManager {
         })
         .then(() => {
           setTimeout(() => {
+            cleanPid()
             resolve(0)
           }, 1000)
         })
         .catch(() => {
           setTimeout(() => {
+            cleanPid()
             resolve(0)
           }, 1000)
         })
