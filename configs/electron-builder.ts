@@ -42,7 +42,7 @@ const conf: Configuration = {
     icon: 'build/Icon.icns',
     target: {
       target: 'default',
-      arch: ['x64', 'arm64']
+      arch: ['x64']
     },
     extendInfo: {
       'Icon file': 'icon.icns'
@@ -56,7 +56,8 @@ const conf: Configuration = {
     gatekeeperAssess: false
   },
   afterSign: 'build/notarize.js',
-  publish: [PublishConfig]
+  publish: [PublishConfig],
+  afterPack: 'build/afterPack.js'
 }
 
 export default conf
