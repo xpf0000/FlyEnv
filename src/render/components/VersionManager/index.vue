@@ -99,6 +99,7 @@
             'shivammathur/php/php@7.3',
             'shivammathur/php/php@7.4',
             'shivammathur/php/php@8.0',
+            'shivammathur/php/php@8.1',
             'shivammathur/php/php@8.2',
             'shivammathur/php/php@8.3'
           ],

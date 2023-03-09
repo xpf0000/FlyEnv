@@ -1,13 +1,17 @@
 const { join, dirname } = require('path')
-const existsSync = require('fs').existsSync
-const readFileSync = require('fs').readFileSync
-const writeFileSync = require('fs').writeFileSync
-const unlinkSync = require('fs').unlinkSync
+const {
+  unlinkSync,
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  accessSync,
+  constants,
+  copyFileSync
+} = require('fs')
 const { execSync } = require('child_process')
 const Utils = require('./Utils')
 const dns = require('dns')
 const util = require('util')
-const { accessSync, constants, copyFileSync } = require('fs')
 const { I18nT } = require('./lang/index.js')
 
 class HostManager {
@@ -43,16 +47,24 @@ class HostManager {
     }
     Utils.readFileAsync(hostfile).then((json) => {
       let host = []
+      let parseErr = false
+      const hostBackFile = join(global.Server.BaseDir, 'host.back.json')
       try {
         host = JSON.parse(json)
-      } catch (e) {}
+      } catch (e) {
+        if (json.trim().length > 0) {
+          copyFileSync(hostfile, hostBackFile)
+          parseErr = true
+        }
+      }
       process.send({
         command: this.ipcCommand,
         key: this.ipcCommandKey,
         info: {
-          code: 0,
+          code: parseErr ? 2 : 0,
           msg: 'SUCCESS',
-          hosts: host
+          hosts: host,
+          hostBackFile
         }
       })
     })
@@ -61,13 +73,6 @@ class HostManager {
   handleHost(host, flag, old) {
     let hostfile = join(global.Server.BaseDir, 'host.json')
     let hostList = []
-    if (existsSync(hostfile)) {
-      try {
-        hostList = JSON.parse(readFileSync(hostfile, 'utf-8'))
-      } catch (e) {
-        console.log(e)
-      }
-    }
 
     const writeHostFile = () => {
       writeFileSync(hostfile, JSON.stringify(hostList))
@@ -92,6 +97,29 @@ class HostManager {
           msg: err
         }
       })
+    }
+
+    if (existsSync(hostfile)) {
+      const content = readFileSync(hostfile, 'utf-8').toString().trim()
+      try {
+        hostList = JSON.parse(content)
+      } catch (e) {
+        console.log(e)
+        if (content.length > 0) {
+          const hostBackFile = join(global.Server.BaseDir, 'host.back.json')
+          copyFileSync(hostfile, hostBackFile)
+          process.send({
+            command: this.ipcCommand,
+            key: this.ipcCommandKey,
+            info: {
+              code: 2,
+              msg: 'FAIL',
+              hostBackFile
+            }
+          })
+          return
+        }
+      }
     }
 
     let addApachePort = true
@@ -471,10 +499,6 @@ class HostManager {
 
   _initHost(list) {
     return new Promise((resolve, reject) => {
-      if (list.length === 0) {
-        resolve(true)
-        return
-      }
       let host = ''
       for (let item of list) {
         let alias = this.#hostAlias(item)
@@ -485,19 +509,20 @@ class HostManager {
         reject(new Error(I18nT('fork.hostsFileNoFound')))
         return
       }
-      console.log('_initHost host: ', host)
       let content = readFileSync(filePath, 'utf-8')
-      console.log('content 000: ', content)
       let x = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x && x[0]) {
         x = x[0]
         content = content.replace(x, '')
       }
-      x = `#X-HOSTS-BEGIN#\n${host}#X-HOSTS-END#`
+      if (host) {
+        x = `#X-HOSTS-BEGIN#\n${host}#X-HOSTS-END#`
+      } else {
+        x = ''
+      }
       content = content.trim()
       content += `\n${x}`
-      console.log('content: ', content)
-      writeFileSync(filePath, content)
+      writeFileSync(filePath, content.trim())
       resolve(true)
     })
   }
@@ -536,7 +561,7 @@ class HostManager {
           }
           content = content.trim()
           content += `\n${list.join('\n')}`
-          Utils.writeFileAsync('/private/etc/hosts', content)
+          Utils.writeFileAsync('/private/etc/hosts', content.trim())
             .then(() => {
               process.send({
                 command: this.ipcCommand,
@@ -618,14 +643,13 @@ class HostManager {
       }
       let json = readFileSync(hostfile, 'utf-8')
       json = JSON.parse(json)
-      console.log('writeHosts json: ', json)
       this._initHost(json).then()
     } else {
-      let hosts = readFileSync('/private/etc/hosts', 'utf-8')
+      let hosts = readFileSync('/private/etc/hosts', 'utf-8').toJSON()
       let x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x) {
         hosts = hosts.replace(x[0], '')
-        writeFileSync('/private/etc/hosts', hosts)
+        writeFileSync('/private/etc/hosts', hosts.trim())
       }
     }
     process.send({

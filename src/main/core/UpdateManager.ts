@@ -54,7 +54,7 @@ export default class UpdateManager extends EventEmitter {
     this.emit('checking')
   }
 
-  updateAvailable(event: any, info: any) {
+  updateAvailable(info: any) {
     this.emit('update-available', info)
     dialog
       .showMessageBox({
@@ -71,7 +71,7 @@ export default class UpdateManager extends EventEmitter {
       })
   }
 
-  updateNotAvailable(event: any, info: any) {
+  updateNotAvailable(info: any) {
     this.emit('update-not-available', info)
     if (this.autoCheckData.userCheck) {
       dialog
@@ -96,7 +96,7 @@ export default class UpdateManager extends EventEmitter {
     this.emit('download-progress', event)
   }
 
-  updateDownloaded(event: any, info: any) {
+  updateDownloaded(info: any) {
     this.emit('update-downloaded', info)
     this.updater?.logger?.info(`Update Downloaded: ${info}`)
     dialog
@@ -114,10 +114,7 @@ export default class UpdateManager extends EventEmitter {
 
   updateError(event: any, error: any) {
     this.emit('update-error', error)
-    const msg =
-      error == null ? I18nT('update.update-error-message') : (error.stack || error).toString()
-
-    this.updater?.logger?.warn(`[PhpWebStudy] update-error: ${msg}`)
+    const msg = I18nT('update.update-error-message')
     dialog.showErrorBox(I18nT('update.checkForUpdates'), msg)
   }
 }

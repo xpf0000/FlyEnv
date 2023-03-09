@@ -24,6 +24,18 @@ class ApacheManager extends BaseManager {
         reject(new Error(I18nT('fork.binNoFound')))
         return
       }
+      const defaultFile = join(
+        global.Server.ApacheDir,
+        `common/conf/${Utils.md5(version.bin)}.conf`
+      )
+      const defaultFileBack = join(
+        global.Server.ApacheDir,
+        `common/conf/${Utils.md5(version.bin)}.default.conf`
+      )
+      if (existsSync(defaultFile)) {
+        resolve(true)
+        return
+      }
       // 获取httpd的默认配置文件路径
       execPromise(`${bin} -D DUMP_INCLUDES`)
         .then((res) => {
@@ -39,14 +51,6 @@ class ApacheManager extends BaseManager {
             reject(new Error(I18nT('fork.confNoFound')))
             return
           }
-          const defaultFile = join(
-            global.Server.ApacheDir,
-            `common/conf/${Utils.md5(version.bin)}.conf`
-          )
-          const defaultFileBack = join(
-            global.Server.ApacheDir,
-            `common/conf/${Utils.md5(version.bin)}.default.conf`
-          )
           if (!existsSync(defaultFile)) {
             let content = readFileSync(file, 'utf-8')
             const reg = new RegExp('(CustomLog ")([\\s\\S]*?)(access_log")', 'g')
@@ -86,52 +90,33 @@ IncludeOptional "${vhost}*.conf"`
     })
   }
 
-  switchVersion(version) {
-    this._stopServer()
-      .then(() => {
-        return this.#resetConf(version)
-      })
-      .then(() => {
-        return this._startServer(version)
-      })
-      .then(() => {
-        this._processSend({
-          code: 0,
-          msg: 'SUCCESS',
-          version
-        })
-      })
-      .catch((code) => {
-        let info = code ? code.toString() : I18nT('fork.switchFail')
-        this._processSend({
-          code: 1,
-          msg: info,
-          version
-        })
-      })
-  }
-
   _startServer(version) {
     return new Promise((resolve, reject) => {
-      let logs = join(global.Server.ApacheDir, 'common/logs')
-      Utils.createFolder(logs)
-      let bin = version.bin
-      if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
-      const conf = join(global.Server.ApacheDir, `common/conf/${Utils.md5(version.bin)}.conf`)
-      if (!existsSync(conf)) {
-        reject(new Error(I18nT('fork.confNoFound')))
-        return
-      }
-      execPromise(`echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`)
-        .then((res) => {
-          this._handleLog(res.stdout)
-          resolve(0)
+      this.#resetConf(version)
+        .then(() => {
+          let logs = join(global.Server.ApacheDir, 'common/logs')
+          Utils.createFolder(logs)
+          let bin = version.bin
+          if (!existsSync(bin)) {
+            reject(new Error(I18nT('fork.binNoFound')))
+            return
+          }
+          const conf = join(global.Server.ApacheDir, `common/conf/${Utils.md5(version.bin)}.conf`)
+          if (!existsSync(conf)) {
+            reject(new Error(I18nT('fork.confNoFound')))
+            return
+          }
+          execPromise(`echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`)
+            .then((res) => {
+              this._handleLog(res.stdout)
+              resolve(0)
+            })
+            .catch((err) => {
+              this._handleLog(err)
+              reject(err)
+            })
         })
         .catch((err) => {
-          this._handleLog(err)
           reject(err)
         })
     })

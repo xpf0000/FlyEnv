@@ -6,7 +6,7 @@ import type { AppHost } from '@/store/app'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import { I18nT } from '@shared/lang'
-
+const { shell } = require('@electron/remote')
 const handleHostEnd = (arr: Array<AppHost>) => {
   const appStore = AppStore()
   const brewStore = BrewStore()
@@ -20,7 +20,7 @@ const handleHostEnd = (arr: Array<AppHost>) => {
   const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
   const nginxTaskRunning = brewStore.nginx.installed.some((a) => a.running)
   if (nginxRunning && !nginxTaskRunning) {
-    reloadService('nginx', nginxRunning)
+    reloadService('nginx', nginxRunning).then()
   }
   const hosts = appStore.hosts
   hosts.splice(0)
@@ -40,13 +40,18 @@ export const handleHost = (host: AppHost, flag: string, old?: AppHost) => {
     host = JSON.parse(JSON.stringify(host))
     old = JSON.parse(JSON.stringify(old ?? {}))
     IPC.send('app-fork:host', 'handleHost', host, flag, old).then((key: string, res: any) => {
-      if (res.code === 0) {
-        IPC.off(key)
+      IPC.off(key)
+      if (res?.code === 0) {
         handleHostEnd(res.hosts)
         resolve(true)
-      } else if (res.code === 1) {
-        IPC.off(key)
+      } else if (res?.code === 1) {
         Base.MessageError(res.msg).then()
+        resolve(false)
+      } else if (res?.code === 2) {
+        Base.MessageError(I18nT('base.hostParseErr')).then()
+        if (res?.hostBackFile) {
+          shell.showItemInFolder(res.hostBackFile)
+        }
         resolve(false)
       }
     })

@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
+import Base from '@/core/Base'
+import { I18nT } from '@shared/lang'
+const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
 export interface AppHost {
@@ -231,8 +234,15 @@ export const AppStore = defineStore('app', {
       return new Promise((resolve) => {
         IPC.send('app-fork:host', 'hostList').then((key: string, res: any) => {
           IPC.off(key)
-          if (res?.hosts) {
-            this.UPDATE_HOSTS(res.hosts)
+          if (res?.code === 0) {
+            if (res?.hosts) {
+              this.UPDATE_HOSTS(res.hosts)
+            }
+          } else if (res?.code === 2) {
+            Base.MessageError(I18nT('base.hostParseErr')).then()
+            if (res?.hostBackFile) {
+              shell.showItemInFolder(res.hostBackFile)
+            }
           }
           resolve(true)
         })

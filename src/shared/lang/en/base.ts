@@ -126,5 +126,7 @@ export default {
   versionErrorTips:
     'The version has been installed, but there is an error that prevents it from running, this problem is basically due to missing software dependencies or incorrect dependency version, try to run the command "brew update && brew upgrade" to fix it',
   fileBigErr: 'The file is too large, please select the correct configuration file',
-  CustomVersionDir: 'Custom Version Dir'
+  CustomVersionDir: 'Custom Version Dir',
+  hostParseErr:
+    'The site failed to load, the original site data has been backed up to host.back.json, please check and repair the file in the opened folder'
 }

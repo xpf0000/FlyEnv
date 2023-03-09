@@ -27,6 +27,7 @@ class InstalledVersions {
       this.taskRunning = false
     }
     const brewStore = BrewStore()
+    const appStore = AppStore()
     const setup = JSON.parse(JSON.stringify(AppStore().config.setup))
     const arrs = flags.filter((f) => !brewStore[f].installedInited)
     if (arrs.length === 0) {
@@ -39,6 +40,7 @@ class InstalledVersions {
       (key: string, res: any) => {
         IPC.off(key)
         const versions: { [key in AppSofts]: Array<SoftInstalled> } = res?.versions ?? {}
+        let needSaveConfig = false
         for (const f in versions) {
           const flag: keyof typeof AppSofts = f as keyof typeof AppSofts
           let installed = versions[flag]
@@ -53,8 +55,22 @@ class InstalledVersions {
           data.installed.push(...installed)
           data.installedInited = true
           old.splice(0)
-          callBack()
+          const server = appStore.config.server[flag]
+          if (flag !== 'php' && !server?.current?.version && data.installed.length > 0) {
+            const find = data.installed.find((d) => d.version && d.enable)
+            if (find) {
+              appStore.UPDATE_SERVER_CURRENT({
+                flag: flag,
+                data: JSON.parse(JSON.stringify(find))
+              })
+              needSaveConfig = true
+            }
+          }
         }
+        if (needSaveConfig) {
+          appStore.saveConfig()
+        }
+        callBack()
       }
     )
     return this

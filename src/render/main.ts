@@ -15,11 +15,16 @@ IPC.on('APP-Ready-To-Show').then(() => {
   if (!inited) {
     inited = true
     const store = AppStore()
-    Promise.all([store.initConfig(), store.initHost()]).then(() => {
-      const config = store.config.setup
-      AppI18n(config?.lang)
-      app.mount('#app')
-    })
+    store
+      .initConfig()
+      .then(() => {
+        const config = store.config.setup
+        AppI18n(config?.lang)
+        return store.initHost()
+      })
+      .then(() => {
+        app.mount('#app')
+      })
   } else {
     console.log('has inited !!!!')
   }
