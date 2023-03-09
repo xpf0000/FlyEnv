@@ -3,7 +3,7 @@ import PublishConfig from './publish'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
-  buildVersion: '1.0.38',
+  buildVersion: '1.0.39',
   electronVersion: '23.1.1',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -16,7 +16,8 @@ const conf: Configuration = {
     '!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,LICENSE}',
     '!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}',
     '!**/node_modules/*.d.ts',
-    '!**/node_modules/.bin'
+    '!**/node_modules/.bin',
+    '!**/node_modules/node-pty/build/node_gyp_bins'
   ],
   dmg: {
     sign: false,
@@ -42,8 +43,9 @@ const conf: Configuration = {
     icon: 'build/Icon.icns',
     target: {
       target: 'default',
-      arch: ['x64']
+      arch: ['x64', 'arm64']
     },
+    asarUnpack: ['**/*.node'],
     extendInfo: {
       'Icon file': 'icon.icns'
     },
@@ -56,8 +58,7 @@ const conf: Configuration = {
     gatekeeperAssess: false
   },
   afterSign: 'build/notarize.js',
-  publish: [PublishConfig],
-  afterPack: 'build/afterPack.js'
+  publish: [PublishConfig]
 }
 
 export default conf

@@ -10,7 +10,8 @@
   import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import installedVersions from '@/util/InstalledVersions'
-  import { AppStore } from '@/store/app'
+  import { AppSofts, AppStore } from '@/store/app'
+  import { BrewStore } from '@/store/brew'
 
   export default defineComponent({
     name: 'App',
@@ -21,6 +22,9 @@
     computed: {
       lang() {
         return AppStore().config.setup.lang
+      },
+      showItem() {
+        return AppStore().config.setup.common.showItem
       }
     },
     watch: {
@@ -30,6 +34,12 @@
           body.className = `lang-${val}`
         },
         immediate: true
+      },
+      showItem: {
+        handler() {
+          this.onShowItemChange()
+        },
+        deep: true
       }
     },
     created() {
@@ -43,6 +53,25 @@
     },
     mounted() {},
     methods: {
+      showItemLowcase() {
+        const showItem: any = this.showItem
+        const dict: { [key: string]: boolean } = {}
+        for (const k in showItem) {
+          dict[k.toLowerCase()] = showItem[k]
+        }
+        return dict
+      },
+      onShowItemChange() {
+        const dict: { [key: string]: boolean } = this.showItemLowcase()
+        const brewStore = BrewStore()
+        for (const k in dict) {
+          const brewSoft = brewStore?.[k]
+          if (brewSoft && dict[k] && !brewSoft?.installedInited) {
+            const flags = [k] as Array<keyof typeof AppSofts>
+            installedVersions.allInstalledVersions(flags)
+          }
+        }
+      },
       showAbout() {
         this.$baseDialog(import('./components/About/index.vue'))
           .className('about-dialog')
@@ -51,21 +80,23 @@
           .show()
       },
       checkPassword() {
-        passwordCheck()
-          .then(() => {
-            installedVersions.allInstalledVersions([
-              'php',
-              'nginx',
-              'mysql',
-              'apache',
-              'memcached',
-              'redis',
-              'mongodb'
-            ])
-          })
-          .then(() => {
+        passwordCheck().then(() => {
+          const dict: { [key: string]: boolean } = this.showItemLowcase()
+          console.log('showItem dict: ', dict)
+          const flags: Array<keyof typeof AppSofts> = [
+            'php',
+            'nginx',
+            'mysql',
+            'apache',
+            'memcached',
+            'redis',
+            'mongodb'
+          ].filter((f) => dict[f]) as Array<keyof typeof AppSofts>
+          console.log('flags: ', flags)
+          installedVersions.allInstalledVersions(flags).then(() => {
             AppStore().versionInited = true
           })
+        })
       }
     }
   })

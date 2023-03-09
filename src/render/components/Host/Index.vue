@@ -5,8 +5,10 @@
         <span class="px-5"></span>{{ $t('base.add') }}<span class="px-5"></span>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item :disabled="!canExport" command="export">导出</el-dropdown-item>
-            <el-dropdown-item command="import">导入</el-dropdown-item>
+            <el-dropdown-item :disabled="!canExport" command="export">{{
+              $t('base.export')
+            }}</el-dropdown-item>
+            <el-dropdown-item command="import">{{ $t('base.import') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

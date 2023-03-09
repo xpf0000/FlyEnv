@@ -128,5 +128,7 @@ export default {
   fileBigErr: 'The file is too large, please select the correct configuration file',
   CustomVersionDir: 'Custom Version Dir',
   hostParseErr:
-    'The site failed to load, the original site data has been backed up to host.back.json, please check and repair the file in the opened folder'
+    'The site failed to load, the original site data has been backed up to host.back.json, please check and repair the file in the opened folder',
+  export: 'Export',
+  import: 'Import'
 }

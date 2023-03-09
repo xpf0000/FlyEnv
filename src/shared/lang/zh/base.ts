@@ -121,5 +121,7 @@ export default {
     '版本已安装, 但是有错误导致无法运行, 此问题基本都是软件依赖项缺失或者依赖项版本不正确, 可尝试运行命令"brew update && brew upgrade"修复',
   fileBigErr: '文件过大, 请选择正确的配置文件',
   CustomVersionDir: '自定义版本路径',
-  hostParseErr: '站点加载失败, 原站点数据已备份至host.back.json, 请在打开的文件夹中查看修复文件'
+  hostParseErr: '站点加载失败, 原站点数据已备份至host.back.json, 请在打开的文件夹中查看修复文件',
+  export: '导出',
+  import: '导入'
 }
