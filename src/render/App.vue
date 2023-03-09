@@ -17,7 +17,9 @@
     name: 'App',
     components: { TitleBar },
     data() {
-      return {}
+      return {
+        inited: false
+      }
     },
     computed: {
       lang() {
@@ -62,6 +64,9 @@
         return dict
       },
       onShowItemChange() {
+        if (!this.inited) {
+          return
+        }
         const dict: { [key: string]: boolean } = this.showItemLowcase()
         const brewStore = BrewStore()
         for (const k in dict) {
@@ -95,6 +100,7 @@
           console.log('flags: ', flags)
           installedVersions.allInstalledVersions(flags).then(() => {
             AppStore().versionInited = true
+            this.inited = true
           })
         })
       }
