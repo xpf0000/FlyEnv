@@ -35,6 +35,10 @@
         <yb-icon :svg="import('@/svg/process.svg?raw')" width="30" height="30" style="padding: 0" />
         <span>Process Kill</span>
       </li>
+      <li @click="showPage('phpObfuscator')">
+        <yb-icon :svg="import('@/svg/jiami.svg?raw')" width="30" height="30" style="padding: 0" />
+        <span>Php Obfuscator</span>
+      </li>
     </ul>
     <el-drawer
       ref="host-edit-drawer"
@@ -82,6 +86,11 @@
             break
           case 'processkill':
             this.component = markRaw(defineAsyncComponent(() => import('./ProcessKill/index.vue')))
+            break
+          case 'phpObfuscator':
+            this.component = markRaw(
+              defineAsyncComponent(() => import('./PhpObfuscator/index.vue'))
+            )
             break
         }
       },

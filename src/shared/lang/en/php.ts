@@ -9,5 +9,9 @@ export default {
     'The installed version is not detected, please install the PHP version in the version management or install it yourself',
   fpmLog: 'FPM Log',
   extension: 'Extension',
-  phpSetGlobal: 'Set to global version'
+  phpSetGlobal: 'Set to global version',
+  obfuscatorPhpVersion: 'Obfuscate with PHP version',
+  obfuscatorSrc: 'PHP file or folder to be obfuscated',
+  obfuscatorDesc: 'Save the file or folder, not duplicate the source file or folder',
+  obfuscatorConfig: 'Advanced Setup'
 }

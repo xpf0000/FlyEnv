@@ -69,6 +69,7 @@ class BaseManager {
             ?.split('/')?.[0]
           if (v) {
             const opt = this._fixEnv()
+            opt.env.HOMEBREW_NO_INSTALL_FROM_API = 1
             const command = `brew unlink ${v} && brew link --overwrite --force ${v}`
             execPromise(command, opt)
               .then(() => {

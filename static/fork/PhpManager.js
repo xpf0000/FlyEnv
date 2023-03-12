@@ -1,10 +1,12 @@
 const join = require('path').join
 const { existsSync, unlinkSync, writeFileSync, readFileSync, copyFileSync } = require('fs')
+const { removeSync } = require('fs-extra')
 const { spawn, execSync } = require('child_process')
 const Utils = require('./Utils')
 const BaseManager = require('./BaseManager')
 const { exec: execPromise } = require('child-process-promise')
 const { I18nT } = require('./lang/index.js')
+const compressing = require('compressing')
 class PhpManager extends BaseManager {
   constructor() {
     super()
@@ -570,6 +572,37 @@ class PhpManager extends BaseManager {
           break
       }
     })
+  }
+
+  doObfuscator(params) {
+    const cacheDir = global.Server.Cache
+    const obfuscatorDir = join(cacheDir, 'php-obfuscator')
+    removeSync(obfuscatorDir)
+    const zipFile = join(global.Server.Static, 'zip/php-obfuscator.zip')
+    compressing.zip
+      .uncompress(zipFile, obfuscatorDir)
+      .then(() => {
+        const bin = join(obfuscatorDir, 'yakpro-po.php')
+        let command = ''
+        if (params.config) {
+          const configFile = join(cacheDir, 'php-obfuscator.cnf')
+          writeFileSync(configFile, params.config)
+          command = `${params.bin} ${bin} --config-file ${configFile} ${params.src} -o ${params.desc}`
+        } else {
+          command = `${params.bin} ${bin} ${params.src} -o ${params.desc}`
+        }
+        console.log('command: ', command)
+        return execPromise(command)
+      })
+      .then(() => {
+        this._thenSuccess()
+      })
+      .catch((e) => {
+        this._processSend({
+          code: 1,
+          msg: e.toString()
+        })
+      })
   }
 }
 module.exports = PhpManager
