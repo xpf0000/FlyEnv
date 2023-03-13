@@ -17,10 +17,10 @@ const options: PageOptions = {
   index: {
     attrs: {
       title: 'PhpWebStudy',
-      width: 1200,
-      height: 800,
-      minWidth: 1200,
-      minHeight: 800,
+      width: 1100,
+      height: 700,
+      minWidth: 1100,
+      minHeight: 700,
       backgroundColor: '#262D3D',
       transparent: !is.windows()
     },

@@ -41,6 +41,7 @@
   import { defineComponent } from 'vue'
   import IPC from '@/util/IPC'
   import { TaskStore } from '@/store/task'
+  import { I18nT } from '@shared/lang'
 
   export default defineComponent({
     name: 'MoNodejsVersions',
@@ -48,7 +49,7 @@
     props: {},
     data() {
       return {
-        current: this.$t('base.gettingVersion'),
+        current: I18nT('base.gettingVersion'),
         select: '',
         localVersions: []
       }
@@ -83,7 +84,7 @@
           if (this.task.isRunning) {
             return
           }
-          this.$baseConfirm(this.$t('base.nvmNoInstallTips'), undefined, {
+          this.$baseConfirm(I18nT('base.nvmNoInstallTips'), undefined, {
             customClass: 'confirm-del',
             type: 'warning'
           }).then(() => {
@@ -104,14 +105,14 @@
               this.task.NVM_DIR = res.NVM_DIR
               resolve(true)
             } else {
-              reject(new Error(this.$t('base.nvmDirNoFound')))
+              reject(new Error(I18nT('base.nvmDirNoFound')))
             }
           })
         })
       },
       installNvm() {
         this.task.isRunning = true
-        this.task.btnTxt = this.$t('base.installingNVM')
+        this.task.btnTxt = I18nT('base.installingNVM')
         IPC.send('app-fork:node', 'installNvm').then((key: string, res: any) => {
           IPC.off(key)
           this.task.isRunning = false
@@ -120,7 +121,7 @@
               this.getAllVersion()
             })
           } else {
-            this.$message.error(this.$t('base.fail'))
+            this.$message.error(I18nT('base.fail'))
           }
         })
       },
@@ -128,18 +129,18 @@
         if (this.task.getVersioning || this.task.versions.length > 0) {
           return
         }
-        this.task.btnTxt = this.$t('base.gettingVersion')
+        this.task.btnTxt = I18nT('base.gettingVersion')
         this.task.getVersioning = true
         IPC.send('app-fork:node', 'allVersion', this.task.NVM_DIR).then((key: string, res: any) => {
           IPC.off(key)
           if (res?.versions) {
             this.task.versions = res.versions
             this.task.getVersioning = false
-            this.task.btnTxt = this.$t('base.switch')
+            this.task.btnTxt = I18nT('base.switch')
           } else {
-            this.task.btnTxt = this.$t('base.switch')
+            this.task.btnTxt = I18nT('base.switch')
             this.task.getVersioning = false
-            this.$message.error(this.$t('base.fail'))
+            this.$message.error(I18nT('base.fail'))
           }
         })
       },
@@ -158,19 +159,19 @@
       },
       versionChange() {
         this.task.isRunning = true
-        this.task.btnTxt = this.$t('base.switching')
+        this.task.btnTxt = I18nT('base.switching')
         IPC.send('app-fork:node', 'versionChange', this.task.NVM_DIR, this.select).then(
           (key: string, res: any) => {
             IPC.off(key)
             if (res?.code === 0) {
-              this.task.btnTxt = this.$t('base.switch')
+              this.task.btnTxt = I18nT('base.switch')
               this.task.isRunning = false
               this.current = this.select
-              this.$message.success(this.$t('base.success'))
+              this.$message.success(I18nT('base.success'))
             } else {
-              this.task.btnTxt = this.$t('base.switch')
+              this.task.btnTxt = I18nT('base.switch')
               this.task.isRunning = false
-              this.$message.error(this.$t('base.fail'))
+              this.$message.error(I18nT('base.fail'))
             }
           }
         )
