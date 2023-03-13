@@ -40,7 +40,7 @@
 <script lang="ts">
   import { readFileAsync, writeFileAsync } from '@shared/file'
   import { reloadService } from '@/util/Service'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import IPC from '@/util/IPC'
@@ -237,6 +237,14 @@
             scrollBeyondLastLine: true,
             overviewRulerBorder: true,
             automaticLayout: true
+          })
+          this.monacoInstance.addAction({
+            id: 'save',
+            label: 'save',
+            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
+            run: () => {
+              this.saveConfig()
+            }
           })
         } else {
           this.monacoInstance.setValue(this.config)

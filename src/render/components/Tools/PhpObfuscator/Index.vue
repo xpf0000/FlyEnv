@@ -77,7 +77,7 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent, ref } from 'vue'
+  import { defineComponent, nextTick, ref } from 'vue'
   import { BrewStore } from '@/store/brew'
   import Config from './Config.vue'
   import IPC from '@/util/IPC'
@@ -146,7 +146,6 @@
         }
         running.value = true
         const php = this.phpVersions.find((p) => `${p.path}-${p.version}` === this.item.phpversion)
-        console.log(this.item, php)
         const bin = join(php!.path, 'bin/php')
         const params = JSON.parse(
           JSON.stringify({
@@ -160,7 +159,15 @@
             this.$message.success(this.$t('base.success'))
             shell.showItemInFolder(this.item.desc)
           } else {
-            this.$message.error(res.msg)
+            const msg = res.msg
+            import('./Logs.vue').then((res) => {
+              res.default.show({
+                content: msg
+              })
+              nextTick().then(() => {
+                this.$message.error(this.$t('base.fail'))
+              })
+            })
           }
           running.value = false
         })

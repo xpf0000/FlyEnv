@@ -13,5 +13,6 @@ export default {
   obfuscatorPhpVersion: 'Obfuscate with PHP version',
   obfuscatorSrc: 'PHP file or folder to be obfuscated',
   obfuscatorDesc: 'Save the file or folder, not duplicate the source file or folder',
-  obfuscatorConfig: 'Advanced Setup'
+  obfuscatorConfig: 'Advanced Setup',
+  obfuscatorErrorLog: 'Error Log'
 }

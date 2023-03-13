@@ -21,7 +21,7 @@
 
 <script lang="ts">
   import { readFileAsync, writeFileAsync } from '@shared/file'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution.js'
   import { nextTick, defineComponent } from 'vue'
@@ -116,6 +116,9 @@
         shell.showItemInFolder(this.configPath)
       },
       saveConfig() {
+        if (!this.currentVersion) {
+          return
+        }
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configPath, content).then(() => {
           this.$message.success(this.$t('base.success'))
@@ -157,6 +160,14 @@
             scrollBeyondLastLine: true,
             overviewRulerBorder: true,
             automaticLayout: true
+          })
+          this.monacoInstance.addAction({
+            id: 'save',
+            label: 'save',
+            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
+            run: () => {
+              this.saveConfig()
+            }
           })
         } else {
           this.monacoInstance.setValue(this.config)

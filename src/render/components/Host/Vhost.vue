@@ -19,7 +19,7 @@
 
 <script>
   import { readFileAsync, writeFileAsync } from '@shared/file.ts'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick } from 'vue'
@@ -91,6 +91,14 @@
             scrollBeyondLastLine: true,
             overviewRulerBorder: true,
             automaticLayout: true
+          })
+          this.monacoInstance.addAction({
+            id: 'save',
+            label: 'save',
+            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
+            run: () => {
+              this.saveConfig()
+            }
           })
         } else {
           this.monacoInstance.setValue(this.config)
