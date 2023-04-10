@@ -31,6 +31,7 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 - 常见PHP项目url rewrite一键设置
 - 一键切换brew国内源, 解决brew安装更新慢的问题
 - 一键生成SSL自签名证书
+- PHP代码混淆, 混淆单个文件或整个项目
 - 开发中常用的小工具, 时间戳转换, 编码/解码, 端口占用一键清理
 
 ## 💽 安装稳定版
