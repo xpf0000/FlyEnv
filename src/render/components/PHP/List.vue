@@ -3,7 +3,7 @@
     <li v-if="!versions?.length" class="http-serve-item none">
       {{ $t('php.noVersionTips') }}
     </li>
-    <li v-for="(item, key) in versions" :key="key" class="http-serve-item">
+    <li v-for="(item, key) in versions" :key="key" class="http-serve-item" :data-item-index="key">
       <div class="left">
         <div class="title">
           <span class="name"> {{ $t('base.path') }}:</span>
@@ -91,6 +91,9 @@
   import IPC from '@/util/IPC'
   import { AppSoftInstalledItem, BrewStore, SoftInstalled } from '@/store/brew'
   import { AppStore } from '@/store/app'
+  import { ElLoading, ElMessage } from 'element-plus'
+  import { I18nT } from '@shared/lang'
+
   const { shell } = require('@electron/remote')
 
   export default defineComponent({
@@ -185,13 +188,18 @@
             })
             break
           case 'brewLink':
+            const dom: HTMLElement = document.querySelector(`li[data-item-index="${index}"]`)!
+            const loading = ElLoading.service({
+              target: dom
+            })
             IPC.send('app-fork:php', 'doLinkVersion', JSON.parse(JSON.stringify(item))).then(
               (key: string, res: any) => {
                 IPC.off(key)
+                loading.close()
                 if (res?.code === 0) {
-                  this.$message.success(this.$t('base.success'))
+                  ElMessage.success(I18nT('base.success'))
                 } else {
-                  this.$message.error(res.msg)
+                  ElMessage.error(res.msg)
                 }
               }
             )

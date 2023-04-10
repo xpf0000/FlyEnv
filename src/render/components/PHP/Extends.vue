@@ -13,6 +13,13 @@
           <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
           <span class="ml-15">{{ $t('php.phpExtension') }}</span>
         </div>
+        <el-button
+          type="primary"
+          class="shrink0"
+          :disabled="!installExtensionDir"
+          @click="openDir"
+          >{{ $t('base.open') }}</el-button
+        >
       </div>
       <div class="main-wapper">
         <el-card class="version-manager">
@@ -94,9 +101,13 @@
   import { VueExtend } from '@/core/VueExtend'
   import { BrewStore, SoftInstalled } from '@/store/brew'
   import { TaskStore } from '@/store/task'
+  import { ElMessage } from 'element-plus'
+  import { I18nT } from '@shared/lang'
 
   const { join } = require('path')
   const { clipboard } = require('@electron/remote')
+  const { shell } = require('@electron/remote')
+  const { existsSync } = require('fs')
 
   export default defineComponent({
     show(data: any) {
@@ -123,6 +134,7 @@
     },
     data() {
       return {
+        installExtensionDir: '',
         showNextBtn: false,
         typeFlag: 'php',
         tableData: [
@@ -271,6 +283,16 @@
     },
     unmounted() {},
     methods: {
+      openDir() {
+        if (!this.installExtensionDir) {
+          return
+        }
+        if (existsSync(this.installExtensionDir)) {
+          shell.openPath(this.installExtensionDir)
+        } else {
+          ElMessage.warning(I18nT('php.noExtensionsDir'))
+        }
+      },
       close() {
         this.show = false
         this.$destroy()

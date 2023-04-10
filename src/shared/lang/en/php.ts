@@ -14,5 +14,6 @@ export default {
   obfuscatorSrc: 'PHP file or folder to be obfuscated',
   obfuscatorDesc: 'Save the file or folder, not duplicate the source file or folder',
   obfuscatorConfig: 'Advanced Setup',
-  obfuscatorErrorLog: 'Error Log'
+  obfuscatorErrorLog: 'Error Log',
+  noExtensionsDir: 'Extensions folder does not exist, please install the extension first'
 }
