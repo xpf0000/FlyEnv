@@ -645,7 +645,7 @@ class HostManager {
       json = JSON.parse(json)
       this._initHost(json).then()
     } else {
-      let hosts = readFileSync('/private/etc/hosts', 'utf-8').toJSON()
+      let hosts = readFileSync('/private/etc/hosts', 'utf-8').toString()
       let x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x) {
         hosts = hosts.replace(x[0], '')

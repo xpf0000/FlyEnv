@@ -3,6 +3,7 @@
     <el-radio-button label="nginx">Nginx</el-radio-button>
     <el-radio-button label="apache">Apache</el-radio-button>
     <el-radio-button label="mysql">Mysql</el-radio-button>
+    <el-radio-button label="mariadb">MariaDB</el-radio-button>
     <el-radio-button label="php">Php</el-radio-button>
     <el-radio-button label="memcached">Memcached</el-radio-button>
     <el-radio-button label="redis">Redis</el-radio-button>

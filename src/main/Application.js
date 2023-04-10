@@ -137,6 +137,7 @@ export default class Application extends EventEmitter {
     global.Server.NginxDir = join(runpath, 'server/nginx')
     global.Server.PhpDir = join(runpath, 'server/php')
     global.Server.MysqlDir = join(runpath, 'server/mysql')
+    global.Server.MariaDBDir = join(runpath, 'server/mariadb')
     global.Server.ApacheDir = join(runpath, 'server/apache')
     global.Server.MemcachedDir = join(runpath, 'server/memcached')
     global.Server.RedisDir = join(runpath, 'server/redis')
@@ -144,6 +145,7 @@ export default class Application extends EventEmitter {
     createFolder(global.Server.NginxDir)
     createFolder(global.Server.PhpDir)
     createFolder(global.Server.MysqlDir)
+    createFolder(global.Server.MariaDBDir)
     createFolder(global.Server.ApacheDir)
     createFolder(global.Server.MemcachedDir)
     createFolder(global.Server.RedisDir)
@@ -357,7 +359,8 @@ export default class Application extends EventEmitter {
       mysql: 'mysqld',
       memcached: 'memcached',
       redis: 'redis-server',
-      mongodb: 'mongod'
+      mongodb: 'mongod',
+      mariadb: 'mariadbd'
     }
     try {
       let serverName = dis[type]
@@ -380,6 +383,7 @@ export default class Application extends EventEmitter {
         let sig = ''
         switch (type) {
           case 'mysql':
+          case 'mariadb':
             sig = '-9'
             break
           case 'mongodb':
@@ -409,6 +413,8 @@ export default class Application extends EventEmitter {
     this.stopServerByPid(pidfile, 'php')
     pidfile = join(global.Server.MysqlDir, 'mysql.pid')
     this.stopServerByPid(pidfile, 'mysql')
+    pidfile = join(global.Server.MariaDBDir, 'mariadb.pid')
+    this.stopServerByPid(pidfile, 'mariadb')
     pidfile = join(global.Server.ApacheDir, 'common/logs/httpd.pid')
     this.stopServerByPid(pidfile, 'apache')
     pidfile = join(global.Server.MemcachedDir, 'logs/memcached.pid')
@@ -543,6 +549,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:apache':
       case 'app-fork:php':
       case 'app-fork:mysql':
+      case 'app-fork:mariadb':
       case 'app-fork:memcached':
       case 'app-fork:redis':
       case 'app-fork:host':

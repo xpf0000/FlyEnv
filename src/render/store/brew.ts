@@ -23,6 +23,7 @@ interface State {
   apache: AppSoftInstalledItem
   memcached: AppSoftInstalledItem
   mysql: AppSoftInstalledItem
+  mariadb: AppSoftInstalledItem
   redis: AppSoftInstalledItem
   php: AppSoftInstalledItem
   mongodb: AppSoftInstalledItem
@@ -64,6 +65,12 @@ const state: State = {
     list: {}
   },
   mysql: {
+    getListing: false,
+    installedInited: false,
+    installed: [],
+    list: {}
+  },
+  mariadb: {
     getListing: false,
     installedInited: false,
     installed: [],

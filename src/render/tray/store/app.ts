@@ -21,6 +21,12 @@ export interface TrayState {
     running: boolean
     disabled: boolean
   }
+  mariadb: {
+    show: boolean
+    run: boolean
+    running: boolean
+    disabled: boolean
+  }
   php: {
     show: boolean
     run: boolean
@@ -54,6 +60,7 @@ const state: TrayState = {
   apache: { show: true, disabled: true, run: false, running: false },
   memcached: { show: true, disabled: true, run: false, running: false },
   mysql: { show: true, disabled: true, run: false, running: false },
+  mariadb: { show: true, disabled: true, run: false, running: false },
   nginx: { show: true, disabled: true, run: false, running: false },
   password: '',
   php: { show: true, disabled: true, run: false, running: false },

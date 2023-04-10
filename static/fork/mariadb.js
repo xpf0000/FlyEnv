@@ -1,18 +1,19 @@
-const join = require('path').join
+const { AppI18n } = require('./lang/index')
+const BaseManager = require('./BaseManager.js')
+const { join } = require('path')
 const { existsSync, writeFileSync } = require('fs')
-const { spawn } = require('child_process')
-const BaseManager = require('./BaseManager')
-const Utils = require('./Utils')
 const { I18nT } = require('./lang/index.js')
+const Utils = require('./Utils.js')
+const { spawn } = require('child_process')
 
-class MysqlManager extends BaseManager {
+class Manager extends BaseManager {
   constructor() {
     super()
-    this.type = 'mysql'
+    this.type = 'mariadb'
   }
 
   init() {
-    this.pidPath = join(global.Server.MysqlDir, 'mysql.pid')
+    this.pidPath = join(global.Server.MariaDBDir, 'mariadb.pid')
   }
 
   _startServer(version) {
@@ -24,30 +25,25 @@ class MysqlManager extends BaseManager {
         return
       }
       const v = version.version.split('.').slice(0, 2).join('.')
-      let m = join(global.Server.MysqlDir, `my-${v}.cnf`)
-      const oldm = join(global.Server.MysqlDir, 'my.cnf')
-      const dataDir = join(global.Server.MysqlDir, `data-${v}`)
+      let m = join(global.Server.MariaDBDir, `my-${v}.cnf`)
+      const dataDir = join(global.Server.MariaDBDir, `data-${v}`)
       if (!existsSync(m)) {
-        let conf = `[mysqld]
+        let conf = `[mariadbd]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-
-#设置数据目录
-#brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
-#如果配置文件已更改, 原配置文件在: ${oldm}
-#可以复制原配置文件的内容, 使用原来的配置
+port = 3307
 datadir=${dataDir}`
         writeFileSync(m, conf)
       }
 
-      let p = join(global.Server.MysqlDir, 'mysql.pid')
-      let s = join(global.Server.MysqlDir, 'slow.log')
-      let e = join(global.Server.MysqlDir, 'error.log')
+      let p = join(global.Server.MariaDBDir, 'mariadb.pid')
+      let s = join(global.Server.MariaDBDir, 'slow.log')
+      let e = join(global.Server.MariaDBDir, 'error.log')
       const params = [
         `--defaults-file=${m}`,
         `--pid-file=${p}`,
-        '--user=mysql',
+        '--slow-query-log=ON',
         `--slow-query-log-file=${s}`,
         `--log-error=${e}`
       ]
@@ -56,16 +52,13 @@ datadir=${dataDir}`
         needRestart = true
         Utils.createFolder(dataDir)
         Utils.chmod(dataDir, '0777')
-        if (version.version.indexOf('5.6.') === 0) {
-          bin = join(version.path, 'scripts/mysql_install_db')
-          params.splice(0)
-          params.push(`--datadir=${dataDir}`)
-          params.push(`--basedir=${version.path}`)
-        } else {
-          params.push('--initialize-insecure')
-        }
+        bin = join(version.path, 'scripts/mariadb-install-db')
+        params.splice(0)
+        params.push(`--datadir=${dataDir}`)
+        params.push(`--basedir=${version.path}`)
+        params.push('--auth-root-authentication-method=normal')
       }
-      console.log('mysql start: ', bin, params.join(' '))
+      console.log('mariadb start: ', bin, params.join(' '))
       process.send({
         command: this.ipcCommand,
         key: this.ipcCommandKey,
@@ -137,4 +130,14 @@ datadir=${dataDir}`
     })
   }
 }
-module.exports = MysqlManager
+
+let manager = new Manager()
+process.on('message', function (args) {
+  if (args.Server) {
+    global.Server = args.Server
+    AppI18n(global.Server.Lang)
+    manager.init()
+  } else {
+    manager.exec(args)
+  }
+})

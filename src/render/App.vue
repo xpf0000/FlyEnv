@@ -92,6 +92,7 @@
             'php',
             'nginx',
             'mysql',
+            'mariadb',
             'apache',
             'memcached',
             'redis',

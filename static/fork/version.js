@@ -48,6 +48,11 @@ class Manager extends BaseManager {
           reg = new RegExp('(Ver )([\\s\\S]*?)( )', 'g')
           command = `${bin} -V`
           break
+        case 'mariadbd-safe':
+          bin = bin.replace('-safe', '')
+          reg = new RegExp('(Ver )([\\s\\S]*?)(-)', 'g')
+          command = `${bin} -V`
+          break
         case 'memcached':
           reg = new RegExp('(memcached )([\\s\\S]*?)(\\n)', 'g')
           command = `${bin} -V`
@@ -72,6 +77,7 @@ class Manager extends BaseManager {
       nginx: 'nginx',
       php: 'php',
       mysql: 'mysql',
+      mariadb: 'mariadb',
       memcached: 'memcached',
       redis: 'redis',
       mongodb: 'mongodb-'
@@ -81,6 +87,7 @@ class Manager extends BaseManager {
       nginx: 'nginx',
       php: 'php-fpm',
       mysql: 'mysqld_safe',
+      mariadb: 'mariadbd-safe',
       memcached: 'memcached',
       redis: 'redis-server',
       mongodb: 'mongod'
@@ -96,11 +103,17 @@ class Manager extends BaseManager {
           let res = false
           let binPath = join(dir, `bin/${binName}`)
           if (existsSync(binPath)) {
-            return realpathSync(binPath)
+            binPath = realpathSync(binPath)
+            if (binPath.includes(binName)) {
+              return binPath
+            }
           }
           binPath = join(dir, `sbin/${binName}`)
           if (existsSync(binPath)) {
-            return realpathSync(binPath)
+            binPath = realpathSync(binPath)
+            if (binPath.includes(binName)) {
+              return binPath
+            }
           }
           if (depth >= maxDepth) {
             return res

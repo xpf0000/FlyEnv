@@ -25,6 +25,10 @@ const routes = [
         component: () => import('@/components/Mysql/Index.vue')
       },
       {
+        path: '/mariadb',
+        component: () => import('@/components/MariaDB/Index.vue')
+      },
+      {
         path: '/apache',
         component: () => import('@/components/Apache/Index.vue')
       },

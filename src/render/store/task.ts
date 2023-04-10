@@ -13,6 +13,9 @@ interface State {
   mysql: {
     log: Array<string>
   }
+  mariadb: {
+    log: Array<string>
+  }
   mongodb: {
     log: Array<string>
   }
@@ -39,6 +42,7 @@ const state: State = {
   apache: { log: [] },
   memcached: { log: [] },
   mysql: { log: [] },
+  mariadb: { log: [] },
   mongodb: { log: [] },
   nginx: { log: [] },
   node: { NVM_DIR: '', btnTxt: '', getVersioning: false, isRunning: false, versions: [] },

@@ -105,6 +105,18 @@
           ],
           memcached: ['memcached'],
           mysql: ['mysql', 'mysql@5.6', 'mysql@5.7'],
+          mariadb: [
+            'mariadb',
+            'mariadb@10.10',
+            'mariadb@10.9',
+            'mariadb@10.8',
+            'mariadb@10.7',
+            'mariadb@10.6',
+            'mariadb@10.5',
+            'mariadb@10.4',
+            'mariadb@10.3',
+            'mariadb@10.2'
+          ],
           redis: ['redis', 'redis@3.2', 'redis@4.0', 'redis@6.2'],
           mongodb: [
             'mongodb/brew/mongodb-community',

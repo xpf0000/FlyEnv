@@ -83,6 +83,27 @@
         </li>
 
         <li
+          v-if="showItem.mariadb"
+          class="non-draggable"
+          :class="'non-draggable' + (currentPage === '/mariadb' ? ' active' : '')"
+          @click="nav('/mariadb')"
+        >
+          <div class="left">
+            <div class="icon-block">
+              <yb-icon :svg="import('@/svg/mariaDB.svg?raw')" width="30" height="30" />
+            </div>
+            <span class="title">MariaDB</span>
+          </div>
+
+          <el-switch
+            :disabled="mariaDBDisabled"
+            :value="mariaDBRunning"
+            @change="switchChange('mariadb')"
+          >
+          </el-switch>
+        </li>
+
+        <li
           v-if="showItem.Php"
           :class="'non-draggable' + (currentPage === '/php' ? ' active' : '')"
           @click="nav('/php')"
@@ -266,6 +287,14 @@
         const installed = BrewStore()?.mysql?.installed
         return installed?.find((i) => i.path === current?.path && i.version === current?.version)
       },
+      mariaDBVersion() {
+        const current = AppStore().config.server?.mariadb?.current
+        if (!current) {
+          return undefined
+        }
+        const installed = BrewStore()?.mariadb?.installed
+        return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+      },
       apacheVersion() {
         const current = AppStore().config.server?.apache?.current
         if (!current) {
@@ -319,6 +348,13 @@
           !AppStore().versionInited
         )
       },
+      mariaDBDisabled(): boolean {
+        return (
+          !this.mariaDBVersion?.version ||
+          BrewStore()?.mariadb?.installed?.some((v) => v.running) ||
+          !AppStore().versionInited
+        )
+      },
       memcachedDisabled(): boolean {
         return (
           !this.memcachedVersion?.version ||
@@ -345,6 +381,9 @@
       },
       mysqlRunning(): boolean {
         return this.mysqlVersion?.run === true
+      },
+      mariaDBRunning(): boolean {
+        return this.mariaDBVersion?.run === true
       },
       apacheRunning(): boolean {
         return this.apacheVersion?.run === true
@@ -398,6 +437,7 @@
           this.nginxRunning ||
           this.apacheRunning ||
           this.mysqlRunning ||
+          this.mariaDBRunning ||
           this.phpRunning ||
           this.redisRunning ||
           this.memcachedRunning ||
@@ -409,6 +449,7 @@
           this.apacheDisabled &&
           this.memcachedDisabled &&
           this.mysqlDisabled &&
+          this.mariaDBDisabled &&
           this.nginxDisabled &&
           this.phpDisable &&
           this.redisDisabled &&
@@ -417,6 +458,7 @@
           this?.apacheVersion?.running === true ||
           this?.memcachedVersion?.running === true ||
           this?.mysqlVersion?.running === true ||
+          this?.mariaDBVersion?.running === true ||
           this?.nginxVersion?.running === true ||
           this.phpVersions.some((v) => v.running) ||
           this?.redisVersion?.running === true ||
@@ -451,6 +493,12 @@
             disabled: this.mysqlDisabled,
             run: this.mysqlVersion?.run === true,
             running: this.mysqlVersion?.running === true
+          },
+          mariadb: {
+            show: this.showItem.mariadb,
+            disabled: this.mariaDBDisabled,
+            run: this.mariaDBVersion?.run === true,
+            running: this.mariaDBVersion?.running === true
           },
           nginx: {
             show: this.showItem.Nginx,
@@ -533,6 +581,9 @@
             if (this.showItem.Mysql && this.mysqlRunning && this.mysqlVersion?.version) {
               all.push(stopService('mysql', this.mysqlVersion))
             }
+            if (this.showItem.mariadb && this.mariaDBRunning && this.mariaDBVersion?.version) {
+              all.push(stopService('mariadb', this.mariaDBVersion))
+            }
             if (
               this.showItem.Memcached &&
               this.memcachedRunning &&
@@ -558,6 +609,9 @@
             }
             if (this.showItem.Mysql && this.mysqlVersion?.version) {
               all.push(startService('mysql', this.mysqlVersion))
+            }
+            if (this.showItem.mariadb && this.mariaDBVersion?.version) {
+              all.push(startService('mariadb', this.mariaDBVersion))
             }
             if (this.showItem.Memcached && this.memcachedVersion?.version) {
               all.push(startService('memcached', this.memcachedVersion))
@@ -602,6 +656,11 @@
               if (!this.mysqlVersion?.version) return
               fn = this.mysqlRunning ? stopService : startService
               promise = fn('mysql', this.mysqlVersion)
+              break
+            case 'mariadb':
+              if (!this.mariaDBVersion?.version) return
+              fn = this.mariaDBRunning ? stopService : startService
+              promise = fn('mariadb', this.mariaDBVersion)
               break
             case 'apache':
               if (!this.apacheVersion?.version) return

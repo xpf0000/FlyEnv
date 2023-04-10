@@ -16,6 +16,9 @@ interface ConfigOptions {
     mysql: {
       current: { [key: string]: any }
     }
+    mariadb: {
+      current: { [key: string]: any }
+    }
     apache: {
       current: { [key: string]: any }
     }
@@ -38,6 +41,7 @@ interface ConfigOptions {
         Nginx: boolean
         Apache: boolean
         Mysql: boolean
+        mariadb: boolean
         Php: boolean
         Memcached: boolean
         Redis: boolean
@@ -54,6 +58,9 @@ interface ConfigOptions {
       dirs: Array<string>
     }
     mysql: {
+      dirs: Array<string>
+    }
+    mariadb: {
       dirs: Array<string>
     }
     php: {
@@ -104,6 +111,9 @@ export default class ConfigManager {
           mysql: {
             current: {}
           },
+          mariadb: {
+            current: {}
+          },
           apache: {
             current: {}
           },
@@ -126,6 +136,7 @@ export default class ConfigManager {
               Nginx: true,
               Apache: true,
               Mysql: true,
+              mariadb: true,
               Php: true,
               Memcached: true,
               Redis: true,
@@ -142,6 +153,9 @@ export default class ConfigManager {
             dirs: []
           },
           mysql: {
+            dirs: []
+          },
+          mariadb: {
             dirs: []
           },
           php: {
@@ -181,6 +195,9 @@ export default class ConfigManager {
     if (!this.config.has('setup.common.showItem.MongoDB')) {
       this.config.set('setup.common.showItem.MongoDB', true)
     }
+    if (!this.config.has('setup.common.showItem.mariadb')) {
+      this.config.set('setup.common.showItem.mariadb', true)
+    }
     if (!this.config.has('server.mongodb')) {
       this.config.set('server.mongodb', {
         current: {}
@@ -188,6 +205,16 @@ export default class ConfigManager {
     }
     if (!this.config.has('setup.mongodb')) {
       this.config.set('setup.mongodb', {
+        dirs: []
+      })
+    }
+    if (!this.config.has('server.mariadb')) {
+      this.config.set('server.mariadb', {
+        current: {}
+      })
+    }
+    if (!this.config.has('setup.mariadb')) {
+      this.config.set('setup.mariadb', {
         dirs: []
       })
     }

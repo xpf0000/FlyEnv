@@ -53,6 +53,22 @@
         </el-switch>
       </li>
 
+      <li v-if="mariadb?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block">
+            <yb-icon :svg="import('@/svg/mariaDB.svg?raw')" width="30" height="30" />
+          </div>
+          <span class="title">MariaDB</span>
+        </div>
+
+        <el-switch
+          :disabled="mariadb?.disabled"
+          :value="mariadb?.run"
+          @change="switchChange('mariadb')"
+        >
+        </el-switch>
+      </li>
+
       <li v-if="php?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block">
@@ -157,6 +173,9 @@
       },
       mysql() {
         return AppStore().mysql
+      },
+      mariadb() {
+        return AppStore().mariadb
       },
       memcached() {
         return AppStore().memcached

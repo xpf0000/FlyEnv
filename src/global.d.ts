@@ -13,6 +13,7 @@ export interface ServerType {
   PhpDir?: string
   NginxDir?: string
   MysqlDir?: string
+  MariaDBDir?: string
   MemcachedDir?: string
   BaseDir?: string
   ApacheDir?: string

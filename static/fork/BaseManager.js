@@ -155,6 +155,7 @@ class BaseManager {
         nginx: 'nginx',
         apache: 'httpd',
         mysql: 'mysqld',
+        mariadb: 'mariadbd',
         memcached: 'memcached',
         redis: 'redis-server',
         mongodb: 'mongod'
@@ -187,6 +188,7 @@ class BaseManager {
             let sig = ''
             switch (this.type) {
               case 'mysql':
+              case 'mariadb':
                 sig = '-9'
                 break
               case 'mongodb':

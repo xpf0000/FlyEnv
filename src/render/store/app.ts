@@ -39,6 +39,7 @@ export enum AppSofts {
   nginx = 'nginx',
   php = 'php',
   mysql = 'mysql',
+  mariadb = 'mariadb',
   apache = 'apache',
   memcached = 'memcached',
   redis = 'redis',
@@ -62,6 +63,7 @@ interface State {
           Nginx: boolean
           Apache: boolean
           Mysql: boolean
+          mariadb: boolean
           Php: boolean
           Memcached: boolean
           Redis: boolean
@@ -86,6 +88,9 @@ interface State {
         dirs: Array<string>
       }
       mysql: {
+        dirs: Array<string>
+      }
+      mariadb: {
         dirs: Array<string>
       }
       apache: {
@@ -119,6 +124,9 @@ const state: State = {
       mysql: {
         current: {}
       },
+      mariadb: {
+        current: {}
+      },
       apache: {
         current: {}
       },
@@ -141,6 +149,7 @@ const state: State = {
           Nginx: true,
           Apache: true,
           Mysql: true,
+          mariadb: true,
           Php: true,
           Memcached: true,
           Redis: true,
@@ -156,6 +165,9 @@ const state: State = {
         dirs: []
       },
       mysql: {
+        dirs: []
+      },
+      mariadb: {
         dirs: []
       },
       php: {

@@ -18,9 +18,9 @@ const options: PageOptions = {
     attrs: {
       title: 'PhpWebStudy',
       width: 1100,
-      height: 700,
+      height: 780,
       minWidth: 1100,
-      minHeight: 700,
+      minHeight: 780,
       backgroundColor: '#262D3D',
       transparent: !is.windows()
     },
