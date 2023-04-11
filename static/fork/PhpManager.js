@@ -175,6 +175,7 @@ class PhpManager extends BaseManager {
       }
       if (hasError) {
         resolve(true)
+        return
       }
       const setPhpVersion = (host) => {
         const name = host.name
@@ -204,12 +205,18 @@ class PhpManager extends BaseManager {
 
         host.phpVersion = Number(v)
       }
-      hostList.forEach((h) => {
-        if (!h?.phpVersion) {
-          setPhpVersion(h)
+      if (hostList.length > 0) {
+        let needWrite = false
+        hostList.forEach((h) => {
+          if (!h?.phpVersion) {
+            setPhpVersion(h)
+            needWrite = true
+          }
+        })
+        if (needWrite) {
+          writeFileSync(hostFile, JSON.stringify(hostList))
         }
-      })
-      writeFileSync(hostFile, JSON.stringify(hostList))
+      }
       resolve(true)
     })
   }
