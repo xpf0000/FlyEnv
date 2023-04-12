@@ -324,18 +324,40 @@ class HostManager {
       }
       if (host.ssl.cert !== old.ssl.cert) {
         hasChanged = true
-        find.push(...[`ssl_certificate    ${old.ssl.cert};`, `SSLCertificateFile ${old.ssl.cert}`])
+        find.push(
+          ...[
+            `ssl_certificate    ${old.ssl.cert};`,
+            `ssl_certificate    "${old.ssl.cert}";`,
+            `SSLCertificateFile ${old.ssl.cert}`,
+            `SSLCertificateFile "${old.ssl.cert}"`
+          ]
+        )
         replace.push(
-          ...[`ssl_certificate    ${host.ssl.cert};`, `SSLCertificateFile ${host.ssl.cert}`]
+          ...[
+            `ssl_certificate    "${host.ssl.cert}";`,
+            `ssl_certificate    "${host.ssl.cert}";`,
+            `SSLCertificateFile "${host.ssl.cert}"`,
+            `SSLCertificateFile "${host.ssl.cert}"`
+          ]
         )
       }
       if (host.ssl.key !== old.ssl.key) {
         hasChanged = true
         find.push(
-          ...[`ssl_certificate_key    ${old.ssl.key};`, `SSLCertificateKeyFile ${old.ssl.key}`]
+          ...[
+            `ssl_certificate_key    ${old.ssl.key};`,
+            `ssl_certificate_key    "${old.ssl.key}";`,
+            `SSLCertificateKeyFile ${old.ssl.key}`,
+            `SSLCertificateKeyFile "${old.ssl.key}"`
+          ]
         )
         replace.push(
-          ...[`ssl_certificate_key    ${host.ssl.key};`, `SSLCertificateKeyFile ${host.ssl.key}`]
+          ...[
+            `ssl_certificate_key    "${host.ssl.key}";`,
+            `ssl_certificate_key    "${host.ssl.key}";`,
+            `SSLCertificateKeyFile "${host.ssl.key}"`,
+            `SSLCertificateKeyFile "${host.ssl.key}"`
+          ]
         )
       }
       if (host.port.nginx !== old.port.nginx) {
@@ -356,6 +378,8 @@ class HostManager {
         } else {
           replace.push('')
         }
+        find.push(...[`<VirtualHost \\*:${old.port.apache}>`])
+        replace.push(...[`<VirtualHost *:${host.port.apache}>`])
       }
       if (host.port.apache_ssl !== old.port.apache_ssl) {
         hasChanged = true
@@ -367,14 +391,26 @@ class HostManager {
         } else {
           replace.push('')
         }
+        find.push(...[`<VirtualHost \\*:${old.port.apache_ssl}>`])
+        replace.push(...[`<VirtualHost *:${host.port.apache_ssl}>`])
       }
       if (host.root !== old.root) {
         hasChanged = true
         find.push(
-          ...[`root ${old.root};`, `DocumentRoot "${old.root}"`, `<Directory "${old.root}">`]
+          ...[
+            `root ${old.root};`,
+            `root "${old.root}";`,
+            `DocumentRoot "${old.root}"`,
+            `<Directory "${old.root}">`
+          ]
         )
         replace.push(
-          ...[`root ${host.root};`, `DocumentRoot "${host.root}"`, `<Directory "${host.root}">`]
+          ...[
+            `root "${host.root}";`,
+            `root "${host.root}";`,
+            `DocumentRoot "${host.root}"`,
+            `<Directory "${host.root}">`
+          ]
         )
       }
       if (host.phpVersion !== old.phpVersion) {

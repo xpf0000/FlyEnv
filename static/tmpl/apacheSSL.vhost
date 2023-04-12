@@ -43,8 +43,8 @@ NameVirtualHost *:#Listen_Port_Apache_SSL#
 
     #SSL
     SSLEngine On
-    SSLCertificateFile #Server_Cert#
-    SSLCertificateKeyFile #Server_CertKey#
+    SSLCertificateFile "#Server_Cert#"
+    SSLCertificateKeyFile "#Server_CertKey#"
     SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
     SSLProtocol All -SSLv2 -SSLv3
     SSLHonorCipherOrder On

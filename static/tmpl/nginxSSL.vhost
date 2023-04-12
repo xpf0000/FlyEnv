@@ -4,10 +4,10 @@ server
     listen #Port_Nginx_SSL# ssl http2;
     server_name #Server_Alias#;
     index index.php index.html index.htm default.php default.htm default.html;
-    root #Server_Root#;
+    root "#Server_Root#";
 
-    ssl_certificate    #Server_Cert#;
-    ssl_certificate_key    #Server_CertKey#;
+    ssl_certificate    "#Server_Cert#";
+    ssl_certificate_key    "#Server_CertKey#";
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
     ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
     ssl_prefer_server_ciphers on;

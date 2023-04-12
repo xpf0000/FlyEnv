@@ -3,7 +3,7 @@ server
     listen #Port_Nginx#;
     server_name #Server_Alias#;
     index index.php index.html index.htm default.php default.htm default.html;
-    root #Server_Root#;
+    root "#Server_Root#";
 
     #PHP-INFO-START
     include enable-php.conf;
