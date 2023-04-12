@@ -3,7 +3,7 @@ import PublishConfig from './publish'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
-  buildVersion: '1.0.41',
+  buildVersion: '1.0.42',
   electronVersion: '23.1.1',
   appId: 'phpstudy.xpfme.com',
   asar: true,
