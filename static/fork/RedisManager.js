@@ -22,16 +22,25 @@ class RedisManager extends BaseManager {
       }
       let realConf = join(global.Server.RedisDir, 'common/redis.conf')
       let command = `echo '${global.Server.Password}' | sudo -S ${bin} ${realConf}`
+
+      const checkpid = (time = 0) => {
+        if (existsSync(this.pidPath)) {
+          resolve(0)
+        } else {
+          if (time < 20) {
+            setTimeout(() => {
+              checkpid(time + 1)
+            }, 500)
+          } else {
+            reject(new Error(I18nT('fork.startFail')))
+          }
+        }
+      }
+
       execPromise(command)
         .then((res) => {
           console.log('res: ', res)
-          setTimeout(() => {
-            if (existsSync(this.pidPath)) {
-              resolve(0)
-            } else {
-              reject(new Error(I18nT('fork.startFail')))
-            }
-          }, 600)
+          checkpid()
         })
         .catch((err) => {
           console.log('err: ', err)

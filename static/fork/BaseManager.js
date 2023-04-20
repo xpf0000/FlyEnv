@@ -165,8 +165,7 @@ class BaseManager {
       console.log('_stopServer command: ', command)
       execPromise(command)
         .then((res) => {
-          let pids = res.stdout.trim().split('\n')
-          console.log('pids: ', pids)
+          let pids = res?.stdout?.trim()?.split('\n') ?? []
           let arr = []
           for (let p of pids) {
             if (
@@ -178,13 +177,11 @@ class BaseManager {
             }
             arr.push(p.split(' ')[0])
           }
-          console.log('pids 0: ', arr)
           if (arr.length === 0) {
             cleanPid()
             resolve(0)
           } else {
             arr = arr.join(' ')
-            console.log('pids 1: ', arr)
             let sig = ''
             switch (this.type) {
               case 'mysql':

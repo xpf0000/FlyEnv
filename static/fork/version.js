@@ -62,7 +62,7 @@ class Manager extends BaseManager {
           command = `${bin} -v`
           break
         case 'mongod':
-          reg = new RegExp('("version": ")([\\s\\S]*?)(",)', 'g')
+          reg = new RegExp('(db version v)([\\s\\S]*?)(\\n)', 'g')
           command = `${bin} --version`
           break
       }
