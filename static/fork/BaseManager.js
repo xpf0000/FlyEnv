@@ -149,6 +149,9 @@ class BaseManager {
             unlinkSync(this.pidPath)
           }
         } catch (e) {}
+        setTimeout(() => {
+          resolve(0)
+        }, 300)
       }
       let dis = {
         php: 'php-fpm',
@@ -179,7 +182,6 @@ class BaseManager {
           }
           if (arr.length === 0) {
             cleanPid()
-            resolve(0)
           } else {
             arr = arr.join(' ')
             let sig = ''
@@ -201,13 +203,11 @@ class BaseManager {
         .then(() => {
           setTimeout(() => {
             cleanPid()
-            resolve(0)
           }, 1000)
         })
         .catch(() => {
           setTimeout(() => {
             cleanPid()
-            resolve(0)
           }, 1000)
         })
     })

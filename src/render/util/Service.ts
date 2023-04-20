@@ -3,7 +3,11 @@ import type { SoftInstalled } from '@/store/brew'
 import { AppSofts, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
 
-const exec = (typeFlag: keyof typeof AppSofts, version: SoftInstalled, fn: string) => {
+const exec = (
+  typeFlag: keyof typeof AppSofts,
+  version: SoftInstalled,
+  fn: string
+): Promise<string | boolean> => {
   return new Promise((resolve) => {
     if (version.running) {
       resolve(true)

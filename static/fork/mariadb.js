@@ -85,7 +85,7 @@ datadir=${dataDir}`
           }
         }
       }
-
+      let checking = false
       child.stdout.on('data', (data) => {
         let str = data.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
         process.send({
@@ -96,7 +96,10 @@ datadir=${dataDir}`
             msg: str
           }
         })
-        checkpid()
+        if (!checking) {
+          checking = true
+          checkpid()
+        }
       })
       child.stderr.on('data', (err) => {
         let str = err.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')

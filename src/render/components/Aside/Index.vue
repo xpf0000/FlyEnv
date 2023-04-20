@@ -570,7 +570,7 @@
           return
         }
         passwordCheck().then(() => {
-          const all = []
+          const all: Array<Promise<string | boolean>> = []
           if (this.groupIsRunning) {
             if (this.showItem.Nginx && this.nginxRunning && this.nginxVersion?.version) {
               all.push(stopService('nginx', this.nginxVersion))
@@ -627,18 +627,30 @@
             })
           }
           if (all.length > 0) {
-            Promise.all(all)
-              .then((res) => {
-                let find = res.find((s: boolean | string) => typeof s === 'string')
-                if (find) {
-                  this.$message.error(find as string)
-                } else {
+            const err: Array<string> = []
+            const run = () => {
+              const task = all.pop()
+              if (task) {
+                task
+                  .then((s: boolean | string) => {
+                    if (typeof s === 'string') {
+                      err.push(s)
+                    }
+                    run()
+                  })
+                  .catch((e: any) => {
+                    err.push(e.toString())
+                    run()
+                  })
+              } else {
+                if (err.length === 0) {
                   this.$message.success(this.$t('base.success'))
+                } else {
+                  this.$message.error(err.join('<br/>'))
                 }
-              })
-              .catch(() => {
-                this.$message.error(this.$t('base.fail'))
-              })
+              }
+            }
+            run()
           }
         })
       },
