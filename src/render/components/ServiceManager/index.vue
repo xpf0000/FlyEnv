@@ -67,6 +67,7 @@
   import { AppSofts, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { TaskStore } from '@/store/task'
+  import { ElMessage } from 'element-plus'
 
   export default defineComponent({
     components: {},
@@ -160,9 +161,9 @@
         }
         action.then((res: any) => {
           if (typeof res === 'string') {
-            this.$message.error(res)
+            ElMessage.error(res)
           } else {
-            this.$message.success(this.$t('base.success'))
+            ElMessage.success(this.$t('base.success'))
           }
         })
       }

@@ -143,16 +143,35 @@ class BaseManager {
 
   _stopServer() {
     return new Promise((resolve) => {
-      const cleanPid = () => {
-        try {
-          if (existsSync(this.pidPath)) {
-            unlinkSync(this.pidPath)
-          }
-        } catch (e) {}
-        setTimeout(() => {
+      /**
+       * 检测pid文件是否删除, 作为服务正常停止的依据
+       * @param time
+       */
+      const checkPid = (time = 0) => {
+        /**
+         * mongodb 不会自动删除pid文件 直接返回成功
+         */
+        if (this.type === 'mongodb') {
+          setTimeout(() => {
+            resolve(0)
+          }, 1000)
+          return
+        }
+        if (!existsSync(this.pidPath)) {
           resolve(0)
-        }, 300)
+        } else {
+          if (time < 20) {
+            setTimeout(() => {
+              checkPid(time + 1)
+            }, 500)
+          } else {
+            console.log('服务停止可能失败, 未检测到pid文件被删除', this.type, this.pidPath)
+            unlinkSync(this.pidPath)
+            resolve(0)
+          }
+        }
       }
+
       let dis = {
         php: 'php-fpm',
         nginx: 'nginx',
@@ -181,17 +200,15 @@ class BaseManager {
             arr.push(p.split(' ')[0])
           }
           if (arr.length === 0) {
-            cleanPid()
+            checkPid()
           } else {
             arr = arr.join(' ')
             let sig = ''
             switch (this.type) {
               case 'mysql':
               case 'mariadb':
-                sig = '-9'
-                break
               case 'mongodb':
-                sig = '-2'
+                sig = '-TERM'
                 break
               default:
                 sig = '-INT'
@@ -201,14 +218,10 @@ class BaseManager {
           }
         })
         .then(() => {
-          setTimeout(() => {
-            cleanPid()
-          }, 1000)
+          checkPid()
         })
         .catch(() => {
-          setTimeout(() => {
-            cleanPid()
-          }, 1000)
+          checkPid()
         })
     })
   }
@@ -260,32 +273,23 @@ class BaseManager {
     let stdout = ''
     let stderr = ''
     let exit = false
+    const onEnd = (code) => {
+      if (exit) return
+      exit = true
+      if (code === 0) {
+        resolve(code)
+      } else {
+        reject(code)
+      }
+    }
     child.stdout.on('data', (data) => {
       stdout = this._handleStd(data, stdout)
     })
     child.stderr.on('data', (err) => {
       stderr = this._handleStd(err, stderr)
     })
-    child.on('exit', function (code) {
-      console.log('exit: ', code)
-      if (exit) return
-      exit = true
-      if (code === 0) {
-        resolve(code)
-      } else {
-        reject(code)
-      }
-    })
-    child.on('close', function (code) {
-      console.log('close: ', code)
-      if (exit) return
-      exit = true
-      if (code === 0) {
-        resolve(code)
-      } else {
-        reject(code)
-      }
-    })
+    child.on('exit', onEnd)
+    child.on('close', onEnd)
   }
 
   _handleLog(info) {

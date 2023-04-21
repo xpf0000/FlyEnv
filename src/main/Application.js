@@ -384,19 +384,14 @@ export default class Application extends EventEmitter {
         switch (type) {
           case 'mysql':
           case 'mariadb':
-            sig = '-9'
-            break
           case 'mongodb':
-            sig = '-2'
+            sig = '-TERM'
             break
           default:
             sig = '-INT'
             break
         }
         execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${arr}`)
-      }
-      if (existsSync(pidfile)) {
-        unlinkSync(pidfile)
       }
     } catch (e) {
       console.log(e)

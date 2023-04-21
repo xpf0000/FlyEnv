@@ -47,7 +47,32 @@ class Manager extends BaseManager {
       })
       let opt = this._fixEnv()
       const child = spawn(bin, params, opt)
-      this._childHandle(child, resolve, reject)
+
+      let exit = false
+      const onEnd = (code) => {
+        if (exit) return
+        exit = true
+        if (!code) {
+          resolve(code)
+        } else {
+          reject(code)
+        }
+      }
+      const sendLog = (data) => {
+        let str = data.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
+        process.send({
+          command: this.ipcCommand,
+          key: this.ipcCommandKey,
+          info: {
+            code: 200,
+            msg: str
+          }
+        })
+      }
+      child.stdout.on('data', sendLog)
+      child.stderr.on('data', sendLog)
+      child.on('close', onEnd)
+      child.on('exit', onEnd)
     })
   }
 }

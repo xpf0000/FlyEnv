@@ -52,6 +52,7 @@
   import { BrewStore } from '@/store/brew'
   import { AppSofts, AppStore } from '@/store/app'
   import { TaskStore } from '@/store/task'
+  import { ElMessage } from 'element-plus'
 
   export default defineComponent({
     components: {},
@@ -183,12 +184,12 @@
                 data: param
               })
               appStore.saveConfig()
-              this.$message.success(this.$t('base.success'))
+              ElMessage.success(this.$t('base.success'))
               data.run = true
               data.running = false
             } else if (res.code === 1) {
               IPC.off(key)
-              this.$message.error(this.$t('base.fail'))
+              ElMessage.error(this.$t('base.fail'))
               data.running = false
             } else if (res.code === 200) {
               this.log.push(res.msg)
