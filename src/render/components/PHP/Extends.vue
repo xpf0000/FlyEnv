@@ -146,6 +146,12 @@
             extendPre: 'zend_extension='
           },
           {
+            name: 'sg11',
+            installed: false,
+            status: false,
+            soname: 'ixed.dar'
+          },
+          {
             name: 'memcache',
             installed: false,
             status: false,
@@ -316,7 +322,7 @@
             this.installExtensionDir = res
             let all = getAllFile(this.installExtensionDir, false)
             all = all.filter((s) => {
-              return s.indexOf('.so') >= 0
+              return s.indexOf('.so') >= 0 || s.indexOf('.dar') >= 0
             })
             console.log('all: ', all)
             this.showTableData.forEach((item: any) => {

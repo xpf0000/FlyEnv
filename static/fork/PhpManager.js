@@ -577,6 +577,47 @@ class PhpManager extends BaseManager {
               reject(err)
             })
           break
+        case 'sg11':
+          if (existsSync(join(extendsDir, 'ixed.dar'))) {
+            resolve(true)
+            return
+          }
+          sh = join(global.Server.Static, 'sh/php-sg11.sh')
+          copyfile = join(global.Server.Cache, 'php-sg11.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          Utils.readFileAsync(sh)
+            .then((content) => {
+              return Utils.writeFileAsync(copyfile, content)
+            })
+            .then(() => {
+              Utils.chmod(copyfile, '0777')
+              let versionNums = version.version.split('.')
+              versionNums.splice(2)
+              versionNums = versionNums.join('.')
+              let archStr = ''
+              if (versionNumber >= 7.4 && arch === '-arm64') {
+                archStr = arch
+              }
+              const params = [copyfile, global.Server.Cache, extendsDir, versionNums, archStr]
+              const command = params.join(' ')
+              process.send({
+                command: this.ipcCommand,
+                key: this.ipcCommandKey,
+                info: {
+                  code: 200,
+                  msg: I18nT('fork.ExtensionInstallFailTips', { command })
+                }
+              })
+              const child = spawn('zsh', params, optdefault)
+              this._childHandle(child, resolve, reject)
+            })
+            .catch((err) => {
+              console.log('err: ', err)
+              reject(err)
+            })
+          break
       }
     })
   }
