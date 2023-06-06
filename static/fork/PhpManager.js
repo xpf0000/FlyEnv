@@ -63,7 +63,11 @@ class PhpManager extends BaseManager {
     const { version, versionNumber, extend, installExtensionDir } = args
     this._doInstallExtends(version, versionNumber, extend, installExtensionDir)
       .then(() => {
-        const installedSo = join(installExtensionDir, `${extend}.so`)
+        let name = `${extend}.so`
+        if (extend === 'sg11') {
+          name = 'ixed.dar'
+        }
+        const installedSo = join(installExtensionDir, name)
         if (existsSync(installedSo)) {
           if (extend === 'xdebug') {
             this.#cleanDefaultIni(version.path)

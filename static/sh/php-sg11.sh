@@ -15,6 +15,9 @@ mkdir "loaders.macosx$arch"
 cd "loaders.macosx$arch" || exit 1
 tar -zxf "$cachedir"/loaders.macosx"$arch".tar.gz
 if [ -f "ixed.$phpv.dar" ]; then
+  if [ ! -d "$phpextenddir" ]; then
+   mkdir -p "$phpextenddir"
+  fi
   cp -rf ixed."$phpv".dar "$phpextenddir"/ixed.dar
 else
   exit 1
