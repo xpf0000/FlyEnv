@@ -1,7 +1,6 @@
 import type { UserConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import * as path from 'path'
-import { AssetsPlugin } from './vite.plugs.assets'
 import { ViteDevPort } from './vite.port'
 
 const renderPath = path.resolve(__dirname, '../src/render/')
@@ -9,7 +8,7 @@ const sharePath = path.resolve(__dirname, '../src/shared/')
 
 const config: UserConfig = {
   base: './',
-  plugins: [vue(), AssetsPlugin()],
+  plugins: [vue()],
   assetsInclude: ['**/*.node'],
   root: renderPath,
   resolve: {

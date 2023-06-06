@@ -69,7 +69,7 @@
         position: absolute;
         top: -8px;
         right: 0;
-        background: transparent url('../../assets/256x256.png') center center no-repeat;
+        background: transparent url('@/assets/256x256.png') center center no-repeat;
         background-size: 128px 128px;
         width: 128px;
         height: 128px;
