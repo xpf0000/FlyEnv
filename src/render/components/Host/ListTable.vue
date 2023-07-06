@@ -21,7 +21,7 @@
       <el-table-column :label="$t('host.mark')">
         <template #default="scope">
           <el-tooltip :content="scope.row.mark">
-            <span style="display: inline-block; width: 100%">
+            <span style="display: inline-block; max-width: 100%">
               {{ scope.row.mark }}
             </span>
           </el-tooltip>
