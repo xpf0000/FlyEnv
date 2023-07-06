@@ -341,11 +341,12 @@
           readFileAsync(file).then((content) => {
             rewrites[item] = content
             this.item.nginx.rewrite = content
+            this.monacoInstance.setValue(this.item.nginx.rewrite)
           })
         } else {
           this.item.nginx.rewrite = rewrites[item]
+          this.monacoInstance.setValue(this.item.nginx.rewrite)
         }
-        this.monacoInstance.setValue(this.item.nginx.rewrite)
       },
       loadRewrite() {
         const list: Array<string> = this.rewrites
