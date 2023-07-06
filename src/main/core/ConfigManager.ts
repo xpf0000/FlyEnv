@@ -83,6 +83,7 @@ interface ConfigOptions {
       fastProxy: string
       proxy: string
     }
+    autoCheck: boolean
   }
   httpServe: Array<string>
 }
@@ -177,7 +178,8 @@ export default class ConfigManager {
             on: false,
             fastProxy: '',
             proxy: ''
-          }
+          },
+          autoCheck: true
         },
         httpServe: []
       }
@@ -240,6 +242,9 @@ export default class ConfigManager {
     }
     if (!this.config.has('appFix.nginxEnablePhp')) {
       this.config.set('appFix.nginxEnablePhp', false)
+    }
+    if (!this.config.has('setup.autoCheck')) {
+      this.config.set('setup.autoCheck', true)
     }
   }
 

@@ -123,5 +123,6 @@ export default {
   CustomVersionDir: '自定义版本路径',
   hostParseErr: '站点加载失败, 原站点数据已备份至host.back.json, 请在打开的文件夹中查看修复文件',
   export: '导出',
-  import: '导入'
+  import: '导入',
+  autoUpdate: '自动更新'
 }

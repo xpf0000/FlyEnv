@@ -12,20 +12,18 @@ if (is.dev()) {
 }
 
 export default class UpdateManager extends EventEmitter {
-  options: { [key: string]: any }
   updater: AppUpdater
   autoCheckData: {
     checkEnable: boolean
     userCheck: boolean
   }
-  constructor(options = {}) {
+  constructor(autoCheck = true) {
     super()
-    this.options = options
     this.updater = autoUpdater
     this.updater.autoDownload = false
     this.updater.logger = logger
     this.autoCheckData = {
-      checkEnable: true,
+      checkEnable: autoCheck,
       userCheck: false
     }
     this.init()

@@ -456,7 +456,8 @@ export default class Application extends EventEmitter {
       return
     }
     try {
-      this.updateManager = new UpdateManager({})
+      const autoCheck = this.configManager.getConfig('setup.autoCheck') ?? true
+      this.updateManager = new UpdateManager(autoCheck)
       this.handleUpdaterEvents()
     } catch (err) {
       console.log('initUpdaterManager err: ', err)

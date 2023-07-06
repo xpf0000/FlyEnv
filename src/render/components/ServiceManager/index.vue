@@ -92,6 +92,7 @@
       },
       currentVersion() {
         const flag: keyof typeof AppSofts = this.typeFlag as any
+        console.log('currentVersion: ', this.version, BrewStore()[flag].installed)
         return BrewStore()[flag].installed?.find(
           (i) => i.path === this?.version?.path && i.version === this?.version?.version
         )

@@ -98,7 +98,6 @@
             'redis',
             'mongodb'
           ].filter((f) => dict[f]) as Array<keyof typeof AppSofts>
-          console.log('flags: ', flags)
           installedVersions.allInstalledVersions(flags).then(() => {
             AppStore().versionInited = true
             this.inited = true

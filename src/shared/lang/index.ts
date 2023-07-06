@@ -6,6 +6,8 @@ import ENTray from './en/tray'
 import ZHTray from './zh/tray'
 import ENUtil from './en/util'
 import ZHUtil from './zh/util'
+import ENHost from './en/host'
+import ZHHost from './zh/host'
 import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 
@@ -14,13 +16,15 @@ export const lang = {
     base: ENBase,
     php: ENPHP,
     tray: ENTray,
-    util: ENUtil
+    util: ENUtil,
+    host: ENHost
   },
   zh: {
     base: ZHBase,
     php: ZHPHP,
     tray: ZHTray,
-    util: ZHUtil
+    util: ZHUtil,
+    host: ZHHost
   }
 }
 

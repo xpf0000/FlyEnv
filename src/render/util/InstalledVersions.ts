@@ -56,14 +56,25 @@ class InstalledVersions {
           data.installedInited = true
           old.splice(0)
           const server = appStore.config.server[flag]
-          if (flag !== 'php' && !server?.current?.version && data.installed.length > 0) {
-            const find = data.installed.find((d) => d.version && d.enable)
-            if (find) {
-              appStore.UPDATE_SERVER_CURRENT({
-                flag: flag,
-                data: JSON.parse(JSON.stringify(find))
-              })
-              needSaveConfig = true
+          if (flag !== 'php' && data.installed.length > 0) {
+            const currentVersion = server?.current?.version
+            const currentPath = server?.current?.path
+            const findCurrent =
+              currentVersion &&
+              currentPath &&
+              data.installed.find(
+                (d) =>
+                  d.version && d.enable && d.version === currentVersion && d.path === currentPath
+              )
+            if (!findCurrent) {
+              const find = data.installed.find((d) => d.version && d.enable)
+              if (find) {
+                appStore.UPDATE_SERVER_CURRENT({
+                  flag: flag,
+                  data: JSON.parse(JSON.stringify(find))
+                })
+                needSaveConfig = true
+              }
             }
           }
         }

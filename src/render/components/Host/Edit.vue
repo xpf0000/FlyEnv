@@ -24,6 +24,12 @@
           class="input-textarea"
           placeholder="alias eg: www.xxx.com"
         ></textarea>
+        <input
+          v-model.number="item.mark"
+          style="margin: 15px 0 10px"
+          class="input"
+          placeholder="mark"
+        />
         <div class="path-choose mt-20 mb-20">
           <input
             type="text"
@@ -156,7 +162,7 @@
       </div>
 
       <div class="plant-title">
-        <span>Nginx</span>
+        <span>Nginx Url Rewrite</span>
         <el-popover
           placement="top-start"
           :title="$t('base.attention')"
@@ -184,25 +190,23 @@
           <el-option v-for="key in rewrites" :key="key" :label="key" :value="key"> </el-option>
         </el-select>
 
-        <textarea
-          v-model.trim="item.nginx.rewrite"
-          type="text"
-          class="input-textarea nginx-rewrite"
-          placeholder="url rewrite"
-        ></textarea>
+        <div ref="input" class="input-textarea nginx-rewrite"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-  import { defineComponent } from 'vue'
+  import { defineComponent, nextTick } from 'vue'
   import { readFileAsync, getAllFileAsync } from '@shared/file'
   import { passwordCheck } from '@/util/Brew'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
   import { AppSoftInstalledItem, BrewStore, SoftInstalled } from '@/store/brew'
   import { EventBus } from '@/global'
+  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
+  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
 
   const { exec } = require('child-process-promise')
   const { dialog } = require('@electron/remote')
@@ -268,7 +272,7 @@
         return BrewStore().php
       },
       phpVersions(): Array<SoftInstalled> {
-        return this.php?.installed ?? []
+        return this.php?.installed?.filter((p) => p.version && p.num) ?? []
       }
     },
     watch: {
@@ -295,8 +299,42 @@
       this.loadRewrite()
       this.item.id = new Date().getTime()
     },
-    unmounted() {},
+    mounted() {
+      nextTick().then(() => {
+        this.initEditor()
+      })
+    },
+    unmounted() {
+      this.monacoInstance && this.monacoInstance.dispose()
+      this.monacoInstance = null
+    },
     methods: {
+      initEditor() {
+        if (!this.monacoInstance) {
+          if (!this?.$refs?.input?.style) {
+            return
+          }
+          this.monacoInstance = editor.create(this.$refs.input, {
+            value: this.item.nginx.rewrite,
+            language: 'ini',
+            theme: 'vs-dark',
+            scrollBeyondLastLine: false,
+            overviewRulerBorder: false,
+            automaticLayout: true,
+            wordWrap: 'on',
+            minimap: {
+              enabled: false
+            },
+            lineNumbers: 'off',
+            padding: {
+              top: 8,
+              bottom: 8
+            }
+          })
+        } else {
+          this.monacoInstance.setValue(this.item.nginx.rewrite)
+        }
+      },
       rewriteChange(item: any) {
         if (!rewrites[item]) {
           let file = join(this.rewritePath, `${item}.conf`)
@@ -307,6 +345,7 @@
         } else {
           this.item.nginx.rewrite = rewrites[item]
         }
+        this.monacoInstance.setValue(this.item.nginx.rewrite)
       },
       loadRewrite() {
         const list: Array<string> = this.rewrites
@@ -410,6 +449,7 @@
           console.error('无权访问')
         }
         passwordCheck().then(() => {
+          this.item.nginx.rewrite = this.monacoInstance.getValue()
           if (!access) {
             exec(`echo '${this.password}' | sudo -S chmod 777 /private/etc`)
               .then(() => {
@@ -525,6 +565,8 @@
         &.nginx-rewrite {
           height: 140px;
           margin-top: 20px;
+          padding: 0;
+          overflow: hidden;
         }
       }
       .el-select {

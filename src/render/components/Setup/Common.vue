@@ -93,6 +93,10 @@
     <div class="main proxy-set">
       <ProxySet></ProxySet>
     </div>
+    <div class="plant-title">{{ $t('base.autoUpdate') }}</div>
+    <div class="main reset-pass">
+      <AutoUpdate></AutoUpdate>
+    </div>
     <div class="plant-title">{{ $t('base.resetPassword') }}</div>
     <div class="main reset-pass">
       <RestPassword></RestPassword>
@@ -106,11 +110,12 @@
   import RestPassword from './RestPassword/index.vue'
   import ProxySet from './ProxySet/index.vue'
   import LangeSet from './Lang/index.vue'
+  import AutoUpdate from './AutoUpdate/index.vue'
   import { AppStore } from '@/store/app'
   import { defineComponent } from 'vue'
 
   export default defineComponent({
-    components: { BrewSrc, GitHubFix, RestPassword, ProxySet, LangeSet },
+    components: { BrewSrc, GitHubFix, RestPassword, ProxySet, LangeSet, AutoUpdate },
     props: {},
     data() {
       return {}

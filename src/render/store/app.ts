@@ -105,6 +105,7 @@ interface State {
       mongodb: {
         dirs: Array<string>
       }
+      autoCheck: boolean
     }
   }
   httpServe: Array<string>
@@ -190,7 +191,8 @@ const state: State = {
         fastProxy: '',
         proxy: ''
       },
-      lang: ''
+      lang: '',
+      autoCheck: true
     }
   },
   httpServe: [],

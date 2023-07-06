@@ -42,7 +42,7 @@
 <script lang="ts">
   import { defineComponent, reactive } from 'vue'
   import Edit from './Edit.vue'
-  import List from './List.vue'
+  import List from './ListTable.vue'
   import Logs from './Logs.vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
