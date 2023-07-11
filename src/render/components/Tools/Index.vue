@@ -39,6 +39,10 @@
         <yb-icon :svg="import('@/svg/jiami.svg?raw')" width="30" height="30" style="padding: 0" />
         <span>Php Obfuscator</span>
       </li>
+      <li @click="showPage('bomClean')">
+        <yb-icon :svg="import('@/svg/BOM.svg?raw')" width="30" height="30" style="padding: 1px" />
+        <span>UTF8-Bom Clean</span>
+      </li>
     </ul>
     <el-drawer
       ref="host-edit-drawer"

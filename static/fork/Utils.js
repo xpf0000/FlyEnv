@@ -5,6 +5,28 @@ const { spawn } = require('child_process')
 const crypto = require('crypto')
 
 class Utils {
+  static getAllFile(fp, fullpath = true) {
+    let arr = []
+    if (!fs.existsSync(fp)) {
+      return arr
+    }
+    if (fs.statSync(fp).isFile()) {
+      return [fp]
+    }
+    const files = fs.readdirSync(fp)
+    files.forEach(function (item) {
+      const fPath = path.join(fp, item)
+      const stat = fs.statSync(fPath)
+      if (stat.isDirectory()) {
+        const sub = Utils.getAllFile(fPath, fullpath)
+        arr = arr.concat(sub)
+      }
+      if (stat.isFile()) {
+        arr.push(fullpath ? fPath : item)
+      }
+    })
+    return arr
+  }
   static getSubDir(fp, fullpath = true) {
     const arr = []
     if (!fs.existsSync(fp)) {
