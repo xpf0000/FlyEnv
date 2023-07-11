@@ -549,6 +549,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:memcached':
       case 'app-fork:redis':
       case 'app-fork:host':
+      case 'app-fork:tools':
       case 'app-fork:version':
       case 'app-fork:mongodb':
         let forkFile = command.replace('app-fork:', '')

@@ -1,7 +1,5 @@
-const { exec } = require('child-process-promise')
 const BaseManager = require('./BaseManager')
 const { AppI18n } = require('./lang/index')
-const { join } = require('path')
 const { readFileSync, writeFile } = require('fs')
 const Utils = require('./Utils.js')
 const TaskQueue = require('./TaskQueue/TaskQueue.js')
@@ -16,6 +14,8 @@ class BomCleanTask {
       const path = this.path
       let buff = readFileSync(path)
       if (
+        buff &&
+        buff.length >= 3 &&
         buff[0].toString(16).toLowerCase() === 'ef' &&
         buff[1].toString(16).toLowerCase() === 'bb' &&
         buff[2].toString(16).toLowerCase() === 'bf'
@@ -28,6 +28,8 @@ class BomCleanTask {
             resolve(true)
           }
         })
+      } else {
+        resolve(false)
       }
     })
   }

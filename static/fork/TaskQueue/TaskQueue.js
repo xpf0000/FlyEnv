@@ -6,7 +6,9 @@ class TaskQueue {
     count: 0,
     finish: 0,
     fail: 0,
-    failTask: []
+    failTask: [],
+    success: 0,
+    successTask: []
   }
   #progressFn = undefined
   #endFn = undefined
@@ -26,14 +28,19 @@ class TaskQueue {
       }
       task
         .run()
-        .then(() => {
+        .then((res) => {
           this.#_progress.finish += 1
+          if (res) {
+            this.#_progress.success += 1
+            this.#_progress.successTask.push(task)
+          }
           next()
         })
         .catch((err) => {
+          console.log('task catch: ', err)
           this.#_progress.finish += 1
           this.#_progress.fail += 1
-          task.msg = err
+          task.msg = err.toString()
           this.#_progress.failTask.push(task)
           next()
         })

@@ -96,6 +96,9 @@
               defineAsyncComponent(() => import('./PhpObfuscator/index.vue'))
             )
             break
+          case 'bomClean':
+            this.component = markRaw(defineAsyncComponent(() => import('./BomClean/index.vue')))
+            break
         }
       },
       hidePage() {
