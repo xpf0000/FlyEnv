@@ -194,8 +194,7 @@
     IPC.send('app-fork:tools', 'getAllFile', store.value.path).then((key: string, res: any) => {
       IPC.off(key)
       const files: Array<string> = res?.files ?? []
-      store.value.files.splice(0)
-      store.value.files.push(...files)
+      store.value.files = reactive(files)
     })
   }
   const doClean = () => {
