@@ -5,6 +5,9 @@ const { spawn } = require('child_process')
 const crypto = require('crypto')
 
 class Utils {
+  static isAlias(path) {
+    return path !== fs.realpathSync(path)
+  }
   static getAllFile(fp, fullpath = true) {
     let arr = []
     if (!fs.existsSync(fp)) {
@@ -12,11 +15,7 @@ class Utils {
     }
     const state = fs.statSync(fp)
     if (state.isFile()) {
-      const realPath = fs.realpathSync(fp)
-      if (fp === realPath) {
-        return [fp]
-      }
-      return []
+      return [fp]
     }
     const files = fs.readdirSync(fp)
     files.forEach(function (item) {
@@ -28,10 +27,7 @@ class Utils {
           arr = arr.concat(sub)
         }
         if (stat.isFile()) {
-          const realPath = fs.realpathSync(fPath)
-          if (fPath === realPath) {
-            arr.push(fullpath ? fPath : item)
-          }
+          arr.push(fullpath ? fPath : item)
         }
       }
     })
