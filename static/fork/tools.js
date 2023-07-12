@@ -1,6 +1,6 @@
 const BaseManager = require('./BaseManager')
 const { AppI18n } = require('./lang/index')
-const { readFileSync, writeFile } = require('fs')
+const { readFileSync, writeFile, createReadStream } = require('fs')
 const Utils = require('./Utils.js')
 const TaskQueue = require('./TaskQueue/TaskQueue.js')
 
@@ -12,24 +12,50 @@ class BomCleanTask {
   run() {
     return new Promise((resolve, reject) => {
       const path = this.path
-      let buff = readFileSync(path)
-      if (
-        buff &&
-        buff.length >= 3 &&
-        buff[0].toString(16).toLowerCase() === 'ef' &&
-        buff[1].toString(16).toLowerCase() === 'bb' &&
-        buff[2].toString(16).toLowerCase() === 'bf'
-      ) {
-        buff = buff.slice(3)
-        writeFile(path, buff, 'binary', (err) => {
-          if (err) {
-            reject(err)
+      try {
+        let handled = false
+        const stream = createReadStream(path, {
+          start: 0,
+          end: 3
+        })
+        stream.on('data', (chunk) => {
+          handled = true
+          stream.close()
+          let buff = chunk
+          if (
+            buff &&
+            buff.length >= 3 &&
+            buff[0].toString(16).toLowerCase() === 'ef' &&
+            buff[1].toString(16).toLowerCase() === 'bb' &&
+            buff[2].toString(16).toLowerCase() === 'bf'
+          ) {
+            buff = readFileSync(path)
+            buff = buff.slice(3)
+            writeFile(path, buff, 'binary', (err) => {
+              buff = null
+              if (err) {
+                reject(err)
+              } else {
+                resolve(true)
+              }
+            })
           } else {
-            resolve(true)
+            resolve(false)
           }
         })
-      } else {
-        resolve(false)
+        stream.on('error', (err) => {
+          handled = true
+          stream.close()
+          reject(err)
+        })
+        stream.on('close', () => {
+          if (!handled) {
+            handled = true
+            resolve(false)
+          }
+        })
+      } catch (err) {
+        reject(err)
       }
     })
   }

@@ -43,7 +43,7 @@
           placeholder="exclude eg: node_modules, One exclude string per line"
         ></textarea>
         <div class="block">
-          <div class="mt-20"> 文件类型 </div>
+          <div class="mt-20"> File Type </div>
           <div class="mt-20">
             <el-checkbox-group v-model="data.allowExt" :disabled="data.running">
               <template v-for="(item, i) in data.allExt" :key="i">
@@ -68,18 +68,18 @@
           </el-progress>
         </template>
         <template v-if="data.end">
-          <div class="mt-30">结果</div>
+          <div class="mt-30">Result</div>
           <div style="margin-top: 15px">
-            <span>总文件: </span><span>{{ data.progress.count }}</span>
+            <span>total file: </span><span>{{ data.progress.count }}</span>
           </div>
           <div style="margin-top: 15px">
-            <span>已检测: </span><span>{{ data.progress.finish }}</span>
+            <span>checked file: </span><span>{{ data.progress.finish }}</span>
           </div>
           <div style="margin-top: 15px; color: #67c23a">
             <template v-if="data.progress.successTask.length > 0">
               <el-popover placement="left" popper-class="bom-clean-popper">
                 <template #reference>
-                  <span>清理成功: {{ data.progress.success }}</span>
+                  <span>clean success: {{ data.progress.success }}</span>
                 </template>
                 <template #default>
                   <ul>
@@ -91,14 +91,14 @@
               </el-popover>
             </template>
             <template v-else>
-              <span>清理成功: {{ data.progress.success }}</span>
+              <span>clean success: {{ data.progress.success }}</span>
             </template>
           </div>
           <div style="margin-top: 15px; color: #f56c6c">
             <template v-if="data.progress.failTask.length > 0">
               <el-popover placement="left" popper-class="bom-clean-popper">
                 <template #reference>
-                  <span>清理失败: {{ data.progress.fail }}</span>
+                  <span>clean fail: {{ data.progress.fail }}</span>
                 </template>
                 <template #default>
                   <ul>
@@ -110,7 +110,7 @@
               </el-popover>
             </template>
             <template v-else>
-              <span>清理失败: {{ data.progress.fail }}</span>
+              <span>clean fail: {{ data.progress.fail }}</span>
             </template>
           </div>
         </template>
