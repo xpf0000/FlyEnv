@@ -6,19 +6,22 @@ export function getAllFile(fp: string, fullpath = true) {
   if (!fs.existsSync(fp)) {
     return arr
   }
-  if (fs.statSync(fp).isFile()) {
+  const state = fs.statSync(fp)
+  if (state.isFile()) {
     return [fp]
   }
   const files = fs.readdirSync(fp)
   files.forEach(function (item: string) {
     const fPath = path.join(fp, item)
-    const stat = fs.statSync(fPath)
-    if (stat.isDirectory()) {
-      const sub = getAllFile(fPath, fullpath)
-      arr = arr.concat(sub)
-    }
-    if (stat.isFile()) {
-      arr.push(fullpath ? fPath : item)
+    if (fs.existsSync(fPath)) {
+      const stat = fs.statSync(fPath)
+      if (stat.isDirectory()) {
+        const sub = getAllFile(fPath, fullpath)
+        arr = arr.concat(sub)
+      }
+      if (stat.isFile()) {
+        arr.push(fullpath ? fPath : item)
+      }
     }
   })
   return arr

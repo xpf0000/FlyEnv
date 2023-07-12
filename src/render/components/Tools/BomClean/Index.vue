@@ -20,7 +20,7 @@
       </template>
     </div>
 
-    <div class="main-wapper">
+    <div v-loading="data.loading" class="main-wapper">
       <div class="main">
         <div class="path-choose mt-20 mb-20">
           <input
@@ -123,6 +123,7 @@
   import { computed, reactive, watch } from 'vue'
   import store, { Ext } from './store'
   import IPC from '@/util/IPC'
+  import Base from '@/core/Base'
   const { extname } = require('path')
   const { dialog } = require('@electron/remote')
   const emit = defineEmits(['doClose'])
@@ -134,7 +135,6 @@
     const allFile = store.value.files.filter((f) => {
       return exclude.length === 0 || exclude.every((e) => !f.includes(e))
     })
-    console.log('allExt allFile: ', allFile)
     const exts: { [key: string]: number } = {}
     allFile.forEach((f) => {
       const name = extname(f)
@@ -191,10 +191,16 @@
       })
   }
   const getAllFile = () => {
+    store.value.loading = true
     IPC.send('app-fork:tools', 'getAllFile', store.value.path).then((key: string, res: any) => {
       IPC.off(key)
-      const files: Array<string> = res?.files ?? []
-      store.value.files = reactive(files)
+      if (res?.code === 0) {
+        const files: Array<string> = res?.files ?? []
+        store.value.files = reactive(files)
+      } else {
+        Base.MessageError(res?.msg ?? '文件获取失败, 请勿一次清理太多文件')
+      }
+      store.value.loading = false
     })
   }
   const doClean = () => {
@@ -218,6 +224,7 @@
     store.value.allowExt.splice(0)
     store.value.exclude = `.idea
 .git
+.svn
 .vscode
 node_modules`
     store.value.progress = reactive({

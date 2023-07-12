@@ -9,6 +9,7 @@ export type BomCleanStore = {
   exclude: string
   allExt: Array<Ext>
   allowExt: Array<string>
+  loading: boolean
   running: boolean
   end: boolean
   progress: {
@@ -25,12 +26,14 @@ const store: Ref<BomCleanStore> = ref({
   files: [],
   exclude: `.idea
 .git
+.svn
 .vscode
 node_modules`,
   allExt: [],
   allowExt: [],
   running: false,
   end: false,
+  loading: false,
   progress: {
     count: 0,
     finish: 0,

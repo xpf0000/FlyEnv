@@ -67,12 +67,20 @@ class Manager extends BaseManager {
   }
 
   getAllFile(fp, fullpath = true) {
-    const files = Utils.getAllFile(fp, fullpath)
-    this._processSend({
-      code: 0,
-      msg: 'Success',
-      files
-    })
+    try {
+      const files = Utils.getAllFile(fp, fullpath)
+      this._processSend({
+        code: 0,
+        msg: 'Success',
+        files
+      })
+    } catch (e) {
+      console.log('getAllFile: ', e)
+      this._processSend({
+        code: 1,
+        msg: e.toString()
+      })
+    }
   }
 
   cleanBom(files) {

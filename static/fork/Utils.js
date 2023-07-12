@@ -10,19 +10,29 @@ class Utils {
     if (!fs.existsSync(fp)) {
       return arr
     }
-    if (fs.statSync(fp).isFile()) {
-      return [fp]
+    const state = fs.statSync(fp)
+    if (state.isFile()) {
+      const realPath = fs.realpathSync(fp)
+      if (fp === realPath) {
+        return [fp]
+      }
+      return []
     }
     const files = fs.readdirSync(fp)
     files.forEach(function (item) {
       const fPath = path.join(fp, item)
-      const stat = fs.statSync(fPath)
-      if (stat.isDirectory()) {
-        const sub = Utils.getAllFile(fPath, fullpath)
-        arr = arr.concat(sub)
-      }
-      if (stat.isFile()) {
-        arr.push(fullpath ? fPath : item)
+      if (fs.existsSync(fPath)) {
+        const stat = fs.statSync(fPath)
+        if (stat.isDirectory()) {
+          const sub = Utils.getAllFile(fPath, fullpath)
+          arr = arr.concat(sub)
+        }
+        if (stat.isFile()) {
+          const realPath = fs.realpathSync(fPath)
+          if (fPath === realPath) {
+            arr.push(fullpath ? fPath : item)
+          }
+        }
       }
     })
     return arr
