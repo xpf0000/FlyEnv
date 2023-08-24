@@ -142,7 +142,7 @@ make install
 
 提Issues, 或者扫码加QQ群
 
-![QQqun.png](https://www.macphpstudy.com/image/index/qrcode0@2x.png)
+<img style="box-shadow: 0 0 5px 0 rgba(170,170,170,0.3)" src="https://www.macphpstudy.com/image/index/qrcode0@2x.png">
 
 ## 打赏
 
