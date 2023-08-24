@@ -6,6 +6,8 @@
 
 [![GitHub release](https://img.shields.io/github/release/xpf0000/PhpWebStudy.svg)](https://github.com/xpf0000/PhpWebStudy/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/PhpWebStudy/total.svg)](https://github.com/xpf0000/PhpWebStudy/releases)
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R5R2OJXTM)
+
 PhpWebStudy is an open source, free personal project, created for PHP and Web engineers using MacOS systems for development, to provide a more simple and useful tool to manage the local server environment.
 
 By integrating the tedious tasks such as start/restart commands for each software, configuration file viewing and modification, and log file checking into one software, developers can focus more on the real development work.
@@ -34,6 +36,16 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 - PHP代码混淆, 混淆单个文件或整个项目
 - 开发中常用的小工具, 时间戳转换, 编码/解码, 端口占用一键清理
 
+## 🖥 应用界面
+
+![01.png](https://www.macphpstudy.com/image/index/main.png)
+![02.png](https://www.macphpstudy.com/image/index/screen3.png)
+![03.png](https://www.macphpstudy.com/image/index/screen4.png)
+![04.png](https://www.macphpstudy.com/image/index/screen5.png)
+![05.png](https://www.macphpstudy.com/image/index/screen6.png)
+![08.png](https://www.macphpstudy.com/image/index/screen7.png)
+![07.png](https://www.macphpstudy.com/image/index/screen8.png)
+
 ## 💽 安装稳定版
 
 1. [GitHub](https://github.com/xpf0000/PhpWebStudy/releases) 提供了已经编译好的稳定版安装包
@@ -48,16 +60,6 @@ brew install phpwebstudy
 ```
 
 3. 当然你也可以自己克隆代码编译打包。
-
-## 🖥 应用界面
-
-![01.png](https://www.macphpstudy.com/image/index/main.png)
-![02.png](https://www.macphpstudy.com/image/index/screen3.png)
-![03.png](https://www.macphpstudy.com/image/index/screen4.png)
-![04.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/04.png)
-![05.png](http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/05.png)
-![08.png](https://www.macphpstudy.com/image/index/screen7.png)
-![07.png](https://www.macphpstudy.com/image/index/screen8.png)
 
 ## ⌨️ 本地开发
 
@@ -140,7 +142,17 @@ make install
 
 提Issues, 或者扫码加QQ群
 
-![QQqun.png](http://mbimage.ybvips.com/electron/imageresize/QQqun.png)
+![QQqun.png](https://www.macphpstudy.com/image/index/qrcode0@2x.png)
+
+## 打赏
+
+开源不易, 且行且珍惜
+
+![wechat.png](https://www.macphpstudy.com/image/index/qrcode1@2x.png)
+
+![alipay.png](https://www.macphpstudy.com/image/index/qrcode2@2x.png)
+
+![ko-fi.png](https://www.macphpstudy.com/image/index/qrcode3@2x.png)
 
 ## 📜 开源许可
 
