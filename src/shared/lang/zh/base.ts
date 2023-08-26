@@ -124,5 +124,10 @@ export default {
   hostParseErr: '站点加载失败, 原站点数据已备份至host.back.json, 请在打开的文件夹中查看修复文件',
   export: '导出',
   import: '导入',
-  autoUpdate: '自动更新'
+  autoUpdate: '自动更新',
+  loading: '加载中...',
+  parkTitle: '子站',
+  parkTips: '和Valet park功能类似, 自动检索子文件夹, 并生成域名为: 文件夹名.当前域名 的子站点',
+  parkConfim: '此操作会自动搜索子文件夹并生成子网站, 是否继续?',
+  hostsWriteTips: '是否写入/etc/hosts, 写入的内容会被自定义标签包裹, 不会对其他内容造成影响'
 }

@@ -68,6 +68,7 @@
   import { BrewStore } from '@/store/brew'
   import { TaskStore } from '@/store/task'
   import { ElMessage } from 'element-plus'
+  import { I18nT } from '@shared/lang'
 
   export default defineComponent({
     components: {},
@@ -124,7 +125,7 @@
         if (v && p) {
           return `${v} - ${p}`
         }
-        return this.$t('base.noVersionTips')
+        return I18nT('base.noVersionTips')
       }
     },
     watch: {
@@ -164,7 +165,7 @@
           if (typeof res === 'string') {
             ElMessage.error(res)
           } else {
-            ElMessage.success(this.$t('base.success'))
+            ElMessage.success(I18nT('base.success'))
           }
         })
       }

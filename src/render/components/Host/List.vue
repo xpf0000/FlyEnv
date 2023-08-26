@@ -159,7 +159,7 @@
             EventBus.emit('Host-Logs-Item', item)
             break
           case 'del':
-            this.$baseConfirm('确认删除?', undefined, {
+            this.$baseConfirm(this.$t('base.delAlertContent'), undefined, {
               customClass: 'confirm-del',
               type: 'warning'
             })

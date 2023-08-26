@@ -53,6 +53,7 @@
   import { AppSofts, AppStore } from '@/store/app'
   import { TaskStore } from '@/store/task'
   import { ElMessage } from 'element-plus'
+  import { I18nT } from '@shared/lang'
 
   export default defineComponent({
     components: {},
@@ -184,13 +185,13 @@
                 data: param
               })
               appStore.saveConfig()
-              ElMessage.success(this.$t('base.success'))
               data.run = true
               data.running = false
+              ElMessage.success(I18nT('base.success'))
             } else if (res.code === 1) {
               IPC.off(key)
-              ElMessage.error(this.$t('base.fail'))
               data.running = false
+              ElMessage.error(I18nT('base.fail'))
             } else if (res.code === 200) {
               this.log.push(res.msg)
             }

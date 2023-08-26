@@ -42,6 +42,27 @@
             <yb-icon :svg="import('@/svg/folder.svg?raw')" class="choose" width="18" height="18" />
           </div>
         </div>
+        <div class="park">
+          <div class="title">
+            <span>{{ $t('base.parkTitle') }}</span>
+            <el-popover placement="top" trigger="hover" :width="300">
+              <template #reference>
+                <yb-icon
+                  :svg="import('@/svg/question.svg?raw')"
+                  width="12"
+                  height="12"
+                  style="margin-left: 5px"
+                ></yb-icon>
+              </template>
+              <template #default>
+                <p>
+                  {{ $t('base.parkTips') }}
+                </p>
+              </template>
+            </el-popover>
+          </div>
+          <el-switch v-model="park" :before-change="onParkChange"></el-switch>
+        </div>
       </div>
 
       <div class="plant-title">{{ $t('base.phpVersion') }}</div>
@@ -207,6 +228,8 @@
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { ElMessage } from 'element-plus'
+  import { I18nT } from '@shared/lang'
 
   const { exec } = require('child-process-promise')
   const { dialog } = require('@electron/remote')
@@ -221,6 +244,7 @@
     data() {
       return {
         running: false,
+        park: false,
         item: {
           id: 0,
           name: '',
@@ -276,6 +300,14 @@
       }
     },
     watch: {
+      phpVersions: {
+        handler(v) {
+          if (v && v[0] && !this.item.phpVersion) {
+            this.item.phpVersion = v[0].num
+          }
+        },
+        immediate: true
+      },
       item: {
         handler() {
           for (let k in this.errs) {
@@ -309,6 +341,15 @@
       this.monacoInstance = null
     },
     methods: {
+      onParkChange() {
+        if (!this.park) {
+          return this.$baseConfirm(this.$t('base.parkConfim'), undefined, {
+            customClass: 'confirm-del',
+            type: 'warning'
+          })
+        }
+        return true
+      },
       initEditor() {
         if (!this.monacoInstance) {
           if (!this?.$refs?.input?.style) {
@@ -457,16 +498,16 @@
                 return exec(`echo '${this.password}' | sudo -S chmod 777 /private/etc/hosts`)
               })
               .then(() => {
-                handleHost(this.item, flag, this.edit as AppHost).then(() => {
+                handleHost(this.item, flag, this.edit as AppHost, this.park).then(() => {
                   this.running = false
                 })
               })
               .catch(() => {
-                this.$message.error(this.$t('base.hostNoRole'))
+                ElMessage.error(I18nT('base.hostNoRole'))
                 this.running = false
               })
           } else {
-            handleHost(this.item, flag, this.edit as AppHost).then(() => {
+            handleHost(this.item, flag, this.edit as AppHost, this.park).then(() => {
               this.running = false
             })
           }
@@ -595,6 +636,18 @@
             .choose {
               color: #01cc74;
             }
+          }
+        }
+        .park {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-top: 15px;
+
+          .title {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
           }
         }
         .ssl-switch {

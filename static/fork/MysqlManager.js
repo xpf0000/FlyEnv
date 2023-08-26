@@ -121,7 +121,7 @@ datadir=${dataDir}`
       })
       child.on('close', (code) => {
         console.log('close: ', code)
-        if (code === null && success) {
+        if (!code && success) {
           resolve(code)
         } else {
           if (needRestart) {

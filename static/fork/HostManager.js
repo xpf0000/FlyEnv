@@ -9,6 +9,7 @@ const {
   copyFileSync
 } = require('fs')
 const { execSync } = require('child_process')
+const { exec } = require('child-process-promise')
 const Utils = require('./Utils')
 const dns = require('dns')
 const util = require('util')
@@ -70,7 +71,7 @@ class HostManager {
     })
   }
 
-  handleHost(host, flag, old) {
+  handleHost(host, flag, old, park) {
     let hostfile = join(global.Server.BaseDir, 'host.json')
     let hostList = []
 
@@ -134,9 +135,81 @@ class HostManager {
       }
     })
 
+    const doPark = () => {
+      return new Promise((resolve) => {
+        if (!park || !host || !host.root) {
+          resolve(0)
+          return
+        }
+        const root = host.root
+        const subDir = Utils.getSubDir(root, false)
+        if (subDir.length === 0) {
+          resolve(0)
+          return
+        }
+        const arrs = []
+        for (const d of subDir) {
+          const item = JSON.parse(JSON.stringify(host))
+          item.id = Utils.uuid(13)
+          const hostName = item.name.split('.')
+          hostName.unshift(d)
+          item.root = join(root, d)
+          item.name = hostName.join('.')
+          const find = hostList.find((h) => h.name === item.name)
+          if (find) {
+            continue
+          }
+          const aliasArr = item.alias
+            ? item.alias.split('\n').filter((n) => {
+                return n && n.length > 0
+              })
+            : []
+          item.alias = aliasArr
+            .map((a) => {
+              const arr = a.trim().split('.')
+              arr.unshift(d)
+              return arr.join('.')
+            })
+            .join('\n')
+          arrs.push(item)
+        }
+        if (arrs.length === 0) {
+          resolve(0)
+          return
+        }
+        const all = []
+        arrs.forEach((a) => {
+          all.push(this._addVhost(a, addApachePort, addApachePortSSL, false))
+        })
+        Promise.all(all)
+          .then(() => {
+            hostList.unshift(...arrs)
+            resolve(1)
+          })
+          .catch(() => {
+            resolve(0)
+          })
+      })
+    }
+
+    const initTmpl = () => {
+      const nginxtmpl = join(global.Server.Static, 'tmpl/nginx.vhost')
+      const apachetmpl = join(global.Server.Static, 'tmpl/apache.vhost')
+      const nginxSSLtmpl = join(global.Server.Static, 'tmpl/nginxSSL.vhost')
+      const apacheSSLtmpl = join(global.Server.Static, 'tmpl/apacheSSL.vhost')
+      this.NginxTmpl = readFileSync(nginxtmpl, 'utf-8')
+      this.ApacheTmpl = readFileSync(apachetmpl, 'utf-8')
+      this.NginxSSLTmpl = readFileSync(nginxSSLtmpl, 'utf-8')
+      this.ApacheSSLTmpl = readFileSync(apacheSSLtmpl, 'utf-8')
+    }
+
     switch (flag) {
       case 'add':
+        initTmpl()
         this._addVhost(host, addApachePort, addApachePortSSL)
+          .then(() => {
+            return doPark()
+          })
           .then(() => {
             hostList.unshift(host)
             writeHostFile()
@@ -159,6 +232,7 @@ class HostManager {
           })
         break
       case 'edit':
+        initTmpl()
         const nginxConfPath = join(global.Server.BaseDir, 'vhost/nginx/', `${old.name}.conf`)
         const apacheConfPath = join(global.Server.BaseDir, 'vhost/apache/', `${old.name}.conf`)
         let primose
@@ -174,6 +248,9 @@ class HostManager {
           primose = this._editVhost(host, old, addApachePort, addApachePortSSL)
         }
         primose
+          .then(() => {
+            return doPark()
+          })
           .then(() => {
             const index = hostList.findIndex((h) => h.id === old.id)
             if (index >= 0) {
@@ -218,16 +295,74 @@ class HostManager {
     }
     try {
       if (existsSync(dir)) {
+        let e
         if (depth === 0) {
-          execSync(`echo '${global.Server.Password}' | sudo -S chmod -R 755 ${dir}`)
+          e = exec(`echo '${global.Server.Password}' | sudo -S chmod -R 755 ${dir}`)
         } else {
-          execSync(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
+          e = exec(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
         }
-        const parentDir = dirname(dir)
-        this.#setDirRole(parentDir, depth + 1)
+        e.then(() => {
+          const parentDir = dirname(dir)
+          this.#setDirRole(parentDir, depth + 1)
+        })
       }
     } catch (e) {
       console.log('setDirRole err: ', e)
+    }
+  }
+
+  /**
+   * auto fill nginx url rewrite
+   * check folder in path
+   * @param host
+   * @private
+   */
+  _autoFillNginxRewrite(host, chmod) {
+    if (host.nginx.rewrite && host.nginx.rewrite.trim()) {
+      return
+    }
+    const root = host.root
+    if (
+      existsSync(join(root, 'wp-admin')) &&
+      existsSync(join(root, 'wp-content')) &&
+      existsSync(join(root, 'wp-includes'))
+    ) {
+      host.nginx.rewrite = `location /
+{
+\t try_files $uri $uri/ /index.php?$args;
+}
+
+rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
+      return
+    }
+    if (existsSync(join(root, 'vendor/laravel'))) {
+      host.nginx.rewrite = `location / {
+\ttry_files $uri $uri/ /index.php$is_args$query_string;
+}`
+      if (!chmod) {
+        host.root = join(host.root, 'public')
+      }
+      return
+    }
+    if (existsSync(join(root, 'vendor/yiisoft'))) {
+      host.nginx.rewrite = `location / {
+    try_files $uri $uri/ /index.php?$args;
+  }`
+      if (!chmod) {
+        host.root = join(host.root, 'web')
+      }
+      return
+    }
+    if (existsSync(join(root, 'thinkphp')) || existsSync(join(root, 'vendor/topthink'))) {
+      host.nginx.rewrite = `location / {
+\tif (!-e $request_filename){
+\t\trewrite  ^(.*)$  /index.php?s=$1  last;   break;
+\t}
+}`
+      if (!chmod) {
+        host.root = join(host.root, 'public')
+      }
+      return
     }
   }
 
@@ -444,9 +579,14 @@ class HostManager {
     })
   }
 
-  _addVhost(host, addApachePort = true, addApachePortSSL = true) {
+  _addVhost(host, addApachePort = true, addApachePortSSL = true, chmod = true) {
     return new Promise((resolve, reject) => {
       try {
+        /**
+         * auto fill nginx url rewrite
+         */
+        this._autoFillNginxRewrite(host, chmod)
+
         let nginxvpath = join(global.Server.BaseDir, 'vhost/nginx')
         let apachevpath = join(global.Server.BaseDir, 'vhost/apache')
         let rewritepath = join(global.Server.BaseDir, 'vhost/rewrite')
@@ -456,19 +596,19 @@ class HostManager {
         Utils.createFolder(rewritepath)
         Utils.createFolder(logpath)
 
-        let nginxtmpl = join(global.Server.Static, 'tmpl/nginx.vhost')
-        let apachetmpl = join(global.Server.Static, 'tmpl/apache.vhost')
+        let ntmpl = this.NginxTmpl
+        let atmpl = this.ApacheTmpl
 
         if (host.useSSL) {
-          nginxtmpl = join(global.Server.Static, 'tmpl/nginxSSL.vhost')
-          apachetmpl = join(global.Server.Static, 'tmpl/apacheSSL.vhost')
+          ntmpl = this.NginxSSLTmpl
+          atmpl = this.ApacheSSLTmpl
         }
 
         let hostname = host.name
         let nvhost = join(nginxvpath, `${hostname}.conf`)
         let avhost = join(apachevpath, `${hostname}.conf`)
         let hostalias = this.#hostAlias(host)
-        let ntmpl = readFileSync(nginxtmpl, 'utf-8')
+        ntmpl = ntmpl
           .replace(/#Server_Alias#/g, hostalias)
           .replace(/#Server_Root#/g, host.root)
           .replace(/#Rewrite_Path#/g, rewritepath)
@@ -481,7 +621,7 @@ class HostManager {
           .replace(/include enable-php\.conf;/g, `include enable-php-${host.phpVersion}.conf;`)
         writeFileSync(nvhost, ntmpl)
 
-        let atmpl = readFileSync(apachetmpl, 'utf-8')
+        atmpl = atmpl
           .replace(/#Server_Alias#/g, hostalias)
           .replace(/#Server_Root#/g, host.root)
           .replace(/#Rewrite_Path#/g, rewritepath)
@@ -516,7 +656,9 @@ class HostManager {
 
         let rewrite = host.nginx.rewrite.trim()
         writeFileSync(join(rewritepath, `${hostname}.conf`), rewrite)
-        this.#setDirRole(host.root)
+        if (chmod) {
+          this.#setDirRole(host.root)
+        }
         resolve(true)
       } catch (e) {
         reject(e)

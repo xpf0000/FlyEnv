@@ -4,6 +4,7 @@ import { ElMessageBox as MessageBox } from 'element-plus'
 import { ElMessage as Message } from 'element-plus'
 import BaseDialog from '../components/YbBaseDialog/dialog'
 import { EventBus } from '@/global'
+import { I18nT } from '@shared/lang'
 
 let loading: any
 let loadingTxtDom: any
@@ -51,19 +52,19 @@ class Base {
     }
   }
 
-  Loading(text: string, index?: number) {
+  Loading(text?: string, index?: number) {
     loading && loading.close()
     if (!index) {
       loading = Loading.service({
         lock: true,
-        text: text || '加载中...',
+        text: text ?? I18nT('base.loading'),
         background: 'hsla(0,0%,100%,.8)',
         customClass: 'Base-Loading'
       })
     } else {
       loading = Loading.service({
         lock: true,
-        text: text || '加载中...',
+        text: text ?? I18nT('base.loading'),
         spinner: 'vab-loading-type' + index,
         background: 'hsla(0,0%,100%,.8)',
         customClass: 'Base-Loading'
@@ -111,22 +112,24 @@ class Base {
     return this._Message(message, 'error')
   }
 
-  Alert(content: string, title = '温馨提示') {
+  Alert(content: string, title?: string) {
+    title = title ?? I18nT('base.delAlertTitle')
     return MessageBox.alert(content, title, {
-      confirmButtonText: '确定',
+      confirmButtonText: I18nT('base.confirm'),
       dangerouslyUseHTMLString: true
     })
   }
 
-  _Confirm(content: string, title: string, param = {}) {
+  _Confirm(content: string, title?: string, param = {}) {
+    title = title ?? I18nT('base.delAlertTitle')
     // @ts-ignore
     return MessageBox.confirm(
       content,
-      title || '温馨提示',
+      title,
       Object.assign(
         {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+          confirmButtonText: I18nT('base.confirm'),
+          cancelButtonText: I18nT('base.cancel'),
           closeOnClickModal: false,
           type: 'warning'
         },
@@ -135,20 +138,28 @@ class Base {
     )
   }
 
-  ConfirmSuccess(content: string, title = '温馨提示') {
-    return this._Confirm(content, title, 'success')
+  ConfirmSuccess(content: string, title?: string) {
+    return this._Confirm(content, title, {
+      type: 'success'
+    })
   }
 
-  ConfirmError(content: string, title = '温馨提示') {
-    return this._Confirm(content, title, 'error')
+  ConfirmError(content: string, title?: string) {
+    return this._Confirm(content, title, {
+      type: 'error'
+    })
   }
 
-  ConfirmInfo(content: string, title = '温馨提示') {
-    return this._Confirm(content, title, 'info')
+  ConfirmInfo(content: string, title?: string) {
+    return this._Confirm(content, title, {
+      type: 'info'
+    })
   }
 
-  ConfirmWarning(content: string, title = '温馨提示') {
-    return this._Confirm(content, title, 'warning')
+  ConfirmWarning(content: string, title?: string) {
+    return this._Confirm(content, title, {
+      type: 'warning'
+    })
   }
 
   Dialog(component: any, data = {}, width = '50%', className = '') {

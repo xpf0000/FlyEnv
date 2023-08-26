@@ -131,5 +131,13 @@ export default {
     'The site failed to load, the original site data has been backed up to host.back.json, please check and repair the file in the opened folder',
   export: 'Export',
   import: 'Import',
-  autoUpdate: 'Auto Update'
+  autoUpdate: 'Auto Update',
+  loading: 'Loading...',
+  parkTitle: 'Park',
+  parkTips:
+    'Similar to Valet park, it automatically searches for subfolders and generates Sub-sites with domain name as: folder name.current domain',
+  parkConfim:
+    'This will automatically search for subfolders and generate sub-sites, do you want to continue?',
+  hostsWriteTips:
+    'Write or Remove host to /etc/hosts, the written content will be wrapped in custom tags, and will not affect other content'
 }

@@ -186,8 +186,8 @@ subjectAltName=@alt_names
             }
           })
         } else {
-          this.$message.error(this.$t('base.fail'))
           this.running = false
+          this.$message.error(this.$t('base.fail'))
         }
       }
     }

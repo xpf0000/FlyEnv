@@ -1,0 +1,26 @@
+wordpress:
+wp-admin
+wp-content
+wp-includes
+
+laravel:
+vendor/laravel
+
+yii:
+vendor/yiisoft
+
+thinkphp:
+thinkphp
+vendor/topthink
+
+1. 添加自动生成子站点的功能, 和Valet park功能类似
+2. 站点创建时, 自动检查项目类型, 自动生成Nginx Url Rewrite, 目前可以自动识别wordpress, laravel, yii, thinkphp项目
+3. 修复版本切换时服务状态不更新的问题
+
+
+1. add the function of auto-generate sub-sites, similar to Valet park.
+2. when site creation, automatically check the project type, automatically generate Nginx Url Rewrite, currently can automatically recognize wordpress, laravel, yii, thinkphp project.
+3. fix the problem that the service status is not updated when version switching.
+
+
+

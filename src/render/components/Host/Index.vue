@@ -12,10 +12,17 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <li style="width: auto; padding: 0 15px; margin-left: 20px">
-        <span style="margin-right: 10px">hosts: </span>
-        <el-switch v-model="hostsSet.write"></el-switch>
-      </li>
+      <el-popover :show-after="600" placement="bottom" trigger="hover" width="300px">
+        <template #reference>
+          <li style="width: auto; padding: 0 15px; margin-left: 20px">
+            <span style="margin-right: 10px">hosts: </span>
+            <el-switch v-model="hostsSet.write"></el-switch>
+          </li>
+        </template>
+        <template #default>
+          <p>{{ $t('base.hostsWriteTips') }}</p>
+        </template>
+      </el-popover>
       <li class="no-hover" style="width: auto; padding: 0 15px">
         <el-button @click="openHosts">{{ $t('base.openHosts') }}</el-button>
       </li>
@@ -48,6 +55,8 @@
   import { AppStore } from '@/store/app'
   import { EventBus } from '@/global'
   import { readFileAsync, writeFileAsync } from '@shared/file'
+  import { ElMessage } from 'element-plus'
+  import { I18nT } from '@shared/lang'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
   const { dialog } = require('@electron/remote')
@@ -102,7 +111,7 @@
       hostsWrite() {
         IPC.send('app-fork:host', 'writeHosts', this.hostsSet.write).then((key: string) => {
           IPC.off(key)
-          this.$message.success(this.$t('base.success'))
+          ElMessage.success(I18nT('base.success'))
         })
       },
       handleCommand(command: 'export' | 'import') {

@@ -35,11 +35,11 @@ const handleHostEnd = (arr: Array<AppHost>) => {
   EventBus.emit('Host-Edit-Close')
 }
 
-export const handleHost = (host: AppHost, flag: string, old?: AppHost) => {
+export const handleHost = (host: AppHost, flag: string, old?: AppHost, park?: boolean) => {
   return new Promise((resolve) => {
     host = JSON.parse(JSON.stringify(host))
     old = JSON.parse(JSON.stringify(old ?? {}))
-    IPC.send('app-fork:host', 'handleHost', host, flag, old).then((key: string, res: any) => {
+    IPC.send('app-fork:host', 'handleHost', host, flag, old, park).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
         handleHostEnd(res.hosts)
