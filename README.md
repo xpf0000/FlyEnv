@@ -22,21 +22,22 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 
 [Documentation](https://www.phpwebstudy.com/help-0-1.html)
 
-## ✨ 特性
+## ✨ FEATURES
 
-- 简洁明了的图形操作界面
-- 同时运行多个PHP版本, 支持 PHP5.x - PHP8.x
-- 各软件版本切换 根据开发需要 选择对应的版本进行开发调试
-- 各软件自定义配置
-- 日志文件即时查看
-- host管理
-- 常见PHP项目url rewrite一键设置
-- 一键切换brew国内源, 解决brew安装更新慢的问题
-- 一键生成SSL自签名证书
-- PHP代码混淆, 混淆单个文件或整个项目
-- 开发中常用的小工具, 时间戳转换, 编码/解码, 端口占用一键清理
+- Simple and clear graphical interface
+- Simultaneously run multiple PHP versions, supports PHP5.x - PHP8.x.
+- Software version switching Choose the corresponding version for development and debugging according to development needs.
+- Quickly create new projects, initialize with the selected framework, support: wordpress, laravel, yii2, symfony, thinkphp, codeIgniter, cakephp, slim
+- Customized configuration for each software
+- Instant view of log files
+- host management
+- One-click setting of url rewrite for common PHP projects.
+- One-click switch brew domestic source, to solve the problem of slow installation of brew update
+- One click to generate SSL self-signed certificate
+- PHP code obfuscation, obfuscate a single file or the entire project
+- Commonly used in the development of small tools, timestamp conversion, encoding / decoding, port occupation of one-click cleanup
 
-## 🖥 应用界面
+## 🖥 application interface
 
 ![01.png](https://www.macphpstudy.com/image/index/main.png)
 ![02.png](https://www.macphpstudy.com/image/index/screen3.png)
@@ -46,82 +47,71 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 ![08.png](https://www.macphpstudy.com/image/index/screen7.png)
 ![07.png](https://www.macphpstudy.com/image/index/screen8.png)
 
-## 💽 安装稳定版
+## 💽 Installation
 
-1. [GitHub](https://github.com/xpf0000/PhpWebStudy/releases) 提供了已经编译好的稳定版安装包
+1. [GitHub](https://github.com/xpf0000/PhpWebStudy/releases) provides the compiled stable version of the installation package
 
-最新版intel和Apple M安装包已经分开了, 带arm64的适用于Apple M, 不带的适用于intel, 注意不要下错了
+The latest version of the intel and Apple M installer has been separated, with arm64 for Apple M, without for intel, pay attention not to download the wrong one!
 
-
-2. 使用brew安装
+2. Installation with brew
 
 ```
 brew install phpwebstudy
 ```
 
-3. 当然你也可以自己克隆代码编译打包。
+3. Of course you can also clone the code yourself to compile and package it.
 
-## ⌨️ 本地开发
+## ⌨️ Development
 
-### 克隆代码
+### Cloning Code
 
 ```bash
 git clone git@github.com:xpf0000/PhpWebStudy.git
 ```
 
-### 安装依赖
+### Install dependencies
 
 ```bash
 cd PhpWebStudy
 yarn install
 ```
 
-天朝大陆用户建议使用淘宝的 npm 源
-
-```bash
-npm config set registry 'https://registry.npm.taobao.org'
-export ELECTRON_MIRROR='https://npm.taobao.org/mirrors/electron/'
-export SASS_BINARY_SITE='https://npm.taobao.org/mirrors/node-sass'
-```
-
-### 开发模式
+### Run
 
 ```bash
 yarn run dev
 ```
 
-### 编译打包
+### Build
 
 ```bash
 yarn run build
 ```
 
-完成之后可以在项目的 `release` 目录看到编译打包好的应用文件
+### PHP Versions
 
-### PHP版本
-
-brew自身库并不支持太老的PHP版本, 所以想要使用较老的PHP版本, 需要使用brew的第三方库
-例如:
+The brew libraries do not support older PHP versions, so if you want to use an older version of PHP, you need to use one of brew's third-party libraries.
+Example:
 
 [shivammathur/php](https://github.com/shivammathur/homebrew-php)
 
 [phpbrew/phpbrew](https://github.com/phpbrew/phpbrew)
 
-本应用使用的是shivammathur/php, 默认会自动添加shivammathur/php库到brew中, 但是因为'网络问题', 可能会添加失败,
-用户可以自行添加, 添加命令:
+This application uses shivammathur/php, by default it will automatically add shivammathur/php libraries to the brew, but due to 'network problems', it may fail to add them.
+You can add it by yourself, add command.
 
 ```
 brew tap shivammathur/php
 ```
 
-### PHP扩展
+### PHP extensions
 
-当前一键安装包括: ionCube memcache memcached redis swoole xdebug ssh2 pdo_sqlsrv imagick mongodb yaf
+Current one-click installs include: ionCube memcache memcached redis swoole xdebug ssh2 pdo_sqlsrv imagick mongodb yaf sg11
 
-未添加到一键安装里的 使用如下方法安装 替换成自己的PHP版本
+For those that are not added to the one-click install, install them as follows and replace them with your own version of PHP.
 
 ```bash
-cd 扩展目录
+cd extensions dir
 /usr/local/Cellar/php@7.2.34/7.2.34/bin/phpize
 ./configure --with-php-config=/usr/local/Cellar/php@7.2.34/7.2.34/bin/php-config
 make
@@ -129,24 +119,29 @@ make install
 ```
 
 
-## 🛠 技术栈
+## 🛠 Technology Stacks
 
 - [Electron](https://electronjs.org/)
 - [vite](https://vitejs.dev/)
 - [Vue3](https://v3.vuejs.org/)
-- [VueX](https://vuex.vuejs.org/)
+- [Pinia](https://pinia.vuejs.org/)
 - [Vue Router](https://router.vuejs.org/)
+- [vue-i18n](https://github.com/intlify/vue-i18n-next)
 - [Element-Plus](https://element-plus.org/en-US/)
+- [Xterm](https://xtermjs.org)
+- [node-pty](https://github.com/microsoft/node-pty)
+- [monaco-editor](https://github.com/microsoft/monaco-editor)
 
-## 问题反馈及建议
 
-提Issues, 或者扫码加QQ群
+## Feedback and Suggestions
+
+Mention the Issues, or scan the code to add QQ group.
 
 ![QQqun.png](https://www.macphpstudy.com/image/index/qrcode0@2x.png)
 
-## 打赏
+## Sponsors
 
-开源不易, 且行且珍惜
+Do your best, do my best.
 
 ![wechat.png](https://www.macphpstudy.com/image/index/qrcode1@2x.png)
 
@@ -154,8 +149,8 @@ make install
 
 ![ko-fi.png](https://www.macphpstudy.com/image/index/qrcode3@2x.png)
 
-## 📜 开源许可
+## 📜 License
 
 [BSD 3-Clause License](https://github.com/xpf0000/PhpWebStudy/blob/master/LICENSE)
 
-Copyright (c) 2023, 徐鹏飞
+Copyright (c) 2023, xupengfei
