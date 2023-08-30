@@ -357,7 +357,7 @@ class PhpManager extends BaseManager {
             })
             .then(() => {
               Utils.chmod(copyfile, '0777')
-              let extendv = versionNumber < 7.0 ? '3.0.8' : versionNumber >= 8.0 ? '8.0' : '4.0.5.2'
+              let extendv = versionNumber < 7.0 ? '3.0.8' : versionNumber >= 8.0 ? '8.2' : '4.0.5.2'
               doRun(copyfile, extendv)
             })
             .catch((err) => {
@@ -415,7 +415,7 @@ class PhpManager extends BaseManager {
               } else if (versionNumber < 8.0) {
                 extendv = '4.8.11'
               } else {
-                extendv = '5.0.0'
+                extendv = '5.0.3'
               }
               doRun(copyfile, extendv)
             })
@@ -470,7 +470,7 @@ class PhpManager extends BaseManager {
             })
             .then(() => {
               Utils.chmod(copyfile, '0777')
-              let extendv = versionNumber < 7.0 ? '1.1.2' : '1.3.1'
+              let extendv = versionNumber < 7.0 ? '1.1.2' : '1.4'
               doRun(copyfile, extendv)
             })
             .catch((err) => {
@@ -498,9 +498,9 @@ class PhpManager extends BaseManager {
               if (versionNumber < 7.0) {
                 extendv = '3.0.1'
               } else if (versionNumber < 7.3) {
-                extendv = '4.3.0'
+                extendv = '5.9.0'
               } else {
-                extendv = '5.10.1'
+                extendv = '5.11.0'
               }
               doRun(copyfile, extendv)
             })

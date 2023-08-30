@@ -25,6 +25,6 @@ ln -s $prefix/include/pcre2.h $phpdir/include/php/ext/pcre/pcre2.h
 fi
 cd "swoole-$extendV"
 $phpdir/bin/phpize
-./configure --with-php-config=$phpdir/bin/php-config --enable-openssl
+./configure --with-php-config=$phpdir/bin/php-config --enable-openssl --with-openssl-dir=$lib
 make
 make install

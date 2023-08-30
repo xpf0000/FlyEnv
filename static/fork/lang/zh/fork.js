@@ -18,6 +18,5 @@ module.exports = {
   phpiniNoFound: 'php.ini文件获取失败',
   ExtensionInstallFail: '扩展安装失败',
   phpStopFail: 'PHP{version}停止失败, 请尝试手动停止',
-  ExtensionInstallFailTips:
-    '安装扩展执行命令:<br/>{command}<br/>如安装失败, 可尝试复制命令自行尝试安装<br/>'
+  ExtensionInstallFailTips: '安装扩展执行命令:\n{command}\n如安装失败, 可尝试复制命令自行尝试安装\n'
 }

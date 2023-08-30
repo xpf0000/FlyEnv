@@ -4,7 +4,7 @@ phpdir=$2
 redisv=$3
 arch=$4
 cd $cachedir
-curl -C - -O -s http://pecl.php.net/get/redis-$redisv.tgz
+curl -C -O -s http://pecl.php.net/get/redis-$redisv.tgz
 if [ -d "redis-$redisv" ]; then
  rm -rf "redis-$redisv"
 fi

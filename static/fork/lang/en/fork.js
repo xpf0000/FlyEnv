@@ -4,7 +4,7 @@ module.exports = {
   apacheLogPathErr: 'The log path of the configuration file is wrong, and the switch fails',
   switchFail: 'Switch Fail',
   needPassWord: 'Sudo needs a computer password, please enter',
-  versionError: '版本有误,请重新选择',
+  versionError: 'The version is wrong, please select again',
   needSelectVersion: 'Please select a version first',
   serviceNoRun: 'Service not running',
   brewNoFound: 'Brew Not Found',
@@ -19,5 +19,5 @@ module.exports = {
   ExtensionInstallFail: 'Extension installation failed',
   phpStopFail: 'PHP{version} failed to stop, please try to stop it manually',
   ExtensionInstallFailTips:
-    'Install the extension and execute the command:<br/>{command}<br/>If the installation fails, you can try to copy the command and try to install it yourself<br/>'
+    'Install the extension and execute the command:\n{command}\nIf the installation fails, you can try to copy the command and try to install it yourself\n'
 }

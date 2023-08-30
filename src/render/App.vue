@@ -347,5 +347,6 @@
   .cli-to-html {
     word-wrap: break-word;
     white-space: pre-wrap;
+    user-select: text;
   }
 </style>
