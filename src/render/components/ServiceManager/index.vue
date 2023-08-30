@@ -53,11 +53,9 @@
       >
     </div>
 
-    <ul class="logs mt-20">
-      <template v-for="(log, index) in logs" :key="index">
-        <li class="mb-5" v-html="log"></li>
-      </template>
-    </ul>
+    <div class="logs mt-20 cli-to-html">
+      {{ logHtml }}
+    </div>
   </div>
 </template>
 
@@ -107,6 +105,9 @@
       },
       logs() {
         return this.currentTask.log
+      },
+      logHtml() {
+        return this.logs.join('')
       },
       serverRunning() {
         return this?.currentVersion?.run
@@ -163,7 +164,11 @@
         }
         action.then((res: any) => {
           if (typeof res === 'string') {
-            ElMessage.error(res)
+            ElMessage({
+              type: 'error',
+              message: res,
+              customClass: 'cli-to-html'
+            })
           } else {
             ElMessage.success(I18nT('base.success'))
           }

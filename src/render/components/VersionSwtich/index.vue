@@ -39,9 +39,9 @@
       }}</el-button>
     </div>
 
-    <ul id="logs" class="logs">
-      <li v-for="(txt, index) in log" :key="index" class="mb-5" v-html="txt"></li>
-    </ul>
+    <div id="logs" class="logs cli-to-html">
+      {{ log.join('') }}
+    </div>
   </div>
 </template>
 

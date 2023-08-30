@@ -94,33 +94,16 @@ datadir=${dataDir}`
       }
       let checking = false
       child.stdout.on('data', (data) => {
-        let str = data.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 200,
-            msg: str
-          }
-        })
+        this._handleLog(data)
         if (!checking) {
           checking = true
           checkpid()
         }
       })
       child.stderr.on('data', (err) => {
-        let str = err.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
-        process.send({
-          command: this.ipcCommand,
-          key: this.ipcCommandKey,
-          info: {
-            code: 200,
-            msg: str
-          }
-        })
+        this._handleLog(err)
       })
       child.on('close', (code) => {
-        console.log('close: ', code)
         if (!code && success) {
           resolve(code)
         } else {

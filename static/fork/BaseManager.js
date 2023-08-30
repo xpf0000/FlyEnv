@@ -250,28 +250,7 @@ class BaseManager {
     })
   }
 
-  _handleStd(buffer, out) {
-    let str = buffer.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
-    out += str
-    if (str.endsWith('<br/>') || str.endsWith('%')) {
-      this._handlChildOut && this._handlChildOut(out)
-      out = out.replace(/ /g, '&ensp;').trim()
-      process.send({
-        command: this.ipcCommand,
-        key: this.ipcCommandKey,
-        info: {
-          code: 200,
-          msg: out
-        }
-      })
-      out = ''
-    }
-    return out
-  }
-
   _childHandle(child, resolve, reject) {
-    let stdout = ''
-    let stderr = ''
     let exit = false
     const onEnd = (code) => {
       if (exit) return
@@ -283,19 +262,17 @@ class BaseManager {
       }
     }
     child.stdout.on('data', (data) => {
-      stdout = this._handleStd(data, stdout)
+      this._handleLog(data)
     })
     child.stderr.on('data', (err) => {
-      stderr = this._handleStd(err, stderr)
+      this._handleLog(err)
     })
     child.on('exit', onEnd)
     child.on('close', onEnd)
   }
 
   _handleLog(info) {
-    let str = info.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
-    str += '<br/>'
-    str = str.replace(/ /g, '&ensp;')
+    let str = info.toString()
     process.send({
       command: this.ipcCommand,
       key: this.ipcCommandKey,

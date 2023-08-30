@@ -552,6 +552,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:tools':
       case 'app-fork:version':
       case 'app-fork:mongodb':
+      case 'app-fork:project':
         let forkFile = command.replace('app-fork:', '')
         let child = fork(join(__static, `fork/${forkFile}.js`))
         this.setProxy()

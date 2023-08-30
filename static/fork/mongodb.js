@@ -59,7 +59,7 @@ class Manager extends BaseManager {
         }
       }
       const sendLog = (data) => {
-        let str = data.toString().replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>')
+        let str = data.toString()
         process.send({
           command: this.ipcCommand,
           key: this.ipcCommandKey,

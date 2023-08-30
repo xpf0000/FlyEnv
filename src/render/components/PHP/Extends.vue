@@ -44,9 +44,9 @@
               </el-button>
             </div>
           </template>
-          <ul v-if="currentExtend" ref="logs" class="logs">
-            <li v-for="(log, index) in logs" :key="index" class="mb-5" v-html="log"></li>
-          </ul>
+          <div v-if="currentExtend" ref="logs" class="logs cli-to-html">
+            {{ logs.join('') }}
+          </div>
           <el-table v-else height="100%" :data="showTableData" size="medium" style="width: 100%">
             <el-table-column prop="name" :label="$t('base.name')"> </el-table-column>
             <el-table-column align="center" :label="$t('base.status')">
@@ -360,7 +360,7 @@
             if (this.serverRunning) {
               reloadService('php', this.version as SoftInstalled)
             }
-            this.$message.success(this.$t('base.success'))
+            ElMessage.success(I18nT('base.success'))
             this.getTableData()
             this.toNext()
           } else if (res.code === 1) {
@@ -368,7 +368,7 @@
             this.logs.push(res.msg)
             this.taskPhp.extendRunning = false
             this.showNextBtn = true
-            this.$message.error(this.$t('base.fail'))
+            ElMessage.error(I18nT('base.fail'))
             this.getTableData()
           } else if (res.code === 200) {
             this.logs.push(res.msg)
@@ -385,7 +385,7 @@
         const pre = row?.extendPre ?? 'extension='
         const txt = `${pre}${row.soPath}`
         clipboard.writeText(txt)
-        this.$message.success(this.$t('php.extensionCopySuccess'))
+        ElMessage.success(I18nT('php.extensionCopySuccess'))
       },
       copyXDebugTmpl(index: number, row: any) {
         console.log(index, row)
@@ -409,7 +409,7 @@ xdebug.trigger_value=StartProfileForMe
 ;输出文件路径，原来是output_profiler_dir,trace_dir分别设置,现在统一用这个设置就可以
 xdebug.output_dir = /tmp`
         clipboard.writeText(txt)
-        this.$message.success(this.$t('php.xdebugConfCopySuccess'))
+        ElMessage.success(I18nT('php.xdebugConfCopySuccess'))
       }
     }
   })
