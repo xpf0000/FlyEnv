@@ -53,6 +53,7 @@ class Manager extends BaseManager {
           return Utils.writeFileAsync(copyfile, content)
         })
         .then(() => {
+          Utils.chmod(copyfile, '0777')
           const params = [copyfile, cacheDir, dir]
           console.log('params: ', params.join(' '))
           const child = spawn('zsh', params, optdefault)
@@ -90,6 +91,7 @@ class Manager extends BaseManager {
           return Utils.writeFileAsync(copyfile, content)
         })
         .then(() => {
+          Utils.chmod(copyfile, '0777')
           const params = [copyfile, cacheDir, dir, name, version]
           console.log('params: ', params.join(' '))
           const child = spawn('zsh', params, optdefault)
