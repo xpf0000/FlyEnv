@@ -183,6 +183,13 @@
             extendPre: 'zend_extension='
           },
           {
+            name: 'xlswriter',
+            installed: false,
+            status: false,
+            soname: 'xlswriter.so',
+            extendPre: 'zend_extension='
+          },
+          {
             name: 'ssh2',
             installed: false,
             status: false,
