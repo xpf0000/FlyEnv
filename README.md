@@ -141,6 +141,7 @@ Examples of things you can do include, but are not limited to:
 - Making product requirements and suggestions
 - Designing better looking interfaces and icons
 - Helping to share the software with a wider audience
+- Write a blog, or record a video.
 - Add features such as php extensions, software modules, common tools, etc.
 
 Thank you to all the people who already contributed to PhpWebStudy!
