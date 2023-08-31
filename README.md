@@ -132,6 +132,18 @@ make install
 - [node-pty](https://github.com/microsoft/node-pty)
 - [monaco-editor](https://github.com/microsoft/monaco-editor)
 
+## Contribution
+
+We welcome you to join us in this project. Maybe you don't need a lot of skills, but a few simple things can make the project better.
+Examples of things you can do include, but are not limited to:
+- Testing, finding bugs, and filing issues.
+- Translation, using your own language, to make software and website descriptions more accurate.
+- Making product requirements and suggestions
+- Designing better looking interfaces and icons
+- Helping to share the software with a wider audience
+- Add features such as php extensions, software modules, common tools, etc.
+
+Thank you to all the people who already contributed to PhpWebStudy!
 
 ## Feedback and Suggestions
 
