@@ -454,6 +454,31 @@ class PhpManager extends BaseManager {
               reject(err)
             })
           break
+          case 'xlswriter':
+            if (existsSync(join(extendsDir, 'xlswriter.so'))) {
+              resolve(true)
+              return
+            }
+            sh = join(global.Server.Static, 'sh/php-xlswriter.sh')
+            copyfile = join(global.Server.Cache, 'php-xlswriter.sh')
+            if (existsSync(copyfile)) {
+              unlinkSync(copyfile)
+            }
+            Utils.readFileAsync(sh)
+              .then((content) => {
+                return Utils.writeFileAsync(copyfile, content)
+              })
+              .then(() => {
+                this.#cleanDefaultIni(version.path)
+                Utils.chmod(copyfile, '0777')
+                let extendv = '1.5.5'
+                doRun(copyfile, extendv)
+              })
+              .catch((err) => {
+                console.log('err: ', err)
+                reject(err)
+              })
+            break
         case 'ssh2':
           if (existsSync(join(extendsDir, 'ssh2.so'))) {
             resolve(true)
