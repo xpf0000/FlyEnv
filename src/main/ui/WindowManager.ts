@@ -104,7 +104,6 @@ export default class WindowManager extends EventEmitter {
   openWindow(page: string, options: { [key: string]: any } = {}) {
     const pageOptions = this.getPageOptions(page)
     const { hidden } = options
-    console.log('pageOptions: ', pageOptions)
     let window = this.windows[page]
     if (window) {
       window.show()
@@ -118,7 +117,6 @@ export default class WindowManager extends EventEmitter {
     })
     enable(window.webContents)
     const bounds = this.getPageBounds(page)
-    console.log('bounds ====>', bounds)
     if (bounds) {
       window.setBounds(bounds)
     }

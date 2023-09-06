@@ -190,6 +190,32 @@
         </li>
 
         <li
+          v-if="showItem.DNS"
+          class="non-draggable"
+          :class="'non-draggable' + (currentPage === '/dns' ? ' active' : '')"
+          @click="nav('/dns')"
+        >
+          <div class="left">
+            <div class="icon-block">
+              <yb-icon
+                style="padding: 5px"
+                :svg="import('@/svg/dns2.svg?raw')"
+                width="30"
+                height="30"
+              />
+            </div>
+            <span class="title">DNS Server</span>
+          </div>
+
+          <el-switch
+            :disabled="dnsServerRunning"
+            :value="dnsServerRunning"
+            @change="switchChange('dns')"
+          >
+          </el-switch>
+        </li>
+
+        <li
           v-if="showItem.NodeJS"
           :class="'non-draggable' + (currentPage === '/node' ? ' active' : '')"
           @click="nav('/node')"
@@ -257,7 +283,9 @@
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
+  import { DnsStore } from '@/store/dns'
   import type { TrayState } from '@/tray/store/app'
+  import * as dns from 'dns'
   let lastTray = ''
   export default defineComponent({
     name: 'MoAside',
@@ -406,6 +434,9 @@
           this.phpVersions.some((v) => v.running) ||
           !AppStore().versionInited
         )
+      },
+      dnsServerRunning(): boolean {
+        return DnsStore().running
       },
       phpRunning: {
         get(): boolean {
@@ -706,6 +737,10 @@
       },
       nav(page: string) {
         return new Promise((resolve) => {
+          if (page === '/dns') {
+            const dnsStore = DnsStore()
+            dnsStore.getIP()
+          }
           if (this.currentPage === page) {
             resolve(true)
           }

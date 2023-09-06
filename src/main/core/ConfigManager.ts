@@ -49,6 +49,7 @@ interface ConfigOptions {
         MongoDB: boolean
         HttpServe: boolean
         Tools: boolean
+        DNS: boolean
       }
     }
     nginx: {
@@ -144,7 +145,8 @@ export default class ConfigManager {
               MongoDB: true,
               NodeJS: true,
               HttpServe: true,
-              Tools: true
+              Tools: true,
+              DNS: true
             }
           },
           nginx: {
@@ -199,6 +201,9 @@ export default class ConfigManager {
     }
     if (!this.config.has('setup.common.showItem.mariadb')) {
       this.config.set('setup.common.showItem.mariadb', true)
+    }
+    if (!this.config.has('setup.common.showItem.DNS')) {
+      this.config.set('setup.common.showItem.DNS', true)
     }
     if (!this.config.has('server.mongodb')) {
       this.config.set('server.mongodb', {

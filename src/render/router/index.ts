@@ -45,6 +45,10 @@ const routes = [
         component: () => import('@/components/MongoDB/Index.vue')
       },
       {
+        path: '/dns',
+        component: () => import('@/components/DNS/Index.vue')
+      },
+      {
         path: '/node',
         component: () => import('@/components/Nodejs/Index.vue')
       },

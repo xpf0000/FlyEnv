@@ -70,6 +70,7 @@ interface State {
           MongoDB: boolean
           NodeJS: boolean
           Tools: boolean
+          DNS: boolean
         }
       }
       hosts: {
@@ -156,7 +157,8 @@ const state: State = {
           Redis: true,
           MongoDB: true,
           NodeJS: true,
-          Tools: true
+          Tools: true,
+          DNS: true
         }
       },
       nginx: {

@@ -12,6 +12,8 @@ import { fork, execSync } from 'child_process'
 import TrayManager from './ui/TrayManager.ts'
 import { getLanguage } from './utils/index.ts'
 import { AppI18n } from './lang/index.ts'
+import DnsServerManager from './core/DnsServerManager.js'
+const IP = require('ip')
 const {
   createFolder,
   chmod,
@@ -45,6 +47,10 @@ export default class Application extends EventEmitter {
     this.initServerDir()
     this.handleCommands()
     this.handleIpcMessages()
+    // DnsServerManager.start()
+    // setTimeout(() => {
+    //   DnsServerManager.close()
+    // }, 15000)
   }
 
   initLang() {
@@ -694,6 +700,12 @@ export default class Application extends EventEmitter {
         break
       case 'NodePty:stop':
         this.exitNodePty()
+        break
+      case 'App:getIP':
+        this.ip = IP.address()
+        this.windowManager.sendCommandTo(this.mainWindow, command, key, {
+          path: path1
+        })
         break
     }
   }
