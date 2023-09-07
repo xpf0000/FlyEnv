@@ -1,5 +1,7 @@
 import { spawn, IPty } from 'node-pty'
 import { join } from 'path'
+import logger from './Logger'
+import { app } from 'electron'
 const execPromise = require('child-process-promise').exec
 
 class DnsServer {
@@ -15,6 +17,7 @@ class DnsServer {
         'PATH'
       ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/usr/local/bin:${env['PATH']}`
     }
+    env.ELECTRON_RUN_AS_NODE = 'true'
     return env
   }
   start() {
@@ -47,7 +50,14 @@ class DnsServer {
             resolve(true)
           }
         })
-        const node = process.env.NODE
+        let node = process.env.NODE
+        if (app.isPackaged) {
+          node = process.argv[0]
+          this.pty.write('export ELECTRON_RUN_AS_NODE=true\r')
+        }
+        logger.info('[PhpWebStudy] node', node)
+        logger.info('[PhpWebStudy] process.argv', process.argv)
+        console.log('node: ', node, process.env)
         const file = join(__static, 'fork/dnsServer.js')
         const shell = `echo '${global.Server.Password}' | sudo -S ${node} ${file}\r`
         this.pty.write(shell)
