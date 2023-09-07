@@ -11,6 +11,7 @@ export default {
   toCreateHost: 'Create Host',
   dnsInfo:
     'Turn on a DNS server. Resolve the domain name set in the /etc/hosts file to the local ip. Mainly used for other computers or phones on the LAN to access the local site. \n' +
+    'This feature requires node, so if you don\'t have it installed, please install it first.\n' +
     'How to use.\n' +
     '1. Start the DNS server.\n' +
     '2. On other computers or phones, set the DNS of the network, enter the DNS IP displayed in the current interface. It is best to keep only this one DNS setting, and then restore the original setting after it is no longer in use.\n' +

@@ -13,7 +13,6 @@ import TrayManager from './ui/TrayManager.ts'
 import { getLanguage } from './utils/index.ts'
 import { AppI18n } from './lang/index.ts'
 import DnsServerManager from './core/DnsServerManager.js'
-const IP = require('ip')
 const {
   createFolder,
   chmod,
@@ -703,8 +702,8 @@ export default class Application extends EventEmitter {
           .then(() => {
             this.windowManager.sendCommandTo(this.mainWindow, command, key, true)
           })
-          .catch(() => {
-            this.windowManager.sendCommandTo(this.mainWindow, command, key, false)
+          .catch((e) => {
+            this.windowManager.sendCommandTo(this.mainWindow, command, key, e.toString())
           })
         break
       case 'DNS:stop':

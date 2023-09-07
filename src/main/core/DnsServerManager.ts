@@ -1,14 +1,13 @@
 import { spawn, IPty } from 'node-pty'
 import { join } from 'path'
-import logger from './Logger'
-import { app } from 'electron'
+import { existsSync, copyFileSync } from 'fs'
 const execPromise = require('child-process-promise').exec
 
 class DnsServer {
   pty?: IPty
   constructor() {}
   _fixEnv() {
-    const env = process.env
+    const env = { ...process.env }
     if (!env['PATH']) {
       env['PATH'] =
         '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/usr/local/bin:/bin:/usr/sbin:/sbin'
@@ -17,7 +16,6 @@ class DnsServer {
         'PATH'
       ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/usr/local/bin:${env['PATH']}`
     }
-    env.ELECTRON_RUN_AS_NODE = 'true'
     return env
   }
   start() {
@@ -25,43 +23,63 @@ class DnsServer {
     let resolved = false
     let timer: NodeJS.Timeout | undefined
     return new Promise((resolve, reject) => {
-      timer = setTimeout(() => {
-        if (!resolved) {
-          resolved = true
-          reject(new Error('Start Fail'))
+      const env = this._fixEnv() as any
+      execPromise(
+        '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";which node',
+        {
+          env
         }
-      }, 20000)
-      this.close().then(() => {
-        this.pty = spawn(process.env['SHELL']!, [], {
-          name: 'xterm-color',
-          cols: 80,
-          rows: 34,
-          cwd: process.cwd(),
-          env: this._fixEnv() as any,
-          encoding: 'utf8'
+      )
+        .then(() => {
+          next()
         })
-        this.pty.onData((data: string) => {
-          console.log('pty.onData: ', data)
-          stdout += data
-          if (!resolved && stdout.includes('Start Success')) {
+        .catch(() => {
+          reject(new Error('Need Node'))
+        })
+      const next = () => {
+        timer = setTimeout(() => {
+          if (!resolved) {
             resolved = true
-            timer && clearTimeout(timer)
-            timer = undefined
-            resolve(true)
+            reject(new Error('Start Fail'))
           }
+        }, 20000)
+        this.close().then(() => {
+          const env = this._fixEnv() as any
+          this.pty = spawn(process.env['SHELL']!, [], {
+            name: 'xterm-color',
+            cols: 80,
+            rows: 34,
+            cwd: process.cwd(),
+            env,
+            encoding: 'utf8'
+          })
+          this.pty.onData((data: string) => {
+            stdout += data
+            if (!resolved && stdout.includes('Start Success')) {
+              resolved = true
+              timer && clearTimeout(timer)
+              timer = undefined
+              resolve(true)
+            }
+          })
+          const file = join(__static, 'fork/dnsServer.js')
+          const cacheDir = global.Server.Cache
+          const cacheFile = join(cacheDir!, 'dnsServer.js')
+          try {
+            this.pty.write(
+              '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";\r'
+            )
+            if (!existsSync(cacheFile)) {
+              this.pty.write(`cd ${cacheDir}\r`)
+              this.pty.write('npm install dns2 tangerine undici ip\r')
+              copyFileSync(file, cacheFile)
+              this.pty.write(`chmod 777 ${cacheFile}\r`)
+            }
+            const shell = `echo '${global.Server.Password}' | sudo -S node ${cacheFile}\r`
+            this.pty.write(shell)
+          } catch (e: any) {}
         })
-        let node = process.env.NODE
-        if (app.isPackaged) {
-          node = process.argv[0]
-          this.pty.write('export ELECTRON_RUN_AS_NODE=true\r')
-        }
-        logger.info('[PhpWebStudy] node', node)
-        logger.info('[PhpWebStudy] process.argv', process.argv)
-        console.log('node: ', node, process.env)
-        const file = join(__static, 'fork/dnsServer.js')
-        const shell = `echo '${global.Server.Password}' | sudo -S ${node} ${file}\r`
-        this.pty.write(shell)
-      })
+      }
     })
   }
   close() {

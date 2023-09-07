@@ -3,7 +3,6 @@ import type { SoftInstalled } from '@/store/brew'
 import { AppSofts, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
 import { DnsStore } from '@/store/dns'
-import { I18nT } from '@shared/lang'
 
 const exec = (
   typeFlag: keyof typeof AppSofts,
@@ -65,11 +64,11 @@ export const dnsStart = (): Promise<boolean | string> => {
       return
     }
     store.fetching = true
-    IPC.send('DNS:start').then((key: string, res: boolean) => {
+    IPC.send('DNS:start').then((key: string, res: boolean | string) => {
       IPC.off(key)
       store.fetching = false
-      store.running = res
-      resolve(res || I18nT('base.fail'))
+      store.running = res === true
+      resolve(res)
     })
   })
 }
