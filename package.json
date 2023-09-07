@@ -80,6 +80,7 @@
     "monaco-editor": "^0.34.1",
     "pinia": "^2.0.32",
     "prettier": "^2.4.1",
+    "qrcode": "^1.5.3",
     "rollup-plugin-typescript2": "^0.31.2",
     "sass": "^1.42.1",
     "sass-loader": "^12.1.0",

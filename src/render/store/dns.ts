@@ -4,11 +4,13 @@ const IP = require('ip')
 interface State {
   running: boolean
   ip: string
+  fetching: boolean
 }
 
 const state: State = {
   running: false,
-  ip: ''
+  ip: '',
+  fetching: false
 }
 
 export const DnsStore = defineStore('dns', {

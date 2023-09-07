@@ -208,7 +208,8 @@
           </div>
 
           <el-switch
-            :disabled="dnsServerRunning"
+            :loading="dnsServerFetching"
+            :disabled="dnsServerFetching"
             :value="dnsServerRunning"
             @change="switchChange('dns')"
           >
@@ -276,489 +277,542 @@
   </el-aside>
 </template>
 
-<script lang="ts">
-  import { defineComponent } from 'vue'
-  import { startService, stopService } from '@/util/Service'
+<script lang="ts" setup>
+  import { ref, computed, watch } from 'vue'
+  import { startService, stopService, dnsStart, dnsStop } from '@/util/Service'
   import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { DnsStore } from '@/store/dns'
-  import type { TrayState } from '@/tray/store/app'
-  import * as dns from 'dns'
+  import { ElMessage } from 'element-plus'
+  import { I18nT } from '@shared/lang'
+  import Router from '@/router/index'
   let lastTray = ''
-  export default defineComponent({
-    name: 'MoAside',
-    components: {},
-    data: function () {
-      return {
-        currentPage: '/host'
-      }
+
+  const appStore = AppStore()
+  const brewStore = BrewStore()
+  const dnsStore = DnsStore()
+  const currentPage = ref('/host')
+
+  const showItem = computed(() => {
+    return appStore.config.setup.common.showItem
+  })
+
+  const nginxVersion = computed(() => {
+    const current = appStore.config.server?.nginx?.current
+    if (!current) {
+      return undefined
+    }
+    const installed = brewStore?.nginx?.installed
+    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+  })
+
+  const mysqlVersion = computed(() => {
+    const current = appStore.config.server?.mysql?.current
+    if (!current) {
+      return undefined
+    }
+    const installed = brewStore?.mysql?.installed
+    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+  })
+
+  const mariaDBVersion = computed(() => {
+    const current = appStore.config.server?.mariadb?.current
+    if (!current) {
+      return undefined
+    }
+    const installed = brewStore?.mariadb?.installed
+    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+  })
+
+  const apacheVersion = computed(() => {
+    const current = appStore.config.server?.apache?.current
+    if (!current) {
+      return undefined
+    }
+    const installed = brewStore?.apache?.installed
+    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+  })
+
+  const memcachedVersion = computed(() => {
+    const current = appStore.config.server?.memcached?.current
+    if (!current) {
+      return undefined
+    }
+    const installed = brewStore?.memcached?.installed
+    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+  })
+
+  const redisVersion = computed(() => {
+    const current = appStore.config.server?.redis?.current
+    if (!current) {
+      return undefined
+    }
+    const installed = brewStore?.redis?.installed
+    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+  })
+
+  const mongodbVersion = computed(() => {
+    const current = appStore.config.server?.mongodb?.current
+    if (!current) {
+      return undefined
+    }
+    const installed = brewStore?.mongodb?.installed
+    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+  })
+
+  const nginxDisabled = computed(() => {
+    return (
+      !nginxVersion?.value?.version ||
+      brewStore?.nginx?.installed?.some((v) => v.running) ||
+      !appStore.versionInited
+    )
+  })
+
+  const apacheDisabled = computed(() => {
+    return (
+      !apacheVersion?.value?.version ||
+      brewStore?.apache?.installed?.some((v) => v.running) ||
+      !appStore.versionInited
+    )
+  })
+
+  const mysqlDisabled = computed(() => {
+    return (
+      !mysqlVersion?.value?.version ||
+      brewStore?.mysql?.installed?.some((v) => v.running) ||
+      !appStore.versionInited
+    )
+  })
+
+  const mariaDBDisabled = computed(() => {
+    return (
+      !mariaDBVersion?.value?.version ||
+      brewStore?.mariadb?.installed?.some((v) => v.running) ||
+      !appStore.versionInited
+    )
+  })
+
+  const memcachedDisabled = computed(() => {
+    return (
+      !memcachedVersion?.value?.version ||
+      brewStore?.memcached?.installed?.some((v) => v.running) ||
+      !appStore.versionInited
+    )
+  })
+
+  const redisDisabled = computed(() => {
+    return (
+      !redisVersion?.value?.version ||
+      brewStore?.redis?.installed?.some((v) => v.running) ||
+      !appStore.versionInited
+    )
+  })
+
+  const mongodbDisabled = computed(() => {
+    return (
+      !mongodbVersion?.value?.version ||
+      brewStore?.mongodb?.installed?.some((v) => v.running) ||
+      !appStore.versionInited
+    )
+  })
+
+  const nginxRunning = computed(() => {
+    return nginxVersion?.value?.run === true
+  })
+
+  const mysqlRunning = computed(() => {
+    return mysqlVersion?.value?.run === true
+  })
+
+  const mariaDBRunning = computed(() => {
+    return mariaDBVersion?.value?.run === true
+  })
+
+  const apacheRunning = computed(() => {
+    return apacheVersion?.value?.run === true
+  })
+
+  const memcachedRunning = computed(() => {
+    return memcachedVersion?.value?.run === true
+  })
+
+  const redisRunning = computed(() => {
+    return redisVersion?.value?.run === true
+  })
+
+  const mongodbRunning = computed(() => {
+    return mongodbVersion?.value?.run === true
+  })
+
+  const phpVersions = computed(() => {
+    return brewStore?.php?.installed ?? []
+  })
+
+  const phpDisable = computed(() => {
+    return (
+      phpVersions?.value?.length === 0 ||
+      phpVersions?.value?.some((v) => v.running) ||
+      !appStore.versionInited
+    )
+  })
+
+  const dnsServerRunning = computed(() => {
+    return dnsStore.running
+  })
+
+  const dnsServerFetching = computed(() => {
+    return dnsStore.fetching
+  })
+
+  const phpRunning = computed({
+    get(): boolean {
+      return phpVersions?.value?.length > 0 && phpVersions?.value?.some((v) => v.run)
     },
-    computed: {
-      showItem() {
-        return AppStore().config.setup.common.showItem
-      },
-      nginxVersion() {
-        const current = AppStore().config.server?.nginx?.current
-        if (!current) {
-          return undefined
-        }
-        const installed = BrewStore()?.nginx?.installed
-        return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-      },
-      mysqlVersion() {
-        const current = AppStore().config.server?.mysql?.current
-        if (!current) {
-          return undefined
-        }
-        const installed = BrewStore()?.mysql?.installed
-        return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-      },
-      mariaDBVersion() {
-        const current = AppStore().config.server?.mariadb?.current
-        if (!current) {
-          return undefined
-        }
-        const installed = BrewStore()?.mariadb?.installed
-        return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-      },
-      apacheVersion() {
-        const current = AppStore().config.server?.apache?.current
-        if (!current) {
-          return undefined
-        }
-        const installed = BrewStore()?.apache?.installed
-        return installed?.find((i) => i.path === current.path && i.version === current.version)
-      },
-      memcachedVersion() {
-        const current = AppStore().config.server?.memcached?.current
-        if (!current) {
-          return undefined
-        }
-        const installed = BrewStore()?.memcached?.installed
-        return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-      },
-      redisVersion() {
-        const current = AppStore().config.server?.redis?.current
-        if (!current) {
-          return undefined
-        }
-        const installed = BrewStore()?.redis?.installed
-        return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-      },
-      mongodbVersion() {
-        const current = AppStore().config.server?.mongodb?.current
-        if (!current) {
-          return undefined
-        }
-        const installed = BrewStore()?.mongodb?.installed
-        return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-      },
-      nginxDisabled(): boolean {
-        return (
-          !this.nginxVersion?.version ||
-          BrewStore()?.nginx?.installed?.some((v) => v.running) ||
-          !AppStore().versionInited
-        )
-      },
-      apacheDisabled(): boolean {
-        return (
-          !this.apacheVersion?.version ||
-          BrewStore()?.apache?.installed?.some((v) => v.running) ||
-          !AppStore().versionInited
-        )
-      },
-      mysqlDisabled(): boolean {
-        return (
-          !this.mysqlVersion?.version ||
-          BrewStore()?.mysql?.installed?.some((v) => v.running) ||
-          !AppStore().versionInited
-        )
-      },
-      mariaDBDisabled(): boolean {
-        return (
-          !this.mariaDBVersion?.version ||
-          BrewStore()?.mariadb?.installed?.some((v) => v.running) ||
-          !AppStore().versionInited
-        )
-      },
-      memcachedDisabled(): boolean {
-        return (
-          !this.memcachedVersion?.version ||
-          BrewStore()?.memcached?.installed?.some((v) => v.running) ||
-          !AppStore().versionInited
-        )
-      },
-      redisDisabled(): boolean {
-        return (
-          !this.redisVersion?.version ||
-          BrewStore()?.redis?.installed?.some((v) => v.running) ||
-          !AppStore().versionInited
-        )
-      },
-      mongodbDisabled(): boolean {
-        return (
-          !this.mongodbVersion?.version ||
-          BrewStore()?.mongodb?.installed?.some((v) => v.running) ||
-          !AppStore().versionInited
-        )
-      },
-      nginxRunning(): boolean {
-        return this.nginxVersion?.run === true
-      },
-      mysqlRunning(): boolean {
-        return this.mysqlVersion?.run === true
-      },
-      mariaDBRunning(): boolean {
-        return this.mariaDBVersion?.run === true
-      },
-      apacheRunning(): boolean {
-        return this.apacheVersion?.run === true
-      },
-      memcachedRunning(): boolean {
-        return this.memcachedVersion?.run === true
-      },
-      redisRunning(): boolean {
-        return this.redisVersion?.run === true
-      },
-      mongodbRunning(): boolean {
-        return this.mongodbVersion?.run === true
-      },
-      phpVersions() {
-        return BrewStore()?.php?.installed ?? []
-      },
-      phpDisable(): boolean {
-        return (
-          this.phpVersions.length === 0 ||
-          this.phpVersions.some((v) => v.running) ||
-          !AppStore().versionInited
-        )
-      },
-      dnsServerRunning(): boolean {
-        return DnsStore().running
-      },
-      phpRunning: {
-        get(): boolean {
-          return this.phpVersions.length > 0 && this.phpVersions.some((v) => v.run)
-        },
-        set(v: boolean) {
-          const all: Array<Promise<any>> = []
-          if (v) {
-            this.phpVersions.forEach((v) => {
-              all.push(startService('php', v))
-            })
-          } else {
-            this.phpVersions.forEach((v) => {
-              all.push(stopService('php', v))
-            })
-          }
-          Promise.all(all).then((res) => {
-            let find = res.find((s) => typeof s === 'string')
-            if (find) {
-              this.$message.error(find)
-            } else {
-              this.$message.success(this.$t('base.success'))
-            }
-          })
-        }
-      },
-      groupIsRunning(): boolean {
-        return (
-          this.nginxRunning ||
-          this.apacheRunning ||
-          this.mysqlRunning ||
-          this.mariaDBRunning ||
-          this.phpRunning ||
-          this.redisRunning ||
-          this.memcachedRunning ||
-          this.mongodbRunning
-        )
-      },
-      groupDisabled(): boolean {
-        const allDisabled =
-          this.apacheDisabled &&
-          this.memcachedDisabled &&
-          this.mysqlDisabled &&
-          this.mariaDBDisabled &&
-          this.nginxDisabled &&
-          this.phpDisable &&
-          this.redisDisabled &&
-          this.mongodbDisabled
-        const running =
-          this?.apacheVersion?.running === true ||
-          this?.memcachedVersion?.running === true ||
-          this?.mysqlVersion?.running === true ||
-          this?.mariaDBVersion?.running === true ||
-          this?.nginxVersion?.running === true ||
-          this.phpVersions.some((v) => v.running) ||
-          this?.redisVersion?.running === true ||
-          this?.mongodbVersion?.running === true
-        return allDisabled || running || !AppStore().versionInited
-      },
-      groupClass(): { [ksy: string]: boolean } {
-        return {
-          'non-draggable': true,
-          'swith-power': true,
-          on: this.groupIsRunning,
-          disabled: this.groupDisabled
-        }
-      },
-      trayStore(): TrayState {
-        const appStore = AppStore()
-        return {
-          apache: {
-            show: this.showItem.Apache,
-            disabled: this.apacheDisabled,
-            run: this.apacheVersion?.run === true,
-            running: this.apacheVersion?.running === true
-          },
-          memcached: {
-            show: this.showItem.Memcached,
-            disabled: this.memcachedDisabled,
-            run: this.memcachedVersion?.run === true,
-            running: this.memcachedVersion?.running === true
-          },
-          mysql: {
-            show: this.showItem.Mysql,
-            disabled: this.mysqlDisabled,
-            run: this.mysqlVersion?.run === true,
-            running: this.mysqlVersion?.running === true
-          },
-          mariadb: {
-            show: this.showItem.mariadb,
-            disabled: this.mariaDBDisabled,
-            run: this.mariaDBVersion?.run === true,
-            running: this.mariaDBVersion?.running === true
-          },
-          nginx: {
-            show: this.showItem.Nginx,
-            disabled: this.nginxDisabled,
-            run: this.nginxVersion?.run === true,
-            running: this.nginxVersion?.running === true
-          },
-          password: appStore?.config?.password,
-          lang: appStore?.config?.setup?.lang,
-          php: {
-            show: this.showItem.Php,
-            disabled: this.phpDisable,
-            run: this.phpRunning === true,
-            running: this.phpVersions.some((v) => v.running)
-          },
-          redis: {
-            show: this.showItem.Redis,
-            disabled: this.redisDisabled,
-            run: this.redisVersion?.run === true,
-            running: this.redisVersion?.running === true
-          },
-          mongodb: {
-            show: this.showItem.MongoDB,
-            disabled: this.mongodbDisabled,
-            run: this.mongodbVersion?.run === true,
-            running: this.mongodbVersion?.running === true
-          },
-          groupDisabled: this.groupDisabled,
-          groupIsRunning: this.groupIsRunning
-        }
+    set(v: boolean) {
+      const all: Array<Promise<any>> = []
+      if (v) {
+        phpVersions?.value?.forEach((v) => {
+          all.push(startService('php', v))
+        })
+      } else {
+        phpVersions?.value?.forEach((v) => {
+          all.push(stopService('php', v))
+        })
       }
-    },
-    watch: {
-      groupIsRunning(val) {
-        IPC.send('Application:tray-status-change', val).then((key: string) => {
+      Promise.all(all).then((res) => {
+        let find = res.find((s) => typeof s === 'string')
+        if (find) {
+          ElMessage.error(find)
+        } else {
+          ElMessage.success(I18nT('base.success'))
+        }
+      })
+    }
+  })
+
+  const groupIsRunning = computed(() => {
+    return (
+      nginxRunning?.value ||
+      apacheRunning?.value ||
+      mysqlRunning?.value ||
+      mariaDBRunning?.value ||
+      phpRunning?.value ||
+      redisRunning?.value ||
+      memcachedRunning?.value ||
+      mongodbRunning?.value ||
+      dnsServerRunning?.value
+    )
+  })
+
+  const groupDisabled = computed(() => {
+    const allDisabled =
+      apacheDisabled.value &&
+      memcachedDisabled.value &&
+      mysqlDisabled.value &&
+      mariaDBDisabled.value &&
+      nginxDisabled.value &&
+      phpDisable.value &&
+      redisDisabled.value &&
+      mongodbDisabled.value
+    const running =
+      apacheVersion?.value?.running === true ||
+      memcachedVersion?.value?.running === true ||
+      mysqlVersion?.value?.running === true ||
+      mariaDBVersion?.value?.running === true ||
+      nginxVersion?.value?.running === true ||
+      phpVersions?.value?.some((v) => v.running) ||
+      redisVersion?.value?.running === true ||
+      mongodbVersion?.value?.running === true ||
+      dnsServerFetching?.value === true
+    return allDisabled || running || !appStore.versionInited
+  })
+
+  const groupClass = computed(() => {
+    return {
+      'non-draggable': true,
+      'swith-power': true,
+      on: groupIsRunning.value,
+      disabled: groupDisabled.value
+    }
+  })
+
+  const trayStore = computed(() => {
+    return {
+      apache: {
+        show: showItem?.value?.Apache,
+        disabled: apacheDisabled.value,
+        run: apacheVersion?.value?.run === true,
+        running: apacheVersion?.value?.running === true
+      },
+      memcached: {
+        show: showItem?.value?.Memcached,
+        disabled: memcachedDisabled.value,
+        run: memcachedVersion?.value?.run === true,
+        running: memcachedVersion?.value?.running === true
+      },
+      mysql: {
+        show: showItem?.value?.Mysql,
+        disabled: mysqlDisabled.value,
+        run: mysqlVersion?.value?.run === true,
+        running: mysqlVersion?.value?.running === true
+      },
+      mariadb: {
+        show: showItem?.value?.mariadb,
+        disabled: mariaDBDisabled.value,
+        run: mariaDBVersion?.value?.run === true,
+        running: mariaDBVersion?.value?.running === true
+      },
+      nginx: {
+        show: showItem?.value?.Nginx,
+        disabled: nginxDisabled.value,
+        run: nginxVersion?.value?.run === true,
+        running: nginxVersion?.value?.running === true
+      },
+      password: appStore?.config?.password,
+      lang: appStore?.config?.setup?.lang,
+      php: {
+        show: showItem?.value?.Php,
+        disabled: phpDisable.value,
+        run: phpRunning.value,
+        running: phpVersions.value.some((v) => v.running)
+      },
+      redis: {
+        show: showItem?.value?.Redis,
+        disabled: redisDisabled.value,
+        run: redisVersion?.value?.run === true,
+        running: redisVersion?.value?.running === true
+      },
+      mongodb: {
+        show: showItem?.value?.MongoDB,
+        disabled: mongodbDisabled.value,
+        run: mongodbVersion?.value?.run === true,
+        running: mongodbVersion?.value?.running === true
+      },
+      dns: {
+        show: showItem?.value?.DNS,
+        run: dnsServerRunning.value === true,
+        running: dnsServerFetching.value === true
+      },
+      groupDisabled: groupDisabled.value,
+      groupIsRunning: groupIsRunning.value
+    }
+  })
+
+  watch(groupIsRunning, (val) => {
+    IPC.send('Application:tray-status-change', val).then((key: string) => {
+      IPC.off(key)
+    })
+  })
+
+  watch(
+    trayStore,
+    (v) => {
+      const current = JSON.stringify(v)
+      if (lastTray !== current) {
+        lastTray = current
+        console.log('trayStore changed: ', current)
+        IPC.send('APP:Tray-Store-Sync', JSON.parse(current)).then((key: string) => {
           IPC.off(key)
         })
-      },
-      trayStore: {
-        handler(v) {
-          const current = JSON.stringify(v)
-          if (lastTray !== current) {
-            lastTray = current
-            console.log('trayStore changed: ', current)
-            IPC.send('APP:Tray-Store-Sync', JSON.parse(current)).then((key: string) => {
-              IPC.off(key)
-            })
-          }
-        },
-        immediate: true,
-        deep: true
       }
     },
-    created() {
-      IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
-        console.log('on APP:Tray-Command', key, fn, arg)
-        if (fn === 'switchChange' && arg === 'php') {
-          this.phpRunning = !this.phpRunning
-          return
-        }
-        // @ts-ignore
-        this?.[fn] && this[fn](arg)
-      })
-    },
-    mounted() {},
-    methods: {
-      groupDo() {
-        if (this.groupDisabled) {
-          return
-        }
-        passwordCheck().then(() => {
-          const all: Array<Promise<string | boolean>> = []
-          if (this.groupIsRunning) {
-            if (this.showItem.Nginx && this.nginxRunning && this.nginxVersion?.version) {
-              all.push(stopService('nginx', this.nginxVersion))
-            }
-            if (this.showItem.Apache && this.apacheRunning && this.apacheVersion?.version) {
-              all.push(stopService('apache', this.apacheVersion))
-            }
-            if (this.showItem.Mysql && this.mysqlRunning && this.mysqlVersion?.version) {
-              all.push(stopService('mysql', this.mysqlVersion))
-            }
-            if (this.showItem.mariadb && this.mariaDBRunning && this.mariaDBVersion?.version) {
-              all.push(stopService('mariadb', this.mariaDBVersion))
-            }
-            if (
-              this.showItem.Memcached &&
-              this.memcachedRunning &&
-              this.memcachedVersion?.version
-            ) {
-              all.push(stopService('memcached', this.memcachedVersion))
-            }
-            if (this.showItem.Redis && this.redisRunning && this.redisVersion?.version) {
-              all.push(stopService('redis', this.redisVersion))
-            }
-            if (this.showItem.MongoDB && this.mongodbRunning && this.mongodbVersion?.version) {
-              all.push(stopService('mongodb', this.mongodbVersion))
-            }
-            this.phpVersions.forEach((v) => {
-              all.push(stopService('php', v))
-            })
-          } else {
-            if (this.showItem.Nginx && this.nginxVersion?.version) {
-              all.push(startService('nginx', this.nginxVersion))
-            }
-            if (this.showItem.Apache && this.apacheVersion?.version) {
-              all.push(startService('apache', this.apacheVersion))
-            }
-            if (this.showItem.Mysql && this.mysqlVersion?.version) {
-              all.push(startService('mysql', this.mysqlVersion))
-            }
-            if (this.showItem.mariadb && this.mariaDBVersion?.version) {
-              all.push(startService('mariadb', this.mariaDBVersion))
-            }
-            if (this.showItem.Memcached && this.memcachedVersion?.version) {
-              all.push(startService('memcached', this.memcachedVersion))
-            }
-            if (this.showItem.Redis && this.redisVersion?.version) {
-              all.push(startService('redis', this.redisVersion))
-            }
-            if (this.showItem.MongoDB && this.mongodbVersion?.version) {
-              all.push(startService('mongodb', this.mongodbVersion))
-            }
-            this.phpVersions.forEach((v) => {
-              all.push(startService('php', v))
-            })
-          }
-          if (all.length > 0) {
-            const err: Array<string> = []
-            const run = () => {
-              const task = all.pop()
-              if (task) {
-                task
-                  .then((s: boolean | string) => {
-                    if (typeof s === 'string') {
-                      err.push(s)
-                    }
-                    run()
-                  })
-                  .catch((e: any) => {
-                    err.push(e.toString())
-                    run()
-                  })
-              } else {
-                if (err.length === 0) {
-                  this.$message.success(this.$t('base.success'))
-                } else {
-                  this.$message.error(err.join('<br/>'))
-                }
-              }
-            }
-            run()
-          }
-        })
-      },
-      switchChange(flag: string) {
-        passwordCheck().then(() => {
-          let fn = null
-          let promise: Promise<any> | null = null
-          switch (flag) {
-            case 'nginx':
-              if (!this.nginxVersion?.version) return
-              fn = this.nginxRunning ? stopService : startService
-              promise = fn('nginx', this.nginxVersion)
-              break
-            case 'mysql':
-              if (!this.mysqlVersion?.version) return
-              fn = this.mysqlRunning ? stopService : startService
-              promise = fn('mysql', this.mysqlVersion)
-              break
-            case 'mariadb':
-              if (!this.mariaDBVersion?.version) return
-              fn = this.mariaDBRunning ? stopService : startService
-              promise = fn('mariadb', this.mariaDBVersion)
-              break
-            case 'apache':
-              if (!this.apacheVersion?.version) return
-              fn = this.apacheRunning ? stopService : startService
-              promise = fn('apache', this.apacheVersion)
-              break
-            case 'memcached':
-              if (!this.memcachedVersion?.version) return
-              fn = this.memcachedRunning ? stopService : startService
-              promise = fn('memcached', this.memcachedVersion)
-              break
-            case 'redis':
-              if (!this.redisVersion?.version) return
-              fn = this.redisRunning ? stopService : startService
-              promise = fn('redis', this.redisVersion)
-              break
-            case 'mongodb':
-              if (!this.mongodbVersion?.version) return
-              fn = this.mongodbRunning ? stopService : startService
-              promise = fn('mongodb', this.mongodbVersion)
-              break
-          }
-          promise?.then((res) => {
-            if (typeof res === 'string') {
-              this.$message.error(res)
-            } else {
-              this.$message.success(this.$t('base.success'))
-            }
-          })
-        })
-      },
-      nav(page: string) {
-        return new Promise((resolve) => {
-          if (page === '/dns') {
-            const dnsStore = DnsStore()
-            dnsStore.getIP()
-          }
-          if (this.currentPage === page) {
-            resolve(true)
-          }
-          this.$router
-            .push({
-              path: page
-            })
-            .then(() => {
-              resolve(true)
-            })
-            .catch((err) => {
-              console.log('router err: ', err)
-              resolve(true)
-            })
-          this.currentPage = page
-        })
-      }
+    {
+      immediate: true,
+      deep: true
     }
+  )
+
+  const groupDo = () => {
+    if (groupDisabled.value) {
+      return
+    }
+    passwordCheck().then(() => {
+      const all: Array<Promise<string | boolean>> = []
+      if (groupIsRunning?.value) {
+        if (showItem?.value?.Nginx && nginxRunning?.value && nginxVersion?.value?.version) {
+          all.push(stopService('nginx', nginxVersion?.value))
+        }
+        if (showItem?.value?.Apache && apacheRunning?.value && apacheVersion?.value?.version) {
+          all.push(stopService('apache', apacheVersion?.value))
+        }
+        if (showItem?.value?.Mysql && mysqlRunning?.value && mysqlVersion?.value?.version) {
+          all.push(stopService('mysql', mysqlVersion?.value))
+        }
+        if (showItem?.value?.mariadb && mariaDBRunning?.value && mariaDBVersion?.value?.version) {
+          all.push(stopService('mariadb', mariaDBVersion?.value))
+        }
+        if (
+          showItem?.value?.Memcached &&
+          memcachedRunning?.value &&
+          memcachedVersion?.value?.version
+        ) {
+          all.push(stopService('memcached', memcachedVersion?.value))
+        }
+        if (showItem?.value?.Redis && redisRunning?.value && redisVersion?.value?.version) {
+          all.push(stopService('redis', redisVersion?.value))
+        }
+        if (showItem?.value?.MongoDB && mongodbRunning?.value && mongodbVersion?.value?.version) {
+          all.push(stopService('mongodb', mongodbVersion?.value))
+        }
+        if (showItem?.value?.DNS && dnsServerRunning?.value) {
+          all.push(dnsStop())
+        }
+        if (showItem?.value?.Php) {
+          phpVersions?.value?.forEach((v) => {
+            all.push(stopService('php', v))
+          })
+        }
+      } else {
+        if (showItem?.value?.Nginx && nginxVersion?.value?.version) {
+          all.push(startService('nginx', nginxVersion?.value))
+        }
+        if (showItem?.value?.Apache && apacheVersion?.value?.version) {
+          all.push(startService('apache', apacheVersion?.value))
+        }
+        if (showItem?.value?.Mysql && mysqlVersion?.value?.version) {
+          all.push(startService('mysql', mysqlVersion?.value))
+        }
+        if (showItem?.value?.mariadb && mariaDBVersion?.value?.version) {
+          all.push(startService('mariadb', mariaDBVersion?.value))
+        }
+        if (showItem?.value?.Memcached && memcachedVersion?.value?.version) {
+          all.push(startService('memcached', memcachedVersion?.value))
+        }
+        if (showItem?.value?.Redis && redisVersion?.value?.version) {
+          all.push(startService('redis', redisVersion?.value))
+        }
+        if (showItem?.value?.MongoDB && mongodbVersion?.value?.version) {
+          all.push(startService('mongodb', mongodbVersion?.value))
+        }
+        if (showItem?.value?.DNS) {
+          all.push(dnsStart())
+        }
+        if (showItem?.value?.Php) {
+          phpVersions?.value?.forEach((v) => {
+            all.push(startService('php', v))
+          })
+        }
+      }
+      if (all.length > 0) {
+        const err: Array<string> = []
+        const run = () => {
+          const task = all.pop()
+          if (task) {
+            task
+              .then((s: boolean | string) => {
+                if (typeof s === 'string') {
+                  err.push(s)
+                }
+                run()
+              })
+              .catch((e: any) => {
+                err.push(e.toString())
+                run()
+              })
+          } else {
+            if (err.length === 0) {
+              ElMessage.success(I18nT('base.success'))
+            } else {
+              ElMessage.error(err.join('<br/>'))
+            }
+          }
+        }
+        run()
+      }
+    })
+  }
+
+  const switchChange = (flag: string) => {
+    passwordCheck().then(() => {
+      let fn = null
+      let promise: Promise<any> | null = null
+      switch (flag) {
+        case 'dns':
+          if (dnsServerFetching?.value) return
+          fn = dnsServerRunning?.value ? dnsStop : dnsStart
+          promise = fn()
+          break
+        case 'nginx':
+          if (!nginxVersion?.value?.version) return
+          fn = nginxRunning?.value ? stopService : startService
+          promise = fn('nginx', nginxVersion?.value)
+          break
+        case 'mysql':
+          if (!mysqlVersion?.value?.version) return
+          fn = mysqlRunning?.value ? stopService : startService
+          promise = fn('mysql', mysqlVersion?.value)
+          break
+        case 'mariadb':
+          if (!mariaDBVersion?.value?.version) return
+          fn = mariaDBRunning?.value ? stopService : startService
+          promise = fn('mariadb', mariaDBVersion?.value)
+          break
+        case 'apache':
+          if (!apacheVersion?.value?.version) return
+          fn = apacheRunning?.value ? stopService : startService
+          promise = fn('apache', apacheVersion?.value)
+          break
+        case 'memcached':
+          if (!memcachedVersion?.value?.version) return
+          fn = memcachedRunning?.value ? stopService : startService
+          promise = fn('memcached', memcachedVersion?.value)
+          break
+        case 'redis':
+          if (!redisVersion?.value?.version) return
+          fn = redisRunning?.value ? stopService : startService
+          promise = fn('redis', redisVersion?.value)
+          break
+        case 'mongodb':
+          if (!mongodbVersion?.value?.version) return
+          fn = mongodbRunning?.value ? stopService : startService
+          promise = fn('mongodb', mongodbVersion?.value)
+          break
+      }
+      promise?.then((res) => {
+        if (typeof res === 'string') {
+          ElMessage.error(res)
+        } else {
+          ElMessage.success(I18nT('base.success'))
+        }
+      })
+    })
+  }
+
+  const nav = (page: string) => {
+    return new Promise((resolve) => {
+      if (page === '/dns') {
+        dnsStore.getIP()
+      }
+      if (currentPage.value === page) {
+        resolve(true)
+      }
+      Router.push({
+        path: page
+      })
+        .then(() => {
+          resolve(true)
+        })
+        .catch((err) => {
+          console.log('router err: ', err)
+          resolve(true)
+        })
+      currentPage.value = page
+    })
+  }
+
+  IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
+    console.log('on APP:Tray-Command', key, fn, arg)
+    if (fn === 'switchChange' && arg === 'php') {
+      phpRunning.value = !phpRunning.value
+      return
+    }
+    const fns: { [k: string]: Function } = {
+      groupDo,
+      switchChange
+    }
+    fns[fn] && fns[fn](arg)
   })
 </script>
 

@@ -71,6 +71,7 @@
         const brewStore = BrewStore()
         for (const k in dict) {
           const brewSoft = brewStore?.[k]
+          console.log('onShowItemChange brewSoft: ', k, brewSoft)
           if (brewSoft && dict[k] && !brewSoft?.installedInited) {
             const flags = [k] as Array<keyof typeof AppSofts>
             installedVersions.allInstalledVersions(flags)
@@ -98,6 +99,11 @@
             'redis',
             'mongodb'
           ].filter((f) => dict[f]) as Array<keyof typeof AppSofts>
+          if (flags.length === 0) {
+            AppStore().versionInited = true
+            this.inited = true
+            return
+          }
           installedVersions.allInstalledVersions(flags).then(() => {
             AppStore().versionInited = true
             this.inited = true

@@ -137,6 +137,23 @@
         >
         </el-switch>
       </li>
+
+      <li v-if="dns?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block">
+            <yb-icon
+              style="padding: 5px"
+              :svg="import('@/svg/dns2.svg?raw')"
+              width="28"
+              height="28"
+            />
+          </div>
+          <span class="title">DNS Server</span>
+        </div>
+
+        <el-switch :disabled="dns?.running" :value="dns?.run" @change="switchChange('dns')">
+        </el-switch>
+      </li>
     </ul>
     <ul class="bottom-tool">
       <li @click="showMainWin"> {{ $t('tray.showMainWin') }} </li>
@@ -146,88 +163,83 @@
   <span class="popper-arrow" :style="{ left: left }"></span>
 </template>
 
-<script lang="ts">
-  import { defineComponent } from 'vue'
+<script lang="ts" setup>
+  import { computed, ref, Ref } from 'vue'
   import { AppStore } from './store/app'
   import IPC from '../util/IPC'
 
-  export default defineComponent({
-    name: 'App',
-    data(): any {
-      return {
-        left: null
-      }
-    },
-    computed: {
-      password() {
-        return AppStore().password
-      },
-      php() {
-        return AppStore().php
-      },
-      nginx() {
-        return AppStore().nginx
-      },
-      apache() {
-        return AppStore().apache
-      },
-      mysql() {
-        return AppStore().mysql
-      },
-      mariadb() {
-        return AppStore().mariadb
-      },
-      memcached() {
-        return AppStore().memcached
-      },
-      redis() {
-        return AppStore().redis
-      },
-      mongodb() {
-        return AppStore().mongodb
-      },
-      groupIsRunning() {
-        return AppStore().groupIsRunning
-      },
-      groupDisabled() {
-        return AppStore().groupDisabled
-      }
-    },
-    created() {
-      IPC.on('APP:Poper-Left').then((key: string, res: any) => {
-        console.log('APP:Poper-Left: ', key, res)
-        this.left = `${res}px`
-      })
-    },
-    methods: {
-      groupDo() {
-        if (this.groupDisabled || !this.password) {
-          return
-        }
-        IPC.send('APP:Tray-Command', 'groupDo').then((key: string) => {
-          IPC.off(key)
-        })
-      },
-      switchChange(flag: string) {
-        if (!this.password) {
-          return
-        }
-        IPC.send('APP:Tray-Command', 'switchChange', flag).then((key: string) => {
-          IPC.off(key)
-        })
-      },
-      showMainWin() {
-        IPC.send('application:show', 'index').then((key: string) => {
-          IPC.off(key)
-        })
-      },
-      doExit() {
-        IPC.send('application:exit').then((key: string) => {
-          IPC.off(key)
-        })
-      }
-    }
+  const store = AppStore()
+  const password = computed(() => {
+    return store.password
   })
+  const php = computed(() => {
+    return store.php
+  })
+  const nginx = computed(() => {
+    return store.nginx
+  })
+  const apache = computed(() => {
+    return store.apache
+  })
+  const mysql = computed(() => {
+    return store.mysql
+  })
+  const mariadb = computed(() => {
+    return store.mariadb
+  })
+  const memcached = computed(() => {
+    return store.memcached
+  })
+  const redis = computed(() => {
+    return store.redis
+  })
+  const mongodb = computed(() => {
+    return store.mongodb
+  })
+  const dns = computed(() => {
+    return store.dns
+  })
+  const groupIsRunning = computed(() => {
+    return store.groupIsRunning
+  })
+  const groupDisabled = computed(() => {
+    return store.groupDisabled
+  })
+  const left: Ref<string | null> = ref(null)
+  IPC.on('APP:Poper-Left').then((key: string, res: any) => {
+    console.log('APP:Poper-Left: ', key, res)
+    left.value = `${res}px`
+  })
+
+  const groupDo = () => {
+    if (groupDisabled?.value || !password?.value) {
+      return
+    }
+    IPC.send('APP:Tray-Command', 'groupDo').then((key: string) => {
+      IPC.off(key)
+    })
+  }
+
+  const switchChange = (flag: string) => {
+    if (!password?.value) {
+      return
+    }
+    IPC.send('APP:Tray-Command', 'switchChange', flag).then((key: string) => {
+      IPC.off(key)
+    })
+  }
+
+  const showMainWin = () => {
+    IPC.send('application:show', 'index').then((key: string) => {
+      IPC.off(key)
+    })
+  }
+
+  const doExit = () => {
+    IPC.send('application:exit').then((key: string) => {
+      IPC.off(key)
+    })
+  }
 </script>
 
 <style lang="scss">
@@ -334,6 +346,7 @@
     }
     .top-menu {
       flex: 1;
+      overflow: auto;
     }
 
     > .bottom-tool {

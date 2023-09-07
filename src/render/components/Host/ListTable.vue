@@ -3,12 +3,14 @@
     <el-table :data="hosts" row-key="id" default-expand-all>
       <el-table-column :label="$t('host.name')">
         <template #default="scope">
-          <div class="link" @click.stop="openSite(scope.row)">
-            <yb-icon :svg="import('@/svg/link.svg?raw')" width="18" height="18" />
-            <span>
-              {{ scope.row.name }}
-            </span>
-          </div>
+          <QrcodePopper :url="scope.row.name">
+            <div class="link" @click.stop="openSite(scope.row)">
+              <yb-icon :svg="import('@/svg/link.svg?raw')" width="18" height="18" />
+              <span>
+                {{ scope.row.name }}
+              </span>
+            </div>
+          </QrcodePopper>
         </template>
       </el-table-column>
       <el-table-column align="center" width="120px" :label="$t('host.phpVersion')">
@@ -106,11 +108,13 @@
   import { AppStore } from '@/store/app'
   import { EventBus } from '@/global'
   import { BrewStore } from '@/store/brew'
+  import QrcodePopper from './Qrcode/Index.vue'
+
   const { shell } = require('@electron/remote')
 
   export default defineComponent({
     name: 'MoHostList',
-    components: { ConfigView },
+    components: { ConfigView, QrcodePopper },
     props: {},
     data() {
       return {

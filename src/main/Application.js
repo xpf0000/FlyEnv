@@ -47,10 +47,6 @@ export default class Application extends EventEmitter {
     this.initServerDir()
     this.handleCommands()
     this.handleIpcMessages()
-    // DnsServerManager.start()
-    // setTimeout(() => {
-    //   DnsServerManager.close()
-    // }, 15000)
   }
 
   initLang() {
@@ -351,6 +347,7 @@ export default class Application extends EventEmitter {
 
   stop() {
     logger.info('[PhpWebStudy] application stop !!!')
+    DnsServerManager.close().then()
     this.stopServer()
   }
 
@@ -701,10 +698,18 @@ export default class Application extends EventEmitter {
       case 'NodePty:stop':
         this.exitNodePty()
         break
-      case 'App:getIP':
-        this.ip = IP.address()
-        this.windowManager.sendCommandTo(this.mainWindow, command, key, {
-          path: path1
+      case 'DNS:start':
+        DnsServerManager.start()
+          .then(() => {
+            this.windowManager.sendCommandTo(this.mainWindow, command, key, true)
+          })
+          .catch(() => {
+            this.windowManager.sendCommandTo(this.mainWindow, command, key, false)
+          })
+        break
+      case 'DNS:stop':
+        DnsServerManager.close().then(() => {
+          this.windowManager.sendCommandTo(this.mainWindow, command, key, true)
         })
         break
     }

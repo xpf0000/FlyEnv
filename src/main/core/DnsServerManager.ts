@@ -18,32 +18,51 @@ class DnsServer {
     return env
   }
   start() {
-    this.pty = spawn(process.env['SHELL']!, [], {
-      name: 'xterm-color',
-      cols: 80,
-      rows: 34,
-      cwd: process.cwd(),
-      env: this._fixEnv() as any,
-      encoding: 'utf8'
+    let stdout = ''
+    let resolved = false
+    let timer: NodeJS.Timeout | undefined
+    return new Promise((resolve, reject) => {
+      timer = setTimeout(() => {
+        if (!resolved) {
+          resolved = true
+          reject(new Error('Start Fail'))
+        }
+      }, 20000)
+      this.close().then(() => {
+        this.pty = spawn(process.env['SHELL']!, [], {
+          name: 'xterm-color',
+          cols: 80,
+          rows: 34,
+          cwd: process.cwd(),
+          env: this._fixEnv() as any,
+          encoding: 'utf8'
+        })
+        this.pty.onData((data: string) => {
+          console.log('pty.onData: ', data)
+          stdout += data
+          if (!resolved && stdout.includes('Start Success')) {
+            resolved = true
+            timer && clearTimeout(timer)
+            timer = undefined
+            resolve(true)
+          }
+        })
+        const node = process.env.NODE
+        const file = join(__static, 'fork/dnsServer.js')
+        const shell = `echo '${global.Server.Password}' | sudo -S ${node} ${file}\r`
+        this.pty.write(shell)
+      })
     })
-    this.pty.onData((data: string) => {
-      console.log('pty.onData: ', data)
-    })
-    this.pty.onExit(() => {
-      console.log('this.pty.onExit !!!!!!')
-    })
-    const node = process.env.NODE
-    const file = join(__static, 'fork/dnsServer.js')
-    const shell = `echo '${global.Server.Password}' | sudo -S ${node} ${file}\r`
-    this.pty.write(shell)
   }
   close() {
-    const pid = this?.pty?.pid
-    if (this?.pty?.pid) {
-      process.kill(this.pty.pid)
-    }
-    this?.pty?.kill()
-    if (pid) {
+    return new Promise((resolve) => {
+      const pid = this?.pty?.pid
+      if (this?.pty?.pid) {
+        try {
+          process.kill(this.pty.pid)
+        } catch (e) {}
+      }
+      this?.pty?.kill()
       execPromise(
         `echo '${global.Server.Password}' | sudo -S lsof -nP -i:53 | awk '{print $1,$2,$3}'`
       )
@@ -61,18 +80,23 @@ class DnsServer {
               list.pop()
               return list.pop()
             })
-          arr.push(pid)
-          console.log('arr: ', arr)
-          const shell = `echo '${global.Server.Password}' | sudo -S kill -9 ${arr.join(' ')}`
-          return execPromise(shell)
+          if (pid) {
+            arr.push(pid)
+          }
+          if (arr.length > 0) {
+            const shell = `echo '${global.Server.Password}' | sudo -S kill -9 ${arr.join(' ')}`
+            return execPromise(shell)
+          } else {
+            return Promise.resolve(true)
+          }
         })
-        .then((res: any) => {
-          console.log('FFFFFF !!!')
+        .then(() => {
+          resolve(true)
         })
         .catch(() => {
-          console.log('EEEEEE !!!')
+          resolve(true)
         })
-    }
+    })
   }
 }
 

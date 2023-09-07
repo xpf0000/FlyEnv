@@ -172,7 +172,13 @@ class Manager extends BaseManager {
             run: false,
             running: false
           }
-          list.push(item)
+          if (
+            !list.find(
+              (f) => f.version === item.version && f.path === item.path && f.bin === item.bin
+            )
+          ) {
+            list.push(item)
+          }
           index += 1
           if (index === count) {
             resolve(

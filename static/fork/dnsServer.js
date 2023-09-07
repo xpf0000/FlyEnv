@@ -31,7 +31,6 @@ class Manager {
           }
         })
       } catch (e) {}
-      console.log('this.hosts: ', this.hosts)
     }
   }
   start() {
@@ -49,7 +48,7 @@ class Manager {
             name,
             type: Packet.TYPE.A,
             class: Packet.CLASS.IN,
-            ttl: 5,
+            ttl: 60,
             address: this.hosts[name]
           }
           response.answers.push(item)
@@ -62,7 +61,6 @@ class Manager {
               ttl: true
             })
             .then((res) => {
-              // console.log('tangerine: ', name, res)
               if (res && Array.isArray(res)) {
                 res.forEach((item) => {
                   response.answers.push({
@@ -82,21 +80,8 @@ class Manager {
       }
     })
 
-    server.on('request', (request, response, rinfo) => {
-      console.log('request !!!: ', request.header.id, request.questions[0])
-    })
-
-    server.on('requestError', (error) => {
-      console.log('Client sent an invalid request', error)
-    })
-
     server.on('listening', () => {
-      console.log('listening: ', server.addresses())
-      process.stdout.write('listening !!!')
-    })
-
-    server.on('close', () => {
-      console.log('server closed')
+      console.log('Start Success')
     })
 
     server
@@ -124,7 +109,4 @@ class Manager {
 }
 
 let manager = new Manager()
-process.stdin.on('data', (args) => {
-  console.log('stdin: ', args.toString())
-})
 manager.start()

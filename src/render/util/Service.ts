@@ -2,6 +2,8 @@ import IPC from '@/util/IPC'
 import type { SoftInstalled } from '@/store/brew'
 import { AppSofts, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
+import { DnsStore } from '@/store/dns'
+import { I18nT } from '@shared/lang'
 
 const exec = (
   typeFlag: keyof typeof AppSofts,
@@ -53,4 +55,38 @@ export const startService = (typeFlag: keyof typeof AppSofts, version: SoftInsta
 
 export const reloadService = (typeFlag: keyof typeof AppSofts, version: SoftInstalled) => {
   return exec(typeFlag, version, 'reloadService')
+}
+
+export const dnsStart = (): Promise<boolean | string> => {
+  return new Promise((resolve) => {
+    const store = DnsStore()
+    if (store.running) {
+      resolve(true)
+      return
+    }
+    store.fetching = true
+    IPC.send('DNS:start').then((key: string, res: boolean) => {
+      IPC.off(key)
+      store.fetching = false
+      store.running = res
+      resolve(res || I18nT('base.fail'))
+    })
+  })
+}
+
+export const dnsStop = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const store = DnsStore()
+    if (!store.running) {
+      resolve(true)
+      return
+    }
+    store.fetching = true
+    IPC.send('DNS:stop').then((key: string, res: boolean) => {
+      IPC.off(key)
+      store.fetching = false
+      store.running = false
+      resolve(res)
+    })
+  })
 }

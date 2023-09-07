@@ -1,11 +1,11 @@
 <template>
   <div class="dns-panel main-right-panel">
     <div class="top-tab">
-      <span class="title">DNS IP: </span>
+      <span class="title" :class="{ running: running }">DNS IP: </span>
       <span class="ip"> {{ ip }}</span>
     </div>
     <div class="main-block">
-      {{ $t('host.dnsInfo') }}
+      {{ $t('host.dnsInfo', { ip: `@${ip}` }) }}
     </div>
   </div>
 </template>
@@ -16,6 +16,9 @@
   const dnsStore = DnsStore()
   const ip = computed(() => {
     return dnsStore.ip
+  })
+  const running = computed(() => {
+    return dnsStore.running
   })
 </script>
 
@@ -39,7 +42,10 @@
 
       > .title {
         margin-right: 20px;
-        color: #01cc74;
+
+        &.running {
+          color: #01cc74;
+        }
       }
     }
     .main-block {

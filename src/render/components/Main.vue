@@ -1,6 +1,6 @@
 <template>
   <el-container id="container">
-    <mo-aside />
+    <Aside />
     <router-view />
   </el-container>
 </template>
@@ -11,7 +11,7 @@
   export default {
     name: 'MoMain',
     components: {
-      [Aside.name]: Aside
+      Aside
     },
     computed: {},
     methods: {}

@@ -51,6 +51,11 @@ export interface TrayState {
     running: boolean
     disabled: boolean
   }
+  dns: {
+    show: boolean
+    run: boolean
+    running: boolean
+  }
   groupIsRunning: boolean
   groupDisabled: boolean
 }
@@ -66,6 +71,7 @@ const state: TrayState = {
   php: { show: true, disabled: true, run: false, running: false },
   redis: { show: true, disabled: true, run: false, running: false },
   mongodb: { show: true, disabled: true, run: false, running: false },
+  dns: { show: true, run: false, running: false },
   groupIsRunning: false,
   groupDisabled: true
 }

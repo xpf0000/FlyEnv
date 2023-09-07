@@ -3,18 +3,22 @@ import { BrewStore, SoftInstalled } from '@/store/brew'
 import type { AppSofts } from '@/store/app'
 import { AppStore } from '@/store/app'
 import { reactive } from 'vue'
+import { isEqual } from 'lodash'
 
 class InstalledVersions {
   _cb: Array<Function>
   taskRunning: boolean
+  runningFlags: Array<Array<keyof typeof AppSofts>>
   constructor() {
     this._cb = []
+    this.runningFlags = []
     this.taskRunning = false
   }
   allInstalledVersions(flags: Array<keyof typeof AppSofts>) {
-    if (this.taskRunning) {
+    if (this.taskRunning && this.runningFlags.find((f) => isEqual(f, flags))) {
       return this
     }
+    this.runningFlags.push(flags)
     this.taskRunning = true
 
     const callBack = () => {
@@ -23,7 +27,8 @@ class InstalledVersions {
           cb(true)
         }
       })
-      this._cb = []
+      this._cb.splice(0)
+      this.runningFlags.splice(0)
       this.taskRunning = false
     }
     const brewStore = BrewStore()
