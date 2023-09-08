@@ -1,6 +1,6 @@
 import { spawn, IPty } from 'node-pty'
 import { join } from 'path'
-import { existsSync, copyFileSync } from 'fs'
+import { copyFileSync, writeFileSync } from 'fs'
 const execPromise = require('child-process-promise').exec
 
 class DnsServer {
@@ -16,69 +16,105 @@ class DnsServer {
         'PATH'
       ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/usr/local/bin:${env['PATH']}`
     }
+    if (global.Server.Proxy) {
+      for (const k in global.Server.Proxy) {
+        env[k] = global.Server.Proxy[k]
+      }
+    }
     return env
   }
-  start() {
+  start(hasSuccessed?: boolean) {
     let stdout = ''
     let resolved = false
     let timer: NodeJS.Timeout | undefined
     return new Promise((resolve, reject) => {
       const env = this._fixEnv() as any
-      execPromise(
-        '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";which node',
-        {
-          env
-        }
-      )
-        .then(() => {
-          next()
+      const cacheDir = global.Server.Cache
+      const file = join(__static, 'fork/dnsServer.js')
+      const cacheFile = join(cacheDir!, 'dnsServer.js')
+      const logFile = join(cacheDir!, 'dnsLog.txt')
+
+      const initPty = () => {
+        this.pty = spawn(process.env['SHELL']!, [], {
+          name: 'xterm-color',
+          cols: 80,
+          rows: 34,
+          cwd: process.cwd(),
+          env,
+          encoding: 'utf8'
         })
-        .catch(() => {
-          reject(new Error('Need Node'))
-        })
-      const next = () => {
-        timer = setTimeout(() => {
-          if (!resolved) {
+        this.pty.onData((data: string) => {
+          stdout += data
+          writeFileSync(logFile, stdout)
+          if (!resolved && stdout.includes('Start Success')) {
             resolved = true
-            reject(new Error('Start Fail'))
+            timer && clearTimeout(timer)
+            timer = undefined
+            resolve(true)
           }
-        }, 20000)
+        })
+      }
+      const checkNode = () => {
+        execPromise(
+          '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";which node',
+          {
+            env
+          }
+        )
+          .then((res: any) => {
+            console.log('node: ', res.stdout.toString())
+            npmInstall()
+          })
+          .catch((e: Error) => {
+            writeFileSync(logFile, e.toString())
+            reject(new Error('Need Node'))
+          })
+      }
+      const npmInstall = () => {
+        const command = `[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";cd ${cacheDir};npm install dns2 tangerine undici ip;`
+        execPromise(command, {
+          env
+        })
+          .then(() => {
+            copyFile()
+          })
+          .catch((e: Error) => {
+            writeFileSync(logFile, e.toString())
+            const err = new Error(
+              `Dependencies install failed.\nuse this command install, then retry.\n${command}`
+            )
+            reject(err)
+          })
+      }
+      const copyFile = () => {
+        copyFileSync(file, cacheFile)
+        next()
+      }
+      const next = () => {
         this.close().then(() => {
-          const env = this._fixEnv() as any
-          this.pty = spawn(process.env['SHELL']!, [], {
-            name: 'xterm-color',
-            cols: 80,
-            rows: 34,
-            cwd: process.cwd(),
-            env,
-            encoding: 'utf8'
-          })
-          this.pty.onData((data: string) => {
-            stdout += data
-            if (!resolved && stdout.includes('Start Success')) {
+          initPty()
+          timer = setTimeout(() => {
+            if (!resolved) {
               resolved = true
-              timer && clearTimeout(timer)
-              timer = undefined
-              resolve(true)
+              reject(new Error('Start Fail'))
             }
-          })
-          const file = join(__static, 'fork/dnsServer.js')
-          const cacheDir = global.Server.Cache
-          const cacheFile = join(cacheDir!, 'dnsServer.js')
+          }, 20000)
           try {
-            this.pty.write(
+            this.pty?.write(
               '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";\r'
             )
-            if (!existsSync(cacheFile)) {
-              this.pty.write(`cd ${cacheDir}\r`)
-              this.pty.write('npm install dns2 tangerine undici ip\r')
-              copyFileSync(file, cacheFile)
-              this.pty.write(`chmod 777 ${cacheFile}\r`)
-            }
+            this.pty?.write(`cd ${cacheDir}\r`)
+            this.pty?.write(`chmod 777 ${cacheFile}\r`)
             const shell = `echo '${global.Server.Password}' | sudo -S node ${cacheFile}\r`
-            this.pty.write(shell)
+            this.pty?.write(shell)
           } catch (e: any) {}
         })
+      }
+
+      if (hasSuccessed) {
+        next()
+      } else {
+        checkNode()
       }
     })
   }
@@ -108,6 +144,7 @@ class DnsServer {
               list.pop()
               return list.pop()
             })
+            .filter((a: any) => !!a)
           if (pid) {
             arr.push(pid)
           }

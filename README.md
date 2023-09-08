@@ -1,6 +1,6 @@
 # PhpWebStudy
 
-<img src="http://mbimage.ybvips.com/electron/phpwebstudy/screenshots/512x512.png" width="256" alt="App Icon" />
+<img src="https://raw.githubusercontent.com/xpf0000/PhpWebStudy/master/build/256x256.png" width="256" alt="App Icon" />
 
 ## Php and Web development environment manage tool for MacOS system
 
@@ -8,9 +8,10 @@
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R5R2OJXTM)
 
-PhpWebStudy is an open source, free personal project, created for PHP and Web engineers using MacOS systems for development, to provide a more simple and useful tool to manage the local server environment.
+PhpWebStudy is a permanent free open source project. created for PHP and Web engineers using MacOS systems for development, to provide a more simple and useful tool to manage the local server environment.
+like MAMP PRO XAMPP etc...
 
-By integrating the tedious tasks such as start/restart commands for each software, configuration file viewing and modification, and log file checking into one software, developers can focus more on the real development work.
+Some of you may not trust this program, but I'll just say this. As an independent developer. I am committed to protecting the privacy of my users. I promise that this program will not steal your privacy. This program does not upload anything to anywhere. It can be tested by any person or organization.
 
 Visit the website for detailed descriptions and tutorials on how to use it:
 
@@ -25,17 +26,17 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 ## ✨ FEATURES
 
 - Simple and clear graphical interface
-- Simultaneously run multiple PHP versions, supports PHP5.x - PHP8.x.
+- Simultaneously run multiple PHP versions, supports PHP5.x - PHP8.x, run as PHP-FPM mode.
 - Software version switching Choose the corresponding version for development and debugging according to development needs.
 - Quickly create new projects, initialize with the selected framework, support: wordpress, laravel, yii2, symfony, thinkphp, codeIgniter, cakephp, slim
+- Local DNS Server, access local sites from phones and other computers using domain names
 - Customized configuration for each software
 - Instant view of log files
-- host management
-- One-click setting of url rewrite for common PHP projects.
-- One-click switch brew domestic source, to solve the problem of slow installation of brew update
+- Site Management, set port number, php version, ssl certificate for each site
+- One-click setting of nginx url rewrite for common PHP projects.
 - One click to generate SSL self-signed certificate
-- PHP code obfuscation, obfuscate a single file or the entire project
-- Commonly used in the development of small tools, timestamp conversion, encoding / decoding, port occupation of one-click cleanup
+- PHP code obfuscation, obfuscate a single file or the full project
+- Commonly used in the development of tools, timestamp conversion, encoding / decoding, port occupation of one-click cleanup
 
 ## 🖥 application interface
 
@@ -44,8 +45,6 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 ![03.png](https://www.macphpstudy.com/image/index/screen4.png)
 ![04.png](https://www.macphpstudy.com/image/index/screen5.png)
 ![05.png](https://www.macphpstudy.com/image/index/screen6.png)
-![08.png](https://www.macphpstudy.com/image/index/screen7.png)
-![07.png](https://www.macphpstudy.com/image/index/screen8.png)
 
 ## 💽 Installation
 

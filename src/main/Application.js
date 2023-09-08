@@ -698,12 +698,14 @@ export default class Application extends EventEmitter {
         this.exitNodePty()
         break
       case 'DNS:start':
-        DnsServerManager.start()
+        DnsServerManager.start(this.dnsSuccessed)
           .then(() => {
             this.windowManager.sendCommandTo(this.mainWindow, command, key, true)
+            this.dnsSuccessed = true
           })
           .catch((e) => {
             this.windowManager.sendCommandTo(this.mainWindow, command, key, e.toString())
+            this.dnsSuccessed = false
           })
         break
       case 'DNS:stop':
