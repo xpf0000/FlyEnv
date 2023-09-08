@@ -11,7 +11,7 @@
 PhpWebStudy is a permanent free open source project. created for PHP and Web engineers using MacOS systems for development, to provide a more simple and useful tool to manage the local server environment.
 like MAMP PRO XAMPP etc...
 
-Some of you may not trust this program, but I'll just say this. As an independent developer. I am committed to protecting the privacy of my users. I promise that this program will not steal your privacy. This program does not upload anything to anywhere. It can be tested by any person or organization.
+Some of people may not trust this program, but I'll just say this. As an independent developer. I am committed to protecting the privacy of my users. I promise that this program will not steal your privacy. This program does not upload anything to anywhere. It can be tested by any person or organization.
 
 Visit the website for detailed descriptions and tutorials on how to use it:
 
