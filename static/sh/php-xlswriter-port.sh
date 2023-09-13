@@ -7,14 +7,14 @@ phpconfig=$5
 cd "$cachedir" || exit 1
 curl -O -s http://pecl.php.net/get/xlswriter-"$extendV".tgz
 if [ -d "xlswriter-$extendV" ]; then
- rm -rf "xlswriter-$extendV"
+ echo "$password" | sudo -S rm -rf "xlswriter-$extendV"
 fi
 if [ -f "xlswriter-$extendV.tgz" ]; then
   tar -zxf xlswriter-"$extendV".tgz
 else
   exit 1
 fi
-echo "y" | echo "$password" | sudo -S port install pkg-config autoconf automake libtool
+echo "y" | echo "$password" | sudo -S port install pkgconfig autoconf automake libtool
 export CFLAGS=-I/opt/local/include
 cd "xlswriter-$extendV" || exit 1
 $phpize

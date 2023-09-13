@@ -130,6 +130,53 @@ class BrewManager extends BaseManager {
       })
   }
 
+  portinfo(flag) {
+    const Info = {}
+    Utils.execAsync('port', ['search', '--name', '--line', '--regex', `^${flag}\\d*$`])
+      .then((info) => {
+        console.log('portinfo: ', info)
+        let arr = []
+        try {
+          arr = info
+            .split('\n')
+            .filter((f) => {
+              if (flag === 'php') {
+                return f.includes('lang www') && f.includes('PHP: Hypertext Preprocessor')
+              }
+              return true
+            })
+            .map((m) => {
+              const a = m.split('\t').filter((f) => f.trim().length > 0)
+              const name = a.shift()
+              const version = a.shift()
+              let installed = false
+              if (flag === 'php') {
+                installed = existsSync(join('/opt/local/bin/', name))
+              }
+              return {
+                name,
+                version,
+                installed
+              }
+            })
+        } catch (e) {}
+        arr.forEach((item) => {
+          Info[item.name] = item
+        })
+        this._processSend({
+          code: 0,
+          msg: 'SUCCESS',
+          data: Info
+        })
+      })
+      .catch((err) => {
+        this._processSend({
+          code: 1,
+          msg: err.toString()
+        })
+      })
+  }
+
   addTap(name) {
     Utils.execAsync('brew', ['tap'])
       .then((stdout) => {

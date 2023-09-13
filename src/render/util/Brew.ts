@@ -66,7 +66,7 @@ export const brewCheck = () => {
   return new Promise((resolve, reject) => {
     passwordCheck()
       .then(() => {
-        if (!global.Server.BrewHome) {
+        if (!global.Server.PackagTool) {
           const brewStore = BrewStore()
           const appStore = AppStore()
           if (!brewStore.brewRunning) {
@@ -141,5 +141,19 @@ export function brewInfo(keys: Array<string>) {
         }
       }
     )
+  })
+}
+
+export function portInfo(flag: string) {
+  return new Promise((resolve, reject) => {
+    IPC.send('app-fork:brew', 'portinfo', flag).then((key: string, res: any) => {
+      if (res.code === 0) {
+        IPC.off(key)
+        resolve(res.data)
+      } else if (res.code === 1) {
+        IPC.off(key)
+        reject(new Error(res))
+      }
+    })
   })
 }

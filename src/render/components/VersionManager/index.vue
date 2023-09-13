@@ -61,7 +61,7 @@
 
 <script lang="ts">
   import { defineComponent, reactive } from 'vue'
-  import { brewInfo, brewCheck } from '@/util/Brew'
+  import { brewInfo, brewCheck, portInfo } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import XTerm from '@/util/XTerm'
   import { chmod } from '@shared/file'
@@ -104,9 +104,11 @@
             'shivammathur/php/php@8.3'
           ],
           memcached: ['memcached'],
-          mysql: ['mysql', 'mysql@5.6', 'mysql@5.7'],
+          mysql: ['mysql', 'mysql@8.0', 'mysql@5.7'],
           mariadb: [
             'mariadb',
+            'mariadb@11.0',
+            'mariadb@10.11',
             'mariadb@10.10',
             'mariadb@10.9',
             'mariadb@10.8',
@@ -117,16 +119,16 @@
             'mariadb@10.3',
             'mariadb@10.2'
           ],
-          redis: ['redis', 'redis@3.2', 'redis@4.0', 'redis@6.2'],
+          redis: ['redis', 'redis@6.2'],
           mongodb: [
             'mongodb/brew/mongodb-community',
+            'mongodb/brew/mongodb-community@6.0',
             'mongodb/brew/mongodb-community@5.0',
             'mongodb/brew/mongodb-community@4.4',
-            'mongodb/brew/mongodb-community@4.2',
             'mongodb/brew/mongodb-enterprise',
+            'mongodb/brew/mongodb-enterprise@6.0',
             'mongodb/brew/mongodb-enterprise@5.0',
-            'mongodb/brew/mongodb-enterprise@4.4',
-            'mongodb/brew/mongodb-enterprise@4.2'
+            'mongodb/brew/mongodb-enterprise@4.4'
           ]
         }
       }
@@ -237,7 +239,8 @@
         for (const k in list) {
           delete list[k]
         }
-        brewInfo(arr)
+        const getInfo = global.Server.PackagTool === 'brew' ? brewInfo(arr) : portInfo(flag)
+        getInfo
           .then((res: any) => {
             for (const name in res) {
               list[name] = reactive(res[name])
@@ -259,21 +262,23 @@
             .then(() => {
               console.log('getData !!!')
               if (this.typeFlag === 'php') {
-                IPC.send('app-fork:host', 'githubFix').then((key: string) => {
-                  IPC.off(key)
+                if (global.Server.PackagTool === 'brew') {
                   IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string) => {
                     IPC.off(key)
                     this.fetchData(list)
                   })
-                })
+                } else {
+                  this.fetchData(list)
+                }
               } else if (this.typeFlag === 'mongodb') {
-                IPC.send('app-fork:host', 'githubFix').then((key: string) => {
-                  IPC.off(key)
+                if (global.Server.PackagTool === 'brew') {
                   IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string) => {
                     IPC.off(key)
                     this.fetchData(list)
                   })
-                })
+                } else {
+                  this.fetchData(list)
+                }
               } else {
                 this.fetchData(list)
               }

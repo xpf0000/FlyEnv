@@ -17,7 +17,7 @@ import type { PtyLast, StaticHttpServe } from './type'
 import type { IPty } from 'node-pty'
 import type { ServerResponse } from 'http'
 
-const { createFolder, chmod, readFileAsync, writeFileAsync, getAllFile } = require('../shared/file')
+const { createFolder, readFileAsync, writeFileAsync, getAllFile } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
 const compressing = require('compressing')
 const execPromise = require('child-process-promise').exec
@@ -205,7 +205,6 @@ export default class Application extends EventEmitter {
     createFolder(global.Server.MongoDBDir)
     global.Server.Cache = join(runpath, 'server/cache')
     createFolder(global.Server.Cache)
-    chmod(global.Server.Cache, '0777')
     global.Server.Static = __static
     global.Server.Password = this.configManager.getConfig('password')
     console.log('global.Server.Password: ', global.Server.Password)
@@ -548,6 +547,8 @@ export default class Application extends EventEmitter {
           proxyDict[dict[0]] = dict[1]
         })
       global.Server.Proxy = proxyDict
+    } else {
+      delete global.Server.Proxy
     }
   }
 
