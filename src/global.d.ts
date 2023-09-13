@@ -1,4 +1,5 @@
 import 'pinia'
+import Launcher from './main/Launcher'
 
 export interface ServerType {
   BrewCellar?: string
@@ -18,6 +19,7 @@ export interface ServerType {
   BaseDir?: string
   ApacheDir?: string
   Lang?: string
+  PackagTool?: 'brew' | 'port'
 }
 
 declare global {
@@ -27,5 +29,7 @@ declare global {
   var application: any
   // eslint-disable-next-line no-var
   var __static: string
+  // eslint-disable-next-line no-var
+  var launcher: Launcher
 }
 export {}

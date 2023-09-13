@@ -1,5 +1,12 @@
-const join = require('path').join
-const { existsSync, unlinkSync, writeFileSync, readFileSync, copyFileSync } = require('fs')
+const { join, basename } = require('path')
+const {
+  existsSync,
+  unlinkSync,
+  writeFileSync,
+  readFileSync,
+  copyFileSync,
+  statSync
+} = require('fs')
 const { removeSync } = require('fs-extra')
 const { spawn, execSync } = require('child_process')
 const Utils = require('./Utils')
@@ -17,19 +24,16 @@ class PhpManager extends BaseManager {
     this.pidPath = join(global.Server.PhpDir, 'common/var/run/php-fpm.pid')
   }
 
-  #cleanDefaultIni(dir) {
-    let ini = execSync(`${dir}/bin/php -i | grep php.ini`).toString().trim()
-    ini = ini.split('=>').pop().trim()
-    if (ini && existsSync(ini)) {
-      let iniContent = readFileSync(ini, 'utf-8')
-      iniContent = iniContent.replace('zend_extension="xdebug.so"\n', '')
-      writeFileSync(ini, iniContent)
+  getIniPath(version) {
+    let command = ''
+    if (version?.phpBin) {
+      command = `${version.phpBin} -i | grep php.ini`
+    } else {
+      command = `${version.path}/bin/php -i | grep php.ini`
     }
-  }
-
-  getIniPath(dir) {
-    let ini = execSync(`${dir}/bin/php -i | grep php.ini`).toString().trim()
+    let ini = execSync(command).toString().trim()
     ini = ini.split('=>').pop().trim()
+    console.log('getIniPath: ', version, command, ini)
     if (ini) {
       if (!existsSync(ini)) {
         Utils.createFolder(ini)
@@ -42,15 +46,30 @@ class PhpManager extends BaseManager {
         }
       }
       if (existsSync(ini)) {
-        const iniDefault = `${ini}.default`
-        if (!existsSync(iniDefault)) {
-          copyFileSync(ini, iniDefault)
+        if (statSync(ini).isDirectory()) {
+          const baseIni = join(ini, 'php.ini')
+          ini = join(ini, 'php.ini-development')
+          if (existsSync(ini) && !existsSync(baseIni)) {
+            try {
+              execSync(`echo '${global.Server.Password}' | sudo -S cp ${ini} ${baseIni}`)
+              execSync(`echo '${global.Server.Password}' | sudo -S chmod 755 ${baseIni}`)
+            } catch (e) {}
+          }
+          ini = baseIni
         }
-        this._processSend({
-          code: 0,
-          iniPath: ini
-        })
-        return
+        if (existsSync(ini)) {
+          const iniDefault = `${ini}.default`
+          if (!existsSync(iniDefault)) {
+            try {
+              execSync(`echo '${global.Server.Password}' | sudo -S cp ${ini} ${iniDefault}`)
+            } catch (e) {}
+          }
+          this._processSend({
+            code: 0,
+            iniPath: ini
+          })
+          return
+        }
       }
     }
     this._processSend({
@@ -69,9 +88,6 @@ class PhpManager extends BaseManager {
         }
         const installedSo = join(installExtensionDir, name)
         if (existsSync(installedSo)) {
-          if (extend === 'xdebug') {
-            this.#cleanDefaultIni(version.path)
-          }
           this._thenSuccess()
         } else {
           this._processSend({
@@ -260,7 +276,11 @@ class PhpManager extends BaseManager {
 
   _doInstallExtends(version, versionNumber, extend, extendsDir) {
     return new Promise((resolve, reject) => {
-      let optdefault = { env: process.env }
+      let optdefault = {
+        env: {
+          ...process.env
+        }
+      }
       if (!optdefault.env['PATH']) {
         optdefault.env[
           'PATH'
@@ -277,8 +297,8 @@ class PhpManager extends BaseManager {
       }
       const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
 
-      const doRun = (copyfile, extendVersion) => {
-        const params = [
+      const doRun = (copyfile, extendVersion, isPort = false) => {
+        let params = [
           copyfile,
           global.Server.Cache,
           version.path,
@@ -286,6 +306,16 @@ class PhpManager extends BaseManager {
           arch,
           global.Server.Password
         ]
+        if (isPort) {
+          params = [
+            copyfile,
+            global.Server.Cache,
+            extendVersion,
+            global.Server.Password,
+            version.phpize,
+            version.phpConfig
+          ]
+        }
         const command = params.join(' ')
         process.send({
           command: this.ipcCommand,
@@ -298,19 +328,66 @@ class PhpManager extends BaseManager {
         const child = spawn('zsh', params, optdefault)
         this._childHandle(child, resolve, reject)
       }
+
+      const installByMacports = (flag) => {
+        if (version?.phpBin) {
+          const name = `${basename(version.phpBin)}-${flag}`
+          console.log('name: ', name)
+          execPromise(
+            `echo "y" | echo '${global.Server.Password}' | sudo -S port install ${name}`,
+            optdefault
+          )
+            .then(() => {
+              setTimeout(() => {
+                if (existsSync(soPath)) {
+                  resolve(true)
+                } else {
+                  reject(new Error(`port install ${name} fail`))
+                }
+              }, 1000)
+            })
+            .catch((e) => {
+              reject(e)
+            })
+          return true
+        }
+        return false
+      }
+
       let sh = ''
       let copyfile = ''
+      let soPath = ''
       switch (extend) {
         case 'ionCube':
-          if (existsSync(join(extendsDir, 'ioncube.so'))) {
+          soPath = join(extendsDir, 'ioncube.so')
+          if (existsSync(soPath)) {
             resolve(true)
             return
           }
+          const tmplPath = join(global.Server.Cache, `ioncube_loader_mac_${versionNumber}.so`)
+          const doCopy = () => {
+            if (existsSync(tmplPath)) {
+              if (!existsSync(extendsDir)) {
+                execSync(`echo '${global.Server.Password}' | sudo -S mkdir -p ${extendsDir}`)
+              }
+              execSync(`echo '${global.Server.Password}' | sudo -S cp ${tmplPath} ${soPath}`)
+              if (existsSync(soPath)) {
+                resolve(true)
+                return true
+              }
+            }
+            return false
+          }
+          if (doCopy()) {
+            return
+          }
           const url = `http://mbimage.ybvips.com/electron/phpwebstudy/ioncube/ioncube_loader_mac_${versionNumber}.so`
-          console.log('url: ', url)
-          Utils.downFile(url, join(extendsDir, 'ioncube.so'))
+          Utils.downFile(url, tmplPath)
             .then(() => {
-              resolve(true)
+              if (doCopy()) {
+                return
+              }
+              reject(new Error('File Download Fail'))
             })
             .catch((err) => {
               console.log(err)
@@ -318,8 +395,12 @@ class PhpManager extends BaseManager {
             })
           break
         case 'redis':
-          if (existsSync(join(extendsDir, 'redis.so'))) {
+          soPath = join(extendsDir, 'redis.so')
+          if (existsSync(soPath)) {
             resolve(true)
+            return
+          }
+          if (installByMacports('redis')) {
             return
           }
           sh = join(global.Server.Static, 'sh/php-redis.sh')
@@ -342,8 +423,12 @@ class PhpManager extends BaseManager {
             })
           break
         case 'memcache':
-          if (existsSync(join(extendsDir, 'memcache.so'))) {
+          soPath = join(extendsDir, 'memcache.so')
+          if (existsSync(soPath)) {
             resolve(true)
+            return
+          }
+          if (installByMacports('memcache')) {
             return
           }
           sh = join(global.Server.Static, 'sh/php-memcache.sh')
@@ -366,8 +451,12 @@ class PhpManager extends BaseManager {
             })
           break
         case 'memcached':
-          if (existsSync(join(extendsDir, 'memcached.so'))) {
+          soPath = join(extendsDir, 'memcached.so')
+          if (existsSync(soPath)) {
             resolve(true)
+            return
+          }
+          if (installByMacports('memcached')) {
             return
           }
           sh = join(global.Server.Static, 'sh/php-memcached.sh')
@@ -390,8 +479,12 @@ class PhpManager extends BaseManager {
             })
           break
         case 'swoole':
-          if (existsSync(join(extendsDir, 'swoole.so'))) {
+          soPath = join(extendsDir, 'swoole.so')
+          if (existsSync(soPath)) {
             resolve(true)
+            return
+          }
+          if (installByMacports('swoole')) {
             return
           }
           sh = join(global.Server.Static, 'sh/php-swoole.sh')
@@ -425,8 +518,12 @@ class PhpManager extends BaseManager {
             })
           break
         case 'xdebug':
-          if (existsSync(join(extendsDir, 'xdebug.so'))) {
+          soPath = join(extendsDir, 'xdebug.so')
+          if (existsSync(soPath)) {
             resolve(true)
+            return
+          }
+          if (installByMacports('xdebug')) {
             return
           }
           sh = join(global.Server.Static, 'sh/php-xdebug.sh')
@@ -439,7 +536,6 @@ class PhpManager extends BaseManager {
               return Utils.writeFileAsync(copyfile, content)
             })
             .then(() => {
-              this.#cleanDefaultIni(version.path)
               Utils.chmod(copyfile, '0777')
               let extendv = ''
               if (versionNumber < 7.2) {
@@ -454,34 +550,41 @@ class PhpManager extends BaseManager {
               reject(err)
             })
           break
-          case 'xlswriter':
-            if (existsSync(join(extendsDir, 'xlswriter.so'))) {
-              resolve(true)
-              return
-            }
-            sh = join(global.Server.Static, 'sh/php-xlswriter.sh')
-            copyfile = join(global.Server.Cache, 'php-xlswriter.sh')
-            if (existsSync(copyfile)) {
-              unlinkSync(copyfile)
-            }
-            Utils.readFileAsync(sh)
-              .then((content) => {
-                return Utils.writeFileAsync(copyfile, content)
-              })
-              .then(() => {
-                this.#cleanDefaultIni(version.path)
-                Utils.chmod(copyfile, '0777')
-                let extendv = '1.5.5'
-                doRun(copyfile, extendv)
-              })
-              .catch((err) => {
-                console.log('err: ', err)
-                reject(err)
-              })
-            break
-        case 'ssh2':
-          if (existsSync(join(extendsDir, 'ssh2.so'))) {
+        case 'xlswriter':
+          soPath = join(extendsDir, 'xlswriter.so')
+          if (existsSync(soPath)) {
             resolve(true)
+            return
+          }
+          sh = join(global.Server.Static, 'sh/php-xlswriter.sh')
+          if (version?.phpBin) {
+            sh = join(global.Server.Static, 'sh/php-xlswriter-port.sh')
+          }
+          copyfile = join(global.Server.Cache, 'php-xlswriter.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          Utils.readFileAsync(sh)
+            .then((content) => {
+              return Utils.writeFileAsync(copyfile, content)
+            })
+            .then(() => {
+              Utils.chmod(copyfile, '0777')
+              let extendv = '1.5.5'
+              doRun(copyfile, extendv, version?.phpBin)
+            })
+            .catch((err) => {
+              console.log('err: ', err)
+              reject(err)
+            })
+          break
+        case 'ssh2':
+          soPath = join(extendsDir, 'ssh2.so')
+          if (existsSync(soPath)) {
+            resolve(true)
+            return
+          }
+          if (installByMacports('ssh2')) {
             return
           }
           sh = join(global.Server.Static, 'sh/php-ssh2.sh')
@@ -504,11 +607,15 @@ class PhpManager extends BaseManager {
             })
           break
         case 'pdo_sqlsrv':
-          if (existsSync(join(extendsDir, 'pdo_sqlsrv.so'))) {
+          soPath = join(extendsDir, 'pdo_sqlsrv.so')
+          if (existsSync(soPath)) {
             resolve(true)
             return
           }
           sh = join(global.Server.Static, 'sh/php-pdo_sqlsrv.sh')
+          if (version?.phpBin) {
+            sh = join(global.Server.Static, 'sh/php-pdo_sqlsrv-port.sh')
+          }
           copyfile = join(global.Server.Cache, 'php-pdo_sqlsrv.sh')
           if (existsSync(copyfile)) {
             unlinkSync(copyfile)
@@ -527,7 +634,7 @@ class PhpManager extends BaseManager {
               } else {
                 extendv = '5.11.0'
               }
-              doRun(copyfile, extendv)
+              doRun(copyfile, extendv, version?.phpBin)
             })
             .catch((err) => {
               console.log('err: ', err)

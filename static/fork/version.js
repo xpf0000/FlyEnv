@@ -130,9 +130,9 @@ class Manager extends BaseManager {
             installed.add(bin)
           }
         })
-        const base = global.Server?.BrewCellar ?? ''
-        if (base) {
-          Utils.getSubDir(base)
+        const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
+        base.forEach((b) => {
+          Utils.getSubDir(b)
             .filter((f) => {
               return f.includes(searchName)
             })
@@ -144,7 +144,7 @@ class Manager extends BaseManager {
                 }
               })
             })
-        }
+        })
         customDirs.forEach((s) => {
           const bin = findInstalled(s, 0, 1)
           if (bin) {
@@ -193,11 +193,63 @@ class Manager extends BaseManager {
     const all = flag.map((f) => {
       return fetchVersion(f)
     })
-    Promise.all(all).then((list) => {
+    const findFromMacPorts = async (type) => {
+      const list = []
+      const base = '/opt/local/'
+      if (type === 'php') {
+        const fpms = [
+          'sbin/php-fpm56',
+          'sbin/php-fpm70',
+          'sbin/php-fpm71',
+          'sbin/php-fpm72',
+          'sbin/php-fpm73',
+          'sbin/php-fpm74',
+          'sbin/php-fpm80',
+          'sbin/php-fpm81',
+          'sbin/php-fpm82',
+          'sbin/php-fpm83'
+        ]
+        const find = async (fpm) => {
+          const bin = join(base, fpm)
+          if (existsSync(bin)) {
+            const { error, version } = await this.binVersion(bin, 'php-fpm')
+            const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
+            const v = fpm.replace('sbin/php-fpm', '')
+            const item = {
+              version: version,
+              bin,
+              path: base,
+              num,
+              enable: version !== null,
+              error,
+              run: false,
+              running: false,
+              phpBin: `/opt/local/bin/php${v}`,
+              phpConfig: `/opt/local/bin/php-config${v}`,
+              phpize: `/opt/local/bin/phpize${v}`
+            }
+            list.push(item)
+          }
+          return true
+        }
+        for (const fpm of fpms) {
+          await find(fpm)
+        }
+      }
+      return list
+    }
+    Promise.all(all).then(async (list) => {
       const versions = {}
       list.forEach((o, i) => {
         versions[flag[i]] = o
       })
+      for (const type of flag) {
+        const items = await findFromMacPorts(type)
+        versions[type].push(...items)
+        versions[type].sort((a, b) => {
+          return b.num - a.num
+        })
+      }
       this._processSend({
         code: 0,
         msg: 'Success',

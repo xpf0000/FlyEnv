@@ -3,7 +3,7 @@ import { BuildPlugin } from './plugs.build'
 
 const dev: BuildOptions = {
   platform: 'node',
-  entryPoints: ['src/main/index.dev.js'],
+  entryPoints: ['src/main/index.dev.ts'],
   outfile: 'dist/electron/main.js',
   minify: false,
   bundle: true,
@@ -13,7 +13,7 @@ const dev: BuildOptions = {
 
 const dist: BuildOptions = {
   platform: 'node',
-  entryPoints: ['src/main/index.js'],
+  entryPoints: ['src/main/index.ts'],
   outfile: 'dist/electron/main.js',
   minify: true,
   bundle: true,

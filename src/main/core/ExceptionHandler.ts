@@ -7,7 +7,7 @@ const defaults = {
 }
 export default class ExceptionHandler {
   options: any
-  constructor(options: any) {
+  constructor(options?: any) {
     this.options = {
       ...defaults,
       ...options

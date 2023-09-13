@@ -324,14 +324,13 @@
       },
       checkStatus() {
         if (this.version?.version) {
-          let pkconfig = join(this.version.path, 'bin/php-config')
+          let pkconfig = this.version?.phpConfig ?? join(this.version.path, 'bin/php-config')
           execAsync(pkconfig, ['--extension-dir']).then((res) => {
             this.installExtensionDir = res
             let all = getAllFile(this.installExtensionDir, false)
             all = all.filter((s) => {
               return s.indexOf('.so') >= 0 || s.indexOf('.dar') >= 0
             })
-            console.log('all: ', all)
             this.showTableData.forEach((item: any) => {
               item.installed = all.indexOf(item.soname) >= 0
               item.status = item.installed

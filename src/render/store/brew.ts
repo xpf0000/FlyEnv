@@ -9,6 +9,9 @@ export interface SoftInstalled {
   enable: boolean
   run: boolean
   running: boolean
+  phpBin?: string
+  phpConfig?: string
+  phpize?: string
 }
 
 export interface AppSoftInstalledItem {

@@ -1,13 +1,13 @@
 import { EventEmitter } from 'events'
 import { app } from 'electron'
-import is from 'electron-is'
-
-import ExceptionHandler from './core/ExceptionHandler.ts'
-import logger from './core/Logger.ts'
-import Application from './Application.js'
-import { splitArgv } from './utils/index.ts'
+import ExceptionHandler from './core/ExceptionHandler'
+import logger from './core/Logger'
+import Application from './Application'
+import { splitArgv } from './utils'
 
 export default class Launcher extends EventEmitter {
+  exceptionHandler?: ExceptionHandler
+
   constructor() {
     super()
     this.makeSingleInstance(() => {
@@ -15,15 +15,8 @@ export default class Launcher extends EventEmitter {
     })
   }
 
-  makeSingleInstance(callback) {
-    // Mac App Store Sandboxed App not support requestSingleInstanceLock
-    if (is.mas()) {
-      callback()
-      return
-    }
-
+  makeSingleInstance(callback: Function) {
     const gotSingleLock = app.requestSingleInstanceLock()
-
     if (!gotSingleLock) {
       app.quit()
     } else {
@@ -38,15 +31,9 @@ export default class Launcher extends EventEmitter {
 
   init() {
     this.exceptionHandler = new ExceptionHandler()
-
-    this.openedAtLogin = is.macOS() ? app.getLoginItemSettings().wasOpenedAtLogin : false
-
     if (process.argv.length > 1) {
       this.handleAppLaunchArgv(process.argv)
     }
-
-    logger.warn('openedAtLogin===>', this.openedAtLogin)
-
     this.handleAppEvents()
   }
 
@@ -60,25 +47,19 @@ export default class Launcher extends EventEmitter {
    * For Windows, Linux
    * @param {array} argv
    */
-  handleAppLaunchArgv(argv) {
+  handleAppLaunchArgv(argv?: any) {
     logger.info('handleAppLaunchArgv===>', argv)
     // args: array, extra: map
     const { args, extra } = splitArgv(argv)
     logger.info('splitArgv.args===>', args)
     logger.info('splitArgv.extra===>', extra)
-    if (extra['--opened-at-login'] === '1') {
-      this.openedAtLogin = true
-    }
   }
 
   handelAppReady() {
     app.on('ready', () => {
       console.log('app on ready !!!!!!')
       global.application = new Application()
-      const { openedAtLogin } = this
-      global.application.start('index', {
-        openedAtLogin
-      })
+      global.application.start('index')
       global.application.on('ready', () => {})
     })
 

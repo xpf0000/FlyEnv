@@ -7,7 +7,11 @@ export function execAsync(
   options: { [key: string]: any } = {}
 ) {
   return new Promise((resolve, reject) => {
-    const optdefault = { env: process.env }
+    const optdefault = {
+      env: {
+        ...process.env
+      }
+    }
     if (!optdefault.env['PATH']) {
       optdefault.env['PATH'] =
         '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
@@ -40,7 +44,7 @@ export function execAsync(
     cp.on('close', (code: number) => {
       const out = Buffer.concat(stdout)
       const err = Buffer.concat(stderr)
-      if (code === 0) {
+      if (!code) {
         resolve(out.toString().trim())
       } else {
         reject(err.toString().trim())

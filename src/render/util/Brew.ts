@@ -1,4 +1,3 @@
-import { execAsync } from '@shared/utils'
 import IPC from './IPC'
 import Base from '@/core/Base'
 import { ElMessageBox } from 'element-plus'
@@ -126,44 +125,6 @@ export const brewCheck = () => {
       .catch((e) => {
         reject(e)
       })
-  })
-}
-
-export function brewInstalledList() {
-  return new Promise((resolve) => {
-    brewCheck().then(() => {
-      execAsync('brew', ['ls']).then((res: string) => {
-        const arr = res
-          .split('\n==> Casks')[0]
-          .replace('==> Formulae\n', '')
-          .trim()
-          .split('\n')
-          .filter((r) => {
-            return r.length > 0
-          })
-        resolve(arr)
-      })
-    })
-  })
-}
-
-const SearchExclude = ['shivammathur/php/php']
-
-export function brewSearchList(key: string) {
-  return new Promise((resolve) => {
-    brewCheck().then(() => {
-      execAsync('brew', ['search', `/${key}\[@\]\?/`]).then((res: string) => {
-        const arr = res
-          .split('\n==> Casks')[0]
-          .replace('==> Formulae\n', '')
-          .trim()
-          .split('\n')
-          .filter((r) => {
-            return r.length > 0 && (SearchExclude.includes(r) || r === key || r.includes(`${key}@`))
-          })
-        resolve(arr)
-      })
-    })
   })
 }
 

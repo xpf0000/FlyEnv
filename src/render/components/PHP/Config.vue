@@ -48,7 +48,9 @@
   import { VueExtend } from '@/core/VueExtend'
   import type { SoftInstalled } from '@/store/brew'
 
-  const { existsSync, statSync } = require('fs')
+  const { existsSync, statSync, unlink } = require('fs')
+  const { join } = require('path')
+  const { execSync } = require('child_process')
   const { shell } = require('@electron/remote')
   const { dialog } = require('@electron/remote')
   const IniFiles: { [key: string]: any } = {}
@@ -174,7 +176,12 @@
           return
         }
         const content = this.monacoInstance.getValue()
-        writeFileAsync(this.configpath, content).then(() => {
+        const tmplFile = join(global.Server.Cache, 'php.ini.edit')
+        writeFileAsync(tmplFile, content).then(() => {
+          try {
+            execSync(`echo '${global.Server.Password}' | sudo -S cp ${tmplFile} ${this.configpath}`)
+          } catch (e) {}
+          unlink(tmplFile, () => {})
           this.$message.success(this.$t('base.success'))
           if (this.phpRunning) {
             reloadService('php', this.version as SoftInstalled)
@@ -187,25 +194,29 @@
           return
         }
         const readConfig = () => {
-          this.configpath = IniFiles[this.versionDir]
+          const flag = this.version?.phpBin ?? this.versionDir
+          this.configpath = IniFiles[flag]
           readFileAsync(this.configpath).then((conf) => {
             this.config = conf
             this.initEditor()
           })
         }
-        if (!IniFiles[this.versionDir]) {
-          IPC.send('app-fork:php', 'getIniPath', this.versionDir).then((key: string, res: any) => {
-            console.log(res)
-            IPC.off(key)
-            if (res.code === 0) {
-              IniFiles[this.versionDir] = res.iniPath
-              readConfig()
-            } else {
-              const err = this.$t('php.phpiniNoFound')
-              this.$message.error(err)
-              this.config = err
+        const flag = this.version?.phpBin ?? this.versionDir
+        if (!IniFiles[flag]) {
+          IPC.send('app-fork:php', 'getIniPath', JSON.parse(JSON.stringify(this.version))).then(
+            (key: string, res: any) => {
+              console.log(res)
+              IPC.off(key)
+              if (res.code === 0) {
+                IniFiles[flag] = res.iniPath
+                readConfig()
+              } else {
+                const err = this.$t('php.phpiniNoFound')
+                this.$message.error(err)
+                this.config = err
+              }
             }
-          })
+          )
         } else {
           readConfig()
         }

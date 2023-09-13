@@ -22,10 +22,12 @@ require('electron').app.on('ready', () => {
     .then(() => {
         console.log('VUEJS_DEVTOOLS !!!')
     })
-    .catch(err => {
+    .catch((err: Error) => {
       console.log('Unable to install `vue-devtools`: \n', err)
     })
 })
 
 // Require `main` process to boot app
 require('./index')
+
+export {}
