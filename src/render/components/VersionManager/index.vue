@@ -205,7 +205,8 @@
             name,
             version: value.version,
             installed: value.installed,
-            num
+            num,
+            flag: value.flag
           })
         }
         arr.sort((a, b) => {

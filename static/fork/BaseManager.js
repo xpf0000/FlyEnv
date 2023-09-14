@@ -3,6 +3,8 @@ const existsSync = require('fs').existsSync
 const readFileSync = require('fs').readFileSync
 const unlinkSync = require('fs').unlinkSync
 const execPromise = require('child-process-promise').exec
+const Utils = require('./Utils')
+
 class BaseManager {
   constructor() {
     this._thenSuccess = this._thenSuccess.bind(this)
@@ -40,21 +42,7 @@ class BaseManager {
   }
 
   _fixEnv() {
-    let optdefault = { env: process.env }
-    if (!optdefault.env['PATH']) {
-      optdefault.env['PATH'] =
-        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
-    } else {
-      optdefault.env[
-        'PATH'
-      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:${optdefault.env['PATH']}`
-    }
-    if (global.Server.Proxy) {
-      for (const k in global.Server.Proxy) {
-        optdefault.env[k] = global.Server.Proxy[k]
-      }
-    }
-    return optdefault
+    return { env: Utils.fixEnv() }
   }
 
   _startServer() {}

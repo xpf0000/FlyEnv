@@ -277,23 +277,7 @@ class PhpManager extends BaseManager {
   _doInstallExtends(version, versionNumber, extend, extendsDir) {
     return new Promise((resolve, reject) => {
       let optdefault = {
-        env: {
-          ...process.env
-        }
-      }
-      if (!optdefault.env['PATH']) {
-        optdefault.env[
-          'PATH'
-        ] = `${version.path}bin/:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin`
-      } else {
-        optdefault.env[
-          'PATH'
-        ] = `${version.path}bin/:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:${optdefault.env['PATH']}`
-      }
-      if (global.Server.Proxy) {
-        for (const k in global.Server.Proxy) {
-          optdefault.env[k] = global.Server.Proxy[k]
-        }
+        env: Utils.fixEnv()
       }
       const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
 

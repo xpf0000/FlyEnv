@@ -1,34 +1,18 @@
 import { spawn, IPty } from 'node-pty'
 import { join } from 'path'
 import { copyFileSync, writeFileSync } from 'fs'
+import { fixEnv } from '@shared/utils'
 const execPromise = require('child-process-promise').exec
 
 class DnsServer {
   pty?: IPty
   constructor() {}
-  _fixEnv() {
-    const env = { ...process.env }
-    if (!env['PATH']) {
-      env['PATH'] =
-        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/usr/local/bin:/bin:/usr/sbin:/sbin'
-    } else {
-      env[
-        'PATH'
-      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/usr/local/bin:${env['PATH']}`
-    }
-    if (global.Server.Proxy) {
-      for (const k in global.Server.Proxy) {
-        env[k] = global.Server.Proxy[k]
-      }
-    }
-    return env
-  }
   start(hasSuccessed?: boolean) {
     let stdout = ''
     let resolved = false
     let timer: NodeJS.Timeout | undefined
     return new Promise((resolve, reject) => {
-      const env = this._fixEnv() as any
+      const env = fixEnv() as any
       const cacheDir = global.Server.Cache
       const file = join(__static, 'fork/dnsServer.js')
       const cacheFile = join(cacheDir!, 'dnsServer.js')

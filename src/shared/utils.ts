@@ -1,5 +1,24 @@
 const { spawn } = require('child_process')
 const os = require('os')
+const { merge } = require('lodash')
+
+export function fixEnv() {
+  const env = { ...process.env }
+  if (!env['PATH']) {
+    env['PATH'] =
+      '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+  } else {
+    env[
+      'PATH'
+    ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:${env['PATH']}`
+  }
+  if (global.Server.Proxy) {
+    for (const k in global.Server.Proxy) {
+      env[k] = global.Server.Proxy[k]
+    }
+  }
+  return env
+}
 
 export function execAsync(
   command: string,
@@ -8,24 +27,9 @@ export function execAsync(
 ) {
   return new Promise((resolve, reject) => {
     const optdefault = {
-      env: {
-        ...process.env
-      }
+      env: fixEnv()
     }
-    if (!optdefault.env['PATH']) {
-      optdefault.env['PATH'] =
-        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
-    } else {
-      optdefault.env[
-        'PATH'
-      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:${optdefault.env['PATH']}`
-    }
-    const opt = { ...optdefault, ...options }
-    if (global.Server.Proxy) {
-      for (const k in global.Server.Proxy) {
-        opt.env[k] = global.Server.Proxy[k]
-      }
-    }
+    const opt = merge(optdefault, options)
     if (global.Server.isAppleSilicon) {
       arg.unshift('-arm64', command)
       command = 'arch'

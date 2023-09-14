@@ -16,6 +16,7 @@ import DnsServerManager from './core/DnsServerManager'
 import type { PtyLast, StaticHttpServe } from './type'
 import type { IPty } from 'node-pty'
 import type { ServerResponse } from 'http'
+import { fixEnv } from '@shared/utils'
 
 const { createFolder, readFileAsync, writeFileAsync, getAllFile } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
@@ -87,26 +88,13 @@ export default class Application extends EventEmitter {
     })
   }
 
-  _fixEnv() {
-    const env = process.env
-    if (!env['PATH']) {
-      env['PATH'] =
-        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/usr/local/bin:/bin:/usr/sbin:/sbin'
-    } else {
-      env[
-        'PATH'
-      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/usr/local/bin:${env['PATH']}`
-    }
-    return env
-  }
-
   initNodePty() {
     this.pty = Pty.spawn(process.env['SHELL'], [], {
       name: 'xterm-color',
       cols: 80,
       rows: 34,
       cwd: process.cwd(),
-      env: this._fixEnv(),
+      env: fixEnv(),
       encoding: 'utf8'
     })
     this.pty!.onData((data) => {
@@ -168,14 +156,13 @@ export default class Application extends EventEmitter {
       })
       .catch((e: Error) => {
         console.log('which brew e: ', e)
-        execAsync('which', ['port'])
-          .then((c: string) => {
-            global.Server.MacPorts = c
-          })
-          .catch((err: Error) => {
-            console.log('which port e: ', err)
-          })
       })
+
+    execAsync('which', ['port'])
+      .then((c: string) => {
+        global.Server.MacPorts = c
+      })
+      .catch(() => {})
   }
 
   initServerDir() {

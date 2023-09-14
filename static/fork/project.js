@@ -10,24 +10,8 @@ class Manager extends BaseManager {
   }
 
   createProject(dir, framework, version) {
-    const optdefault = { env: process.env }
-    if (!optdefault.env['PATH']) {
-      optdefault.env[
-        'PATH'
-      ] = `${version.path}bin/:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin`
-    } else {
-      optdefault.env[
-        'PATH'
-      ] = `${version.path}bin/:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:${optdefault.env['PATH']}`
-    }
-    if (global.Server.Proxy) {
-      for (const k in global.Server.Proxy) {
-        optdefault.env[k] = global.Server.Proxy[k]
-      }
-    }
-
+    const optdefault = { env: Utils.fixEnv() }
     const cacheDir = global.Server.Cache
-
     if (framework === 'wordpress') {
       const tmpl = `{
   "require": {
