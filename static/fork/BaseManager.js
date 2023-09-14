@@ -43,11 +43,11 @@ class BaseManager {
     let optdefault = { env: process.env }
     if (!optdefault.env['PATH']) {
       optdefault.env['PATH'] =
-        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
     } else {
       optdefault.env[
         'PATH'
-      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
+      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:${optdefault.env['PATH']}`
     }
     if (global.Server.Proxy) {
       for (const k in global.Server.Proxy) {

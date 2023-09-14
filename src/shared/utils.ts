@@ -14,11 +14,11 @@ export function execAsync(
     }
     if (!optdefault.env['PATH']) {
       optdefault.env['PATH'] =
-        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+        '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
     } else {
       optdefault.env[
         'PATH'
-      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:${optdefault.env['PATH']}`
+      ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:${optdefault.env['PATH']}`
     }
     const opt = { ...optdefault, ...options }
     if (global.Server.Proxy) {
