@@ -21,13 +21,15 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent } from 'vue'
+  import { defineComponent, ref } from 'vue'
   import Versions from '../VersionSwtich/index.vue'
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppStore } from '@/store/app'
+
+  const current_tab = ref(0)
 
   export default defineComponent({
     components: {
@@ -40,7 +42,7 @@
     props: {},
     data() {
       return {
-        current_tab: 0,
+        current_tab,
         tabs: [
           this.$t('base.service'),
           this.$t('base.configFile'),

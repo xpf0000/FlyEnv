@@ -99,40 +99,50 @@ class BrewManager extends BaseManager {
 
   brewinfo(names) {
     const Info = {}
-    Utils.execAsync('brew', ['info', ...names, '--json'], {
-      env: {
-        HOMEBREW_NO_INSTALL_FROM_API: 1
-      }
-    })
-      .then((info) => {
-        let arr = []
-        try {
-          arr = JSON.parse(info.toString())
-        } catch (e) {}
-        arr.forEach((item) => {
-          Info[item.full_name] = {
-            version: item?.versions?.stable ?? '',
-            installed: item?.installed?.length > 0,
-            name: item.full_name
-          }
-        })
+    const doRun = () => {
+      const name = names.pop()
+      if (!name) {
         this._processSend({
           code: 0,
           msg: 'SUCCESS',
           data: Info
         })
+        return
+      }
+      Utils.execAsync('brew', ['info', name, '--json', '--formula'], {
+        env: {
+          HOMEBREW_NO_INSTALL_FROM_API: 1
+        }
       })
-      .catch((err) => {
-        this._processSend({
-          code: 1,
-          msg: err.toString()
+        .then((info) => {
+          let arr = []
+          try {
+            arr = JSON.parse(info.toString())
+          } catch (e) {}
+          arr.forEach((item) => {
+            Info[item.full_name] = {
+              version: item?.versions?.stable ?? '',
+              installed: item?.installed?.length > 0,
+              name: item.full_name,
+              flag: 'brew'
+            }
+          })
+          doRun()
         })
-      })
+        .catch(() => {
+          doRun()
+        })
+    }
+    doRun()
   }
 
   portinfo(flag) {
     const Info = {}
-    Utils.execAsync('port', ['search', '--name', '--line', '--regex', `^${flag}\\d*$`])
+    let reg = `^${flag}\\d*$`
+    if (flag === 'mariadb') {
+      reg = '^mariadb-([\\d\\.]*)\\d$'
+    }
+    Utils.execAsync('port', ['search', '--name', '--line', '--regex', reg])
       .then((info) => {
         console.log('portinfo: ', info)
         let arr = []
@@ -143,6 +153,27 @@ class BrewManager extends BaseManager {
               if (flag === 'php') {
                 return f.includes('lang www') && f.includes('PHP: Hypertext Preprocessor')
               }
+              if (flag === 'nginx') {
+                return f.includes('High-performance HTTP(S) server')
+              }
+              if (flag === 'apache') {
+                return f.includes('The extremely popular second version of the Apache http server')
+              }
+              if (flag === 'mysql') {
+                return f.includes('Multithreaded SQL database server')
+              }
+              if (flag === 'mariadb') {
+                return f.includes('Multithreaded SQL database server')
+              }
+              if (flag === 'memcached') {
+                return f.includes('A high performance, distributed memory object caching system.')
+              }
+              if (flag === 'redis') {
+                return f.includes('Redis is an open source, advanced key-value store.')
+              }
+              if (flag === 'mongodb') {
+                return f.includes('high-performance, schema-free, document-oriented')
+              }
               return true
             })
             .map((m) => {
@@ -152,11 +183,28 @@ class BrewManager extends BaseManager {
               let installed = false
               if (flag === 'php') {
                 installed = existsSync(join('/opt/local/bin/', name))
+              } else if (flag === 'nginx') {
+                installed = existsSync(join('/opt/local/sbin/', name))
+              } else if (flag === 'apache') {
+                installed = existsSync(join('/opt/local/sbin/', 'apachectl'))
+              } else if (flag === 'mysql') {
+                installed = existsSync(join('/opt/local/lib', name, 'bin/mysqld_safe'))
+              } else if (flag === 'mariadb') {
+                installed = existsSync(join('/opt/local/lib', name, 'bin/mariadbd-safe'))
+              } else if (flag === 'memcached') {
+                installed = existsSync(join('/opt/local/bin', name))
+              } else if (flag === 'redis') {
+                installed = existsSync(join('/opt/local/bin', `${name}-server`))
+              } else if (flag === 'mongodb') {
+                installed =
+                  existsSync(join('/opt/local/bin', 'mongod')) ||
+                  existsSync(join('/opt/local/sbin', 'mongod'))
               }
               return {
                 name,
                 version,
-                installed
+                installed,
+                flag: 'port'
               }
             })
         } catch (e) {}

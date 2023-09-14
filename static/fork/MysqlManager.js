@@ -1,4 +1,4 @@
-const join = require('path').join
+const { join, basename } = require('path')
 const { existsSync, writeFileSync } = require('fs')
 const { spawn } = require('child_process')
 const BaseManager = require('./BaseManager')
@@ -44,13 +44,18 @@ datadir=${dataDir}`
       let p = join(global.Server.MysqlDir, 'mysql.pid')
       let s = join(global.Server.MysqlDir, 'slow.log')
       let e = join(global.Server.MysqlDir, 'error.log')
+      let k = join(global.Server.MysqlDir, 'mysql.sock')
       const params = [
         `--defaults-file=${m}`,
         `--pid-file=${p}`,
         '--user=mysql',
         `--slow-query-log-file=${s}`,
-        `--log-error=${e}`
+        `--log-error=${e}`,
+        `--socket=${k}`
       ]
+      if (version?.flag === 'port') {
+        params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
+      }
       let needRestart = false
       if (!existsSync(dataDir)) {
         needRestart = true

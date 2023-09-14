@@ -1,7 +1,7 @@
 const { exec } = require('child-process-promise')
 const BaseManager = require('./BaseManager')
 const { AppI18n } = require('./lang/index')
-const { join } = require('path')
+const { join, dirname } = require('path')
 const { existsSync, realpathSync } = require('fs')
 const Utils = require('./Utils.js')
 class Manager extends BaseManager {
@@ -235,6 +235,197 @@ class Manager extends BaseManager {
         for (const fpm of fpms) {
           await find(fpm)
         }
+      } else if (type === 'nginx') {
+        const fpms = ['sbin/nginx']
+        const find = async (fpm) => {
+          const bin = join(base, fpm)
+          if (existsSync(bin)) {
+            const { error, version } = await this.binVersion(bin, 'nginx')
+            const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
+            const item = {
+              version: version,
+              bin,
+              path: base,
+              num,
+              enable: version !== null,
+              error,
+              run: false,
+              running: false
+            }
+            list.push(item)
+          }
+          return true
+        }
+        for (const fpm of fpms) {
+          await find(fpm)
+        }
+      } else if (type === 'apache') {
+        const fpms = ['sbin/apachectl']
+        const find = async (fpm) => {
+          const bin = join(base, fpm)
+          if (existsSync(bin)) {
+            const { error, version } = await this.binVersion(bin, 'apachectl')
+            const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
+            const item = {
+              version: version,
+              bin,
+              path: base,
+              num,
+              enable: version !== null,
+              error,
+              run: false,
+              running: false
+            }
+            list.push(item)
+          }
+          return true
+        }
+        for (const fpm of fpms) {
+          await find(fpm)
+        }
+      } else if (type === 'mysql') {
+        const fpms = [
+          'lib/mysql5/bin/mysqld_safe',
+          'lib/mysql8/bin/mysqld_safe',
+          'lib/mysql51/bin/mysqld_safe',
+          'lib/mysql55/bin/mysqld_safe',
+          'lib/mysql56/bin/mysqld_safe',
+          'lib/mysql57/bin/mysqld_safe',
+          'lib/mysql81/bin/mysqld_safe'
+        ]
+        const find = async (fpm) => {
+          const bin = join(base, fpm)
+          if (existsSync(bin)) {
+            const { error, version } = await this.binVersion(bin, 'mysqld_safe')
+            const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
+            const item = {
+              version: version,
+              bin,
+              path: dirname(dirname(bin)),
+              num,
+              enable: version !== null,
+              error,
+              run: false,
+              running: false,
+              flag: 'port'
+            }
+            list.push(item)
+          }
+          return true
+        }
+        for (const fpm of fpms) {
+          await find(fpm)
+        }
+      } else if (type === 'mariadb') {
+        const fpms = [
+          'lib/mariadb-10.0/bin/mariadbd-safe',
+          'lib/mariadb-10.1/bin/mariadbd-safe',
+          'lib/mariadb-10.2/bin/mariadbd-safe',
+          'lib/mariadb-10.3/bin/mariadbd-safe',
+          'lib/mariadb-10.4/bin/mariadbd-safe',
+          'lib/mariadb-10.5/bin/mariadbd-safe',
+          'lib/mariadb-10.6/bin/mariadbd-safe',
+          'lib/mariadb-10.7/bin/mariadbd-safe',
+          'lib/mariadb-10.8/bin/mariadbd-safe',
+          'lib/mariadb-10.9/bin/mariadbd-safe',
+          'lib/mariadb-10.10/bin/mariadbd-safe',
+          'lib/mariadb-10.11/bin/mariadbd-safe'
+        ]
+        const find = async (fpm) => {
+          const bin = join(base, fpm)
+          if (existsSync(bin)) {
+            const { error, version } = await this.binVersion(bin, 'mariadbd-safe')
+            const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
+            const item = {
+              version: version,
+              bin,
+              path: dirname(dirname(bin)),
+              num,
+              enable: version !== null,
+              error,
+              run: false,
+              running: false,
+              flag: 'port'
+            }
+            list.push(item)
+          }
+          return true
+        }
+        for (const fpm of fpms) {
+          await find(fpm)
+        }
+      } else if (type === 'memcached') {
+        const fpms = ['bin/memcached']
+        const find = async (fpm) => {
+          const bin = join(base, fpm)
+          if (existsSync(bin)) {
+            const { error, version } = await this.binVersion(bin, 'memcached')
+            const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
+            const item = {
+              version: version,
+              bin,
+              path: base,
+              num,
+              enable: version !== null,
+              error,
+              run: false,
+              running: false
+            }
+            list.push(item)
+          }
+          return true
+        }
+        for (const fpm of fpms) {
+          await find(fpm)
+        }
+      } else if (type === 'redis') {
+        const fpms = ['bin/redis-server']
+        const find = async (fpm) => {
+          const bin = join(base, fpm)
+          if (existsSync(bin)) {
+            const { error, version } = await this.binVersion(bin, 'redis-server')
+            const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
+            const item = {
+              version: version,
+              bin,
+              path: base,
+              num,
+              enable: version !== null,
+              error,
+              run: false,
+              running: false
+            }
+            list.push(item)
+          }
+          return true
+        }
+        for (const fpm of fpms) {
+          await find(fpm)
+        }
+      } else if (type === 'mongodb') {
+        const fpms = ['bin/mongod', 'sbin/mongod']
+        const find = async (fpm) => {
+          const bin = join(base, fpm)
+          if (existsSync(bin)) {
+            const { error, version } = await this.binVersion(bin, 'mongod')
+            const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
+            const item = {
+              version: version,
+              bin,
+              path: base,
+              num,
+              enable: version !== null,
+              error,
+              run: false,
+              running: false
+            }
+            list.push(item)
+          }
+          return true
+        }
+        for (const fpm of fpms) {
+          await find(fpm)
+        }
       }
       return list
     }
@@ -246,6 +437,13 @@ class Manager extends BaseManager {
       for (const type of flag) {
         const items = await findFromMacPorts(type)
         versions[type].push(...items)
+        const arr = []
+        versions[type].forEach((f) => {
+          if (!arr.find((a) => f.version === a.version && f.path === a.path && f.bin === a.bin)) {
+            arr.push(f)
+          }
+        })
+        versions[type] = arr
         versions[type].sort((a, b) => {
           return b.num - a.num
         })

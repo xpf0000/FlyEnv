@@ -25,7 +25,7 @@
           placeholder="alias eg: www.xxx.com"
         ></textarea>
         <input
-          v-model.number="item.mark"
+          v-model.trim="item.mark"
           style="margin: 15px 0 10px"
           class="input"
           placeholder="mark"

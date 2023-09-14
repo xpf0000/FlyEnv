@@ -164,14 +164,13 @@ export default class Application extends EventEmitter {
         execAsync('brew', ['--cellar']).then((c: string) => {
           console.log('brew --cellar: ', c)
           global.Server.BrewCellar = c
-          global.Server.PackagTool = 'brew'
         })
       })
       .catch((e: Error) => {
         console.log('which brew e: ', e)
         execAsync('which', ['port'])
-          .then(() => {
-            global.Server.PackagTool = 'port'
+          .then((c: string) => {
+            global.Server.MacPorts = c
           })
           .catch((err: Error) => {
             console.log('which port e: ', err)

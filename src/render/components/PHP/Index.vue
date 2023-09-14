@@ -20,8 +20,11 @@
 </template>
 
 <script>
+  import { ref } from 'vue'
   import Service from './List.vue'
   import Manager from '../VersionManager/index.vue'
+
+  const current_tab = ref(0)
 
   export default {
     name: 'MoPhpPanel',
@@ -32,7 +35,7 @@
     props: {},
     data() {
       return {
-        current_tab: 0,
+        current_tab,
         tabs: [
           this.$t('base.service'),
           this.$t('base.configFile'),

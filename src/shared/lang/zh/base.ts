@@ -87,7 +87,7 @@ export default {
   serviceReStart: '重启',
   serviceReLoad: '重载配置',
   gettingVersion: '可用版本获取中...',
-  brewLibrary: 'brew库',
+  brewLibrary: '库',
   about: '关于我们',
   success: '操作成功',
   fail: '操作失败',

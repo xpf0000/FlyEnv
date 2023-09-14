@@ -1,6 +1,6 @@
 const { AppI18n } = require('./lang/index')
 const BaseManager = require('./BaseManager.js')
-const { join } = require('path')
+const { join, basename } = require('path')
 const { existsSync, writeFileSync } = require('fs')
 const { I18nT } = require('./lang/index.js')
 const Utils = require('./Utils.js')
@@ -40,13 +40,18 @@ datadir=${dataDir}`
       let p = join(global.Server.MariaDBDir, 'mariadb.pid')
       let s = join(global.Server.MariaDBDir, 'slow.log')
       let e = join(global.Server.MariaDBDir, 'error.log')
+      let k = join(global.Server.MysqlDir, 'mariadb.sock')
       const params = [
         `--defaults-file=${m}`,
         `--pid-file=${p}`,
         '--slow-query-log=ON',
         `--slow-query-log-file=${s}`,
-        `--log-error=${e}`
+        `--log-error=${e}`,
+        `--socket=${k}`
       ]
+      if (version?.flag === 'port') {
+        params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
+      }
       let needRestart = false
       if (!existsSync(dataDir)) {
         needRestart = true

@@ -93,7 +93,7 @@ export default {
   serviceReStart: 'Restart',
   serviceReLoad: 'Reload Config File',
   gettingVersion: 'Getting available versions...',
-  brewLibrary: 'brew library',
+  brewLibrary: 'library',
   about: 'About',
   success: 'Success',
   fail: 'Fail',

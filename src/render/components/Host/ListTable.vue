@@ -2,6 +2,12 @@
   <div class="host-list">
     <el-table :data="hosts" row-key="id" default-expand-all>
       <el-table-column :label="$t('host.name')">
+        <template #header>
+          <div class="w-p100 name-cell">
+            <span>{{ $t('host.name') }}</span>
+            <el-input v-model.trim="search" placeholder="search" clearable></el-input>
+          </div>
+        </template>
         <template #default="scope">
           <QrcodePopper :url="scope.row.name">
             <div class="link" @click.stop="openSite(scope.row)">
@@ -122,12 +128,20 @@
         current_row: 0,
         extensionDir: '',
         task_index: 0,
-        configItem: {}
+        configItem: {},
+        search: ''
       }
     },
     computed: {
       hosts() {
-        const hosts: Array<any> = JSON.parse(JSON.stringify(AppStore().hosts))
+        let hosts: Array<any> = JSON.parse(JSON.stringify(AppStore().hosts))
+        if (this.search) {
+          hosts = hosts.filter((h) => {
+            const name = h?.name ?? ''
+            const mark = h?.mark ?? ''
+            return name.includes(this.search) || `${mark}`.includes(this.search)
+          })
+        }
         const arr: Array<any> = []
         const findChild = (item: any) => {
           const sub = hosts.filter((h) => {
@@ -259,6 +273,20 @@
     flex-direction: column;
     flex: 1;
     overflow: auto;
+
+    .name-cell {
+      display: flex;
+      align-items: center;
+
+      > span {
+        flex-shrink: 0;
+        margin-right: 20px;
+      }
+      > .el-input {
+        height: 26px;
+        width: 188px;
+      }
+    }
 
     .host-item {
       flex-shrink: 0;

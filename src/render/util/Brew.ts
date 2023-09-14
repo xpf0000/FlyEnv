@@ -66,7 +66,7 @@ export const brewCheck = () => {
   return new Promise((resolve, reject) => {
     passwordCheck()
       .then(() => {
-        if (!global.Server.PackagTool) {
+        if (!global.Server.BrewCellar && !global.Server.MacPorts) {
           const brewStore = BrewStore()
           const appStore = AppStore()
           if (!brewStore.brewRunning) {

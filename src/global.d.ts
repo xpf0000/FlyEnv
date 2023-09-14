@@ -19,7 +19,7 @@ export interface ServerType {
   BaseDir?: string
   ApacheDir?: string
   Lang?: string
-  PackagTool?: 'brew' | 'port'
+  MacPorts?: string
 }
 
 declare global {

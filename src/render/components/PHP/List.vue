@@ -67,10 +67,12 @@
               <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
               <span class="ml-15">{{ $t('php.extension') }}</span>
             </li>
-            <li @click.stop="action(item, key, 'brewLink')">
-              <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ $t('php.phpSetGlobal') }}</span>
-            </li>
+            <template v-if="checkBrew()">
+              <li @click.stop="action(item, key, 'brewLink')">
+                <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
+                <span class="ml-15">{{ $t('php.phpSetGlobal') }}</span>
+              </li>
+            </template>
           </ul>
 
           <template #reference>
@@ -126,6 +128,9 @@
     mounted() {},
     unmounted() {},
     methods: {
+      checkBrew() {
+        return !!global.Server.BrewCellar
+      },
       doRun(item: SoftInstalled) {
         startService('php', item).then((res) => {
           if (typeof res === 'string') {
@@ -188,6 +193,9 @@
             })
             break
           case 'brewLink':
+            if (!this.checkBrew()) {
+              return
+            }
             const dom: HTMLElement = document.querySelector(`li[data-item-index="${index}"]`)!
             const loading = ElLoading.service({
               target: dom

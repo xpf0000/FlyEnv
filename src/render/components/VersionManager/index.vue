@@ -2,7 +2,15 @@
   <el-card class="version-manager">
     <template #header>
       <div class="card-header">
-        <span> {{ cardHeadTitle }} </span>
+        <div class="left">
+          <span> {{ cardHeadTitle }} </span>
+          <template v-if="!brewRunning">
+            <el-select v-model="libSrc" style="margin-left: 8px" :disabled="currentType.getListing">
+              <el-option :disabled="!checkBrew()" value="brew" label="Homebrew"></el-option>
+              <el-option :disabled="!checkPort()" value="port" label="MacPorts"></el-option>
+            </el-select>
+          </template>
+        </div>
         <el-button v-if="showNextBtn" type="primary" @click="toNext">{{
           $t('base.confirm')
         }}</el-button>
@@ -69,8 +77,8 @@
   import { AppSofts, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   const { join } = require('path')
-  const { existsSync, unlinkSync, copyFileSync } = require('fs')
-
+  const { existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } = require('fs')
+  const LibUse: { [k: string]: string } = reactive({})
   export default defineComponent({
     components: {},
     props: {
@@ -104,7 +112,7 @@
             'shivammathur/php/php@8.3'
           ],
           memcached: ['memcached'],
-          mysql: ['mysql', 'mysql@8.0', 'mysql@5.7'],
+          mysql: ['mysql', 'mysql@8.0', 'mysql@5.7', 'mysql@5.6'],
           mariadb: [
             'mariadb',
             'mariadb@11.0',
@@ -119,21 +127,36 @@
             'mariadb@10.3',
             'mariadb@10.2'
           ],
-          redis: ['redis', 'redis@6.2'],
+          redis: ['redis', 'redis@3.2', 'redis@4.0', 'redis@6.2'],
           mongodb: [
             'mongodb/brew/mongodb-community',
             'mongodb/brew/mongodb-community@6.0',
             'mongodb/brew/mongodb-community@5.0',
             'mongodb/brew/mongodb-community@4.4',
+            'mongodb/brew/mongodb-community@4.2',
             'mongodb/brew/mongodb-enterprise',
             'mongodb/brew/mongodb-enterprise@6.0',
             'mongodb/brew/mongodb-enterprise@5.0',
-            'mongodb/brew/mongodb-enterprise@4.4'
+            'mongodb/brew/mongodb-enterprise@4.4',
+            'mongodb/brew/mongodb-enterprise@4.2'
           ]
         }
       }
     },
     computed: {
+      libSrc: {
+        get() {
+          const v =
+            LibUse?.[this.typeFlag] ??
+            (this.checkBrew() ? 'brew' : this.checkPort() ? 'port' : undefined)
+          console.log('libSrc get: ', v, LibUse, this.typeFlag, LibUse?.[this.typeFlag])
+          return v
+        },
+        set(v: string) {
+          LibUse[this.typeFlag] = v
+          console.log('LibUse: ', LibUse, this.typeFlag, v)
+        }
+      },
       proxy() {
         return AppStore().config.setup.proxy
       },
@@ -164,12 +187,30 @@
         const list = this.currentType.list
         for (let name in list) {
           const value = list[name]
+          const nums = value.version.split('.').map((n: string, i: number) => {
+            if (i > 0) {
+              let num = parseInt(n)
+              if (isNaN(num)) {
+                return '00'
+              }
+              if (num < 10) {
+                return `0${num}`
+              }
+              return num
+            }
+            return n
+          })
+          const num = parseInt(nums.join(''))
           arr.push({
             name,
             version: value.version,
-            installed: value.installed
+            installed: value.installed,
+            num
           })
         }
+        arr.sort((a, b) => {
+          return b.num - a.num
+        })
         return arr
       },
       logLength() {
@@ -180,6 +221,12 @@
       }
     },
     watch: {
+      libSrc(v) {
+        console.log('watch libSrc: ', v)
+        if (v) {
+          this.reGetData()
+        }
+      },
       showLog: {
         handler(val) {
           this.$nextTick().then(() => {
@@ -226,6 +273,12 @@
       this.xterm = null
     },
     methods: {
+      checkBrew() {
+        return !!global.Server.BrewCellar
+      },
+      checkPort() {
+        return !!global.Server.MacPorts
+      },
       reGetData() {
         const list = this.currentType.list
         for (let k in list) {
@@ -239,7 +292,7 @@
         for (const k in list) {
           delete list[k]
         }
-        const getInfo = global.Server.PackagTool === 'brew' ? brewInfo(arr) : portInfo(flag)
+        const getInfo = this.libSrc === 'brew' ? brewInfo(arr) : portInfo(flag)
         getInfo
           .then((res: any) => {
             for (const name in res) {
@@ -252,7 +305,7 @@
           })
       },
       getData() {
-        if (this.brewRunning || this.currentType.getListing) {
+        if (this.brewRunning || this.currentType.getListing || !this.libSrc) {
           return
         }
         const list = this.currentType.list
@@ -262,7 +315,7 @@
             .then(() => {
               console.log('getData !!!')
               if (this.typeFlag === 'php') {
-                if (global.Server.PackagTool === 'brew') {
+                if (this.libSrc === 'brew') {
                   IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string) => {
                     IPC.off(key)
                     this.fetchData(list)
@@ -271,7 +324,7 @@
                   this.fetchData(list)
                 }
               } else if (this.typeFlag === 'mongodb') {
-                if (global.Server.PackagTool === 'brew') {
+                if (this.libSrc === 'brew') {
                   IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string) => {
                     IPC.off(key)
                     this.fetchData(list)
@@ -300,26 +353,55 @@
         let fn = ''
         if (row.installed) {
           fn = 'uninstall'
-          brewStore.cardHeadTitle = `Brew ${this.$t('base.uninstall')} ${row.name}`
+          brewStore.cardHeadTitle = `${this.$t('base.uninstall')} ${row.name}`
         } else {
           fn = 'install'
-          brewStore.cardHeadTitle = `Brew ${this.$t('base.install')} ${row.name}`
+          brewStore.cardHeadTitle = `${this.$t('base.install')} ${row.name}`
         }
 
         const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
         const name = row.name
-        const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
-        const copyfile = join(global.Server.Cache, 'brew-cmd.sh')
-        if (existsSync(copyfile)) {
-          unlinkSync(copyfile)
+        let params = ''
+        if (row.flag === 'brew') {
+          const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
+          const copyfile = join(global.Server.Cache, 'brew-cmd.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          copyFileSync(sh, copyfile)
+          chmod(copyfile, '0777')
+          params = [copyfile, arch, fn, name].join(' ')
+          if (this.proxyStr) {
+            params = `${this.proxyStr};${params}`
+          }
+        } else {
+          const sh = join(global.Server.Static, 'sh/port-cmd.sh')
+          const copyfile = join(global.Server.Cache, 'port-cmd.sh')
+          if (existsSync(copyfile)) {
+            unlinkSync(copyfile)
+          }
+          let names = [name]
+          if (this.typeFlag === 'php') {
+            names.push(`${name}-fpm`, `${name}-mysql`, `${name}-apache2handler`)
+          } else if (this.typeFlag === 'mysql') {
+            names.push(`${name}-server`)
+          } else if (this.typeFlag === 'mariadb') {
+            names.push(`${name}-server`)
+          }
+          let content = readFileSync(sh, 'utf-8')
+          content = content
+            .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password)
+            .replace(new RegExp('##ARCH##', 'g'), arch)
+            .replace(new RegExp('##ACTION##', 'g'), fn)
+            .replace(new RegExp('##NAME##', 'g'), names.join(' '))
+          writeFileSync(copyfile, content)
+          chmod(copyfile, '0777')
+          params = [copyfile].join(' ')
+          if (this.proxyStr) {
+            params = `${this.proxyStr};${params}`
+          }
         }
-        copyFileSync(sh, copyfile)
-        chmod(copyfile, '0777')
 
-        let params = [copyfile, arch, fn, name].join(' ')
-        if (this.proxyStr) {
-          params = `${this.proxyStr};${params}`
-        }
         XTerm.send(`${params};exit 0;`, true).then((key: string) => {
           IPC.off(key)
           this.showNextBtn = true
