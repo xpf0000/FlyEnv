@@ -78,7 +78,8 @@ class Manager extends BaseManager {
   }
 
   installNvm() {
-    exec('curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash')
+    const env = this._fixEnv()
+    exec('curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash', env)
       .then(this._thenSuccess)
       .catch(this._catchError)
   }
