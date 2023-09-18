@@ -4,7 +4,7 @@ phpdir=$2
 extendv=$3
 arch=$4
 cd $cachedir
-curl -C - -O -s http://pecl.php.net/get/imagick-$extendv.tgz
+curl -C - -O -L -s http://pecl.php.net/get/imagick-$extendv.tgz
 if [ -d "imagick-$extendv" ]; then
  rm -rf "imagick-$extendv"
 fi

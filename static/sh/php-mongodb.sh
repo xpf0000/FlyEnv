@@ -4,7 +4,7 @@ phpdir=$2
 mongodbv=$3
 cd $cachedir
 echo http://pecl.php.net/get/mongodb-$mongodbv.tgz
-curl -C - -O -s http://pecl.php.net/get/mongodb-$mongodbv.tgz
+curl -C - -O -L -s http://pecl.php.net/get/mongodb-$mongodbv.tgz
 if [ -d "mongodb-$mongodbv" ]; then
  rm -rf "mongodb-$mongodbv"
 fi

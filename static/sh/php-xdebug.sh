@@ -7,7 +7,7 @@ password=$5
 echo "$password" | sudo -S -v
 
 cd $cachedir
-curl -C - -O -s https://xdebug.org/files/xdebug-$extendV.tgz
+curl -C - -O -L -s https://xdebug.org/files/xdebug-$extendV.tgz
 if [ ! -f "xdebug-$extendV.tgz" ]; then
   exit 1
 fi

@@ -5,7 +5,7 @@ password=$3
 phpize=$4
 phpconfig=$5
 cd "$cachedir" || exit 1
-curl -C - -O -s http://pecl.php.net/get/pdo_sqlsrv-"$extendV".tgz
+curl -C - -O -L -s http://pecl.php.net/get/pdo_sqlsrv-"$extendV".tgz
 if [ -d "pdo_sqlsrv-$extendV" ]; then
  echo "$password" | sudo -S rm -rf "pdo_sqlsrv-$extendV"
 fi

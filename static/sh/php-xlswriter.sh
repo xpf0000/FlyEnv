@@ -5,7 +5,7 @@ extendV=$3
 arch=$4
 password=$5
 cd "$cachedir" || exit 1
-curl -O -s http://pecl.php.net/get/xlswriter-"$extendV".tgz
+curl -C - -O -L -s http://pecl.php.net/get/xlswriter-"$extendV".tgz
 if [ -d "xlswriter-$extendV" ]; then
  echo "$password" | sudo -S rm -rf "xlswriter-$extendV"
 fi

@@ -2,6 +2,11 @@
   <el-aside width="280px" class="aside">
     <div class="aside-inner">
       <ul class="top-tool">
+        <el-tooltip :show-after="800" content="Documentation">
+          <li @click="toDoc">
+            <yb-icon style="opacity: 0.7;" :svg="import('@/svg/question.svg?raw')" width="17" height="17" />
+          </li>
+        </el-tooltip>
         <li :class="groupClass" @click="groupDo">
           <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
         </li>
@@ -288,6 +293,9 @@
   import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import Router from '@/router/index'
+
+  const { shell } = require('@electron/remote')
+
   let lastTray = ''
 
   const appStore = AppStore()
@@ -624,6 +632,10 @@
     }
   )
 
+  const toDoc = () => {
+    shell.openExternal('https://www.macphpstudy.com/help-0-1.html')
+  }
+
   const groupDo = () => {
     if (groupDisabled.value) {
       return
@@ -824,7 +836,7 @@
     > .top-tool {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: space-between;
       padding: 55px 20px 12px 20px;
       list-style: none;
       > li {

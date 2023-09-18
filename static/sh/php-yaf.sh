@@ -6,7 +6,7 @@ arch=$4
 prefix=$(brew --prefix)
 export CFLAGS=-I$prefix/include
 cd "$cachedir" || exit 1
-curl -C - -O -s http://pecl.php.net/get/yaf-"$yafv".tgz
+curl -C - -O -L -s http://pecl.php.net/get/yaf-"$yafv".tgz
 if [ -d "yaf-$yafv" ]; then
  rm -rf "yaf-$yafv"
 fi

@@ -4,7 +4,7 @@ phpdir=$2
 memcachev=$3
 arch=$4
 cd $cachedir
-curl -C - -O -s http://pecl.php.net/get/memcache-$memcachev.tgz
+curl -C - -O -L -s http://pecl.php.net/get/memcache-$memcachev.tgz
 if [ -d "memcache-$memcachev" ]; then
  rm -rf "memcache-$memcachev"
 fi

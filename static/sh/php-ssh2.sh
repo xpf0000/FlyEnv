@@ -4,7 +4,7 @@ phpdir=$2
 version=$3
 arch=$4
 cd $cachedir
-curl -C - -O -s https://pecl.php.net/get/ssh2-$version.tgz
+curl -C - -O -L -s https://pecl.php.net/get/ssh2-$version.tgz
 if [ -d "ssh2-$version" ]; then
  rm -rf "ssh2-$version"
 fi

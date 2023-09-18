@@ -5,7 +5,7 @@ extendv=$3
 arch=$4
 password=$5
 cd "$cachedir" || exit 1
-curl -C - -O -s http://pecl.php.net/get/pdo_sqlsrv-"$extendv".tgz
+curl -C - -O -L -s http://pecl.php.net/get/pdo_sqlsrv-"$extendv".tgz
 if [ -d "pdo_sqlsrv-$extendv" ]; then
  echo "$password" | sudo -S rm -rf "pdo_sqlsrv-$extendv"
 fi

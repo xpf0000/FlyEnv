@@ -4,7 +4,7 @@ phpdir=$2
 extendV=$3
 arch=$4
 cd $cachedir
-curl -C - -O -s http://pecl.php.net/get/swoole-$extendV.tgz
+curl -C - -O -L -s http://pecl.php.net/get/swoole-$extendV.tgz
 if [ -d "swoole-$extendV" ]; then
  rm -rf "swoole-$extendV"
 fi
