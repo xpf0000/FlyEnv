@@ -151,18 +151,6 @@ Mention the Issues, or scan the code to add QQ group.
 
 ![QQqun.png](https://www.macphpstudy.com/image/index/qrcode0@2x.png)
 
-## Sponsors
-
-Do your best, do my best.
-
-![wechat.png](https://www.macphpstudy.com/image/index/qrcode1@2x.png)
-
-![alipay.png](https://www.macphpstudy.com/image/index/qrcode2@2x.png)
-
-![ko-fi.png](https://www.macphpstudy.com/image/index/qrcode3@2x.png)
-
 ## 📜 License
 
 [BSD 3-Clause License](https://github.com/xpf0000/PhpWebStudy/blob/master/LICENSE)
-
-Copyright (c) 2023, xupengfei
