@@ -256,34 +256,6 @@ export default class Application extends EventEmitter {
         copyFile(tmplConf, enablePhpConf, () => {})
       })
     }
-
-    const redisconf = join(global.Server.RedisDir, 'common/redis.conf')
-    const handleRedisConf = () => {
-      const dbDir = join(global.Server.RedisDir!, 'common/db')
-      if (!existsSync(dbDir)) {
-        createFolder(dbDir)
-      }
-      readFileAsync(redisconf).then((content: string) => {
-        if (content.includes('#PID_PATH#')) {
-          content = content
-            .replace(/#PID_PATH#/g, join(global.Server.RedisDir!, 'common/run/redis.pid'))
-            .replace(/#LOG_PATH#/g, join(global.Server.RedisDir!, 'common/logs/redis.log'))
-            .replace(/#DB_PATH#/g, join(global.Server.RedisDir!, 'common/db'))
-          writeFileAsync(redisconf, content).then()
-          writeFileAsync(join(global.Server.RedisDir!, 'common/redis.conf.default'), content).then()
-        }
-      })
-    }
-    if (!existsSync(redisconf)) {
-      compressing.zip
-        .uncompress(join(__static, 'zip/redis-common.zip'), global.Server.RedisDir)
-        .then(() => {
-          handleRedisConf()
-        })
-        .catch(() => {})
-    } else {
-      handleRedisConf()
-    }
   }
 
   initWindowManager() {
@@ -419,7 +391,7 @@ export default class Application extends EventEmitter {
     this.stopServerByPid(pidfile, 'apache')
     pidfile = join(global.Server.MemcachedDir!, 'logs/memcached.pid')
     this.stopServerByPid(pidfile, 'memcached')
-    pidfile = join(global.Server.RedisDir!, 'common/run/redis.pid')
+    pidfile = join(global.Server.RedisDir!, 'redis.pid')
     this.stopServerByPid(pidfile, 'redis')
     pidfile = join(global.Server.MongoDBDir!, 'mongodb.pid')
     this.stopServerByPid(pidfile, 'mongodb')

@@ -35,11 +35,23 @@
     props: {},
     data() {
       return {
-        filepath: '',
         log: ''
       }
     },
     computed: {
+      version() {
+        return AppStore().config?.server?.redis?.current?.version
+      },
+      vNum() {
+        const version = this?.version ?? ''
+        return version.split('.')?.[0]
+      },
+      filepath() {
+        if (this.vNum) {
+          return join(global.Server.RedisDir, `redis-${this.vNum}.log`)
+        }
+        return undefined
+      },
       password() {
         return AppStore().config.password
       }
@@ -49,11 +61,17 @@
         nextTick().then(() => {
           this.initEditor()
         })
+      },
+      filepath: {
+        handler(v) {
+          if (v) {
+            this.init()
+          }
+        },
+        immediate: true
       }
     },
-    created: function () {
-      this.init()
-    },
+    created: function () {},
     mounted() {
       nextTick().then(() => {
         this.initEditor()
@@ -128,7 +146,6 @@
         }
       },
       init() {
-        this.filepath = join(global.Server.RedisDir, 'common/logs/redis.log')
         this.getLog()
       }
     }

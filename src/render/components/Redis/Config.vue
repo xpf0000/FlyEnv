@@ -21,6 +21,7 @@
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick } from 'vue'
   import { AppStore } from '@/store/app'
+  import IPC from '@/util/IPC'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, statSync } = require('fs')
@@ -35,20 +36,35 @@
       return {
         config: '',
         realDir: '',
-        configPath: '',
         typeFlag: 'redis'
       }
     },
     computed: {
       version() {
         return AppStore().config?.server?.redis?.current?.version
+      },
+      vNum() {
+        const version = this?.version ?? ''
+        return version.split('.')?.[0]
+      },
+      configPath() {
+        if (this.vNum) {
+          return join(global.Server.RedisDir, `redis-${this.vNum}.conf`)
+        }
+        return undefined
       }
     },
-    watch: {},
-    created: function () {
-      this.configPath = join(global.Server.RedisDir, 'common/redis.conf')
-      this.getConfig()
+    watch: {
+      configPath: {
+        handler(v) {
+          if (v) {
+            this.getConfig()
+          }
+        },
+        immediate: true
+      }
     },
+    created: function () {},
     mounted() {
       nextTick().then(() => {
         this.initEditor()
@@ -83,10 +99,11 @@
       },
       saveCustom() {
         let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
+        const defaultPath = this.vNum ? `redis-${this.vNum}-custom.conf` : 'redis-custom.conf'
         dialog
           .showSaveDialog({
             properties: opt,
-            defaultPath: 'redis-custom.conf',
+            defaultPath: defaultPath,
             filters: [
               {
                 extensions: ['conf']
@@ -116,14 +133,29 @@
         })
       },
       getConfig() {
-        console.log('this.configPath: ', this.configPath)
-        readFileAsync(this.configPath).then((conf) => {
-          this.config = conf
-          this.initEditor()
-        })
+        const doRead = () => {
+          readFileAsync(this.configPath).then((conf) => {
+            this.config = conf
+            this.initEditor()
+          })
+        }
+        if (!existsSync(this.configPath)) {
+          IPC.send('app-fork:redis', 'initConf', {
+            version: this.version
+          }).then((key: string) => {
+            IPC.off(key)
+            doRead()
+          })
+          return
+        }
+        doRead()
       },
       getDefault() {
-        let configPath = join(global.Server.RedisDir, 'common/redis.conf.default')
+        if (!this.vNum) {
+          this.$message.error(this.$t('base.defaultConFileNoFound'))
+          return
+        }
+        let configPath = join(global.Server.RedisDir, `redis-${this.vNum}-default.conf`)
         if (!existsSync(configPath)) {
           this.$message.error(this.$t('base.defaultConFileNoFound'))
           return

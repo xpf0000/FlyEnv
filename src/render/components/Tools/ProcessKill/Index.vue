@@ -13,6 +13,7 @@
           v-model="searchKey"
           placeholder="Please input search key"
           class="input-with-select"
+          @change="doSearch"
         >
           <template #append>
             <el-button :icon="Search" :disabled="!searchKey" @click="doSearch" />

@@ -9,7 +9,12 @@
 
     <div class="main-wapper">
       <div class="main">
-        <el-input v-model.number="port" placeholder="Please input port" class="input-with-select">
+        <el-input
+          v-model.number="port"
+          placeholder="Please input port"
+          class="input-with-select"
+          @change="doSearch"
+        >
           <template #append>
             <el-button :icon="Search" :disabled="!port" @click="doSearch" />
           </template>
