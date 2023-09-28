@@ -383,7 +383,7 @@
           }
           let names = [name]
           if (this.typeFlag === 'php') {
-            names.push(`${name}-fpm`, `${name}-mysql`, `${name}-apache2handler`)
+            names.push(`${name}-fpm`, `${name}-mysql`, `${name}-apache2handler`, `${name}-iconv`)
           } else if (this.typeFlag === 'mysql') {
             names.push(`${name}-server`)
           } else if (this.typeFlag === 'mariadb') {
