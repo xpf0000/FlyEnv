@@ -44,14 +44,13 @@ datadir=${dataDir}`
       let p = join(global.Server.MysqlDir, 'mysql.pid')
       let s = join(global.Server.MysqlDir, 'slow.log')
       let e = join(global.Server.MysqlDir, 'error.log')
-      let k = join(global.Server.MysqlDir, 'mysql.sock')
       const params = [
         `--defaults-file=${m}`,
         `--pid-file=${p}`,
         '--user=mysql',
         `--slow-query-log-file=${s}`,
         `--log-error=${e}`,
-        `--socket=${k}`
+        '--socket=/tmp/mysql.sock'
       ]
       if (version?.flag === 'port') {
         params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)

@@ -75,7 +75,7 @@
             :placeholder="$t('base.selectPhpVersion')"
           >
             <template v-for="(v, i) in phpVersions" :key="i">
-              <el-option :value="v.num" :label="v.version"></el-option>
+              <el-option :value="v.num" :label="v.num"></el-option>
             </template>
           </el-select>
         </div>
@@ -205,6 +205,7 @@
       <div class="main">
         <el-select
           v-model="rewriteKey"
+          filterable
           :placeholder="$t('base.commonTemplates')"
           @change="rewriteChange"
         >
@@ -296,7 +297,20 @@
         return BrewStore().php
       },
       phpVersions(): Array<SoftInstalled> {
-        return this.php?.installed?.filter((p) => p.version && p.num) ?? []
+        const set: Set<number> = new Set()
+        const list =
+          this.php?.installed?.filter((p) => {
+            if (p.version && p.num) {
+              if (!set.has(p.num)) {
+                set.add(p.num)
+                return true
+              }
+              return false
+            }
+            return false
+          }) ?? []
+        console.log('phpVersions: ', list)
+        return list
       }
     },
     watch: {

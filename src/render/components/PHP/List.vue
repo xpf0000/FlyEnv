@@ -67,7 +67,7 @@
               <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
               <span class="ml-15">{{ $t('php.extension') }}</span>
             </li>
-            <template v-if="checkBrew()">
+            <template v-if="checkBrew(item)">
               <li @click.stop="action(item, key, 'brewLink')">
                 <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ $t('php.phpSetGlobal') }}</span>
@@ -128,8 +128,9 @@
     mounted() {},
     unmounted() {},
     methods: {
-      checkBrew() {
-        return !!global.Server.BrewCellar
+      checkBrew(item: SoftInstalled) {
+        console.log('checkBrew: ', item)
+        return !!global.Server.BrewCellar && item?.bin?.includes('/Cellar/')
       },
       doRun(item: SoftInstalled) {
         startService('php', item).then((res) => {

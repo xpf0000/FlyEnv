@@ -427,6 +427,9 @@ class Manager extends BaseManager {
           await find(fpm)
         }
       }
+      list.forEach((item) => {
+        item.flag = 'macports'
+      })
       return list
     }
     Promise.all(all).then(async (list) => {
