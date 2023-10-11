@@ -25,6 +25,7 @@ const execPromise = require('child-process-promise').exec
 const ServeHandler = require('serve-handler')
 const Http = require('http')
 const Pty = require('node-pty')
+const IP = require('ip')
 
 export default class Application extends EventEmitter {
   isReady: boolean
@@ -495,7 +496,7 @@ export default class Application extends EventEmitter {
 
   setProxy() {
     const proxy = this.configManager.getConfig('setup.proxy')
-    if (proxy.on) {
+    if (proxy.on && proxy.proxy) {
       const proxyDict: { [k: string]: string } = {}
       proxy.proxy
         .split(' ')
@@ -617,7 +618,11 @@ export default class Application extends EventEmitter {
         server.listen(0, () => {
           console.log('server.address(): ', server.address())
           const port = server.address().port
-          const host = `http://localhost:${port}/`
+          const host = [`http://localhost:${port}/`]
+          const ip = IP.address()
+          if (ip && typeof ip === 'string' && ip.includes('.')) {
+            host.push(`http://${ip}:${port}/`)
+          }
           this.httpServes[path] = {
             server,
             port,

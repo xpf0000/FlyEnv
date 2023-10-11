@@ -50,7 +50,7 @@
       <Edit ref="hostEdit"></Edit>
     </el-drawer>
 
-    <el-drawer v-model="logshow" size="60%" :destroy-on-close="true" :with-header="false">
+    <el-drawer v-model="logshow" size="75%" :destroy-on-close="true" :with-header="false">
       <Logs ref="hostLogs"></Logs>
     </el-drawer>
   </div>

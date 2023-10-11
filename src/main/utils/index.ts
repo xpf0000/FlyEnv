@@ -29,5 +29,5 @@ export function getLanguage(locale?: string) {
   if (locale) {
     return locale
   }
-  return app.getLocale().split('-')[0]
+  return app?.getLocale()?.split('-')?.[0] ?? 'en'
 }

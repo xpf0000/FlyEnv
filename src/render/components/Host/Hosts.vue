@@ -1,7 +1,7 @@
 <template>
   <el-drawer
     v-model="show"
-    size="60%"
+    size="75%"
     :destroy-on-close="true"
     :with-header="false"
     @closed="onDrawerClosed"

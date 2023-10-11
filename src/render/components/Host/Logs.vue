@@ -38,7 +38,7 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
 
-  const { existsSync } = require('fs')
+  const { existsSync, watch } = require('fs')
   const { exec } = require('child-process-promise')
   const { join } = require('path')
   const { shell } = require('@electron/remote')
@@ -77,6 +77,10 @@
     unmounted() {
       this.monacoInstance && this.monacoInstance.dispose()
       this.monacoInstance = null
+      if (this.watcher) {
+        this.watcher.close()
+        this.watcher = null
+      }
     },
     methods: {
       initEditor() {
@@ -135,15 +139,20 @@
       },
       getLog() {
         if (existsSync(this.filepath)) {
-          readFileAsync(this.filepath).then((log) => {
-            this.log = log
-            this.$nextTick(() => {
-              let container = this.$el.querySelector('textarea')
-              if (container) {
-                container.scrollTop = container.scrollHeight
-              }
+          const watchLog = () => {
+            if (!this.watcher) {
+              this.watcher = watch(this.filepath, () => {
+                read()
+              })
+            }
+          }
+          const read = () => {
+            readFileAsync(this.filepath).then((log) => {
+              this.log = log
             })
-          })
+          }
+          read()
+          watchLog()
         } else {
           this.log = this.$t('base.noLogs')
         }

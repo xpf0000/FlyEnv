@@ -96,7 +96,7 @@
   <el-drawer
     ref="host-edit-drawer"
     v-model="show"
-    size="65%"
+    size="75%"
     :close-on-click-modal="false"
     :destroy-on-close="true"
     class="host-edit-drawer"

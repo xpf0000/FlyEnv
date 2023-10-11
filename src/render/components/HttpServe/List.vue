@@ -11,17 +11,19 @@
     <template v-else>
       <li v-for="(item, key) in serves" :key="key" class="http-serve-item">
         <div class="left">
-          <div class="title">
+          <div class="top">
             <span class="name"> {{ $t('base.path') }}:</span>
-            <span class="url">{{ $t('base.link') }}:</span>
+            <span class="value" @click.stop="openDir(key)">{{ key }} </span>
           </div>
-          <div class="value">
-            <span class="name">{{ key }} </span>
+          <div class="bottom">
+            <span class="name">{{ $t('base.link') }}:</span>
             <template v-if="!item.host">
               <span class="url empty">{{ $t('base.none') }}</span>
             </template>
             <template v-else>
-              <span class="url" @click="doJump(item.host)">{{ item.host }} </span>
+              <template v-for="(url, index) in item.host" :key="index">
+                <span class="url" @click="doJump(url)">{{ url }} </span>
+              </template>
             </template>
           </div>
         </div>
@@ -190,6 +192,9 @@
       },
       doJump(host: string) {
         shell.openExternal(host)
+      },
+      openDir(dir: string) {
+        shell.openPath(dir)
       }
     }
   })
@@ -230,32 +235,37 @@
         padding-right: 40px;
         font-size: 15px;
         overflow: hidden;
+        flex-direction: column;
+        justify-content: center;
 
-        > .title {
-          flex-shrink: 0;
-          height: 100%;
+        > .top {
           display: flex;
-          flex-direction: column;
-          justify-content: center;
-          padding-right: 20px;
-          .url {
-            margin-top: 10px;
+          margin-bottom: 10px;
+
+          > .name {
+            margin-right: 20px;
+          }
+
+          > .value {
+            cursor: pointer;
+
+            &:hover {
+              color: #fff;
+            }
           }
         }
 
-        > .value {
-          flex: 1;
-          height: 100%;
+        > .bottom {
           display: flex;
-          flex-direction: column;
-          justify-content: center;
-          padding-right: 20px;
-          overflow: hidden;
 
-          .url {
-            margin-top: 10px;
+          > .name {
+            margin-right: 20px;
+          }
+
+          > .url {
             color: #409eff;
             cursor: pointer;
+            margin-right: 20px;
 
             &.empty {
               color: #fff;

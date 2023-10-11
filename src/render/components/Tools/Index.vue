@@ -47,7 +47,7 @@
     <el-drawer
       ref="host-edit-drawer"
       v-model="show"
-      size="65%"
+      size="75%"
       :destroy-on-close="true"
       class="host-edit-drawer"
       :with-header="false"

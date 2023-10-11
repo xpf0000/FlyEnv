@@ -194,7 +194,7 @@
             })
             break
           case 'brewLink':
-            if (!this.checkBrew()) {
+            if (!this.checkBrew(item)) {
               return
             }
             const dom: HTMLElement = document.querySelector(`li[data-item-index="${index}"]`)!
