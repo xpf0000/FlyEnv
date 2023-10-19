@@ -16,11 +16,7 @@ class NginxManager extends BaseManager {
 
   _startServer(version) {
     return new Promise((resolve, reject) => {
-      let bin = version.bin
-      if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
+      const bin = version.bin
       let c = join(global.Server.NginxDir, 'common/conf/nginx.conf')
       let pid = join(global.Server.NginxDir, 'common/logs/nginx.pid')
       let errlog = join(global.Server.NginxDir, 'common/logs/error.log')

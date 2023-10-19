@@ -133,6 +133,9 @@
         return !!global.Server.BrewCellar && item?.bin?.includes('/Cellar/')
       },
       doRun(item: SoftInstalled) {
+        if (!item?.version) {
+          return
+        }
         startService('php', item).then((res) => {
           if (typeof res === 'string') {
             this.$message.error(res)
@@ -142,6 +145,9 @@
         })
       },
       doStop(item: SoftInstalled) {
+        if (!item?.version) {
+          return
+        }
         stopService('php', item).then((res) => {
           if (typeof res === 'string') {
             this.$message.error(res)

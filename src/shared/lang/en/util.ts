@@ -4,5 +4,6 @@ export default {
   brewInstallFail: 'Install Brew Fail',
   userNoInstall: 'User cancels installation',
   clean: 'Clean',
-  ok: 'OK'
+  ok: 'OK',
+  versionNoFound: 'Failed to get software version, operation failed.'
 }

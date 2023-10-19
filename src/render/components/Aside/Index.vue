@@ -4,7 +4,12 @@
       <ul class="top-tool">
         <el-tooltip :show-after="800" content="Documentation">
           <li @click="toDoc">
-            <yb-icon style="opacity: 0.7;" :svg="import('@/svg/question.svg?raw')" width="17" height="17" />
+            <yb-icon
+              style="opacity: 0.7"
+              :svg="import('@/svg/question.svg?raw')"
+              width="17"
+              height="17"
+            />
           </li>
         </el-tooltip>
         <li :class="groupClass" @click="groupDo">
@@ -482,11 +487,15 @@
       const all: Array<Promise<any>> = []
       if (v) {
         phpVersions?.value?.forEach((v) => {
-          all.push(startService('php', v))
+          if (v?.version) {
+            all.push(startService('php', v))
+          }
         })
       } else {
         phpVersions?.value?.forEach((v) => {
-          all.push(stopService('php', v))
+          if (v?.version) {
+            all.push(stopService('php', v))
+          }
         })
       }
       Promise.all(all).then((res) => {
@@ -673,7 +682,9 @@
         }
         if (showItem?.value?.Php) {
           phpVersions?.value?.forEach((v) => {
-            all.push(stopService('php', v))
+            if (v?.version) {
+              all.push(stopService('php', v))
+            }
           })
         }
       } else {
@@ -703,7 +714,9 @@
         }
         if (showItem?.value?.Php) {
           phpVersions?.value?.forEach((v) => {
-            all.push(startService('php', v))
+            if (v?.version) {
+              all.push(startService('php', v))
+            }
           })
         }
       }

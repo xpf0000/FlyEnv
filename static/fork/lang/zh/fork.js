@@ -1,5 +1,5 @@
 module.exports = {
-  binNoFound: '启动文件不存在,服务启动失败',
+  binNoFound: '启动文件不存在,操作失败',
   confNoFound: '配置文件不存在,服务器启动失败',
   apacheLogPathErr: '配置文件日志路径有误, 切换失败',
   switchFail: '切换失败',
@@ -18,5 +18,7 @@ module.exports = {
   phpiniNoFound: 'php.ini文件获取失败',
   ExtensionInstallFail: '扩展安装失败',
   phpStopFail: 'PHP{version}停止失败, 请尝试手动停止',
-  ExtensionInstallFailTips: '安装扩展执行命令:\n{command}\n如安装失败, 可尝试复制命令自行尝试安装\n'
+  ExtensionInstallFailTips:
+    '安装扩展执行命令:\n{command}\n如安装失败, 可尝试复制命令自行尝试安装\n',
+  versionNoFound: '未获取到软件版本,操作失败'
 }

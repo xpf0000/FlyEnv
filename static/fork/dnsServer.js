@@ -16,7 +16,7 @@ class Manager {
     if (time - this.lastTime > 60000) {
       this.lastTime = time
       try {
-        const hosts = readFileSync('/private/etc/hosts', 'utf-8')
+        const hosts = readFileSync('/private/etc/hosts', 'utf-8') ?? ''
         const arrs = hosts.split('\n').filter((s) => s.trim().indexOf('#') !== 0)
         arrs.forEach((s) => {
           const items = s

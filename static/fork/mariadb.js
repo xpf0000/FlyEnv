@@ -20,10 +20,6 @@ class Manager extends BaseManager {
     return new Promise((resolve, reject) => {
       console.log('version: ', version)
       let bin = version.bin
-      if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
       const v = version.version.split('.').slice(0, 2).join('.')
       let m = join(global.Server.MariaDBDir, `my-${v}.cnf`)
       const dataDir = join(global.Server.MariaDBDir, `data-${v}`)

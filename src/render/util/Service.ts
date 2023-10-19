@@ -3,6 +3,7 @@ import type { SoftInstalled } from '@/store/brew'
 import { AppSofts, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
 import { DnsStore } from '@/store/dns'
+import { I18nT } from '@shared/lang'
 
 const exec = (
   typeFlag: keyof typeof AppSofts,
@@ -12,6 +13,10 @@ const exec = (
   return new Promise((resolve) => {
     if (version.running) {
       resolve(true)
+      return
+    }
+    if (!version?.version) {
+      resolve(I18nT('util.versionNoFound'))
       return
     }
     version.running = true

@@ -19,10 +19,6 @@ class MysqlManager extends BaseManager {
     return new Promise((resolve, reject) => {
       console.log('version: ', version)
       let bin = version.bin
-      if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
       const v = version.version.split('.').slice(0, 2).join('.')
       let m = join(global.Server.MysqlDir, `my-${v}.cnf`)
       const oldm = join(global.Server.MysqlDir, 'my.cnf')

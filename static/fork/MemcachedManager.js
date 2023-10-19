@@ -16,11 +16,7 @@ class MemcachedManager extends BaseManager {
 
   _startServer(version) {
     return new Promise((resolve, reject) => {
-      let bin = version.bin
-      if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
+      const bin = version.bin
       let common = join(global.Server.MemcachedDir, 'logs')
       Utils.createFolder(common)
       let pid = join(common, 'memcached.pid')

@@ -121,6 +121,14 @@ class BaseManager {
   }
 
   startService(version) {
+    if (!existsSync(version?.bin)) {
+      this._catchError(I18nT('fork.binNoFound'))
+      return
+    }
+    if (!version?.version) {
+      this._catchError(I18nT('fork.versionNoFound'))
+      return
+    }
     this._stopServer(version)
       .then(() => {
         return this._startServer(version)

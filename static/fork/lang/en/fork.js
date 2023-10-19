@@ -1,5 +1,5 @@
 module.exports = {
-  binNoFound: 'The startup file does not exist, the service failed to start',
+  binNoFound: 'The startup file does not exist, operation failed.',
   confNoFound: 'The configuration file does not exist, the server failed to start',
   apacheLogPathErr: 'The log path of the configuration file is wrong, and the switch fails',
   switchFail: 'Switch Fail',
@@ -19,5 +19,6 @@ module.exports = {
   ExtensionInstallFail: 'Extension installation failed',
   phpStopFail: 'PHP{version} failed to stop, please try to stop it manually',
   ExtensionInstallFailTips:
-    'Install the extension and execute the command:\n{command}\nIf the installation fails, you can try to copy the command and try to install it yourself\n'
+    'Install the extension and execute the command:\n{command}\nIf the installation fails, you can try to copy the command and try to install it yourself\n',
+  versionNoFound: 'Failed to get software version, operation failed.'
 }

@@ -19,11 +19,7 @@ class ApacheManager extends BaseManager {
     return new Promise((resolve, reject) => {
       let logs = join(global.Server.ApacheDir, 'common/logs')
       Utils.createFolder(logs)
-      let bin = version.bin
-      if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
+      const bin = version.bin
       const defaultFile = join(
         global.Server.ApacheDir,
         `common/conf/${Utils.md5(version.bin)}.conf`
@@ -96,11 +92,7 @@ IncludeOptional "${vhost}*.conf"`
         .then(() => {
           let logs = join(global.Server.ApacheDir, 'common/logs')
           Utils.createFolder(logs)
-          let bin = version.bin
-          if (!existsSync(bin)) {
-            reject(new Error(I18nT('fork.binNoFound')))
-            return
-          }
+          const bin = version.bin
           const conf = join(global.Server.ApacheDir, `common/conf/${Utils.md5(version.bin)}.conf`)
           if (!existsSync(conf)) {
             reject(new Error(I18nT('fork.confNoFound')))

@@ -15,12 +15,19 @@ class RedisManager extends BaseManager {
   }
 
   initConf(version) {
+    if (!existsSync(version?.bin)) {
+      this._catchError(I18nT('fork.binNoFound'))
+      return
+    }
+    if (!version?.version) {
+      this._catchError(I18nT('fork.versionNoFound'))
+      return
+    }
     this._initConf(version).then(this._thenSuccess)
   }
   _initConf(version) {
     return new Promise((resolve) => {
       const v = version.version.split('.')[0]
-      console.log('v: ', v)
       const confFile = join(global.Server.RedisDir, `redis-${v}.conf`)
       if (!existsSync(confFile)) {
         const tmplFile = join(global.Server.Static, 'tmpl/redis.conf')
@@ -42,11 +49,7 @@ class RedisManager extends BaseManager {
 
   _startServer(version) {
     return new Promise((resolve, reject) => {
-      let bin = version.bin
-      if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
+      const bin = version.bin
       this._initConf(version).then((confFile) => {
         const checkpid = (time = 0) => {
           if (existsSync(this.pidPath)) {

@@ -3,5 +3,6 @@ export default {
   brewInstallFail: 'Brew安装失败',
   userNoInstall: '用户未选择安装',
   clean: '清理',
-  ok: '确定'
+  ok: '确定',
+  versionNoFound: '未获取到软件版本,操作失败'
 }

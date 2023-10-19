@@ -18,10 +18,6 @@ class Manager extends BaseManager {
   _startServer(version) {
     return new Promise((resolve, reject) => {
       const bin = version.bin
-      if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
       const v = version.version.split('.').slice(0, 2).join('.')
       let m = join(global.Server.MongoDBDir, `mongodb-${v}.conf`)
       const dataDir = join(global.Server.MongoDBDir, `data-${v}`)

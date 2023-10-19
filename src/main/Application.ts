@@ -343,7 +343,7 @@ export default class Application extends EventEmitter {
     try {
       const serverName = dis[type]
       const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12}'`
-      const res = execSync(command).toString().trim()
+      const res = execSync(command)?.toString()?.trim() ?? ''
       const pids = res.split('\n')
       const arr: Array<string> = []
       for (const p of pids) {

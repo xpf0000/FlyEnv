@@ -31,8 +31,8 @@ class PhpManager extends BaseManager {
     } else {
       command = `${version.path}/bin/php -i | grep php.ini`
     }
-    let ini = execSync(command).toString().trim()
-    ini = ini.split('=>').pop().trim()
+    let ini = execSync(command)?.toString()?.trim()
+    ini = ini?.split('=>')?.pop()?.trim()
     console.log('getIniPath: ', version, command, ini)
     if (ini) {
       if (!existsSync(ini)) {
@@ -80,6 +80,14 @@ class PhpManager extends BaseManager {
 
   installExtends(args) {
     const { version, versionNumber, extend, installExtensionDir } = args
+    if (!existsSync(version?.bin)) {
+      this._catchError(I18nT('fork.binNoFound'))
+      return
+    }
+    if (!version?.version) {
+      this._catchError(I18nT('fork.versionNoFound'))
+      return
+    }
     this._doInstallExtends(version, versionNumber, extend, installExtensionDir)
       .then(() => {
         let name = `${extend}.so`
@@ -151,6 +159,14 @@ class PhpManager extends BaseManager {
   }
 
   startService(version) {
+    if (!existsSync(version?.bin)) {
+      this._catchError(I18nT('fork.binNoFound'))
+      return
+    }
+    if (!version?.version) {
+      this._catchError(I18nT('fork.versionNoFound'))
+      return
+    }
     this._stopServer(version)
       .then(() => {
         return this._startServer(version)
@@ -244,10 +260,6 @@ class PhpManager extends BaseManager {
   _startServer(version) {
     return new Promise((resolve, reject) => {
       let bin = version.bin
-      if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
       const v = version.version.split('.').slice(0, 2).join('')
       const confPath = join(global.Server.PhpDir, v, 'conf')
       const varPath = join(global.Server.PhpDir, v, 'var')

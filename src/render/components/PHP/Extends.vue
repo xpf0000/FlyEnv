@@ -70,7 +70,7 @@
                 >
                 <el-button
                   v-else
-                  :disabled="brewRunning"
+                  :disabled="brewRunning || !version?.version"
                   type="primary"
                   link
                   @click="handleEdit(scope.$index, scope.row)"
@@ -342,7 +342,7 @@
       },
       handleEdit(index: number, row: any) {
         console.log(index, row)
-        if (this.extendRunning) {
+        if (this.extendRunning || !this.version?.version) {
           return
         }
         this.logs.splice(0)

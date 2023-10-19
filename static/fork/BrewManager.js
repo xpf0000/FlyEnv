@@ -145,6 +145,7 @@ class BrewManager extends BaseManager {
     Utils.execAsync('port', ['search', '--name', '--line', '--regex', reg])
       .then((info) => {
         console.log('portinfo: ', info)
+        info = info ?? ''
         let arr = []
         try {
           arr = info
