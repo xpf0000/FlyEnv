@@ -19,7 +19,6 @@
             <el-button :icon="Search" :disabled="!port" @click="doSearch" />
           </template>
         </el-input>
-
         <div class="table-wapper">
           <div class="btn-cell">
             <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect">{{

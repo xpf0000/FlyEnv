@@ -17,6 +17,7 @@ import type { PtyLast, StaticHttpServe } from './type'
 import type { IPty } from 'node-pty'
 import type { ServerResponse } from 'http'
 import { fixEnv } from '@shared/utils'
+import SiteSuckerManager from './ui/SiteSuckerManager'
 
 const { createFolder, readFileAsync, writeFileAsync, getAllFile } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
@@ -323,6 +324,7 @@ export default class Application extends EventEmitter {
   stop() {
     logger.info('[PhpWebStudy] application stop !!!')
     DnsServerManager.close().then()
+    SiteSuckerManager.destory()
     this.stopServer()
   }
 
@@ -690,6 +692,10 @@ export default class Application extends EventEmitter {
         DnsServerManager.close().then(() => {
           this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
         })
+        break
+      case 'app-sitesucker-run':
+        const url = args[0]
+        SiteSuckerManager.show(url)
         break
     }
   }

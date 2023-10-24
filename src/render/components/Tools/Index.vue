@@ -43,6 +43,10 @@
         <yb-icon :svg="import('@/svg/BOM.svg?raw')" width="30" height="30" style="padding: 1px" />
         <span>UTF8-Bom Clean</span>
       </li>
+      <li @click="showPage('siteSucker')">
+        <yb-icon :svg="import('@/svg/sucker.svg?raw')" width="30" height="30" />
+        <span>Site Sucker</span>
+      </li>
     </ul>
     <el-drawer
       ref="host-edit-drawer"
@@ -98,6 +102,9 @@
             break
           case 'bomClean':
             this.component = markRaw(defineAsyncComponent(() => import('./BomClean/index.vue')))
+            break
+          case 'siteSucker':
+            this.component = markRaw(defineAsyncComponent(() => import('./SiteSucker/index.vue')))
             break
         }
       },
