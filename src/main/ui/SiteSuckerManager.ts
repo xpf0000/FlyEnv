@@ -1,15 +1,24 @@
 import { BrowserWindow } from 'electron'
 import { enable } from '@electron/remote/main'
+import { join, extname, dirname } from 'path'
+import { createWriteStream, mkdirpSync } from 'fs-extra'
+import request from '@shared/request'
+import { md5 } from '@shared/utils'
 
 class SiteSuckerManager {
   window?: BrowserWindow
   handled: Set<string> = new Set()
   htmls: Set<string> = new Set()
-  subs: { [k: string]: Array<string> } = {}
+  links: { [k: string]: string } = {}
   timer?: NodeJS.Timeout
+  baseHost?: string
+  baseDir?: string
 
   show(url: string) {
     this.destory()
+    const urlObj = new URL(url)
+    this.baseHost = urlObj.host
+    this.baseDir = join('/Users/x/Desktop/AAA/', urlObj.host)
     this.window = new BrowserWindow({
       show: true,
       width: 1440,
@@ -31,22 +40,21 @@ class SiteSuckerManager {
         details?.statusCode < 300 &&
         (details?.url?.startsWith('http://') || details?.url?.startsWith('https://'))
       ) {
-        const u = details.url
-        const r = details.referrer
-        const uobj = new URL(u)
+        const uobj = new URL(details.url)
+        uobj.hash = ''
+        const url = uobj.toString()
         const ContentType: Array<string> = details?.responseHeaders?.['Content-Type'] ?? []
         if (ContentType?.pop() === 'text/html') {
-          uobj.hash = ''
-          this.htmls.add(uobj.toString())
-        }
-        if (r) {
-          if (!this.subs[r]) {
-            this.subs[r] = []
+          if (uobj.host === this.baseHost) {
+            this.htmls.add(url)
+            this.links[url] = ''
           }
-          this.subs[r].push(u)
+        } else {
+          this.links[url] = ''
         }
         console.log('htmls: ', this.htmls)
-        console.log('subs: ', this.subs)
+        console.log('subs: ', this.links)
+        this.down()
       }
       callback({})
     })
@@ -54,13 +62,65 @@ class SiteSuckerManager {
   }
 
   down() {
-    const htmls: Array<string> = Array.from(this.htmls).filter((h) => !this.handled.has(h))
-    const u = htmls.pop()
-    if (!u) {
+    let url = ''
+    for (const u in this.links) {
+      if (!this.links[u]) {
+        url = u
+        break
+      }
+    }
+    if (!url) {
       this.timer = setTimeout(() => {
         this.down()
       }, 1000)
+      return
     }
+    console.log('down: ', url)
+    let saveFile = ''
+    if (url.includes(this.baseHost!)) {
+      let pathDir = url.split(`${this.baseHost!}/`).pop() ?? ''
+      if (this.htmls.has(url)) {
+        const ext = extname(pathDir)
+        if (!!ext) {
+          pathDir = pathDir.replace(ext, '.html')
+        } else {
+          pathDir += '.html'
+        }
+      }
+      saveFile = join(this.baseDir!, pathDir)
+    } else {
+      const ext = extname(url.replace('http://', '/').replace('https://', '/'))
+      saveFile = join(this.baseDir!, `${md5(url)}${ext}`)
+    }
+    console.log('saveFile: ', saveFile)
+    const dir = dirname(saveFile)
+    mkdirpSync(dir)
+    const stream = createWriteStream(saveFile)
+    stream.on('finish', () => {
+      this.links[url] = saveFile
+      console.log('links: ', this.links)
+      this.down()
+    })
+    this.window!.webContents.session.cookies.get({ url }).then((cookies) => {
+      const cookieArr: Array<string> = []
+      cookies.forEach((cookie) => {
+        cookieArr.push(`${cookie.name}=${cookie.value};`)
+      })
+      console.log('cookieArr: ', cookieArr)
+      request({
+        url,
+        method: 'get',
+        responseType: 'stream',
+        headers: {
+          cookie: cookieArr.join(' ')
+        }
+      }).then((res) => {
+        if (url.includes(this.baseHost!)) {
+          console.log('res: ', res?.request)
+        }
+        res.data.pipe(stream)
+      })
+    })
   }
 
   destory() {
@@ -70,7 +130,7 @@ class SiteSuckerManager {
     }
     this.handled.clear()
     this.htmls.clear()
-    this.subs = {}
+    this.links = {}
     if (this.window) {
       this.window?.destroy()
     }

@@ -1,3 +1,5 @@
+import crypto from 'crypto'
+
 const { spawn } = require('child_process')
 const os = require('os')
 const { merge } = require('lodash')
@@ -78,4 +80,9 @@ export function formatBytes(bytes: number, decimals = 2) {
 export function isAppleSilicon() {
   const cpuCore = os.cpus()
   return cpuCore[0].model.includes('Apple')
+}
+
+export function md5(str: string) {
+  const md5 = crypto.createHash('md5')
+  return md5.update(str).digest('hex')
 }

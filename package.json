@@ -22,7 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@electron/remote": "^2.0.9",
-    "axios": "^0.25.0",
+    "axios": "^1.5.1",
     "child-process-promise": "^2.2.1",
     "compressing": "^1.5.1",
     "electron-is": "^3.0.0",
