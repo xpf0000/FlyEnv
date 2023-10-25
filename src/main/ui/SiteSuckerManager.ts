@@ -57,14 +57,7 @@ class SiteSuckerManager {
         uobj.hash = ''
         const url = uobj.toString()
         const ContentType: Array<string> = details?.responseHeaders?.['Content-Type'] ?? []
-        if (ContentType?.pop() === 'text/html') {
-          if (uobj.host === this.baseHost) {
-            this.htmls.add(url)
-            if (!this.links.hasOwnProperty(url)) {
-              this.links[url] = ''
-            }
-          }
-        } else {
+        if (ContentType?.pop() !== 'text/html') {
           if (!this.links.hasOwnProperty(url)) {
             this.links[url] = ''
           }
@@ -72,10 +65,50 @@ class SiteSuckerManager {
       }
       callback({})
     })
-    this.window.on('ready-to-show', () => {
-      console.log('ready-to-show !!!')
-    })
-    this.window.loadURL(url).then(this.down).catch(this.down)
+    this.window
+      .loadURL(url)
+      .then(() => {
+        console.log('loadURL !!!')
+        this.down()
+      })
+      .catch(this.down)
+  }
+
+  urlToDir(url: string, isPageUrl?: boolean) {
+    let saveFile = ''
+    if (url.includes(this.baseHost!)) {
+      let pathDir = url.split(`${this.baseHost!}`).pop() ?? ''
+      if (pathDir.startsWith('/')) {
+        pathDir = pathDir.replace('/', '')
+      }
+      if (isPageUrl) {
+        const ext = extname(pathDir)
+        if (!!ext) {
+          pathDir = pathDir.replace(ext, '.html')
+        } else {
+          pathDir += '.html'
+        }
+      }
+      pathDir = pathDir.trim()
+      if (pathDir === '.html') {
+        pathDir = 'index.html'
+      }
+      const fname = pathDir.split('/').pop()
+      if (fname && fname.includes('.html') && !fname?.endsWith('.html')) {
+        pathDir = pathDir.replace(fname, `${md5(fname)}.html`)
+      }
+      saveFile = join(this.baseDir!, pathDir)
+    } else {
+      const ext = extname(url.split('/').pop()!)
+      saveFile = join(this.baseDir!, `outsite/${md5(url)}${ext}`)
+    }
+    return saveFile
+  }
+
+  onPageLoaded(url: string) {
+    this.window?.webContents
+      ?.executeJavaScript('document.documentElement.outerHTML', true)
+      .then(async function (html) {})
   }
 
   down() {
@@ -192,7 +225,7 @@ class SiteSuckerManager {
       }
       stream.close(async () => {
         await doReplace()
-        await parseHtml()
+        // await parseHtml()
         this.running = false
         this.down()
       })
