@@ -62,6 +62,14 @@ export default class Application extends EventEmitter {
     this.checkBrewOrPort()
     this.handleCommands()
     this.handleIpcMessages()
+    SiteSuckerManager.setCallBack((link: any) => {
+      this.windowManager.sendCommandTo(
+        this.mainWindow!,
+        'App-SiteSucker-Link',
+        'App-SiteSucker-Link',
+        link
+      )
+    })
   }
 
   initLang() {
@@ -695,7 +703,7 @@ export default class Application extends EventEmitter {
         break
       case 'app-sitesucker-run':
         const url = args[0]
-        SiteSuckerManager.show(url)
+        SiteSuckerManager.show(url).then()
         break
     }
   }

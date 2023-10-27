@@ -1,5 +1,5 @@
 <template>
-  <div class="ssl-make">
+  <div class="ssl-make site-sucker">
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -10,7 +10,7 @@
 
     <div class="main-wapper">
       <div class="main">
-        <div style="display: flex; align-items: center; margin-bottom: 12px">
+        <div class="top-tool">
           <el-input
             v-model="url"
             placeholder="Please input port"
@@ -26,11 +26,21 @@
           </el-button-group>
         </div>
         <div class="table-wapper">
-          <el-table height="100%" :data="arr" size="default" style="width: 100%">
-            <el-table-column type="selection" width="55" />
-            <el-table-column prop="COMMAND" label="COMMAND"> </el-table-column>
-            <el-table-column prop="PID" label="PID"> </el-table-column>
-            <el-table-column prop="USER" label="USER"> </el-table-column>
+          <el-table height="100%" :data="links" size="default" style="width: 100%">
+            <el-table-column prop="url" label="url"> </el-table-column>
+            <el-table-column align="center" :label="$t('base.status')">
+              <template #default="scope">
+                <template v-if="scope.row.status === 'success' || scope.row.status === 'replace'">
+                  <el-icon color="#67C23A"><Check /></el-icon>
+                </template>
+                <template v-else-if="scope.row.status === 'fail'">
+                  <el-icon color="#F56C6C"><Warning /></el-icon>
+                </template>
+                <template v-else>
+                  <el-icon><Loading /></el-icon>
+                </template>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
       </div>
@@ -39,21 +49,51 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { ref, computed, defineExpose } from 'vue'
   import IPC from '@/util/IPC'
+  import { SiteSuckerStore } from '@/components/Tools/SiteSucker/store'
+  import { Loading, Check, Warning } from '@element-plus/icons-vue'
 
   const emit = defineEmits(['doClose'])
+  const siteStore = SiteSuckerStore()
+
+  const links = computed(() => {
+    return siteStore.links
+  })
 
   const doClose = () => {
     emit('doClose')
   }
 
   const url = ref('')
-  const arr = ref([])
 
   const doRun = () => {
     IPC.send('app-sitesucker-run', url.value).then((key: string, res: any) => {
       console.log(res)
     })
   }
+
+  defineExpose({
+    Loading
+  })
 </script>
+<style lang="scss">
+  .site-sucker {
+    .main {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+
+      > .top-tool {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        flex-shrink: 0;
+      }
+
+      > .table-wapper {
+        flex: 1;
+      }
+    }
+  }
+</style>

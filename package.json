@@ -39,6 +39,7 @@
     "vue-i18n": "9"
   },
   "devDependencies": {
+    "hpagent": "^1.2.0",
     "@babel/core": "^7.15.0",
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/plugin-proposal-function-bind": "^7.11.5",
@@ -75,6 +76,7 @@
     "eslint-loader": "^2.1.2",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-vue": "^7.18.0",
+    "https-proxy-agent": "^7.0.2",
     "md5": "^2.3.0",
     "moment": "^2.29.3",
     "monaco-editor": "^0.34.1",

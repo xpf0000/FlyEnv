@@ -4,6 +4,8 @@ import '@/components/Theme/Index.scss'
 import IPC from '@/util/IPC'
 import { AppI18n } from '@shared/lang'
 import { AppStore } from '@/store/app'
+import { SiteSuckerStore } from '@/components/Tools/SiteSucker/store'
+
 const { getGlobal } = require('@electron/remote')
 global.Server = getGlobal('Server')
 
@@ -25,6 +27,7 @@ IPC.on('APP-Ready-To-Show').then(() => {
       .then(() => {
         app.mount('#app')
       })
+    SiteSuckerStore().init()
   } else {
     console.log('has inited !!!!')
   }
