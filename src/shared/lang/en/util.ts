@@ -5,5 +5,6 @@ export default {
   userNoInstall: 'User cancels installation',
   clean: 'Clean',
   ok: 'OK',
-  versionNoFound: 'Failed to get software version, operation failed.'
+  versionNoFound: 'Failed to get software version, operation failed.',
+  setup: 'Setup'
 }

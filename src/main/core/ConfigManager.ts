@@ -86,6 +86,7 @@ interface ConfigOptions {
     }
     autoCheck: boolean
   }
+  tools: { [k: string]: any }
   httpServe: Array<string>
 }
 
@@ -183,6 +184,7 @@ export default class ConfigManager {
           },
           autoCheck: true
         },
+        tools: {},
         httpServe: []
       }
     }
@@ -250,6 +252,9 @@ export default class ConfigManager {
     }
     if (!this.config.has('setup.autoCheck')) {
       this.config.set('setup.autoCheck', true)
+    }
+    if (!this.config.has('tools')) {
+      this.config.set('tools', {})
     }
   }
 

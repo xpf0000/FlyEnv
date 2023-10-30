@@ -705,6 +705,14 @@ export default class Application extends EventEmitter {
         const url = args[0]
         SiteSuckerManager.show(url).then()
         break
+      case 'app-sitesucker-setup':
+        const setup = this.configManager.getConfig('tools.siteSucker')
+        this.windowManager.sendCommandTo(this.mainWindow!, command, key, setup)
+        return
+      case 'app-sitesucker-setup-save':
+        this.configManager.setConfig('tools.siteSucker', args[0])
+        this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+        return
     }
   }
 

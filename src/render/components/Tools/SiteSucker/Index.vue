@@ -5,7 +5,7 @@
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
         <span class="ml-15">Site Sucker</span>
       </div>
-      <yb-icon :svg="import('@/svg/setup.svg?raw')" width="24" height="24" />
+      <yb-icon :svg="import('@/svg/setup.svg?raw')" width="24" height="24" @click.stop="toSet" />
     </div>
 
     <div class="main-wapper">
@@ -26,40 +26,92 @@
           </el-button-group>
         </div>
         <div class="table-wapper">
-          <el-table height="100%" :data="links" size="default" style="width: 100%">
-            <el-table-column prop="url" label="url"> </el-table-column>
-            <el-table-column align="center" :label="$t('base.status')">
-              <template #default="scope">
-                <template v-if="scope.row.status === 'success' || scope.row.status === 'replace'">
-                  <el-icon color="#67C23A"><Check /></el-icon>
-                </template>
-                <template v-else-if="scope.row.status === 'fail'">
-                  <el-icon color="#F56C6C"><Warning /></el-icon>
-                </template>
-                <template v-else>
-                  <el-icon><Loading /></el-icon>
-                </template>
-              </template>
-            </el-table-column>
-          </el-table>
+          <el-auto-resizer>
+            <template #default="{ height, width }">
+              <el-table-v2
+                :row-height="38"
+                :columns="columns"
+                :data="links"
+                :width="width"
+                :height="height"
+                fixed
+              />
+            </template>
+          </el-auto-resizer>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts" setup>
-  import { ref, computed, defineExpose } from 'vue'
+<script lang="tsx" setup>
+  import { ref, computed } from 'vue'
   import IPC from '@/util/IPC'
   import { SiteSuckerStore } from '@/components/Tools/SiteSucker/store'
   import { Loading, Check, Warning } from '@element-plus/icons-vue'
+  import { ElIcon } from 'element-plus'
+  import type { Column } from 'element-plus'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { RefType } from 'vue/macros'
+  import { resolveBaseUrl } from 'vite'
 
   const emit = defineEmits(['doClose'])
   const siteStore = SiteSuckerStore()
-
+  siteStore.initSetup()
   const links = computed(() => {
     return siteStore.links
   })
+
+  const columns: Column<any>[] = [
+    {
+      key: 'url',
+      title: 'url',
+      dataKey: 'url',
+      width: 150,
+      class: 'url-column',
+      headerClass: 'url-column',
+      cellRenderer: ({ cellData: url }) => <span class="flex items-center">{url}</span>,
+      headerCellRenderer: () => {
+        const count = links.value.length
+        const success = links.value.filter(
+          (f) => f.state === 'replace' || f.state === 'success'
+        ).length
+        return (
+          <span class="flex items-center">
+            url({success}/{count})
+          </span>
+        )
+      }
+    },
+    {
+      key: 'state',
+      title: 'state',
+      dataKey: 'state',
+      width: 100,
+      align: 'center',
+      cellRenderer: ({ cellData: state }) => {
+        if (state === 'fail') {
+          return (
+            <ElIcon color="#F56C6C">
+              <Warning />
+            </ElIcon>
+          )
+        } else if (state === 'replace' || state === 'success') {
+          return (
+            <ElIcon color="#67C23A">
+              <Check />
+            </ElIcon>
+          )
+        } else {
+          return (
+            <ElIcon>
+              <Loading />
+            </ElIcon>
+          )
+        }
+      }
+    }
+  ]
 
   const doClose = () => {
     emit('doClose')
@@ -68,8 +120,18 @@
   const url = ref('')
 
   const doRun = () => {
+    if (!siteStore?.commonSetup?.dir) {
+      toSet()
+      return
+    }
     IPC.send('app-sitesucker-run', url.value).then((key: string, res: any) => {
       console.log(res)
+    })
+  }
+
+  const toSet = () => {
+    import('./setup.vue').then((res) => {
+      AsyncComponentShow(res.default).then()
     })
   }
 
@@ -93,6 +155,17 @@
 
       > .table-wapper {
         flex: 1;
+
+        .url-column {
+          width: calc(100% - 100px) !important;
+
+          > span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            user-select: text;
+          }
+        }
       }
     }
   }

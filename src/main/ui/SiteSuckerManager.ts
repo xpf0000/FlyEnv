@@ -30,9 +30,21 @@ type PageLink = {
   state: LinkState
 }
 
-let CallBack: Function = () => {}
+const CallBack: {
+  fn: Function
+} = {
+  fn: () => {}
+}
 
-const NoticeDict: { [k: string]: LinkState } = {}
+const NoticeDict: { [k: string]: number } = {}
+
+const NoticeOrder = {
+  wait: 0,
+  running: 1,
+  fail: 2,
+  replace: 3,
+  success: 4
+}
 
 class LinkItem implements PageLink {
   fromPage: string
@@ -50,9 +62,15 @@ class LinkItem implements PageLink {
     this._state = 'wait'
     this.url = ''
     Object.assign(this, item)
-    if (NoticeDict?.[this.url] !== this._state) {
-      NoticeDict[this.url] = this._state
-      CallBack?.({
+    this.notice()
+  }
+
+  notice() {
+    const order = NoticeOrder[this._state]
+    const noticeOrder = NoticeDict?.[this.url] ?? -1
+    if (noticeOrder < order) {
+      NoticeDict[this.url] = order
+      CallBack.fn({
         url: this.url,
         state: this._state
       })
@@ -64,13 +82,7 @@ class LinkItem implements PageLink {
   }
   set state(v) {
     this._state = v
-    if (NoticeDict?.[this.url] !== this._state) {
-      NoticeDict[this.url] = this._state
-      CallBack?.({
-        url: this.url,
-        state: this._state
-      })
-    }
+    this.notice()
   }
 }
 
@@ -95,7 +107,7 @@ class SiteSuckerManager {
   constructor() {}
 
   setCallBack(fn: Function) {
-    CallBack = fn
+    CallBack.fn = fn
   }
 
   async show(url: string) {
@@ -130,15 +142,15 @@ class SiteSuckerManager {
     })
     enable(this.window.webContents)
 
-    await this.window.webContents.session.setProxy({
-      proxyRules: 'http://127.0.0.1:1087'
-    })
-    request.defaults.httpAgent = new HttpProxyAgent({
-      proxy: 'http://127.0.0.1:1087'
-    })
-    request.defaults.httpsAgent = new HttpsProxyAgent({
-      proxy: 'http://127.0.0.1:1087'
-    })
+    // await this.window.webContents.session.setProxy({
+    //   proxyRules: 'http://127.0.0.1:1087'
+    // })
+    // request.defaults.httpAgent = new HttpProxyAgent({
+    //   proxy: 'http://127.0.0.1:1087'
+    // })
+    // request.defaults.httpsAgent = new HttpsProxyAgent({
+    //   proxy: 'http://127.0.0.1:1087'
+    // })
 
     /**
      * 过滤请求
@@ -249,17 +261,18 @@ class SiteSuckerManager {
     try {
       await this.window.loadURL(url)
     } catch (e) {}
+    await this.wait()
     this.running = false
     this.fetchPage().then()
     this.fetchLink().then()
   }
 
-  async wait() {
+  async wait(time = 2000) {
     return new Promise((resolve) => {
       this.timer = setTimeout(() => {
         this.timer = undefined
         resolve(true)
-      }, 2000)
+      }, time)
     })
   }
 
