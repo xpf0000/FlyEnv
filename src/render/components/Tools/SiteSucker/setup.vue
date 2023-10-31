@@ -21,12 +21,12 @@
         <div class="main-wapper">
           <div class="main">
             <el-form label-position="top" class="site-sucker-setup" @submit.prevent>
-              <el-form-item label="保存路径">
+              <el-form-item :label="$t('util.savePath')">
                 <div class="path-choose w-p100">
                   <input
                     type="text"
                     class="input"
-                    placeholder="文件保存为 保存路径/域名"
+                    :placeholder="$t('util.saveAs')"
                     readonly=""
                     :value="form.dir"
                   />
@@ -40,32 +40,32 @@
                   </div>
                 </div>
               </el-form-item>
-              <el-form-item label="网络代理">
+              <el-form-item :label="$t('util.proxy')">
                 <div class="path-choose w-p100">
                   <input
+                    v-model.trim="form.proxy"
                     type="text"
                     class="input"
                     placeholder="eg: http://127.0.0.1:1087"
-                    :value="form.proxy"
                   />
                 </div>
               </el-form-item>
-              <el-form-item label="页面限制">
+              <el-form-item :label="$t('util.pageLimit')">
                 <div class="path-choose w-p100">
                   <input
+                    v-model.trim="form.pageLimit"
                     type="text"
                     class="input"
-                    placeholder="限制页面地址必须包含此处字符串"
-                    :value="form.dir"
+                    :placeholder="$t('util.pageLimitTips')"
                   />
                 </div>
               </el-form-item>
-              <el-form-item label="链接排除">
+              <el-form-item :label="$t('util.LinkExclusion')">
                 <textarea
                   v-model.trim="form.excludeLink"
                   type="text"
                   class="input-textarea w-p100"
-                  placeholder="过滤包含此处字符串的网址, 每行一个"
+                  :placeholder="$t('util.LinkExclusionTips')"
                 ></textarea>
               </el-form-item>
             </el-form>
@@ -96,7 +96,9 @@
   })
 
   const doSubmit = () => {
+    console.log('form.value: ', form.value)
     Object.assign(store.commonSetup, form.value)
+    console.log('store.commonSetup: ', store.commonSetup)
     store.save()
     show.value = false
   }

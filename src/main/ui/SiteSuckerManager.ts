@@ -10,7 +10,7 @@ const os = require('os')
 
 const CPU_Count = os.cpus().length
 
-const ExcludeHost = [
+const BaseExcludeHost = [
   'www.google-analytics.com',
   'hm.baidu.com',
   'www.googletagmanager.com',
@@ -18,6 +18,8 @@ const ExcludeHost = [
   'apis.google.com',
   'www.google.com'
 ]
+
+const ExcludeHost: Array<string> = []
 
 type LinkState = 'wait' | 'running' | 'success' | 'fail' | 'replace'
 
@@ -28,6 +30,16 @@ type PageLink = {
   fromPage: string
   saveFile: string
   state: LinkState
+}
+
+type RunParams = {
+  url: string
+  config: {
+    dir: string
+    proxy: string
+    excludeLink: string
+    pageLimit: string
+  }
 }
 
 const CallBack: {
@@ -110,14 +122,15 @@ class SiteSuckerManager {
     CallBack.fn = fn
   }
 
-  async show(url: string) {
+  async show(item: RunParams) {
     this.destory()
     this.isDestory = false
+    let url = item.url
     const urlObj = new URL(url)
     urlObj.hash = ''
     url = urlObj.toString()
     this.baseHost = urlObj.host
-    this.baseDir = join('/Users/x/Desktop/AAA/', urlObj.host)
+    this.baseDir = join(item.config.dir, urlObj.host)
 
     const saveFile = this.urlToDir(url, true)
     const currentPage: PageLink = {
@@ -133,7 +146,7 @@ class SiteSuckerManager {
     this.window = new BrowserWindow({
       show: true,
       width: 1440,
-      height: 1080,
+      height: 960,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: false,
@@ -142,15 +155,35 @@ class SiteSuckerManager {
     })
     enable(this.window.webContents)
 
-    // await this.window.webContents.session.setProxy({
-    //   proxyRules: 'http://127.0.0.1:1087'
-    // })
-    // request.defaults.httpAgent = new HttpProxyAgent({
-    //   proxy: 'http://127.0.0.1:1087'
-    // })
-    // request.defaults.httpsAgent = new HttpsProxyAgent({
-    //   proxy: 'http://127.0.0.1:1087'
-    // })
+    if (item.config.proxy.trim()) {
+      const proxy = item.config.proxy.trim()
+      await this.window.webContents.session.setProxy({
+        proxyRules: proxy
+      })
+      request.defaults.httpAgent = new HttpProxyAgent({
+        proxy: proxy
+      })
+      request.defaults.httpsAgent = new HttpsProxyAgent({
+        proxy: proxy,
+        rejectUnauthorized: false
+      })
+    }
+
+    ExcludeHost.splice(0)
+    ExcludeHost.push(...BaseExcludeHost)
+
+    if (item.config.excludeLink.trim()) {
+      const excludes = item.config.excludeLink
+        .trim()
+        .split('\n')
+        .filter((f) => !!f.trim())
+        .map((m) => m.trim())
+      ExcludeHost.push(...excludes)
+    }
+
+    if (item.config.pageLimit.trim()) {
+      this.pageLimitTxt = item.config.pageLimit.trim()
+    }
 
     /**
      * 过滤请求
@@ -197,11 +230,20 @@ class SiteSuckerManager {
         const uobj = new URL(details.url)
         uobj.hash = ''
         const url = uobj.toString()
-        const ContentType: Array<string> = details?.responseHeaders?.['Content-Type'] ?? []
+        let isPage = false
+        const headers = details?.responseHeaders ?? {}
+        for (const k in headers) {
+          if (k.toLowerCase() === 'content-type') {
+            const v = headers[k]
+            if (v?.pop() === 'text/html') {
+              isPage = true
+            }
+          }
+        }
         /**
          * 普通页面
          */
-        if (ContentType?.pop() === 'text/html') {
+        if (isPage) {
           let ok = false
           if (this.pageLimitTxt) {
             if (url.includes(this.pageLimitTxt)) {
@@ -257,6 +299,7 @@ class SiteSuckerManager {
     })
     this.window.on('close', () => {
       this.destory()
+      CallBack.fn('window-close')
     })
     try {
       await this.window.loadURL(url)
@@ -281,17 +324,10 @@ class SiteSuckerManager {
    */
   async fetchPage() {
     if (this.running || this.isDestory || this.pages.find((p) => p.state === 'running')) {
-      console.log(
-        'fetchPage exit: ',
-        this.running,
-        this.isDestory,
-        this.pages.find((p) => p.state === 'running')
-      )
       return
     }
     const page = this.pages.find((p) => p.state === 'wait')
     if (!page) {
-      console.log('No Page !!!')
       await this.wait()
       this.running = false
       await this.fetchPage()
@@ -345,8 +381,9 @@ class SiteSuckerManager {
     }
     const now = this.task.size
     if (now === 0 && !this.pageLinks.find((p) => p.state === 'wait' || p.state === 'running')) {
-      console.log('fetchLink END !!!')
-      await this.doReplace()
+      if (!this.pages.find((p) => p.state === 'wait')) {
+        await this.doReplace()
+      }
       await this.wait()
       await this.fetchLink()
       return
@@ -440,7 +477,6 @@ class SiteSuckerManager {
 
   onPageLoaded() {
     return new Promise((resolve) => {
-      console.time('onPageLoaded')
       this.window?.webContents
         ?.executeJavaScript('document.documentElement.outerHTML', true)
         .then(async (html) => {
@@ -449,12 +485,10 @@ class SiteSuckerManager {
           mkdirpSync(dir)
           await writeFile(saveFile, html)
           this.handlePageHtml(html)
-          console.timeEnd('onPageLoaded')
           resolve(true)
         })
         .catch(() => {
           this.currentPage!.state = 'fail'
-          console.timeEnd('onPageLoaded')
           resolve(true)
         })
     })
@@ -500,7 +534,14 @@ class SiteSuckerManager {
     const linkUrls: Array<LinkItem> = links
       .filter((a) => {
         const u = new URL(a, this.currentPage?.url)
-        return !ExcludeHost.includes(u.host) && u.protocol.includes('http')
+        u.hash = ''
+        const uu = u.toString()
+        return (
+          !ExcludeHost.includes(u.host) &&
+          u.protocol.includes('http') &&
+          !this.pages.find((p) => p.url === uu) &&
+          !a.includes('.html')
+        )
       })
       .map((a) => {
         const u = new URL(a, this.currentPage?.url)
@@ -610,6 +651,10 @@ class SiteSuckerManager {
       }
       saveFile = join(this.baseDir!, pathDir)
     } else {
+      const uobj = new URL(url)
+      uobj.hash = ''
+      uobj.search = ''
+      url = uobj.toString()
       const ext = extname(url.split('/').pop()!)
       saveFile = join(this.baseDir!, `outsite/${md5(url)}${ext}`)
     }
@@ -618,8 +663,8 @@ class SiteSuckerManager {
   async doReplace() {
     for (const page of this.pages) {
       if (page.state === 'replace') {
-        await this.replaceContent(page)
         page.state = 'success'
+        await this.replaceContent(page)
       }
       if (page.state === 'success') {
         const needReplaceLinks = this.pageLinks.filter(
@@ -630,7 +675,7 @@ class SiteSuckerManager {
           if (existsSync(saveFile)) {
             let content = await readFile(saveFile, 'utf-8')
             needReplaceLinks.forEach((link) => {
-              if (link.raw !== link.replaceUrl) {
+              if (link.raw && link.raw !== link.replaceUrl) {
                 content = content.replace(new RegExp(link.raw, 'g'), link.replaceUrl)
               }
               link.state = 'success'

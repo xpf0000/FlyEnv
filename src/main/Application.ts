@@ -63,6 +63,15 @@ export default class Application extends EventEmitter {
     this.handleCommands()
     this.handleIpcMessages()
     SiteSuckerManager.setCallBack((link: any) => {
+      if (link === 'window-close') {
+        this.windowManager.sendCommandTo(
+          this.mainWindow!,
+          'App-SiteSucker-Link-Stop',
+          'App-SiteSucker-Link-Stop',
+          true
+        )
+        return
+      }
       this.windowManager.sendCommandTo(
         this.mainWindow!,
         'App-SiteSucker-Link',

@@ -11,6 +11,9 @@ const config: UserConfig = {
   base: './',
   plugins: [vue(), vueJsx()],
   assetsInclude: ['**/*.node'],
+  optimizeDeps: {
+    exclude: ['fsevents']
+  },
   root: renderPath,
   resolve: {
     alias: {

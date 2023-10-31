@@ -17,13 +17,23 @@ export type SiteSuckerSetup = {
   pageLimit: string
 }
 
+export type SiteSuckerTask = {
+  url: string
+  state: 'running' | 'stop' | 'pause'
+}
+
 interface State {
   links: Array<LinkItem>
   commonSetup: SiteSuckerSetup
+  task: SiteSuckerTask
 }
 
 const state: State = {
   links: [],
+  task: {
+    url: '',
+    state: 'stop'
+  },
   commonSetup: {
     dir: '',
     proxy: '',
@@ -58,6 +68,9 @@ export const SiteSuckerStore = defineStore('siteSucker', {
       })
     },
     init() {
+      IPC.on('App-SiteSucker-Link-Stop').then(() => {
+        this.task.state = 'stop'
+      })
       IPC.on('App-SiteSucker-Link').then((key: string, link: LinkItem) => {
         const find = this.links.find((l) => l.url === link.url)
         if (!find) {

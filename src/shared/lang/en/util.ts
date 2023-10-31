@@ -6,5 +6,12 @@ export default {
   clean: 'Clean',
   ok: 'OK',
   versionNoFound: 'Failed to get software version, operation failed.',
-  setup: 'Setup'
+  setup: 'Setup',
+  savePath: 'Save Dir',
+  saveAs: 'Site Save: Save Dir/Site Host',
+  proxy: 'Proxy',
+  pageLimit: 'Page Limit',
+  pageLimitTips: 'Limit page address must contain the string here',
+  LinkExclusion: 'Link Exclusion',
+  LinkExclusionTips: 'Filter URLs containing this string, one per line.'
 }

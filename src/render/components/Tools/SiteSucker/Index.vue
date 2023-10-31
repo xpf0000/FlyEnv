@@ -15,13 +15,18 @@
             v-model="url"
             placeholder="Please input port"
             class="input-with-select"
+            :readonly="task.state === 'running'"
+            :disabled="task.state === 'running'"
           ></el-input>
           <el-button-group style="flex-shrink: 0">
-            <el-button @click="doRun">
-              <yb-icon :svg="import('@/svg/play.svg?raw')" width="18" height="18" />
-            </el-button>
-            <el-button>
-              <yb-icon :svg="import('@/svg/stop.svg?raw')" width="18" height="18" />
+            <el-button
+              :loading="task.state === 'running'"
+              :disabled="!url || task.state === 'running'"
+              @click="doRun"
+            >
+              <template v-if="task.state === 'stop'">
+                <yb-icon :svg="import('@/svg/play.svg?raw')" width="18" height="18" />
+              </template>
             </el-button>
           </el-button-group>
         </div>
@@ -52,15 +57,23 @@
   import { ElIcon } from 'element-plus'
   import type { Column } from 'element-plus'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import { RefType } from 'vue/macros'
-  import { resolveBaseUrl } from 'vite'
 
   const emit = defineEmits(['doClose'])
   const siteStore = SiteSuckerStore()
   siteStore.initSetup()
   const links = computed(() => {
-    return siteStore.links
+    const fails = siteStore.links.filter((f) => f.state === 'fail')
+    const other = siteStore.links.filter((f) => f.state !== 'fail')
+    return [...fails, ...other]
   })
+
+  const url = ref('')
+
+  const task = computed(() => {
+    return siteStore.task
+  })
+
+  url.value = task.value.url
 
   const columns: Column<any>[] = [
     {
@@ -117,14 +130,24 @@
     emit('doClose')
   }
 
-  const url = ref('')
-
   const doRun = () => {
+    if (task.value.state !== 'stop') {
+      return
+    }
     if (!siteStore?.commonSetup?.dir) {
       toSet()
       return
     }
-    IPC.send('app-sitesucker-run', url.value).then((key: string, res: any) => {
+    const item = JSON.parse(
+      JSON.stringify({
+        url: url.value,
+        config: siteStore.commonSetup
+      })
+    )
+    siteStore.task.url = url.value
+    siteStore.task.state = 'running'
+    siteStore.links.splice(0)
+    IPC.send('app-sitesucker-run', item).then((key: string, res: any) => {
       console.log(res)
     })
   }
