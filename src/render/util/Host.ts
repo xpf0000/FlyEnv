@@ -1,7 +1,6 @@
 import IPC from '@/util/IPC'
 import { reloadService } from '@/util/Service'
 import Base from '@/core/Base'
-import { EventBus } from '@/global'
 import type { AppHost } from '@/store/app'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
@@ -32,7 +31,6 @@ const handleHostEnd = (arr: Array<AppHost>) => {
   })
 
   Base.MessageSuccess(I18nT('base.success')).then()
-  EventBus.emit('Host-Edit-Close')
 }
 
 export const handleHost = (host: AppHost, flag: string, old?: AppHost, park?: boolean) => {

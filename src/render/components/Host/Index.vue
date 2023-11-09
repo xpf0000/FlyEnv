@@ -1,7 +1,7 @@
 <template>
   <div class="host-panel main-right-panel">
     <ul class="top-tab">
-      <el-dropdown split-button @click="drawer = true" @command="handleCommand">
+      <el-dropdown split-button @click="toAdd" @command="handleCommand">
         <span class="px-5"></span>{{ $t('base.add') }}<span class="px-5"></span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -9,6 +9,16 @@
               $t('base.export')
             }}</el-dropdown-item>
             <el-dropdown-item command="import">{{ $t('base.import') }}</el-dropdown-item>
+            <el-dropdown-item divided command="newProject">
+              <el-popover :show-after="600" placement="bottom" trigger="hover" width="300px">
+                <template #reference>
+                  <span>{{ $t('host.newProject') }}</span>
+                </template>
+                <template #default>
+                  <p>{{ $t('host.newProjectTips') }}</p>
+                </template>
+              </el-popover>
+            </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -26,44 +36,16 @@
       <li class="no-hover" style="width: auto; padding: 0 15px; margin-right: 10px">
         <el-button @click="openHosts">{{ $t('base.openHosts') }}</el-button>
       </li>
-      <el-popover :show-after="600" placement="bottom" trigger="hover" width="300px">
-        <template #reference>
-          <li class="no-hover" style="width: auto; padding: 0 15px">
-            <el-button @click="openCreateProject">{{ $t('host.newProject') }}</el-button>
-          </li>
-        </template>
-        <template #default>
-          <p>{{ $t('host.newProjectTips') }}</p>
-        </template>
-      </el-popover>
     </ul>
     <List></List>
-    <el-drawer
-      ref="host-edit-drawer"
-      v-model="drawer"
-      size="460px"
-      :close-on-click-modal="false"
-      :destroy-on-close="true"
-      class="host-edit-drawer"
-      :with-header="false"
-    >
-      <Edit ref="hostEdit"></Edit>
-    </el-drawer>
-
-    <el-drawer v-model="logshow" size="75%" :destroy-on-close="true" :with-header="false">
-      <Logs ref="hostLogs"></Logs>
-    </el-drawer>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { reactive, ref, computed, watch, onUnmounted, nextTick } from 'vue'
-  import Edit from './Edit.vue'
+  import { reactive, computed, watch } from 'vue'
   import List from './ListTable.vue'
-  import Logs from './Logs.vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
-  import { EventBus } from '@/global'
   import { readFileAsync, writeFileAsync } from '@shared/file'
   import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
@@ -74,11 +56,6 @@
   const { join, dirname } = require('path')
 
   const appStore = AppStore()
-
-  const hostLogs = ref()
-  const hostEdit = ref()
-  const drawer = ref(false)
-  const logshow = ref(false)
 
   const hostsSet = computed(() => {
     return appStore.config.setup.hosts
@@ -104,7 +81,7 @@
       ElMessage.success(I18nT('base.success'))
     })
   }
-  const handleCommand = (command: 'export' | 'import') => {
+  const handleCommand = (command: 'export' | 'import' | 'newProject') => {
     console.log('handleCommand: ', command)
     switch (command) {
       case 'export':
@@ -112,6 +89,9 @@
         break
       case 'import':
         doImport()
+        break
+      case 'newProject':
+        openCreateProject()
         break
     }
   }
@@ -214,57 +194,33 @@
         })
       })
   }
-  const HostLogsItem = (data: any) => {
-    logshow.value = true
-    nextTick(() => {
-      let ref = hostLogs.value as any
-      ref.name = data.name
-      ref.type = 'nginx-access'
-      ref.init()
-      ref.initType(ref.type)
-    })
-  }
-  const HostEditItem = (data: any) => {
-    drawer.value = true
-    nextTick(() => {
-      let ref = hostEdit.value as any
-      let item = Object.assign(ref.item, JSON.parse(JSON.stringify(data)))
-      ref.item = item
-      ref.edit = JSON.parse(JSON.stringify(item))
-      ref.isEdit = true
-    })
-  }
-  const HostEditClose = () => {
-    drawer.value = false
-  }
   const openHosts = () => {
     import('./Hosts.vue').then((res) => {
       res.default.show().then()
     })
   }
+  let EditVM: any
+  import('./Edit.vue').then((res) => {
+    EditVM = res.default
+  })
+  const toAdd = () => {
+    AsyncComponentShow(EditVM).then()
+  }
   const openCreateProject = () => {
     import('./CreateProject/index.vue').then((res) => {
       AsyncComponentShow(res.default).then(({ dir, rewrite }: any) => {
         console.log('openCreateProject dir: ', dir)
-        drawer.value = true
-        nextTick(() => {
-          let ref = hostEdit.value as any
-          ref.item.root = dir
-          ref.item.nginx.rewrite = rewrite
-        })
+        AsyncComponentShow(EditVM, {
+          edit: {
+            root: dir,
+            nginx: {
+              rewrite: rewrite
+            }
+          }
+        }).then()
       })
     })
   }
-
-  EventBus.on('Host-Edit-Close', HostEditClose)
-  EventBus.on('Host-Edit-Item', HostEditItem)
-  EventBus.on('Host-Logs-Item', HostLogsItem)
-
-  onUnmounted(() => {
-    EventBus.off('Host-Edit-Close', HostEditClose)
-    EventBus.off('Host-Edit-Item', HostEditItem)
-    EventBus.off('Host-Logs-Item', HostLogsItem)
-  })
 </script>
 
 <style lang="scss">

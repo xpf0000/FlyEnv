@@ -13,7 +13,7 @@
         <div class="top-tool">
           <el-input
             v-model="url"
-            placeholder="Please input port"
+            placeholder="url link"
             class="input-with-select"
             :readonly="task.state === 'running'"
             :disabled="task.state === 'running'"

@@ -1,111 +1,118 @@
 <template>
-  <div class="host-vhost">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-        <span class="ml-15">{{ $t('base.vhostConTitle') }}</span>
+  <el-drawer
+    ref="host-edit-drawer"
+    v-model="show"
+    size="75%"
+    :close-on-click-modal="false"
+    :destroy-on-close="true"
+    class="host-edit-drawer"
+    :with-header="false"
+    @closed="closedFn"
+  >
+    <div class="host-vhost">
+      <div class="nav">
+        <div class="left" @click="show = false">
+          <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
+          <span class="ml-15">{{ $t('base.vhostConTitle') }}</span>
+        </div>
       </div>
-    </div>
 
-    <div class="main-wapper">
-      <div ref="input" class="block"></div>
-      <div class="tool">
-        <el-button @click="openConfig">{{ $t('base.open') }}</el-button>
-        <el-button @click="saveConfig">{{ $t('base.save') }}</el-button>
+      <div class="main-wapper">
+        <div ref="input" class="block"></div>
+        <div class="tool">
+          <el-button @click="openConfig">{{ $t('base.open') }}</el-button>
+          <el-button @click="saveConfig">{{ $t('base.save') }}</el-button>
+        </div>
       </div>
     </div>
-  </div>
+  </el-drawer>
 </template>
 
-<script>
-  import { readFileAsync, writeFileAsync } from '@shared/file.ts'
+<script lang="ts" setup>
+  import { readFileAsync, writeFileAsync } from '@shared/file'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { nextTick } from 'vue'
+  import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+  import Base from '@/core/Base'
+  import { I18nT } from '@shared/lang'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+  const props = defineProps<{
+    item: any
+  }>()
+  const config = ref('')
+  const configpath = ref('')
+  const input = ref()
+  let monacoInstance: editor.IStandaloneCodeEditor | null
 
-  export default {
-    components: {},
-    props: {
-      item: {
-        type: Object,
-        default() {
-          return {}
-        }
+  const openConfig = () => {
+    shell.showItemInFolder(configpath.value)
+  }
+
+  const saveConfig = () => {
+    const content = monacoInstance?.getValue() ?? ''
+    writeFileAsync(configpath.value, content).then(() => {
+      Base.MessageSuccess(I18nT('base.success'))
+    })
+  }
+
+  const getConfig = () => {
+    readFileAsync(configpath.value).then((conf) => {
+      config.value = conf
+      initEditor()
+    })
+  }
+
+  const initEditor = () => {
+    if (!monacoInstance) {
+      if (!input?.value?.style) {
+        return
       }
-    },
-    data() {
-      return {
-        config: '',
-        configpath: ''
-      }
-    },
-    computed: {},
-    created: function () {
-      console.log('item: ', this.item)
-      const baseDir = global.Server.BaseDir
-      this.configpath = join(baseDir, 'vhost', this.item.flag, `${this.item.item.name}.conf`)
-      console.log('this.configpath: ', this.configpath)
-      this.getConfig()
-    },
-    mounted() {
-      nextTick().then(() => {
-        this.initEditor()
+      monacoInstance = editor.create(input.value, {
+        value: config.value,
+        language: 'ini',
+        theme: 'vs-dark',
+        scrollBeyondLastLine: true,
+        overviewRulerBorder: true,
+        automaticLayout: true
       })
-    },
-    unmounted() {
-      this.monacoInstance && this.monacoInstance.dispose()
-      this.monacoInstance = null
-    },
-    methods: {
-      doClose() {
-        this.$emit('doClose')
-      },
-      openConfig() {
-        shell.showItemInFolder(this.configpath)
-      },
-      saveConfig() {
-        const content = this.monacoInstance.getValue()
-        writeFileAsync(this.configpath, content).then(() => {
-          this.$message.success(this.$t('base.success'))
-        })
-      },
-      getConfig() {
-        readFileAsync(this.configpath).then((conf) => {
-          this.config = conf
-          this.initEditor()
-        })
-      },
-      initEditor() {
-        if (!this.monacoInstance) {
-          if (!this?.$refs?.input?.style) {
-            return
-          }
-          this.monacoInstance = editor.create(this.$refs.input, {
-            value: this.config,
-            language: 'ini',
-            theme: 'vs-dark',
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true
-          })
-          this.monacoInstance.addAction({
-            id: 'save',
-            label: 'save',
-            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
-            run: () => {
-              this.saveConfig()
-            }
-          })
-        } else {
-          this.monacoInstance.setValue(this.config)
+      monacoInstance.addAction({
+        id: 'save',
+        label: 'save',
+        keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
+        run: () => {
+          saveConfig()
         }
-      }
+      })
+    } else {
+      monacoInstance.setValue(config.value)
     }
   }
+
+  const baseDir = global.Server.BaseDir
+  configpath.value = join(baseDir, 'vhost', props.item.flag, `${props.item.item.name}.conf`)
+  getConfig()
+
+  onMounted(() => {
+    nextTick().then(() => {
+      initEditor()
+    })
+  })
+
+  onUnmounted(() => {
+    monacoInstance && monacoInstance.dispose()
+    monacoInstance = null
+  })
+
+  defineExpose({
+    show,
+    onSubmit,
+    onClosed
+  })
 </script>
 
 <style lang="scss">

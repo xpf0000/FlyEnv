@@ -31,7 +31,7 @@
             <div class="title">
               <span>{{ $t('host.frameWork') }}</span>
             </div>
-            <el-select v-model="form.framework" :disabled="loading || created">
+            <el-select v-model="form.framework" filterable :disabled="loading || created">
               <template v-for="(v, k) in Versions" :key="k">
                 <el-option-group :label="k">
                   <template v-for="(item, i) in v" :key="i">

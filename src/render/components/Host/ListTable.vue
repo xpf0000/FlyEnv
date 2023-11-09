@@ -38,7 +38,6 @@
       <el-table-column align="center" :label="$t('host.setup')" width="100px">
         <template #default="scope">
           <el-popover
-            :ref="'host-list-poper-' + scope.$index"
             effect="dark"
             popper-class="host-list-poper"
             placement="bottom-end"
@@ -93,169 +92,160 @@
       </el-table-column>
     </el-table>
   </div>
-  <el-drawer
-    ref="host-edit-drawer"
-    v-model="show"
-    size="75%"
-    :close-on-click-modal="false"
-    :destroy-on-close="true"
-    class="host-edit-drawer"
-    :with-header="false"
-  >
-    <ConfigView :item="configItem" @doClose="show = false"></ConfigView>
-  </el-drawer>
 </template>
 
-<script lang="ts">
-  import { defineComponent } from 'vue'
+<script lang="ts" setup>
+  import { ref, computed, onMounted } from 'vue'
   import { handleHost } from '@/util/Host'
-  import ConfigView from './Vhost.vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
-  import { EventBus } from '@/global'
   import { BrewStore } from '@/store/brew'
   import QrcodePopper from './Qrcode/Index.vue'
+  import Base from '@/core/Base'
+  import { I18nT } from '@shared/lang'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   const { shell } = require('@electron/remote')
 
-  export default defineComponent({
-    name: 'MoHostList',
-    components: { ConfigView, QrcodePopper },
-    props: {},
-    data() {
-      return {
-        show: false,
-        current_row: 0,
-        extensionDir: '',
-        task_index: 0,
-        configItem: {},
-        search: ''
-      }
-    },
-    computed: {
-      hosts() {
-        let hosts: Array<any> = JSON.parse(JSON.stringify(AppStore().hosts))
-        if (this.search) {
-          hosts = hosts.filter((h) => {
-            const name = h?.name ?? ''
-            const mark = h?.mark ?? ''
-            return name.includes(this.search) || `${mark}`.includes(this.search)
-          })
-        }
-        const arr: Array<any> = []
-        const findChild = (item: any) => {
-          const sub = hosts.filter((h) => {
-            let name: any = h.name.split('.')
-            let has = false
-            while (!has && name.length > 0) {
-              name.shift()
-              const str = name.join('.').trim()
-              has = item.name.trim() === str
-            }
-            return has
-          })
-          sub.forEach((s) => {
-            s.pid = item.id
-          })
-          item.children = sub
-        }
-        hosts.forEach((h) => {
-          findChild(h)
-        })
-        hosts.forEach((h) => {
-          if (!h.pid) {
-            arr.push(h)
-          }
-        })
-        return arr
-      },
-      writeHosts() {
-        return AppStore().config.setup.hosts.write
-      }
-    },
-    watch: {},
-    created: function () {
-      console.log('this.hosts: ', this.hosts)
-      if (!this.hosts || this.hosts.length === 0) {
-        AppStore().initHost()
-      }
-    },
-    mounted() {
-      IPC.send('app-fork:host', 'writeHosts', this.writeHosts).then((key: string) => {
-        IPC.off(key)
+  const appStore = AppStore()
+  const task_index = ref(0)
+  const search = ref('')
+
+  const hosts = computed(() => {
+    let hosts: Array<any> = JSON.parse(JSON.stringify(appStore.hosts))
+    if (search.value) {
+      hosts = hosts.filter((h) => {
+        const name = h?.name ?? ''
+        const mark = h?.mark ?? ''
+        return name.includes(search.value) || `${mark}`.includes(search.value)
       })
-    },
-    unmounted() {},
-    methods: {
-      versionText(v?: number) {
-        if (typeof v === 'number') {
-          return `${(v / 10.0).toFixed(1)}`
-        }
-        return ''
-      },
-      openSite(item: any) {
-        const host = item.name
-        const brewStore = BrewStore()
-        const nginxRunning = brewStore.nginx.installed.find((i) => i.run)
-        const apacheRunning = brewStore.apache.installed.find((i) => i.run)
-        let port = 80
-        if (nginxRunning) {
-          port = item.port.nginx
-        } else if (apacheRunning) {
-          port = item.port.apache
-        }
-        const portStr = port === 80 ? '' : `:${port}`
-        const url = `http://${host}${portStr}`
-        shell.openExternal(url)
-      },
-      showConfig(flag: string) {
-        console.log(global.Server, flag)
-        this.configItem = flag
-        this.show = true
-      },
-      action(item: any, index: number, flag: string) {
-        console.log('item: ', item)
-        item = AppStore().hosts.find((h) => h.id === item.id)
-        this.task_index = index
-        switch (flag) {
-          case 'open':
-            shell.showItemInFolder(item.root)
-            break
-          case 'edit':
-            EventBus.emit('Host-Edit-Item', item)
-            break
-          case 'log':
-            EventBus.emit('Host-Logs-Item', item)
-            break
-          case 'del':
-            this.$baseConfirm(this.$t('base.delAlertContent'), undefined, {
-              customClass: 'confirm-del',
-              type: 'warning'
-            })
-              .then(() => {
-                handleHost(item, 'del')
-              })
-              .catch(() => {})
-            break
-          case 'link':
-            console.log('item: ', item)
-            this.$baseDialog(import('./Link.vue'))
-              .data({
-                host: item
-              })
-              .noFooter()
-              // @ts-ignore
-              .title(this.$t('base.siteLinks'))
-              .show()
-            break
-        }
-        // @ts-ignore
-        const poper = this?.$refs?.['host-list-poper-' + this.task_index]?.[0]
-        console.log('poper: ', poper)
-        poper && poper.hide()
-      }
     }
+    const arr: Array<any> = []
+    const findChild = (item: any) => {
+      const sub = hosts.filter((h) => {
+        let name: any = h.name.split('.')
+        let has = false
+        while (!has && name.length > 0) {
+          name.shift()
+          const str = name.join('.').trim()
+          has = item.name.trim() === str
+        }
+        return has
+      })
+      sub.forEach((s) => {
+        s.pid = item.id
+      })
+      item.children = sub
+    }
+    hosts.forEach((h) => {
+      findChild(h)
+    })
+    hosts.forEach((h) => {
+      if (!h.pid) {
+        arr.push(h)
+      }
+    })
+    return arr
   })
+
+  const writeHosts = computed(() => {
+    return appStore.config.setup.hosts.write
+  })
+
+  if (!hosts?.value || hosts?.value?.length === 0) {
+    appStore.initHost()
+  }
+
+  onMounted(() => {
+    IPC.send('app-fork:host', 'writeHosts', writeHosts.value).then((key: string) => {
+      IPC.off(key)
+    })
+  })
+
+  const versionText = (v?: number) => {
+    if (typeof v === 'number') {
+      return `${(v / 10.0).toFixed(1)}`
+    }
+    return ''
+  }
+
+  const openSite = (item: any) => {
+    const host = item.name
+    const brewStore = BrewStore()
+    const nginxRunning = brewStore.nginx.installed.find((i) => i.run)
+    const apacheRunning = brewStore.apache.installed.find((i) => i.run)
+    let port = 80
+    if (nginxRunning) {
+      port = item.port.nginx
+    } else if (apacheRunning) {
+      port = item.port.apache
+    }
+    const portStr = port === 80 ? '' : `:${port}`
+    const url = `http://${host}${portStr}`
+    shell.openExternal(url)
+  }
+
+  let EditVM: any
+  import('./Edit.vue').then((res) => {
+    EditVM = res.default
+  })
+  let LogVM: any
+  import('./Logs.vue').then((res) => {
+    LogVM = res.default
+  })
+  let ConfigVM: any
+  import('./Vhost.vue').then((res) => {
+    ConfigVM = res.default
+  })
+
+  const action = (item: any, index: number, flag: string) => {
+    console.log('item: ', item)
+    item = appStore.hosts.find((h) => h.id === item.id)
+    task_index.value = index
+    switch (flag) {
+      case 'open':
+        shell.showItemInFolder(item.root)
+        break
+      case 'edit':
+        AsyncComponentShow(EditVM, {
+          edit: item,
+          isEdit: true
+        }).then()
+        break
+      case 'log':
+        AsyncComponentShow(LogVM, {
+          name: item.name
+        }).then()
+        break
+      case 'del':
+        Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+          customClass: 'confirm-del',
+          type: 'warning'
+        })
+          .then(() => {
+            handleHost(item, 'del')
+          })
+          .catch(() => {})
+        break
+      case 'link':
+        console.log('item: ', item)
+        Base.Dialog(import('./Link.vue'))
+          .data({
+            host: item
+          })
+          .noFooter()
+          // @ts-ignore
+          .title(this.$t('base.siteLinks'))
+          .show()
+        break
+    }
+  }
+
+  const showConfig = (item: any) => {
+    AsyncComponentShow(ConfigVM, {
+      item
+    }).then()
+  }
 </script>
 
 <style lang="scss">

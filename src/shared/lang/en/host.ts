@@ -16,5 +16,6 @@ export default {
     '1. Start the DNS server.\n' +
     '2. On other computers or phones, set the DNS of the network, enter the DNS IP displayed in the current interface. It is best to keep only this one DNS setting, and then restore the original setting after it is no longer in use.\n' +
     '3. Use this command for testing: dig {ip} domain\n' +
-    '4. On other computers or phones, use the domain name of the local site to access.\n'
+    '4. On other computers or phones, use the domain name of the local site to access.\n',
+  staticSite: 'Static Site'
 }

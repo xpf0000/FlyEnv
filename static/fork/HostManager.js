@@ -550,18 +550,26 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       }
       if (host.phpVersion !== old.phpVersion) {
         hasChanged = true
-        find.push(
-          ...[
-            `include enable-php-${old.phpVersion}.conf;`,
-            `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${old.phpVersion}.sock\\|fcgi://localhost"`
-          ]
-        )
-        replace.push(
-          ...[
-            `include enable-php-${host.phpVersion}.conf;`,
-            `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
-          ]
-        )
+        if (old.phpVersion) {
+          find.push(
+            ...[
+              `include enable-php-${old.phpVersion}.conf;`,
+              `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${old.phpVersion}.sock\\|fcgi://localhost"`
+            ]
+          )
+        } else {
+          find.push(...['##Static Site Nginx##', '##Static Site Apache##'])
+        }
+        if (host.phpVersion) {
+          replace.push(
+            ...[
+              `include enable-php-${host.phpVersion}.conf;`,
+              `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
+            ]
+          )
+        } else {
+          replace.push(...['##Static Site Nginx##', '##Static Site Apache##'])
+        }
       }
       if (hasChanged) {
         find.forEach((s, i) => {
@@ -618,7 +626,15 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           .replace(/#Server_CertKey#/g, host.ssl.key)
           .replace(/#Port_Nginx#/g, host.port.nginx)
           .replace(/#Port_Nginx_SSL#/g, host.port.nginx_ssl)
-          .replace(/include enable-php\.conf;/g, `include enable-php-${host.phpVersion}.conf;`)
+
+        if (host.phpVersion) {
+          ntmpl = ntmpl.replace(
+            /include enable-php\.conf;/g,
+            `include enable-php-${host.phpVersion}.conf;`
+          )
+        } else {
+          ntmpl = ntmpl.replace(/include enable-php\.conf;/g, '##Static Site Nginx##')
+        }
         writeFileSync(nvhost, ntmpl)
 
         atmpl = atmpl
@@ -631,10 +647,17 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           .replace(/#Server_CertKey#/g, host.ssl.key)
           .replace(/#Port_Apache#/g, host.port.apache)
           .replace(/#Port_Apache_SSL#/g, host.port.apache_ssl)
-          .replace(
+        if (host.phpVersion) {
+          atmpl = atmpl.replace(
             /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
             `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
           )
+        } else {
+          atmpl = atmpl.replace(
+            /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
+            '##Static Site Apache##'
+          )
+        }
 
         if (addApachePort) {
           atmpl = atmpl.replace(/#Listen_Port_Apache#/g, host.port.apache)

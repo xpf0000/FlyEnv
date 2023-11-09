@@ -7,7 +7,7 @@ import WindowManager from './ui/WindowManager'
 import MenuManager from './ui/MenuManager'
 import UpdateManager from './core/UpdateManager'
 import { join } from 'path'
-import { copyFile, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { execSync, fork } from 'child_process'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
@@ -19,7 +19,7 @@ import type { ServerResponse } from 'http'
 import { fixEnv } from '@shared/utils'
 import SiteSuckerManager from './ui/SiteSuckerManager'
 
-const { createFolder, readFileAsync, writeFileAsync, getAllFile } = require('../shared/file')
+const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
 const compressing = require('compressing')
 const execPromise = require('child-process-promise').exec
@@ -234,46 +234,6 @@ export default class Application extends EventEmitter {
           })
         })
         .catch()
-    }
-    let enablePhpConf = join(global.Server.NginxDir, 'common/conf/enable-php-80.conf')
-    // 修复1.0.33预览版本的问题 php的sock改成phpwebstudy-php-cgi-xx.sock, 避免和其他应用冲突
-    if (!this.configManager.getConfig('appFix.nginxEnablePhp')) {
-      if (existsSync(enablePhpConf)) {
-        unlinkSync(enablePhpConf)
-      }
-      const vhostPath = join(global.Server.BaseDir, 'vhost/apache')
-      const files = getAllFile(vhostPath)
-      files.forEach((f: string) => {
-        let content = readFileSync(f, 'utf-8')
-        content = content.replace(
-          'proxy:unix:/tmp/php-cgi-',
-          'proxy:unix:/tmp/phpwebstudy-php-cgi-'
-        )
-        writeFileSync(f, content)
-      })
-      const enablePhpBaseConf = join(global.Server.NginxDir, 'common/conf/enable-php.conf')
-      if (existsSync(enablePhpBaseConf)) {
-        let content = readFileSync(enablePhpBaseConf, 'utf-8')
-        content = content.replace('unix:/tmp/php-cgi-', 'unix:/tmp/phpwebstudy-php-cgi-')
-        writeFileSync(enablePhpBaseConf, content)
-      }
-      const phpDirFiles = getAllFile(global.Server.PhpDir)
-      phpDirFiles.forEach((f: string) => {
-        if (f.includes('php-fpm.conf')) {
-          unlinkSync(f)
-        }
-      })
-      this.configManager.setConfig('appFix.nginxEnablePhp', true)
-    }
-    if (!existsSync(enablePhpConf)) {
-      const confDir = join(global.Server.NginxDir, 'common/conf/')
-      createFolder(confDir)
-      const arrs = [56, 70, 71, 72, 73, 74, 80, 81, 82]
-      arrs.forEach((v) => {
-        const tmplConf = join(__static, `tmpl/enable-php-${v}.conf`)
-        enablePhpConf = join(global.Server.NginxDir!, `common/conf/enable-php-${v}.conf`)
-        copyFile(tmplConf, enablePhpConf, () => {})
-      })
     }
   }
 
