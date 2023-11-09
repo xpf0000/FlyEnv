@@ -22,5 +22,5 @@ vendor/topthink
 2. when site creation, automatically check the project type, automatically generate Nginx Url Rewrite, currently can automatically recognize wordpress, laravel, yii, thinkphp project.
 3. fix the problem that the service status is not updated when version switching.
 
-
+brew search /php\[\$@]\[\\d\\.]+$\/
 
