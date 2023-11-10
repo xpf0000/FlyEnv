@@ -1,5 +1,6 @@
 const join = require('path').join
 const { spawn, execSync } = require('child_process')
+const { exec } = require('child-process-promise')
 const Utils = require('./Utils.js')
 const BaseManager = require('./BaseManager')
 const { existsSync, unlinkSync } = require('fs')
@@ -351,7 +352,10 @@ class BrewManager extends BaseManager {
       })
       .then(() => {
         Utils.chmod(copyfile, '0777')
-        return Utils.execAsync('bash', [copyfile, srcFlag, global.Server.BrewHome])
+        return exec(`source brew-src.sh ${srcFlag} ${global.Server.BrewHome}`, {
+          env: Utils.fixEnv(),
+          cwd: global.Server.Cache
+        })
       })
       .then(() => {
         this._processSend({
