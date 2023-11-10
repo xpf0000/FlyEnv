@@ -12,5 +12,6 @@ export default {
   pageLimit: '页面限制',
   pageLimitTips: '限制页面地址必须包含此处字符串',
   LinkExclusion: '链接排除',
-  LinkExclusionTips: '过滤包含此处字符串的网址, 每行一个'
+  LinkExclusionTips: '过滤包含此处字符串的网址, 每行一个',
+  count: '总计: '
 }

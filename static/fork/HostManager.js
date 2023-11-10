@@ -366,6 +366,20 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     }
   }
 
+  #handlePhpEnableConf(v) {
+    try {
+      const name = `enable-php-${v}.conf`
+      const confFile = join(global.Server.NginxDir, 'common/conf/', name)
+      if (!existsSync(confFile)) {
+        Utils.createFolder(dirname(confFile))
+        const tmplFile = join(global.Server.Static, 'tmpl/enable-php.conf')
+        const tmplContent = readFileSync(tmplFile, 'utf-8')
+        const content = tmplContent.replace('##VERSION##', v)
+        writeFileSync(confFile, content)
+      }
+    } catch (e) {}
+  }
+
   /**
    * 增量更新
    * @param host
@@ -376,6 +390,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
    */
   _editVhost(host, old, addApachePort = true, addApachePortSSL = true) {
     return new Promise((resolve) => {
+      this.#handlePhpEnableConf(host.phpVersion)
       let nginxvpath = join(global.Server.BaseDir, 'vhost/nginx')
       let apachevpath = join(global.Server.BaseDir, 'vhost/apache')
       let rewritepath = join(global.Server.BaseDir, 'vhost/rewrite')
@@ -589,6 +604,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
 
   _addVhost(host, addApachePort = true, addApachePortSSL = true, chmod = true) {
     return new Promise((resolve, reject) => {
+      this.#handlePhpEnableConf(host.phpVersion)
       try {
         /**
          * auto fill nginx url rewrite

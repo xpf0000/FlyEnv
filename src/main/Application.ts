@@ -79,6 +79,9 @@ export default class Application extends EventEmitter {
         link
       )
     })
+    DnsServerManager.onLog((msg: any) => {
+      this.windowManager.sendCommandTo(this.mainWindow!, 'App_DNS_Log', 'App_DNS_Log', msg)
+    })
   }
 
   initLang() {

@@ -6,9 +6,14 @@ const execPromise = require('child-process-promise').exec
 
 class DnsServer {
   pty?: IPty
+  _callbak?: Function
   constructor() {}
+  onLog(fn: Function) {
+    this._callbak = fn
+  }
   start(hasSuccessed?: boolean) {
     let stdout = ''
+    let log = ''
     let resolved = false
     let timer: NodeJS.Timeout | undefined
     return new Promise((resolve, reject) => {
@@ -17,7 +22,7 @@ class DnsServer {
       const file = join(__static, 'fork/dnsServer.js')
       const cacheFile = join(cacheDir!, 'dnsServer.js')
       const logFile = join(cacheDir!, 'dnsLog.txt')
-
+      writeFileSync(logFile, '')
       const initPty = () => {
         this.pty = spawn(process.env['SHELL']!, [], {
           name: 'xterm-color',
@@ -29,12 +34,24 @@ class DnsServer {
         })
         this.pty.onData((data: string) => {
           stdout += data
-          writeFileSync(logFile, stdout)
           if (!resolved && stdout.includes('Start Success')) {
             resolved = true
             timer && clearTimeout(timer)
             timer = undefined
             resolve(true)
+          }
+          log += data
+          if (log.includes('#LOG-BEGIN#')) {
+            log = log.split('#LOG-BEGIN#').pop() ?? ''
+          }
+          if (log.includes('#LOG-END#')) {
+            const arr = log.split('#LOG-END#')
+            const currentLog = arr?.shift()?.trim() ?? ''
+            log = arr.pop() ?? ''
+            try {
+              const json = JSON.parse(currentLog)
+              this?._callbak?.(json)
+            } catch (e) {}
           }
         })
       }

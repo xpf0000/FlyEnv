@@ -1,5 +1,5 @@
 const join = require('path').join
-const { spawn } = require('child_process')
+const { spawn, execSync } = require('child_process')
 const Utils = require('./Utils.js')
 const BaseManager = require('./BaseManager')
 const { existsSync, unlinkSync } = require('fs')
@@ -97,41 +97,99 @@ class BrewManager extends BaseManager {
     this._doInstallOrUnInstall(name, 'uninstall').then(this._thenSuccess).catch(this._catchError)
   }
 
-  brewinfo(names) {
+  brewinfo(name) {
     const Info = {}
-    const doRun = () => {
-      const name = names.pop()
-      if (!name) {
-        this._processSend({
-          code: 0,
-          msg: 'SUCCESS',
-          data: Info
-        })
-        return
+    const findAll = () => {
+      const all = []
+      let cammand = ''
+      switch (name) {
+        case 'php':
+          all.push('php')
+          cammand = 'brew search --formula "/php@[\\d\\.]+$/"'
+          break
+        case 'nginx':
+          all.push('nginx')
+          break
+        case 'apache':
+          all.push('httpd')
+          break
+        case 'memcached':
+          all.push('memcached')
+          break
+        case 'mysql':
+          all.push('mysql')
+          cammand = 'brew search --formula "/mysql@[\\d\\.]+$/"'
+          break
+        case 'mariadb':
+          all.push('mariadb')
+          cammand = 'brew search --formula "/mariadb@[\\d\\.]+$/"'
+          break
+        case 'redis':
+          all.push('redis')
+          cammand = 'brew search --formula "/redis@[\\d\\.]+$/"'
+          break
+        case 'mongodb':
+          cammand =
+            'brew search --desc --eval-all --formula "High-performance, schema-free, document-oriented database"'
+          break
       }
-      Utils.execAsync('brew', ['info', name, '--json', '--formula'], {
-        env: {
-          HOMEBREW_NO_INSTALL_FROM_API: 1
-        }
-      })
-        .then((info) => {
-          let arr = []
-          try {
-            arr = JSON.parse(info.toString())
-          } catch (e) {}
-          arr.forEach((item) => {
-            Info[item.full_name] = {
-              version: item?.versions?.stable ?? '',
-              installed: item?.installed?.length > 0,
-              name: item.full_name,
-              flag: 'brew'
+      if (cammand) {
+        try {
+          let content = execSync(cammand, {
+            env: {
+              HOMEBREW_NO_INSTALL_FROM_API: 1,
+              ...Utils.fixEnv()
             }
-          })
-          doRun()
+          }).toString()
+          if (name === 'mongodb') {
+            content = content
+              .replace('==> Formulae', '')
+              .replace(
+                new RegExp(
+                  ': High-performance, schema-free, document-oriented database \\(Enterprise\\)',
+                  'g'
+                ),
+                ''
+              )
+              .replace(
+                new RegExp(': High-performance, schema-free, document-oriented database', 'g'),
+                ''
+              )
+          }
+          content = content
+            .split('\n')
+            .filter((s) => !!s.trim())
+            .map((s) => s.trim())
+          all.push(...content)
+        } catch (e) {}
+      }
+      return all
+    }
+    const doRun = () => {
+      const all = findAll()
+      const cammand = ['brew', 'info', ...all, '--json', '--formula'].join(' ')
+      try {
+        const info = execSync(cammand, {
+          env: {
+            HOMEBREW_NO_INSTALL_FROM_API: 1,
+            ...Utils.fixEnv()
+          }
+        }).toString()
+        const arr = JSON.parse(info)
+        arr.forEach((item) => {
+          Info[item.full_name] = {
+            version: item?.versions?.stable ?? '',
+            installed: item?.installed?.length > 0,
+            name: item.full_name,
+            flag: 'brew'
+          }
         })
-        .catch(() => {
-          doRun()
-        })
+      } catch (e) {}
+      this._processSend({
+        code: 0,
+        msg: 'SUCCESS',
+        data: Info
+      })
     }
     doRun()
   }

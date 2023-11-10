@@ -13,5 +13,6 @@ export default {
   pageLimit: 'Page Limit',
   pageLimitTips: 'Limit page address must contain the string here',
   LinkExclusion: 'Link Exclusion',
-  LinkExclusionTips: 'Filter URLs containing this string, one per line.'
+  LinkExclusionTips: 'Filter URLs containing this string, one per line.',
+  count: 'Count: '
 }

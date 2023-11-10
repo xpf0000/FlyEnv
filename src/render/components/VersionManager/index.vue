@@ -289,11 +289,10 @@
       },
       fetchData(list: any) {
         const flag: keyof typeof AppSofts = this.typeFlag as any
-        const arr = this.searchKeys[flag]
         for (const k in list) {
           delete list[k]
         }
-        const getInfo = this.libSrc === 'brew' ? brewInfo(arr) : portInfo(flag)
+        const getInfo = this.libSrc === 'brew' ? brewInfo(flag) : portInfo(flag)
         getInfo
           .then((res: any) => {
             for (const name in res) {

@@ -10,6 +10,8 @@ class Manager {
     this.server = undefined
     this.lastTime = 0
     this.hosts = {}
+    this.ipcCommand = 'App_DNS_Log'
+    this.ipcCommandKey = 'App_DNS_Log'
   }
   initHosts(LOCAL_IP) {
     const time = new Date().getTime()
@@ -44,13 +46,20 @@ class Manager {
         const { name } = question
         this.initHosts(LOCAL_IP)
         if (this.hosts[name]) {
+          const ip = this.hosts[name]
           const item = {
             name,
             type: Packet.TYPE.A,
             class: Packet.CLASS.IN,
             ttl: 60,
-            address: this.hosts[name]
+            address: ip
           }
+          const json = JSON.stringify({
+            host: name,
+            ttl: 60,
+            ip: ip
+          })
+          console.log(`#LOG-BEGIN#${json}#LOG-END#`)
           response.answers.push(item)
           send(response)
           return
@@ -70,6 +79,12 @@ class Manager {
                     ttl: item.ttl,
                     address: item.address
                   })
+                  const json = JSON.stringify({
+                    host: name,
+                    ttl: item.ttl,
+                    ip: item.address
+                  })
+                  console.log(`#LOG-BEGIN#${json}#LOG-END#`)
                 })
                 send(response)
               }

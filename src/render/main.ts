@@ -5,6 +5,7 @@ import IPC from '@/util/IPC'
 import { AppI18n } from '@shared/lang'
 import { AppStore } from '@/store/app'
 import { SiteSuckerStore } from '@/components/Tools/SiteSucker/store'
+import { DnsStore } from '@/store/dns'
 
 const { getGlobal } = require('@electron/remote')
 global.Server = getGlobal('Server')
@@ -28,6 +29,7 @@ IPC.on('APP-Ready-To-Show').then(() => {
         app.mount('#app')
       })
     SiteSuckerStore().init()
+    DnsStore().init()
   } else {
     console.log('has inited !!!!')
   }
