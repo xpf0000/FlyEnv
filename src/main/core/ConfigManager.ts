@@ -50,6 +50,7 @@ interface ConfigOptions {
         HttpServe: boolean
         Tools: boolean
         DNS: boolean
+        FTP: boolean
       }
     }
     nginx: {
@@ -147,7 +148,8 @@ export default class ConfigManager {
               NodeJS: true,
               HttpServe: true,
               Tools: true,
-              DNS: true
+              DNS: true,
+              FTP: true
             }
           },
           nginx: {
@@ -207,6 +209,9 @@ export default class ConfigManager {
     if (!this.config.has('setup.common.showItem.DNS')) {
       this.config.set('setup.common.showItem.DNS', true)
     }
+    if (!this.config.has('setup.common.showItem.FTP')) {
+      this.config.set('setup.common.showItem.FTP', true)
+    }
     if (!this.config.has('server.mongodb')) {
       this.config.set('server.mongodb', {
         current: {}
@@ -219,6 +224,11 @@ export default class ConfigManager {
     }
     if (!this.config.has('server.mariadb')) {
       this.config.set('server.mariadb', {
+        current: {}
+      })
+    }
+    if (!this.config.has('server.pure-ftpd')) {
+      this.config.set('server.pure-ftpd', {
         current: {}
       })
     }

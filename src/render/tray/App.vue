@@ -154,6 +154,23 @@
         <el-switch :disabled="dns?.running" :value="dns?.run" @change="switchChange('dns')">
         </el-switch>
       </li>
+
+      <li v-if="ftp?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block">
+            <yb-icon
+              style="padding: 5px"
+              :svg="import('@/svg/ftp.svg?raw')"
+              width="28"
+              height="28"
+            />
+          </div>
+          <span class="title">FTP</span>
+        </div>
+
+        <el-switch :disabled="ftp?.running" :value="ftp?.run" @change="switchChange('ftp')">
+        </el-switch>
+      </li>
     </ul>
     <ul class="bottom-tool">
       <li @click="showMainWin"> {{ $t('tray.showMainWin') }} </li>
@@ -198,6 +215,9 @@
   })
   const dns = computed(() => {
     return store.dns
+  })
+  const ftp = computed(() => {
+    return store.ftp
   })
   const groupIsRunning = computed(() => {
     return store.groupIsRunning

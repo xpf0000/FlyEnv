@@ -67,357 +67,310 @@
   </el-card>
 </template>
 
-<script lang="ts">
-  import { defineComponent, reactive } from 'vue'
+<script lang="ts" setup>
+  import { computed, ComputedRef, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
   import { brewInfo, brewCheck, portInfo } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import XTerm from '@/util/XTerm'
   import { chmod } from '@shared/file'
+  import { AppStore } from '@/store/app'
+  import { AppSoftInstalledItem, BrewStore } from '@/store/brew'
+  import { I18nT } from '@shared/lang'
   import installedVersions from '@/util/InstalledVersions'
-  import { AppSofts, AppStore } from '@/store/app'
-  import { BrewStore } from '@/store/brew'
   const { join } = require('path')
   const { existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } = require('fs')
-  const LibUse: { [k: string]: string } = reactive({})
-  export default defineComponent({
-    components: {},
-    props: {
-      typeFlag: {
-        type: String,
-        default: ''
-      }
+
+  const props = defineProps<{
+    typeFlag:
+      | 'nginx'
+      | 'apache'
+      | 'memcached'
+      | 'mysql'
+      | 'mariadb'
+      | 'redis'
+      | 'php'
+      | 'mongodb'
+      | 'pure-ftpd'
+  }>()
+
+  const showNextBtn = ref(false)
+  const logs = ref()
+  let xterm: XTerm | null = null
+
+  const appStore = AppStore()
+  const brewStore = BrewStore()
+
+  const proxy = computed(() => {
+    return appStore.config.setup.proxy
+  })
+  const cardHeadTitle = computed(() => {
+    return brewStore.cardHeadTitle
+  })
+  const brewRunning = computed(() => {
+    return brewStore.brewRunning
+  })
+  const showInstallLog = computed(() => {
+    return brewStore.showInstallLog
+  })
+  const log = computed(() => {
+    return brewStore.log
+  })
+  const proxyStr = computed(() => {
+    if (!proxy?.value.on) {
+      return undefined
+    }
+    return proxy?.value?.proxy
+  })
+  const currentType: ComputedRef<AppSoftInstalledItem> = computed(() => {
+    return brewStore?.[props.typeFlag] as any
+  })
+
+  const tableData = computed(() => {
+    const arr = []
+    const list = currentType.value.list
+    for (const name in list) {
+      const value = list[name]
+      const nums = value.version.split('.').map((n: string, i: number) => {
+        if (i > 0) {
+          let num = parseInt(n)
+          if (isNaN(num)) {
+            return '00'
+          }
+          if (num < 10) {
+            return `0${num}`
+          }
+          return num
+        }
+        return n
+      })
+      const num = parseInt(nums.join(''))
+      arr.push({
+        name,
+        version: value.version,
+        installed: value.installed,
+        num,
+        flag: value.flag
+      })
+    }
+    arr.sort((a, b) => {
+      return b.num - a.num
+    })
+    return arr
+  })
+  const logLength = computed(() => {
+    return log?.value?.length
+  })
+  const showLog = computed(() => {
+    return showInstallLog?.value || showNextBtn?.value
+  })
+
+  const checkBrew = () => {
+    return !!global.Server.BrewCellar
+  }
+  const checkPort = () => {
+    return !!global.Server.MacPorts
+  }
+  const libSrc = computed({
+    get() {
+      return (
+        brewStore.LibUse[props.typeFlag] ??
+        (checkBrew() ? 'brew' : checkPort() ? 'port' : undefined)
+      )
     },
-    data() {
-      return {
-        showNextBtn: false,
-        searchKeys: {
-          apache: ['httpd'],
-          nginx: ['nginx'],
-          php: [
-            'php',
-            'php@7.2',
-            'php@7.3',
-            'php@7.4',
-            'php@8.0',
-            'shivammathur/php/php',
-            'shivammathur/php/php@5.6',
-            'shivammathur/php/php@7.0',
-            'shivammathur/php/php@7.1',
-            'shivammathur/php/php@7.2',
-            'shivammathur/php/php@7.3',
-            'shivammathur/php/php@7.4',
-            'shivammathur/php/php@8.0',
-            'shivammathur/php/php@8.1',
-            'shivammathur/php/php@8.2',
-            'shivammathur/php/php@8.3'
-          ],
-          memcached: ['memcached'],
-          mysql: ['mysql', 'mysql@8.0', 'mysql@5.7', 'mysql@5.6'],
-          mariadb: [
-            'mariadb',
-            'mariadb@11.0',
-            'mariadb@10.11',
-            'mariadb@10.10',
-            'mariadb@10.9',
-            'mariadb@10.8',
-            'mariadb@10.7',
-            'mariadb@10.6',
-            'mariadb@10.5',
-            'mariadb@10.4',
-            'mariadb@10.3',
-            'mariadb@10.2'
-          ],
-          redis: ['redis', 'redis@3.2', 'redis@4.0', 'redis@6.2'],
-          mongodb: [
-            'mongodb/brew/mongodb-community',
-            'mongodb/brew/mongodb-community@6.0',
-            'mongodb/brew/mongodb-community@5.0',
-            'mongodb/brew/mongodb-community@4.4',
-            'mongodb/brew/mongodb-community@4.2',
-            'mongodb/brew/mongodb-enterprise',
-            'mongodb/brew/mongodb-enterprise@6.0',
-            'mongodb/brew/mongodb-enterprise@5.0',
-            'mongodb/brew/mongodb-enterprise@4.4',
-            'mongodb/brew/mongodb-enterprise@4.2'
-          ]
+    set(v: 'brew' | 'port') {
+      brewStore.LibUse[props.typeFlag] = v
+    }
+  })
+  const fetchData = () => {
+    const list = currentType.value.list
+    for (const k in list) {
+      delete list?.[k]
+    }
+    const getInfo = libSrc?.value === 'brew' ? brewInfo(props.typeFlag) : portInfo(props.typeFlag)
+    getInfo
+      .then((res: any) => {
+        for (const name in res) {
+          list[name] = reactive(res[name])
         }
-      }
-    },
-    computed: {
-      libSrc: {
-        get() {
-          const v =
-            LibUse?.[this.typeFlag] ??
-            (this.checkBrew() ? 'brew' : this.checkPort() ? 'port' : undefined)
-          console.log('libSrc get: ', v, LibUse, this.typeFlag, LibUse?.[this.typeFlag])
-          return v
-        },
-        set(v: string) {
-          LibUse[this.typeFlag] = v
-          console.log('LibUse: ', LibUse, this.typeFlag, v)
-        }
-      },
-      proxy() {
-        return AppStore().config.setup.proxy
-      },
-      cardHeadTitle() {
-        return BrewStore().cardHeadTitle
-      },
-      brewRunning() {
-        return BrewStore().brewRunning
-      },
-      showInstallLog() {
-        return BrewStore().showInstallLog
-      },
-      log() {
-        return BrewStore().log
-      },
-      proxyStr() {
-        if (!this?.proxy?.on) {
-          return undefined
-        }
-        return this.proxy.proxy
-      },
-      currentType() {
-        const flag: keyof typeof AppSofts = this.typeFlag as any
-        return BrewStore()[flag]
-      },
-      tableData() {
-        const arr = []
-        const list = this.currentType.list
-        for (let name in list) {
-          const value = list[name]
-          const nums = value.version.split('.').map((n: string, i: number) => {
-            if (i > 0) {
-              let num = parseInt(n)
-              if (isNaN(num)) {
-                return '00'
-              }
-              if (num < 10) {
-                return `0${num}`
-              }
-              return num
-            }
-            return n
-          })
-          const num = parseInt(nums.join(''))
-          arr.push({
-            name,
-            version: value.version,
-            installed: value.installed,
-            num,
-            flag: value.flag
-          })
-        }
-        arr.sort((a, b) => {
-          return b.num - a.num
-        })
-        return arr
-      },
-      logLength() {
-        return this.log.length
-      },
-      showLog() {
-        return this.showInstallLog || this.showNextBtn
-      }
-    },
-    watch: {
-      libSrc(v) {
-        console.log('watch libSrc: ', v)
-        if (v) {
-          this.reGetData()
-        }
-      },
-      showLog: {
-        handler(val) {
-          this.$nextTick().then(() => {
-            if (val) {
-              const dom = this.$refs.logs
-              this.xterm = new XTerm()
-              this.xterm.mount(dom)
+        currentType.value.getListing = false
+      })
+      .catch(() => {
+        currentType.value.getListing = false
+      })
+  }
+  const getData = () => {
+    if (brewRunning?.value || currentType.value.getListing || !libSrc?.value) {
+      return
+    }
+    const list = currentType.value.list
+    if (Object.keys(list).length === 0) {
+      currentType.value.getListing = true
+      brewCheck()
+        .then(() => {
+          if (props.typeFlag === 'php') {
+            if (libSrc?.value === 'brew') {
+              IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string) => {
+                IPC.off(key)
+                fetchData()
+              })
             } else {
-              this.xterm && this.xterm.destory()
-              this.xterm = null
+              fetchData()
             }
-          })
-        },
-        immediate: true
-      },
-      brewRunning(val) {
-        if (!val) {
-          this.getData()
-        }
-      },
-      typeFlag() {
-        this.reGetData()
-      },
-      logLength() {
-        if (this.showInstallLog) {
-          this.$nextTick(() => {
-            let container: HTMLElement = this.$refs['logs'] as HTMLElement
-            if (container) {
-              container.scrollTop = container.scrollHeight
+          } else if (props.typeFlag === 'mongodb') {
+            if (libSrc?.value === 'brew') {
+              IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string) => {
+                IPC.off(key)
+                fetchData()
+              })
+            } else {
+              fetchData()
             }
-          })
-        }
-      }
-    },
-    created: function () {
-      console.log('created typeFlag: ', this.typeFlag)
-      this.getData()
-      if (!this.brewRunning) {
-        BrewStore().cardHeadTitle = this.$t('base.currentVersionLib')
-      }
-    },
-    unmounted() {
-      this.xterm && this.xterm.destory()
-      this.xterm = null
-    },
-    methods: {
-      checkBrew() {
-        return !!global.Server.BrewCellar
-      },
-      checkPort() {
-        return !!global.Server.MacPorts
-      },
-      reGetData() {
-        const list = this.currentType.list
-        for (let k in list) {
-          delete list[k]
-        }
-        this.getData()
-      },
-      fetchData(list: any) {
-        const flag: keyof typeof AppSofts = this.typeFlag as any
-        for (const k in list) {
-          delete list[k]
-        }
-        const getInfo = this.libSrc === 'brew' ? brewInfo(flag) : portInfo(flag)
-        getInfo
-          .then((res: any) => {
-            for (const name in res) {
-              list[name] = reactive(res[name])
-            }
-            this.currentType.getListing = false
-          })
-          .catch(() => {
-            this.currentType.getListing = false
-          })
-      },
-      getData() {
-        if (this.brewRunning || this.currentType.getListing || !this.libSrc) {
-          return
-        }
-        const list = this.currentType.list
-        if (Object.keys(list).length === 0) {
-          this.currentType.getListing = true
-          brewCheck()
-            .then(() => {
-              console.log('getData !!!')
-              if (this.typeFlag === 'php') {
-                if (this.libSrc === 'brew') {
-                  IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string) => {
-                    IPC.off(key)
-                    this.fetchData(list)
-                  })
-                } else {
-                  this.fetchData(list)
-                }
-              } else if (this.typeFlag === 'mongodb') {
-                if (this.libSrc === 'brew') {
-                  IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string) => {
-                    IPC.off(key)
-                    this.fetchData(list)
-                  })
-                } else {
-                  this.fetchData(list)
-                }
-              } else {
-                this.fetchData(list)
-              }
-            })
-            .catch(() => {
-              this.currentType.getListing = false
-            })
-        }
-      },
-      handleEdit(index: number, row: any) {
-        console.log(index, row)
-        if (this.brewRunning) {
-          return
-        }
-        this.log.splice(0)
-        const brewStore = BrewStore()
-        brewStore.showInstallLog = true
-        brewStore.brewRunning = true
-        let fn = ''
-        if (row.installed) {
-          fn = 'uninstall'
-          brewStore.cardHeadTitle = `${this.$t('base.uninstall')} ${row.name}`
-        } else {
-          fn = 'install'
-          brewStore.cardHeadTitle = `${this.$t('base.install')} ${row.name}`
-        }
-
-        const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-        const name = row.name
-        let params = ''
-        if (row.flag === 'brew') {
-          const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
-          const copyfile = join(global.Server.Cache, 'brew-cmd.sh')
-          if (existsSync(copyfile)) {
-            unlinkSync(copyfile)
+          } else {
+            fetchData()
           }
-          copyFileSync(sh, copyfile)
-          chmod(copyfile, '0777')
-          params = [copyfile, arch, fn, name].join(' ')
-          if (this.proxyStr) {
-            params = `${this.proxyStr};${params}`
-          }
-        } else {
-          const sh = join(global.Server.Static, 'sh/port-cmd.sh')
-          const copyfile = join(global.Server.Cache, 'port-cmd.sh')
-          if (existsSync(copyfile)) {
-            unlinkSync(copyfile)
-          }
-          let names = [name]
-          if (this.typeFlag === 'php') {
-            names.push(`${name}-fpm`, `${name}-mysql`, `${name}-apache2handler`, `${name}-iconv`)
-          } else if (this.typeFlag === 'mysql') {
-            names.push(`${name}-server`)
-          } else if (this.typeFlag === 'mariadb') {
-            names.push(`${name}-server`)
-          }
-          let content = readFileSync(sh, 'utf-8')
-          content = content
-            .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password)
-            .replace(new RegExp('##ARCH##', 'g'), arch)
-            .replace(new RegExp('##ACTION##', 'g'), fn)
-            .replace(new RegExp('##NAME##', 'g'), names.join(' '))
-          writeFileSync(copyfile, content)
-          chmod(copyfile, '0777')
-          params = [copyfile].join(' ')
-          if (this.proxyStr) {
-            params = `${this.proxyStr};${params}`
-          }
-        }
-
-        XTerm.send(`${params};exit 0;`, true).then((key: string) => {
-          IPC.off(key)
-          this.showNextBtn = true
-          brewStore.showInstallLog = false
-          brewStore.brewRunning = false
-          this.currentType.installedInited = false
-          this.reGetData()
-          const flag: keyof typeof AppSofts = this.typeFlag as any
-          installedVersions.allInstalledVersions([flag])
         })
-      },
-      toNext() {
-        this.showNextBtn = false
-        BrewStore().cardHeadTitle = this.$t('base.currentVersionLib')
+        .catch(() => {
+          currentType.value.getListing = false
+        })
+    }
+  }
+  const reGetData = () => {
+    const list = currentType.value.list
+    for (let k in list) {
+      delete list[k]
+    }
+    getData()
+  }
+
+  const handleEdit = (index: number, row: any) => {
+    if (brewRunning?.value) {
+      return
+    }
+    brewStore.log.splice(0)
+    brewStore.showInstallLog = true
+    brewStore.brewRunning = true
+    let fn = ''
+    if (row.installed) {
+      fn = 'uninstall'
+      brewStore.cardHeadTitle = `${I18nT('base.uninstall')} ${row.name}`
+    } else {
+      fn = 'install'
+      brewStore.cardHeadTitle = `${I18nT('base.install')} ${row.name}`
+    }
+
+    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const name = row.name
+    let params = ''
+    if (row.flag === 'brew') {
+      const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
+      const copyfile = join(global.Server.Cache, 'brew-cmd.sh')
+      if (existsSync(copyfile)) {
+        unlinkSync(copyfile)
+      }
+      copyFileSync(sh, copyfile)
+      chmod(copyfile, '0777')
+      params = [copyfile, arch, fn, name].join(' ')
+      if (proxyStr?.value) {
+        params = `${proxyStr?.value};${params}`
+      }
+    } else {
+      const sh = join(global.Server.Static, 'sh/port-cmd.sh')
+      const copyfile = join(global.Server.Cache, 'port-cmd.sh')
+      if (existsSync(copyfile)) {
+        unlinkSync(copyfile)
+      }
+      let names = [name]
+      if (props.typeFlag === 'php') {
+        names.push(`${name}-fpm`, `${name}-mysql`, `${name}-apache2handler`, `${name}-iconv`)
+      } else if (props.typeFlag === 'mysql') {
+        names.push(`${name}-server`)
+      } else if (props.typeFlag === 'mariadb') {
+        names.push(`${name}-server`)
+      }
+      let content = readFileSync(sh, 'utf-8')
+      content = content
+        .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password)
+        .replace(new RegExp('##ARCH##', 'g'), arch)
+        .replace(new RegExp('##ACTION##', 'g'), fn)
+        .replace(new RegExp('##NAME##', 'g'), names.join(' '))
+      writeFileSync(copyfile, content)
+      chmod(copyfile, '0777')
+      params = [copyfile].join(' ')
+      if (proxyStr?.value) {
+        params = `${proxyStr?.value};${params}`
       }
     }
+
+    XTerm.send(`${params};exit 0;`, true).then((key: string) => {
+      IPC.off(key)
+      showNextBtn.value = true
+      brewStore.showInstallLog = false
+      brewStore.brewRunning = false
+      currentType.value.installedInited = false
+      reGetData()
+      installedVersions.allInstalledVersions([props.typeFlag])
+    })
+  }
+
+  const toNext = () => {
+    showNextBtn.value = false
+    BrewStore().cardHeadTitle = I18nT('base.currentVersionLib')
+  }
+
+  watch(libSrc, (v) => {
+    if (v) {
+      reGetData()
+    }
+  })
+
+  watch(
+    showLog,
+    (val) => {
+      nextTick().then(() => {
+        if (val) {
+          const dom = logs?.value
+          xterm = new XTerm()
+          xterm.mount(dom)
+        } else {
+          xterm && xterm.destory()
+          xterm = null
+        }
+      })
+    },
+    {
+      immediate: true
+    }
+  )
+  watch(brewRunning, (val) => {
+    if (!val) {
+      getData()
+    }
+  })
+  watch(
+    () => props.typeFlag,
+    () => {
+      reGetData()
+    }
+  )
+  watch(logLength, () => {
+    if (showInstallLog?.value) {
+      nextTick(() => {
+        let container: HTMLElement = logs?.value as any
+        if (container) {
+          container.scrollTop = container.scrollHeight
+        }
+      })
+    }
+  })
+
+  getData()
+  if (brewRunning?.value) {
+    brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
+  }
+
+  onUnmounted(() => {
+    xterm && xterm.destory()
+    xterm = null
   })
 </script>
 

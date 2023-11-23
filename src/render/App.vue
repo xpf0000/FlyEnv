@@ -53,13 +53,20 @@
       EventBus.off('vue:need-password', this.checkPassword)
       IPC.off('application:about')
     },
-    mounted() {},
+    mounted() {
+      const brewStore = BrewStore()
+      brewStore.cardHeadTitle = this.$t('base.currentVersionLib')
+    },
     methods: {
       showItemLowcase() {
         const showItem: any = this.showItem
         const dict: { [key: string]: boolean } = {}
         for (const k in showItem) {
-          dict[k.toLowerCase()] = showItem[k]
+          let key = k.toLowerCase()
+          if (key === 'ftp') {
+            key = 'pure-ftpd'
+          }
+          dict[key] = showItem[k]
         }
         return dict
       },
@@ -68,10 +75,9 @@
           return
         }
         const dict: { [key: string]: boolean } = this.showItemLowcase()
-        const brewStore = BrewStore()
+        const brewStore: any = BrewStore()
         for (const k in dict) {
           const brewSoft = brewStore?.[k]
-          console.log('onShowItemChange brewSoft: ', k, brewSoft)
           if (brewSoft && dict[k] && !brewSoft?.installedInited) {
             const flags = [k] as Array<keyof typeof AppSofts>
             installedVersions.allInstalledVersions(flags)
@@ -97,7 +103,8 @@
             'apache',
             'memcached',
             'redis',
-            'mongodb'
+            'mongodb',
+            'pure-ftpd'
           ].filter((f) => dict[f]) as Array<keyof typeof AppSofts>
           if (flags.length === 0) {
             AppStore().versionInited = true

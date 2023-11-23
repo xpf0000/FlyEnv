@@ -50,7 +50,7 @@ interface State {
   hosts: Array<AppHost>
   config: {
     server: {
-      [key in AppSofts]: {
+      [key in AppSofts | 'pure-ftpd']: {
         current: AppServerCurrent
       }
     }
@@ -71,6 +71,7 @@ interface State {
           NodeJS: boolean
           Tools: boolean
           DNS: boolean
+          FTP: boolean
         }
       }
       hosts: {
@@ -117,6 +118,9 @@ const state: State = {
   hosts: [],
   config: {
     server: {
+      'pure-ftpd': {
+        current: {}
+      },
       nginx: {
         current: {}
       },
@@ -158,7 +162,8 @@ const state: State = {
           MongoDB: true,
           NodeJS: true,
           Tools: true,
-          DNS: true
+          DNS: true,
+          FTP: true
         }
       },
       nginx: {

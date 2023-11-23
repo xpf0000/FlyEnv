@@ -227,6 +227,33 @@
         </li>
 
         <li
+          v-if="showItem.FTP"
+          class="non-draggable"
+          :class="'non-draggable' + (currentPage === '/ftp' ? ' active' : '')"
+          @click="nav('/ftp')"
+        >
+          <div class="left">
+            <div class="icon-block">
+              <yb-icon
+                style="padding: 5px"
+                :svg="import('@/svg/ftp.svg?raw')"
+                width="30"
+                height="30"
+              />
+            </div>
+            <span class="title">FTP</span>
+          </div>
+
+          <el-switch
+            :loading="ftpFetching"
+            :disabled="ftpFetching"
+            :value="ftpRunning"
+            @change="switchChange('ftp')"
+          >
+          </el-switch>
+        </li>
+
+        <li
           v-if="showItem.NodeJS"
           :class="'non-draggable' + (currentPage === '/node' ? ' active' : '')"
           @click="nav('/node')"
@@ -295,6 +322,7 @@
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { DnsStore } from '@/store/dns'
+  import { FtpStore } from '@/store/ftp'
   import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import Router from '@/router/index'
@@ -306,6 +334,7 @@
   const appStore = AppStore()
   const brewStore = BrewStore()
   const dnsStore = DnsStore()
+  const ftpStore = FtpStore()
   const currentPage = ref('/host')
 
   const showItem = computed(() => {
@@ -479,6 +508,14 @@
     return dnsStore.fetching
   })
 
+  const ftpRunning = computed(() => {
+    return ftpStore.running
+  })
+
+  const ftpFetching = computed(() => {
+    return ftpStore.fetching
+  })
+
   const phpRunning = computed({
     get(): boolean {
       return phpVersions?.value?.length > 0 && phpVersions?.value?.some((v) => v.run)
@@ -519,7 +556,8 @@
       redisRunning?.value ||
       memcachedRunning?.value ||
       mongodbRunning?.value ||
-      dnsServerRunning?.value
+      dnsServerRunning?.value ||
+      ftpRunning?.value
     )
   })
 
@@ -532,7 +570,8 @@
       nginxDisabled.value &&
       phpDisable.value &&
       redisDisabled.value &&
-      mongodbDisabled.value
+      mongodbDisabled.value &&
+      !ftpStore.installed
     const running =
       apacheVersion?.value?.running === true ||
       memcachedVersion?.value?.running === true ||
@@ -542,7 +581,8 @@
       phpVersions?.value?.some((v) => v.running) ||
       redisVersion?.value?.running === true ||
       mongodbVersion?.value?.running === true ||
-      dnsServerFetching?.value === true
+      dnsServerFetching?.value === true ||
+      ftpFetching?.value === true
     return allDisabled || running || !appStore.versionInited
   })
 
@@ -611,6 +651,11 @@
         show: showItem?.value?.DNS,
         run: dnsServerRunning.value === true,
         running: dnsServerFetching.value === true
+      },
+      ftp: {
+        show: showItem?.value?.FTP,
+        run: ftpRunning.value === true,
+        running: ftpFetching.value === true
       },
       groupDisabled: groupDisabled.value,
       groupIsRunning: groupIsRunning.value
@@ -809,6 +854,9 @@
     return new Promise((resolve) => {
       if (page === '/dns') {
         dnsStore.getIP()
+      }
+      if (page === '/ftp') {
+        ftpStore.getIP()
       }
       if (currentPage.value === page) {
         resolve(true)

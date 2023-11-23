@@ -77,7 +77,10 @@ export const brewCheck = () => {
                 log.splice(0)
                 brewStore.showInstallLog = true
 
-                const sh = join(global.Server.Static, 'sh/brew-install.sh')
+                const sh = join(
+                  global.Server.Static,
+                  `sh/brew-install${I18nT('base.brewInstallLang')}.sh`
+                )
                 const copyfile = join(global.Server.Cache, 'brew-install.sh')
                 if (existsSync(copyfile)) {
                   unlinkSync(copyfile)

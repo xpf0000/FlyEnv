@@ -56,6 +56,11 @@ export interface TrayState {
     run: boolean
     running: boolean
   }
+  ftp: {
+    show: boolean
+    run: boolean
+    running: boolean
+  }
   groupIsRunning: boolean
   groupDisabled: boolean
 }
@@ -72,6 +77,7 @@ const state: TrayState = {
   redis: { show: true, disabled: true, run: false, running: false },
   mongodb: { show: true, disabled: true, run: false, running: false },
   dns: { show: true, run: false, running: false },
+  ftp: { show: true, run: false, running: false },
   groupIsRunning: false,
   groupDisabled: true
 }

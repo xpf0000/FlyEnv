@@ -30,19 +30,28 @@ interface State {
   redis: AppSoftInstalledItem
   php: AppSoftInstalledItem
   mongodb: AppSoftInstalledItem
+  'pure-ftpd': AppSoftInstalledItem
   cardHeadTitle: string
   brewRunning: boolean
   showInstallLog: boolean
   brewSrc: string
   log: Array<string>
+  LibUse: { [k: string]: string }
 }
 
 const state: State = {
-  cardHeadTitle: '当前版本库',
+  cardHeadTitle: '',
   brewRunning: false,
   showInstallLog: false,
   brewSrc: '',
   log: [],
+  LibUse: {},
+  'pure-ftpd': {
+    getListing: false,
+    installedInited: false,
+    installed: [],
+    list: {}
+  },
   nginx: {
     getListing: false,
     installedInited: false,

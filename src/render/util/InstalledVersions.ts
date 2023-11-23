@@ -5,16 +5,18 @@ import { AppStore } from '@/store/app'
 import { reactive } from 'vue'
 import { isEqual } from 'lodash'
 
+type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd'
+
 class InstalledVersions {
   _cb: Array<Function>
   taskRunning: boolean
-  runningFlags: Array<Array<keyof typeof AppSofts>>
+  runningFlags: Array<Array<AllAppSofts>>
   constructor() {
     this._cb = []
     this.runningFlags = []
     this.taskRunning = false
   }
-  allInstalledVersions(flags: Array<keyof typeof AppSofts>) {
+  allInstalledVersions(flags: Array<AllAppSofts>) {
     if (this.taskRunning && this.runningFlags.find((f) => isEqual(f, flags))) {
       return this
     }

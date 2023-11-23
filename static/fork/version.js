@@ -11,6 +11,12 @@ class Manager extends BaseManager {
 
   binVersion(bin, name) {
     return new Promise((resolve) => {
+      if (name === 'pure-ftpd') {
+        resolve({
+          version: '1.0.51'
+        })
+        return
+      }
       let reg = null
       let command = ''
       const handleCatch = (err) => {
@@ -80,7 +86,8 @@ class Manager extends BaseManager {
       mariadb: 'mariadb',
       memcached: 'memcached',
       redis: 'redis',
-      mongodb: 'mongodb-'
+      mongodb: 'mongodb-',
+      'pure-ftpd': 'pure-ftpd'
     }
     const binNames = {
       apache: 'apachectl',
@@ -90,7 +97,8 @@ class Manager extends BaseManager {
       mariadb: 'mariadbd-safe',
       memcached: 'memcached',
       redis: 'redis-server',
-      mongodb: 'mongod'
+      mongodb: 'mongod',
+      'pure-ftpd': 'pure-ftpd'
     }
     const fetchVersion = (flag) => {
       return new Promise((resolve) => {

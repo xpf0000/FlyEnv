@@ -49,6 +49,10 @@ const routes = [
         component: () => import('@/components/DNS/Index.vue')
       },
       {
+        path: '/ftp',
+        component: () => import('@/components/FTP/Index.vue')
+      },
+      {
         path: '/node',
         component: () => import('@/components/Nodejs/Index.vue')
       },

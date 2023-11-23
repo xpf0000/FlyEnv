@@ -111,6 +111,9 @@ class BrewManager extends BaseManager {
         case 'nginx':
           all.push('nginx')
           break
+        case 'pure-ftpd':
+          all.push('pure-ftpd')
+          break
         case 'apache':
           all.push('httpd')
           break
@@ -259,6 +262,10 @@ class BrewManager extends BaseManager {
                 installed =
                   existsSync(join('/opt/local/bin', 'mongod')) ||
                   existsSync(join('/opt/local/sbin', 'mongod'))
+              } else if (flag === 'pure-ftpd') {
+                installed =
+                  existsSync(join('/opt/local/bin', 'pure-pw')) ||
+                  existsSync(join('/opt/local/sbin', 'pure-ftpd'))
               }
               return {
                 name,
