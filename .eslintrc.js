@@ -55,7 +55,7 @@ module.exports = {
       }
     ],
     'space-before-function-paren': 'off',
-    quotes: ['error', 'single'],
+    quotes: ['error', 'single', { allowTemplateLiterals: true }],
     'comma-dangle': ['error', 'never']
   }
 }

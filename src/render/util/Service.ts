@@ -1,12 +1,12 @@
 import IPC from '@/util/IPC'
 import type { SoftInstalled } from '@/store/brew'
-import { AppSofts, AppStore } from '@/store/app'
+import { AllAppSofts, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
 import { DnsStore } from '@/store/dns'
 import { I18nT } from '@shared/lang'
 
 const exec = (
-  typeFlag: keyof typeof AppSofts,
+  typeFlag: AllAppSofts,
   version: SoftInstalled,
   fn: string
 ): Promise<string | boolean> => {
@@ -49,15 +49,15 @@ const exec = (
   })
 }
 
-export const stopService = (typeFlag: keyof typeof AppSofts, version: SoftInstalled) => {
+export const stopService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
   return exec(typeFlag, version, 'stopService')
 }
 
-export const startService = (typeFlag: keyof typeof AppSofts, version: SoftInstalled) => {
+export const startService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
   return exec(typeFlag, version, 'startService')
 }
 
-export const reloadService = (typeFlag: keyof typeof AppSofts, version: SoftInstalled) => {
+export const reloadService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
   return exec(typeFlag, version, 'reloadService')
 }
 

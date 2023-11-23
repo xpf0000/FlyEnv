@@ -41,6 +41,14 @@ class BaseManager {
       })
   }
 
+  _waitTime(time) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(true)
+      }, time)
+    })
+  }
+
   _fixEnv() {
     return { env: Utils.fixEnv() }
   }

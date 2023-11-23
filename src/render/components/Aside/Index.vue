@@ -244,12 +244,7 @@
             <span class="title">FTP</span>
           </div>
 
-          <el-switch
-            :loading="ftpFetching"
-            :disabled="ftpFetching"
-            :value="ftpRunning"
-            @change="switchChange('ftp')"
-          >
+          <el-switch :disabled="ftpDisabled" :value="ftpRunning" @change="switchChange('ftp')">
           </el-switch>
         </li>
 
@@ -508,12 +503,25 @@
     return dnsStore.fetching
   })
 
-  const ftpRunning = computed(() => {
-    return ftpStore.running
+  const ftpVersion = computed(() => {
+    const current = appStore.config.server?.['pure-ftpd']?.current
+    if (!current) {
+      return undefined
+    }
+    const installed = brewStore?.['pure-ftpd']?.installed
+    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
-  const ftpFetching = computed(() => {
-    return ftpStore.fetching
+  const ftpRunning = computed(() => {
+    return ftpVersion?.value?.run === true
+  })
+
+  const ftpDisabled = computed(() => {
+    return (
+      !ftpVersion?.value?.version ||
+      brewStore?.['pure-ftpd']?.installed?.some((v) => v.running) ||
+      !appStore.versionInited
+    )
   })
 
   const phpRunning = computed({
@@ -571,7 +579,7 @@
       phpDisable.value &&
       redisDisabled.value &&
       mongodbDisabled.value &&
-      !ftpStore.installed
+      ftpDisabled?.value
     const running =
       apacheVersion?.value?.running === true ||
       memcachedVersion?.value?.running === true ||
@@ -582,7 +590,7 @@
       redisVersion?.value?.running === true ||
       mongodbVersion?.value?.running === true ||
       dnsServerFetching?.value === true ||
-      ftpFetching?.value === true
+      ftpVersion?.value?.running === true
     return allDisabled || running || !appStore.versionInited
   })
 
@@ -600,31 +608,31 @@
       apache: {
         show: showItem?.value?.Apache,
         disabled: apacheDisabled.value,
-        run: apacheVersion?.value?.run === true,
+        run: apacheRunning?.value,
         running: apacheVersion?.value?.running === true
       },
       memcached: {
         show: showItem?.value?.Memcached,
         disabled: memcachedDisabled.value,
-        run: memcachedVersion?.value?.run === true,
+        run: memcachedRunning?.value,
         running: memcachedVersion?.value?.running === true
       },
       mysql: {
         show: showItem?.value?.Mysql,
         disabled: mysqlDisabled.value,
-        run: mysqlVersion?.value?.run === true,
+        run: mysqlRunning?.value,
         running: mysqlVersion?.value?.running === true
       },
       mariadb: {
         show: showItem?.value?.mariadb,
         disabled: mariaDBDisabled.value,
-        run: mariaDBVersion?.value?.run === true,
+        run: mariaDBRunning.value,
         running: mariaDBVersion?.value?.running === true
       },
       nginx: {
         show: showItem?.value?.Nginx,
         disabled: nginxDisabled.value,
-        run: nginxVersion?.value?.run === true,
+        run: nginxRunning.value,
         running: nginxVersion?.value?.running === true
       },
       password: appStore?.config?.password,
@@ -638,13 +646,13 @@
       redis: {
         show: showItem?.value?.Redis,
         disabled: redisDisabled.value,
-        run: redisVersion?.value?.run === true,
+        run: redisRunning.value,
         running: redisVersion?.value?.running === true
       },
       mongodb: {
         show: showItem?.value?.MongoDB,
         disabled: mongodbDisabled.value,
-        run: mongodbVersion?.value?.run === true,
+        run: mariaDBRunning.value,
         running: mongodbVersion?.value?.running === true
       },
       dns: {
@@ -654,8 +662,8 @@
       },
       ftp: {
         show: showItem?.value?.FTP,
-        run: ftpRunning.value === true,
-        running: ftpFetching.value === true
+        run: ftpRunning.value,
+        running: ftpVersion?.value?.running === true
       },
       groupDisabled: groupDisabled.value,
       groupIsRunning: groupIsRunning.value
@@ -722,6 +730,9 @@
         if (showItem?.value?.MongoDB && mongodbRunning?.value && mongodbVersion?.value?.version) {
           all.push(stopService('mongodb', mongodbVersion?.value))
         }
+        if (showItem?.value?.FTP && ftpRunning?.value && ftpVersion?.value?.version) {
+          all.push(stopService('pure-ftpd', ftpVersion?.value))
+        }
         if (showItem?.value?.DNS && dnsServerRunning?.value) {
           all.push(dnsStop())
         }
@@ -753,6 +764,9 @@
         }
         if (showItem?.value?.MongoDB && mongodbVersion?.value?.version) {
           all.push(startService('mongodb', mongodbVersion?.value))
+        }
+        if (showItem?.value?.FTP && ftpVersion?.value?.version) {
+          all.push(startService('pure-ftpd', ftpVersion?.value))
         }
         if (showItem?.value?.DNS) {
           all.push(dnsStart())
@@ -838,6 +852,11 @@
           if (!mongodbVersion?.value?.version) return
           fn = mongodbRunning?.value ? stopService : startService
           promise = fn('mongodb', mongodbVersion?.value)
+          break
+        case 'ftp':
+          if (!ftpVersion?.value?.version) return
+          fn = ftpRunning?.value ? stopService : startService
+          promise = fn('pure-ftpd', ftpVersion?.value)
           break
       }
       promise?.then((res) => {

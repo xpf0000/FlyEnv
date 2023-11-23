@@ -13,7 +13,7 @@ class Manager extends BaseManager {
     return new Promise((resolve) => {
       if (name === 'pure-ftpd') {
         resolve({
-          version: '1.0.51'
+          version: '1.0'
         })
         return
       }

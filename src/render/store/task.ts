@@ -22,6 +22,9 @@ interface State {
   redis: {
     log: Array<string>
   }
+  'pure-ftpd': {
+    log: Array<string>
+  }
   php: {
     log: Array<string>
     extendRunning: boolean
@@ -53,7 +56,8 @@ const state: State = {
     extendRunning: false,
     log: []
   },
-  redis: { log: [] }
+  redis: { log: [] },
+  'pure-ftpd': { log: [] }
 }
 
 export const TaskStore = defineStore('task', {

@@ -12,7 +12,8 @@
     <div class="main-block">
       <Service v-if="current_tab === 0"></Service>
       <Config v-if="current_tab === 1"></Config>
-      <Manager v-else-if="current_tab === 2" type-flag="pure-ftpd"></Manager>
+      <Versions v-if="current_tab === 2" type-flag="pure-ftpd"></Versions>
+      <Manager v-else-if="current_tab === 3" type-flag="pure-ftpd"></Manager>
     </div>
   </div>
 </template>
@@ -23,6 +24,7 @@
   import Config from './Config.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppStore } from '@/store/app'
+  import Versions from '../VersionSwtich/index.vue'
 
   const current_tab = ref(0)
 
@@ -31,13 +33,19 @@
     components: {
       Config,
       Service,
-      Manager
+      Manager,
+      Versions
     },
     props: {},
     data() {
       return {
         current_tab,
-        tabs: [this.$t('base.service'), this.$t('base.configFile'), this.$t('base.versionManager')]
+        tabs: [
+          this.$t('base.service'),
+          this.$t('base.configFile'),
+          this.$t('base.versionSwitch'),
+          this.$t('base.versionManager')
+        ]
       }
     },
     computed: {

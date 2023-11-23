@@ -6,6 +6,9 @@ import { I18nT } from '@shared/lang'
 const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
+
+export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd'
+
 export interface AppHost {
   id: number
   name: string
@@ -210,7 +213,7 @@ export const AppStore = defineStore('app', {
   state: (): State => state,
   getters: {},
   actions: {
-    UPDATE_SERVER_CURRENT({ flag, data }: { flag: keyof typeof AppSofts; data: AppServerCurrent }) {
+    UPDATE_SERVER_CURRENT({ flag, data }: { flag: AllAppSofts; data: AppServerCurrent }) {
       const server = JSON.parse(JSON.stringify(this.config.server))
       server[flag].current = reactive(data)
       this.config.server = reactive(server)

@@ -11,6 +11,7 @@ export interface ServerType {
   Cache?: string
   RedisDir?: string
   MongoDBDir?: string
+  FTPDir?: string
   PhpDir?: string
   NginxDir?: string
   MysqlDir?: string

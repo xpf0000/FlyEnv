@@ -203,6 +203,7 @@ export default class Application extends EventEmitter {
     global.Server.MemcachedDir = join(runpath, 'server/memcached')
     global.Server.RedisDir = join(runpath, 'server/redis')
     global.Server.MongoDBDir = join(runpath, 'server/mongodb')
+    global.Server.FTPDir = join(runpath, 'server/ftp')
     createFolder(global.Server.NginxDir)
     createFolder(global.Server.PhpDir)
     createFolder(global.Server.MysqlDir)
@@ -512,6 +513,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:version':
       case 'app-fork:mongodb':
       case 'app-fork:project':
+      case 'app-fork:pure-ftpd':
         const forkFile = command.replace('app-fork:', '')
         const child = fork(join(__static, `fork/${forkFile}.js`))
         this.setProxy()
