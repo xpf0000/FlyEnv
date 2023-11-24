@@ -1,27 +1,41 @@
 <template>
   <div class="host-panel main-right-panel">
     <ul class="top-tab">
-      <el-dropdown split-button @click="toAdd" @command="handleCommand">
-        <span class="px-5"></span>{{ $t('base.add') }}<span class="px-5"></span>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item :disabled="!canExport" command="export">{{
-              $t('base.export')
-            }}</el-dropdown-item>
-            <el-dropdown-item command="import">{{ $t('base.import') }}</el-dropdown-item>
-            <el-dropdown-item divided command="newProject">
-              <el-popover :show-after="600" placement="bottom" trigger="hover" width="300px">
-                <template #reference>
-                  <span>{{ $t('host.newProject') }}</span>
-                </template>
-                <template #default>
-                  <p>{{ $t('host.newProjectTips') }}</p>
-                </template>
-              </el-popover>
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+      <el-button-group>
+        <el-button style="padding-left: 30px; padding-right: 30px" @click="toAdd">{{
+          $t('base.add')
+        }}</el-button>
+        <el-dropdown trigger="click" @command="handleCommand">
+          <template #default>
+            <el-button
+              style="
+                padding-left: 8px;
+                padding-right: 8px;
+                border-left-color: transparent !important;
+              "
+              :icon="More"
+            ></el-button>
+          </template>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item :disabled="!canExport" command="export">{{
+                $t('base.export')
+              }}</el-dropdown-item>
+              <el-dropdown-item command="import">{{ $t('base.import') }}</el-dropdown-item>
+              <el-dropdown-item divided command="newProject">
+                <el-popover :show-after="600" placement="bottom" trigger="hover" width="300px">
+                  <template #reference>
+                    <span>{{ $t('host.newProject') }}</span>
+                  </template>
+                  <template #default>
+                    <p>{{ $t('host.newProjectTips') }}</p>
+                  </template>
+                </el-popover>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </el-button-group>
       <el-popover :show-after="600" placement="bottom" trigger="hover" width="300px">
         <template #reference>
           <li style="width: auto; padding: 0 15px; margin-left: 20px; margin-right: 10px">
@@ -50,6 +64,7 @@
   import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { More } from '@element-plus/icons-vue'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
   const { dialog } = require('@electron/remote')

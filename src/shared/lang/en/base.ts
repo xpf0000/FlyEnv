@@ -140,5 +140,6 @@ export default {
     'This will automatically search for subfolders and generate sub-sites, do you want to continue?',
   hostsWriteTips:
     'Write or Remove host to /etc/hosts, the written content will be wrapped in custom tags, and will not affect other content',
-  brewInstallLang: '-en'
+  brewInstallLang: '-en',
+  ftpDirNotExists: `Folder doesn't exist, please select again`
 }

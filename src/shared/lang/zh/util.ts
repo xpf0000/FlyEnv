@@ -13,5 +13,9 @@ export default {
   pageLimitTips: '限制页面地址必须包含此处字符串',
   LinkExclusion: '链接排除',
   LinkExclusionTips: '过滤包含此处字符串的网址, 每行一个',
-  count: '总计: '
+  count: '总计: ',
+  ftpTableHeadUser: '用户名',
+  ftpTableHeadPass: '密码',
+  ftpTableHeadDir: '根目录',
+  ftpTableHeadSetup: '操作'
 }

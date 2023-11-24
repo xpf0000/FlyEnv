@@ -14,5 +14,9 @@ export default {
   pageLimitTips: 'Limit page address must contain the string here',
   LinkExclusion: 'Link Exclusion',
   LinkExclusionTips: 'Filter URLs containing this string, one per line.',
-  count: 'Count: '
+  count: 'Count: ',
+  ftpTableHeadUser: 'Username',
+  ftpTableHeadPass: 'Password',
+  ftpTableHeadDir: 'Root Dir',
+  ftpTableHeadSetup: 'Setup'
 }

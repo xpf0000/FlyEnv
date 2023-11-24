@@ -34,7 +34,7 @@
           <el-auto-resizer>
             <template #default="{ height, width }">
               <el-table-v2
-                :row-height="38"
+                :row-height="42"
                 :columns="columns"
                 :data="links"
                 :width="width"

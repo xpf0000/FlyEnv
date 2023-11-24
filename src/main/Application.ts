@@ -321,7 +321,8 @@ export default class Application extends EventEmitter {
       memcached: 'memcached',
       redis: 'redis-server',
       mongodb: 'mongod',
-      mariadb: 'mariadbd'
+      mariadb: 'mariadbd',
+      ftp: join(global.Server.FTPDir!, 'pure-ftpd.conf')
     }
     try {
       const serverName = dis[type]
@@ -379,6 +380,8 @@ export default class Application extends EventEmitter {
     this.stopServerByPid(pidfile, 'redis')
     pidfile = join(global.Server.MongoDBDir!, 'mongodb.pid')
     this.stopServerByPid(pidfile, 'mongodb')
+    pidfile = join(global.Server.FTPDir!, 'pure-ftpd.pid')
+    this.stopServerByPid(pidfile, 'ftp')
     try {
       let hosts = readFileSync('/private/etc/hosts', 'utf-8')
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)

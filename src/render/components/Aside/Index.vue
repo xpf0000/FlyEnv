@@ -876,6 +876,8 @@
       }
       if (page === '/ftp') {
         ftpStore.getIP()
+        ftpStore.getPort()
+        ftpStore.getAllFtp()
       }
       if (currentPage.value === page) {
         resolve(true)

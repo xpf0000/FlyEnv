@@ -33,16 +33,21 @@ export const FtpStore = defineStore('ftp', {
     getIP() {
       this.ip = IP.address()
     },
-    init() {
-      IPC.send('app-fork:ftp', 'getPort').then((key: string, res?: any) => {
+    getPort() {
+      IPC.send('app-fork:pure-ftpd', 'getPort').then((key: string, res?: any) => {
         IPC.off(key)
         this.port = res?.data
       })
-      IPC.send('app-fork:ftp', 'allFtps').then((key: string, res?: any) => {
-        IPC.off(key)
-        this.allFtp.splice(0)
-        const arr = res?.data ?? []
-        this.allFtp.push(...arr)
+    },
+    getAllFtp() {
+      return new Promise((resolve) => {
+        IPC.send('app-fork:pure-ftpd', 'getAllFtp').then((key: string, res?: any) => {
+          IPC.off(key)
+          this.allFtp.splice(0)
+          const arr = res?.data ?? []
+          this.allFtp.push(...arr)
+          resolve(true)
+        })
       })
     },
     start() {
