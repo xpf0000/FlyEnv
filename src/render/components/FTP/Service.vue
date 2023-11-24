@@ -23,7 +23,7 @@
           </div>
         </template>
       </div>
-      <el-button @click.stop="doAdd">{{ $t('base.add') }}</el-button>
+      <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('base.add') }}</el-button>
     </div>
     <el-auto-resizer>
       <template #default="{ height, width }">
