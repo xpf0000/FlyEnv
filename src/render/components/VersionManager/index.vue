@@ -40,7 +40,7 @@
       style="width: 100%"
     >
       <el-table-column prop="name" :label="$t('base.brewLibrary')"> </el-table-column>
-      <el-table-column prop="version" :label="$t('base.version')"> </el-table-column>
+      <el-table-column prop="version" :label="$t('base.version')" width="150"> </el-table-column>
       <el-table-column align="center" :label="$t('base.isInstalled')" width="120">
         <template #default="scope">
           <yb-icon
@@ -51,7 +51,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column align="center" :label="$t('base.operation')" width="150">
+      <el-table-column align="center" :label="$t('base.operation')" width="120">
         <template #default="scope">
           <el-button
             type="primary"
@@ -392,7 +392,6 @@
     display: flex;
     flex-direction: column;
     max-height: 100%;
-    padding: 20px;
     height: 100%;
 
     &.el-card {

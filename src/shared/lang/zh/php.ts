@@ -14,5 +14,7 @@ export default {
   obfuscatorDesc: '保存文件或文件夹, 不能和源文件或原文件夹重复',
   obfuscatorConfig: '高级设置',
   obfuscatorErrorLog: '错误日志',
-  noExtensionsDir: '扩展文件夹不存在, 请先安装扩展'
+  noExtensionsDir: '扩展文件夹不存在, 请先安装扩展',
+  extensionsLib: '扩展库',
+  extensionsLibDefault: '默认'
 }

@@ -197,6 +197,10 @@
   import('./Vhost.vue').then((res) => {
     ConfigVM = res.default
   })
+  let LinkVM: any
+  import('./Link.vue').then((res) => {
+    LinkVM = res.default
+  })
 
   const action = (item: any, index: number, flag: string) => {
     console.log('item: ', item)
@@ -229,14 +233,9 @@
         break
       case 'link':
         console.log('item: ', item)
-        Base.Dialog(import('./Link.vue'))
-          .data({
-            host: item
-          })
-          .noFooter()
-          // @ts-ignore
-          .title(this.$t('base.siteLinks'))
-          .show()
+        AsyncComponentShow(LinkVM, {
+          host: item
+        }).then()
         break
     }
   }

@@ -86,156 +86,145 @@
   </ul>
 </template>
 
-<script lang="ts">
-  import { defineComponent } from 'vue'
+<script lang="ts" setup>
+  import { ref, computed } from 'vue'
   import { startService, stopService } from '@/util/Service'
   import installedVersions from '@/util/InstalledVersions'
   import IPC from '@/util/IPC'
-  import { AppSoftInstalledItem, BrewStore, SoftInstalled } from '@/store/brew'
-  import { AppStore } from '@/store/app'
+  import { BrewStore, SoftInstalled } from '@/store/brew'
   import { ElLoading, ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   const { shell } = require('@electron/remote')
 
-  export default defineComponent({
-    components: {},
-    props: {},
-    data() {
-      return {
-        ondrop: false,
-        initing: false
-      }
-    },
-    computed: {
-      brewRunning() {
-        return BrewStore().brewRunning
-      },
-      php(): AppSoftInstalledItem {
-        return BrewStore().php
-      },
-      versions(): Array<SoftInstalled> {
-        return this?.php?.installed ?? []
-      },
-      customDirs() {
-        return AppStore().config.setup?.php?.dirs ?? []
-      }
-    },
-    watch: {},
-    created: function () {
-      this.init()
-    },
-    mounted() {},
-    unmounted() {},
-    methods: {
-      checkBrew(item: SoftInstalled) {
-        console.log('checkBrew: ', item)
-        return !!global.Server.BrewCellar && item?.bin?.includes('/Cellar/')
-      },
-      doRun(item: SoftInstalled) {
-        if (!item?.version) {
-          return
-        }
-        startService('php', item).then((res) => {
-          if (typeof res === 'string') {
-            this.$message.error(res)
-          } else {
-            this.$message.success(this.$t('base.success'))
-          }
-        })
-      },
-      doStop(item: SoftInstalled) {
-        if (!item?.version) {
-          return
-        }
-        stopService('php', item).then((res) => {
-          if (typeof res === 'string') {
-            this.$message.error(res)
-          } else {
-            this.$message.success(this.$t('base.success'))
-          }
-        })
-      },
-      action(item: SoftInstalled, index: number, flag: string) {
-        switch (flag) {
-          case 'open':
-            shell.openPath(item.path)
-            break
-          case 'conf':
-            import('./Config.vue').then((res) => {
-              res.default
-                .show({
-                  version: item
-                })
-                .then()
-            })
-            break
-          case 'log-fpm':
-            import('./Logs.vue').then((res) => {
-              res.default
-                .show({
-                  version: item,
-                  type: 'php-fpm'
-                })
-                .then()
-            })
-            break
-          case 'log-slow':
-            import('./Logs.vue').then((res) => {
-              res.default
-                .show({
-                  version: item,
-                  type: 'php-fpm-slow'
-                })
-                .then()
-            })
-            break
-          case 'extend':
-            import('./Extends.vue').then((res) => {
-              res.default
-                .show({
-                  version: item
-                })
-                .then()
-            })
-            break
-          case 'brewLink':
-            if (!this.checkBrew(item)) {
-              return
-            }
-            const dom: HTMLElement = document.querySelector(`li[data-item-index="${index}"]`)!
-            const loading = ElLoading.service({
-              target: dom
-            })
-            IPC.send('app-fork:php', 'doLinkVersion', JSON.parse(JSON.stringify(item))).then(
-              (key: string, res: any) => {
-                IPC.off(key)
-                loading.close()
-                if (res?.code === 0) {
-                  ElMessage.success(I18nT('base.success'))
-                } else {
-                  ElMessage.error(res.msg)
-                }
-              }
-            )
-            break
-        }
-      },
-      reinit() {
-        const data = this.php
-        data.installedInited = false
-        this.init()
-      },
-      init() {
-        if (this.initing) {
-          return
-        }
-        this.initing = true
-        installedVersions.allInstalledVersions(['php']).then(() => {
-          this.initing = false
-        })
-      }
+  const initing = ref(false)
+  const brewStore = BrewStore()
+
+  const php = computed(() => {
+    return brewStore.php
+  })
+  const versions = computed(() => {
+    return brewStore?.php?.installed ?? []
+  })
+
+  const init = () => {
+    if (initing.value) {
+      return
     }
+    initing.value = true
+    installedVersions.allInstalledVersions(['php']).then(() => {
+      initing.value = false
+    })
+  }
+
+  const reinit = () => {
+    const data = php.value
+    data.installedInited = false
+    init()
+  }
+
+  const checkBrew = (item: SoftInstalled) => {
+    return !!global.Server.BrewCellar && item?.bin?.includes('/Cellar/')
+  }
+
+  const doRun = (item: SoftInstalled) => {
+    if (!item?.version) {
+      return
+    }
+    startService('php', item).then((res) => {
+      if (typeof res === 'string') {
+        ElMessage.error(res)
+      } else {
+        ElMessage.success(I18nT('base.success'))
+      }
+    })
+  }
+
+  const doStop = (item: SoftInstalled) => {
+    if (!item?.version) {
+      return
+    }
+    stopService('php', item).then((res) => {
+      if (typeof res === 'string') {
+        ElMessage.error(res)
+      } else {
+        ElMessage.success(I18nT('base.success'))
+      }
+    })
+  }
+
+  let ExtensionsVM: any
+  import('./Extends.vue').then((res) => {
+    ExtensionsVM = res.default
+  })
+
+  const action = (item: SoftInstalled, index: number, flag: string) => {
+    switch (flag) {
+      case 'open':
+        shell.openPath(item.path)
+        break
+      case 'conf':
+        import('./Config.vue').then((res) => {
+          res.default
+            .show({
+              version: item
+            })
+            .then()
+        })
+        break
+      case 'log-fpm':
+        import('./Logs.vue').then((res) => {
+          res.default
+            .show({
+              version: item,
+              type: 'php-fpm'
+            })
+            .then()
+        })
+        break
+      case 'log-slow':
+        import('./Logs.vue').then((res) => {
+          res.default
+            .show({
+              version: item,
+              type: 'php-fpm-slow'
+            })
+            .then()
+        })
+        break
+      case 'extend':
+        AsyncComponentShow(ExtensionsVM, {
+          version: item
+        }).then()
+        break
+      case 'brewLink':
+        if (!checkBrew(item)) {
+          return
+        }
+        const dom: HTMLElement = document.querySelector(`li[data-item-index="${index}"]`)!
+        const loading = ElLoading.service({
+          target: dom
+        })
+        IPC.send('app-fork:php', 'doLinkVersion', JSON.parse(JSON.stringify(item))).then(
+          (key: string, res: any) => {
+            IPC.off(key)
+            loading.close()
+            if (res?.code === 0) {
+              ElMessage.success(I18nT('base.success'))
+            } else {
+              ElMessage.error(res.msg)
+            }
+          }
+        )
+        break
+    }
+  }
+
+  init()
+
+  defineExpose({
+    reinit
   })
 </script>
 

@@ -15,5 +15,7 @@ export default {
   obfuscatorDesc: 'Save the file or folder, not duplicate the source file or folder',
   obfuscatorConfig: 'Advanced Setup',
   obfuscatorErrorLog: 'Error Log',
-  noExtensionsDir: 'Extensions folder does not exist, please install the extension first'
+  noExtensionsDir: 'Extensions folder does not exist, please install the extension first',
+  extensionsLib: 'Extensions Library',
+  extensionsLibDefault: 'Default'
 }

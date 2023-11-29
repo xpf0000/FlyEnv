@@ -12,6 +12,7 @@ export interface SoftInstalled {
   phpBin?: string
   phpConfig?: string
   phpize?: string
+  flag?: string
 }
 
 export interface AppSoftInstalledItem {

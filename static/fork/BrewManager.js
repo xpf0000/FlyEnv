@@ -378,5 +378,55 @@ class BrewManager extends BaseManager {
         })
       })
   }
+
+  async fetchAllPhpExtensions(num) {
+    try {
+      const allTap = await Utils.execAsync('brew', ['tap'])
+      if (!allTap.includes('shivammathur/extensions')) {
+        await Utils.execAsync('brew', ['tap', 'shivammathur/extensions'])
+      }
+      const names = {
+        pecl_http: 'http.so',
+        phalcon3: 'phalcon.so',
+        phalcon4: 'phalcon.so',
+        phalcon5: 'phalcon.so'
+      }
+      const zend = ['xdebug']
+      const cammand = `brew search --formula "/shivammathur\\/extensions\\/[\\s\\S]+${num}$/"`
+      let content = execSync(cammand, {
+        env: {
+          HOMEBREW_NO_INSTALL_FROM_API: 1,
+          ...Utils.fixEnv()
+        }
+      }).toString()
+      content = content
+        .split('\n')
+        .filter((s) => !!s.trim())
+        .map((s) => {
+          const name = s.replace('shivammathur/extensions/', '').replace(`@${num}`, '')
+          const res = {
+            name,
+            libName: s,
+            installed: false,
+            status: false,
+            soname: names[name] ?? `${name}.so`,
+            flag: 'homebrew'
+          }
+          if (zend.includes(name)) {
+            res['extendPre'] = 'zend_extension='
+          }
+          return res
+        })
+      this._processSend({
+        code: 0,
+        data: content
+      })
+    } catch (err) {
+      this._processSend({
+        code: 1,
+        msg: err.toString()
+      })
+    }
+  }
 }
 module.exports = BrewManager
