@@ -1,7 +1,5 @@
 const { I18nT } = require('./lang/index.js')
-const existsSync = require('fs').existsSync
-const readFileSync = require('fs').readFileSync
-const unlinkSync = require('fs').unlinkSync
+const { existsSync, readFileSync, unlinkSync, writeFileSync } = require('fs')
 const execPromise = require('child-process-promise').exec
 const Utils = require('./Utils')
 const { join } = require('path')
@@ -280,9 +278,31 @@ class BaseManager {
         })
         .then(() => {
           Utils.chmod(copyfile, '0777')
-          const child = spawn('bash', [copyfile, arch, action, name], opt)
+          const child = spawn('zsh', [copyfile, arch, action, name], opt)
           this._childHandle(child, resolve, reject)
         })
+    })
+  }
+
+  _doInstallOrUnInstallByPort(name, action) {
+    return new Promise((resolve, reject) => {
+      const opt = this._fixEnv()
+      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+      const sh = join(global.Server.Static, 'sh/port-cmd.sh')
+      const copyfile = join(global.Server.Cache, 'port-cmd.sh')
+      if (existsSync(copyfile)) {
+        unlinkSync(copyfile)
+      }
+      let content = readFileSync(sh, 'utf-8').toString()
+      content = content
+        .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password)
+        .replace(new RegExp('##ARCH##', 'g'), arch)
+        .replace(new RegExp('##ACTION##', 'g'), action)
+        .replace(new RegExp('##NAME##', 'g'), name)
+      writeFileSync(copyfile, content)
+      Utils.chmod(copyfile, '0777')
+      const child = spawn('zsh', [copyfile], opt)
+      this._childHandle(child, resolve, reject)
     })
   }
 

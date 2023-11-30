@@ -42,6 +42,21 @@
                     <el-option value="homebrew" label="Homebrew"></el-option>
                   </el-select>
                 </template>
+                <template v-else-if="isMacPorts && !extendRunning">
+                  <el-select
+                    v-model="lib"
+                    :disabled="
+                      brewRunning || extendRunning || extendRefreshing || !version?.version
+                    "
+                    class="lib-select"
+                  >
+                    <el-option
+                      value="phpwebstudy"
+                      :label="$t('php.extensionsLibDefault')"
+                    ></el-option>
+                    <el-option value="macports" label="Macports"></el-option>
+                  </el-select>
+                </template>
               </div>
               <el-button v-if="showNextBtn" type="primary" @click="toNext">{{
                 $t('base.confirm')
@@ -64,8 +79,14 @@
           <div v-if="currentExtend" ref="logRef" class="logs cli-to-html">
             {{ logs.join('') }}
           </div>
-          <el-table v-else height="100%" :data="showTableDataFilter" style="width: 100%">
-            <el-table-column prop="name" :label="$t('base.name')">
+          <el-table
+            v-else
+            v-loading="extendRefreshing"
+            height="100%"
+            :data="showTableDataFilter"
+            style="width: 100%"
+          >
+            <el-table-column prop="name" class-name="name-cell-td" :label="$t('base.name')">
               <template #header>
                 <div class="w-p100 name-cell">
                   <span>{{ $t('base.name') }}</span>
@@ -129,6 +150,7 @@
   import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { ExtensionHomeBrew, ExtensionMacPorts } from '@/components/PHP/store'
 
   const { join } = require('path')
   const { clipboard } = require('@electron/remote')
@@ -232,12 +254,28 @@
   const showTableData = ref([])
 
   const showTableDataFilter = computed(() => {
-    if (!search.value) {
-      return showTableData.value
+    const sortName = (a: any, b: any) => {
+      return a.name - b.name
     }
-    return showTableData.value.filter((d: any) =>
-      d.name.toLowerCase().includes(search.value.toLowerCase())
-    )
+    const sortStatus = (a: any, b: any) => {
+      if (a.status === b.status) {
+        return 0
+      }
+      if (a.status) {
+        return -1
+      }
+      if (b.status) {
+        return 1
+      }
+      return 0
+    }
+    if (!search.value) {
+      return Array.from(showTableData.value).sort(sortName).sort(sortStatus)
+    }
+    return showTableData.value
+      .filter((d: any) => d.name.toLowerCase().includes(search.value.toLowerCase()))
+      .sort(sortName)
+      .sort(sortStatus)
   })
 
   const brewStore = BrewStore()
@@ -282,8 +320,7 @@
     if (props?.version?.version) {
       let versionNums: any = props?.version?.version.split('.')
       versionNums.splice(2)
-      versionNums = versionNums.join('.')
-      return parseFloat(versionNums)
+      return versionNums.join('.')
     }
     return 0
   })
@@ -328,15 +365,30 @@
     }
   }
 
-  const fetchAllFromHomebrew = () => {
+  const fetchAll = (fn: 'fetchAllPhpExtensions' | 'fetchAllPhpExtensionsByPort') => {
     return new Promise((resolve) => {
-      IPC.send('app-fork:brew', 'fetchAllPhpExtensions', versionNumber.value).then(
-        (key: string, res: any) => {
-          IPC.off(key)
-          showTableData.value = res?.data ?? []
-          resolve(true)
+      if (fn === 'fetchAllPhpExtensions' && ExtensionHomeBrew?.[versionNumber.value]) {
+        showTableData.value = ExtensionHomeBrew?.[versionNumber.value]
+        resolve(true)
+        return
+      }
+      if (fn === 'fetchAllPhpExtensionsByPort' && ExtensionMacPorts?.[versionNumber.value]) {
+        showTableData.value = ExtensionMacPorts?.[versionNumber.value]
+        resolve(true)
+        return
+      }
+      IPC.send('app-fork:brew', fn, versionNumber.value).then((key: string, res: any) => {
+        IPC.off(key)
+        showTableData.value = res?.data ?? []
+        if (res?.data) {
+          if (fn === 'fetchAllPhpExtensions') {
+            ExtensionHomeBrew[versionNumber.value] = res.data
+          } else {
+            ExtensionMacPorts[versionNumber.value] = res.data
+          }
         }
-      )
+        resolve(true)
+      })
     })
   }
 
@@ -349,7 +401,9 @@
     if (lib.value === 'phpwebstudy') {
       showTableData.value = JSON.parse(JSON.stringify(tableData))
     } else if (lib.value === 'homebrew') {
-      await fetchAllFromHomebrew()
+      await fetchAll('fetchAllPhpExtensions')
+    } else if (lib.value === 'macports') {
+      await fetchAll('fetchAllPhpExtensionsByPort')
     }
     checkStatus()
   }
@@ -373,7 +427,7 @@
     const args = JSON.parse(
       JSON.stringify({
         version: props.version,
-        versionNumber: versionNumber.value,
+        versionNumber: parseFloat(`${versionNumber.value}`),
         extend: row.name,
         installExtensionDir: installExtensionDir.value,
         ...row
@@ -569,6 +623,10 @@ xdebug.output_dir = /tmp`
             &::-webkit-scrollbar {
               display: none;
             }
+          }
+
+          .name-cell-td {
+            user-select: text;
           }
 
           .cell-status {

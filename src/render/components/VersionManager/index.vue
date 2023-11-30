@@ -43,14 +43,15 @@
       <el-table-column prop="version" :label="$t('base.version')" width="150"> </el-table-column>
       <el-table-column align="center" :label="$t('base.isInstalled')" width="120">
         <template #default="scope">
-          <yb-icon
-            v-if="scope.row.installed"
-            :svg="import('@/svg/ok.svg?raw')"
-            class="installed"
-          ></yb-icon>
+          <div class="cell-status">
+            <yb-icon
+              v-if="scope.row.installed"
+              :svg="import('@/svg/ok.svg?raw')"
+              class="installed"
+            ></yb-icon>
+          </div>
         </template>
       </el-table-column>
-
       <el-table-column align="center" :label="$t('base.operation')" width="120">
         <template #default="scope">
           <el-button
@@ -411,6 +412,14 @@
       .el-card__body {
         flex: 1;
         overflow: hidden;
+
+        .cell-status {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
 
         .logs {
           height: 100%;

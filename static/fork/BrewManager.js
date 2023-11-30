@@ -362,18 +362,18 @@ class BrewManager extends BaseManager {
   }
 
   async fetchAllPhpExtensions(num) {
+    const names = {
+      pecl_http: 'http.so',
+      phalcon3: 'phalcon.so',
+      phalcon4: 'phalcon.so',
+      phalcon5: 'phalcon.so'
+    }
+    const zend = ['xdebug']
     try {
       const allTap = await Utils.execAsync('brew', ['tap'])
       if (!allTap.includes('shivammathur/extensions')) {
         await Utils.execAsync('brew', ['tap', 'shivammathur/extensions'])
       }
-      const names = {
-        pecl_http: 'http.so',
-        phalcon3: 'phalcon.so',
-        phalcon4: 'phalcon.so',
-        phalcon5: 'phalcon.so'
-      }
-      const zend = ['xdebug']
       const cammand = `brew search --formula "/shivammathur\\/extensions\\/[\\s\\S]+${num}$/"`
       let content = execSync(cammand, {
         env: {
@@ -402,6 +402,57 @@ class BrewManager extends BaseManager {
       this._processSend({
         code: 0,
         data: content
+      })
+    } catch (err) {
+      this._processSend({
+        code: 1,
+        msg: err.toString()
+      })
+    }
+  }
+
+  async fetchAllPhpExtensionsByPort(num) {
+    const names = {
+      pecl_http: 'http.so',
+      phalcon3: 'phalcon.so',
+      phalcon4: 'phalcon.so',
+      phalcon5: 'phalcon.so',
+      tideways_xhprof: 'xhprof.so',
+      postgresql: 'pgsql.so',
+      mysql: 'mysqli.so'
+    }
+    const zend = ['xdebug']
+    try {
+      const numStr = `${num}`.split('.').join('')
+      const cammand = `port search --name --line php${numStr}-`
+      console.log('cammand: ', cammand)
+      let res = await exec(cammand, this._fixEnv())
+      res = res.stdout.toString()
+      const arr = res
+        .split('\n')
+        .filter((f) => {
+          return !!f.trim() && !f.includes('lang www')
+        })
+        .map((m) => {
+          const a = m.split('\t').filter((f) => f.trim().length > 0)
+          const libName = a.shift()
+          const name = libName.replace(`php${numStr}-`, '').toLowerCase()
+          const item = {
+            name,
+            libName,
+            installed: false,
+            status: false,
+            soname: names[name] ?? `${name}.so`,
+            flag: 'macports'
+          }
+          if (zend.includes(name)) {
+            item['extendPre'] = 'zend_extension='
+          }
+          return item
+        })
+      this._processSend({
+        code: 0,
+        data: arr
       })
     } catch (err) {
       this._processSend({

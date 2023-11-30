@@ -90,10 +90,40 @@ class PhpManager extends BaseManager {
       return
     }
     if (args?.flag === 'homebrew') {
+      const checkSo = () => {
+        const baseDir = args.libName.split('/').pop()
+        const dir = join(global.Server.BrewCellar, baseDir)
+        const so = Utils.getAllFile(dir)
+          .filter((f) => f.endsWith('.so'))
+          .pop()
+        if (so) {
+          const destSo = join(installExtensionDir, basename(so))
+          copyFileSync(so, destSo)
+          return existsSync(destSo)
+        }
+        return false
+      }
+      if (checkSo()) {
+        this._thenSuccess()
+        return
+      }
       this._doInstallOrUnInstallByBrew(args.libName, 'install')
         .then(() => {
-
+          if (checkSo()) {
+            this._thenSuccess()
+          } else {
+            this._processSend({
+              code: 1,
+              msg: I18nT('fork.ExtensionInstallFail')
+            })
+          }
         })
+        .catch(this._catchError)
+      return
+    }
+    if (args?.flag === 'macports') {
+      this._doInstallOrUnInstallByPort(args.libName, 'install')
+        .then(this._thenSuccess)
         .catch(this._catchError)
       return
     }
