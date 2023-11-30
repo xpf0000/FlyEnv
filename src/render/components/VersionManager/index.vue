@@ -365,7 +365,7 @@
   })
 
   getData()
-  if (brewRunning?.value) {
+  if (!brewRunning?.value) {
     brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
   }
 
