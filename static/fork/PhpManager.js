@@ -79,6 +79,7 @@ class PhpManager extends BaseManager {
   }
 
   installExtends(args) {
+    console.log('installExtends: ', args)
     const { version, versionNumber, extend, installExtensionDir } = args
     if (!existsSync(version?.bin)) {
       this._catchError(I18nT('fork.binNoFound'))
@@ -86,6 +87,14 @@ class PhpManager extends BaseManager {
     }
     if (!version?.version) {
       this._catchError(I18nT('fork.versionNoFound'))
+      return
+    }
+    if (args?.flag === 'homebrew') {
+      this._doInstallOrUnInstallByBrew(args.libName, 'install')
+        .then(() => {
+
+        })
+        .catch(this._catchError)
       return
     }
     this._doInstallExtends(version, versionNumber, extend, installExtensionDir)

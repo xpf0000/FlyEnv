@@ -68,34 +68,16 @@ class BrewManager extends BaseManager {
     }
   }
 
-  _doInstallOrUnInstall(rb, action) {
-    return new Promise((resolve, reject) => {
-      const opt = this._fixEnv()
-      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-      const name = rb
-      const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
-      const copyfile = join(global.Server.Cache, 'brew-cmd.sh')
-      if (existsSync(copyfile)) {
-        unlinkSync(copyfile)
-      }
-      Utils.readFileAsync(sh)
-        .then((content) => {
-          return Utils.writeFileAsync(copyfile, content)
-        })
-        .then(() => {
-          Utils.chmod(copyfile, '0777')
-          const child = spawn('bash', [copyfile, arch, action, name], opt)
-          this._childHandle(child, resolve, reject)
-        })
-    })
-  }
-
   install(name) {
-    this._doInstallOrUnInstall(name, 'install').then(this._thenSuccess).catch(this._catchError)
+    this._doInstallOrUnInstallByBrew(name, 'install')
+      .then(this._thenSuccess)
+      .catch(this._catchError)
   }
 
   uninstall(name) {
-    this._doInstallOrUnInstall(name, 'uninstall').then(this._thenSuccess).catch(this._catchError)
+    this._doInstallOrUnInstallByBrew(name, 'uninstall')
+      .then(this._thenSuccess)
+      .catch(this._catchError)
   }
 
   brewinfo(name) {

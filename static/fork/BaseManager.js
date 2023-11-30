@@ -4,6 +4,8 @@ const readFileSync = require('fs').readFileSync
 const unlinkSync = require('fs').unlinkSync
 const execPromise = require('child-process-promise').exec
 const Utils = require('./Utils')
+const { join } = require('path')
+const { spawn } = require('child_process')
 
 class BaseManager {
   constructor() {
@@ -259,6 +261,28 @@ class BaseManager {
       } else {
         reject(new Error(I18nT('fork.serviceNoRun')))
       }
+    })
+  }
+
+  _doInstallOrUnInstallByBrew(rb, action) {
+    return new Promise((resolve, reject) => {
+      const opt = this._fixEnv()
+      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+      const name = rb
+      const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
+      const copyfile = join(global.Server.Cache, 'brew-cmd.sh')
+      if (existsSync(copyfile)) {
+        unlinkSync(copyfile)
+      }
+      Utils.readFileAsync(sh)
+        .then((content) => {
+          return Utils.writeFileAsync(copyfile, content)
+        })
+        .then(() => {
+          Utils.chmod(copyfile, '0777')
+          const child = spawn('bash', [copyfile, arch, action, name], opt)
+          this._childHandle(child, resolve, reject)
+        })
     })
   }
 

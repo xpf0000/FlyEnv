@@ -375,7 +375,8 @@
         version: props.version,
         versionNumber: versionNumber.value,
         extend: row.name,
-        installExtensionDir: installExtensionDir.value
+        installExtensionDir: installExtensionDir.value,
+        ...row
       })
     )
     IPC.send('app-fork:php', fn, args).then((key: string, res: any) => {
