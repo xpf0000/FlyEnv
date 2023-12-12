@@ -11,16 +11,14 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="memcached"></Service>
-      <Versions v-if="current_tab === 1" type-flag="memcached"></Versions>
-      <Manager v-else-if="current_tab === 2" type-flag="memcached"></Manager>
-      <mo-memcached-logs v-if="current_tab === 3"></mo-memcached-logs>
+      <Manager v-else-if="current_tab === 1" type-flag="memcached"></Manager>
+      <mo-memcached-logs v-if="current_tab === 2"></mo-memcached-logs>
     </div>
   </div>
 </template>
 
 <script lang="ts">
   import { defineComponent, ref } from 'vue'
-  import Versions from '../VersionSwtich/index.vue'
   import Service from '../ServiceManager/index.vue'
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
@@ -30,7 +28,6 @@
   export default defineComponent({
     name: 'MoMemcachedPanel',
     components: {
-      Versions,
       Service,
       [Logs.name]: Logs,
       Manager
@@ -39,12 +36,7 @@
     data() {
       return {
         current_tab,
-        tabs: [
-          this.$t('base.service'),
-          this.$t('base.versionSwitch'),
-          this.$t('base.versionManager'),
-          this.$t('base.log')
-        ]
+        tabs: [this.$t('base.service'), this.$t('base.versionManager'), this.$t('base.log')]
       }
     },
     computed: {

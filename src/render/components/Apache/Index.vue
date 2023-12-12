@@ -10,17 +10,15 @@
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="apache"></Service>
       <mo-apache-config v-else-if="current_tab === 1"></mo-apache-config>
-      <Versions v-else-if="current_tab === 2" type-flag="apache"></Versions>
-      <Manager v-else-if="current_tab === 3" type-flag="apache"></Manager>
-      <mo-apache-logs v-else-if="current_tab === 4" type="error_log"></mo-apache-logs>
-      <mo-apache-logs v-else-if="current_tab === 5" type="access_log"></mo-apache-logs>
+      <Manager v-else-if="current_tab === 2" type-flag="apache"></Manager>
+      <mo-apache-logs v-else-if="current_tab === 3" type="error_log"></mo-apache-logs>
+      <mo-apache-logs v-else-if="current_tab === 4" type="access_log"></mo-apache-logs>
     </div>
   </div>
 </template>
 
 <script lang="ts">
   import { defineComponent, ref } from 'vue'
-  import Versions from '../VersionSwtich/index.vue'
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
@@ -33,7 +31,6 @@
     name: 'MoApachePanel',
     components: {
       [Config.name]: Config,
-      Versions,
       Service,
       [Logs.name]: Logs,
       Manager
@@ -45,7 +42,6 @@
         tabs: [
           this.$t('base.service'),
           this.$t('base.configFile'),
-          this.$t('base.versionSwitch'),
           this.$t('base.versionManager'),
           this.$t('base.errorLog'),
           this.$t('base.log')

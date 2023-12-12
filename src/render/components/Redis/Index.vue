@@ -12,16 +12,14 @@
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="redis"></Service>
       <mo-redis-config v-if="current_tab === 1"></mo-redis-config>
-      <Versions v-if="current_tab === 2" type-flag="redis"></Versions>
-      <Manager v-else-if="current_tab === 3" type-flag="redis"></Manager>
-      <mo-redis-logs v-if="current_tab === 4"></mo-redis-logs>
+      <Manager v-else-if="current_tab === 2" type-flag="redis"></Manager>
+      <mo-redis-logs v-if="current_tab === 3"></mo-redis-logs>
     </div>
   </div>
 </template>
 
 <script lang="ts">
   import { defineComponent, ref } from 'vue'
-  import Versions from '../VersionSwtich/index.vue'
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
@@ -34,7 +32,6 @@
     name: 'MoRedisPanel',
     components: {
       [Config.name]: Config,
-      Versions,
       Service,
       [Logs.name]: Logs,
       Manager
@@ -46,7 +43,6 @@
         tabs: [
           this.$t('base.service'),
           this.$t('base.configFile'),
-          this.$t('base.versionSwitch'),
           this.$t('base.versionManager'),
           this.$t('base.log')
         ]

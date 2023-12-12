@@ -24,7 +24,8 @@ async function buildMainProcess() {
   return build(esbuildConfig.dev)
     .then(
       () => {
-        if (electronProcess && electronProcess.kill) {
+        // @ts-ignore
+        if (electronProcess && electronProcess?.kill) {
           if (electronProcess.pid) {
             process.kill(electronProcess.pid)
           }

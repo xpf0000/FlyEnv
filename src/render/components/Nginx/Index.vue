@@ -12,17 +12,15 @@
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="nginx"></Service>
       <mo-nginx-config v-if="current_tab === 1"></mo-nginx-config>
-      <Versions v-if="current_tab === 2" type-flag="nginx"></Versions>
-      <Manager v-else-if="current_tab === 3" type-flag="nginx"></Manager>
-      <mo-nginx-logs v-if="current_tab === 4" type="error"></mo-nginx-logs>
-      <mo-nginx-logs v-if="current_tab === 5" type="access"></mo-nginx-logs>
+      <Manager v-else-if="current_tab === 2" type-flag="nginx"></Manager>
+      <mo-nginx-logs v-if="current_tab === 3" type="error"></mo-nginx-logs>
+      <mo-nginx-logs v-if="current_tab === 4" type="access"></mo-nginx-logs>
     </div>
   </div>
 </template>
 
 <script lang="ts">
   import { defineComponent, ref } from 'vue'
-  import Versions from '../VersionSwtich/index.vue'
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
@@ -35,7 +33,6 @@
     name: 'MoNginxPanel',
     components: {
       [Config.name]: Config,
-      Versions,
       Service,
       [Logs.name]: Logs,
       Manager
@@ -47,7 +44,6 @@
         tabs: [
           this.$t('base.service'),
           this.$t('base.configFile'),
-          this.$t('base.versionSwitch'),
           this.$t('base.versionManager'),
           this.$t('base.errorLog'),
           this.$t('base.log')

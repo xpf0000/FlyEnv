@@ -1,7 +1,9 @@
 <template>
   <div class="apache-service">
-    <div class="block">
-      <span class="left-title">{{ $t('base.currentVersion') }}:</span>
+    <VersionSwitch :type-flag="typeFlag"></VersionSwitch>
+
+    <div class="block mt-20">
+      <span class="left-title">{{ $t('base.currentVersion') }}</span>
       <span
         class="ml-30 version-txt"
         :class="{ disabled: !currentVersion?.version }"
@@ -10,7 +12,7 @@
     </div>
 
     <div class="block mt-20">
-      <span class="left-title">{{ $t('base.currentStatus') }}:</span>
+      <span class="left-title">{{ $t('base.currentStatus') }}</span>
       <div v-if="serverRunning" class="ml-30 status running">
         <span class="mr-10">{{ $t('base.runningStatus') }}</span>
         <yb-icon :svg="import('@/svg/task-start.svg?raw')" width="16" height="16" />
@@ -53,129 +55,151 @@
       >
     </div>
 
-    <div class="logs mt-20 cli-to-html">
+    <div ref="logRef" class="logs mt-20 cli-to-html">
       {{ logHtml }}
     </div>
   </div>
 </template>
 
-<script lang="ts">
-  import { defineComponent } from 'vue'
+<script lang="ts" setup>
+  import { ref, computed, watch, nextTick } from 'vue'
   import { reloadService, startService, stopService } from '@/util/Service'
   import { AppSofts, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { TaskStore } from '@/store/task'
   import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
+  import VersionSwitch from '../VersionSwtich/index.vue'
 
-  export default defineComponent({
-    components: {},
-    props: {
-      typeFlag: {
-        type: String,
-        default: ''
-      }
-    },
-    data() {
-      return {
-        current_task: ''
-      }
-    },
-    computed: {
-      showReloadBtn() {
-        return this.typeFlag !== 'memcached' && this.typeFlag !== 'mongodb'
-      },
-      version() {
-        const flag: keyof typeof AppSofts = this.typeFlag as any
-        return AppStore().config.server[flag].current
-      },
-      currentVersion() {
-        const flag: keyof typeof AppSofts = this.typeFlag as any
-        console.log('currentVersion: ', this.version, BrewStore()[flag].installed)
-        return BrewStore()[flag].installed?.find(
-          (i) => i.path === this?.version?.path && i.version === this?.version?.version
-        )
-      },
-      currentTask() {
-        const flag: keyof typeof AppSofts = this.typeFlag as any
-        return TaskStore()[flag]
-      },
-      isRunning() {
-        return this?.currentVersion?.running
-      },
-      logs() {
-        return this.currentTask.log
-      },
-      logHtml() {
-        return this.logs.join('')
-      },
-      serverRunning() {
-        return this?.currentVersion?.run
-      },
-      disabled() {
-        const flag: keyof typeof AppSofts = this.typeFlag as any
-        return (
-          BrewStore()[flag].installed?.some((i) => i.running) ||
-          !this?.currentVersion?.version ||
-          !this?.currentVersion?.path
-        )
-      },
-      versionTxt() {
-        const v = this?.currentVersion?.version
-        const p = this?.currentVersion?.path
-        if (v && p) {
-          return `${v} - ${p}`
-        }
-        return I18nT('base.noVersionTips')
-      }
-    },
-    watch: {
-      isRunning(nv) {
-        if (!nv) {
-          this.current_task = ''
-        }
-      }
-    },
-    created: function () {
-      if (!this.isRunning) {
-        this.logs.splice(0)
-      }
-    },
-    methods: {
-      serviceDo(flag: string) {
-        if (!this?.currentVersion?.version || !this?.currentVersion?.path) {
-          return
-        }
-        this.logs.splice(0)
-        this.current_task = flag
-        const typeFlag: keyof typeof AppSofts = this.typeFlag as any
-        let action: any
-        switch (flag) {
-          case 'stop':
-            action = stopService(typeFlag, this.currentVersion)
-            break
-          case 'start':
-          case 'restart':
-            action = startService(typeFlag, this.currentVersion)
-            break
-          case 'reload':
-            action = reloadService(typeFlag, this.currentVersion)
-            break
-        }
-        action.then((res: any) => {
-          if (typeof res === 'string') {
-            ElMessage({
-              type: 'error',
-              message: res,
-              customClass: 'cli-to-html'
-            })
-          } else {
-            ElMessage.success(I18nT('base.success'))
-          }
-        })
-      }
+  const props = defineProps<{
+    typeFlag:
+      | 'nginx'
+      | 'apache'
+      | 'memcached'
+      | 'mysql'
+      | 'mariadb'
+      | 'redis'
+      | 'php'
+      | 'mongodb'
+      | 'pure-ftpd'
+  }>()
+
+  const appStore = AppStore()
+  const brewStore = BrewStore()
+  const taskStore = TaskStore()
+  const current_task = ref('')
+  const logRef = ref()
+
+  const showReloadBtn = computed(() => {
+    return props.typeFlag !== 'memcached' && props.typeFlag !== 'mongodb'
+  })
+
+  const version = computed(() => {
+    const flag: keyof typeof AppSofts = props.typeFlag as any
+    return appStore.config.server[flag].current
+  })
+
+  const currentVersion = computed(() => {
+    const flag: keyof typeof AppSofts = props.typeFlag as any
+    return brewStore[flag].installed?.find(
+      (i) => i.path === version?.value?.path && i.version === version?.value?.version
+    )
+  })
+
+  const currentTask = computed(() => {
+    const flag: keyof typeof AppSofts = props.typeFlag as any
+    return taskStore[flag]
+  })
+
+  const isRunning = computed(() => {
+    return currentVersion?.value?.running
+  })
+
+  const logs = computed(() => {
+    return currentTask.value.log
+  })
+
+  const logHtml = computed(() => {
+    return logs.value.join('')
+  })
+
+  const logLength = computed(() => {
+    return logs?.value?.length
+  })
+
+  const serverRunning = computed(() => {
+    return currentVersion?.value?.run
+  })
+
+  const disabled = computed(() => {
+    const flag: keyof typeof AppSofts = props.typeFlag as any
+    return (
+      brewStore[flag].installed?.some((i) => i.running) ||
+      !currentVersion?.value?.version ||
+      !currentVersion?.value?.path
+    )
+  })
+
+  const versionTxt = computed(() => {
+    const v = currentVersion?.value?.version
+    const p = currentVersion?.value?.path
+    if (v && p) {
+      return `${v} - ${p}`
+    }
+    return I18nT('base.noVersionTips')
+  })
+
+  watch(isRunning, (nv) => {
+    if (!nv) {
+      current_task.value = ''
     }
   })
+
+  watch(logLength, () => {
+    nextTick().then(() => {
+      let container: HTMLElement = logRef.value as any
+      if (container) {
+        container.scrollTop = container.scrollHeight
+      }
+    })
+  })
+
+  if (!isRunning.value) {
+    logs.value.splice(0)
+  }
+
+  const serviceDo = (flag: string) => {
+    if (!currentVersion?.value?.version || !currentVersion?.value?.path) {
+      return
+    }
+    logs.value.splice(0)
+    current_task.value = flag
+    const typeFlag: keyof typeof AppSofts = props.typeFlag as any
+    let action: any
+    switch (flag) {
+      case 'stop':
+        action = stopService(typeFlag, currentVersion.value)
+        break
+      case 'start':
+      case 'restart':
+        action = startService(typeFlag, currentVersion.value)
+        break
+      case 'reload':
+        action = reloadService(typeFlag, currentVersion.value)
+        break
+    }
+    action.then((res: any) => {
+      if (typeof res === 'string') {
+        ElMessage({
+          type: 'error',
+          message: res,
+          customClass: 'cli-to-html'
+        })
+      } else {
+        ElMessage.success(I18nT('base.success'))
+      }
+    })
+  }
 </script>
 
 <style lang="scss">
@@ -187,9 +211,11 @@
     .block {
       display: flex;
       flex-shrink: 0;
+      align-items: center;
 
       > .left-title {
         flex-shrink: 0;
+        margin-right: 5px;
       }
 
       .version-txt.disabled {

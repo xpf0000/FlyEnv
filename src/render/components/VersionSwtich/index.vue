@@ -1,52 +1,46 @@
 <template>
-  <div class="redis-versions">
-    <div class="block">
-      <span>{{ $t('base.selectVersion') }}</span>
-      <el-select v-model="current" :disabled="disabled" class="ml-30">
-        <template v-for="(item, index) in versions" :key="index">
-          <template v-if="!item?.version">
-            <el-tooltip
-              :raw-content="true"
-              :content="item?.error ?? $t('base.versionErrorTips')"
-              popper-class="version-error-tips"
-            >
-              <el-option
-                :disabled="true"
-                :label="$t('base.versionError') + ' - ' + item.path"
-                :value="$t('base.versionError') + ' - ' + item.path"
-              >
-              </el-option>
-            </el-tooltip>
-          </template>
-          <template v-else>
+  <div class="block">
+    <span class="left-title">{{ $t('base.selectVersion') }}</span>
+    <el-select v-model="current" :disabled="disabled" class="ml-30">
+      <template v-for="(item, index) in versions" :key="index">
+        <template v-if="!item?.version">
+          <el-tooltip
+            :raw-content="true"
+            :content="item?.error ?? $t('base.versionErrorTips')"
+            popper-class="version-error-tips"
+          >
             <el-option
-              :label="item?.version + ' - ' + item.path"
-              :value="item?.version + ' - ' + item.path"
+              :disabled="true"
+              :label="$t('base.versionError') + ' - ' + item.path"
+              :value="$t('base.versionError') + ' - ' + item.path"
             >
             </el-option>
-          </template>
+          </el-tooltip>
         </template>
-      </el-select>
-      <el-button
-        :disabled="disabled || current === currentVersion"
-        class="ml-20"
-        :loading="currentTask.running"
-        @click="versionChange"
-        >{{ $t('base.switch') }}</el-button
-      >
-      <el-button :disabled="initing || disabled" class="ml-20" :loading="initing" @click="reinit">{{
-        $t('base.refresh')
-      }}</el-button>
-    </div>
-
-    <div id="logs" ref="logs" class="logs cli-to-html">
-      {{ log.join('') }}
-    </div>
+        <template v-else>
+          <el-option
+            :label="item?.version + ' - ' + item.path"
+            :value="item?.version + ' - ' + item.path"
+          >
+          </el-option>
+        </template>
+      </template>
+    </el-select>
+    <el-button
+      :disabled="disabled || current === currentVersion"
+      class="ml-20"
+      :loading="currentTask.running"
+      @click="versionChange"
+      >{{ $t('base.switch') }}</el-button
+    >
+    <el-button :disabled="initing || disabled" class="ml-20" :loading="initing" @click="reinit">{{
+      $t('base.refresh')
+    }}</el-button>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, ref, watch } from 'vue'
+  import { computed, ref } from 'vue'
   import IPC from '@/util/IPC'
   import installedVersions from '@/util/InstalledVersions'
   import { BrewStore } from '@/store/brew'
@@ -93,12 +87,6 @@
   const currentTask = computed(() => {
     return taskStore?.[props.typeFlag]
   })
-  const log = computed(() => {
-    return currentTask?.value?.log
-  })
-  const logLength = computed(() => {
-    return log?.value?.length
-  })
   const version = computed(() => {
     if (!props.typeFlag) {
       return {}
@@ -112,15 +100,6 @@
       return `${v} - ${p}`
     }
     return ''
-  })
-
-  watch(logLength, () => {
-    nextTick().then(() => {
-      let container: HTMLElement = logs.value as any
-      if (container) {
-        container.scrollTop = container.scrollHeight
-      }
-    })
   })
 
   const init = () => {
@@ -142,6 +121,10 @@
   const getCurrenVersion = () => {
     current.value = currentVersion?.value
   }
+
+  const log = computed(() => {
+    return currentTask.value.log
+  })
 
   const versionChange = () => {
     if (current?.value === currentVersion?.value) {
@@ -186,29 +169,3 @@
   getCurrenVersion()
   init()
 </script>
-
-<style lang="scss">
-  .redis-versions {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    .block {
-      display: flex;
-      align-items: center;
-      margin: 40px 0 30px 40px;
-      flex-shrink: 0;
-    }
-    .logs {
-      padding-left: 40px;
-      flex: 1;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      overflow: auto;
-      > li {
-        width: 100%;
-        word-break: break-word;
-      }
-    }
-  }
-</style>
