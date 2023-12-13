@@ -4,7 +4,7 @@
       <div class="card-header">
         <div class="left">
           <span> {{ cardHeadTitle }} </span>
-          <template v-if="!brewRunning">
+          <template v-if="!brewRunning && !showNextBtn">
             <el-select v-model="libSrc" style="margin-left: 8px" :disabled="currentType.getListing">
               <el-option :disabled="!checkBrew()" value="brew" label="Homebrew"></el-option>
               <el-option :disabled="!checkPort()" value="port" label="MacPorts"></el-option>
@@ -191,9 +191,9 @@
     }
 
     waitTime().then(() => {
+      brewStore.brewRunning = false
       showNextBtn.value = true
       brewStore.showInstallLog = false
-      brewStore.brewRunning = false
       currentType.value.installedInited = false
       reGetData()
     })

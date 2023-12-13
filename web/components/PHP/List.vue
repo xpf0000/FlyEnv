@@ -46,7 +46,7 @@
           placement="bottom-end"
           width="150"
         >
-          <ul v-poper-fix class="host-list-menu">
+          <ul class="host-list-menu">
             <li @click.stop="action(item, key, 'open')">
               <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
               <span class="ml-15">{{ $t('base.open') }}</span>

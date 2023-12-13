@@ -3,7 +3,7 @@
     <template v-if="httpServe.length === 0">
       <li class="empty" @click.stop="choosePath">
         <div class="wapper" :class="{ ondrop: ondrop }">
-          <yb-icon :svg="import('../../svg/upload.svg?raw')" class="icon" />
+          <yb-icon :svg="import('@/svg/upload.svg?raw')" class="icon" />
           <span>{{ $t('base.httpServerTips') }}</span>
         </div>
       </li>
@@ -45,7 +45,6 @@
 
 <script lang="ts">
   import { reactive, defineComponent } from 'vue'
-  import { waitTime } from '../../fn'
   import { AppStore } from '../../store/app'
   import { ElMessageBox } from 'element-plus'
   import { I18nT } from '@shared/lang'
@@ -135,12 +134,11 @@
         this.doRun(path, item)
       },
       doRun(path: string, item: any) {
-        waitTime().then(() => {
-          item.run = true
-          item.host = {
-            url: ['http://localhost:56487', 'http://0.0.0.0:56487']
-          }
-        })
+        if (!item) {
+          return
+        }
+        item.run = true
+        item.host = ['http://localhost:56487', 'http://0.0.0.0:56487']
       },
       doStop(path: string, item: any) {
         item.run = false

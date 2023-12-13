@@ -19,6 +19,7 @@
       doFix() {
         this.running = true
         waitTime().then(() => {
+          this.running = false
           this.$message.success(this.$t('base.success'))
         })
       }

@@ -10,6 +10,7 @@
   "scripts": {
     "build-dev-runner": "cat scripts/args.esbuild.dev-runner | xargs npx esbuild",
     "web": "vite -c web/vite.config.ts",
+    "web-build": "vite -c web/vite.config.ts build",
     "dev": "yarn run clean && yarn run postinstall && yarn run build-dev-runner && cross-env NODE_ENV=development TEST=electron node electron/dev-runner.js",
     "clean": "rm -rf dist/*;rm -rf node_modules/node-pty/build/*",
     "build": "yarn run clean && cat scripts/args.esbuild.app-builder | xargs npx esbuild && cross-env NODE_ENV=production node electron/app-builder.js",

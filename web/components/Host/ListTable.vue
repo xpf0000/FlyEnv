@@ -43,7 +43,7 @@
             placement="bottom-end"
             width="150"
           >
-            <ul v-poper-fix class="host-list-menu">
+            <ul class="host-list-menu">
               <li @click.stop="action(scope.row, scope.$index, 'open')">
                 <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ $t('base.open') }}</span>
@@ -340,30 +340,5 @@
         background: #282b3d;
       }
     }
-  }
-  .host-list-menu {
-    display: flex;
-    flex-direction: column;
-    background: #3f4358;
-    user-select: none;
-    > li {
-      display: flex;
-      align-items: center;
-      padding: 8px 15px;
-      cursor: pointer;
-      .el-dropdown {
-        color: #fff;
-      }
-      &:hover {
-        background: rgb(79, 82, 105);
-      }
-    }
-  }
-  .host-list-poper {
-    background: #32364a !important;
-    border: none !important;
-    color: #fff !important;
-    padding: 0 !important;
-    width: auto !important;
   }
 </style>

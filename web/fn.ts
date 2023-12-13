@@ -5,11 +5,15 @@ import type { AllAppSofts } from './store/app'
 import { VueExtend } from './VueExtend'
 import { onMounted, ref } from 'vue'
 
-export const waitTime = (time = 1500) => {
+export function random(m: number, n: number) {
+  return Math.floor(Math.random() * (m - n) + n)
+}
+
+export const waitTime = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(true)
-    }, time)
+    }, random(300, 1000))
   })
 }
 

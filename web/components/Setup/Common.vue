@@ -138,14 +138,6 @@
         return AppStore().config.setup.common.showItem
       }
     },
-    watch: {
-      showItem: {
-        handler() {
-          AppStore().saveConfig()
-        },
-        deep: true
-      }
-    },
     created: function () {},
     unmounted() {},
     methods: {}

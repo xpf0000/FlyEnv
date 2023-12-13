@@ -48,7 +48,7 @@ const serveConfig: UserConfig = {
 
 const buildConfig: UserConfig = {
   build: {
-    outDir: '../../dist/web',
+    outDir: '../dist/web',
     assetsDir: 'static',
     rollupOptions: {
       input: {

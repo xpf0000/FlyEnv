@@ -4,7 +4,7 @@
     :title="item?.user ? $t('base.edit') : $t('base.add')"
     width="600px"
     :destroy-on-close="true"
-    custom-class="host-edit new-project"
+    class="host-edit new-project"
     @closed="closedFn"
   >
     <template #default>
@@ -173,7 +173,7 @@
     if (!checkItem() || running?.value) {
       return
     }
-    if (form.value.dir) {
+    if (!form.value.dir) {
       ElMessage.error(I18nT('base.ftpDirNotExists'))
       errs.value.dir = true
       return

@@ -320,7 +320,7 @@
     return props.version?.flag === 'macports'
   })
   const isHomeBrew = computed(() => {
-    return props.version?.path?.includes(global?.Server?.BrewCellar ?? '-----')
+    return props.version?.path?.includes('Cellar')
   })
 
   const openDir = () => {}
@@ -704,6 +704,7 @@
             soPath: '/usr/local/Cellar/php/8.2.12_1/pecl/20220829/zmq.so'
           }
         ]
+        showTableData.value = ExtensionHomeBrew?.[versionNumber.value]
       } else {
         ExtensionMacPorts[versionNumber.value] = [
           {
@@ -1419,6 +1420,7 @@
             soPath: '/opt/local/lib/php81/extensions/no-debug-non-zts-20210902/zstd.so'
           }
         ]
+        showTableData.value = ExtensionMacPorts?.[versionNumber.value]
       }
       resolve(true)
     })
@@ -1501,15 +1503,6 @@
     taskStore.php.currentExtend = ''
     taskStore.php.extendAction = ''
   }
-
-  console.log(
-    'props.version: ',
-    props.version,
-    versionNumber.value,
-    isMacPorts.value,
-    isHomeBrew.value,
-    global.Server
-  )
 
   defineExpose({
     show,

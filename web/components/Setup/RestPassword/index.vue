@@ -32,7 +32,8 @@
     props: {},
     data() {
       return {
-        show: false
+        show: false,
+        password: ''
       }
     },
     computed: {},

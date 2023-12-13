@@ -48,9 +48,9 @@
         let vm = VueExtend(this, data)
         const intance = vm.mount(dom)
         intance.onClosed = () => {
+          vm.unmount()
           dom && dom.remove()
           dom = null
-          console.log('intance.onClosed !!!!!!')
         }
       })
     },
@@ -91,7 +91,6 @@
     methods: {
       close() {
         this.show = false
-        this.$destroy()
         this.onClosed()
       },
       onDrawerClosed() {

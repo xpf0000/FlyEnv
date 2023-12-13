@@ -30,21 +30,46 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { AsyncComponentSetup } from '../../fn'
-  import { ref, onMounted, onUnmounted } from 'vue'
+  import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+  import { AppHost, AppStore } from '../../store/app'
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
-  defineExpose({
-    show,
-    onSubmit,
-    onClosed
-  })
-
-  const conf = `127.0.0.1     localhost
-::1\t        localhost`
+  const appStore = AppStore()
+  const conf = ref('')
 
   const input = ref()
 
   let monacoInstance: editor.IStandaloneCodeEditor | null = null
+
+  const hostAlias = (item: AppHost) => {
+    let alias = item.alias
+      ? item.alias.split('\n').filter((n) => {
+          return n && n.length > 0
+        })
+      : []
+    return [item.name, ...alias].join(' ')
+  }
+
+  const initConf = () => {
+    const base = `127.0.0.1     localhost
+::1\t        localhost`
+    let host = ''
+    if (appStore?.config?.setup?.hosts?.write) {
+      const list = appStore.hosts
+      for (let item of list) {
+        let alias = hostAlias(item)
+        host += `127.0.0.1     ${alias}\n`
+      }
+    }
+    if (host) {
+      host = base + '\n#X-HOSTS-BEGIN#\n' + host + '#X-HOSTS-END#'
+    } else {
+      host = base
+    }
+    conf.value = host
+  }
+
+  initConf()
 
   const initEditor = () => {
     if (!monacoInstance) {
@@ -53,7 +78,7 @@
         return
       }
       monacoInstance = editor.create(dom, {
-        value: conf,
+        value: conf.value,
         language: 'ini',
         theme: 'vs-dark',
         scrollBeyondLastLine: true,
@@ -61,17 +86,25 @@
         automaticLayout: true
       })
     } else {
-      monacoInstance.setValue(conf)
+      monacoInstance.setValue(conf.value)
     }
   }
 
   onMounted(() => {
-    initEditor()
+    nextTick().then(() => {
+      initEditor()
+    })
   })
 
   onUnmounted(() => {
     monacoInstance && monacoInstance.dispose()
     monacoInstance = null
+  })
+
+  defineExpose({
+    show,
+    onSubmit,
+    onClosed
   })
 </script>
 
