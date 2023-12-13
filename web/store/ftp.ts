@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
-import IPC from '@/util/IPC'
-const IP = require('ip')
+import { waitTime } from '../fn'
 
 export interface FtpItem {
   user: string
@@ -20,36 +19,25 @@ interface State {
 
 const state: State = {
   running: false,
-  ip: '',
+  ip: '0.0.0.0',
   fetching: false,
-  allFtp: [],
-  port: 0
+  allFtp: [
+    {
+      id: '',
+      user: 'user',
+      pass: 'pass',
+      dir: '/Users/XXX/Desktop/FTP/xxx',
+      disabled: false,
+      mark: ''
+    }
+  ],
+  port: 21
 }
 
 export const FtpStore = defineStore('ftp', {
   state: (): State => state,
   getters: {},
   actions: {
-    getIP() {
-      this.ip = IP.address()
-    },
-    getPort() {
-      IPC.send('app-fork:pure-ftpd', 'getPort').then((key: string, res?: any) => {
-        IPC.off(key)
-        this.port = res?.data
-      })
-    },
-    getAllFtp() {
-      return new Promise((resolve) => {
-        IPC.send('app-fork:pure-ftpd', 'getAllFtp').then((key: string, res?: any) => {
-          IPC.off(key)
-          this.allFtp.splice(0)
-          const arr = res?.data ?? []
-          this.allFtp.push(...arr)
-          resolve(true)
-        })
-      })
-    },
     start() {
       return new Promise((resolve) => {
         if (!this.running) {
@@ -57,15 +45,10 @@ export const FtpStore = defineStore('ftp', {
           return
         }
         this.fetching = true
-        IPC.send('app-fork:ftp', 'startService').then((key: string, res?: any) => {
-          IPC.off(key)
+        waitTime().then(() => {
           this.fetching = false
-          this.running = res?.data === true
-          if (res?.code === 0) {
-            resolve(true)
-          } else {
-            resolve(res?.msg ?? new Error('Ftp start fail!'))
-          }
+          this.running = true
+          resolve(true)
         })
       })
     },
@@ -76,15 +59,10 @@ export const FtpStore = defineStore('ftp', {
           return
         }
         this.fetching = true
-        IPC.send('app-fork:ftp', 'stopService').then((key: string, res?: any) => {
-          IPC.off(key)
+        waitTime().then(() => {
           this.fetching = false
-          this.running = res?.data === true
-          if (res?.code === 0) {
-            resolve(true)
-          } else {
-            resolve(res?.msg ?? new Error('Ftp start fail!'))
-          }
+          this.running = false
+          resolve(true)
         })
       })
     }

@@ -2,122 +2,30 @@
   <router-view />
 </template>
 
-<script lang="ts">
-  import { defineComponent } from 'vue'
-  import TitleBar from './components/Native/TitleBar.vue'
-  import { EventBus } from './global'
-  import { passwordCheck } from '@/util/Brew'
-  import IPC from '@/util/IPC'
-  import installedVersions from '@/util/InstalledVersions'
-  import { AppSofts, AppStore } from '@/store/app'
-  import { BrewStore } from '@/store/brew'
+<script lang="ts" setup>
+  import { computed, watch } from 'vue'
+  import { AppStore } from './store/app'
+  import { BrewStore } from './store/brew'
+  import { I18nT } from '@shared/lang'
 
-  export default defineComponent({
-    name: 'App',
-    components: { TitleBar },
-    data() {
-      return {
-        inited: false
-      }
-    },
-    computed: {
-      lang() {
-        return AppStore().config.setup.lang
-      },
-      showItem() {
-        return AppStore().config.setup.common.showItem
-      }
-    },
-    watch: {
-      lang: {
-        handler(val) {
-          const body = document.body
-          body.className = `lang-${val}`
-        },
-        immediate: true
-      },
-      showItem: {
-        handler() {
-          this.onShowItemChange()
-        },
-        deep: true
-      }
-    },
-    created() {
-      EventBus.on('vue:need-password', this.checkPassword)
-      IPC.on('application:about').then(this.showAbout)
-      this.checkPassword()
-    },
-    unmounted() {
-      EventBus.off('vue:need-password', this.checkPassword)
-      IPC.off('application:about')
-    },
-    mounted() {
-      const brewStore = BrewStore()
-      brewStore.cardHeadTitle = this.$t('base.currentVersionLib')
-    },
-    methods: {
-      showItemLowcase() {
-        const showItem: any = this.showItem
-        const dict: { [key: string]: boolean } = {}
-        for (const k in showItem) {
-          let key = k.toLowerCase()
-          if (key === 'ftp') {
-            key = 'pure-ftpd'
-          }
-          dict[key] = showItem[k]
-        }
-        return dict
-      },
-      onShowItemChange() {
-        if (!this.inited) {
-          return
-        }
-        const dict: { [key: string]: boolean } = this.showItemLowcase()
-        const brewStore: any = BrewStore()
-        for (const k in dict) {
-          const brewSoft = brewStore?.[k]
-          if (brewSoft && dict[k] && !brewSoft?.installedInited) {
-            const flags = [k] as Array<keyof typeof AppSofts>
-            installedVersions.allInstalledVersions(flags)
-          }
-        }
-      },
-      showAbout() {
-        this.$baseDialog(import('./components/About/index.vue'))
-          .className('about-dialog')
-          .title(this.$t('base.about'))
-          .noFooter()
-          .show()
-      },
-      checkPassword() {
-        passwordCheck().then(() => {
-          const dict: { [key: string]: boolean } = this.showItemLowcase()
-          console.log('showItem dict: ', dict)
-          const flags: Array<keyof typeof AppSofts> = [
-            'php',
-            'nginx',
-            'mysql',
-            'mariadb',
-            'apache',
-            'memcached',
-            'redis',
-            'mongodb',
-            'pure-ftpd'
-          ].filter((f) => dict[f]) as Array<keyof typeof AppSofts>
-          if (flags.length === 0) {
-            AppStore().versionInited = true
-            this.inited = true
-            return
-          }
-          installedVersions.allInstalledVersions(flags).then(() => {
-            AppStore().versionInited = true
-            this.inited = true
-          })
-        })
-      }
-    }
+  const appStore = AppStore()
+  const lang = computed(() => {
+    return appStore.config.setup.lang
   })
+
+  watch(
+    lang,
+    (val) => {
+      const body = document.body
+      body.className = `lang-${val}`
+    },
+    {
+      immediate: true
+    }
+  )
+
+  const brewStore = BrewStore()
+  brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
 </script>
 
 <style lang="scss">

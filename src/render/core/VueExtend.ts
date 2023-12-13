@@ -10,13 +10,15 @@ import { AppStore } from '@/store/app'
 import { AppI18n } from '@shared/lang'
 import { createPinia } from 'pinia'
 
+const baseStore = createPinia()
+
 export function VueExtend(App: any, data?: any) {
   const app = createApp(App, data)
   app.use(router)
   app.use(PoperFix)
   app.use(SVGIcons, 'ybIcon')
   app.use(ElementPlus, { size: 'default' })
-  app.use(createPinia())
+  app.use(baseStore)
   const appStore = AppStore()
   app.use(AppI18n(appStore?.config?.setup?.lang))
   app.mixin({

@@ -1,7 +1,4 @@
 import { defineStore } from 'pinia'
-import IPC from '@/util/IPC'
-import { reactive } from 'vue'
-const IP = require('ip')
 
 export interface DNSLogItem {
   host: string
@@ -18,23 +15,32 @@ interface State {
 
 const state: State = {
   running: false,
-  ip: '',
+  ip: '0.0.0.0',
   fetching: false,
-  log: []
+  log: [
+    {
+      host: 'www.google.com',
+      ip: '0.0.0.0',
+      ttl: 50
+    },
+    {
+      host: 'www.github.com',
+      ip: '0.0.0.0',
+      ttl: 60
+    },
+    {
+      host: 'www.macphpstudy.com',
+      ip: '0.0.0.0',
+      ttl: 55
+    }
+  ]
 }
 
 export const DnsStore = defineStore('dns', {
   state: (): State => state,
   getters: {},
   actions: {
-    getIP() {
-      this.ip = IP.address()
-    },
-    init() {
-      IPC.on('App_DNS_Log').then((key: string, res: DNSLogItem) => {
-        this.log.unshift(reactive(res))
-        this.log.splice(1000)
-      })
-    }
+    getIP() {},
+    init() {}
   }
 })

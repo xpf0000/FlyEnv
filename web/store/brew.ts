@@ -1,5 +1,14 @@
 import { defineStore } from 'pinia'
 import { Installed } from '../config/installed'
+import { Ftp } from '../config/ftp'
+import { Php } from '../config/php'
+import { Nginx } from '../config/nginx'
+import { Apache } from '../config/apache'
+import { Mysql } from '../config/mysql'
+import { Mariadb } from '../config/mariadb'
+import { Memcached } from '../config/memcached'
+import { Redis } from '../config/redis'
+import { Mongodb } from '../config/mongodb'
 
 export interface SoftInstalled {
   version: string | null
@@ -50,57 +59,57 @@ const state: State = {
   LibUse: {},
   'pure-ftpd': {
     getListing: false,
-    installedInited: false,
-    installed: Installed["pure-ftpd"],
-    list: {}
+    installedInited: true,
+    installed: Installed['pure-ftpd'],
+    list: Ftp
   },
   nginx: {
     getListing: false,
-    installedInited: false,
+    installedInited: true,
     installed: Installed.nginx,
-    list: {}
+    list: Nginx
   },
   apache: {
     getListing: false,
-    installedInited: false,
+    installedInited: true,
     installed: Installed.apache,
-    list: {}
+    list: Apache
   },
   php: {
     getListing: false,
-    installedInited: false,
+    installedInited: true,
     installed: Installed.php,
-    list: {}
+    list: Php
   },
   memcached: {
     getListing: false,
-    installedInited: false,
+    installedInited: true,
     installed: Installed.memcached,
-    list: {}
+    list: Memcached
   },
   mysql: {
     getListing: false,
-    installedInited: false,
+    installedInited: true,
     installed: Installed.mysql,
-    list: {}
+    list: Mysql
   },
   mariadb: {
     getListing: false,
-    installedInited: false,
+    installedInited: true,
     installed: Installed.mariadb,
-    list: {}
+    list: Mariadb
   },
   redis: {
     getListing: false,
-    installedInited: false,
+    installedInited: true,
     installed: Installed.redis,
-    list: {}
+    list: Redis
   },
   mongodb: {
     getListing: false,
-    installedInited: false,
+    installedInited: true,
     installed: Installed.mongodb,
-    list: {}
+    list: Mongodb
   }
 }
 

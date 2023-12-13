@@ -48,7 +48,7 @@ const state: State = {
   mariadb: { log: [] },
   mongodb: { log: [] },
   nginx: { log: [] },
-  node: { NVM_DIR: '', btnTxt: '', getVersioning: false, isRunning: false, versions: [] },
+  node: { NVM_DIR: 'xxxxxx', btnTxt: '', getVersioning: false, isRunning: false, versions: [] },
   php: {
     currentExtend: '',
     extendAction: '',

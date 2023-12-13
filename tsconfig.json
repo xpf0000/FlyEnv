@@ -28,5 +28,18 @@
       ]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.jsx", "src/**/*.js"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/**/*.jsx",
+    "src/**/*.js",
+    "web/**/*.ts",
+    "web/**/*.d.ts",
+    "web/**/*.tsx",
+    "web/**/*.vue",
+    "web/**/*.jsx",
+    "web/**/*.js"
+  ]
 }

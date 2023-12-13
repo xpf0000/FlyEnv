@@ -56,7 +56,7 @@
     watch: {},
     created: function () {
       if (!this.version) {
-        this.current_tab = 3
+        this.current_tab = 2
       }
     }
   })

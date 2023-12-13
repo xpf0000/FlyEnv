@@ -1,0 +1,89 @@
+<?php
+// YAK Pro - Php Obfuscator: Config File
+
+$conf->t_ignore_pre_defined_classes     = 'all';        // 'all' (default value) , 'none',  or array of pre-defined classes that you use in your software:
+                                                        //      ex: array('Exception', 'PDO', 'PDOStatement', 'PDOException');
+                                                        // As instantiation is done at runtime, it is impossible to statically determinate when a method call is detected, on which class the object belong.
+                                                        // so, all method names that exists in a pre_defined_class to ignore are ignored within every classes.
+                                                        // if you have some method names in your classes that have the same name that a predefine class method, it will not be obfuscated.
+                                                        // you can limit the number of method names to ignore by providing an array of the pre-defined classes you really use in your software!
+                                                        // same behaviour for properties...
+
+$conf->t_ignore_constants               = null;         // array where values are names to ignore.
+$conf->t_ignore_variables               = null;         // array where values are names to ignore.
+$conf->t_ignore_functions               = null;         // array where values are names to ignore.
+$conf->t_ignore_class_constants         = null;         // array where values are names to ignore.
+$conf->t_ignore_methods                 = null;         // array where values are names to ignore.
+$conf->t_ignore_properties              = null;         // array where values are names to ignore.
+$conf->t_ignore_classes                 = null;         // array where values are names to ignore.
+$conf->t_ignore_interfaces              = null;         // array where values are names to ignore.
+$conf->t_ignore_traits                  = null;         // array where values are names to ignore.
+$conf->t_ignore_namespaces              = null;         // array where values are names to ignore.
+$conf->t_ignore_labels                  = null;         // array where values are names to ignore.
+
+$conf->t_ignore_constants_prefix        = null;         // array where values are prefix of names to ignore.
+$conf->t_ignore_variables_prefix        = null;         // array where values are prefix of names to ignore.
+$conf->t_ignore_functions_prefix        = null;         // array where values are prefix of names to ignore.
+
+$conf->t_ignore_class_constants_prefix  = null;         // array where values are prefix of names to ignore.
+$conf->t_ignore_properties_prefix       = null;         // array where values are prefix of names to ignore.
+$conf->t_ignore_methods_prefix          = null;         // array where values are prefix of names to ignore.
+
+$conf->t_ignore_classes_prefix          = null;         // array where values are prefix of names to ignore.
+$conf->t_ignore_interfaces_prefix       = null;         // array where values are prefix of names to ignore.
+$conf->t_ignore_traits_prefix           = null;         // array where values are prefix of names to ignore.
+$conf->t_ignore_namespaces_prefix       = null;         // array where values are prefix of names to ignore.
+$conf->t_ignore_labels_prefix           = null;         // array where values are prefix of names to ignore.
+
+$conf->parser_mode                      = 'PREFER_PHP5';// allowed modes are 'PREFER_PHP7', 'PREFER_PHP5', 'ONLY_PHP7', 'ONLY_PHP5'
+                                                        // see PHP-Parser documentation for meaning...
+
+$conf->scramble_mode                    = 'identifier'; // allowed modes are 'identifier', 'hexa', 'numeric'
+$conf->scramble_length                  = 5;            // min length of scrambled names (min = 2; max = 16 for identifier, 32 for hexa and numeric)
+
+$conf->t_obfuscate_php_extension        = array('php'); // array where values are extensions of php files to be obfuscated.
+
+$conf->obfuscate_constant_name          = true;         // self explanatory
+$conf->obfuscate_variable_name          = true;         // self explanatory
+$conf->obfuscate_function_name          = true;         // self explanatory
+$conf->obfuscate_class_name             = true;         // self explanatory
+$conf->obfuscate_interface_name         = true;         // self explanatory
+$conf->obfuscate_trait_name             = true;         // self explanatory
+$conf->obfuscate_class_constant_name    = true;         // self explanatory
+$conf->obfuscate_property_name          = true;         // self explanatory
+$conf->obfuscate_method_name            = true;         // self explanatory
+$conf->obfuscate_namespace_name         = true;         // self explanatory
+$conf->obfuscate_label_name             = true;         // label: , goto label;  obfuscation
+$conf->obfuscate_if_statement           = true;         // obfuscation of  if else elseif statements
+$conf->obfuscate_loop_statement         = true;         // obfuscation of  for while do while statements
+$conf->obfuscate_string_literal         = true;         // pseudo-obfuscation of  string literals
+
+$conf->shuffle_stmts                    = true;         // shuffle chunks of statements!  disable this obfuscation (or minimize the number of chunks) if performance is important for you!
+$conf->shuffle_stmts_min_chunk_size     =    1;         // minimum number of statements in a chunk! the min value is 1, that gives you the maximum of obfuscation ... and the minimum of performance...
+$conf->shuffle_stmts_chunk_mode         = 'fixed';      // 'fixed' or 'ratio' in fixed mode, the chunk_size is always equal to the min chunk size!
+$conf->shuffle_stmts_chunk_ratio        =   20;         // ratio > 1  100/ratio is the percentage of chunks in a statements sequence  ratio = 2 means 50%  ratio = 100 mins 1% ...
+                                                        // if you increase the number of chunks, you increase also the obfuscation level ... and you increase also the performance overhead!
+
+$conf->strip_indentation                = true;         // all your obfuscated code will be generated on a single line
+$conf->abort_on_error                   = true;         // self explanatory
+$conf->confirm                          = true;         // rfu : will answer Y on confirmation request (reserved for future use ... or not...)
+$conf->silent                           = false;        // display or not Information level messages.
+
+
+$conf->source_directory                 = null;         // self explanatory
+$conf->target_directory                 = null;         // self explanatory
+
+$conf->t_keep                           = null;         // array of directory or file pathnames, to keep 'as is' (i.e. not obfuscate.)
+$conf->t_skip                           = null;         // array of directory or file pathnames, to skip when exploring source tree structure ... they will not be on target!
+$conf->allow_and_overwrite_empty_files  = true;         // allow empty files to be kept as is
+
+$conf->max_nested_directory             =   99;
+$conf->follow_symlinks                  = false;        // WARNING: setting it to true will copy the directory instead of replicating the link...
+                                                        // WARNING: if there is a loop of links,  $conf->max_nested_directory can be created...
+
+$conf->user_comment                     = null;         // user comment to insert inside each obfuscated file
+
+$conf->extract_comment_from_line        = null;         // when both 2 are set, each obfuscated file will contain an extract of the corresponding source file,
+$conf->extract_comment_to_line          = null;         // starting from extract_comment_from_line number, and ending at extract_comment_to_line line number.
+
+?>
