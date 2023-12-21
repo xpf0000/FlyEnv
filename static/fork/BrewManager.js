@@ -112,7 +112,7 @@ class BrewManager extends BaseManager {
           break
         case 'redis':
           all.push('redis')
-          cammand = 'brew search --formula "/redis@[\\d\\.]+$/"'
+          cammand = 'brew search --formula "/^redis@[\\d\\.]+$/"'
           break
         case 'mongodb':
           cammand =

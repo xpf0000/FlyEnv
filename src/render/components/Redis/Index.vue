@@ -11,9 +11,9 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="redis"></Service>
-      <mo-redis-config v-if="current_tab === 1"></mo-redis-config>
+      <Config v-if="current_tab === 1"></Config>
       <Manager v-else-if="current_tab === 2" type-flag="redis"></Manager>
-      <mo-redis-logs v-if="current_tab === 3"></mo-redis-logs>
+      <Logs v-if="current_tab === 3"></Logs>
     </div>
   </div>
 </template>
@@ -29,11 +29,10 @@
   const current_tab = ref(0)
 
   export default defineComponent({
-    name: 'MoRedisPanel',
     components: {
-      [Config.name]: Config,
+      Config,
       Service,
-      [Logs.name]: Logs,
+      Logs,
       Manager
     },
     props: {},
@@ -56,7 +55,7 @@
     watch: {},
     created: function () {
       if (!this.version) {
-        this.current_tab = 3
+        this.current_tab = 2
       }
     }
   })

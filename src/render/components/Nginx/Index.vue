@@ -11,10 +11,10 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="nginx"></Service>
-      <mo-nginx-config v-if="current_tab === 1"></mo-nginx-config>
+      <Config v-if="current_tab === 1"></Config>
       <Manager v-else-if="current_tab === 2" type-flag="nginx"></Manager>
-      <mo-nginx-logs v-if="current_tab === 3" type="error"></mo-nginx-logs>
-      <mo-nginx-logs v-if="current_tab === 4" type="access"></mo-nginx-logs>
+      <Logs v-if="current_tab === 3" type="error"></Logs>
+      <Logs v-if="current_tab === 4" type="access"></Logs>
     </div>
   </div>
 </template>
@@ -30,11 +30,10 @@
   const current_tab = ref(0)
 
   export default defineComponent({
-    name: 'MoNginxPanel',
     components: {
-      [Config.name]: Config,
+      Config,
       Service,
-      [Logs.name]: Logs,
+      Logs,
       Manager
     },
     props: {},
@@ -58,7 +57,7 @@
     watch: {},
     created: function () {
       if (!this.version) {
-        this.current_tab = 3
+        this.current_tab = 2
       }
     },
     methods: {}

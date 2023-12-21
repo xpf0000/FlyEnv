@@ -12,7 +12,11 @@
     <div class="main-block">
       <Service v-if="current_tab === 0"></Service>
       <Config v-if="current_tab === 1"></Config>
-      <Versions v-if="current_tab === 2" type-flag="pure-ftpd"></Versions>
+      <Versions
+        v-if="current_tab === 2"
+        class="ftp-version-manager"
+        type-flag="pure-ftpd"
+      ></Versions>
       <Manager v-else-if="current_tab === 3" type-flag="pure-ftpd"></Manager>
     </div>
   </div>
@@ -99,6 +103,18 @@
       flex: 1;
       width: 100%;
       overflow: hidden;
+
+      .ftp-version-manager {
+        padding: 40px 0 0 40px;
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+
+        .left-title {
+          width: 110px;
+          margin-right: 5px;
+        }
+      }
     }
   }
 </style>

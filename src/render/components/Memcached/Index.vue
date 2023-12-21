@@ -12,7 +12,7 @@
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="memcached"></Service>
       <Manager v-else-if="current_tab === 1" type-flag="memcached"></Manager>
-      <mo-memcached-logs v-if="current_tab === 2"></mo-memcached-logs>
+      <Logs v-if="current_tab === 2"></Logs>
     </div>
   </div>
 </template>
@@ -29,7 +29,7 @@
     name: 'MoMemcachedPanel',
     components: {
       Service,
-      [Logs.name]: Logs,
+      Logs,
       Manager
     },
     props: {},
@@ -47,7 +47,7 @@
     watch: {},
     created: function () {
       if (!this.version) {
-        this.current_tab = 2
+        this.current_tab = 1
       }
     },
     methods: {}

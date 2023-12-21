@@ -9,10 +9,10 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="apache"></Service>
-      <mo-apache-config v-else-if="current_tab === 1"></mo-apache-config>
+      <Config v-else-if="current_tab === 1"></Config>
       <Manager v-else-if="current_tab === 2" type-flag="apache"></Manager>
-      <mo-apache-logs v-else-if="current_tab === 3" type="error_log"></mo-apache-logs>
-      <mo-apache-logs v-else-if="current_tab === 4" type="access_log"></mo-apache-logs>
+      <Logs v-else-if="current_tab === 3" type="error_log"></Logs>
+      <Logs v-else-if="current_tab === 4" type="access_log"></Logs>
     </div>
   </div>
 </template>
@@ -28,11 +28,10 @@
   const current_tab = ref(0)
 
   export default defineComponent({
-    name: 'MoApachePanel',
     components: {
-      [Config.name]: Config,
+      Config,
       Service,
-      [Logs.name]: Logs,
+      Logs,
       Manager
     },
     props: {},
