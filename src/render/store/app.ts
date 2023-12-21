@@ -3,6 +3,7 @@ import { reactive } from 'vue'
 import IPC from '@/util/IPC'
 import Base from '@/core/Base'
 import { I18nT } from '@shared/lang'
+import EditorBaseConfig, { EditorConfig } from '@/store/module/EditorConfig'
 const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
@@ -111,6 +112,7 @@ interface State {
         dirs: Array<string>
       }
       autoCheck: boolean
+      editorConfig: EditorConfig
     }
   }
   httpServe: Array<string>
@@ -202,7 +204,8 @@ const state: State = {
         proxy: ''
       },
       lang: '',
-      autoCheck: true
+      autoCheck: true,
+      editorConfig: EditorBaseConfig
     }
   },
   httpServe: [],
@@ -211,7 +214,11 @@ const state: State = {
 
 export const AppStore = defineStore('app', {
   state: (): State => state,
-  getters: {},
+  getters: {
+    editorConfig(): EditorConfig {
+      return this.config.setup.editorConfig
+    }
+  },
   actions: {
     UPDATE_SERVER_CURRENT({ flag, data }: { flag: AllAppSofts; data: AppServerCurrent }) {
       const server = JSON.parse(JSON.stringify(this.config.server))
@@ -226,6 +233,9 @@ export const AppStore = defineStore('app', {
     },
     INIT_CONFIG(obj: any) {
       this.config = reactive(obj)
+      const editorConfig = this.config.setup.editorConfig
+      EditorBaseConfig.init(editorConfig)
+      this.config.setup.editorConfig = EditorBaseConfig
     },
     INIT_HTTP_SERVE(obj: any) {
       this.httpServe = reactive(obj)

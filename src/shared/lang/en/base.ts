@@ -141,5 +141,6 @@ export default {
   hostsWriteTips:
     'Write or Remove host to /etc/hosts, the written content will be wrapped in custom tags, and will not affect other content',
   brewInstallLang: '-en',
-  ftpDirNotExists: `Folder doesn't exist, please select again`
+  ftpDirNotExists: `Folder doesn't exist, please select again`,
+  editorSetup: 'Editor Setup'
 }

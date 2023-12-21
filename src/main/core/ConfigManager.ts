@@ -86,6 +86,11 @@ interface ConfigOptions {
       proxy: string
     }
     autoCheck: boolean
+    editorConfig: {
+      theme: 'vs-dark' | 'vs-light' | 'hc-dark' | 'hc-light'
+      fontSize: number
+      lineHeight: number
+    }
   }
   tools: { [k: string]: any }
   httpServe: Array<string>
@@ -184,7 +189,12 @@ export default class ConfigManager {
             fastProxy: '',
             proxy: ''
           },
-          autoCheck: true
+          autoCheck: true,
+          editorConfig: {
+            theme: 'vs-dark',
+            fontSize: 16,
+            lineHeight: 2.0
+          }
         },
         tools: {},
         httpServe: []

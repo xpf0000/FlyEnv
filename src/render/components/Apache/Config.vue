@@ -157,14 +157,17 @@
           if (!input || !input?.style) {
             return
           }
+          const editorConfig = AppStore().editorConfig
           this.monacoInstance = editor.create(input, {
             value: this.config,
             language: 'ini',
-            theme: 'vs-dark',
             readOnly: this.disabled,
             scrollBeyondLastLine: true,
             overviewRulerBorder: true,
-            automaticLayout: true
+            automaticLayout: true,
+            theme: editorConfig.theme,
+            fontSize: editorConfig.fontSize,
+            lineHeight: editorConfig.lineHeight
           })
           this.monacoInstance.addAction({
             id: 'save',

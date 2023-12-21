@@ -17,5 +17,8 @@ export default {
   ftpTableHeadUser: '用户名',
   ftpTableHeadPass: '密码',
   ftpTableHeadDir: '根目录',
-  ftpTableHeadSetup: '操作'
+  ftpTableHeadSetup: '操作',
+  theme: '主题',
+  fontSize: '字体大小',
+  lineHeight: '行高'
 }

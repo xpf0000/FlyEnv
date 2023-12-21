@@ -18,5 +18,8 @@ export default {
   ftpTableHeadUser: 'Username',
   ftpTableHeadPass: 'Password',
   ftpTableHeadDir: 'Root Dir',
-  ftpTableHeadSetup: 'Setup'
+  ftpTableHeadSetup: 'Setup',
+  theme: 'Theme',
+  fontSize: 'Font Size',
+  lineHeight: 'Line Height'
 }
