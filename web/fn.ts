@@ -4,6 +4,7 @@ import { I18nT } from '@shared/lang'
 import type { AllAppSofts } from './store/app'
 import { VueExtend } from './VueExtend'
 import { onMounted, ref } from 'vue'
+import { AppStore } from '@/store/app'
 
 export function random(m: number, n: number) {
   return Math.floor(Math.random() * (m - n) + n)
@@ -136,4 +137,20 @@ export function uuid(length = 32) {
     str += num.charAt(Math.floor(Math.random() * num.length))
   }
   return str
+}
+
+export const EditorConfigMake = (value: string, readOnly: boolean, wordWrap: 'off' | 'on') => {
+  const editorConfig = AppStore().editorConfig
+  return {
+    value,
+    language: 'ini',
+    readOnly,
+    scrollBeyondLastLine: false,
+    overviewRulerBorder: true,
+    automaticLayout: true,
+    wordWrap,
+    theme: editorConfig.theme,
+    fontSize: editorConfig.fontSize,
+    lineHeight: editorConfig.lineHeight
+  }
 }

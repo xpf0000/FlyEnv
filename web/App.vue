@@ -222,7 +222,7 @@
           border: 2px solid #01cc74;
         }
         &.nginx-rewrite {
-          height: 140px;
+          height: 200px;
           margin-top: 20px;
         }
         &.error {

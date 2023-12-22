@@ -44,6 +44,7 @@
   import { nextTick, defineComponent } from 'vue'
   import { VueExtend } from '../../VueExtend'
   import Conf from '../../config/php.conf.txt?raw'
+  import { EditorConfigMake } from '../../fn'
 
   const IniFiles: { [key: string]: any } = {}
 
@@ -143,14 +144,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, {
-            value: this.config,
-            language: 'ini',
-            theme: 'vs-dark',
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true
-          })
+          this.monacoInstance = editor.create(input, EditorConfigMake(this.config, false, 'off'))
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

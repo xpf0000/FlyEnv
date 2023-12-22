@@ -2,9 +2,9 @@
   <div class="apache-config">
     <div ref="input" class="block"></div>
     <div class="tool">
-      <el-button class="shrink0" @click="logDo('open')">{{ $t('base.open') }}</el-button>
-      <el-button class="shrink0" @click="logDo('refresh')">{{ $t('base.refresh') }}</el-button>
-      <el-button class="shrink0" @click="logDo('clean')">{{ $t('base.clean') }}</el-button>
+      <el-button class="shrink0" @click="logDo">{{ $t('base.open') }}</el-button>
+      <el-button class="shrink0" @click="logDo">{{ $t('base.refresh') }}</el-button>
+      <el-button class="shrink0" @click="logDo">{{ $t('base.clean') }}</el-button>
     </div>
   </div>
 </template>
@@ -14,6 +14,7 @@
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { EditorConfigMake } from '../../fn'
 
   export default defineComponent({
     mounted() {
@@ -25,24 +26,10 @@
     },
     methods: {
       initEditor() {
-        if (!this.monacoInstance) {
-          const input: HTMLElement = this?.$refs?.input as HTMLElement
-          if (!input || !input?.style) {
-            return
-          }
-          this.monacoInstance = editor.create(input, {
-            value: '',
-            language: 'ini',
-            theme: 'vs-dark',
-            readOnly: true,
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true,
-            wordWrap: 'on'
-          })
-        } else {
-          this.monacoInstance.setValue(this.log)
-        }
+        this.monacoInstance = editor.create(
+          this?.$refs?.input as HTMLElement,
+          EditorConfigMake('', true, 'on')
+        )
       },
       logDo() {}
     }

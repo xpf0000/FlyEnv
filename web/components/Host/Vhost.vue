@@ -33,7 +33,7 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-  import { AsyncComponentSetup } from '../../fn'
+  import { AsyncComponentSetup, EditorConfigMake } from '../../fn'
   import VhostApache from '../../config/vhost.apache.txt?raw'
   import VhostNginx from '../../config/vhost.nginx.txt?raw'
 
@@ -63,14 +63,7 @@
       if (!input?.value?.style) {
         return
       }
-      monacoInstance = editor.create(input.value, {
-        value: config.value,
-        language: 'ini',
-        theme: 'vs-dark',
-        scrollBeyondLastLine: true,
-        overviewRulerBorder: true,
-        automaticLayout: true
-      })
+      monacoInstance = editor.create(input.value, EditorConfigMake(config.value, false, 'off'))
       monacoInstance.addAction({
         id: 'save',
         label: 'save',

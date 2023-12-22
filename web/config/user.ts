@@ -150,7 +150,12 @@ export const User = {
     mariadb: {
       dirs: []
     },
-    autoCheck: true
+    autoCheck: true,
+    editorConfig: {
+      theme: 'vs-dark',
+      fontSize: 16,
+      lineHeight: 2
+    }
   },
   tools: {
     siteSucker: {

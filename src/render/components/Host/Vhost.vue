@@ -37,6 +37,8 @@
   import Base from '@/core/Base'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AppStore } from '@/store/app'
+  import { EditorConfigMake } from '@/util/Editor'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
@@ -66,20 +68,12 @@
       initEditor()
     })
   }
-
   const initEditor = () => {
     if (!monacoInstance) {
       if (!input?.value?.style) {
         return
       }
-      monacoInstance = editor.create(input.value, {
-        value: config.value,
-        language: 'ini',
-        theme: 'vs-dark',
-        scrollBeyondLastLine: true,
-        overviewRulerBorder: true,
-        automaticLayout: true
-      })
+      monacoInstance = editor.create(input.value, EditorConfigMake(config.value, false, 'off'))
       monacoInstance.addAction({
         id: 'save',
         label: 'save',

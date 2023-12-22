@@ -23,6 +23,7 @@ export interface AppSoftInstalledItem {
 }
 
 interface State {
+  postpresql: AppSoftInstalledItem
   nginx: AppSoftInstalledItem
   apache: AppSoftInstalledItem
   memcached: AppSoftInstalledItem
@@ -48,6 +49,12 @@ const state: State = {
   log: [],
   LibUse: {},
   'pure-ftpd': {
+    getListing: false,
+    installedInited: false,
+    installed: [],
+    list: {}
+  },
+  postpresql: {
     getListing: false,
     installedInited: false,
     installed: [],

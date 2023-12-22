@@ -26,6 +26,7 @@
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick, defineComponent } from 'vue'
   import { AppStore } from '@/store/app'
+  import { EditorConfigMake } from '@/util/Editor'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, statSync } = require('fs')
@@ -154,15 +155,10 @@ datadir=${dataDir}`
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, {
-            value: this.config,
-            language: 'ini',
-            theme: 'vs-dark',
-            readOnly: !this.currentVersion,
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true
-          })
+          this.monacoInstance = editor.create(
+            input,
+            EditorConfigMake(this.config, !this.currentVersion, 'off')
+          )
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

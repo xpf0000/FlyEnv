@@ -21,6 +21,7 @@
   import { nextTick, defineComponent } from 'vue'
   import { md5 } from '@/util/Index'
   import { AppStore } from '@/store/app'
+  import { EditorConfigMake } from '@/util/Editor'
 
   const { dialog } = require('@electron/remote')
   const { shell } = require('@electron/remote')
@@ -157,18 +158,10 @@
           if (!input || !input?.style) {
             return
           }
-          const editorConfig = AppStore().editorConfig
-          this.monacoInstance = editor.create(input, {
-            value: this.config,
-            language: 'ini',
-            readOnly: this.disabled,
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true,
-            theme: editorConfig.theme,
-            fontSize: editorConfig.fontSize,
-            lineHeight: editorConfig.lineHeight
-          })
+          this.monacoInstance = editor.create(
+            input,
+            EditorConfigMake(this.config, this.disabled, 'off')
+          )
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

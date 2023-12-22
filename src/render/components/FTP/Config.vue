@@ -27,6 +27,7 @@
   import { BrewStore } from '@/store/brew'
   import { startService } from '@/util/Service'
   import { FtpStore } from '@/store/ftp'
+  import { EditorConfigMake } from '@/util/Editor'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, statSync } = require('fs')
@@ -103,14 +104,7 @@
       if (!dom || !dom?.style) {
         return
       }
-      monacoInstance = editor.create(dom, {
-        value: config.value,
-        language: 'ini',
-        theme: 'vs-dark',
-        scrollBeyondLastLine: true,
-        overviewRulerBorder: true,
-        automaticLayout: true
-      })
+      monacoInstance = editor.create(dom, EditorConfigMake(config.value, false, 'off'))
       monacoInstance.addAction({
         id: 'save',
         label: 'save',

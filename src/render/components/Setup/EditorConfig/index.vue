@@ -11,10 +11,10 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="$t('util.fontSize')">
-          <el-input type="number" v-model.number="editorConfig.fontSize"></el-input>
+          <el-input v-model.number="editorConfig.fontSize" type="number"></el-input>
         </el-form-item>
         <el-form-item :label="$t('util.lineHeight')">
-          <el-input type="number" v-model.number="editorConfig.lineHeight"></el-input>
+          <el-input v-model.number="editorConfig.lineHeight" type="number"></el-input>
         </el-form-item>
       </el-form>
     </div>
@@ -24,8 +24,8 @@
 
 <script lang="ts" setup>
   import { AppStore } from '@/store/app'
-  import { computed, onMounted, onUnmounted, ref } from 'vue'
-  import { editor } from 'monaco-editor'
+  import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { EditorConfigMap } from '@/components/Setup/EditorConfig/store'
@@ -47,7 +47,7 @@
     monacoInstance = editor.create(wapper.value, {
       value: EditorConfigMap.text,
       language: 'ini',
-      scrollBeyondLastLine: true,
+      scrollBeyondLastLine: false,
       overviewRulerBorder: true,
       automaticLayout: true,
       theme: editorConfig.value.theme,
@@ -71,6 +71,21 @@
     monacoInstance?.dispose()
     monacoInstance = null
   })
+
+  watch(
+    editorConfig,
+    () => {
+      monacoInstance?.updateOptions({
+        theme: editorConfig.value.theme,
+        fontSize: editorConfig.value.fontSize,
+        lineHeight: editorConfig.value.lineHeight
+      })
+      appStore.saveConfig()
+    },
+    {
+      deep: true
+    }
+  )
 </script>
 
 <style lang="scss">

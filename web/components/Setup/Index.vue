@@ -12,6 +12,7 @@
     <div class="main-block">
       <Common v-if="current_tab === 0"></Common>
       <CustomDir v-if="current_tab === 1"></CustomDir>
+      <EditorConfig v-if="current_tab === 2"></EditorConfig>
     </div>
   </div>
 </template>
@@ -19,17 +20,19 @@
 <script>
   import Common from './Common.vue'
   import CustomDir from './CustomDir/index.vue'
+  import EditorConfig from './EditorConfig/index.vue'
 
   export default {
     components: {
       Common,
-      CustomDir
+      CustomDir,
+      EditorConfig
     },
     props: {},
     data() {
       return {
         current_tab: 0,
-        tabs: ['setupBase', 'CustomVersionDir']
+        tabs: ['setupBase', 'CustomVersionDir', 'editorSetup']
       }
     },
     computed: {},

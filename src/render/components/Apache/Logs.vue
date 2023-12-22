@@ -23,6 +23,7 @@
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { EditorConfigMake } from '@/util/Editor'
 
   const { shell } = require('@electron/remote')
   const { exec } = require('child-process-promise')
@@ -78,16 +79,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, {
-            value: this.log,
-            language: 'ini',
-            theme: 'vs-dark',
-            readOnly: true,
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true,
-            wordWrap: 'on'
-          })
+          this.monacoInstance = editor.create(input, EditorConfigMake(this.log, true, 'on'))
         } else {
           this.monacoInstance.setValue(this.log)
         }

@@ -22,6 +22,7 @@
   import { nextTick } from 'vue'
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
+  import { EditorConfigMake } from '@/util/Editor'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, statSync } = require('fs')
@@ -171,14 +172,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, {
-            value: this.config,
-            language: 'ini',
-            theme: 'vs-dark',
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true
-          })
+          this.monacoInstance = editor.create(input, EditorConfigMake(this.config, false, 'off'))
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

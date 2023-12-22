@@ -43,7 +43,7 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { I18nT } from '../../../src/shared/lang/index'
-  import { AsyncComponentSetup } from '../../fn'
+  import { AsyncComponentSetup, EditorConfigMake } from '../../fn'
   import { ElMessage } from 'element-plus'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
@@ -65,16 +65,7 @@
       if (!inputDom || !inputDom?.style) {
         return
       }
-      monacoInstance = editor.create(inputDom, {
-        value: log.value,
-        language: 'ini',
-        theme: 'vs-dark',
-        readOnly: true,
-        scrollBeyondLastLine: true,
-        overviewRulerBorder: true,
-        automaticLayout: true,
-        wordWrap: 'on'
-      })
+      monacoInstance = editor.create(inputDom, EditorConfigMake(log.value, true, 'on'))
     } else {
       monacoInstance.setValue(log.value)
     }

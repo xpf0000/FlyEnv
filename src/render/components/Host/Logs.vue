@@ -49,6 +49,7 @@
   import { I18nT } from '@shared/lang'
   import Base from '@/core/Base'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { EditorConfigMake } from '@/util/Editor'
 
   const { existsSync } = require('fs')
   const fsWatch = require('fs').watch
@@ -80,16 +81,7 @@
       if (!inputDom || !inputDom?.style) {
         return
       }
-      monacoInstance = editor.create(inputDom, {
-        value: log.value,
-        language: 'ini',
-        theme: 'vs-dark',
-        readOnly: true,
-        scrollBeyondLastLine: true,
-        overviewRulerBorder: true,
-        automaticLayout: true,
-        wordWrap: 'on'
-      })
+      monacoInstance = editor.create(inputDom, EditorConfigMake(log.value, true, 'on'))
     } else {
       monacoInstance.setValue(log.value)
     }

@@ -28,6 +28,7 @@
   import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution.js'
   import { VueExtend } from '../../../VueExtend'
   import { nextTick, defineComponent } from 'vue'
+  import { EditorConfigMake } from '../../../fn'
 
   export default defineComponent({
     show(data: any) {
@@ -75,16 +76,9 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, {
-            value: this.content,
-            language: 'javascript',
-            theme: 'vs-dark',
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true,
-            readOnly: true,
-            wordWrap: 'on'
-          })
+          const editorConfig = EditorConfigMake(this.content, true, 'on')
+          editorConfig.language = 'javascript'
+          this.monacoInstance = editor.create(input, editorConfig)
         } else {
           this.monacoInstance.setValue(this.content)
         }

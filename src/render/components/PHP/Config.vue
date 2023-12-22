@@ -47,6 +47,7 @@
   import { nextTick, defineComponent } from 'vue'
   import { VueExtend } from '@/core/VueExtend'
   import type { SoftInstalled } from '@/store/brew'
+  import { EditorConfigMake } from '@/util/Editor'
 
   const { existsSync, statSync, unlink } = require('fs')
   const { join } = require('path')
@@ -241,14 +242,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, {
-            value: this.config,
-            language: 'ini',
-            theme: 'vs-dark',
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true
-          })
+          this.monacoInstance = editor.create(input, EditorConfigMake(this.config, false, 'off'))
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

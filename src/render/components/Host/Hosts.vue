@@ -33,6 +33,8 @@
   import { nextTick } from 'vue'
   import IPC from '@/util/IPC.ts'
   import { VueExtend } from '@/core/VueExtend.ts'
+  import { AppStore } from '@/store/app.js'
+  import { EditorConfigMake } from '@/util/Editor.js'
 
   const { shell } = require('@electron/remote')
 
@@ -113,14 +115,10 @@
           if (!this?.$refs?.input?.style) {
             return
           }
-          this.monacoInstance = editor.create(this.$refs.input, {
-            value: this.config,
-            language: 'ini',
-            theme: 'vs-dark',
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true
-          })
+          this.monacoInstance = editor.create(
+            this.$refs.input,
+            EditorConfigMake(this.config, false, 'off')
+          )
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

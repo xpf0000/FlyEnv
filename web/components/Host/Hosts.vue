@@ -29,7 +29,7 @@
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { AsyncComponentSetup } from '../../fn'
+  import { AsyncComponentSetup, EditorConfigMake } from '../../fn'
   import { ref, onMounted, onUnmounted, nextTick } from 'vue'
   import { AppHost, AppStore } from '../../store/app'
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
@@ -77,14 +77,7 @@
       if (!dom || !dom?.style) {
         return
       }
-      monacoInstance = editor.create(dom, {
-        value: conf.value,
-        language: 'ini',
-        theme: 'vs-dark',
-        scrollBeyondLastLine: true,
-        overviewRulerBorder: true,
-        automaticLayout: true
-      })
+      monacoInstance = editor.create(dom, EditorConfigMake(conf.value, false, 'off'))
     } else {
       monacoInstance.setValue(conf.value)
     }

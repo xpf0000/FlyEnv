@@ -2,7 +2,7 @@
   <el-drawer
     ref="host-edit-drawer"
     v-model="show"
-    size="460px"
+    size="500px"
     :close-on-click-modal="false"
     :destroy-on-close="true"
     class="host-edit-drawer"
@@ -154,7 +154,7 @@
               readonly=""
               :value="item.ssl.cert"
             />
-            <div class="icon-block" @click="chooseRoot('cert', true)">
+            <div class="icon-block" @click="chooseRoot('cert')">
               <yb-icon
                 :svg="import('@/svg/folder.svg?raw')"
                 class="choose"
@@ -172,7 +172,7 @@
               readonly=""
               :value="item.ssl.key"
             />
-            <div class="icon-block" @click="chooseRoot('certkey', true)">
+            <div class="icon-block" @click="chooseRoot('certkey')">
               <yb-icon
                 :svg="import('@/svg/folder.svg?raw')"
                 class="choose"
@@ -253,7 +253,7 @@
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { ElMessageBox } from 'element-plus'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup } from '../../fn'
+  import { AsyncComponentSetup, EditorConfigMake } from '../../fn'
   import { merge } from 'lodash'
   import { RewriteAll } from './store'
 
@@ -281,6 +281,7 @@
       nginx_ssl: 443,
       apache_ssl: 8443
     },
+    mark: '',
     nginx: {
       rewrite: ''
     },
@@ -387,14 +388,8 @@
       if (!input?.value?.style) {
         return
       }
-      monacoInstance = editor.create(input.value, {
-        value: item.value.nginx.rewrite,
-        language: 'ini',
-        theme: 'vs-dark',
-        scrollBeyondLastLine: false,
-        overviewRulerBorder: false,
-        automaticLayout: true,
-        wordWrap: 'on',
+      const config = EditorConfigMake(item.value.nginx.rewrite, false, 'off')
+      Object.assign(config, {
         minimap: {
           enabled: false
         },
@@ -404,6 +399,7 @@
           bottom: 8
         }
       })
+      monacoInstance = editor.create(input.value, config)
     } else {
       monacoInstance.setValue(item.value.nginx.rewrite)
     }

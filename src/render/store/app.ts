@@ -47,7 +47,8 @@ export enum AppSofts {
   apache = 'apache',
   memcached = 'memcached',
   redis = 'redis',
-  mongodb = 'mongodb'
+  mongodb = 'mongodb',
+  postpresql = 'postpresql'
 }
 
 interface State {
@@ -76,6 +77,8 @@ interface State {
           Tools: boolean
           DNS: boolean
           FTP: boolean
+          HttpServe?: boolean
+          PostgreSql?: boolean
         }
       }
       hosts: {
@@ -87,6 +90,9 @@ interface State {
         proxy: string
       }
       lang: string
+      postpresql: {
+        dirs: Array<string>
+      }
       nginx: {
         dirs: Array<string>
       }
@@ -113,6 +119,7 @@ interface State {
       }
       autoCheck: boolean
       editorConfig: EditorConfig
+      phpGroupStart: { [k: string]: boolean }
     }
   }
   httpServe: Array<string>
@@ -124,6 +131,9 @@ const state: State = {
   config: {
     server: {
       'pure-ftpd': {
+        current: {}
+      },
+      postpresql: {
         current: {}
       },
       nginx: {
@@ -174,6 +184,9 @@ const state: State = {
       nginx: {
         dirs: []
       },
+      postpresql: {
+        dirs: []
+      },
       apache: {
         dirs: []
       },
@@ -205,7 +218,8 @@ const state: State = {
       },
       lang: '',
       autoCheck: true,
-      editorConfig: EditorBaseConfig
+      editorConfig: EditorBaseConfig,
+      phpGroupStart: {}
     }
   },
   httpServe: [],
@@ -217,6 +231,9 @@ export const AppStore = defineStore('app', {
   getters: {
     editorConfig(): EditorConfig {
       return this.config.setup.editorConfig
+    },
+    phpGroupStart(): { [k: string]: boolean } {
+      return this.config.setup.phpGroupStart
     }
   },
   actions: {
@@ -236,6 +253,9 @@ export const AppStore = defineStore('app', {
       const editorConfig = this.config.setup.editorConfig
       EditorBaseConfig.init(editorConfig)
       this.config.setup.editorConfig = EditorBaseConfig
+      if (!this.config.setup.phpGroupStart) {
+        this.config.setup.phpGroupStart = reactive({})
+      }
     },
     INIT_HTTP_SERVE(obj: any) {
       this.httpServe = reactive(obj)

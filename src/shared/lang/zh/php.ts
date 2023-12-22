@@ -16,5 +16,7 @@ export default {
   obfuscatorErrorLog: '错误日志',
   noExtensionsDir: '扩展文件夹不存在, 请先安装扩展',
   extensionsLib: '扩展库',
-  extensionsLibDefault: '默认'
+  extensionsLibDefault: '默认',
+  groupStartOff: '关闭群组快捷启动',
+  groupStartOn: '开启群组快捷启动'
 }

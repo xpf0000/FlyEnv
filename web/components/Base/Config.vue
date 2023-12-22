@@ -18,6 +18,7 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { defineComponent } from 'vue'
+  import { EditorConfigMake } from '../../fn'
 
   export default defineComponent({
     name: 'MoApacheConfig',
@@ -59,15 +60,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, {
-            value: this.config,
-            language: 'ini',
-            theme: 'vs-dark',
-            readOnly: false,
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true
-          })
+          this.monacoInstance = editor.create(input, EditorConfigMake(this.config, false, 'off'))
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

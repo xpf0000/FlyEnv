@@ -39,6 +39,7 @@
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { VueExtend } from '../../VueExtend'
   import { nextTick, defineComponent } from 'vue'
+  import { EditorConfigMake } from '../../fn'
 
   export default defineComponent({
     show(data: any) {
@@ -125,16 +126,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, {
-            value: this.log,
-            language: 'ini',
-            theme: 'vs-dark',
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true,
-            readOnly: true,
-            wordWrap: 'on'
-          })
+          this.monacoInstance = editor.create(input, EditorConfigMake(this.log, true, 'on'))
           this.monacoInstance.revealLine(10000000, 1)
         } else {
           this.monacoInstance.setValue(this.log)

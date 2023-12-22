@@ -28,6 +28,7 @@
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/php/php.contribution.js'
+  import { EditorConfigMake } from '@/util/Editor'
 
   const { join } = require('path')
   const { dialog } = require('@electron/remote')
@@ -129,14 +130,9 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, {
-            value: this.config,
-            language: 'php',
-            theme: 'vs-dark',
-            scrollBeyondLastLine: true,
-            overviewRulerBorder: true,
-            automaticLayout: true
-          })
+          const editorConfig = EditorConfigMake(this.config, false, 'off')
+          editorConfig.language = 'php'
+          this.monacoInstance = editor.create(input, editorConfig)
         } else {
           this.monacoInstance.setValue(this.config)
         }

@@ -2,7 +2,7 @@
   <el-drawer
     ref="host-edit-drawer"
     v-model="show"
-    size="460px"
+    size="500px"
     :close-on-click-modal="false"
     :destroy-on-close="true"
     class="host-edit-drawer"
@@ -260,6 +260,7 @@
   import { RewriteAll } from '@/components/Host/store'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
+  import { EditorConfigMake } from '@/util/Editor'
 
   const { exec } = require('child-process-promise')
   const { dialog } = require('@electron/remote')
@@ -295,6 +296,7 @@
     },
     url: '',
     root: '',
+    mark: '',
     phpVersion: undefined
   })
   const errs = ref({
@@ -397,14 +399,8 @@
       if (!input?.value?.style) {
         return
       }
-      monacoInstance = editor.create(input.value, {
-        value: item.value.nginx.rewrite,
-        language: 'ini',
-        theme: 'vs-dark',
-        scrollBeyondLastLine: false,
-        overviewRulerBorder: false,
-        automaticLayout: true,
-        wordWrap: 'on',
+      const config = EditorConfigMake(item.value.nginx.rewrite, false, 'off')
+      Object.assign(config, {
         minimap: {
           enabled: false
         },
@@ -414,6 +410,7 @@
           bottom: 8
         }
       })
+      monacoInstance = editor.create(input.value, config)
     } else {
       monacoInstance.setValue(item.value.nginx.rewrite)
     }
@@ -662,7 +659,7 @@
           border: 2px solid #01cc74;
         }
         &.nginx-rewrite {
-          height: 140px;
+          height: 200px;
           margin-top: 20px;
           padding: 0;
           overflow: hidden;

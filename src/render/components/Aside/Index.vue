@@ -18,279 +18,20 @@
       </ul>
 
       <ul class="menu top-menu">
-        <li
-          v-if="showItem.Hosts"
-          :class="'non-draggable' + (currentPage === '/host' ? ' active' : '')"
-          @click="nav('/host')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon :svg="import('@/svg/host.svg?raw')" width="30" height="30" />
-            </div>
-            <span class="title">Hosts</span>
-          </div>
-        </li>
-
-        <li
-          v-if="showItem.Nginx"
-          :class="'non-draggable' + (currentPage === '/nginx' ? ' active' : '')"
-          @click="nav('/nginx')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon :svg="import('@/svg/nginx.svg?raw')" width="28" height="28" />
-            </div>
-            <span class="title">Nginx</span>
-          </div>
-
-          <el-switch
-            :disabled="nginxDisabled"
-            :value="nginxRunning"
-            @change="switchChange('nginx')"
-          >
-          </el-switch>
-        </li>
-
-        <li
-          v-if="showItem.Apache"
-          :class="'non-draggable' + (currentPage === '/apache' ? ' active' : '')"
-          @click="nav('/apache')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon :svg="import('@/svg/apache.svg?raw')" width="30" height="30" />
-            </div>
-            <span class="title">Apache</span>
-          </div>
-
-          <el-switch
-            :disabled="apacheDisabled"
-            :value="apacheRunning"
-            @change="switchChange('apache')"
-          >
-          </el-switch>
-        </li>
-
-        <li
-          v-if="showItem.Mysql"
-          class="non-draggable"
-          :class="'non-draggable' + (currentPage === '/mysql' ? ' active' : '')"
-          @click="nav('/mysql')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon :svg="import('@/svg/mysql.svg?raw')" width="30" height="30" />
-            </div>
-            <span class="title">Mysql</span>
-          </div>
-
-          <el-switch
-            :disabled="mysqlDisabled"
-            :value="mysqlRunning"
-            @change="switchChange('mysql')"
-          >
-          </el-switch>
-        </li>
-
-        <li
-          v-if="showItem.mariadb"
-          class="non-draggable"
-          :class="'non-draggable' + (currentPage === '/mariadb' ? ' active' : '')"
-          @click="nav('/mariadb')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon :svg="import('@/svg/mariaDB.svg?raw')" width="30" height="30" />
-            </div>
-            <span class="title">MariaDB</span>
-          </div>
-
-          <el-switch
-            :disabled="mariaDBDisabled"
-            :value="mariaDBRunning"
-            @change="switchChange('mariadb')"
-          >
-          </el-switch>
-        </li>
-
-        <li
-          v-if="showItem.Php"
-          :class="'non-draggable' + (currentPage === '/php' ? ' active' : '')"
-          @click="nav('/php')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon :svg="import('@/svg/php.svg?raw')" width="30" height="30" />
-            </div>
-            <span class="title">Php</span>
-          </div>
-
-          <el-switch v-model="phpRunning" :disabled="phpDisable"> </el-switch>
-        </li>
-
-        <li
-          v-if="showItem.Memcached"
-          :class="'non-draggable' + (currentPage === '/memcached' ? ' active' : '')"
-          @click="nav('/memcached')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon :svg="import('@/svg/memcached.svg?raw')" width="30" height="30" />
-            </div>
-            <span class="title">Memcached</span>
-          </div>
-
-          <el-switch
-            :disabled="memcachedDisabled"
-            :value="memcachedRunning"
-            @change="switchChange('memcached')"
-          >
-          </el-switch>
-        </li>
-
-        <li
-          v-if="showItem.Redis"
-          :class="'non-draggable' + (currentPage === '/redis' ? ' active' : '')"
-          @click="nav('/redis')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon
-                style="padding: 7px"
-                :svg="import('@/svg/redis.svg?raw')"
-                width="28"
-                height="28"
-              />
-            </div>
-            <span class="title">Redis</span>
-          </div>
-
-          <el-switch
-            :disabled="redisDisabled"
-            :value="redisRunning"
-            @change="switchChange('redis')"
-          >
-          </el-switch>
-        </li>
-
-        <li
-          v-if="showItem.MongoDB"
-          class="non-draggable"
-          :class="'non-draggable' + (currentPage === '/mongodb' ? ' active' : '')"
-          @click="nav('/mongodb')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon
-                style="padding: 5px"
-                :svg="import('@/svg/MongoDB.svg?raw')"
-                width="30"
-                height="30"
-              />
-            </div>
-            <span class="title">MongoDB</span>
-          </div>
-
-          <el-switch
-            :disabled="mongodbDisabled"
-            :value="mongodbRunning"
-            @change="switchChange('mongodb')"
-          >
-          </el-switch>
-        </li>
-
-        <li
-          v-if="showItem.DNS"
-          class="non-draggable"
-          :class="'non-draggable' + (currentPage === '/dns' ? ' active' : '')"
-          @click="nav('/dns')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon
-                style="padding: 5px"
-                :svg="import('@/svg/dns2.svg?raw')"
-                width="30"
-                height="30"
-              />
-            </div>
-            <span class="title">DNS Server</span>
-          </div>
-
-          <el-switch
-            :loading="dnsServerFetching"
-            :disabled="dnsServerFetching"
-            :value="dnsServerRunning"
-            @change="switchChange('dns')"
-          >
-          </el-switch>
-        </li>
-
-        <li
-          v-if="showItem.FTP"
-          class="non-draggable"
-          :class="'non-draggable' + (currentPage === '/ftp' ? ' active' : '')"
-          @click="nav('/ftp')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon
-                style="padding: 5px"
-                :svg="import('@/svg/ftp.svg?raw')"
-                width="30"
-                height="30"
-              />
-            </div>
-            <span class="title">FTP</span>
-          </div>
-
-          <el-switch :disabled="ftpDisabled" :value="ftpRunning" @change="switchChange('ftp')">
-          </el-switch>
-        </li>
-
-        <li
-          v-if="showItem.NodeJS"
-          :class="'non-draggable' + (currentPage === '/node' ? ' active' : '')"
-          @click="nav('/node')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon :svg="import('@/svg/nodejs.svg?raw')" width="28" height="28" />
-            </div>
-            <span class="title">NodeJS</span>
-          </div>
-        </li>
-
-        <li
-          v-if="showItem.HttpServe"
-          :class="'non-draggable' + (currentPage === '/httpServe' ? ' active' : '')"
-          @click="nav('/httpServe')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon
-                style="padding: 4.5px"
-                :svg="import('@/svg/http.svg?raw')"
-                width="28"
-                height="28"
-              />
-            </div>
-            <span class="title">Http Serve</span>
-          </div>
-        </li>
-
-        <li
-          v-if="showItem.Tools"
-          :class="'non-draggable' + (currentPage === '/tools' ? ' active' : '')"
-          @click="nav('/tools')"
-        >
-          <div class="left">
-            <div class="icon-block">
-              <yb-icon :svg="import('@/svg/tool.svg?raw')" width="30" height="30" />
-            </div>
-            <span class="title">Tools</span>
-          </div>
-        </li>
+        <HostModule :current-page="currentPage" @nav="nav" />
+        <ApacheModule ref="apacheModule" :current-page="currentPage" @nav="nav" />
+        <NginxModule ref="nginxModule" :current-page="currentPage" @nav="nav" />
+        <PhpModule ref="phpModule" :current-page="currentPage" @nav="nav" />
+        <MysqlModule ref="mysqlModule" :current-page="currentPage" @nav="nav" />
+        <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />
+        <MongodbModule ref="mongoModule" :current-page="currentPage" @nav="nav" />
+        <MemcachedModule ref="memcachedModule" :current-page="currentPage" @nav="nav" />
+        <RedisModule ref="redisModule" :current-page="currentPage" @nav="nav" />
+        <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
+        <FtpModule ref="ftpModule" :current-page="currentPage" @nav="nav" />
+        <NodejsModule :current-page="currentPage" @nav="nav" />
+        <HttpserveModule :current-page="currentPage" @nav="nav" />
+        <ToolsModule :current-page="currentPage" @nav="nav" />
       </ul>
       <ul class="menu setup-menu">
         <li
@@ -310,24 +51,47 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, watch } from 'vue'
-  import { startService, stopService, dnsStart, dnsStop } from '@/util/Service'
+  import { ref, computed, watch, onMounted, nextTick } from 'vue'
   import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
-  import { BrewStore } from '@/store/brew'
   import { DnsStore } from '@/store/dns'
   import { FtpStore } from '@/store/ftp'
   import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import Router from '@/router/index'
 
+  import HostModule from './module/host/index.vue'
+  import ApacheModule from './module/apache/index.vue'
+  import NginxModule from './module/nginx/index.vue'
+  import PhpModule from './module/php/index.vue'
+  import MysqlModule from './module/mysql/index.vue'
+  import MariadbModule from './module/mariadb/index.vue'
+  import MongodbModule from './module/mongodb/index.vue'
+  import MemcachedModule from './module/memcached/index.vue'
+  import RedisModule from './module/redis/index.vue'
+  import DnsModule from './module/dns/index.vue'
+  import FtpModule from './module/ftp/index.vue'
+  import NodejsModule from './module/nodejs/index.vue'
+  import HttpserveModule from './module/httpserve/index.vue'
+  import ToolsModule from './module/tools/index.vue'
+
   const { shell } = require('@electron/remote')
 
   let lastTray = ''
 
+  const apacheModule = ref()
+  const nginxModule = ref()
+  const phpModule = ref()
+  const mysqlModule = ref()
+  const mariadbModule = ref()
+  const mongoModule = ref()
+  const memcachedModule = ref()
+  const redisModule = ref()
+  const dnsModule = ref()
+  const ftpModule = ref()
+
   const appStore = AppStore()
-  const brewStore = BrewStore()
   const dnsStore = DnsStore()
   const ftpStore = FtpStore()
   const currentPage = ref('/host')
@@ -336,261 +100,43 @@
     return appStore.config.setup.common.showItem
   })
 
-  const nginxVersion = computed(() => {
-    const current = appStore.config.server?.nginx?.current
-    if (!current) {
-      return undefined
-    }
-    const installed = brewStore?.nginx?.installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-  })
-
-  const mysqlVersion = computed(() => {
-    const current = appStore.config.server?.mysql?.current
-    if (!current) {
-      return undefined
-    }
-    const installed = brewStore?.mysql?.installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-  })
-
-  const mariaDBVersion = computed(() => {
-    const current = appStore.config.server?.mariadb?.current
-    if (!current) {
-      return undefined
-    }
-    const installed = brewStore?.mariadb?.installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-  })
-
-  const apacheVersion = computed(() => {
-    const current = appStore.config.server?.apache?.current
-    if (!current) {
-      return undefined
-    }
-    const installed = brewStore?.apache?.installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-  })
-
-  const memcachedVersion = computed(() => {
-    const current = appStore.config.server?.memcached?.current
-    if (!current) {
-      return undefined
-    }
-    const installed = brewStore?.memcached?.installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-  })
-
-  const redisVersion = computed(() => {
-    const current = appStore.config.server?.redis?.current
-    if (!current) {
-      return undefined
-    }
-    const installed = brewStore?.redis?.installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-  })
-
-  const mongodbVersion = computed(() => {
-    const current = appStore.config.server?.mongodb?.current
-    if (!current) {
-      return undefined
-    }
-    const installed = brewStore?.mongodb?.installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-  })
-
-  const nginxDisabled = computed(() => {
-    return (
-      !nginxVersion?.value?.version ||
-      brewStore?.nginx?.installed?.some((v) => v.running) ||
-      !appStore.versionInited
-    )
-  })
-
-  const apacheDisabled = computed(() => {
-    return (
-      !apacheVersion?.value?.version ||
-      brewStore?.apache?.installed?.some((v) => v.running) ||
-      !appStore.versionInited
-    )
-  })
-
-  const mysqlDisabled = computed(() => {
-    return (
-      !mysqlVersion?.value?.version ||
-      brewStore?.mysql?.installed?.some((v) => v.running) ||
-      !appStore.versionInited
-    )
-  })
-
-  const mariaDBDisabled = computed(() => {
-    return (
-      !mariaDBVersion?.value?.version ||
-      brewStore?.mariadb?.installed?.some((v) => v.running) ||
-      !appStore.versionInited
-    )
-  })
-
-  const memcachedDisabled = computed(() => {
-    return (
-      !memcachedVersion?.value?.version ||
-      brewStore?.memcached?.installed?.some((v) => v.running) ||
-      !appStore.versionInited
-    )
-  })
-
-  const redisDisabled = computed(() => {
-    return (
-      !redisVersion?.value?.version ||
-      brewStore?.redis?.installed?.some((v) => v.running) ||
-      !appStore.versionInited
-    )
-  })
-
-  const mongodbDisabled = computed(() => {
-    return (
-      !mongodbVersion?.value?.version ||
-      brewStore?.mongodb?.installed?.some((v) => v.running) ||
-      !appStore.versionInited
-    )
-  })
-
-  const nginxRunning = computed(() => {
-    return nginxVersion?.value?.run === true
-  })
-
-  const mysqlRunning = computed(() => {
-    return mysqlVersion?.value?.run === true
-  })
-
-  const mariaDBRunning = computed(() => {
-    return mariaDBVersion?.value?.run === true
-  })
-
-  const apacheRunning = computed(() => {
-    return apacheVersion?.value?.run === true
-  })
-
-  const memcachedRunning = computed(() => {
-    return memcachedVersion?.value?.run === true
-  })
-
-  const redisRunning = computed(() => {
-    return redisVersion?.value?.run === true
-  })
-
-  const mongodbRunning = computed(() => {
-    return mongodbVersion?.value?.run === true
-  })
-
-  const phpVersions = computed(() => {
-    return brewStore?.php?.installed ?? []
-  })
-
-  const phpDisable = computed(() => {
-    return (
-      phpVersions?.value?.length === 0 ||
-      phpVersions?.value?.some((v) => v.running) ||
-      !appStore.versionInited
-    )
-  })
-
-  const dnsServerRunning = computed(() => {
-    return dnsStore.running
-  })
-
-  const dnsServerFetching = computed(() => {
-    return dnsStore.fetching
-  })
-
-  const ftpVersion = computed(() => {
-    const current = appStore.config.server?.['pure-ftpd']?.current
-    if (!current) {
-      return undefined
-    }
-    const installed = brewStore?.['pure-ftpd']?.installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-  })
-
-  const ftpRunning = computed(() => {
-    return ftpVersion?.value?.run === true
-  })
-
-  const ftpDisabled = computed(() => {
-    return (
-      !ftpVersion?.value?.version ||
-      brewStore?.['pure-ftpd']?.installed?.some((v) => v.running) ||
-      !appStore.versionInited
-    )
-  })
-
-  const phpRunning = computed({
-    get(): boolean {
-      return phpVersions?.value?.length > 0 && phpVersions?.value?.some((v) => v.run)
-    },
-    set(v: boolean) {
-      const all: Array<Promise<any>> = []
-      if (v) {
-        phpVersions?.value?.forEach((v) => {
-          if (v?.version) {
-            all.push(startService('php', v))
-          }
-        })
-      } else {
-        phpVersions?.value?.forEach((v) => {
-          if (v?.version) {
-            all.push(stopService('php', v))
-          }
-        })
-      }
-      Promise.all(all).then((res) => {
-        let find = res.find((s) => typeof s === 'string')
-        if (find) {
-          ElMessage.error(find)
-        } else {
-          ElMessage.success(I18nT('base.success'))
-        }
-      })
-    }
-  })
-
   const groupIsRunning = computed(() => {
     return (
-      nginxRunning?.value ||
-      apacheRunning?.value ||
-      mysqlRunning?.value ||
-      mariaDBRunning?.value ||
-      phpRunning?.value ||
-      redisRunning?.value ||
-      memcachedRunning?.value ||
-      mongodbRunning?.value ||
-      dnsServerRunning?.value ||
-      ftpRunning?.value
+      nginxModule?.value?.serviceRunning ||
+      apacheModule?.value?.serviceRunning ||
+      mysqlModule?.value?.serviceRunning ||
+      mariadbModule?.value?.serviceRunning ||
+      phpModule?.value?.serviceRunning ||
+      redisModule?.value?.serviceRunning ||
+      memcachedModule?.value?.serviceRunning ||
+      mongoModule?.value?.serviceRunning ||
+      dnsModule?.value?.serviceRunning ||
+      ftpModule?.value?.serviceRunning
     )
   })
 
   const groupDisabled = computed(() => {
     const allDisabled =
-      apacheDisabled.value &&
-      memcachedDisabled.value &&
-      mysqlDisabled.value &&
-      mariaDBDisabled.value &&
-      nginxDisabled.value &&
-      phpDisable.value &&
-      redisDisabled.value &&
-      mongodbDisabled.value &&
-      ftpDisabled?.value
+      apacheModule?.value?.serviceDisabled &&
+      memcachedModule?.value?.serviceDisabled &&
+      mysqlModule?.value?.serviceDisabled &&
+      mariadbModule?.value?.serviceDisabled &&
+      nginxModule?.value?.serviceDisabled &&
+      phpModule?.value?.serviceDisabled &&
+      redisModule?.value?.serviceDisabled &&
+      mongoModule?.value?.serviceDisabled &&
+      ftpModule?.value?.serviceDisabled
     const running =
-      apacheVersion?.value?.running === true ||
-      memcachedVersion?.value?.running === true ||
-      mysqlVersion?.value?.running === true ||
-      mariaDBVersion?.value?.running === true ||
-      nginxVersion?.value?.running === true ||
-      phpVersions?.value?.some((v) => v.running) ||
-      redisVersion?.value?.running === true ||
-      mongodbVersion?.value?.running === true ||
-      dnsServerFetching?.value === true ||
-      ftpVersion?.value?.running === true
+      apacheModule?.value?.serviceFetching ||
+      memcachedModule?.value?.serviceFetching ||
+      mysqlModule?.value?.serviceFetching ||
+      mariadbModule?.value?.serviceFetching ||
+      nginxModule?.value?.serviceFetching ||
+      phpModule?.value?.serviceFetching ||
+      redisModule?.value?.serviceFetching ||
+      mongoModule?.value?.serviceFetching ||
+      dnsModule?.value?.serviceFetching ||
+      ftpModule?.value?.serviceFetching
     return allDisabled || running || !appStore.versionInited
   })
 
@@ -607,63 +153,64 @@
     return {
       apache: {
         show: showItem?.value?.Apache,
-        disabled: apacheDisabled.value,
-        run: apacheRunning?.value,
-        running: apacheVersion?.value?.running === true
+        disabled: apacheModule?.value?.serviceDisabled,
+        run: apacheModule?.value?.serviceRunning,
+        running: apacheModule?.value?.serviceFetching
       },
       memcached: {
         show: showItem?.value?.Memcached,
-        disabled: memcachedDisabled.value,
-        run: memcachedRunning?.value,
-        running: memcachedVersion?.value?.running === true
+        disabled: memcachedModule?.value?.serviceDisabled,
+        run: memcachedModule?.value?.serviceRunning,
+        running: memcachedModule?.value?.serviceFetching
       },
       mysql: {
         show: showItem?.value?.Mysql,
-        disabled: mysqlDisabled.value,
-        run: mysqlRunning?.value,
-        running: mysqlVersion?.value?.running === true
+        disabled: mysqlModule?.value?.serviceDisabled,
+        run: mysqlModule?.value?.serviceRunning,
+        running: mysqlModule?.value?.serviceFetching
       },
       mariadb: {
         show: showItem?.value?.mariadb,
-        disabled: mariaDBDisabled.value,
-        run: mariaDBRunning.value,
-        running: mariaDBVersion?.value?.running === true
+        disabled: mariadbModule?.value?.serviceDisabled,
+        run: mariadbModule?.value?.serviceRunning,
+        running: mariadbModule?.value?.serviceFetching
       },
       nginx: {
         show: showItem?.value?.Nginx,
-        disabled: nginxDisabled.value,
-        run: nginxRunning.value,
-        running: nginxVersion?.value?.running === true
+        disabled: nginxModule?.value?.serviceDisabled,
+        run: nginxModule?.value?.serviceRunning,
+        running: nginxModule?.value?.serviceFetching
       },
       password: appStore?.config?.password,
       lang: appStore?.config?.setup?.lang,
       php: {
         show: showItem?.value?.Php,
-        disabled: phpDisable.value,
-        run: phpRunning.value,
-        running: phpVersions.value.some((v) => v.running)
+        disabled: phpModule?.value?.serviceDisabled,
+        run: phpModule?.value?.serviceRunning,
+        running: phpModule?.value?.serviceFetching
       },
       redis: {
         show: showItem?.value?.Redis,
-        disabled: redisDisabled.value,
-        run: redisRunning.value,
-        running: redisVersion?.value?.running === true
+        disabled: redisModule?.value?.serviceDisabled,
+        run: redisModule?.value?.serviceRunning,
+        running: redisModule?.value?.serviceFetching
       },
       mongodb: {
         show: showItem?.value?.MongoDB,
-        disabled: mongodbDisabled.value,
-        run: mariaDBRunning.value,
-        running: mongodbVersion?.value?.running === true
+        disabled: mongoModule?.value?.serviceDisabled,
+        run: mongoModule?.value?.serviceRunning,
+        running: mongoModule?.value?.serviceFetching
       },
       dns: {
         show: showItem?.value?.DNS,
-        run: dnsServerRunning.value === true,
-        running: dnsServerFetching.value === true
+        run: dnsModule?.value?.serviceRunning,
+        running: dnsModule?.value?.serviceFetching
       },
       ftp: {
         show: showItem?.value?.FTP,
-        run: ftpRunning.value,
-        running: ftpVersion?.value?.running === true
+        disabled: ftpModule?.value?.serviceDisabled,
+        run: ftpModule?.value?.serviceRunning,
+        running: ftpModule?.value?.serviceFetching
       },
       groupDisabled: groupDisabled.value,
       groupIsRunning: groupIsRunning.value
@@ -703,82 +250,23 @@
       return
     }
     passwordCheck().then(() => {
+      const modules = [
+        apacheModule,
+        nginxModule,
+        phpModule,
+        mysqlModule,
+        mariadbModule,
+        mongoModule,
+        memcachedModule,
+        redisModule,
+        dnsModule,
+        ftpModule
+      ]
       const all: Array<Promise<string | boolean>> = []
-      if (groupIsRunning?.value) {
-        if (showItem?.value?.Nginx && nginxRunning?.value && nginxVersion?.value?.version) {
-          all.push(stopService('nginx', nginxVersion?.value))
-        }
-        if (showItem?.value?.Apache && apacheRunning?.value && apacheVersion?.value?.version) {
-          all.push(stopService('apache', apacheVersion?.value))
-        }
-        if (showItem?.value?.Mysql && mysqlRunning?.value && mysqlVersion?.value?.version) {
-          all.push(stopService('mysql', mysqlVersion?.value))
-        }
-        if (showItem?.value?.mariadb && mariaDBRunning?.value && mariaDBVersion?.value?.version) {
-          all.push(stopService('mariadb', mariaDBVersion?.value))
-        }
-        if (
-          showItem?.value?.Memcached &&
-          memcachedRunning?.value &&
-          memcachedVersion?.value?.version
-        ) {
-          all.push(stopService('memcached', memcachedVersion?.value))
-        }
-        if (showItem?.value?.Redis && redisRunning?.value && redisVersion?.value?.version) {
-          all.push(stopService('redis', redisVersion?.value))
-        }
-        if (showItem?.value?.MongoDB && mongodbRunning?.value && mongodbVersion?.value?.version) {
-          all.push(stopService('mongodb', mongodbVersion?.value))
-        }
-        if (showItem?.value?.FTP && ftpRunning?.value && ftpVersion?.value?.version) {
-          all.push(stopService('pure-ftpd', ftpVersion?.value))
-        }
-        if (showItem?.value?.DNS && dnsServerRunning?.value) {
-          all.push(dnsStop())
-        }
-        if (showItem?.value?.Php) {
-          phpVersions?.value?.forEach((v) => {
-            if (v?.version) {
-              all.push(stopService('php', v))
-            }
-          })
-        }
-      } else {
-        if (showItem?.value?.Nginx && nginxVersion?.value?.version) {
-          all.push(startService('nginx', nginxVersion?.value))
-        }
-        if (showItem?.value?.Apache && apacheVersion?.value?.version) {
-          all.push(startService('apache', apacheVersion?.value))
-        }
-        if (showItem?.value?.Mysql && mysqlVersion?.value?.version) {
-          all.push(startService('mysql', mysqlVersion?.value))
-        }
-        if (showItem?.value?.mariadb && mariaDBVersion?.value?.version) {
-          all.push(startService('mariadb', mariaDBVersion?.value))
-        }
-        if (showItem?.value?.Memcached && memcachedVersion?.value?.version) {
-          all.push(startService('memcached', memcachedVersion?.value))
-        }
-        if (showItem?.value?.Redis && redisVersion?.value?.version) {
-          all.push(startService('redis', redisVersion?.value))
-        }
-        if (showItem?.value?.MongoDB && mongodbVersion?.value?.version) {
-          all.push(startService('mongodb', mongodbVersion?.value))
-        }
-        if (showItem?.value?.FTP && ftpVersion?.value?.version) {
-          all.push(startService('pure-ftpd', ftpVersion?.value))
-        }
-        if (showItem?.value?.DNS) {
-          all.push(dnsStart())
-        }
-        if (showItem?.value?.Php) {
-          phpVersions?.value?.forEach((v) => {
-            if (v?.version) {
-              all.push(startService('php', v))
-            }
-          })
-        }
-      }
+      modules.forEach((m: any) => {
+        const arr = m?.value?.groupDo(groupIsRunning?.value) ?? []
+        all.push(...arr)
+      })
       if (all.length > 0) {
         const err: Array<string> = []
         const run = () => {
@@ -809,64 +297,35 @@
   }
 
   const switchChange = (flag: string) => {
-    passwordCheck().then(() => {
-      let fn = null
-      let promise: Promise<any> | null = null
-      switch (flag) {
-        case 'dns':
-          if (dnsServerFetching?.value) return
-          fn = dnsServerRunning?.value ? dnsStop : dnsStart
-          promise = fn()
-          break
-        case 'nginx':
-          if (!nginxVersion?.value?.version) return
-          fn = nginxRunning?.value ? stopService : startService
-          promise = fn('nginx', nginxVersion?.value)
-          break
-        case 'mysql':
-          if (!mysqlVersion?.value?.version) return
-          fn = mysqlRunning?.value ? stopService : startService
-          promise = fn('mysql', mysqlVersion?.value)
-          break
-        case 'mariadb':
-          if (!mariaDBVersion?.value?.version) return
-          fn = mariaDBRunning?.value ? stopService : startService
-          promise = fn('mariadb', mariaDBVersion?.value)
-          break
-        case 'apache':
-          if (!apacheVersion?.value?.version) return
-          fn = apacheRunning?.value ? stopService : startService
-          promise = fn('apache', apacheVersion?.value)
-          break
-        case 'memcached':
-          if (!memcachedVersion?.value?.version) return
-          fn = memcachedRunning?.value ? stopService : startService
-          promise = fn('memcached', memcachedVersion?.value)
-          break
-        case 'redis':
-          if (!redisVersion?.value?.version) return
-          fn = redisRunning?.value ? stopService : startService
-          promise = fn('redis', redisVersion?.value)
-          break
-        case 'mongodb':
-          if (!mongodbVersion?.value?.version) return
-          fn = mongodbRunning?.value ? stopService : startService
-          promise = fn('mongodb', mongodbVersion?.value)
-          break
-        case 'ftp':
-          if (!ftpVersion?.value?.version) return
-          fn = ftpRunning?.value ? stopService : startService
-          promise = fn('pure-ftpd', ftpVersion?.value)
-          break
-      }
-      promise?.then((res) => {
-        if (typeof res === 'string') {
-          ElMessage.error(res)
-        } else {
-          ElMessage.success(I18nT('base.success'))
-        }
-      })
-    })
+    switch (flag) {
+      case 'dns':
+        dnsModule?.value?.switchChange()
+        break
+      case 'nginx':
+        nginxModule?.value?.switchChange()
+        break
+      case 'mysql':
+        mysqlModule?.value?.switchChange()
+        break
+      case 'mariadb':
+        mariadbModule?.value?.switchChange()
+        break
+      case 'apache':
+        apacheModule?.value?.switchChange()
+        break
+      case 'memcached':
+        memcachedModule?.value?.switchChange()
+        break
+      case 'redis':
+        redisModule?.value?.switchChange()
+        break
+      case 'mongodb':
+        mongoModule?.value?.switchChange()
+        break
+      case 'ftp':
+        ftpModule?.value?.switchChange()
+        break
+    }
   }
 
   const nav = (page: string) => {
@@ -899,7 +358,7 @@
   IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
     console.log('on APP:Tray-Command', key, fn, arg)
     if (fn === 'switchChange' && arg === 'php') {
-      phpRunning.value = !phpRunning.value
+      phpModule?.value?.switchChange()
       return
     }
     const fns: { [k: string]: Function } = {
@@ -907,6 +366,17 @@
       switchChange
     }
     fns[fn] && fns[fn](arg)
+  })
+
+  onMounted(() => {
+    nextTick().then(() => {
+      console.log(
+        'apacheModule: ',
+        apacheModule.value,
+        apacheModule?.value?.serviceRunning,
+        apacheModule?.value?.serviceDisabled
+      )
+    })
   })
 </script>
 

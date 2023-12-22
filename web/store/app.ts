@@ -4,7 +4,6 @@ import { Hosts } from '../config/host'
 import { User } from '../config/user'
 
 export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd'
-
 export interface AppHost {
   id: number
   name: string
@@ -32,6 +31,12 @@ export interface AppServerCurrent {
   version?: string
   bin?: string
   path?: string
+}
+
+interface EditorConfig {
+  theme: 'vs-dark' | 'vs-light' | 'hc-dark' | 'hc-light'
+  fontSize: number
+  lineHeight: number
 }
 
 export enum AppSofts {
@@ -105,6 +110,7 @@ interface State {
         dirs: Array<string>
       }
       autoCheck: boolean
+      editorConfig: EditorConfig
     }
   }
   httpServe: Array<string>
@@ -115,7 +121,7 @@ const state: State = {
   hosts: Hosts,
   config: {
     server: User.server,
-    setup: User.setup
+    setup: User.setup as any
   },
   httpServe: User.httpServe,
   versionInited: true
@@ -123,7 +129,11 @@ const state: State = {
 
 export const AppStore = defineStore('app', {
   state: (): State => state,
-  getters: {},
+  getters: {
+    editorConfig(): EditorConfig {
+      return this.config.setup.editorConfig
+    }
+  },
   actions: {
     UPDATE_SERVER_CURRENT({ flag, data }: { flag: AllAppSofts; data: AppServerCurrent }) {
       const server = JSON.parse(JSON.stringify(this.config.server))

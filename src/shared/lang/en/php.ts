@@ -17,5 +17,7 @@ export default {
   obfuscatorErrorLog: 'Error Log',
   noExtensionsDir: 'Extensions folder does not exist, please install the extension first',
   extensionsLib: 'Extensions Library',
-  extensionsLibDefault: 'Default'
+  extensionsLibDefault: 'Default',
+  groupStartOff: 'Turn off group quickstart',
+  groupStartOn: 'Turn on group quickstart'
 }
