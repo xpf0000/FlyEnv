@@ -14,27 +14,23 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onMounted, onUnmounted, ref } from 'vue'
-  import { writeFileAsync, readFileAsync } from '@shared/file'
+  import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+  import { readFileAsync, writeFileAsync } from '@shared/file'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { nextTick } from 'vue'
-  import IPC from '@/util/IPC'
   import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { startService } from '@/util/Service'
-  import { FtpStore } from '@/store/ftp'
   import { EditorConfigMake } from '@/util/Editor'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, statSync } = require('fs')
-  const { join } = require('path')
+  const { join, dirname } = require('path')
   const { shell } = require('@electron/remote')
 
-  const ftpStore = FtpStore()
   const appStore = AppStore()
   const brewStore = BrewStore()
 
@@ -42,19 +38,28 @@
   const disabled = ref(true)
   const input = ref()
   let monacoInstance: editor.IStandaloneCodeEditor | null = null
-  const configPath = join(global.Server.FTPDir, `pure-ftpd.conf`)
 
-  const ftpVersion = computed(() => {
-    const current = appStore.config.server?.['pure-ftpd']?.current
+  const currentVersion = computed(() => {
+    const current = appStore.config.server?.postgresql?.current
     if (!current) {
       return undefined
     }
-    const installed = brewStore?.['pure-ftpd']?.installed
+    const installed = brewStore?.postgresql?.installed
     return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
-  const ftpRunning = computed(() => {
-    return ftpVersion?.value?.run === true
+  const serviceRunning = computed(() => {
+    return currentVersion?.value?.run === true
+  })
+
+  const configPath = computed(() => {
+    if (!currentVersion?.value) {
+      return ''
+    }
+    const version = currentVersion?.value?.version ?? ''
+    const versionTop = version.split('.').shift()
+    const dbPath = join(global.Server.PostgreSqlDir, `postgresql${versionTop}`)
+    return join(dbPath, 'postgresql.conf')
   })
 
   const saveCustom = () => {
@@ -62,7 +67,7 @@
       return
     }
     let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-    const defaultPath = 'pure-ftpd-custom.conf'
+    const defaultPath = 'postgresql-custom.conf'
     dialog
       .showSaveDialog({
         properties: opt,
@@ -85,15 +90,14 @@
   }
 
   const saveConfig = () => {
-    if (!monacoInstance) {
+    if (!monacoInstance || !configPath?.value) {
       return
     }
     const content = monacoInstance.getValue()
-    writeFileAsync(configPath, content).then(() => {
-      if (ftpRunning?.value) {
-        startService('pure-ftpd', ftpVersion.value!).then()
+    writeFileAsync(configPath.value, content).then(() => {
+      if (serviceRunning?.value) {
+        startService('postgresql', currentVersion.value!).then()
       }
-      ftpStore.getPort()
       ElMessage.success(I18nT('base.success'))
     })
   }
@@ -142,16 +146,16 @@
   }
 
   const openConfig = () => {
-    shell.showItemInFolder(configPath)
+    shell.showItemInFolder(configPath.value)
   }
 
   const getDefault = () => {
-    let configPath = join(global.Server.FTPDir, `pure-ftpd.conf.default`)
-    if (!existsSync(configPath)) {
+    let defaultConfPath = join(dirname(configPath.value), `postgresql.conf.default`)
+    if (!existsSync(defaultConfPath)) {
       ElMessage.error(I18nT('base.defaultConFileNoFound'))
       return
     }
-    readFileAsync(configPath).then((conf) => {
+    readFileAsync(defaultConfPath).then((conf) => {
       config.value = conf
       initEditor()
     })
@@ -159,17 +163,14 @@
 
   const getConfig = () => {
     const doRead = () => {
-      readFileAsync(configPath).then((conf) => {
+      readFileAsync(configPath.value).then((conf) => {
         config.value = conf
         initEditor()
         disabled.value = false
       })
     }
-    if (!existsSync(configPath)) {
-      IPC.send('app-fork:pure-ftpd', 'initConf').then((key: string) => {
-        IPC.off(key)
-        doRead()
-      })
+    if (!existsSync(configPath.value)) {
+      config.value = I18nT('base.needSelectVersion')
       return
     }
     doRead()

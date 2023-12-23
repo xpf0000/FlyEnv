@@ -110,6 +110,10 @@ datadir=${dataDir}`
           if (needRestart) {
             this._startServer(version)
               .then((code) => {
+                this._processSend({
+                  code: 200,
+                  msg: I18nT('fork.postgresqlInit', { dir: dataDir })
+                })
                 resolve(code)
               })
               .catch((err) => {

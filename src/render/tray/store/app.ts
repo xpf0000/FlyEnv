@@ -61,6 +61,12 @@ export interface TrayState {
     run: boolean
     running: boolean
   }
+  postgresql: {
+    show: boolean
+    run: boolean
+    running: boolean
+    disabled: boolean
+  }
   groupIsRunning: boolean
   groupDisabled: boolean
 }
@@ -78,6 +84,7 @@ const state: TrayState = {
   mongodb: { show: true, disabled: true, run: false, running: false },
   dns: { show: true, run: false, running: false },
   ftp: { show: true, run: false, running: false },
+  postgresql: { show: true, disabled: true, run: false, running: false },
   groupIsRunning: false,
   groupDisabled: true
 }

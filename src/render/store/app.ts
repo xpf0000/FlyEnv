@@ -48,7 +48,7 @@ export enum AppSofts {
   memcached = 'memcached',
   redis = 'redis',
   mongodb = 'mongodb',
-  postpresql = 'postpresql'
+  postgresql = 'postgresql'
 }
 
 interface State {
@@ -90,7 +90,7 @@ interface State {
         proxy: string
       }
       lang: string
-      postpresql: {
+      postgresql: {
         dirs: Array<string>
       }
       nginx: {
@@ -133,7 +133,7 @@ const state: State = {
       'pure-ftpd': {
         current: {}
       },
-      postpresql: {
+      postgresql: {
         current: {}
       },
       nginx: {
@@ -184,7 +184,7 @@ const state: State = {
       nginx: {
         dirs: []
       },
-      postpresql: {
+      postgresql: {
         dirs: []
       },
       apache: {
@@ -239,6 +239,9 @@ export const AppStore = defineStore('app', {
   actions: {
     UPDATE_SERVER_CURRENT({ flag, data }: { flag: AllAppSofts; data: AppServerCurrent }) {
       const server = JSON.parse(JSON.stringify(this.config.server))
+      if (!server[flag]) {
+        server[flag] = {}
+      }
       server[flag].current = reactive(data)
       this.config.server = reactive(server)
     },

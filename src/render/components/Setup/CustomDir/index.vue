@@ -8,6 +8,7 @@
     <el-radio-button label="memcached">Memcached</el-radio-button>
     <el-radio-button label="redis">Redis</el-radio-button>
     <el-radio-button label="mongodb">Mongodb</el-radio-button>
+    <el-radio-button label="postgresql">PostgreSql</el-radio-button>
   </el-radio-group>
   <div class="setup-config">
     <div class="plant-title">
@@ -47,7 +48,7 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent } from 'vue'
+  import { defineComponent, reactive } from 'vue'
   import { AppSofts, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   const { dialog } = require('@electron/remote')
@@ -65,6 +66,9 @@
       },
       common() {
         const flag: keyof typeof AppSofts = this.typeFlag as any
+        if (!this?.setup?.[flag]) {
+          this.initDir(flag)
+        }
         return this.setup[flag]
       },
       dirs() {
@@ -83,6 +87,10 @@
     },
     created: function () {},
     methods: {
+      initDir(flag: any) {
+        const setup: any = this.setup
+        setup[flag] = reactive({ dirs: [] })
+      },
       addDir(index: number) {
         let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
         dialog

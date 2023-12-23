@@ -1,14 +1,19 @@
 <template>
   <li
     v-if="showItem?.PostgreSql !== false"
-    :class="'non-draggable' + (currentPage === '/postpresql' ? ' active' : '')"
-    @click="emit('nav', '/postpresql')"
+    :class="'non-draggable' + (currentPage === '/postgresql' ? ' active' : '')"
+    @click="emit('nav', '/postgresql')"
   >
     <div class="left">
       <div class="icon-block">
-        <yb-icon :svg="import('@/svg/postgresql.svg?raw')" width="30" height="30" />
+        <yb-icon
+          style="padding: 7px"
+          :svg="import('@/svg/postgresql.svg?raw')"
+          width="30"
+          height="30"
+        />
       </div>
-      <span class="title">PostpreSql</span>
+      <span class="title">PostgreSql</span>
     </div>
 
     <el-switch :disabled="serviceDisabled" :value="serviceRunning" @change="switchChange">
@@ -39,18 +44,18 @@
   })
 
   const currentVersion = computed(() => {
-    const current = appStore.config.server?.postpresql?.current
+    const current = appStore.config.server?.postgresql?.current
     if (!current) {
       return undefined
     }
-    const installed = brewStore?.postpresql?.installed
+    const installed = brewStore?.postgresql?.installed
     return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
   const serviceDisabled = computed(() => {
     return (
       !currentVersion?.value?.version ||
-      brewStore?.postpresql?.installed?.some((v) => v.running) ||
+      brewStore?.postgresql?.installed?.some((v) => v.running) ||
       !appStore.versionInited
     )
   })
@@ -67,11 +72,11 @@
     const all: Array<Promise<string | boolean>> = []
     if (isRunning) {
       if (showItem?.value?.PostgreSql && serviceRunning?.value && currentVersion?.value?.version) {
-        all.push(stopService('postpresql', currentVersion?.value))
+        all.push(stopService('postgresql', currentVersion?.value))
       }
     } else {
       if (showItem?.value?.PostgreSql && currentVersion?.value?.version) {
-        all.push(startService('postpresql', currentVersion?.value))
+        all.push(startService('postgresql', currentVersion?.value))
       }
     }
     return all
@@ -83,7 +88,7 @@
       let promise: Promise<any> | null = null
       if (!currentVersion?.value?.version) return
       fn = serviceRunning?.value ? stopService : startService
-      promise = fn('postpresql', currentVersion?.value)
+      promise = fn('postgresql', currentVersion?.value)
       promise?.then((res) => {
         if (typeof res === 'string') {
           ElMessage.error(res)

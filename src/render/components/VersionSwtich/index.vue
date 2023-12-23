@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import IPC from '@/util/IPC'
   import installedVersions from '@/util/InstalledVersions'
   import { BrewStore } from '@/store/brew'
@@ -64,7 +64,6 @@
 
   const current = ref('')
   const initing = ref(false)
-  const logs = ref()
 
   const brewStore = BrewStore()
   const appStore = AppStore()
@@ -118,10 +117,6 @@
     init()
   }
 
-  const getCurrenVersion = () => {
-    current.value = currentVersion?.value
-  }
-
   const log = computed(() => {
     return currentTask.value.log
   })
@@ -166,6 +161,15 @@
   if (taskRunning?.value) {
     log.value.splice(0)
   }
-  getCurrenVersion()
+
+  watch(
+    currentVersion,
+    (v) => {
+      current.value = v ?? ''
+    },
+    {
+      immediate: true
+    }
+  )
   init()
 </script>

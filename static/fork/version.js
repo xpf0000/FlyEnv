@@ -4,6 +4,7 @@ const { AppI18n } = require('./lang/index')
 const { join, dirname } = require('path')
 const { existsSync, realpathSync } = require('fs')
 const Utils = require('./Utils.js')
+const { compareVersions } = require('compare-versions')
 class Manager extends BaseManager {
   constructor() {
     super()
@@ -71,7 +72,12 @@ class Manager extends BaseManager {
           reg = new RegExp('(db version v)([\\s\\S]*?)(\\n)', 'g')
           command = `${bin} --version`
           break
+        case 'pg_ctl':
+          reg = new RegExp('(pg_ctl \\(PostgreSQL\\) )([\\s\\S]*?)(\\n)', 'g')
+          command = `${bin} --version`
+          break
       }
+      console.log('binVersion: ', bin, name, reg, command)
       const opt = this._fixEnv()
       exec(command, opt).then(handleThen).catch(handleCatch)
     })
@@ -87,7 +93,8 @@ class Manager extends BaseManager {
       memcached: 'memcached',
       redis: 'redis',
       mongodb: 'mongodb-',
-      'pure-ftpd': 'pure-ftpd'
+      'pure-ftpd': 'pure-ftpd',
+      postgresql: 'postgresql'
     }
     const binNames = {
       apache: 'apachectl',
@@ -98,7 +105,8 @@ class Manager extends BaseManager {
       memcached: 'memcached',
       redis: 'redis-server',
       mongodb: 'mongod',
-      'pure-ftpd': 'pure-ftpd'
+      'pure-ftpd': 'pure-ftpd',
+      postgresql: 'pg_ctl'
     }
     const fetchVersion = (flag) => {
       return new Promise((resolve) => {
@@ -191,7 +199,7 @@ class Manager extends BaseManager {
           if (index === count) {
             resolve(
               list.sort((a, b) => {
-                return b.num - a.num
+                return compareVersions(b?.version ?? '0', a?.version ?? '0')
               })
             )
           }
@@ -205,18 +213,8 @@ class Manager extends BaseManager {
       const list = []
       const base = '/opt/local/'
       if (type === 'php') {
-        const fpms = [
-          'sbin/php-fpm56',
-          'sbin/php-fpm70',
-          'sbin/php-fpm71',
-          'sbin/php-fpm72',
-          'sbin/php-fpm73',
-          'sbin/php-fpm74',
-          'sbin/php-fpm80',
-          'sbin/php-fpm81',
-          'sbin/php-fpm82',
-          'sbin/php-fpm83'
-        ]
+        const allSbinFile = Utils.getAllFile(join(base, 'sbin'), false)
+        const fpms = allSbinFile.filter((f) => f.startsWith('php-fpm'))
         const find = async (fpm) => {
           const bin = join(base, fpm)
           if (existsSync(bin)) {
@@ -292,15 +290,10 @@ class Manager extends BaseManager {
           await find(fpm)
         }
       } else if (type === 'mysql') {
-        const fpms = [
-          'lib/mysql5/bin/mysqld_safe',
-          'lib/mysql8/bin/mysqld_safe',
-          'lib/mysql51/bin/mysqld_safe',
-          'lib/mysql55/bin/mysqld_safe',
-          'lib/mysql56/bin/mysqld_safe',
-          'lib/mysql57/bin/mysqld_safe',
-          'lib/mysql81/bin/mysqld_safe'
-        ]
+        const allLibFile = Utils.getSubDir(join(base, 'lib'), false)
+        const fpms = allLibFile
+          .filter((f) => f.startsWith('mysql'))
+          .map((f) => `lib/${f}/bin/mysqld_safe`)
         const find = async (fpm) => {
           const bin = join(base, fpm)
           if (existsSync(bin)) {
@@ -325,20 +318,10 @@ class Manager extends BaseManager {
           await find(fpm)
         }
       } else if (type === 'mariadb') {
-        const fpms = [
-          'lib/mariadb-10.0/bin/mariadbd-safe',
-          'lib/mariadb-10.1/bin/mariadbd-safe',
-          'lib/mariadb-10.2/bin/mariadbd-safe',
-          'lib/mariadb-10.3/bin/mariadbd-safe',
-          'lib/mariadb-10.4/bin/mariadbd-safe',
-          'lib/mariadb-10.5/bin/mariadbd-safe',
-          'lib/mariadb-10.6/bin/mariadbd-safe',
-          'lib/mariadb-10.7/bin/mariadbd-safe',
-          'lib/mariadb-10.8/bin/mariadbd-safe',
-          'lib/mariadb-10.9/bin/mariadbd-safe',
-          'lib/mariadb-10.10/bin/mariadbd-safe',
-          'lib/mariadb-10.11/bin/mariadbd-safe'
-        ]
+        const allLibFile = Utils.getSubDir(join(base, 'lib'), false)
+        const fpms = allLibFile
+          .filter((f) => f.startsWith('mariadb'))
+          .map((f) => `lib/${f}/bin/mariadbd-safe`)
         const find = async (fpm) => {
           const bin = join(base, fpm)
           if (existsSync(bin)) {
@@ -434,6 +417,37 @@ class Manager extends BaseManager {
         for (const fpm of fpms) {
           await find(fpm)
         }
+      } else if (type === 'postgresql') {
+        const allLibFile = Utils.getSubDir(join(base, 'lib'), false)
+        console.log('allLibFile: ', allLibFile)
+        const fpms = allLibFile
+          .filter((f) => f.startsWith('postgresql1'))
+          .map((f) => `lib/${f}/bin/pg_ctl`)
+        console.log('fpms: ', fpms)
+
+        const find = async (fpm) => {
+          const bin = join(base, fpm)
+          if (existsSync(bin)) {
+            const { error, version } = await this.binVersion(bin, 'pg_ctl')
+            const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
+            const item = {
+              version: version,
+              bin,
+              path: dirname(dirname(bin)),
+              num,
+              enable: version !== null,
+              error,
+              run: false,
+              running: false,
+              flag: 'port'
+            }
+            list.push(item)
+          }
+          return true
+        }
+        for (const fpm of fpms) {
+          await find(fpm)
+        }
       }
       list.forEach((item) => {
         item.flag = 'macports'
@@ -456,7 +470,7 @@ class Manager extends BaseManager {
         })
         versions[type] = arr
         versions[type].sort((a, b) => {
-          return b.num - a.num
+          return compareVersions(b?.version ?? '0', a?.version ?? '0')
         })
       }
       this._processSend({

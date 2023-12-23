@@ -204,6 +204,7 @@ export default class Application extends EventEmitter {
     global.Server.RedisDir = join(runpath, 'server/redis')
     global.Server.MongoDBDir = join(runpath, 'server/mongodb')
     global.Server.FTPDir = join(runpath, 'server/ftp')
+    global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
     createFolder(global.Server.NginxDir)
     createFolder(global.Server.PhpDir)
     createFolder(global.Server.MysqlDir)
@@ -363,6 +364,26 @@ export default class Application extends EventEmitter {
   stopServer() {
     this.ptyLast = null
     this.exitNodePty()
+
+    const stopPostpreSql = () => {
+      const command = `ps aux | grep 'postgresql' | awk '{print $2,$11,$12,$13}'`
+      const res = execSync(command)
+      const pids = res?.toString()?.trim()?.split('\n') ?? []
+      const arr = []
+      for (const p of pids) {
+        if (p.includes(global.Server.PostgreSqlDir!)) {
+          arr.push(p.split(' ')[0])
+        }
+      }
+      if (arr.length > 0) {
+        const pids = arr.join(' ')
+        const sig = '-INT'
+        try {
+          execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
+        } catch (e) {}
+      }
+    }
+
     // 停止nginx服务
     let pidfile = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
     this.stopServerByPid(pidfile, 'nginx')
@@ -382,6 +403,7 @@ export default class Application extends EventEmitter {
     this.stopServerByPid(pidfile, 'mongodb')
     pidfile = join(global.Server.FTPDir!, 'pure-ftpd.pid')
     this.stopServerByPid(pidfile, 'ftp')
+    stopPostpreSql()
     try {
       let hosts = readFileSync('/private/etc/hosts', 'utf-8')
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
@@ -517,6 +539,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:mongodb':
       case 'app-fork:project':
       case 'app-fork:pure-ftpd':
+      case 'app-fork:postgresql':
         const forkFile = command.replace('app-fork:', '')
         const child = fork(join(__static, `fork/${forkFile}.js`))
         this.setProxy()

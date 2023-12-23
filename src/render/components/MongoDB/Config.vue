@@ -1,5 +1,5 @@
 <template>
-  <div class="mongodb-config">
+  <div class="module-config">
     <div ref="input" class="block"></div>
     <div class="tool">
       <el-button :disabled="!currentVersion" @click="openConfig">{{ $t('base.open') }}</el-button>
@@ -175,25 +175,3 @@
     }
   })
 </script>
-
-<style lang="scss">
-  .mongodb-config {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-    padding: 10px 0 0 20px;
-    .block {
-      width: 100%;
-      flex: 1;
-      overflow: hidden;
-    }
-    .tool {
-      flex-shrink: 0;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      padding: 30px 0 0;
-    }
-  }
-</style>

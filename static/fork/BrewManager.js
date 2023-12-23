@@ -1,5 +1,5 @@
 const join = require('path').join
-const { spawn, execSync } = require('child_process')
+const { execSync } = require('child_process')
 const { exec } = require('child-process-promise')
 const Utils = require('./Utils.js')
 const BaseManager = require('./BaseManager')
@@ -118,6 +118,9 @@ class BrewManager extends BaseManager {
           cammand =
             'brew search --desc --eval-all --formula "High-performance, schema-free, document-oriented database"'
           break
+        case 'postgresql':
+          cammand = 'brew search --formula "/^postgresql@[\\d\\.]+$/"'
+          break
       }
       if (cammand) {
         try {
@@ -219,6 +222,9 @@ class BrewManager extends BaseManager {
               if (flag === 'mongodb') {
                 return f.includes('high-performance, schema-free, document-oriented')
               }
+              if (flag === 'postgresql') {
+                return f.includes('The most advanced open-source database available anywhere.')
+              }
               return true
             })
             .map((m) => {
@@ -248,6 +254,8 @@ class BrewManager extends BaseManager {
                 installed =
                   existsSync(join('/opt/local/bin', 'pure-pw')) ||
                   existsSync(join('/opt/local/sbin', 'pure-ftpd'))
+              } else if (flag === 'postgresql') {
+                installed = existsSync(join('/opt/local/lib', name, 'bin/pg_ctl'))
               }
               return {
                 name,

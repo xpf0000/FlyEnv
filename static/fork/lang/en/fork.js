@@ -20,5 +20,7 @@ module.exports = {
   phpStopFail: 'PHP{version} failed to stop, please try to stop it manually',
   ExtensionInstallFailTips:
     'Install the extension and execute the command:\n{command}\nIf the installation fails, you can try to copy the command and try to install it yourself\n',
-  versionNoFound: 'Failed to get software version, operation failed.'
+  versionNoFound: 'Failed to get software version, operation failed.',
+  postgresqlInit:
+    'Service started successfully\nData Dir is {dir}\nInitial User is root, Empty password'
 }

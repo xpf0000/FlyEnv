@@ -1,16 +1,12 @@
 <template>
-  <div class="mysql-config">
+  <div class="module-config">
     <div ref="input" class="block"></div>
     <div class="tool">
-      <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
-        $t('base.open')
-      }}</el-button>
-      <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
+      <el-button :disabled="!filepath" @click="logDo('open')">{{ $t('base.open') }}</el-button>
+      <el-button :disabled="!filepath" @click="logDo('refresh')">{{
         $t('base.refresh')
       }}</el-button>
-      <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
-        $t('base.clean')
-      }}</el-button>
+      <el-button :disabled="!filepath" @click="logDo('clean')">{{ $t('base.clean') }}</el-button>
     </div>
   </div>
 </template>
@@ -24,6 +20,7 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { EditorConfigMake } from '@/util/Editor'
+  import { BrewStore } from '@/store/brew'
 
   const { existsSync } = require('fs')
   const { exec } = require('child-process-promise')
@@ -31,7 +28,6 @@
   const { shell } = require('@electron/remote')
 
   export default defineComponent({
-    name: 'MoMysqlLogs',
     components: {},
     props: {},
     data() {
@@ -43,6 +39,14 @@
     computed: {
       password() {
         return AppStore().config.password
+      },
+      currentVersion() {
+        const current = AppStore().config.server?.postgresql?.current
+        if (!current) {
+          return undefined
+        }
+        const installed = BrewStore()?.postgresql?.installed
+        return installed?.find((i) => i.path === current?.path && i.version === current?.version)
       }
     },
     watch: {
@@ -123,43 +127,14 @@
         }
       },
       init() {
-        this.filepath = join(global.Server.MysqlDir, `${this.type}.log`)
-        this.getLog()
+        if (this?.currentVersion?.version) {
+          const version = this?.currentVersion?.version
+          const versionTop = version.split('.').shift()
+          const dbPath = join(global.Server.PostgreSqlDir, `postgresql${versionTop}`)
+          this.filepath = join(dbPath, 'pg.log')
+          this.getLog()
+        }
       }
     }
   })
 </script>
-
-<style lang="scss">
-  .mysql-config {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 10px 0 0 20px;
-    .block {
-      display: flex;
-      align-items: center;
-      flex: 1;
-      font-size: 15px;
-      textarea {
-        height: 100%;
-      }
-    }
-    .tool {
-      flex-shrink: 0;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      padding: 30px 0 0;
-      .shrink0 {
-        flex-shrink: 0;
-      }
-      .path {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        margin-right: 20px;
-      }
-    }
-  }
-</style>

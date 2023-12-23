@@ -10,10 +10,10 @@
       >
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="postpresql"></Service>
-      <Config v-if="current_tab === 1"></Config>
-      <Manager v-else-if="current_tab === 2" type-flag="postpresql"></Manager>
-      <Logs v-if="current_tab === 3"></Logs>
+      <Service v-if="current_tab === 0" type-flag="postgresql"></Service>
+      <Config v-else-if="current_tab === 1"></Config>
+      <Manager v-else-if="current_tab === 2" type-flag="postgresql"></Manager>
+      <Logs v-else-if="current_tab === 3"></Logs>
     </div>
   </div>
 </template>
@@ -49,7 +49,7 @@
     },
     computed: {
       version() {
-        return AppStore().config.server?.postpresql?.current?.version
+        return AppStore().config.server?.postgresql?.current?.version
       }
     },
     watch: {},

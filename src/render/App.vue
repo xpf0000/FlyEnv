@@ -104,7 +104,8 @@
             'memcached',
             'redis',
             'mongodb',
-            'pure-ftpd'
+            'pure-ftpd',
+            'postgresql'
           ].filter((f) => dict[f]) as Array<keyof typeof AppSofts>
           if (flags.length === 0) {
             AppStore().versionInited = true
@@ -361,5 +362,25 @@
     word-wrap: break-word;
     white-space: pre-wrap;
     user-select: text;
+  }
+
+  .module-config {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    padding: 5px 0 0 0;
+    .block {
+      width: 100%;
+      flex: 1;
+      overflow: hidden;
+    }
+    .tool {
+      flex-shrink: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      padding: 30px 0 0;
+    }
   }
 </style>

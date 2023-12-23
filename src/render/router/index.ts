@@ -67,6 +67,10 @@ const routes = [
       {
         path: '/setup',
         component: () => import('@/components/Setup/Index.vue')
+      },
+      {
+        path: '/postgresql',
+        component: () => import('@/components/PostgreSql/Index.vue')
       }
     ]
   }

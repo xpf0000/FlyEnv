@@ -25,6 +25,7 @@
         <MysqlModule ref="mysqlModule" :current-page="currentPage" @nav="nav" />
         <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />
         <MongodbModule ref="mongoModule" :current-page="currentPage" @nav="nav" />
+        <PostgreSqlModule ref="postgresqlModule" :current-page="currentPage" @nav="nav" />
         <MemcachedModule ref="memcachedModule" :current-page="currentPage" @nav="nav" />
         <RedisModule ref="redisModule" :current-page="currentPage" @nav="nav" />
         <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
@@ -75,6 +76,7 @@
   import NodejsModule from './module/nodejs/index.vue'
   import HttpserveModule from './module/httpserve/index.vue'
   import ToolsModule from './module/tools/index.vue'
+  import PostgreSqlModule from './module/postgresql/index.vue'
 
   const { shell } = require('@electron/remote')
 
@@ -90,6 +92,7 @@
   const redisModule = ref()
   const dnsModule = ref()
   const ftpModule = ref()
+  const postgresqlModule = ref()
 
   const appStore = AppStore()
   const dnsStore = DnsStore()
@@ -111,7 +114,8 @@
       memcachedModule?.value?.serviceRunning ||
       mongoModule?.value?.serviceRunning ||
       dnsModule?.value?.serviceRunning ||
-      ftpModule?.value?.serviceRunning
+      ftpModule?.value?.serviceRunning ||
+      postgresqlModule?.value?.serviceRunning
     )
   })
 
@@ -125,7 +129,8 @@
       phpModule?.value?.serviceDisabled &&
       redisModule?.value?.serviceDisabled &&
       mongoModule?.value?.serviceDisabled &&
-      ftpModule?.value?.serviceDisabled
+      ftpModule?.value?.serviceDisabled &&
+      postgresqlModule?.value?.serviceDisabled
     const running =
       apacheModule?.value?.serviceFetching ||
       memcachedModule?.value?.serviceFetching ||
@@ -136,7 +141,8 @@
       redisModule?.value?.serviceFetching ||
       mongoModule?.value?.serviceFetching ||
       dnsModule?.value?.serviceFetching ||
-      ftpModule?.value?.serviceFetching
+      ftpModule?.value?.serviceFetching ||
+      postgresqlModule?.value?.serviceFetching
     return allDisabled || running || !appStore.versionInited
   })
 
@@ -212,6 +218,12 @@
         run: ftpModule?.value?.serviceRunning,
         running: ftpModule?.value?.serviceFetching
       },
+      postgresql: {
+        show: showItem?.value?.PostgreSql,
+        disabled: postgresqlModule?.value?.serviceDisabled,
+        run: postgresqlModule?.value?.serviceRunning,
+        running: postgresqlModule?.value?.serviceFetching
+      },
       groupDisabled: groupDisabled.value,
       groupIsRunning: groupIsRunning.value
     }
@@ -260,7 +272,8 @@
         memcachedModule,
         redisModule,
         dnsModule,
-        ftpModule
+        ftpModule,
+        postgresqlModule
       ]
       const all: Array<Promise<string | boolean>> = []
       modules.forEach((m: any) => {
@@ -325,6 +338,9 @@
       case 'ftp':
         ftpModule?.value?.switchChange()
         break
+      case 'postgresql':
+        postgresqlModule?.value?.switchChange()
+        break
     }
   }
 
@@ -385,12 +401,16 @@
     display: flex;
     height: 100%;
     flex-flow: column;
+    overflow: hidden;
+
     > .top-tool {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 55px 20px 12px 20px;
+      padding: 50px 20px 12px 20px;
       list-style: none;
+      flex-shrink: 0;
+
       > li {
         width: 30px;
         height: 30px;
@@ -452,9 +472,11 @@
   }
   .top-menu {
     flex: 1;
+    overflow: auto;
   }
   .setup-menu {
     flex-shrink: 0;
+    border-top: 1px solid #242737;
   }
   .bottom-menu {
     margin-bottom: 24px;

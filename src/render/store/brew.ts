@@ -23,7 +23,7 @@ export interface AppSoftInstalledItem {
 }
 
 interface State {
-  postpresql: AppSoftInstalledItem
+  postgresql: AppSoftInstalledItem
   nginx: AppSoftInstalledItem
   apache: AppSoftInstalledItem
   memcached: AppSoftInstalledItem
@@ -54,7 +54,7 @@ const state: State = {
     installed: [],
     list: {}
   },
-  postpresql: {
+  postgresql: {
     getListing: false,
     installedInited: false,
     installed: [],

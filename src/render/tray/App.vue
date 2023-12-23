@@ -14,17 +14,6 @@
       </li>
     </ul>
     <ul class="menu top-menu">
-      <li v-if="nginx?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block">
-            <yb-icon :svg="import('@/svg/nginx.svg?raw')" width="28" height="28" />
-          </div>
-          <span class="title">Nginx</span>
-        </div>
-        <el-switch :disabled="nginx?.disabled" :value="nginx?.run" @change="switchChange('nginx')">
-        </el-switch>
-      </li>
-
       <li v-if="apache?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block">
@@ -40,7 +29,30 @@
         >
         </el-switch>
       </li>
+      <li v-if="nginx?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block">
+            <yb-icon :svg="import('@/svg/nginx.svg?raw')" width="28" height="28" />
+          </div>
+          <span class="title">Nginx</span>
+        </div>
+        <el-switch :disabled="nginx?.disabled" :value="nginx?.run" @change="switchChange('nginx')">
+        </el-switch>
+      </li>
+      <li v-if="php?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block">
+            <yb-icon :svg="import('@/svg/php.svg?raw')" width="30" height="30" />
+          </div>
+          <span class="title">Php</span>
+        </div>
 
+        <el-switch
+          :disabled="php?.disabled"
+          :value="php?.run"
+          @change="switchChange('php')"
+        ></el-switch>
+      </li>
       <li v-if="mysql?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block">
@@ -52,7 +64,6 @@
         <el-switch :disabled="mysql?.disabled" :value="mysql?.run" @change="switchChange('mysql')">
         </el-switch>
       </li>
-
       <li v-if="mariadb?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block">
@@ -68,55 +79,6 @@
         >
         </el-switch>
       </li>
-
-      <li v-if="php?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block">
-            <yb-icon :svg="import('@/svg/php.svg?raw')" width="30" height="30" />
-          </div>
-          <span class="title">Php</span>
-        </div>
-
-        <el-switch
-          :disabled="php?.disabled"
-          :value="php?.run"
-          @change="switchChange('php')"
-        ></el-switch>
-      </li>
-
-      <li v-if="memcached?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block">
-            <yb-icon :svg="import('@/svg/memcached.svg?raw')" width="30" height="30" />
-          </div>
-          <span class="title">Memcached</span>
-        </div>
-
-        <el-switch
-          :disabled="memcached?.disabled"
-          :value="memcached?.run"
-          @change="switchChange('memcached')"
-        >
-        </el-switch>
-      </li>
-
-      <li v-if="redis?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block">
-            <yb-icon
-              style="padding: 7px"
-              :svg="import('@/svg/redis.svg?raw')"
-              width="28"
-              height="28"
-            />
-          </div>
-          <span class="title">Redis</span>
-        </div>
-
-        <el-switch :disabled="redis?.disabled" :value="redis?.run" @change="switchChange('redis')">
-        </el-switch>
-      </li>
-
       <li v-if="mongodb?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block">
@@ -137,7 +99,57 @@
         >
         </el-switch>
       </li>
+      <li v-if="postgresql?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block">
+            <yb-icon
+              style="padding: 6.5px"
+              :svg="import('@/svg/postgresql.svg?raw')"
+              width="28"
+              height="28"
+            />
+          </div>
+          <span class="title">PostgreSql</span>
+        </div>
 
+        <el-switch
+          :disabled="postgresql?.disabled"
+          :value="postgresql?.run"
+          @change="switchChange('postgresql')"
+        >
+        </el-switch>
+      </li>
+      <li v-if="memcached?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block">
+            <yb-icon :svg="import('@/svg/memcached.svg?raw')" width="30" height="30" />
+          </div>
+          <span class="title">Memcached</span>
+        </div>
+
+        <el-switch
+          :disabled="memcached?.disabled"
+          :value="memcached?.run"
+          @change="switchChange('memcached')"
+        >
+        </el-switch>
+      </li>
+      <li v-if="redis?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block">
+            <yb-icon
+              style="padding: 7px"
+              :svg="import('@/svg/redis.svg?raw')"
+              width="28"
+              height="28"
+            />
+          </div>
+          <span class="title">Redis</span>
+        </div>
+
+        <el-switch :disabled="redis?.disabled" :value="redis?.run" @change="switchChange('redis')">
+        </el-switch>
+      </li>
       <li v-if="dns?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block">
@@ -154,7 +166,6 @@
         <el-switch :disabled="dns?.running" :value="dns?.run" @change="switchChange('dns')">
         </el-switch>
       </li>
-
       <li v-if="ftp?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block">
@@ -218,6 +229,9 @@
   })
   const ftp = computed(() => {
     return store.ftp
+  })
+  const postgresql = computed(() => {
+    return store.postgresql
   })
   const groupIsRunning = computed(() => {
     return store.groupIsRunning
@@ -311,9 +325,9 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      padding: 30px 20px 12px 20px;
+      padding: 26px 20px 12px 20px;
       list-style: none;
-      border-bottom: 2px solid #242737;
+      border-bottom: 1px solid #242737;
       flex-shrink: 0;
       > li {
         width: 30px;
@@ -370,7 +384,7 @@
     }
 
     > .bottom-tool {
-      border-top: 2px solid #242737;
+      border-top: 1px solid #242737;
       flex-shrink: 0;
       display: flex;
       align-items: center;

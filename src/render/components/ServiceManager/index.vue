@@ -82,6 +82,7 @@
       | 'php'
       | 'mongodb'
       | 'pure-ftpd'
+      | 'postgresql'
   }>()
 
   const appStore = AppStore()

@@ -25,6 +25,7 @@
     "@electron/remote": "^2.0.9",
     "axios": "^1.5.1",
     "child-process-promise": "^2.2.1",
+    "compare-versions": "^6.1.0",
     "compressing": "^1.5.1",
     "electron-is": "^3.0.0",
     "electron-log": "^4.4.8",
