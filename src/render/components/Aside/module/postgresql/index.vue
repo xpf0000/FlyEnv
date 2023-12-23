@@ -71,11 +71,15 @@
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
     const all: Array<Promise<string | boolean>> = []
     if (isRunning) {
-      if (showItem?.value?.PostgreSql && serviceRunning?.value && currentVersion?.value?.version) {
+      if (
+        showItem?.value?.PostgreSql !== false &&
+        serviceRunning?.value &&
+        currentVersion?.value?.version
+      ) {
         all.push(stopService('postgresql', currentVersion?.value))
       }
     } else {
-      if (showItem?.value?.PostgreSql && currentVersion?.value?.version) {
+      if (showItem?.value?.PostgreSql !== false && currentVersion?.value?.version) {
         all.push(startService('postgresql', currentVersion?.value))
       }
     }

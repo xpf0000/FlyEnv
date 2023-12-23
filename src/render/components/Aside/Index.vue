@@ -219,7 +219,7 @@
         running: ftpModule?.value?.serviceFetching
       },
       postgresql: {
-        show: showItem?.value?.PostgreSql,
+        show: showItem?.value?.PostgreSql !== false,
         disabled: postgresqlModule?.value?.serviceDisabled,
         run: postgresqlModule?.value?.serviceRunning,
         running: postgresqlModule?.value?.serviceFetching

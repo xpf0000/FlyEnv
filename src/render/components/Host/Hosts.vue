@@ -33,8 +33,7 @@
   import { nextTick } from 'vue'
   import IPC from '@/util/IPC.ts'
   import { VueExtend } from '@/core/VueExtend.ts'
-  import { AppStore } from '@/store/app.js'
-  import { EditorConfigMake } from '@/util/Editor.js'
+  import { EditorConfigMake } from '@/util/Editor.ts'
 
   const { shell } = require('@electron/remote')
 
