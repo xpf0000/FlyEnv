@@ -1,5 +1,16 @@
 export const User = {
   server: {
+    postgresql: {
+      current: {
+        version: '16.0',
+        bin: '/opt/local/lib/postgresql16/bin/pg_ctl',
+        path: '/opt/local/lib/postgresql16',
+        num: 160,
+        enable: true,
+        run: false,
+        running: false
+      }
+    },
     nginx: {
       current: {
         version: '1.25.3',
@@ -8,7 +19,7 @@ export const User = {
         num: 125,
         enable: true,
         run: false,
-        running: true
+        running: false
       }
     },
     php: {
@@ -26,7 +37,7 @@ export const User = {
         num: 57,
         enable: true,
         run: false,
-        running: true
+        running: false
       }
     },
     apache: {
@@ -37,7 +48,7 @@ export const User = {
         num: 24,
         enable: true,
         run: false,
-        running: true
+        running: false
       }
     },
     memcached: {
@@ -48,7 +59,7 @@ export const User = {
         num: 15,
         enable: true,
         run: false,
-        running: true
+        running: false
       }
     },
     redis: {
@@ -70,7 +81,7 @@ export const User = {
         num: 70,
         enable: true,
         run: false,
-        running: true
+        running: false
       }
     },
     mariadb: {
@@ -81,7 +92,7 @@ export const User = {
         num: 1011,
         enable: true,
         run: false,
-        running: true,
+        running: false,
         flag: 'port'
       }
     },
@@ -93,7 +104,7 @@ export const User = {
         num: 10,
         enable: true,
         run: false,
-        running: true
+        running: false
       }
     }
   },
@@ -114,8 +125,12 @@ export const User = {
         MongoDB: true,
         mariadb: true,
         DNS: true,
-        FTP: true
+        FTP: true,
+        PostgreSql: true
       }
+    },
+    postgresql: {
+      dirs: []
     },
     nginx: {
       dirs: []
@@ -155,7 +170,8 @@ export const User = {
       theme: 'vs-dark',
       fontSize: 16,
       lineHeight: 2
-    }
+    },
+    phpGroupStart: {}
   },
   tools: {
     siteSucker: {

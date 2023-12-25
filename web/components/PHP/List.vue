@@ -28,6 +28,11 @@
         </div>
       </div>
       <div class="right">
+        <template v-if="appStore.phpGroupStart[item.bin] === false">
+          <div class="status group-off">
+            <yb-icon :svg="import('@/svg/nogroupstart.svg?raw')" @click.stop="groupTrunOn(item)" />
+          </div>
+        </template>
         <template v-if="item.run">
           <div class="status running" :class="{ disabled: item.running }">
             <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="doStop(item)" />
@@ -67,6 +72,20 @@
               <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
               <span class="ml-15">{{ $t('php.extension') }}</span>
             </li>
+            <li @click.stop="action(item, key, 'groupstart')">
+              <yb-icon
+                style="padding: 0"
+                :svg="import('@/svg/nogroupstart.svg?raw')"
+                width="18"
+                height="18"
+              />
+              <template v-if="appStore.phpGroupStart[item.bin] === false">
+                <span class="ml-10">{{ $t('php.groupStartOn') }}</span>
+              </template>
+              <template v-else>
+                <span class="ml-10">{{ $t('php.groupStartOff') }}</span>
+              </template>
+            </li>
             <template v-if="checkBrew(item)">
               <li @click.stop="action(item, key, 'brewLink')">
                 <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
@@ -92,9 +111,11 @@
   import { BrewStore, SoftInstalled } from '../../store/brew'
   import { ElLoading, ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
+  import { AppStore } from '../../store/app'
 
   const initing = ref(false)
   const brewStore = BrewStore()
+  const appStore = AppStore()
 
   const php = computed(() => {
     return brewStore.php
@@ -156,8 +177,19 @@
     ExtensionsVM = res.default
   })
 
+  const groupTrunOn = (item: SoftInstalled) => {
+    if (!item?.version) {
+      return
+    }
+    appStore.phpGroupStart[item.bin] = true
+  }
+
   const action = (item: SoftInstalled, index: number, flag: string) => {
     switch (flag) {
+      case 'groupstart':
+        const old = appStore.phpGroupStart[item.bin] ?? true
+        appStore.phpGroupStart[item.bin] = !old
+        break
       case 'open':
         break
       case 'conf':
@@ -305,6 +337,15 @@
           display: flex;
           align-items: center;
           justify-content: center;
+
+          &.group-off {
+            margin-right: 30px;
+            svg {
+              width: 30px !important;
+              height: 30px !important;
+              opacity: 0.7;
+            }
+          }
 
           &.running {
             svg {

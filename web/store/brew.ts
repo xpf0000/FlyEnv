@@ -9,6 +9,7 @@ import { Mariadb } from '../config/mariadb'
 import { Memcached } from '../config/memcached'
 import { Redis } from '../config/redis'
 import { Mongodb } from '../config/mongodb'
+import { Postgresql } from '../config/postgresql'
 
 export interface SoftInstalled {
   version: string | null
@@ -33,6 +34,7 @@ export interface AppSoftInstalledItem {
 }
 
 interface State {
+  postgresql: AppSoftInstalledItem
   nginx: AppSoftInstalledItem
   apache: AppSoftInstalledItem
   memcached: AppSoftInstalledItem
@@ -57,6 +59,12 @@ const state: State = {
   brewSrc: '',
   log: [],
   LibUse: {},
+  postgresql: {
+    getListing: false,
+    installedInited: true,
+    installed: Installed.postgresql,
+    list: Postgresql
+  },
   'pure-ftpd': {
     getListing: false,
     installedInited: true,

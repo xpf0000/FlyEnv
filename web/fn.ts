@@ -4,7 +4,7 @@ import { I18nT } from '@shared/lang'
 import type { AllAppSofts } from './store/app'
 import { VueExtend } from './VueExtend'
 import { onMounted, ref } from 'vue'
-import { AppStore } from '@/store/app'
+import { AppStore } from './store/app'
 
 export function random(m: number, n: number) {
   return Math.floor(Math.random() * (m - n) + n)

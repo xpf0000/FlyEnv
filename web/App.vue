@@ -502,4 +502,24 @@
       }
     }
   }
+
+  .module-config {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    padding: 5px 0 0 0;
+    .block {
+      width: 100%;
+      flex: 1;
+      overflow: hidden;
+    }
+    .tool {
+      flex-shrink: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      padding: 30px 0 0;
+    }
+  }
 </style>

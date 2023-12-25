@@ -394,5 +394,45 @@ export const Installed = {
       run: false,
       running: false
     }
+  ],
+  postgresql: [
+    {
+      version: '16.0',
+      bin: '/opt/local/lib/postgresql16/bin/pg_ctl',
+      path: '/opt/local/lib/postgresql16',
+      num: 16,
+      enable: true,
+      run: false,
+      running: false,
+      flag: 'macports'
+    },
+    {
+      version: '15.5',
+      bin: '/usr/local/Cellar/postgresql@15/15.5_1/bin/pg_ctl',
+      path: '/usr/local/Cellar/postgresql@15/15.5_1',
+      num: 15,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '12.16',
+      bin: '/opt/local/lib/postgresql12/bin/pg_ctl',
+      path: '/opt/local/lib/postgresql12',
+      num: 12,
+      enable: true,
+      run: false,
+      running: false,
+      flag: 'macports'
+    },
+    {
+      version: '12.17',
+      bin: '/usr/local/Cellar/postgresql@12/12.17_1/bin/pg_ctl',
+      path: '/usr/local/Cellar/postgresql@12/12.17_1',
+      num: 12,
+      enable: true,
+      run: false,
+      running: false
+    }
   ]
 }

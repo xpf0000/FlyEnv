@@ -28,7 +28,7 @@
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import Conf from '../../config/apache.conf.txt?raw'
+  import Conf from '../../../config/apache.conf.txt?raw'
 
   const wapper = ref()
   const appStore = AppStore()

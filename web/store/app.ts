@@ -47,7 +47,8 @@ export enum AppSofts {
   apache = 'apache',
   memcached = 'memcached',
   redis = 'redis',
-  mongodb = 'mongodb'
+  mongodb = 'mongodb',
+  postgresql = 'postgresql'
 }
 
 interface State {
@@ -74,6 +75,7 @@ interface State {
           Tools: boolean
           DNS: boolean
           FTP: boolean
+          PostgreSql: boolean
         }
       }
       hosts: {
@@ -85,6 +87,9 @@ interface State {
         proxy: string
       }
       lang: string
+      postgresql: {
+        dirs: Array<string>
+      }
       nginx: {
         dirs: Array<string>
       }
@@ -111,6 +116,7 @@ interface State {
       }
       autoCheck: boolean
       editorConfig: EditorConfig
+      phpGroupStart: { [k: string]: boolean }
     }
   }
   httpServe: Array<string>
@@ -132,6 +138,9 @@ export const AppStore = defineStore('app', {
   getters: {
     editorConfig(): EditorConfig {
       return this.config.setup.editorConfig
+    },
+    phpGroupStart(): { [k: string]: boolean } {
+      return this.config.setup.phpGroupStart
     }
   },
   actions: {
