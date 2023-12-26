@@ -12,3 +12,26 @@ export interface SoftInstalled {
   phpize?: string
   flag?: string
 }
+
+export interface AppHost {
+  id: number
+  name: string
+  alias: string
+  useSSL: boolean
+  ssl: {
+    cert: string
+    key: string
+  }
+  port: {
+    nginx: number
+    apache: number
+    nginx_ssl: number
+    apache_ssl: number
+  }
+  nginx: {
+    rewrite: string
+  }
+  url: string
+  root: string
+  phpVersion?: number
+}

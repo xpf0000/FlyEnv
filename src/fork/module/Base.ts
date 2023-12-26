@@ -4,7 +4,7 @@ import { execSync } from 'child_process'
 import { join } from 'path'
 import type { SoftInstalled } from '@shared/app'
 import { chmod, execPromise, fixEnv, spawnPromise } from '../Fn'
-import { ForkPromise } from '../ForkPromise'
+import { ForkPromise } from '@shared/ForkPromise'
 
 export class Base {
   type: string
@@ -20,8 +20,11 @@ export class Base {
     return fn.call(this, ...args)
   }
 
-  _startServer(version: SoftInstalled) {
+  _startServer(version: SoftInstalled): ForkPromise<any> {
     console.log(version)
+    return new ForkPromise<any>((resolve) => {
+      resolve(true)
+    })
   }
 
   _linkVersion(version: SoftInstalled): ForkPromise<true | string> {
@@ -65,7 +68,7 @@ export class Base {
   }
 
   switchVersion(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise((resolve, reject, on) => {
       if (!existsSync(version?.bin)) {
         reject(new Error(I18nT('fork.binNoFound')))
         return
@@ -76,7 +79,7 @@ export class Base {
       }
       this._stopServer(version)
         .then(() => {
-          return this._startServer(version)
+          return this._startServer(version).on(on)
         })
         .then(() => {
           return this._linkVersion(version)
@@ -116,7 +119,7 @@ export class Base {
   }
 
   startService(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise((resolve, reject, on) => {
       if (!existsSync(version?.bin)) {
         reject(new Error(I18nT('fork.binNoFound')))
         return
@@ -127,14 +130,12 @@ export class Base {
       }
       this._stopServer(version)
         .then(() => {
-          return this._startServer(version)
+          return this._startServer(version).on(on)
         })
         .then((res) => {
-          console.log('startService then: ', res)
           resolve(res)
         })
         .catch((err) => {
-          console.log('startService catch: ', err)
           reject(err)
         })
     })

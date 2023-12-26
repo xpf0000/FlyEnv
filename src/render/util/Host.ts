@@ -40,16 +40,16 @@ export const handleHost = (host: AppHost, flag: string, old?: AppHost, park?: bo
     IPC.send('app-fork:host', 'handleHost', host, flag, old, park).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
-        handleHostEnd(res.hosts)
-        resolve(true)
+        if (res?.data?.host) {
+          handleHostEnd(res.data.host)
+          resolve(true)
+        } else if (res?.data?.hostBackFile) {
+          Base.MessageError(I18nT('base.hostParseErr')).then()
+          shell.showItemInFolder(res?.data?.hostBackFile)
+          resolve(false)
+        }
       } else if (res?.code === 1) {
         Base.MessageError(res.msg).then()
-        resolve(false)
-      } else if (res?.code === 2) {
-        Base.MessageError(I18nT('base.hostParseErr')).then()
-        if (res?.hostBackFile) {
-          shell.showItemInFolder(res.hostBackFile)
-        }
         resolve(false)
       }
     })

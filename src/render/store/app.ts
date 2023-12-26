@@ -292,13 +292,11 @@ export const AppStore = defineStore('app', {
         IPC.send('app-fork:host', 'hostList').then((key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
-            if (res?.hosts) {
-              this.UPDATE_HOSTS(res.hosts)
-            }
-          } else if (res?.code === 2) {
-            Base.MessageError(I18nT('base.hostParseErr')).then()
-            if (res?.hostBackFile) {
-              shell.showItemInFolder(res.hostBackFile)
+            if (res?.data?.hostBackFile) {
+              Base.MessageError(I18nT('base.hostParseErr')).then()
+              shell.showItemInFolder(res?.data?.hostBackFile)
+            } else if (res?.data?.host) {
+              this.UPDATE_HOSTS(res?.data?.host)
             }
           }
           resolve(true)

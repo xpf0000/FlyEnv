@@ -1,5 +1,5 @@
-const ENFork = require('./en/fork')
-const ZHFork = require('./zh/fork')
+import ENFork from './en/fork'
+import ZHFork from './zh/fork'
 import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 

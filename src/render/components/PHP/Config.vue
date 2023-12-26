@@ -209,7 +209,7 @@
               console.log(res)
               IPC.off(key)
               if (res.code === 0) {
-                IniFiles[flag] = res.iniPath
+                IniFiles[flag] = res.data
                 readConfig()
               } else {
                 const err = this.$t('php.phpiniNoFound')

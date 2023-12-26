@@ -4,7 +4,7 @@ import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import { createFolder, execPromise, md5 } from '../Fn'
-import { ForkPromise } from '../ForkPromise'
+import { ForkPromise } from '@shared/ForkPromise'
 
 class Apache extends Base {
   constructor() {
@@ -85,7 +85,6 @@ IncludeOptional "${vhost}*.conf"`
   }
 
   _startServer(version: SoftInstalled) {
-    console.log('_startServer: ', version)
     return new ForkPromise((resolve, reject, on) => {
       this.#resetConf(version)
         .then(() => {

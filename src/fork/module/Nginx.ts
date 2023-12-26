@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
 import { createFolder, execPromise } from '../Fn'
-import { ForkPromise } from '../ForkPromise'
+import { ForkPromise } from '@shared/ForkPromise'
 class Nginx extends Base {
   constructor() {
     super()

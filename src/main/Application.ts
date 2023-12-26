@@ -47,6 +47,7 @@ export default class Application extends EventEmitter {
 
   constructor() {
     super()
+    global.Server = {}
     this.isReady = false
     this.httpServes = {}
     this.configManager = new ConfigManager()
@@ -87,19 +88,20 @@ export default class Application extends EventEmitter {
     })
   }
 
-  initForkManager() {
-    this.forkManager = new ForkManager(resolve(__dirname, './fork.js'))
-    this.forkManager.on(({ key, info }: { key: string; info: any }) => {
-      this.windowManager.sendCommandTo(this.mainWindow!, key, key, info)
-    })
-  }
-
   initLang() {
     const lang = getLanguage(this.configManager.getConfig('setup.lang'))
     if (lang) {
       this.configManager.setConfig('setup.lang', lang)
       AppI18n(lang)
+      global.Server.Lang = lang
     }
+  }
+
+  initForkManager() {
+    this.forkManager = new ForkManager(resolve(__dirname, './fork.js'))
+    this.forkManager.on(({ key, info }: { key: string; info: any }) => {
+      this.windowManager.sendCommandTo(this.mainWindow!, key, key, info)
+    })
   }
 
   initTrayManager() {
@@ -200,7 +202,6 @@ export default class Application extends EventEmitter {
   initServerDir() {
     console.log('userData: ', app.getPath('userData'))
     const runpath = app.getPath('userData').replace('Application Support/', '')
-    global.Server = {}
     this.setProxy()
     global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
@@ -541,19 +542,35 @@ export default class Application extends EventEmitter {
     }
     switch (command) {
       case 'app-fork:apache':
-        this.forkManager?.send('apache', ...args).then(callBack)
+        this.forkManager
+          ?.send('apache', ...args)
+          .on(callBack)
+          .then(callBack)
         break
       case 'app-fork:nginx':
-        this.forkManager?.send('nginx', ...args).then(callBack)
+        this.forkManager
+          ?.send('nginx', ...args)
+          .on(callBack)
+          .then(callBack)
+        break
+      case 'app-fork:php':
+        this.forkManager
+          ?.send('php', ...args)
+          .on(callBack)
+          .then(callBack)
+        break
+      case 'app-fork:host':
+        this.forkManager
+          ?.send('host', ...args)
+          .on(callBack)
+          .then(callBack)
         break
       case 'app-fork:node':
       case 'app-fork:brew':
-      case 'app-fork:php':
       case 'app-fork:mysql':
       case 'app-fork:mariadb':
       case 'app-fork:memcached':
       case 'app-fork:redis':
-      case 'app-fork:host':
       case 'app-fork:tools':
       case 'app-fork:version':
       case 'app-fork:mongodb':

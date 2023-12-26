@@ -1,9 +1,10 @@
 import { exec, spawn, execSync } from 'child_process'
 import { merge } from 'lodash'
-import { statSync, chmodSync, readdirSync, mkdirSync, existsSync } from 'fs'
-import { join } from 'path'
-import { ForkPromise } from './ForkPromise'
+import { statSync, chmodSync, readdirSync, mkdirSync, existsSync, createWriteStream } from 'fs'
+import { join, dirname } from 'path'
+import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
+import axios from 'axios'
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
     on,
@@ -197,4 +198,78 @@ export function createFolder(fp: string) {
 export function md5(str: string) {
   const md5 = crypto.createHash('md5')
   return md5.update(str).digest('hex')
+}
+
+export function getAllFile(fp: string, fullpath = true) {
+  let arr: Array<string> = []
+  if (!existsSync(fp)) {
+    return arr
+  }
+  const state = statSync(fp)
+  if (state.isFile()) {
+    return [fp]
+  }
+  const files = readdirSync(fp)
+  files.forEach(function (item) {
+    const fPath = join(fp, item)
+    if (existsSync(fPath)) {
+      const stat = statSync(fPath)
+      if (stat.isDirectory()) {
+        const sub = getAllFile(fPath, fullpath)
+        arr = arr.concat(sub)
+      }
+      if (stat.isFile()) {
+        arr.push(fullpath ? fPath : item)
+      }
+    }
+  })
+  return arr
+}
+
+export function downFile(url: string, savepath: string) {
+  return new Promise((resolve, reject) => {
+    axios({
+      method: 'get',
+      url: url,
+      responseType: 'stream'
+    })
+      .then(function (response) {
+        const base = dirname(savepath)
+        createFolder(base)
+        const stream = createWriteStream(savepath)
+        response.data.pipe(stream)
+        stream.on('error', (err) => {
+          reject(err)
+        })
+        stream.on('finish', () => {
+          resolve(true)
+        })
+      })
+      .catch((err) => {
+        reject(err)
+      })
+  })
+}
+
+export function getSubDir(fp: string, fullpath = true) {
+  const arr: Array<string> = []
+  if (!existsSync(fp)) {
+    return arr
+  }
+  const stat = statSync(fp)
+  if (stat.isDirectory() && !stat.isSymbolicLink()) {
+    try {
+      const files = readdirSync(fp)
+      files.forEach(function (item) {
+        const fPath = join(fp, item)
+        if (existsSync(fPath)) {
+          const stat = statSync(fPath)
+          if (stat.isDirectory() && !stat.isSymbolicLink()) {
+            arr.push(fullpath ? fPath : item)
+          }
+        }
+      })
+    } catch (e) {}
+  }
+  return arr
 }

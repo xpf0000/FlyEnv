@@ -1,9 +1,15 @@
 import { ChildProcess, fork } from 'child_process'
 import { uuid } from '../utils'
+import { ForkPromise } from '@shared/ForkPromise'
 
 export class ForkManager {
   fork: ChildProcess
-  callback: { [k: string]: Function }
+  callback: {
+    [k: string]: {
+      resolve: Function
+      on: Function
+    }
+  }
   _on: Function = () => {}
 
   constructor(file: string) {
@@ -16,9 +22,14 @@ export class ForkManager {
         return
       }
       const fn = this.callback?.[key]
+      console.log('message: ', key, info, fn, info?.code)
       if (fn) {
-        fn(info)
-        delete this.callback?.[key]
+        if (info?.code === 0 || info?.code === 1) {
+          fn.resolve(info)
+          delete this.callback?.[key]
+        } else if (info?.code === 200) {
+          fn.on(info)
+        }
       }
     })
     this.fork = child
@@ -29,9 +40,12 @@ export class ForkManager {
   }
 
   send(...args: any) {
-    return new Promise((resolve) => {
+    return new ForkPromise((resolve, reject, on) => {
       const thenKey = uuid()
-      this.callback[thenKey] = resolve
+      this.callback[thenKey] = {
+        resolve,
+        on
+      }
       this.fork.send([thenKey, ...args])
     })
   }

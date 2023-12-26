@@ -1,9 +1,11 @@
-import { I18nT } from '@shared/lang'
+import { I18nT } from './lang'
 import { execSync } from 'child_process'
 import { ProcessSendError, ProcessSendLog, ProcessSendSuccess } from './Fn'
-import type { ForkPromise } from './ForkPromise'
+import type { ForkPromise } from '@shared/ForkPromise'
 import Apache from './module/Apache'
 import Nginx from './module/Nginx'
+import Php from './module/Php'
+import Host from './module/Host'
 
 class BaseManager {
   constructor() {}
@@ -39,6 +41,10 @@ class BaseManager {
       func = Apache.exec(fn, ...commands)
     } else if (module === 'nginx') {
       func = Nginx.exec(fn, ...commands)
+    } else if (module === 'php') {
+      func = Php.exec(fn, ...commands)
+    } else if (module === 'host') {
+      func = Host.exec(fn, ...commands)
     }
     func?.on(onData).then(then).catch(error)
   }
