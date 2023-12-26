@@ -77,7 +77,6 @@ class Manager extends BaseManager {
           command = `${bin} --version`
           break
       }
-      console.log('binVersion: ', bin, name, reg, command)
       const opt = this._fixEnv()
       exec(command, opt).then(handleThen).catch(handleCatch)
     })

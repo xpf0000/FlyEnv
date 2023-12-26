@@ -295,20 +295,15 @@ class HostManager {
     }
     try {
       if (existsSync(dir)) {
-        let e
         if (depth === 0) {
-          e = exec(`echo '${global.Server.Password}' | sudo -S chmod -R 755 ${dir}`)
+          execSync(`echo '${global.Server.Password}' | sudo -S chmod -R 755 ${dir}`)
         } else {
-          e = exec(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
+          execSync(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
         }
-        e.then(() => {
-          const parentDir = dirname(dir)
-          this.#setDirRole(parentDir, depth + 1)
-        })
+        const parentDir = dirname(dir)
+        this.#setDirRole(parentDir, depth + 1)
       }
-    } catch (e) {
-      console.log('setDirRole err: ', e)
-    }
+    } catch (e) {}
   }
 
   /**
@@ -562,6 +557,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `<Directory "${host.root}">`
           ]
         )
+        this.#setDirRole(host.root)
       }
       if (host.phpVersion !== old.phpVersion) {
         hasChanged = true
@@ -603,6 +599,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
   }
 
   _addVhost(host, addApachePort = true, addApachePortSSL = true, chmod = true) {
+    console.log('_addVhost: ', addApachePort, addApachePortSSL, chmod)
     return new Promise((resolve, reject) => {
       this.#handlePhpEnableConf(host.phpVersion)
       try {

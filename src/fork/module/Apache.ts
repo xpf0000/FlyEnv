@@ -1,32 +1,30 @@
-const join = require('path').join
-const { existsSync, readFileSync, writeFileSync } = require('fs')
-const Utils = require('./Utils')
-const BaseManager = require('./BaseManager')
-const { I18nT } = require('./lang/index.js')
-const execPromise = require('child-process-promise').exec
+import { join } from 'path'
+import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { Base } from './Base'
+import { I18nT } from '../lang'
+import type { SoftInstalled } from '@shared/app'
+import { createFolder, execPromise, md5 } from '../Fn'
+import { ForkPromise } from '../ForkPromise'
 
-class ApacheManager extends BaseManager {
+class Apache extends Base {
   constructor() {
     super()
     this.type = 'apache'
   }
 
   init() {
-    this.pidPath = join(global.Server.ApacheDir, 'common/logs/httpd.pid')
+    this.pidPath = join(global.Server.ApacheDir!, 'common/logs/httpd.pid')
   }
 
-  #resetConf(version) {
-    return new Promise((resolve, reject) => {
-      let logs = join(global.Server.ApacheDir, 'common/logs')
-      Utils.createFolder(logs)
+  #resetConf(version: SoftInstalled) {
+    return new ForkPromise((resolve, reject) => {
+      const logs = join(global.Server.ApacheDir!, 'common/logs')
+      createFolder(logs)
       const bin = version.bin
-      const defaultFile = join(
-        global.Server.ApacheDir,
-        `common/conf/${Utils.md5(version.bin)}.conf`
-      )
+      const defaultFile = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
       const defaultFileBack = join(
-        global.Server.ApacheDir,
-        `common/conf/${Utils.md5(version.bin)}.default.conf`
+        global.Server.ApacheDir!,
+        `common/conf/${md5(version.bin)}.default.conf`
       )
       if (existsSync(defaultFile)) {
         resolve(true)
@@ -40,7 +38,7 @@ class ApacheManager extends BaseManager {
           const reg = new RegExp('(\\(*\\) )([\\s\\S]*?)(\\n)', 'g')
           let file = ''
           try {
-            file = reg.exec(str)[2]
+            file = reg?.exec?.(str)?.[2] ?? ''
           } catch (e) {}
           file = file.trim()
           if (!file || !existsSync(file)) {
@@ -52,15 +50,15 @@ class ApacheManager extends BaseManager {
             const reg = new RegExp('(CustomLog ")([\\s\\S]*?)(access_log")', 'g')
             let path = ''
             try {
-              path = reg.exec(content)[2]
+              path = reg?.exec?.(content)?.[2] ?? ''
             } catch (e) {}
             path = path.trim()
             if (!path) {
               reject(new Error(I18nT('fork.apacheLogPathErr')))
               return
             }
-            const logs = join(global.Server.ApacheDir, 'common/logs/')
-            const vhost = join(global.Server.BaseDir, 'vhost/apache/')
+            const logs = join(global.Server.ApacheDir!, 'common/logs/')
+            const vhost = join(global.Server.BaseDir!, 'vhost/apache/')
             content = content
               .replace(new RegExp(path, 'g'), logs)
               .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
@@ -69,9 +67,9 @@ class ApacheManager extends BaseManager {
               .replace('#LoadModule ssl_module', 'LoadModule ssl_module')
 
             let find = content.match(/\nUser _www(.*?)\n/g)
-            content = content.replace(find?.[0], '\n#User _www\n')
+            content = content.replace(find?.[0] ?? '###@@@&&&', '\n#User _www\n')
             find = content.match(/\nGroup _www(.*?)\n/g)
-            content = content.replace(find?.[0], '\n#Group _www\n')
+            content = content.replace(find?.[0] ?? '###@@@&&&', '\n#Group _www\n')
 
             content += `\nPidFile "${logs}httpd.pid"
 IncludeOptional "${vhost}*.conf"`
@@ -86,25 +84,25 @@ IncludeOptional "${vhost}*.conf"`
     })
   }
 
-  _startServer(version) {
-    return new Promise((resolve, reject) => {
+  _startServer(version: SoftInstalled) {
+    console.log('_startServer: ', version)
+    return new ForkPromise((resolve, reject, on) => {
       this.#resetConf(version)
         .then(() => {
-          let logs = join(global.Server.ApacheDir, 'common/logs')
-          Utils.createFolder(logs)
+          const logs = join(global.Server.ApacheDir!, 'common/logs')
+          createFolder(logs)
           const bin = version.bin
-          const conf = join(global.Server.ApacheDir, `common/conf/${Utils.md5(version.bin)}.conf`)
+          const conf = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
           if (!existsSync(conf)) {
             reject(new Error(I18nT('fork.confNoFound')))
             return
           }
           execPromise(`echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`)
             .then((res) => {
-              this._handleLog(res.stdout)
+              on(res.stdout)
               resolve(0)
             })
             .catch((err) => {
-              this._handleLog(err)
               reject(err)
             })
         })
@@ -114,4 +112,5 @@ IncludeOptional "${vhost}*.conf"`
     })
   }
 }
-module.exports = ApacheManager
+
+export default new Apache()

@@ -221,10 +221,6 @@
         &:focus {
           border: 2px solid #01cc74;
         }
-        &.nginx-rewrite {
-          height: 200px;
-          margin-top: 20px;
-        }
         &.error {
           border: 2px solid #cc5441;
         }
@@ -249,43 +245,6 @@
             }
           }
         }
-        .ssl-switch {
-          font-size: 15px;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        .port-set {
-          display: flex;
-          align-items: flex-end;
-          .port-type {
-            width: 50px;
-            margin-right: 30px;
-            flex-shrink: 0;
-          }
-          .input {
-            flex: 1;
-            &::-webkit-outer-spin-button {
-              -webkit-appearance: none !important;
-              margin: 0;
-            }
-            &::-webkit-inner-spin-button {
-              -webkit-appearance: none !important;
-              margin: 0;
-            }
-          }
-          &.port-ssl {
-            .input {
-              margin-right: 48px;
-            }
-          }
-        }
-      }
-      .plant-title {
-        padding: 22px 24px;
-        font-size: 15px;
-        font-weight: 600;
       }
     }
   }
@@ -415,7 +374,7 @@
           border: 2px solid #01cc74;
         }
         &.nginx-rewrite {
-          height: 140px;
+          height: 200px;
           margin-top: 20px;
           padding: 0;
           overflow: hidden;

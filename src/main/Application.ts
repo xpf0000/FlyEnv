@@ -6,7 +6,7 @@ import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
 import MenuManager from './ui/MenuManager'
 import UpdateManager from './core/UpdateManager'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { execSync, fork } from 'child_process'
 import TrayManager from './ui/TrayManager'
@@ -18,6 +18,7 @@ import type { IPty } from 'node-pty'
 import type { ServerResponse } from 'http'
 import { fixEnv } from '@shared/utils'
 import SiteSuckerManager from './ui/SiteSuckerManager'
+import { ForkManager } from './core/ForkManager'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
@@ -42,6 +43,7 @@ export default class Application extends EventEmitter {
   ptyLast?: PtyLast | null
   updateManager?: UpdateManager
   dnsSuccessed = false
+  forkManager?: ForkManager
 
   constructor() {
     super()
@@ -62,6 +64,7 @@ export default class Application extends EventEmitter {
     this.checkBrewOrPort()
     this.handleCommands()
     this.handleIpcMessages()
+    this.initForkManager()
     SiteSuckerManager.setCallBack((link: any) => {
       if (link === 'window-close') {
         this.windowManager.sendCommandTo(
@@ -81,6 +84,13 @@ export default class Application extends EventEmitter {
     })
     DnsServerManager.onLog((msg: any) => {
       this.windowManager.sendCommandTo(this.mainWindow!, 'App_DNS_Log', 'App_DNS_Log', msg)
+    })
+  }
+
+  initForkManager() {
+    this.forkManager = new ForkManager(resolve(__dirname, './fork.js'))
+    this.forkManager.on(({ key, info }: { key: string; info: any }) => {
+      this.windowManager.sendCommandTo(this.mainWindow!, key, key, info)
     })
   }
 
@@ -307,6 +317,7 @@ export default class Application extends EventEmitter {
     logger.info('[PhpWebStudy] application stop !!!')
     DnsServerManager.close().then()
     SiteSuckerManager.destory()
+    this.forkManager?.destory()
     this.stopServer()
   }
 
@@ -523,11 +534,20 @@ export default class Application extends EventEmitter {
     console.log('handleIpcMessages: ', command, key, ...args)
     this.emit(command, ...args)
     let window
+    const callBack = (info: any) => {
+      const win = this.mainWindow!
+      console.log('forkManager callBack: ', command, key, info)
+      this.windowManager.sendCommandTo(win, command, key, info)
+    }
     switch (command) {
+      case 'app-fork:apache':
+        this.forkManager?.send('apache', ...args).then(callBack)
+        break
+      case 'app-fork:nginx':
+        this.forkManager?.send('nginx', ...args).then(callBack)
+        break
       case 'app-fork:node':
       case 'app-fork:brew':
-      case 'app-fork:nginx':
-      case 'app-fork:apache':
       case 'app-fork:php':
       case 'app-fork:mysql':
       case 'app-fork:mariadb':

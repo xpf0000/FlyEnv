@@ -9,6 +9,7 @@ import electronBuilderConfig from '../configs/electron-builder'
 async function packMain() {
   try {
     await esbuild(esbuildConfig.dist)
+    await esbuild(esbuildConfig.distFork)
   } catch (err) {
     console.log('\nfailed to build main process')
     console.error(`\n${err}\n`)

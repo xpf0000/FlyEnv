@@ -21,11 +21,10 @@ async function launchViteDevServer(openInBrowser = false) {
 }
 
 async function buildMainProcess() {
-  return build(esbuildConfig.dev)
+  return Promise.all([build(esbuildConfig.dev), build(esbuildConfig.devFork)])
     .then(
       () => {
-        // @ts-ignore
-        if (electronProcess && electronProcess?.kill) {
+        if (electronProcess && !electronProcess.killed) {
           if (electronProcess.pid) {
             process.kill(electronProcess.pid)
           }
@@ -92,6 +91,28 @@ if (process.env.TEST === 'browser') {
 // 监听main 文件改变
 let preveMd5 = ''
 let fsWait = false
+const next = (base: string, file?: string | null) => {
+  if (file) {
+    if (fsWait) return
+    const currentMd5 = _md5(_fs.readFileSync(_path.join(base, file)))
+    if (currentMd5 == preveMd5) {
+      return
+    }
+    fsWait = true
+    preveMd5 = currentMd5
+    console.log(`${file}文件发生更新`)
+    buildMainProcess()
+      .then(() => {
+        runElectronApp()
+      })
+      .catch((err) => {
+        console.error(err)
+      })
+    setTimeout(() => {
+      fsWait = false
+    }, 500)
+  }
+}
 const mainPath = _path.resolve(__dirname, '../src/main/')
 _fs.watch(
   mainPath,
@@ -99,26 +120,18 @@ _fs.watch(
     recursive: true
   },
   (event, filename) => {
-    if (filename) {
-      if (fsWait) return
-      const currentMd5 = _md5(_fs.readFileSync(_path.join(mainPath, filename)))
-      if (currentMd5 == preveMd5) {
-        return
-      }
-      fsWait = true
-      preveMd5 = currentMd5
-      console.log(`${filename}文件发生更新`)
-      buildMainProcess()
-        .then(() => {
-          runElectronApp()
-        })
-        .catch((err) => {
-          console.error(err)
-        })
-      setTimeout(() => {
-        fsWait = false
-      }, 500)
-    }
+    next(mainPath, filename)
+  }
+)
+
+const forkPath = _path.resolve(__dirname, '../src/fork/')
+_fs.watch(
+  forkPath,
+  {
+    recursive: true
+  },
+  (event, filename) => {
+    next(forkPath, filename)
   }
 )
 
