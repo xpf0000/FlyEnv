@@ -1,10 +1,11 @@
 import { join, dirname } from 'path'
-import { copyFileSync, existsSync } from 'fs'
+import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import { execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
+import { copyFile } from 'fs-extra'
 class Manager extends Base {
   constructor() {
     super()
@@ -22,7 +23,7 @@ class Manager extends Base {
       const pidFile = join(dbPath, 'postmaster.pid')
       const logFile = join(dbPath, 'pg.log')
       let sendUserPass = false
-      const checkpid = (time = 0) => {
+      const checkpid = async (time = 0) => {
         if (existsSync(pidFile)) {
           if (sendUserPass) {
             on(I18nT('fork.postgresqlInit', { dir: dbPath }))
@@ -30,9 +31,8 @@ class Manager extends Base {
           resolve(true)
         } else {
           if (time < 40) {
-            setTimeout(() => {
-              checkpid(time + 1)
-            }, 500)
+            await waitTime(500)
+            await checkpid(time + 1)
           } else {
             reject(new Error('Start Failed'))
           }
@@ -47,7 +47,7 @@ class Manager extends Base {
           return
         }
         await waitTime(1000)
-        checkpid()
+        await checkpid()
       }
       if (existsSync(confFile)) {
         await doRun()
@@ -67,7 +67,7 @@ class Manager extends Base {
           return
         }
         const defaultConfFile = join(dbPath, 'postgresql.conf.default')
-        copyFileSync(confFile, defaultConfFile)
+        await copyFile(confFile, defaultConfFile)
         sendUserPass = true
         await doRun()
       } else {

@@ -3,7 +3,7 @@ import { uuid } from '../utils'
 import { ForkPromise } from '@shared/ForkPromise'
 
 export class ForkManager {
-  fork: ChildProcess
+  forks: Array<ChildProcess> = []
   callback: {
     [k: string]: {
       resolve: Function
@@ -14,9 +14,8 @@ export class ForkManager {
 
   constructor(file: string) {
     this.callback = {}
-    const child = fork(file)
-    child.send({ Server })
-    child.on('message', ({ on, key, info }: { on?: boolean; key: string; info: any }) => {
+    const arr = [0, 0, 0]
+    const onMessage = ({ on, key, info }: { on?: boolean; key: string; info: any }) => {
       if (on) {
         this._on({ key, info })
         return
@@ -31,8 +30,13 @@ export class ForkManager {
           fn.on(info)
         }
       }
+    }
+    arr.forEach(() => {
+      const child = fork(file)
+      child.send({ Server })
+      child.on('message', onMessage)
+      this.forks.push(child)
     })
-    this.fork = child
   }
 
   on(fn: Function) {
@@ -46,17 +50,21 @@ export class ForkManager {
         resolve,
         on
       }
-      this.fork.send([thenKey, ...args])
+      const fork = this.forks.shift()!
+      fork.send([thenKey, ...args])
+      this.forks.push(fork)
     })
   }
 
   destory() {
-    const pid = this.fork.pid
-    this.fork.disconnect()
     try {
-      if (pid) {
-        process.kill(pid)
-      }
+      this.forks.forEach((fork) => {
+        const pid = fork.pid
+        fork.disconnect()
+        if (pid) {
+          process.kill(pid)
+        }
+      })
     } catch (e) {}
   }
 }

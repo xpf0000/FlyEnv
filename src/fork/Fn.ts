@@ -5,7 +5,6 @@ import path, { join, dirname } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import type { Dirent } from 'node:fs'
 import { readdir } from 'fs-extra'
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -254,7 +253,7 @@ export function md5(str: string) {
   return md5.update(str).digest('hex')
 }
 
-export function getAllFile(fp: string, fullpath = true) {
+export function getAllFile(fp: string, fullpath = true, basePath: Array<string> = []) {
   let arr: Array<string> = []
   if (!existsSync(fp)) {
     return arr
@@ -265,15 +264,17 @@ export function getAllFile(fp: string, fullpath = true) {
   }
   const files = readdirSync(fp)
   files.forEach(function (item) {
+    const base = [...basePath]
+    base.push(item)
     const fPath = join(fp, item)
     if (existsSync(fPath)) {
       const stat = statSync(fPath)
       if (stat.isDirectory()) {
-        const sub = getAllFile(fPath, fullpath)
+        const sub = getAllFile(fPath, fullpath, base)
         arr = arr.concat(sub)
       }
       if (stat.isFile()) {
-        arr.push(fullpath ? fPath : item)
+        arr.push(fullpath ? fPath : base.join('/'))
       }
     }
   })
@@ -330,13 +331,41 @@ export function getSubDir(fp: string, fullpath = true) {
 
 export const getAllFileAsync = async (
   dirPath: string,
-  fullpath = true
-): Promise<Awaited<Promise<any>>[]> =>
-  Promise.all(
-    await readdir(dirPath, { withFileTypes: true }).then((entries: Array<Dirent>) =>
-      entries.map((entry) => {
-        const childPath = path.join(dirPath, entry.name)
-        return entry.isDirectory() ? getAllFileAsync(childPath) : fullpath ? childPath : entry.name
-      })
-    )
-  )
+  fullpath = true,
+  basePath: Array<string> = []
+): Promise<string[]> => {
+  if (!existsSync(dirPath)) {
+    return []
+  }
+  const list: Array<string> = []
+  const files = await readdir(dirPath, { withFileTypes: true })
+  for (const file of files) {
+    const arr = [...basePath]
+    arr.push(file.name)
+    const childPath = path.join(dirPath, file.name)
+    if (file.isDirectory()) {
+      const sub = await getAllFileAsync(childPath, fullpath, arr)
+      list.push(...sub)
+    } else if (file.isFile()) {
+      const name = fullpath ? childPath : arr.join('/')
+      list.push(name)
+    }
+  }
+  return list
+}
+
+export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<string[]> => {
+  if (!existsSync(dirPath)) {
+    return []
+  }
+  const list: Array<string> = []
+  const files = await readdir(dirPath, { withFileTypes: true })
+  for (const file of files) {
+    const childPath = path.join(dirPath, file.name)
+    if (file.isDirectory()) {
+      const name = fullpath ? childPath : file.name
+      list.push(name)
+    }
+  }
+  return list
+}

@@ -8,7 +8,7 @@ import MenuManager from './ui/MenuManager'
 import UpdateManager from './core/UpdateManager'
 import { join, resolve } from 'path'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { execSync, fork } from 'child_process'
+import { execSync } from 'child_process'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
 import { AppI18n } from './lang'
@@ -322,100 +322,39 @@ export default class Application extends EventEmitter {
     this.stopServer()
   }
 
-  stopServerByPid(pidfile: string, type: string) {
-    if (!existsSync(pidfile) && type !== 'php') {
-      return
-    }
-    const dis: { [k: string]: string } = {
-      php: 'php-fpm',
-      nginx: 'nginx',
-      apache: 'httpd',
-      mysql: 'mysqld',
-      memcached: 'memcached',
-      redis: 'redis-server',
-      mongodb: 'mongod',
-      mariadb: 'mariadbd',
-      ftp: join(global.Server.FTPDir!, 'pure-ftpd.conf')
-    }
+  stopServerByPid() {
     try {
-      const serverName = dis[type]
-      const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12}'`
+      const command = `ps aux | grep '${global.Server.BaseDir}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
       const res = execSync(command)?.toString()?.trim() ?? ''
       const pids = res.split('\n')
-      const arr: Array<string> = []
+      const TERM: Array<string> = []
+      const INT: Array<string> = []
       for (const p of pids) {
-        if (
-          p.indexOf(' grep ') >= 0 ||
-          p.indexOf(' /bin/sh -c') >= 0 ||
-          p.indexOf('/Contents/MacOS/') >= 0
-        ) {
-          continue
+        if (p.includes(global.Server.BaseDir!)) {
+          if (p.includes('mysqld') || p.includes('mariadbd') || p.includes('mongod')) {
+            TERM.push(p.split(' ')[0])
+          } else {
+            INT.push(p.split(' ')[0])
+          }
         }
-        arr.push(p.split(' ')[0])
       }
-      if (arr.length > 0) {
-        const str = arr.join(' ')
-        let sig = ''
-        switch (type) {
-          case 'mysql':
-          case 'mariadb':
-          case 'mongodb':
-            sig = '-TERM'
-            break
-          default:
-            sig = '-INT'
-            break
-        }
+      if (TERM.length > 0) {
+        const str = TERM.join(' ')
+        const sig = '-TERM'
         execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${str}`)
       }
-    } catch (e) {
-      console.log(e)
-    }
+      if (INT.length > 0) {
+        const str = INT.join(' ')
+        const sig = '-INT'
+        execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${str}`)
+      }
+    } catch (e) {}
   }
 
   stopServer() {
     this.ptyLast = null
     this.exitNodePty()
-
-    const stopPostpreSql = () => {
-      const command = `ps aux | grep 'postgresql' | awk '{print $2,$11,$12,$13}'`
-      const res = execSync(command)
-      const pids = res?.toString()?.trim()?.split('\n') ?? []
-      const arr = []
-      for (const p of pids) {
-        if (p.includes(global.Server.PostgreSqlDir!)) {
-          arr.push(p.split(' ')[0])
-        }
-      }
-      if (arr.length > 0) {
-        const pids = arr.join(' ')
-        const sig = '-INT'
-        try {
-          execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
-        } catch (e) {}
-      }
-    }
-
-    // 停止nginx服务
-    let pidfile = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
-    this.stopServerByPid(pidfile, 'nginx')
-    pidfile = join(global.Server.PhpDir!, 'common/var/run/php-fpm.pid')
-    this.stopServerByPid(pidfile, 'php')
-    pidfile = join(global.Server.MysqlDir!, 'mysql.pid')
-    this.stopServerByPid(pidfile, 'mysql')
-    pidfile = join(global.Server.MariaDBDir!, 'mariadb.pid')
-    this.stopServerByPid(pidfile, 'mariadb')
-    pidfile = join(global.Server.ApacheDir!, 'common/logs/httpd.pid')
-    this.stopServerByPid(pidfile, 'apache')
-    pidfile = join(global.Server.MemcachedDir!, 'logs/memcached.pid')
-    this.stopServerByPid(pidfile, 'memcached')
-    pidfile = join(global.Server.RedisDir!, 'redis.pid')
-    this.stopServerByPid(pidfile, 'redis')
-    pidfile = join(global.Server.MongoDBDir!, 'mongodb.pid')
-    this.stopServerByPid(pidfile, 'mongodb')
-    pidfile = join(global.Server.FTPDir!, 'pure-ftpd.pid')
-    this.stopServerByPid(pidfile, 'ftp')
-    stopPostpreSql()
+    this.stopServerByPid()
     try {
       let hosts = readFileSync('/private/etc/hosts', 'utf-8')
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
@@ -539,6 +478,9 @@ export default class Application extends EventEmitter {
       const win = this.mainWindow!
       console.log('forkManager callBack: ', command, key, info)
       this.windowManager.sendCommandTo(win, command, key, info)
+      if (args?.[0] === 'installBrew' && info?.data?.BrewCellar) {
+        global.Server = info?.data
+      }
     }
     switch (command) {
       case 'app-fork:apache':
@@ -554,35 +496,14 @@ export default class Application extends EventEmitter {
       case 'app-fork:pure-ftpd':
       case 'app-fork:node':
       case 'app-fork:brew':
+      case 'app-fork:version':
+      case 'app-fork:project':
+      case 'app-fork:tools':
         const module = command.replace('app-fork:', '')
         this.forkManager
           ?.send(module, ...args)
           .on(callBack)
           .then(callBack)
-        break
-      case 'app-fork:tools':
-      case 'app-fork:version':
-      case 'app-fork:project':
-        const forkFile = command.replace('app-fork:', '')
-        const child = fork(join(__static, `fork/${forkFile}.js`))
-        this.setProxy()
-        global.Server.Lang = this.configManager.getConfig('setup.lang')
-        child.send({ Server: global.Server })
-        child.send([command, key, ...args])
-        child.on('message', ({ command, key, info }: any) => {
-          if (command === 'application:global-server-updata') {
-            console.log('child on message: ', info)
-            global.Server = JSON.parse(JSON.stringify(info))
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, global.Server)
-            return
-          }
-          this.windowManager.sendCommandTo(this.mainWindow!, command, key, info)
-          // 0 成功 1 失败 200 过程
-          if (typeof info === 'object' && (info?.code === 0 || info?.code === 1)) {
-            child.disconnect()
-            child.kill()
-          }
-        })
         break
       case 'app:password-check':
         const pass = args[0]

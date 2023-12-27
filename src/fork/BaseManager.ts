@@ -15,6 +15,9 @@ import Postgresql from './module/Postgresql'
 import PureFtpd from './module/PureFtpd'
 import Node from './module/Node'
 import Brew from './module/Brew'
+import Version from './module/Version'
+import Project from './module/Project'
+import Tool from './module/Tool'
 
 class BaseManager {
   constructor() {}
@@ -78,6 +81,12 @@ class BaseManager {
       func = Node.exec(fn, ...commands)
     } else if (module === 'brew') {
       func = Brew.exec(fn, ...commands)
+    } else if (module === 'version') {
+      func = Version.exec(fn, ...commands)
+    } else if (module === 'project') {
+      func = Project.exec(fn, ...commands)
+    } else if (module === 'tools') {
+      func = Tool.exec(fn, ...commands)
     }
     func?.on(onData).then(then).catch(error)
   }

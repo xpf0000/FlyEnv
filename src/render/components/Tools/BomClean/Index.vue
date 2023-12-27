@@ -195,7 +195,7 @@
     IPC.send('app-fork:tools', 'getAllFile', store.value.path).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
-        const files: Array<string> = res?.files ?? []
+        const files: Array<string> = res?.data ?? []
         store.value.files = reactive(files)
       } else {
         Base.MessageError(res?.msg ?? '文件获取失败, 请勿一次清理太多文件')
@@ -208,7 +208,7 @@
     IPC.send('app-fork:tools', 'cleanBom', JSON.parse(JSON.stringify(files.value))).then(
       (key: string, res: any) => {
         if (res?.code === 200) {
-          const progress = res?.progress ?? {}
+          const progress = res?.msg ?? {}
           Object.assign(store.value.progress, reactive(progress))
         } else {
           IPC.off(key)

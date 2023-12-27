@@ -1,10 +1,11 @@
 import { join } from 'path'
-import { existsSync, readFileSync, statSync, writeFileSync } from 'fs'
+import { existsSync, statSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { FtpItem, SoftInstalled } from '@shared/app'
-import { createFolder, execPromise, execSyncFix, spawnPromiseMore, waitTime } from '../Fn'
+import { execPromise, spawnPromiseMore, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
+import { readFile, writeFile, mkdirp } from 'fs-extra'
 class Manager extends Base {
   constructor() {
     super()
@@ -16,19 +17,17 @@ class Manager extends Base {
   }
 
   initConf() {
-    return new ForkPromise((resolve) => {
-      this._initConf().then(resolve)
-    })
+    return this._initConf()
   }
   _initConf() {
-    return new ForkPromise((resolve) => {
-      createFolder(global.Server.FTPDir!)
+    return new ForkPromise(async (resolve) => {
+      await mkdirp(global.Server.FTPDir!)
       const confFile = join(global.Server.FTPDir!, 'pure-ftpd.conf')
       if (!existsSync(confFile)) {
-        let content = readFileSync(join(global.Server.Static!, 'tmpl/pure-ftpd.conf'), 'utf-8')
+        let content = await readFile(join(global.Server.Static!, 'tmpl/pure-ftpd.conf'), 'utf-8')
         content = content.replace(new RegExp('##DIR##', 'g'), global.Server.FTPDir!)
-        writeFileSync(confFile, content)
-        writeFileSync(join(global.Server.FTPDir!, 'pure-ftpd.conf.default'), content)
+        await writeFile(confFile, content)
+        await writeFile(join(global.Server.FTPDir!, 'pure-ftpd.conf.default'), content)
       }
       resolve(confFile)
     })
@@ -80,11 +79,11 @@ class Manager extends Base {
   }
 
   getPort() {
-    return new ForkPromise((resolve) => {
+    return new ForkPromise(async (resolve) => {
       let port: any = 21
       const conf = join(global.Server.FTPDir!, 'pure-ftpd.conf')
       if (existsSync(conf)) {
-        const content = readFileSync(conf, 'utf-8')
+        const content = await readFile(conf, 'utf-8')
         const reg = new RegExp('Bind(.*?),(.*?)\n', 'g')
         let result
         if ((result = reg.exec(content)) != null) {
@@ -96,12 +95,13 @@ class Manager extends Base {
   }
 
   getAllFtp() {
-    return new ForkPromise((resolve) => {
+    return new ForkPromise(async (resolve) => {
       const json = join(global.Server.FTPDir!, 'pureftpd.json')
       const all = []
       if (existsSync(json)) {
         try {
-          const arr = JSON.parse(readFileSync(json, 'utf-8').toString())
+          const txt = await readFile(json, 'utf-8')
+          const arr = JSON.parse(txt.toString())
           all.push(...arr)
         } catch (e) {}
       }
@@ -109,31 +109,32 @@ class Manager extends Base {
     })
   }
 
-  _delFtp(item: FtpItem, version: SoftInstalled) {
+  async _delFtp(item: FtpItem, version: SoftInstalled) {
     const cwd = join(version.path, 'bin')
     const user = item.user
     const pdb = join(global.Server.FTPDir!, 'pureftpd.pdb')
     const passwd = join(global.Server.FTPDir!, 'pureftpd.passwd')
     const cammand = `./pure-pw userdel ${user} -f ${passwd} -F ${pdb} -m`
     try {
-      execSyncFix(cammand, { cwd })
+      await execPromise(cammand, { cwd })
     } catch (e) {}
   }
 
   delFtp(item: FtpItem, version: SoftInstalled) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       console.log('delFtp: ', item, version)
       const bin = join(version.path, 'bin/pure-pw')
       if (!existsSync(bin)) {
         reject(new Error(I18nT('fork.binNoFound')))
         return
       }
-      this._delFtp(item, version)
+      await this._delFtp(item, version)
       const json = join(global.Server.FTPDir!, 'pureftpd.json')
       const all = []
       if (existsSync(json)) {
         try {
-          const arr = JSON.parse(readFileSync(json, 'utf-8').toString())
+          const txt = await readFile(json, 'utf-8')
+          const arr = JSON.parse(txt.toString())
           all.push(...arr)
         } catch (e) {}
       }
@@ -141,20 +142,20 @@ class Manager extends Base {
       if (findOld >= 0) {
         all.splice(findOld, 1)
       }
-      writeFileSync(json, JSON.stringify(all))
+      await writeFile(json, JSON.stringify(all))
       resolve(true)
     })
   }
 
   addFtp(item: FtpItem, version: SoftInstalled) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       console.log('addFtp: ', item, version)
       const bin = join(version.path, 'bin/pure-pw')
       if (!existsSync(bin)) {
         reject(new Error(I18nT('fork.binNoFound')))
         return
       }
-      this._delFtp(item, version)
+      await this._delFtp(item, version)
 
       const dir = item.dir
       const dirStat = statSync(dir)
@@ -196,12 +197,13 @@ class Manager extends Base {
             spawn?.stdin?.write(`${pass}\n`)
           }
         })
-        .then(() => {
+        .then(async () => {
           const json = join(global.Server.FTPDir!, 'pureftpd.json')
           const all = []
           if (existsSync(json)) {
             try {
-              const arr = JSON.parse(readFileSync(json, 'utf-8').toString())
+              const txt = await readFile(json, 'utf-8')
+              const arr = JSON.parse(txt.toString())
               all.push(...arr)
             } catch (e) {}
           }
@@ -211,7 +213,7 @@ class Manager extends Base {
           } else {
             all.unshift(item)
           }
-          writeFileSync(json, JSON.stringify(all))
+          await writeFile(json, JSON.stringify(all))
           resolve(true)
         })
         .catch(() => {

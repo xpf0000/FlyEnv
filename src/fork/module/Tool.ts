@@ -1,15 +1,16 @@
-const BaseManager = require('./BaseManager')
-const { AppI18n } = require('./lang/index')
-const { readFileSync, writeFile, createReadStream } = require('fs')
-const Utils = require('./Utils.js')
-const TaskQueue = require('./TaskQueue/TaskQueue.js')
+import { createReadStream, readFileSync } from 'fs'
+import { Base } from './Base'
+import { getAllFileAsync } from '../Fn'
+import { ForkPromise } from '@shared/ForkPromise'
+import { writeFile } from 'fs-extra'
+import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
 
-class BomCleanTask {
+class BomCleanTask implements TaskItem {
   path = ''
-  constructor(path) {
+  constructor(path: string) {
     this.path = path
   }
-  run() {
+  run(): Promise<boolean> {
     return new Promise((resolve, reject) => {
       const path = this.path
       try {
@@ -21,7 +22,7 @@ class BomCleanTask {
         stream.on('data', (chunk) => {
           handled = true
           stream.close()
-          let buff = chunk
+          let buff: any = chunk
           if (
             buff &&
             buff.length >= 3 &&
@@ -61,58 +62,35 @@ class BomCleanTask {
   }
 }
 
-class Manager extends BaseManager {
+class Manager extends Base {
   constructor() {
     super()
   }
 
-  getAllFile(fp, fullpath = true) {
-    try {
-      const files = Utils.getAllFile(fp, fullpath)
-      this._processSend({
-        code: 0,
-        msg: 'Success',
-        files
-      })
-    } catch (e) {
-      console.log('getAllFile: ', e)
-      this._processSend({
-        code: 1,
-        msg: e.toString()
-      })
-    }
+  getAllFile(fp: string, fullpath = true) {
+    return new ForkPromise((resolve, reject) => {
+      getAllFileAsync(fp, fullpath).then(resolve).catch(reject)
+    })
   }
 
-  cleanBom(files) {
-    const taskQueue = new TaskQueue()
-    taskQueue
-      .progress((progress) => {
-        this._processSend({
-          code: 200,
-          progress
+  cleanBom(files: Array<string>) {
+    return new ForkPromise((resolve, reject, on) => {
+      const taskQueue = new TaskQueue()
+      taskQueue
+        .progress((progress: TaskQueueProgress) => {
+          on(progress)
         })
-      })
-      .end(() => {
-        this._processSend({
-          code: 0,
-          msg: 'Success'
+        .end(() => {
+          resolve(true)
         })
-      })
-      .initQueue(
-        files.map((p) => {
-          return new BomCleanTask(p)
-        })
-      )
-      .run()
+        .initQueue(
+          files.map((p) => {
+            return new BomCleanTask(p)
+          })
+        )
+        .run()
+    })
   }
 }
 
-let manager = new Manager()
-process.on('message', function (args) {
-  if (args.Server) {
-    global.Server = args.Server
-    AppI18n(global.Server.Lang)
-  } else {
-    manager.exec(args)
-  }
-})
+export default new Manager()

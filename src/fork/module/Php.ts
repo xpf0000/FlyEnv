@@ -3,7 +3,7 @@ import { existsSync, statSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { execPromise, getAllFileAsync, spawnPromise, downFile, waitTime } from '../Fn'
+import { execPromise, getAllFileAsync, spawnPromise, downFile } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
 import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
@@ -154,44 +154,28 @@ class Php extends Base {
   }
 
   _stopServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve) => {
       const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
-      const pidFile = join(global.Server.PhpDir!, v, 'var/run/php-fpm.pid')
-      let pid: string | number = 0
-      try {
-        if (existsSync(pidFile)) {
-          pid = await readFile(pidFile, 'utf-8')
+      const confPath = join(global.Server.PhpDir!, v, 'conf')
+      const varPath = join(global.Server.PhpDir!, v, 'var')
+      const command = `ps aux | grep 'php' | awk '{print $2,$11,$12,$13,$14,$15}'`
+      const res = await execPromise(command)
+      const pids = res?.stdout?.toString()?.trim()?.split('\n') ?? []
+      const arr: Array<string> = []
+      for (const p of pids) {
+        if (p.includes(confPath) && p.includes(varPath)) {
+          arr.push(p.split(' ')[0])
         }
-      } catch (e) {}
-      if (pid) {
-        const check = async (times = 0) => {
-          if (!existsSync(pidFile)) {
-            resolve(0)
-            return
-          }
-          if (times > 6) {
-            reject(new Error(I18nT('fork.phpStopFail', { version: version.version })))
-            return
-          }
-          await waitTime(500)
-          await check(times + 1)
-        }
-        try {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill -INT ${pid}`)
-          await check()
-        } catch (e: any) {
-          const err = e.toString()
-          if (err.includes('No such process')) {
-            if (existsSync(pidFile)) {
-              await unlink(pidFile)
-              resolve(0)
-            } else {
-              reject(new Error(err))
-            }
-          }
-        }
+      }
+      if (arr.length === 0) {
+        resolve(true)
       } else {
-        resolve(0)
+        const pids = arr.join(' ')
+        const sig = '-INT'
+        try {
+          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
+        } catch (e) {}
+        resolve(true)
       }
     })
   }

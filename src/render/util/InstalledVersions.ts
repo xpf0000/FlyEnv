@@ -46,7 +46,7 @@ class InstalledVersions {
     IPC.send('app-fork:version', 'allInstalledVersions', arrs, setup).then(
       (key: string, res: any) => {
         IPC.off(key)
-        const versions: { [key in AppSofts]: Array<SoftInstalled> } = res?.versions ?? {}
+        const versions: { [key in AppSofts]: Array<SoftInstalled> } = res?.data ?? {}
         let needSaveConfig = false
         for (const f in versions) {
           const flag: keyof typeof AppSofts = f as keyof typeof AppSofts
