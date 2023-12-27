@@ -24,12 +24,15 @@ async function buildMainProcess() {
   return Promise.all([build(esbuildConfig.dev), build(esbuildConfig.devFork)])
     .then(
       () => {
-        if (electronProcess && !electronProcess.killed) {
-          if (electronProcess.pid) {
-            process.kill(electronProcess.pid)
+        try {
+          if (electronProcess && !electronProcess.killed) {
+            electronProcess.disconnect()
+            if (electronProcess.pid) {
+              process.kill(electronProcess.pid, 'SIGINT')
+            }
+            electronProcess = null
           }
-          electronProcess = null
-        }
+        } catch (e) {}
         console.log('buildMainProcess !!!!!!')
       },
       (err) => {

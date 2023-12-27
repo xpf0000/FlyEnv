@@ -1,20 +1,13 @@
 import { join, dirname } from 'path'
-import {
-  existsSync,
-  unlinkSync,
-  writeFileSync,
-  readFileSync,
-  copyFileSync,
-  accessSync,
-  constants
-} from 'fs'
+import { existsSync, accessSync, constants } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost } from '@shared/app'
-import { createFolder, execSyncFix, getSubDir, uuid } from '../Fn'
+import { execPromise, getSubDir, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import dns from 'dns'
 import util from 'util'
+import { unlink, readFile, writeFile, copyFile, mkdirp } from 'fs-extra'
 
 class Host extends Base {
   NginxTmpl = ''
@@ -27,58 +20,64 @@ class Host extends Base {
   }
 
   hostList() {
-    return new ForkPromise((resolve) => {
-      const hostfile = join(global.Server.BaseDir!, 'host.json')
-      if (!existsSync(hostfile)) {
-        writeFileSync(hostfile, JSON.stringify([]))
+    return new ForkPromise(async (resolve) => {
+      try {
+        const hostfile = join(global.Server.BaseDir!, 'host.json')
+        if (!existsSync(hostfile)) {
+          await writeFile(hostfile, JSON.stringify([]))
+          resolve({
+            host: []
+          })
+          return
+        }
+        const json = await readFile(hostfile, 'utf-8')
+        let host = []
+        let parseErr = false
+        const hostBackFile = join(global.Server.BaseDir!, 'host.back.json')
+        try {
+          host = JSON.parse(json)
+        } catch (e) {
+          if (json.trim().length > 0) {
+            await copyFile(hostfile, hostBackFile)
+            parseErr = true
+          }
+        }
+        if (parseErr) {
+          resolve({
+            hostBackFile
+          })
+        } else {
+          resolve({
+            host
+          })
+        }
+      } catch (e) {
         resolve({
           host: []
-        })
-        return
-      }
-      const json = readFileSync(hostfile, 'utf-8')
-      let host = []
-      let parseErr = false
-      const hostBackFile = join(global.Server.BaseDir!, 'host.back.json')
-      try {
-        host = JSON.parse(json)
-      } catch (e) {
-        if (json.trim().length > 0) {
-          copyFileSync(hostfile, hostBackFile)
-          parseErr = true
-        }
-      }
-      if (parseErr) {
-        resolve({
-          hostBackFile
-        })
-      } else {
-        resolve({
-          host
         })
       }
     })
   }
 
   handleHost(host: AppHost, flag: string, old?: AppHost, park?: boolean) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve) => {
       const hostfile = join(global.Server.BaseDir!, 'host.json')
       let hostList: Array<AppHost> = []
-      const writeHostFile = () => {
-        writeFileSync(hostfile, JSON.stringify(hostList))
+      const writeHostFile = async () => {
+        await writeFile(hostfile, JSON.stringify(hostList))
         resolve({
           host: hostList
         })
       }
       if (existsSync(hostfile)) {
-        const content = readFileSync(hostfile, 'utf-8').toString().trim()
+        const content = await readFile(hostfile, 'utf-8')
         try {
           hostList = JSON.parse(content)
         } catch (e) {
           console.log(e)
           if (content.length > 0) {
             const hostBackFile = join(global.Server.BaseDir!, 'host.back.json')
-            copyFileSync(hostfile, hostBackFile)
+            await copyFile(hostfile, hostBackFile)
             resolve({
               hostBackFile
             })
@@ -156,82 +155,60 @@ class Host extends Base {
         })
       }
 
-      const initTmpl = () => {
+      const initTmpl = async () => {
         const nginxtmpl = join(global.Server.Static!, 'tmpl/nginx.vhost')
         const apachetmpl = join(global.Server.Static!, 'tmpl/apache.vhost')
         const nginxSSLtmpl = join(global.Server.Static!, 'tmpl/nginxSSL.vhost')
         const apacheSSLtmpl = join(global.Server.Static!, 'tmpl/apacheSSL.vhost')
-        this.NginxTmpl = readFileSync(nginxtmpl, 'utf-8')
-        this.ApacheTmpl = readFileSync(apachetmpl, 'utf-8')
-        this.NginxSSLTmpl = readFileSync(nginxSSLtmpl, 'utf-8')
-        this.ApacheSSLTmpl = readFileSync(apacheSSLtmpl, 'utf-8')
+        this.NginxTmpl = await readFile(nginxtmpl, 'utf-8')
+        this.ApacheTmpl = await readFile(apachetmpl, 'utf-8')
+        this.NginxSSLTmpl = await readFile(nginxSSLtmpl, 'utf-8')
+        this.ApacheSSLTmpl = await readFile(apacheSSLtmpl, 'utf-8')
       }
-
+      let index: number
       switch (flag) {
         case 'add':
-          initTmpl()
-          this._addVhost(host, addApachePort, addApachePortSSL)
-            .then(() => {
-              return doPark()
-            })
-            .then(() => {
-              hostList.unshift(host)
-              writeHostFile()
-            })
-            .catch((err) => {
-              reject(err)
-            })
+          await initTmpl()
+          await this._addVhost(host, addApachePort, addApachePortSSL)
+          await doPark()
+          hostList.unshift(host)
+          await writeHostFile()
           break
         case 'del':
-          this._delVhost(host)
-            .then(() => {
-              const index = hostList.findIndex((h) => h.id === host.id)
-              if (index >= 0) {
-                hostList.splice(index, 1)
-              }
-              writeHostFile()
-            })
-            .catch((err) => {
-              reject(err)
-            })
+          await this._delVhost(host)
+          index = hostList.findIndex((h) => h.id === host.id)
+          if (index >= 0) {
+            hostList.splice(index, 1)
+          }
+          await writeHostFile()
           break
         case 'edit':
-          initTmpl()
+          await initTmpl()
           const nginxConfPath = join(global.Server.BaseDir!, 'vhost/nginx/', `${old?.name}.conf`)
           const apacheConfPath = join(global.Server.BaseDir!, 'vhost/apache/', `${old?.name}.conf`)
-          let primose
           if (
             !existsSync(nginxConfPath) ||
             !existsSync(apacheConfPath) ||
             host.useSSL !== old?.useSSL
           ) {
-            primose = this._delVhost(old!).then(() => {
-              return this._addVhost(host, addApachePort, addApachePortSSL)
-            })
+            await this._delVhost(old!)
+            await this._addVhost(host, addApachePort, addApachePortSSL)
           } else {
-            primose = this._editVhost(host, old, addApachePort, addApachePortSSL)
+            await this._editVhost(host, old, addApachePort, addApachePortSSL)
           }
-          primose
-            .then(() => {
-              return doPark()
-            })
-            .then(() => {
-              const index = hostList.findIndex((h) => h.id === old?.id)
-              if (index >= 0) {
-                hostList[index] = host
-              }
-              writeHostFile()
-            })
-            .catch((err) => {
-              reject(err)
-            })
+          await doPark()
+          index = hostList.findIndex((h) => h.id === old?.id)
+          if (index >= 0) {
+            hostList[index] = host
+          }
+          await writeHostFile()
           break
       }
     })
   }
 
   _delVhost(host: AppHost) {
-    return new ForkPromise((resolve) => {
+    return new ForkPromise(async (resolve) => {
       const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
       const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
       const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
@@ -247,26 +224,26 @@ class Host extends Base {
       const arr = [nvhost, avhost, rewritep, accesslogng, errorlogng, accesslogap, errorlogap]
       for (const f of arr) {
         if (existsSync(f)) {
-          unlinkSync(f)
+          await unlink(f)
         }
       }
       resolve(true)
     })
   }
 
-  #setDirRole(dir: string, depth = 0) {
+  async #setDirRole(dir: string, depth = 0) {
     if (!dir || dir === '/') {
       return
     }
     try {
       if (existsSync(dir)) {
         if (depth === 0) {
-          execSyncFix(`echo '${global.Server.Password}' | sudo -S chmod -R 755 ${dir}`)
+          await execPromise(`echo '${global.Server.Password}' | sudo -S chmod -R 755 ${dir}`)
         } else {
-          execSyncFix(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
+          await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
         }
         const parentDir = dirname(dir)
-        this.#setDirRole(parentDir, depth + 1)
+        await this.#setDirRole(parentDir, depth + 1)
       }
     } catch (e) {}
   }
@@ -326,16 +303,16 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     }
   }
 
-  #handlePhpEnableConf(v: number) {
+  async #handlePhpEnableConf(v: number) {
     try {
       const name = `enable-php-${v}.conf`
       const confFile = join(global.Server.NginxDir!, 'common/conf/', name)
       if (!existsSync(confFile)) {
-        createFolder(dirname(confFile))
+        await mkdirp(dirname(confFile))
         const tmplFile = join(global.Server.Static!, 'tmpl/enable-php.conf')
-        const tmplContent = readFileSync(tmplFile, 'utf-8')
+        const tmplContent = await readFile(tmplFile, 'utf-8')
         const content = tmplContent.replace('##VERSION##', `${v}`)
-        writeFileSync(confFile, content)
+        await writeFile(confFile, content)
       }
     } catch (e) {}
   }
@@ -349,9 +326,9 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
    * @private
    */
   _editVhost(host: AppHost, old: AppHost, addApachePort = true, addApachePortSSL = true) {
-    return new ForkPromise((resolve) => {
+    return new ForkPromise(async (resolve) => {
       if (host?.phpVersion) {
-        this.#handlePhpEnableConf(host?.phpVersion)
+        await this.#handlePhpEnableConf(host?.phpVersion)
       }
       const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
       const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
@@ -389,8 +366,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         const arr = [nvhost, avhost, rewritep, accesslogng, errorlogng, accesslogap, errorlogap]
         for (const f of arr) {
           if (existsSync(f.oldFile)) {
-            copyFileSync(f.oldFile, f.newFile)
-            unlinkSync(f.oldFile)
+            await copyFile(f.oldFile, f.newFile)
+            await unlink(f.oldFile)
           }
         }
       }
@@ -398,8 +375,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       const apacheConfPath = join(apachevpath, `${host.name}.conf`)
       let hasChanged = false
 
-      let contentNginxConf = readFileSync(nginxConfPath, 'utf-8')
-      let contentApacheConf = readFileSync(apacheConfPath, 'utf-8')
+      let contentNginxConf = await readFile(nginxConfPath, 'utf-8')
+      let contentApacheConf = await readFile(apacheConfPath, 'utf-8')
       const find: Array<string> = []
       const replace: Array<string> = []
       if (host.name !== old.name) {
@@ -554,12 +531,12 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           contentNginxConf = contentNginxConf.replace(new RegExp(s, 'g'), replace[i])
           contentApacheConf = contentApacheConf.replace(new RegExp(s, 'g'), replace[i])
         })
-        writeFileSync(nginxConfPath, contentNginxConf)
-        writeFileSync(apacheConfPath, contentApacheConf)
+        await writeFile(nginxConfPath, contentNginxConf)
+        await writeFile(apacheConfPath, contentApacheConf)
       }
       if (host.nginx.rewrite.trim() !== old.nginx.rewrite.trim()) {
         const nginxRewriteConfPath = join(rewritepath, `${host.name}.conf`)
-        writeFileSync(nginxRewriteConfPath, host.nginx.rewrite.trim())
+        await writeFile(nginxRewriteConfPath, host.nginx.rewrite.trim())
       }
       resolve(true)
     })
@@ -567,24 +544,24 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
 
   _addVhost(host: AppHost, addApachePort = true, addApachePortSSL = true, chmod = true) {
     console.log('_addVhost: ', addApachePort, addApachePortSSL, chmod)
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       if (host?.phpVersion) {
-        this.#handlePhpEnableConf(host.phpVersion)
+        await this.#handlePhpEnableConf(host.phpVersion)
       }
       try {
         /**
          * auto fill nginx url rewrite
          */
-        this._autoFillNginxRewrite(host, chmod)
+        await this._autoFillNginxRewrite(host, chmod)
 
         const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
         const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
         const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
         const logpath = join(global.Server.BaseDir!, 'vhost/logs')
-        createFolder(nginxvpath)
-        createFolder(apachevpath)
-        createFolder(rewritepath)
-        createFolder(logpath)
+        await mkdirp(nginxvpath)
+        await mkdirp(apachevpath)
+        await mkdirp(rewritepath)
+        await mkdirp(logpath)
 
         let ntmpl = this.NginxTmpl
         let atmpl = this.ApacheTmpl
@@ -617,7 +594,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         } else {
           ntmpl = ntmpl.replace(/include enable-php\.conf;/g, '##Static Site Nginx##')
         }
-        writeFileSync(nvhost, ntmpl)
+        await writeFile(nvhost, ntmpl)
 
         atmpl = atmpl
           .replace(/#Server_Alias#/g, hostalias)
@@ -657,12 +634,12 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             .replace('NameVirtualHost *:#Listen_Port_Apache_SSL#\n', '')
         }
 
-        writeFileSync(avhost, atmpl)
+        await writeFile(avhost, atmpl)
 
         const rewrite = host.nginx.rewrite.trim()
-        writeFileSync(join(rewritepath, `${hostname}.conf`), rewrite)
+        await writeFile(join(rewritepath, `${hostname}.conf`), rewrite)
         if (chmod) {
-          this.#setDirRole(host.root)
+          await this.#setDirRole(host.root)
         }
         resolve(true)
       } catch (e) {
@@ -681,7 +658,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
   }
 
   _initHost(list: Array<AppHost>) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       let host = ''
       for (const item of list) {
         const alias = this.#hostAlias(item)
@@ -692,7 +669,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         reject(new Error(I18nT('fork.hostsFileNoFound')))
         return
       }
-      let content = readFileSync(filePath, 'utf-8')
+      let content = await readFile(filePath, 'utf-8')
       let x: any = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x && x[0]) {
         x = x[0]
@@ -705,7 +682,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       }
       content = content.trim()
       content += `\n${x}`
-      writeFileSync(filePath, content.trim())
+      await writeFile(filePath, content.trim())
       resolve(true)
     })
   }
@@ -725,7 +702,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       for (const host of hosts) {
         all.push(util.promisify(dns.resolve)(host))
       }
-      Promise.all(all).then((arr) => {
+      Promise.all(all).then(async (arr) => {
         console.log(arr)
         const list = ['#GITHUB-HOSTS-BEGIN#']
         arr.forEach((ips, i) => {
@@ -737,7 +714,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         list.push('#GITHUB-HOSTS-END#')
         try {
           const hostFile = '/private/etc/hosts'
-          let content = readFileSync(hostFile, 'utf-8')
+          let content = await readFile(hostFile, 'utf-8')
           let x: any = content.match(/(#GITHUB-HOSTS-BEGIN#)([\s\S]*?)(#GITHUB-HOSTS-END#)/g)
           if (x && x[0]) {
             x = x[0]
@@ -745,7 +722,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           }
           content = content.trim()
           content += `\n${list.join('\n')}`
-          writeFileSync(hostFile, content.trim())
+          await writeFile(hostFile, content.trim())
           resolve(0)
         } catch (e) {
           reject(e)
@@ -754,7 +731,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     })
   }
 
-  _fixHostsRole() {
+  async _fixHostsRole() {
     let access = false
     try {
       accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
@@ -766,37 +743,37 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     if (!access) {
       const password = global.Server.Password
       try {
-        execSyncFix(`echo '${password}' | sudo -S chmod 777 /private/etc`)
-        execSyncFix(`echo '${password}' | sudo -S chmod 777 /private/etc/hosts`)
+        await execPromise(`echo '${password}' | sudo -S chmod 777 /private/etc`)
+        await execPromise(`echo '${password}' | sudo -S chmod 777 /private/etc/hosts`)
       } catch (e) {}
     }
   }
 
   doFixHostsRole() {
-    return new ForkPromise((resolve) => {
-      this._fixHostsRole()
+    return new ForkPromise(async (resolve) => {
+      await this._fixHostsRole()
       resolve(0)
     })
   }
 
   writeHosts(write = true) {
-    return new ForkPromise((resolve) => {
-      this._fixHostsRole()
+    return new ForkPromise(async (resolve) => {
+      await this._fixHostsRole()
       if (write) {
         const hostfile = join(global.Server.BaseDir!, 'host.json')
         if (!existsSync(hostfile)) {
           resolve(0)
           return
         }
-        let json = readFileSync(hostfile, 'utf-8')
+        let json = await readFile(hostfile, 'utf-8')
         json = JSON.parse(json)
         this._initHost(json as any).then(resolve)
       } else {
-        let hosts = readFileSync('/private/etc/hosts', 'utf-8').toString()
+        let hosts = await readFile('/private/etc/hosts', 'utf-8').toString()
         const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
         if (x) {
           hosts = hosts.replace(x[0], '')
-          writeFileSync('/private/etc/hosts', hosts.trim())
+          await writeFile('/private/etc/hosts', hosts.trim())
         }
         resolve(0)
       }

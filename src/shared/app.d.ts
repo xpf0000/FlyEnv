@@ -35,3 +35,11 @@ export interface AppHost {
   root: string
   phpVersion?: number
 }
+
+export interface FtpItem {
+  user: string
+  pass: string
+  dir: string
+  disabled: boolean
+  mark: string
+}

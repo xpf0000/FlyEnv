@@ -1,10 +1,12 @@
-import { exec, spawn, execSync } from 'child_process'
+import { exec, spawn, execSync, type ChildProcess } from 'child_process'
 import { merge } from 'lodash'
 import { statSync, chmodSync, readdirSync, mkdirSync, existsSync, createWriteStream } from 'fs'
-import { join, dirname } from 'path'
+import path, { join, dirname } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
+import type { Dirent } from 'node:fs'
+import { readdir } from 'fs-extra'
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
     on,
@@ -94,11 +96,11 @@ export function execSyncFix(cammand: string, opt?: { [k: string]: any }): string
 export function execPromise(
   cammand: string,
   opt?: { [k: string]: any }
-): Promise<{
+): ForkPromise<{
   stdout: string
   stderr: string
 }> {
-  return new Promise((resolve, reject) => {
+  return new ForkPromise((resolve, reject) => {
     try {
       exec(
         cammand,
@@ -131,6 +133,8 @@ export function spawnPromise(
   opt?: { [k: string]: any }
 ): ForkPromise<any> {
   return new ForkPromise((resolve, reject, on) => {
+    const stdout: Array<Buffer> = []
+    const stderr: Array<Buffer> = []
     const child = spawn(
       cammand,
       params,
@@ -147,20 +151,70 @@ export function spawnPromise(
       if (exit) return
       exit = true
       if (!code) {
-        resolve(code)
+        resolve(Buffer.concat(stdout).toString().trim())
       } else {
-        reject(code)
+        reject(new Error(Buffer.concat(stderr).toString().trim()))
       }
     }
     child.stdout.on('data', (data) => {
+      stdout.push(data)
       on(data.toString())
     })
     child.stderr.on('data', (err) => {
+      stderr.push(err)
       on(err.toString())
     })
     child.on('exit', onEnd)
     child.on('close', onEnd)
   })
+}
+
+export function spawnPromiseMore(
+  cammand: string,
+  params: Array<any>,
+  opt?: { [k: string]: any }
+): {
+  promise: ForkPromise<any>
+  spawn: ChildProcess
+} {
+  const stdout: Array<Buffer> = []
+  const stderr: Array<Buffer> = []
+  const child = spawn(
+    cammand,
+    params,
+    merge(
+      {
+        env: fixEnv()
+      },
+      opt
+    )
+  )
+  const promise = new ForkPromise((resolve, reject, on) => {
+    let exit = false
+    const onEnd = (code: number | null) => {
+      if (exit) return
+      exit = true
+      if (!code) {
+        resolve(Buffer.concat(stdout).toString().trim())
+      } else {
+        reject(new Error(Buffer.concat(stderr).toString().trim()))
+      }
+    }
+    child.stdout.on('data', (data) => {
+      stdout.push(data)
+      on(data.toString())
+    })
+    child.stderr.on('data', (err) => {
+      stderr.push(err)
+      on(err.toString())
+    })
+    child.on('exit', onEnd)
+    child.on('close', onEnd)
+  })
+  return {
+    promise,
+    spawn: child
+  }
 }
 
 export function chmod(fp: string, mode: string) {
@@ -273,3 +327,16 @@ export function getSubDir(fp: string, fullpath = true) {
   }
   return arr
 }
+
+export const getAllFileAsync = async (
+  dirPath: string,
+  fullpath = true
+): Promise<Awaited<Promise<any>>[]> =>
+  Promise.all(
+    await readdir(dirPath, { withFileTypes: true }).then((entries: Array<Dirent>) =>
+      entries.map((entry) => {
+        const childPath = path.join(dirPath, entry.name)
+        return entry.isDirectory() ? getAllFileAsync(childPath) : fullpath ? childPath : entry.name
+      })
+    )
+  )

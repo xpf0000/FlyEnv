@@ -6,6 +6,15 @@ import Apache from './module/Apache'
 import Nginx from './module/Nginx'
 import Php from './module/Php'
 import Host from './module/Host'
+import Mysql from './module/Mysql'
+import Redis from './module/Redis'
+import Memcached from './module/Memcached'
+import Mongodb from './module/Mongodb'
+import Mariadb from './module/Mariadb'
+import Postgresql from './module/Postgresql'
+import PureFtpd from './module/PureFtpd'
+import Node from './module/Node'
+import Brew from './module/Brew'
 
 class BaseManager {
   constructor() {}
@@ -13,6 +22,12 @@ class BaseManager {
   init() {
     Apache.init()
     Nginx.init()
+    Mysql.init()
+    Redis.init()
+    Memcached.init()
+    Mongodb.init()
+    Mariadb.init()
+    PureFtpd.init()
   }
 
   exec(commands: Array<any>) {
@@ -45,6 +60,24 @@ class BaseManager {
       func = Php.exec(fn, ...commands)
     } else if (module === 'host') {
       func = Host.exec(fn, ...commands)
+    } else if (module === 'mysql') {
+      func = Mysql.exec(fn, ...commands)
+    } else if (module === 'redis') {
+      func = Redis.exec(fn, ...commands)
+    } else if (module === 'memcached') {
+      func = Memcached.exec(fn, ...commands)
+    } else if (module === 'mongodb') {
+      func = Mongodb.exec(fn, ...commands)
+    } else if (module === 'mariadb') {
+      func = Mariadb.exec(fn, ...commands)
+    } else if (module === 'postgresql') {
+      func = Postgresql.exec(fn, ...commands)
+    } else if (module === 'pure-ftpd') {
+      func = PureFtpd.exec(fn, ...commands)
+    } else if (module === 'node') {
+      func = Node.exec(fn, ...commands)
+    } else if (module === 'brew') {
+      func = Brew.exec(fn, ...commands)
     }
     func?.on(onData).then(then).catch(error)
   }

@@ -101,8 +101,8 @@
           }
           IPC.send('app-fork:node', 'nvmDir').then((key: string, res: any) => {
             IPC.off(key)
-            if (res?.NVM_DIR) {
-              this.task.NVM_DIR = res.NVM_DIR
+            if (res?.data) {
+              this.task.NVM_DIR = res.data
               resolve(true)
             } else {
               reject(new Error(I18nT('base.nvmDirNoFound')))
@@ -133,8 +133,8 @@
         this.task.getVersioning = true
         IPC.send('app-fork:node', 'allVersion', this.task.NVM_DIR).then((key: string, res: any) => {
           IPC.off(key)
-          if (res?.versions) {
-            this.task.versions = res.versions
+          if (res?.data) {
+            this.task.versions = res.data
             this.task.getVersioning = false
             this.task.btnTxt = I18nT('base.switch')
           } else {
@@ -148,11 +148,11 @@
         IPC.send('app-fork:node', 'localVersion', this.task.NVM_DIR).then(
           (key: string, res: any) => {
             IPC.off(key)
-            if (res?.versions) {
+            if (res?.data?.versions) {
               const localVersions: Array<any> = this.localVersions
               localVersions.splice(0)
-              localVersions.push(...res.versions)
-              this.current = res.current
+              localVersions.push(...res.data.versions)
+              this.current = res.data.current
             }
           }
         )

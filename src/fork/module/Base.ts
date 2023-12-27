@@ -1,10 +1,10 @@
 import { I18nT } from '../lang'
-import { existsSync, readFileSync, unlinkSync, writeFileSync, copyFileSync } from 'fs'
-import { execSync } from 'child_process'
+import { existsSync } from 'fs'
 import { join } from 'path'
 import type { SoftInstalled } from '@shared/app'
-import { chmod, execPromise, fixEnv, spawnPromise } from '../Fn'
+import { execPromise, spawnPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
+import { readFile, writeFile, copyFile, unlink, chmod } from 'fs-extra'
 
 export class Base {
   type: string
@@ -27,8 +27,8 @@ export class Base {
     })
   }
 
-  _linkVersion(version: SoftInstalled): ForkPromise<true | string> {
-    return new ForkPromise((resolve) => {
+  _linkVersion(version: SoftInstalled): ForkPromise<any> {
+    return new ForkPromise(async (resolve) => {
       if (version && version?.bin) {
         try {
           const v = version.bin
@@ -36,12 +36,12 @@ export class Base {
             .pop()
             ?.split('/')?.[0]
           if (v) {
-            const opt = {
-              env: fixEnv()
-            }
-            opt.env.HOMEBREW_NO_INSTALL_FROM_API = 1
             const command = `brew unlink ${v} && brew link --overwrite --force ${v}`
-            execSync(command, opt)
+            await execPromise(command, {
+              env: {
+                HOMEBREW_NO_INSTALL_FROM_API: 1
+              }
+            })
             resolve(true)
           } else {
             resolve(I18nT('fork.versionError'))
@@ -68,7 +68,7 @@ export class Base {
   }
 
   switchVersion(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       if (!existsSync(version?.bin)) {
         reject(new Error(I18nT('fork.binNoFound')))
         return
@@ -77,49 +77,27 @@ export class Base {
         reject(new Error(I18nT('fork.versionNoFound')))
         return
       }
-      this._stopServer(version)
-        .then(() => {
-          return this._startServer(version).on(on)
-        })
-        .then(() => {
-          return this._linkVersion(version)
-        })
-        .then(() => {
-          resolve(true)
-        })
-        .catch((code: Error) => {
-          const info = code ? code.toString() : I18nT('fork.switchFail')
-          reject(new Error(info))
-        })
+      try {
+        await this._stopServer(version)
+        await this._startServer(version).on(on)
+        await this._linkVersion(version)
+        resolve(true)
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 
   stopService(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject) => {
-      this._stopServer(version)
-        .then((res) => {
-          resolve(res)
-        })
-        .catch((err) => {
-          reject(err)
-        })
-    })
+    return this._stopServer(version)
   }
 
   reloadService(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject) => {
-      this._reloadServer(version)
-        .then((res) => {
-          resolve(res)
-        })
-        .catch((err) => {
-          reject(err)
-        })
-    })
+    return this._reloadServer(version)
   }
 
   startService(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       if (!existsSync(version?.bin)) {
         reject(new Error(I18nT('fork.binNoFound')))
         return
@@ -128,47 +106,44 @@ export class Base {
         reject(new Error(I18nT('fork.versionNoFound')))
         return
       }
-      this._stopServer(version)
-        .then(() => {
-          return this._startServer(version).on(on)
-        })
-        .then((res) => {
-          resolve(res)
-        })
-        .catch((err) => {
-          reject(err)
-        })
+      try {
+        await this._stopServer(version)
+        await this._startServer(version).on(on)
+        resolve(true)
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 
   _stopServer(version: SoftInstalled) {
     console.log(version)
-    return new ForkPromise((resolve) => {
+    return new ForkPromise(async (resolve, reject) => {
       /**
        * 检测pid文件是否删除, 作为服务正常停止的依据
        * @param time
        */
-      const checkPid = (time = 0) => {
+      const checkPid = async (time = 0) => {
         /**
          * mongodb 不会自动删除pid文件 直接返回成功
          */
         if (this.type === 'mongodb') {
-          setTimeout(() => {
-            resolve(0)
-          }, 1000)
+          await waitTime(1000)
+          resolve(0)
           return
         }
         if (!existsSync(this.pidPath)) {
           resolve(0)
         } else {
           if (time < 20) {
-            setTimeout(() => {
-              checkPid(time + 1)
-            }, 500)
+            await waitTime(500)
+            await checkPid(time + 1)
           } else {
             console.log('服务停止可能失败, 未检测到pid文件被删除', this.type, this.pidPath)
-            unlinkSync(this.pidPath)
-            resolve(0)
+            try {
+              await unlink(this.pidPath)
+            } catch (e) {}
+            resolve(true)
           }
         }
       }
@@ -186,65 +161,59 @@ export class Base {
       const serverName = dis[this.type]
       const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12}'`
       console.log('_stopServer command: ', command)
-      execPromise(command)
-        .then((res) => {
-          const pids = res?.stdout?.trim()?.split('\n') ?? []
-          const arr: Array<string> = []
-          for (const p of pids) {
-            if (
-              p.indexOf(' grep ') >= 0 ||
-              p.indexOf(' /bin/sh -c') >= 0 ||
-              p.indexOf('/Contents/MacOS/') >= 0
-            ) {
-              continue
-            }
-            arr.push(p.split(' ')[0])
+      try {
+        const res = await execPromise(command)
+        const pids = res?.stdout?.trim()?.split('\n') ?? []
+        const arr: Array<string> = []
+        for (const p of pids) {
+          if (
+            p.indexOf(' grep ') >= 0 ||
+            p.indexOf(' /bin/sh -c') >= 0 ||
+            p.indexOf('/Contents/MacOS/') >= 0
+          ) {
+            continue
           }
-          if (arr.length > 0) {
-            const pids = arr.join(' ')
-            let sig = ''
-            switch (this.type) {
-              case 'mysql':
-              case 'mariadb':
-              case 'mongodb':
-                sig = '-TERM'
-                break
-              default:
-                sig = '-INT'
-                break
-            }
-            return execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
+          arr.push(p.split(' ')[0])
+        }
+        if (arr.length > 0) {
+          const pids = arr.join(' ')
+          let sig = ''
+          switch (this.type) {
+            case 'mysql':
+            case 'mariadb':
+            case 'mongodb':
+              sig = '-TERM'
+              break
+            default:
+              sig = '-INT'
+              break
           }
-          return Promise.resolve({ stdout: '', stderr: '' })
-        })
-        .then(() => {
-          checkPid()
-        })
-        .catch(() => {
-          checkPid()
-        })
+          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
+        }
+        checkPid()
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 
   _reloadServer(version: SoftInstalled) {
     console.log(version)
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       console.log('this.pidPath: ', this.pidPath)
       if (existsSync(this.pidPath)) {
-        const pid = readFileSync(this.pidPath, 'utf-8')
-        const sign =
-          this.type === 'apache' || this.type === 'mysql' || this.type === 'nginx'
-            ? '-HUP'
-            : '-USR2'
-        execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sign} ${pid}`)
-          .then(() => {
-            setTimeout(() => {
-              resolve(0)
-            }, 1000)
-          })
-          .catch((err) => {
-            reject(err)
-          })
+        try {
+          const pid = await readFile(this.pidPath, 'utf-8')
+          const sign =
+            this.type === 'apache' || this.type === 'mysql' || this.type === 'nginx'
+              ? '-HUP'
+              : '-USR2'
+          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sign} ${pid}`)
+          await waitTime(1000)
+          resolve(0)
+        } catch (e) {
+          reject(e)
+        }
       } else {
         reject(new Error(I18nT('fork.serviceNoRun')))
       }
@@ -252,33 +221,47 @@ export class Base {
   }
 
   _doInstallOrUnInstallByBrew(rb: string, action: string) {
-    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-    const name = rb
-    const sh = join(global.Server.Static!, 'sh/brew-cmd.sh')
-    const copyfile = join(global.Server.Cache!, 'brew-cmd.sh')
-    if (existsSync(copyfile)) {
-      unlinkSync(copyfile)
-    }
-    copyFileSync(sh, copyfile)
-    chmod(copyfile, '0777')
-    return spawnPromise('zsh', [copyfile, arch, action, name])
+    return new ForkPromise<any>(async (resolve, reject, on) => {
+      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+      const name = rb
+      const sh = join(global.Server.Static!, 'sh/brew-cmd.sh')
+      const copyfile = join(global.Server.Cache!, 'brew-cmd.sh')
+      try {
+        if (existsSync(copyfile)) {
+          await unlink(copyfile)
+        }
+        await copyFile(sh, copyfile)
+        await chmod(copyfile, '0777')
+      } catch (e) {
+        reject(e)
+        return
+      }
+      spawnPromise('zsh', [copyfile, arch, action, name]).on(on).then(resolve).catch(reject)
+    })
   }
 
   _doInstallOrUnInstallByPort(name: string, action: string) {
-    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-    const sh = join(global.Server.Static!, 'sh/port-cmd.sh')
-    const copyfile = join(global.Server.Cache!, 'port-cmd.sh')
-    if (existsSync(copyfile)) {
-      unlinkSync(copyfile)
-    }
-    let content = readFileSync(sh, 'utf-8').toString()
-    content = content
-      .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password!)
-      .replace(new RegExp('##ARCH##', 'g'), arch)
-      .replace(new RegExp('##ACTION##', 'g'), action)
-      .replace(new RegExp('##NAME##', 'g'), name)
-    writeFileSync(copyfile, content)
-    chmod(copyfile, '0777')
-    return spawnPromise('zsh', [copyfile])
+    return new ForkPromise(async (resolve, reject, on) => {
+      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+      const sh = join(global.Server.Static!, 'sh/port-cmd.sh')
+      const copyfile = join(global.Server.Cache!, 'port-cmd.sh')
+      try {
+        if (existsSync(copyfile)) {
+          await unlink(copyfile)
+        }
+        let content = await readFile(sh, 'utf-8')
+        content = content
+          .trim()
+          .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password!)
+          .replace(new RegExp('##ARCH##', 'g'), arch)
+          .replace(new RegExp('##ACTION##', 'g'), action)
+          .replace(new RegExp('##NAME##', 'g'), name)
+        await writeFile(copyfile, content)
+        await chmod(copyfile, '0777')
+      } catch (e) {
+        reject(e)
+      }
+      spawnPromise('zsh', [copyfile]).on(on).then(resolve).catch(reject)
+    })
   }
 }

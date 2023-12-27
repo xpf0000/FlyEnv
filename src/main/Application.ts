@@ -542,41 +542,27 @@ export default class Application extends EventEmitter {
     }
     switch (command) {
       case 'app-fork:apache':
-        this.forkManager
-          ?.send('apache', ...args)
-          .on(callBack)
-          .then(callBack)
-        break
       case 'app-fork:nginx':
-        this.forkManager
-          ?.send('nginx', ...args)
-          .on(callBack)
-          .then(callBack)
-        break
       case 'app-fork:php':
-        this.forkManager
-          ?.send('php', ...args)
-          .on(callBack)
-          .then(callBack)
-        break
       case 'app-fork:host':
-        this.forkManager
-          ?.send('host', ...args)
-          .on(callBack)
-          .then(callBack)
-        break
+      case 'app-fork:mysql':
+      case 'app-fork:redis':
+      case 'app-fork:memcached':
+      case 'app-fork:mongodb':
+      case 'app-fork:mariadb':
+      case 'app-fork:postgresql':
+      case 'app-fork:pure-ftpd':
       case 'app-fork:node':
       case 'app-fork:brew':
-      case 'app-fork:mysql':
-      case 'app-fork:mariadb':
-      case 'app-fork:memcached':
-      case 'app-fork:redis':
+        const module = command.replace('app-fork:', '')
+        this.forkManager
+          ?.send(module, ...args)
+          .on(callBack)
+          .then(callBack)
+        break
       case 'app-fork:tools':
       case 'app-fork:version':
-      case 'app-fork:mongodb':
       case 'app-fork:project':
-      case 'app-fork:pure-ftpd':
-      case 'app-fork:postgresql':
         const forkFile = command.replace('app-fork:', '')
         const child = fork(join(__static, `fork/${forkFile}.js`))
         this.setProxy()
