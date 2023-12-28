@@ -324,11 +324,11 @@ export default class Application extends EventEmitter {
 
   stopServerByPid() {
     try {
-      const command = `ps aux | grep '${global.Server.BaseDir}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
-      const res = execSync(command)?.toString()?.trim() ?? ''
-      const pids = res.split('\n')
       const TERM: Array<string> = []
       const INT: Array<string> = []
+      let command = `ps aux | grep '${global.Server.BaseDir}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+      let res = execSync(command)?.toString()?.trim() ?? ''
+      let pids = res.split('\n')
       for (const p of pids) {
         if (p.includes(global.Server.BaseDir!)) {
           if (p.includes('mysqld') || p.includes('mariadbd') || p.includes('mongod')) {
@@ -337,6 +337,15 @@ export default class Application extends EventEmitter {
             INT.push(p.split(' ')[0])
           }
         }
+      }
+      command = `ps aux | grep 'redis-server' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+      res = execSync(command)?.toString()?.trim() ?? ''
+      pids = res.split('\n')
+      for (const p of pids) {
+        if (p.includes(' grep ') || p.includes(' /bin/sh -c') || p.includes('/Contents/MacOS/')) {
+          continue
+        }
+        INT.push(p.split(' ')[0])
       }
       if (TERM.length > 0) {
         const str = TERM.join(' ')
@@ -471,12 +480,10 @@ export default class Application extends EventEmitter {
   }
 
   handleCommand(command: string, key: string, ...args: any) {
-    console.log('handleIpcMessages: ', command, key, ...args)
     this.emit(command, ...args)
     let window
     const callBack = (info: any) => {
       const win = this.mainWindow!
-      console.log('forkManager callBack: ', command, key, info)
       this.windowManager.sendCommandTo(win, command, key, info)
       if (args?.[0] === 'installBrew' && info?.data?.BrewCellar) {
         global.Server = info?.data
@@ -507,7 +514,6 @@ export default class Application extends EventEmitter {
         break
       case 'app:password-check':
         const pass = args[0]
-        console.log('pass: ', pass)
         execPromise(`echo '${pass}' | sudo -S -k -l`)
           .then(() => {
             this.configManager.setConfig('password', pass)

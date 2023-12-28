@@ -50,6 +50,7 @@
   import { markRaw, defineComponent } from 'vue'
   import { Search } from '@element-plus/icons-vue'
   import { passwordCheck } from '@/util/Brew'
+  import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
   const { execSync } = require('child_process')
 
   const SearchIcon = markRaw(Search)
@@ -58,17 +59,17 @@
     components: {},
     props: {},
     emits: ['doClose'],
-    data() {
+    data(): {
+      Search: any
+      port: string
+      arrs: Array<any>
+      select: Array<any>
+    } {
       return {
         Search: SearchIcon,
         port: '',
         arrs: [],
         select: []
-      } as {
-        Search: any
-        port: string
-        arrs: Array<any>
-        select: Array<any>
       }
     },
     computed: {},
@@ -92,10 +93,10 @@
               .join(' ')
             try {
               execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
               this.doSearch()
             } catch (e) {
-              this.$message.error(this.$t('base.fail'))
+              MessageError(this.$t('base.fail'))
             }
           })
           .catch(() => {})
@@ -113,10 +114,10 @@
               .join(' ')
             try {
               execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
               this.doSearch()
             } catch (e) {
-              this.$message.error(this.$t('base.fail'))
+              MessageError(this.$t('base.fail'))
             }
           })
           .catch(() => {})
@@ -155,7 +156,7 @@
             }
           })
         if (arr.length === 0) {
-          this.$message.warning(this.$t('base.portNotUse'))
+          MessageWarning(this.$t('base.portNotUse'))
           return
         }
         this.arrs.splice(0)

@@ -27,9 +27,9 @@
   import { dnsStart, dnsStop } from '@/util/Service'
   import { passwordCheck } from '@/util/Brew'
   import { AppStore } from '@/store/app'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { DnsStore } from '@/store/dns'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   defineProps<{
     currentPage: string
@@ -75,9 +75,9 @@
       promise = fn()
       promise?.then((res) => {
         if (typeof res === 'string') {
-          ElMessage.error(res)
+          MessageError(res)
         } else {
-          ElMessage.success(I18nT('base.success'))
+          MessageSuccess(I18nT('base.success'))
         }
       })
     })

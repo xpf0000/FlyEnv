@@ -67,9 +67,9 @@
   import { AppSofts, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { TaskStore } from '@/store/task'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import VersionSwitch from '../VersionSwtich/index.vue'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const props = defineProps<{
     typeFlag:
@@ -92,7 +92,12 @@
   const logRef = ref()
 
   const showReloadBtn = computed(() => {
-    return props.typeFlag !== 'memcached' && props.typeFlag !== 'mongodb'
+    return (
+      props.typeFlag !== 'memcached' &&
+      props.typeFlag !== 'mongodb' &&
+      props.typeFlag !== 'redis' &&
+      props.typeFlag !== 'postgresql'
+    )
   })
 
   const version = computed(() => {
@@ -191,13 +196,9 @@
     }
     action.then((res: any) => {
       if (typeof res === 'string') {
-        ElMessage({
-          type: 'error',
-          message: res,
-          customClass: 'cli-to-html'
-        })
+        MessageError(res)
       } else {
-        ElMessage.success(I18nT('base.success'))
+        MessageSuccess(I18nT('base.success'))
       }
     })
   }

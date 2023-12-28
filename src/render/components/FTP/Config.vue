@@ -21,13 +21,13 @@
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick } from 'vue'
   import IPC from '@/util/IPC'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { startService } from '@/util/Service'
   import { FtpStore } from '@/store/ftp'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageSuccess, MessageError } from '@/util/Element'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, statSync } = require('fs')
@@ -79,7 +79,7 @@
         }
         const content = monacoInstance?.getValue() ?? ''
         writeFileAsync(filePath, content).then(() => {
-          ElMessage.success(I18nT('base.success'))
+          MessageSuccess(I18nT('base.success'))
         })
       })
   }
@@ -94,7 +94,7 @@
         startService('pure-ftpd', ftpVersion.value!).then()
       }
       ftpStore.getPort()
-      ElMessage.success(I18nT('base.success'))
+      MessageSuccess(I18nT('base.success'))
     })
   }
 
@@ -131,7 +131,7 @@
         const file = filePaths[0]
         const state = statSync(file)
         if (state.size > 5 * 1024 * 1024) {
-          ElMessage.error(I18nT('base.fileBigErr'))
+          MessageError(I18nT('base.fileBigErr'))
           return
         }
         readFileAsync(file).then((conf) => {
@@ -148,7 +148,7 @@
   const getDefault = () => {
     let configPath = join(global.Server.FTPDir, `pure-ftpd.conf.default`)
     if (!existsSync(configPath)) {
-      ElMessage.error(I18nT('base.defaultConFileNoFound'))
+      MessageError(I18nT('base.defaultConFileNoFound'))
       return
     }
     readFileAsync(configPath).then((conf) => {

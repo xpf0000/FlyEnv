@@ -34,7 +34,6 @@ class Apache extends Base {
       // 获取httpd的默认配置文件路径
       const res = await execPromise(`${bin} -D DUMP_INCLUDES`)
       const str = res?.stdout?.toString() ?? ''
-      console.log('DUMP_INCLUDES: ', str)
       let reg = new RegExp('(\\(*\\) )([\\s\\S]*?)(\\n)', 'g')
       let file = ''
       try {

@@ -26,8 +26,8 @@
   import { ref, Ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import type { AppHost } from '@/store/app'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
+  import { MessageSuccess } from '@/util/Element'
 
   const { shell, clipboard } = require('@electron/remote')
 
@@ -61,7 +61,7 @@
 
   const copy = (url: string) => {
     clipboard.writeText(url)
-    ElMessage.success(I18nT('base.linkCopySuccess'))
+    MessageSuccess(I18nT('base.linkCopySuccess'))
   }
 
   const open = (url: string) => {

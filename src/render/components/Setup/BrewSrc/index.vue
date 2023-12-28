@@ -19,6 +19,7 @@
   import { defineComponent } from 'vue'
   import IPC from '@/util/IPC'
   import { BrewStore } from '@/store/brew'
+  import { MessageError, MessageSuccess } from '@/util/Element'
   export default defineComponent({
     components: {},
     props: {},
@@ -68,10 +69,10 @@
             console.log('info: ', info)
             if (info.code === 0) {
               brewStore.brewSrc = this.currentBrewSrc
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
             } else {
               this.currentBrewSrc = this.brewStoreSrc
-              this.$message.error(this.$t('base.fail'))
+              MessageError(this.$t('base.fail'))
             }
             brewStore.brewRunning = false
           }

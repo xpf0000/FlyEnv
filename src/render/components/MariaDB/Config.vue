@@ -27,6 +27,7 @@
   import { nextTick, defineComponent } from 'vue'
   import { AppStore } from '@/store/app'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, statSync } = require('fs')
@@ -54,7 +55,7 @@
     mounted() {
       if (!this.currentVersion) {
         this.config = this.$t('base.needSelectVersion')
-        this.$message.error(this.config)
+        MessageError(this.config)
       } else {
         const v = this.currentVersion.split('.').slice(0, 2).join('.')
         this.configPath = join(global.Server.MariaDBDir, `my-${v}.cnf`)
@@ -82,7 +83,7 @@
             const file = filePaths[0]
             const state = statSync(file)
             if (state.size > 5 * 1024 * 1024) {
-              this.$message.error(this.$t('base.fileBigErr'))
+              MessageError(this.$t('base.fileBigErr'))
               return
             }
             readFileAsync(file).then((conf) => {
@@ -109,7 +110,7 @@
             }
             const content = this.monacoInstance.getValue()
             writeFileAsync(filePath, content).then(() => {
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
             })
           })
       },
@@ -122,7 +123,7 @@
         }
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configPath, content).then(() => {
-          this.$message.success(this.$t('base.success'))
+          MessageSuccess(this.$t('base.success'))
         })
       },
       getConfig() {

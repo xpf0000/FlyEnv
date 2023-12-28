@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import { execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp } from 'fs-extra'
+import { mkdirp, unlink } from 'fs-extra'
 class Memcached extends Base {
   constructor() {
     super()
@@ -23,6 +23,11 @@ class Memcached extends Base {
       const pid = join(common, 'memcached.pid')
       const log = join(common, 'memcached.log')
       const command = `${bin} -d -P ${pid} -vv >> ${log} 2>&1`
+      try {
+        if (existsSync(pid)) {
+          await unlink(pid)
+        }
+      } catch (e) {}
       try {
         await mkdirp(common)
         const res = await execPromise(command)

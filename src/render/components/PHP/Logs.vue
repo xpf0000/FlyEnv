@@ -41,6 +41,7 @@
   import { VueExtend } from '@/core/VueExtend'
   import { nextTick, defineComponent } from 'vue'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageSuccess } from '@/util/Element'
 
   const { existsSync } = require('fs')
   const { join } = require('path')
@@ -114,7 +115,7 @@
           case 'clean':
             writeFileAsync(this.filepath, '').then(() => {
               this.log = ''
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
             })
             break
         }

@@ -20,7 +20,7 @@
 <script lang="ts" setup>
   import QRCode from 'qrcode'
   import { ref, onMounted } from 'vue'
-  import { ElMessage } from 'element-plus'
+  import { MessageError } from '@/util/Element'
   const { dialog, shell } = require('@electron/remote')
   const { writeFile } = require('fs')
 
@@ -48,7 +48,7 @@
         const dataBuffer = new Buffer(base64, 'base64')
         writeFile(filePath, dataBuffer, function (err: Error | null) {
           if (err) {
-            ElMessage.error(err)
+            MessageError(err.message)
             return
           }
           shell.showItemInFolder(filePath)
@@ -64,7 +64,7 @@
       },
       function (err: Error, url: string) {
         if (err) {
-          ElMessage.error(err)
+          MessageError(err.message)
           return
         }
         doSave(url)

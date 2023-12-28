@@ -52,6 +52,7 @@
 <script lang="ts">
   import { defineComponent } from 'vue'
   import { AppStore } from '@/store/app'
+  import { MessageSuccess } from '@/util/Element'
   const { clipboard } = require('@electron/remote')
   export default defineComponent({
     components: {},
@@ -89,7 +90,7 @@
       },
       copyProxy() {
         clipboard.writeText(this?.proxy?.proxy ?? '')
-        this.$message.success(this.$t('base.copySuccess'))
+        MessageSuccess(this.$t('base.copySuccess'))
       },
       editProxy() {
         this.proxyStr = this.proxy.proxy

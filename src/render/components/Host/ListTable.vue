@@ -1,6 +1,6 @@
 <template>
   <div class="host-list">
-    <el-table :data="hosts" row-key="id" default-expand-all>
+    <el-table v-loading="loading" :data="hosts" row-key="id" default-expand-all>
       <el-table-column :label="$t('host.name')">
         <template #header>
           <div class="w-p100 name-cell">
@@ -51,6 +51,10 @@
               <li @click.stop="action(scope.row, scope.$index, 'edit')">
                 <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ $t('base.edit') }}</span>
+              </li>
+              <li @click.stop="action(scope.row, scope.$index, 'park')">
+                <yb-icon :svg="import('@/svg/shengcheng.svg?raw')" width="13" height="13" />
+                <span class="ml-15">{{ $t('host.park') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'link')">
                 <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
@@ -107,6 +111,7 @@
 
   const { shell } = require('@electron/remote')
 
+  const loading = ref(false)
   const appStore = AppStore()
   const task_index = ref(0)
   const search = ref('')
@@ -236,6 +241,13 @@
         AsyncComponentShow(LinkVM, {
           host: item
         }).then()
+        break
+      case 'park':
+        console.log('item: ', item)
+        loading.value = true
+        handleHost(item, 'edit', item, true).then(() => {
+          loading.value = false
+        })
         break
     }
   }

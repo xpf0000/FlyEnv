@@ -79,6 +79,7 @@ export class Base {
       }
       try {
         await this._stopServer(version)
+        await waitTime(500)
         await this._startServer(version).on(on)
         await this._linkVersion(version)
         resolve(true)
@@ -119,62 +120,39 @@ export class Base {
   _stopServer(version: SoftInstalled) {
     console.log(version)
     return new ForkPromise(async (resolve, reject) => {
-      /**
-       * 检测pid文件是否删除, 作为服务正常停止的依据
-       * @param time
-       */
-      const checkPid = async (time = 0) => {
-        /**
-         * mongodb 不会自动删除pid文件 直接返回成功
-         */
-        if (this.type === 'mongodb') {
-          await waitTime(1000)
-          resolve(0)
-          return
-        }
-        if (!existsSync(this.pidPath)) {
-          resolve(0)
-        } else {
-          if (time < 20) {
-            await waitTime(500)
-            await checkPid(time + 1)
-          } else {
-            console.log('服务停止可能失败, 未检测到pid文件被删除', this.type, this.pidPath)
-            try {
-              await unlink(this.pidPath)
-            } catch (e) {}
-            resolve(true)
-          }
-        }
-      }
-
       const dis: { [k: string]: string } = {
-        php: 'php-fpm',
         nginx: 'nginx',
         apache: 'httpd',
         mysql: 'mysqld',
         mariadb: 'mariadbd',
         memcached: 'memcached',
         redis: 'redis-server',
-        mongodb: 'mongod'
+        mongodb: 'mongod',
+        postgresql: 'postgresql',
+        'pure-ftpd': 'pure-ftpd'
       }
       const serverName = dis[this.type]
-      const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12}'`
+      const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
       console.log('_stopServer command: ', command)
       try {
         const res = await execPromise(command)
         const pids = res?.stdout?.trim()?.split('\n') ?? []
         const arr: Array<string> = []
         for (const p of pids) {
-          if (
-            p.indexOf(' grep ') >= 0 ||
-            p.indexOf(' /bin/sh -c') >= 0 ||
-            p.indexOf('/Contents/MacOS/') >= 0
-          ) {
-            continue
+          if (this.type === 'redis') {
+            if (
+              p.includes(' grep ') ||
+              p.includes(' /bin/sh -c') ||
+              p.includes('/Contents/MacOS/')
+            ) {
+              continue
+            }
+            arr.push(p.split(' ')[0])
+          } else if (p.includes(global.Server.BaseDir!)) {
+            arr.push(p.split(' ')[0])
           }
-          arr.push(p.split(' ')[0])
         }
+        console.log('_stopServer arr: ', arr)
         if (arr.length > 0) {
           const pids = arr.join(' ')
           let sig = ''
@@ -190,7 +168,8 @@ export class Base {
           }
           await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
         }
-        checkPid()
+        await waitTime(500)
+        resolve(true)
       } catch (e) {
         reject(e)
       }
@@ -200,12 +179,14 @@ export class Base {
   _reloadServer(version: SoftInstalled) {
     console.log(version)
     return new ForkPromise(async (resolve, reject) => {
-      console.log('this.pidPath: ', this.pidPath)
       if (existsSync(this.pidPath)) {
         try {
           const pid = await readFile(this.pidPath, 'utf-8')
           const sign =
-            this.type === 'apache' || this.type === 'mysql' || this.type === 'nginx'
+            this.type === 'apache' ||
+            this.type === 'mysql' ||
+            this.type === 'nginx' ||
+            this.type === 'mariadb'
               ? '-HUP'
               : '-USR2'
           await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sign} ${pid}`)

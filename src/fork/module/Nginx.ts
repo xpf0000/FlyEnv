@@ -30,7 +30,6 @@ class Nginx extends Base {
     for (const v of all) {
       const name = `enable-php-${v}.conf`
       const confFile = join(global.Server.NginxDir!, 'common/conf/', name)
-      console.log('confFile: ', confFile)
       if (!existsSync(confFile)) {
         await mkdirp(dirname(confFile))
         if (!tmplContent) {

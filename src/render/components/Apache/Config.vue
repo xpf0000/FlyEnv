@@ -22,6 +22,7 @@
   import { md5 } from '@/util/Index'
   import { AppStore } from '@/store/app'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { dialog } = require('@electron/remote')
   const { shell } = require('@electron/remote')
@@ -73,7 +74,7 @@
             const file = filePaths[0]
             const state = statSync(file)
             if (state.size > 5 * 1024 * 1024) {
-              this.$message.error(this.$t('base.fileBigErr'))
+              MessageError(this.$t('base.fileBigErr'))
               return
             }
             readFileAsync(file).then((conf) => {
@@ -100,7 +101,7 @@
             }
             const content = this.monacoInstance.getValue()
             writeFileAsync(filePath, content).then(() => {
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
             })
           })
       },
@@ -113,13 +114,13 @@
         }
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configpath, content).then(() => {
-          this.$message.success(this.$t('base.success'))
+          MessageSuccess(this.$t('base.success'))
         })
       },
       getConfig() {
         if (!this?.version?.version) {
           this.config = this.$t('base.needSelectVersion')
-          this.$message.error(this.config)
+          MessageError(this.config)
           this.initEditor()
           return
         }
@@ -127,7 +128,7 @@
         this.configpath = join(global.Server.ApacheDir, `common/conf/${name}.conf`)
         if (!existsSync(this.configpath)) {
           this.config = this.$t('base.configNoFound')
-          this.$message.error(this.config)
+          MessageError(this.config)
           this.initEditor()
           return
         }
@@ -138,13 +139,13 @@
       },
       getDefault() {
         if (!this?.version?.version) {
-          this.$message.error(this.$t('base.needSelectVersion'))
+          MessageError(this.$t('base.needSelectVersion'))
           return
         }
         const name = md5(this.version.bin!)
         const configpath = join(global.Server.ApacheDir, `common/conf/${name}.default.conf`)
         if (!existsSync(configpath)) {
-          this.$message.error(this.$t('base.defaultConFileNoFound'))
+          MessageError(this.$t('base.defaultConFileNoFound'))
           return
         }
         readFileAsync(configpath).then((conf) => {

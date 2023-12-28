@@ -51,6 +51,7 @@
   import { markRaw } from 'vue'
   import { Search } from '@element-plus/icons-vue'
   import { passwordCheck } from '@/util/Brew.ts'
+  import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element.ts'
   const { execSync } = require('child_process')
 
   export default {
@@ -85,10 +86,10 @@
               .join(' ')
             try {
               execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
               this.doSearch()
             } catch (e) {
-              this.$message.error(this.$t('base.fail'))
+              MessageError(this.$t('base.fail'))
             }
           })
           .catch(() => {})
@@ -106,10 +107,10 @@
               .join(' ')
             try {
               execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
               this.doSearch()
             } catch (e) {
-              this.$message.error(this.$t('base.fail'))
+              MessageError(this.$t('base.fail'))
             }
           })
           .catch(() => {})
@@ -153,7 +154,7 @@
             }
           })
         if (arr.length === 0) {
-          this.$message.warning(this.$t('base.processNoFound'))
+          MessageWarning(this.$t('base.processNoFound'))
           return
         }
         this.arrs.splice(0)

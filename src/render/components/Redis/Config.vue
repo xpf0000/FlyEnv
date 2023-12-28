@@ -23,6 +23,7 @@
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, statSync } = require('fs')
@@ -89,7 +90,7 @@
             const file = filePaths[0]
             const state = statSync(file)
             if (state.size > 5 * 1024 * 1024) {
-              this.$message.error(this.$t('base.fileBigErr'))
+              MessageError(this.$t('base.fileBigErr'))
               return
             }
             readFileAsync(file).then((conf) => {
@@ -117,7 +118,7 @@
             }
             const content = this.monacoInstance.getValue()
             writeFileAsync(filePath, content).then(() => {
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
             })
           })
       },
@@ -130,7 +131,7 @@
         }
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configPath, content).then(() => {
-          this.$message.success(this.$t('base.success'))
+          MessageSuccess(this.$t('base.success'))
         })
       },
       getConfig() {
@@ -153,12 +154,12 @@
       },
       getDefault() {
         if (!this.vNum) {
-          this.$message.error(this.$t('base.defaultConFileNoFound'))
+          MessageError(this.$t('base.defaultConFileNoFound'))
           return
         }
         let configPath = join(global.Server.RedisDir, `redis-${this.vNum}-default.conf`)
         if (!existsSync(configPath)) {
-          this.$message.error(this.$t('base.defaultConFileNoFound'))
+          MessageError(this.$t('base.defaultConFileNoFound'))
           return
         }
         readFileAsync(configPath).then((conf) => {

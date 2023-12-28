@@ -52,13 +52,12 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, watch, onMounted, nextTick } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { DnsStore } from '@/store/dns'
   import { FtpStore } from '@/store/ftp'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import Router from '@/router/index'
 
@@ -77,6 +76,7 @@
   import HttpserveModule from './module/httpserve/index.vue'
   import ToolsModule from './module/tools/index.vue'
   import PostgreSqlModule from './module/postgresql/index.vue'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { shell } = require('@electron/remote')
 
@@ -298,9 +298,9 @@
               })
           } else {
             if (err.length === 0) {
-              ElMessage.success(I18nT('base.success'))
+              MessageSuccess(I18nT('base.success'))
             } else {
-              ElMessage.error(err.join('<br/>'))
+              MessageError(err.join('<br/>'))
             }
           }
         }
@@ -382,17 +382,6 @@
       switchChange
     }
     fns[fn] && fns[fn](arg)
-  })
-
-  onMounted(() => {
-    nextTick().then(() => {
-      console.log(
-        'apacheModule: ',
-        apacheModule.value,
-        apacheModule?.value?.serviceRunning,
-        apacheModule?.value?.serviceDisabled
-      )
-    })
   })
 </script>
 

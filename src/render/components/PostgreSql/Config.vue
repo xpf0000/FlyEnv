@@ -19,12 +19,12 @@
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { startService } from '@/util/Service'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, statSync } = require('fs')
@@ -84,7 +84,7 @@
         }
         const content = monacoInstance?.getValue() ?? ''
         writeFileAsync(filePath, content).then(() => {
-          ElMessage.success(I18nT('base.success'))
+          MessageSuccess(I18nT('base.success'))
         })
       })
   }
@@ -98,7 +98,7 @@
       if (serviceRunning?.value) {
         startService('postgresql', currentVersion.value!).then()
       }
-      ElMessage.success(I18nT('base.success'))
+      MessageSuccess(I18nT('base.success'))
     })
   }
 
@@ -135,7 +135,7 @@
         const file = filePaths[0]
         const state = statSync(file)
         if (state.size > 5 * 1024 * 1024) {
-          ElMessage.error(I18nT('base.fileBigErr'))
+          MessageError(I18nT('base.fileBigErr'))
           return
         }
         readFileAsync(file).then((conf) => {
@@ -152,7 +152,7 @@
   const getDefault = () => {
     let defaultConfPath = join(dirname(configPath.value), `postgresql.conf.default`)
     if (!existsSync(defaultConfPath)) {
-      ElMessage.error(I18nT('base.defaultConFileNoFound'))
+      MessageError(I18nT('base.defaultConFileNoFound'))
       return
     }
     readFileAsync(defaultConfPath).then((conf) => {

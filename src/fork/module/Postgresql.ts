@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import { execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile } from 'fs-extra'
+import { copyFile, unlink } from 'fs-extra'
 class Manager extends Base {
   constructor() {
     super()
@@ -23,6 +23,11 @@ class Manager extends Base {
       const pidFile = join(dbPath, 'postmaster.pid')
       const logFile = join(dbPath, 'pg.log')
       let sendUserPass = false
+      try {
+        if (existsSync(pidFile)) {
+          await unlink(pidFile)
+        }
+      } catch (e) {}
       const checkpid = async (time = 0) => {
         if (existsSync(pidFile)) {
           if (sendUserPass) {
@@ -72,31 +77,6 @@ class Manager extends Base {
         await doRun()
       } else {
         reject(new Error(`Data Dir ${dbPath} has exists, but conf file not found in dir`))
-      }
-    })
-  }
-
-  _stopServer(version: SoftInstalled) {
-    console.log(version)
-    return new ForkPromise(async (resolve) => {
-      const command = `ps aux | grep 'postgresql' | awk '{print $2,$11,$12,$13}'`
-      const res = await execPromise(command)
-      const pids = res?.stdout?.toString()?.trim()?.split('\n') ?? []
-      const arr: Array<string> = []
-      for (const p of pids) {
-        if (p.includes(global.Server.PostgreSqlDir!)) {
-          arr.push(p.split(' ')[0])
-        }
-      }
-      if (arr.length === 0) {
-        resolve(true)
-      } else {
-        const pids = arr.join(' ')
-        const sig = '-INT'
-        try {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
-        } catch (e) {}
-        resolve(true)
       }
     })
   }

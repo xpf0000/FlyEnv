@@ -48,6 +48,7 @@
   import { VueExtend } from '@/core/VueExtend'
   import type { SoftInstalled } from '@/store/brew'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { existsSync, statSync, unlink } = require('fs')
   const { join } = require('path')
@@ -128,7 +129,7 @@
             const file = filePaths[0]
             const state = statSync(file)
             if (state.size > 5 * 1024 * 1024) {
-              this.$message.error(this.$t('base.fileBigErr'))
+              MessageError(this.$t('base.fileBigErr'))
               return
             }
             readFileAsync(file).then((conf) => {
@@ -155,7 +156,7 @@
             }
             const content = this.monacoInstance.getValue()
             writeFileAsync(filePath, content).then(() => {
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
             })
           })
       },
@@ -183,7 +184,7 @@
             execSync(`echo '${global.Server.Password}' | sudo -S cp ${tmplFile} ${this.configpath}`)
           } catch (e) {}
           unlink(tmplFile, () => {})
-          this.$message.success(this.$t('base.success'))
+          MessageSuccess(this.$t('base.success'))
           if (this.phpRunning) {
             reloadService('php', this.version as SoftInstalled)
           }
@@ -213,7 +214,7 @@
                 readConfig()
               } else {
                 const err = this.$t('php.phpiniNoFound')
-                this.$message.error(err)
+                MessageError(err)
                 this.config = err
               }
             }
@@ -228,7 +229,7 @@
         }
         let configpath = `${this.configpath}.default`
         if (!existsSync(configpath)) {
-          this.$message.error(this.$t('base.defaultConFileNoFound'))
+          MessageError(this.$t('base.defaultConFileNoFound'))
           return
         }
         readFileAsync(configpath).then((conf) => {

@@ -111,10 +111,11 @@
   import installedVersions from '@/util/InstalledVersions'
   import IPC from '@/util/IPC'
   import { BrewStore, SoftInstalled } from '@/store/brew'
-  import { ElLoading, ElMessage } from 'element-plus'
+  import { ElLoading } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { AppStore } from '@/store/app'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { shell } = require('@electron/remote')
 
@@ -155,9 +156,9 @@
     }
     startService('php', item).then((res) => {
       if (typeof res === 'string') {
-        ElMessage.error(res)
+        MessageError(res)
       } else {
-        ElMessage.success(I18nT('base.success'))
+        MessageSuccess(I18nT('base.success'))
       }
     })
   }
@@ -168,9 +169,9 @@
     }
     stopService('php', item).then((res) => {
       if (typeof res === 'string') {
-        ElMessage.error(res)
+        MessageError(res)
       } else {
-        ElMessage.success(I18nT('base.success'))
+        MessageSuccess(I18nT('base.success'))
       }
     })
   }
@@ -245,9 +246,9 @@
             IPC.off(key)
             loading.close()
             if (res?.code === 0) {
-              ElMessage.success(I18nT('base.success'))
+              MessageSuccess(I18nT('base.success'))
             } else {
-              ElMessage.error(res.msg)
+              MessageError(res.msg)
             }
           }
         )

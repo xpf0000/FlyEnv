@@ -232,6 +232,7 @@ class Host extends Base {
   }
 
   async #setDirRole(dir: string, depth = 0) {
+    console.log('#setDirRole: ', dir, depth)
     if (!dir || dir === '/') {
       return
     }
@@ -543,7 +544,6 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
   }
 
   _addVhost(host: AppHost, addApachePort = true, addApachePortSSL = true, chmod = true) {
-    console.log('_addVhost: ', addApachePort, addApachePortSSL, chmod)
     return new ForkPromise(async (resolve, reject) => {
       if (host?.phpVersion) {
         await this.#handlePhpEnableConf(host.phpVersion)
@@ -703,7 +703,6 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         all.push(util.promisify(dns.resolve)(host))
       }
       Promise.all(all).then(async (arr) => {
-        console.log(arr)
         const list = ['#GITHUB-HOSTS-BEGIN#']
         arr.forEach((ips, i) => {
           const host = hosts[i]

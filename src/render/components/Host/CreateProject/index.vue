@@ -69,8 +69,8 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import Versions from './version'
   import IPC from '@/util/IPC'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { join } = require('path')
   const { dialog } = require('@electron/remote')
@@ -117,16 +117,12 @@
     ).then((key: string, res: any) => {
       if (res?.code === 0) {
         IPC.off(key)
-        ElMessage.success(I18nT('base.success'))
+        MessageSuccess(I18nT('base.success'))
         loading.value = false
         created.value = true
       } else if (res?.code === 1) {
         IPC.off(key)
-        ElMessage({
-          type: 'error',
-          message: msg ?? I18nT('base.fail'),
-          customClass: 'cli-to-html'
-        })
+        MessageError(msg ?? I18nT('base.fail'))
         loading.value = false
       } else {
         msg = res?.msg

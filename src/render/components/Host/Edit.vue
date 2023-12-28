@@ -254,13 +254,13 @@
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import Base from '@/core/Base'
   import { RewriteAll } from '@/components/Host/store'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageError } from '@/util/Element'
 
   const { exec } = require('child-process-promise')
   const { dialog } = require('@electron/remote')
@@ -541,7 +541,7 @@
             })
           })
           .catch(() => {
-            ElMessage.error(I18nT('base.hostNoRole'))
+            MessageError(I18nT('base.hostNoRole'))
             running.value = false
           })
       } else {

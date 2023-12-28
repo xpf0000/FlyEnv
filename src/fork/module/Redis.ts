@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import { execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod } from 'fs-extra'
+import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
 class Redis extends Base {
   constructor() {
     super()
@@ -67,6 +67,11 @@ class Redis extends Base {
           }
         }
       }
+      try {
+        if (existsSync(this.pidPath)) {
+          await unlink(this.pidPath)
+        }
+      } catch (e) {}
       try {
         const command = `echo '${global.Server.Password}' | sudo -S ${bin} ${confFile}`
         const res = await execPromise(command)

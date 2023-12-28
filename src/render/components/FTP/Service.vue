@@ -49,12 +49,12 @@
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { startService, stopService } from '@/util/Service'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { Edit, Delete } from '@element-plus/icons-vue'
   import Base from '@/core/Base'
   import IPC from '@/util/IPC'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { clipboard } = require('@electron/remote')
   const { shell } = require('@electron/remote')
@@ -108,13 +108,9 @@
     }
     action.then((res: any) => {
       if (typeof res === 'string') {
-        ElMessage({
-          type: 'error',
-          message: res,
-          customClass: 'cli-to-html'
-        })
+        MessageError(res)
       } else {
-        ElMessage.success(I18nT('base.success'))
+        MessageSuccess(I18nT('base.success'))
       }
     })
   }
@@ -129,7 +125,7 @@
 
   const copyPass = (str: string): void => {
     clipboard.writeText(str)
-    ElMessage.success(I18nT('base.copySuccess'))
+    MessageSuccess(I18nT('base.copySuccess'))
   }
   const openDir = (dir: string): void => {
     shell.openPath(dir)
@@ -155,15 +151,11 @@
           IPC.off(key)
           if (res?.code === 0) {
             ftpStore.getAllFtp().then(() => {
-              ElMessage.success(I18nT('base.success'))
+              MessageSuccess(I18nT('base.success'))
               loading.value = false
             })
           } else if (res?.code === 1) {
-            ElMessage({
-              type: 'error',
-              message: res?.msg ?? I18nT('base.fail'),
-              customClass: 'cli-to-html'
-            })
+            MessageError(res?.msg ?? I18nT('base.fail'))
             loading.value = false
           }
         })

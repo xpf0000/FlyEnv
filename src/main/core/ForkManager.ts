@@ -21,7 +21,6 @@ export class ForkManager {
         return
       }
       const fn = this.callback?.[key]
-      console.log('message: ', key, info, fn, info?.code)
       if (fn) {
         if (info?.code === 0 || info?.code === 1) {
           fn.resolve(info)
@@ -51,6 +50,7 @@ export class ForkManager {
         on
       }
       const fork = this.forks.shift()!
+      fork.send({ Server })
       fork.send([thenKey, ...args])
       this.forks.push(fork)
     })

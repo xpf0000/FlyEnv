@@ -6,6 +6,7 @@ import XTerm from '@/util/XTerm'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import { I18nT } from '@shared/lang'
+import { MessageError } from '@/util/Element'
 const { getGlobal } = require('@electron/remote')
 const { join } = require('path')
 const { existsSync, unlinkSync, copyFileSync } = require('fs')
@@ -111,7 +112,7 @@ export const brewCheck = () => {
                       IPC.off(key)
                       brewStore.showInstallLog = false
                       brewStore.brewRunning = false
-                      Base.MessageError(I18nT('util.brewInstallFail')).then()
+                      MessageError(I18nT('util.brewInstallFail'))
                       reject(new Error(I18nT('util.brewInstallFail')))
                     }
                   })

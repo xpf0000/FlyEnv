@@ -231,7 +231,6 @@ class Manager extends Base {
         const base = '/opt/local/'
         if (type === 'php') {
           const allSbinFile = await getAllFileAsync(join(base, 'sbin'), false)
-          console.log('php allSbinFile: ', allSbinFile)
           const fpms = allSbinFile.filter((f) => f.startsWith('php-fpm')).map((f) => `sbin/${f}`)
           const find = async (fpm: string) => {
             const bin = join(base, fpm)

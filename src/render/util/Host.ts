@@ -1,10 +1,10 @@
 import IPC from '@/util/IPC'
 import { reloadService } from '@/util/Service'
-import Base from '@/core/Base'
 import type { AppHost } from '@/store/app'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import { I18nT } from '@shared/lang'
+import { MessageError, MessageSuccess } from '@/util/Element'
 const { shell } = require('@electron/remote')
 const handleHostEnd = (arr: Array<AppHost>) => {
   const appStore = AppStore()
@@ -30,7 +30,7 @@ const handleHostEnd = (arr: Array<AppHost>) => {
     IPC.off(key)
   })
 
-  Base.MessageSuccess(I18nT('base.success')).then()
+  MessageSuccess(I18nT('base.success'))
 }
 
 export const handleHost = (host: AppHost, flag: string, old?: AppHost, park?: boolean) => {
@@ -44,12 +44,12 @@ export const handleHost = (host: AppHost, flag: string, old?: AppHost, park?: bo
           handleHostEnd(res.data.host)
           resolve(true)
         } else if (res?.data?.hostBackFile) {
-          Base.MessageError(I18nT('base.hostParseErr')).then()
+          MessageError(I18nT('base.hostParseErr'))
           shell.showItemInFolder(res?.data?.hostBackFile)
           resolve(false)
         }
       } else if (res?.code === 1) {
-        Base.MessageError(res.msg).then()
+        MessageError(res.msg)
         resolve(false)
       }
     })

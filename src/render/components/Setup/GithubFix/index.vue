@@ -6,6 +6,7 @@
 
 <script>
   import IPC from '@/util/IPC.ts'
+  import { MessageError, MessageSuccess } from '@/util/Element'
   export default {
     components: {},
     props: {},
@@ -20,9 +21,9 @@
         IPC.send('app-fork:host', 'githubFix').then((key, info) => {
           IPC.off(key)
           if (info.code === 0) {
-            this.$message.success(this.$t('base.success'))
+            MessageSuccess(this.$t('base.success'))
           } else {
-            this.$message.error(this.$t('base.fail'))
+            MessageError(this.$t('base.fail'))
           }
           this.running = false
         })

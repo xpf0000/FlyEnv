@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
-import Base from '@/core/Base'
 import { I18nT } from '@shared/lang'
 import EditorBaseConfig, { EditorConfig } from '@/store/module/EditorConfig'
+import { MessageError } from '@/util/Element'
 const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
@@ -293,7 +293,7 @@ export const AppStore = defineStore('app', {
           IPC.off(key)
           if (res?.code === 0) {
             if (res?.data?.hostBackFile) {
-              Base.MessageError(I18nT('base.hostParseErr')).then()
+              MessageError(I18nT('base.hostParseErr'))
               shell.showItemInFolder(res?.data?.hostBackFile)
             } else if (res?.data?.host) {
               this.UPDATE_HOSTS(res?.data?.host)

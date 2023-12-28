@@ -39,7 +39,7 @@ class Manager extends Base {
       const bin = version.bin
       const command = `echo '${global.Server.Password}' | sudo -S ${bin} ${confFile}`
       await execPromise(command)
-      await waitTime(1000)
+      await waitTime(500)
       let res: any = await execPromise(
         `echo '${global.Server.Password}' | sudo -S ps aux | grep 'pure-ftpd'`
       )
@@ -49,32 +49,6 @@ class Manager extends Base {
         return
       }
       reject(new Error(I18nT('fork.startFail')))
-    })
-  }
-
-  _stopServer(version: SoftInstalled) {
-    console.log(version)
-    return new ForkPromise(async (resolve) => {
-      const confFile = join(global.Server.FTPDir!, 'pure-ftpd.conf')
-      const command = `ps aux | grep 'pure-ftpd' | awk '{print $2,$11,$12}'`
-      const res = await execPromise(command)
-      const pids = res?.stdout?.toString()?.trim()?.split('\n') ?? []
-      const arr = []
-      for (const p of pids) {
-        if (p.includes(`${confFile}`)) {
-          arr.push(p.split(' ')[0])
-        }
-      }
-      if (arr.length === 0) {
-        resolve(true)
-      } else {
-        const pids = arr.join(' ')
-        const sig = '-INT'
-        try {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
-        } catch (e) {}
-        resolve(true)
-      }
     })
   }
 
@@ -122,7 +96,6 @@ class Manager extends Base {
 
   delFtp(item: FtpItem, version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
-      console.log('delFtp: ', item, version)
       const bin = join(version.path, 'bin/pure-pw')
       if (!existsSync(bin)) {
         reject(new Error(I18nT('fork.binNoFound')))
@@ -149,7 +122,6 @@ class Manager extends Base {
 
   addFtp(item: FtpItem, version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
-      console.log('addFtp: ', item, version)
       const bin = join(version.path, 'bin/pure-pw')
       if (!existsSync(bin)) {
         reject(new Error(I18nT('fork.binNoFound')))

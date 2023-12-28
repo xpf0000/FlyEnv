@@ -29,7 +29,6 @@
     <el-button
       :disabled="disabled || current === currentVersion"
       class="ml-20"
-      :loading="currentTask.running"
       @click="versionChange"
       >{{ $t('base.switch') }}</el-button
     >
@@ -46,8 +45,8 @@
   import { BrewStore } from '@/store/brew'
   import { AppStore } from '@/store/app'
   import { TaskStore } from '@/store/task'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const props = defineProps<{
     typeFlag:
@@ -147,11 +146,11 @@
         appStore.saveConfig()
         data!.run = true
         data!.running = false
-        ElMessage.success(I18nT('base.success'))
+        MessageSuccess(I18nT('base.success'))
       } else if (res.code === 1) {
         IPC.off(key)
         data!.running = false
-        ElMessage.error(I18nT('base.fail'))
+        MessageError(I18nT('base.fail'))
       } else if (res.code === 200) {
         log.value.push(res.msg)
       }

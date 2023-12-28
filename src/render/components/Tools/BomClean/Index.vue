@@ -123,7 +123,7 @@
   import { computed, reactive, watch } from 'vue'
   import store, { Ext } from './store'
   import IPC from '@/util/IPC'
-  import Base from '@/core/Base'
+  import { MessageError } from '@/util/Element'
   const { extname } = require('path')
   const { dialog } = require('@electron/remote')
   const emit = defineEmits(['doClose'])
@@ -198,7 +198,7 @@
         const files: Array<string> = res?.data ?? []
         store.value.files = reactive(files)
       } else {
-        Base.MessageError(res?.msg ?? '文件获取失败, 请勿一次清理太多文件')
+        MessageError(res?.msg ?? '文件获取失败, 请勿一次清理太多文件')
       }
       store.value.loading = false
     })

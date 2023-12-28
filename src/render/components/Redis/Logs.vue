@@ -20,6 +20,7 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { existsSync } = require('fs')
   const { exec } = require('child-process-promise')
@@ -92,7 +93,7 @@
       },
       logDo(flag: string) {
         if (!existsSync(this.filepath)) {
-          this.$message.error(this.$t('base.noFoundLogFile'))
+          MessageError(this.$t('base.noFoundLogFile'))
           return
         }
         switch (flag) {
@@ -106,7 +107,7 @@
             writeFileAsync(this.filepath, '')
               .then(() => {
                 this.log = ''
-                this.$message.success(this.$t('base.success'))
+                MessageSuccess(this.$t('base.success'))
               })
               .catch(() => {
                 if (!this.password) {

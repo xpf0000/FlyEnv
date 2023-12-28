@@ -35,7 +35,7 @@
             <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="doRun(key, item)" />
           </div>
           <div class="del">
-            <yb-icon :svg="import('@/svg/delete.svg?raw')" @click.stop="doDel(key, item)" />
+            <yb-icon :svg="import('@/svg/delete.svg?raw')" @click.stop="doDel(key)" />
           </div>
         </div>
       </li>
@@ -47,6 +47,7 @@
   import { reactive, defineComponent } from 'vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
+  import { MessageError } from '@/util/Element'
   const { dialog, shell } = require('@electron/remote')
   const { pathExistsSync, statSync } = require('fs-extra')
   const Serves: { [key: string]: any } = reactive({})
@@ -141,7 +142,7 @@
         if (!pathExistsSync(path)) return
         const stat = statSync(path)
         if (!stat.isDirectory()) {
-          this.$message.error(this.$t('base.needSelectDir'))
+          MessageError(this.$t('base.needSelectDir'))
           return
         }
         if (this.httpServe.includes(path)) {

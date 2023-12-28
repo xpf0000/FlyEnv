@@ -29,6 +29,7 @@
   import IPC from '@/util/IPC'
   import { ElMessageBox } from 'element-plus'
   import { AppStore } from '@/store/app'
+  import { MessageSuccess } from '@/util/Element'
   export default defineComponent({
     components: {},
     props: {},
@@ -64,7 +65,7 @@
                         .initConfig()
                         .then(() => {
                           done && done()
-                          this.$message.success(this.$t('base.success'))
+                          MessageSuccess(this.$t('base.success'))
                         })
                     }
                   }

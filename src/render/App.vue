@@ -60,6 +60,7 @@
     methods: {
       showItemLowcase() {
         const showItem: any = this.showItem
+        console.log('this.showItem: ', JSON.stringify(this.showItem))
         const dict: { [key: string]: boolean } = {}
         for (const k in showItem) {
           let key = k.toLowerCase()
@@ -106,7 +107,7 @@
             'mongodb',
             'pure-ftpd',
             'postgresql'
-          ].filter((f) => dict[f]) as Array<keyof typeof AppSofts>
+          ].filter((f) => dict?.[f] !== false) as Array<keyof typeof AppSofts>
           if (flags.length === 0) {
             AppStore().versionInited = true
             this.inited = true
@@ -381,6 +382,19 @@
       display: flex;
       align-items: center;
       padding: 30px 0 0;
+    }
+  }
+
+  .app-el-message {
+    width: max-content !important;
+    max-width: 70vw;
+    max-height: 70vh;
+    overflow: auto;
+
+    .el-message__content {
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      user-select: text;
     }
   }
 </style>

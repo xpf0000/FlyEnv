@@ -34,11 +34,10 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-  import Base from '@/core/Base'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { AppStore } from '@/store/app'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageSuccess } from '@/util/Element'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
@@ -58,7 +57,7 @@
   const saveConfig = () => {
     const content = monacoInstance?.getValue() ?? ''
     writeFileAsync(configpath.value, content).then(() => {
-      Base.MessageSuccess(I18nT('base.success'))
+      MessageSuccess(I18nT('base.success'))
     })
   }
 

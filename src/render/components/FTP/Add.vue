@@ -73,13 +73,13 @@
   import { computed, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import IPC from '@/util/IPC'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import type { FtpItem } from '@/store/ftp'
   import { FtpStore } from '@/store/ftp'
   import { uuid } from '@shared/utils'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { existsSync } = require('fs')
   const { dialog } = require('@electron/remote')
@@ -201,7 +201,7 @@
       return
     }
     if (form.value.dir && !existsSync(form.value.dir)) {
-      ElMessage.error(I18nT('base.ftpDirNotExists'))
+      MessageError(I18nT('base.ftpDirNotExists'))
       errs.value.dir = true
       return
     }
@@ -216,16 +216,12 @@
       if (res?.code === 0) {
         ftpStore.getPort()
         ftpStore.getAllFtp().then(() => {
-          ElMessage.success(I18nT('base.success'))
+          MessageSuccess(I18nT('base.success'))
           running.value = false
           show.value = false
         })
       } else if (res?.code === 1) {
-        ElMessage({
-          type: 'error',
-          message: res?.msg ?? I18nT('base.fail'),
-          customClass: 'cli-to-html'
-        })
+        MessageError(res?.msg ?? I18nT('base.fail'))
         running.value = false
       }
     })

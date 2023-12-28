@@ -21,8 +21,8 @@
   import { passwordCheck } from '@/util/Brew'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   defineProps<{
     currentPage: string
@@ -64,9 +64,9 @@
         Promise.all(all).then((res) => {
           let find = res.find((s) => typeof s === 'string')
           if (find) {
-            ElMessage.error(find)
+            MessageError(find)
           } else {
-            ElMessage.success(I18nT('base.success'))
+            MessageSuccess(I18nT('base.success'))
           }
         })
       })
@@ -90,7 +90,7 @@
     if (isRunning) {
       if (showItem?.value?.Php) {
         phpVersions?.value?.forEach((v) => {
-          if (v?.version) {
+          if (v?.version && v?.run) {
             all.push(stopService('php', v))
           }
         })
@@ -98,7 +98,7 @@
     } else {
       if (showItem?.value?.Php) {
         phpVersions?.value?.forEach((v) => {
-          if (v?.version && appStore.phpGroupStart?.[v.bin] !== false) {
+          if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
             all.push(startService('php', v))
           }
         })

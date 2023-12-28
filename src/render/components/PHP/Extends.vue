@@ -77,7 +77,7 @@
             </div>
           </template>
           <div v-if="currentExtend" ref="logRef" class="logs cli-to-html">
-            {{ logs.join('') }}
+            {{ logs?.join('') ?? '' }}
           </div>
           <el-table
             v-else
@@ -147,10 +147,10 @@
   import { reloadService } from '@/util/Service'
   import { BrewStore, SoftInstalled } from '@/store/brew'
   import { TaskStore } from '@/store/task'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { ExtensionHomeBrew, ExtensionMacPorts } from '@/components/PHP/store'
+  import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
 
   const { join } = require('path')
   const { clipboard } = require('@electron/remote')
@@ -342,7 +342,7 @@
     if (existsSync(installExtensionDir?.value)) {
       shell.openPath(installExtensionDir?.value)
     } else {
-      ElMessage.warning(I18nT('php.noExtensionsDir'))
+      MessageWarning(I18nT('php.noExtensionsDir'))
     }
   }
 
@@ -441,7 +441,7 @@
         if (serverRunning.value) {
           reloadService('php', props.version)
         }
-        ElMessage.success(I18nT('base.success'))
+        MessageSuccess(I18nT('base.success'))
         getTableData().then(() => {
           toNext()
         })
@@ -450,7 +450,7 @@
         logs.value.push(res.msg)
         taskStore.php.extendRunning = false
         showNextBtn.value = true
-        ElMessage.error(I18nT('base.fail'))
+        MessageError(I18nT('base.fail'))
         getTableData().then()
       } else if (res.code === 200) {
         logs.value.push(res.msg)
@@ -462,7 +462,7 @@
     const pre = row?.extendPre ?? 'extension='
     const txt = `${pre}${row.soPath}`
     clipboard.writeText(txt)
-    ElMessage.success(I18nT('php.extensionCopySuccess'))
+    MessageSuccess(I18nT('php.extensionCopySuccess'))
   }
 
   const copyXDebugTmpl = (index: number, row: any) => {
@@ -486,7 +486,7 @@ xdebug.trigger_value=StartProfileForMe
 ;输出文件路径，原来是output_profiler_dir,trace_dir分别设置,现在统一用这个设置就可以
 xdebug.output_dir = /tmp`
     clipboard.writeText(txt)
-    ElMessage.success(I18nT('php.xdebugConfCopySuccess'))
+    MessageSuccess(I18nT('php.xdebugConfCopySuccess'))
   }
 
   watch(

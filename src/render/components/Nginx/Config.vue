@@ -20,6 +20,7 @@
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick, defineComponent } from 'vue'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, statSync } = require('fs')
@@ -65,7 +66,7 @@
             const file = filePaths[0]
             const state = statSync(file)
             if (state.size > 5 * 1024 * 1024) {
-              this.$message.error(this.$t('base.fileBigErr'))
+              MessageError(this.$t('base.fileBigErr'))
               return
             }
             readFileAsync(file).then((conf) => {
@@ -92,7 +93,7 @@
             }
             const content = this.monacoInstance.getValue()
             writeFileAsync(filePath, content).then(() => {
-              this.$message.success(this.$t('base.success'))
+              MessageSuccess(this.$t('base.success'))
             })
           })
       },
@@ -102,7 +103,7 @@
       saveConfig() {
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configpath, content).then(() => {
-          this.$message.success(this.$t('base.success'))
+          MessageSuccess(this.$t('base.success'))
         })
       },
       getConfig() {
@@ -114,7 +115,7 @@
       getDefault() {
         let configpath = join(global.Server.NginxDir, 'common/conf/nginx.conf.default')
         if (!existsSync(configpath)) {
-          this.$message.error(this.$t('base.defaultConFileNoFound'))
+          MessageError(this.$t('base.defaultConFileNoFound'))
           return
         }
         readFileAsync(configpath).then((conf) => {

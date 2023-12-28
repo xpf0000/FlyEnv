@@ -44,7 +44,6 @@ class BaseManager {
     }
     const module: string = commands.shift()
     const fn: string = commands.shift()
-    console.log('BaseManager: ', module, fn)
     const then = (res: any) => {
       ProcessSendSuccess(ipcCommandKey, res)
     }

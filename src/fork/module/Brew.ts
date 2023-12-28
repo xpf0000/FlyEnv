@@ -260,6 +260,7 @@ class Brew extends Base {
         const src = await spawnPromise('git', ['remote', '-v'], {
           cwd: global.Server.BrewHome
         })
+        console.log('currentSrc src: ', src, global.Server.BrewHome)
         let value = 'default'
         if (src.includes('tsinghua.edu.cn')) {
           value = 'tsinghua'

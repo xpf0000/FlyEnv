@@ -49,6 +49,7 @@
 
 <script>
   import { uuid } from '@shared/utils.ts'
+  import { MessageError } from '@/util/Element.ts'
 
   const { existsSync, writeFileSync } = require('fs')
   const { execSync } = require('child_process')
@@ -187,7 +188,7 @@ subjectAltName=@alt_names
           })
         } else {
           this.running = false
-          this.$message.error(this.$t('base.fail'))
+          MessageError(this.$t('base.fail'))
         }
       }
     }

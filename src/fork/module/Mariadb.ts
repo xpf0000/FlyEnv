@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, mkdirp, chmod } from 'fs-extra'
+import { writeFile, mkdirp, chmod, unlink } from 'fs-extra'
 
 class Manager extends Base {
   constructor() {
@@ -19,7 +19,6 @@ class Manager extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      console.log('version: ', version)
       let bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
@@ -60,6 +59,12 @@ datadir=${dataDir}`
         params.push(`--basedir=${version.path}`)
         params.push('--auth-root-authentication-method=normal')
       }
+      try {
+        if (existsSync(p)) {
+          await unlink(p)
+        }
+      } catch (e) {}
+
       console.log('mariadb start: ', bin, params.join(' '))
       on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
       const { promise, spawn } = spawnPromiseMore(bin, params)

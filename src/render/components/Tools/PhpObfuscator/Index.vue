@@ -81,6 +81,7 @@
   import { BrewStore } from '@/store/brew'
   import Config from './Config.vue'
   import IPC from '@/util/IPC'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { dialog, shell } = require('@electron/remote')
   const { statSync } = require('fs')
@@ -156,7 +157,7 @@
         IPC.send('app-fork:php', 'doObfuscator', params).then((key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
-            this.$message.success(this.$t('base.success'))
+            MessageSuccess(this.$t('base.success'))
             shell.showItemInFolder(this.item.desc)
           } else {
             const msg = res.msg
@@ -165,7 +166,7 @@
                 content: msg
               })
               nextTick().then(() => {
-                this.$message.error(this.$t('base.fail'))
+                MessageError(this.$t('base.fail'))
               })
             })
           }

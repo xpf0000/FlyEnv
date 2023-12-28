@@ -42,6 +42,7 @@
   import IPC from '@/util/IPC'
   import { TaskStore } from '@/store/task'
   import { I18nT } from '@shared/lang'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   export default defineComponent({
     name: 'MoNodejsVersions',
@@ -121,7 +122,7 @@
               this.getAllVersion()
             })
           } else {
-            this.$message.error(I18nT('base.fail'))
+            MessageError(I18nT('base.fail'))
           }
         })
       },
@@ -140,7 +141,7 @@
           } else {
             this.task.btnTxt = I18nT('base.switch')
             this.task.getVersioning = false
-            this.$message.error(I18nT('base.fail'))
+            MessageError(I18nT('base.fail'))
           }
         })
       },
@@ -167,11 +168,11 @@
               this.task.btnTxt = I18nT('base.switch')
               this.task.isRunning = false
               this.current = this.select
-              this.$message.success(I18nT('base.success'))
+              MessageSuccess(I18nT('base.success'))
             } else {
               this.task.btnTxt = I18nT('base.switch')
               this.task.isRunning = false
-              this.$message.error(I18nT('base.fail'))
+              MessageError(I18nT('base.fail'))
             }
           }
         )

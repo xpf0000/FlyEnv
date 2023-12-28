@@ -1,5 +1,5 @@
 import { createServer } from 'vite'
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
+import { spawn, ChildProcess } from 'child_process'
 import { build } from 'esbuild'
 import _fs, { copySync } from 'fs-extra'
 import _path from 'path'
@@ -9,7 +9,8 @@ import _md5 from 'md5'
 import viteConfig from '../configs/vite.config'
 import esbuildConfig from '../configs/esbuild.config'
 
-let electronProcess: ChildProcessWithoutNullStreams | null
+let restart = false
+let electronProcess: ChildProcess | null
 
 async function launchViteDevServer(openInBrowser = false) {
   const config = openInBrowser ? viteConfig.serveConfig : viteConfig.serverConfig
@@ -20,28 +21,34 @@ async function launchViteDevServer(openInBrowser = false) {
   await server.listen()
 }
 
-async function buildMainProcess() {
-  return Promise.all([build(esbuildConfig.dev), build(esbuildConfig.devFork)])
-    .then(
-      () => {
-        try {
-          if (electronProcess && !electronProcess.killed) {
-            electronProcess.disconnect()
-            if (electronProcess.pid) {
-              process.kill(electronProcess.pid, 'SIGINT')
+function buildMainProcess() {
+  return new Promise((resolve, reject) => {
+    Promise.all([build(esbuildConfig.dev), build(esbuildConfig.devFork)])
+      .then(
+        () => {
+          try {
+            if (electronProcess && !electronProcess.killed) {
+              electronProcess.kill('SIGINT')
+              if (electronProcess.pid) {
+                process.kill(electronProcess.pid, 'SIGINT')
+              }
+              electronProcess = null
             }
-            electronProcess = null
+          } catch (e) {
+            console.log('close err: ', e)
           }
-        } catch (e) {}
-        console.log('buildMainProcess !!!!!!')
-      },
-      (err) => {
-        console.log(err)
-      }
-    )
-    .catch((e) => {
-      return e
-    })
+          resolve(true)
+          console.log('buildMainProcess !!!!!!')
+        },
+        (err) => {
+          console.log(err)
+        }
+      )
+      .catch((e) => {
+        console.log(e)
+        reject(e)
+      })
+  })
 }
 
 function logPrinter(data: string[]) {
@@ -59,20 +66,22 @@ function logPrinter(data: string[]) {
 
 function runElectronApp() {
   const args = ['--inspect=5858', 'dist/electron/main.js']
-  electronProcess = spawn('electron', args, {
-    stdio: 'pipe',
-    shell: process.platform === 'win32'
-  })
-
-  electronProcess.stderr.on('data', (data) => {
+  electronProcess = spawn('electron', args)
+  electronProcess?.stderr?.on('data', (data) => {
     logPrinter(data)
   })
 
-  electronProcess.stdout.on('data', (data) => {
+  electronProcess?.stdout?.on('data', (data) => {
     logPrinter(data)
   })
 
-  electronProcess.on('close', () => {})
+  electronProcess.on('close', () => {
+    console.log('electronProcess close !!!')
+    if (restart) {
+      restart = false
+      runElectronApp()
+    }
+  })
 }
 
 if (process.env.TEST === 'electron') {
@@ -104,10 +113,9 @@ const next = (base: string, file?: string | null) => {
     fsWait = true
     preveMd5 = currentMd5
     console.log(`${file}文件发生更新`)
+    restart = true
     buildMainProcess()
-      .then(() => {
-        runElectronApp()
-      })
+      .then()
       .catch((err) => {
         console.error(err)
       })

@@ -47,9 +47,9 @@
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import type { FSWatcher } from 'fs'
   import { I18nT } from '@shared/lang'
-  import Base from '@/core/Base'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { EditorConfigMake } from '@/util/Editor'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { existsSync } = require('fs')
   const fsWatch = require('fs').watch
@@ -154,7 +154,7 @@
 
   const logDo = (flag: string) => {
     if (!existsSync(filepath.value)) {
-      Base.MessageError(I18nT('base.noFoundLogFile'))
+      MessageError(I18nT('base.noFoundLogFile'))
       return
     }
     switch (flag) {
@@ -168,7 +168,7 @@
         writeFileAsync(filepath.value, '')
           .then(() => {
             log.value = ''
-            Base.MessageSuccess(I18nT('base.success'))
+            MessageSuccess(I18nT('base.success'))
           })
           .catch(() => {
             if (!password.value) {

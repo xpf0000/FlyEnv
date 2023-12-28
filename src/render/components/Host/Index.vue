@@ -61,10 +61,10 @@
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { readFileAsync, writeFileAsync } from '@shared/file'
-  import { ElMessage } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { More } from '@element-plus/icons-vue'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
   const { dialog } = require('@electron/remote')
@@ -93,7 +93,7 @@
   const hostsWrite = () => {
     IPC.send('app-fork:host', 'writeHosts', hostWrite.value).then((key: string) => {
       IPC.off(key)
-      ElMessage.success(I18nT('base.success'))
+      MessageSuccess(I18nT('base.success'))
     })
   }
   const handleCommand = (command: 'export' | 'import' | 'newProject') => {
@@ -143,7 +143,7 @@
               }
             }
           })
-          ElMessage.success(I18nT('base.success'))
+          MessageSuccess(I18nT('base.success'))
         })
       })
   }
@@ -165,7 +165,7 @@
         const file = filePaths[0]
         const state = statSync(file)
         if (state.size > 5 * 1024 * 1024) {
-          ElMessage.error(I18nT('base.fileBigErr'))
+          MessageError(I18nT('base.fileBigErr'))
           return
         }
         readFileAsync(file).then((conf) => {
@@ -173,7 +173,7 @@
           try {
             arr = JSON.parse(conf)
           } catch (e) {
-            ElMessage.error(I18nT('base.fail'))
+            MessageError(I18nT('base.fail'))
             return
           }
           const keys = ['id', 'name', 'alias', 'useSSL', 'ssl', 'port', 'nginx', 'root']
@@ -182,7 +182,7 @@
             return keys.every((k) => aKeys.includes(k))
           })
           if (!check) {
-            ElMessage.error(I18nT('base.fail'))
+            MessageError(I18nT('base.fail'))
             return
           }
           arr = arr.map((a: any) => reactive(a))

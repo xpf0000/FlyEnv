@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, writeFile, chmod } from 'fs-extra'
+import { mkdirp, writeFile, chmod, unlink } from 'fs-extra'
 
 class Mysql extends Base {
   constructor() {
@@ -19,7 +19,6 @@ class Mysql extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      console.log('version: ', version)
       let bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
@@ -67,6 +66,11 @@ datadir=${dataDir}`
           params.push('--initialize-insecure')
         }
       }
+      try {
+        if (existsSync(p)) {
+          await unlink(p)
+        }
+      } catch (e) {}
       console.log('mysql start: ', bin, params.join(' '))
       on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
       const { promise, spawn } = spawnPromiseMore(bin, params)
@@ -76,13 +80,17 @@ datadir=${dataDir}`
         if (existsSync(p)) {
           console.log('time: ', time)
           success = true
-          await execPromise(`kill -9 ${spawn.pid}`)
+          try {
+            await execPromise(`kill -9 ${spawn.pid}`)
+          } catch (e) {}
         } else {
           if (time < 40) {
             await waitTime(500)
             await checkpid(time + 1)
           } else {
-            await execPromise(`kill -9 ${spawn.pid}`)
+            try {
+              await execPromise(`kill -9 ${spawn.pid}`)
+            } catch (e) {}
           }
         }
       }

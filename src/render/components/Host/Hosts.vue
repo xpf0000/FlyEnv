@@ -92,10 +92,10 @@
         const content = this.monacoInstance.getValue()
         writeFileAsync(this.configpath, content)
           .then(() => {
-            this.$message.success(this.$t('base.success'))
+            MessageSuccess(this.$t('base.success'))
           })
           .catch(() => {
-            this.$message.error(this.$t('base.hostsSaveFailed'))
+            MessageError(this.$t('base.hostsSaveFailed'))
           })
       },
       getConfig() {

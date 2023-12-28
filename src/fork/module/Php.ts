@@ -157,13 +157,12 @@ class Php extends Base {
     return new ForkPromise(async (resolve) => {
       const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
       const confPath = join(global.Server.PhpDir!, v, 'conf')
-      const varPath = join(global.Server.PhpDir!, v, 'var')
       const command = `ps aux | grep 'php' | awk '{print $2,$11,$12,$13,$14,$15}'`
       const res = await execPromise(command)
       const pids = res?.stdout?.toString()?.trim()?.split('\n') ?? []
       const arr: Array<string> = []
       for (const p of pids) {
-        if (p.includes(confPath) && p.includes(varPath)) {
+        if (p.includes(confPath)) {
           arr.push(p.split(' ')[0])
         }
       }
@@ -292,10 +291,8 @@ class Php extends Base {
       await mkdirp(logPath)
       await mkdirp(runPath)
       const phpFpmConf = join(confPath, 'php-fpm.conf')
-      console.log('phpFpmConf: ', phpFpmConf)
       if (!existsSync(phpFpmConf)) {
         const phpFpmConfTmpl = join(global.Server.Static!, 'tmpl/php-fpm.conf')
-        console.log('phpFpmConfTmpl: ', phpFpmConfTmpl)
         let content = await readFile(phpFpmConfTmpl, 'utf-8')
         content = content.replace('##PHP-CGI-VERSION##', v)
         await writeFile(phpFpmConf, content)
@@ -631,7 +628,6 @@ class Php extends Base {
         } else {
           command = `${params.bin} ${bin} ${params.src} -o ${params.desc}`
         }
-        console.log('command: ', command)
         await execPromise(command)
         resolve(true)
       } catch (e) {
