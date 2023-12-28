@@ -13,7 +13,7 @@
             <div class="link" @click.stop="openSite(scope.row)">
               <yb-icon :svg="import('@/svg/link.svg?raw')" width="18" height="18" />
               <span>
-                {{ scope.row.name }}
+                {{ siteName(scope.row) }}
               </span>
             </div>
           </QrcodePopper>
@@ -108,6 +108,7 @@
   import Base from '@/core/Base'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import type { AppHost } from '@shared/app'
 
   const { shell } = require('@electron/remote')
 
@@ -174,7 +175,7 @@
     return ''
   }
 
-  const openSite = (item: any) => {
+  const siteName = (item: AppHost) => {
     const host = item.name
     const brewStore = BrewStore()
     const nginxRunning = brewStore.nginx.installed.find((i) => i.run)
@@ -186,7 +187,12 @@
       port = item.port.apache
     }
     const portStr = port === 80 ? '' : `:${port}`
-    const url = `http://${host}${portStr}`
+    return `${host}${portStr}`
+  }
+
+  const openSite = (item: any) => {
+    const name = siteName(item)
+    const url = `http://${name}`
     shell.openExternal(url)
   }
 

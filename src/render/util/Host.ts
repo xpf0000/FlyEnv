@@ -1,5 +1,5 @@
 import IPC from '@/util/IPC'
-import { reloadService } from '@/util/Service'
+import { startService } from '@/util/Service'
 import type { AppHost } from '@/store/app'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
@@ -13,13 +13,13 @@ const handleHostEnd = (arr: Array<AppHost>) => {
   const apacheRunning = brewStore.apache.installed.find((a) => a.run)
   const apacheTaskRunning = brewStore.apache.installed.some((a) => a.running)
   if (apacheRunning && !apacheTaskRunning) {
-    reloadService('apache', apacheRunning).then()
+    startService('apache', apacheRunning).then()
   }
 
   const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
   const nginxTaskRunning = brewStore.nginx.installed.some((a) => a.running)
   if (nginxRunning && !nginxTaskRunning) {
-    reloadService('nginx', nginxRunning).then()
+    startService('nginx', nginxRunning).then()
   }
   const hosts = appStore.hosts
   hosts.splice(0)

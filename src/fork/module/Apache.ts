@@ -2,8 +2,8 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
-import type { SoftInstalled } from '@shared/app'
-import { execPromise, md5 } from '../Fn'
+import type { AppHost, SoftInstalled } from '@shared/app'
+import { execPromise, getAllFileAsync, md5 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 
@@ -77,9 +77,70 @@ IncludeOptional "${vhost}*.conf"`
     })
   }
 
+  async #handleListenPort(version: SoftInstalled) {
+    const hostfile = join(global.Server.BaseDir!, 'host.json')
+    const json = await readFile(hostfile, 'utf-8')
+    let host: Array<AppHost> = []
+    try {
+      host = JSON.parse(json)
+    } catch (e) {}
+    const allNeedPort: Set<number> = new Set()
+    host.forEach((h) => {
+      const apache = Number(h?.port?.apache)
+      const apache_ssl = Number(h?.port?.apache_ssl)
+      if (apache && !isNaN(apache)) {
+        allNeedPort.add(apache)
+      }
+      if (apache_ssl && !isNaN(apache_ssl)) {
+        allNeedPort.add(apache_ssl)
+      }
+    })
+    const portRegex = /<VirtualHost\s+\*:(\d+)>/g
+    const regex = /([\s\n]?[^\n]*)Listen\s+\d+(.*?)([^\n])(\n|$)/g
+    const allVhostFile = await getAllFileAsync(join(global.Server.BaseDir!, 'vhost/apache'))
+    for (const file of allVhostFile) {
+      portRegex.lastIndex = 0
+      regex.lastIndex = 0
+      let content = await readFile(file, 'utf-8')
+      if (regex.test(content)) {
+        regex.lastIndex = 0
+        content = content.replace(regex, '\n').replace(/\n+/g, '\n').trim()
+        await writeFile(file, content)
+      }
+      let m
+      while ((m = portRegex.exec(content)) !== null) {
+        if (m && m.length > 1) {
+          const port = Number(m[1])
+          if (port && !isNaN(port)) {
+            allNeedPort.add(port)
+          }
+        }
+      }
+    }
+    console.log('allNeedPort: ', allNeedPort)
+    const name = md5(version.bin!)
+    const configpath = join(global.Server.ApacheDir!, `common/conf/${name}.conf`)
+    let confContent = await readFile(configpath, 'utf-8')
+    regex.lastIndex = 0
+    if (regex.test(confContent)) {
+      regex.lastIndex = 0
+      confContent = confContent.replace(regex, '\n').replace(/\n+/g, '\n').trim()
+    }
+    confContent = confContent
+      .replace(/#PhpWebStudy-Apache-Listen-Begin#([\s\S]*?)#PhpWebStudy-Apache-Listen-End#/g, '')
+      .replace(/\n+/g, '\n')
+      .trim()
+    const txts: Array<string> = Array.from(allNeedPort).map((s) => `Listen ${s}`)
+    txts.unshift('#PhpWebStudy-Apache-Listen-Begin#')
+    txts.push('#PhpWebStudy-Apache-Listen-End#')
+    confContent = txts.join('\n') + '\n' + confContent
+    await writeFile(configpath, confContent)
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       await this.#resetConf(version)
+      await this.#handleListenPort(version)
       const logs = join(global.Server.ApacheDir!, 'common/logs')
       await mkdirp(logs)
       const bin = version.bin
