@@ -50,13 +50,13 @@
         const all: Array<Promise<any>> = []
         if (v) {
           phpVersions?.value?.forEach((v) => {
-            if (v?.version) {
+            if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
               all.push(startService('php', v))
             }
           })
         } else {
           phpVersions?.value?.forEach((v) => {
-            if (v?.version) {
+            if (v?.version && v?.run) {
               all.push(stopService('php', v))
             }
           })

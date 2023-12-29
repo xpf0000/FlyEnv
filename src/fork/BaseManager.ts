@@ -42,8 +42,6 @@ class BaseManager {
       ProcessSendError('application:need-password', false)
       return
     }
-    const module: string = commands.shift()
-    const fn: string = commands.shift()
     const then = (res: any) => {
       ProcessSendSuccess(ipcCommandKey, res)
     }
@@ -53,6 +51,8 @@ class BaseManager {
     const onData = (log: string) => {
       ProcessSendLog(ipcCommandKey, log)
     }
+    const module: string = commands.shift()
+    const fn: string = commands.shift()
     let func: ForkPromise<any> | undefined
     if (module === 'apache') {
       func = Apache.exec(fn, ...commands)

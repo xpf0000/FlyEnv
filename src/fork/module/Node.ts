@@ -88,7 +88,7 @@ class Manager extends Base {
       )
         .then((res) => {
           console.log('$NVM_DIR: ', res.stdout.trim())
-          const NVM_DIR = res.stdout.trim()
+          const NVM_DIR = res?.stdout?.trim()?.split('\n')?.pop()?.trim() ?? ''
           // 已安装
           if (NVM_DIR.length > 0) {
             resolve(NVM_DIR)

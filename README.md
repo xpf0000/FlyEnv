@@ -2,16 +2,23 @@
 
 <img src="https://raw.githubusercontent.com/xpf0000/PhpWebStudy/master/build/256x256.png" width="256" alt="App Icon" />
 
-## Php and Web development environment manage tool for MacOS system
+## Powerful Local Web Server For MacOS
 
 [![GitHub release](https://img.shields.io/github/release/xpf0000/PhpWebStudy.svg)](https://github.com/xpf0000/PhpWebStudy/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/PhpWebStudy/total.svg)](https://github.com/xpf0000/PhpWebStudy/releases)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R5R2OJXTM)
 
-PhpWebStudy is a permanent free open source project. created for PHP and Web engineers using MacOS systems for development, to provide a more simple and useful tool to manage the local server environment.
-like MAMP PRO XAMPP etc...
+PhpWebStudy is an all-in-one software designed to revolutionize the way you develop and test websites locally. With its advanced features and sleek design, PhpWebStudy allows you to effortlessly create a local web server and access your websites using domain names. Say goodbye to tedious configurations and hello to streamlined web development.
 
-Some of people may not trust this program, but I'll just say this. As an independent developer. I am committed to protecting the privacy of my users. I promise that this program will not steal your privacy. This program does not upload anything to anywhere. It can be tested by any person or organization.
+Key Features:
+
+1. Local Web Server: PhpWebStudy sets up a powerful local web server, enabling you to work on your websites without an internet connection. It acts as a standalone environment, providing an efficient and secure platform for your web development projects.
+
+2. Domain Name Integration: Access your local websites using domain names, making it easier than ever to migrate your projects from development to production. No more convoluted URLs or IP addresses – simply assign unique domain names to ensure a seamless transition.
+
+3. Support for Major Technologies: PhpWebStudy supports a wide range of technologies essential for web development. It includes PHP, MySQL, NGINX, Apache, MariaDB, MongoDB, PostgreSQL, Memcached, Redis, and Pure-FTP, ensuring compatibility with most web applications and frameworks.
+
+4. Beautiful Interface: PhpWebStudy boasts a visually stunning and intuitive user interface, offering an exceptional user experience
 
 Visit the website for detailed descriptions and tutorials on how to use it:
 
@@ -40,11 +47,8 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 
 ## 🖥 application interface
 
-![01.png](https://www.macphpstudy.com/image/index/main.png)
-![02.png](https://www.macphpstudy.com/image/index/screen3.png)
-![03.png](https://www.macphpstudy.com/image/index/screen4.png)
 ![04.png](https://www.macphpstudy.com/image/index/screen5.png)
-![05.png](https://www.macphpstudy.com/image/index/screen6.png)
+![01.png](https://www.macphpstudy.com/image/index/main.png)
 
 ## 💽 Installation
 
@@ -101,20 +105,6 @@ You can add it by yourself, add command.
 
 ```
 brew tap shivammathur/php
-```
-
-### PHP extensions
-
-Current one-click installs include: ionCube memcache memcached redis swoole xdebug ssh2 pdo_sqlsrv imagick mongodb yaf sg11
-
-For those that are not added to the one-click install, install them as follows and replace them with your own version of PHP.
-
-```bash
-cd extensions dir
-/usr/local/Cellar/php@7.2.34/7.2.34/bin/phpize
-./configure --with-php-config=/usr/local/Cellar/php@7.2.34/7.2.34/bin/php-config
-make
-make install
 ```
 
 

@@ -21,6 +21,7 @@ export interface ServerType {
   BaseDir?: string
   ApacheDir?: string
   Lang?: string
+  Local?: string
   MacPorts?: string
 }
 

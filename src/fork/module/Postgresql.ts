@@ -46,7 +46,12 @@ class Manager extends Base {
       const doRun = async () => {
         const command = `${bin} -D ${dbPath} -l ${logFile} start`
         try {
-          await execPromise(command)
+          await execPromise(command, {
+            env: {
+              LC_ALL: global.Server.Local!,
+              LANG: global.Server.Local!
+            }
+          })
         } catch (e) {
           reject(e)
           return

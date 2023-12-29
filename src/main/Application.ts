@@ -47,7 +47,9 @@ export default class Application extends EventEmitter {
 
   constructor() {
     super()
-    global.Server = {}
+    global.Server = {
+      Local: `${app.getLocale()}.UTF-8`
+    }
     this.isReady = false
     this.httpServes = {}
     this.configManager = new ConfigManager()

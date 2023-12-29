@@ -40,47 +40,43 @@ class Manager extends Base {
           version = reg?.exec(str)?.[2]?.trim() ?? ''
         } catch (e) {}
         version = !isNaN(parseInt(version)) ? version : null
+        const regx = /^\d[\d\.]*\d$/g
+        if (version && !regx.test(version)) {
+          version = null
+        }
         resolve({
           version
         })
       }
+      reg = new RegExp('([\\s\\S]?[^\\d]*)([\\d\\.]*)([^\\d])([\\s\\S]*)', 'g')
       switch (name) {
         case 'apachectl':
-          reg = new RegExp('(Apache/)([\\s\\S]*?)( )', 'g')
           command = `${bin} -v`
           break
         case 'nginx':
-          reg = new RegExp('(nginx/)([\\s\\S]*?)(\\n)', 'g')
           command = `${bin} -v`
           break
         case 'php-fpm':
-          reg = new RegExp('(PHP )([\\s\\S]*?)( )', 'g')
           command = `${bin} -n -v`
           break
         case 'mysqld_safe':
           bin = bin.replace('_safe', '')
-          reg = new RegExp('(Ver )([\\s\\S]*?)( )', 'g')
           command = `${bin} -V`
           break
         case 'mariadbd-safe':
           bin = bin.replace('-safe', '')
-          reg = new RegExp('(Ver )([\\s\\S]*?)(-)', 'g')
           command = `${bin} -V`
           break
         case 'memcached':
-          reg = new RegExp('(memcached )([\\s\\S]*?)(\\n)', 'g')
           command = `${bin} -V`
           break
         case 'redis-server':
-          reg = new RegExp('(server v=)([\\s\\S]*?)( )', 'g')
           command = `${bin} -v`
           break
         case 'mongod':
-          reg = new RegExp('(db version v)([\\s\\S]*?)(\\n)', 'g')
           command = `${bin} --version`
           break
         case 'pg_ctl':
-          reg = new RegExp('(pg_ctl \\(PostgreSQL\\) )([\\s\\S]*?)(\\n)', 'g')
           command = `${bin} --version`
           break
       }
@@ -214,9 +210,14 @@ class Manager extends Base {
             }
             index += 1
             if (index === count) {
+              const regx = /^\d[\d\.]*\d$/g
               resolve(
                 list.sort((a, b) => {
-                  return compareVersions(b?.version ?? '0', a?.version ?? '0')
+                  regx.lastIndex = 0
+                  const bv = regx.test(b?.version ?? 'a') ? b.version! : '0'
+                  regx.lastIndex = 0
+                  const av = regx.test(a?.version ?? 'a') ? a.version! : '0'
+                  return compareVersions(bv, av)
                 })
               )
             }
@@ -484,8 +485,13 @@ class Manager extends Base {
             }
           })
           versions[type] = arr
+          const regx = /^\d[\d\.]*\d$/g
           versions[type].sort((a, b) => {
-            return compareVersions(b?.version ?? '0', a?.version ?? '0')
+            regx.lastIndex = 0
+            const bv = regx.test(b?.version ?? 'a') ? b.version! : '0'
+            regx.lastIndex = 0
+            const av = regx.test(a?.version ?? 'a') ? a.version! : '0'
+            return compareVersions(bv, av)
           })
         }
         resolve(versions)
