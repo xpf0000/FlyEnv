@@ -48,15 +48,19 @@ class Php extends Base {
             if (statSync(ini).isDirectory()) {
               const baseIni = join(ini, 'php.ini')
               ini = join(ini, 'php.ini-development')
-              if (existsSync(ini) && !existsSync(baseIni)) {
-                try {
-                  await execPromise(
-                    `echo '${global.Server.Password}' | sudo -S cp ${ini} ${baseIni}`
-                  )
-                  await execPromise(
-                    `echo '${global.Server.Password}' | sudo -S chmod 755 ${baseIni}`
-                  )
-                } catch (e) {}
+              if (existsSync(ini)) {
+                if (!existsSync(baseIni)) {
+                  try {
+                    await execPromise(
+                      `echo '${global.Server.Password}' | sudo -S cp ${ini} ${baseIni}`
+                    )
+                    await execPromise(
+                      `echo '${global.Server.Password}' | sudo -S chmod 755 ${baseIni}`
+                    )
+                  } catch (e) {}
+                }
+              } else {
+
               }
               ini = baseIni
             }
