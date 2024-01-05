@@ -2,7 +2,7 @@ import { join, dirname } from 'path'
 import { existsSync, accessSync, constants } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
-import type { AppHost } from '@shared/app'
+import type { AppHost, SoftInstalled } from '@shared/app'
 import { execPromise, getSubDir, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import dns from 'dns'
@@ -775,6 +775,85 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           await writeFile('/private/etc/hosts', hosts.trim())
         }
         resolve(0)
+      }
+    })
+  }
+
+  addRandaSite(version?: SoftInstalled) {
+    return new ForkPromise(async (resolve, reject) => {
+      const baseName = join(global.Server.BaseDir!, 'www')
+      let host = `www.test.com`
+      let i = 0
+      let dir = `${baseName}/${host}`
+      while (existsSync(dir)) {
+        i += 1
+        host = `www.test${i}.com`
+        dir = `${baseName}/${host}`
+      }
+      await mkdirp(dir)
+      const hostItem: any = {
+        id: new Date().getTime(),
+        name: host,
+        alias: '',
+        useSSL: false,
+        ssl: {
+          cert: '',
+          key: ''
+        },
+        port: {
+          nginx: 80,
+          apache: 8080,
+          nginx_ssl: 443,
+          apache_ssl: 8443
+        },
+        nginx: {
+          rewrite: ''
+        },
+        url: '',
+        root: dir,
+        mark: 'phpwebstudy ai created',
+        phpVersion: undefined
+      }
+      if (version?.num) {
+        hostItem.phpVersion = version.num
+      }
+      try {
+        await this.handleHost(hostItem, 'add')
+        if (version?.num) {
+          const file = join(dir, 'index.php')
+          await writeFile(
+            file,
+            `<?php
+        phpinfo();
+        `
+          )
+        } else {
+          const file = join(dir, 'index.html')
+          await writeFile(
+            file,
+            `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PhpWebStudy AI Created</title>
+  </head>
+  <body>
+    PhpWebStudy AI Created
+  </body>
+</html>
+`
+          )
+        }
+        this.#setDirRole(dir)
+        resolve({
+          host,
+          dir,
+          version
+        })
+      } catch (e) {
+        reject(e)
       }
     })
   }

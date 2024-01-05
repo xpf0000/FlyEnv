@@ -21,5 +21,8 @@ export default {
   ftpTableHeadSetup: 'Setup',
   theme: 'Theme',
   fontSize: 'Font Size',
-  lineHeight: 'Line Height'
+  lineHeight: 'Line Height',
+  forceStart: 'Force Start Service',
+  forceStartInfo:
+    'Whether or not to force the shutdown of services that are not started by this application when the service is started. Try to ensure that the service can be turned on properly.'
 }

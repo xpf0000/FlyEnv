@@ -1,6 +1,7 @@
 <template>
   <TitleBar />
   <router-view />
+  <AI />
 </template>
 
 <script lang="ts">
@@ -12,10 +13,11 @@
   import installedVersions from '@/util/InstalledVersions'
   import { AppSofts, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
+  import AI from '@/components/AI/index.vue'
 
   export default defineComponent({
     name: 'App',
-    components: { TitleBar },
+    components: { TitleBar, AI },
     data() {
       return {
         inited: false

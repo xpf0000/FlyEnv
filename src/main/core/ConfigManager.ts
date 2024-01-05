@@ -288,7 +288,7 @@ export default class ConfigManager {
   setConfig(key: string, ...args: any) {
     // @ts-ignore
     this.config?.set(key, ...args)
-    const lang: string = this.config?.get('setup.lang') ?? ''
+    const lang: string = this.config?.get('setup.lang') ?? 'en'
     AppI18n(lang)
   }
 

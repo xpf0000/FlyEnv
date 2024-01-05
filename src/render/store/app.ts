@@ -118,6 +118,7 @@ interface State {
         dirs: Array<string>
       }
       autoCheck: boolean
+      forceStart: boolean
       editorConfig: EditorConfig
       phpGroupStart: { [k: string]: boolean }
     }
@@ -218,6 +219,7 @@ const state: State = {
       },
       lang: '',
       autoCheck: true,
+      forceStart: false,
       editorConfig: EditorBaseConfig,
       phpGroupStart: {}
     }

@@ -48,28 +48,26 @@ class Php extends Base {
             if (statSync(ini).isDirectory()) {
               const baseIni = join(ini, 'php.ini')
               ini = join(ini, 'php.ini-development')
-              if (existsSync(ini)) {
-                if (!existsSync(baseIni)) {
+              if (!existsSync(baseIni)) {
+                if (existsSync(ini)) {
                   try {
-                    await execPromise(
-                      `echo '${global.Server.Password}' | sudo -S cp ${ini} ${baseIni}`
-                    )
-                    await execPromise(
-                      `echo '${global.Server.Password}' | sudo -S chmod 755 ${baseIni}`
-                    )
+                    await copyFile(ini, baseIni)
+                    await chmod(baseIni, '0755')
+                  } catch (e) {}
+                } else {
+                  const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
+                  try {
+                    await copyFile(tmpl, baseIni)
+                    await chmod(baseIni, '0755')
                   } catch (e) {}
                 }
-              } else {
-
               }
               ini = baseIni
             }
             if (existsSync(ini)) {
               const iniDefault = `${ini}.default`
               if (!existsSync(iniDefault)) {
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp ${ini} ${iniDefault}`
-                )
+                await copyFile(ini, iniDefault)
               }
               resolve(ini)
               return

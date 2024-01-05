@@ -43,3 +43,8 @@ export interface FtpItem {
   disabled: boolean
   mark: string
 }
+
+export interface AIChatItem {
+  user: 'ai' | 'user'
+  content: string
+}

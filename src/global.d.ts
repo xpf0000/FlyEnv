@@ -23,6 +23,7 @@ export interface ServerType {
   Lang?: string
   Local?: string
   MacPorts?: string
+  ForceStart?: boolean
 }
 
 declare global {

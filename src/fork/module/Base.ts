@@ -128,7 +128,7 @@ export class Base {
         memcached: 'memcached',
         redis: 'redis-server',
         mongodb: 'mongod',
-        postgresql: 'postgresql',
+        postgresql: 'postgres',
         'pure-ftpd': 'pure-ftpd'
       }
       const serverName = dis[this.type]
@@ -139,7 +139,7 @@ export class Base {
         const pids = res?.stdout?.trim()?.split('\n') ?? []
         const arr: Array<string> = []
         for (const p of pids) {
-          if (this.type === 'redis') {
+          if (this.type === 'redis' || global.Server.ForceStart === true) {
             if (
               p.includes(' grep ') ||
               p.includes(' /bin/sh -c') ||

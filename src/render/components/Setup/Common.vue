@@ -110,6 +110,7 @@
     <div class="main proxy-set">
       <ProxySet></ProxySet>
     </div>
+    <ForceStart></ForceStart>
     <div class="plant-title">{{ $t('base.autoUpdate') }}</div>
     <div class="main reset-pass">
       <AutoUpdate></AutoUpdate>
@@ -130,9 +131,10 @@
   import AutoUpdate from './AutoUpdate/index.vue'
   import { AppStore } from '@/store/app'
   import { defineComponent } from 'vue'
+  import ForceStart from './ForceStart/index.vue'
 
   export default defineComponent({
-    components: { BrewSrc, GitHubFix, RestPassword, ProxySet, LangeSet, AutoUpdate },
+    components: { BrewSrc, GitHubFix, RestPassword, ProxySet, LangeSet, AutoUpdate, ForceStart },
     props: {},
     data() {
       return {}
