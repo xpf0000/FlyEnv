@@ -12,7 +12,7 @@ const config: UserConfig = {
   plugins: [vue(), vueJsx()],
   assetsInclude: ['**/*.node'],
   optimizeDeps: {
-    exclude: ['fsevents']
+    exclude: ['electron', 'path', 'fs', 'node-pty', 'fsevents', 'mock-aws-s3', 'aws-sdk', 'nock']
   },
   root: renderPath,
   resolve: {

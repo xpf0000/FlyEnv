@@ -6,7 +6,7 @@ import { AIStore } from '@/components/AI/store'
  * 任务运行方法
  */
 export interface BaseTaskItem {
-  content?: string
+  content?: () => void
   needInput?: boolean
   run: (...args: any) => Promise<any>
 }
@@ -29,6 +29,10 @@ class BaseTask {
     }
     const task = this.currentTask
     const doRun = () => {
+      if (this.state === 'normal' && task.needInput) {
+        this.state = 'waitInput'
+        return
+      }
       this.state = 'running'
       task
         ?.run(param)
@@ -52,11 +56,7 @@ class BaseTask {
       return
     }
     if (task?.content) {
-      const aiStore = AIStore()
-      aiStore.chatList.push({
-        user: 'ai',
-        content: task.content
-      })
+      task?.content()
     }
     doRun()
   }

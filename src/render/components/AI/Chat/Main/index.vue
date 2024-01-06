@@ -11,7 +11,10 @@
           </template>
         </div>
         <div class="content">
-          {{ item.content }}
+          <div class="text" v-html="item.content"> </div>
+          <template v-if="item?.action === 'ChooseSiteRoot'">
+            <ChooseSiteRoot />
+          </template>
         </div>
       </div>
     </template>
@@ -23,6 +26,18 @@
   import { computed, watch, ref, nextTick } from 'vue'
   import { AIStore } from '@/components/AI/store'
   import { User } from '@element-plus/icons-vue'
+  import ChooseSiteRoot from './Plant/chooseSiteRoot.vue'
+
+  const { shell } = require('@electron/remote')
+  const openDir = (dir: string) => {
+    shell.openPath(dir)
+  }
+  const openUrl = (url: string) => {
+    shell.openExternal(url)
+  }
+
+  window.openDir = openDir
+  window.openUrl = openUrl
 
   const bottom = ref()
   const aiStore = AIStore()
@@ -63,6 +78,7 @@
 
       > .icon {
         border-radius: 30px;
+        margin-top: 4px;
         width: 38px;
         height: 38px;
         background: #fff;
@@ -78,13 +94,19 @@
       > .content {
         max-width: 75%;
         overflow: hidden;
-        color: #303133;
-        padding: 10px;
-        border-radius: 5px;
-        line-height: 1.6;
-        word-wrap: break-word;
-        white-space: pre-wrap;
-        user-select: text;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        > .text {
+          color: #303133;
+          padding: 10px;
+          line-height: 1.6;
+          border-radius: 5px;
+          word-wrap: break-word;
+          white-space: pre-wrap;
+          user-select: text;
+        }
       }
       &.ai {
         > .icon {
@@ -92,7 +114,9 @@
           margin-right: 10px;
         }
         > .content {
-          background: #fff;
+          > .text {
+            background: #fff;
+          }
         }
       }
       &.user {
@@ -104,7 +128,9 @@
           margin-left: 10px;
         }
         > .content {
-          background: #1aad19;
+          > .text {
+            background: #1aad19;
+          }
         }
       }
     }

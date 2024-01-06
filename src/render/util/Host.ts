@@ -46,11 +46,11 @@ export const handleHost = (host: AppHost, flag: string, old?: AppHost, park?: bo
         } else if (res?.data?.hostBackFile) {
           MessageError(I18nT('base.hostParseErr'))
           shell.showItemInFolder(res?.data?.hostBackFile)
-          resolve(false)
+          resolve(I18nT('base.hostParseErr'))
         }
       } else if (res?.code === 1) {
         MessageError(res.msg)
-        resolve(false)
+        resolve(res.msg)
       }
     })
   })

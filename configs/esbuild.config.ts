@@ -1,6 +1,15 @@
 import type { BuildOptions } from 'esbuild'
 import { BuildPlugin } from './plugs.build'
-const external = ['electron', 'path', 'fs', 'node-pty', 'fsevents']
+const external = [
+  'electron',
+  'path',
+  'fs',
+  'node-pty',
+  'fsevents',
+  'mock-aws-s3',
+  'aws-sdk',
+  'nock'
+]
 
 const dev: BuildOptions = {
   platform: 'node',

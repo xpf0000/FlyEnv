@@ -8,7 +8,7 @@
       <el-button @click="doClean">{{ $t('base.clean') }}</el-button>
     </div>
     <Main />
-    <Tool />
+    <Tool ref="tool" />
   </div>
 </template>
 
@@ -21,6 +21,7 @@
   const action = ref('')
   const mask = ref()
   const chat = ref()
+  const tool = ref()
   const aiStore = AIStore()
   const currentShow = ref(false)
 
@@ -69,6 +70,8 @@
       dom.classList.remove('show', 'init')
       maskDom.classList.remove('show', 'init')
       currentShow.value = false
+    } else {
+      tool.value.onShow()
     }
     action.value = ''
   }

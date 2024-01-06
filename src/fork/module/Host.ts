@@ -819,6 +819,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       }
       try {
         await this.handleHost(hostItem, 'add')
+        await this.writeHosts()
         if (version?.num) {
           const file = join(dir, 'index.php')
           await writeFile(

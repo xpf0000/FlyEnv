@@ -47,4 +47,5 @@ export interface FtpItem {
 export interface AIChatItem {
   user: 'ai' | 'user'
   content: string
+  action?: 'ChooseSiteRoot'
 }
