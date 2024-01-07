@@ -171,7 +171,6 @@
     background: #1d2033;
     display: flex;
     flex-direction: column;
-    user-select: none;
     .nav {
       height: 76px;
       flex-shrink: 0;

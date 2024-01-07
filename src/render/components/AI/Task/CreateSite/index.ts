@@ -3,6 +3,7 @@ import { BrewStore } from '@/store/brew'
 import { AIStore } from '@/components/AI/store'
 import { handleHost } from '@/util/Host'
 import { openSiteBaseService } from '@/components/AI/Fn/Host'
+import { I18nT } from '@shared/lang'
 
 const { existsSync } = require('fs-extra')
 
@@ -38,7 +39,7 @@ export class CreateSite extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: '请输入或选择站点目录',
+            content: I18nT('ai.请输入或选择站点目录'),
             action: 'ChooseSiteRoot'
           })
         },
@@ -46,7 +47,7 @@ export class CreateSite extends BaseTask {
         run: (dir: string) => {
           return new Promise(async (resolve, reject) => {
             if (!existsSync(dir)) {
-              reject(new Error('站点目录无效，任务终止'))
+              reject(new Error(I18nT('ai.站点目录无效')))
               return
             } else {
               this.host.root = dir
@@ -60,7 +61,7 @@ export class CreateSite extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: '请输入站点域名, 例如：www.test.com'
+            content: I18nT('ai.请输入站点域名')
           })
         },
         needInput: true,
@@ -70,7 +71,7 @@ export class CreateSite extends BaseTask {
             try {
               new URL(`https://${url}`)
             } catch (e) {
-              reject(new Error('域名无效，任务终止'))
+              reject(new Error(I18nT('ai.域名无效')))
             }
             this.host.name = url
             resolve(true)
@@ -82,7 +83,7 @@ export class CreateSite extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: '创建站点中...'
+            content: I18nT('ai.创建站点中')
           })
         },
         run: () => {
@@ -97,10 +98,12 @@ export class CreateSite extends BaseTask {
                 const aiStore = AIStore()
                 aiStore.chatList.push({
                   user: 'ai',
-                  content: `成功创建站点
-站点域名: ${this.host.name}
-站点目录: <a href="javascript:void();" onclick="openDir('${this.host.root}')">${this.host.root}</a>
-尝试开启服务, 请稍候...`
+                  content: `${I18nT('ai.成功创建站点')}
+${I18nT('ai.站点域名')}: ${this.host.name}
+${I18nT('ai.站点目录')}: <a href="javascript:void();" onclick="openDir('${this.host.root}')">${
+                    this.host.root
+                  }</a>
+${I18nT('ai.尝试开启服务')}`
                 })
                 resolve({
                   host: this.host.name,

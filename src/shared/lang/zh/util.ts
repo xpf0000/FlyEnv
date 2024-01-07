@@ -22,5 +22,6 @@ export default {
   fontSize: '字体大小',
   lineHeight: '行高',
   forceStart: '强制启动服务',
-  forceStartInfo: '是否在启动服务时，强制关闭非本应用启动的服务。尽量保证服务能够正常开启。'
+  forceStartInfo: '是否在启动服务时，强制关闭非本应用启动的服务。尽量保证服务能够正常开启。',
+  showAIRobot: '显示AI助手'
 }

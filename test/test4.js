@@ -51,31 +51,40 @@
 // //   console.log(m)
 // // }
 //
-// const str = `AH00548: NameVirtualHost has no effect and will be removed in the next release /Users/x/Library/PhpWebStudy/server/vhost/apache/test.com.conf:26
-// AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using xupengfeideMac-mini.local. Set the 'ServerName' directive globally to suppress this message
-// (48)Address already in use: AH00072: make_sock: could not bind to address [::]:8080
-// (48)Address already in use: AH00072: make_sock: could not bind to address 0.0.0.0:8080
-// no listening sockets available, shutting down`
+const str = `2024-01-07T12:20:38.693574Z 0 [ERROR] [MY-011300] [Server] Plugin mysqlx reported: 'Setup of bind-address: '*' port: 33060 failed, \`bind()\` failed with error: Address already in use (48). Do you already have another mysqld server running with Mysqlx ?'`
 //
-// const regex =
-//   /\(48\)Address already in use: AH00072: make_sock: could not bind to address ([\d\.\[:\]]*):(\d+)/g
-//
-// // console.log(regex.test(str))
-// // console.log(str.match(regex))
-// const port = new Set()
-// let m
-// while ((m = regex.exec(str)) !== null) {
-//   console.log(m)
-//   if (m && m.length > 2) {
-//     port.add(m[2])
-//   }
-// }
-// console.log(port)
+const regex = /port: (\d+) failed, `bind\(\)` failed with error: Address already in use \(48\)/g
 
-class Test4 {
-  constructor() {
-    this.a = 2
+// console.log(regex.test(str))
+// console.log(str.match(regex))
+const port = new Set()
+let m
+while ((m = regex.exec(str)) !== null) {
+  console.log(m)
+  if (m && m.length > 1) {
+    port.add(m[1])
   }
 }
-const a = typeof Test4
-console.log(Reflect.construct('Test4', []))
+console.log(port)
+
+// class Test4 {
+//   constructor() {
+//     this.a = 2
+//   }
+// }
+// const a = typeof Test4
+// console.log(Reflect.construct('Test4', []))
+
+// const { statSync } = require('fs')
+// const { dirname } = require('path')
+// console.log(dirname('/'))
+// let dir = '/Users/x/Desktop/AAA/nginx'
+// let parentDir = dirname(dir)
+// while (parentDir !== dir) {
+//   const state = statSync(dir)
+//   console.log(dir, state.uid, state.gid)
+//   dir = parentDir
+//   parentDir = dirname(dir)
+// }
+//
+// console.log(statSync(dir))

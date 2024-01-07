@@ -3,10 +3,12 @@ import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import { startService } from '@/util/Service'
 import { AIStore } from '@/components/AI/store'
-import { killPort } from './Util'
+import { fetchInstalled, killPort } from './Util'
+import { I18nT } from '@shared/lang'
 
 export function startNginx(this: BaseTask) {
   return new Promise(async (resolve, reject) => {
+    await fetchInstalled(['nginx'])
     const appStore = AppStore()
     const brewStore = BrewStore()
     const current = appStore.config.server?.nginx?.current
@@ -16,7 +18,7 @@ export function startNginx(this: BaseTask) {
       nginx = installed?.find((i) => !!i.path && !!i.version)
     }
     if (!nginx || !nginx?.version) {
-      reject(new Error('未发现可用版本，请先安装'))
+      reject(new Error(I18nT('ai.未发现可用版本')))
       return
     }
     const res = await startService('nginx', nginx)
@@ -24,7 +26,7 @@ export function startNginx(this: BaseTask) {
       const aiStore = AIStore()
       aiStore.chatList.push({
         user: 'ai',
-        content: `Nginx服务启动成功`
+        content: I18nT('ai.Nginx服务启动成功')
       })
       resolve(true)
       return
@@ -36,9 +38,7 @@ export function startNginx(this: BaseTask) {
         const aiStore = AIStore()
         aiStore.chatList.push({
           user: 'ai',
-          content: `服务启动失败，错误原因：
-          ${res}
-          识别到错误原因: 端口占用，尝试结束占用端口的进程`
+          content: I18nT('ai.服务启动失败端口占用', { err: res })
         })
         regex.lastIndex = 0
         const port = new Set()

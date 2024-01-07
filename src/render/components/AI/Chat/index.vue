@@ -63,7 +63,10 @@
   const onAnimoEnd = (e: Event) => {
     e?.stopPropagation && e?.stopPropagation()
     e?.preventDefault && e?.preventDefault()
-    console.log('onAnimoEnd !!!')
+    console.log('onAnimoEnd !!!', e.target)
+    if (e.target !== chat.value) {
+      return
+    }
     if (action.value === 'hide') {
       const dom: HTMLElement = chat.value as any
       const maskDom: HTMLElement = mask.value as any
@@ -92,7 +95,9 @@
     dom.removeEventListener('animationend', onAnimoEnd)
   })
 
-  const doClean = () => {}
+  const doClean = () => {
+    aiStore.chatList.splice(0)
+  }
 
   defineExpose({
     show

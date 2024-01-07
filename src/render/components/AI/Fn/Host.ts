@@ -8,6 +8,8 @@ import { startApache } from '@/components/AI/Fn/Apache'
 import { startPhp } from '@/components/AI/Fn/Php'
 import { nextTick } from 'vue'
 import type { SoftInstalled } from '@shared/app'
+import { fetchInstalled } from '@/components/AI/Fn/Util'
+import { I18nT } from '@shared/lang'
 
 const { shell } = require('@electron/remote')
 
@@ -25,10 +27,12 @@ export function addRandaSite(this: BaseTask) {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: `成功创建站点
-站点域名: ${item.host}
-站点目录: <a href="javascript:void();" onclick="openDir('${item.dir}')">${item.dir}</a>
-尝试开启服务, 请稍候...`
+            content: `${I18nT('ai.成功创建站点')}
+${I18nT('ai.站点域名')}: ${item.host}
+${I18nT('ai.站点目录')}: <a href="javascript:void();" onclick="openDir('${item.dir}')">${
+              item.dir
+            }</a>
+${I18nT('ai.尝试开启服务')}`
           })
           resolve({
             host: item.host,
@@ -44,6 +48,9 @@ export function addRandaSite(this: BaseTask) {
 
 export function openSiteBaseService(this: BaseTask, item: { host: string; php: SoftInstalled }) {
   return new Promise(async (resolve) => {
+    await fetchInstalled(['apache'])
+    await fetchInstalled(['nginx'])
+    await fetchInstalled(['php'])
     const appStore = AppStore()
     const brewStore = BrewStore()
     let current = appStore.config.server?.nginx?.current
@@ -72,11 +79,11 @@ export function openSiteBaseService(this: BaseTask, item: { host: string; php: S
         await startPhp.call(this, php)
       }
       const arr = [
-        '服务启动成功',
-        `域名: <a href="javascript:void();" onclick="openUrl('${url}')">${url}</a>`
+        I18nT('ai.服务启动成功'),
+        `${I18nT('ai.域名')}: <a href="javascript:void();" onclick="openUrl('${url}')">${url}</a>`
       ]
       if (url) {
-        arr.push('已在浏览器中打开，请查看')
+        arr.push(I18nT('ai.已在浏览器中打开'))
       }
       const aiStore = AIStore()
       aiStore.chatList.push({
@@ -95,9 +102,7 @@ export function openSiteBaseService(this: BaseTask, item: { host: string; php: S
       const aiStore = AIStore()
       aiStore.chatList.push({
         user: 'ai',
-        content: `服务启动失败, 原因:
-                ${e.toString()}
-                请尝试手动启动服务`
+        content: I18nT('ai.服务启动失败', { err: e.toString() })
       })
     }
   })

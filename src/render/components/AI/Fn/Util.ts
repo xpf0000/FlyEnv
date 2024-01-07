@@ -1,5 +1,7 @@
 import { merge } from 'lodash'
 import type BaseTask from '@/components/AI/Task/BaseTask'
+import type { AllAppSofts } from '@/store/app'
+import installedVersions from '@/util/InstalledVersions'
 
 const { exec } = require('child_process')
 
@@ -76,8 +78,30 @@ export function killPort(this: BaseTask, ports: Array<string>) {
         })
       arr.forEach((a: string) => pids.add(a))
     }
-    const pidStr: string = Array.from(pids).join(' ')
-    await execPromise(`echo '${global.Server.Password}' | sudo -S kill -9 ${pidStr}`)
+    if (pids.size > 0) {
+      const pidStr: string = Array.from(pids).join(' ')
+      try {
+        await execPromise(`echo '${global.Server.Password}' | sudo -S kill -9 ${pidStr}`)
+      } catch (e) {}
+    }
     resolve(true)
+  })
+}
+
+export function killPid(this: BaseTask, pids: Array<string>) {
+  return new Promise(async (resolve) => {
+    const pidStr: string = pids.join(' ')
+    try {
+      await execPromise(`echo '${global.Server.Password}' | sudo -S kill -9 ${pidStr}`)
+    } catch (e) {}
+    resolve(true)
+  })
+}
+
+export function fetchInstalled(flags: Array<AllAppSofts>) {
+  return new Promise(async (resolve) => {
+    installedVersions.allInstalledVersions(flags).then(() => {
+      resolve(true)
+    })
   })
 }

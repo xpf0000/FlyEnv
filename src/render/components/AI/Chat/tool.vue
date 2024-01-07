@@ -10,28 +10,50 @@
       resize="none"
       type="textarea"
     ></el-autocomplete>
-    <el-button round :icon="Folder"></el-button>
+    <el-button round :icon="ChatLineRound"></el-button>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref, onBeforeUnmount, watch } from 'vue'
-  import { Folder } from '@element-plus/icons-vue'
+  import { onMounted, ref, onBeforeUnmount, watch, computed } from 'vue'
+  import { ChatLineRound } from '@element-plus/icons-vue'
   import { AIStore } from '@/components/AI/store'
   import { CreateSiteTest } from '@/components/AI/Task/CreateSiteTest'
-  import { AIKeys } from '@/components/AI/key'
+  import { AIKeys, AIKeysEN } from '@/components/AI/key'
   import { CreateSite } from '@/components/AI/Task/CreateSite'
-
+  import { SiteAccessIssues } from '@/components/AI/Task/SiteAccessIssues'
+  import { NginxStartFail } from '@/components/AI/Task/NginxStartFail'
+  import { ApacheStartFail } from '@/components/AI/Task/ApacheStartFail'
+  import { MysqlStartFail } from '@/components/AI/Task/MysqlStartFail'
+  import { MariadbStartFail } from '@/components/AI/Task/MariadbStartFail'
+  import { MemcachedStartFail } from '@/components/AI/Task/MemcachedStartFail'
+  import { AppStore } from '@/store/app'
+  import { I18nT } from '@shared/lang'
   const { cut } = require('nodejieba')
 
   interface RestaurantItem {
     value: string
   }
+  const input = ref()
+  const el = ref()
+  const content = ref('')
+  const aiStore = AIStore()
+  const appStore = AppStore()
+
+  const taskRunning = computed(() => {
+    return (
+      aiStore?.currentTask?.state === 'normal' ||
+      aiStore?.currentTask?.state === 'running' ||
+      aiStore?.currentTask?.state === 'waitInput'
+    )
+  })
+
   const querySearch = (queryString: string, cb: any) => {
+    const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys : AIKeysEN
     let results: Array<RestaurantItem> = []
     if (queryString) {
       const keys = cut(queryString.toLowerCase(), true)
-      results = AIKeys.filter((a) => {
+      results = ALLKeys.filter((a) => {
         return a.tips.flat().some((s) => keys.includes(s))
       }).map((a) => {
         return {
@@ -39,25 +61,39 @@
         }
       })
     } else {
-      results = AIKeys.map((a) => {
-        return {
-          value: a.txt
-        }
-      })
+      if (!taskRunning.value) {
+        results = ALLKeys.map((a) => {
+          return {
+            value: a.txt
+          }
+        })
+      } else {
+        results = ALLKeys.filter((a) => a.task === 'StopTask').map((a) => {
+          return {
+            value: a.txt
+          }
+        })
+      }
     }
     cb(results)
   }
 
-  const input = ref()
-  const el = ref()
-  const content = ref('')
-  const aiStore = AIStore()
-
   const checkContent = (v: string) => {
+    const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys : AIKeysEN
+    const find = ALLKeys.find((a) => a.txt === v)
+    if (find?.task === 'StopTask' && aiStore?.currentTask) {
+      aiStore.currentTask.state = 'failed'
+      aiStore.currentTask = undefined
+      aiStore.chatList.push({
+        user: 'ai',
+        content: I18nT('ai.任务已终止')
+      })
+      return
+    }
     if (aiStore?.currentTask?.state === 'normal' || aiStore?.currentTask?.state === 'running') {
       aiStore.chatList.push({
         user: 'ai',
-        content: '当前有任务正在执行，请等待任务执行完毕'
+        content: I18nT('ai.当前有任务正在执行')
       })
       return
     }
@@ -65,7 +101,6 @@
       aiStore?.currentTask?.next(v)
       return
     }
-    const find = AIKeys.find((a) => a.txt === v)
     if (find) {
       switch (find.task) {
         case 'CreateSiteTest':
@@ -76,12 +111,36 @@
           aiStore.currentTask = new CreateSite()
           aiStore.currentTask.next()
           break
+        case 'SiteAccessIssues':
+          aiStore.currentTask = new SiteAccessIssues()
+          aiStore.currentTask.next()
+          break
+        case 'StartNginx':
+          aiStore.currentTask = new NginxStartFail()
+          aiStore.currentTask.next()
+          break
+        case 'StartApache':
+          aiStore.currentTask = new ApacheStartFail()
+          aiStore.currentTask.next()
+          break
+        case 'StartMysql':
+          aiStore.currentTask = new MysqlStartFail()
+          aiStore.currentTask.next()
+          break
+        case 'StartMariaDB':
+          aiStore.currentTask = new MariadbStartFail()
+          aiStore.currentTask.next()
+          break
+        case 'StartMemcached':
+          aiStore.currentTask = new MemcachedStartFail()
+          aiStore.currentTask.next()
+          break
       }
       return
     }
     aiStore.chatList.push({
       user: 'ai',
-      content: '尚不能执行此任务, 请从当前可执行任务中选择'
+      content: I18nT('ai.尚不能执行此任务')
     })
     return
   }

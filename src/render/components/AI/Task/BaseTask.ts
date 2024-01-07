@@ -1,5 +1,5 @@
 import { AIStore } from '@/components/AI/store'
-
+import { I18nT } from '@shared/lang'
 /**
  * content: 聊天内容
  * needInput: 是否需要用户的输入
@@ -47,7 +47,7 @@ class BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: '任务执行失败，原因: \n' + e.toString()
+            content: I18nT('ai.任务执行失败', { err: e.toString() })
           })
         })
     }

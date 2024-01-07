@@ -8,6 +8,8 @@ import ENUtil from './en/util'
 import ZHUtil from './zh/util'
 import ENHost from './en/host'
 import ZHHost from './zh/host'
+import ENAI from './en/ai'
+import ZHAI from './zh/ai'
 import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 
@@ -17,14 +19,16 @@ export const lang = {
     php: ENPHP,
     tray: ENTray,
     util: ENUtil,
-    host: ENHost
+    host: ENHost,
+    ai: ENAI
   },
   zh: {
     base: ZHBase,
     php: ZHPHP,
     tray: ZHTray,
     util: ZHUtil,
-    host: ZHHost
+    host: ZHHost,
+    ai: ZHAI
   }
 }
 

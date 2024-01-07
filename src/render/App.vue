@@ -1,11 +1,11 @@
 <template>
   <TitleBar />
   <router-view />
-  <AI />
+  <AI v-if="showAI" />
 </template>
 
-<script lang="ts">
-  import { defineComponent } from 'vue'
+<script lang="ts" setup>
+  import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
   import TitleBar from './components/Native/TitleBar.vue'
   import { EventBus } from './global'
   import { passwordCheck } from '@/util/Brew'
@@ -14,114 +14,121 @@
   import { AppSofts, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import AI from '@/components/AI/index.vue'
+  import { I18nT } from '@shared/lang'
+  import Base from '@/core/Base'
 
-  export default defineComponent({
-    name: 'App',
-    components: { TitleBar, AI },
-    data() {
-      return {
-        inited: false
+  const inited = ref(false)
+  const appStore = AppStore()
+  const brewStore = BrewStore()
+
+  const lang = computed(() => {
+    return appStore.config.setup.lang
+  })
+
+  const showItem = computed(() => {
+    return appStore.config.setup.common.showItem
+  })
+
+  const showAI = computed(() => {
+    return appStore?.config?.setup?.showAIRobot ?? true
+  })
+
+  const showItemLowcase = () => {
+    const dict: { [key: string]: boolean } = {}
+    const all = showItem.value as any
+    for (const k in all) {
+      let key = k.toLowerCase()
+      if (key === 'ftp') {
+        key = 'pure-ftpd'
       }
-    },
-    computed: {
-      lang() {
-        return AppStore().config.setup.lang
-      },
-      showItem() {
-        return AppStore().config.setup.common.showItem
-      }
-    },
-    watch: {
-      lang: {
-        handler(val) {
-          const body = document.body
-          body.className = `lang-${val}`
-        },
-        immediate: true
-      },
-      showItem: {
-        handler() {
-          this.onShowItemChange()
-        },
-        deep: true
-      }
-    },
-    created() {
-      EventBus.on('vue:need-password', this.checkPassword)
-      IPC.on('application:about').then(this.showAbout)
-      this.checkPassword()
-    },
-    unmounted() {
-      EventBus.off('vue:need-password', this.checkPassword)
-      IPC.off('application:about')
-    },
-    mounted() {
-      const brewStore = BrewStore()
-      brewStore.cardHeadTitle = this.$t('base.currentVersionLib')
-    },
-    methods: {
-      showItemLowcase() {
-        const showItem: any = this.showItem
-        console.log('this.showItem: ', JSON.stringify(this.showItem))
-        const dict: { [key: string]: boolean } = {}
-        for (const k in showItem) {
-          let key = k.toLowerCase()
-          if (key === 'ftp') {
-            key = 'pure-ftpd'
-          }
-          dict[key] = showItem[k]
-        }
-        return dict
-      },
-      onShowItemChange() {
-        if (!this.inited) {
-          return
-        }
-        const dict: { [key: string]: boolean } = this.showItemLowcase()
-        const brewStore: any = BrewStore()
-        for (const k in dict) {
-          const brewSoft = brewStore?.[k]
-          if (brewSoft && dict[k] && !brewSoft?.installedInited) {
-            const flags = [k] as Array<keyof typeof AppSofts>
-            installedVersions.allInstalledVersions(flags)
-          }
-        }
-      },
-      showAbout() {
-        this.$baseDialog(import('./components/About/index.vue'))
-          .className('about-dialog')
-          .title(this.$t('base.about'))
-          .noFooter()
-          .show()
-      },
-      checkPassword() {
-        passwordCheck().then(() => {
-          const dict: { [key: string]: boolean } = this.showItemLowcase()
-          console.log('showItem dict: ', dict)
-          const flags: Array<keyof typeof AppSofts> = [
-            'php',
-            'nginx',
-            'mysql',
-            'mariadb',
-            'apache',
-            'memcached',
-            'redis',
-            'mongodb',
-            'pure-ftpd',
-            'postgresql'
-          ].filter((f) => dict?.[f] !== false) as Array<keyof typeof AppSofts>
-          if (flags.length === 0) {
-            AppStore().versionInited = true
-            this.inited = true
-            return
-          }
-          installedVersions.allInstalledVersions(flags).then(() => {
-            AppStore().versionInited = true
-            this.inited = true
-          })
-        })
+      dict[key] = all[k]
+    }
+    return dict
+  }
+
+  const onShowItemChange = () => {
+    if (!inited.value) {
+      return
+    }
+    const dict: { [key: string]: boolean } = showItemLowcase()
+    const store: any = brewStore
+    for (const k in dict) {
+      const brewSoft = store?.[k]
+      if (brewSoft && dict[k] && !brewSoft?.installedInited) {
+        const flags = [k] as Array<keyof typeof AppSofts>
+        installedVersions.allInstalledVersions(flags)
       }
     }
+  }
+
+  const showAbout = () => {
+    Base.Dialog(import('./components/About/index.vue'))
+      .className('about-dialog')
+      .title(I18nT('base.about'))
+      .noFooter()
+      .show()
+  }
+
+  const checkPassword = () => {
+    passwordCheck().then(() => {
+      const dict: { [key: string]: boolean } = showItemLowcase()
+      console.log('showItem dict: ', dict)
+      const flags: Array<keyof typeof AppSofts> = [
+        'php',
+        'nginx',
+        'mysql',
+        'mariadb',
+        'apache',
+        'memcached',
+        'redis',
+        'mongodb',
+        'pure-ftpd',
+        'postgresql'
+      ].filter((f) => dict?.[f] !== false) as Array<keyof typeof AppSofts>
+      if (flags.length === 0) {
+        AppStore().versionInited = true
+        inited.value = true
+        return
+      }
+      installedVersions.allInstalledVersions(flags).then(() => {
+        AppStore().versionInited = true
+        inited.value = true
+      })
+    })
+  }
+
+  EventBus.on('vue:need-password', checkPassword)
+  IPC.on('application:about').then(showAbout)
+
+  watch(
+    lang,
+    (val) => {
+      const body = document.body
+      body.className = `lang-${val}`
+    },
+    {
+      immediate: true
+    }
+  )
+
+  watch(
+    showItem,
+    () => {
+      onShowItemChange()
+    },
+    {
+      deep: true
+    }
+  )
+
+  onMounted(() => {
+    checkPassword()
+    brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
+  })
+
+  onUnmounted(() => {
+    EventBus.off('vue:need-password', checkPassword)
+    IPC.off('application:about')
   })
 </script>
 

@@ -1,16 +1,23 @@
 <template>
   <div class="chat-plant-choosesiteroot">
-    <div class="title"> 选择站点目录 </div>
+    <div class="title"> {{ $t('ai.选择站点目录') }} </div>
     <div class="btns">
-      <el-button type="primary" @click.stop="chooseDir()">选择文件夹</el-button>
+      <el-button :disabled="item.actionEnd" type="primary" @click.stop="chooseDir()">{{
+        $t('ai.选择文件夹')
+      }}</el-button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
   import { AIStore } from '@/components/AI/store'
+  import type { AIChatItem } from '@shared/app'
 
   const { dialog } = require('@electron/remote')
+
+  const props = defineProps<{
+    item: AIChatItem
+  }>()
 
   const aiStore = AIStore()
   const chooseDir = () => {
@@ -25,11 +32,9 @@
         }
         const [path] = filePaths
         aiStore?.currentTask?.next(path)
+        const item = props.item
+        item.actionEnd = true
       })
-  }
-
-  const toNext = () => {
-    aiStore?.currentTask?.next(null)
   }
 </script>
 

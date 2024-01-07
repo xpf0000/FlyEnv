@@ -13,12 +13,15 @@
         <div class="content">
           <div class="text" v-html="item.content"> </div>
           <template v-if="item?.action === 'ChooseSiteRoot'">
-            <ChooseSiteRoot />
+            <ChooseSiteRoot :item="item" />
+          </template>
+          <template v-else-if="item?.action === 'SiteAccessIssues'">
+            <SiteAccessIssues />
           </template>
         </div>
       </div>
     </template>
-    <div ref="bottom"></div>
+    <div ref="bottom" class="bottom"></div>
   </div>
 </template>
 
@@ -27,6 +30,7 @@
   import { AIStore } from '@/components/AI/store'
   import { User } from '@element-plus/icons-vue'
   import ChooseSiteRoot from './Plant/chooseSiteRoot.vue'
+  import SiteAccessIssues from './Plant/siteAccessIssues.vue'
 
   const { shell } = require('@electron/remote')
   const openDir = (dir: string) => {
@@ -133,6 +137,10 @@
           }
         }
       }
+    }
+
+    > .bottom {
+      height: 1px;
     }
   }
 </style>

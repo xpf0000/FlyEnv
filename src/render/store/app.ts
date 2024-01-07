@@ -119,6 +119,7 @@ interface State {
       }
       autoCheck: boolean
       forceStart: boolean
+      showAIRobot: boolean
       editorConfig: EditorConfig
       phpGroupStart: { [k: string]: boolean }
     }
@@ -220,6 +221,7 @@ const state: State = {
       lang: '',
       autoCheck: true,
       forceStart: false,
+      showAIRobot: true,
       editorConfig: EditorBaseConfig,
       phpGroupStart: {}
     }
