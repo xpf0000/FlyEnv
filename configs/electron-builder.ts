@@ -3,7 +3,7 @@ import PublishConfig from './publish'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
-  buildVersion: '1.6.1',
+  buildVersion: '1.7.0',
   electronVersion: '23.1.1',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -17,7 +17,8 @@ const conf: Configuration = {
     '!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}',
     '!**/node_modules/*.d.ts',
     '!**/node_modules/.bin',
-    '!**/node_modules/node-pty/build/node_gyp_bins'
+    '!**/node_modules/node-pty/build/node_gyp_bins',
+    '!**/node_modules/nodejieba/dict'
   ],
   dmg: {
     sign: false,

@@ -1,9 +1,11 @@
 import { createReadStream, readFileSync } from 'fs'
 import { Base } from './Base'
-import { getAllFileAsync } from '../Fn'
+import { getAllFileAsync, execPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile } from 'fs-extra'
+import { copy, existsSync, writeFile, mkdirp, appendFile } from 'fs-extra'
 import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
+import { join } from 'path'
+import { cut, load } from 'nodejieba'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -63,6 +65,8 @@ class BomCleanTask implements TaskItem {
 }
 
 class Manager extends Base {
+  jiebaLoad = false
+  jiebaLoadFail = false
   constructor() {
     super()
   }
@@ -89,6 +93,70 @@ class Manager extends Base {
           })
         )
         .run()
+    })
+  }
+
+  wordSplit(txt: string) {
+    return new ForkPromise(async (resolve) => {
+      if (!txt.trim() || this.jiebaLoadFail) {
+        return resolve([])
+      }
+      const dict: { [k: string]: string } = {}
+      const fenciLoad = async () => {
+        const jiebaDir = join(global.Server.BaseDir!, 'cache/nodejieba')
+        await mkdirp(jiebaDir)
+        let file = join(jiebaDir, 'jieba.dict.utf8')
+        if (!existsSync(file)) {
+          await copy(join(global.Server.Static!, 'nodejieba/jieba.dict.utf8'), file)
+        }
+        dict.dict = file
+        file = join(jiebaDir, 'hmm_model.utf8')
+        if (!existsSync(file)) {
+          await copy(join(global.Server.Static!, 'nodejieba/hmm_model.utf8'), file)
+        }
+        dict.hmmDict = file
+        file = join(jiebaDir, 'user.dict.utf8')
+        if (!existsSync(file)) {
+          await copy(join(global.Server.Static!, 'nodejieba/user.dict.utf8'), file)
+        }
+        dict.userDict = file
+        file = join(jiebaDir, 'idf.utf8')
+        if (!existsSync(file)) {
+          await copy(join(global.Server.Static!, 'nodejieba/idf.utf8'), file)
+        }
+        dict.idfDict = file
+        file = join(jiebaDir, 'stop_words.utf8')
+        if (!existsSync(file)) {
+          await copy(join(global.Server.Static!, 'nodejieba/stop_words.utf8'), file)
+        }
+        dict.stopWordDict = file
+        if (!this.jiebaLoad) {
+          this.jiebaLoad = true
+          await execPromise(`echo '${global.Server.Password}' | sudo -S chmod -R 755 ${jiebaDir}`)
+          try {
+            load(dict)
+          } catch (err: any) {
+            this.jiebaLoadFail = true
+            appendFile(
+              join(global.Server.BaseDir!, 'fork.error.txt'),
+              `\n${err?.toString()}`
+            ).then()
+          }
+        }
+      }
+      await fenciLoad()
+      if (this.jiebaLoadFail) {
+        resolve([])
+        return
+      }
+      console.log('wordSplit !!!')
+      try {
+        const arr = cut(txt.trim(), true)
+        resolve(arr)
+      } catch (err: any) {
+        appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${err?.toString()}`).then()
+        resolve([])
+      }
     })
   }
 }

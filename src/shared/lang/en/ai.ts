@@ -62,5 +62,13 @@ Please try to start the service manually`,
  {err}`,
 
   我是pipi: `Hi, I'm pipi. How can I help you?`,
-  你的要求: 'You can directly enter your requirements, such as a new site'
+  你的要求: 'You can directly enter your requirements, such as a new site',
+
+  brewPhp7Issues: `The official Homebrew PHP repository will only keep the newer versions. If you need to install an older version, such as PHP 7.4, you need to install a third-party repository.
+The program will install it automatically by default, but due to network problems and the lack of a mirror source for the third-party repository, the installation may fail. In this case, you can install it manually. Installation command.
+brew tap shivammathur/php`,
+  brewNetIssues: `If you can't get the version, it's probably a network problem, for example, php, the program will automatically install shivammathur/php as a third-party storage bucket by default, and there is no mirroring source in the storage bucket, so it will be stuck here, and you can't get the available version.
+Suggestion is to use VPN, get the terminal proxy command of the VPN software, configure it in the software's Settings->Proxy Settings, and then turn on the proxy, then you can try again to see if you can get and install the version.`,
+  brewSlowIssues: `If the version is very slow to install, it's probably a network issue. You can try switching Homebrew mirrors and try again. A more recommended method is to use a VPN
+Get the terminal proxy command of the VPN software, configure it in Settings->Proxy Settings of the software, and then turn on the proxy, then you can try again to see if you can get and install the version.`
 }

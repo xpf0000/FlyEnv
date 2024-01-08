@@ -2,6 +2,7 @@ import { merge } from 'lodash'
 import type BaseTask from '@/components/AI/Task/BaseTask'
 import type { AllAppSofts } from '@/store/app'
 import installedVersions from '@/util/InstalledVersions'
+import IPC from '@/util/IPC'
 
 const { exec } = require('child_process')
 
@@ -102,6 +103,16 @@ export function fetchInstalled(flags: Array<AllAppSofts>) {
   return new Promise(async (resolve) => {
     installedVersions.allInstalledVersions(flags).then(() => {
       resolve(true)
+    })
+  })
+}
+
+export function wordSplit(txt: string) {
+  return new Promise((resolve) => {
+    IPC.send('app-fork:tools', 'wordSplit', txt).then((key: string, res: any) => {
+      IPC.off(key)
+      console.log('wordSplit: ', res?.data)
+      resolve(res?.data ?? [])
     })
   })
 }

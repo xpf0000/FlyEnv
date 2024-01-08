@@ -8,7 +8,8 @@ const external = [
   'fsevents',
   'mock-aws-s3',
   'aws-sdk',
-  'nock'
+  'nock',
+  'nodejieba'
 ]
 
 const dev: BuildOptions = {

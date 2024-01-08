@@ -5,17 +5,16 @@ import { cpus } from 'os'
 import { appendFile } from 'fs-extra'
 import { join } from 'path'
 
-export class ForkManager {
+class ForkItem {
   forkFile: string
-  forks: Array<ChildProcess> = []
+  child: ChildProcess
+  _on: Function = () => {}
   callback: {
     [k: string]: {
       resolve: Function
       on: Function
     }
   }
-  _on: Function = () => {}
-
   onMessage({ on, key, info }: { on?: boolean; key: string; info: any }) {
     console.log('fork message: ', info)
     if (on) {
@@ -32,30 +31,35 @@ export class ForkManager {
       }
     }
   }
-
   onError(err: Error) {
     console.log('fork child error: ', err)
-    appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), err?.message).then()
+    appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${err?.message}`).then()
+    for (const k in this.callback) {
+      const fn = this.callback?.[k]
+      if (fn) {
+        fn.resolve({
+          code: 1,
+          msg: err.toString()
+        })
+      }
+      delete this.callback?.[k]
+    }
   }
 
   constructor(file: string) {
     this.forkFile = file
+    this.callback = {}
     this.onMessage = this.onMessage.bind(this)
     this.onError = this.onError.bind(this)
-    this.callback = {}
-    const cpuNun = Math.max(cpus().length, 3)
-    console.log('cpuNun: ', cpuNun)
-    for (let i = 0; i < cpuNun; i += 1) {
-      const child = fork(file)
-      child.send({ Server })
-      child.on('message', this.onMessage)
-      child.on('error', this.onError)
-      this.forks.push(child)
-    }
+    const child = fork(file)
+    child.send({ Server })
+    child.on('message', this.onMessage)
+    child.on('error', this.onError)
+    this.child = child
   }
 
-  on(fn: Function) {
-    this._on = fn
+  isChildDisabled() {
+    return this?.child?.killed || !this?.child?.connected || !this?.child?.channel
   }
 
   send(...args: any) {
@@ -66,32 +70,63 @@ export class ForkManager {
         resolve,
         on
       }
-      let child = this.forks.shift()!
-      console.log('child.killed: ', child.killed)
-      console.log('child.connected: ', child.connected)
-      console.log('child.channel: ', child.channel)
-      if (child.killed || !child.connected || !child?.channel) {
+      let child = this.child
+      if (this.isChildDisabled()) {
         child = fork(this.forkFile)
         child.on('message', this.onMessage)
         child.on('error', this.onError)
       }
       child.send({ Server })
       child.send([thenKey, ...args])
-      this.forks.push(child)
+      this.child = child
     })
   }
 
   destory() {
+    try {
+      const pid = this?.child?.pid
+      if (this?.child?.connected) {
+        this?.child?.disconnect?.()
+      }
+      if (pid) {
+        process.kill(pid)
+      }
+    } catch (e) {}
+  }
+}
+
+export class ForkManager {
+  forks: Array<ForkItem> = []
+  fenciFork?: ForkItem
+  _on: Function = () => {}
+  constructor(file: string) {
+    const cpuNun = Math.max(cpus().length, 3)
+    /**
+     * 分词单开一条线程
+     */
+    this.fenciFork = new ForkItem(file)
+    for (let i = 0; i < cpuNun; i += 1) {
+      const child = new ForkItem(file)
+      this.forks.push(child)
+    }
+  }
+
+  on(fn: Function) {
+    this._on = fn
+  }
+
+  send(...args: any) {
+    if (args.includes('tools') && args.includes('wordSplit')) {
+      return this.fenciFork!.send(...args)
+    }
+    const child = this.forks.shift()!
+    this.forks.push(child)
+    return child.send(...args)
+  }
+
+  destory() {
     this.forks.forEach((fork) => {
-      try {
-        const pid = fork.pid
-        if (fork.connected) {
-          fork.disconnect()
-        }
-        if (pid) {
-          process.kill(pid)
-        }
-      } catch (e) {}
+      fork.destory()
     })
   }
 }

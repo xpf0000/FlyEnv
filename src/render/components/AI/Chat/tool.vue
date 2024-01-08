@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref, onBeforeUnmount, watch, computed } from 'vue'
+  import { onMounted, ref, onBeforeUnmount, computed } from 'vue'
   import { ChatLineRound } from '@element-plus/icons-vue'
   import { AIStore } from '@/components/AI/store'
   import { CreateSiteTest } from '@/components/AI/Task/CreateSiteTest'
@@ -29,7 +29,10 @@
   import { MemcachedStartFail } from '@/components/AI/Task/MemcachedStartFail'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@shared/lang'
-  const { cut } = require('nodejieba')
+  import { wordSplit } from '@/components/AI/Fn/Util'
+  import { BrewPHP7Issues } from '@/components/AI/Task/BrewPHP7Issues'
+  import { VersionManagerEmpty } from '@/components/AI/Task/VersionManagerEmpty'
+  import { VersionInstallSlow } from '@/components/AI/Task/VersionInstallSlow'
 
   interface RestaurantItem {
     value: string
@@ -48,17 +51,39 @@
     )
   })
 
+  const FenciDict: { [k: string]: Array<string> } = {}
+
   const querySearch = (queryString: string, cb: any) => {
     const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys : AIKeysEN
+    const find = ALLKeys.find((a) => a.txt === queryString.trim())
+    if (find) {
+      cb([
+        {
+          value: find.txt
+        }
+      ])
+      return
+    }
     let results: Array<RestaurantItem> = []
     if (queryString) {
-      const keys = cut(queryString.toLowerCase(), true)
-      results = ALLKeys.filter((a) => {
-        return a.tips.flat().some((s) => keys.includes(s))
-      }).map((a) => {
-        return {
-          value: a.txt
-        }
+      const key = queryString.toLowerCase()
+      const send = (arr: Array<string>) => {
+        results = ALLKeys.filter((a) => {
+          return a.tips.flat().some((s) => arr.includes(s))
+        }).map((a) => {
+          return {
+            value: a.txt
+          }
+        })
+        cb(results)
+      }
+      if (FenciDict[key]) {
+        send(FenciDict[key])
+        return
+      }
+      wordSplit(key).then((keys: Array<string>) => {
+        FenciDict[key] = keys
+        send(FenciDict[key])
       })
     } else {
       if (!taskRunning.value) {
@@ -74,8 +99,8 @@
           }
         })
       }
+      cb(results)
     }
-    cb(results)
   }
 
   const checkContent = (v: string) => {
@@ -135,6 +160,18 @@
           aiStore.currentTask = new MemcachedStartFail()
           aiStore.currentTask.next()
           break
+        case 'HomebrewPhp7Issues':
+          aiStore.currentTask = new BrewPHP7Issues()
+          aiStore.currentTask.next()
+          break
+        case 'VersionManagerEmpty':
+          aiStore.currentTask = new VersionManagerEmpty()
+          aiStore.currentTask.next()
+          break
+        case 'VersionInstallSlow':
+          aiStore.currentTask = new VersionInstallSlow()
+          aiStore.currentTask.next()
+          break
       }
       return
     }
@@ -164,10 +201,6 @@
       }
     }
   }
-
-  watch(content, (v) => {
-    console.log(cut(v, true))
-  })
 
   onMounted(() => {
     const dom: HTMLElement = input?.value as any

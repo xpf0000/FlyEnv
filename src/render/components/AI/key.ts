@@ -11,6 +11,9 @@ export interface AIKeyItem {
     | 'StartMysql'
     | 'StartMariaDB'
     | 'StartMemcached'
+    | 'HomebrewPhp7Issues'
+    | 'VersionManagerEmpty'
+    | 'VersionInstallSlow'
 }
 
 export const AIKeys: Array<AIKeyItem> = [
@@ -72,6 +75,33 @@ export const AIKeys: Array<AIKeyItem> = [
     tips: [['memcached'], ['启动', '服务', '开启', '打开'], ['异常', '报错', '失败']],
     txt: 'memcached启动失败',
     task: 'StartMemcached'
+  },
+  {
+    tips: [
+      ['homebrew', 'brew'],
+      ['php7', 'php5'],
+      ['没有', '找不到', '不显示', '缺失']
+    ],
+    txt: 'Homebrew没有低版本PHP',
+    task: 'HomebrewPhp7Issues'
+  },
+  {
+    tips: [
+      ['版本', '版本库', '版本管理'],
+      ['不', '不显示', '无', '一直', '一直加载', '无内容', '无数据'],
+      ['显示', '加载', '内容', '数据']
+    ],
+    txt: '版本管理Homebrew无数据',
+    task: 'VersionManagerEmpty'
+  },
+  {
+    tips: [
+      ['版本', '软件', '服务'],
+      ['安装', '添加', '新增', '无法'],
+      ['慢', '卡', '安装', '完成']
+    ],
+    txt: '版本安装非常慢',
+    task: 'VersionInstallSlow'
   }
 ]
 export const AIKeysEN: Array<AIKeyItem> = [
@@ -153,5 +183,33 @@ export const AIKeysEN: Array<AIKeyItem> = [
     ],
     txt: 'Memcached Startup Failed',
     task: 'StartMemcached'
+  },
+  {
+    tips: [
+      ['homebrew', 'brew'],
+      ['php7', 'php5', 'low'],
+      ['not', 'no', 'missing', 'miss'],
+      ['available', 'found', 'shown', 'show', 'display']
+    ],
+    txt: 'Homebrew does not have a low version of PHP',
+    task: 'HomebrewPhp7Issues'
+  },
+  {
+    tips: [
+      ['version', 'repository', 'manage', 'versioning'],
+      ['no', 'not', 'not shown', 'none', 'always', 'always loaded', 'no content', 'no data'],
+      ['show', 'display', 'load', 'content', 'data']
+    ],
+    txt: 'Versioning Homebrew no data',
+    task: 'VersionManagerEmpty'
+  },
+  {
+    tips: [
+      ['version', 'software', 'service'],
+      ['install', 'add', 'unable', 'installation'],
+      ['slow', 'stuck', 'install', 'done']
+    ],
+    txt: 'Version installation is very slow',
+    task: 'VersionInstallSlow'
   }
 ]

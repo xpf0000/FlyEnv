@@ -8,7 +8,7 @@
       <el-button @click="doClean">{{ $t('base.clean') }}</el-button>
     </div>
     <Main />
-    <Tool ref="tool" />
+    <Tool ref="toolRef" />
   </div>
 </template>
 
@@ -21,7 +21,7 @@
   const action = ref('')
   const mask = ref()
   const chat = ref()
-  const tool = ref()
+  const toolRef = ref()
   const aiStore = AIStore()
   const currentShow = ref(false)
 
@@ -63,7 +63,6 @@
   const onAnimoEnd = (e: Event) => {
     e?.stopPropagation && e?.stopPropagation()
     e?.preventDefault && e?.preventDefault()
-    console.log('onAnimoEnd !!!', e.target)
     if (e.target !== chat.value) {
       return
     }
@@ -74,7 +73,7 @@
       maskDom.classList.remove('show', 'init')
       currentShow.value = false
     } else {
-      tool.value.onShow()
+      toolRef?.value?.onShow?.()
     }
     action.value = ''
   }
