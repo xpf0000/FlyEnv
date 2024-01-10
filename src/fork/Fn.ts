@@ -144,7 +144,9 @@ export function spawnPromise(
         opt
       )
     )
-
+    const stdinFn = (txt: string) => {
+      child?.stdin?.write(`${txt}\n`)
+    }
     let exit = false
     const onEnd = (code: number | null) => {
       if (exit) return
@@ -157,11 +159,11 @@ export function spawnPromise(
     }
     child.stdout.on('data', (data) => {
       stdout.push(data)
-      on(data.toString())
+      on(data.toString(), stdinFn)
     })
     child.stderr.on('data', (err) => {
       stderr.push(err)
-      on(err.toString())
+      on(err.toString(), stdinFn)
     })
     child.on('exit', onEnd)
     child.on('close', onEnd)
@@ -188,6 +190,9 @@ export function spawnPromiseMore(
       opt
     )
   )
+  const stdinFn = (txt: string) => {
+    child?.stdin?.write(`${txt}\n`)
+  }
   const promise = new ForkPromise((resolve, reject, on) => {
     let exit = false
     const onEnd = (code: number | null) => {
@@ -201,11 +206,11 @@ export function spawnPromiseMore(
     }
     child.stdout.on('data', (data) => {
       stdout.push(data)
-      on(data.toString())
+      on(data.toString(), stdinFn)
     })
     child.stderr.on('data', (err) => {
       stderr.push(err)
-      on(err.toString())
+      on(err.toString(), stdinFn)
     })
     child.on('exit', onEnd)
     child.on('close', onEnd)

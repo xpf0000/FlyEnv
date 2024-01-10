@@ -1,6 +1,6 @@
 type ResolveType<T> = (value: undefined | T | PromiseLike<T>) => void
 type RejectType = (reason?: any) => void
-type OnType = (data?: any) => void
+type OnType = (...args: any) => void
 
 /**
  * 扩展Promise
