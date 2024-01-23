@@ -1,11 +1,11 @@
-import { join, basename } from 'path'
+import { join, basename, dirname } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, writeFile, chmod, unlink } from 'fs-extra'
+import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
 
 class Mysql extends Base {
   constructor() {
@@ -15,6 +15,22 @@ class Mysql extends Base {
 
   init() {
     this.pidPath = join(global.Server.MysqlDir!, 'mysql.pid')
+  }
+
+  _initPassword(version: SoftInstalled) {
+    return new ForkPromise((resolve, reject) => {
+      execPromise('./mysqladmin -uroot password "root"', {
+        cwd: dirname(version.bin)
+      })
+        .then((res) => {
+          console.log('_initPassword res: ', res)
+          resolve(true)
+        })
+        .catch((err) => {
+          console.log('_initPassword err: ', err)
+          reject(err)
+        })
+    })
   }
 
   _startServer(version: SoftInstalled) {
@@ -57,7 +73,7 @@ datadir=${dataDir}`
         needRestart = true
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        if (version?.version?.indexOf('5.6.') === 0) {
+        if (version?.version?.indexOf('5.6') === 0) {
           bin = join(version.path, 'scripts/mysql_install_db')
           params.splice(0)
           params.push(`--datadir=${dataDir}`)
@@ -94,6 +110,14 @@ datadir=${dataDir}`
           }
         }
       }
+      const unlinkDirOnFail = async () => {
+        if (existsSync(dataDir)) {
+          await remove(dataDir)
+        }
+        if (existsSync(m)) {
+          await remove(m)
+        }
+      }
       promise
         .on(async (data) => {
           on(data)
@@ -109,9 +133,11 @@ datadir=${dataDir}`
             if (needRestart) {
               try {
                 await this._startServer(version).on(on)
+                await this._initPassword(version)
                 on(I18nT('fork.postgresqlInit', { dir: dataDir }))
                 resolve(code)
               } catch (e) {
+                await unlinkDirOnFail()
                 reject(e)
               }
             } else {
@@ -119,7 +145,12 @@ datadir=${dataDir}`
             }
           }
         })
-        .catch(reject)
+        .catch(async (err) => {
+          if (needRestart) {
+            await unlinkDirOnFail()
+          }
+          reject(err)
+        })
     })
   }
 }

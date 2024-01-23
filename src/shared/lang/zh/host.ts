@@ -18,5 +18,7 @@ export default {
     '3. 使用此命令测试: dig {ip} 域名\n' +
     '4. 在其他电脑或手机上, 使用本机站点的域名进行访问',
   staticSite: '静态站点',
-  park: '生成子站点'
+  park: '生成子站点',
+  hostsCopy: '复制hosts文本',
+  hostsOpen: '打开自定义hosts文件'
 }

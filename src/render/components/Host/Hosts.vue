@@ -34,6 +34,7 @@
   import IPC from '@/util/IPC.ts'
   import { VueExtend } from '@/core/VueExtend.ts'
   import { EditorConfigMake } from '@/util/Editor.ts'
+  import { MessageError, MessageSuccess } from '@/util/Element.ts'
 
   const { shell } = require('@electron/remote')
 

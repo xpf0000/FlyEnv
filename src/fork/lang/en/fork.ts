@@ -22,5 +22,5 @@ export default {
     'Install the extension and execute the command:\n{command}\nIf the installation fails, you can try to copy the command and try to install it yourself\n',
   versionNoFound: 'Failed to get software version, operation failed.',
   postgresqlInit:
-    'Service started successfully\nData Dir is {dir}\nInitial User is root, Empty password'
+    'Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root'
 }

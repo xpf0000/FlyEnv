@@ -18,5 +18,7 @@ export default {
     '3. Use this command for testing: dig {ip} domain\n' +
     '4. On other computers or phones, use the domain name of the local site to access.\n',
   staticSite: 'Static Site',
-  park: 'Generate Sub-Sites'
+  park: 'Generate Sub-Sites',
+  hostsCopy: 'Copy hosts text',
+  hostsOpen: 'Open custom hosts file'
 }

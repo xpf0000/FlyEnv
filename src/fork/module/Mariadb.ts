@@ -1,11 +1,11 @@
-import { join, basename } from 'path'
+import { join, basename, dirname } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, mkdirp, chmod, unlink } from 'fs-extra'
+import { writeFile, mkdirp, chmod, unlink, remove } from 'fs-extra'
 
 class Manager extends Base {
   constructor() {
@@ -15,6 +15,22 @@ class Manager extends Base {
 
   init() {
     this.pidPath = join(global.Server.MariaDBDir!, 'mariadb.pid')
+  }
+
+  _initPassword(version: SoftInstalled) {
+    return new ForkPromise((resolve, reject) => {
+      execPromise('./mariadb-admin -uroot password "root"', {
+        cwd: dirname(version.bin)
+      })
+        .then((res) => {
+          console.log('_initPassword res: ', res)
+          resolve(true)
+        })
+        .catch((err) => {
+          console.log('_initPassword err: ', err)
+          reject(err)
+        })
+    })
   }
 
   _startServer(version: SoftInstalled) {
@@ -36,14 +52,13 @@ datadir=${dataDir}`
       const p = join(global.Server.MariaDBDir!, 'mariadb.pid')
       const s = join(global.Server.MariaDBDir!, 'slow.log')
       const e = join(global.Server.MariaDBDir!, 'error.log')
-      const k = join(global.Server.MysqlDir!, 'mariadb.sock')
       const params = [
         `--defaults-file=${m}`,
         `--pid-file=${p}`,
         '--slow-query-log=ON',
         `--slow-query-log-file=${s}`,
         `--log-error=${e}`,
-        `--socket=${k}`
+        `--socket=/tmp/mysql.sock`
       ]
       if (version?.flag === 'port') {
         params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
@@ -88,6 +103,14 @@ datadir=${dataDir}`
           }
         }
       }
+      const unlinkDirOnFail = async () => {
+        if (existsSync(dataDir)) {
+          await remove(dataDir)
+        }
+        if (existsSync(m)) {
+          await remove(m)
+        }
+      }
       promise
         .on(async (data) => {
           on(data)
@@ -103,9 +126,11 @@ datadir=${dataDir}`
             if (needRestart) {
               try {
                 await this._startServer(version).on(on)
+                await this._initPassword(version)
                 on(I18nT('fork.postgresqlInit', { dir: dataDir }))
                 resolve(code)
               } catch (e) {
+                await unlinkDirOnFail()
                 reject(e)
               }
             } else {
@@ -113,7 +138,12 @@ datadir=${dataDir}`
             }
           }
         })
-        .catch(reject)
+        .catch(async (err) => {
+          if (needRestart) {
+            await unlinkDirOnFail()
+          }
+          reject(err)
+        })
     })
   }
 }

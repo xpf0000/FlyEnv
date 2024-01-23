@@ -657,12 +657,17 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     return [item.name, ...alias].join(' ')
   }
 
-  _initHost(list: Array<AppHost>) {
+  _initHost(list: Array<AppHost>, writeToSystem = true) {
     return new ForkPromise(async (resolve, reject) => {
-      let host = ''
+      const host: Array<string> = []
       for (const item of list) {
         const alias = this.#hostAlias(item)
-        host += `127.0.0.1     ${alias}\n`
+        host.push(`127.0.0.1     ${alias}`)
+      }
+      await writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
+      if (!writeToSystem) {
+        resolve(true)
+        return
       }
       const filePath = '/private/etc/hosts'
       if (!existsSync(filePath)) {
@@ -676,7 +681,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         content = content.replace(x, '')
       }
       if (host) {
-        x = `#X-HOSTS-BEGIN#\n${host}#X-HOSTS-END#`
+        x = `#X-HOSTS-BEGIN#\n${host.join('\n')}\n#X-HOSTS-END#`
       } else {
         x = ''
       }
@@ -758,23 +763,26 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
   writeHosts(write = true) {
     return new ForkPromise(async (resolve) => {
       await this._fixHostsRole()
+      const hostfile = join(global.Server.BaseDir!, 'host.json')
+      const appHost: Array<AppHost> = []
+      if (existsSync(hostfile)) {
+        let json: any = await readFile(hostfile, 'utf-8')
+        try {
+          json = JSON.parse(json)
+          appHost.push(...json)
+        } catch (e) {}
+      }
+      console.log('writeHosts: ', write)
       if (write) {
-        const hostfile = join(global.Server.BaseDir!, 'host.json')
-        if (!existsSync(hostfile)) {
-          resolve(0)
-          return
-        }
-        let json = await readFile(hostfile, 'utf-8')
-        json = JSON.parse(json)
-        this._initHost(json as any).then(resolve)
+        this._initHost(appHost).then(resolve)
       } else {
-        let hosts = await readFile('/private/etc/hosts', 'utf-8').toString()
+        let hosts = await readFile('/private/etc/hosts', 'utf-8')
         const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
         if (x) {
           hosts = hosts.replace(x[0], '')
           await writeFile('/private/etc/hosts', hosts.trim())
         }
-        resolve(0)
+        this._initHost(appHost, false).then(resolve)
       }
     })
   }

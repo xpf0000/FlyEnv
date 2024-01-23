@@ -22,6 +22,8 @@
                 $t('base.export')
               }}</el-dropdown-item>
               <el-dropdown-item command="import">{{ $t('base.import') }}</el-dropdown-item>
+              <el-dropdown-item divided command="hostsCopy">{{ $t('host.hostsCopy') }}</el-dropdown-item>
+              <el-dropdown-item command="hostsOpen">{{ $t('host.hostsOpen') }}</el-dropdown-item>
               <el-dropdown-item divided command="newProject">
                 <el-popover :show-after="600" placement="bottom" trigger="hover" width="300px">
                   <template #reference>
@@ -65,9 +67,10 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { More } from '@element-plus/icons-vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import type { AppHost } from '@shared/app'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
-  const { dialog } = require('@electron/remote')
+  const { dialog, clipboard, shell } = require('@electron/remote')
   const { join, dirname } = require('path')
 
   const appStore = AppStore()
@@ -96,7 +99,17 @@
       MessageSuccess(I18nT('base.success'))
     })
   }
-  const handleCommand = (command: 'export' | 'import' | 'newProject') => {
+  const hostAlias = (item: AppHost) => {
+    const alias = item.alias
+      ? item.alias.split('\n').filter((n) => {
+          return n && n.length > 0
+        })
+      : []
+    return [item.name, ...alias].join(' ')
+  }
+  const handleCommand = (
+    command: 'export' | 'import' | 'newProject' | 'hostsCopy' | 'hostsOpen'
+  ) => {
     console.log('handleCommand: ', command)
     switch (command) {
       case 'export':
@@ -107,6 +120,19 @@
         break
       case 'newProject':
         openCreateProject()
+        break
+      case 'hostsCopy':
+        const host = []
+        for (const item of hosts.value) {
+          const alias = hostAlias(item)
+          host.push(`127.0.0.1     ${alias}`)
+        }
+        clipboard.writeText(host.join('\n'))
+        MessageSuccess(I18nT('base.copySuccess'))
+        break
+      case 'hostsOpen':
+        const file = join(global.Server.BaseDir, 'app.hosts.txt')
+        shell.showItemInFolder(file)
         break
     }
   }

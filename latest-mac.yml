@@ -1,17 +1,17 @@
-version: 1.7.0
+version: 1.7.1
 files:
-  - url: PhpWebStudy-1.7.0-mac.zip
-    sha512: +87aq0HwjjJa5jSTy2rLKU/ojUN/yd5EmHxxBp86HMnsv8jqnIBpVZtB/bLTJAPQ62puSyP+1XbIwYkE3tOs9A==
-    size: 105126217
-  - url: PhpWebStudy-1.7.0-arm64-mac.zip
-    sha512: 6bbhrOLX505Mhgo8wcRcWY0fsgmvzkAnFDAvEuU0862AHjR4U8drvJfdTrVbs1z4ujBE2XnD2gGU/CPuUT1s/A==
-    size: 99653749
-  - url: PhpWebStudy-1.7.0.dmg
-    sha512: G/VZhcrFcHFhCQBmIQ10RUBZY/MdlnjWC6JvFrhVM+IT5NkJcQKQTrNdGY/DFusNpDTX7JpXPFeA68UoIXbTvg==
-    size: 110577309
-  - url: PhpWebStudy-1.7.0-arm64.dmg
-    sha512: HN5Iu1pW+pymU/JUmLC0UCWEGNGrlXBucloEEYK3FRQEMuAAqZaMtvkPKaTFTlyr2owG7qOl1XFxrr65xSQaZQ==
-    size: 105158478
-path: PhpWebStudy-1.7.0-mac.zip
-sha512: +87aq0HwjjJa5jSTy2rLKU/ojUN/yd5EmHxxBp86HMnsv8jqnIBpVZtB/bLTJAPQ62puSyP+1XbIwYkE3tOs9A==
-releaseDate: '2024-01-08T13:19:12.498Z'
+  - url: PhpWebStudy-1.7.1-mac.zip
+    sha512: RPDPtF/FPYgdSc3V8dZT1Haqv0Qn5yhSe2f3Dycn/aJ62h21x8HN70/RQHeKYBbjX240G7zxDT7ch4/tv1uBrw==
+    size: 105079963
+  - url: PhpWebStudy-1.7.1-arm64-mac.zip
+    sha512: hf6e9q1+R0BPjJJ+MkKMAu1BumNzEJAXpbPXyRv+7k6J2HlPzsunp3lbU8+MZcaZYSN7u6/RtjjnD1VkHqpt6w==
+    size: 99607349
+  - url: PhpWebStudy-1.7.1.dmg
+    sha512: y27QdvPwpNONmiPyAa+g0TIo4r4M/qGPMhuc1p9+FfNZLty7ZbRXI/EAPrHsoWA9U23Xx0wbLkp4oAOGeILXbQ==
+    size: 110461572
+  - url: PhpWebStudy-1.7.1-arm64.dmg
+    sha512: DheCwfZRzmrU67/HTfHsmTAgUkzbCOMvfmCT1iT7edJBDt1ctL07tAcnEp7PD0a1Z0veSWJV+B1I925Kvbgljg==
+    size: 105023964
+path: PhpWebStudy-1.7.1-mac.zip
+sha512: RPDPtF/FPYgdSc3V8dZT1Haqv0Qn5yhSe2f3Dycn/aJ62h21x8HN70/RQHeKYBbjX240G7zxDT7ch4/tv1uBrw==
+releaseDate: '2024-01-23T07:14:24.849Z'
