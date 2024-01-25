@@ -57,16 +57,9 @@
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
   const mysqlStore = MysqlStore()
 
-  const vp = computed(() => {
-    const v = props.item?.version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-    const p = props.item?.port ?? ''
-    return `${v}-${p}`
-  })
-
   const configPath = computed(() => {
-    const v = props.item?.version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-    const p = props.item?.port ?? ''
-    return join(global.Server.MysqlDir!, `group/my-group-${v}-${p}.cnf`)
+    const id = props.item.id
+    return join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
   })
 
   const config = ref('')
@@ -79,7 +72,7 @@
       return
     }
     let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-    const defaultPath = `mysql-${vp.value}-custom.conf`
+    const defaultPath = `mysql-${props.item.id}-custom.conf`
     dialog
       .showSaveDialog({
         properties: opt,

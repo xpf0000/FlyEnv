@@ -89,9 +89,8 @@
         }).then()
         break
       case 'socket':
-        const v = props.item?.version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-        const p = props.item?.port ?? ''
-        const sock = join(global.Server.MysqlDir!, `group/my-group-${v}-${p}.sock`)
+        const id = props.item.id
+        const sock = join(global.Server.MysqlDir!, `group/my-group-${id}.sock`)
         copyString(sock)
         break
       case 'cnf':

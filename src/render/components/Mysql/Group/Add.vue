@@ -84,6 +84,7 @@
   const brewStore = BrewStore()
   const running = ref(false)
   const form = ref({
+    id: uuid(8).toUpperCase(),
     path: '',
     port: undefined,
     dataDir: ''
@@ -92,7 +93,7 @@
   Object.assign(form.value, props.item)
   form.value.path = props?.item?.version?.path ?? ''
   if (!form.value.dataDir) {
-    form.value.dataDir = join(global.Server.MysqlDir, `mysql-group-${uuid(6)}`)
+    form.value.dataDir = join(global.Server.MysqlDir, `group/mysql-group-${form.value.id}`)
   }
 
   const errs = ref({
@@ -116,33 +117,6 @@
     {
       immediate: true,
       deep: true
-    }
-  )
-
-  const initDataDir = () => {
-    const version: any = mysqlVersion.value.find((m) => m.path === form.value.path)!
-    const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-    const p = form.value.port
-    form.value.dataDir = join(global.Server.MysqlDir, `group/mysql-group-${v}-${p}`)
-  }
-
-  watch(
-    () => form.value.path,
-    (path) => {
-      errs.value.path = false
-      if (path && !props?.item?.dataDir) {
-        initDataDir()
-      }
-    }
-  )
-
-  watch(
-    () => form.value.port,
-    (port) => {
-      errs.value.port = false
-      if (port && !props?.item?.dataDir) {
-        initDataDir()
-      }
     }
   )
 
@@ -183,11 +157,28 @@
     }
     running.value = true
     const version: any = mysqlVersion.value.find((m) => m.path === form.value.path)!
-    mysqlStore.all.push({
-      version: JSON.parse(JSON.stringify(version)),
-      port: form.value.port!,
-      dataDir: form.value.dataDir
-    })
+    if (!props?.item?.id) {
+      mysqlStore.all.push({
+        id: form.value.id,
+        version: JSON.parse(JSON.stringify(version)),
+        port: form.value.port!,
+        dataDir: form.value.dataDir
+      })
+    } else {
+      const item = mysqlStore.all.find((f) => f.id === props.item.id)
+      if (item) {
+        const running = item.version.running
+        mysqlStore.stop(item)
+        item.version = JSON.parse(JSON.stringify(version))
+        item.port = form.value.port!
+        item.dataDir = form.value.dataDir
+        mysqlStore.save().then()
+        if (running) {
+          mysqlStore.start(item).then()
+        }
+      }
+    }
+
     mysqlStore.save()
     MessageSuccess(I18nT('base.success'))
     running.value = false

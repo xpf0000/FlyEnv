@@ -41,7 +41,6 @@
   import type { MysqlGroupItem } from '@shared/app'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { MessageError, MessageSuccess } from '@/util/Element'
-  import Base from '@/core/Base'
   import Popper from './SetupPopper.vue'
 
   const { shell } = require('@electron/remote')
@@ -94,6 +93,17 @@
   }
 
   const columns: Column<any>[] = [
+    {
+      key: 'id',
+      title: 'ID',
+      dataKey: 'id',
+      align: 'center',
+      width: 100,
+      headerCellRenderer: () => {
+        return <span class="flex items-center">ID</span>
+      },
+      cellRenderer: ({ cellData: id }) => <span class="user">{id}</span>
+    },
     {
       key: 'version',
       title: 'version',
@@ -180,6 +190,7 @@
               >
                 <path d="M213.333333 65.386667a85.333333 85.333333 0 0 1 43.904 12.16L859.370667 438.826667a85.333333 85.333333 0 0 1 0 146.346666L257.237333 946.453333A85.333333 85.333333 0 0 1 128 873.28V150.72a85.333333 85.333333 0 0 1 85.333333-85.333333z m0 64a21.333333 21.333333 0 0 0-21.184 18.837333L192 150.72v722.56a21.333333 21.333333 0 0 0 30.101333 19.456l2.197334-1.152L826.453333 530.282667a21.333333 21.333333 0 0 0 2.048-35.178667l-2.048-1.386667L224.298667 132.416A21.333333 21.333333 0 0 0 213.333333 129.386667z"></path>
               </svg>
+              <div style="width:20px;opacity: 0;"></div>
             </div>
           )
         }

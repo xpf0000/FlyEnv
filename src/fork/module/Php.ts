@@ -210,8 +210,7 @@ class Php extends Base {
       const tmplPath = join(global.Server.Static!, 'tmpl/enable-php.conf')
       if (existsSync(tmplPath)) {
         let content = await readFile(tmplPath, 'utf-8')
-        const replace = `fastcgi_pass  unix:/tmp/phpwebstudy-php-cgi-${v}.sock;`
-        content = content.replace('fastcgi_pass  unix:/tmp/phpwebstudy-php-cgi-80.sock;', replace)
+        content = content.replace('##VERSION##', v)
         await writeFile(confPath, content)
       }
       resolve(true)

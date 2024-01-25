@@ -1,5 +1,5 @@
 import { join, basename, dirname } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
@@ -157,8 +157,8 @@ datadir=${dataDir}`
   stopGroupService(version: MysqlGroupItem) {
     console.log(version)
     return new ForkPromise(async (resolve, reject) => {
-      const v = version?.version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-      const conf = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}.cnf`)
+      const id = version?.id ?? ''
+      const conf = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
       const serverName = 'mysqld'
       const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
       console.log('_stopServer command: ', command)
@@ -188,8 +188,8 @@ datadir=${dataDir}`
     return new ForkPromise(async (resolve, reject, on) => {
       await this.stopGroupService(version)
       let bin = version.version.bin
-      const v = version?.version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-      const m = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}.cnf`)
+      const id = version?.id ?? ''
+      const m = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
       const dataDir = version.dataDir
       if (!existsSync(m)) {
         const conf = `[mysqld]
@@ -199,10 +199,10 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         await writeFile(m, conf)
       }
 
-      const p = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}.pid`)
-      const s = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}-slow.log`)
-      const e = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}-error.log`)
-      const sock = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}.sock`)
+      const p = join(global.Server.MysqlDir!, `group/my-group-${id}.pid`)
+      const s = join(global.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
+      const e = join(global.Server.MysqlDir!, `group/my-group-${id}-error.log`)
+      const sock = join(global.Server.MysqlDir!, `group/my-group-${id}.sock`)
       const params = [
         `--defaults-file=${m}`,
         `--datadir=${dataDir}`,
@@ -217,7 +217,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         params.push(`--lc-messages-dir=/opt/local/share/${basename(version.version.path!)}/english`)
       }
       let needRestart = false
-      if (!existsSync(dataDir)) {
+      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
         needRestart = true
         await mkdirp(dataDir)
         await chmod(dataDir, '0755')

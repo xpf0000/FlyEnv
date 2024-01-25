@@ -72,12 +72,11 @@
   })
 
   const filepath = computed(() => {
-    const v = props.item?.version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-    const p = props.item?.port ?? ''
+    const id = props.item.id
     if (props.flag === 'log') {
-      return join(global.Server.MysqlDir!, `group/my-group-${v}-${p}-error.log`)
+      return join(global.Server.MysqlDir!, `group/my-group-${id}-error.log`)
     }
-    return join(global.Server.MysqlDir!, `group/my-group-${v}-${p}-slow.log`)
+    return join(global.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
   })
 
   const close = () => {

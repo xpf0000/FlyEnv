@@ -47,6 +47,7 @@
   import { TaskStore } from '@/store/task'
   import { I18nT } from '@shared/lang'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { MysqlStore } from '@/store/mysql'
 
   const props = defineProps<{
     typeFlag:
@@ -146,6 +147,10 @@
         appStore.saveConfig()
         data!.run = true
         data!.running = false
+        if (props.typeFlag === 'mysql') {
+          const mysqlStore = MysqlStore()
+          mysqlStore.groupStart().then()
+        }
         MessageSuccess(I18nT('base.success'))
       } else if (res.code === 1) {
         IPC.off(key)
