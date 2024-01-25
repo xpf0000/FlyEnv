@@ -25,5 +25,13 @@ export default {
   forceStart: 'Force Start Service',
   forceStartInfo:
     'Whether or not to force the shutdown of services that are not started by this application when the service is started. Try to ensure that the service can be turned on properly.',
-  showAIRobot: 'Display AI Assistant'
+  showAIRobot: 'Display AI Assistant',
+
+  mysqlVersion: 'Version',
+  mysqlDir: 'Dir',
+  mysqlPort: 'Port',
+  mysqlDataDir: 'Data Dir',
+  mysqlState: 'State',
+
+  mysqlPopperSocket: 'Copy Socket Path'
 }

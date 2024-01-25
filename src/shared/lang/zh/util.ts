@@ -23,5 +23,13 @@ export default {
   lineHeight: '行高',
   forceStart: '强制启动服务',
   forceStartInfo: '是否在启动服务时，强制关闭非本应用启动的服务。尽量保证服务能够正常开启。',
-  showAIRobot: '显示AI助手'
+  showAIRobot: '显示AI助手',
+
+  mysqlVersion: '版本',
+  mysqlDir: '路径',
+  mysqlPort: '端口',
+  mysqlDataDir: '数据文件夹',
+  mysqlState: '状态',
+
+  mysqlPopperSocket: '复制socket路径'
 }

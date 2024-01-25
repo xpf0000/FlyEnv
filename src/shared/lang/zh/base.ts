@@ -132,5 +132,7 @@ export default {
   hostsWriteTips: '是否写入/etc/hosts, 写入的内容会被自定义标签包裹, 不会对其他内容造成影响',
   brewInstallLang: '',
   ftpDirNotExists: '文件夹不存在，请重新选择',
-  editorSetup: '编辑器设置'
+  editorSetup: '编辑器设置',
+
+  group: '群组'
 }

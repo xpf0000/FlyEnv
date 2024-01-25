@@ -25,6 +25,7 @@
   import { BrewStore } from '@/store/brew'
   import { I18nT } from '@shared/lang'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { MysqlStore } from '@/store/mysql'
 
   defineProps<{
     currentPage: string
@@ -34,6 +35,7 @@
 
   const appStore = AppStore()
   const brewStore = BrewStore()
+  const mysqlStore = MysqlStore()
 
   const showItem = computed(() => {
     return appStore.config.setup.common.showItem
@@ -81,14 +83,17 @@
   const switchChange = () => {
     passwordCheck().then(() => {
       let fn = null
+      let groupFn: () => Promise<true | string>
       let promise: Promise<any> | null = null
       if (!currentVersion?.value?.version) return
       fn = serviceRunning?.value ? stopService : startService
+      groupFn = serviceRunning?.value ? mysqlStore.groupStop : mysqlStore.groupStart
       promise = fn('mysql', currentVersion?.value)
       promise?.then((res) => {
         if (typeof res === 'string') {
           MessageError(res)
         } else {
+          groupFn().then()
           MessageSuccess(I18nT('base.success'))
         }
       })

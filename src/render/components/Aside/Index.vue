@@ -77,6 +77,7 @@
   import ToolsModule from './module/tools/index.vue'
   import PostgreSqlModule from './module/postgresql/index.vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { MysqlStore } from '@/store/mysql'
 
   const { shell } = require('@electron/remote')
 
@@ -97,6 +98,8 @@
   const appStore = AppStore()
   const dnsStore = DnsStore()
   const ftpStore = FtpStore()
+  const mysqlStore = MysqlStore()
+
   const currentPage = ref('/host')
 
   const showItem = computed(() => {
@@ -281,6 +284,8 @@
         all.push(...arr)
       })
       if (all.length > 0) {
+        let groupFn: () => Promise<true | string>
+        groupFn = groupIsRunning?.value ? mysqlStore.groupStop : mysqlStore.groupStart
         const err: Array<string> = []
         const run = () => {
           const task = all.pop()
@@ -298,6 +303,9 @@
               })
           } else {
             if (err.length === 0) {
+              if (showItem?.value?.Mysql) {
+                groupFn().then()
+              }
               MessageSuccess(I18nT('base.success'))
             } else {
               MessageError(err.join('<br/>'))

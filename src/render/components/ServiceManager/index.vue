@@ -70,6 +70,7 @@
   import { I18nT } from '@shared/lang'
   import VersionSwitch from '../VersionSwtich/index.vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { MysqlStore } from '@/store/mysql'
 
   const props = defineProps<{
     typeFlag:
@@ -198,6 +199,14 @@
       if (typeof res === 'string') {
         MessageError(res)
       } else {
+        if (typeFlag === 'mysql') {
+          const mysqlStore = MysqlStore()
+          if (flag === 'stop') {
+            mysqlStore.groupStop().then()
+          } else {
+            mysqlStore.groupStart().then()
+          }
+        }
         MessageSuccess(I18nT('base.success'))
       }
     })

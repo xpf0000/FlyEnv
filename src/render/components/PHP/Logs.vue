@@ -7,7 +7,7 @@
     :close-on-click-modal="false"
     @closed="onDrawerClosed"
   >
-    <div class="host-vhost">
+    <div class="log-popper">
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -161,47 +161,4 @@
   })
 </script>
 
-<style lang="scss">
-  .host-vhost {
-    width: 100%;
-    height: 100%;
-    background: #1d2033;
-    display: flex;
-    flex-direction: column;
-    user-select: none;
-    .nav {
-      height: 76px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      background: #282b3d;
-      .left {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        padding: 6px 0;
-      }
-    }
-    .main-wapper {
-      flex: 1;
-      width: 100%;
-      overflow: hidden;
-      padding: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      display: flex;
-      flex-direction: column;
-
-      > .block {
-        width: 100%;
-        flex: 1;
-        overflow: hidden;
-      }
-      .tool {
-        flex-shrink: 0;
-        padding: 30px 0 20px 0;
-      }
-    }
-  }
-</style>
+<style lang="scss"></style>

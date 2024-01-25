@@ -2,7 +2,7 @@ import { join, basename, dirname } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
-import type { SoftInstalled } from '@shared/app'
+import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
 import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
@@ -134,6 +134,169 @@ datadir=${dataDir}`
               try {
                 await this._startServer(version).on(on)
                 await this._initPassword(version)
+                on(I18nT('fork.postgresqlInit', { dir: dataDir }))
+                resolve(code)
+              } catch (e) {
+                await unlinkDirOnFail()
+                reject(e)
+              }
+            } else {
+              reject(code)
+            }
+          }
+        })
+        .catch(async (err) => {
+          if (needRestart) {
+            await unlinkDirOnFail()
+          }
+          reject(err)
+        })
+    })
+  }
+
+  stopGroupService(version: MysqlGroupItem) {
+    console.log(version)
+    return new ForkPromise(async (resolve, reject) => {
+      const v = version?.version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+      const conf = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}.cnf`)
+      const serverName = 'mysqld'
+      const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+      console.log('_stopServer command: ', command)
+      try {
+        const res = await execPromise(command)
+        const pids = res?.stdout?.trim()?.split('\n') ?? []
+        const arr: Array<string> = []
+        for (const p of pids) {
+          if (p.includes(conf)) {
+            arr.push(p.split(' ')[0])
+          }
+        }
+        if (arr.length > 0) {
+          const pids = arr.join(' ')
+          const sig = '-TERM'
+          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
+        }
+        await waitTime(500)
+        resolve(true)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  startGroupServer(version: MysqlGroupItem) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      await this.stopGroupService(version)
+      let bin = version.version.bin
+      const v = version?.version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+      const m = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}.cnf`)
+      const dataDir = version.dataDir
+      if (!existsSync(m)) {
+        const conf = `[mysqld]
+# Only allow connections from localhost
+bind-address = 127.0.0.1
+sql-mode=NO_ENGINE_SUBSTITUTION`
+        await writeFile(m, conf)
+      }
+
+      const p = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}.pid`)
+      const s = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}-slow.log`)
+      const e = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}-error.log`)
+      const sock = join(global.Server.MysqlDir!, `group/my-group-${v}-${version.port}.sock`)
+      const params = [
+        `--defaults-file=${m}`,
+        `--datadir=${dataDir}`,
+        `--port=${version.port}`,
+        `--pid-file=${p}`,
+        '--user=mysql',
+        `--slow-query-log-file=${s}`,
+        `--log-error=${e}`,
+        `--socket=${sock}`
+      ]
+      if (version?.version?.flag === 'port') {
+        params.push(`--lc-messages-dir=/opt/local/share/${basename(version.version.path!)}/english`)
+      }
+      let needRestart = false
+      if (!existsSync(dataDir)) {
+        needRestart = true
+        await mkdirp(dataDir)
+        await chmod(dataDir, '0755')
+        if (version?.version?.version?.indexOf('5.6') === 0) {
+          bin = join(version.version.path!, 'scripts/mysql_install_db')
+          params.splice(0)
+          params.push(`--datadir=${dataDir}`)
+          params.push(`--basedir=${version.version.path}`)
+        } else {
+          params.push('--initialize-insecure')
+        }
+      }
+      try {
+        if (existsSync(p)) {
+          await unlink(p)
+        }
+      } catch (e) {}
+      console.log('mysql start: ', bin, params.join(' '))
+      on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
+      const { promise, spawn } = spawnPromiseMore(bin!, params)
+      let success = false
+      let checking = false
+      const initPassword = () => {
+        return new ForkPromise((resolve, reject) => {
+          execPromise(`./mysqladmin -P${version.port} -S${sock} -uroot password "root"`, {
+            cwd: dirname(version.version.bin!)
+          })
+            .then((res) => {
+              console.log('_initPassword res: ', res)
+              resolve(true)
+            })
+            .catch((err) => {
+              console.log('_initPassword err: ', err)
+              reject(err)
+            })
+        })
+      }
+      async function checkpid(time = 0) {
+        if (existsSync(p)) {
+          console.log('time: ', time)
+          success = true
+          try {
+            await execPromise(`kill -9 ${spawn.pid}`)
+          } catch (e) {}
+        } else {
+          if (time < 40) {
+            await waitTime(500)
+            await checkpid(time + 1)
+          } else {
+            try {
+              await execPromise(`kill -9 ${spawn.pid}`)
+            } catch (e) {}
+          }
+        }
+      }
+      const unlinkDirOnFail = async () => {
+        if (existsSync(dataDir)) {
+          await remove(dataDir)
+        }
+        if (existsSync(m)) {
+          await remove(m)
+        }
+      }
+      promise
+        .on(async (data) => {
+          on(data)
+          if (!checking) {
+            checking = true
+            await checkpid()
+          }
+        })
+        .then(async (code) => {
+          if (success) {
+            resolve(code)
+          } else {
+            if (needRestart) {
+              try {
+                await this.startGroupServer(version).on(on)
+                await initPassword()
                 on(I18nT('fork.postgresqlInit', { dir: dataDir }))
                 resolve(code)
               } catch (e) {

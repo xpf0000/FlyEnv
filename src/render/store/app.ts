@@ -37,6 +37,9 @@ export interface AppServerCurrent {
   version?: string
   bin?: string
   path?: string
+  fetching?: boolean
+  running?: boolean
+  flag?: string
 }
 
 export enum AppSofts {

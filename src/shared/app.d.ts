@@ -1,3 +1,5 @@
+import type { AppServerCurrent } from '@/store/app'
+
 export interface SoftInstalled {
   version: string | null
   bin: string
@@ -49,4 +51,10 @@ export interface AIChatItem {
   content: string
   action?: 'ChooseSiteRoot' | 'SiteAccessIssues'
   actionEnd?: boolean
+}
+
+export interface MysqlGroupItem {
+  version: AppServerCurrent
+  port: number
+  dataDir: string
 }
