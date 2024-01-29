@@ -275,11 +275,6 @@
         params = `${proxyStr?.value};${params}`
       }
     } else {
-      const sh = join(global.Server.Static, 'sh/port-cmd.sh')
-      const copyfile = join(global.Server.Cache, 'port-cmd.sh')
-      if (existsSync(copyfile)) {
-        unlinkSync(copyfile)
-      }
       let names = [name]
       if (props.typeFlag === 'php') {
         names.push(`${name}-fpm`, `${name}-mysql`, `${name}-apache2handler`, `${name}-iconv`)
@@ -288,15 +283,44 @@
       } else if (props.typeFlag === 'mariadb') {
         names.push(`${name}-server`)
       }
-      let content = readFileSync(sh, 'utf-8')
-      content = content
-        .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password)
-        .replace(new RegExp('##ARCH##', 'g'), arch)
-        .replace(new RegExp('##ACTION##', 'g'), fn)
-        .replace(new RegExp('##NAME##', 'g'), names.join(' '))
-      writeFileSync(copyfile, content)
-      chmod(copyfile, '0777')
-      params = [copyfile].join(' ')
+      if (['php52', 'php53', 'php54', 'php55', 'php56'].includes(name) && fn === 'install') {
+        const sh = join(global.Server.Static, 'sh/port-cmd-user.sh')
+        const copyfile = join(global.Server.Cache, 'port-cmd-user.sh')
+        if (existsSync(copyfile)) {
+          unlinkSync(copyfile)
+        }
+        const libs = names.join(' ')
+        const arrs = [
+          `echo "arch ${arch} sudo port clean -v ${libs}"`,
+          `echo "${global.Server.Password}" | arch ${arch} sudo -S port clean -v ${libs}`
+        ]
+        names.forEach((name) => {
+          arrs.push(`echo "arch ${arch} sudo port install -v ${name} configure.compiler=macports-clang-10"`)
+          arrs.push(
+            `echo "${global.Server.Password}" | arch ${arch} sudo -S port install -v ${name} configure.compiler=macports-clang-10`
+          )
+        })
+        let content = readFileSync(sh, 'utf-8')
+        content = content.replace('##CONTENT##', arrs.join('\n'))
+        writeFileSync(copyfile, content)
+        chmod(copyfile, '0777')
+        params = [copyfile].join(' ')
+      } else {
+        const sh = join(global.Server.Static, 'sh/port-cmd.sh')
+        const copyfile = join(global.Server.Cache, 'port-cmd.sh')
+        if (existsSync(copyfile)) {
+          unlinkSync(copyfile)
+        }
+        let content = readFileSync(sh, 'utf-8')
+        content = content
+          .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password)
+          .replace(new RegExp('##ARCH##', 'g'), arch)
+          .replace(new RegExp('##ACTION##', 'g'), fn)
+          .replace(new RegExp('##NAME##', 'g'), names.join(' '))
+        writeFileSync(copyfile, content)
+        chmod(copyfile, '0777')
+        params = [copyfile].join(' ')
+      }
       if (proxyStr?.value) {
         params = `${proxyStr?.value};${params}`
       }
