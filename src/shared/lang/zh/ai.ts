@@ -66,5 +66,27 @@ brew tap shivammathur/php`,
   brewNetIssues: `版本管理如果一直获取不到版本，大概率是网络问题，例如php， 程序默认会先自动安装shivammathur/php这个第三方存储桶，存储桶又没有镜像源，就会卡在这里，无法获取到可用版本
 建议是使用VPN, 获取到VPN软件的终端代理命令，在软件的设置->代理设置里配置好，然后开启代理， 然后可以再试下看是否能获取和安装版本`,
   brewSlowIssues: `版本安装非常慢的话，大概率是网络问题。可以尝试切换Homebrew镜像再尝试。更推荐的方法是使用VPN
-获取到VPN软件的终端代理命令，在软件的设置->代理设置里配置好，然后开启代理， 然后可以再试下看是否能获取和安装版本`
+获取到VPN软件的终端代理命令，在软件的设置->代理设置里配置好，然后开启代理， 然后可以再试下看是否能获取和安装版本`,
+  macportsNotInstall: `检测到系统未安装MacPorts, 如想安装, 可以点击此链接
+<a href="javascript:void();" onclick="openUrl('https://www.macports.org/install.php')">https://www.macports.org/install.php</a>
+按照文档说明进行安装.
+安装完成后, 可以在设置中切换MacPorts镜像, 来提高安装软件的速度`,
+  macportsHasInstall: `检测到系统已安装MacPorts.
+如果无法安装软件, 或者安装速度较慢, 可以尝试在设置中切换MacPorts镜像`,
+  brewNotInstall: `检测到系统未安装Homebrew, 如想安装, 可以点击此链接
+<a href="javascript:void();" onclick="openUrl('https://www.macphpstudy.com/zh/help-4-2.html')">https://www.macphpstudy.com/zh/help-4-2.html</a>
+按照文档说明进行安装.
+中国用户, 安装完成后, 可以在设置中切换Homebrew源, 来提高安装软件的速度. 但还是更建议使用VPN来解决网络问题
+`,
+  brewHasInstall: `检测到系统已安装Homebrew.
+如果在应用内安装或卸载软件出现问题, 可以尝试手动在命令行中执行命令`,
+  mysqlPassword: `Mysql数据库的初始账号密码为 root root
+程序没有数据库数据管理功能, 如果需要修改密码或者管理数据库数据, 可以使用以下几种方式:
+phpMyAdmin <a href="javascript:void();" onclick="openUrl('https://www.phpmyadmin.net/')">https://www.phpmyadmin.net/</a>
+Navicat <a href="javascript:void();" onclick="openUrl('https://www.navicat.com.cn/')">https://www.navicat.com.cn/</a>
+MySQL Workbench <a href="javascript:void();" onclick="openUrl('https://www.mysql.com/products/workbench/')">https://www.mysql.com/products/workbench/</a>
+DataGrip <a href="javascript:void();" onclick="openUrl('https://www.jetbrains.com/zh-cn/datagrip/')">https://www.jetbrains.com/zh-cn/datagrip/</a>
+DbGate <a href="javascript:void();" onclick="openUrl('https://dbgate.org/')">https://dbgate.org/</a>
+DBeaver <a href="javascript:void();" onclick="openUrl('https://dbeaver.io/')">https://dbeaver.io/</a>
+如果有其他觉得不错的工具, 可以联系我添加`
 }

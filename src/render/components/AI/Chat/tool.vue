@@ -33,6 +33,9 @@
   import { BrewPHP7Issues } from '@/components/AI/Task/BrewPHP7Issues'
   import { VersionManagerEmpty } from '@/components/AI/Task/VersionManagerEmpty'
   import { VersionInstallSlow } from '@/components/AI/Task/VersionInstallSlow'
+  import { MacportInstall } from '@/components/AI/Task/MacportInstall'
+  import { HomebrewInstall } from '@/components/AI/Task/HomebrewInstall'
+  import { MysqlPassword } from '@/components/AI/Task/MysqlPassword'
 
   interface RestaurantItem {
     value: string
@@ -69,7 +72,7 @@
       const key = queryString.toLowerCase()
       const send = (arr: Array<string>) => {
         results = ALLKeys.filter((a) => {
-          return a.tips.flat().some((s) => arr.includes(s))
+          return a.tips.flat().some((s) => arr.some((k) => k.includes(s) || s.includes(k)))
         }).map((a) => {
           return {
             value: a.txt
@@ -170,6 +173,18 @@
           break
         case 'VersionInstallSlow':
           aiStore.currentTask = new VersionInstallSlow()
+          aiStore.currentTask.next()
+          break
+        case 'MacportInstall':
+          aiStore.currentTask = new MacportInstall()
+          aiStore.currentTask.next()
+          break
+        case 'HomebrewInstall':
+          aiStore.currentTask = new HomebrewInstall()
+          aiStore.currentTask.next()
+          break
+        case 'MysqlPassword':
+          aiStore.currentTask = new MysqlPassword()
           aiStore.currentTask.next()
           break
       }

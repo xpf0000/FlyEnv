@@ -6,6 +6,7 @@ import { AppI18n } from '@shared/lang'
 import { AppStore } from '@/store/app'
 import { SiteSuckerStore } from '@/components/Tools/SiteSucker/store'
 import { DnsStore } from '@/store/dns'
+import './style/light.scss'
 
 const { getGlobal } = require('@electron/remote')
 global.Server = getGlobal('Server')

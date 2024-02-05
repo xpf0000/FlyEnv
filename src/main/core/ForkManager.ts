@@ -100,7 +100,10 @@ export class ForkManager {
   fenciFork?: ForkItem
   _on: Function = () => {}
   constructor(file: string) {
-    const cpuNun = Math.max(cpus().length, 3)
+    /**
+     * 开启子线程 最小3个 最大7个 加上分词线程 最终子线程数 4-8个
+     */
+    const cpuNun = Math.min(Math.max(cpus().length, 3), 7)
     /**
      * 分词单开一条线程
      */

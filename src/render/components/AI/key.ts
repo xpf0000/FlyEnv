@@ -14,6 +14,9 @@ export interface AIKeyItem {
     | 'HomebrewPhp7Issues'
     | 'VersionManagerEmpty'
     | 'VersionInstallSlow'
+    | 'MacportInstall'
+    | 'HomebrewInstall'
+    | 'MysqlPassword'
 }
 
 export const AIKeys: Array<AIKeyItem> = [
@@ -24,6 +27,24 @@ export const AIKeys: Array<AIKeyItem> = [
     ],
     txt: '终止任务',
     task: 'StopTask'
+  },
+  {
+    tips: [
+      ['macports', 'port', 'macport', '版本'],
+      ['无法', '怎么', '没有', '没'],
+      ['使用', '安装', '添加']
+    ],
+    txt: 'MacPorts安装',
+    task: 'MacportInstall'
+  },
+  {
+    tips: [
+      ['homebrew', 'brew', '版本'],
+      ['无法', '怎么', '没有', '没'],
+      ['使用', '安装', '添加']
+    ],
+    txt: 'Homebrew安装',
+    task: 'HomebrewInstall'
   },
   {
     tips: [
@@ -102,6 +123,11 @@ export const AIKeys: Array<AIKeyItem> = [
     ],
     txt: '版本安装非常慢',
     task: 'VersionInstallSlow'
+  },
+  {
+    tips: [['mysql'], ['数据库', '密码', '管理', '初始'], ['密码', '工具', '软件', '设置']],
+    txt: 'Mysql初始密码',
+    task: 'MysqlPassword'
   }
 ]
 export const AIKeysEN: Array<AIKeyItem> = [
@@ -112,6 +138,24 @@ export const AIKeysEN: Array<AIKeyItem> = [
     ],
     txt: 'Abort Task',
     task: 'StopTask'
+  },
+  {
+    tips: [
+      ['macports', 'port', 'macport'],
+      [`can't`, 'how', 'can not', 'not'],
+      ['use', 'installed', 'install', 'add']
+    ],
+    txt: 'MacPorts Installation',
+    task: 'MacportInstall'
+  },
+  {
+    tips: [
+      ['homebrew', 'brew'],
+      [`can't`, 'how', 'can not', 'not'],
+      ['use', 'installed', 'install', 'add']
+    ],
+    txt: 'Homebrew Installation',
+    task: 'HomebrewInstall'
   },
   {
     tips: [
@@ -211,5 +255,14 @@ export const AIKeysEN: Array<AIKeyItem> = [
     ],
     txt: 'Version installation is very slow',
     task: 'VersionInstallSlow'
+  },
+  {
+    tips: [
+      ['mysql'],
+      ['database', 'password', 'manage', 'initial'],
+      ['password', 'tool', 'application', 'program', 'software']
+    ],
+    txt: 'Mysql initial password',
+    task: 'MysqlPassword'
   }
 ]

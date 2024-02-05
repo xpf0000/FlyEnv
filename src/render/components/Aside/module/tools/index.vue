@@ -8,7 +8,7 @@
       <div class="icon-block">
         <yb-icon :svg="import('@/svg/tool.svg?raw')" width="30" height="30" />
       </div>
-      <span class="title">Tools</span>
+      <span class="title">{{ $t('base.leftTools') }}</span>
     </div>
   </li>
 </template>

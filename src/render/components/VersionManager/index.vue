@@ -210,12 +210,14 @@
         .then(() => {
           if (props.typeFlag === 'php') {
             if (libSrc?.value === 'brew') {
+              /**
+               * 先获取已安装的 php, 同时安装shivammathur/php库, 安装成功后, 再刷新数据
+               * 避免国内用户添加库非常慢, 导致已安装数据也无法获取
+               */
               IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string) => {
                 IPC.off(key)
                 fetchData()
               })
-            } else {
-              fetchData()
             }
           } else if (props.typeFlag === 'mongodb') {
             if (libSrc?.value === 'brew') {
@@ -223,12 +225,9 @@
                 IPC.off(key)
                 fetchData()
               })
-            } else {
-              fetchData()
             }
-          } else {
-            fetchData()
           }
+          fetchData()
         })
         .catch(() => {
           currentType.value.getListing = false
@@ -295,7 +294,9 @@
           `echo "${global.Server.Password}" | arch ${arch} sudo -S port clean -v ${libs}`
         ]
         names.forEach((name) => {
-          arrs.push(`echo "arch ${arch} sudo port install -v ${name} configure.compiler=macports-clang-10"`)
+          arrs.push(
+            `echo "arch ${arch} sudo port install -v ${name} configure.compiler=macports-clang-10"`
+          )
           arrs.push(
             `echo "${global.Server.Password}" | arch ${arch} sudo -S port install -v ${name} configure.compiler=macports-clang-10`
           )

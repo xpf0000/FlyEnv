@@ -98,10 +98,8 @@
         </el-row>
       </el-form>
     </div>
-    <div class="plant-title">{{ $t('base.brewSrcSwitch') }}</div>
-    <div class="main brew-src">
-      <BrewSrc></BrewSrc>
-    </div>
+    <BrewSrc></BrewSrc>
+    <MacPortsSrc></MacPortsSrc>
     <div class="plant-title">{{ $t('base.githubFixTitle') }}</div>
     <div class="main brew-src">
       <GitHubFix></GitHubFix>
@@ -134,6 +132,7 @@
   import { defineComponent } from 'vue'
   import ForceStart from './ForceStart/index.vue'
   import ShowAI from './AI/index.vue'
+  import MacPortsSrc from './MacPortsSrc/index.vue'
 
   export default defineComponent({
     components: {
@@ -144,7 +143,8 @@
       LangeSet,
       AutoUpdate,
       ForceStart,
-      ShowAI
+      ShowAI,
+      MacPortsSrc
     },
     props: {},
     data() {

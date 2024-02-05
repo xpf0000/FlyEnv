@@ -33,5 +33,22 @@ export default {
   mysqlDataDir: 'Data Dir',
   mysqlState: 'State',
 
-  mysqlPopperSocket: 'Copy Socket Path'
+  mysqlPopperSocket: 'Copy Socket Path',
+
+  macPortsSrcSwitch: 'MacPorts Mirror Switch',
+
+  macPortsSrcDefault: 'Default',
+  macPortsSrcAustraliBrisbane: 'Australia, Brisbane',
+  macPortsSrcCanadaManitoba: 'Canada, Manitoba',
+  macPortsSrcCanadaWaterloo: 'Canada, Waterloo',
+  macPortsSrcChinaBeijing: 'China, Beijing',
+  macPortsSrcDenmarkCopenhagen: 'Denmark, Copenhagen',
+  macPortsSrcGermanyErlangen: 'Germany, Erlangen',
+  macPortsSrcGermanyLimburg: 'Germany, Limburg',
+  macPortsSrcIndonesiaYogyakarta: 'Indonesia, Yogyakarta',
+  macPortsSrcJapanNomiIshikawa: 'Japan, Nomi, Ishikawa',
+  macPortsSrcSouthAfricaJohannesburg: 'South Africa, Johannesburg',
+  macPortsSrcSouthKoreaDaejeon: 'South Korea, Daejeon',
+  macPortsSrcUnitedKingdomCanterbury: 'United Kingdom, Canterbury',
+  macPortsSrcUnitedStatesGeorgia: 'United States, Georgia'
 }

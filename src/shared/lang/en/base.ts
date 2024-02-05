@@ -144,5 +144,9 @@ export default {
   ftpDirNotExists: `Folder doesn't exist, please select again`,
   editorSetup: 'Editor Setup',
 
-  group: 'Group'
+  group: 'Group',
+
+  leftHosts: 'Hosts',
+  leftTools: 'Tools',
+  leftSetup: 'Setup'
 }

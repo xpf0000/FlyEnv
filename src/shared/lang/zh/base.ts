@@ -134,5 +134,9 @@ export default {
   ftpDirNotExists: '文件夹不存在，请重新选择',
   editorSetup: '编辑器设置',
 
-  group: '群组'
+  group: '群组',
+
+  leftHosts: '站点',
+  leftTools: '工具箱',
+  leftSetup: '设置'
 }

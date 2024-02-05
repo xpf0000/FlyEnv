@@ -508,6 +508,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:version':
       case 'app-fork:project':
       case 'app-fork:tools':
+      case 'app-fork:macports':
         const module = command.replace('app-fork:', '')
         global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
         global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')

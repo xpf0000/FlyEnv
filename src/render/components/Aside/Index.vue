@@ -43,7 +43,7 @@
             <div class="icon-block">
               <yb-icon :svg="import('@/svg/setup.svg?raw')" width="30" height="30" />
             </div>
-            <span class="title">Setup</span>
+            <span class="title">{{ $t('base.leftSetup') }}</span>
           </div>
         </li>
       </ul>

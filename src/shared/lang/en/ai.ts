@@ -70,5 +70,26 @@ brew tap shivammathur/php`,
   brewNetIssues: `If you can't get the version, it's probably a network problem, for example, php, the program will automatically install shivammathur/php as a third-party storage bucket by default, and there is no mirroring source in the storage bucket, so it will be stuck here, and you can't get the available version.
 Suggestion is to use VPN, get the terminal proxy command of the VPN software, configure it in the software's Settings->Proxy Settings, and then turn on the proxy, then you can try again to see if you can get and install the version.`,
   brewSlowIssues: `If the version is very slow to install, it's probably a network issue. You can try switching Homebrew mirrors and try again. A more recommended method is to use a VPN
-Get the terminal proxy command of the VPN software, configure it in Settings->Proxy Settings of the software, and then turn on the proxy, then you can try again to see if you can get and install the version.`
+Get the terminal proxy command of the VPN software, configure it in Settings->Proxy Settings of the software, and then turn on the proxy, then you can try again to see if you can get and install the version.`,
+  macportsNotInstall: `MacPorts has not been detected on the system, if you want to install it, you can click on this link
+<a href="javascript:void();" onclick="openUrl('https://www.macports.org/install.php')">https://www.macports.org/install.php</a>
+Follow the documentation to install.
+After the installation is complete, you can switch the MacPorts mirror in the Setup to increase the speed of installing the software.`,
+  macportsHasInstall: `MacPorts is detected as installed on the system.
+If you can't install the software, or if it installs slowly, try switching the MacPorts mirror in Setup.`,
+  brewNotInstall: `Homebrew is not detected on your system, if you want to install it, you can click on this link
+<a href="javascript:void();" onclick="openUrl('https://www.macphpstudy.com/zh/help-4-2.html')">https://www.macphpstudy.com/zh/help-4-2.html</a>
+Follow the documentation to install.
+`,
+  brewHasInstall: `Homebrew is detected to be installed on the system.
+If you have problems installing or uninstalling software from within the application, you can try manually executing commands from the command line`,
+  mysqlPassword: `The initial account password for the Mysql database is root root
+The program does not have a database data management tool, if you need to change the password or manage the database data, you can use the following way:
+phpMyAdmin <a href="javascript:void();" onclick="openUrl('https://www.phpmyadmin.net/')">https://www.phpmyadmin.net/</a>
+Navicat <a href="javascript:void();" onclick="openUrl('https://www.navicat.com/')">https://www.navicat.com.cn/</a>
+MySQL Workbench <a href="javascript:void();" onclick="openUrl('https://www.mysql.com/products/workbench/')">https://www.mysql.com/products/workbench/</a>
+DataGrip <a href="javascript:void();" onclick="openUrl('https://www.jetbrains.com/datagrip/')">https://www.jetbrains.com/zh-cn/datagrip/</a>
+DbGate <a href="javascript:void();" onclick="openUrl('https://dbgate.org/')">https://dbgate.org/</a>
+DBeaver <a href="javascript:void();" onclick="openUrl('https://dbeaver.io/')">https://dbeaver.io/</a>
+If there are any other tools that you think are good, please contact me to add them.`
 }

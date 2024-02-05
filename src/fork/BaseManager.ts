@@ -18,6 +18,7 @@ import Brew from './module/Brew'
 import Version from './module/Version'
 import Project from './module/Project'
 import Tool from './module/Tool'
+import MacPorts from './module/MacPorts'
 
 class BaseManager {
   constructor() {}
@@ -86,6 +87,8 @@ class BaseManager {
       func = Project.exec(fn, ...commands)
     } else if (module === 'tools') {
       func = Tool.exec(fn, ...commands)
+    } else if (module === 'macports') {
+      func = MacPorts.exec(fn, ...commands)
     }
     func?.on(onData).then(then).catch(error)
   }

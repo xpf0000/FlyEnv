@@ -51,21 +51,23 @@
 // //   console.log(m)
 // // }
 //
-const str = `2024-01-07T12:20:38.693574Z 0 [ERROR] [MY-011300] [Server] Plugin mysqlx reported: 'Setup of bind-address: '*' port: 33060 failed, \`bind()\` failed with error: Address already in use (48). Do you already have another mysqld server running with Mysqlx ?'`
+const sourcesConf = '/opt/local/etc/macports/macports.conf'
 //
-const regex = /port: (\d+) failed, `bind\(\)` failed with error: Address already in use \(48\)/g
+// const regex = /([^\n\da-zA-Z][\s]?)rsync:\/\/(.*?)([^\n])(\n|$)/g
 
-// console.log(regex.test(str))
-// console.log(str.match(regex))
-const port = new Set()
-let m
-while ((m = regex.exec(str)) !== null) {
-  console.log(m)
-  if (m && m.length > 1) {
-    port.add(m[1])
-  }
-}
-console.log(port)
+// const regex = /(^|\n)\s*rsync:\/\/.*(\[default])?(\n|$)/
+// const regex = /^(?:\s*rsync:\/\/.*\[default\])$/gm
+const regex = /^(?:\s*rsync_server\s.*)$/gm
+const fs = require('fs')
+
+const content = fs.readFileSync(sourcesConf, 'utf-8')
+
+console.log(content.match(regex))
+
+// let m
+// while ((m = regex.exec(content)) !== null) {
+//   console.log(m)
+// }
 
 // class Test4 {
 //   constructor() {

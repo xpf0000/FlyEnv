@@ -1,0 +1,102 @@
+html.light {
+  #app {
+    background: #fff;
+
+    #container {
+      background: #fff;
+
+      .aside {
+        background: #f1f2f3;
+        color: #345;
+
+        .top-menu {
+          padding: 0 12px;
+
+          > li {
+            padding: 0 15px;
+            border-radius: 6px;
+
+            &:hover {
+              background-color: rgba(51, 68, 85, 0.2);
+              backdrop-filter: blur(5px);
+            }
+
+            &.active {
+              background-color: rgba(51, 68, 85, 0.4);
+              backdrop-filter: blur(5px);
+
+              svg {
+                color: #fff;
+              }
+            }
+          }
+
+          svg {
+            color: #345;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background-color: rgba(51, 68, 85, 0.1);
+          }
+        }
+
+        .setup-menu {
+          border: none;
+          padding: 0 19px 8px 12px;
+
+          >li {
+            padding: 0 15px;
+            border-radius: 6px;
+
+            &:hover {
+              background-color: rgba(51, 68, 85, 0.2);
+              backdrop-filter: blur(5px);
+            }
+
+            &.active {
+              background-color: rgba(51, 68, 85, 0.4);
+              backdrop-filter: blur(5px);
+
+              svg {
+                color: #fff;
+              }
+            }
+          }
+
+          svg {
+            color: #345;
+          }
+        }
+      }
+
+      .main-right-panel {
+        background: #fff;
+        color: #345;
+
+        > .top-tab {
+          >li {
+            &:hover {
+              background-color: rgba(51, 68, 85, 0.2);
+              backdrop-filter: blur(5px);
+            }
+            &.active {
+              background: rgba(51, 68, 85, 0.4);
+              backdrop-filter: blur(5px);
+              color: #fff;
+            }
+          }
+        }
+
+        .php-versions-list {
+          &::-webkit-scrollbar-thumb {
+            background-color: rgba(51, 68, 85, 0.1);
+          }
+          .http-serve-item {
+            background-color: rgba(51, 68, 85, 0.2);
+            backdrop-filter: blur(5px);
+          }
+        }
+      }
+    }
+  }
+}
