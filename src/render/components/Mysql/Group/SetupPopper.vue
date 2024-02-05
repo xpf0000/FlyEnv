@@ -1,5 +1,11 @@
 <template>
-  <el-popover effect="dark" popper-class="host-list-poper" placement="bottom-end" width="150">
+  <el-popover
+    :show-arrow="false"
+    effect="dark"
+    popper-class="host-list-poper"
+    placement="bottom-end"
+    width="150"
+  >
     <ul v-poper-fix class="host-list-menu">
       <li @click.stop="action('edit')">
         <span class="ml-15">{{ $t('base.edit') }}</span>

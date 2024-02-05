@@ -1,4 +1,8 @@
 html.light {
+  --base-bg-color: rgba(51, 68, 85, 0.35);
+  --base-bg-color-2: rgba(51, 68, 85, 0.2);
+  --base-bg-color-1: rgba(51, 68, 85, 0.15);
+
   #app {
     background: #fff;
 
@@ -9,6 +13,14 @@ html.light {
         background: #f1f2f3;
         color: #345;
 
+        .top-tool {
+          svg {
+            &:hover {
+              color: #fdab1f;
+            }
+          }
+        }
+
         .top-menu {
           padding: 0 12px;
 
@@ -17,12 +29,12 @@ html.light {
             border-radius: 6px;
 
             &:hover {
-              background-color: rgba(51, 68, 85, 0.2);
+              background-color: var(--base-bg-color-2);
               backdrop-filter: blur(5px);
             }
 
             &.active {
-              background-color: rgba(51, 68, 85, 0.4);
+              background-color: var(--base-bg-color);
               backdrop-filter: blur(5px);
 
               svg {
@@ -36,7 +48,7 @@ html.light {
           }
 
           &::-webkit-scrollbar-thumb {
-            background-color: rgba(51, 68, 85, 0.1);
+            background-color: var(--base-bg-color-1);
           }
         }
 
@@ -49,12 +61,12 @@ html.light {
             border-radius: 6px;
 
             &:hover {
-              background-color: rgba(51, 68, 85, 0.2);
+              background-color: var(--base-bg-color-2);
               backdrop-filter: blur(5px);
             }
 
             &.active {
-              background-color: rgba(51, 68, 85, 0.4);
+              background-color: var(--base-bg-color);
               backdrop-filter: blur(5px);
 
               svg {
@@ -75,12 +87,12 @@ html.light {
 
         > .top-tab {
           >li {
-            &:hover {
-              background-color: rgba(51, 68, 85, 0.2);
+            &:not(.no-hover):hover {
+              background-color: var(--base-bg-color-2);
               backdrop-filter: blur(5px);
             }
             &.active {
-              background: rgba(51, 68, 85, 0.4);
+              background: var(--base-bg-color);
               backdrop-filter: blur(5px);
               color: #fff;
             }
@@ -89,13 +101,262 @@ html.light {
 
         .php-versions-list {
           &::-webkit-scrollbar-thumb {
-            background-color: rgba(51, 68, 85, 0.1);
+            background-color: var(--base-bg-color-1);
           }
           .http-serve-item {
-            background-color: rgba(51, 68, 85, 0.2);
+            background-color: var(--base-bg-color-1);
             backdrop-filter: blur(5px);
           }
         }
+
+        >.main-block {
+          >.module-config {
+            >.block {
+              border: 1px solid var(--base-bg-color-2);
+            }
+          }
+
+          >.mysql-group-main {
+            .table-header {
+              background-color: #f1f2f3;
+              color: #345;
+              border-bottom: 1px #f1f2f3 solid;
+            }
+          }
+
+          >.ftp-service-main {
+            .table-header {
+              background-color: #f1f2f3;
+              color: #345;
+              border-bottom: 1px #f1f2f3 solid;
+            }
+          }
+        }
+
+        >.http-serve-list {
+          &::-webkit-scrollbar-thumb {
+            background-color: var(--base-bg-color-1);
+          }
+
+          .http-serve-item {
+            background-color: var(--base-bg-color-1);
+            backdrop-filter: blur(5px);
+
+            .left {
+              > .top {
+                > .value {
+                  &:hover {
+                    color: #fdab1f;
+                  }
+                }
+              }
+
+              > .bottom {
+                > .url {
+                  color: #409eff;
+                  &.empty {
+                    color: #345;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        >.tools-panel {
+          > li {
+            background-color: var(--base-bg-color-1);
+            backdrop-filter: blur(5px);
+          }
+        }
+
+        &.dns-panel {
+          .main-block {
+            .table-header {
+              background-color: #f1f2f3;
+              color: #345;
+              border-bottom: 1px #f1f2f3 solid;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .el-popover.el-popper.host-list-poper {
+    background: rgba(51, 68, 85, 0.5);
+    backdrop-filter: blur(5px);
+    overflow: hidden;
+
+    .host-list-menu {
+      overflow: hidden;
+
+      > li {
+        .el-dropdown {
+          color: #fff;
+        }
+        &:hover {
+          background: rgba(51, 68, 85, 0.6);
+          backdrop-filter: blur(5px);
+        }
+      }
+    }
+  }
+
+  .host-list {
+    .right {
+      &:hover {
+        background: transparent;
+        color: #fdab1f;
+      }
+    }
+  }
+
+  .el-dialog {
+    &.host-edit {
+      .main-wapper {
+
+        .main {
+          background: var(--base-bg-color-1);
+          backdrop-filter: blur(5px);
+
+          .input,
+          .input-textarea {
+            color: #345;
+            &::-webkit-input-placeholder {
+              color: rgba(51, 68, 85, 0.7);
+            }
+          }
+          .input {
+            border-bottom: 1px solid rgba(51, 68, 85, 0.4);
+
+            &:hover {
+              border-bottom: 2px solid rgba(51, 68, 85, 0.4);
+            }
+            &:focus {
+              border-bottom: 2px solid #01cc74;
+            }
+            &.error {
+              border-bottom: 2px solid #cc5441;
+            }
+          }
+          .input-textarea {
+            border: 1px solid rgba(51, 68, 85, 0.4);
+
+            &:hover {
+              border: 2px solid rgba(51, 68, 85, 0.4);
+            }
+            &:focus {
+              border: 2px solid #01cc74;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .el-drawer .el-drawer__body {
+    background: #fff !important;
+    padding: 0 !important;
+
+    .host-vhost {
+      background: #f1f2f3;
+
+      .nav {
+        background: #f1f2f3;
+        height: 55px;
+      }
+
+      .main-wapper {
+        background: #fff;
+      }
+    }
+
+    .host-edit {
+      background: #fff;
+
+      .nav {
+        background: #f1f2f3;
+      }
+
+      .main-wapper {
+        color: #345;
+
+        .main {
+          background: var(--base-bg-color-1);
+          backdrop-filter: blur(5px);
+        }
+
+        .el-switch {
+          &:not(.is-checked) {
+            .el-switch__core {
+              background: #b4b6b8;
+              border-color: #b4b6b8;
+            }
+          }
+        }
+
+        .input,
+        .input-textarea {
+          color: #345;
+          &::-webkit-input-placeholder {
+            color: rgba(51, 68, 85, 0.7);
+          }
+        }
+        .input {
+          border-bottom: 1px solid rgba(51, 68, 85, 0.4);
+
+          &:hover {
+            border-bottom: 2px solid rgba(51, 68, 85, 0.4);
+          }
+          &:focus {
+            border-bottom: 2px solid #01cc74;
+          }
+          &.error {
+            border-bottom: 2px solid #cc5441;
+          }
+        }
+        .input-textarea {
+          border: 1px solid rgba(51, 68, 85, 0.4);
+
+          &:hover {
+            border: 2px solid rgba(51, 68, 85, 0.4);
+          }
+          &:focus {
+            border: 2px solid #01cc74;
+          }
+        }
+      }
+    }
+
+    .host-logs {
+      background: #fff;
+      > .top-tab {
+        > li {
+          &:hover {
+            background: var(--base-bg-color-2);
+            backdrop-filter: blur(5px);
+          }
+          &.active {
+            background: var(--base-bg-color);
+            backdrop-filter: blur(5px);
+            color: #fff;
+          }
+        }
+      }
+      > .block {
+        border: 1px solid var(--base-bg-color-2);
+      }
+    }
+
+    .log-popper {
+      background: #f1f2f3;
+      .nav {
+        background: #f1f2f3;
+        height: 55px;
+      }
+      .main-wapper {
+        background: #fff;
       }
     }
   }

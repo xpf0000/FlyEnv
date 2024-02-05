@@ -78,22 +78,22 @@
 </script>
 
 <style lang="scss">
-  .host-link-dialog {
-    background: #1d2033;
+  .el-dialog {
+    &.host-link-dialog {
+      .host-link {
+        max-height: 50vh;
+        overflow: auto;
 
-    .host-link {
-      max-height: 50vh;
-      overflow: auto;
+        .el-input {
+          margin-top: 15px;
 
-      .el-input {
-        margin-top: 15px;
-
-        &:first-child {
-          margin-top: 0;
+          &:first-child {
+            margin-top: 0;
+          }
         }
-      }
-      .el-button-group {
-        display: flex;
+        .el-button-group {
+          display: flex;
+        }
       }
     }
   }

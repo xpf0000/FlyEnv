@@ -10,7 +10,7 @@
     <template #default>
       <div class="main-wapper">
         <div class="main">
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose mt-20 mb-10">
             <el-select
               v-model="form.path"
               class="w-p100"
@@ -191,13 +191,3 @@
     onClosed
   })
 </script>
-<style lang="scss">
-  .host-edit.new-project {
-    width: 500px;
-    height: auto;
-
-    .el-dialog__body {
-      padding: 5px 10px;
-    }
-  }
-</style>

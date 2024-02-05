@@ -1,0 +1,147 @@
+html.dark {
+  .el-message-box {
+    &.confirm-del {
+      background: #32364a;
+      border: 1px solid #32364a;
+      color: #fff;
+      .el-message-box__message,
+      .el-message-box__close {
+        color: rgba(255, 255, 255, 0.7);
+      }
+    }
+  }
+
+  .el-dialog {
+    &.host-link-dialog {
+      background: #1d2033;
+    }
+
+    &.host-edit {
+      background: #1d2033;
+
+      .nav {
+        background: #282b3d;
+      }
+
+      .main-wapper {
+        color: rgba(255, 255, 255, 0.7);
+
+        .main {
+          background: #32364a;
+        }
+      }
+    }
+  }
+
+  .el-drawer .el-drawer__body {
+    .host-edit {
+      background: #1d2033;
+      .nav {
+        background: #282b3d;
+      }
+      .main-wapper {
+        color: rgba(255, 255, 255, 0.7);
+
+        .main {
+          background: #32364a;
+        }
+      }
+    }
+    .host-logs {
+      background: #1d2033;
+      > .top-tab {
+        > li {
+          &:hover {
+            background-color: #3e4257;
+          }
+          &.active {
+            background: #3e4257;
+          }
+        }
+      }
+    }
+    .log-popper {
+      background: #1d2033;
+      .nav {
+        background: #282b3d;
+      }
+    }
+    .php-extensions {
+      background: #1d2033;
+      .nav {
+        background: #282b3d;
+      }
+    }
+  }
+
+  .main-right-panel {
+    > .top-tab {
+      > li {
+        &:not(.no-hover):hover {
+          background-color: #3e4257;
+        }
+        &.active {
+          background: #3e4257;
+        }
+      }
+    }
+    >.main-block {
+      >.mysql-group-main {
+        .table-header {
+          background-color: #141414;
+          color: #fff;
+          border-bottom: 1px #363637 solid;
+        }
+      }
+
+      >.ftp-service-main {
+        .table-header {
+          background-color: #141414;
+          color: #fff;
+          border-bottom: 1px #363637 solid;
+        }
+      }
+    }
+
+    >.http-serve-list {
+      .http-serve-item {
+        background: #32364a;
+
+        .left {
+          > .top {
+            > .value {
+              &:hover {
+                color: #fff;
+              }
+            }
+          }
+
+          > .bottom {
+            > .url {
+              color: #409eff;
+              &.empty {
+                color: #fff;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    >.tools-panel {
+      > li {
+        background: #32364a;
+      }
+    }
+
+    &.dns-panel {
+      .main-block {
+        .table-header {
+          background-color: #141414;
+          color: #fff;
+          border-bottom: 1px #363637 solid;
+        }
+      }
+    }
+  }
+}

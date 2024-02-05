@@ -191,13 +191,3 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     onClosed
   })
 </script>
-<style lang="scss">
-  .host-edit.new-project {
-    width: 500px;
-    height: auto;
-
-    .el-dialog__body {
-      padding: 5px 10px;
-    }
-  }
-</style>

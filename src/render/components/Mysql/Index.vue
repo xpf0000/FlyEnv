@@ -73,14 +73,3 @@
     }
   })
 </script>
-<style lang="scss">
-  .soft-index-panel {
-    .top-tab {
-      > li {
-        &.grouprun {
-          color: #01cc74;
-        }
-      }
-    }
-  }
-</style>

@@ -15,17 +15,17 @@
       </div>
       <div class="main-wapper">
         <div ref="input" class="block"></div>
-        <div class="tool">
-          <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
-            $t('base.open')
-          }}</el-button>
-          <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
-            $t('base.refresh')
-          }}</el-button>
-          <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
-            $t('base.clean')
-          }}</el-button>
-        </div>
+      </div>
+      <div class="tool">
+        <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
+          $t('base.open')
+        }}</el-button>
+        <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
+          $t('base.refresh')
+        }}</el-button>
+        <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
+          $t('base.clean')
+        }}</el-button>
       </div>
     </div>
   </el-drawer>
