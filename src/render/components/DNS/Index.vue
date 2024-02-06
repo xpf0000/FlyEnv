@@ -73,10 +73,3 @@
     links.value.splice(0)
   }
 </script>
-
-<style lang="scss">
-  .dns-tips-popper {
-    max-width: 50vw;
-    white-space: pre-line;
-  }
-</style>

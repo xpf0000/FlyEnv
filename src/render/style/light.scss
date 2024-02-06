@@ -131,6 +131,43 @@ html.light {
               border-bottom: 1px #f1f2f3 solid;
             }
           }
+
+          >.setup-common {
+            &::-webkit-scrollbar-thumb {
+              background-color: var(--base-bg-color-1);
+            }
+            .main {
+              background: var(--base-bg-color-1);
+              backdrop-filter: blur(5px);
+            }
+          }
+
+          >.setup-config {
+            .main {
+              background: var(--base-bg-color-1);
+              backdrop-filter: blur(5px);
+
+              .path-choose {
+                .input {
+                  color: #345;
+                  border-bottom: 1px solid rgba(51, 68, 85, 0.4);
+
+                  &::-webkit-input-placeholder {
+                    color: rgba(51, 68, 85, 0.7);
+                  }
+                  &:hover {
+                    border-bottom: 2px solid rgba(51, 68, 85, 0.4);
+                  }
+                  &:focus {
+                    border-bottom: 2px solid #01cc74;
+                  }
+                  &.error {
+                    border-bottom: 2px solid #cc5441;
+                  }
+                }
+              }
+            }
+          }
         }
 
         >.http-serve-list {
@@ -325,6 +362,16 @@ html.light {
           &:focus {
             border: 2px solid #01cc74;
           }
+          &.error {
+            border: 2px solid #cc5441;
+          }
+        }
+        .el-select {
+          &.error {
+            .el-input__wrapper {
+              border: 1px solid #cc5441;
+            }
+          }
         }
       }
     }
@@ -359,5 +406,25 @@ html.light {
         background: #fff;
       }
     }
+
+    .tools-file-info {
+      .main-wapper {
+        .select-dir-wapper {
+          #selectDir {
+            border: 2px dashed #ccc;
+            color: #345;
+          }
+        }
+      }
+    }
+  }
+
+  .app-chat {
+    .nav {
+      background: #fff;
+    }
+  }
+  .app-ai-tool {
+    background: #fff;
   }
 }

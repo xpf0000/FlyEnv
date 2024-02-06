@@ -1,5 +1,5 @@
 <template>
-  <div class="php-panel main-right-panel">
+  <div class="soft-index-panel main-right-panel">
     <ul class="top-tab">
       <li :class="current_tab === 0 ? 'active' : ''" @click="current_tab = 0"
         >{{ tabs[0] }}
@@ -58,57 +58,3 @@
     }
   }
 </script>
-
-<style lang="scss">
-  .php-panel {
-    height: 100%;
-    overflow: auto;
-    line-height: 1.75;
-    padding: 30px 18px;
-    display: flex;
-    flex-direction: column;
-    > .top-tab {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-shrink: 0;
-      > li {
-        user-select: none;
-        cursor: pointer;
-        min-width: 100px;
-        padding: 0 12px;
-        height: 36px;
-        margin-right: 20px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        &:hover {
-          background-color: #3e4257;
-        }
-        &.active {
-          background: #3e4257;
-          > svg {
-            display: block;
-          }
-        }
-
-        > svg {
-          margin-left: 8px;
-          cursor: pointer;
-          display: none;
-
-          &:hover {
-            color: #409eff;
-          }
-        }
-      }
-    }
-    .main-block {
-      flex: 1;
-      width: 100%;
-      overflow: hidden;
-    }
-  }
-</style>

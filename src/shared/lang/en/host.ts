@@ -20,5 +20,12 @@ export default {
   staticSite: 'Static Site',
   park: 'Generate Sub-Sites',
   hostsCopy: 'Copy hosts text',
-  hostsOpen: 'Open custom hosts file'
+  hostsOpen: 'Open custom hosts file',
+
+  placeholderName: 'host name eg: www.xxx.com',
+  placeholderAlias: 'host alias eg: www.xxx.com',
+  placeholderRemarks: 'host remarks',
+  placeholderRootPath: 'host root path',
+  hostPort: 'Port',
+  hostSSL: 'SSL'
 }

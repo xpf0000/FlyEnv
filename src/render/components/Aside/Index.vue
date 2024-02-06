@@ -16,7 +16,6 @@
           <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
         </li>
       </ul>
-
       <ul class="menu top-menu">
         <HostModule :current-page="currentPage" @nav="nav" />
         <ApacheModule ref="apacheModule" :current-page="currentPage" @nav="nav" />
@@ -392,90 +391,3 @@
     fns[fn] && fns[fn](arg)
   })
 </script>
-
-<style lang="scss">
-  .aside-inner {
-    display: flex;
-    height: 100%;
-    flex-flow: column;
-    overflow: hidden;
-
-    > .top-tool {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 50px 20px 12px 20px;
-      list-style: none;
-      flex-shrink: 0;
-
-      > li {
-        width: 30px;
-        height: 30px;
-        cursor: pointer;
-        border-radius: 14px;
-        transition: background-color 0.25s;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.15);
-        }
-      }
-    }
-  }
-  .logo-mini {
-    margin-top: 40px;
-  }
-  .menu {
-    width: 100%;
-    padding: 0;
-    margin: 0 auto;
-    user-select: none;
-    cursor: default;
-    > li {
-      height: 45px;
-      cursor: pointer;
-      transition: background-color 0.25s;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-      &:hover {
-        background-color: #3e4257;
-      }
-      &.active {
-        color: #fff;
-        background-color: #1d2033;
-      }
-      .left {
-        height: 100%;
-        display: flex;
-        align-items: center;
-        .icon-block {
-          width: 38px;
-          height: 45px;
-          display: flex;
-          align-items: center;
-        }
-        .title {
-          font-size: 14px;
-        }
-      }
-    }
-    svg {
-      padding: 6px;
-      color: #fff;
-    }
-  }
-  .top-menu {
-    flex: 1;
-    overflow: auto;
-  }
-  .setup-menu {
-    flex-shrink: 0;
-    border-top: 1px solid #242737;
-  }
-  .bottom-menu {
-    margin-bottom: 24px;
-  }
-</style>

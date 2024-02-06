@@ -1,5 +1,5 @@
 <template>
-  <div class="ssl-make">
+  <div class="ssl-make host-edit">
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -16,7 +16,7 @@
           <el-select
             v-model="item.phpversion"
             class="w-p100"
-            :class="'input' + (errs['phpversion'] ? ' error' : '')"
+            :class="(errs['phpversion'] ? ' error' : '')"
             :placeholder="$t('php.obfuscatorPhpVersion')"
           >
             <template v-for="(item, index) in phpVersions" :key="index">

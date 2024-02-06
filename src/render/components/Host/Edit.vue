@@ -26,25 +26,25 @@
             v-model.trim="item.name"
             type="text"
             :class="'input' + (errs['name'] ? ' error' : '')"
-            placeholder="name eg: www.xxx.com"
+            :placeholder="$t('host.placeholderName')"
           />
           <textarea
             v-model.trim="item.alias"
             type="text"
             class="input-textarea"
-            placeholder="alias eg: www.xxx.com"
+            :placeholder="$t('host.placeholderAlias')"
           ></textarea>
           <input
             v-model.trim="item.mark"
             style="margin: 15px 0 10px"
             class="input"
-            placeholder="mark"
+            :placeholder="$t('host.placeholderRemarks')"
           />
           <div class="path-choose mt-20 mb-20">
             <input
               type="text"
               :class="'input' + (errs['root'] ? ' error' : '')"
-              placeholder="root path"
+              :placeholder="$t('host.placeholderRootPath')"
               readonly=""
               :value="item.root"
             />
@@ -96,7 +96,7 @@
           </div>
         </div>
 
-        <div class="plant-title">Port</div>
+        <div class="plant-title">{{ $t('host.hostPort') }}</div>
         <div class="main">
           <div class="port-set mb-20">
             <div class="port-type"> Nginx </div>
@@ -138,7 +138,7 @@
           </div>
         </div>
 
-        <div class="plant-title">SSL</div>
+        <div class="plant-title">{{ $t('host.hostSSL') }}</div>
 
         <div class="main">
           <div class="ssl-switch">

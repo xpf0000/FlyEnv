@@ -1,5 +1,5 @@
 <template>
-  <div class="tools-file-info">
+  <div class="host-edit tools-file-info">
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -195,85 +195,3 @@
     }
   }
 </script>
-
-<style lang="scss">
-  .tools-file-info {
-    width: 100%;
-    height: 100%;
-    background: #1d2033;
-    display: flex;
-    flex-direction: column;
-    user-select: none;
-    .nav {
-      height: 76px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      background: #282b3d;
-      .left {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        padding: 6px 0;
-      }
-    }
-    .main-wapper {
-      flex: 1;
-      width: 100%;
-      overflow: auto;
-      padding: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      &::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-        display: none;
-      }
-      .select-dir-wapper {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        #selectDir {
-          width: 70%;
-          height: 70%;
-          border: 2px dashed #ccc;
-          border-radius: 10px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          flex-direction: column;
-          cursor: pointer;
-          color: #fff;
-          .icon {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 20px;
-          }
-        }
-      }
-      .info-wapper {
-        height: 100%;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        padding: 40px 12px;
-        font-size: 17px;
-        > li {
-          padding-bottom: 30px;
-          display: flex;
-          user-select: text;
-          > span {
-            margin-right: 40px;
-            &:first-child {
-              text-align: right;
-              width: 110px;
-            }
-          }
-        }
-      }
-    }
-  }
-</style>

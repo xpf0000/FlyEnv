@@ -72,6 +72,16 @@ html.dark {
         background: #282b3d;
       }
     }
+    .tools-file-info {
+      .main-wapper {
+        .select-dir-wapper {
+          #selectDir {
+            border: 2px dashed #ccc;
+            color: #fff;
+          }
+        }
+      }
+    }
   }
 
   .main-right-panel {
@@ -99,6 +109,37 @@ html.dark {
           background-color: #141414;
           color: #fff;
           border-bottom: 1px #363637 solid;
+        }
+      }
+
+      >.setup-common {
+        .main {
+          background: #32364a;
+        }
+      }
+
+      >.setup-config {
+        .main {
+          background: #32364a;
+
+          .path-choose {
+            .input {
+              border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+              color: #fff;
+              &::-webkit-input-placeholder {
+                color: rgba(255, 255, 255, 0.7);
+              }
+              &:hover {
+                border-bottom: 2px solid rgba(255, 255, 255, 0.7);
+              }
+              &:focus {
+                border-bottom: 2px solid #01cc74;
+              }
+              &.error {
+                border-bottom: 2px solid #cc5441;
+              }
+            }
+          }
         }
       }
     }
@@ -143,5 +184,14 @@ html.dark {
         }
       }
     }
+  }
+
+  .app-chat {
+    .nav {
+      background: #282b3d;
+    }
+  }
+  .app-ai-tool {
+    background: #32364a;
   }
 }

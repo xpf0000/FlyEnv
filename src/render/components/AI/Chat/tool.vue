@@ -236,25 +236,3 @@
     onShow
   })
 </script>
-
-<style lang="scss">
-  .app-ai-tool {
-    display: flex;
-    padding: 12px;
-    align-items: flex-end;
-    background: #32364a;
-    flex-shrink: 0;
-
-    > .el-autocomplete {
-      flex: 1;
-    }
-
-    > .el-button {
-      flex-shrink: 0;
-      margin-left: 12px;
-    }
-  }
-  .app-ai-tool-suggest-popper {
-    z-index: 999999 !important;
-  }
-</style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="ssl-make site-sucker">
+  <div class="host-edit site-sucker">
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -162,34 +162,3 @@
     Loading
   })
 </script>
-<style lang="scss">
-  .site-sucker {
-    .main {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-
-      > .top-tool {
-        display: flex;
-        align-items: center;
-        margin-bottom: 12px;
-        flex-shrink: 0;
-      }
-
-      > .table-wapper {
-        flex: 1;
-
-        .url-column {
-          width: calc(100% - 100px) !important;
-
-          > span {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            user-select: text;
-          }
-        }
-      }
-    }
-  }
-</style>

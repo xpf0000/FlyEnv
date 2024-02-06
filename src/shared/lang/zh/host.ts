@@ -20,5 +20,12 @@ export default {
   staticSite: '静态站点',
   park: '生成子站点',
   hostsCopy: '复制hosts文本',
-  hostsOpen: '打开自定义hosts文件'
+  hostsOpen: '打开自定义hosts文件',
+
+  placeholderName: '站点域名 eg: www.xxx.com',
+  placeholderAlias: '站点域名别名 eg: www.xxx.com',
+  placeholderRemarks: '备注',
+  placeholderRootPath: '站点根目录',
+  hostPort: '端口',
+  hostSSL: 'SSL证书'
 }

@@ -23,26 +23,3 @@
     chat.value.show()
   }
 </script>
-
-<style lang="scss">
-  .app-ai-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    width: 40px;
-    height: 40px;
-    right: 20px;
-    bottom: 20px;
-    border-radius: 44px;
-    background: #fff;
-    box-shadow: 0 1px 6px 0 #20212447;
-    color: #20212447;
-    z-index: 9998;
-    cursor: pointer;
-
-    &:hover {
-      color: #aa88ee;
-    }
-  }
-</style>

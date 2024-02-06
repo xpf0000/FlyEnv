@@ -5,7 +5,7 @@
       <LangeSet></LangeSet>
     </div>
     <div class="plant-title">{{ $t('base.showItem') }}</div>
-    <div class="main">
+    <div class="main user-select-none">
       <el-form label-position="left" label-width="100px">
         <el-row>
           <el-col :span="8">
@@ -176,72 +176,3 @@
     methods: {}
   })
 </script>
-
-<style lang="scss">
-  .setup-common {
-    .plant-title {
-      padding: 22px 24px;
-      font-size: 15px;
-      font-weight: 600;
-    }
-    .main {
-      background: #32364a;
-      border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      .el-form-item--default {
-        margin-top: 12px !important;
-        margin-bottom: 12px !important;
-        justify-content: center;
-
-        .el-form-item__label {
-          padding-right: 20px !important;
-        }
-
-        .el-form-item__content {
-          flex: unset !important;
-        }
-      }
-    }
-
-    .main.brew-src {
-      padding: 30px 20px;
-      flex-direction: row;
-      align-items: center;
-
-      > .el-select {
-        margin-right: 20px;
-      }
-    }
-
-    .main.proxy-set {
-      padding-bottom: 30px;
-
-      .el-form-item__content {
-        width: 100%;
-      }
-
-      .el-form-item--default {
-        justify-content: flex-start;
-        margin-top: 20px !important;
-        margin-bottom: 0 !important;
-
-        &:first-of-type {
-          margin-top: 0 !important;
-        }
-      }
-    }
-
-    .main.reset-pass {
-      padding: 30px 20px;
-      flex-direction: row;
-      align-items: center;
-
-      > .el-input {
-        margin-right: 10px;
-        width: 198px;
-      }
-    }
-  }
-</style>

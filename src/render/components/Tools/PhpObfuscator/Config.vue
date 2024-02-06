@@ -1,5 +1,5 @@
 <template>
-  <div class="ssl-make">
+  <div class="ssl-make host-edit">
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />

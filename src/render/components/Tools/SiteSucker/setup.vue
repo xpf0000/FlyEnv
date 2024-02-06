@@ -8,7 +8,7 @@
     @closed="closedFn"
   >
     <template #default>
-      <div class="ssl-make">
+      <div class="host-edit">
         <div class="nav">
           <div class="left" @click="show = false">
             <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />

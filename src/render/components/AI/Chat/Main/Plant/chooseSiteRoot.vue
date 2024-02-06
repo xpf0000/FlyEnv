@@ -37,38 +37,3 @@
       })
   }
 </script>
-
-<style lang="scss">
-  .chat-plant-choosesiteroot {
-    width: 300px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: #fff;
-    color: #303133;
-    border-radius: 5px;
-
-    > .title {
-      width: 100%;
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px;
-    }
-
-    > .btns {
-      width: 100%;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      padding: 12px;
-
-      > .el-button {
-        width: 35%;
-      }
-    }
-  }
-</style>
