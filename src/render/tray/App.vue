@@ -16,7 +16,7 @@
     <ul class="menu top-menu">
       <li v-if="apache?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ run: apache?.run }">
             <yb-icon :svg="import('@/svg/apache.svg?raw')" width="30" height="30" />
           </div>
           <span class="title">Apache</span>
@@ -31,7 +31,7 @@
       </li>
       <li v-if="nginx?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ run: nginx?.run }">
             <yb-icon :svg="import('@/svg/nginx.svg?raw')" width="28" height="28" />
           </div>
           <span class="title">Nginx</span>
@@ -41,7 +41,7 @@
       </li>
       <li v-if="php?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ run: php?.run }">
             <yb-icon :svg="import('@/svg/php.svg?raw')" width="30" height="30" />
           </div>
           <span class="title">Php</span>
@@ -55,7 +55,7 @@
       </li>
       <li v-if="mysql?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ run: mysql?.run }">
             <yb-icon :svg="import('@/svg/mysql.svg?raw')" width="30" height="30" />
           </div>
           <span class="title">Mysql</span>
@@ -66,7 +66,7 @@
       </li>
       <li v-if="mariadb?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ run: mariadb?.run }">
             <yb-icon :svg="import('@/svg/mariaDB.svg?raw')" width="30" height="30" />
           </div>
           <span class="title">MariaDB</span>
@@ -81,7 +81,7 @@
       </li>
       <li v-if="mongodb?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ run: mongodb?.run }">
             <yb-icon
               style="padding: 5px"
               :svg="import('@/svg/MongoDB.svg?raw')"
@@ -101,7 +101,7 @@
       </li>
       <li v-if="postgresql?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ run: postgresql?.run }">
             <yb-icon
               style="padding: 6.5px"
               :svg="import('@/svg/postgresql.svg?raw')"
@@ -121,7 +121,7 @@
       </li>
       <li v-if="memcached?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ run: memcached?.run }">
             <yb-icon :svg="import('@/svg/memcached.svg?raw')" width="30" height="30" />
           </div>
           <span class="title">Memcached</span>
@@ -136,7 +136,7 @@
       </li>
       <li v-if="redis?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ run: redis?.run }">
             <yb-icon
               style="padding: 7px"
               :svg="import('@/svg/redis.svg?raw')"
@@ -152,7 +152,7 @@
       </li>
       <li v-if="dns?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ run: dns?.run }">
             <yb-icon
               style="padding: 5px"
               :svg="import('@/svg/dns2.svg?raw')"
@@ -168,7 +168,7 @@
       </li>
       <li v-if="ftp?.show" class="non-draggable">
         <div class="left">
-          <div class="icon-block">
+          <div class="icon-block" :class="{ ftp: dns?.run }">
             <yb-icon
               style="padding: 5px"
               :svg="import('@/svg/ftp.svg?raw')"
@@ -303,9 +303,7 @@
         z-index: -1;
         content: ' ';
         transform: rotate(45deg);
-        background: rgb(40, 43, 61);
         box-sizing: border-box;
-        border: 1px solid rgb(40, 43, 61);
         right: 0;
         border-bottom-color: transparent !important;
         border-right-color: transparent !important;
@@ -317,7 +315,6 @@
     display: flex;
     height: 100vh;
     flex-flow: column;
-    background: rgb(40, 43, 61);
     border-radius: 10px !important;
     overflow: hidden;
 
@@ -325,9 +322,9 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      padding: 26px 20px 12px 20px;
+      padding: 0 20px;
+      height: 60px;
       list-style: none;
-      border-bottom: 1px solid #242737;
       flex-shrink: 0;
       > li {
         width: 30px;
@@ -338,9 +335,6 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.15);
-        }
       }
     }
 
@@ -367,6 +361,12 @@
             height: 45px;
             display: flex;
             align-items: center;
+
+            &.run {
+              svg {
+                color: #01cc74;
+              }
+            }
           }
           .title {
             font-size: 14px;
@@ -375,7 +375,6 @@
       }
       svg {
         padding: 6px;
-        color: #fff;
       }
     }
     .top-menu {
@@ -384,13 +383,13 @@
     }
 
     > .bottom-tool {
-      border-top: 1px solid #242737;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       font-size: 14px;
       justify-content: space-between;
-      padding: 24px;
+      padding: 0 24px 2px;
+      height: 60px;
 
       > li {
         cursor: pointer;
@@ -398,6 +397,94 @@
         &:hover {
           color: #409eff;
         }
+      }
+    }
+  }
+
+  html.dark {
+    #app {
+      .popper-arrow {
+        &:before {
+          background: #32364a;
+          border: 1px solid #32364a;
+        }
+      }
+    }
+    .tray-aside-inner {
+      background: #32364a;
+      > .top-tool {
+        border-bottom: 1px solid #282b3d;
+        > li {
+          &:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+          }
+        }
+      }
+
+      .menu {
+        > li {
+          &:hover {
+            background: #474b60;
+          }
+        }
+        svg {
+          color: #fff;
+        }
+      }
+      > .bottom-tool {
+        border-top: 1px solid #282b3d;
+      }
+    }
+  }
+  html.light {
+    --base-bg-color: #f4f5f6;
+    --base-bg-color-2: rgba(51, 68, 85, 0.2);
+    --base-bg-color-1: rgba(51, 68, 85, 0.15);
+
+    body {
+      background: var(--base-bg-color);
+    }
+
+    #app {
+      .popper-arrow {
+        &:before {
+          background: var(--base-bg-color);
+          border: 1px solid var(--base-bg-color);
+        }
+      }
+    }
+    .tray-aside-inner {
+      background: var(--base-bg-color);
+
+      > .top-tool {
+        border-bottom: 1px solid var(--base-bg-color-2);
+        > li {
+          &:hover {
+            background: var(--base-bg-color-2);
+            backdrop-filter: blur(5px);
+          }
+        }
+      }
+
+      .menu {
+        color: #345;
+
+        &::-webkit-scrollbar-thumb {
+          background-color: var(--base-bg-color-1);
+        }
+
+        > li {
+          &:hover {
+            background: var(--base-bg-color-1);
+          }
+        }
+
+        svg {
+          color: #345;
+        }
+      }
+      > .bottom-tool {
+        border-top: 1px solid var(--base-bg-color-2);
       }
     }
   }

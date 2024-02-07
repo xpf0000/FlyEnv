@@ -6,7 +6,7 @@
     :with-header="false"
     @closed="closedFn"
   >
-    <div class="log-popper">
+    <div class="host-vhost">
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -170,5 +170,3 @@
     onClosed
   })
 </script>
-
-<style lang="scss"></style>

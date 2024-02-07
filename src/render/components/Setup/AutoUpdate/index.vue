@@ -1,5 +1,8 @@
 <template>
-  <el-switch v-model="value"></el-switch>
+  <div class="plant-title">{{ $t('base.autoUpdate') }}</div>
+  <div class="main reset-pass">
+    <el-switch v-model="value"></el-switch>
+  </div>
 </template>
 
 <script lang="ts" setup>

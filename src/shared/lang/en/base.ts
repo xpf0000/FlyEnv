@@ -148,5 +148,10 @@ export default {
 
   leftHosts: 'Hosts',
   leftTools: 'Tools',
-  leftSetup: 'Setup'
+  leftSetup: 'Setup',
+
+  theme: 'Theme',
+  themeDark: 'Dark',
+  themeLight: 'Light',
+  themeAuto: 'System'
 }

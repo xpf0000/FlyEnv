@@ -13,7 +13,19 @@
     </div>
     <div class="main-block">
       <div class="table-header">
-        <span>{{ $t('util.count') }} {{ links.length }}</span>
+        <div class="left">
+          <template v-if="running">
+            <div class="status running" :class="{ disabled: fetching }">
+              <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="dnsStop" />
+            </div>
+            <div class="status refresh" :class="{ disabled: fetching }">
+              <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="dnsStart" />
+            </div>
+          </template>
+          <div v-else class="status" :class="{ disabled: fetching }">
+            <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStart" />
+          </div>
+        </div>
         <el-button @click.stop="cleanLog">{{ $t('base.clean') }}</el-button>
       </div>
       <el-auto-resizer>
@@ -37,12 +49,17 @@
   import { DnsStore } from '@/store/dns'
   import { computed } from 'vue'
   import type { Column } from 'element-plus'
+  import { dnsStart, dnsStop } from '@/util/Service'
+
   const dnsStore = DnsStore()
   const ip = computed(() => {
     return dnsStore.ip
   })
   const running = computed(() => {
     return dnsStore.running
+  })
+  const fetching = computed(() => {
+    return dnsStore.fetching
   })
   const links = computed(() => {
     return dnsStore.log

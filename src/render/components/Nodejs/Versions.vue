@@ -180,37 +180,3 @@
     }
   })
 </script>
-
-<style lang="scss">
-  .nodejs-versions {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    .current-version {
-      display: flex;
-      align-items: center;
-      margin: 20px 40px 0 40px;
-      .version {
-        margin-left: 25px;
-      }
-    }
-    .block {
-      display: flex;
-      align-items: center;
-      margin: 40px 0 30px 40px;
-      flex-shrink: 0;
-    }
-    .logs {
-      padding-left: 40px;
-      flex: 1;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      overflow: auto;
-      > li {
-        width: 100%;
-        word-break: break-all;
-      }
-    }
-  }
-</style>

@@ -5,7 +5,7 @@
     @click="emit('nav', '/postgresql')"
   >
     <div class="left">
-      <div class="icon-block">
+      <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon
           style="padding: 7px"
           :svg="import('@/svg/postgresql.svg?raw')"

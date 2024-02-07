@@ -9,7 +9,7 @@
       </li>
     </template>
     <template v-else>
-      <li v-for="(item, key) in serves" :key="key" class="http-serve-item">
+      <li v-for="(item, key) in service" :key="key" class="http-serve-item">
         <div class="left">
           <div class="top">
             <span class="name"> {{ $t('base.path') }}:</span>
@@ -44,13 +44,12 @@
 </template>
 
 <script lang="ts">
-  import { reactive, defineComponent } from 'vue'
+  import { defineComponent, reactive } from 'vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { MessageError } from '@/util/Element'
   const { dialog, shell } = require('@electron/remote')
   const { pathExistsSync, statSync } = require('fs-extra')
-  const Serves: { [key: string]: any } = reactive({})
   export default defineComponent({
     components: {},
     props: {},
@@ -60,28 +59,39 @@
       }
     },
     computed: {
+      service() {
+        return AppStore().httpServeService
+      },
       httpServe() {
         return AppStore().httpServe
-      },
-      serves() {
-        for (const serve of this.httpServe) {
-          if (!Serves[serve]) {
-            Serves[serve] = {
-              run: false,
-              port: 0,
-              host: ''
-            }
-          }
-        }
-        for (const key in Serves) {
-          if (!this.httpServe.includes(key)) {
-            delete Serves[key]
-          }
-        }
-        return Serves
       }
     },
-    watch: {},
+    watch: {
+      httpServe: {
+        handler(arr: Array<string>) {
+          for (const a of arr) {
+            if (!this.service[a]) {
+              this.service[a] = reactive({
+                run: false,
+                port: 0,
+                host: []
+              })
+            }
+          }
+          console.log('this.service: ', this.service)
+          const keys = Object.keys(this.service)
+          for (const k of keys) {
+            if (!arr.includes(k)) {
+              const item = this.service[k]
+              this.doStop(k, item)
+              delete this.service[k]
+            }
+          }
+        },
+        immediate: true,
+        deep: true
+      }
+    },
     created: function () {},
     mounted() {
       this.initDroper()
@@ -151,7 +161,15 @@
         this.httpServe.push(path)
         AppStore().saveConfig()
         this.$nextTick().then(() => {
-          const item = Serves[path]
+          let item = this.service[path]
+          if (!item) {
+            item = reactive({
+              run: false,
+              port: 0,
+              host: []
+            })
+            this.service[path] = item
+          }
           console.log(item)
           this.doRun(path, item)
         })
@@ -183,11 +201,15 @@
           type: 'warning'
         })
           .then(() => {
+            const store = AppStore()
             IPC.send('app-http-serve-stop', path).then((key: string) => {
               IPC.off(key)
             })
-            this.httpServe.splice(this.httpServe.indexOf(path), 1)
-            AppStore().saveConfig()
+            const index = this.httpServe.indexOf(path)
+            if (index >= 0) {
+              store.httpServe.splice(this.httpServe.indexOf(path), 1)
+              store.saveConfig()
+            }
           })
           .catch(() => {})
       },

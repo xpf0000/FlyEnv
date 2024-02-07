@@ -5,7 +5,7 @@
     @click="emit('nav', '/nginx')"
   >
     <div class="left">
-      <div class="icon-block">
+      <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon :svg="import('@/svg/nginx.svg?raw')" width="28" height="28" />
       </div>
       <span class="title">Nginx</span>

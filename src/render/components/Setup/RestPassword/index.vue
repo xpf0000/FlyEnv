@@ -1,27 +1,30 @@
 <template>
-  <el-input
-    v-if="show"
-    v-model="password"
-    type="text"
-    placeholder="Please input password"
-    readonly
-  />
-  <el-input
-    v-else
-    v-model="password"
-    type="password"
-    placeholder="Please input password"
-    readonly
-  />
-  <el-button-group>
-    <el-button @click="show = !show">
-      <yb-icon v-if="show" :svg="import('@/svg/eye.svg?raw')" :width="15" :height="15"></yb-icon>
-      <yb-icon v-else :svg="import('@/svg/eye-slash.svg?raw')" :width="15" :height="15"></yb-icon>
-    </el-button>
-    <el-button @click="resetPassword">
-      <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" :width="15" :height="15"></yb-icon>
-    </el-button>
-  </el-button-group>
+  <div class="plant-title">{{ $t('base.resetPassword') }}</div>
+  <div class="main reset-pass">
+    <el-input
+      v-if="show"
+      v-model="password"
+      type="text"
+      placeholder="Please input password"
+      readonly
+    />
+    <el-input
+      v-else
+      v-model="password"
+      type="password"
+      placeholder="Please input password"
+      readonly
+    />
+    <el-button-group>
+      <el-button @click="show = !show">
+        <yb-icon v-if="show" :svg="import('@/svg/eye.svg?raw')" :width="15" :height="15"></yb-icon>
+        <yb-icon v-else :svg="import('@/svg/eye-slash.svg?raw')" :width="15" :height="15"></yb-icon>
+      </el-button>
+      <el-button @click="resetPassword">
+        <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" :width="15" :height="15"></yb-icon>
+      </el-button>
+    </el-button-group>
+  </div>
 </template>
 
 <script lang="ts">
@@ -84,14 +87,3 @@
     }
   })
 </script>
-<style lang="scss">
-  .password-prompt {
-    background: #32364a !important;
-    border: 1px solid #32364a !important;
-    color: #fff !important;
-    .el-message-box__message,
-    .el-message-box__close {
-      color: rgba(255, 255, 255, 0.7) !important;
-    }
-  }
-</style>

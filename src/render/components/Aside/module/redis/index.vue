@@ -5,7 +5,7 @@
     @click="emit('nav', '/redis')"
   >
     <div class="left">
-      <div class="icon-block">
+      <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon style="padding: 7px" :svg="import('@/svg/redis.svg?raw')" width="28" height="28" />
       </div>
       <span class="title">Redis</span>

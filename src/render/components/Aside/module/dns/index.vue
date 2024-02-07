@@ -6,7 +6,7 @@
     @click="emit('nav', '/dns')"
   >
     <div class="left">
-      <div class="icon-block">
+      <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon style="padding: 5px" :svg="import('@/svg/dns2.svg?raw')" width="30" height="30" />
       </div>
       <span class="title">DNS Server</span>

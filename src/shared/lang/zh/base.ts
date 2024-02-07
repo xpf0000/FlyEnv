@@ -138,5 +138,10 @@ export default {
 
   leftHosts: '站点',
   leftTools: '工具箱',
-  leftSetup: '设置'
+  leftSetup: '设置',
+
+  theme: '主题',
+  themeDark: '暗色',
+  themeLight: '亮色',
+  themeAuto: '系统'
 }

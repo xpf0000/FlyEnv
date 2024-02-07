@@ -123,13 +123,3 @@
     onClosed
   })
 </script>
-<style lang="scss">
-  .site-sucker-setup {
-    > .el-form-item {
-      margin-bottom: 30px;
-    }
-    textarea {
-      margin-top: 10px !important;
-    }
-  }
-</style>

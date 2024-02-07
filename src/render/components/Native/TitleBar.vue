@@ -35,32 +35,5 @@
       -webkit-app-region: drag;
       -webkit-user-select: none;
     }
-    .window-actions {
-      opacity: 1;
-      transition: $--fade-transition;
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      z-index: 5100;
-      > li {
-        display: inline-block;
-        padding: 3px 8px;
-        margin: 0;
-        color: #fff;
-        &:hover {
-          color: #1d2033;
-          background-color: $--titlebar-actions-active-background;
-        }
-        &.win-close-btn:hover {
-          color: $--titlebar-close-active-color;
-          background-color: $--titlebar-close-active-background;
-        }
-      }
-    }
-    &:hover {
-      .window-actions {
-        opacity: 1;
-      }
-    }
   }
 </style>

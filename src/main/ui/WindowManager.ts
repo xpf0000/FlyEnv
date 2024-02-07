@@ -27,8 +27,8 @@ const trayBrowserOptions: BrowserWindowConstructorOptions = {
   movable: false,
   resizable: false,
   show: false,
-  width: 300,
-  height: 500,
+  width: 270,
+  height: 435,
   opacity: 0,
   transparent: true,
   webPreferences: {

@@ -9,6 +9,7 @@ import { DnsStore } from '@/store/dns'
 import './style/index.scss'
 import './style/dark.scss'
 import './style/light.scss'
+import { ThemeInit } from '@/util/Theme'
 
 const { getGlobal } = require('@electron/remote')
 global.Server = getGlobal('Server')
@@ -24,6 +25,7 @@ IPC.on('APP-Ready-To-Show').then(() => {
     store
       .initConfig()
       .then(() => {
+        ThemeInit()
         const config = store.config.setup
         AppI18n(config?.lang)
         return store.initHost()

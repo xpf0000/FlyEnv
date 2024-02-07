@@ -1,8 +1,12 @@
 <template>
   <div class="setup-common">
-    <div class="plant-title">{{ $t('base.lang') }}</div>
-    <div class="main brew-src">
-      <LangeSet></LangeSet>
+    <div class="row-2">
+      <div class="col">
+        <LangeSet />
+      </div>
+      <div class="col">
+        <theme-set />
+      </div>
     </div>
     <div class="plant-title">{{ $t('base.showItem') }}</div>
     <div class="main user-select-none">
@@ -98,25 +102,30 @@
         </el-row>
       </el-form>
     </div>
-    <BrewSrc></BrewSrc>
-    <MacPortsSrc></MacPortsSrc>
-    <div class="plant-title">{{ $t('base.githubFixTitle') }}</div>
-    <div class="main brew-src">
-      <GitHubFix></GitHubFix>
+    <ProxySet />
+    <div class="row-2">
+      <div class="col">
+        <BrewSrc />
+      </div>
+      <div class="col">
+        <MacPortsSrc />
+      </div>
     </div>
-    <div class="plant-title">{{ $t('base.proxySetting') }}</div>
-    <div class="main proxy-set">
-      <ProxySet></ProxySet>
+    <div class="row-2">
+      <div class="col">
+        <ForceStart />
+      </div>
+      <div class="col">
+        <ShowAI />
+      </div>
     </div>
-    <ForceStart />
-    <ShowAI />
-    <div class="plant-title">{{ $t('base.autoUpdate') }}</div>
-    <div class="main reset-pass">
-      <AutoUpdate></AutoUpdate>
-    </div>
-    <div class="plant-title">{{ $t('base.resetPassword') }}</div>
-    <div class="main reset-pass">
-      <RestPassword></RestPassword>
+    <div class="row-2">
+      <div class="col">
+        <AutoUpdate />
+      </div>
+      <div class="col">
+        <RestPassword />
+      </div>
     </div>
   </div>
 </template>
@@ -133,6 +142,7 @@
   import ForceStart from './ForceStart/index.vue'
   import ShowAI from './AI/index.vue'
   import MacPortsSrc from './MacPortsSrc/index.vue'
+  import ThemeSet from './Theme/index.vue'
 
   export default defineComponent({
     components: {
@@ -144,7 +154,8 @@
       AutoUpdate,
       ForceStart,
       ShowAI,
-      MacPortsSrc
+      MacPortsSrc,
+      ThemeSet
     },
     props: {},
     data() {

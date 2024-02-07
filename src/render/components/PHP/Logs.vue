@@ -7,7 +7,7 @@
     :close-on-click-modal="false"
     @closed="onDrawerClosed"
   >
-    <div class="log-popper">
+    <div class="host-vhost">
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -159,5 +159,3 @@
     }
   })
 </script>
-
-<style lang="scss"></style>

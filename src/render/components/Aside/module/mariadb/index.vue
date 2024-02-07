@@ -6,7 +6,7 @@
     @click="emit('nav', '/mariadb')"
   >
     <div class="left">
-      <div class="icon-block">
+      <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon :svg="import('@/svg/mariaDB.svg?raw')" width="30" height="30" />
       </div>
       <span class="title">MariaDB</span>

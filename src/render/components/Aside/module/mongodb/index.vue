@@ -6,7 +6,7 @@
     @click="emit('nav', '/mongodb')"
   >
     <div class="left">
-      <div class="icon-block">
+      <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon
           style="padding: 5px"
           :svg="import('@/svg/MongoDB.svg?raw')"

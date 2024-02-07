@@ -131,5 +131,3 @@
     IPC.off('application:about')
   })
 </script>
-
-<style lang="scss"></style>

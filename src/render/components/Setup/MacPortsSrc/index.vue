@@ -13,99 +13,101 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
   import { I18nT } from '@shared/lang/index'
   import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { readFile, existsSync } = require('fs-extra')
 
-  const srcs = [
-    {
-      name: I18nT('util.macPortsSrcDefault'),
-      url: 'rsync://rsync.macports.org/macports/release/tarballs/ports.tar',
-      rsync_server: '',
-      rsync_dir: ''
-    },
-    {
-      name: I18nT('util.macPortsSrcAustraliBrisbane'),
-      url: 'rsync://aarnet.au.rsync.macports.org/pub/macports/ports/',
-      rsync_server: '',
-      rsync_dir: ''
-    },
-    {
-      name: I18nT('util.macPortsSrcCanadaManitoba'),
-      url: 'rsync://ywg.ca.rsync.macports.org/macports/release/tarballs/ports.tar',
-      rsync_server: 'ywg.ca.rsync.macports.org',
-      rsync_dir: 'macports/release/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcCanadaWaterloo'),
-      url: 'rsync://ykf.ca.rsync.macports.org/mprelease/tarballs/ports.tar',
-      rsync_server: 'ykf.ca.rsync.macports.org',
-      rsync_dir: 'mprelease/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcChinaBeijing'),
-      url: 'rsync://pek.cn.rsync.macports.org/macports/release/tarballs/ports.tar',
-      rsync_server: 'pek.cn.rsync.macports.org',
-      rsync_dir: 'macports/release/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcDenmarkCopenhagen'),
-      url: 'rsync://cph.dk.rsync.macports.org/macports/release/tarballs/ports.tar',
-      rsync_server: 'cph.dk.rsync.macports.org',
-      rsync_dir: 'macports/release/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcGermanyErlangen'),
-      url: 'rsync://nue.de.rsync.macports.org/macports/release/tarballs/ports.tar',
-      rsync_server: 'nue.de.rsync.macports.org',
-      rsync_dir: 'macports/release/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcGermanyLimburg'),
-      url: 'rsync://fra.de.rsync.macports.org/macports/release/tarballs/ports.tar',
-      rsync_server: 'fra.de.rsync.macports.org',
-      rsync_dir: 'macports/release/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcIndonesiaYogyakarta'),
-      url: 'rsync://jog.id.rsync.macports.org/macports/release/tarballs/ports.tar',
-      rsync_server: 'jog.id.rsync.macports.org',
-      rsync_dir: 'macports/release/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcJapanNomiIshikawa'),
-      url: 'rsync://kmq.jp.rsync.macports.org/macports/release/tarballs/ports.tar',
-      rsync_server: 'kmq.jp.rsync.macports.org',
-      rsync_dir: 'macports/release/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcSouthAfricaJohannesburg'),
-      url: 'rsync://jnb.za.rsync.macports.org/macports/release/tarballs/ports.tar',
-      rsync_server: 'jnb.za.rsync.macports.org',
-      rsync_dir: 'macports/release/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcSouthKoreaDaejeon'),
-      url: 'rsync://cjj.kr.rsync.macports.org/macports/release/tarballs/ports.tar',
-      rsync_server: 'cjj.kr.rsync.macports.org',
-      rsync_dir: 'macports/release/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcUnitedKingdomCanterbury'),
-      url: 'rsync://mse.uk.rsync.macports.org/rsync.macports.org/release/tarballs/ports.tar',
-      rsync_server: 'mse.uk.rsync.macports.org',
-      rsync_dir: 'rsync.macports.org/release/tarballs/base.tar'
-    },
-    {
-      name: I18nT('util.macPortsSrcUnitedStatesGeorgia'),
-      url: 'rsync://atl.us.rsync.macports.org/MacPorts/release/tarballs/ports.tar',
-      rsync_server: 'atl.us.rsync.macports.org',
-      rsync_dir: 'MacPorts/release/tarballs/base.tar'
-    }
-  ]
+  const srcs = computed(() => {
+    return [
+      {
+        name: I18nT('util.macPortsSrcDefault'),
+        url: 'rsync://rsync.macports.org/macports/release/tarballs/ports.tar',
+        rsync_server: '',
+        rsync_dir: ''
+      },
+      {
+        name: I18nT('util.macPortsSrcAustraliBrisbane'),
+        url: 'rsync://aarnet.au.rsync.macports.org/pub/macports/ports/',
+        rsync_server: '',
+        rsync_dir: ''
+      },
+      {
+        name: I18nT('util.macPortsSrcCanadaManitoba'),
+        url: 'rsync://ywg.ca.rsync.macports.org/macports/release/tarballs/ports.tar',
+        rsync_server: 'ywg.ca.rsync.macports.org',
+        rsync_dir: 'macports/release/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcCanadaWaterloo'),
+        url: 'rsync://ykf.ca.rsync.macports.org/mprelease/tarballs/ports.tar',
+        rsync_server: 'ykf.ca.rsync.macports.org',
+        rsync_dir: 'mprelease/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcChinaBeijing'),
+        url: 'rsync://pek.cn.rsync.macports.org/macports/release/tarballs/ports.tar',
+        rsync_server: 'pek.cn.rsync.macports.org',
+        rsync_dir: 'macports/release/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcDenmarkCopenhagen'),
+        url: 'rsync://cph.dk.rsync.macports.org/macports/release/tarballs/ports.tar',
+        rsync_server: 'cph.dk.rsync.macports.org',
+        rsync_dir: 'macports/release/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcGermanyErlangen'),
+        url: 'rsync://nue.de.rsync.macports.org/macports/release/tarballs/ports.tar',
+        rsync_server: 'nue.de.rsync.macports.org',
+        rsync_dir: 'macports/release/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcGermanyLimburg'),
+        url: 'rsync://fra.de.rsync.macports.org/macports/release/tarballs/ports.tar',
+        rsync_server: 'fra.de.rsync.macports.org',
+        rsync_dir: 'macports/release/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcIndonesiaYogyakarta'),
+        url: 'rsync://jog.id.rsync.macports.org/macports/release/tarballs/ports.tar',
+        rsync_server: 'jog.id.rsync.macports.org',
+        rsync_dir: 'macports/release/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcJapanNomiIshikawa'),
+        url: 'rsync://kmq.jp.rsync.macports.org/macports/release/tarballs/ports.tar',
+        rsync_server: 'kmq.jp.rsync.macports.org',
+        rsync_dir: 'macports/release/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcSouthAfricaJohannesburg'),
+        url: 'rsync://jnb.za.rsync.macports.org/macports/release/tarballs/ports.tar',
+        rsync_server: 'jnb.za.rsync.macports.org',
+        rsync_dir: 'macports/release/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcSouthKoreaDaejeon'),
+        url: 'rsync://cjj.kr.rsync.macports.org/macports/release/tarballs/ports.tar',
+        rsync_server: 'cjj.kr.rsync.macports.org',
+        rsync_dir: 'macports/release/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcUnitedKingdomCanterbury'),
+        url: 'rsync://mse.uk.rsync.macports.org/rsync.macports.org/release/tarballs/ports.tar',
+        rsync_server: 'mse.uk.rsync.macports.org',
+        rsync_dir: 'rsync.macports.org/release/tarballs/base.tar'
+      },
+      {
+        name: I18nT('util.macPortsSrcUnitedStatesGeorgia'),
+        url: 'rsync://atl.us.rsync.macports.org/MacPorts/release/tarballs/ports.tar',
+        rsync_server: 'atl.us.rsync.macports.org',
+        rsync_dir: 'MacPorts/release/tarballs/base.tar'
+      }
+    ]
+  })
 
   const sourcesConf = '/opt/local/etc/macports/sources.conf'
 
@@ -132,7 +134,7 @@
 
   getCurrentSrc().then((res) => {
     if (res) {
-      const find = srcs.find((s) => s.url === res.replace('[default]', '').trim())
+      const find = srcs.value.find((s) => s.url === res.replace('[default]', '').trim())
       if (find) {
         currentSrc.value = find.url
         return
@@ -143,7 +145,7 @@
   })
 
   const changeSrc = async () => {
-    const find = srcs.find((f) => f.url === currentSrc.value)
+    const find = srcs.value.find((f) => f.url === currentSrc.value)
     if (find) {
       running.value = true
       IPC.send('app-fork:macports', 'changSrc', JSON.parse(JSON.stringify(find))).then(

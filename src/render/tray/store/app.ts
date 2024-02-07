@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 export interface TrayState {
   password: string
   lang: string
+  theme: string
   nginx: {
     show: boolean
     run: boolean
@@ -73,6 +74,7 @@ export interface TrayState {
 
 const state: TrayState = {
   lang: '',
+  theme: '',
   apache: { show: true, disabled: true, run: false, running: false },
   memcached: { show: true, disabled: true, run: false, running: false },
   mysql: { show: true, disabled: true, run: false, running: false },

@@ -191,6 +191,7 @@
       },
       password: appStore?.config?.password,
       lang: appStore?.config?.setup?.lang,
+      theme: appStore?.config?.setup?.theme,
       php: {
         show: showItem?.value?.Php,
         disabled: phpModule?.value?.serviceDisabled,

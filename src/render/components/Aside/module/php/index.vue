@@ -5,7 +5,7 @@
     @click="emit('nav', '/php')"
   >
     <div class="left">
-      <div class="icon-block">
+      <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon :svg="import('@/svg/php.svg?raw')" width="30" height="30" />
       </div>
       <span class="title">Php</span>

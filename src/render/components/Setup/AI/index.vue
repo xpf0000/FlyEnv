@@ -21,13 +21,3 @@
     }
   })
 </script>
-<style lang="scss">
-  .force-start-plant {
-    display: flex;
-    align-items: center;
-  }
-  .force-start-tooltip {
-    width: 300px;
-    overflow: hidden;
-  }
-</style>

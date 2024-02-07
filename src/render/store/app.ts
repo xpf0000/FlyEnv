@@ -93,6 +93,7 @@ interface State {
         proxy: string
       }
       lang: string
+      theme?: string
       postgresql: {
         dirs: Array<string>
       }
@@ -129,6 +130,13 @@ interface State {
   }
   httpServe: Array<string>
   versionInited: boolean
+  httpServeService: {
+    [k: string]: {
+      run: boolean
+      port: number
+      host: Array<string>
+    }
+  }
 }
 
 const state: State = {
@@ -230,7 +238,8 @@ const state: State = {
     }
   },
   httpServe: [],
-  versionInited: false
+  versionInited: false,
+  httpServeService: {}
 }
 
 export const AppStore = defineStore('app', {

@@ -87,21 +87,3 @@
     }
   )
 </script>
-
-<style lang="scss">
-  .editor-config {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-    gap: 30px;
-
-    .proxy-set {
-      flex-shrink: 0;
-    }
-
-    .editor-wapper {
-      flex: 1;
-    }
-  }
-</style>

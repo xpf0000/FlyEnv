@@ -1,52 +1,55 @@
 <template>
-  <el-form label-width="130px" label-position="left" @submit.prevent>
-    <el-form-item :label="$t('base.useProxy')">
-      <el-switch v-model="proxy.on"></el-switch>
-    </el-form-item>
-    <el-form-item :label="$t('base.quickSetup')">
-      <template v-if="fastEdit">
-        <el-input v-model.trim="fastProxy" placeholder="eg: 127.0.0.1:8090">
-          <template #append>
-            <el-button-group>
-              <el-button @click="fastEdit = false">{{ $t('base.cancel') }}</el-button>
-              <el-button @click="fastSetSubmit">{{ $t('base.confirm') }}</el-button>
-            </el-button-group>
-          </template>
-        </el-input>
-      </template>
-      <template v-else>
-        <el-input v-model="proxy.fastProxy" readonly placeholder="eg: 127.0.0.1:8090">
-          <template #append>
-            <el-button-group>
-              <el-button @click="fastSet">{{ $t('base.quickSetup') }}</el-button>
-            </el-button-group>
-          </template>
-        </el-input>
-      </template>
-    </el-form-item>
-    <el-form-item :label="$t('base.currentProxy')">
-      <template v-if="proxyEdit">
-        <el-input v-model.trim="proxyStr">
-          <template #append>
-            <el-button-group>
-              <el-button @click="proxyEdit = false">{{ $t('base.cancel') }}</el-button>
-              <el-button @click="proxySubmit">{{ $t('base.confirm') }}</el-button>
-            </el-button-group>
-          </template>
-        </el-input>
-      </template>
-      <template v-else>
-        <el-input v-model="proxy.proxy" readonly>
-          <template #append>
-            <el-button-group>
-              <el-button @click="copyProxy">{{ $t('base.copy') }}</el-button>
-              <el-button @click="editProxy">{{ $t('base.edit') }}</el-button>
-            </el-button-group>
-          </template>
-        </el-input>
-      </template>
-    </el-form-item>
-  </el-form>
+  <div class="plant-title">{{ $t('base.proxySetting') }}</div>
+  <div class="main proxy-set">
+    <el-form label-width="130px" label-position="left" @submit.prevent>
+      <el-form-item :label="$t('base.useProxy')">
+        <el-switch v-model="proxy.on"></el-switch>
+      </el-form-item>
+      <el-form-item :label="$t('base.quickSetup')">
+        <template v-if="fastEdit">
+          <el-input v-model.trim="fastProxy" placeholder="eg: 127.0.0.1:8090">
+            <template #append>
+              <el-button-group>
+                <el-button @click="fastEdit = false">{{ $t('base.cancel') }}</el-button>
+                <el-button @click="fastSetSubmit">{{ $t('base.confirm') }}</el-button>
+              </el-button-group>
+            </template>
+          </el-input>
+        </template>
+        <template v-else>
+          <el-input v-model="proxy.fastProxy" readonly placeholder="eg: 127.0.0.1:8090">
+            <template #append>
+              <el-button-group>
+                <el-button @click="fastSet">{{ $t('base.quickSetup') }}</el-button>
+              </el-button-group>
+            </template>
+          </el-input>
+        </template>
+      </el-form-item>
+      <el-form-item :label="$t('base.currentProxy')">
+        <template v-if="proxyEdit">
+          <el-input v-model.trim="proxyStr">
+            <template #append>
+              <el-button-group>
+                <el-button @click="proxyEdit = false">{{ $t('base.cancel') }}</el-button>
+                <el-button @click="proxySubmit">{{ $t('base.confirm') }}</el-button>
+              </el-button-group>
+            </template>
+          </el-input>
+        </template>
+        <template v-else>
+          <el-input v-model="proxy.proxy" readonly>
+            <template #append>
+              <el-button-group>
+                <el-button @click="copyProxy">{{ $t('base.copy') }}</el-button>
+                <el-button @click="editProxy">{{ $t('base.edit') }}</el-button>
+              </el-button-group>
+            </template>
+          </el-input>
+        </template>
+      </el-form-item>
+    </el-form>
+  </div>
 </template>
 
 <script lang="ts">

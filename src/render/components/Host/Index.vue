@@ -1,5 +1,5 @@
 <template>
-  <div class="host-panel main-right-panel">
+  <div class="soft-index-panel main-right-panel">
     <ul class="top-tab">
       <el-button-group>
         <el-button style="padding-left: 30px; padding-right: 30px" @click="toAdd">{{
@@ -263,15 +263,3 @@
     })
   }
 </script>
-
-<style lang="scss">
-  .el-drawer {
-    outline: none;
-    .el-drawer__body {
-      height: 100%;
-    }
-  }
-  .host-edit-drawer {
-    z-index: 5050 !important;
-  }
-</style>

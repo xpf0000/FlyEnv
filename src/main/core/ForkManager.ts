@@ -1,13 +1,16 @@
 import { ChildProcess, fork } from 'child_process'
 import { uuid } from '../utils'
 import { ForkPromise } from '@shared/ForkPromise'
-import { cpus } from 'os'
 import { appendFile } from 'fs-extra'
 import { join } from 'path'
+import { cpus } from 'os'
 
 class ForkItem {
   forkFile: string
   child: ChildProcess
+  autoDestory: boolean
+  destoryTimer?: NodeJS.Timeout
+  taskFlag: Array<number> = []
   _on: Function = () => {}
   callback: {
     [k: string]: {
@@ -15,8 +18,16 @@ class ForkItem {
       on: Function
     }
   }
+  waitDestory() {
+    if (this.autoDestory && this.taskFlag.length === 0) {
+      this.destoryTimer = setTimeout(() => {
+        if (this.taskFlag.length === 0) {
+          this.destory()
+        }
+      }, 10000)
+    }
+  }
   onMessage({ on, key, info }: { on?: boolean; key: string; info: any }) {
-    console.log('fork message: ', info)
     if (on) {
       this._on({ key, info })
       return
@@ -26,13 +37,14 @@ class ForkItem {
       if (info?.code === 0 || info?.code === 1) {
         fn.resolve(info)
         delete this.callback?.[key]
+        this.taskFlag.pop()
+        this.waitDestory()
       } else if (info?.code === 200) {
         fn.on(info)
       }
     }
   }
   onError(err: Error) {
-    console.log('fork child error: ', err)
     appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${err?.message}`).then()
     for (const k in this.callback) {
       const fn = this.callback?.[k]
@@ -44,10 +56,13 @@ class ForkItem {
       }
       delete this.callback?.[k]
     }
+    this.taskFlag.pop()
+    this.waitDestory()
   }
 
-  constructor(file: string) {
+  constructor(file: string, autoDestory: boolean) {
     this.forkFile = file
+    this.autoDestory = autoDestory
     this.callback = {}
     this.onMessage = this.onMessage.bind(this)
     this.onError = this.onError.bind(this)
@@ -63,8 +78,9 @@ class ForkItem {
   }
 
   send(...args: any) {
-    console.log('fork send: ', ...args)
     return new ForkPromise((resolve, reject, on) => {
+      this.destoryTimer && clearTimeout(this.destoryTimer)
+      this.taskFlag.push(1)
       const thenKey = uuid()
       this.callback[thenKey] = {
         resolve,
@@ -96,22 +112,18 @@ class ForkItem {
 }
 
 export class ForkManager {
+  file: string
   forks: Array<ForkItem> = []
   fenciFork?: ForkItem
   _on: Function = () => {}
   constructor(file: string) {
-    /**
-     * 开启子线程 最小3个 最大7个 加上分词线程 最终子线程数 4-8个
-     */
-    const cpuNun = Math.min(Math.max(cpus().length, 3), 7)
+    this.file = file
     /**
      * 分词单开一条线程
+     * 初始一条线程, 线程会动态加减
      */
-    this.fenciFork = new ForkItem(file)
-    for (let i = 0; i < cpuNun; i += 1) {
-      const child = new ForkItem(file)
-      this.forks.push(child)
-    }
+    this.fenciFork = new ForkItem(file, false)
+    this.forks.push(new ForkItem(file, false))
   }
 
   on(fn: Function) {
@@ -122,9 +134,21 @@ export class ForkManager {
     if (args.includes('tools') && args.includes('wordSplit')) {
       return this.fenciFork!.send(...args)
     }
-    const child = this.forks.shift()!
-    this.forks.push(child)
-    return child.send(...args)
+    /**
+     * 找到没有任务的线程
+     * 未找到, 小于CPU核心数, 新建一个线程, 执行完任务, 10秒后自动销毁, 等于CPU核心数, 从前往后轮询
+     */
+    let find = this.forks.find((p) => p.taskFlag.length === 0)
+    if (!find) {
+      if (this.forks.length < cpus().length) {
+        find = new ForkItem(this.file, true)
+        this.forks.push(find)
+      } else {
+        find = this.forks.shift()!
+        this.forks.push(find)
+      }
+    }
+    return find.send(...args)
   }
 
   destory() {

@@ -86,6 +86,10 @@ html.light {
         color: #345;
 
         > .top-tab {
+          .el-button-group>.el-button:not(:last-child) {
+            margin-right: 0;
+          }
+
           >li {
             &:not(.no-hover):hover {
               background-color: var(--base-bg-color-2);
@@ -95,6 +99,19 @@ html.light {
               background: var(--base-bg-color);
               backdrop-filter: blur(5px);
               color: #fff;
+            }
+          }
+        }
+
+        >.host-list {
+          .el-table__header {
+            thead {
+              tr {
+                background: #f1f2f3;
+                th.el-table__cell {
+                  background: #f1f2f3;
+                }
+              }
             }
           }
         }
@@ -220,31 +237,23 @@ html.light {
     }
   }
 
+  .el-table {
+    --el-table-text-color: #345;
+  }
+
   .el-popover.el-popper.host-list-poper {
-    background: rgba(51, 68, 85, 0.5);
+    background: rgba(51, 68, 85, 0.6);
     backdrop-filter: blur(5px);
-    overflow: hidden;
 
     .host-list-menu {
-      overflow: hidden;
-
       > li {
         .el-dropdown {
           color: #fff;
         }
         &:hover {
-          background: rgba(51, 68, 85, 0.6);
+          background: rgba(51, 68, 85, 0.5);
           backdrop-filter: blur(5px);
         }
-      }
-    }
-  }
-
-  .host-list {
-    .right {
-      &:hover {
-        background: transparent;
-        color: #fdab1f;
       }
     }
   }
@@ -396,17 +405,6 @@ html.light {
       }
     }
 
-    .log-popper {
-      background: #f1f2f3;
-      .nav {
-        background: #f1f2f3;
-        height: 55px;
-      }
-      .main-wapper {
-        background: #fff;
-      }
-    }
-
     .tools-file-info {
       .main-wapper {
         .select-dir-wapper {
@@ -426,5 +424,55 @@ html.light {
   }
   .app-ai-tool {
     background: #fff;
+  }
+}
+
+@media (max-width: 1100px) {
+  html.light {
+    #app {
+      #container {
+        .aside {
+          width: 45px;
+
+          .top-tool {
+            padding: 50px 0 12px 0;
+            justify-content: center;
+
+            >.el-tooltip__trigger {
+              display: none;
+            }
+          }
+
+          .menu {
+            padding: 0;
+
+            &::-webkit-scrollbar {
+              display: none;
+            }
+
+            >li {
+              padding: 0;
+
+              >.left {
+                justify-content: space-between;
+
+                .icon-block {
+                  width: 45px;
+                  justify-content: center;
+                }
+
+                >.title {
+                  display: none;
+                }
+              }
+
+              >.el-switch {
+                display: none;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

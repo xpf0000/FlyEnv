@@ -570,15 +570,3 @@
     onClosed
   })
 </script>
-
-<style lang="scss">
-  .password-prompt {
-    background: #32364a !important;
-    border: 1px solid #32364a !important;
-    color: #fff !important;
-    .el-message-box__message,
-    .el-message-box__close {
-      color: rgba(255, 255, 255, 0.7) !important;
-    }
-  }
-</style>
