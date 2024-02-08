@@ -457,7 +457,7 @@
       background: var(--base-bg-color);
 
       > .top-tool {
-        border-bottom: 1px solid var(--base-bg-color-2);
+        border-bottom: 1px solid var(--base-bg-color-1);
         > li {
           &:hover {
             background: var(--base-bg-color-2);
@@ -484,7 +484,7 @@
         }
       }
       > .bottom-tool {
-        border-top: 1px solid var(--base-bg-color-2);
+        border-top: 1px solid var(--base-bg-color-1);
       }
     }
   }

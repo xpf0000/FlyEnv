@@ -225,6 +225,11 @@ html.light {
         }
 
         &.dns-panel {
+          .top-tab {
+            svg {
+              color: #345;
+            }
+          }
           .main-block {
             .table-header {
               background-color: #f1f2f3;

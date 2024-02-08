@@ -118,12 +118,6 @@ export class ForkManager {
   _on: Function = () => {}
   constructor(file: string) {
     this.file = file
-    /**
-     * 分词单开一条线程
-     * 初始一条线程, 线程会动态加减
-     */
-    this.fenciFork = new ForkItem(file, false)
-    this.forks.push(new ForkItem(file, false))
   }
 
   on(fn: Function) {
@@ -132,6 +126,9 @@ export class ForkManager {
 
   send(...args: any) {
     if (args.includes('tools') && args.includes('wordSplit')) {
+      if (!this.fenciFork) {
+        this.fenciFork = new ForkItem(this.file, true)
+      }
       return this.fenciFork!.send(...args)
     }
     /**
