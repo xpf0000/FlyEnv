@@ -17,17 +17,18 @@
 
       <div class="main-wapper">
         <div ref="input" class="block"></div>
-        <div class="tool">
-          <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('open')">{{
+      </div>
+
+      <div class="tool">
+        <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('open')">{{
             $t('base.open')
           }}</el-button>
-          <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('refresh')">{{
+        <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('refresh')">{{
             $t('base.refresh')
           }}</el-button>
-          <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('clean')">{{
+        <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('clean')">{{
             $t('base.clean')
           }}</el-button>
-        </div>
       </div>
     </div>
   </el-drawer>
@@ -135,48 +136,3 @@
     }
   })
 </script>
-
-<style lang="scss">
-  .host-vhost {
-    width: 100%;
-    height: 100%;
-    background: #1d2033;
-    display: flex;
-    flex-direction: column;
-    user-select: none;
-    .nav {
-      height: 76px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      background: #282b3d;
-      .left {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        padding: 6px 0;
-      }
-    }
-    .main-wapper {
-      flex: 1;
-      width: 100%;
-      overflow: hidden;
-      padding: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      display: flex;
-      flex-direction: column;
-
-      > .block {
-        width: 100%;
-        flex: 1;
-        overflow: hidden;
-      }
-      .tool {
-        flex-shrink: 0;
-        padding: 30px 0 20px 0;
-      }
-    }
-  }
-</style>

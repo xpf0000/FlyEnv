@@ -6,7 +6,7 @@
 </template>
 
 <script>
-  import Aside from './Aside1/Index.vue'
+  import Aside from './Aside/Index.vue'
 
   export default {
     components: {

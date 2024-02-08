@@ -1,19 +1,22 @@
 <template>
-  <el-select
-    v-model="appLang"
-    :loading="running"
-    :disabled="running"
-    :placeholder="$t('base.changeLang')"
-  >
-    <template v-for="(label, value) in langs" :key="value">
-      <el-option :label="label" :value="value"></el-option>
-    </template>
-  </el-select>
+  <div class="plant-title">{{ $t('base.lang') }}</div>
+  <div class="main brew-src">
+    <el-select
+      v-model="appLang"
+      :loading="running"
+      :disabled="running"
+      :placeholder="$t('base.changeLang')"
+    >
+      <template v-for="(label, value) in langs" :key="value">
+        <el-option :label="label" :value="value"></el-option>
+      </template>
+    </el-select>
+  </div>
 </template>
 
 <script lang="ts">
   import { defineComponent, nextTick } from 'vue'
-  import { AppStore } from '../../../store/app'
+  import { AppStore } from '@web/store/app'
   import { AppI18n } from '@shared/lang'
   export default defineComponent({
     components: {},

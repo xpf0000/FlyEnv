@@ -15,6 +15,7 @@
       <Manager v-else-if="current_tab === 2" type-flag="mysql"></Manager>
       <Logs v-if="current_tab === 3" type="error"></Logs>
       <Logs v-if="current_tab === 4" type="slow"></Logs>
+      <Group v-if="current_tab === 5"></Group>
     </div>
   </div>
 </template>
@@ -27,6 +28,7 @@
   import Manager from '../VersionManager/index.vue'
   import { AppStore } from '../../store/app'
   import Conf from '../../config/mysql.conf.txt?raw'
+  import Group from './Group/Index.vue'
 
   const current_tab = ref(0)
 
@@ -36,7 +38,8 @@
       Config,
       Service,
       Logs,
-      Manager
+      Manager,
+      Group
     },
     props: {},
     data() {
@@ -48,7 +51,8 @@
           this.$t('base.configFile'),
           this.$t('base.versionManager'),
           this.$t('base.log'),
-          this.$t('base.slowLog')
+          this.$t('base.slowLog'),
+          this.$t('base.group')
         ]
       }
     },

@@ -54,12 +54,16 @@ export enum AppSofts {
 interface State {
   hosts: Array<AppHost>
   config: {
+    password: string
     server: {
       [key in AppSofts | 'pure-ftpd']: {
         current: AppServerCurrent
       }
     }
     setup: {
+      theme: string
+      forceStart: boolean
+      showAIRobot: boolean
       common: {
         showItem: {
           Hosts: boolean
@@ -76,6 +80,7 @@ interface State {
           DNS: boolean
           FTP: boolean
           PostgreSql: boolean
+          HttpServe: boolean
         }
       }
       hosts: {
@@ -121,16 +126,25 @@ interface State {
   }
   httpServe: Array<string>
   versionInited: boolean
+  httpServeService: {
+    [k: string]: {
+      run: boolean
+      port: number
+      host: Array<string>
+    }
+  }
 }
 
 const state: State = {
   hosts: Hosts,
   config: {
+    password: '',
     server: User.server,
     setup: User.setup as any
   },
   httpServe: User.httpServe,
-  versionInited: true
+  versionInited: true,
+  httpServeService: {}
 }
 
 export const AppStore = defineStore('app', {

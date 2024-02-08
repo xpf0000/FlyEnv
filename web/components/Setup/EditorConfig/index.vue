@@ -23,12 +23,13 @@
 </template>
 
 <script lang="ts" setup>
-  import { AppStore } from '../../../store/app'
+  import { AppStore } from '@web/store/app'
   import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import Conf from '../../../config/apache.conf.txt?raw'
+  import { EditorConfigMap } from './store'
+  import Conf from '@web/config/apache.conf.txt?raw'
 
   const wapper = ref()
   const appStore = AppStore()
@@ -42,9 +43,9 @@
 
   const initEditor = () => {
     monacoInstance = editor.create(wapper.value, {
-      value: Conf,
+      value: EditorConfigMap.text,
       language: 'ini',
-      scrollBeyondLastLine: true,
+      scrollBeyondLastLine: false,
       overviewRulerBorder: true,
       automaticLayout: true,
       theme: editorConfig.value.theme,
@@ -54,7 +55,12 @@
   }
 
   onMounted(() => {
-    initEditor()
+    if (!EditorConfigMap.text) {
+      EditorConfigMap.text = Conf
+      initEditor()
+    } else {
+      initEditor()
+    }
   })
 
   onUnmounted(() => {
@@ -76,21 +82,3 @@
     }
   )
 </script>
-
-<style lang="scss">
-  .editor-config {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-    gap: 30px;
-
-    .proxy-set {
-      flex-shrink: 0;
-    }
-
-    .editor-wapper {
-      flex: 1;
-    }
-  }
-</style>

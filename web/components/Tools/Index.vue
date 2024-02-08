@@ -115,37 +115,3 @@
     }
   }
 </script>
-
-<style lang="scss">
-  .tools-panel {
-    padding: 40px;
-    display: grid;
-    grid-row-gap: 40px;
-    grid-column-gap: 40px;
-    grid-template-columns: repeat(auto-fill, 120px);
-    grid-template-rows: repeat(auto-fill, 150px);
-
-    > li {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 120px;
-      height: 150px;
-      background: #32364a;
-      border-radius: 5px;
-      padding-top: 5px;
-      cursor: pointer;
-      transition: all 0.25s;
-      user-select: none;
-
-      &:hover {
-        transform: scale(1.1);
-      }
-
-      > span {
-        margin-top: 25px;
-      }
-    }
-  }
-</style>

@@ -1,12 +1,14 @@
 <template>
-  <el-button :loading="running" :disabled="running" @click="doFix">
-    {{ $t('base.tryToFix') }}
-  </el-button>
+  <div class="plant-title">{{ $t('base.githubFixTitle') }}</div>
+  <div class="main brew-src">
+    <el-button :loading="running" :disabled="running" @click="doFix">
+      {{ $t('base.tryToFix') }}
+    </el-button>
+  </div>
 </template>
 
 <script>
-  import { waitTime } from '../../../fn.ts'
-
+  import { MessageSuccess } from '@/util/Element'
   export default {
     components: {},
     props: {},
@@ -16,12 +18,10 @@
       }
     },
     methods: {
-      doFix() {
+      async doFix() {
         this.running = true
-        waitTime().then(() => {
-          this.running = false
-          this.$message.success(this.$t('base.success'))
-        })
+        await waitTime()
+        MessageSuccess(this.$t('base.success'))
       }
     }
   }

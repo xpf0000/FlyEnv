@@ -71,25 +71,3 @@
     onClosed
   })
 </script>
-
-<style lang="scss">
-  .host-link-dialog {
-    background: #1d2033;
-
-    .host-link {
-      max-height: 50vh;
-      overflow: auto;
-
-      .el-input {
-        margin-top: 15px;
-
-        &:first-child {
-          margin-top: 0;
-        }
-      }
-      .el-button-group {
-        display: flex;
-      }
-    }
-  }
-</style>

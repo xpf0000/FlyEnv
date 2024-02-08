@@ -17,21 +17,22 @@
 
       <div class="main-wapper">
         <div ref="input" class="block"></div>
-        <div class="tool">
-          <el-button :disabled="!configpath" @click="openConfig">{{ $t('base.open') }}</el-button>
-          <el-button :disabled="!configpath" @click="saveConfig">{{ $t('base.save') }}</el-button>
-          <el-button :disabled="!configpath" @click="getDefault">{{
+      </div>
+
+      <div class="tool">
+        <el-button :disabled="!configpath" @click="openConfig">{{ $t('base.open') }}</el-button>
+        <el-button :disabled="!configpath" @click="saveConfig">{{ $t('base.save') }}</el-button>
+        <el-button :disabled="!configpath" @click="getDefault">{{
             $t('base.loadDefault')
           }}</el-button>
-          <el-button-group style="margin-left: 12px">
-            <el-button :disabled="!configpath" @click="loadCustom">{{
+        <el-button-group style="margin-left: 12px">
+          <el-button :disabled="!configpath" @click="loadCustom">{{
               $t('base.loadCustom')
             }}</el-button>
-            <el-button :disabled="!configpath" @click="saveCustom">{{
+          <el-button :disabled="!configpath" @click="saveCustom">{{
               $t('base.saveCustom')
             }}</el-button>
-          </el-button-group>
-        </div>
+        </el-button-group>
       </div>
     </div>
   </el-drawer>
@@ -160,48 +161,3 @@
     }
   })
 </script>
-
-<style lang="scss">
-  .host-vhost {
-    width: 100%;
-    height: 100%;
-    background: #1d2033;
-    display: flex;
-    flex-direction: column;
-    user-select: none;
-    .nav {
-      height: 76px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      background: #282b3d;
-      .left {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        padding: 6px 0;
-      }
-    }
-    .main-wapper {
-      flex: 1;
-      width: 100%;
-      overflow: hidden;
-      padding: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      display: flex;
-      flex-direction: column;
-
-      > .block {
-        width: 100%;
-        flex: 1;
-        overflow: hidden;
-      }
-      .tool {
-        flex-shrink: 0;
-        padding: 30px 0 20px 0;
-      }
-    }
-  }
-</style>

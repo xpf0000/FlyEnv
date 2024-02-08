@@ -22,7 +22,8 @@ const config: UserConfig = {
   resolve: {
     alias: {
       '@': renderPath,
-      '@shared': sharePath
+      '@shared': sharePath,
+      '@web': __dirname
     }
   },
   css: {

@@ -1,5 +1,5 @@
 <template>
-  <div class="port-kill">
+  <div class="host-edit port-kill">
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -118,86 +118,3 @@
     }
   })
 </script>
-
-<style lang="scss">
-  .port-kill {
-    width: 100%;
-    height: 100%;
-    background: #1d2033;
-    display: flex;
-    flex-direction: column;
-    user-select: none;
-    .nav {
-      height: 76px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      background: #282b3d;
-      .left {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        padding: 6px 0;
-      }
-    }
-    .main-wapper {
-      flex: 1;
-      width: 100%;
-      overflow: auto;
-      padding: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      &::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-        display: none;
-      }
-
-      .el-input-group__append {
-        overflow: hidden;
-
-        > button {
-          display: flex;
-          border-radius: 0;
-        }
-      }
-
-      .main {
-        background: #32364a;
-        border-radius: 8px;
-        padding: 20px 20px 10px 20px;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-
-        > .el-input {
-          flex-shrink: 0;
-        }
-
-        .table-wapper {
-          flex: 1;
-          padding: 30px 0;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-
-          .btn-cell {
-            flex-shrink: 0;
-          }
-
-          .el-table {
-            margin-top: 20px;
-            flex: 1;
-          }
-        }
-      }
-      .plant-title {
-        padding: 22px 24px;
-        font-size: 15px;
-        font-weight: 600;
-      }
-    }
-  }
-</style>

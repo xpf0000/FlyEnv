@@ -1,25 +1,30 @@
 <template>
-  <el-select v-model="currentBrewSrc">
-    <template v-for="(label, value) in brewSrc" :key="value">
-      <el-option
-        :label="value === 'default' ? $t(`base.${value}`) : label"
-        :value="value"
-      ></el-option>
-    </template>
-  </el-select>
-  <el-button
-    :loading="brewRunning"
-    :disabled="running || !currentBrewSrc || brewRunning || currentBrewSrc === brewStoreSrc"
-    @click="changeBrewSrc"
-    >{{ $t('base.switch') }}</el-button
-  >
+  <div class="plant-title">{{ $t('base.brewSrcSwitch') }}</div>
+  <div class="main brew-src">
+    <el-select v-model="currentBrewSrc" :disabled="!checkBrew()">
+      <template v-for="(label, value) in brewSrc" :key="value">
+        <el-option
+          :label="value === 'default' ? $t(`base.${value}`) : label"
+          :value="value"
+        ></el-option>
+      </template>
+    </el-select>
+    <el-button
+      :loading="brewRunning"
+      :disabled="
+        !checkBrew() || running || !currentBrewSrc || brewRunning || currentBrewSrc === brewStoreSrc
+      "
+      @click="changeBrewSrc"
+      >{{ $t('base.switch') }}</el-button
+    >
+  </div>
 </template>
 
 <script lang="ts">
   import { defineComponent } from 'vue'
-  import { waitTime } from '../../../fn'
-  import { BrewStore } from '../../../store/brew'
-  import { ElMessage } from 'element-plus'
+  import { BrewStore } from '@web/store/brew'
+  import { MessageSuccess } from '@/util/Element'
+  import { waitTime } from '@web/fn'
   export default defineComponent({
     components: {},
     props: {},
@@ -48,19 +53,18 @@
     created: function () {
       const brewStore = BrewStore()
       this.running = true
-      brewStore.brewSrc = 'default'
-      this.currentBrewSrc = 'default'
-      this.running = false
+      brewStore.brewSrc = ''
     },
     methods: {
-      changeBrewSrc() {
+      checkBrew() {
+        return true
+      },
+      async changeBrewSrc() {
         const brewStore = BrewStore()
         brewStore.brewRunning = true
-        waitTime().then(() => {
-          brewStore.brewSrc = this.currentBrewSrc
-          brewStore.brewRunning = false
-          ElMessage.success(this.$t('base.success'))
-        })
+        await waitTime()
+        brewStore.brewSrc = this.currentBrewSrc
+        MessageSuccess(this.$t('base.success'))
       }
     }
   })

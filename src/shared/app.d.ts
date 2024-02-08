@@ -56,6 +56,6 @@ export interface AIChatItem {
 export interface MysqlGroupItem {
   id: string
   version: AppServerCurrent
-  port: number
+  port: number | string
   dataDir: string
 }

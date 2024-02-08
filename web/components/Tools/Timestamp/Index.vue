@@ -1,5 +1,5 @@
 <template>
-  <div class="tool-timestamp">
+  <div class="host-edit tool-timestamp">
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -119,91 +119,3 @@
     }
   }
 </script>
-
-<style lang="scss">
-  .tool-timestamp {
-    width: 100%;
-    height: 100%;
-    background: #1d2033;
-    display: flex;
-    flex-direction: column;
-    .nav {
-      height: 76px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      background: #282b3d;
-      .left {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        padding: 6px 0;
-      }
-    }
-    .main-wapper {
-      flex: 1;
-      width: 100%;
-      overflow: auto;
-      padding: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      &::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-        display: none;
-      }
-      .input {
-        background: transparent;
-        border-top: none;
-        border-left: none;
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.7);
-        outline: none;
-        height: 42px;
-        color: #fff;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        &::-webkit-input-placeholder {
-          color: rgba(255, 255, 255, 0.7);
-        }
-        &:hover {
-          border-bottom: 2px solid rgba(255, 255, 255, 0.7);
-        }
-        &:focus {
-          border-bottom: 2px solid #01cc74;
-        }
-        &.error {
-          border-bottom: 2px solid #cc5441;
-        }
-      }
-      .main {
-        background: #32364a;
-        border-radius: 8px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-
-        .current {
-          color: #01cc74;
-        }
-
-        .left,
-        .right {
-          display: flex;
-          align-items: center;
-          flex: 1;
-        }
-
-        .path-choose {
-          display: flex;
-          align-items: flex-end;
-          .input {
-            flex: 1;
-          }
-        }
-      }
-    }
-  }
-</style>

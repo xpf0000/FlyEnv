@@ -33,24 +33,3 @@
   })
   const downImg = () => {}
 </script>
-
-<style lang="scss">
-  .host-url-qrcode {
-    .tool {
-      display: flex;
-      align-items: center;
-      justify-content: end;
-      padding: 5px 0 12px;
-
-      svg {
-        &:hover {
-          color: #409eff;
-        }
-      }
-    }
-    .host-url-canvas {
-      width: 240px;
-      height: 240px;
-    }
-  }
-</style>

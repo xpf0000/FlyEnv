@@ -40,6 +40,9 @@ export interface AppServerCurrent {
   fetching?: boolean
   running?: boolean
   flag?: string
+  num?: number
+  enable?: boolean
+  run?: boolean
 }
 
 export enum AppSofts {

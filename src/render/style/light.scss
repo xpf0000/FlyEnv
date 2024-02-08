@@ -192,6 +192,12 @@ html.light {
             background-color: var(--base-bg-color-1);
           }
 
+          > .empty {
+            > .wapper {
+              color: #345;
+            }
+          }
+
           .http-serve-item {
             background-color: var(--base-bg-color-1);
             backdrop-filter: blur(5px);

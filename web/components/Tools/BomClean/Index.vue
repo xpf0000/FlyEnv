@@ -1,5 +1,5 @@
 <template>
-  <div class="ssl-make">
+  <div class="host-edit">
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -189,11 +189,3 @@ node_modules`
     )
   })
 </script>
-<style lang="scss">
-  .bom-clean-popper {
-    width: 35vw !important;
-    max-height: 90vh !important;
-    overflow: auto !important;
-    font-size: 12px;
-  }
-</style>

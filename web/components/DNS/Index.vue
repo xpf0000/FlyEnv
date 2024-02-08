@@ -13,7 +13,19 @@
     </div>
     <div class="main-block">
       <div class="table-header">
-        <span>{{ $t('util.count') }} {{ links.length }}</span>
+        <div class="left">
+          <template v-if="running">
+            <div class="status running" :class="{ disabled: fetching }">
+              <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="dnsStop" />
+            </div>
+            <div class="status refresh" :class="{ disabled: fetching }">
+              <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="dnsStart" />
+            </div>
+          </template>
+          <div v-else class="status" :class="{ disabled: fetching }">
+            <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStart" />
+          </div>
+        </div>
         <el-button @click.stop="cleanLog">{{ $t('base.clean') }}</el-button>
       </div>
       <el-auto-resizer>
@@ -34,15 +46,19 @@
 </template>
 
 <script lang="tsx" setup>
-  import { DnsStore } from '../../store/dns'
+  import { DnsStore } from '@web/store/dns'
   import { computed } from 'vue'
   import type { Column } from 'element-plus'
+  import { dnsStart, dnsStop } from '@web/fn'
   const dnsStore = DnsStore()
   const ip = computed(() => {
     return dnsStore.ip
   })
   const running = computed(() => {
     return dnsStore.running
+  })
+  const fetching = computed(() => {
+    return dnsStore.fetching
   })
   const links = computed(() => {
     return dnsStore.log
@@ -73,78 +89,3 @@
     links.value.splice(0)
   }
 </script>
-
-<style lang="scss">
-  .dns-tips-popper {
-    max-width: 50vw;
-    white-space: pre-line;
-  }
-  .dns-panel {
-    height: 100%;
-    overflow: auto;
-    line-height: 1.75;
-    padding: 0 18px;
-    display: flex;
-    flex-direction: column;
-    > .top-tab {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      margin-top: 50px;
-      flex-shrink: 0;
-
-      &.running {
-        color: #01cc74;
-      }
-
-      > svg {
-        color: #fff;
-        margin-left: 20px;
-      }
-
-      > .title {
-        margin-right: 20px;
-      }
-    }
-    .main-block {
-      flex: 1;
-      width: 100%;
-      padding: 30px 10px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-
-      .table-header {
-        flex-shrink: 0;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 6px 8px;
-        background-color: #141414;
-        color: #fff;
-        border-bottom: 1px #363637 solid;
-        font-weight: 700;
-      }
-
-      > .el-auto-resizer {
-        height: auto !important;
-        flex: 1;
-        overflow: hidden;
-      }
-
-      .host-column {
-        width: calc(100% - 360px) !important;
-
-        > span {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          user-select: text;
-        }
-      }
-    }
-  }
-</style>

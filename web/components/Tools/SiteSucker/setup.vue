@@ -8,7 +8,7 @@
     @closed="closedFn"
   >
     <template #default>
-      <div class="ssl-make">
+      <div class="host-edit">
         <div class="nav">
           <div class="left" @click="show = false">
             <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -110,13 +110,3 @@
     onClosed
   })
 </script>
-<style lang="scss">
-  .site-sucker-setup {
-    > .el-form-item {
-      margin-bottom: 30px;
-    }
-    textarea {
-      margin-top: 10px !important;
-    }
-  }
-</style>

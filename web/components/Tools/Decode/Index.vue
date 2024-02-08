@@ -1,5 +1,5 @@
 <template>
-  <div class="tool-decode">
+  <div class="host-edit tool-decode">
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
@@ -159,76 +159,3 @@
     }
   }
 </script>
-
-<style lang="scss">
-  .tool-decode {
-    width: 100%;
-    height: 100%;
-    background: #1d2033;
-    display: flex;
-    flex-direction: column;
-    .nav {
-      height: 76px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      background: #282b3d;
-      .left {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        padding: 6px 0;
-      }
-    }
-    .main-wapper {
-      flex: 1;
-      width: 100%;
-      overflow: auto;
-      padding: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      &::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-        display: none;
-      }
-      .main {
-        background: #32364a;
-        border-radius: 8px;
-        padding: 20px;
-        display: flex;
-        height: 100%;
-
-        .el-textarea {
-          height: 100%;
-          > textarea {
-            height: 100%;
-            font-size: 15px;
-          }
-        }
-
-        .center {
-          flex-shrink: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin: 0 20px;
-
-          .el-button {
-            margin-bottom: 20px;
-            margin-left: 0;
-            margin-right: 0;
-            width: 134px;
-          }
-
-          .el-button > span {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-          }
-        }
-      }
-    }
-  }
-</style>
