@@ -269,6 +269,7 @@ export const AppStore = defineStore('app', {
       hosts.forEach((host) => {
         this.hosts.push(reactive(host))
       })
+      console.log('UPDATE_HOSTS: ', this.hosts)
     },
     INIT_CONFIG(obj: any) {
       this.config = reactive(obj)

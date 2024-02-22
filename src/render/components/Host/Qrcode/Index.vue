@@ -1,5 +1,11 @@
 <template>
-  <el-popover popper-class="host-url-qrcode" :show-after="1000" trigger="hover" width="264px">
+  <el-popover
+    popper-class="host-url-qrcode"
+    :show-after="1000"
+    trigger="hover"
+    width="264px"
+    @show="onShow"
+  >
     <template #reference>
       <slot></slot>
     </template>
@@ -19,7 +25,7 @@
 
 <script lang="ts" setup>
   import QRCode from 'qrcode'
-  import { ref, onMounted } from 'vue'
+  import { ref } from 'vue'
   import { MessageError } from '@/util/Element'
   const { dialog, shell } = require('@electron/remote')
   const { writeFile } = require('fs')
@@ -27,13 +33,8 @@
   const props = defineProps<{
     url: string
   }>()
+  let showed = false
   const canvas = ref(null)
-  onMounted(() => {
-    QRCode.toCanvas(canvas.value, props.url, {
-      width: 240,
-      margin: 1
-    })
-  })
   const doSave = (url: string) => {
     dialog
       .showSaveDialog({
@@ -70,5 +71,15 @@
         doSave(url)
       }
     )
+  }
+
+  const onShow = () => {
+    if (!showed) {
+      showed = true
+      QRCode.toCanvas(canvas.value, props.url, {
+        width: 240,
+        margin: 1
+      })
+    }
   }
 </script>

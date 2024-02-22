@@ -406,8 +406,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         )
       }
       if (host.alias !== old.alias || host.name !== old.name) {
-        const oldAlias = this.#hostAlias(old)
-        const newAlias = this.#hostAlias(host)
+        const oldAlias = this.#hostAlias(old).join(' ')
+        const newAlias = this.#hostAlias(host).join(' ')
         hasChanged = true
         find.push(...[`server_name ${oldAlias};`, `ServerAlias ${oldAlias}`])
         replace.push(...[`server_name ${newAlias};`, `ServerAlias ${newAlias}`])
@@ -574,7 +574,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         const hostname = host.name
         const nvhost = join(nginxvpath, `${hostname}.conf`)
         const avhost = join(apachevpath, `${hostname}.conf`)
-        const hostalias = this.#hostAlias(host)
+        const hostalias = this.#hostAlias(host).join(' ')
         ntmpl = ntmpl
           .replace(/#Server_Alias#/g, hostalias)
           .replace(/#Server_Root#/g, host.root)
@@ -648,22 +648,29 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     })
   }
 
-  #hostAlias(item: AppHost) {
+  #hostAlias(item: AppHost): Array<string> {
     const alias = item.alias
       ? item.alias.split('\n').filter((n) => {
           return n && n.length > 0
         })
       : []
-    return [item.name, ...alias].join(' ')
+    return Array.from(new Set([item.name, ...alias]))
   }
 
   _initHost(list: Array<AppHost>, writeToSystem = true) {
     return new ForkPromise(async (resolve, reject) => {
+      const allHost: Set<string> = new Set<string>()
       const host: Array<string> = []
       for (const item of list) {
         const alias = this.#hostAlias(item)
-        host.push(`127.0.0.1     ${alias}`)
+        alias.forEach((a) => {
+          allHost.add(a)
+        })
       }
+      allHost.forEach((a) => {
+        host.push(`127.0.0.1     ${a}`)
+        host.push(`::1     ${a}`)
+      })
       await writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
       if (!writeToSystem) {
         resolve(true)
