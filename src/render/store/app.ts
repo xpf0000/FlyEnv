@@ -31,6 +31,7 @@ export interface AppHost {
   url: string
   root: string
   phpVersion?: number
+  mark?: string
 }
 
 export interface AppServerCurrent {

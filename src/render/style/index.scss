@@ -496,6 +496,13 @@ body.lang-en {
       display: flex;
       align-items: center;
 
+      .el-input {
+        &.error {
+          --el-input-border-color: #f56c6c;
+          --el-input-focus-border-color: #f56c6c;
+        }
+      }
+
       span {
         white-space: nowrap;
         overflow: hidden;

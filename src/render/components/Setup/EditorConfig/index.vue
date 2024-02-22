@@ -2,7 +2,7 @@
   <div class="setup-common editor-config">
     <div class="main proxy-set">
       <el-form label-width="130px" label-position="left" @submit.prevent>
-        <el-form-item :label="$t(' util.theme')">
+        <el-form-item :label="$t('util.theme')">
           <el-radio-group v-model="editorConfig.theme">
             <el-radio-button label="vs-dark" />
             <el-radio-button label="vs-light" />

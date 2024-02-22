@@ -15,7 +15,11 @@
             :data-host-id="scope.row.id"
           ></div>
           <template v-if="quickEdit?.id && scope.row.id === quickEdit?.id">
-            <el-input v-model.trim="quickEdit.name"></el-input>
+            <el-input
+              v-model.trim="quickEdit.name"
+              :class="{ error: quickEditNameError }"
+              @change="docClick(undefined)"
+            ></el-input>
           </template>
           <template v-else>
             <QrcodePopper :url="scope.row.name">
@@ -53,7 +57,7 @@
       <el-table-column :label="$t('host.mark')">
         <template #default="scope">
           <template v-if="quickEdit?.id && scope.row.id === quickEdit?.id">
-            <el-input v-model="quickEdit.mark"></el-input>
+            <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>
           </template>
           <template v-else>
             <el-tooltip :content="`${scope.row.mark}`" :show-after="800">
@@ -180,13 +184,23 @@
         return name.includes(search.value) || `${mark}`.includes(search.value)
       })
     }
+    const allHost = hosts
+      .map((h) => {
+        return {
+          id: h.id,
+          name: h.name
+        }
+      })
+      .sort((a, b) => {
+        return b.name.length - a.name.length
+      })
     const arr: Array<any> = []
     const findChild = (item: any) => {
       if (!item.name) {
         return
       }
       const sub = hosts.filter((h) => {
-        if (!h.name) {
+        if (!h.name || h?.pid) {
           return false
         }
         let name: any = h.name.split('.')
@@ -203,8 +217,9 @@
       })
       item.children = sub
     }
-    hosts.forEach((h) => {
-      findChild(h)
+    allHost.forEach((a) => {
+      const item = hosts.find((h) => h.id === a.id)
+      findChild(item)
     })
     hosts.forEach((h) => {
       if (!h.pid) {
@@ -328,6 +343,13 @@
   const quickEdit: Ref<AppHost | undefined> = ref(undefined)
   const quickEditTr: Ref<HTMLElement | undefined> = ref(undefined)
 
+  const quickEditNameError = computed(() => {
+    return (
+      quickEdit?.value?.id &&
+      appStore.hosts.some((h) => h.name === quickEdit.value?.name && h.id !== quickEdit.value?.id)
+    )
+  })
+
   const tbodyDblClick = (e: MouseEvent) => {
     console.log('tbodyDblClick: ', e, e.target)
     let node: HTMLElement = e.target as any
@@ -340,15 +362,15 @@
     console.log('id: ', id)
     const host = appStore.hosts.find((h) => h.id === id)
     console.log('host: ', host)
-    quickEdit.value = host as any
+    quickEdit.value = JSON.parse(JSON.stringify(host))
     quickEditTr.value = node as any
     quickEditBack = JSON.parse(JSON.stringify(host))
   }
 
-  const docClick = (e: MouseEvent) => {
-    const dom: HTMLElement = e.target as any
+  const docClick = (e?: MouseEvent) => {
+    const dom: HTMLElement = e?.target as any
     if (quickEdit?.value && !quickEditTr?.value?.contains(dom)) {
-      if (!quickEdit?.value?.name?.trim()) {
+      if (!quickEdit?.value?.name?.trim() || quickEditNameError?.value) {
         quickEdit.value.name = quickEditBack?.name ?? ''
       }
       if (!isEqual(quickEdit.value, quickEditBack)) {
