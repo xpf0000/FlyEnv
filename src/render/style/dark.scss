@@ -226,6 +226,14 @@ html.dark {
         }
       }
 
+      >.nodejs-list {
+        .table-header {
+          background-color: #141414;
+          color: #fff;
+          border-bottom: 1px #363637 solid;
+        }
+      }
+
       >.setup-common {
         .main {
           background: #32364a;

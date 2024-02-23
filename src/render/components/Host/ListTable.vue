@@ -325,10 +325,17 @@
         break
       case 'park':
         console.log('item: ', item)
-        loading.value = true
-        handleHost(item, 'edit', item, true).then(() => {
-          loading.value = false
+        Base._Confirm(I18nT('host.parkConfim'), undefined, {
+          customClass: 'confirm-del',
+          type: 'warning'
         })
+          .then(() => {
+            loading.value = true
+            handleHost(item, 'edit', item, true).then(() => {
+              loading.value = false
+            })
+          })
+          .catch(() => {})
         break
     }
   }

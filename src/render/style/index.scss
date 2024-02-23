@@ -2205,6 +2205,39 @@ body.lang-en {
     }
   }
 }
+.nodejs-list {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  >.table-header {
+    flex-shrink: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+  }
+
+  >.el-table {
+    flex: 1;
+
+    .name-cell {
+      display: flex;
+      align-items: center;
+
+      > span {
+        flex-shrink: 0;
+        margin-right: 20px;
+      }
+      > .el-input {
+        height: 26px;
+        width: 188px;
+      }
+    }
+  }
+}
 
 @media (max-width: 825px) {
   html {

@@ -1,8 +1,10 @@
 import { Base } from './Base'
-import { execPromise } from '../Fn'
+import { execPromise, fixEnv } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '../lang'
 import { join } from 'path'
+import { compareVersions } from 'compare-versions'
+import { exec } from 'child_process'
 
 class Manager extends Base {
   constructor() {
@@ -15,26 +17,50 @@ class Manager extends Base {
     const rootNVM = join(dir, 'bash_completion')
     const sh = join(repo, 'opt/nvm/nvm.sh')
     const nvm = join(repo, 'opt/nvm/etc/bash_completion.d/nvm')
-    return `[ -s "${rootSh}" ] && \\. "${rootSh}";[ -s "${rootNVM}" ] && \\. "${rootNVM}";[ -s "${sh}" ] && \\. "${sh}";[ -s "${nvm}" ] && \\. "${nvm}";`
+    return `[ -s "${rootSh}" ] && \\. "${rootSh}";[ -s "${rootNVM}" ] && \\. "${rootNVM}";[ -s "${sh}" ] && \\. "${sh}";[ -s "${nvm}" ] && \\. "${nvm}";unset NVM_NODEJS_ORG_MIRROR;`
   }
 
   allVersion(dir: string) {
     return new ForkPromise((resolve, reject) => {
       const pre = this.getNvmEnv(dir)
-      execPromise(`${pre}nvm ls-remote`, {
-        env: {
+      try {
+        const env = {
+          ...fixEnv(),
           NVM_DIR: dir
         }
-      })
-        .then((res) => {
-          const str = res?.stdout ?? ''
-          const all =
-            str?.match(/\sv\d+(\.\d+){1,4}\s/g)?.map((v) => {
-              return v.trim().replace('v', '')
-            }) ?? []
-          resolve(all.reverse())
-        })
-        .catch(reject)
+        exec(
+          `${pre}nvm ls-remote`,
+          {
+            env
+          },
+          (error, stdout) => {
+            const str = stdout ?? ''
+            const all =
+              str?.match(/\sv\d+(\.\d+){1,4}\s/g)?.map((v) => {
+                return v.trim().replace('v', '')
+              }) ?? []
+            resolve(all.reverse())
+          }
+        )
+      } catch (e) {
+        reject(e)
+      }
+
+      // execPromise(`${pre}nvm ls-remote`, {
+      //   env: {
+      //     NVM_DIR: dir
+      //   }
+      // })
+      //   .then((res) => {
+      //     console.log('res: ', res?.stdout, res?.stderr)
+      //     const str = res?.stdout ?? ''
+      //     const all =
+      //       str?.match(/\sv\d+(\.\d+){1,4}\s/g)?.map((v) => {
+      //         return v.trim().replace('v', '')
+      //       }) ?? []
+      //     resolve(all.reverse())
+      //   })
+      //   .catch(reject)
     })
   }
 
@@ -57,6 +83,9 @@ class Manager extends Base {
           } else {
             current = ''
           }
+          localVersions?.sort((a, b) => {
+            return compareVersions(b, a)
+          })
           resolve({
             versions: localVersions,
             current: current

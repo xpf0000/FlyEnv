@@ -149,6 +149,14 @@ html.light {
             }
           }
 
+          >.nodejs-list {
+            .table-header {
+              background-color: #f1f2f3;
+              color: #345;
+              border-bottom: 1px #f1f2f3 solid;
+            }
+          }
+
           >.setup-common {
             &::-webkit-scrollbar-thumb {
               background-color: var(--base-bg-color-1);

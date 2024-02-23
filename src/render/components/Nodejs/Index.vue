@@ -10,17 +10,17 @@
       >
     </ul>
     <div class="main-block">
-      <mo-nodejs-versions v-if="current_tab === 0"></mo-nodejs-versions>
+      <Versions v-if="current_tab === 0"></Versions>
     </div>
   </div>
 </template>
 
 <script>
-  import Versions from './Versions.vue'
+  import Versions from './List.vue'
   export default {
     name: 'MoNodejsPanel',
     components: {
-      [Versions.name]: Versions
+      Versions
     },
     props: {},
     data() {

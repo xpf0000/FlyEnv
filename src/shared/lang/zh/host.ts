@@ -27,5 +27,7 @@ export default {
   placeholderRemarks: '备注',
   placeholderRootPath: '站点根目录',
   hostPort: '端口',
-  hostSSL: 'SSL证书'
+  hostSSL: 'SSL证书',
+
+  parkConfim: '确定根据子目录生成站点?'
 }

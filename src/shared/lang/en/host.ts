@@ -27,5 +27,7 @@ export default {
   placeholderRemarks: 'host remarks',
   placeholderRootPath: 'host root path',
   hostPort: 'Port',
-  hostSSL: 'SSL'
+  hostSSL: 'SSL',
+
+  parkConfim: 'Make sure to generate sites based on subdirectories?'
 }
