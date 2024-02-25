@@ -54,7 +54,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.service')" :prop="null" width="150px">
+      <el-table-column :label="$t('base.service')" :prop="null" width="100px">
         <template #default="scope">
           <template v-if="scope.row.running">
             <el-button :loading="true" link></el-button>

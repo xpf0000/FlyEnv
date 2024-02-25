@@ -1,4 +1,12 @@
 html.dark {
+  .el-card {
+    --el-card-bg-color: rgba(0,0,0,0);
+  }
+  .el-table {
+    --el-table-bg-color: rgba(0,0,0,0);
+    --el-table-tr-bg-color: rgba(0,0,0,0);
+    --el-table-header-bg-color: rgba(0,0,0,0);
+  }
   .el-drawer {
     background: #1d2033 !important;
     background-color: #1d2033 !important;
