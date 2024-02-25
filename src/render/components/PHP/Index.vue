@@ -1,15 +1,7 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <ul class="top-tab">
-      <li :class="current_tab === 0 ? 'active' : ''" @click="current_tab = 0"
-        >{{ tabs[0] }}
-        <yb-icon
-          :svg="import('@/svg/icon_refresh.svg?raw')"
-          width="18"
-          height="18"
-          @click.stop="refreshVersions"
-        />
-      </li>
+      <li :class="current_tab === 0 ? 'active' : ''" @click="current_tab = 0">{{ tabs[0] }} </li>
       <li :class="current_tab === 3 ? 'active' : ''" @click="current_tab = 3">{{ tabs[3] }}</li>
     </ul>
     <div class="main-block">
@@ -51,10 +43,6 @@
     watch: {},
     created: function () {},
     unmounted() {},
-    methods: {
-      refreshVersions() {
-        this.$refs.service?.reinit()
-      }
-    }
+    methods: {}
   }
 </script>

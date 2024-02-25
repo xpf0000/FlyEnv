@@ -27,10 +27,10 @@
         <PostgreSqlModule ref="postgresqlModule" :current-page="currentPage" @nav="nav" />
         <MemcachedModule ref="memcachedModule" :current-page="currentPage" @nav="nav" />
         <RedisModule ref="redisModule" :current-page="currentPage" @nav="nav" />
-        <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
-        <FtpModule ref="ftpModule" :current-page="currentPage" @nav="nav" />
         <NodejsModule :current-page="currentPage" @nav="nav" />
         <HttpserveModule :current-page="currentPage" @nav="nav" />
+        <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
+        <FtpModule ref="ftpModule" :current-page="currentPage" @nav="nav" />
         <ToolsModule :current-page="currentPage" @nav="nav" />
       </ul>
       <ul class="menu setup-menu">

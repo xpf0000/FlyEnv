@@ -1,109 +1,142 @@
 <template>
-  <ul ref="fileDroper" class="php-versions-list">
-    <li v-if="!versions?.length" class="http-serve-item none">
-      {{ $t('php.noVersionTips') }}
-    </li>
-    <li v-for="(item, key) in versions" :key="key" class="http-serve-item" :data-item-index="key">
-      <div class="left">
-        <div class="title">
-          <span class="name"> {{ $t('base.path') }}:</span>
-          <span class="url">{{ $t('base.version') }}:</span>
+  <el-card class="version-manager">
+    <template #header>
+      <div class="card-header">
+        <div class="left">
+          <span> PHP </span>
         </div>
-        <div class="value">
-          <span class="name">{{ item.path }} </span>
-          <template v-if="item.version">
-            <span class="url">{{ item.version }} </span>
+        <el-button class="button" :disabled="service?.fetching" link @click="resetData">
+          <yb-icon
+            :svg="import('@/svg/icon_refresh.svg?raw')"
+            class="refresh-icon"
+            :class="{ 'fa-spin': service?.fetching }"
+          ></yb-icon>
+        </el-button>
+      </div>
+    </template>
+    <el-table v-loading="service?.fetching" class="service-table" :data="versions">
+      <el-table-column :label="$t('base.version')" prop="version" width="90px">
+        <template #default="scope">
+          <span>{{ scope.row.version }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('base.path')" :prop="null">
+        <template #default="scope">
+          <template v-if="!scope.row.version">
+            <el-tooltip
+              :raw-content="true"
+              :content="scope.row?.error ?? $t('base.versionErrorTips')"
+              popper-class="version-error-tips"
+            >
+              <span class="path error" @click.stop="openDir(scope.row.path)">{{
+                scope.row.path
+              }}</span>
+            </el-tooltip>
           </template>
           <template v-else>
-            <span class="url error">
-              <el-tooltip
-                :raw-content="true"
-                :content="item?.error ?? $t('base.versionErrorTips')"
-                popper-class="version-error-tips"
-              >
-                {{ $t('base.versionError') }}
-              </el-tooltip>
-            </span>
+            <span class="path" @click.stop="openDir(scope.row.path)">{{ scope.row.path }}</span>
           </template>
-        </div>
-      </div>
-      <div class="right">
-        <template v-if="appStore.phpGroupStart[item.bin] === false">
-          <div class="status group-off">
-            <yb-icon :svg="import('@/svg/nogroupstart.svg?raw')" @click.stop="groupTrunOn(item)" />
-          </div>
         </template>
-        <template v-if="item.run">
-          <div class="status running" :class="{ disabled: item.running }">
-            <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="doStop(item)" />
-          </div>
-          <div class="status refresh" :class="{ disabled: item.running }">
-            <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="doRun(item)" />
-          </div>
-        </template>
-        <div v-else class="status" :class="{ disabled: item.running || !item.version }">
-          <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="doRun(item)" />
-        </div>
-        <el-popover
-          :ref="'php-versions-poper-' + key"
-          effect="dark"
-          popper-class="host-list-poper"
-          placement="bottom-end"
-          :show-arrow="false"
-          width="auto"
-        >
-          <ul v-poper-fix class="host-list-menu">
-            <li @click.stop="action(item, key, 'open')">
-              <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ $t('base.open') }}</span>
-            </li>
-            <li @click.stop="action(item, key, 'conf')">
-              <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-              <span class="ml-15"> {{ $t('base.configFile') }} </span>
-            </li>
-            <li @click.stop="action(item, key, 'log-fpm')">
-              <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ $t('php.fpmLog') }}</span>
-            </li>
-            <li @click.stop="action(item, key, 'log-slow')">
-              <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ $t('base.slowLog') }}</span>
-            </li>
-            <li @click.stop="action(item, key, 'extend')">
-              <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ $t('php.extension') }}</span>
-            </li>
-            <li @click.stop="action(item, key, 'groupstart')">
+      </el-table-column>
+      <el-table-column :label="$t('php.quickStart')" :prop="null" width="100px" align="center">
+        <template #default="scope">
+          <template v-if="appStore.phpGroupStart[scope.row.bin] === false">
+            <el-button link class="status group-off">
               <yb-icon
-                style="padding: 0"
+                style="width: 26px; height: 26px"
                 :svg="import('@/svg/nogroupstart.svg?raw')"
-                width="18"
-                height="18"
+                @click.stop="groupTrunOn(scope.row)"
               />
-              <template v-if="appStore.phpGroupStart[item.bin] === false">
-                <span class="ml-10">{{ $t('php.groupStartOn') }}</span>
-              </template>
-              <template v-else>
-                <span class="ml-10">{{ $t('php.groupStartOff') }}</span>
-              </template>
-            </li>
-            <template v-if="checkBrew(item)">
-              <li @click.stop="action(item, key, 'brewLink')">
-                <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('php.phpSetGlobal') }}</span>
-              </li>
-            </template>
-          </ul>
-
-          <template #reference>
-            <div class="more">
-              <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
-            </div>
+            </el-button>
           </template>
-        </el-popover>
-      </div>
-    </li>
-  </ul>
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('base.service')" :prop="null" width="100px">
+        <template #default="scope">
+          <template v-if="scope.row.running">
+            <el-button :loading="true" link></el-button>
+          </template>
+          <template v-else>
+            <template v-if="scope.row.run">
+              <el-button link class="status running">
+                <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="doStop(scope.row)" />
+              </el-button>
+              <el-button link class="status refresh">
+                <yb-icon
+                  :svg="import('@/svg/icon_refresh.svg?raw')"
+                  @click.stop="doRun(scope.row)"
+                />
+              </el-button>
+            </template>
+            <template v-else>
+              <el-button link class="status start">
+                <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="doRun(scope.row)" />
+              </el-button>
+            </template>
+          </template>
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
+        <template #default="scope">
+          <el-popover
+            effect="dark"
+            popper-class="host-list-poper"
+            placement="bottom-end"
+            :show-arrow="false"
+            width="auto"
+          >
+            <ul v-poper-fix class="host-list-menu">
+              <li @click.stop="action(scope.row, scope.$index, 'open')">
+                <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
+                <span class="ml-15">{{ $t('base.open') }}</span>
+              </li>
+              <li @click.stop="action(scope.row, scope.$index, 'conf')">
+                <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                <span class="ml-15"> {{ $t('base.configFile') }} </span>
+              </li>
+              <li @click.stop="action(scope.row, scope.$index, 'log-fpm')">
+                <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
+                <span class="ml-15">{{ $t('php.fpmLog') }}</span>
+              </li>
+              <li @click.stop="action(scope.row, scope.$index, 'log-slow')">
+                <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
+                <span class="ml-15">{{ $t('base.slowLog') }}</span>
+              </li>
+              <li @click.stop="action(scope.row, scope.$index, 'extend')">
+                <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
+                <span class="ml-15">{{ $t('php.extension') }}</span>
+              </li>
+              <li @click.stop="action(scope.row, scope.$index, 'groupstart')">
+                <yb-icon
+                  style="padding: 0"
+                  :svg="import('@/svg/nogroupstart.svg?raw')"
+                  width="18"
+                  height="18"
+                />
+                <template v-if="appStore.phpGroupStart[scope.row.bin] === false">
+                  <span class="ml-10">{{ $t('php.groupStartOn') }}</span>
+                </template>
+                <template v-else>
+                  <span class="ml-10">{{ $t('php.groupStartOff') }}</span>
+                </template>
+              </li>
+              <template v-if="checkBrew(scope.row)">
+                <li @click.stop="action(scope.row, scope.$index, 'brewLink')">
+                  <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
+                  <span class="ml-15">{{ $t('php.phpSetGlobal') }}</span>
+                </li>
+              </template>
+            </ul>
+            <template #reference>
+              <el-button link class="status">
+                <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+              </el-button>
+            </template>
+          </el-popover>
+        </template>
+      </el-table-column>
+    </el-table>
+  </el-card>
 </template>
 
 <script lang="ts" setup>
@@ -117,12 +150,23 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { AppStore } from '@/store/app'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { Service } from '@/components/ServiceManager/service'
 
   const { shell } = require('@electron/remote')
+
+  if (!Service.php) {
+    Service.php = {
+      fetching: false
+    }
+  }
 
   const initing = ref(false)
   const brewStore = BrewStore()
   const appStore = AppStore()
+
+  const service = computed(() => {
+    return Service.php
+  })
 
   const php = computed(() => {
     return brewStore.php
@@ -255,6 +299,22 @@
         )
         break
     }
+  }
+
+  const resetData = () => {
+    if (service?.value?.fetching) {
+      return
+    }
+    service.value.fetching = true
+    const data = brewStore.php
+    data.installedInited = false
+    installedVersions.allInstalledVersions(['php']).then(() => {
+      service.value.fetching = false
+    })
+  }
+
+  const openDir = (dir: string) => {
+    shell.openPath(dir)
   }
 
   init()

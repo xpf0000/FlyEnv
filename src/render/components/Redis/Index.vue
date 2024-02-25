@@ -10,7 +10,7 @@
       >
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="redis"></Service>
+      <Service v-if="current_tab === 0" type-flag="redis" title="Redis"></Service>
       <Config v-if="current_tab === 1"></Config>
       <Manager v-else-if="current_tab === 2" type-flag="redis"></Manager>
       <Logs v-if="current_tab === 3"></Logs>

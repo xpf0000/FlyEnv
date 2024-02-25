@@ -19,7 +19,7 @@ class Mysql extends Base {
 
   _initPassword(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
-      execPromise('./mysqladmin -uroot password "root"', {
+      execPromise('./mysqladmin --socket=/tmp/mysql.sock -uroot password "root"', {
         cwd: dirname(version.bin)
       })
         .then((res) => {
@@ -45,7 +45,6 @@ class Mysql extends Base {
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-
 #设置数据目录
 #brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
 #如果配置文件已更改, 原配置文件在: ${oldm}
@@ -65,7 +64,7 @@ datadir=${dataDir}`
         `--log-error=${e}`,
         '--socket=/tmp/mysql.sock'
       ]
-      if (version?.flag === 'port') {
+      if (version?.flag === 'macports') {
         params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
       }
       let needRestart = false
@@ -213,7 +212,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         `--log-error=${e}`,
         `--socket=${sock}`
       ]
-      if (version?.version?.flag === 'port') {
+      if (version?.version?.flag === 'macports') {
         params.push(`--lc-messages-dir=/opt/local/share/${basename(version.version.path!)}/english`)
       }
       let needRestart = false

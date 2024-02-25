@@ -38,31 +38,34 @@
 // // const regex = new RegExp('([\\s\\S]?[^\\d]*)([\\d\\.]*)([^\\d])([\\s\\S]*)', 'g')
 // // const str = `pg_ctl (PostgreSQL) 3 16.1.5-dev\n`
 //
-// // const regex = /^\d[\d\.]*\d$/g
-// // const str = '16.7.A'
+const regex = /(\d+(\.\d+){1,4}) default/g
+const str = `* v18.19.1 default
+* v20.8.1
+* system`
 // //
 // // console.log(regex.test(str))
 //
-// // console.log(str.match(regex))
-// // regex.lastIndex = 0
+console.log(str.match(regex))
+regex.lastIndex = 0
+console.log(regex.exec(str))
 // // //
-// // let m
-// // while ((m = regex.exec(str)) !== null) {
-// //   console.log(m)
-// // }
+// let m
+// while ((m = regex.exec(str)) !== null) {
+//   console.log(m)
+// }
 //
-const sourcesConf = '/opt/local/etc/macports/macports.conf'
+// const sourcesConf = '/opt/local/etc/macports/macports.conf'
 //
 // const regex = /([^\n\da-zA-Z][\s]?)rsync:\/\/(.*?)([^\n])(\n|$)/g
 
 // const regex = /(^|\n)\s*rsync:\/\/.*(\[default])?(\n|$)/
 // const regex = /^(?:\s*rsync:\/\/.*\[default\])$/gm
-const regex = /^(?:\s*rsync_server\s.*)$/gm
-const fs = require('fs')
-
-const content = fs.readFileSync(sourcesConf, 'utf-8')
-
-console.log(content.match(regex))
+// const regex = /^(?:\s*rsync_server\s.*)$/gm
+// const fs = require('fs')
+//
+// const content = fs.readFileSync(sourcesConf, 'utf-8')
+//
+// console.log(content.match(regex))
 
 // let m
 // while ((m = regex.exec(content)) !== null) {

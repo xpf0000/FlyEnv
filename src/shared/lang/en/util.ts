@@ -50,5 +50,13 @@ export default {
   macPortsSrcSouthAfricaJohannesburg: 'South Africa, Johannesburg',
   macPortsSrcSouthKoreaDaejeon: 'South Korea, Daejeon',
   macPortsSrcUnitedKingdomCanterbury: 'United Kingdom, Canterbury',
-  macPortsSrcUnitedStatesGeorgia: 'United States, Georgia'
+  macPortsSrcUnitedStatesGeorgia: 'United States, Georgia',
+
+  nodeToolInstall: 'Install the NodeJS version manager',
+  nodeToolChoose: 'Manager',
+  nodeToolInstallBy: 'Installation',
+  nodeToolShell: 'Official',
+  nodeToolInstallBtn: 'Install',
+  nodeListCellCurrent: 'Current',
+  nodeListCellInstalled: 'State'
 }

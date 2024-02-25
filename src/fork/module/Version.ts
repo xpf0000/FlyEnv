@@ -18,6 +18,7 @@ class Manager extends Base {
     version?: string | null
     error?: string
   }> {
+    console.log('binVersion: ', bin, name)
     return new ForkPromise(async (resolve) => {
       if (name === 'pure-ftpd') {
         resolve({
@@ -38,6 +39,8 @@ class Manager extends Base {
         let version: string | null = ''
         try {
           version = reg?.exec(str)?.[2]?.trim() ?? ''
+          reg!.lastIndex = 0
+          console.log('version: ', str, version, reg?.exec(str))
         } catch (e) {}
         version = !isNaN(parseInt(version)) ? version : null
         const regx = /^\d[\d\.]*\d$/g
@@ -48,36 +51,45 @@ class Manager extends Base {
           version
         })
       }
-      reg = new RegExp('([\\s\\S]?[^\\d]*)([\\d\\.]*)([^\\d])([\\s\\S]*)', 'g')
+      reg = /\d+(\.\d+){1,4}/g
       switch (name) {
         case 'apachectl':
           command = `${bin} -v`
+          reg = /(Apache\/)(\d+(\.\d+){1,4})( )/g
           break
         case 'nginx':
           command = `${bin} -v`
+          reg = /(nginx\/)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'php-fpm':
           command = `${bin} -n -v`
+          reg = /(\s)(\d+(\.\d+){1,4})([-\s])/g
           break
         case 'mysqld_safe':
           bin = bin.replace('_safe', '')
           command = `${bin} -V`
+          reg = /(Ver )(\d+(\.\d+){1,4})( )/g
           break
         case 'mariadbd-safe':
           bin = bin.replace('-safe', '')
           command = `${bin} -V`
+          reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
           break
         case 'memcached':
           command = `${bin} -V`
+          reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'redis-server':
           command = `${bin} -v`
+          reg = /([=\s])(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'mongod':
           command = `${bin} --version`
+          reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'pg_ctl':
           command = `${bin} --version`
+          reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
           break
       }
       try {
@@ -325,8 +337,7 @@ class Manager extends Base {
                 enable: version !== null,
                 error,
                 run: false,
-                running: false,
-                flag: 'port'
+                running: false
               }
               list.push(item as any)
             }
@@ -353,8 +364,7 @@ class Manager extends Base {
                 enable: version !== null,
                 error,
                 run: false,
-                running: false,
-                flag: 'port'
+                running: false
               }
               list.push(item as any)
             }
@@ -454,8 +464,7 @@ class Manager extends Base {
                 enable: version !== null,
                 error,
                 run: false,
-                running: false,
-                flag: 'port'
+                running: false
               }
               list.push(item as any)
             }

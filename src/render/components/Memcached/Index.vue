@@ -10,7 +10,7 @@
       >
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="memcached"></Service>
+      <Service v-if="current_tab === 0" type-flag="memcached" title="Memcached"></Service>
       <Manager v-else-if="current_tab === 1" type-flag="memcached"></Manager>
       <Logs v-if="current_tab === 2"></Logs>
     </div>

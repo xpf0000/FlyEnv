@@ -26,7 +26,7 @@
     data() {
       return {
         current_tab: 0,
-        tabs: [this.$t('base.versionSwitch')]
+        tabs: ['NodeJS']
       }
     },
     computed: {},

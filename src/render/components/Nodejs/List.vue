@@ -1,86 +1,179 @@
 <template>
-  <div class="nodejs-list">
-    <div class="table-header">
-      <div class="left"> </div>
-    </div>
-    <el-table v-loading="loading" :data="tableData">
-      <el-table-column label="版本" prop="version">
-        <template #header>
-          <div class="w-p100 name-cell">
-            <span>{{ $t('base.version') }}</span>
-            <el-input v-model.trim="search" placeholder="search" clearable></el-input>
+  <template v-if="showInstall">
+    <ToolInstall />
+  </template>
+  <template v-else>
+    <el-card class="version-manager">
+      <template #header>
+        <div class="card-header">
+          <div class="left">
+            <span> {{ $t('base.currentVersionLib') }} </span>
+            <el-select v-model="currentTool" style="margin-left: 8px">
+              <el-option value="fnm" label="fnm" :disabled="!tool || tool === 'nvm'"></el-option>
+              <el-option value="nvm" label="nvm" :disabled="!tool || tool === 'fnm'"></el-option>
+            </el-select>
           </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="当前使用" :prop="null" align="center">
-        <template #default="scope">
-          <template v-if="current === scope.row.version">
-            <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
-          </template>
-        </template>
-      </el-table-column>
-      <el-table-column label="是否安装" :prop="null" align="center">
-        <template #default="scope">
-          <template v-if="scope.row.installed">
+          <el-button class="button" :disabled="!tool || !currentTool" link @click="resetData">
             <yb-icon
-              class="installed"
-              :svg="import('@/svg/select.svg?raw')"
-              width="17"
-              height="17"
-            />
+              :svg="import('@/svg/icon_refresh.svg?raw')"
+              class="refresh-icon"
+              :class="{ 'fa-spin': loading }"
+            ></yb-icon>
+          </el-button>
+        </div>
+      </template>
+      <el-table v-loading="loading" class="nodejs-table" :data="tableData">
+        <el-table-column :label="$t('base.version')" prop="version">
+          <template #header>
+            <div class="w-p100 name-cell">
+              <span>{{ $t('base.version') }}</span>
+              <el-input v-model.trim="search" placeholder="search" clearable></el-input>
+            </div>
           </template>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" :prop="null" align="center">
-        <template #default="scope">
-          <template v-if="scope.row.installed">
-            <el-button type="primary" link>卸载</el-button>
+          <template #default="scope">
+            <span :class="{ current: currentItem?.current === scope.row.version }">{{
+              scope.row.version
+            }}</span>
           </template>
-          <template v-else>
-            <el-button type="primary" link>安装</el-button>
+        </el-table-column>
+        <el-table-column :label="$t('util.nodeListCellCurrent')" :prop="null" align="center">
+          <template #default="scope">
+            <template v-if="currentItem?.current === scope.row.version">
+              <el-button link>
+                <yb-icon
+                  class="current"
+                  :svg="import('@/svg/select.svg?raw')"
+                  width="17"
+                  height="17"
+                />
+              </el-button>
+            </template>
+            <template v-else-if="scope.row.installed">
+              <template v-if="scope.row.switching">
+                <el-button :loading="true" link></el-button>
+              </template>
+              <template v-else>
+                <el-button
+                  v-if="!switching"
+                  link
+                  class="current-set"
+                  @click.stop="doUse(scope.row)"
+                >
+                  <yb-icon
+                    class="current-not"
+                    :svg="import('@/svg/select.svg?raw')"
+                    width="17"
+                    height="17"
+                  />
+                </el-button>
+              </template>
+            </template>
           </template>
-        </template>
-      </el-table-column>
-      <template #empty></template>
-    </el-table>
-  </div>
+        </el-table-column>
+        <el-table-column :label="$t('util.nodeListCellInstalled')" :prop="null" align="center">
+          <template #default="scope">
+            <template v-if="scope.row.installed">
+              <el-button link>
+                <yb-icon
+                  class="installed"
+                  :svg="import('@/svg/select.svg?raw')"
+                  width="17"
+                  height="17"
+                />
+              </el-button>
+            </template>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('base.operation')" width="140px" :prop="null" align="center">
+          <template #default="scope">
+            <template v-if="scope.row.installing">
+              <el-button :loading="true" link></el-button>
+            </template>
+            <template v-else>
+              <template v-if="scope.row.installed">
+                <el-button
+                  type="primary"
+                  link
+                  @click.stop="doInstallOrUninstall('uninstall', scope.row)"
+                  >{{ $t('base.uninstall') }}</el-button
+                >
+              </template>
+              <template v-else>
+                <el-button
+                  type="primary"
+                  link
+                  @click.stop="doInstallOrUninstall('install', scope.row)"
+                  >{{ $t('base.install') }}</el-button
+                >
+              </template>
+            </template>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+  </template>
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, Ref } from 'vue'
-  import IPC from '@/util/IPC'
-  import { TaskStore } from '@/store/task'
-  import { I18nT } from '@shared/lang'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-  import Base from '@/core/Base'
-
-  const current = ref(I18nT('base.gettingVersion'))
-  const localVersions: Ref<Array<any>> = ref([])
+  import { ref, computed, watch, type ComputedRef } from 'vue'
+  import { AppStore } from '@/store/app'
+  import { type NodeJSItem, NodejsStore } from '@/components/Nodejs/node'
+  import ToolInstall from '@/components/Nodejs/ToolInstall.vue'
 
   const search = ref('')
-  const taskStore = TaskStore()
-  const task = computed(() => {
-    return taskStore.node
-  })
+  const nodejsStore = NodejsStore()
+  const appStore = AppStore()
+
   const loading = computed(() => {
-    return task.value.getVersioning
+    return nodejsStore.fetching
+  })
+  const tool = computed({
+    get() {
+      return nodejsStore.tool
+    },
+    set(v) {
+      nodejsStore.tool = v
+    }
+  })
+  const currentTool = computed({
+    get() {
+      return appStore.config.setup.currentNodeTool
+    },
+    set(v) {
+      if (v !== appStore.config.setup.currentNodeTool) {
+        appStore.config.setup.currentNodeTool = v
+        appStore.saveConfig()
+      }
+    }
+  })
+
+  const currentItem: ComputedRef<NodeJSItem | undefined> = computed(() => {
+    if (!currentTool.value) {
+      return undefined
+    }
+    return nodejsStore?.[currentTool.value]
   })
 
   const tableData = computed(() => {
-    const locals = localVersions.value.map((v) => {
-      return {
-        version: v,
-        installed: true
-      }
-    })
-    const remotas = task.value.versions
-      .filter((a) => !localVersions?.value?.includes(a))
-      .map((v) => {
+    if (!currentTool.value) {
+      return []
+    }
+    const locals =
+      currentItem?.value?.local.map((v) => {
         return {
           version: v,
-          installed: false
+          installed: true
         }
-      })
+      }) ?? []
+    const remotas =
+      currentItem?.value?.all
+        .filter((a) => !currentItem?.value?.local?.includes(a))
+        .map((v) => {
+          return {
+            version: v,
+            installed: false
+          }
+        }) ?? []
     const list = [...locals, ...remotas]
     if (!search.value) {
       return list
@@ -88,105 +181,69 @@
     return list.filter((v) => v.version.includes(search.value) || search.value.includes(v.version))
   })
 
-  const checkNvm = () => {
-    return new Promise((resolve, reject) => {
-      if (task.value.NVM_DIR) {
-        resolve(true)
-        return
-      }
-      IPC.send('app-fork:node', 'nvmDir').then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.data) {
-          task.value.NVM_DIR = res.data
-          resolve(true)
-        } else {
-          reject(new Error(I18nT('base.nvmDirNoFound')))
-        }
-      })
-    })
-  }
+  const switching = computed(() => {
+    return nodejsStore.switching
+  })
 
-  const getAllVersion = () => {
-    if (task.value.getVersioning || task.value.versions.length > 0) {
+  const showInstall = computed(() => {
+    return nodejsStore.showInstall
+  })
+
+  const resetData = () => {
+    if (!currentTool.value) {
       return
     }
-    task.value.btnTxt = I18nT('base.gettingVersion')
-    task.value.getVersioning = true
-    IPC.send('app-fork:node', 'allVersion', task.value.NVM_DIR).then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.data) {
-        task.value.versions = res.data
-        task.value.getVersioning = false
-        task.value.btnTxt = I18nT('base.switch')
-      } else {
-        task.value.btnTxt = I18nT('base.switch')
-        task.value.getVersioning = false
-        MessageError(I18nT('base.fail'))
-      }
-    })
+    nodejsStore.fetchData(currentTool.value, true)
   }
 
-  const getLocalVersion = () => {
-    IPC.send('app-fork:node', 'localVersion', task.value.NVM_DIR).then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.data?.versions) {
-        const list: any = res.data.versions
-        localVersions.value.splice(0)
-        localVersions.value.push(...list)
-        current.value = res.data.current
-      }
-    })
+  const doUse = (item: any) => {
+    console.log('doUse: ', item)
+    if (!currentTool.value) {
+      return
+    }
+    const tool = currentTool.value as any
+    nodejsStore.versionChange(tool, item)
   }
 
-  const versionChange = (choose: any) => {
-    task.value.isRunning = true
-    task.value.btnTxt = I18nT('base.switching')
-    IPC.send('app-fork:node', 'versionChange', task.value.NVM_DIR, choose).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          task.value.btnTxt = I18nT('base.switch')
-          task.value.isRunning = false
-          current.value = choose
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          task.value.btnTxt = I18nT('base.switch')
-          task.value.isRunning = false
-          MessageError(I18nT('base.fail'))
+  const doInstallOrUninstall = (action: 'install' | 'uninstall', item: any) => {
+    if (!currentTool.value) {
+      return
+    }
+    const tool = currentTool.value as any
+    nodejsStore.installOrUninstall(tool, action, item)
+  }
+
+  watch(
+    currentTool,
+    (v) => {
+      if (v) {
+        nodejsStore.fetchData(v)
+      }
+    },
+    {
+      immediate: true
+    }
+  )
+
+  watch(
+    tool,
+    (v) => {
+      if (v === 'nvm') {
+        if (currentTool.value !== 'nvm') {
+          currentTool.value = 'nvm'
         }
+      } else if (v === 'fnm') {
+        if (currentTool.value !== 'fnm') {
+          currentTool.value = 'fnm'
+        }
+      } else if (!v) {
+        currentTool.value = ''
       }
-    )
-  }
+    },
+    {
+      immediate: true
+    }
+  )
 
-  const installNvm = () => {
-    task.value.isRunning = true
-    task.value.btnTxt = I18nT('base.installingNVM')
-    IPC.send('app-fork:node', 'installNvm').then((key: string, res: any) => {
-      IPC.off(key)
-      task.value.isRunning = false
-      if (res?.code === 0) {
-        checkNvm().then(() => {
-          getAllVersion()
-        })
-      } else {
-        MessageError(I18nT('base.fail'))
-      }
-    })
-  }
-
-  checkNvm()
-    .then(() => {
-      if (task.value.versions.length === 0) {
-        getAllVersion()
-      }
-      getLocalVersion()
-    })
-    .catch(() => {
-      if (task.value.isRunning) {
-        return
-      }
-      Base.ConfirmWarning(I18nT('base.nvmNoInstallTips')).then(() => {
-        installNvm()
-      })
-    })
+  nodejsStore.chekTool()
 </script>

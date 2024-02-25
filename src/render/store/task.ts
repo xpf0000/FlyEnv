@@ -41,6 +41,7 @@ interface State {
     btnTxt: string
     versions: Array<string>
     NVM_DIR: string
+    tool?: 'fnm' | 'nvm' | 'all'
   }
 }
 

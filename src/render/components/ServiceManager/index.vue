@@ -1,76 +1,115 @@
 <template>
-  <div class="apache-service">
-    <VersionSwitch :type-flag="typeFlag"></VersionSwitch>
-
-    <div class="block mt-20">
-      <span class="left-title">{{ $t('base.currentVersion') }}</span>
-      <span
-        class="ml-30 version-txt"
-        :class="{ disabled: !currentVersion?.version }"
-        v-text="versionTxt"
-      ></span>
-    </div>
-
-    <div class="block mt-20">
-      <span class="left-title">{{ $t('base.currentStatus') }}</span>
-      <div v-if="serverRunning" class="ml-30 status running">
-        <span class="mr-10">{{ $t('base.runningStatus') }}</span>
-        <yb-icon :svg="import('@/svg/task-start.svg?raw')" width="16" height="16" />
+  <el-card class="version-manager">
+    <template #header>
+      <div class="card-header">
+        <div class="left">
+          <span> {{ title }} </span>
+        </div>
+        <el-button class="button" :disabled="service?.fetching" link @click="resetData">
+          <yb-icon
+            :svg="import('@/svg/icon_refresh.svg?raw')"
+            class="refresh-icon"
+            :class="{ 'fa-spin': service?.fetching }"
+          ></yb-icon>
+        </el-button>
       </div>
-      <div v-else class="ml-30 status">
-        <span class="mr-10">{{ $t('base.noRunningStatus') }}</span>
-        <yb-icon :svg="import('@/svg/task-stop.svg?raw')" width="16" height="16" />
-      </div>
-    </div>
-
-    <div class="block mt-30">
-      <el-button
-        v-if="serverRunning"
-        :loading="current_task === 'stop'"
-        :disabled="disabled"
-        @click="serviceDo('stop')"
-        >{{ $t('base.serviceStop') }}</el-button
-      >
-      <el-button
-        v-else
-        :loading="current_task === 'start'"
-        :disabled="disabled"
-        @click="serviceDo('start')"
-        >{{ $t('base.serviceStart') }}</el-button
-      >
-      <el-button
-        :loading="current_task === 'restart'"
-        :disabled="disabled"
-        class="ml-30"
-        @click="serviceDo('restart')"
-        >{{ $t('base.serviceReStart') }}</el-button
-      >
-      <el-button
-        v-if="showReloadBtn"
-        :loading="current_task === 'reload'"
-        :disabled="disabled || !serverRunning"
-        class="ml-30"
-        @click="serviceDo('reload')"
-        >{{ $t('base.serviceReLoad') }}</el-button
-      >
-    </div>
-
-    <div ref="logRef" class="logs mt-20 cli-to-html">
-      {{ logHtml }}
-    </div>
-  </div>
+    </template>
+    <el-table v-loading="service?.fetching" class="service-table" :data="versions">
+      <el-table-column :label="$t('base.version')" prop="version" width="120px">
+        <template #default="scope">
+          <span
+            :class="{
+              current:
+                currentVersion?.version === scope.row.version &&
+                currentVersion?.path === scope.row.path
+            }"
+            >{{ scope.row.version }}</span
+          >
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('base.path')" :prop="null">
+        <template #default="scope">
+          <template v-if="!scope.row.version">
+            <el-tooltip
+              :raw-content="true"
+              :content="scope.row?.error ?? $t('base.versionErrorTips')"
+              popper-class="version-error-tips"
+            >
+              <span class="path error" @click.stop="openDir(scope.row.path)">{{
+                scope.row.path
+              }}</span>
+            </el-tooltip>
+          </template>
+          <template v-else>
+            <span
+              class="path"
+              :class="{
+                current:
+                  currentVersion?.version === scope.row.version &&
+                  currentVersion?.path === scope.row.path
+              }"
+              @click.stop="openDir(scope.row.path)"
+              >{{ scope.row.path }}</span
+            >
+          </template>
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('base.service')" :prop="null" width="150px">
+        <template #default="scope">
+          <template v-if="scope.row.running">
+            <el-button :loading="true" link></el-button>
+          </template>
+          <template v-else>
+            <template v-if="scope.row.run">
+              <el-button link class="status running" :class="{ disabled: versionRunning }">
+                <yb-icon
+                  :svg="import('@/svg/stop2.svg?raw')"
+                  @click.stop="serviceDo('stop', scope.row)"
+                />
+              </el-button>
+              <el-button link class="status refresh" :class="{ disabled: versionRunning }">
+                <yb-icon
+                  :svg="import('@/svg/icon_refresh.svg?raw')"
+                  @click.stop="serviceDo('restart', scope.row)"
+                />
+              </el-button>
+            </template>
+            <template v-else>
+              <el-button
+                link
+                class="status start"
+                :class="{
+                  disabled: versionRunning || !scope.row.version,
+                  current:
+                    currentVersion?.version === scope.row.version &&
+                    currentVersion?.path === scope.row.path
+                }"
+              >
+                <yb-icon
+                  :svg="import('@/svg/play.svg?raw')"
+                  @click.stop="serviceDo('start', scope.row)"
+                />
+              </el-button>
+            </template>
+          </template>
+        </template>
+      </el-table-column>
+    </el-table>
+  </el-card>
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, watch, nextTick } from 'vue'
+  import { computed, type ComputedRef } from 'vue'
   import { reloadService, startService, stopService } from '@/util/Service'
   import { AppSofts, AppStore } from '@/store/app'
-  import { BrewStore } from '@/store/brew'
-  import { TaskStore } from '@/store/task'
+  import { BrewStore, type SoftInstalled } from '@/store/brew'
   import { I18nT } from '@shared/lang'
-  import VersionSwitch from '../VersionSwtich/index.vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { MysqlStore } from '@/store/mysql'
+  import { Service } from '@/components/ServiceManager/service'
+  import installedVersions from '@/util/InstalledVersions'
+
+  const { shell } = require('@electron/remote')
 
   const props = defineProps<{
     typeFlag:
@@ -84,21 +123,24 @@
       | 'mongodb'
       | 'pure-ftpd'
       | 'postgresql'
+    title: string
   }>()
+
+  if (!Service[props.typeFlag]) {
+    Service[props.typeFlag] = {
+      fetching: false
+    }
+  }
 
   const appStore = AppStore()
   const brewStore = BrewStore()
-  const taskStore = TaskStore()
-  const current_task = ref('')
-  const logRef = ref()
 
-  const showReloadBtn = computed(() => {
-    return (
-      props.typeFlag !== 'memcached' &&
-      props.typeFlag !== 'mongodb' &&
-      props.typeFlag !== 'redis' &&
-      props.typeFlag !== 'postgresql'
-    )
+  const service = computed(() => {
+    return Service[props.typeFlag]
+  })
+
+  const versions = computed(() => {
+    return brewStore?.[props.typeFlag]?.installed
   })
 
   const version = computed(() => {
@@ -106,93 +148,50 @@
     return appStore.config.server[flag].current
   })
 
-  const currentVersion = computed(() => {
+  const currentVersion: ComputedRef<SoftInstalled | undefined> = computed(() => {
     const flag: keyof typeof AppSofts = props.typeFlag as any
     return brewStore[flag].installed?.find(
       (i) => i.path === version?.value?.path && i.version === version?.value?.version
     )
   })
 
-  const currentTask = computed(() => {
+  const versionRunning = computed(() => {
     const flag: keyof typeof AppSofts = props.typeFlag as any
-    return taskStore[flag]
+    return brewStore[flag].installed?.some((f) => f.running)
   })
 
-  const isRunning = computed(() => {
-    return currentVersion?.value?.running
-  })
-
-  const logs = computed(() => {
-    return currentTask.value.log
-  })
-
-  const logHtml = computed(() => {
-    return logs.value.join('')
-  })
-
-  const logLength = computed(() => {
-    return logs?.value?.length
-  })
-
-  const serverRunning = computed(() => {
-    return currentVersion?.value?.run
-  })
-
-  const disabled = computed(() => {
-    const flag: keyof typeof AppSofts = props.typeFlag as any
-    return (
-      brewStore[flag].installed?.some((i) => i.running) ||
-      !currentVersion?.value?.version ||
-      !currentVersion?.value?.path
-    )
-  })
-
-  const versionTxt = computed(() => {
-    const v = currentVersion?.value?.version
-    const p = currentVersion?.value?.path
-    if (v && p) {
-      return `${v} - ${p}`
-    }
-    return I18nT('base.noVersionTips')
-  })
-
-  watch(isRunning, (nv) => {
-    if (!nv) {
-      current_task.value = ''
-    }
-  })
-
-  watch(logLength, () => {
-    nextTick().then(() => {
-      let container: HTMLElement = logRef.value as any
-      if (container) {
-        container.scrollTop = container.scrollHeight
-      }
-    })
-  })
-
-  if (!isRunning.value) {
-    logs.value.splice(0)
-  }
-
-  const serviceDo = (flag: string) => {
-    if (!currentVersion?.value?.version || !currentVersion?.value?.path) {
+  const resetData = () => {
+    if (service?.value?.fetching) {
       return
     }
-    logs.value.splice(0)
-    current_task.value = flag
+    service.value.fetching = true
+    const data = brewStore[props.typeFlag]
+    data.installedInited = false
+    installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
+      service.value.fetching = false
+    })
+  }
+
+  const openDir = (dir: string) => {
+    shell.openPath(dir)
+  }
+
+  const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: SoftInstalled) => {
+    if (!item?.version || !item?.path) {
+      return
+    }
     const typeFlag: keyof typeof AppSofts = props.typeFlag as any
     let action: any
     switch (flag) {
       case 'stop':
-        action = stopService(typeFlag, currentVersion.value)
+        action = stopService(typeFlag, item)
         break
       case 'start':
       case 'restart':
-        action = startService(typeFlag, currentVersion.value)
+        action = startService(typeFlag, item)
         break
       case 'reload':
-        action = reloadService(typeFlag, currentVersion.value)
+        action = reloadService(typeFlag, item)
         break
     }
     action.then((res: any) => {
@@ -205,6 +204,27 @@
             mysqlStore.groupStop().then()
           } else {
             mysqlStore.groupStart().then()
+          }
+        }
+        if (currentVersion.value) {
+          currentVersion.value.run = false
+          currentVersion.value.running = false
+        }
+        if (flag === 'stop') {
+          item.run = false
+          item.running = false
+        } else {
+          item.run = true
+          item.running = false
+          if (
+            item.version !== currentVersion.value?.version ||
+            item.path !== currentVersion.value?.path
+          ) {
+            appStore.UPDATE_SERVER_CURRENT({
+              flag: props.typeFlag,
+              data: JSON.parse(JSON.stringify(item))
+            })
+            appStore.saveConfig()
           }
         }
         MessageSuccess(I18nT('base.success'))

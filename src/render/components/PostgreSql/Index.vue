@@ -10,7 +10,7 @@
       >
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="postgresql"></Service>
+      <Service v-if="current_tab === 0" type-flag="postgresql" title="PostgreSQL"></Service>
       <Config v-else-if="current_tab === 1"></Config>
       <Manager v-else-if="current_tab === 2" type-flag="postgresql"></Manager>
       <Logs v-else-if="current_tab === 3"></Logs>

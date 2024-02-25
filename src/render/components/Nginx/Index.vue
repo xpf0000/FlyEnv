@@ -10,7 +10,7 @@
       >
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="nginx"></Service>
+      <Service v-if="current_tab === 0" type-flag="nginx" title="Nginx"></Service>
       <Config v-if="current_tab === 1"></Config>
       <Manager v-else-if="current_tab === 2" type-flag="nginx"></Manager>
       <Logs v-if="current_tab === 3" type="error"></Logs>

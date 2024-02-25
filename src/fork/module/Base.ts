@@ -109,7 +109,9 @@ export class Base {
       }
       try {
         await this._stopServer(version)
+        await waitTime(300)
         await this._startServer(version).on(on)
+        await this._linkVersion(version)
         resolve(true)
       } catch (e) {
         reject(e)

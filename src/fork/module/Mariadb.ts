@@ -19,7 +19,7 @@ class Manager extends Base {
 
   _initPassword(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
-      execPromise('./mariadb-admin -uroot password "root"', {
+      execPromise('./mariadb-admin --socket=/tmp/mysql.sock -uroot password "root"', {
         cwd: dirname(version.bin)
       })
         .then((res) => {
@@ -60,7 +60,7 @@ datadir=${dataDir}`
         `--log-error=${e}`,
         `--socket=/tmp/mysql.sock`
       ]
-      if (version?.flag === 'port') {
+      if (version?.flag === 'macports') {
         params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
       }
       let needRestart = false
@@ -68,11 +68,23 @@ datadir=${dataDir}`
         needRestart = true
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        bin = join(version.path, 'scripts/mariadb-install-db')
+        bin = join(version.path, 'bin/mysql_install_db')
         params.splice(0)
         params.push(`--datadir=${dataDir}`)
         params.push(`--basedir=${version.path}`)
         params.push('--auth-root-authentication-method=normal')
+        if (version?.flag === 'macports') {
+          const enDir = join(version.path, 'share')
+          if (!existsSync(enDir)) {
+            const shareDir = `/opt/local/share/${basename(version.path)}`
+            if (existsSync(shareDir)) {
+              await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
+              await execPromise(
+                `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir} ${enDir}`
+              )
+            }
+          }
+        }
       }
       try {
         if (existsSync(p)) {
@@ -80,11 +92,12 @@ datadir=${dataDir}`
         }
       } catch (e) {}
 
-      console.log('mariadb start: ', bin, params.join(' '))
       on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
       const { promise, spawn } = spawnPromiseMore(bin, params)
       let success = false
       let checking = false
+
+      console.log('mariadb start: ', bin, params.join(' '))
       async function checkpid(time = 0) {
         if (existsSync(p)) {
           console.log('time: ', time)
@@ -113,6 +126,7 @@ datadir=${dataDir}`
       }
       promise
         .on(async (data) => {
+          console.log('promise on: ', data)
           on(data)
           if (!checking) {
             checking = true
@@ -120,6 +134,7 @@ datadir=${dataDir}`
           }
         })
         .then(async (code) => {
+          console.log('promise then: ', code)
           if (success) {
             resolve(code)
           } else {
@@ -139,6 +154,7 @@ datadir=${dataDir}`
           }
         })
         .catch(async (err) => {
+          console.log('promise catch: ', err)
           if (needRestart) {
             await unlinkDirOnFail()
           }

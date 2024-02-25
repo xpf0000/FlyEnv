@@ -19,5 +19,6 @@ export default {
   extensionsLib: 'Extensions Library',
   extensionsLibDefault: 'Default',
   groupStartOff: 'Turn off group quickstart',
-  groupStartOn: 'Turn on group quickstart'
+  groupStartOn: 'Turn on group quickstart',
+  quickStart: 'GroupStart'
 }

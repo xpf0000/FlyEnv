@@ -48,5 +48,13 @@ export default {
   macPortsSrcSouthAfricaJohannesburg: '南非，约翰内斯堡',
   macPortsSrcSouthKoreaDaejeon: '韩国，大田',
   macPortsSrcUnitedKingdomCanterbury: '英国，坎特伯雷',
-  macPortsSrcUnitedStatesGeorgia: '美国，佐治亚州'
+  macPortsSrcUnitedStatesGeorgia: '美国，佐治亚州',
+
+  nodeToolInstall: '安装NodeJS版本管理工具',
+  nodeToolChoose: '工具选择',
+  nodeToolInstallBy: '安装方式',
+  nodeToolShell: '官网安装',
+  nodeToolInstallBtn: '安装',
+  nodeListCellCurrent: '当前使用',
+  nodeListCellInstalled: '是否安装'
 }

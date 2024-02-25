@@ -18,5 +18,6 @@ export default {
   extensionsLib: '扩展库',
   extensionsLibDefault: '默认',
   groupStartOff: '关闭群组快捷启动',
-  groupStartOn: '开启群组快捷启动'
+  groupStartOn: '开启群组快捷启动',
+  quickStart: '群组启动'
 }
