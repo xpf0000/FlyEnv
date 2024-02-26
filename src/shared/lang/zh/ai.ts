@@ -80,7 +80,7 @@ brew tap shivammathur/php`,
 `,
   brewHasInstall: `检测到系统已安装Homebrew.
 如果在应用内安装或卸载软件出现问题, 可以尝试手动在命令行中执行命令`,
-  mysqlPassword: `Mysql数据库的初始账号密码为 root root
+  mysqlPassword: `Mysql&MariaDB数据库的初始账号密码为 root root
 程序没有数据库数据管理功能, 如果需要修改密码或者管理数据库数据, 可以使用以下几种方式:
 phpMyAdmin <a href="javascript:void();" onclick="openUrl('https://www.phpmyadmin.net/')">https://www.phpmyadmin.net/</a>
 Navicat <a href="javascript:void();" onclick="openUrl('https://www.navicat.com.cn/')">https://www.navicat.com.cn/</a>

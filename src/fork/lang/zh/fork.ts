@@ -21,5 +21,6 @@ export default {
   ExtensionInstallFailTips:
     '安装扩展执行命令:\n{command}\n如安装失败, 可尝试复制命令自行尝试安装\n',
   versionNoFound: '未获取到软件版本,操作失败',
-  postgresqlInit: '服务启动成功\n数据文件夹位于 {dir}\n初始用户root, 密码root'
+  postgresqlInit: '服务启动成功\n数据文件夹位于 {dir}\n初始用户root, 密码root',
+  toolFileNotExist: '文件不存在'
 }

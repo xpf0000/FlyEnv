@@ -476,6 +476,24 @@ body.lang-en {
   flex: 1;
   overflow: auto;
 
+  .el-card {
+    height: 100%;
+    overflow: hidden;
+    .el-card__body {
+      height: 100%;
+      overflow: hidden;
+      padding: 0;
+
+      .el-table {
+        height: 100%;
+
+        .el-table__inner-wrapper::before {
+          display: none;
+        }
+      }
+    }
+  }
+
   .name-cell {
     display: flex;
     align-items: center;
@@ -1274,6 +1292,32 @@ body.lang-en {
     }
   }
 }
+.tools-system-env {
+  .main-wapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+
+    >.file {
+      width: 85%;
+      padding: 19px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 6px;
+      user-select: text;
+
+      >span {
+        cursor: pointer;
+
+        &:hover {
+          color: #fdab1f;
+        }
+      }
+    }
+  }
+}
 .port-kill {
   .main-wapper {
     .el-input-group__append {
@@ -1304,9 +1348,23 @@ body.lang-en {
           flex-shrink: 0;
         }
 
-        .el-table {
-          margin-top: 20px;
+        .el-card {
           flex: 1;
+          margin-top: 20px;
+
+          .el-card__body {
+            height: 100%;
+            overflow: hidden;
+            padding: 0;
+
+            .el-table {
+              height: 100%;
+
+              .el-table__inner-wrapper::before {
+                display: none;
+              }
+            }
+          }
         }
       }
     }

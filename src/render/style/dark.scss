@@ -356,6 +356,15 @@ html.dark {
       }
     }
   }
+
+  .tools-system-env {
+    .main-wapper {
+
+      >.file {
+        background: #32364a;
+      }
+    }
+  }
 }
 
 @media (max-width: 1100px) {

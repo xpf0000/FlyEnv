@@ -3,7 +3,7 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-        <span class="ml-15">Port Kill</span>
+        <span class="ml-15">{{ $t('util.toolPortKill') }}</span>
       </div>
     </div>
 
@@ -28,18 +28,20 @@
               $t('base.cleanAll')
             }}</el-button>
           </div>
-          <el-table
-            height="100%"
-            :data="arrs"
-            size="default"
-            style="width: 100%"
-            @selection-change="handleSelectionChange"
-          >
-            <el-table-column type="selection" width="55" />
-            <el-table-column prop="COMMAND" label="COMMAND"> </el-table-column>
-            <el-table-column prop="PID" label="PID"> </el-table-column>
-            <el-table-column prop="USER" label="USER"> </el-table-column>
-          </el-table>
+          <el-card :header="null" :shadow="false">
+            <el-table
+              height="100%"
+              :data="arrs"
+              size="default"
+              style="width: 100%"
+              @selection-change="handleSelectionChange"
+            >
+              <el-table-column type="selection" width="55" />
+              <el-table-column prop="COMMAND" label="COMMAND"> </el-table-column>
+              <el-table-column prop="PID" label="PID"> </el-table-column>
+              <el-table-column prop="USER" label="USER"> </el-table-column>
+            </el-table>
+          </el-card>
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-        <span class="ml-15">UTF8-Bom Clean</span>
+        <span class="ml-15">{{ $t('util.toolUTF8BomClean') }}</span>
       </div>
       <template v-if="data.end">
         <el-button type="primary" class="shrink0" @click="doEnd">{{ $t('util.ok') }}</el-button>
@@ -124,6 +124,7 @@
   import store, { Ext } from './store'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
+  import { I18nT } from '@shared/lang'
   const { extname } = require('path')
   const { dialog } = require('@electron/remote')
   const emit = defineEmits(['doClose'])
@@ -198,7 +199,7 @@
         const files: Array<string> = res?.data ?? []
         store.value.files = reactive(files)
       } else {
-        MessageError(res?.msg ?? '文件获取失败, 请勿一次清理太多文件')
+        MessageError(res?.msg ?? I18nT('util.toolFileTooMore'))
       }
       store.value.loading = false
     })

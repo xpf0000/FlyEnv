@@ -1,17 +1,21 @@
 <template>
   <div class="main-right-panel">
     <ul class="tools-panel">
+      <li @click="showPage('env')">
+        <yb-icon :svg="import('@/svg/env.svg?raw')" width="30" height="30" />
+        <span>{{ $t('util.toolSystemEnv') }}</span>
+      </li>
       <li @click="showPage('sslmake')">
         <yb-icon :svg="import('@/svg/sslmake.svg?raw')" width="30" height="30" />
-        <span>SSL Make</span>
+        <span>{{ $t('util.toolSSL') }}</span>
       </li>
       <li @click="showPage('fileinfo')">
         <yb-icon :svg="import('@/svg/fileinfo.svg?raw')" width="30" height="30" />
-        <span>File Info</span>
+        <span>{{ $t('util.toolFileInfo') }}</span>
       </li>
       <li @click="showPage('timestamp')">
         <yb-icon :svg="import('@/svg/time.svg?raw')" width="30" height="30" style="padding: 2px" />
-        <span>Timestamp</span>
+        <span>{{ $t('util.toolTimestamp') }}</span>
       </li>
       <li @click="showPage('decode')">
         <yb-icon
@@ -20,7 +24,7 @@
           height="30"
           style="padding: 2px"
         />
-        <span>Decode/Encode</span>
+        <span>{{ $t('util.toolDecode') }}</span>
       </li>
       <li @click="showPage('portkill')">
         <yb-icon
@@ -29,23 +33,23 @@
           height="30"
           style="padding: 0"
         />
-        <span>Port Kill</span>
+        <span>{{ $t('util.toolPortKill') }}</span>
       </li>
       <li @click="showPage('processkill')">
         <yb-icon :svg="import('@/svg/process.svg?raw')" width="30" height="30" style="padding: 0" />
-        <span>Process Kill</span>
+        <span>{{ $t('util.toolProcessKill') }}</span>
       </li>
       <li @click="showPage('phpObfuscator')">
         <yb-icon :svg="import('@/svg/jiami.svg?raw')" width="30" height="30" style="padding: 0" />
-        <span>Php Obfuscator</span>
+        <span>{{ $t('util.toolPhpObfuscator') }}</span>
       </li>
       <li @click="showPage('bomClean')">
         <yb-icon :svg="import('@/svg/BOM.svg?raw')" width="30" height="30" style="padding: 1px" />
-        <span>UTF8-Bom Clean</span>
+        <span>{{ $t('util.toolUTF8BomClean') }}</span>
       </li>
       <li @click="showPage('siteSucker')">
         <yb-icon :svg="import('@/svg/sucker.svg?raw')" width="30" height="30" />
-        <span>Site Sucker</span>
+        <span>{{ $t('util.toolSiteSucker') }}</span>
       </li>
     </ul>
     <el-drawer
@@ -77,6 +81,9 @@
       showPage(flag) {
         this.show = true
         switch (flag) {
+          case 'env':
+            this.component = markRaw(defineAsyncComponent(() => import('./SystenEnv/index.vue')))
+            break
           case 'sslmake':
             this.component = markRaw(defineAsyncComponent(() => import('./SSLMake/index.vue')))
             break

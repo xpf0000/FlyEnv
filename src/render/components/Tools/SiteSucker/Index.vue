@@ -3,7 +3,7 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-        <span class="ml-15">Site Sucker</span>
+        <span class="ml-15">{{ $t('util.toolSiteSucker') }}</span>
       </div>
       <yb-icon :svg="import('@/svg/setup.svg?raw')" width="24" height="24" @click.stop="toSet" />
     </div>

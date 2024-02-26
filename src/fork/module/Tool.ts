@@ -1,11 +1,12 @@
 import { createReadStream, readFileSync } from 'fs'
 import { Base } from './Base'
-import { getAllFileAsync, execPromise } from '../Fn'
+import { getAllFileAsync, execPromise, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { copy, existsSync, writeFile, mkdirp, appendFile } from 'fs-extra'
 import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
 import { join } from 'path'
 import { cut, load } from 'nodejieba'
+import { I18nT } from '../lang'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -156,6 +157,47 @@ class Manager extends Base {
       } catch (err: any) {
         appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${err?.toString()}`).then()
         resolve([])
+      }
+    })
+  }
+
+  systemEnvFiles() {
+    return new ForkPromise(async (resolve, reject) => {
+      const envFiles = [
+        '~/.bashrc',
+        '~/.profile',
+        '~/.bash_login',
+        '~/.zprofile',
+        '~/.zshrc',
+        '~/.bash_profile',
+        '/etc/paths',
+        '/etc/profile'
+      ]
+      try {
+        const home = await execPromise(`echo $HOME`)
+        console.log('home: ', home)
+        const files = envFiles
+          .map((e) => e.replace('~', home.stdout.trim()))
+          .filter((e) => existsSync(e))
+        resolve(files)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+  systemEnvSave(file: string, content: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      if (!existsSync(file)) {
+        reject(new Error(I18nT('fork.toolFileNotExist')))
+        return
+      }
+      try {
+        const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
+        await writeFile(cacheFile, content)
+        await execPromise(`echo '${global.Server.Password}' | sudo -S cp -f ${cacheFile} ${file}`)
+        resolve(true)
+      } catch (e) {
+        reject(e)
       }
     })
   }

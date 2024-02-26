@@ -3,7 +3,7 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-        <span class="ml-15">Php Obfuscator</span>
+        <span class="ml-15">{{ $t('util.toolPhpObfuscator') }}</span>
       </div>
       <el-button type="primary" class="shrink0" :loading="running" @click="doSave">{{
         $t('base.generate')

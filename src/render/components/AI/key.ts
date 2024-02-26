@@ -125,8 +125,12 @@ export const AIKeys: Array<AIKeyItem> = [
     task: 'VersionInstallSlow'
   },
   {
-    tips: [['mysql'], ['数据库', '密码', '管理', '初始'], ['密码', '工具', '软件', '设置']],
-    txt: 'Mysql初始密码',
+    tips: [
+      ['mysql', 'maraidb'],
+      ['数据库', '密码', '管理', '初始'],
+      ['密码', '工具', '软件', '设置']
+    ],
+    txt: 'Mysql&MariaDB初始密码',
     task: 'MysqlPassword'
   }
 ]

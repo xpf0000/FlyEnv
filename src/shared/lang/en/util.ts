@@ -58,5 +58,20 @@ export default {
   nodeToolShell: 'Official',
   nodeToolInstallBtn: 'Install',
   nodeListCellCurrent: 'Current',
-  nodeListCellInstalled: 'State'
+  nodeListCellInstalled: 'State',
+
+  toolSystemEnv: 'System Env',
+  toolSSL: 'SSL Make',
+  toolFileInfo: 'File Info',
+  toolTimestamp: 'Timestamp',
+  toolDecode: 'Decode/Encode',
+  toolPortKill: 'Port Kill',
+  toolProcessKill: 'Process Kill',
+  toolPhpObfuscator: 'Php Obfuscator',
+  toolUTF8BomClean: 'UTF8-Bom Clean',
+  toolSiteSucker: 'Site Sucker',
+
+  toolFileNotExist: 'File does not exist',
+  toolFileTooMore: 'Failed to get file, please do not clean up too many files at once.',
+  toolSaveConfim: 'Are you sure you want to save it?'
 }

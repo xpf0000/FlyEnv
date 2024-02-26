@@ -82,7 +82,7 @@ html.light {
       }
 
       .main-right-panel {
-        background: #fff;
+        background: #f1f2f3;
         color: #345;
 
         > .top-tab {
@@ -107,9 +107,9 @@ html.light {
           .el-table__header {
             thead {
               tr {
-                background: #f1f2f3;
+                background: #fff;
                 th.el-table__cell {
-                  background: #f1f2f3;
+                  background: #fff;
                 }
               }
             }
@@ -436,6 +436,15 @@ html.light {
   .app-ai-tool {
     background: #fff;
   }
+
+  .tools-system-env {
+    .main-wapper {
+
+      >.file {
+        background: var(--base-bg-color-1);
+      }
+    }
+  }
 }
 
 @media (max-width: 1100px) {
@@ -463,6 +472,7 @@ html.light {
 
             >li {
               padding: 0;
+              border-radius: 0;
 
               >.left {
                 justify-content: space-between;

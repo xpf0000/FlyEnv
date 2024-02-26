@@ -83,7 +83,7 @@ Follow the documentation to install.
 `,
   brewHasInstall: `Homebrew is detected to be installed on the system.
 If you have problems installing or uninstalling software from within the application, you can try manually executing commands from the command line`,
-  mysqlPassword: `The initial account password for the Mysql database is root root
+  mysqlPassword: `The initial account password for the Mysql&MariaDB database is root root
 The program does not have a database data management tool, if you need to change the password or manage the database data, you can use the following way:
 phpMyAdmin <a href="javascript:void();" onclick="openUrl('https://www.phpmyadmin.net/')">https://www.phpmyadmin.net/</a>
 Navicat <a href="javascript:void();" onclick="openUrl('https://www.navicat.com/')">https://www.navicat.com.cn/</a>

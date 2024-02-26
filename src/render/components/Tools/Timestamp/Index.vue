@@ -3,7 +3,7 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
-        <span class="ml-15">Timestamp</span>
+        <span class="ml-15">{{ $t('util.toolTimestamp') }}</span>
       </div>
     </div>
 

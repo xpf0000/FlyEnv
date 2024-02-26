@@ -56,5 +56,20 @@ export default {
   nodeToolShell: '官网安装',
   nodeToolInstallBtn: '安装',
   nodeListCellCurrent: '当前使用',
-  nodeListCellInstalled: '是否安装'
+  nodeListCellInstalled: '是否安装',
+
+  toolSystemEnv: '环境变量',
+  toolSSL: 'SSL证书',
+  toolFileInfo: '文件信息',
+  toolTimestamp: '时间戳',
+  toolDecode: '编码/解码',
+  toolPortKill: '端口查杀',
+  toolProcessKill: '进程查杀',
+  toolPhpObfuscator: 'PHP混淆',
+  toolUTF8BomClean: '文件Bom清理',
+  toolSiteSucker: '网站抓取',
+
+  toolFileNotExist: '文件不存在',
+  toolFileTooMore: '文件获取失败, 请勿一次清理太多文件',
+  toolSaveConfim: '确定保存?'
 }
