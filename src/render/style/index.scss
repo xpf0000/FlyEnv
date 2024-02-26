@@ -2251,6 +2251,10 @@ body.lang-en {
           &.start:not(.current) {
             display: none;
           }
+
+          &.group-off:not(.off) {
+            opacity: 0;
+          }
         }
 
         span.current {
@@ -2281,6 +2285,9 @@ body.lang-en {
           .status {
             &.start:not(.current) {
               display: inline-flex;
+            }
+            &.group-off:not(.off) {
+              opacity: 0.4;
             }
           }
         }

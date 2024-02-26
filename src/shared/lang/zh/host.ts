@@ -29,5 +29,7 @@ export default {
   hostPort: '端口',
   hostSSL: 'SSL证书',
 
-  parkConfim: '确定根据子目录生成站点?'
+  parkConfim: '确定根据子目录生成站点?',
+
+  autoSSL: '自动管理证书'
 }

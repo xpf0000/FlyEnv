@@ -135,17 +135,17 @@ html.light {
 
           >.mysql-group-main {
             .table-header {
-              background-color: #f1f2f3;
+              background-color: #fff;
               color: #345;
-              border-bottom: 1px #f1f2f3 solid;
+              border-bottom: 1px var(--el-border-color-lighter) solid;
             }
           }
 
           >.ftp-service-main {
             .table-header {
-              background-color: #f1f2f3;
+              background-color: #fff;
               color: #345;
-              border-bottom: 1px #f1f2f3 solid;
+              border-bottom: 1px var(--el-border-color-lighter) solid;
             }
           }
 
@@ -238,9 +238,9 @@ html.light {
           }
           .main-block {
             .table-header {
-              background-color: #f1f2f3;
+              background-color: #fff;
               color: #345;
-              border-bottom: 1px #f1f2f3 solid;
+              border-bottom: 1px var(--el-border-color-lighter) solid;
             }
           }
         }

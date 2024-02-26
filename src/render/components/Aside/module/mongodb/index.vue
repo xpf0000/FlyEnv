@@ -71,6 +71,9 @@
 
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
     const all: Array<Promise<string | boolean>> = []
+    if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+      return all
+    }
     if (isRunning) {
       if (showItem?.value?.MongoDB && serviceRunning?.value && currentVersion?.value?.version) {
         all.push(stopService('mongodb', currentVersion?.value))

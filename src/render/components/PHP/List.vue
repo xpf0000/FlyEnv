@@ -222,9 +222,6 @@
   }
 
   const groupTrunOn = (item: SoftInstalled) => {
-    if (!item?.version) {
-      return
-    }
     appStore.phpGroupStart[item.bin] = true
     appStore.saveConfig()
   }

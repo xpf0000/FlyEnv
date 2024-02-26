@@ -7,7 +7,9 @@ import { execPromise, getSubDir, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import dns from 'dns'
 import util from 'util'
-import { unlink, readFile, writeFile, copyFile, mkdirp } from 'fs-extra'
+import { unlink, readFile, writeFile, copyFile, mkdirp, remove } from 'fs-extra'
+import { EOL } from 'os'
+import { isEqual } from 'lodash'
 
 class Host extends Base {
   NginxTmpl = ''
@@ -17,6 +19,82 @@ class Host extends Base {
 
   constructor() {
     super()
+  }
+
+  _makeAutoSSL(host: AppHost): ForkPromise<{ crt: string; key: string } | false> {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const alias = this.#hostAlias(host)
+        const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+        const CADir = dirname(CARoot)
+        const caFileName = 'PhpWebStudy-Root-CA'
+        if (!existsSync(CARoot)) {
+          await mkdirp(CADir)
+          let command = `openssl genrsa -out ${caFileName}.key 2048;`
+          command += `openssl req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=${caFileName}";`
+          command += `echo "basicConstraints=CA:true" > ${caFileName}.cnf;`
+          command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650;`
+          await execPromise(command, {
+            cwd: CADir
+          })
+          if (!existsSync(CARoot)) {
+            resolve(false)
+            return
+          }
+          command = `echo '${global.Server.Password}' | sudo -S security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "PhpWebStudy-Root-CA.crt"`
+          await execPromise(command, {
+            cwd: CADir
+          })
+          command = `echo '${global.Server.Password}' | sudo -S security find-certificate -c "PhpWebStudy-Root-CA"`
+          const res = await execPromise(command, {
+            cwd: CADir
+          })
+          if (
+            !res.stdout.includes('PhpWebStudy-Root-CA') &&
+            !res.stderr.includes('PhpWebStudy-Root-CA')
+          ) {
+            resolve(false)
+            return
+          }
+        }
+        const hostCAName = `CA-${host.id}`
+        const hostCADir = join(CADir, `${host.id}`)
+        if (existsSync(hostCADir)) {
+          await remove(hostCADir)
+        }
+        await mkdirp(hostCADir)
+        let ext = `authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage=digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName=@alt_names
+
+[alt_names]${EOL}`
+        alias.forEach((item, index) => {
+          ext += `DNS.${index + 1} = ${item}${EOL}`
+        })
+        ext += `IP.1 = 127.0.0.1${EOL}`
+        await writeFile(join(hostCADir, `${hostCAName}.ext`), ext)
+
+        const rootCA = join(CADir, 'PhpWebStudy-Root-CA')
+
+        let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}";`
+        command += `openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
+        await execPromise(command, {
+          cwd: hostCADir
+        })
+        const crt = join(hostCADir, `${hostCAName}.crt`)
+        if (!existsSync(crt)) {
+          resolve(false)
+          return
+        }
+        resolve({
+          crt,
+          key: join(hostCADir, `${hostCAName}.key`)
+        })
+      } catch (e) {
+        resolve(false)
+      }
+    })
   }
 
   hostList() {
@@ -221,10 +299,20 @@ class Host extends Base {
       const errorlogng = join(logpath, `${hostname}.error.log`)
       const accesslogap = join(logpath, `${hostname}-access_log`)
       const errorlogap = join(logpath, `${hostname}-error_log`)
-      const arr = [nvhost, avhost, rewritep, accesslogng, errorlogng, accesslogap, errorlogap]
+      const autoCA = join(global.Server.BaseDir!, `CA/${host.id}`)
+      const arr = [
+        nvhost,
+        avhost,
+        rewritep,
+        accesslogng,
+        errorlogng,
+        accesslogap,
+        errorlogap,
+        autoCA
+      ]
       for (const f of arr) {
         if (existsSync(f)) {
-          await unlink(f)
+          await remove(f)
         }
       }
       resolve(true)
@@ -405,12 +493,25 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           ]
         )
       }
-      if (host.alias !== old.alias || host.name !== old.name) {
-        const oldAlias = this.#hostAlias(old).join(' ')
-        const newAlias = this.#hostAlias(host).join(' ')
+      const oldAliasArr = this.#hostAlias(old)
+      const newAliasArr = this.#hostAlias(host)
+      if (!isEqual(oldAliasArr, newAliasArr)) {
+        const oldAlias = oldAliasArr.join(' ')
+        const newAlias = newAliasArr.join(' ')
         hasChanged = true
         find.push(...[`server_name ${oldAlias};`, `ServerAlias ${oldAlias}`])
         replace.push(...[`server_name ${newAlias};`, `ServerAlias ${newAlias}`])
+      }
+      if (host?.autoSSL) {
+        if (host?.autoSSL !== old?.autoSSL || !isEqual(oldAliasArr, newAliasArr)) {
+          const ssl = await this._makeAutoSSL(host)
+          if (ssl) {
+            host.ssl.cert = ssl.crt
+            host.ssl.key = ssl.key
+          } else {
+            host.autoSSL = false
+          }
+        }
       }
       if (host.ssl.cert !== old.ssl.cert) {
         hasChanged = true
@@ -554,6 +655,16 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
          */
         await this._autoFillNginxRewrite(host, chmod)
 
+        if (host?.autoSSL) {
+          const ssl = await this._makeAutoSSL(host)
+          if (ssl) {
+            host.ssl.cert = ssl.crt
+            host.ssl.key = ssl.key
+          } else {
+            host.autoSSL = false
+          }
+        }
+
         const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
         const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
         const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
@@ -654,7 +765,9 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           return n && n.length > 0
         })
       : []
-    return Array.from(new Set([item.name, ...alias]))
+    const arr = Array.from(new Set(alias)).sort()
+    arr.unshift(item.name)
+    return arr
   }
 
   _initHost(list: Array<AppHost>, writeToSystem = true) {

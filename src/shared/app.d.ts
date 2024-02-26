@@ -20,6 +20,7 @@ export interface AppHost {
   name: string
   alias: string
   useSSL: boolean
+  autoSSL: boolean
   ssl: {
     cert: string
     key: string

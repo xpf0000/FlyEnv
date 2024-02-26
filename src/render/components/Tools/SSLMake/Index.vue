@@ -160,7 +160,7 @@
           let command = `openssl genrsa -out ${caFileName}.key 2048;`
           command += `openssl req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=Dev Root CA ${caFileName}";`
           command += `echo "basicConstraints=CA:true" > ${caFileName}.cnf;`
-          command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 365;`
+          command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650;`
           execSync(command, opt)
         }
         let ext = `authorityKeyIdentifier=keyid,issuer
@@ -176,7 +176,7 @@ subjectAltName=@alt_names
         writeFileSync(join(this.item.savePath, `${saveName}.ext`), ext)
 
         let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${saveName}.key -out ${saveName}.csr -sha256 -subj "/CN=${saveName}";`
-        command += `openssl x509 -req -in ${saveName}.csr -out ${saveName}.crt -extfile ${saveName}.ext -CA "${caFile}.crt" -CAkey "${caFile}.key" -CAcreateserial -sha256 -days 365;`
+        command += `openssl x509 -req -in ${saveName}.csr -out ${saveName}.crt -extfile ${saveName}.ext -CA "${caFile}.crt" -CAkey "${caFile}.key" -CAcreateserial -sha256 -days 3650;`
         execSync(command, opt)
         if (existsSync(join(this.item.savePath, `${saveName}.crt`))) {
           this.$alert(this.$t('base.sslMakeAlert', { caFileName }), this.$t('base.prompt'), {

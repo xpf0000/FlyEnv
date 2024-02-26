@@ -54,6 +54,28 @@
           </template>
         </template>
       </el-table-column>
+      <el-table-column :label="$t('php.quickStart')" :prop="null" width="100px" align="center">
+        <template #default="scope">
+          <template
+            v-if="
+              currentVersion?.version === scope.row.version &&
+              currentVersion?.path === scope.row.path
+            "
+          >
+            <el-button
+              link
+              class="status group-off"
+              :class="{ off: appStore.phpGroupStart[scope.row.bin] === false }"
+            >
+              <yb-icon
+                style="width: 26px; height: 26px"
+                :svg="import('@/svg/nogroupstart.svg?raw')"
+                @click.stop="groupTrunOn(scope.row)"
+              />
+            </el-button>
+          </template>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('base.service')" :prop="null" width="100px">
         <template #default="scope">
           <template v-if="scope.row.running">
@@ -159,6 +181,15 @@
     const flag: keyof typeof AppSofts = props.typeFlag as any
     return brewStore[flag].installed?.some((f) => f.running)
   })
+
+  const groupTrunOn = (item: SoftInstalled) => {
+    if (appStore.phpGroupStart[item.bin] === false) {
+      delete appStore.phpGroupStart[item.bin]
+    } else {
+      appStore.phpGroupStart[item.bin] = false
+    }
+    appStore.saveConfig()
+  }
 
   const resetData = () => {
     if (service?.value?.fetching) {

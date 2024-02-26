@@ -66,6 +66,9 @@
 
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
     const all: Array<Promise<string | boolean>> = []
+    if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+      return all
+    }
     if (isRunning) {
       if (showItem?.value?.mariadb && serviceRunning?.value && currentVersion?.value?.version) {
         all.push(stopService('mariadb', currentVersion?.value))

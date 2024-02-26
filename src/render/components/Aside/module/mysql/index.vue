@@ -68,6 +68,9 @@
 
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
     const all: Array<Promise<string | boolean>> = []
+    if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+      return all
+    }
     if (isRunning) {
       if (showItem?.value?.Mysql && serviceRunning?.value && currentVersion?.value?.version) {
         all.push(stopService('mysql', currentVersion?.value))

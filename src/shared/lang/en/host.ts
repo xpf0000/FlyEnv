@@ -29,5 +29,7 @@ export default {
   hostPort: 'Port',
   hostSSL: 'SSL',
 
-  parkConfim: 'Make sure to generate sites based on subdirectories?'
+  parkConfim: 'Make sure to generate sites based on subdirectories?',
+
+  autoSSL: 'Auto SSL Certificates'
 }
