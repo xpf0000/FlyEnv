@@ -502,7 +502,7 @@
 
     errs.value['name'] = item.value.name.length === 0
     errs.value['root'] = item.value.root.length === 0
-    if (item.value.useSSL) {
+    if (item.value.useSSL && !item.value.autoSSL) {
       errs.value['cert'] = item.value.ssl.cert.length === 0
       errs.value['certkey'] = item.value.ssl.key.length === 0
     }
