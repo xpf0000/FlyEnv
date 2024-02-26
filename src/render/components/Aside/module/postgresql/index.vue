@@ -70,9 +70,6 @@
 
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
     const all: Array<Promise<string | boolean>> = []
-    if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
-      return all
-    }
     if (isRunning) {
       if (
         showItem?.value?.PostgreSql !== false &&
@@ -82,6 +79,9 @@
         all.push(stopService('postgresql', currentVersion?.value))
       }
     } else {
+      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+        return all
+      }
       if (showItem?.value?.PostgreSql !== false && currentVersion?.value?.version) {
         all.push(startService('postgresql', currentVersion?.value))
       }

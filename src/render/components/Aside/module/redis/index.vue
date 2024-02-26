@@ -65,14 +65,14 @@
 
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
     const all: Array<Promise<string | boolean>> = []
-    if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
-      return all
-    }
     if (isRunning) {
       if (showItem?.value?.Redis && serviceRunning?.value && currentVersion?.value?.version) {
         all.push(stopService('redis', currentVersion?.value))
       }
     } else {
+      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+        return all
+      }
       if (showItem?.value?.Redis && currentVersion?.value?.version) {
         all.push(startService('redis', currentVersion?.value))
       }

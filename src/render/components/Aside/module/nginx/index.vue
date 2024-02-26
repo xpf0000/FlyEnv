@@ -65,14 +65,14 @@
 
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
     const all: Array<Promise<string | boolean>> = []
-    if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
-      return all
-    }
     if (isRunning) {
       if (showItem?.value?.Nginx && serviceRunning?.value && currentVersion?.value?.version) {
         all.push(stopService('nginx', currentVersion?.value))
       }
     } else {
+      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+        return all
+      }
       if (showItem?.value?.Nginx && currentVersion?.value?.version) {
         all.push(startService('nginx', currentVersion?.value))
       }
