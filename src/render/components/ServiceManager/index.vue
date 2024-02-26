@@ -183,10 +183,13 @@
   })
 
   const groupTrunOn = (item: SoftInstalled) => {
-    if (appStore.phpGroupStart[item.bin] === false) {
-      delete appStore.phpGroupStart[item.bin]
+    const dict = appStore.phpGroupStart
+    const key = item.bin
+    if (dict?.[key] === false) {
+      dict[key] = true
+      delete dict?.[key]
     } else {
-      appStore.phpGroupStart[item.bin] = false
+      dict[key] = false
     }
     appStore.saveConfig()
   }

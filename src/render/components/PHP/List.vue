@@ -40,15 +40,17 @@
       </el-table-column>
       <el-table-column :label="$t('php.quickStart')" :prop="null" width="100px" align="center">
         <template #default="scope">
-          <template v-if="appStore.phpGroupStart[scope.row.bin] === false">
-            <el-button link class="status group-off">
-              <yb-icon
-                style="width: 26px; height: 26px"
-                :svg="import('@/svg/nogroupstart.svg?raw')"
-                @click.stop="groupTrunOn(scope.row)"
-              />
-            </el-button>
-          </template>
+          <el-button
+            link
+            class="status group-off"
+            :class="{ off: appStore?.phpGroupStart?.[scope.row.bin] === false }"
+            @click.stop="groupTrunOn(scope.row)"
+          >
+            <yb-icon
+              style="width: 26px; height: 26px"
+              :svg="import('@/svg/nogroupstart.svg?raw')"
+            />
+          </el-button>
         </template>
       </el-table-column>
       <el-table-column :label="$t('base.service')" :prop="null" width="100px">
@@ -113,7 +115,7 @@
                   width="18"
                   height="18"
                 />
-                <template v-if="appStore.phpGroupStart[scope.row.bin] === false">
+                <template v-if="appStore?.phpGroupStart?.[scope.row.bin] === false">
                   <span class="ml-10">{{ $t('php.groupStartOn') }}</span>
                 </template>
                 <template v-else>
@@ -222,7 +224,14 @@
   }
 
   const groupTrunOn = (item: SoftInstalled) => {
-    appStore.phpGroupStart[item.bin] = true
+    const key = item.bin
+    const dict = appStore.phpGroupStart
+    if (dict?.[key] === false) {
+      dict[key] = true
+      delete dict?.[key]
+    } else {
+      dict[key] = false
+    }
     appStore.saveConfig()
   }
 
@@ -234,9 +243,7 @@
   const action = (item: SoftInstalled, index: number, flag: string) => {
     switch (flag) {
       case 'groupstart':
-        const old = appStore.phpGroupStart[item.bin] ?? true
-        appStore.phpGroupStart[item.bin] = !old
-        appStore.saveConfig()
+        groupTrunOn(item)
         break
       case 'open':
         shell.openPath(item.path)
