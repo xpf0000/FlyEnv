@@ -502,7 +502,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         find.push(...[`server_name ${oldAlias};`, `ServerAlias ${oldAlias}`])
         replace.push(...[`server_name ${newAlias};`, `ServerAlias ${newAlias}`])
       }
-      if (host?.autoSSL) {
+      if (host?.useSSL && host?.autoSSL) {
         if (host?.autoSSL !== old?.autoSSL || !isEqual(oldAliasArr, newAliasArr)) {
           const ssl = await this._makeAutoSSL(host)
           if (ssl) {
@@ -655,7 +655,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
          */
         await this._autoFillNginxRewrite(host, chmod)
 
-        if (host?.autoSSL) {
+        if (host?.useSSL && host?.autoSSL) {
           const ssl = await this._makeAutoSSL(host)
           if (ssl) {
             host.ssl.cert = ssl.crt
