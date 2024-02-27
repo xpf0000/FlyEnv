@@ -75,6 +75,9 @@
         all.push(stopService('mongodb', currentVersion?.value))
       }
     } else {
+      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+        return all
+      }
       if (showItem?.value?.MongoDB && currentVersion?.value?.version) {
         all.push(startService('mongodb', currentVersion?.value))
       }

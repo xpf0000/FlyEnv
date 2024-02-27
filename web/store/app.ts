@@ -61,6 +61,7 @@ interface State {
       }
     }
     setup: {
+      currentNodeTool: 'fnm' | 'nvm' | ''
       theme: string
       forceStart: boolean
       showAIRobot: boolean

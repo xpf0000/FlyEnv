@@ -69,6 +69,9 @@
         all.push(stopService('nginx', currentVersion?.value))
       }
     } else {
+      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+        return all
+      }
       if (showItem?.value?.Nginx && currentVersion?.value?.version) {
         all.push(startService('nginx', currentVersion?.value))
       }

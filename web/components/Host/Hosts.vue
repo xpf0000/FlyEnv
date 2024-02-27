@@ -42,12 +42,14 @@
   let monacoInstance: editor.IStandaloneCodeEditor | null = null
 
   const hostAlias = (item: AppHost) => {
-    let alias = item.alias
+    const alias = item.alias
       ? item.alias.split('\n').filter((n) => {
           return n && n.length > 0
         })
       : []
-    return [item.name, ...alias].join(' ')
+    const arr = Array.from(new Set(alias)).sort()
+    arr.unshift(item.name)
+    return arr
   }
 
   const initConf = () => {
@@ -57,8 +59,11 @@
     if (appStore?.config?.setup?.hosts?.write) {
       const list = appStore.hosts
       for (let item of list) {
-        let alias = hostAlias(item)
-        host += `127.0.0.1     ${alias}\n`
+        const alias = hostAlias(item)
+        alias.forEach((h) => {
+          host += `127.0.0.1     ${h}\n`
+          host += `::1     ${h}\n`
+        })
       }
     }
     if (host) {

@@ -10,7 +10,7 @@
       >
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="mongodb"></Service>
+      <Service v-if="current_tab === 0" type-flag="mongodb" title="MongoDB"></Service>
       <Config v-if="current_tab === 1" :config="conf"></Config>
       <Manager v-else-if="current_tab === 2" type-flag="mongodb"></Manager>
       <Logs v-if="current_tab === 3"></Logs>

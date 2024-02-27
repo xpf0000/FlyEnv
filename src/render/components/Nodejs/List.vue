@@ -232,7 +232,7 @@
         if (currentTool.value !== 'nvm') {
           currentTool.value = 'nvm'
         }
-      } else if (v === 'fnm') {
+      } else if (v === 'fnm' || v === 'all') {
         if (currentTool.value !== 'fnm') {
           currentTool.value = 'fnm'
         }

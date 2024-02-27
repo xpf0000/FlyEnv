@@ -69,6 +69,9 @@
         all.push(stopService('memcached', currentVersion?.value))
       }
     } else {
+      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+        return all
+      }
       if (showItem?.value?.Memcached && currentVersion?.value?.version) {
         all.push(startService('memcached', currentVersion?.value))
       }

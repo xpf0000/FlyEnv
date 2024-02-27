@@ -146,41 +146,48 @@
             <el-switch v-model="item.useSSL"></el-switch>
           </div>
 
-          <div v-if="item.useSSL" class="path-choose mt-20">
-            <input
-              type="text"
-              :class="'input' + (errs['cert'] ? ' error' : '')"
-              placeholder="cert"
-              readonly=""
-              :value="item.ssl.cert"
-            />
-            <div class="icon-block" @click="chooseRoot('cert')">
-              <yb-icon
-                :svg="import('@/svg/folder.svg?raw')"
-                class="choose"
-                width="18"
-                height="18"
-              />
-            </div>
+          <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
+            <span>{{ $t('host.autoSSL') }}</span>
+            <el-switch v-model="item.autoSSL"></el-switch>
           </div>
 
-          <div v-if="item.useSSL" class="path-choose mt-20 mb-20">
-            <input
-              type="text"
-              :class="'input' + (errs['certkey'] ? ' error' : '')"
-              placeholder="cert key"
-              readonly=""
-              :value="item.ssl.key"
-            />
-            <div class="icon-block" @click="chooseRoot('certkey')">
-              <yb-icon
-                :svg="import('@/svg/folder.svg?raw')"
-                class="choose"
-                width="18"
-                height="18"
+          <template v-if="item.useSSL && !item.autoSSL">
+            <div class="path-choose mt-20">
+              <input
+                type="text"
+                :class="'input' + (errs['cert'] ? ' error' : '')"
+                placeholder="cert"
+                readonly=""
+                :value="item.ssl.cert"
               />
+              <div class="icon-block" @click="chooseRoot('cert')">
+                <yb-icon
+                  :svg="import('@/svg/folder.svg?raw')"
+                  class="choose"
+                  width="18"
+                  height="18"
+                />
+              </div>
             </div>
-          </div>
+
+            <div class="path-choose mt-20 mb-20">
+              <input
+                type="text"
+                :class="'input' + (errs['certkey'] ? ' error' : '')"
+                placeholder="cert key"
+                readonly=""
+                :value="item.ssl.key"
+              />
+              <div class="icon-block" @click="chooseRoot('certkey')">
+                <yb-icon
+                  :svg="import('@/svg/folder.svg?raw')"
+                  class="choose"
+                  width="18"
+                  height="18"
+                />
+              </div>
+            </div>
+          </template>
 
           <div v-if="item.useSSL" class="ssl-switch mb-20 mt-20">
             <span>Port</span>
@@ -271,6 +278,7 @@
     name: '',
     alias: '',
     useSSL: false,
+    autoSSL: false,
     ssl: {
       cert: '',
       key: ''

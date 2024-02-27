@@ -69,6 +69,9 @@
         all.push(stopService('redis', currentVersion?.value))
       }
     } else {
+      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+        return all
+      }
       if (showItem?.value?.Redis && currentVersion?.value?.version) {
         all.push(startService('redis', currentVersion?.value))
       }

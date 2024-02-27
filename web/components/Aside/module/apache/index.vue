@@ -69,6 +69,9 @@
         all.push(stopService('apache', currentVersion?.value))
       }
     } else {
+      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+        return all
+      }
       if (showItem?.value?.Apache && currentVersion?.value?.version) {
         all.push(startService('apache', currentVersion?.value))
       }

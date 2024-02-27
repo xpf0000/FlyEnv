@@ -8,7 +8,7 @@
       </template>
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="apache"></Service>
+      <Service v-if="current_tab === 0" type-flag="apache" title="Apache"></Service>
       <Config v-else-if="current_tab === 1" :config="conf"></Config>
       <Manager v-else-if="current_tab === 2" type-flag="apache"></Manager>
       <Logs v-else-if="current_tab === 3"></Logs>

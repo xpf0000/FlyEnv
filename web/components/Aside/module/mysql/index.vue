@@ -72,6 +72,9 @@
         all.push(stopService('mysql', currentVersion?.value))
       }
     } else {
+      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+        return all
+      }
       if (showItem?.value?.Mysql && currentVersion?.value?.version) {
         all.push(startService('mysql', currentVersion?.value))
       }

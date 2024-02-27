@@ -59,7 +59,7 @@ class Manager extends Base {
           break
         case 'nginx':
           command = `${bin} -v`
-          reg = /(nginx\/)(\d+(\.\d+){1,4})(.*?)/g
+          reg = /(\/)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'php-fpm':
           command = `${bin} -n -v`

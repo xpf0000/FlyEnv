@@ -129,6 +129,11 @@
                 </template>
               </el-popover>
             </template>
+            <template v-else>
+              <div class="right" style="opacity: 0; padding: 19px">
+                <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+              </div>
+            </template>
           </template>
         </el-table-column>
       </el-table>

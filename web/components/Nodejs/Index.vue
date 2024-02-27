@@ -16,8 +16,9 @@
 </template>
 
 <script>
-  import Versions from './Versions.vue'
+  import Versions from './List.vue'
   export default {
+    name: 'MoNodejsPanel',
     components: {
       Versions
     },
@@ -25,7 +26,7 @@
     data() {
       return {
         current_tab: 0,
-        tabs: [this.$t('base.versionSwitch')]
+        tabs: ['NodeJS']
       }
     },
     computed: {},

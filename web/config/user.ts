@@ -109,6 +109,7 @@ export const User = {
     }
   },
   setup: {
+    currentNodeTool: 'fnm',
     lang: navigator.language === 'zh-CN' ? 'zh' : 'en',
     common: {
       showItem: {

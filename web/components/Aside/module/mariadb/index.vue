@@ -70,6 +70,9 @@
         all.push(stopService('mariadb', currentVersion?.value))
       }
     } else {
+      if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
+        return all
+      }
       if (showItem?.value?.mariadb && currentVersion?.value?.version) {
         all.push(startService('mariadb', currentVersion?.value))
       }
