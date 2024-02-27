@@ -173,10 +173,6 @@
     return nodejsStore.switching
   })
 
-  const showInstall = computed(() => {
-    return nodejsStore.showInstall
-  })
-
   const resetData = () => {
     if (!currentTool.value) {
       return

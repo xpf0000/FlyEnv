@@ -88,7 +88,7 @@ export const NodejsStore = defineStore('nodejs', {
         import('@web/config/node').then((res) => {
           const item: NodeJSItem = this?.[tool]
           item.all.splice(0)
-          item.all = res.NodeJSAll
+          item.all = JSON.parse(JSON.stringify(res.NodeJSAll))
           allFetch = true
           if (allFetch && localFetch) {
             this.fetching = false
@@ -101,7 +101,7 @@ export const NodejsStore = defineStore('nodejs', {
           const item: NodeJSItem = this?.[tool]
           item.local.splice(0)
           item.current = ''
-          item.local = res.NodeJSLocal.local
+          item.local = JSON.parse(JSON.stringify(res.NodeJSLocal.local))
           item.current = res.NodeJSLocal.current
           localFetch = true
           if (allFetch && localFetch) {
