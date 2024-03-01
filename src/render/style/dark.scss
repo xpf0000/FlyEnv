@@ -1,11 +1,16 @@
 html.dark {
+  --main-panel-bg-color: #282b3d;
+
   .el-card {
-    --el-card-bg-color: rgba(0,0,0,0);
+    --el-card-bg-color: var(--main-panel-bg-color);
   }
   .el-table {
-    --el-table-bg-color: rgba(0,0,0,0);
-    --el-table-tr-bg-color: rgba(0,0,0,0);
-    --el-table-header-bg-color: rgba(0,0,0,0);
+    --el-table-bg-color: var(--main-panel-bg-color);
+    --el-table-tr-bg-color: var(--main-panel-bg-color);
+    --el-table-header-bg-color: var(--main-panel-bg-color);
+  }
+  .el-table-v2 {
+    --el-bg-color: var(--main-panel-bg-color);
   }
   .el-drawer {
     background: #1d2033 !important;
@@ -226,14 +231,6 @@ html.dark {
         }
       }
 
-      >.ftp-service-main {
-        .table-header {
-          background-color: #141414;
-          color: #fff;
-          border-bottom: 1px #363637 solid;
-        }
-      }
-
       >.setup-common {
         .main {
           background: #32364a;
@@ -303,16 +300,6 @@ html.dark {
     >.tools-panel {
       > li {
         background: #32364a;
-      }
-    }
-
-    &.dns-panel {
-      .main-block {
-        .table-header {
-          background-color: #141414;
-          color: #fff;
-          border-bottom: 1px #363637 solid;
-        }
       }
     }
   }

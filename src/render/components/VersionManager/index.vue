@@ -37,9 +37,17 @@
       :empty-text="$t('base.gettingVersion')"
       height="100%"
       :data="tableData"
+      :border="false"
       style="width: 100%"
     >
-      <el-table-column prop="name" :label="$t('base.brewLibrary')"> </el-table-column>
+      <el-table-column prop="name">
+        <template #header>
+          <span style="margin-left: 24px">{{ $t('base.brewLibrary') }}</span>
+        </template>
+        <template #="scope">
+          <span style="margin-left: 24px">{{ scope.row.name }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="version" :label="$t('base.version')" width="150"> </el-table-column>
       <el-table-column align="center" :label="$t('base.isInstalled')" width="120">
         <template #default="scope">

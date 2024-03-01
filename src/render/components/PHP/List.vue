@@ -15,9 +15,12 @@
       </div>
     </template>
     <el-table v-loading="service?.fetching" class="service-table" :data="versions">
-      <el-table-column :label="$t('base.version')" prop="version" width="90px">
+      <el-table-column prop="version" width="140px">
+        <template #header>
+          <span style="padding-left: 24px">{{ $t('base.version') }}</span>
+        </template>
         <template #default="scope">
-          <span>{{ scope.row.version }}</span>
+          <span style="padding-left: 24px">{{ scope.row.version }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('base.path')" :prop="null">

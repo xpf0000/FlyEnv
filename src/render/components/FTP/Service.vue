@@ -1,44 +1,49 @@
 <template>
   <div class="ftp-service-main">
-    <div class="table-header">
-      <div class="left">
-        <template v-if="ftpRunning">
-          <div class="status running" :class="{ disabled: ftpVersion.running }">
-            <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="serviceDo('stop')" />
+    <el-card class="h-p100">
+      <template #header>
+        <div class="table-header">
+          <div class="left">
+            <template v-if="ftpRunning">
+              <div class="status running" :class="{ disabled: ftpVersion.running }">
+                <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="serviceDo('stop')" />
+              </div>
+              <div class="status refresh" :class="{ disabled: ftpVersion.running }">
+                <yb-icon
+                  :svg="import('@/svg/icon_refresh.svg?raw')"
+                  @click.stop="serviceDo('restart')"
+                />
+              </div>
+            </template>
+            <div v-else class="status" :class="{ disabled: ftpDisabled }">
+              <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="serviceDo('start')" />
+            </div>
+            <template v-if="ftpRunning">
+              <div class="link">
+                <span @click.stop="copyPass(linkLocal)">{{ linkLocal }}</span>
+                <span @click.stop="copyPass(linkIp)">{{ linkIp }}</span>
+              </div>
+            </template>
           </div>
-          <div class="status refresh" :class="{ disabled: ftpVersion.running }">
-            <yb-icon
-              :svg="import('@/svg/icon_refresh.svg?raw')"
-              @click.stop="serviceDo('restart')"
-            />
-          </div>
-        </template>
-        <div v-else class="status" :class="{ disabled: ftpDisabled }">
-          <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="serviceDo('start')" />
+          <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('base.add') }}</el-button>
         </div>
-        <template v-if="ftpRunning">
-          <div class="link">
-            <span @click.stop="copyPass(linkLocal)">{{ linkLocal }}</span>
-            <span @click.stop="copyPass(linkIp)">{{ linkIp }}</span>
-          </div>
-        </template>
-      </div>
-      <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('base.add') }}</el-button>
-    </div>
-    <el-auto-resizer>
-      <template #default="{ height, width }">
-        <el-table-v2
-          v-loading="loading"
-          :row-height="42"
-          :columns="columns"
-          :data="allFtp"
-          :width="width"
-          :height="height"
-          fixed
-        >
-        </el-table-v2>
       </template>
-    </el-auto-resizer>
+      <el-auto-resizer>
+        <template #default="{ height, width }">
+          <el-table-v2
+            v-loading="loading"
+            :row-height="56"
+            :header-height="55"
+            :columns="columns"
+            :data="allFtp"
+            :width="width"
+            :height="height"
+            fixed
+          >
+          </el-table-v2>
+        </template>
+      </el-auto-resizer>
+    </el-card>
   </div>
 </template>
 
@@ -172,10 +177,14 @@
       dataKey: 'user',
       width: 150,
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('util.ftpTableHeadUser')}</span>
+        return (
+          <span style="padding-left: 24px;" class="flex items-center">
+            {I18nT('util.ftpTableHeadUser')}
+          </span>
+        )
       },
       cellRenderer: ({ cellData: user }) => (
-        <span class="user" onClick={() => copyPass(user)}>
+        <span style="padding-left: 24px;" class="user" onClick={() => copyPass(user)}>
           {user}
         </span>
       )

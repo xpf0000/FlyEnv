@@ -31,9 +31,11 @@
             </div>
           </template>
           <template #default="scope">
-            <span :class="{ current: currentItem?.current === scope.row.version }">{{
-              scope.row.version
-            }}</span>
+            <span
+              style="padding-left: 50px"
+              :class="{ current: currentItem?.current === scope.row.version }"
+              >{{ scope.row.version }}</span
+            >
           </template>
         </el-table-column>
         <el-table-column :label="$t('util.nodeListCellCurrent')" :prop="null" align="center">

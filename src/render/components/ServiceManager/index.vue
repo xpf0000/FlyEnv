@@ -1,5 +1,5 @@
 <template>
-  <el-card class="version-manager">
+  <el-card class="version-manager" shadow="never">
     <template #header>
       <div class="card-header">
         <div class="left">
@@ -15,9 +15,13 @@
       </div>
     </template>
     <el-table v-loading="service?.fetching" class="service-table" :data="versions">
-      <el-table-column :label="$t('base.version')" prop="version" width="120px">
+      <el-table-column prop="version" width="140px">
+        <template #header>
+          <span style="padding-left: 24px">{{ $t('base.version') }}</span>
+        </template>
         <template #default="scope">
           <span
+            style="padding-left: 24px"
             :class="{
               current:
                 currentVersion?.version === scope.row.version &&

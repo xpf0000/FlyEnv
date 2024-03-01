@@ -1,4 +1,5 @@
 html.light {
+  --main-bg-color: #f1f2f3;
   --base-bg-color: rgba(51, 68, 85, 0.35);
   --base-bg-color-2: rgba(51, 68, 85, 0.2);
   --base-bg-color-1: rgba(51, 68, 85, 0.15);
@@ -10,7 +11,7 @@ html.light {
       background: #fff;
 
       .aside {
-        background: #f1f2f3;
+        background: var(--main-bg-color);
         color: #345;
 
         .top-tool {
@@ -82,7 +83,7 @@ html.light {
       }
 
       .main-right-panel {
-        background: #f1f2f3;
+        background: var(--main-bg-color);
         color: #345;
 
         > .top-tab {
@@ -134,14 +135,6 @@ html.light {
           }
 
           >.mysql-group-main {
-            .table-header {
-              background-color: #fff;
-              color: #345;
-              border-bottom: 1px var(--el-border-color-lighter) solid;
-            }
-          }
-
-          >.ftp-service-main {
             .table-header {
               background-color: #fff;
               color: #345;
@@ -236,13 +229,6 @@ html.light {
               color: #345;
             }
           }
-          .main-block {
-            .table-header {
-              background-color: #fff;
-              color: #345;
-              border-bottom: 1px var(--el-border-color-lighter) solid;
-            }
-          }
         }
       }
     }
@@ -317,10 +303,10 @@ html.light {
     padding: 0 !important;
 
     .host-vhost {
-      background: #f1f2f3;
+      background: var(--main-bg-color);
 
       .nav {
-        background: #f1f2f3;
+        background: var(--main-bg-color);
         height: 55px;
       }
 
@@ -333,7 +319,7 @@ html.light {
       background: #fff;
 
       .nav {
-        background: #f1f2f3;
+        background: var(--main-bg-color);
       }
 
       .main-wapper {
