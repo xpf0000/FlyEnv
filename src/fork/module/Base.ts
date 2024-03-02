@@ -37,11 +37,12 @@ export class Base {
             ?.split('/')?.[0]
           if (v) {
             const command = `brew unlink ${v} && brew link --overwrite --force ${v}`
-            await execPromise(command, {
+            console.log('_linkVersion: ', command)
+            execPromise(command, {
               env: {
                 HOMEBREW_NO_INSTALL_FROM_API: 1
               }
-            })
+            }).then(() => {})
             resolve(true)
           } else {
             resolve(I18nT('fork.versionError'))
@@ -112,6 +113,7 @@ export class Base {
         await waitTime(300)
         await this._startServer(version).on(on)
         await this._linkVersion(version)
+        console.log('HHHHH !!! pp')
         resolve(true)
       } catch (e) {
         reject(e)

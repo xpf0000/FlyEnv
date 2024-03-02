@@ -44,6 +44,7 @@ class Nginx extends Base {
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       await this.#handlePhpEnableConf()
+      console.log('_startServer: ', version)
       const bin = version.bin
       const c = join(global.Server.NginxDir!, 'common/conf/nginx.conf')
       const pid = join(global.Server.NginxDir!, 'common/logs/nginx.pid')

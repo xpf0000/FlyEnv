@@ -125,7 +125,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, type ComputedRef } from 'vue'
+  import { computed, type ComputedRef, reactive } from 'vue'
   import { reloadService, startService, stopService, waitTime } from '@web/fn'
   import { AppSofts, AppStore } from '@web/store/app'
   import { BrewStore, type SoftInstalled } from '@web/store/brew'
@@ -184,7 +184,7 @@
   })
 
   const groupTrunOn = (item: SoftInstalled) => {
-    const dict = appStore.phpGroupStart
+    const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
     const key = item.bin
     if (dict?.[key] === false) {
       dict[key] = true
@@ -192,6 +192,7 @@
     } else {
       dict[key] = false
     }
+    appStore.config.setup.phpGroupStart = reactive(dict)
   }
 
   const resetData = () => {

@@ -149,7 +149,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, reactive } from 'vue'
   import { startService, stopService, waitTime } from '@web/fn'
   import { BrewStore, SoftInstalled } from '@web/store/brew'
   import { ElLoading } from 'element-plus'
@@ -227,14 +227,15 @@
   }
 
   const groupTrunOn = (item: SoftInstalled) => {
+    const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
     const key = item.bin
-    const dict = appStore.phpGroupStart
     if (dict?.[key] === false) {
       dict[key] = true
       delete dict?.[key]
     } else {
       dict[key] = false
     }
+    appStore.config.setup.phpGroupStart = reactive(dict)
   }
 
   let ExtensionsVM: any

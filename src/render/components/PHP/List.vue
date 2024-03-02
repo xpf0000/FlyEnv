@@ -149,7 +149,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, reactive } from 'vue'
   import { startService, stopService } from '@/util/Service'
   import installedVersions from '@/util/InstalledVersions'
   import IPC from '@/util/IPC'
@@ -231,14 +231,15 @@
   }
 
   const groupTrunOn = (item: SoftInstalled) => {
+    const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
     const key = item.bin
-    const dict = appStore.phpGroupStart
     if (dict?.[key] === false) {
       dict[key] = true
       delete dict?.[key]
     } else {
       dict[key] = false
     }
+    appStore.config.setup.phpGroupStart = reactive(dict)
     appStore.saveConfig()
   }
 
