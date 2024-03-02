@@ -10,7 +10,7 @@
     <div class="php-extensions">
       <div class="nav">
         <div class="left" @click="show = false">
-          <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
+          <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
           <span class="ml-15">{{ $t('php.phpExtension') }}</span>
         </div>
         <el-button

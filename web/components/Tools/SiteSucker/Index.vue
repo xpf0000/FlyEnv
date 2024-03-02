@@ -2,7 +2,7 @@
   <div class="host-edit site-sucker">
     <div class="nav">
       <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
+        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
         <span class="ml-15">Site Sucker</span>
       </div>
       <yb-icon :svg="import('@/svg/setup.svg?raw')" width="24" height="24" @click.stop="toSet" />

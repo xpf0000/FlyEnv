@@ -2,7 +2,7 @@
   <div class="host-edit">
     <div class="nav">
       <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
+        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
         <span class="ml-15">Php Obfuscator Config</span>
       </div>
       <el-dropdown split-button type="primary" @click="doSave" @command="handleCommand">

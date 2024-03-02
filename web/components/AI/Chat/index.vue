@@ -3,7 +3,7 @@
   <div ref="chat" class="app-chat">
     <div class="nav">
       <div class="left" @click="hide">
-        <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
+        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
       </div>
       <el-button @click="doClean">{{ $t('base.clean') }}</el-button>
     </div>

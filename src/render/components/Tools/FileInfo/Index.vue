@@ -2,7 +2,7 @@
   <div class="host-edit tools-file-info">
     <div class="nav">
       <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/back.svg?raw')" width="24" height="24" />
+        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
         <span class="ml-15">{{ $t('util.toolFileInfo') }}</span>
       </div>
     </div>

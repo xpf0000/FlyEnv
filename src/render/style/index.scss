@@ -319,12 +319,22 @@ body.lang-en {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 20px 0 15px;
     .left {
       cursor: pointer;
       display: flex;
       align-items: center;
       padding: 6px 0;
+
+      .top-back-icon {
+        width: 24px;
+        height: 24px;
+        padding: 3px;
+
+        &:hover {
+          color: #fdab1f;
+        }
+      }
     }
   }
   .main-wapper {
@@ -361,11 +371,21 @@ body.lang-en {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 20px 0 15px;
     .left {
       display: flex;
       align-items: center;
       padding: 6px 0;
+
+      .top-back-icon {
+        width: 24px;
+        height: 24px;
+        padding: 3px;
+
+        &:hover {
+          color: #fdab1f;
+        }
+      }
     }
   }
   .main-wapper {
@@ -665,12 +685,22 @@ body.lang-en {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 20px 0 15px;
     .left {
       cursor: pointer;
       display: flex;
       align-items: center;
       padding: 6px 0;
+
+      .top-back-icon {
+        width: 24px;
+        height: 24px;
+        padding: 3px;
+
+        &:hover {
+          color: #fdab1f;
+        }
+      }
     }
   }
   .main-wapper {
@@ -702,8 +732,7 @@ body.lang-en {
 
       .el-card__header {
         flex-shrink: 0;
-        padding-top: 10px;
-        padding-bottom: 10px;
+        padding: 13px 12px;
 
         .card-header {
           display: flex;
@@ -730,7 +759,7 @@ body.lang-en {
       .el-card__body {
         flex: 1;
         overflow: hidden;
-        padding-top: 0;
+        padding: 0;
 
         .logs {
           height: 100%;
@@ -771,6 +800,12 @@ body.lang-en {
           > .el-input {
             height: 26px;
             width: 188px;
+          }
+        }
+
+        .el-table {
+          .el-table__inner-wrapper::before {
+            display: none;
           }
         }
       }
@@ -1712,12 +1747,22 @@ body.lang-en {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 20px 0 15px;
     background: #282b3d;
     .left {
       display: flex;
       align-items: center;
       padding: 6px 0;
+
+      .top-back-icon {
+        width: 24px;
+        height: 24px;
+        padding: 3px;
+
+        &:hover {
+          color: #fdab1f;
+        }
+      }
     }
   }
 
@@ -2462,6 +2507,9 @@ body.lang-en {
     #app {
       #container {
         .main-right-panel {
+          > .top-tab {
+            padding-left: 30px;
+          }
           > .top-tab > li {
             margin-right: 14px;
           }
