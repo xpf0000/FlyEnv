@@ -219,7 +219,7 @@
       key: 'user',
       title: 'user',
       dataKey: 'user',
-      width: 150,
+      width: 200,
       headerCellRenderer: () => {
         return <span class="flex items-center">{I18nT('util.ftpTableHeadUser')}</span>
       },

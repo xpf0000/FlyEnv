@@ -234,7 +234,7 @@
       key: 'user',
       title: 'user',
       dataKey: 'user',
-      width: 150,
+      width: 200,
       headerCellRenderer: () => {
         return (
           <span style="padding-left: 24px;" class="flex items-center">
