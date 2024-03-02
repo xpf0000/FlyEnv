@@ -17,10 +17,10 @@
     <el-table v-loading="service?.fetching" class="service-table" :data="versions">
       <el-table-column prop="version" width="140px">
         <template #header>
-          <span style="padding-left: 24px">{{ $t('base.version') }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{ $t('base.version') }}</span>
         </template>
         <template #default="scope">
-          <span style="padding-left: 24px">{{ scope.row.version }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.version }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('base.path')" :prop="null">
@@ -50,7 +50,7 @@
             @click.stop="groupTrunOn(scope.row)"
           >
             <yb-icon
-              style="width: 26px; height: 26px"
+              style="width: 30px; height: 30px"
               :svg="import('@/svg/nogroupstart.svg?raw')"
             />
           </el-button>
@@ -97,7 +97,11 @@
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'conf')">
                 <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                <span class="ml-15"> {{ $t('base.configFile') }} </span>
+                <span class="ml-15"> php.ini </span>
+              </li>
+              <li @click.stop="action(scope.row, scope.$index, 'fpm-conf')">
+                <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                <span class="ml-15"> php-fpm.conf </span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'log-fpm')">
                 <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
@@ -243,6 +247,11 @@
     ExtensionsVM = res.default
   })
 
+  let PhpFpmVM: any
+  import('./FpmConfig.vue').then((res) => {
+    PhpFpmVM = res.default
+  })
+
   const action = (item: SoftInstalled, index: number, flag: string) => {
     switch (flag) {
       case 'groupstart':
@@ -259,6 +268,11 @@
             })
             .then()
         })
+        break
+      case 'fpm-conf':
+        AsyncComponentShow(PhpFpmVM, {
+          item
+        }).then()
         break
       case 'log-fpm':
         import('./Logs.vue').then((res) => {

@@ -42,10 +42,12 @@
     >
       <el-table-column prop="name">
         <template #header>
-          <span style="margin-left: 24px">{{ $t('base.brewLibrary') }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{
+            $t('base.brewLibrary')
+          }}</span>
         </template>
         <template #="scope">
-          <span style="margin-left: 24px">{{ scope.row.name }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.name }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="version" :label="$t('base.version')" width="150"> </el-table-column>

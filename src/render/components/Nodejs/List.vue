@@ -26,13 +26,15 @@
         <el-table-column :label="$t('base.version')" prop="version">
           <template #header>
             <div class="w-p100 name-cell">
-              <span>{{ $t('base.version') }}</span>
+              <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
+                $t('base.version')
+              }}</span>
               <el-input v-model.trim="search" placeholder="search" clearable></el-input>
             </div>
           </template>
           <template #default="scope">
             <span
-              style="padding-left: 50px"
+              style="display: inline-flex; align-items: center; padding: 2px 12px 2px 50px"
               :class="{ current: currentItem?.current === scope.row.version }"
               >{{ scope.row.version }}</span
             >
@@ -64,8 +66,8 @@
                   <yb-icon
                     class="current-not"
                     :svg="import('@/svg/select.svg?raw')"
-                    width="17"
-                    height="17"
+                    width="20"
+                    height="20"
                   />
                 </el-button>
               </template>
@@ -79,8 +81,8 @@
                 <yb-icon
                   class="installed"
                   :svg="import('@/svg/select.svg?raw')"
-                  width="17"
-                  height="17"
+                  width="20"
+                  height="20"
                 />
               </el-button>
             </template>

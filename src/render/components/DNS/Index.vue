@@ -34,8 +34,8 @@
         <el-auto-resizer>
           <template #default="{ height, width }">
             <el-table-v2
-              :row-height="56"
-              :header-height="55"
+              :row-height="60"
+              :header-height="60"
               :columns="columns"
               :data="links"
               :width="width"
@@ -55,7 +55,6 @@
   import { computed } from 'vue'
   import type { Column } from 'element-plus'
   import { dnsStart, dnsStop } from '@/util/Service'
-  import { I18nT } from '@shared/lang'
 
   const dnsStore = DnsStore()
   const ip = computed(() => {

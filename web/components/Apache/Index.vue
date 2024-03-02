@@ -40,17 +40,19 @@
     data() {
       return {
         current_tab,
-        conf: Conf,
-        tabs: [
+        conf: Conf
+      }
+    },
+    computed: {
+      tabs() {
+        return [
           this.$t('base.service'),
           this.$t('base.configFile'),
           this.$t('base.versionManager'),
           this.$t('base.errorLog'),
           this.$t('base.log')
         ]
-      }
-    },
-    computed: {
+      },
       version() {
         return AppStore().config.server?.apache?.current?.version
       }

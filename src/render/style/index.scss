@@ -88,7 +88,7 @@ body,
     overflow: hidden;
 
     .el-card__header {
-      padding: 12px;
+      padding: 14px 12px;
     }
   }
 }
@@ -216,7 +216,7 @@ body.lang-en {
 
       >.el-card__header {
         flex-shrink: 0;
-        padding: 12px;
+        padding: 13px 12px;
       }
 
       >.el-card__body {
@@ -785,13 +785,29 @@ body.lang-en {
   display: flex;
   flex-direction: column;
 
+  >.el-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    >.el-card__header {
+      flex-shrink: 0;
+      padding: 13px 12px;
+    }
+
+    >.el-card__body {
+      flex: 1;
+      overflow: hidden;
+      padding: 0;
+    }
+  }
+
   .table-header {
     flex-shrink: 0;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
     font-weight: 700;
 
     .left {
@@ -942,7 +958,7 @@ body.lang-en {
 
     >.el-card__header {
       flex-shrink: 0;
-      padding: 12px;
+      padding: 13px 12px;
     }
 
     >.el-card__body {
@@ -2261,8 +2277,8 @@ body.lang-en {
 
         .status {
           svg {
-            width: 19px;
-            height: 19px;
+            width: 22px;
+            height: 22px;
             cursor: pointer;
 
             &:hover {

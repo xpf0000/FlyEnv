@@ -1,5 +1,5 @@
 <template>
-  <el-card class="version-manager">
+  <el-card class="version-manager" shadow="never">
     <template #header>
       <div class="card-header">
         <div class="left">
@@ -15,9 +15,13 @@
       </div>
     </template>
     <el-table v-loading="service?.fetching" class="service-table" :data="versions">
-      <el-table-column :label="$t('base.version')" prop="version" width="120px">
+      <el-table-column prop="version" width="140px">
+        <template #header>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{ $t('base.version') }}</span>
+        </template>
         <template #default="scope">
           <span
+            style="padding: 2px 12px 2px 24px; display: block"
             :class="{
               current:
                 currentVersion?.version === scope.row.version &&
@@ -68,7 +72,7 @@
               :class="{ off: appStore.phpGroupStart[scope.row.bin] === false }"
             >
               <yb-icon
-                style="width: 26px; height: 26px"
+                style="width: 30px; height: 30px"
                 :svg="import('@/svg/nogroupstart.svg?raw')"
                 @click.stop="groupTrunOn(scope.row)"
               />
@@ -76,7 +80,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.service')" :prop="null" width="100px">
+      <el-table-column :label="$t('base.service')" :prop="null" width="110px">
         <template #default="scope">
           <template v-if="scope.row.running">
             <el-button :loading="true" link></el-button>

@@ -5,7 +5,9 @@
         <el-table-column :label="$t('host.name')">
           <template #header>
             <div class="w-p100 name-cell">
-              <span>{{ $t('host.name') }}</span>
+              <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
+                $t('host.name')
+              }}</span>
               <el-input v-model.trim="search" placeholder="search" clearable></el-input>
             </div>
           </template>

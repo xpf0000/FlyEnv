@@ -23,15 +23,15 @@
         <el-button :disabled="!configpath" @click="openConfig">{{ $t('base.open') }}</el-button>
         <el-button :disabled="!configpath" @click="saveConfig">{{ $t('base.save') }}</el-button>
         <el-button :disabled="!configpath" @click="getDefault">{{
-            $t('base.loadDefault')
-          }}</el-button>
+          $t('base.loadDefault')
+        }}</el-button>
         <el-button-group style="margin-left: 12px">
           <el-button :disabled="!configpath" @click="loadCustom">{{
-              $t('base.loadCustom')
-            }}</el-button>
+            $t('base.loadCustom')
+          }}</el-button>
           <el-button :disabled="!configpath" @click="saveCustom">{{
-              $t('base.saveCustom')
-            }}</el-button>
+            $t('base.saveCustom')
+          }}</el-button>
         </el-button-group>
       </div>
     </div>

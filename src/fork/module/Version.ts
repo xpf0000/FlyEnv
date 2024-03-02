@@ -332,7 +332,7 @@ class Manager extends Base {
               const item = {
                 version: version,
                 bin,
-                path: dirname(dirname(bin)),
+                path: dirname(dirname(bin)) + '/',
                 num,
                 enable: version !== null,
                 error,
@@ -459,7 +459,7 @@ class Manager extends Base {
               const item = {
                 version: version,
                 bin,
-                path: dirname(dirname(bin)),
+                path: dirname(dirname(bin)) + '/',
                 num,
                 enable: version !== null,
                 error,
@@ -484,6 +484,7 @@ class Manager extends Base {
         list.forEach((o, i) => {
           versions[flag[i]] = o as any
         })
+
         for (const type of flag) {
           const items = await findFromMacPorts(type)
           versions[type].push(...items)

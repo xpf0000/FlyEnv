@@ -34,11 +34,13 @@
     props: {},
     data() {
       return {
-        current_tab,
-        tabs: [this.$t('base.service'), this.$t('base.versionManager'), this.$t('base.log')]
+        current_tab
       }
     },
     computed: {
+      tabs() {
+        return [this.$t('base.service'), this.$t('base.versionManager'), this.$t('base.log')]
+      },
       version() {
         return AppStore().config.server?.memcached?.current?.version
       }

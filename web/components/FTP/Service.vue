@@ -1,44 +1,74 @@
 <template>
   <div class="ftp-service-main">
-    <div class="table-header">
-      <div class="left">
-        <template v-if="ftpRunning">
-          <div class="status running" :class="{ disabled: ftpVersion.running }">
-            <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="serviceDo('stop')" />
+    <el-card class="h-p100">
+      <template #header>
+        <div class="table-header">
+          <div class="left">
+            <template v-if="ftpRunning">
+              <div class="status running" :class="{ disabled: ftpVersion.running }">
+                <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="serviceDo('stop')" />
+              </div>
+              <div class="status refresh" :class="{ disabled: ftpVersion.running }">
+                <yb-icon
+                  :svg="import('@/svg/icon_refresh.svg?raw')"
+                  @click.stop="serviceDo('restart')"
+                />
+              </div>
+            </template>
+            <div v-else class="status" :class="{ disabled: ftpDisabled }">
+              <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="serviceDo('start')" />
+            </div>
+            <template v-if="ftpRunning">
+              <div class="link">
+                <span @click.stop="copyPass(linkLocal)">{{ linkLocal }}</span>
+                <span @click.stop="copyPass(linkIp)">{{ linkIp }}</span>
+              </div>
+            </template>
+            <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-30">
+              <template v-for="(item, index) in versions" :key="index">
+                <template v-if="!item?.version">
+                  <el-tooltip
+                    :raw-content="true"
+                    :content="item?.error ?? $t('base.versionErrorTips')"
+                    popper-class="version-error-tips"
+                  >
+                    <el-option
+                      :disabled="true"
+                      :label="$t('base.versionError') + ' - ' + item.path"
+                      :value="$t('base.versionError') + ' - ' + item.path"
+                    >
+                    </el-option>
+                  </el-tooltip>
+                </template>
+                <template v-else>
+                  <el-option
+                    :label="item?.version + ' - ' + item.path"
+                    :value="item?.version + ' - ' + item.path"
+                  >
+                  </el-option>
+                </template>
+              </template>
+            </el-select>
           </div>
-          <div class="status refresh" :class="{ disabled: ftpVersion.running }">
-            <yb-icon
-              :svg="import('@/svg/icon_refresh.svg?raw')"
-              @click.stop="serviceDo('restart')"
-            />
-          </div>
-        </template>
-        <div v-else class="status" :class="{ disabled: ftpDisabled }">
-          <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="serviceDo('start')" />
+          <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('base.add') }}</el-button>
         </div>
-        <template v-if="ftpRunning">
-          <div class="link">
-            <span @click.stop="copyPass(linkLocal)">{{ linkLocal }}</span>
-            <span @click.stop="copyPass(linkIp)">{{ linkIp }}</span>
-          </div>
-        </template>
-      </div>
-      <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('base.add') }}</el-button>
-    </div>
-    <el-auto-resizer>
-      <template #default="{ height, width }">
-        <el-table-v2
-          v-loading="loading"
-          :row-height="42"
-          :columns="columns"
-          :data="allFtp"
-          :width="width"
-          :height="height"
-          fixed
-        >
-        </el-table-v2>
       </template>
-    </el-auto-resizer>
+      <el-auto-resizer>
+        <template #default="{ height, width }">
+          <el-table-v2
+            v-loading="loading"
+            :row-height="60"
+            :header-height="60"
+            :columns="columns"
+            :data="allFtp"
+            :width="width"
+            :height="height"
+            fixed
+          >
+          </el-table-v2>
+        </template>
+      </el-auto-resizer>
+    </el-card>
   </div>
 </template>
 
@@ -58,11 +88,20 @@
   const appStore = AppStore()
   const brewStore = BrewStore()
 
+  const versions = computed(() => {
+    return brewStore?.['pure-ftpd']?.installed
+  })
+
   const linkLocal = computed(() => {
     return `ftp://127.0.0.1:${ftpStore.port}`
   })
   const linkIp = computed(() => {
     return `ftp://${ftpStore.ip}:${ftpStore.port}`
+  })
+
+  const ftpFetching = computed(() => {
+    const installed = brewStore?.['pure-ftpd']?.installed
+    return installed?.some((i) => i.running)
   })
 
   const ftpVersion = computed(() => {
@@ -72,6 +111,32 @@
     }
     const installed = brewStore?.['pure-ftpd']?.installed
     return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+  })
+
+  const currentVersion = computed({
+    get() {
+      const current = appStore.config.server?.['pure-ftpd']?.current
+      if (!current) {
+        return undefined
+      }
+      return `${current.version} - ${current.path}`
+    },
+    set(vstr: string) {
+      const isRun = ftpVersion?.value?.run
+      const find = versions?.value?.find((v) => {
+        const txt = `${v.version} - ${v.path}`
+        return txt === vstr
+      })
+      if (find) {
+        appStore.UPDATE_SERVER_CURRENT({
+          flag: 'pure-ftpd',
+          data: JSON.parse(JSON.stringify(find))
+        })
+        if (isRun) {
+          serviceDo('restart')
+        }
+      }
+    }
   })
 
   const ftpRunning = computed(() => {

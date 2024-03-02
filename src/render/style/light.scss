@@ -134,14 +134,6 @@ html.light {
             }
           }
 
-          >.mysql-group-main {
-            .table-header {
-              background-color: #fff;
-              color: #345;
-              border-bottom: 1px var(--el-border-color-lighter) solid;
-            }
-          }
-
           >.setup-common {
             &::-webkit-scrollbar-thumb {
               background-color: var(--base-bg-color-1);

@@ -4,7 +4,7 @@
     effect="dark"
     popper-class="host-list-poper"
     placement="bottom-end"
-    width="150"
+    width="auto"
   >
     <ul v-poper-fix class="host-list-menu">
       <li @click.stop="action('edit')">

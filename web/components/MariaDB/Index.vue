@@ -41,17 +41,19 @@
     data() {
       return {
         conf: Conf,
-        current_tab,
-        tabs: [
+        current_tab
+      }
+    },
+    computed: {
+      tabs() {
+        return [
           this.$t('base.service'),
           this.$t('base.configFile'),
           this.$t('base.versionManager'),
           this.$t('base.log'),
           this.$t('base.slowLog')
         ]
-      }
-    },
-    computed: {
+      },
       version() {
         return AppStore().config.server?.mariadb?.current?.version
       }

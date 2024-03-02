@@ -12,35 +12,40 @@
       </el-tooltip>
     </div>
     <div class="main-block">
-      <div class="table-header">
-        <div class="left">
-          <template v-if="running">
-            <div class="status running" :class="{ disabled: fetching }">
-              <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="dnsStop" />
+      <el-card shadow="never">
+        <template #header>
+          <div class="table-header">
+            <div class="left">
+              <template v-if="running">
+                <div class="status running" :class="{ disabled: fetching }">
+                  <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="dnsStop" />
+                </div>
+                <div class="status refresh" :class="{ disabled: fetching }">
+                  <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="dnsStart" />
+                </div>
+              </template>
+              <div v-else class="status" :class="{ disabled: fetching }">
+                <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStart" />
+              </div>
             </div>
-            <div class="status refresh" :class="{ disabled: fetching }">
-              <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="dnsStart" />
-            </div>
-          </template>
-          <div v-else class="status" :class="{ disabled: fetching }">
-            <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStart" />
+            <el-button @click.stop="cleanLog">{{ $t('base.clean') }}</el-button>
           </div>
-        </div>
-        <el-button @click.stop="cleanLog">{{ $t('base.clean') }}</el-button>
-      </div>
-      <el-auto-resizer>
-        <template #default="{ height, width }">
-          <el-table-v2
-            :row-height="42"
-            :columns="columns"
-            :data="links"
-            :width="width"
-            :height="height"
-            fixed
-          >
-          </el-table-v2>
         </template>
-      </el-auto-resizer>
+        <el-auto-resizer>
+          <template #default="{ height, width }">
+            <el-table-v2
+              :row-height="60"
+              :header-height="60"
+              :columns="columns"
+              :data="links"
+              :width="width"
+              :height="height"
+              fixed
+            >
+            </el-table-v2>
+          </template>
+        </el-auto-resizer>
+      </el-card>
     </div>
   </div>
 </template>

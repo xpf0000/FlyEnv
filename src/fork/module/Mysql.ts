@@ -68,15 +68,41 @@ datadir=${dataDir}`
         params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
       }
       let needRestart = false
-      if (!existsSync(dataDir)) {
+      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
         needRestart = true
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        if (version?.version?.indexOf('5.6') === 0) {
-          bin = join(version.path, 'scripts/mysql_install_db')
+        const installdb = join(version.path, 'bin/mysql_install_db')
+        if (existsSync(installdb)) {
+          bin = installdb
           params.splice(0)
           params.push(`--datadir=${dataDir}`)
           params.push(`--basedir=${version.path}`)
+          params.push(`--defaults-file=${m}`)
+          if (version?.flag === 'macports') {
+            const defaultCnf = join(version.path, 'my-default.cnf')
+            if (!existsSync(defaultCnf)) {
+              await execPromise(
+                `echo '${global.Server.Password}' | sudo -S cp -f ${m} ${defaultCnf}`
+              )
+            }
+            const enDir = join(version.path, 'share')
+            if (!existsSync(enDir)) {
+              const shareDir = `/opt/local/share/${basename(version.path)}`
+              if (existsSync(shareDir)) {
+                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
+                await execPromise(
+                  `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir}/* ${enDir}`
+                )
+                const langDir = join(enDir, basename(version.path))
+                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${langDir}`)
+                const langEnDir = join(shareDir, 'english')
+                await execPromise(
+                  `echo '${global.Server.Password}' | sudo -S cp -R ${langEnDir} ${langDir}`
+                )
+              }
+            }
+          }
         } else {
           params.push('--initialize-insecure')
         }
@@ -217,14 +243,41 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       }
       let needRestart = false
       if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
+        const currentVersion = version.version!
         needRestart = true
         await mkdirp(dataDir)
         await chmod(dataDir, '0755')
-        if (version?.version?.version?.indexOf('5.6') === 0) {
-          bin = join(version.version.path!, 'scripts/mysql_install_db')
+        const installdb = join(currentVersion.path!, 'bin/mysql_install_db')
+        if (existsSync(installdb)) {
+          bin = installdb
           params.splice(0)
           params.push(`--datadir=${dataDir}`)
-          params.push(`--basedir=${version.version.path}`)
+          params.push(`--basedir=${currentVersion.path}`)
+          params.push(`--defaults-file=${m}`)
+          if (currentVersion?.flag === 'macports') {
+            const defaultCnf = join(currentVersion.path!, 'my-default.cnf')
+            if (!existsSync(defaultCnf)) {
+              await execPromise(
+                `echo '${global.Server.Password}' | sudo -S cp -f ${m} ${defaultCnf}`
+              )
+            }
+            const enDir = join(currentVersion.path!, 'share')
+            if (!existsSync(enDir)) {
+              const shareDir = `/opt/local/share/${basename(currentVersion.path!)}`
+              if (existsSync(shareDir)) {
+                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
+                await execPromise(
+                  `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir}/* ${enDir}`
+                )
+                const langDir = join(enDir, basename(currentVersion.path!))
+                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${langDir}`)
+                const langEnDir = join(shareDir, 'english')
+                await execPromise(
+                  `echo '${global.Server.Password}' | sudo -S cp -R ${langEnDir} ${langDir}`
+                )
+              }
+            }
+          }
         } else {
           params.push('--initialize-insecure')
         }

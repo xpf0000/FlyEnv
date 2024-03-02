@@ -5,6 +5,8 @@ import '@/style/index.scss'
 import '@/style/dark.scss'
 import '@/style/light.scss'
 import { ThemeInit } from '@web/Theme'
+import { AppStore } from '@web/store/app'
+import { AppI18n } from '@shared/lang'
 
 // @ts-ignore
 window.global = {
@@ -17,3 +19,11 @@ window.global = {
 const app = VueExtend(App)
 app.mount('#app')
 ThemeInit()
+const appStore = AppStore()
+window.AppSetTheme = (theme: 'light' | 'dark') => {
+  appStore.config.setup.theme = theme
+}
+window.AppSetLang = (lang: 'zh' | 'en') => {
+  appStore.config.setup.lang = lang
+  AppI18n(lang)
+}
