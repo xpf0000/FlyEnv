@@ -86,6 +86,13 @@
         return this.type === 'php-fpm-slow' ? this.$t('base.slowLog') : this.$t('php.fpmLog')
       }
     },
+    watch: {
+      log() {
+        nextTick().then(() => {
+          this.initEditor()
+        })
+      }
+    },
     created: function () {
       this.init()
     },
@@ -114,6 +121,9 @@
           case 'clean':
             writeFileAsync(this.filepath, '').then(() => {
               this.log = ''
+              this.$nextTick(() => {
+                this.initEditor()
+              })
               MessageSuccess(this.$t('base.success'))
             })
             break
@@ -131,9 +141,6 @@
         } else {
           this.log = ''
           this.noLog = true
-          this.$nextTick(() => {
-            this.initEditor()
-          })
         }
       },
       init() {
