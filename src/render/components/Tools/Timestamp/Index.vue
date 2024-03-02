@@ -11,7 +11,12 @@
       <div class="main">
         <div class="path-choose mt-20 mb-20" style="flex-direction: column; align-items: center">
           <span>Current Unix Timestamp</span>
-          <span class="ml-30 current mt-20 mb-20" style="font-size: 50px">{{ current }}</span>
+          <span
+            class="ml-30 current mt-20 mb-20"
+            style="font-size: 50px"
+            @dblclick.stop="doCopy(current)"
+            >{{ current }}</span
+          >
         </div>
         <div class="path-choose mt-20 mb-20">
           <div class="left">
@@ -61,6 +66,10 @@
 </template>
 
 <script>
+  import { MessageSuccess } from '@/util/Element.ts'
+  import { I18nT } from '@shared/lang/index.ts'
+
+  const { clipboard } = require('@electron/remote')
   export default {
     name: 'MoUnixTimestamp',
     components: {},
@@ -116,6 +125,10 @@
       },
       getCurrent() {
         this.current = Math.round(new Date().getTime() / 1000)
+      },
+      doCopy(str) {
+        clipboard.writeText(`${str}`)
+        MessageSuccess(I18nT('base.copySuccess'))
       }
     }
   }

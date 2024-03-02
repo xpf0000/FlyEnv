@@ -12,7 +12,7 @@
       </el-tooltip>
     </div>
     <div class="main-block">
-      <el-card shadow="never">
+      <el-card>
         <template #header>
           <div class="table-header">
             <div class="left">

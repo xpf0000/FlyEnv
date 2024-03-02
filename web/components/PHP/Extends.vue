@@ -77,7 +77,7 @@
             </div>
           </template>
           <div v-if="currentExtend" ref="logRef" class="logs cli-to-html">
-            {{ logs.join('') }}
+            {{ logs?.join('') ?? '' }}
           </div>
           <el-table
             v-else
@@ -89,9 +89,12 @@
             <el-table-column prop="name" class-name="name-cell-td" :label="$t('base.name')">
               <template #header>
                 <div class="w-p100 name-cell">
-                  <span>{{ $t('base.name') }}</span>
+                  <span style="display: inline-flex; padding: 2px 0">{{ $t('base.name') }}</span>
                   <el-input v-model.trim="search" placeholder="search" clearable></el-input>
                 </div>
+              </template>
+              <template #default="scope">
+                <div style="padding: 2px 0 2px 24px">{{ scope.row.name }}</div>
               </template>
             </el-table-column>
             <el-table-column align="center" :label="$t('base.status')">
@@ -108,13 +111,9 @@
 
             <el-table-column width="300px" align="left" :label="$t('base.operation')">
               <template v-if="version?.version" #default="scope">
-                <el-button
-                  v-if="scope.row.status"
-                  type="primary"
-                  link
-                  @click="copyLink(scope.$index, scope.row)"
-                  >{{ $t('base.copyLink') }}</el-button
-                >
+                <el-button v-if="scope.row.status" type="primary" link @click="copyLink()">{{
+                  $t('base.copyLink')
+                }}</el-button>
                 <el-button
                   v-else
                   :disabled="brewRunning || !version?.version"
@@ -127,7 +126,7 @@
                   v-if="scope.row.status && scope.row.name === 'xdebug'"
                   type="primary"
                   link
-                  @click="copyXDebugTmpl(scope.$index, scope.row)"
+                  @click="copyXDebugTmpl()"
                   >{{ $t('php.copyConfTemplate') }}</el-button
                 >
               </template>

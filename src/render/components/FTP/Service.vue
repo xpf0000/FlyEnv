@@ -1,75 +1,73 @@
 <template>
-  <div class="ftp-service-main">
-    <el-card class="h-p100">
-      <template #header>
-        <div class="table-header">
-          <div class="left">
-            <template v-if="ftpRunning">
-              <div class="status running" :class="{ disabled: ftpFetching }">
-                <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="serviceDo('stop')" />
-              </div>
-              <div class="status refresh" :class="{ disabled: ftpFetching }">
-                <yb-icon
-                  :svg="import('@/svg/icon_refresh.svg?raw')"
-                  @click.stop="serviceDo('restart')"
-                />
-              </div>
-            </template>
-            <div v-else class="status" :class="{ disabled: ftpDisabled }">
-              <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="serviceDo('start')" />
+  <el-card class="ftp-service-main">
+    <template #header>
+      <div class="table-header">
+        <div class="left">
+          <template v-if="ftpRunning">
+            <div class="status running" :class="{ disabled: ftpFetching }">
+              <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="serviceDo('stop')" />
             </div>
-            <template v-if="ftpRunning">
-              <div class="link">
-                <span @click.stop="copyPass(linkLocal)">{{ linkLocal }}</span>
-                <span @click.stop="copyPass(linkIp)">{{ linkIp }}</span>
-              </div>
-            </template>
-            <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-30">
-              <template v-for="(item, index) in versions" :key="index">
-                <template v-if="!item?.version">
-                  <el-tooltip
-                    :raw-content="true"
-                    :content="item?.error ?? $t('base.versionErrorTips')"
-                    popper-class="version-error-tips"
-                  >
-                    <el-option
-                      :disabled="true"
-                      :label="$t('base.versionError') + ' - ' + item.path"
-                      :value="$t('base.versionError') + ' - ' + item.path"
-                    >
-                    </el-option>
-                  </el-tooltip>
-                </template>
-                <template v-else>
+            <div class="status refresh" :class="{ disabled: ftpFetching }">
+              <yb-icon
+                :svg="import('@/svg/icon_refresh.svg?raw')"
+                @click.stop="serviceDo('restart')"
+              />
+            </div>
+          </template>
+          <div v-else class="status" :class="{ disabled: ftpDisabled }">
+            <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="serviceDo('start')" />
+          </div>
+          <template v-if="ftpRunning">
+            <div class="link">
+              <span @click.stop="copyPass(linkLocal)">{{ linkLocal }}</span>
+              <span @click.stop="copyPass(linkIp)">{{ linkIp }}</span>
+            </div>
+          </template>
+          <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-30">
+            <template v-for="(item, index) in versions" :key="index">
+              <template v-if="!item?.version">
+                <el-tooltip
+                  :raw-content="true"
+                  :content="item?.error ?? $t('base.versionErrorTips')"
+                  popper-class="version-error-tips"
+                >
                   <el-option
-                    :label="item?.version + ' - ' + item.path"
-                    :value="item?.version + ' - ' + item.path"
+                    :disabled="true"
+                    :label="$t('base.versionError') + ' - ' + item.path"
+                    :value="$t('base.versionError') + ' - ' + item.path"
                   >
                   </el-option>
-                </template>
+                </el-tooltip>
               </template>
-            </el-select>
-          </div>
-          <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('base.add') }}</el-button>
+              <template v-else>
+                <el-option
+                  :label="item?.version + ' - ' + item.path"
+                  :value="item?.version + ' - ' + item.path"
+                >
+                </el-option>
+              </template>
+            </template>
+          </el-select>
         </div>
+        <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('base.add') }}</el-button>
+      </div>
+    </template>
+    <el-auto-resizer>
+      <template #default="{ height, width }">
+        <el-table-v2
+          v-loading="loading"
+          :row-height="60"
+          :header-height="60"
+          :columns="columns"
+          :data="allFtp"
+          :width="width"
+          :height="height"
+          fixed
+        >
+        </el-table-v2>
       </template>
-      <el-auto-resizer>
-        <template #default="{ height, width }">
-          <el-table-v2
-            v-loading="loading"
-            :row-height="60"
-            :header-height="60"
-            :columns="columns"
-            :data="allFtp"
-            :width="width"
-            :height="height"
-            fixed
-          >
-          </el-table-v2>
-        </template>
-      </el-auto-resizer>
-    </el-card>
-  </div>
+    </el-auto-resizer>
+  </el-card>
 </template>
 
 <script lang="tsx" setup>

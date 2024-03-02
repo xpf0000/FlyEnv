@@ -1,43 +1,38 @@
 <template>
-  <div class="mysql-group-main" :class="{ loading: fetching }">
-    <el-card>
-      <template #header>
-        <div class="table-header">
-          <div class="left">
-            <template v-if="running">
-              <div class="status running" :class="{ disabled: disabled }">
-                <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="groupDo('stop')" />
-              </div>
-              <div class="status refresh" :class="{ disabled: disabled }">
-                <yb-icon
-                  :svg="import('@/svg/icon_refresh.svg?raw')"
-                  @click.stop="groupDo('start')"
-                />
-              </div>
-            </template>
-            <div v-else class="status" :class="{ disabled: disabled }">
-              <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="groupDo('start')" />
+  <el-card class="mysql-group-main" :class="{ loading: fetching }">
+    <template #header>
+      <div class="table-header">
+        <div class="left">
+          <template v-if="running">
+            <div class="status running" :class="{ disabled: disabled }">
+              <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="groupDo('stop')" />
             </div>
+            <div class="status refresh" :class="{ disabled: disabled }">
+              <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="groupDo('start')" />
+            </div>
+          </template>
+          <div v-else class="status" :class="{ disabled: disabled }">
+            <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="groupDo('start')" />
           </div>
-          <el-button @click.stop="doAdd(undefined)">{{ $t('base.add') }}</el-button>
         </div>
+        <el-button @click.stop="doAdd(undefined)">{{ $t('base.add') }}</el-button>
+      </div>
+    </template>
+    <el-auto-resizer>
+      <template #default="{ height, width }">
+        <el-table-v2
+          :header-height="60"
+          :row-height="60"
+          :columns="columns"
+          :data="all"
+          :width="width"
+          :height="height"
+          fixed
+        >
+        </el-table-v2>
       </template>
-      <el-auto-resizer>
-        <template #default="{ height, width }">
-          <el-table-v2
-            :header-height="60"
-            :row-height="60"
-            :columns="columns"
-            :data="all"
-            :width="width"
-            :height="height"
-            fixed
-          >
-          </el-table-v2>
-        </template>
-      </el-auto-resizer>
-    </el-card>
-  </div>
+    </el-auto-resizer>
+  </el-card>
 </template>
 
 <script lang="tsx" setup>

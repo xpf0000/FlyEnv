@@ -1,5 +1,5 @@
 <template>
-  <el-card class="version-manager" shadow="never">
+  <el-card class="version-manager">
     <template #header>
       <div class="card-header">
         <div class="left">
