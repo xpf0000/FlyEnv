@@ -47,11 +47,10 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 
 ## 🖥 application interface
 
-![theme-white.png](https://www.macphpstudy.com/image/index/theme-white.png)
-![theme-white-min.png](https://www.macphpstudy.com/image/index/theme-white-min.png)
-![theme-black.png](https://www.macphpstudy.com/image/index/theme-black.png)
-![theme-black-min.png](https://www.macphpstudy.com/image/index/theme-black-min.png)
-
+![theme-white.png](https://www.macphpstudy.com/image/index/index-main-light.png)
+![theme-black.png](https://www.macphpstudy.com/image/index/index-main-dark.png)
+![php-white.png](https://www.macphpstudy.com/image/index/php-light.png)
+![php-extension-white.png](https://www.macphpstudy.com/image/index/php-extension-light.png)
 
 ## 💽 Installation
 
