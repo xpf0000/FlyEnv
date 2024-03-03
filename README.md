@@ -30,6 +30,8 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 
 [Documentation](https://www.phpwebstudy.com/help-0-1.html)
 
+[Discord Community:](https://discord.gg/E6vZDgm9) https://discord.gg/E6vZDgm9
+
 ## ✨ FEATURES
 
 - Simple and clear graphical interface
