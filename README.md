@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/xpf0000/PhpWebStudy/master/build/256x256.png" width="256" alt="App Icon" />
 
-## Powerful Local Web Server For MacOS
+## Powerful Web and PHP Development Environment for macOS
 
 [![GitHub release](https://img.shields.io/github/release/xpf0000/PhpWebStudy.svg)](https://github.com/xpf0000/PhpWebStudy/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/PhpWebStudy/total.svg)](https://github.com/xpf0000/PhpWebStudy/releases)
 
