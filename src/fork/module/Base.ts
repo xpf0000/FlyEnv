@@ -80,7 +80,6 @@ export class Base {
       }
       try {
         await this._stopServer(version)
-        await waitTime(500)
         await this._startServer(version).on(on)
         await this._linkVersion(version)
         resolve(true)
@@ -110,7 +109,6 @@ export class Base {
       }
       try {
         await this._stopServer(version)
-        await waitTime(300)
         await this._startServer(version).on(on)
         await this._linkVersion(version)
         console.log('HHHHH !!! pp')
@@ -123,7 +121,7 @@ export class Base {
 
   _stopServer(version: SoftInstalled) {
     console.log(version)
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve) => {
       const dis: { [k: string]: string } = {
         nginx: 'nginx',
         apache: 'httpd',
@@ -138,45 +136,52 @@ export class Base {
       const serverName = dis[this.type]
       const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
       console.log('_stopServer command: ', command)
+      let res: any = null
       try {
-        const res = await execPromise(command)
-        const pids = res?.stdout?.trim()?.split('\n') ?? []
-        const arr: Array<string> = []
-        for (const p of pids) {
-          if (this.type === 'redis' || global.Server.ForceStart === true) {
-            if (
-              p.includes(' grep ') ||
-              p.includes(' /bin/sh -c') ||
-              p.includes('/Contents/MacOS/')
-            ) {
-              continue
-            }
-            arr.push(p.split(' ')[0])
-          } else if (p.includes(global.Server.BaseDir!)) {
-            arr.push(p.split(' ')[0])
+        res = await execPromise(command)
+      } catch (e) {}
+      const pids = res?.stdout?.trim()?.split('\n') ?? []
+      const arr: Array<string> = []
+      for (const p of pids) {
+        if (this.type === 'redis' || global.Server.ForceStart === true) {
+          if (
+            p.includes(' grep ') ||
+            p.includes(' /bin/sh -c') ||
+            p.includes('/Contents/MacOS/') ||
+            p.startsWith('/bin/bash ') ||
+            p.includes('brew.rb ') ||
+            p.includes(' install ') ||
+            p.includes(' uninstall ') ||
+            p.includes(' link ') ||
+            p.includes(' unlink ')
+          ) {
+            continue
           }
+          arr.push(p.split(' ')[0])
+        } else if (p.includes(global.Server.BaseDir!)) {
+          arr.push(p.split(' ')[0])
         }
-        console.log('_stopServer arr: ', arr)
-        if (arr.length > 0) {
-          const pids = arr.join(' ')
-          let sig = ''
-          switch (this.type) {
-            case 'mysql':
-            case 'mariadb':
-            case 'mongodb':
-              sig = '-TERM'
-              break
-            default:
-              sig = '-INT'
-              break
-          }
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
-        }
-        await waitTime(500)
-        resolve(true)
-      } catch (e) {
-        reject(e)
       }
+      console.log('_stopServer arr: ', arr)
+      if (arr.length > 0) {
+        const pids = arr.join(' ')
+        let sig = ''
+        switch (this.type) {
+          case 'mysql':
+          case 'mariadb':
+          case 'mongodb':
+            sig = '-TERM'
+            break
+          default:
+            sig = '-INT'
+            break
+        }
+        try {
+          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
+        } catch (e) {}
+      }
+      await waitTime(300)
+      resolve(true)
     })
   }
 

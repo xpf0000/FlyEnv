@@ -4,7 +4,7 @@ dist
 dist-ssr
 *.local
 /build/notarize.js
-/build/AuthKey_JTMT429KVA.p8
+/build/*.p8
 /build/JWT.js
 /build/Legacy.js
 /electron

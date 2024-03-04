@@ -1,6 +1,6 @@
 import { spawn, IPty } from 'node-pty'
 import { join } from 'path'
-import { copyFileSync, writeFileSync } from 'fs'
+import { copyFileSync, writeFileSync, existsSync } from 'fs'
 import { fixEnv } from '@shared/utils'
 const execPromise = require('child-process-promise').exec
 
@@ -72,20 +72,26 @@ class DnsServer {
           })
       }
       const npmInstall = () => {
-        const command = `[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";cd ${cacheDir};npm install dns2 tangerine undici ip;`
-        execPromise(command, {
-          env
-        })
-          .then(() => {
-            copyFile()
+        const node_modules = join(cacheDir!, 'node_modules')
+        const package_lock = join(cacheDir!, 'package-lock.json')
+        if (existsSync(node_modules) && existsSync(package_lock)) {
+          copyFile()
+        } else {
+          const command = `[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";cd ${cacheDir};npm install dns2 tangerine undici ip;`
+          execPromise(command, {
+            env
           })
-          .catch((e: Error) => {
-            writeFileSync(logFile, e.toString())
-            const err = new Error(
-              `Dependencies install failed.\nuse this command install, then retry.\n${command}`
-            )
-            reject(err)
-          })
+            .then(() => {
+              copyFile()
+            })
+            .catch((e: Error) => {
+              writeFileSync(logFile, e.toString())
+              const err = new Error(
+                `Dependencies install failed.\nuse this command install, then retry.\n${command}`
+              )
+              reject(err)
+            })
+        }
       }
       const copyFile = () => {
         copyFileSync(file, cacheFile)

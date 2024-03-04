@@ -325,41 +325,58 @@ export default class Application extends EventEmitter {
   }
 
   stopServerByPid() {
+    const TERM: Array<string> = []
+    const INT: Array<string> = []
+    let command = `ps aux | grep '${global.Server.BaseDir}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+    let res: any = null
     try {
-      const TERM: Array<string> = []
-      const INT: Array<string> = []
-      let command = `ps aux | grep '${global.Server.BaseDir}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
-      let res = execSync(command)?.toString()?.trim() ?? ''
-      let pids = res.split('\n')
-      for (const p of pids) {
-        if (p.includes(global.Server.BaseDir!)) {
-          if (p.includes('mysqld') || p.includes('mariadbd') || p.includes('mongod')) {
-            TERM.push(p.split(' ')[0])
-          } else {
-            INT.push(p.split(' ')[0])
-          }
-        }
-      }
-      command = `ps aux | grep 'redis-server' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
       res = execSync(command)?.toString()?.trim() ?? ''
-      pids = res.split('\n')
-      for (const p of pids) {
-        if (p.includes(' grep ') || p.includes(' /bin/sh -c') || p.includes('/Contents/MacOS/')) {
-          continue
-        }
-        INT.push(p.split(' ')[0])
-      }
-      if (TERM.length > 0) {
-        const str = TERM.join(' ')
-        const sig = '-TERM'
-        execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${str}`)
-      }
-      if (INT.length > 0) {
-        const str = INT.join(' ')
-        const sig = '-INT'
-        execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${str}`)
-      }
     } catch (e) {}
+    let pids = res.split('\n')
+    for (const p of pids) {
+      if (p.includes(global.Server.BaseDir!)) {
+        if (p.includes('mysqld') || p.includes('mariadbd') || p.includes('mongod')) {
+          TERM.push(p.split(' ')[0])
+        } else {
+          INT.push(p.split(' ')[0])
+        }
+      }
+    }
+    command = `ps aux | grep 'redis-server' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+    try {
+      res = execSync(command)?.toString()?.trim() ?? ''
+    } catch (e) {}
+    pids = res.split('\n')
+    for (const p of pids) {
+      if (
+        p.includes(' grep ') ||
+        p.includes(' /bin/sh -c') ||
+        p.includes('/Contents/MacOS/') ||
+        p.startsWith('/bin/bash ') ||
+        p.includes('brew.rb ') ||
+        p.includes(' install ') ||
+        p.includes(' uninstall ') ||
+        p.includes(' link ') ||
+        p.includes(' unlink ')
+      ) {
+        continue
+      }
+      INT.push(p.split(' ')[0])
+    }
+    if (TERM.length > 0) {
+      const str = TERM.join(' ')
+      const sig = '-TERM'
+      try {
+        execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${str}`)
+      } catch (e) {}
+    }
+    if (INT.length > 0) {
+      const str = INT.join(' ')
+      const sig = '-INT'
+      try {
+        execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${str}`)
+      } catch (e) {}
+    }
   }
 
   stopServer() {
@@ -510,6 +527,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:tools':
       case 'app-fork:macports':
         const module = command.replace('app-fork:', '')
+        this.setProxy()
         global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
         global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
         this.forkManager
