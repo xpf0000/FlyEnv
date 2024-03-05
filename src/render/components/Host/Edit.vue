@@ -455,32 +455,37 @@
     }
   }
 
-  const chooseRoot = (flag: string, choosefile = false) => {
+  const chooseRoot = (flag: 'root' | 'certkey' | 'cert', choosefile = false) => {
+    const options: any = {}
     let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
     if (choosefile) {
       opt.push('openFile')
     }
-    dialog
-      .showOpenDialog({
-        properties: opt
-      })
-      .then(({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const [path] = filePaths
-        switch (flag) {
-          case 'root':
-            item.value.root = path
-            break
-          case 'cert':
-            item.value.ssl.cert = path
-            break
-          case 'certkey':
-            item.value.ssl.key = path
-            break
-        }
-      })
+    options.properties = opt
+    if (flag === 'root' && item?.value?.root) {
+      options.defaultPath = item.value.root
+    } else if (flag === 'cert' && item?.value?.ssl?.cert) {
+      options.defaultPath = item.value.ssl.cert
+    } else if (flag === 'certkey' && item?.value?.ssl?.key) {
+      options.defaultPath = item.value.ssl.key
+    }
+    dialog.showOpenDialog(options).then(({ canceled, filePaths }: any) => {
+      if (canceled || filePaths.length === 0) {
+        return
+      }
+      const [path] = filePaths
+      switch (flag) {
+        case 'root':
+          item.value.root = path
+          break
+        case 'cert':
+          item.value.ssl.cert = path
+          break
+        case 'certkey':
+          item.value.ssl.key = path
+          break
+      }
+    })
   }
 
   const checkItem = () => {

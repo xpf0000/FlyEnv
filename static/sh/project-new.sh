@@ -3,6 +3,9 @@ cachedir=$1
 projectdir=$2
 frameworkname=$3
 version=$4
+phpDir=$5
+export PATH="$phpDir:$PATH"
+php -v
 if ! command -v composer &> /dev/null; then
     #command does not exist
     echo "composer does not exist"
@@ -24,6 +27,7 @@ if ! command -v composer &> /dev/null; then
 else
     #command exists
     echo "composer exist"
+    composer self-update
     cd "$projectdir" || exit 1
     composer create-project --prefer-dist "$frameworkname" "phpwebstudy-create-project" "$version"
 fi

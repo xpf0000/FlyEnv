@@ -17,7 +17,7 @@
               style="display: none"
               :data-host-id="scope.row.id"
             ></div>
-            <template v-if="quickEdit?.id && scope.row.id === quickEdit?.id">
+            <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-input
                 v-model.trim="quickEdit.name"
                 :class="{ error: quickEditNameError }"
@@ -38,7 +38,7 @@
         </el-table-column>
         <el-table-column align="center" width="120px" :label="$t('host.phpVersion')">
           <template #default="scope">
-            <template v-if="quickEdit?.id && scope.row.id === quickEdit?.id">
+            <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-select
                 v-model="quickEdit.phpVersion"
                 class="w-p100"
@@ -59,7 +59,7 @@
         </el-table-column>
         <el-table-column :label="$t('host.mark')">
           <template #default="scope">
-            <template v-if="quickEdit?.id && scope.row.id === quickEdit?.id">
+            <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>
             </template>
             <template v-else>
@@ -73,63 +73,68 @@
         </el-table-column>
         <el-table-column align="center" :label="$t('host.setup')" width="100px">
           <template #default="scope">
-            <template v-if="scope.row.id !== quickEdit?.id">
-              <el-popover
-                effect="dark"
-                popper-class="host-list-poper"
-                placement="bottom-end"
-                width="auto"
-                :show-arrow="false"
-              >
-                <ul v-poper-fix class="host-list-menu">
-                  <li @click.stop="action(scope.row, scope.$index, 'open')">
-                    <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.open') }}</span>
-                  </li>
-                  <li @click.stop="action(scope.row, scope.$index, 'edit')">
-                    <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.edit') }}</span>
-                  </li>
-                  <li @click.stop="action(scope.row, scope.$index, 'park')">
-                    <yb-icon :svg="import('@/svg/shengcheng.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('host.park') }}</span>
-                  </li>
-                  <li @click.stop="action(scope.row, scope.$index, 'link')">
-                    <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.link') }}</span>
-                  </li>
-                  <li>
-                    <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                    <el-dropdown @command="showConfig">
-                      <span class="ml-15"> {{ $t('base.configFile') }} </span>
-                      <template #dropdown>
-                        <el-dropdown-menu>
-                          <el-dropdown-item :command="{ flag: 'nginx', item: scope.row }"
-                            >Nginx</el-dropdown-item
-                          >
-                          <el-dropdown-item :command="{ flag: 'apache', item: scope.row }"
-                            >Apache</el-dropdown-item
-                          >
-                        </el-dropdown-menu>
-                      </template>
-                    </el-dropdown>
-                  </li>
-                  <li @click.stop="action(scope.row, scope.$index, 'log')">
-                    <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.log') }}</span>
-                  </li>
-                  <li @click.stop="action(scope.row, scope.$index, 'del')">
-                    <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.del') }}</span>
-                  </li>
-                </ul>
+            <template v-if="scope?.row?.deling || scope.row.id !== quickEdit?.id">
+              <template v-if="!scope?.row?.deling">
+                <el-popover
+                  effect="dark"
+                  popper-class="host-list-poper"
+                  placement="bottom-end"
+                  width="auto"
+                  :show-arrow="false"
+                >
+                  <ul v-poper-fix class="host-list-menu">
+                    <li @click.stop="action(scope.row, scope.$index, 'open')">
+                      <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ $t('base.open') }}</span>
+                    </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'edit')">
+                      <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ $t('base.edit') }}</span>
+                    </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'park')">
+                      <yb-icon :svg="import('@/svg/shengcheng.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ $t('host.park') }}</span>
+                    </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'link')">
+                      <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ $t('base.link') }}</span>
+                    </li>
+                    <li>
+                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                      <el-dropdown @command="showConfig">
+                        <span class="ml-15"> {{ $t('base.configFile') }} </span>
+                        <template #dropdown>
+                          <el-dropdown-menu>
+                            <el-dropdown-item :command="{ flag: 'nginx', item: scope.row }"
+                              >Nginx</el-dropdown-item
+                            >
+                            <el-dropdown-item :command="{ flag: 'apache', item: scope.row }"
+                              >Apache</el-dropdown-item
+                            >
+                          </el-dropdown-menu>
+                        </template>
+                      </el-dropdown>
+                    </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'log')">
+                      <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ $t('base.log') }}</span>
+                    </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'del')">
+                      <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ $t('base.del') }}</span>
+                    </li>
+                  </ul>
 
-                <template #reference>
-                  <div class="right">
-                    <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
-                  </div>
-                </template>
-              </el-popover>
+                  <template #reference>
+                    <div class="right">
+                      <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+                    </div>
+                  </template>
+                </el-popover>
+              </template>
+              <template v-else>
+                <el-button :loading="true" link></el-button>
+              </template>
             </template>
             <template v-else>
               <div class="right" style="opacity: 0; padding: 19px">
@@ -317,6 +322,7 @@
         }).then()
         break
       case 'del':
+        item.deling = true
         Base._Confirm(I18nT('base.delAlertContent'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
@@ -374,9 +380,9 @@
     }
     console.log('tr: ', node)
     const idDom: HTMLElement = node.querySelector('.host-list-table-cell-id') as any
-    const id = Number(idDom.getAttribute('data-host-id') ?? 0)
+    const id = idDom.getAttribute('data-host-id') ?? ''
     console.log('id: ', id)
-    const host = appStore.hosts.find((h) => h.id === id)
+    const host = appStore.hosts.find((h) => `${h.id}` === `${id}`)
     console.log('host: ', host)
     quickEdit.value = JSON.parse(JSON.stringify(host))
     quickEditTr.value = node as any

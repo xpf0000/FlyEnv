@@ -177,6 +177,7 @@ subjectAltName=@alt_names
       })
 
       const doPark = () => {
+        console.log('doPark !!!')
         return new ForkPromise((resolve) => {
           if (!park || !host || !host.root) {
             resolve(0)
@@ -191,6 +192,9 @@ subjectAltName=@alt_names
           const arrs: Array<AppHost> = []
           for (const d of subDir) {
             const item = JSON.parse(JSON.stringify(host))
+            item.nginx.rewrite = ''
+            item.ssl.cert = ''
+            item.ssl.key = ''
             item.id = uuid(13)
             const hostName = item.name.split('.')
             hostName.unshift(d)
@@ -202,7 +206,7 @@ subjectAltName=@alt_names
             }
             const aliasArr = item.alias
               ? item.alias.split('\n').filter((n: string) => {
-                  return n && n.length > 0
+                  return n && n?.trim()?.length > 0
                 })
               : []
             item.alias = aliasArr
@@ -747,13 +751,14 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
 
         await writeFile(avhost, atmpl)
 
-        const rewrite = host.nginx.rewrite.trim()
+        const rewrite = host?.nginx?.rewrite?.trim() ?? ''
         await writeFile(join(rewritepath, `${hostname}.conf`), rewrite)
         if (chmod) {
           await this.#setDirRole(host.root)
         }
         resolve(true)
       } catch (e) {
+        console.log('_addVhost: ', e)
         reject(e)
       }
     })

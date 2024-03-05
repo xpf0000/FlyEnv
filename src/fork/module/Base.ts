@@ -42,7 +42,9 @@ export class Base {
               env: {
                 HOMEBREW_NO_INSTALL_FROM_API: 1
               }
-            }).then(() => {})
+            })
+              .then(() => {})
+              .catch(() => {})
             resolve(true)
           } else {
             resolve(I18nT('fork.versionError'))
@@ -79,9 +81,11 @@ export class Base {
         return
       }
       try {
+        this._linkVersion(version)
+      } catch (e) {}
+      try {
         await this._stopServer(version)
         await this._startServer(version).on(on)
-        await this._linkVersion(version)
         resolve(true)
       } catch (e) {
         reject(e)
@@ -108,10 +112,11 @@ export class Base {
         return
       }
       try {
+        this._linkVersion(version)
+      } catch (e) {}
+      try {
         await this._stopServer(version)
         await this._startServer(version).on(on)
-        await this._linkVersion(version)
-        console.log('HHHHH !!! pp')
         resolve(true)
       } catch (e) {
         reject(e)

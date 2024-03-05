@@ -11,8 +11,9 @@ class Manager extends Base {
     super()
   }
 
-  createProject(dir: string, framework: string, version: SoftInstalled) {
+  createProject(dir: string, phpDir: string, framework: string, version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      const phpBinDir = join(phpDir, 'bin')
       const cacheDir = global.Server.Cache
       if (framework === 'wordpress') {
         const tmpl = `{
@@ -34,7 +35,7 @@ class Manager extends Base {
         await writeFile(join(dir, 'composer.json'), tmpl)
         await copyFile(sh, copyfile)
         await chmod(copyfile, '0777')
-        const params = [copyfile, cacheDir, dir]
+        const params = [copyfile, cacheDir, dir, phpBinDir]
         console.log('params: ', params.join(' '))
         spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
       } else {
@@ -54,8 +55,8 @@ class Manager extends Base {
           await unlink(copyfile)
         }
         await copyFile(sh, copyfile)
-        chmod(copyfile, '0777')
-        const params = [copyfile, cacheDir, dir, name, version]
+        await chmod(copyfile, '0777')
+        const params = [copyfile, cacheDir, dir, name, version, phpBinDir]
         console.log('params: ', params.join(' '))
         spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
       }

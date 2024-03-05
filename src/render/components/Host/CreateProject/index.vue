@@ -29,6 +29,16 @@
           </div>
           <div class="park">
             <div class="title">
+              <span>{{ $t('base.phpVersion') }}</span>
+            </div>
+            <el-select v-model="form.php" filterable :disabled="loading || created">
+              <template v-for="(v, k) in phpVersions" :key="k">
+                <el-option :value="v.path" :label="`${v.version}-${v.path}`"></el-option>
+              </template>
+            </el-select>
+          </div>
+          <div class="park">
+            <div class="title">
               <span>{{ $t('host.frameWork') }}</span>
             </div>
             <el-select v-model="form.framework" filterable :disabled="loading || created">
@@ -71,6 +81,7 @@
   import IPC from '@/util/IPC'
   import { I18nT } from '@shared/lang'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { BrewStore } from '@/store/brew'
 
   const { join } = require('path')
   const { dialog } = require('@electron/remote')
@@ -78,13 +89,19 @@
 
   const form = ref({
     dir: '',
+    php: '',
     framework: 'wordpress-*'
   })
 
+  const brewStore = BrewStore()
   const created = ref(false)
   const loading = ref(false)
   const createAble = computed(() => {
     return !!form.value.dir && !!form.value.framework
+  })
+
+  const phpVersions = computed(() => {
+    return brewStore?.php?.installed ?? []
   })
 
   const chooseRoot = () => {
@@ -103,7 +120,7 @@
         form.value.dir = path
       })
   }
-  let msg: any = ''
+  let msg: Array<string> = []
   const doCreateProject = () => {
     console.log('doCreateProject: ', form.value)
     loading.value = true
@@ -112,6 +129,7 @@
       'app-fork:project',
       'createProject',
       form.value.dir,
+      form.value.php,
       frameworks[0],
       frameworks[1]
     ).then((key: string, res: any) => {
@@ -122,10 +140,16 @@
         created.value = true
       } else if (res?.code === 1) {
         IPC.off(key)
-        MessageError(msg ?? I18nT('base.fail'))
+        if (msg.length > 0) {
+          MessageError(msg.join('\n'))
+        } else {
+          MessageError(I18nT('base.fail'))
+        }
         loading.value = false
       } else {
-        msg = res?.msg
+        if (res?.msg) {
+          msg.push(res?.msg)
+        }
       }
     })
   }

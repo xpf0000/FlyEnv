@@ -1,6 +1,9 @@
 #!/bin/bash
 cachedir=$1
 projectdir=$2
+phpDir=$3
+export PATH="$phpDir:$PATH"
+php -v
 if ! command -v composer &> /dev/null; then
     #command does not exist
     echo "composer does not exist"
