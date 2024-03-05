@@ -109,30 +109,52 @@
               </template>
             </el-table-column>
 
-            <el-table-column width="300px" align="left" :label="$t('base.operation')">
+            <el-table-column
+              width="150px"
+              align="left"
+              :label="$t('base.operation')"
+              class-name="operation"
+            >
               <template v-if="version?.version" #default="scope">
-                <el-button
-                  v-if="scope.row.status"
-                  type="primary"
-                  link
-                  @click="copyLink(scope.$index, scope.row)"
-                  >{{ $t('base.copyLink') }}</el-button
-                >
-                <el-button
-                  v-else
-                  :disabled="brewRunning || !version?.version"
-                  type="primary"
-                  link
-                  @click="handleEdit(scope.$index, scope.row)"
-                  >{{ $t('base.install') }}</el-button
-                >
-                <el-button
-                  v-if="scope.row.status && scope.row.name === 'xdebug'"
-                  type="primary"
-                  link
-                  @click="copyXDebugTmpl(scope.$index, scope.row)"
-                  >{{ $t('php.copyConfTemplate') }}</el-button
-                >
+                <template v-if="scope.row.status">
+                  <el-tooltip :content="$t('base.copyLink')" :show-after="600">
+                    <el-button
+                      type="primary"
+                      link
+                      :icon="Link"
+                      @click="copyLink(scope.$index, scope.row)"
+                    ></el-button>
+                  </el-tooltip>
+                  <template v-if="scope.row.name === 'xdebug'">
+                    <el-tooltip :content="$t('php.copyConfTemplate')" :show-after="600">
+                      <el-button
+                        type="primary"
+                        link
+                        :icon="Document"
+                        @click="copyXDebugTmpl(scope.$index, scope.row)"
+                      ></el-button>
+                    </el-tooltip>
+                  </template>
+                  <el-tooltip :content="$t('base.del')" :show-after="600">
+                    <el-button
+                      type="primary"
+                      link
+                      :icon="Delete"
+                      @click="doDel(scope.$index, scope.row)"
+                    ></el-button>
+                  </el-tooltip>
+                </template>
+                <template v-else>
+                  <el-tooltip :content="$t('base.install')" :show-after="600">
+                    <el-button
+                      :disabled="brewRunning || !version?.version"
+                      type="primary"
+                      link
+                      :icon="Download"
+                      @click="handleEdit(scope.$index, scope.row)"
+                    ></el-button>
+                  </el-tooltip>
+                </template>
               </template>
             </el-table-column>
           </el-table>
@@ -154,11 +176,14 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { ExtensionHomeBrew, ExtensionMacPorts } from '@/components/PHP/store'
   import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
+  import { Document, Download, Link, Delete } from '@element-plus/icons-vue'
+  import Base from '@/core/Base'
+  import { handleHost } from '@/util/Host'
 
   const { join } = require('path')
   const { clipboard } = require('@electron/remote')
   const { shell } = require('@electron/remote')
-  const { existsSync } = require('fs')
+  const { existsSync, remove } = require('fs-extra')
 
   const props = defineProps<{
     version: SoftInstalled
@@ -466,6 +491,26 @@
     const txt = `${pre}${row.soPath}`
     clipboard.writeText(txt)
     MessageSuccess(I18nT('php.extensionCopySuccess'))
+  }
+
+  const doDel = (index: number, row: any) => {
+    Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+      customClass: 'confirm-del',
+      type: 'warning'
+    })
+      .then(async () => {
+        const soPath = row?.soPath
+        if (soPath && existsSync(soPath)) {
+          await remove(soPath)
+          const find: any = showTableData.value.find((f: any) => f?.soPath === soPath)
+          if (find) {
+            find.installed = false
+            find.status = false
+            delete find?.soPath
+          }
+        }
+      })
+      .catch(() => {})
   }
 
   const copyXDebugTmpl = (index: number, row: any) => {

@@ -100,6 +100,7 @@ class Php extends Base {
           const so = allFile.filter((f) => f.endsWith('.so')).pop()
           if (so) {
             const destSo = join(installExtensionDir, basename(so))
+            await mkdirp(installExtensionDir)
             await copyFile(so, destSo)
             return existsSync(destSo)
           }

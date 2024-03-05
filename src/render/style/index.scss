@@ -92,50 +92,6 @@ body,
     }
   }
 }
-.nodejs-versions {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  .current-version {
-    display: flex;
-    align-items: center;
-    margin: 20px 40px 0 40px;
-    .version {
-      margin-left: 25px;
-    }
-  }
-  .block {
-    display: flex;
-    align-items: center;
-    margin: 40px 0 30px 40px;
-    flex-shrink: 0;
-  }
-  .logs {
-    padding-left: 40px;
-    flex: 1;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-    > li {
-      width: 100%;
-      word-break: break-all;
-    }
-  }
-}
-body.lang-en {
-  .apache-service {
-    .left-title {
-      width: 110px;
-    }
-  }
-
-  .nodejs-versions {
-    .left-title {
-      width: 110px;
-    }
-  }
-}
 .cli-to-html {
   word-wrap: break-word;
   white-space: pre-wrap;
@@ -763,6 +719,7 @@ body.lang-en {
         padding: 0;
 
         .logs {
+          padding: 12px;
           height: 100%;
           overflow: auto;
           word-break: break-word;
@@ -807,6 +764,18 @@ body.lang-en {
         .el-table {
           .el-table__inner-wrapper::before {
             display: none;
+          }
+
+          .operation {
+            .el-icon {
+              width: 17px;
+              height: 17px;
+
+              svg {
+                width: 17px;
+                height: 17px;
+              }
+            }
           }
         }
       }
@@ -2178,46 +2147,6 @@ body.lang-en {
       .el-button-group {
         display: flex;
       }
-    }
-  }
-}
-.apache-service {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 40px 0 0 40px;
-  .block {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-
-    > .left-title {
-      flex-shrink: 0;
-      margin-right: 5px;
-    }
-
-    .version-txt.disabled {
-      color: #f56c6c;
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-
-      &.running {
-        color: #01cc74;
-      }
-    }
-  }
-  .logs {
-    flex: 1;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-    > li {
-      width: 100%;
-      word-break: break-word;
     }
   }
 }
