@@ -3,6 +3,9 @@ import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 // @ts-ignore
 import IPC from './IPC.js'
+import { AppStore } from '@/store/app'
+
+const { nativeTheme } = require('@electron/remote')
 
 const exclude = [
   'Help',
@@ -63,7 +66,7 @@ class XTerm implements XTermType {
   getSize(): { cols: number; rows: number } {
     const domRect = this.dom!.getBoundingClientRect()
     const cols = Math.floor(domRect.width / 9.1)
-    const rows = Math.floor(domRect.height / 17)
+    const rows = Math.floor(domRect.height / 18)
     IPC.send('NodePty:resize', { cols, rows })
     return { cols, rows }
   }
@@ -71,6 +74,21 @@ class XTerm implements XTermType {
   mount(dom: HTMLElement) {
     this.dom = dom
     const { cols, rows } = this.getSize()
+    const appStore = AppStore()
+    const theme: { [k: string]: string } = {}
+    let appTheme = ''
+    if (!appStore?.config?.setup?.theme || appStore?.config?.setup?.theme === 'system') {
+      appTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+    } else {
+      appTheme = appStore?.config?.setup?.theme
+    }
+    if (appTheme === 'light') {
+      theme.background = '#ffffff'
+      theme.foreground = '#334455'
+    } else {
+      theme.background = '#282b3d'
+      theme.foreground = '#cfd3dc'
+    }
     this.xterm = new Terminal({
       cols: cols,
       rows: rows,
@@ -79,9 +97,7 @@ class XTerm implements XTermType {
       cursorWidth: 5,
       cursorStyle: 'bar',
       logLevel: 'off',
-      theme: {
-        background: '#2a2b2c' //背景色
-      }
+      theme: theme
     })
     const fitaddon = new FitAddon()
     this.xterm.loadAddon(fitaddon)
@@ -318,7 +334,8 @@ class XTerm implements XTermType {
     IPC.on('NodePty:data').then((key: string, data: string) => {
       this.xterm?.write(data)
       this.storeCurrentCursor()
-      if (logs.length === 500) {
+      const max = 300
+      if (logs.length === max) {
         logs.shift()
       }
       logs.push(data)

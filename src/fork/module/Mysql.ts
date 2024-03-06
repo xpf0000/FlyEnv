@@ -73,12 +73,12 @@ datadir=${dataDir}`
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
         const installdb = join(version.path, 'bin/mysql_install_db')
-        if (existsSync(installdb)) {
+        if (existsSync(installdb) && version.num! < 57) {
           bin = installdb
           params.splice(0)
+          params.push(`--defaults-file=${m}`)
           params.push(`--datadir=${dataDir}`)
           params.push(`--basedir=${version.path}`)
-          params.push(`--defaults-file=${m}`)
           if (version?.flag === 'macports') {
             const defaultCnf = join(version.path, 'my-default.cnf')
             if (!existsSync(defaultCnf)) {
@@ -248,12 +248,12 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         await mkdirp(dataDir)
         await chmod(dataDir, '0755')
         const installdb = join(currentVersion.path!, 'bin/mysql_install_db')
-        if (existsSync(installdb)) {
+        if (existsSync(installdb) && version.version.num! < 57) {
           bin = installdb
           params.splice(0)
+          params.push(`--defaults-file=${m}`)
           params.push(`--datadir=${dataDir}`)
           params.push(`--basedir=${currentVersion.path}`)
-          params.push(`--defaults-file=${m}`)
           if (currentVersion?.flag === 'macports') {
             const defaultCnf = join(currentVersion.path!, 'my-default.cnf')
             if (!existsSync(defaultCnf)) {

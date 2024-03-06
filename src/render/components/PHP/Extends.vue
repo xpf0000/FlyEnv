@@ -27,34 +27,22 @@
             <div class="card-header">
               <div class="left">
                 <span> {{ headerTitle }} </span>
-                <template v-if="isHomeBrew && !extendRunning">
+                <template v-if="!extendRunning">
                   <el-select
                     v-model="lib"
-                    :disabled="
-                      brewRunning || extendRunning || extendRefreshing || !version?.version
-                    "
+                    :disabled="brewRunning || !version?.version"
                     class="lib-select"
                   >
+                    <template v-if="isHomeBrew">
+                      <el-option value="homebrew" label="Homebrew"></el-option>
+                    </template>
+                    <template v-else-if="isMacPorts">
+                      <el-option value="macports" label="Macports"></el-option>
+                    </template>
                     <el-option
                       value="phpwebstudy"
                       :label="$t('php.extensionsLibDefault')"
                     ></el-option>
-                    <el-option value="homebrew" label="Homebrew"></el-option>
-                  </el-select>
-                </template>
-                <template v-else-if="isMacPorts && !extendRunning">
-                  <el-select
-                    v-model="lib"
-                    :disabled="
-                      brewRunning || extendRunning || extendRefreshing || !version?.version
-                    "
-                    class="lib-select"
-                  >
-                    <el-option
-                      value="phpwebstudy"
-                      :label="$t('php.extensionsLibDefault')"
-                    ></el-option>
-                    <el-option value="macports" label="Macports"></el-option>
                   </el-select>
                 </template>
               </div>
@@ -178,7 +166,6 @@
   import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
   import { Document, Download, Link, Delete } from '@element-plus/icons-vue'
   import Base from '@/core/Base'
-  import { handleHost } from '@/util/Host'
 
   const { join } = require('path')
   const { clipboard } = require('@electron/remote')
@@ -279,7 +266,11 @@
       soname: 'yaf.so'
     }
   ]
-  const showTableData = ref([])
+  const showTableData = ref({
+    phpwebstudy: [],
+    macports: [],
+    homebrew: []
+  })
 
   const showTableDataFilter = computed(() => {
     const sortName = (a: any, b: any) => {
@@ -298,9 +289,10 @@
       return 0
     }
     if (!search.value) {
-      return Array.from(showTableData.value).sort(sortName).sort(sortStatus)
+      console.log('showTableData.value: ', showTableData.value, lib.value)
+      return Array.from(showTableData.value?.[lib.value]).sort(sortName).sort(sortStatus)
     }
-    return showTableData.value
+    return showTableData.value?.[lib.value]
       .filter((d: any) => d.name.toLowerCase().includes(search.value.toLowerCase()))
       .sort(sortName)
       .sort(sortStatus)
@@ -363,6 +355,12 @@
     return props.version?.path?.includes(global?.Server?.BrewCellar ?? '-----')
   })
 
+  if (isMacPorts.value) {
+    lib.value = 'macports'
+  } else if (isHomeBrew.value) {
+    lib.value = 'homebrew'
+  }
+
   const openDir = () => {
     if (!installExtensionDir?.value) {
       return
@@ -383,11 +381,14 @@
         all = all.filter((s) => {
           return s.indexOf('.so') >= 0 || s.indexOf('.dar') >= 0
         })
-        showTableData.value.forEach((item: any) => {
-          item.installed = all.indexOf(item.soname) >= 0
-          item.status = item.installed
-          item.soPath = join(installExtensionDir.value, item.soname)
-        })
+        let k: 'phpwebstudy' | 'macports' | 'homebrew'
+        for (k in showTableData.value) {
+          showTableData.value[k].forEach((item: any) => {
+            item.installed = all.indexOf(item.soname) >= 0
+            item.status = item.installed
+            item.soPath = join(installExtensionDir.value, item.soname)
+          })
+        }
         taskStore.php.extendRefreshing = false
       })
     }
@@ -396,23 +397,24 @@
   const fetchAll = (fn: 'fetchAllPhpExtensions' | 'fetchAllPhpExtensionsByPort') => {
     return new Promise((resolve) => {
       if (fn === 'fetchAllPhpExtensions' && ExtensionHomeBrew?.[versionNumber.value]) {
-        showTableData.value = ExtensionHomeBrew?.[versionNumber.value]
+        showTableData.value.homebrew = ExtensionHomeBrew?.[versionNumber.value]
         resolve(true)
         return
       }
       if (fn === 'fetchAllPhpExtensionsByPort' && ExtensionMacPorts?.[versionNumber.value]) {
-        showTableData.value = ExtensionMacPorts?.[versionNumber.value]
+        showTableData.value.macports = ExtensionMacPorts?.[versionNumber.value]
         resolve(true)
         return
       }
       IPC.send('app-fork:brew', fn, versionNumber.value).then((key: string, res: any) => {
         IPC.off(key)
-        showTableData.value = res?.data ?? []
         if (res?.data) {
           if (fn === 'fetchAllPhpExtensions') {
             ExtensionHomeBrew[versionNumber.value] = res.data
+            showTableData.value.homebrew = res?.data ?? []
           } else {
             ExtensionMacPorts[versionNumber.value] = res.data
+            showTableData.value.macports = res?.data ?? []
           }
         }
         resolve(true)
@@ -421,16 +423,16 @@
   }
 
   const getTableData = async () => {
-    if (extendRefreshing?.value) {
-      return
-    }
+    const currentLib = lib.value
     taskStore.php.extendRefreshing = true
-    showTableData.value = []
-    if (lib.value === 'phpwebstudy') {
-      showTableData.value = JSON.parse(JSON.stringify(tableData))
-    } else if (lib.value === 'homebrew') {
+    if (currentLib === 'phpwebstudy') {
+      showTableData.value.phpwebstudy = []
+      showTableData.value.phpwebstudy = JSON.parse(JSON.stringify(tableData))
+    } else if (currentLib === 'homebrew') {
+      showTableData.value.homebrew = []
       await fetchAll('fetchAllPhpExtensions')
-    } else if (lib.value === 'macports') {
+    } else if (currentLib === 'macports') {
+      showTableData.value.macports = []
       await fetchAll('fetchAllPhpExtensionsByPort')
     }
     checkStatus()
@@ -498,16 +500,26 @@
       customClass: 'confirm-del',
       type: 'warning'
     })
-      .then(async () => {
+      .then(() => {
+        console.log('row: ', row)
         const soPath = row?.soPath
         if (soPath && existsSync(soPath)) {
-          await remove(soPath)
-          const find: any = showTableData.value.find((f: any) => f?.soPath === soPath)
-          if (find) {
-            find.installed = false
-            find.status = false
-            delete find?.soPath
-          }
+          IPC.send('app-fork:php', 'unInstallExtends', soPath).then((key: string, res: any) => {
+            IPC.off(key)
+            if (res.code === 0) {
+              let k: 'phpwebstudy' | 'macports' | 'homebrew'
+              for (k in showTableData.value) {
+                const find: any = showTableData.value[k].find((f: any) => f?.soPath === soPath)
+                if (find) {
+                  find.installed = false
+                  find.status = false
+                  delete find?.soPath
+                }
+              }
+            } else if (res.code === 1) {
+              MessageError(res?.msg ?? I18nT('base.fail'))
+            }
+          })
         }
       })
       .catch(() => {})
@@ -566,15 +578,6 @@ xdebug.output_dir = /tmp`
     taskStore.php.currentExtend = ''
     taskStore.php.extendAction = ''
   }
-
-  console.log(
-    'props.version: ',
-    props.version,
-    versionNumber.value,
-    isMacPorts.value,
-    isHomeBrew.value,
-    global.Server
-  )
 
   defineExpose({
     show,

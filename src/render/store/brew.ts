@@ -41,7 +41,7 @@ interface State {
   showInstallLog: boolean
   brewSrc: string
   log: Array<string>
-  LibUse: { [k: string]: string }
+  LibUse: { [k: string]: 'brew' | 'port' }
 }
 
 const state: State = {
@@ -55,61 +55,91 @@ const state: State = {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {}
+    list: {
+      brew: {},
+      port: {}
+    }
   },
   postgresql: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {}
+    list: {
+      brew: {},
+      port: {}
+    }
   },
   nginx: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {}
+    list: {
+      brew: {},
+      port: {}
+    }
   },
   apache: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {}
+    list: {
+      brew: {},
+      port: {}
+    }
   },
   php: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {}
+    list: {
+      brew: {},
+      port: {}
+    }
   },
   memcached: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {}
+    list: {
+      brew: {},
+      port: {}
+    }
   },
   mysql: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {}
+    list: {
+      brew: {},
+      port: {}
+    }
   },
   mariadb: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {}
+    list: {
+      brew: {},
+      port: {}
+    }
   },
   redis: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {}
+    list: {
+      brew: {},
+      port: {}
+    }
   },
   mongodb: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {}
+    list: {
+      brew: {},
+      port: {}
+    }
   }
 }
 

@@ -5,7 +5,7 @@
         <div class="left">
           <span> {{ cardHeadTitle }} </span>
           <template v-if="!brewRunning && !showNextBtn">
-            <el-select v-model="libSrc" style="margin-left: 8px" :disabled="currentType.getListing">
+            <el-select v-model="libSrc" style="margin-left: 8px">
               <el-option :disabled="!checkBrew()" value="brew" label="Homebrew"></el-option>
               <el-option :disabled="!checkPort()" value="port" label="MacPorts"></el-option>
             </el-select>
@@ -30,7 +30,9 @@
       </div>
     </template>
     <template v-if="showLog">
-      <div ref="logs" class="logs"></div>
+      <div class="log-wapper">
+        <div ref="logs" class="logs"></div>
+      </div>
     </template>
     <el-table
       v-else
@@ -137,8 +139,11 @@
   })
 
   const tableData = computed(() => {
+    if (!libSrc?.value) {
+      return []
+    }
     const arr = []
-    const list = currentType.value.list
+    const list = currentType.value.list?.[libSrc.value]
     for (const name in list) {
       const value = list[name]
       const nums = value.version.split('.').map((n: string, i: number) => {
@@ -182,7 +187,7 @@
     return !!global.Server.MacPorts
   }
   const libSrc = computed({
-    get() {
+    get(): 'brew' | 'port' | undefined {
       return (
         brewStore.LibUse[props.typeFlag] ??
         (checkBrew() ? 'brew' : checkPort() ? 'port' : undefined)
@@ -192,15 +197,15 @@
       brewStore.LibUse[props.typeFlag] = v
     }
   })
-  const fetchData = () => {
+  const fetchData = (src: 'brew' | 'port') => {
     const currentItem = currentType.value
-    const list = currentItem.list
-    for (const k in list) {
-      delete list?.[k]
-    }
+    const list = currentItem.list?.[src]
     const getInfo = libSrc?.value === 'brew' ? brewInfo(props.typeFlag) : portInfo(props.typeFlag)
     getInfo
       .then((res: any) => {
+        for (const k in list) {
+          delete list?.[k]
+        }
         for (const name in res) {
           list[name] = reactive(res[name])
         }
@@ -215,31 +220,32 @@
     if (brewRunning?.value || !libSrc?.value) {
       return
     }
-    const list = currentItem.list
+    const src = libSrc.value
+    const list = currentItem.list?.[src]
     if (Object.keys(list).length === 0) {
       currentItem.getListing = true
       brewCheck()
         .then(() => {
           if (props.typeFlag === 'php') {
-            if (libSrc?.value === 'brew') {
+            if (src === 'brew') {
               /**
                * 先获取已安装的 php, 同时安装shivammathur/php库, 安装成功后, 再刷新数据
                * 避免国内用户添加库非常慢, 导致已安装数据也无法获取
                */
               IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string) => {
                 IPC.off(key)
-                fetchData()
+                fetchData('brew')
               })
             }
           } else if (props.typeFlag === 'mongodb') {
-            if (libSrc?.value === 'brew') {
+            if (src === 'brew') {
               IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string) => {
                 IPC.off(key)
-                fetchData()
+                fetchData('brew')
               })
             }
           }
-          fetchData()
+          fetchData(src)
         })
         .catch(() => {
           currentItem.getListing = false
@@ -247,7 +253,10 @@
     }
   }
   const reGetData = () => {
-    const list = currentType.value.list
+    if (!libSrc?.value) {
+      return
+    }
+    const list = currentType.value.list?.[libSrc.value]
     for (let k in list) {
       delete list[k]
     }
@@ -323,6 +332,9 @@
         const copyfile = join(global.Server.Cache, 'port-cmd.sh')
         if (existsSync(copyfile)) {
           unlinkSync(copyfile)
+        }
+        if (fn === 'uninstall') {
+          fn = 'uninstall --follow-dependents'
         }
         let content = readFileSync(sh, 'utf-8')
         content = content

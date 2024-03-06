@@ -92,6 +92,7 @@ class Php extends Base {
         reject(new Error(I18nT('fork.versionNoFound')))
         return
       }
+      console.log('args?.flag: ', args?.flag, args.libName)
       if (args?.flag === 'homebrew') {
         const checkSo = async () => {
           const baseDir = args.libName.split('/').pop()
@@ -150,9 +151,17 @@ class Php extends Base {
     })
   }
 
-  unInstallExtends() {
-    return new ForkPromise((resolve) => {
-      resolve(0)
+  unInstallExtends(soPath: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        if (existsSync(soPath)) {
+          await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${soPath}`)
+        }
+      } catch (e) {
+        reject(e)
+        return
+      }
+      resolve(true)
     })
   }
 
@@ -364,11 +373,13 @@ class Php extends Base {
             .replace('##PASSWORD##', global.Server.Password!)
             .replace('##NAME##', name)
           await writeFile(copyfile, content)
-          chmod(copyfile, '0777')
+          await chmod(copyfile, '0777')
           const params = [copyfile]
           const command = params.join(' ')
           on(I18nT('fork.ExtensionInstallFailTips', { command }))
-          spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
+          try {
+            spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
+          } catch (e) {}
           return true
         }
         return false
@@ -382,7 +393,7 @@ class Php extends Base {
         }
         await copyFile(sh, copyfile)
         await chmod(copyfile, '0777')
-        doRun(copyfile, extendv, !!version?.phpBin)
+        doRun(copyfile, extendv, shellFile.endsWith('-port.sh'))
       }
 
       let sh = ''
@@ -482,8 +493,10 @@ class Php extends Base {
             extendv = '4.5.11'
           } else if (versionNumber < 8.0) {
             extendv = '4.8.11'
-          } else {
+          } else if (versionNumber < 8.3) {
             extendv = '5.0.3'
+          } else {
+            extendv = '5.1.1'
           }
           await installByShell('php-swoole.sh', extendv)
           break

@@ -723,6 +723,8 @@ body,
           height: 100%;
           overflow: auto;
           word-break: break-word;
+          font-size: 15px;
+          line-height: 18px;
 
           &::-webkit-scrollbar {
             display: none;
@@ -2203,13 +2205,20 @@ body,
         justify-content: center;
       }
 
-      .logs {
+      .log-wapper {
+        width: 100%;
         height: 100%;
-        overflow: auto;
-        word-break: break-word;
+        overflow: hidden;
+        padding: 12px;
 
-        &::-webkit-scrollbar {
-          display: none;
+        .logs {
+          height: 100%;
+          overflow: auto;
+          word-break: break-word;
+
+          &::-webkit-scrollbar {
+            display: none;
+          }
         }
       }
 
