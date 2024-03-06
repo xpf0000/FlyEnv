@@ -322,12 +322,12 @@
         }).then()
         break
       case 'del':
-        item.deling = true
         Base._Confirm(I18nT('base.delAlertContent'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
           .then(() => {
+            item.deling = true
             handleHost(item, 'del')
           })
           .catch(() => {})

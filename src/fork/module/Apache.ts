@@ -84,6 +84,9 @@ IncludeOptional "${vhost}*.conf"`
     try {
       host = JSON.parse(json)
     } catch (e) {}
+    if (host.length === 0) {
+      return
+    }
     const allNeedPort: Set<number> = new Set()
     host.forEach((h) => {
       const apache = Number(h?.port?.apache)
