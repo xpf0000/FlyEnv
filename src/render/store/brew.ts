@@ -19,7 +19,10 @@ export interface AppSoftInstalledItem {
   getListing: boolean
   installedInited: boolean
   installed: Array<SoftInstalled>
-  list: { [key: string]: any }
+  list: {
+    brew: { [key: string]: any }
+    port: { [key: string]: any }
+  }
 }
 
 interface State {

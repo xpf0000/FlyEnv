@@ -318,6 +318,9 @@ class XTerm implements XTermType {
     IPC.on('NodePty:data').then((key: string, data: string) => {
       this.xterm?.write(data)
       this.storeCurrentCursor()
+      if (logs.length === 500) {
+        logs.shift()
+      }
       logs.push(data)
       this.cammand.splice(0)
       this.index = 0

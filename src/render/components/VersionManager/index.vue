@@ -193,7 +193,8 @@
     }
   })
   const fetchData = () => {
-    const list = currentType.value.list
+    const currentItem = currentType.value
+    const list = currentItem.list
     for (const k in list) {
       delete list?.[k]
     }
@@ -203,19 +204,20 @@
         for (const name in res) {
           list[name] = reactive(res[name])
         }
-        currentType.value.getListing = false
+        currentItem.getListing = false
       })
       .catch(() => {
-        currentType.value.getListing = false
+        currentItem.getListing = false
       })
   }
   const getData = () => {
-    if (brewRunning?.value || currentType.value.getListing || !libSrc?.value) {
+    const currentItem = currentType.value
+    if (brewRunning?.value || !libSrc?.value) {
       return
     }
-    const list = currentType.value.list
+    const list = currentItem.list
     if (Object.keys(list).length === 0) {
-      currentType.value.getListing = true
+      currentItem.getListing = true
       brewCheck()
         .then(() => {
           if (props.typeFlag === 'php') {
@@ -240,7 +242,7 @@
           fetchData()
         })
         .catch(() => {
-          currentType.value.getListing = false
+          currentItem.getListing = false
         })
     }
   }
