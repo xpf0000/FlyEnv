@@ -232,16 +232,22 @@
                * 先获取已安装的 php, 同时安装shivammathur/php库, 安装成功后, 再刷新数据
                * 避免国内用户添加库非常慢, 导致已安装数据也无法获取
                */
-              IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string) => {
-                IPC.off(key)
-                fetchData('brew')
-              })
+              IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then(
+                (key: string, res: any) => {
+                  IPC.off(key)
+                  if (res?.data === 2) {
+                    fetchData('brew')
+                  }
+                }
+              )
             }
           } else if (props.typeFlag === 'mongodb') {
             if (src === 'brew') {
-              IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string) => {
+              IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string, res: any) => {
                 IPC.off(key)
-                fetchData('brew')
+                if (res?.data === 2) {
+                  fetchData('brew')
+                }
               })
             }
           }

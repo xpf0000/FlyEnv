@@ -246,8 +246,10 @@ class Brew extends Base {
         const stdout = await spawnPromise('brew', ['tap'])
         if (!stdout.includes(name)) {
           await spawnPromise('brew', ['tap', name])
+          resolve(2)
+        } else {
+          resolve(1)
         }
-        resolve(true)
       } catch (e) {
         reject(e)
       }
