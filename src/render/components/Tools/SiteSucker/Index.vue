@@ -77,28 +77,40 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { ElInput } from 'element-plus'
 
+  const { shell } = require('@electron/remote')
+
   const emit = defineEmits(['doClose'])
   const siteStore = SiteSuckerStore()
   siteStore.initSetup()
   const links = computed(() => {
-    const fails = siteStore.links.filter((f) => f.state === 'fail')
-    const wait = siteStore.links.filter((f) => f.state === 'wait')
     const running = siteStore.links.filter((f) => f.state === 'running')
+    const wait = siteStore.links.filter((f) => f.state === 'wait')
+    const fails = siteStore.links.filter((f) => f.state === 'fail')
     const other = siteStore.links.filter((f) => !['fail', 'wait', 'running'].includes(f.state))
-    return [...fails, ...wait, ...running, ...other]
+    const arr = [...running, ...wait, ...fails, ...other]
+    const s = search.value.trim()
+    if (!s) {
+      return arr
+    }
+    return arr.filter((l) => l.url.includes(s))
   })
 
   const hosts = computed(() => {
-    const host = new Set()
+    const host: Set<string> = new Set()
     siteStore.links.forEach((s) => {
       const url = new URL(s.url)
       host.add(url.host)
     })
-    return Array.from(host).map((h) => {
+    const arr = Array.from(host).map((h) => {
       return {
         host: h
       }
     })
+    const s = searchHost.value.trim()
+    if (!s) {
+      return arr
+    }
+    return arr.filter((a) => a.host.includes(s))
   })
 
   const url = ref('')
@@ -128,6 +140,11 @@
       ex.add(host)
     }
     siteStore.commonSetup.excludeLink = Array.from(ex).join('\n')
+    siteStore.save()
+  }
+
+  const openUrl = (url: string) => {
+    shell.openExternal(url)
   }
 
   const columns: Column<any>[] = [
@@ -139,21 +156,25 @@
       class: 'url-column',
       headerClass: 'url-column',
       cellRenderer: ({ cellData: url }) => (
-        <span class="flex items-center" style="padding-left: 24px">
+        <span
+          onClick={() => openUrl(url)}
+          class="flex items-center url-span"
+          style="padding-left: 24px"
+        >
           {url}
         </span>
       ),
       headerCellRenderer: () => {
         const count = links.value.length
         const success = links.value.filter(
-          (f) => f.state === 'replace' || f.state === 'success'
+          (f) => f.state === 'replace' || f.state === 'success' || f.state === 'fail'
         ).length
         return (
           <div class="wapper">
             <span class="flex items-center">
               url({success}/{count})
             </span>
-            <ElInput v-model={search.value} placeholder="search"></ElInput>
+            <ElInput v-model={search.value} placeholder="search" clearable={true}></ElInput>
           </div>
         )
       }
@@ -162,7 +183,7 @@
       key: 'state',
       title: 'state',
       dataKey: 'state',
-      width: 140,
+      width: 150,
       align: 'center',
       cellRenderer: ({ cellData: state }) => {
         if (state === 'fail') {
@@ -177,17 +198,18 @@
               <Check />
             </ElIcon>
           )
-        } else {
+        } else if (state === 'running') {
           return (
             <ElIcon>
               <Loading />
             </ElIcon>
           )
+        } else {
+          return <span></span>
         }
       }
     }
   ]
-
   const columnsHost: Column<any>[] = [
     {
       key: 'host',
@@ -202,7 +224,9 @@
           return url.host === host
         })
         const count = filter.length
-        const success = filter.filter((f) => f.state === 'replace' || f.state === 'success').length
+        const success = filter.filter(
+          (f) => f.state === 'replace' || f.state === 'success' || f.state === 'fail'
+        ).length
         return (
           <span class="flex items-center" style="padding-left: 24px">
             {host} ({success}/{count})
@@ -213,7 +237,7 @@
         return (
           <div class="wapper">
             <span class="flex items-center">host</span>
-            <ElInput v-model={searchHost.value} placeholder="search"></ElInput>
+            <ElInput v-model={searchHost.value} placeholder="search" clearable={true}></ElInput>
           </div>
         )
       }
@@ -222,7 +246,7 @@
       key: 'allow',
       title: 'allow',
       dataKey: 'host',
-      width: 140,
+      width: 150,
       class: 'host-allow',
       align: 'center',
       cellRenderer: ({ cellData: host }) => {

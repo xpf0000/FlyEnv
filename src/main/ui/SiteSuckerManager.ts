@@ -1,7 +1,15 @@
 import { BrowserWindow } from 'electron'
 import { enable } from '@electron/remote/main'
 import { basename, dirname, extname, join } from 'path'
-import { createWriteStream, existsSync, mkdirpSync, readFile, writeFile, stat } from 'fs-extra'
+import {
+  createWriteStream,
+  existsSync,
+  readFile,
+  writeFile,
+  stat,
+  mkdirp,
+  removeSync
+} from 'fs-extra'
 import request from '@shared/request'
 import { md5 } from '@shared/utils'
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent'
@@ -30,16 +38,25 @@ type PageLink = {
   fromPage: string
   saveFile: string
   state: LinkState
+  pageUrl?: string
+  isPage?: boolean
+  type?: string
+  size?: number
+}
+
+type RunConfig = {
+  dir: string
+  proxy: string
+  excludeLink: string
+  pageLimit: string
+  timeout: number
+  maxImgSize: number
+  maxVideoSize: number
 }
 
 type RunParams = {
   url: string
-  config: {
-    dir: string
-    proxy: string
-    excludeLink: string
-    pageLimit: string
-  }
+  config: RunConfig
 }
 
 const CallBack: {
@@ -65,6 +82,10 @@ class LinkItem implements PageLink {
   saveFile: string
   _state: LinkState
   url: string
+  pageUrl?: string
+  isPage?: boolean
+  type?: string
+  size?: number
 
   constructor(item: PageLink) {
     this.fromPage = ''
@@ -84,7 +105,9 @@ class LinkItem implements PageLink {
       NoticeDict[this.url] = order
       CallBack.fn({
         url: this.url,
-        state: this._state
+        state: this._state,
+        type: this.type,
+        size: this.size
       })
     }
   }
@@ -114,12 +137,83 @@ class SiteSuckerManager {
   task: Set<string> = new Set()
 
   pageLimitTxt = ''
-  urlExclude: Set<string> = new Set()
+
+  timeout = 6000
+
+  maxImgSize = 0
+  maxVideoSize = 0
 
   constructor() {}
 
   setCallBack(fn: Function) {
     CallBack.fn = fn
+  }
+
+  checkIsExcludeUrl = (url: string, isPage: boolean): boolean => {
+    const u = new URL(url)
+    if (ExcludeHost.includes(u.host)) {
+      return true
+    }
+    if (isPage && this.pageLimitTxt && !url.includes(this.pageLimitTxt)) {
+      return true
+    }
+    return false
+  }
+
+  async updateConfig(config: RunConfig) {
+    if (config?.proxy?.trim()) {
+      const proxy = config.proxy.trim()
+      await this?.window?.webContents?.session?.setProxy({
+        proxyRules: proxy
+      })
+      request.defaults.httpAgent = new HttpProxyAgent({
+        proxy: proxy
+      })
+      request.defaults.httpsAgent = new HttpsProxyAgent({
+        proxy: proxy,
+        rejectUnauthorized: false
+      })
+    } else {
+      await this?.window?.webContents?.session?.setProxy({})
+      request.defaults.httpAgent = undefined
+      request.defaults.httpsAgent = undefined
+    }
+
+    ExcludeHost.splice(0)
+    ExcludeHost.push(...BaseExcludeHost)
+
+    if (config?.excludeLink?.trim()) {
+      const excludes = config.excludeLink
+        .trim()
+        .split('\n')
+        .filter((f) => !!f.trim())
+        .map((m) => m.trim())
+      ExcludeHost.push(...excludes)
+    }
+
+    if (config?.pageLimit?.trim()) {
+      this.pageLimitTxt = config.pageLimit.trim()
+    } else {
+      this.pageLimitTxt = ''
+    }
+
+    if (config?.timeout) {
+      this.timeout = config.timeout
+    } else {
+      this.timeout = 5000
+    }
+
+    if (config?.maxImgSize) {
+      this.maxImgSize = config.maxImgSize
+    } else {
+      this.maxImgSize = 0
+    }
+
+    if (config?.maxVideoSize) {
+      this.maxVideoSize = config.maxVideoSize
+    } else {
+      this.maxVideoSize = 0
+    }
   }
 
   async show(item: RunParams) {
@@ -139,9 +233,12 @@ class SiteSuckerManager {
       replaceUrl: '',
       fromPage: '',
       saveFile,
-      state: 'wait'
+      state: 'wait',
+      isPage: true,
+      type: 'text/html'
     }
-    this.pages.push(new LinkItem(currentPage))
+    this.currentPage = new LinkItem(currentPage)
+    this.pages.push(this.currentPage)
 
     this.window = new BrowserWindow({
       show: true,
@@ -155,58 +252,10 @@ class SiteSuckerManager {
     })
     enable(this.window.webContents)
 
-    if (item.config.proxy.trim()) {
-      const proxy = item.config.proxy.trim()
-      await this.window.webContents.session.setProxy({
-        proxyRules: proxy
-      })
-      request.defaults.httpAgent = new HttpProxyAgent({
-        proxy: proxy
-      })
-      request.defaults.httpsAgent = new HttpsProxyAgent({
-        proxy: proxy,
-        rejectUnauthorized: false
-      })
-    }
+    await this.updateConfig(item.config)
 
-    ExcludeHost.splice(0)
-    ExcludeHost.push(...BaseExcludeHost)
-
-    if (item.config.excludeLink.trim()) {
-      const excludes = item.config.excludeLink
-        .trim()
-        .split('\n')
-        .filter((f) => !!f.trim())
-        .map((m) => m.trim())
-      ExcludeHost.push(...excludes)
-    }
-
-    if (item.config.pageLimit.trim()) {
-      this.pageLimitTxt = item.config.pageLimit.trim()
-    }
-
-    /**
-     * 过滤请求
-     * 1. 系统设置的无效请求, 一般都是统计代码
-     * 2. 用户定义, 请求链接包含则排除
-     */
-    const urlExclude = Array.from(this.urlExclude)
-    const checkIsExcludeUrl = (url: string): boolean => {
-      const u = new URL(url)
-      if (ExcludeHost.includes(u.host)) {
-        return true
-      }
-      if (urlExclude.length > 0) {
-        const uu = u.toString()
-        const find = urlExclude.find((s) => uu.includes(s))
-        if (find) {
-          return true
-        }
-      }
-      return false
-    }
     this.window.webContents.session.webRequest.onBeforeRequest((details, callback) => {
-      if (checkIsExcludeUrl(details.url)) {
+      if (this.checkIsExcludeUrl(details.url, false)) {
         callback({
           cancel: true
         })
@@ -221,29 +270,36 @@ class SiteSuckerManager {
         details?.statusCode < 300 &&
         (details?.url?.startsWith('http://') || details?.url?.startsWith('https://'))
       ) {
-        if (checkIsExcludeUrl(details.url)) {
-          callback({
-            cancel: true
-          })
-          return
-        }
         const uobj = new URL(details.url)
         uobj.hash = ''
         const url = uobj.toString()
         let isPage = false
+        let contentType = ''
+        let size = 0
         const headers = details?.responseHeaders ?? {}
         for (const k in headers) {
           if (k.toLowerCase() === 'content-type') {
             const v = headers[k]
-            if (v?.pop() === 'text/html') {
+            const type = v?.pop() ?? ''
+            contentType = type
+            if (type.includes('text/html')) {
               isPage = true
             }
+          } else if (k.toLowerCase() === 'content-length') {
+            const length = headers[k]?.pop() ?? '0'
+            size = parseInt(length)
           }
         }
         /**
          * 普通页面
          */
         if (isPage) {
+          if (this.checkIsExcludeUrl(details.url, true)) {
+            callback({
+              cancel: true
+            })
+            return
+          }
           let ok = false
           if (this.pageLimitTxt) {
             if (url.includes(this.pageLimitTxt)) {
@@ -266,12 +322,21 @@ class SiteSuckerManager {
                 replaceUrl: '',
                 fromPage: '',
                 saveFile,
-                state: 'wait'
+                state: 'wait',
+                isPage: true,
+                type: contentType,
+                size
               }
               this.pages.push(new LinkItem(item))
             }
           }
         } else {
+          if (this.checkIsExcludeUrl(details.url, false)) {
+            callback({
+              cancel: true
+            })
+            return
+          }
           /**
            * 只下载本域名的文件
            */
@@ -288,7 +353,9 @@ class SiteSuckerManager {
                 replaceUrl: '',
                 fromPage: '',
                 saveFile,
-                state: 'wait'
+                state: 'wait',
+                type: contentType,
+                size
               }
               this.pageLinks.push(new LinkItem(item))
             }
@@ -301,9 +368,15 @@ class SiteSuckerManager {
       this.destory()
       CallBack.fn('window-close')
     })
+    const timer = setTimeout(() => {
+      this.currentPage!.state = 'fail'
+      this.running = false
+      return
+    }, this.timeout)
     try {
       await this.window.loadURL(url)
     } catch (e) {}
+    clearTimeout(timer)
     await this.wait()
     this.running = false
     this.fetchPage().then()
@@ -326,7 +399,15 @@ class SiteSuckerManager {
     if (this.running || this.isDestory || this.pages.find((p) => p.state === 'running')) {
       return
     }
+    /**
+     * 查找正在等待运行的页面
+     */
     const page = this.pages.find((p) => p.state === 'wait')
+    /**
+     * 未找到
+     * 等待间隔时间
+     * 继续尝试获取页面
+     */
     if (!page) {
       await this.wait()
       this.running = false
@@ -353,22 +434,24 @@ class SiteSuckerManager {
       await this.fetchPage()
       return
     }
+
     this.currentPage = page
     this.currentPage.state = 'running'
-    if (existsSync(page.saveFile)) {
-      const info = await stat(page.saveFile)
-      if (info.size > 0) {
-        page.state = 'replace'
-        const html = await readFile(page.saveFile, 'utf8')
-        this.handlePageHtml(html)
-        this.running = false
-        await this.fetchPage()
-        return
-      }
-    }
+
+    /**
+     * 设置10秒超时
+     */
+    const timer = setTimeout(() => {
+      page.state = 'fail'
+      this.running = false
+      this.fetchPage()
+      return
+    }, this.timeout)
+
     try {
       await this.window!.loadURL(page.url)
     } catch (e) {}
+    clearTimeout(timer)
     await this.wait()
     await this.onPageLoaded()
     this.running = false
@@ -394,8 +477,18 @@ class SiteSuckerManager {
     for (let i = now; i < CPU_Count; i += 1) {
       const link = this.pageLinks.find((l) => l.state === 'wait' && !this.task.has(l.url))
       if (link) {
-        this.task.add(link.url)
-        link.state = 'running'
+        if (this.checkIsExcludeUrl(link.url, false)) {
+          link.state = 'fail'
+          const sameUrl = this.pageLinks.filter(
+            (p) => p.url === link.url && (p.state === 'wait' || p.state === 'running')
+          )
+          sameUrl.forEach((l) => {
+            l.state = 'fail'
+          })
+          this.task.delete(link.url)
+          this.fetchLink().then()
+          continue
+        }
         const linkLoaded = this.pageLinks.find(
           (p) => (p.state === 'replace' || p.state === 'success') && p.url === link.url
         )
@@ -409,65 +502,110 @@ class SiteSuckerManager {
           })
           this.task.delete(link.url)
           this.fetchLink().then()
+          continue
+        }
+
+        this.task.add(link.url)
+        link.state = 'running'
+        let timer: NodeJS.Timeout
+        const next = () => {
+          timer && clearTimeout(timer)
+          link.state = 'replace'
+          const sameUrl = this.pageLinks.filter(
+            (p) => p.url === link.url && (p.state === 'wait' || p.state === 'fail')
+          )
+          sameUrl.forEach((l) => {
+            l.state = 'replace'
+          })
+          this.task.delete(link.url)
+          this.fetchLink().then()
+        }
+        const saveFile = link.saveFile
+        let size = 0
+        if (existsSync(saveFile)) {
+          const info = await stat(saveFile)
+          size = info.size
+        }
+        if (size > 0) {
+          next()
         } else {
-          const next = () => {
-            link.state = 'replace'
-            const sameUrl = this.pageLinks.filter(
-              (p) => p.url === link.url && (p.state === 'wait' || p.state === 'fail')
-            )
-            sameUrl.forEach((l) => {
-              l.state = 'replace'
-            })
-            this.task.delete(link.url)
-            this.fetchLink().then()
-          }
-          const saveFile = link.saveFile
-          let size = 0
-          if (existsSync(saveFile)) {
-            const info = await stat(saveFile)
-            size = info.size
-          }
-          if (size > 0) {
-            next()
-          } else {
-            const dir = dirname(saveFile)
-            mkdirpSync(dir)
-            const stream = createWriteStream(saveFile)
-            stream.on('finish', () => {
-              stream.close(() => {
-                next()
-              })
-            })
-            stream.on('error', () => {
-              stream.close(() => {
-                link.state = 'fail'
-                this.task.delete(link.url)
-                this.fetchLink().then()
-              })
-            })
-            const cookieArr: Array<string> = []
-            cookies.forEach((cookie) => {
-              cookieArr.push(`${cookie.name}=${cookie.value};`)
-            })
-            request({
-              url: link.url,
-              method: 'get',
-              responseType: 'stream',
-              headers: {
-                cookie: cookieArr.join(' ')
+          const dir = dirname(saveFile)
+          try {
+            await mkdirp(dir)
+          } catch (e) {}
+          const stream = createWriteStream(saveFile)
+          const onError = () => {
+            stream.close(() => {
+              link.state = 'fail'
+              this.task.delete(link.url)
+              if (existsSync(saveFile)) {
+                removeSync(saveFile)
               }
+              this.fetchLink().then()
             })
-              .then((res) => {
-                res.data.pipe(stream)
-              })
-              .catch(() => {
-                stream.close(() => {
-                  link.state = 'fail'
-                  this.task.delete(link.url)
-                  this.fetchLink().then()
-                })
-              })
           }
+          stream.on('finish', () => {
+            stream.close(() => {
+              next()
+            })
+          })
+          stream.on('error', () => {
+            onError()
+          })
+          const cookieArr: Array<string> = []
+          cookies.forEach((cookie) => {
+            cookieArr.push(`${cookie.name}=${cookie.value};`)
+          })
+          const controller = new AbortController()
+          const taskFail = () => {
+            try {
+              controller.abort()
+            } catch (e) {}
+            if (!stream.destroyed) {
+              onError()
+            }
+          }
+          timer = setTimeout(taskFail, this.timeout)
+          request({
+            url: link.url,
+            timeout: this.timeout,
+            method: 'get',
+            responseType: 'stream',
+            headers: {
+              cookie: cookieArr.join(' ')
+            },
+            signal: controller.signal
+          })
+            .then((res) => {
+              clearTimeout(timer)
+              const type = res.headers['content-type']
+              const size = parseInt(res.headers['content-length'] ?? '0')
+              link.type = type
+              link.size = size
+              if (type.startsWith('image/')) {
+                if (size > 0 && this.maxImgSize > 0 && size > this.maxImgSize * 1024 * 1024) {
+                  taskFail()
+                  return
+                }
+              } else if (type.startsWith('audio/') || type.startsWith('video/')) {
+                if (size > 0 && this.maxVideoSize > 0 && size > this.maxVideoSize * 1024 * 1024) {
+                  taskFail()
+                  return
+                }
+              }
+              if (!stream.destroyed) {
+                res.data.pipe(stream)
+              }
+              /**
+               * 某些链接耗时太久, 设置超时跳过
+               */
+              timer = setTimeout(taskFail, this.timeout)
+              this.fetchLink().then()
+            })
+            .catch((e) => {
+              clearTimeout(timer)
+              taskFail()
+            })
         }
       } else {
         break
@@ -475,24 +613,58 @@ class SiteSuckerManager {
     }
   }
 
+  /**
+   * 获取页面HTML
+   * 解析页面
+   */
   onPageLoaded() {
     return new Promise((resolve) => {
-      this.window?.webContents
-        ?.executeJavaScript('document.documentElement.outerHTML', true)
-        .then(async (html) => {
-          const saveFile = this.currentPage!.saveFile
-          const dir = dirname(saveFile)
-          mkdirpSync(dir)
-          await writeFile(saveFile, html)
-          this.handlePageHtml(html)
-          resolve(true)
-        })
-        .catch(() => {
-          this.currentPage!.state = 'fail'
-          resolve(true)
-        })
+      const timer = setTimeout(() => {
+        this.currentPage!.state = 'fail'
+        resolve(true)
+      }, this.timeout)
+      try {
+        const all = [
+          this.window?.webContents?.executeJavaScript('window.location.href', true),
+          this.window?.webContents?.executeJavaScript('document.documentElement.outerHTML', true)
+        ]
+        Promise.all(all)
+          .then(async ([url, html]) => {
+            clearTimeout(timer)
+            if (this.checkIsExcludeUrl(url, true)) {
+              this.currentPage!.state = 'fail'
+              resolve(true)
+              return
+            }
+            if (this.currentPage!.state === 'running') {
+              const saveFile = this.currentPage!.saveFile
+              const dir = dirname(saveFile)
+              try {
+                await mkdirp(dir)
+              } catch (e) {}
+              await writeFile(saveFile, html)
+              this.handlePageHtml(html)
+            }
+            resolve(true)
+          })
+          .catch((e) => {
+            clearTimeout(timer)
+            this.currentPage!.state = 'fail'
+            resolve(true)
+          })
+      } catch (e: any) {
+        clearTimeout(timer)
+        this.currentPage!.state = 'fail'
+        resolve(true)
+      }
     })
   }
+
+  /**
+   * 解析页面
+   * 获取页面各种链接
+   * @param html
+   */
   handlePageHtml(html: string) {
     this.parseHtmlPage(html)
     this.parseHtmlLink(html)
@@ -504,6 +676,11 @@ class SiteSuckerManager {
       p.state = 'replace'
     })
   }
+
+  /**
+   * 解析页面链接
+   * @param html
+   */
   parseHtmlLink(html: string) {
     const links = []
     let result
@@ -531,6 +708,13 @@ class SiteSuckerManager {
     while ((result = reg.exec(html)) != null) {
       links.push(result[2].trim())
     }
+    /**
+     * 过滤链接
+     * 1. 排除host包含链接的host的
+     * 非http和https协议的
+     * 页面里有的
+     * 后缀名是html htm php的
+     */
     const linkUrls: Array<LinkItem> = links
       .filter((a) => {
         const u = new URL(a, this.currentPage?.url)
@@ -540,7 +724,9 @@ class SiteSuckerManager {
           !ExcludeHost.includes(u.host) &&
           u.protocol.includes('http') &&
           !this.pages.find((p) => p.url === uu) &&
-          !a.includes('.html')
+          !a.includes('.html') &&
+          !a.includes('.htm') &&
+          !a.includes('.php')
         )
       })
       .map((a) => {
@@ -560,6 +746,11 @@ class SiteSuckerManager {
       })
     this.pageLinks.push(...linkUrls)
   }
+
+  /**
+   * 获取页面A链接
+   * @param html
+   */
   parseHtmlPage(html: string) {
     const reg = new RegExp('<a([^<]+)href="([^"]+)"', 'g')
     let result
@@ -567,6 +758,12 @@ class SiteSuckerManager {
     while ((result = reg.exec(html)) != null) {
       imgs.push(result[2].trim())
     }
+    /**
+     * 过滤链接
+     * 1. host不一致, 外站链接
+     * 2. 非http/https协议
+     * 3. 如果设置了页面强制包含字符串, 则url必须包含此字符串
+     */
     const alinks = imgs.filter((u) => {
       if (u.startsWith('#')) {
         return false
@@ -588,6 +785,10 @@ class SiteSuckerManager {
       }
       return right
     })
+    /**
+     * 此处不能根据url过滤
+     * 多层页面可能有共同的url, 但是a链接里的不一样, 需要每个页面单独替换
+     */
     const linkUrls: Array<LinkItem> = alinks.map((a) => {
       const u = new URL(a, this.currentPage?.url)
       u.hash = ''
@@ -600,18 +801,30 @@ class SiteSuckerManager {
         replaceUrl,
         fromPage: this.currentPage?.saveFile ?? '',
         saveFile,
-        state: 'wait'
+        state: 'wait',
+        isPage: true,
+        type: 'text/html'
       })
     })
     this.pages.push(...linkUrls)
   }
+
+  /**
+   * 链接转本地保存路径
+   * @param url
+   * @param isPageUrl
+   */
   urlToDir(url: string, isPageUrl?: boolean) {
     let saveFile = ''
     if (url.includes(this.baseHost!)) {
       let pathDir = url.split(`${this.baseHost!}`).pop() ?? ''
-      if (pathDir.startsWith('/')) {
-        pathDir = pathDir.replace('/', '')
+      if (pathDir.endsWith('/')) {
+        pathDir += 'index.html'
       }
+      pathDir = pathDir
+        .split('/')
+        .filter((s) => !!s.trim())
+        .join('/')
       /**
        * 是否页面
        */
@@ -626,22 +839,21 @@ class SiteSuckerManager {
           const newName = `${md5(name)}.html`
           pathDir = pathDir.replace(name, newName)
         } else {
-          if (pathDir.endsWith('/')) {
-            pathDir = `${pathDir}index.html`
+          const ext = extname(pathDir)
+          let newName = ''
+          // 有扩展名的
+          if (!!ext) {
+            if (ext !== '.html') {
+              newName = name.replace(ext, '.html')
+            }
           } else {
-            const ext = extname(pathDir)
-            let newName = ''
-            // 有扩展名的
-            if (!!ext) {
-              if (ext !== '.html') {
-                newName = name.replace(ext, '.html')
-              }
-            } else {
-              newName = name + '.html'
-            }
-            if (newName) {
-              pathDir = pathDir.replace(name, newName)
-            }
+            newName = name + '.html'
+          }
+          if (newName) {
+            const arr = pathDir.split('/')
+            arr.pop()
+            arr.push(newName)
+            pathDir = arr.join('/')
           }
         }
       }
@@ -674,18 +886,27 @@ class SiteSuckerManager {
           const saveFile = page.saveFile
           if (existsSync(saveFile)) {
             let content = await readFile(saveFile, 'utf-8')
-            needReplaceLinks.forEach((link) => {
-              if (link.raw && link.raw !== link.replaceUrl) {
-                content = content.replace(new RegExp(link.raw, 'g'), link.replaceUrl)
-              }
-              link.state = 'success'
-            })
+            needReplaceLinks
+              .sort((a, b) => {
+                return b.raw.length - a.raw.length
+              })
+              .forEach((link) => {
+                if (link.raw && link.raw !== link.replaceUrl) {
+                  content = content.replace(new RegExp(link.raw, 'g'), link.replaceUrl)
+                }
+                link.state = 'success'
+              })
             await writeFile(saveFile, content)
           }
         }
       }
     }
   }
+
+  /**
+   * 更换页面链接
+   * @param page
+   */
   async replaceContent(page: PageLink) {
     if (page.fromPage && existsSync(page.fromPage) && page.raw !== page.replaceUrl) {
       let content = await readFile(page.fromPage, 'utf8')

@@ -685,6 +685,7 @@ export default class Application extends EventEmitter {
       case 'app-sitesucker-setup-save':
         this.configManager.setConfig('tools.siteSucker', args[0])
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+        SiteSuckerManager.updateConfig(args[0]).then()
         return
     }
   }

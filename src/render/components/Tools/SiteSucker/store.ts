@@ -8,6 +8,8 @@ export type LinkState = 'wait' | 'running' | 'success' | 'fail' | 'replace'
 export type LinkItem = {
   url: string
   state: LinkState
+  type: string
+  size: number
 }
 
 export type SiteSuckerSetup = {
@@ -74,21 +76,10 @@ export const SiteSuckerStore = defineStore('siteSucker', {
       IPC.on('App-SiteSucker-Link').then((key: string, link: LinkItem) => {
         const find = this.links.find((l) => l.url === link.url)
         if (!find) {
-          this.links.unshift(
-            reactive({
-              url: link.url,
-              state: link.state
-            })
-          )
+          this.links.unshift(reactive(link))
         } else {
           find.state = link.state
-          if (link.state === 'replace' || link.state === 'success') {
-            const index = this.links.findIndex((f) => f === find)
-            if (index > 0) {
-              this.links.splice(index, 1)
-              this.links.unshift(find)
-            }
-          }
+          find.type = link.type
         }
       })
     }

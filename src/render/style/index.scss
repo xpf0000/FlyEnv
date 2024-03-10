@@ -391,9 +391,30 @@ body,
       .path-choose {
         display: flex;
         align-items: flex-end;
+        position: relative;
+
         .input {
           flex: 1;
+          position: relative;
+
+          &::-webkit-outer-spin-button,
+          &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+          }
         }
+
+        .util-m {
+          position: absolute;
+          right: 0;
+          top: 0;
+          bottom: 0;
+          aspect-ratio: 1 / 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 99;
+        }
+
         .icon-block {
           margin-left: 30px;
           display: flex;
@@ -1429,10 +1450,17 @@ body,
   font-size: 12px;
 }
 .site-sucker {
+  overflow: hidden;
+
+  .main-wapper {
+    overflow: hidden;
+  }
+
   .main {
     height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 
     > .top-tool {
       display: flex;
@@ -1447,11 +1475,13 @@ body,
       flex-direction: column;
       width: 100%;
       gap: 15px;
+      overflow: hidden;
 
       .url-block,
       .host-block{
         flex: 1;
         width: 100%;
+        overflow: hidden;
 
         .host-allow {
           .el-icon {
@@ -1466,6 +1496,10 @@ body,
 
             &.allow {
               color: #409eff;
+
+              &:hover {
+                color: #fdab1f;
+              }
             }
 
             &.not-allow {
@@ -1487,7 +1521,15 @@ body,
       }
 
       .url-column {
-        width: calc(100% - 140px) !important;
+        width: calc(100% - 150px) !important;
+
+        .url-span {
+          cursor: pointer;
+
+          &:hover {
+            color: #fdab1f;
+          }
+        }
 
         .wapper {
           display: flex;

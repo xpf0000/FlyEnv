@@ -50,6 +50,38 @@
                   />
                 </div>
               </el-form-item>
+              <el-form-item :label="$t('util.timeout')">
+                <div class="path-choose w-p100">
+                  <input
+                    v-model.number="form.timeout"
+                    type="number"
+                    class="input"
+                    :placeholder="$t('util.timeoutTips')"
+                  />
+                </div>
+              </el-form-item>
+              <el-form-item :label="$t('util.maxImgSize')">
+                <div class="path-choose w-p100">
+                  <input
+                    v-model.number="form.maxImgSize"
+                    type="number"
+                    class="input"
+                    :placeholder="$t('util.maxImgSize')"
+                  />
+                  <div class="util-m">M</div>
+                </div>
+              </el-form-item>
+              <el-form-item :label="$t('util.maxVideoSize')">
+                <div class="path-choose w-p100">
+                  <input
+                    v-model.number="form.maxVideoSize"
+                    type="number"
+                    class="input"
+                    :placeholder="$t('util.maxVideoSize')"
+                  />
+                  <div class="util-m">M</div>
+                </div>
+              </el-form-item>
               <el-form-item :label="$t('util.pageLimit')">
                 <div class="path-choose w-p100">
                   <input
@@ -87,7 +119,10 @@
     dir: '',
     proxy: '',
     excludeLink: '',
-    pageLimit: ''
+    pageLimit: '',
+    timeout: undefined,
+    maxImgSize: undefined,
+    maxVideoSize: undefined
   })
 
   const store = SiteSuckerStore()
