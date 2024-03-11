@@ -109,6 +109,16 @@
           </div>
 
           <div class="port-set mb-20">
+            <div class="port-type"> Caddy </div>
+            <input
+              v-model.number="item.port.caddy"
+              type="number"
+              :class="'input' + (errs['port_caddy'] ? ' error' : '')"
+              placeholder="default: 80"
+            />
+          </div>
+
+          <div class="port-set mb-20">
             <div class="port-type">
               <span>Apache</span>
               <el-popover
@@ -133,7 +143,7 @@
               v-model.number="item.port.apache"
               type="number"
               :class="'input' + (errs['port_apache'] ? ' error' : '')"
-              placeholder="default: 8080"
+              placeholder="default: 80"
             />
           </div>
         </div>
@@ -189,29 +199,38 @@
             </div>
           </template>
 
-          <div v-if="item.useSSL" class="ssl-switch mb-20 mt-20">
-            <span>Port</span>
-          </div>
-
-          <div v-if="item.useSSL" class="port-set port-ssl mb-20">
-            <div class="port-type"> Nginx </div>
-            <input
-              v-model.number="item.port.nginx_ssl"
-              type="number"
-              :class="'input' + (errs['port_nginx_ssl'] ? ' error' : '')"
-              placeholder="default: 443"
-            />
-          </div>
-
-          <div v-if="item.useSSL" class="port-set port-ssl mb-20">
-            <div class="port-type"> Apache </div>
-            <input
-              v-model.number="item.port.apache_ssl"
-              type="number"
-              :class="'input' + (errs['port_apache_ssl'] ? ' error' : '')"
-              placeholder="default: 8443"
-            />
-          </div>
+          <template v-if="item.useSSL">
+            <div class="ssl-switch mb-20 mt-20">
+              <span>Port</span>
+            </div>
+            <div class="port-set port-ssl mb-20">
+              <div class="port-type"> Nginx </div>
+              <input
+                v-model.number="item.port.nginx_ssl"
+                type="number"
+                :class="'input' + (errs['port_nginx_ssl'] ? ' error' : '')"
+                placeholder="default: 443"
+              />
+            </div>
+            <div class="port-set port-ssl mb-20">
+              <div class="port-type"> Caddy </div>
+              <input
+                v-model.number="item.port.caddy_ssl"
+                type="number"
+                :class="'input' + (errs['port_caddy_ssl'] ? ' error' : '')"
+                placeholder="default: 443"
+              />
+            </div>
+            <div class="port-set port-ssl mb-20">
+              <div class="port-type"> Apache </div>
+              <input
+                v-model.number="item.port.apache_ssl"
+                type="number"
+                :class="'input' + (errs['port_apache_ssl'] ? ' error' : '')"
+                placeholder="default: 443"
+              />
+            </div>
+          </template>
         </div>
 
         <div class="plant-title">
@@ -295,9 +314,11 @@
     },
     port: {
       nginx: 80,
-      apache: 8080,
       nginx_ssl: 443,
-      apache_ssl: 8443
+      apache: 80,
+      apache_ssl: 443,
+      caddy: 80,
+      caddy_ssl: 443
     },
     nginx: {
       rewrite: ''
@@ -313,9 +334,11 @@
     cert: false,
     certkey: false,
     port_nginx: false,
+    port_caddy: false,
     port_apache: false,
     port_nginx_ssl: false,
-    port_apache_ssl: false
+    port_apache_ssl: false,
+    port_caddy_ssl: false
   })
   merge(item.value, props.edit)
   const rewrites: Ref<Array<string>> = ref([])
@@ -495,6 +518,9 @@
     if (!Number.isInteger(item.value.port.apache)) {
       errs.value['port_apache'] = true
     }
+    if (!Number.isInteger(item.value.port.caddy)) {
+      errs.value['port_caddy'] = true
+    }
 
     if (item.value.useSSL) {
       if (!Number.isInteger(item.value.port.nginx_ssl)) {
@@ -502,6 +528,9 @@
       }
       if (!Number.isInteger(item.value.port.apache_ssl)) {
         errs.value['port_apache_ssl'] = true
+      }
+      if (!Number.isInteger(item.value.port.caddy_ssl)) {
+        errs.value['port_caddy_ssl'] = true
       }
     }
 

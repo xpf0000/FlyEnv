@@ -485,6 +485,33 @@ body,
       padding: 5px 10px;
     }
   }
+
+  &.custom-path {
+    width: 500px;
+    height: auto;
+
+    .el-dialog__body {
+      padding: 5px 10px;
+
+      .plant-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0;
+        margin-bottom: 20px;
+      }
+
+      .main {
+        min-height: 105px;
+      }
+
+      .path-choose .icon-block {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+    }
+  }
 }
 .host-list {
   display: flex;
@@ -2282,6 +2309,26 @@ body,
         display: flex;
         align-items: center;
         justify-content: space-between;
+
+        .left {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          .custom-folder-add-btn {
+            margin-left: 12px;
+
+            .el-icon {
+              width: 20px;
+              height: 20px;
+
+              svg {
+                width: 20px;
+                height: 20px;
+              }
+            }
+          }
+        }
       }
     }
 

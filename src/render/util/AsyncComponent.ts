@@ -8,6 +8,7 @@ export const AsyncComponentShow = (compontent: any, data?: any) => {
     const vm: any = VueExtend(compontent, data)
     const intance = vm.mount(dom)
     intance.onClosed(() => {
+      vm.unmount()
       intance?.$destroy && intance.$destroy()
       vm?.$destroy && vm.$destroy()
       dom && dom.remove()

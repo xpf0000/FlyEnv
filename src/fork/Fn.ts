@@ -6,6 +6,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
 import { readdir } from 'fs-extra'
+import type { AppHost } from '@shared/app'
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
     on,
@@ -373,4 +374,15 @@ export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<
     }
   }
   return list
+}
+
+export const hostAlias = (item: AppHost) => {
+  const alias = item.alias
+    ? item.alias.split('\n').filter((n) => {
+        return n && n.length > 0
+      })
+    : []
+  const arr = Array.from(new Set(alias)).sort()
+  arr.unshift(item.name)
+  return arr
 }

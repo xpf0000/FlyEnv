@@ -21,7 +21,7 @@
 
 (set-log) {
   log {
-      output file {args.0} {
+      output file {args[0]} {
           roll_size 1gb
           roll_keep 5
           roll_keep_for 4320h
@@ -31,7 +31,7 @@
 
 (enable-php-select) {
     try_files {path} {path}/ /index.php?{query}
-    php_fastcgi unix:/tmp/phpwebstudy-php-cgi-{args.0}.sock
+    php_fastcgi unix//tmp/phpwebstudy-php-cgi-{args[0]}.sock
 }
 
 import ##VHOST-DIR##/*

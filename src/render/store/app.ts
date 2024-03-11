@@ -306,7 +306,7 @@ export const AppStore = defineStore('app', {
     }: {
       typeFlag: keyof typeof AppSofts
       dir: string
-      index: number
+      index?: number
     }) {
       const common = this.config.setup[typeFlag]
       const dirs = JSON.parse(JSON.stringify(common.dirs))

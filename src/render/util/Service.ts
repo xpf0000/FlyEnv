@@ -1,5 +1,5 @@
 import IPC from '@/util/IPC'
-import type { SoftInstalled } from '@/store/brew'
+import { BrewStore, type SoftInstalled } from '@/store/brew'
 import { AllAppSofts, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
 import { DnsStore } from '@/store/dns'
@@ -93,4 +93,26 @@ export const dnsStop = (): Promise<boolean> => {
       resolve(res)
     })
   })
+}
+
+export const reloadWebServer = () => {
+  const brewStore = BrewStore()
+
+  const apacheRunning = brewStore.apache.installed.find((a) => a.run)
+  const apacheTaskRunning = brewStore.apache.installed.some((a) => a.running)
+  if (apacheRunning && !apacheTaskRunning) {
+    startService('apache', apacheRunning).then()
+  }
+
+  const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
+  const nginxTaskRunning = brewStore.nginx.installed.some((a) => a.running)
+  if (nginxRunning && !nginxTaskRunning) {
+    startService('nginx', nginxRunning).then()
+  }
+
+  const caddyRunning = brewStore.caddy.installed.find((a) => a.run)
+  const caddyTaskRunning = brewStore.caddy.installed.some((a) => a.running)
+  if (caddyRunning && !caddyTaskRunning) {
+    startService('caddy', caddyRunning).then()
+  }
 }

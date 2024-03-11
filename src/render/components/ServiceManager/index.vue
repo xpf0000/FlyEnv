@@ -4,6 +4,14 @@
       <div class="card-header">
         <div class="left">
           <span> {{ title }} </span>
+          <el-tooltip :content="$t('base.customVersionDir')" :show-after="600">
+            <el-button
+              class="custom-folder-add-btn"
+              :icon="FolderAdd"
+              link
+              @click.stop="showCustomDir"
+            ></el-button>
+          </el-tooltip>
         </div>
         <el-button class="button" :disabled="service?.fetching" link @click="resetData">
           <yb-icon
@@ -134,6 +142,8 @@
   import { MysqlStore } from '@/store/mysql'
   import { Service } from '@/components/ServiceManager/service'
   import installedVersions from '@/util/InstalledVersions'
+  import { FolderAdd } from '@element-plus/icons-vue'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   const { shell } = require('@electron/remote')
 
@@ -268,6 +278,21 @@
           }
         }
         MessageSuccess(I18nT('base.success'))
+      }
+    })
+  }
+
+  let CustomPathVM: any
+  import('./customPath.vue').then((res) => {
+    CustomPathVM = res.default
+  })
+  const showCustomDir = () => {
+    AsyncComponentShow(CustomPathVM, {
+      flag: props.typeFlag
+    }).then((res) => {
+      if (res) {
+        console.log('showCustomDir chagned !!!')
+        resetData()
       }
     })
   }

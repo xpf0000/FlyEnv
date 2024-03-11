@@ -2,6 +2,8 @@
     encode zstd gzip
     import set-log ##LOG-PATH##
 
+    tls ##SSL##
+
     @canonicalPath {
         file {
             try_files {path}/index.php

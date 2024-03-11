@@ -1,26 +1,15 @@
 import IPC from '@/util/IPC'
-import { startService } from '@/util/Service'
+import { reloadWebServer } from '@/util/Service'
 import type { AppHost } from '@/store/app'
 import { AppStore } from '@/store/app'
-import { BrewStore } from '@/store/brew'
 import { I18nT } from '@shared/lang'
 import { MessageError, MessageSuccess } from '@/util/Element'
 const { shell } = require('@electron/remote')
 const handleHostEnd = (arr: Array<AppHost>) => {
   const appStore = AppStore()
-  const brewStore = BrewStore()
 
-  const apacheRunning = brewStore.apache.installed.find((a) => a.run)
-  const apacheTaskRunning = brewStore.apache.installed.some((a) => a.running)
-  if (apacheRunning && !apacheTaskRunning) {
-    startService('apache', apacheRunning).then()
-  }
+  reloadWebServer()
 
-  const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
-  const nginxTaskRunning = brewStore.nginx.installed.some((a) => a.running)
-  if (nginxRunning && !nginxTaskRunning) {
-    startService('nginx', nginxRunning).then()
-  }
   const hosts = appStore.hosts
   hosts.splice(0)
   hosts.push(...arr)

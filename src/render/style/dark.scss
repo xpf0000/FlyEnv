@@ -203,6 +203,27 @@ html.dark {
           }
         }
       }
+
+      &.custom-path {
+        .el-dialog__body {
+          .plant-title {
+            svg {
+              &:hover {
+                color: #fdab1f;
+              }
+            }
+          }
+          .path-choose .icon-block {
+            svg {
+              color: #fff;
+
+              &:hover {
+                color: #fdab1f;
+              }
+            }
+          }
+        }
+      }
     }
   }
   .main-right-panel {

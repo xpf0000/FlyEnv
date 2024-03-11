@@ -4,6 +4,14 @@
       <div class="card-header">
         <div class="left">
           <span> PHP </span>
+          <el-tooltip :content="$t('base.customVersionDir')" :show-after="600">
+            <el-button
+              class="custom-folder-add-btn"
+              :icon="FolderAdd"
+              link
+              @click.stop="showCustomDir"
+            ></el-button>
+          </el-tooltip>
         </div>
         <el-button class="button" :disabled="service?.fetching" link @click="resetData">
           <yb-icon
@@ -160,6 +168,7 @@
   import { AppStore } from '@/store/app'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { Service } from '@/components/ServiceManager/service'
+  import { FolderAdd } from '@element-plus/icons-vue'
 
   const { shell } = require('@electron/remote')
 
@@ -340,6 +349,22 @@
   }
 
   init()
+
+  let CustomPathVM: any
+  import('@/components/ServiceManager/customPath.vue').then((res) => {
+    CustomPathVM = res.default
+  })
+
+  const showCustomDir = () => {
+    AsyncComponentShow(CustomPathVM, {
+      flag: 'php'
+    }).then((res) => {
+      if (res) {
+        console.log('showCustomDir chagned !!!')
+        resetData()
+      }
+    })
+  }
 
   defineExpose({
     reinit

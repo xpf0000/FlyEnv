@@ -39,6 +39,7 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { EditorConfigMake } from '@/util/Editor'
   import { MessageSuccess } from '@/util/Element'
+  import { reloadWebServer } from '@/util/Service'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
@@ -59,6 +60,7 @@
     const content = monacoInstance?.getValue() ?? ''
     writeFileAsync(configpath.value, content).then(() => {
       MessageSuccess(I18nT('base.success'))
+      reloadWebServer()
     })
   }
 

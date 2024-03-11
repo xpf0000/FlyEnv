@@ -3,19 +3,21 @@ import { existsSync, accessSync, constants } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { execPromise, getSubDir, uuid } from '../Fn'
+import { execPromise, getSubDir, hostAlias, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import dns from 'dns'
 import util from 'util'
-import { unlink, readFile, writeFile, copyFile, mkdirp, remove } from 'fs-extra'
+import { readFile, writeFile, copyFile, mkdirp, remove } from 'fs-extra'
 import { EOL } from 'os'
 import { isEqual } from 'lodash'
 
 class Host extends Base {
   NginxTmpl = ''
-  ApacheTmpl = ''
   NginxSSLTmpl = ''
+  ApacheTmpl = ''
   ApacheSSLTmpl = ''
+  CaddyTmpl = ''
+  CaddySSLTmpl = ''
 
   constructor() {
     super()
@@ -24,7 +26,7 @@ class Host extends Base {
   _makeAutoSSL(host: AppHost): ForkPromise<{ crt: string; key: string } | false> {
     return new ForkPromise(async (resolve) => {
       try {
-        const alias = this.#hostAlias(host)
+        const alias = hostAlias(host)
         const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
         const CADir = dirname(CARoot)
         const caFileName = 'PhpWebStudy-Root-CA'
@@ -239,13 +241,20 @@ subjectAltName=@alt_names
 
       const initTmpl = async () => {
         const nginxtmpl = join(global.Server.Static!, 'tmpl/nginx.vhost')
-        const apachetmpl = join(global.Server.Static!, 'tmpl/apache.vhost')
         const nginxSSLtmpl = join(global.Server.Static!, 'tmpl/nginxSSL.vhost')
+
+        const apachetmpl = join(global.Server.Static!, 'tmpl/apache.vhost')
         const apacheSSLtmpl = join(global.Server.Static!, 'tmpl/apacheSSL.vhost')
+
+        const caddytmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhost')
+        const caddySSLtmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhostSSL')
+
         this.NginxTmpl = await readFile(nginxtmpl, 'utf-8')
         this.ApacheTmpl = await readFile(apachetmpl, 'utf-8')
         this.NginxSSLTmpl = await readFile(nginxSSLtmpl, 'utf-8')
         this.ApacheSSLTmpl = await readFile(apacheSSLtmpl, 'utf-8')
+        this.CaddyTmpl = await readFile(caddytmpl, 'utf-8')
+        this.CaddySSLTmpl = await readFile(caddySSLtmpl, 'utf-8')
       }
       let index: number
       switch (flag) {
@@ -294,29 +303,36 @@ subjectAltName=@alt_names
       const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
       const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
       const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
+      const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
       const logpath = join(global.Server.BaseDir!, 'vhost/logs')
       const hostname = host.name
       const nvhost = join(nginxvpath, `${hostname}.conf`)
       const avhost = join(apachevpath, `${hostname}.conf`)
+      const cvhost = join(caddyvpath, `${hostname}.conf`)
       const rewritep = join(rewritepath, `${hostname}.conf`)
       const accesslogng = join(logpath, `${hostname}.log`)
       const errorlogng = join(logpath, `${hostname}.error.log`)
       const accesslogap = join(logpath, `${hostname}-access_log`)
       const errorlogap = join(logpath, `${hostname}-error_log`)
+      const caddylog = join(logpath, `${hostname}.caddy.log`)
       const autoCA = join(global.Server.BaseDir!, `CA/${host.id}`)
       const arr = [
         nvhost,
         avhost,
+        cvhost,
         rewritep,
         accesslogng,
         errorlogng,
         accesslogap,
         errorlogap,
+        caddylog,
         autoCA
       ]
       for (const f of arr) {
         if (existsSync(f)) {
-          await remove(f)
+          try {
+            await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${f}`)
+          } catch (e) {}
         }
       }
       resolve(true)
@@ -425,6 +441,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       }
       const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
       const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
+      const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
       const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
       const logpath = join(global.Server.BaseDir!, 'vhost/logs')
       if (host.name !== old.name) {
@@ -435,6 +452,10 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         const avhost = {
           oldFile: join(apachevpath, `${old.name}.conf`),
           newFile: join(apachevpath, `${host.name}.conf`)
+        }
+        const cvhost = {
+          oldFile: join(caddyvpath, `${old.name}.conf`),
+          newFile: join(caddyvpath, `${host.name}.conf`)
         }
         const rewritep = {
           oldFile: join(rewritepath, `${old.name}.conf`),
@@ -456,20 +477,41 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           oldFile: join(logpath, `${old.name}-error_log`),
           newFile: join(logpath, `${host.name}-error_log`)
         }
-        const arr = [nvhost, avhost, rewritep, accesslogng, errorlogng, accesslogap, errorlogap]
+        const caddylog = {
+          oldFile: join(logpath, `${old.name}.caddy.log`),
+          newFile: join(logpath, `${host.name}.caddy.log`)
+        }
+        const arr = [
+          nvhost,
+          avhost,
+          cvhost,
+          rewritep,
+          accesslogng,
+          errorlogng,
+          accesslogap,
+          errorlogap,
+          caddylog
+        ]
         for (const f of arr) {
           if (existsSync(f.oldFile)) {
-            await copyFile(f.oldFile, f.newFile)
-            await unlink(f.oldFile)
+            await execPromise(
+              `echo '${global.Server.Password}' | sudo -S cp -f ${f.oldFile} ${f.newFile}`
+            )
+            await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${f.oldFile}`)
+          }
+          if (existsSync(f.newFile)) {
+            await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 644 ${f.newFile}`)
           }
         }
       }
       const nginxConfPath = join(nginxvpath, `${host.name}.conf`)
       const apacheConfPath = join(apachevpath, `${host.name}.conf`)
+      const caddyConfPath = join(caddyvpath, `${host.name}.conf`)
       let hasChanged = false
 
       let contentNginxConf = await readFile(nginxConfPath, 'utf-8')
       let contentApacheConf = await readFile(apacheConfPath, 'utf-8')
+      let contentCaddyConf = await readFile(caddyConfPath, 'utf-8')
       const find: Array<string> = []
       const replace: Array<string> = []
       if (host.name !== old.name) {
@@ -482,7 +524,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `ServerName ${old.name}`,
             `ErrorLog "${logpath}/${old.name}-error_log"`,
             `CustomLog "${logpath}/${old.name}-access_log" combined`,
-            `ServerName SSL.${old.name}`
+            `ServerName SSL.${old.name}`,
+            join(logpath, `${old.name}.caddy.log`)
           ]
         )
         replace.push(
@@ -493,19 +536,58 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `ServerName ${host.name}`,
             `ErrorLog "${logpath}/${host.name}-error_log"`,
             `CustomLog "${logpath}/${host.name}-access_log" combined`,
-            `ServerName SSL.${host.name}`
+            `ServerName SSL.${host.name}`,
+            join(logpath, `${host.name}.caddy.log`)
           ]
         )
       }
-      const oldAliasArr = this.#hostAlias(old)
-      const newAliasArr = this.#hostAlias(host)
+      const oldAliasArr = hostAlias(old)
+      const newAliasArr = hostAlias(host)
       if (!isEqual(oldAliasArr, newAliasArr)) {
+        hasChanged = true
         const oldAlias = oldAliasArr.join(' ')
         const newAlias = newAliasArr.join(' ')
-        hasChanged = true
         find.push(...[`server_name ${oldAlias};`, `ServerAlias ${oldAlias}`])
         replace.push(...[`server_name ${newAlias};`, `ServerAlias ${newAlias}`])
       }
+
+      if (
+        !isEqual(oldAliasArr, newAliasArr) ||
+        old.port.caddy !== host.port.caddy ||
+        old.port.caddy_ssl !== host.port.caddy_ssl
+      ) {
+        hasChanged = true
+        const oldHttpNames: string[] = []
+        const oldHttpsNames: string[] = []
+        const hostHttpNames: string[] = []
+        const hostHttpsNames: string[] = []
+
+        oldAliasArr.forEach((h) => {
+          if (!old?.port?.caddy || old.port.caddy === 80) {
+            oldHttpNames.push(`http://${h}`)
+          } else {
+            oldHttpNames.push(`http://${h}:${old.port.caddy}`)
+          }
+          if (old.useSSL) {
+            oldHttpsNames.push(`https://${h}:${old?.port?.caddy_ssl ?? 443}`)
+          }
+        })
+
+        newAliasArr.forEach((h) => {
+          if (!host?.port?.caddy || host.port.caddy === 80) {
+            hostHttpNames.push(`http://${h}`)
+          } else {
+            hostHttpNames.push(`http://${h}:${host.port.caddy}`)
+          }
+          if (host.useSSL) {
+            hostHttpsNames.push(`https://${h}:${host?.port?.caddy_ssl ?? 443}`)
+          }
+        })
+
+        find.push(...[oldHttpNames.join(',\n'), oldHttpsNames.join(',\n')])
+        replace.push(...[hostHttpNames.join(',\n'), hostHttpsNames.join(',\n')])
+      }
+
       if (host?.useSSL && host?.autoSSL) {
         if (host?.autoSSL !== old?.autoSSL || !isEqual(oldAliasArr, newAliasArr)) {
           const ssl = await this._makeAutoSSL(host)
@@ -524,7 +606,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `ssl_certificate    ${old.ssl.cert};`,
             `ssl_certificate    "${old.ssl.cert}";`,
             `SSLCertificateFile ${old.ssl.cert}`,
-            `SSLCertificateFile "${old.ssl.cert}"`
+            `SSLCertificateFile "${old.ssl.cert}"`,
+            old.ssl.cert
           ]
         )
         replace.push(
@@ -532,7 +615,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `ssl_certificate    "${host.ssl.cert}";`,
             `ssl_certificate    "${host.ssl.cert}";`,
             `SSLCertificateFile "${host.ssl.cert}"`,
-            `SSLCertificateFile "${host.ssl.cert}"`
+            `SSLCertificateFile "${host.ssl.cert}"`,
+            host.ssl.cert
           ]
         )
       }
@@ -543,7 +627,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `ssl_certificate_key    ${old.ssl.key};`,
             `ssl_certificate_key    "${old.ssl.key}";`,
             `SSLCertificateKeyFile ${old.ssl.key}`,
-            `SSLCertificateKeyFile "${old.ssl.key}"`
+            `SSLCertificateKeyFile "${old.ssl.key}"`,
+            old.ssl.key
           ]
         )
         replace.push(
@@ -551,7 +636,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `ssl_certificate_key    "${host.ssl.key}";`,
             `ssl_certificate_key    "${host.ssl.key}";`,
             `SSLCertificateKeyFile "${host.ssl.key}"`,
-            `SSLCertificateKeyFile "${host.ssl.key}"`
+            `SSLCertificateKeyFile "${host.ssl.key}"`,
+            host.ssl.key
           ]
         )
       }
@@ -596,7 +682,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `root ${old.root};`,
             `root "${old.root}";`,
             `DocumentRoot "${old.root}"`,
-            `<Directory "${old.root}">`
+            `<Directory "${old.root}">`,
+            old.root
           ]
         )
         replace.push(
@@ -604,7 +691,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `root "${host.root}";`,
             `root "${host.root}";`,
             `DocumentRoot "${host.root}"`,
-            `<Directory "${host.root}">`
+            `<Directory "${host.root}">`,
+            host.root
           ]
         )
         this.#setDirRole(host.root)
@@ -615,30 +703,46 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           find.push(
             ...[
               `include enable-php-${old.phpVersion}.conf;`,
-              `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${old.phpVersion}.sock\\|fcgi://localhost"`
+              `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${old.phpVersion}.sock\\|fcgi://localhost"`,
+              `import enable-php-select ${old.phpVersion}`
             ]
           )
         } else {
-          find.push(...['##Static Site Nginx##', '##Static Site Apache##'])
+          find.push(
+            ...[
+              '##Static Site Nginx##',
+              '##Static Site Apache##',
+              'import enable-php-select undefined'
+            ]
+          )
         }
         if (host.phpVersion) {
           replace.push(
             ...[
               `include enable-php-${host.phpVersion}.conf;`,
-              `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
+              `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`,
+              `import enable-php-select ${host.phpVersion}`
             ]
           )
         } else {
-          replace.push(...['##Static Site Nginx##', '##Static Site Apache##'])
+          replace.push(
+            ...[
+              '##Static Site Nginx##',
+              '##Static Site Apache##',
+              'import enable-php-select undefined'
+            ]
+          )
         }
       }
       if (hasChanged) {
         find.forEach((s, i) => {
           contentNginxConf = contentNginxConf.replace(new RegExp(s, 'g'), replace[i])
           contentApacheConf = contentApacheConf.replace(new RegExp(s, 'g'), replace[i])
+          contentCaddyConf = contentCaddyConf.replace(new RegExp(s, 'g'), replace[i])
         })
         await writeFile(nginxConfPath, contentNginxConf)
         await writeFile(apacheConfPath, contentApacheConf)
+        await writeFile(caddyConfPath, contentCaddyConf)
       }
       if (host.nginx.rewrite.trim() !== old.nginx.rewrite.trim()) {
         const nginxRewriteConfPath = join(rewritepath, `${host.name}.conf`)
@@ -673,10 +777,62 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
         const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
         const logpath = join(global.Server.BaseDir!, 'vhost/logs')
+        const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
+
         await mkdirp(nginxvpath)
         await mkdirp(apachevpath)
         await mkdirp(rewritepath)
         await mkdirp(logpath)
+        await mkdirp(caddyvpath)
+
+        /**
+         * 添加caddy vhost
+         */
+        const makeCaddyConf = async () => {
+          const httpNames: string[] = []
+          const httpsNames: string[] = []
+          hostAlias(host).forEach((h) => {
+            if (!host?.port?.caddy || host.port.caddy === 80) {
+              httpNames.push(`http://${h}`)
+            } else {
+              httpNames.push(`http://${h}:${host.port.caddy}`)
+            }
+            if (host.useSSL) {
+              httpsNames.push(`https://${h}:${host?.port?.caddy_ssl ?? 443}`)
+            }
+          })
+
+          const contentList: string[] = []
+
+          const hostName = host.name
+          const root = host.root
+          const phpv = host.phpVersion
+          const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
+
+          const httpHostNameAll = httpNames.join(',\n')
+          const content = this.CaddyTmpl.replace('##HOST-ALL##', httpHostNameAll)
+            .replace('##LOG-PATH##', logFile)
+            .replace('##ROOT##', root)
+            .replace('##PHP-VERSION##', `${phpv}`)
+          contentList.push(content)
+
+          if (host.useSSL) {
+            let tls = 'internal'
+            if (host.ssl.cert && host.ssl.key) {
+              tls = `${host.ssl.cert} ${host.ssl.key}`
+            }
+            const httpHostNameAll = httpsNames.join(',\n')
+            const content = this.CaddySSLTmpl.replace('##HOST-ALL##', httpHostNameAll)
+              .replace('##LOG-PATH##', logFile)
+              .replace('##SSL##', tls)
+              .replace('##ROOT##', root)
+              .replace('##PHP-VERSION##', `${phpv}`)
+            contentList.push(content)
+          }
+          const confFile = join(caddyvpath, `${host.name}.conf`)
+          await writeFile(confFile, contentList.join('\n'))
+        }
+        await makeCaddyConf()
 
         let ntmpl = this.NginxTmpl
         let atmpl = this.ApacheTmpl
@@ -689,7 +845,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         const hostname = host.name
         const nvhost = join(nginxvpath, `${hostname}.conf`)
         const avhost = join(apachevpath, `${hostname}.conf`)
-        const hostalias = this.#hostAlias(host).join(' ')
+        const hostalias = hostAlias(host).join(' ')
         ntmpl = ntmpl
           .replace(/#Server_Alias#/g, hostalias)
           .replace(/#Server_Root#/g, host.root)
@@ -764,23 +920,12 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     })
   }
 
-  #hostAlias(item: AppHost): Array<string> {
-    const alias = item.alias
-      ? item.alias.split('\n').filter((n) => {
-          return n && n.length > 0
-        })
-      : []
-    const arr = Array.from(new Set(alias)).sort()
-    arr.unshift(item.name)
-    return arr
-  }
-
   _initHost(list: Array<AppHost>, writeToSystem = true) {
     return new ForkPromise(async (resolve, reject) => {
       const allHost: Set<string> = new Set<string>()
       const host: Array<string> = []
       for (const item of list) {
-        const alias = this.#hostAlias(item)
+        const alias = hostAlias(item)
         alias.forEach((a) => {
           allHost.add(a)
         })
