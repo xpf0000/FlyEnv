@@ -29,6 +29,7 @@
         >
         </el-switch>
       </li>
+
       <li v-if="nginx?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block" :class="{ run: nginx?.run }">
@@ -39,10 +40,32 @@
         <el-switch :disabled="nginx?.disabled" :value="nginx?.run" @change="switchChange('nginx')">
         </el-switch>
       </li>
+
+      <li v-if="caddy?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block" :class="{ run: caddy?.run }">
+            <yb-icon
+              :svg="import('@/svg/caddy.svg?raw')"
+              style="padding: 5px"
+              width="28"
+              height="28"
+            />
+          </div>
+          <span class="title">Caddy</span>
+        </div>
+        <el-switch :disabled="nginx?.disabled" :value="nginx?.run" @change="switchChange('caddy')">
+        </el-switch>
+      </li>
+
       <li v-if="php?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block" :class="{ run: php?.run }">
-            <yb-icon :svg="import('@/svg/php.svg?raw')" width="30" height="30" />
+            <yb-icon
+              style="padding: 4px"
+              :svg="import('@/svg/php.svg?raw')"
+              width="30"
+              height="30"
+            />
           </div>
           <span class="title">Php</span>
         </div>
@@ -205,6 +228,9 @@
   })
   const nginx = computed(() => {
     return store.nginx
+  })
+  const caddy = computed(() => {
+    return store.caddy
   })
   const apache = computed(() => {
     return store.apache

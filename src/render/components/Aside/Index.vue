@@ -20,6 +20,7 @@
         <HostModule :current-page="currentPage" @nav="nav" />
         <ApacheModule ref="apacheModule" :current-page="currentPage" @nav="nav" />
         <NginxModule ref="nginxModule" :current-page="currentPage" @nav="nav" />
+        <CaddyModule ref="caddyModule" :current-page="currentPage" @nav="nav" />
         <PhpModule ref="phpModule" :current-page="currentPage" @nav="nav" />
         <MysqlModule ref="mysqlModule" :current-page="currentPage" @nav="nav" />
         <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />
@@ -63,6 +64,7 @@
   import HostModule from './module/host/index.vue'
   import ApacheModule from './module/apache/index.vue'
   import NginxModule from './module/nginx/index.vue'
+  import CaddyModule from './module/caddy/index.vue'
   import PhpModule from './module/php/index.vue'
   import MysqlModule from './module/mysql/index.vue'
   import MariadbModule from './module/mariadb/index.vue'
@@ -83,6 +85,7 @@
   let lastTray = ''
 
   const apacheModule = ref()
+  const caddyModule = ref()
   const nginxModule = ref()
   const phpModule = ref()
   const mysqlModule = ref()
@@ -117,7 +120,8 @@
       mongoModule?.value?.serviceRunning ||
       dnsModule?.value?.serviceRunning ||
       ftpModule?.value?.serviceRunning ||
-      postgresqlModule?.value?.serviceRunning
+      postgresqlModule?.value?.serviceRunning ||
+      caddyModule?.value?.serviceRunning
     )
   })
 
@@ -132,7 +136,9 @@
       redisModule?.value?.serviceDisabled &&
       mongoModule?.value?.serviceDisabled &&
       ftpModule?.value?.serviceDisabled &&
-      postgresqlModule?.value?.serviceDisabled
+      postgresqlModule?.value?.serviceDisabled &&
+      caddyModule?.value?.serviceDisabled
+
     const running =
       apacheModule?.value?.serviceFetching ||
       memcachedModule?.value?.serviceFetching ||
@@ -144,7 +150,9 @@
       mongoModule?.value?.serviceFetching ||
       dnsModule?.value?.serviceFetching ||
       ftpModule?.value?.serviceFetching ||
-      postgresqlModule?.value?.serviceFetching
+      postgresqlModule?.value?.serviceFetching ||
+      caddyModule?.value?.serviceFetching
+
     return allDisabled || running || !appStore.versionInited
   })
 
@@ -188,6 +196,12 @@
         disabled: nginxModule?.value?.serviceDisabled,
         run: nginxModule?.value?.serviceRunning,
         running: nginxModule?.value?.serviceFetching
+      },
+      caddy: {
+        show: showItem?.value?.Caddy !== false,
+        disabled: caddyModule?.value?.serviceDisabled,
+        run: caddyModule?.value?.serviceRunning,
+        running: caddyModule?.value?.serviceFetching
       },
       password: appStore?.config?.password,
       lang: appStore?.config?.setup?.lang,
@@ -276,7 +290,8 @@
         redisModule,
         dnsModule,
         ftpModule,
-        postgresqlModule
+        postgresqlModule,
+        caddyModule
       ]
       const all: Array<Promise<string | boolean>> = []
       modules.forEach((m: any) => {
@@ -348,6 +363,9 @@
         break
       case 'postgresql':
         postgresqlModule?.value?.switchChange()
+        break
+      case 'caddy':
+        caddyModule?.value?.switchChange()
         break
     }
   }

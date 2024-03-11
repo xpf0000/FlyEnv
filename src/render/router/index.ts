@@ -17,6 +17,10 @@ const routes = [
         component: () => import('@/components/Nginx/Index.vue')
       },
       {
+        path: '/caddy',
+        component: () => import('@/components/Caddy/Index.vue')
+      },
+      {
         path: '/php',
         component: () => import('@/components/PHP/Index.vue')
       },

@@ -41,7 +41,7 @@
       if (key === 'ftp') {
         key = 'pure-ftpd'
       }
-      dict[key] = all[k]
+      dict[key] = all[k] !== false
     }
     return dict
   }
@@ -75,6 +75,7 @@
       console.log('showItem dict: ', dict)
       const flags: Array<keyof typeof AppSofts> = [
         'php',
+        'caddy',
         'nginx',
         'mysql',
         'mariadb',

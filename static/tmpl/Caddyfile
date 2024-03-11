@@ -1,0 +1,37 @@
+{
+  storage file_system {
+      root ##SSL_ROOT##
+  }
+  log global_log {
+      output file ##LOG_FILE## {
+          roll_size 1gb
+          roll_keep 5
+          roll_keep_for 720h
+      }
+  }
+
+  skip_install_trust
+
+  pki {
+      ca {
+          name "PhpWebStudy-Root-CA"
+      }
+  }
+}
+
+(set-log) {
+  log {
+      output file {args.0} {
+          roll_size 1gb
+          roll_keep 5
+          roll_keep_for 4320h
+      }
+  }
+}
+
+(enable-php-select) {
+    try_files {path} {path}/ /index.php?{query}
+    php_fastcgi unix:/tmp/phpwebstudy-php-cgi-{args.0}.sock
+}
+
+import ##VHOST-DIR##/*

@@ -6,7 +6,7 @@
   >
     <div class="left">
       <div class="icon-block" :class="{ run: serviceRunning }">
-        <yb-icon :svg="import('@/svg/php.svg?raw')" width="30" height="30" />
+        <yb-icon :svg="import('@/svg/php.svg?raw')" style="padding: 4px" width="30" height="30" />
       </div>
       <span class="title">Php</span>
     </div>

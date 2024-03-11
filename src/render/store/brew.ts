@@ -27,6 +27,7 @@ export interface AppSoftInstalledItem {
 
 interface State {
   postgresql: AppSoftInstalledItem
+  caddy: AppSoftInstalledItem
   nginx: AppSoftInstalledItem
   apache: AppSoftInstalledItem
   memcached: AppSoftInstalledItem
@@ -61,6 +62,15 @@ const state: State = {
     }
   },
   postgresql: {
+    getListing: false,
+    installedInited: false,
+    installed: [],
+    list: {
+      brew: {},
+      port: {}
+    }
+  },
+  caddy: {
     getListing: false,
     installedInited: false,
     installed: [],

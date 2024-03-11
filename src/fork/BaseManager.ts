@@ -19,6 +19,7 @@ import Version from './module/Version'
 import Project from './module/Project'
 import Tool from './module/Tool'
 import MacPorts from './module/MacPorts'
+import Caddy from './module/Caddy'
 
 class BaseManager {
   constructor() {}
@@ -32,6 +33,7 @@ class BaseManager {
     Mongodb.init()
     Mariadb.init()
     PureFtpd.init()
+    Caddy.init()
   }
 
   exec(commands: Array<any>) {
@@ -89,6 +91,8 @@ class BaseManager {
       func = Tool.exec(fn, ...commands)
     } else if (module === 'macports') {
       func = MacPorts.exec(fn, ...commands)
+    } else if (module === 'caddy') {
+      func = Caddy.exec(fn, ...commands)
     }
     func?.on(onData).then(then).catch(error)
   }

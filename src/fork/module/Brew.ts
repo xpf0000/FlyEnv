@@ -66,6 +66,9 @@ class Brew extends Base {
             case 'nginx':
               all.push('nginx')
               break
+            case 'caddy':
+              all.push('caddy')
+              break
             case 'pure-ftpd':
               all.push('pure-ftpd')
               break
@@ -172,6 +175,12 @@ class Brew extends Base {
             if (flag === 'nginx') {
               return f.includes('High-performance HTTP(S) server')
             }
+            if (flag === 'caddy') {
+              return (
+                f.includes('www') &&
+                f.includes('Fast, multi-platform web server with automatic HTTPS')
+              )
+            }
             if (flag === 'apache') {
               return f.includes('The extremely popular second version of the Apache http server')
             }
@@ -204,6 +213,8 @@ class Brew extends Base {
               installed = existsSync(join('/opt/local/bin/', name))
             } else if (flag === 'nginx') {
               installed = existsSync(join('/opt/local/sbin/', name))
+            } else if (flag === 'caddy') {
+              installed = existsSync(join('/opt/local/bin/', name))
             } else if (flag === 'apache') {
               installed = existsSync(join('/opt/local/sbin/', 'apachectl'))
             } else if (flag === 'mysql') {

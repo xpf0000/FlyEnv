@@ -157,11 +157,11 @@ export function spawnPromise(
         reject(new Error(Buffer.concat(stderr).toString().trim()))
       }
     }
-    child.stdout.on('data', (data) => {
+    child?.stdout?.on('data', (data) => {
       stdout.push(data)
       on(data.toString(), stdinFn)
     })
-    child.stderr.on('data', (err) => {
+    child?.stderr?.on('data', (err) => {
       stderr.push(err)
       on(err.toString(), stdinFn)
     })

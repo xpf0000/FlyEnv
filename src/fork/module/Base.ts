@@ -128,6 +128,7 @@ export class Base {
     console.log(version)
     return new ForkPromise(async (resolve) => {
       const dis: { [k: string]: string } = {
+        caddy: 'caddy',
         nginx: 'nginx',
         apache: 'httpd',
         mysql: 'mysqld',

@@ -140,6 +140,7 @@
   const props = defineProps<{
     typeFlag:
       | 'nginx'
+      | 'caddy'
       | 'apache'
       | 'memcached'
       | 'mysql'

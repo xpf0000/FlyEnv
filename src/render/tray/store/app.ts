@@ -4,6 +4,12 @@ export interface TrayState {
   password: string
   lang: string
   theme: string
+  caddy: {
+    show: boolean
+    run: boolean
+    running: boolean
+    disabled: boolean
+  }
   nginx: {
     show: boolean
     run: boolean
@@ -80,6 +86,7 @@ const state: TrayState = {
   mysql: { show: true, disabled: true, run: false, running: false },
   mariadb: { show: true, disabled: true, run: false, running: false },
   nginx: { show: true, disabled: true, run: false, running: false },
+  caddy: { show: true, disabled: true, run: false, running: false },
   password: '',
   php: { show: true, disabled: true, run: false, running: false },
   redis: { show: true, disabled: true, run: false, running: false },

@@ -48,6 +48,7 @@ export interface AppServerCurrent {
 }
 
 export enum AppSofts {
+  caddy = 'caddy',
   nginx = 'nginx',
   php = 'php',
   mysql = 'mysql',
@@ -74,6 +75,7 @@ interface State {
         showItem: {
           Hosts: boolean
           Nginx: boolean
+          Caddy: boolean
           Apache: boolean
           Mysql: boolean
           mariadb: boolean
@@ -103,6 +105,9 @@ interface State {
         dirs: Array<string>
       }
       nginx: {
+        dirs: Array<string>
+      }
+      caddy: {
         dirs: Array<string>
       }
       php: {
@@ -155,6 +160,9 @@ const state: State = {
       postgresql: {
         current: {}
       },
+      caddy: {
+        current: {}
+      },
       nginx: {
         current: {}
       },
@@ -187,6 +195,7 @@ const state: State = {
         showItem: {
           Hosts: true,
           Nginx: true,
+          Caddy: true,
           Apache: true,
           Mysql: true,
           mariadb: true,
@@ -199,6 +208,9 @@ const state: State = {
           DNS: true,
           FTP: true
         }
+      },
+      caddy: {
+        dirs: []
       },
       nginx: {
         dirs: []
@@ -342,6 +354,9 @@ export const AppStore = defineStore('app', {
           config.server.redis = {
             current: {}
           }
+        }
+        if (config.setup.common.showItem.Caddy === undefined) {
+          config.setup.common.showItem.Caddy = true
         }
         this.INIT_CONFIG({
           server: config.server,

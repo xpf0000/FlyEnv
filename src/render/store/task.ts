@@ -4,6 +4,9 @@ interface State {
   postgresql: {
     log: Array<string>
   }
+  caddy: {
+    log: Array<string>
+  }
   nginx: {
     log: Array<string>
   }
@@ -52,6 +55,7 @@ const state: State = {
   mysql: { log: [] },
   mariadb: { log: [] },
   mongodb: { log: [] },
+  caddy: { log: [] },
   nginx: { log: [] },
   node: { NVM_DIR: '', btnTxt: '', getVersioning: false, isRunning: false, versions: [] },
   php: {

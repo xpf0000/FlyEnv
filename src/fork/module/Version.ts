@@ -61,6 +61,10 @@ class Manager extends Base {
           command = `${bin} -v`
           reg = /(\/)(\d+(\.\d+){1,4})(.*?)/g
           break
+        case 'caddy':
+          command = `${bin} -v`
+          reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
+          break
         case 'php-fpm':
           command = `${bin} -n -v`
           reg = /(\s)(\d+(\.\d+){1,4})([-\s])/g
@@ -106,6 +110,7 @@ class Manager extends Base {
       const searchNames: { [k: string]: string } = {
         apache: 'httpd',
         nginx: 'nginx',
+        caddy: 'caddy',
         php: 'php',
         mysql: 'mysql',
         mariadb: 'mariadb',
@@ -118,6 +123,7 @@ class Manager extends Base {
       const binNames: { [k: string]: string } = {
         apache: 'apachectl',
         nginx: 'nginx',
+        caddy: 'caddy',
         php: 'php-fpm',
         mysql: 'mysqld_safe',
         mariadb: 'mariadbd-safe',
@@ -277,6 +283,30 @@ class Manager extends Base {
             const bin = join(base, fpm)
             if (existsSync(bin)) {
               const { error, version } = await this.binVersion(bin, 'nginx')
+              const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
+              const item = {
+                version: version,
+                bin,
+                path: base,
+                num,
+                enable: version !== null,
+                error,
+                run: false,
+                running: false
+              }
+              list.push(item as any)
+            }
+            return true
+          }
+          for (const fpm of fpms) {
+            await find(fpm)
+          }
+        } else if (type === 'caddy') {
+          const fpms = ['bin/caddy']
+          const find = async (fpm: string) => {
+            const bin = join(base, fpm)
+            if (existsSync(bin)) {
+              const { error, version } = await this.binVersion(bin, 'caddy')
               const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
               const item = {
                 version: version,
