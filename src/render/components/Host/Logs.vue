@@ -8,6 +8,7 @@
   >
     <div class="host-logs">
       <ul class="top-tab">
+        <li :class="type === 'caddy' ? 'active' : ''" @click="initType('caddy')">Caddy</li>
         <li :class="type === 'nginx-access' ? 'active' : ''" @click="initType('nginx-access')"
           >Nginx-Access</li
         >
@@ -116,11 +117,13 @@
     let errorlogng = join(logpath, `${props.name}.error.log`)
     let accesslogap = join(logpath, `${props.name}-access_log`)
     let errorlogap = join(logpath, `${props.name}-error_log`)
+    let caddyLog = join(logpath, `${props.name}.caddy.log`)
     logfile.value = {
       'nginx-access': accesslogng,
       'nginx-error': errorlogng,
       'apache-access': accesslogap,
-      'apache-error': errorlogap
+      'apache-error': errorlogap,
+      caddy: caddyLog
     }
   }
 
@@ -129,17 +132,46 @@
       const watchLog = () => {
         if (!watcher) {
           watcher = fsWatch(filepath.value, () => {
-            read()
+            read().then()
           })
         }
       }
-      const read = () => {
-        readFileAsync(filepath.value).then((str) => {
-          log.value = str
+      const doFixRule = () => {
+        return new Promise((resolve, reject) => {
+          exec(`echo '${password.value}' | sudo -S chmod 777 ${filepath.value}`)
+            .then(() => {
+              resolve(true)
+            })
+            .catch((e: any) => {
+              MessageError(e.toString())
+              reject(e)
+            })
         })
       }
-      read()
-      watchLog()
+      const read = () => {
+        return new Promise((resolve) => {
+          readFileAsync(filepath.value)
+            .then((str) => {
+              log.value = str
+              resolve(true)
+            })
+            .catch(() => {
+              doFixRule().then(() => {
+                readFileAsync(filepath.value)
+                  .then((str) => {
+                    log.value = str
+                    resolve(true)
+                  })
+                  .catch((e) => {
+                    MessageError(e.toString())
+                  })
+              })
+            })
+        })
+      }
+      read().then(() => {
+        watchLog()
+      })
     } else {
       log.value = I18nT('base.noLogs')
     }
@@ -150,6 +182,7 @@
     const logFile: { [key: string]: string } = logfile.value
     filepath.value = logFile[t]
     getLog()
+    localStorage.setItem('PhpWebStudy-Host-Log-Type', t)
   }
 
   const logDo = (flag: string) => {
@@ -188,7 +221,8 @@
   }
 
   init()
-  initType('nginx-access')
+  const saveType = localStorage.getItem('PhpWebStudy-Host-Log-Type') ?? 'nginx-access'
+  initType(saveType)
 
   defineExpose({
     show,

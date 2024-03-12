@@ -31,5 +31,9 @@ export default {
 
   parkConfim: 'Make sure to generate sites based on subdirectories?',
 
-  autoSSL: 'Auto SSL Certificates'
+  autoSSL: 'Auto SSL Certificates',
+
+  phpMyAdminInstallTips:
+    'No phpMyAdmin site found with domain phpmyadmin.phpwebstudy.test, Download phpMyAdmin and create site?',
+  phpMyAdminTaskRunning: 'Download phpMyAdmin and create site'
 }

@@ -25,6 +25,8 @@ export interface AppHost {
     apache: number
     nginx_ssl: number
     apache_ssl: number
+    caddy: number
+    caddy_ssl: number
   }
   nginx: {
     rewrite: string

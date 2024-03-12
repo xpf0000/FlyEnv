@@ -551,7 +551,7 @@ class Php extends Base {
           } else if (versionNumber < 7.3) {
             extendv = '5.9.0'
           } else {
-            extendv = '5.11.0'
+            extendv = '5.11.1'
           }
           await installByShell(
             version?.phpBin ? 'php-pdo_sqlsrv-port.sh' : 'php-pdo_sqlsrv.sh',

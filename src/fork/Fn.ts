@@ -288,11 +288,17 @@ export function getAllFile(fp: string, fullpath = true, basePath: Array<string> 
 }
 
 export function downFile(url: string, savepath: string) {
-  return new Promise((resolve, reject) => {
+  return new ForkPromise((resolve, reject, on) => {
     axios({
       method: 'get',
       url: url,
-      responseType: 'stream'
+      responseType: 'stream',
+      onDownloadProgress: (progress) => {
+        if (progress.total) {
+          const percent = Math.round((progress.loaded * 100.0) / progress.total)
+          on(percent)
+        }
+      }
     })
       .then(function (response) {
         const base = dirname(savepath)

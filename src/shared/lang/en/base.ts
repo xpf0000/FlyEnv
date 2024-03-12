@@ -60,6 +60,8 @@ export default {
   currentProxy: 'Current Proxy',
   resetPassword: 'Update Computer Password',
   customVersionDir: 'Custom Version Folder Path',
+  customVersionDirTips:
+    'Customize the version path, it will automatically find the executable file in the bin&sbin directory of this path.',
   inputPassword: 'Enter the computer password',
   passwordError: 'Password error, please re-enter',
   defaultConFileNoFound: 'Default config file no found',

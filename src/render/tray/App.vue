@@ -53,7 +53,7 @@
           </div>
           <span class="title">Caddy</span>
         </div>
-        <el-switch :disabled="nginx?.disabled" :value="nginx?.run" @change="switchChange('caddy')">
+        <el-switch :disabled="caddy?.disabled" :value="caddy?.run" @change="switchChange('caddy')">
         </el-switch>
       </li>
 

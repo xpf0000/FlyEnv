@@ -112,12 +112,18 @@
       },
       getLog() {
         if (existsSync(this.filepath)) {
-          IPC.send('app-fork:caddy', 'fixLogPermit').then((key: string) => {
-            IPC.off(key)
-            readFileAsync(this.filepath).then((log) => {
+          readFileAsync(this.filepath)
+            .then((log) => {
               this.log = log
             })
-          })
+            .catch(() => {
+              IPC.send('app-fork:caddy', 'fixLogPermit').then((key: string) => {
+                IPC.off(key)
+                readFileAsync(this.filepath).then((log) => {
+                  this.log = log
+                })
+              })
+            })
         } else {
           this.log = this.$t('base.noLogs')
         }

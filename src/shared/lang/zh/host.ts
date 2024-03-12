@@ -31,5 +31,9 @@ export default {
 
   parkConfim: '确定根据子目录生成站点?',
 
-  autoSSL: '自动管理证书'
+  autoSSL: '自动管理证书',
+
+  phpMyAdminInstallTips:
+    '未发现域名为phpmyadmin.phpwebstudy.test的phpMyAdmin站点, 是否下载phpMyAdmin并创建站点?',
+  phpMyAdminTaskRunning: '下载phpMyAdmin并创建站点'
 }

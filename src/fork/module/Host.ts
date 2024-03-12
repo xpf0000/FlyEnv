@@ -1,15 +1,16 @@
 import { join, dirname } from 'path'
-import { existsSync, accessSync, constants } from 'fs'
+import { existsSync, accessSync, constants, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { execPromise, getSubDir, hostAlias, uuid } from '../Fn'
+import { downFile, execPromise, getSubDir, hostAlias, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import dns from 'dns'
 import util from 'util'
-import { readFile, writeFile, copyFile, mkdirp, remove } from 'fs-extra'
+import { readFile, writeFile, copyFile, mkdirp, remove, copy } from 'fs-extra'
 import { EOL } from 'os'
 import { isEqual } from 'lodash'
+import compressing from 'compressing'
 
 class Host extends Base {
   NginxTmpl = ''
@@ -1134,6 +1135,118 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       } catch (e) {
         reject(e)
       }
+    })
+  }
+
+  addPhpMyAdminSite(phpVersion?: number) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      const zipFile = join(global.Server.Cache!, 'phpMyAdmin.zip')
+      const wwwDir = join(global.Server.BaseDir!, 'www')
+      const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin-5.2.1-all-languages')
+      const hostfile = join(global.Server.BaseDir!, 'host.json')
+      let hostList: Array<AppHost> = []
+      const content = await readFile(hostfile, 'utf-8')
+      try {
+        hostList = JSON.parse(content)
+      } catch (e) {}
+      const find = hostList.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
+      if (find) {
+        resolve(true)
+        return
+      }
+
+      const doMake = async () => {
+        if (!existsSync(siteDir) || readdirSync(siteDir).length === 0) {
+          if (!existsSync(zipFile)) {
+            reject(new Error(I18nT('fork.downFileFail')))
+            return
+          }
+          if (existsSync(siteDir)) {
+            await remove(siteDir)
+          }
+          await mkdirp(wwwDir)
+          try {
+            await compressing.zip.uncompress(zipFile, wwwDir)
+          } catch (e) {
+            reject(e)
+            return
+          }
+          if (readdirSync(siteDir).length === 0) {
+            reject(new Error(I18nT('fork.downFileFail')))
+            return
+          }
+        }
+
+        let useSSL = false
+        let autoSSL = false
+        const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+        if (existsSync(CARoot)) {
+          useSSL = true
+          autoSSL = true
+        }
+
+        const hostItem: any = {
+          id: new Date().getTime(),
+          name: 'phpmyadmin.phpwebstudy.test',
+          alias: '',
+          useSSL: useSSL,
+          autoSSL: autoSSL,
+          ssl: {
+            cert: '',
+            key: ''
+          },
+          port: {
+            nginx: 80,
+            apache: 80,
+            nginx_ssl: 443,
+            apache_ssl: 443,
+            caddy: 80,
+            caddy_ssl: 443
+          },
+          nginx: {
+            rewrite: ''
+          },
+          url: '',
+          root: siteDir,
+          mark: 'PhoMyAdmin - PhpWebStudy Auto Created',
+          phpVersion: undefined
+        }
+        if (phpVersion) {
+          hostItem.phpVersion = phpVersion
+        }
+        try {
+          await this.handleHost(hostItem, 'add')
+          await this.writeHosts()
+          await this.#setDirRole(siteDir)
+          resolve(true)
+        } catch (e) {
+          reject(e)
+        }
+      }
+      if (existsSync(zipFile)) {
+        doMake().then()
+        return
+      }
+
+      const zipTmpFile = join(global.Server.Cache!, 'phpMyAdmin-Cache')
+      if (existsSync(zipTmpFile)) {
+        await remove(zipTmpFile)
+      }
+      const url = 'https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.zip'
+      downFile(url, zipTmpFile)
+        .on(on)
+        .then(async () => {
+          return copy(zipTmpFile, zipFile)
+        })
+        .then(() => {
+          if (existsSync(zipFile)) {
+            doMake().then()
+            return
+          } else {
+            reject(new Error(I18nT('fork.downFileFail')))
+          }
+        })
+        .catch(reject)
     })
   }
 }

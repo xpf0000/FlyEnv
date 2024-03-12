@@ -57,6 +57,7 @@ export default {
   currentProxy: '当前代理',
   resetPassword: '重设电脑密码',
   customVersionDir: '自定义版本路径',
+  customVersionDirTips: '自定义版本路径, 会自动在此路径的bin&sbin目录下, 查找可执行文件',
   inputPassword: '请输入电脑用户密码',
   passwordError: '密码错误,请重新输入',
   defaultConFileNoFound: '未找到默认配置文件',

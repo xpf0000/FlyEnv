@@ -23,5 +23,6 @@ export default {
   versionNoFound: 'Failed to get software version, operation failed.',
   postgresqlInit:
     'Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root',
-  toolFileNotExist: 'File does not exist'
+  toolFileNotExist: 'File does not exist',
+  downFileFail: 'Download file failed!'
 }

@@ -4,7 +4,7 @@
     :title="$t('base.customVersionDir')"
     width="600px"
     :destroy-on-close="true"
-    custom-class="host-edit custom-path"
+    class="host-edit custom-path"
     @closed="closedFn"
   >
     <div class="main-wapper">
