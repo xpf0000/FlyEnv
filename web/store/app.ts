@@ -41,6 +41,7 @@ interface EditorConfig {
 
 export enum AppSofts {
   nginx = 'nginx',
+  caddy = 'caddy',
   php = 'php',
   mysql = 'mysql',
   mariadb = 'mariadb',
@@ -69,6 +70,7 @@ interface State {
         showItem: {
           Hosts: boolean
           Nginx: boolean
+          Caddy: boolean
           Apache: boolean
           Mysql: boolean
           mariadb: boolean
@@ -94,6 +96,9 @@ interface State {
       }
       lang: string
       postgresql: {
+        dirs: Array<string>
+      }
+      caddy: {
         dirs: Array<string>
       }
       nginx: {

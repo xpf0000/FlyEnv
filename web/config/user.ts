@@ -1,5 +1,16 @@
 export const User = {
   server: {
+    caddy: {
+      current: {
+        version: '2.7.6',
+        bin: '/usr/local/Cellar/caddy/2.7.6/bin/caddy',
+        path: '/usr/local/Cellar/caddy/2.7.6/',
+        num: 27,
+        enable: true,
+        run: true,
+        running: false
+      }
+    },
     postgresql: {
       current: {
         version: '16.0',
@@ -115,6 +126,7 @@ export const User = {
       showItem: {
         Hosts: true,
         Nginx: true,
+        Caddy: true,
         Apache: true,
         Mysql: true,
         Php: true,
@@ -131,6 +143,9 @@ export const User = {
       }
     },
     postgresql: {
+      dirs: []
+    },
+    caddy: {
       dirs: []
     },
     nginx: {

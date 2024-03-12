@@ -75,7 +75,15 @@
       dataKey: 'host',
       class: 'host-column',
       headerClass: 'host-column',
-      width: 300
+      width: 300,
+      headerCellRenderer: () => {
+        return (
+          <span style="padding-left: 24px;" class="flex items-center">
+            host
+          </span>
+        )
+      },
+      cellRenderer: ({ cellData: host }) => <span style="padding-left: 24px;">{host}</span>
     },
     {
       key: 'ip',

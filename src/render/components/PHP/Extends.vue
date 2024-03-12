@@ -170,7 +170,7 @@
   const { join } = require('path')
   const { clipboard } = require('@electron/remote')
   const { shell } = require('@electron/remote')
-  const { existsSync, remove } = require('fs-extra')
+  const { existsSync } = require('fs-extra')
 
   const props = defineProps<{
     version: SoftInstalled

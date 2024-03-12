@@ -434,5 +434,25 @@ export const Installed = {
       run: false,
       running: false
     }
+  ],
+  caddy: [
+    {
+      version: '2.7.6',
+      bin: '/usr/local/Cellar/caddy/2.7.6/bin/caddy',
+      path: '/usr/local/Cellar/caddy/2.7.6/',
+      num: 27,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '2.7.6',
+      bin: '/opt/local/bin/caddy',
+      path: '/opt/local/',
+      num: 27,
+      enable: true,
+      run: false,
+      running: false
+    }
   ]
 }

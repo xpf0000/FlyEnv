@@ -31,6 +31,11 @@
 
         <el-row>
           <el-col :span="8">
+            <el-form-item label="Caddy">
+              <el-switch v-model="showItem.Caddy" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
             <el-form-item label="Php">
               <el-switch v-model="showItem.Php" />
             </el-form-item>
@@ -40,14 +45,14 @@
               <el-switch v-model="showItem.Mysql" />
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row>
           <el-col :span="8">
             <el-form-item label="MariaDB">
               <el-switch v-model="showItem.mariadb" />
             </el-form-item>
           </el-col>
-        </el-row>
-
-        <el-row>
           <el-col :span="8">
             <el-form-item label="MongoDB">
               <el-switch v-model="showItem.MongoDB" />
@@ -58,14 +63,14 @@
               <el-switch v-model="postgresqlShow" />
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row>
           <el-col :span="8">
             <el-form-item label="Memcached">
               <el-switch v-model="showItem.Memcached" />
             </el-form-item>
           </el-col>
-        </el-row>
-
-        <el-row>
           <el-col :span="8">
             <el-form-item label="Redis">
               <el-switch v-model="showItem.Redis" />
@@ -76,14 +81,14 @@
               <el-switch v-model="showItem.NodeJS" />
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row>
           <el-col :span="8">
             <el-form-item label="Http Serve">
               <el-switch v-model="showItem.HttpServe" />
             </el-form-item>
           </el-col>
-        </el-row>
-
-        <el-row>
           <el-col :span="8">
             <el-form-item label="DNS Server">
               <el-switch v-model="showItem.DNS" />
@@ -94,6 +99,8 @@
               <el-switch v-model="showItem.FTP" />
             </el-form-item>
           </el-col>
+        </el-row>
+        <el-row>
           <el-col :span="8">
             <el-form-item label="Tools">
               <el-switch v-model="showItem.Tools" />

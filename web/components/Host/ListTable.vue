@@ -98,21 +98,17 @@
                     <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
                     <span class="ml-15">{{ $t('base.link') }}</span>
                   </li>
-                  <li>
+                  <li @click.stop="showConfig({ flag: 'nginx', item: scope.row })">
                     <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                    <el-dropdown @command="showConfig">
-                      <span class="ml-15"> {{ $t('base.configFile') }} </span>
-                      <template #dropdown>
-                        <el-dropdown-menu>
-                          <el-dropdown-item :command="{ flag: 'nginx', item: scope.row }"
-                            >Nginx</el-dropdown-item
-                          >
-                          <el-dropdown-item :command="{ flag: 'apache', item: scope.row }"
-                            >Apache</el-dropdown-item
-                          >
-                        </el-dropdown-menu>
-                      </template>
-                    </el-dropdown>
+                    <span class="ml-15">{{ $t('base.configFile') }} - Nginx</span>
+                  </li>
+                  <li @click.stop="showConfig({ flag: 'caddy', item: scope.row })">
+                    <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                    <span class="ml-15">{{ $t('base.configFile') }} - Caddy</span>
+                  </li>
+                  <li @click.stop="showConfig({ flag: 'apache', item: scope.row })">
+                    <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                    <span class="ml-15">{{ $t('base.configFile') }} - Apache</span>
                   </li>
                   <li @click.stop="action(scope.row, scope.$index, 'log')">
                     <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />

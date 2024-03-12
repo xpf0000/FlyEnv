@@ -10,11 +10,10 @@
       >
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="nginx" title="Nginx"></Service>
+      <Service v-if="current_tab === 0" type-flag="caddy" title="Caddy"></Service>
       <Config v-if="current_tab === 1" :config="conf"></Config>
-      <Manager v-else-if="current_tab === 2" type-flag="nginx"></Manager>
-      <Logs v-if="current_tab === 3" type="error"></Logs>
-      <Logs v-if="current_tab === 4" type="access"></Logs>
+      <Manager v-else-if="current_tab === 2" type-flag="caddy"></Manager>
+      <Logs v-if="current_tab === 3"></Logs>
     </div>
   </div>
 </template>
@@ -26,7 +25,7 @@
   import Logs from '../Base/Logs.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppStore } from '@web/store/app'
-  import Conf from '../../config/nginx.conf.txt?raw'
+  import Conf from '../../config/caddy.conf.txt?raw'
 
   const current_tab = ref(0)
 
@@ -50,7 +49,6 @@
           this.$t('base.service'),
           this.$t('base.configFile'),
           this.$t('base.versionManager'),
-          this.$t('base.errorLog'),
           this.$t('base.log')
         ]
       },

@@ -109,26 +109,42 @@
               </template>
             </el-table-column>
 
-            <el-table-column width="300px" align="left" :label="$t('base.operation')">
+            <el-table-column
+              width="150px"
+              align="left"
+              :label="$t('base.operation')"
+              class-name="operation"
+            >
               <template v-if="version?.version" #default="scope">
-                <el-button v-if="scope.row.status" type="primary" link @click="copyLink()">{{
-                  $t('base.copyLink')
-                }}</el-button>
-                <el-button
-                  v-else
-                  :disabled="brewRunning || !version?.version"
-                  type="primary"
-                  link
-                  @click="handleEdit(scope.$index, scope.row)"
-                  >{{ $t('base.install') }}</el-button
-                >
-                <el-button
-                  v-if="scope.row.status && scope.row.name === 'xdebug'"
-                  type="primary"
-                  link
-                  @click="copyXDebugTmpl()"
-                  >{{ $t('php.copyConfTemplate') }}</el-button
-                >
+                <template v-if="scope.row.status">
+                  <el-tooltip :content="$t('base.copyLink')" :show-after="600">
+                    <el-button type="primary" link :icon="Link" @click="copyLink()"></el-button>
+                  </el-tooltip>
+                  <template v-if="scope.row.name === 'xdebug'">
+                    <el-tooltip :content="$t('php.copyConfTemplate')" :show-after="600">
+                      <el-button
+                        type="primary"
+                        link
+                        :icon="Document"
+                        @click="copyXDebugTmpl()"
+                      ></el-button>
+                    </el-tooltip>
+                  </template>
+                  <el-tooltip :content="$t('base.del')" :show-after="600">
+                    <el-button type="primary" link :icon="Delete" @click="doDel()"></el-button>
+                  </el-tooltip>
+                </template>
+                <template v-else>
+                  <el-tooltip :content="$t('base.install')" :show-after="600">
+                    <el-button
+                      :disabled="brewRunning || !version?.version"
+                      type="primary"
+                      link
+                      :icon="Download"
+                      @click="handleEdit(scope.$index, scope.row)"
+                    ></el-button>
+                  </el-tooltip>
+                </template>
               </template>
             </el-table-column>
           </el-table>
@@ -140,12 +156,13 @@
 
 <script lang="ts" setup>
   import { ref, computed, watch, nextTick, Ref } from 'vue'
-  import { BrewStore, SoftInstalled } from '../../store/brew'
-  import { TaskStore } from '../../store/task'
-  import { ElMessage } from 'element-plus'
+  import { BrewStore, SoftInstalled } from '@web/store/brew'
+  import { TaskStore } from '@web/store/task'
+  import { ElMessage, ElMessageBox } from 'element-plus'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup, waitTime } from '../../fn'
+  import { AsyncComponentSetup, waitTime } from '@web/fn'
   import { ExtensionHomeBrew, ExtensionMacPorts } from './store'
+  import { Document, Download, Link, Delete } from '@element-plus/icons-vue'
 
   const props = defineProps<{
     version: SoftInstalled
@@ -155,7 +172,7 @@
 
   const search = ref('')
   const logRef = ref()
-  const lib: Ref<'phpwebstudy' | 'macports' | 'homebrew'> = ref('phpwebstudy')
+  const lib: Ref<'phpwebstudy' | 'macports' | 'homebrew'> = ref('homebrew')
   const installExtensionDir = ref('')
   const showNextBtn = ref(false)
   const tableData = [
@@ -1471,6 +1488,16 @@
 
   const copyXDebugTmpl = () => {
     ElMessage.success(I18nT('php.xdebugConfCopySuccess'))
+  }
+
+  const doDel = () => {
+    ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      closeOnClickModal: false,
+      customClass: 'confirm-del',
+      type: 'warning'
+    }).then(() => {})
   }
 
   watch(

@@ -13,6 +13,10 @@ const routes = [
         component: () => import('../components/Host/Index.vue')
       },
       {
+        path: '/caddy',
+        component: () => import('../components/Caddy/Index.vue')
+      },
+      {
         path: '/nginx',
         component: () => import('../components/Nginx/Index.vue')
       },

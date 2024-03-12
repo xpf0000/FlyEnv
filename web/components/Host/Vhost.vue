@@ -33,9 +33,10 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-  import { AsyncComponentSetup, EditorConfigMake } from '../../fn'
+  import { AsyncComponentSetup, EditorConfigMake } from '@web/fn'
   import VhostApache from '../../config/vhost.apache.txt?raw'
   import VhostNginx from '../../config/vhost.nginx.txt?raw'
+  import VhostCaddy from '../../config/vhost.caddy.txt?raw'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
   const props = defineProps<{
@@ -52,8 +53,10 @@
   const getConfig = () => {
     if (props.item.flag === 'nginx') {
       config.value = VhostNginx
-    } else {
+    } else if (props.item.flag === 'apache') {
       config.value = VhostApache
+    } else {
+      config.value = VhostCaddy
     }
     initEditor()
   }

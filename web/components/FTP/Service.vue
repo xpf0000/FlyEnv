@@ -221,10 +221,14 @@
       dataKey: 'user',
       width: 200,
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('util.ftpTableHeadUser')}</span>
+        return (
+          <span style="padding-left: 24px;" class="flex items-center">
+            {I18nT('util.ftpTableHeadUser')}
+          </span>
+        )
       },
       cellRenderer: ({ cellData: user }) => (
-        <span class="user" onClick={() => copyPass()}>
+        <span style="padding-left: 24px;" class="user" onClick={() => copyPass()}>
           {user}
         </span>
       )
@@ -268,12 +272,12 @@
       headerCellRenderer: () => {
         return <span class="flex items-center">{I18nT('util.ftpTableHeadSetup')}</span>
       },
-      cellRenderer: ({ rowData: data, rowIndex: index }) => (
+      cellRenderer: ({ rowData: data }) => (
         <div class="setup">
           <Edit class="setup-icon" onClick={() => doEdit(data)}>
             编辑
           </Edit>
-          <Delete class="setup-icon" onClick={() => doDel(index)}>
+          <Delete class="setup-icon" onClick={() => doDel(data)}>
             编辑
           </Delete>
         </div>

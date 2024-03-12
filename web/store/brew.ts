@@ -10,6 +10,7 @@ import { Memcached } from '../config/memcached'
 import { Redis } from '../config/redis'
 import { Mongodb } from '../config/mongodb'
 import { Postgresql } from '../config/postgresql'
+import { Caddy } from '../config/caddy'
 
 export interface SoftInstalled {
   version: string | null
@@ -36,6 +37,7 @@ export interface AppSoftInstalledItem {
 interface State {
   postgresql: AppSoftInstalledItem
   nginx: AppSoftInstalledItem
+  caddy: AppSoftInstalledItem
   apache: AppSoftInstalledItem
   memcached: AppSoftInstalledItem
   mysql: AppSoftInstalledItem
@@ -70,6 +72,12 @@ const state: State = {
     installedInited: true,
     installed: Installed['pure-ftpd'],
     list: Ftp
+  },
+  caddy: {
+    getListing: false,
+    installedInited: true,
+    installed: Installed.caddy,
+    list: Caddy
   },
   nginx: {
     getListing: false,

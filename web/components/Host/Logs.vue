@@ -8,6 +8,7 @@
   >
     <div class="host-logs">
       <ul class="top-tab">
+        <li :class="type === 'caddy' ? 'active' : ''" @click="initType('caddy')">Caddy</li>
         <li :class="type === 'nginx-access' ? 'active' : ''" @click="initType('nginx-access')"
           >Nginx-Access</li
         >
@@ -42,8 +43,8 @@
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { I18nT } from '../../../src/shared/lang/index'
-  import { AsyncComponentSetup, EditorConfigMake } from '../../fn'
+  import { I18nT } from '@shared/lang'
+  import { AsyncComponentSetup, EditorConfigMake } from '@web/fn'
   import { ElMessage } from 'element-plus'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
@@ -90,6 +91,7 @@
 
   const init = () => {
     logfile.value = {
+      caddy: 'caddy',
       'nginx-access': 'accesslogng',
       'nginx-error': 'errorlogng',
       'apache-access': 'accesslogap',
