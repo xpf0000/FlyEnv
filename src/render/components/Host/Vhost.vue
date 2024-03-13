@@ -40,9 +40,12 @@
   import { EditorConfigMake } from '@/util/Editor'
   import { MessageSuccess } from '@/util/Element'
   import { reloadWebServer } from '@/util/Service'
+  import IPC from '@/util/IPC'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
+  const { existsSync } = require('fs-extra')
+
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
   const props = defineProps<{
     item: any
@@ -65,10 +68,22 @@
   }
 
   const getConfig = () => {
-    readFileAsync(configpath.value).then((conf) => {
-      config.value = conf
-      initEditor()
-    })
+    if (!existsSync(configpath.value)) {
+      IPC.send('app-fork:host', 'initAllConf', JSON.parse(JSON.stringify(props.item.item))).then(
+        (key: string) => {
+          IPC.off(key)
+          readFileAsync(configpath.value).then((conf) => {
+            config.value = conf
+            initEditor()
+          })
+        }
+      )
+    } else {
+      readFileAsync(configpath.value).then((conf) => {
+        config.value = conf
+        initEditor()
+      })
+    }
   }
   const initEditor = () => {
     if (!monacoInstance) {

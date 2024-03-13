@@ -140,6 +140,24 @@ subjectAltName=@alt_names
     })
   }
 
+  async #initTmpl() {
+    const nginxtmpl = join(global.Server.Static!, 'tmpl/nginx.vhost')
+    const nginxSSLtmpl = join(global.Server.Static!, 'tmpl/nginxSSL.vhost')
+
+    const apachetmpl = join(global.Server.Static!, 'tmpl/apache.vhost')
+    const apacheSSLtmpl = join(global.Server.Static!, 'tmpl/apacheSSL.vhost')
+
+    const caddytmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhost')
+    const caddySSLtmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhostSSL')
+
+    this.NginxTmpl = await readFile(nginxtmpl, 'utf-8')
+    this.ApacheTmpl = await readFile(apachetmpl, 'utf-8')
+    this.NginxSSLTmpl = await readFile(nginxSSLtmpl, 'utf-8')
+    this.ApacheSSLTmpl = await readFile(apacheSSLtmpl, 'utf-8')
+    this.CaddyTmpl = await readFile(caddytmpl, 'utf-8')
+    this.CaddySSLTmpl = await readFile(caddySSLtmpl, 'utf-8')
+  }
+
   handleHost(host: AppHost, flag: string, old?: AppHost, park?: boolean) {
     return new ForkPromise(async (resolve) => {
       const hostfile = join(global.Server.BaseDir!, 'host.json')
@@ -240,27 +258,10 @@ subjectAltName=@alt_names
         })
       }
 
-      const initTmpl = async () => {
-        const nginxtmpl = join(global.Server.Static!, 'tmpl/nginx.vhost')
-        const nginxSSLtmpl = join(global.Server.Static!, 'tmpl/nginxSSL.vhost')
-
-        const apachetmpl = join(global.Server.Static!, 'tmpl/apache.vhost')
-        const apacheSSLtmpl = join(global.Server.Static!, 'tmpl/apacheSSL.vhost')
-
-        const caddytmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhost')
-        const caddySSLtmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhostSSL')
-
-        this.NginxTmpl = await readFile(nginxtmpl, 'utf-8')
-        this.ApacheTmpl = await readFile(apachetmpl, 'utf-8')
-        this.NginxSSLTmpl = await readFile(nginxSSLtmpl, 'utf-8')
-        this.ApacheSSLTmpl = await readFile(apacheSSLtmpl, 'utf-8')
-        this.CaddyTmpl = await readFile(caddytmpl, 'utf-8')
-        this.CaddySSLTmpl = await readFile(caddySSLtmpl, 'utf-8')
-      }
       let index: number
       switch (flag) {
         case 'add':
-          await initTmpl()
+          await this.#initTmpl()
           await this._addVhost(host, addApachePort, addApachePortSSL)
           await doPark()
           hostList.unshift(host)
@@ -275,7 +276,7 @@ subjectAltName=@alt_names
           await writeHostFile()
           break
         case 'edit':
-          await initTmpl()
+          await this.#initTmpl()
           const nginxConfPath = join(global.Server.BaseDir!, 'vhost/nginx/', `${old?.name}.conf`)
           const apacheConfPath = join(global.Server.BaseDir!, 'vhost/apache/', `${old?.name}.conf`)
           if (
@@ -558,6 +559,32 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     }
 
     await writeFile(avhost, atmpl)
+  }
+
+  initAllConf(host: AppHost) {
+    return new ForkPromise(async (resolve) => {
+      await this.#initTmpl()
+
+      const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
+      const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
+      const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
+
+      const nginxConfPath = join(nginxvpath, `${host.name}.conf`)
+      const apacheConfPath = join(apachevpath, `${host.name}.conf`)
+      const caddyConfPath = join(caddyvpath, `${host.name}.conf`)
+
+      if (!existsSync(nginxConfPath)) {
+        await this.#initNginxConf(host)
+      }
+      if (!existsSync(apacheConfPath)) {
+        await this.#initApacheConf(host)
+      }
+      if (!existsSync(caddyConfPath)) {
+        await this.#initCaddyConf(host)
+      }
+
+      resolve(true)
+    })
   }
 
   /**

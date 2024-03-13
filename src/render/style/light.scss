@@ -450,6 +450,12 @@ html.light {
       }
     }
   }
+
+  .app-el-message {
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--base-bg-color-1);
+    }
+  }
 }
 
 @media (max-width: 1100px) {

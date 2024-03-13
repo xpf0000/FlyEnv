@@ -130,11 +130,19 @@ body {
   max-width: 70vw;
   max-height: 70vh;
   overflow: auto;
+  align-items: start;
+
+  .el-message__icon {
+    align-self: center;
+  }
 
   .el-message__content {
+    height: 100%;
     word-wrap: break-word;
     white-space: pre-wrap;
     user-select: text;
+    word-break: break-word;
+    overflow: auto;
   }
 }
 .dns-panel {
@@ -2596,6 +2604,7 @@ body {
   user-select: text;
   font-size: 16px;
   padding-bottom: 80px;
+  line-height: 40px;
 
   a {
     text-decoration: none;
