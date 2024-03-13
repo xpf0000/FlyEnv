@@ -1,13 +1,13 @@
 import { reactive } from 'vue'
 
-export type EditorTheme = 'vs-dark' | 'vs-light' | 'hc-dark' | 'hc-light'
+export type EditorTheme = 'vs-dark' | 'vs-light' | 'hc-dark' | 'hc-light' | 'auto'
 export class EditorConfig {
   theme: EditorTheme
   fontSize: number
   lineHeight: number
 
   constructor() {
-    this.theme = 'vs-dark'
+    this.theme = 'auto'
     this.fontSize = 16
     this.lineHeight = 2.0
   }

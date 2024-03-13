@@ -26,18 +26,19 @@
           <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-30">
             <template v-for="(item, index) in versions" :key="index">
               <template v-if="!item?.version">
-                <el-tooltip
-                  :raw-content="true"
-                  :content="item?.error ?? $t('base.versionErrorTips')"
-                  popper-class="version-error-tips"
-                >
-                  <el-option
-                    :disabled="true"
-                    :label="$t('base.versionError') + ' - ' + item.path"
-                    :value="$t('base.versionError') + ' - ' + item.path"
-                  >
-                  </el-option>
-                </el-tooltip>
+                <el-popover popper-class="version-error-tips" width="auto" placement="top">
+                  <template #default>
+                    <span>{{ item?.error ?? $t('base.versionErrorTips') }}</span>
+                  </template>
+                  <template #reference>
+                    <el-option
+                      :disabled="true"
+                      :label="$t('base.versionError') + ' - ' + item.path"
+                      :value="$t('base.versionError') + ' - ' + item.path"
+                    >
+                    </el-option>
+                  </template>
+                </el-popover>
               </template>
               <template v-else>
                 <el-option

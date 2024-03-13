@@ -60,7 +60,7 @@
           <div class="park">
             <div class="title">
               <span>{{ $t('base.parkTitle') }}</span>
-              <el-popover placement="top" trigger="hover" :width="300">
+              <el-popover placement="top" trigger="hover" width="auto">
                 <template #reference>
                   <yb-icon
                     :svg="import('@/svg/question.svg?raw')"
@@ -119,26 +119,7 @@
           </div>
 
           <div class="port-set mb-20">
-            <div class="port-type">
-              <span>Apache</span>
-              <el-popover
-                placement="top-start"
-                :title="$t('base.attention')"
-                :width="300"
-                trigger="hover"
-              >
-                <template #reference>
-                  <yb-icon
-                    :svg="import('@/svg/question.svg?raw')"
-                    width="12"
-                    height="12"
-                    style="margin-left: 5px"
-                  ></yb-icon>
-                </template>
-                <p>{{ $t('base.apachePortTips1') }}</p>
-                <p>{{ $t('base.apachePortTips2') }}</p>
-              </el-popover>
-            </div>
+            <div class="port-type"> Apache </div>
             <input
               v-model.number="item.port.apache"
               type="number"
@@ -235,12 +216,7 @@
 
         <div class="plant-title">
           <span>Nginx Url Rewrite</span>
-          <el-popover
-            placement="top-start"
-            :title="$t('base.attention')"
-            :width="300"
-            trigger="hover"
-          >
+          <el-popover placement="top" :title="$t('base.attention')" width="auto" trigger="hover">
             <template #reference>
               <yb-icon
                 :svg="import('@/svg/question.svg?raw')"
@@ -287,6 +263,7 @@
   import { merge } from 'lodash'
   import { EditorConfigMake } from '@/util/Editor'
   import { MessageError } from '@/util/Element'
+  import { ElMessageBox } from 'element-plus'
 
   const { exec } = require('child-process-promise')
   const { dialog } = require('@electron/remote')
@@ -559,40 +536,53 @@
     if (!checkItem()) {
       return
     }
-    running.value = true
-    let flag = props.isEdit ? 'edit' : 'add'
-    let access = false
-    try {
-      accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
-      access = true
-      console.log('可以读写')
-    } catch (err) {
-      console.error('无权访问')
-    }
-    passwordCheck().then(() => {
-      item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
-      if (!access) {
-        exec(`echo '${password.value}' | sudo -S chmod 777 /private/etc`)
-          .then(() => {
-            return exec(`echo '${password.value}' | sudo -S chmod 777 /private/etc/hosts`)
-          })
-          .then(() => {
-            handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
-              running.value = false
-              show.value = false
-            })
-          })
-          .catch(() => {
-            MessageError(I18nT('base.hostNoRole'))
-            running.value = false
-          })
-      } else {
-        handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
-          running.value = false
-          show.value = false
-        })
+    const saveFn = () => {
+      running.value = true
+      let flag = props.isEdit ? 'edit' : 'add'
+      let access = false
+      try {
+        accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
+        access = true
+        console.log('可以读写')
+      } catch (err) {
+        console.error('无权访问')
       }
-    })
+      passwordCheck().then(() => {
+        item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
+        if (!access) {
+          exec(`echo '${password.value}' | sudo -S chmod 777 /private/etc`)
+            .then(() => {
+              return exec(`echo '${password.value}' | sudo -S chmod 777 /private/etc/hosts`)
+            })
+            .then(() => {
+              handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
+                running.value = false
+                show.value = false
+              })
+            })
+            .catch(() => {
+              MessageError(I18nT('base.hostNoRole'))
+              running.value = false
+            })
+        } else {
+          handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
+            running.value = false
+            show.value = false
+          })
+        }
+      })
+    }
+    if (!item.value.phpVersion && !props.isEdit) {
+      ElMessageBox.confirm(I18nT('host.noPhpWarning'), I18nT('host.warning'), {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
+        type: 'warning'
+      }).then(() => {
+        saveFn()
+      })
+    } else {
+      saveFn()
+    }
   }
 
   loadRewrite()

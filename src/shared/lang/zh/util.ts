@@ -75,5 +75,19 @@ export default {
 
   toolFileNotExist: '文件不存在',
   toolFileTooMore: '文件获取失败, 请勿一次清理太多文件',
-  toolSaveConfim: '确定保存?'
+  toolSaveConfim: '确定保存?',
+
+  auto: '自动',
+
+  noVerionsFoundInLib: '无可用版本',
+
+  noLibFound:
+    '未检测到 <a href="javascript:void();" onclick="openUrl(\'https://brew.sh/\')">Homebrew</a> 或 ' +
+    '<a href="javascript:void();" onclick="openUrl(\'https://www.macports.org/\')">Macports</a>, 版本管理不可用.\n' +
+    '如想安装 Macports, 可以点击此链接\n' +
+    '<a href="javascript:void();" onclick="openUrl(\'https://www.macports.org/install.php\')">https://www.macports.org/install.php</a>\n' +
+    '按照文档说明进行安装.\n' +
+    '如想安装 Homebrew, 可以点击此链接\n' +
+    '<a href="javascript:void();" onclick="openUrl(\'https://www.macphpstudy.com/zh/help-4-2.html\')">https://www.macphpstudy.com/zh/help-4-2.html</a>\n' +
+    '按照文档说明进行安装.'
 }

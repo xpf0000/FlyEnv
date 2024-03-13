@@ -4,14 +4,19 @@
       <div class="card-header">
         <div class="left">
           <span> PHP </span>
-          <el-tooltip :content="$t('base.customVersionDir')" :show-after="600">
-            <el-button
-              class="custom-folder-add-btn"
-              :icon="FolderAdd"
-              link
-              @click.stop="showCustomDir"
-            ></el-button>
-          </el-tooltip>
+          <el-popover :show-after="600" placement="top" width="auto">
+            <template #default>
+              <span>{{ $t('base.customVersionDir') }}</span>
+            </template>
+            <template #reference>
+              <el-button
+                class="custom-folder-add-btn"
+                :icon="FolderAdd"
+                link
+                @click.stop="showCustomDir"
+              ></el-button>
+            </template>
+          </el-popover>
         </div>
         <el-button class="button" :disabled="service?.fetching" link @click="resetData">
           <yb-icon
@@ -34,15 +39,16 @@
       <el-table-column :label="$t('base.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
-            <el-tooltip
-              :raw-content="true"
-              :content="scope.row?.error ?? $t('base.versionErrorTips')"
-              popper-class="version-error-tips"
-            >
-              <span class="path error" @click.stop="openDir(scope.row.path)">{{
-                scope.row.path
-              }}</span>
-            </el-tooltip>
+            <el-popover popper-class="version-error-tips" width="auto" placement="top">
+              <template #reference>
+                <span class="path error" @click.stop="openDir(scope.row.path)">{{
+                  scope.row.path
+                }}</span>
+              </template>
+              <template #default>
+                <span>{{ scope.row?.error ?? $t('base.versionErrorTips') }}</span>
+              </template>
+            </el-popover>
           </template>
           <template v-else>
             <span class="path" @click.stop="openDir(scope.row.path)">{{ scope.row.path }}</span>

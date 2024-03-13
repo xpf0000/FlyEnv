@@ -1,6 +1,3 @@
-Listen #Listen_Port_Apache#
-NameVirtualHost *:#Listen_Port_Apache#
-
 <VirtualHost *:#Port_Apache#>
     ServerAdmin webmaster@example.com
     DocumentRoot "#Server_Root#"
@@ -29,9 +26,6 @@ NameVirtualHost *:#Listen_Port_Apache#
         DirectoryIndex index.php index.html index.htm default.php default.html default.htm
     </Directory>
 </VirtualHost>
-
-Listen #Listen_Port_Apache_SSL#
-NameVirtualHost *:#Listen_Port_Apache_SSL#
 
 <VirtualHost *:#Port_Apache_SSL#>
     ServerAdmin webmasterexample.com

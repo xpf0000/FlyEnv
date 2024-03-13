@@ -3,13 +3,16 @@
     <div class="top-tab" :class="{ running: running }">
       <span class="title">DNS IP: </span>
       <span class="ip"> {{ ip }}</span>
-      <el-tooltip
-        popper-class="dns-tips-popper"
-        :show-after="800"
-        :content="$t('host.dnsInfo', { ip: `@${ip}` })"
-      >
-        <yb-icon :svg="import('@/svg/question.svg?raw')" width="17" height="17" />
-      </el-tooltip>
+      <el-popover popper-class="dns-tips-popper" :show-after="800" width="auto">
+        <template #default>
+          <div>
+            {{ $t('host.dnsInfo', { ip: `@${ip}` }) }}
+          </div>
+        </template>
+        <template #reference>
+          <yb-icon :svg="import('@/svg/question.svg?raw')" width="17" height="17" />
+        </template>
+      </el-popover>
     </div>
     <div class="main-block">
       <el-card>

@@ -12,7 +12,12 @@
       <span class="title">FTP</span>
     </div>
 
-    <el-switch :disabled="serviceDisabled" :value="serviceRunning" @change="switchChange">
+    <el-switch
+      :disabled="serviceDisabled"
+      :value="serviceRunning"
+      @click.stop="stopNav"
+      @change="switchChange"
+    >
     </el-switch>
   </li>
 </template>
@@ -94,6 +99,8 @@
       })
     })
   }
+
+  const stopNav = () => {}
 
   defineExpose({
     groupDo,

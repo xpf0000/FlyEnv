@@ -35,5 +35,12 @@ export default {
 
   phpMyAdminInstallTips:
     '未发现域名为phpmyadmin.phpwebstudy.test的phpMyAdmin站点, 是否下载phpMyAdmin并创建站点?',
-  phpMyAdminTaskRunning: '下载phpMyAdmin并创建站点'
+  phpMyAdminTaskRunning: '下载phpMyAdmin并创建站点',
+
+  warning: '提醒',
+  noPhpWarning: '未选择PHP版本, 将会创建一个静态站点, PHP文件将无法执行.确定继续?',
+
+  enable: '开启',
+
+  hostsWriteTips: '开启或关闭全部站点'
 }

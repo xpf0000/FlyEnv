@@ -9,6 +9,16 @@ body,
     padding: 11px 0;
   }
 }
+body {
+  .el-popper {
+    font-size: 16px;
+  }
+
+  .el-popover.el-popper {
+    font-size: 16px;
+    word-break: break-word;
+  }
+}
 #app {
   #container {
     .aside {
@@ -40,7 +50,6 @@ body,
 }
 .version-error-tips {
   max-width: 50vw !important;
-  font-size: 14px !important;
 }
 .soft-index-panel {
   height: 100%;
@@ -587,6 +596,10 @@ body,
       svg {
         margin-right: 8px;
         flex-shrink: 0;
+
+        &.active {
+          color: #01cc74;
+        }
       }
       &:hover {
         color: #409eff;
@@ -612,6 +625,7 @@ body,
   padding: 0;
   width: auto;
   overflow: hidden;
+  font-size: 14px;
 
   .host-list-menu {
     display: flex;
@@ -1474,7 +1488,6 @@ body,
   width: 35vw !important;
   max-height: 90vh !important;
   overflow: auto !important;
-  font-size: 12px;
 }
 .site-sucker {
   overflow: hidden;
@@ -2249,10 +2262,6 @@ body,
   display: flex;
   align-items: center;
 }
-.force-start-tooltip {
-  width: 300px;
-  overflow: hidden;
-}
 .el-dialog {
   &.host-link-dialog {
     .host-link {
@@ -2572,6 +2581,24 @@ body,
     align-items: center;
     justify-content: space-between;
     padding: 8px 10px;
+  }
+}
+.password-prompt {
+  .el-message-box__message {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    user-select: text;
+  }
+}
+.no-lib-found {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  user-select: text;
+  font-size: 16px;
+  padding-bottom: 80px;
+
+  a {
+    text-decoration: none;
   }
 }
 

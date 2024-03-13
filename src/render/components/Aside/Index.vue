@@ -2,16 +2,21 @@
   <el-aside width="280px" class="aside">
     <div class="aside-inner">
       <ul class="top-tool">
-        <el-tooltip :show-after="800" content="Documentation">
-          <li @click="toDoc">
-            <yb-icon
-              style="opacity: 0.7"
-              :svg="import('@/svg/question.svg?raw')"
-              width="17"
-              height="17"
-            />
-          </li>
-        </el-tooltip>
+        <el-popover :show-after="800">
+          <template #default>
+            <span>Documentation</span>
+          </template>
+          <template #reference>
+            <li @click="toDoc">
+              <yb-icon
+                style="opacity: 0.7"
+                :svg="import('@/svg/question.svg?raw')"
+                width="17"
+                height="17"
+              />
+            </li>
+          </template>
+        </el-popover>
         <li :class="groupClass" @click="groupDo">
           <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
         </li>

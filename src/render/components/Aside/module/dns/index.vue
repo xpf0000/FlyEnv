@@ -16,6 +16,7 @@
       :loading="serviceFetching"
       :disabled="serviceFetching"
       :value="serviceRunning"
+      @click.stop="stopNav"
       @change="switchChange"
     >
     </el-switch>
@@ -82,6 +83,8 @@
       })
     })
   }
+
+  const stopNav = () => {}
 
   defineExpose({
     groupDo,

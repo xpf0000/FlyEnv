@@ -22,10 +22,12 @@
                 $t('base.export')
               }}</el-dropdown-item>
               <el-dropdown-item command="import">{{ $t('base.import') }}</el-dropdown-item>
-              <el-dropdown-item divided command="hostsCopy">{{ $t('host.hostsCopy') }}</el-dropdown-item>
+              <el-dropdown-item divided command="hostsCopy">{{
+                $t('host.hostsCopy')
+              }}</el-dropdown-item>
               <el-dropdown-item command="hostsOpen">{{ $t('host.hostsOpen') }}</el-dropdown-item>
               <el-dropdown-item divided command="newProject">
-                <el-popover :show-after="600" placement="bottom" trigger="hover" width="300px">
+                <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
                   <template #reference>
                     <span>{{ $t('host.newProject') }}</span>
                   </template>
@@ -38,15 +40,15 @@
           </template>
         </el-dropdown>
       </el-button-group>
-      <el-popover :show-after="600" placement="bottom" trigger="hover" width="300px">
+      <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
         <template #reference>
           <li style="width: auto; padding: 0 15px; margin-left: 20px; margin-right: 10px">
-            <span style="margin-right: 10px">hosts: </span>
+            <span style="margin-right: 10px">{{ $t('host.enable') }}: </span>
             <el-switch v-model="hostsSet.write"></el-switch>
           </li>
         </template>
         <template #default>
-          <p>{{ $t('base.hostsWriteTips') }}</p>
+          <p>{{ $t('host.hostsWriteTips') }}</p>
         </template>
       </el-popover>
       <li class="no-hover" style="width: auto; padding: 0 15px; margin-right: 10px">

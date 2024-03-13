@@ -7,14 +7,14 @@ export const AsyncComponentShow = (compontent: any, data?: any) => {
     document.body.appendChild(dom)
     const vm: any = VueExtend(compontent, data)
     const intance = vm.mount(dom)
-    intance.onClosed(() => {
+    intance?.onClosed(() => {
       vm.unmount()
       intance?.$destroy && intance.$destroy()
       vm?.$destroy && vm.$destroy()
       dom && dom.remove()
       dom = null
     })
-    intance.onSubmit((arg: any) => {
+    intance?.onSubmit((arg: any) => {
       intance.show = false
       resolve(arg)
     })

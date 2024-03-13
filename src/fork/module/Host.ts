@@ -427,6 +427,139 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     } catch (e) {}
   }
 
+  async #initCaddyConf(host: AppHost) {
+    const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
+    await mkdirp(caddyvpath)
+    const httpNames: string[] = []
+    const httpsNames: string[] = []
+    hostAlias(host).forEach((h) => {
+      if (!host?.port?.caddy || host.port.caddy === 80) {
+        httpNames.push(`http://${h}`)
+      } else {
+        httpNames.push(`http://${h}:${host.port.caddy}`)
+      }
+      if (host.useSSL) {
+        httpsNames.push(`https://${h}:${host?.port?.caddy_ssl ?? 443}`)
+      }
+    })
+
+    const contentList: string[] = []
+
+    const hostName = host.name
+    const root = host.root
+    const phpv = host.phpVersion
+    const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
+
+    const httpHostNameAll = httpNames.join(',\n')
+    const content = this.CaddyTmpl.replace('##HOST-ALL##', httpHostNameAll)
+      .replace('##LOG-PATH##', logFile)
+      .replace('##ROOT##', root)
+      .replace('##PHP-VERSION##', `${phpv}`)
+    contentList.push(content)
+
+    if (host.useSSL) {
+      let tls = 'internal'
+      if (host.ssl.cert && host.ssl.key) {
+        tls = `${host.ssl.cert} ${host.ssl.key}`
+      }
+      const httpHostNameAll = httpsNames.join(',\n')
+      const content = this.CaddySSLTmpl.replace('##HOST-ALL##', httpHostNameAll)
+        .replace('##LOG-PATH##', logFile)
+        .replace('##SSL##', tls)
+        .replace('##ROOT##', root)
+        .replace('##PHP-VERSION##', `${phpv}`)
+      contentList.push(content)
+    }
+    const confFile = join(caddyvpath, `${host.name}.conf`)
+    await writeFile(confFile, contentList.join('\n'))
+  }
+
+  async #initNginxConf(host: AppHost) {
+    const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
+    const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
+    const logpath = join(global.Server.BaseDir!, 'vhost/logs')
+
+    await mkdirp(nginxvpath)
+    await mkdirp(rewritepath)
+    await mkdirp(logpath)
+
+    let ntmpl = this.NginxTmpl
+    if (host.useSSL) {
+      ntmpl = this.NginxSSLTmpl
+    }
+
+    const hostname = host.name
+    const nvhost = join(nginxvpath, `${hostname}.conf`)
+    const hostalias = hostAlias(host).join(' ')
+    ntmpl = ntmpl
+      .replace(/#Server_Alias#/g, hostalias)
+      .replace(/#Server_Root#/g, host.root)
+      .replace(/#Rewrite_Path#/g, rewritepath)
+      .replace(/#Server_Name#/g, hostname)
+      .replace(/#Log_Path#/g, logpath)
+      .replace(/#Server_Cert#/g, host.ssl.cert)
+      .replace(/#Server_CertKey#/g, host.ssl.key)
+      .replace(/#Port_Nginx#/g, `${host.port.nginx}`)
+      .replace(/#Port_Nginx_SSL#/g, `${host.port.nginx_ssl}`)
+
+    if (host.phpVersion) {
+      ntmpl = ntmpl.replace(
+        /include enable-php\.conf;/g,
+        `include enable-php-${host.phpVersion}.conf;`
+      )
+    } else {
+      ntmpl = ntmpl.replace(/include enable-php\.conf;/g, '##Static Site Nginx##')
+    }
+    await writeFile(nvhost, ntmpl)
+
+    const rewrite = host?.nginx?.rewrite?.trim() ?? ''
+    await writeFile(join(rewritepath, `${hostname}.conf`), rewrite)
+  }
+
+  async #initApacheConf(host: AppHost) {
+    const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
+    const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
+    const logpath = join(global.Server.BaseDir!, 'vhost/logs')
+
+    await mkdirp(apachevpath)
+    await mkdirp(rewritepath)
+    await mkdirp(logpath)
+
+    let atmpl = this.ApacheTmpl
+
+    if (host.useSSL) {
+      atmpl = this.ApacheSSLTmpl
+    }
+
+    const hostname = host.name
+    const avhost = join(apachevpath, `${hostname}.conf`)
+    const hostalias = hostAlias(host).join(' ')
+
+    atmpl = atmpl
+      .replace(/#Server_Alias#/g, hostalias)
+      .replace(/#Server_Root#/g, host.root)
+      .replace(/#Rewrite_Path#/g, rewritepath)
+      .replace(/#Server_Name#/g, hostname)
+      .replace(/#Log_Path#/g, logpath)
+      .replace(/#Server_Cert#/g, host.ssl.cert)
+      .replace(/#Server_CertKey#/g, host.ssl.key)
+      .replace(/#Port_Apache#/g, `${host.port.apache}`)
+      .replace(/#Port_Apache_SSL#/g, `${host.port.apache_ssl}`)
+    if (host.phpVersion) {
+      atmpl = atmpl.replace(
+        /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
+        `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
+      )
+    } else {
+      atmpl = atmpl.replace(
+        /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
+        '##Static Site Apache##'
+      )
+    }
+
+    await writeFile(avhost, atmpl)
+  }
+
   /**
    * 增量更新
    * @param host
@@ -445,6 +578,13 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
       const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
       const logpath = join(global.Server.BaseDir!, 'vhost/logs')
+
+      await mkdirp(nginxvpath)
+      await mkdirp(apachevpath)
+      await mkdirp(caddyvpath)
+      await mkdirp(rewritepath)
+      await mkdirp(logpath)
+
       if (host.name !== old.name) {
         const nvhost = {
           oldFile: join(nginxvpath, `${old.name}.conf`),
@@ -501,7 +641,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${f.oldFile}`)
           }
           if (existsSync(f.newFile)) {
-            await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 644 ${f.newFile}`)
+            await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 777 ${f.newFile}`)
           }
         }
       }
@@ -510,9 +650,20 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       const caddyConfPath = join(caddyvpath, `${host.name}.conf`)
       let hasChanged = false
 
+      if (!existsSync(nginxConfPath)) {
+        await this.#initNginxConf(host)
+      }
+      if (!existsSync(apacheConfPath)) {
+        await this.#initApacheConf(host)
+      }
+      if (!existsSync(caddyConfPath)) {
+        await this.#initCaddyConf(host)
+      }
+
       let contentNginxConf = await readFile(nginxConfPath, 'utf-8')
       let contentApacheConf = await readFile(apacheConfPath, 'utf-8')
       let contentCaddyConf = await readFile(caddyConfPath, 'utf-8')
+
       const find: Array<string> = []
       const replace: Array<string> = []
       if (host.name !== old.name) {
@@ -774,142 +925,9 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           }
         }
 
-        const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
-        const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
-        const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
-        const logpath = join(global.Server.BaseDir!, 'vhost/logs')
-        const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
-
-        await mkdirp(nginxvpath)
-        await mkdirp(apachevpath)
-        await mkdirp(rewritepath)
-        await mkdirp(logpath)
-        await mkdirp(caddyvpath)
-
-        /**
-         * 添加caddy vhost
-         */
-        const makeCaddyConf = async () => {
-          const httpNames: string[] = []
-          const httpsNames: string[] = []
-          hostAlias(host).forEach((h) => {
-            if (!host?.port?.caddy || host.port.caddy === 80) {
-              httpNames.push(`http://${h}`)
-            } else {
-              httpNames.push(`http://${h}:${host.port.caddy}`)
-            }
-            if (host.useSSL) {
-              httpsNames.push(`https://${h}:${host?.port?.caddy_ssl ?? 443}`)
-            }
-          })
-
-          const contentList: string[] = []
-
-          const hostName = host.name
-          const root = host.root
-          const phpv = host.phpVersion
-          const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
-
-          const httpHostNameAll = httpNames.join(',\n')
-          const content = this.CaddyTmpl.replace('##HOST-ALL##', httpHostNameAll)
-            .replace('##LOG-PATH##', logFile)
-            .replace('##ROOT##', root)
-            .replace('##PHP-VERSION##', `${phpv}`)
-          contentList.push(content)
-
-          if (host.useSSL) {
-            let tls = 'internal'
-            if (host.ssl.cert && host.ssl.key) {
-              tls = `${host.ssl.cert} ${host.ssl.key}`
-            }
-            const httpHostNameAll = httpsNames.join(',\n')
-            const content = this.CaddySSLTmpl.replace('##HOST-ALL##', httpHostNameAll)
-              .replace('##LOG-PATH##', logFile)
-              .replace('##SSL##', tls)
-              .replace('##ROOT##', root)
-              .replace('##PHP-VERSION##', `${phpv}`)
-            contentList.push(content)
-          }
-          const confFile = join(caddyvpath, `${host.name}.conf`)
-          await writeFile(confFile, contentList.join('\n'))
-        }
-        await makeCaddyConf()
-
-        let ntmpl = this.NginxTmpl
-        let atmpl = this.ApacheTmpl
-
-        if (host.useSSL) {
-          ntmpl = this.NginxSSLTmpl
-          atmpl = this.ApacheSSLTmpl
-        }
-
-        const hostname = host.name
-        const nvhost = join(nginxvpath, `${hostname}.conf`)
-        const avhost = join(apachevpath, `${hostname}.conf`)
-        const hostalias = hostAlias(host).join(' ')
-        ntmpl = ntmpl
-          .replace(/#Server_Alias#/g, hostalias)
-          .replace(/#Server_Root#/g, host.root)
-          .replace(/#Rewrite_Path#/g, rewritepath)
-          .replace(/#Server_Name#/g, hostname)
-          .replace(/#Log_Path#/g, logpath)
-          .replace(/#Server_Cert#/g, host.ssl.cert)
-          .replace(/#Server_CertKey#/g, host.ssl.key)
-          .replace(/#Port_Nginx#/g, `${host.port.nginx}`)
-          .replace(/#Port_Nginx_SSL#/g, `${host.port.nginx_ssl}`)
-
-        if (host.phpVersion) {
-          ntmpl = ntmpl.replace(
-            /include enable-php\.conf;/g,
-            `include enable-php-${host.phpVersion}.conf;`
-          )
-        } else {
-          ntmpl = ntmpl.replace(/include enable-php\.conf;/g, '##Static Site Nginx##')
-        }
-        await writeFile(nvhost, ntmpl)
-
-        atmpl = atmpl
-          .replace(/#Server_Alias#/g, hostalias)
-          .replace(/#Server_Root#/g, host.root)
-          .replace(/#Rewrite_Path#/g, rewritepath)
-          .replace(/#Server_Name#/g, hostname)
-          .replace(/#Log_Path#/g, logpath)
-          .replace(/#Server_Cert#/g, host.ssl.cert)
-          .replace(/#Server_CertKey#/g, host.ssl.key)
-          .replace(/#Port_Apache#/g, `${host.port.apache}`)
-          .replace(/#Port_Apache_SSL#/g, `${host.port.apache_ssl}`)
-        if (host.phpVersion) {
-          atmpl = atmpl.replace(
-            /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
-            `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
-          )
-        } else {
-          atmpl = atmpl.replace(
-            /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
-            '##Static Site Apache##'
-          )
-        }
-
-        if (addApachePort) {
-          atmpl = atmpl.replace(/#Listen_Port_Apache#/g, `${host.port.apache}`)
-        } else {
-          atmpl = atmpl
-            .replace('Listen #Listen_Port_Apache#\n', '')
-            .replace('NameVirtualHost *:#Listen_Port_Apache#\n', '')
-        }
-
-        if (addApachePortSSL) {
-          atmpl = atmpl.replace(/#Listen_Port_Apache_SSL#/g, `${host.port.apache_ssl}`)
-        } else {
-          atmpl = atmpl
-            .replace('Listen #Listen_Port_Apache_SSL#\n', '')
-            .replace('NameVirtualHost *:#Listen_Port_Apache_SSL#\n', '')
-        }
-
-        await writeFile(avhost, atmpl)
-
-        const rewrite = host?.nginx?.rewrite?.trim() ?? ''
-        await writeFile(join(rewritepath, `${hostname}.conf`), rewrite)
+        await this.#initCaddyConf(host)
+        await this.#initNginxConf(host)
+        await this.#initApacheConf(host)
         if (chmod) {
           await this.#setDirRole(host.root)
         }

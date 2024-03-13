@@ -1,6 +1,6 @@
 import IPC from '@/util/IPC'
 import { BrewStore, type SoftInstalled } from '@/store/brew'
-import { AllAppSofts, AppStore } from '@/store/app'
+import { AllAppSofts, type AppHost, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
 import { DnsStore } from '@/store/dns'
 import { I18nT } from '@shared/lang'
@@ -95,24 +95,82 @@ export const dnsStop = (): Promise<boolean> => {
   })
 }
 
-export const reloadWebServer = () => {
+export const reloadWebServer = (hosts?: Array<AppHost>) => {
   const brewStore = BrewStore()
+  let useSeted = false
 
   const apacheRunning = brewStore.apache.installed.find((a) => a.run)
   const apacheTaskRunning = brewStore.apache.installed.some((a) => a.running)
   if (apacheRunning && !apacheTaskRunning) {
     startService('apache', apacheRunning).then()
+    useSeted = true
   }
 
   const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
   const nginxTaskRunning = brewStore.nginx.installed.some((a) => a.running)
   if (nginxRunning && !nginxTaskRunning) {
     startService('nginx', nginxRunning).then()
+    useSeted = true
   }
 
   const caddyRunning = brewStore.caddy.installed.find((a) => a.run)
   const caddyTaskRunning = brewStore.caddy.installed.some((a) => a.running)
   if (caddyRunning && !caddyTaskRunning) {
     startService('caddy', caddyRunning).then()
+    useSeted = true
+  }
+
+  if (useSeted || !hosts || hosts?.length > 1) {
+    return
+  }
+
+  if (hosts && hosts?.length === 1) {
+    const appStore = AppStore()
+
+    const currentApacheGet = () => {
+      const current = appStore.config.server?.apache?.current
+      const installed = brewStore?.apache?.installed
+      if (!current) {
+        return installed?.find((i) => !!i.path && !!i.version)
+      }
+      return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+    }
+
+    const currentNginxGet = () => {
+      const current = appStore.config.server?.nginx?.current
+      const installed = brewStore?.nginx?.installed
+      if (!current) {
+        return installed?.find((i) => !!i.path && !!i.version)
+      }
+      return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+    }
+
+    const currentCaddyGet = () => {
+      const current = appStore.config.server?.caddy?.current
+      const installed = brewStore?.caddy?.installed
+      if (!current) {
+        return installed?.find((i) => !!i.path && !!i.version)
+      }
+      return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+    }
+    const caddy = currentCaddyGet()
+    const nginx = currentNginxGet()
+    const apache = currentApacheGet()
+    if (caddy) {
+      startService('caddy', caddy).then()
+    } else if (nginx) {
+      startService('nginx', nginx).then()
+    } else if (apache) {
+      startService('apache', apache).then()
+    }
+
+    const host = [...hosts].pop()
+    if (host?.phpVersion) {
+      const phpVersions = brewStore?.php?.installed ?? []
+      const php = phpVersions?.find((p) => p.num === host.phpVersion)
+      if (php) {
+        startService('php', php).then()
+      }
+    }
   }
 }

@@ -27,7 +27,12 @@
             <template v-else>
               <QrcodePopper :url="scope.row.name">
                 <div class="link" @click.stop="openSite(scope.row)">
-                  <yb-icon :svg="import('@/svg/link.svg?raw')" width="18" height="18" />
+                  <yb-icon
+                    :class="{ active: linkEnable }"
+                    :svg="import('@/svg/link.svg?raw')"
+                    width="18"
+                    height="18"
+                  />
                   <span>
                     {{ siteName(scope.row) }}
                   </span>
@@ -63,11 +68,16 @@
               <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>
             </template>
             <template v-else>
-              <el-tooltip :content="`${scope.row.mark}`" :show-after="800">
-                <span style="display: inline-block; max-width: 100%">
-                  {{ scope.row.mark }}
-                </span>
-              </el-tooltip>
+              <el-popover width="auto" :show-after="800" placement="top">
+                <template #default>
+                  <span>{{ scope.row.mark }}</span>
+                </template>
+                <template #reference>
+                  <span style="display: inline-block; max-width: 100%">
+                    {{ scope.row.mark }}
+                  </span>
+                </template>
+              </el-popover>
             </template>
           </template>
         </el-table-column>
@@ -241,6 +251,13 @@
 
   const writeHosts = computed(() => {
     return appStore.config.setup.hosts.write
+  })
+
+  const linkEnable = computed(() => {
+    const apacheRunning = brewStore.apache.installed.find((a) => a.run)
+    const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
+    const caddyRunning = brewStore.caddy.installed.find((a) => a.run)
+    return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning)
   })
 
   if (!hosts?.value || hosts?.value?.length === 0) {

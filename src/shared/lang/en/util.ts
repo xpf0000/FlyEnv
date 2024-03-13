@@ -77,5 +77,19 @@ export default {
 
   toolFileNotExist: 'File does not exist',
   toolFileTooMore: 'Failed to get file, please do not clean up too many files at once.',
-  toolSaveConfim: 'Are you sure you want to save it?'
+  toolSaveConfim: 'Are you sure you want to save it?',
+
+  auto: 'Auto',
+
+  noVerionsFoundInLib: 'No available version',
+
+  noLibFound:
+    '<a href="javascript:void();" onclick="openUrl(\'https://brew.sh/\')">Homebrew</a> or ' +
+    '<a href="javascript:void();" onclick="openUrl(\'https://www.macports.org/\')">Macports</a> is not found, version manage is not available.\n' +
+    'Install Macports, you can click on this link\n' +
+    '<a href="javascript:void();" onclick="openUrl(\'https://www.macports.org/install.php\')">https://www.macports.org/install.php</a>\n' +
+    'Follow the documentation to install.\n' +
+    'Install Homebrew, you can click on this link\n' +
+    '<a href="javascript:void();" onclick="openUrl(\'https://www.macphpstudy.com/zh/help-4-2.html\')">https://www.macphpstudy.com/zh/help-4-2.html</a>\n' +
+    'Follow the documentation to install.'
 }

@@ -105,43 +105,63 @@
             >
               <template v-if="version?.version" #default="scope">
                 <template v-if="scope.row.status">
-                  <el-tooltip :content="$t('base.copyLink')" :show-after="600">
-                    <el-button
-                      type="primary"
-                      link
-                      :icon="Link"
-                      @click="copyLink(scope.$index, scope.row)"
-                    ></el-button>
-                  </el-tooltip>
-                  <template v-if="scope.row.name === 'xdebug'">
-                    <el-tooltip :content="$t('php.copyConfTemplate')" :show-after="600">
+                  <el-popover :show-after="600" placement="top" width="auto">
+                    <template #default>
+                      <span>{{ $t('base.copyLink') }}</span>
+                    </template>
+                    <template #reference>
                       <el-button
                         type="primary"
                         link
-                        :icon="Document"
-                        @click="copyXDebugTmpl(scope.$index, scope.row)"
+                        :icon="Link"
+                        @click="copyLink(scope.$index, scope.row)"
                       ></el-button>
-                    </el-tooltip>
+                    </template>
+                  </el-popover>
+                  <template v-if="scope.row.name === 'xdebug'">
+                    <el-popover :show-after="600" placement="top" width="auto">
+                      <template #default>
+                        <span>{{ $t('php.copyConfTemplate') }}</span>
+                      </template>
+                      <template #reference>
+                        <el-button
+                          type="primary"
+                          link
+                          :icon="Document"
+                          @click="copyXDebugTmpl(scope.$index, scope.row)"
+                        ></el-button>
+                      </template>
+                    </el-popover>
                   </template>
-                  <el-tooltip :content="$t('base.del')" :show-after="600">
-                    <el-button
-                      type="primary"
-                      link
-                      :icon="Delete"
-                      @click="doDel(scope.$index, scope.row)"
-                    ></el-button>
-                  </el-tooltip>
+                  <el-popover :show-after="600" placement="top" width="auto">
+                    <template #default>
+                      <span>{{ $t('base.del') }}</span>
+                    </template>
+                    <template #reference>
+                      <el-button
+                        type="primary"
+                        link
+                        :icon="Delete"
+                        @click="doDel(scope.$index, scope.row)"
+                      ></el-button>
+                    </template>
+                  </el-popover>
                 </template>
                 <template v-else>
-                  <el-tooltip :content="$t('base.install')" :show-after="600">
-                    <el-button
-                      :disabled="brewRunning || !version?.version"
-                      type="primary"
-                      link
-                      :icon="Download"
-                      @click="handleEdit(scope.$index, scope.row)"
-                    ></el-button>
-                  </el-tooltip>
+                  <el-popover :show-after="600" placement="top" width="auto">
+                    <template #default>
+                      <span>{{ $t('base.install') }}</span>
+                    </template>
+                    <template #reference>
+                      <el-button
+                        :disabled="brewRunning || !version?.version"
+                        type="primary"
+                        link
+                        :icon="Download"
+                        @click="handleEdit(scope.$index, scope.row)"
+                      ></el-button>
+                    </template>
+                  </el-popover>
                 </template>
               </template>
             </el-table-column>

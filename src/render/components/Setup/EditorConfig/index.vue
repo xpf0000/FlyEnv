@@ -8,6 +8,7 @@
             <el-radio-button label="vs-light" />
             <el-radio-button label="hc-black" />
             <el-radio-button label="hc-light" />
+            <el-radio-button label="auto">{{ $t('util.auto') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="$t('util.fontSize')">
@@ -24,7 +25,7 @@
 
 <script lang="ts" setup>
   import { AppStore } from '@/store/app'
-  import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
@@ -32,6 +33,7 @@
 
   const { readFile } = require('fs-extra')
   const { join } = require('path')
+  const { nativeTheme } = require('@electron/remote')
 
   const wapper = ref()
   const appStore = AppStore()
@@ -43,6 +45,27 @@
   })
   let monacoInstance: editor.IStandaloneCodeEditor | null = null
 
+  const index = ref(1)
+
+  const currentTheme = computed(() => {
+    if (index.value < 0) {
+      return 'vs-light'
+    }
+    let theme = editorConfig.value.theme
+    if (theme === 'auto') {
+      let appTheme = appStore?.config?.setup?.theme
+      if (!appTheme || appTheme === 'system') {
+        appTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+      }
+      if (appTheme === 'light') {
+        theme = 'vs-light'
+      } else {
+        theme = 'vs-dark'
+      }
+    }
+    return theme
+  })
+
   const initEditor = () => {
     monacoInstance = editor.create(wapper.value, {
       value: EditorConfigMap.text,
@@ -50,7 +73,7 @@
       scrollBeyondLastLine: false,
       overviewRulerBorder: true,
       automaticLayout: true,
-      theme: editorConfig.value.theme,
+      theme: currentTheme.value,
       fontSize: editorConfig.value.fontSize,
       lineHeight: editorConfig.value.lineHeight
     })
@@ -76,7 +99,7 @@
     editorConfig,
     () => {
       monacoInstance?.updateOptions({
-        theme: editorConfig.value.theme,
+        theme: currentTheme.value,
         fontSize: editorConfig.value.fontSize,
         lineHeight: editorConfig.value.lineHeight
       })
@@ -86,4 +109,22 @@
       deep: true
     }
   )
+
+  const onNativeThemeUpdate = () => {
+    index.value += 1
+    nextTick().then(() => {
+      monacoInstance?.updateOptions({
+        theme: currentTheme.value,
+        fontSize: editorConfig.value.fontSize,
+        lineHeight: editorConfig.value.lineHeight
+      })
+    })
+  }
+
+  nativeTheme.on('updated', onNativeThemeUpdate)
+
+  onUnmounted(() => {
+    console.log('EditorConfig onUnmounted !!!')
+    nativeTheme.removeListener('updated', onNativeThemeUpdate)
+  })
 </script>

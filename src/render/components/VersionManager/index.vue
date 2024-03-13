@@ -34,14 +34,18 @@
         <div ref="logs" class="logs"></div>
       </div>
     </template>
-    <el-table
-      v-else
-      :empty-text="$t('base.gettingVersion')"
-      height="100%"
-      :data="tableData"
-      :border="false"
-      style="width: 100%"
-    >
+    <el-table v-else height="100%" :data="tableData" :border="false" style="width: 100%">
+      <template #empty>
+        <template v-if="!checkBrew() && !checkPort()">
+          <div class="no-lib-found" v-html="$t('util.noLibFound')"></div>
+        </template>
+        <template v-else-if="currentType.getListing">
+          {{ $t('base.gettingVersion') }}
+        </template>
+        <template v-else>
+          {{ $t('util.noVerionsFoundInLib') }}
+        </template>
+      </template>
       <el-table-column prop="name">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{

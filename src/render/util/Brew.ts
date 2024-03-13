@@ -19,7 +19,7 @@ export const passwordCheck = () => {
   return new Promise((resolve, reject) => {
     global.Server = getGlobal('Server')
     if (!global.Server.Password) {
-      ElMessageBox.prompt(I18nT('base.inputPassword'), {
+      ElMessageBox.prompt(I18nT('base.inputPasswordDesc'), I18nT('base.inputPassword'), {
         confirmButtonText: I18nT('base.confirm'),
         cancelButtonText: I18nT('base.cancel'),
         inputType: 'password',
