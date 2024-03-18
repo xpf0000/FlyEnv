@@ -393,6 +393,18 @@ html.light {
           }
         }
       }
+
+      &.json-parse {
+        .main {
+          background: #fff;
+
+          >.left,
+          >.right {
+            background: var(--base-bg-color-1);
+            backdrop-filter: blur(5px);
+          }
+        }
+      }
     }
 
     .host-logs {

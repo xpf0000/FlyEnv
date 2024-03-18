@@ -1,6 +1,10 @@
 <template>
   <div class="main-right-panel">
     <ul class="tools-panel">
+      <li @click="showPage('json')">
+        <yb-icon :svg="import('@/svg/json1.svg?raw')" width="30" height="30" />
+        <span>JSON解析</span>
+      </li>
       <li @click="showPage('env')">
         <yb-icon :svg="import('@/svg/env.svg?raw')" width="30" height="30" />
         <span>{{ $t('util.toolSystemEnv') }}</span>
@@ -81,6 +85,9 @@
       showPage(flag) {
         this.show = true
         switch (flag) {
+          case 'json':
+            this.component = markRaw(defineAsyncComponent(() => import('./Json/Index.vue')))
+            break
           case 'env':
             this.component = markRaw(defineAsyncComponent(() => import('./SystenEnv/index.vue')))
             break

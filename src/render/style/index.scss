@@ -529,6 +529,47 @@ body {
       }
     }
   }
+
+  &.json-parse {
+    .main {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-wrap: nowrap;
+      flex-direction: row;
+
+      >.left,
+      >.right {
+        height: 100%;
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+
+        >.top {
+          flex-shrink: 0;
+        }
+
+        >.editor {
+          flex: 1;
+        }
+      }
+
+      >.center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 30px;
+        padding: 0 12px;
+
+        >.el-button {
+          margin: 0;
+        }
+      }
+    }
+  }
 }
 .host-list {
   display: flex;
