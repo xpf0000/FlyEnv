@@ -549,6 +549,17 @@ body {
 
         >.top {
           flex-shrink: 0;
+          display: flex;
+          align-items: center;
+
+          >.el-select {
+            flex: 1;
+          }
+          >.el-button {
+            flex-shrink: 0;
+            margin-left: 6px;
+            margin-right: 0;
+          }
         }
 
         >.editor {
