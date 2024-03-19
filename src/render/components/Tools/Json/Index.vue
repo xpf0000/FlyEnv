@@ -10,8 +10,10 @@
     <div class="main-wapper">
       <div class="main">
         <div class="left">
-          <div class="top"></div>
-          <div ref="fromRef" class="editor"></div>
+          <div class="top">
+            <span>{{ currentType }}</span>
+          </div>
+          <div ref="fromRef" class="editor el-input__wrapper"></div>
         </div>
         <div class="center">
           <el-button :icon="Right"></el-button>
@@ -34,7 +36,7 @@
               <yb-icon :svg="import('@/svg/desc1.svg?raw')" width="18" height="18" />
             </el-button>
           </div>
-          <div ref="toRef" class="editor"></div>
+          <div ref="toRef" class="editor el-input__wrapper"></div>
         </div>
       </div>
     </div>
@@ -46,6 +48,7 @@
   import { Right, Back } from '@element-plus/icons-vue'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
+  import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution.js'
   import 'monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution.js'
@@ -54,6 +57,8 @@
   import 'monaco-editor/esm/vs/basic-languages/php/php.contribution.js'
   import 'monaco-editor/esm/vs/language/json/monaco.contribution.js'
   import { AppStore } from '@/store/app'
+  import JSON5 from 'json5'
+  import { JSONSort } from '@shared/JsonSort'
 
   const { nativeTheme } = require('@electron/remote')
 
@@ -82,7 +87,7 @@
     }
     return {
       value: '',
-      language: 'ini',
+      language: 'javascript',
       readOnly: false,
       scrollBeyondLastLine: false,
       overviewRulerBorder: true,
@@ -90,13 +95,70 @@
       wordWrap: 'on',
       theme: theme,
       fontSize: editorConfig.fontSize,
-      lineHeight: editorConfig.lineHeight
+      lineHeight: editorConfig.lineHeight,
+      lineNumbersMinChars: 2,
+      folding: true,
+      showFoldingControls: 'always',
+      foldingStrategy: 'indentation',
+      foldingImportsByDefault: true,
+      formatOnPaste: true //是否粘贴自动格式化
+    }
+  }
+
+  let currentValue = ''
+  let currentJsonValue = {}
+  let currentType = ref('')
+
+  const checkFrom = () => {
+    let type = ''
+    try {
+      currentJsonValue = JSON5.parse(currentValue)
+      type = 'JSON'
+    } catch (e) {
+      currentJsonValue = ''
+      console.log('e 000: ', e)
+      type = ''
+    }
+    console.log('type 000: ', type, currentJsonValue)
+    if (type) {
+      currentType.value = type
+      currentJsonValue = JSONSort(currentJsonValue)
+      let value = ''
+      if (to.value === 'json') {
+        value = JSON.stringify(currentJsonValue, null, 4)
+      } else if (to.value === 'js') {
+        value = JSON5.stringify(currentJsonValue, {
+          space: 4,
+          quote: null
+        })
+      }
+      toEditor?.setValue(value)
+      return
+    }
+
+    try {
+      const obj = eval(currentValue)
+      const rawType = Object.prototype.toString.call(obj)
+      console.log('rawType: ', rawType)
+      if (['[object Object]', '[object Array]'].includes(rawType)) {
+        type = 'JavaScript'
+      }
+    } catch (e) {
+      console.log('e 111: ', e)
+      type = ''
+    }
+    console.log('type 111: ', type)
+    if (type) {
+      currentType.value = type
+      return
     }
   }
 
   const onFromChanged = () => {
-    const value = fromEditor?.getValue()
+    const value = fromEditor?.getValue() ?? ''
     console.log('onFromChanged: ', value)
+    currentValue = value
+    checkFrom()
   }
   const initFromEditor = () => {
     if (!fromEditor) {

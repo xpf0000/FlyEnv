@@ -82,6 +82,7 @@
     "eslint-loader": "^2.1.2",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-vue": "^7.18.0",
+    "json5": "^2.2.3",
     "md5": "^2.3.0",
     "moment": "^2.29.3",
     "monaco-editor": "^0.34.1",

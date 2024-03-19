@@ -59,7 +59,7 @@
     <el-drawer
       ref="host-edit-drawer"
       v-model="show"
-      size="75%"
+      :size="width"
       :destroy-on-close="true"
       class="host-edit-drawer"
       :with-header="false"
@@ -77,15 +77,18 @@
     data() {
       return {
         show: false,
-        component: null
+        component: null,
+        width: '75%'
       }
     },
     computed: {},
     methods: {
       showPage(flag) {
+        this.width = '75%'
         this.show = true
         switch (flag) {
           case 'json':
+            this.width = '90%'
             this.component = markRaw(defineAsyncComponent(() => import('./Json/Index.vue')))
             break
           case 'env':

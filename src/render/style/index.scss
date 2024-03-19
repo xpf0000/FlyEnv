@@ -550,7 +550,7 @@ body {
         >.top {
           flex-shrink: 0;
           display: flex;
-          align-items: center;
+          height: 44px;
 
           >.el-select {
             flex: 1;
@@ -563,7 +563,13 @@ body {
         }
 
         >.editor {
-          flex: 1;
+          overflow: hidden;
+          padding: 0;
+          border: 1px solid var(--el-border-color);
+
+          &:hover {
+            box-shadow: 0 0 0 1px var(--el-input-border-color,var(--el-border-color)) inset;
+          }
         }
       }
 
