@@ -8,17 +8,14 @@
     </div>
 
     <div class="main-wapper">
-      <div class="main">
-        <div class="left">
+      <div ref="mainRef" class="main">
+        <div class="left" :style="leftStyle">
           <div class="top">
             <span>{{ currentType }}</span>
           </div>
           <div ref="fromRef" class="editor el-input__wrapper"></div>
         </div>
-        <div class="center">
-          <el-button :icon="Right"></el-button>
-          <el-button :icon="Back"></el-button>
-        </div>
+        <div ref="moveRef" class="handle" @mousedown.stop="HandleMoveMouseDown"></div>
         <div class="right">
           <div class="top">
             <el-select v-model="to">
@@ -29,12 +26,17 @@
               <el-option label="YAML" value="yml"></el-option>
               <el-option label="XML" value="xml"></el-option>
             </el-select>
-            <el-button>
-              <yb-icon :svg="import('@/svg/asc1.svg?raw')" width="18" height="18" />
-            </el-button>
-            <el-button>
-              <yb-icon :svg="import('@/svg/desc1.svg?raw')" width="18" height="18" />
-            </el-button>
+            <el-button-group>
+              <el-button @click.stop="transformTo('asc')">
+                <yb-icon :svg="import('@/svg/asc1.svg?raw')" width="18" height="18" />
+              </el-button>
+              <el-button @click.stop="transformTo('desc')">
+                <yb-icon :svg="import('@/svg/desc1.svg?raw')" width="18" height="18" />
+              </el-button>
+              <el-button @click.stop="transformTo(undefined)">
+                <yb-icon :svg="import('@/svg/nosort.svg?raw')" width="18" height="18" />
+              </el-button>
+            </el-button-group>
           </div>
           <div ref="toRef" class="editor el-input__wrapper"></div>
         </div>
@@ -44,11 +46,11 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref } from 'vue'
-  import { Right, Back } from '@element-plus/icons-vue'
+  import { onMounted, ref, watch } from 'vue'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js'
+  import 'monaco-editor/esm/vs/editor/contrib/format/browser/formatActions.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution.js'
   import 'monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution.js'
@@ -59,13 +61,17 @@
   import { AppStore } from '@/store/app'
   import JSON5 from 'json5'
   import { JSONSort } from '@shared/JsonSort'
+  import { PHPArrayParse } from '@shared/PHPArrayParse'
+  import XMLParse from '@shared/XMLParse'
 
   const { nativeTheme } = require('@electron/remote')
 
   const emit = defineEmits(['doClose'])
   const to = ref('json')
+  const moveRef = ref()
   const fromRef = ref()
   const toRef = ref()
+  const mainRef = ref()
 
   let fromEditor: editor.IStandaloneCodeEditor | null
   let toEditor: editor.IStandaloneCodeEditor | null
@@ -88,7 +94,6 @@
     return {
       value: '',
       language: 'javascript',
-      readOnly: false,
       scrollBeyondLastLine: false,
       overviewRulerBorder: true,
       automaticLayout: true,
@@ -100,56 +105,97 @@
       folding: true,
       showFoldingControls: 'always',
       foldingStrategy: 'indentation',
-      foldingImportsByDefault: true,
-      formatOnPaste: true //是否粘贴自动格式化
+      foldingImportsByDefault: true
     }
   }
 
   let currentValue = ''
-  let currentJsonValue = {}
-  let currentType = ref('')
+  let currentJsonValue: any = {}
+  let currentType = ref('请输入内容')
 
+  const transformTo = (sort?: 'asc' | 'desc') => {
+    if (!currentJsonValue) {
+      toEditor?.setValue('输入内容格式不正确')
+      return
+    }
+    let json = JSON.parse(JSON.stringify(currentJsonValue))
+    if (sort) {
+      json = JSONSort(json, sort)
+    }
+    let value = ''
+    if (to.value === 'json') {
+      value = JSON.stringify(json, null, 4)
+    } else if (to.value === 'js') {
+      value = JSON5.stringify(json, {
+        space: 4,
+        quote: null
+      })
+    } else if (to.value === 'php') {
+      if (currentType.value === 'PHP') {
+        toEditor?.setValue(currentValue)
+        const actions = toEditor?.getSupportedActions()
+        console.log('actions: ', actions)
+        toEditor?.getAction('editor.action.format').run()
+        toEditor?.setValue(toEditor?.getValue())
+        return
+      } else {
+        value = JSON.stringify(json, null, 4)
+        value = value.replace(/": /g, `" => `).replace(/\{/g, '[').replace(/\}/g, ']')
+      }
+    } else if (to.value === 'xml') {
+      if (currentType.value === 'XML') {
+        toEditor?.setValue(currentValue)
+        const actions = toEditor?.getSupportedActions()
+        console.log('actions: ', actions)
+        toEditor?.trigger('', 'editor.action.formatDocument', null)
+        toEditor?.setValue(toEditor?.getValue())
+        return
+      }
+      value = XMLParse.JSONToXML(json)
+    }
+    toEditor?.setValue(value)
+  }
   const checkFrom = () => {
     let type = ''
     try {
       currentJsonValue = JSON5.parse(currentValue)
       type = 'JSON'
     } catch (e) {
-      currentJsonValue = ''
-      console.log('e 000: ', e)
+      currentJsonValue = null
       type = ''
     }
-    console.log('type 000: ', type, currentJsonValue)
+    console.log('type 000: ', type)
     if (type) {
       currentType.value = type
-      currentJsonValue = JSONSort(currentJsonValue)
-      let value = ''
-      if (to.value === 'json') {
-        value = JSON.stringify(currentJsonValue, null, 4)
-      } else if (to.value === 'js') {
-        value = JSON5.stringify(currentJsonValue, {
-          space: 4,
-          quote: null
-        })
-      }
-      toEditor?.setValue(value)
+      transformTo()
       return
     }
 
     try {
-      const obj = eval(currentValue)
-      const rawType = Object.prototype.toString.call(obj)
-      console.log('rawType: ', rawType)
-      if (['[object Object]', '[object Array]'].includes(rawType)) {
-        type = 'JavaScript'
-      }
+      currentJsonValue = PHPArrayParse(currentValue)
+      type = 'PHP'
     } catch (e) {
-      console.log('e 111: ', e)
+      currentJsonValue = null
       type = ''
     }
     console.log('type 111: ', type)
     if (type) {
       currentType.value = type
+      transformTo()
+      return
+    }
+
+    try {
+      currentJsonValue = XMLParse.XMLToJSON(currentValue)
+      type = 'XML'
+    } catch (e) {
+      currentJsonValue = null
+      type = ''
+    }
+    console.log('type 111: ', type)
+    if (type) {
+      currentType.value = type
+      transformTo()
       return
     }
   }
@@ -179,11 +225,47 @@
     }
   }
 
+  const handleMoving = ref(false)
+  let wapperRect: DOMRect = new DOMRect()
+  const leftStyle = ref({})
+
+  const maskDom = document.createElement('div')
+  maskDom.classList.add('app-move-mask')
+
+  const mouseMove = (e: MouseEvent) => {
+    e?.stopPropagation && e?.stopPropagation()
+    e?.preventDefault && e?.preventDefault()
+    const left = e.clientX - wapperRect.left - 5
+    leftStyle.value = {
+      width: `${left}px`,
+      flex: 'unset'
+    }
+  }
+  const mouseUp = () => {
+    document.removeEventListener('mousemove', mouseMove)
+    document.removeEventListener('mouseup', mouseUp)
+    maskDom.remove()
+    handleMoving.value = false
+  }
+  const HandleMoveMouseDown = (e: MouseEvent) => {
+    e.stopPropagation && e.stopPropagation()
+    e.preventDefault && e.preventDefault()
+    handleMoving.value = true
+    const mainDom: HTMLElement = mainRef.value as any
+    wapperRect = mainDom.getBoundingClientRect()
+    document.body.append(maskDom)
+    document.addEventListener('mousemove', mouseMove)
+    document.addEventListener('mouseup', mouseUp)
+  }
+
   onMounted(() => {
     initFromEditor()
     initToEditor()
   })
 
+  watch(to, () => {
+    transformTo()
+  })
   const doClose = () => {
     emit('doClose')
   }

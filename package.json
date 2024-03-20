@@ -86,6 +86,7 @@
     "md5": "^2.3.0",
     "moment": "^2.29.3",
     "monaco-editor": "^0.34.1",
+    "php-parser": "^3.1.5",
     "pinia": "^2.0.32",
     "prettier": "^2.4.1",
     "qrcode": "^1.5.3",

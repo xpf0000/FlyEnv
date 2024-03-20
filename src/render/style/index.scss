@@ -8,6 +8,13 @@ body,
   .el-table--default .el-table__cell {
     padding: 11px 0;
   }
+
+  .app-move-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    pointer-events: auto;
+  }
 }
 body {
   .el-popper {
@@ -538,9 +545,11 @@ body {
       display: flex;
       flex-wrap: nowrap;
       flex-direction: row;
+      gap: 6px;
 
       >.left,
       >.right {
+        min-width: 300px;
         height: 100%;
         flex: 1;
         overflow: hidden;
@@ -552,11 +561,7 @@ body {
           display: flex;
           height: 44px;
 
-          >.el-select {
-            flex: 1;
-          }
           >.el-button {
-            flex-shrink: 0;
             margin-left: 6px;
             margin-right: 0;
           }
@@ -573,17 +578,10 @@ body {
         }
       }
 
-      >.center {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 30px;
-        padding: 0 12px;
-
-        >.el-button {
-          margin: 0;
-        }
+      >.handle {
+        height: 100%;
+        width: 10px;
+        cursor: ew-resize;
       }
     }
   }
