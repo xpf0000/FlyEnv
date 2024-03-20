@@ -25,6 +25,7 @@
               <el-option label="TypeScript" value="ts"></el-option>
               <el-option label="YAML" value="yml"></el-option>
               <el-option label="XML" value="xml"></el-option>
+              <el-option label="PList" value="plist"></el-option>
             </el-select>
             <el-button-group>
               <el-button @click.stop="transformTo('asc')">
@@ -63,6 +64,8 @@
   import { JSONSort } from '@shared/JsonSort'
   import { PHPArrayParse } from '@shared/PHPArrayParse'
   import XMLParse from '@shared/XMLParse'
+  import { FormatHtml } from '@shared/FormatCode'
+  import PList from 'plist'
 
   const { nativeTheme } = require('@electron/remote')
 
@@ -144,14 +147,20 @@
       }
     } else if (to.value === 'xml') {
       if (currentType.value === 'XML') {
-        toEditor?.setValue(currentValue)
-        const actions = toEditor?.getSupportedActions()
-        console.log('actions: ', actions)
-        toEditor?.trigger('', 'editor.action.formatDocument', null)
-        toEditor?.setValue(toEditor?.getValue())
+        FormatHtml(currentValue).then((xml: string) => {
+          toEditor?.setValue(xml)
+        })
         return
       }
       value = XMLParse.JSONToXML(json)
+    } else if (to.value === 'plist') {
+      if (currentType.value === 'PList') {
+        FormatHtml(currentValue).then((xml: string) => {
+          toEditor?.setValue(xml)
+        })
+        return
+      }
+      value = PList.build(json)
     }
     toEditor?.setValue(value)
   }
@@ -186,13 +195,28 @@
     }
 
     try {
+      currentJsonValue = PList.parse(currentValue)
+      type = 'PList'
+    } catch (e) {
+      console.log('e 222: ', e)
+      currentJsonValue = null
+      type = ''
+    }
+    console.log('type 222: ', type)
+    if (type) {
+      currentType.value = type
+      transformTo()
+      return
+    }
+
+    try {
       currentJsonValue = XMLParse.XMLToJSON(currentValue)
       type = 'XML'
     } catch (e) {
       currentJsonValue = null
       type = ''
     }
-    console.log('type 111: ', type)
+    console.log('type 333: ', type)
     if (type) {
       currentType.value = type
       transformTo()
