@@ -3,6 +3,10 @@ import parseHtml from 'prettier/plugins/html'
 import parseCommon from 'prettier/plugins/babel'
 import parseCss from 'prettier/plugins/postcss'
 import parseYaml from 'prettier/plugins/yaml'
+import parseTS from 'prettier/plugins/typescript'
+import parseES from 'prettier/plugins/estree'
+// @ts-ignore
+import * as parsePHP from '@prettier/plugin-php/standalone'
 export const FormatHtml = async (value: string) => {
   return await prettier.format(value, {
     parser: 'html',
@@ -19,5 +23,19 @@ export const FormatYaml = async (value: string) => {
   return await prettier.format(value, {
     parser: 'yaml',
     plugins: [parseYaml]
+  })
+}
+
+export const FormatTS = async (value: string) => {
+  return await prettier.format(value, {
+    parser: 'typescript',
+    plugins: [parseES, parseTS]
+  })
+}
+
+export const FormatPHP = async (value: string) => {
+  return await prettier.format(value, {
+    parser: 'php',
+    plugins: [parsePHP]
   })
 }

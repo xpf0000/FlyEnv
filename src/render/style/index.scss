@@ -538,50 +538,65 @@ body {
   }
 
   &.json-parse {
-    .main {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
+    .main-wapper {
       display: flex;
-      flex-wrap: nowrap;
-      flex-direction: row;
-      gap: 6px;
+      flex-direction: column;
 
-      >.left,
-      >.right {
-        min-width: 300px;
-        height: 100%;
-        flex: 1;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
+      >.el-tabs {
+        flex-shrink: 0;
 
-        >.top {
-          flex-shrink: 0;
-          display: flex;
-          height: 44px;
-
-          >.el-button {
-            margin-left: 6px;
-            margin-right: 0;
-          }
-        }
-
-        >.editor {
-          overflow: hidden;
-          padding: 0;
-          border: 1px solid var(--el-border-color);
-
-          &:hover {
-            box-shadow: 0 0 0 1px var(--el-input-border-color,var(--el-border-color)) inset;
+        #tab-tab-1 {
+          .is-icon-close {
+            display: none;
           }
         }
       }
 
-      >.handle {
-        height: 100%;
-        width: 10px;
-        cursor: ew-resize;
+      .main {
+        width: 100%;
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-wrap: nowrap;
+        flex-direction: row;
+        gap: 6px;
+
+        >.left,
+        >.right {
+          min-width: 300px;
+          height: 100%;
+          flex: 1;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+
+          >.top {
+            flex-shrink: 0;
+            display: flex;
+            height: 44px;
+
+            >.el-button {
+              margin-left: 6px;
+              margin-right: 0;
+            }
+          }
+
+          >.editor {
+            overflow: hidden;
+            padding: 0;
+            border: 1px solid var(--el-border-color);
+
+            &:hover {
+              box-shadow: 0 0 0 1px var(--el-input-border-color,var(--el-border-color)) inset;
+            }
+          }
+        }
+
+        >.handle {
+          height: 100%;
+          width: 10px;
+          cursor: ew-resize;
+        }
       }
     }
   }
