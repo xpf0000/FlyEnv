@@ -32,15 +32,16 @@
               <el-option label="YAML" value="yaml"></el-option>
               <el-option label="XML" value="xml"></el-option>
               <el-option label="PList" value="plist"></el-option>
+              <el-option label="TOML" value="toml"></el-option>
             </el-select>
             <el-button-group>
-              <el-button @click.stop="transformTo('asc')">
+              <el-button @click.stop="currentTab.transformTo('asc')">
                 <yb-icon :svg="import('@/svg/asc1.svg?raw')" width="18" height="18" />
               </el-button>
-              <el-button @click.stop="transformTo('desc')">
+              <el-button @click.stop="currentTab.transformTo('desc')">
                 <yb-icon :svg="import('@/svg/desc1.svg?raw')" width="18" height="18" />
               </el-button>
-              <el-button @click.stop="transformTo(undefined)">
+              <el-button @click.stop="currentTab.transformTo(undefined)">
                 <yb-icon :svg="import('@/svg/nosort.svg?raw')" width="18" height="18" />
               </el-button>
             </el-button-group>
@@ -53,32 +54,33 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js'
-  import 'monaco-editor/esm/vs/editor/contrib/format/browser/formatActions.js'
+  import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+  import { editor, languages } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution.js'
   import 'monaco-editor/esm/vs/language/json/monaco.contribution.js'
   import 'monaco-editor/esm/vs/basic-languages/php/php.contribution.js'
   import 'monaco-editor/esm/vs/basic-languages/xml/xml.contribution.js'
   import 'monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution.js'
   import 'monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution.js'
+
+  import 'monaco-editor/esm/vs/editor/browser/coreCommands.js'
+  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
+  import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js'
+  import 'monaco-editor/esm/vs/editor/contrib/format/browser/format.js'
+  import 'monaco-editor/esm/vs/editor/contrib/format/browser/formatActions.js' // 格式化代码
+  import 'monaco-editor/esm/vs/editor/contrib/suggest/browser/suggestController.js' // 代码联想提示
+  import 'monaco-editor/esm/vs/editor/contrib/tokenization/browser/tokenization.js' // 代码联想提示
+  import 'monaco-editor/esm/vs/editor/contrib/links/browser/links.js'
+
   import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
   import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
   import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
   import jsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
   import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
+
+  import TomlRules from '@shared/transform/TomlRules'
   import { AppStore } from '@/store/app'
-  import JSON5 from 'json5'
-  import { JSONSort } from '@shared/JsonSort'
-  import { PHPArrayParse } from '@shared/PHPArrayParse'
-  import XMLParse from '@shared/XMLParse'
-  import { FormatHtml, FormatPHP, FormatTS, FormatYaml } from '@shared/FormatCode'
-  import PList from 'plist'
-  import YAML from 'yamljs'
-  import JsonToTS from 'json-to-ts'
-  import JSONStore from '@/components/Tools/Json/store'
+  import JSONStore, { JSONStoreTab } from '@/components/Tools/Json/store'
   import type { TabPaneName } from 'element-plus'
 
   const { nativeTheme } = require('@electron/remote')
@@ -112,6 +114,11 @@
     }
   }
 
+  // 注册自定义语言
+  languages.register({ id: 'toml' })
+  // 为该自定义语言基本的Token
+  languages.setMonarchTokensProvider('toml', TomlRules as any)
+
   const emit = defineEmits(['doClose'])
   const moveRef = ref()
   const fromRef = ref()
@@ -133,14 +140,6 @@
     },
     set(v) {
       JSONStore.tabs[JSONStore.currentTab].value = v
-    }
-  })
-  const currentJsonValue: any = computed({
-    get() {
-      return JSONStore.tabs[JSONStore.currentTab].json
-    },
-    set(v) {
-      JSONStore.tabs[JSONStore.currentTab].json = v
     }
   })
   const currentType = computed({
@@ -169,18 +168,17 @@
     }
   })
 
+  const currentTab = computed(() => {
+    return JSONStore.tabs[JSONStore.currentTab]
+  })
+
   const handleTabsEdit = (targetName: TabPaneName | undefined, action: 'remove' | 'add') => {
     if (action === 'add') {
       JSONStore.index += 1
       const tabName = `tab-${JSONStore.index}`
-      JSONStore.tabs[tabName] = {
-        value: '',
-        json: null,
-        type: '请输入内容',
-        to: 'json',
-        toValue: '',
-        toLang: 'javascript'
-      }
+      const tab = new JSONStoreTab()
+      tab.editor = () => toEditor!
+      JSONStore.tabs[tabName] = reactive(tab)
       JSONStore.currentTab = tabName
     } else if (action === 'remove') {
       if (targetName === 'tab-1') {
@@ -229,172 +227,10 @@
       folding: true,
       showFoldingControls: 'always',
       foldingStrategy: 'indentation',
-      foldingImportsByDefault: true
+      foldingImportsByDefault: true,
+      formatOnPaste: true,
+      formatOnType: true
     }
-  }
-
-  const transformTo = (sort?: 'asc' | 'desc') => {
-    if (!currentJsonValue.value) {
-      toEditor?.setValue('输入内容格式不正确')
-      return
-    }
-    let json = JSON.parse(JSON.stringify(currentJsonValue.value))
-    if (sort) {
-      json = JSONSort(json, sort)
-    }
-    const model = toEditor!.getModel()!
-    let value = ''
-    if (to.value === 'json') {
-      currentToLang.value = 'json'
-      editor.setModelLanguage(model, 'json')
-      value = JSON.stringify(json, null, 4)
-    } else if (to.value === 'js') {
-      currentToLang.value = 'javascript'
-      editor.setModelLanguage(model, 'javascript')
-      value = JSON5.stringify(json, {
-        space: 4,
-        quote: null
-      })
-    } else if (to.value === 'php') {
-      currentToLang.value = 'php'
-      editor.setModelLanguage(model, 'php')
-      if (currentType.value !== 'PHP') {
-        value = JSON.stringify(json, null, 4)
-        value = value.replace(/": /g, `" => `).replace(/\{/g, '[').replace(/\}/g, ']')
-      } else {
-        value = currentValue.value
-      }
-      if (!value.includes('<?php')) {
-        value = '<?php\n' + value
-      }
-      FormatPHP(value).then((php: string) => {
-        toEditor?.setValue(php)
-      })
-      return
-    } else if (to.value === 'xml') {
-      currentToLang.value = 'xml'
-      editor.setModelLanguage(model, 'xml')
-      if (currentType.value === 'XML') {
-        value = currentValue.value
-      } else {
-        value = XMLParse.JSONToXML(json)
-      }
-      FormatHtml(value).then((xml: string) => {
-        toEditor?.setValue(xml)
-      })
-      return
-    } else if (to.value === 'plist') {
-      currentToLang.value = 'xml'
-      editor.setModelLanguage(model, 'xml')
-      if (currentType.value === 'PList') {
-        value = currentValue.value
-      } else {
-        value = PList.build(json, {
-          indent: '    '
-        })
-      }
-      FormatHtml(value).then((xml: string) => {
-        toEditor?.setValue(xml)
-      })
-      return
-    } else if (to.value === 'yaml') {
-      currentToLang.value = 'yaml'
-      editor.setModelLanguage(model, 'yaml')
-      if (currentType.value === 'YAML') {
-        value = currentValue.value
-      } else {
-        value = YAML.stringify(json, 4)
-      }
-      FormatYaml(value).then((xml: string) => {
-        toEditor?.setValue(xml)
-      })
-      return
-    } else if (to.value === 'ts') {
-      currentToLang.value = 'typescript'
-      editor.setModelLanguage(model, 'typescript')
-      value = JsonToTS(json).join('\n')
-      FormatTS(value).then((ts) => {
-        toEditor?.setValue(ts)
-      })
-      return
-    }
-    toEditor?.setValue(value)
-  }
-  const checkFrom = () => {
-    let type = ''
-    try {
-      currentJsonValue.value = JSON5.parse(currentValue.value)
-      type = 'JSON'
-    } catch (e) {
-      currentJsonValue.value = null
-      type = ''
-    }
-    console.log('type 000: ', type)
-    if (type) {
-      currentType.value = type
-      transformTo()
-      return
-    }
-
-    try {
-      currentJsonValue.value = PHPArrayParse(currentValue.value)
-      type = 'PHP'
-    } catch (e) {
-      currentJsonValue.value = null
-      type = ''
-    }
-    console.log('type 111: ', type)
-    if (type) {
-      currentType.value = type
-      transformTo()
-      return
-    }
-
-    try {
-      currentJsonValue.value = PList.parse(currentValue.value)
-      type = 'PList'
-    } catch (e) {
-      console.log('e 222: ', e)
-      currentJsonValue.value = null
-      type = ''
-    }
-    console.log('type 222: ', type)
-    if (type) {
-      currentType.value = type
-      transformTo()
-      return
-    }
-
-    try {
-      currentJsonValue.value = XMLParse.XMLToJSON(currentValue.value)
-      type = 'XML'
-    } catch (e) {
-      currentJsonValue.value = null
-      type = ''
-    }
-    console.log('type 333: ', type)
-    if (type) {
-      currentType.value = type
-      transformTo()
-      return
-    }
-
-    try {
-      currentJsonValue.value = YAML.parse(currentValue.value)
-      type = 'YAML'
-    } catch (e) {
-      currentJsonValue.value = null
-      type = ''
-    }
-    console.log('type 444: ', type)
-    if (type) {
-      currentType.value = type
-      transformTo()
-      return
-    }
-
-    currentType.value = '未识别'
-    transformTo()
   }
 
   const initFromEditor = () => {
@@ -406,7 +242,7 @@
       fromEditor.onDidChangeModelContent(() => {
         if (!tabChanging) {
           currentValue.value = fromEditor?.getValue() ?? ''
-          checkFrom()
+          currentTab.value.checkFrom()
         }
       })
     }
@@ -423,6 +259,8 @@
           currentToValue.value = toEditor?.getValue() ?? ''
         }
       })
+      currentTab.value.editor = () => toEditor!
+      console.log('actions: ', toEditor?.getSupportedActions())
     }
   }
 
@@ -474,7 +312,7 @@
   const onToChange = (v: any) => {
     console.log('onToChange !!!', v)
     if (!tabChanging) {
-      transformTo()
+      currentTab.value.transformTo()
     }
   }
 
