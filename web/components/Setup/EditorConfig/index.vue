@@ -26,10 +26,9 @@
   import { AppStore } from '@web/store/app'
   import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { EditorConfigMap } from './store'
   import Conf from '@web/config/apache.conf.txt?raw'
+  import { EditorCreate } from '@web/fn'
 
   const wapper = ref()
   const appStore = AppStore()
@@ -42,7 +41,7 @@
   let monacoInstance: editor.IStandaloneCodeEditor | null = null
 
   const initEditor = () => {
-    monacoInstance = editor.create(wapper.value, {
+    monacoInstance = EditorCreate(wapper.value, {
       value: EditorConfigMap.text,
       language: 'ini',
       scrollBeyondLastLine: false,

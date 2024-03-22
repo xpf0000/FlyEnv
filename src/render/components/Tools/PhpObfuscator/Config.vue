@@ -25,10 +25,7 @@
 <script lang="ts">
   import { defineComponent, nextTick } from 'vue'
   import { readFileAsync, writeFileAsync } from '@shared/file'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/php/php.contribution.js'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { join } = require('path')
@@ -133,7 +130,7 @@
           }
           const editorConfig = EditorConfigMake(this.config, false, 'off')
           editorConfig.language = 'php'
-          this.monacoInstance = editor.create(input, editorConfig)
+          this.monacoInstance = EditorCreate(input, editorConfig)
         } else {
           this.monacoInstance.setValue(this.config)
         }

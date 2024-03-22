@@ -592,6 +592,22 @@ body {
           }
         }
 
+        >.left {
+          .top {
+            display: flex;
+            justify-content: space-between;
+          }
+        }
+
+        >.right {
+          .top {
+            .el-select {
+              width: 50%;
+              max-width: 240px;
+            }
+          }
+        }
+
         >.handle {
           height: 100%;
           width: 10px;

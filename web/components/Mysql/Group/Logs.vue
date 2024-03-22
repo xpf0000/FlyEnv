@@ -34,10 +34,8 @@
 <script lang="ts" setup>
   import { nextTick, ref, computed, watch, onMounted, onUnmounted } from 'vue'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup } from '@web/fn'
+  import { AsyncComponentSetup, EditorCreate } from '@web/fn'
   import { EditorConfigMake } from '@web/fn'
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
@@ -74,7 +72,7 @@
       if (!inputDom || !inputDom?.style) {
         return
       }
-      monacoInstance = editor.create(inputDom, EditorConfigMake(log.value, true, 'on'))
+      monacoInstance = EditorCreate(inputDom, EditorConfigMake(log.value, true, 'on'))
     } else {
       monacoInstance.setValue(log.value)
     }

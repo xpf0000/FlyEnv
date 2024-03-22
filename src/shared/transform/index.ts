@@ -5,6 +5,11 @@ import XMLParse from './XMLParse'
 import YAML from 'yamljs'
 import { parse as TOMLParse, stringify as TOMLStringify } from '@iarna/toml'
 import JsonToTS from 'json-to-ts'
+import { JsonToGo, JsonToGoBson } from '@shared/transform/Go'
+import { JsonToJava, JsonToKotlin } from '@shared/transform/Java'
+import { JsonToJSDoc } from '@shared/transform/JSDoc'
+import { JsonToMySQL } from '@shared/transform/MySQL'
+import { JsonToRust } from '@shared/transform/Rust'
 
 export const javascriptToJson = (str: string) => {
   return JSON5.parse(str)
@@ -57,4 +62,32 @@ export const jsonToJSON = (json: any) => {
 
 export const jsonToTOML = (json: any) => {
   return TOMLStringify(json)
+}
+
+export const jsonToGoStruct = (json: any) => {
+  return JsonToGo(json)
+}
+
+export const jsonToGoBase = (json: any) => {
+  return JsonToGoBson(json)
+}
+
+export const jsonToJava = (json: any) => {
+  return JsonToJava(json)
+}
+
+export const jsonToKotlin = (json: any) => {
+  return JsonToKotlin(json)
+}
+
+export const jsonToMySQL = (json: any) => {
+  return JsonToMySQL(json)
+}
+
+export const jsonToJSDoc = (json: any) => {
+  return JsonToJSDoc(json)
+}
+
+export const jsonToRust = (json: any) => {
+  return JsonToRust(json)
 }

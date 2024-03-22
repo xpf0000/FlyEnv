@@ -28,13 +28,11 @@
 
 <script>
   import { readFileAsync, writeFileAsync } from '@shared/file.ts'
-  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { nextTick } from 'vue'
   import IPC from '@/util/IPC.ts'
   import { VueExtend } from '@/core/VueExtend.ts'
-  import { EditorConfigMake } from '@/util/Editor.ts'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor.ts'
   import { MessageError, MessageSuccess } from '@/util/Element.ts'
 
   const { shell } = require('@electron/remote')
@@ -116,7 +114,7 @@
           if (!this?.$refs?.input?.style) {
             return
           }
-          this.monacoInstance = editor.create(
+          this.monacoInstance = EditorCreate(
             this.$refs.input,
             EditorConfigMake(this.config, false, 'off')
           )

@@ -1,5 +1,7 @@
-import { Engine } from 'php-parser'
-const parser = new Engine({
+import './php-parser.min.js'
+
+// @ts-ignore
+const parser = new PhpParser.Engine({
   parser: { extractDoc: true },
   ast: { withPositions: true }
 })
@@ -48,6 +50,6 @@ const parseKey = (expr: any) => {
 export const PHPArrayParse = function (source: string) {
   const ast = parser.parseEval(source)
   console.log('PHPArrayParse ast: ', ast)
-  const array: any = ast.children.find((child) => child.kind === 'expressionstatement')
+  const array: any = ast.children.find((child: any) => child.kind === 'expressionstatement')
   return parseValue(array?.expression)
 }

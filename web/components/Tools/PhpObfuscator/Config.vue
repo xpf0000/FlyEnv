@@ -24,11 +24,8 @@
 
 <script lang="ts">
   import { defineComponent, nextTick } from 'vue'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/php/php.contribution.js'
   import Conf from '../../../config/yakpro-po.conf.txt?raw'
-  import { EditorConfigMake } from '../../../fn'
+  import { EditorConfigMake, EditorCreate } from '../../../fn'
 
   let config = Conf
   export default defineComponent({
@@ -83,7 +80,7 @@
           }
           const editorConfig = EditorConfigMake(this.config, false, 'off')
           editorConfig.language = 'php'
-          this.monacoInstance = editor.create(input, editorConfig)
+          this.monacoInstance = EditorCreate(input, editorConfig)
         } else {
           this.monacoInstance.setValue(this.config)
         }

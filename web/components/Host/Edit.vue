@@ -275,11 +275,9 @@
   import { AppStore } from '../../store/app'
   import { BrewStore } from '../../store/brew'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { ElMessageBox } from 'element-plus'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup, EditorConfigMake } from '../../fn'
+  import { AsyncComponentSetup, EditorConfigMake, EditorCreate } from '../../fn'
   import { merge } from 'lodash'
   import { RewriteAll } from './store'
 
@@ -430,7 +428,7 @@
           bottom: 8
         }
       })
-      monacoInstance = editor.create(input.value, config)
+      monacoInstance = EditorCreate(input.value, config)
     } else {
       monacoInstance.setValue(item.value.nginx.rewrite)
     }

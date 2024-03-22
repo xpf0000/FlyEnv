@@ -37,10 +37,8 @@
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
   import { readFileAsync, writeFileAsync } from '@shared/file'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { I18nT } from '@shared/lang'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { SoftInstalled } from '@/store/brew'
@@ -116,7 +114,7 @@
       if (!dom || !dom?.style) {
         return
       }
-      monacoInstance = editor.create(dom, EditorConfigMake(config.value, false, 'off'))
+      monacoInstance = EditorCreate(dom, EditorConfigMake(config.value, false, 'off'))
       monacoInstance.addAction({
         id: 'save',
         label: 'save',

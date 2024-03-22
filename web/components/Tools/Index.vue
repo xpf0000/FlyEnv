@@ -1,6 +1,10 @@
 <template>
   <div class="main-right-panel">
     <ul class="tools-panel">
+      <li @click="showPage('json')">
+        <yb-icon :svg="import('@/svg/json1.svg?raw')" width="30" height="30" />
+        <span>{{ $t('tools.jsonParseTitle') }}</span>
+      </li>
       <li @click="showPage('env')">
         <yb-icon :svg="import('@/svg/env.svg?raw')" width="30" height="30" />
         <span>{{ $t('util.toolSystemEnv') }}</span>
@@ -55,12 +59,12 @@
     <el-drawer
       ref="host-edit-drawer"
       v-model="show"
-      size="75%"
+      :size="width"
       :destroy-on-close="true"
       class="host-edit-drawer"
       :with-header="false"
     >
-      <component :is="component" @doClose="hidePage"></component>
+      <component :is="component" @do-close="hidePage"></component>
     </el-drawer>
   </div>
 </template>
@@ -73,14 +77,20 @@
     data() {
       return {
         show: false,
-        component: null
+        component: null,
+        width: '75%'
       }
     },
     computed: {},
     methods: {
       showPage(flag) {
+        this.width = '75%'
         this.show = true
         switch (flag) {
+          case 'json':
+            this.width = '90%'
+            this.component = markRaw(defineAsyncComponent(() => import('./Json/Index.vue')))
+            break
           case 'env':
             this.component = markRaw(defineAsyncComponent(() => import('./SystenEnv/index.vue')))
             break

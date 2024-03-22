@@ -30,10 +30,8 @@
 
 <script lang="ts" setup>
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-  import { AsyncComponentSetup, EditorConfigMake } from '@web/fn'
+  import { AsyncComponentSetup, EditorConfigMake, EditorCreate } from '@web/fn'
   import VhostApache from '../../config/vhost.apache.txt?raw'
   import VhostNginx from '../../config/vhost.nginx.txt?raw'
   import VhostCaddy from '../../config/vhost.caddy.txt?raw'
@@ -66,7 +64,7 @@
       if (!input?.value?.style) {
         return
       }
-      monacoInstance = editor.create(input.value, EditorConfigMake(config.value, false, 'off'))
+      monacoInstance = EditorCreate(input.value, EditorConfigMake(config.value, false, 'off'))
       monacoInstance.addAction({
         id: 'save',
         label: 'save',

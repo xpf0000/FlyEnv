@@ -37,7 +37,7 @@
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import Base from '@/core/Base'
@@ -60,7 +60,7 @@
       if (!input?.value?.style) {
         return
       }
-      monacoInstance = editor.create(input.value, EditorConfigMake(content.value, false, 'off'))
+      monacoInstance = EditorCreate(input.value, EditorConfigMake(content.value, false, 'off'))
       monacoInstance.addAction({
         id: 'save',
         label: 'save',

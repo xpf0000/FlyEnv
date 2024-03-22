@@ -23,12 +23,9 @@
 </template>
 
 <script lang="ts">
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution.js'
   import { VueExtend } from '@/core/VueExtend'
   import { nextTick, defineComponent } from 'vue'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
 
   export default defineComponent({
     show(data: any) {
@@ -78,7 +75,7 @@
           }
           const editorConfig = EditorConfigMake(this.content, true, 'on')
           editorConfig.language = 'javascript'
-          this.monacoInstance = editor.create(input, editorConfig)
+          this.monacoInstance = EditorCreate(input, editorConfig)
         } else {
           this.monacoInstance.setValue(this.content)
         }

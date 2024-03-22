@@ -41,10 +41,8 @@
 <script lang="ts" setup>
   import { nextTick, ref, watch, onMounted, onUnmounted } from 'vue'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup, EditorConfigMake } from '@web/fn'
+  import { AsyncComponentSetup, EditorConfigMake, EditorCreate } from '@web/fn'
   import { ElMessage } from 'element-plus'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
@@ -66,7 +64,7 @@
       if (!inputDom || !inputDom?.style) {
         return
       }
-      monacoInstance = editor.create(inputDom, EditorConfigMake(log.value, true, 'on'))
+      monacoInstance = EditorCreate(inputDom, EditorConfigMake(log.value, true, 'on'))
     } else {
       monacoInstance.setValue(log.value)
     }

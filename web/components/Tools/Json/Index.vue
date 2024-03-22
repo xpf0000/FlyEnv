@@ -69,17 +69,11 @@
   import { editor, languages } from 'monaco-editor/esm/vs/editor/editor.api.js'
 
   import TomlRules from '@shared/transform/TomlRules'
-  import { AppStore } from '@/store/app'
+  import { AppStore } from '@web/store/app'
   import JSONStore, { JSONStoreTab } from '@/components/Tools/Json/store'
   import type { TabPaneName } from 'element-plus'
-  import { MessageSuccess } from '@/util/Element'
-  import { I18nT } from '@shared/lang'
   import { Document } from '@element-plus/icons-vue'
-  import { EditorCreate } from '@/util/Editor'
-
-  const { dialog, shell } = require('@electron/remote')
-  const { nativeTheme } = require('@electron/remote')
-  const { readFile, writeFile } = require('fs-extra')
+  import { EditorCreate } from '@web/fn'
 
   // 注册自定义语言
   languages.register({ id: 'toml' })
@@ -168,18 +162,6 @@
   const EditorConfigMake = (value: string): editor.IStandaloneEditorConstructionOptions => {
     const appStore = AppStore()
     const editorConfig = appStore.editorConfig
-    let theme = editorConfig.theme
-    if (theme === 'auto') {
-      let appTheme = appStore?.config?.setup?.theme ?? ''
-      if (!appTheme || appTheme === 'system') {
-        appTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
-      }
-      if (appTheme === 'light') {
-        theme = 'vs-light'
-      } else {
-        theme = 'vs-dark'
-      }
-    }
     return {
       value,
       language: 'javascript',
@@ -187,7 +169,7 @@
       overviewRulerBorder: true,
       automaticLayout: true,
       wordWrap: 'on',
-      theme: theme,
+      theme: editorConfig.theme,
       fontSize: editorConfig.fontSize,
       lineHeight: editorConfig.lineHeight,
       lineNumbersMinChars: 2,
@@ -272,59 +254,9 @@
     document.addEventListener('mouseup', mouseUp)
   }
 
-  const openFile = () => {
-    let opt = ['openFile']
-    let filters = [
-      {
-        name: 'Parse File',
-        extensions: [
-          'txt',
-          'json',
-          'js',
-          'xml',
-          'plist',
-          'yml',
-          'yaml',
-          'php',
-          'ts',
-          'mjs',
-          'ini',
-          'conf',
-          'cnf'
-        ]
-      }
-    ]
-    dialog
-      .showOpenDialog({
-        properties: opt,
-        filters: filters
-      })
-      .then(async ({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const [path] = filePaths
-        currentValue.value = await readFile(path, 'utf-8')
-        fromEditor?.setValue(currentValue.value)
-      })
-  }
+  const openFile = () => {}
 
-  const saveToLocal = () => {
-    let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-    dialog
-      .showSaveDialog({
-        properties: opt
-      })
-      .then(async ({ canceled, filePath }: any) => {
-        if (canceled || !filePath) {
-          return
-        }
-        const content = toEditor?.getValue() ?? ''
-        await writeFile(filePath, content)
-        MessageSuccess(I18nT('base.success'))
-        shell.showItemInFolder(filePath)
-      })
-  }
+  const saveToLocal = () => {}
 
   onMounted(() => {
     initFromEditor()

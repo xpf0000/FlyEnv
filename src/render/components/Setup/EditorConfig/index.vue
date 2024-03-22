@@ -27,9 +27,8 @@
   import { AppStore } from '@/store/app'
   import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { EditorConfigMap } from '@/components/Setup/EditorConfig/store'
+  import { EditorCreate } from '@/util/Editor'
 
   const { readFile } = require('fs-extra')
   const { join } = require('path')
@@ -67,7 +66,7 @@
   })
 
   const initEditor = () => {
-    monacoInstance = editor.create(wapper.value, {
+    monacoInstance = EditorCreate(wapper.value, {
       value: EditorConfigMap.text,
       language: 'ini',
       scrollBeyondLastLine: false,

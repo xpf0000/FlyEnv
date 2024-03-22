@@ -27,9 +27,7 @@
 
 <script lang="ts" setup>
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { AsyncComponentSetup, EditorConfigMake } from '../../fn'
+  import { AsyncComponentSetup, EditorConfigMake, EditorCreate } from '../../fn'
   import { ref, onMounted, onUnmounted, nextTick } from 'vue'
   import { AppHost, AppStore } from '../../store/app'
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
@@ -82,7 +80,7 @@
       if (!dom || !dom?.style) {
         return
       }
-      monacoInstance = editor.create(dom, EditorConfigMake(conf.value, false, 'off'))
+      monacoInstance = EditorCreate(dom, EditorConfigMake(conf.value, false, 'off'))
     } else {
       monacoInstance.setValue(conf.value)
     }

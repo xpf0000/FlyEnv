@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import * as path from 'path'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import wasm from 'vite-plugin-wasm'
 
 const renderPath = path.resolve(__dirname, '../src/render/')
 const sharePath = path.resolve(__dirname, '../src/shared/')
@@ -13,12 +14,15 @@ console.log('sharePath: ', sharePath)
 
 const config: UserConfig = {
   base: './',
-  plugins: [vue(), vueJsx()],
+  plugins: [wasm(), vue(), vueJsx()],
   assetsInclude: ['**/*.node'],
   optimizeDeps: {
     exclude: ['fsevents']
   },
   root: __dirname,
+  define: {
+    env: process.env
+  },
   resolve: {
     alias: {
       '@': renderPath,

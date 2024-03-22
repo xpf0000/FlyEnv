@@ -14,11 +14,9 @@
 </template>
 
 <script lang="ts">
-  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { defineComponent } from 'vue'
-  import { EditorConfigMake } from '../../fn'
+  import { EditorConfigMake, EditorCreate } from '../../fn'
 
   export default defineComponent({
     name: 'MoApacheConfig',
@@ -60,7 +58,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, EditorConfigMake(this.config, false, 'off'))
+          this.monacoInstance = EditorCreate(input, EditorConfigMake(this.config, false, 'off'))
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

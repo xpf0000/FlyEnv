@@ -16,10 +16,7 @@
   import { writeFileAsync, readFileAsync } from '@shared/file'
   import { AppStore } from '@/store/app'
   import { EventBus } from '@/global'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { shell } = require('@electron/remote')
@@ -76,7 +73,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, EditorConfigMake(this.log, true, 'on'))
+          this.monacoInstance = EditorCreate(input, EditorConfigMake(this.log, true, 'on'))
         } else {
           this.monacoInstance.setValue(this.log)
         }

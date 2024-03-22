@@ -39,13 +39,11 @@
 </template>
 
 <script lang="ts">
-  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { nextTick, defineComponent } from 'vue'
   import { VueExtend } from '../../VueExtend'
   import Conf from '../../config/php.conf.txt?raw'
-  import { EditorConfigMake } from '../../fn'
+  import { EditorConfigMake, EditorCreate } from '../../fn'
 
   const IniFiles: { [key: string]: any } = {}
 
@@ -145,7 +143,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, EditorConfigMake(this.config, false, 'off'))
+          this.monacoInstance = EditorCreate(input, EditorConfigMake(this.config, false, 'off'))
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

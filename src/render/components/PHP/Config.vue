@@ -41,14 +41,12 @@
 <script lang="ts">
   import { readFileAsync, writeFileAsync } from '@shared/file'
   import { reloadService } from '@/util/Service'
-  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import IPC from '@/util/IPC'
   import { nextTick, defineComponent } from 'vue'
   import { VueExtend } from '@/core/VueExtend'
   import type { SoftInstalled } from '@/store/brew'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { existsSync, statSync, unlink } = require('fs')
@@ -244,7 +242,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, EditorConfigMake(this.config, false, 'off'))
+          this.monacoInstance = EditorCreate(input, EditorConfigMake(this.config, false, 'off'))
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

@@ -3,7 +3,7 @@
     <ul class="tools-panel">
       <li @click="showPage('json')">
         <yb-icon :svg="import('@/svg/json1.svg?raw')" width="30" height="30" />
-        <span>JSON解析</span>
+        <span>{{ $t('tools.jsonParseTitle') }}</span>
       </li>
       <li @click="showPage('env')">
         <yb-icon :svg="import('@/svg/env.svg?raw')" width="30" height="30" />
@@ -64,7 +64,7 @@
       class="host-edit-drawer"
       :with-header="false"
     >
-      <component :is="component" @doClose="hidePage"></component>
+      <component :is="component" @do-close="hidePage"></component>
     </el-drawer>
   </div>
 </template>

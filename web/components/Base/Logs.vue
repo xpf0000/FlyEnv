@@ -11,10 +11,7 @@
 
 <script lang="ts">
   import { defineComponent } from 'vue'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { EditorConfigMake } from '../../fn'
+  import { EditorConfigMake, EditorCreate } from '../../fn'
 
   export default defineComponent({
     mounted() {
@@ -26,7 +23,7 @@
     },
     methods: {
       initEditor() {
-        this.monacoInstance = editor.create(
+        this.monacoInstance = EditorCreate(
           this?.$refs?.input as HTMLElement,
           EditorConfigMake('', true, 'on')
         )

@@ -1,8 +1,15 @@
 import { reactive } from 'vue'
 import {
   javascriptToJson,
+  jsonToGoBase,
+  jsonToGoStruct,
+  jsonToJava,
+  jsonToJSDoc,
   jsonToJSON,
+  jsonToKotlin,
+  jsonToMySQL,
   jsonToPList,
+  jsonToRust,
   jsonToTOML,
   jsonToTs,
   jsonToXML,
@@ -15,7 +22,8 @@ import {
 } from '@shared/transform'
 import { JSONSort } from '@shared/JsonSort'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-import { FormatHtml, FormatPHP, FormatTOML, FormatTS, FormatYaml } from '@shared/FormatCode'
+import { FormatHtml, FormatPHP, FormatTS, FormatYaml } from '@shared/FormatCode'
+import { I18nT } from '@shared/lang'
 
 export class JSONStoreTab {
   value = ''
@@ -26,13 +34,13 @@ export class JSONStoreTab {
   toLang = 'javascript'
   editor!: () => editor.IStandaloneCodeEditor
   constructor() {
-    this.value = '输入 JSON, JavaScript对象或数组, PHP Array, XML, YAML, PList. 自动转换成所选格式'
-    this.type = '请输入内容'
+    this.value = I18nT('tools.inputTips')
+    this.type = I18nT('tools.noInputTips')
   }
 
   transformTo(sort?: 'asc' | 'desc') {
     if (!this.json) {
-      this.editor().setValue('输入内容格式不正确')
+      this.editor().setValue(I18nT('tools.parseFailTips'))
       return
     }
     let json = JSON.parse(JSON.stringify(this.json))
@@ -112,15 +120,35 @@ export class JSONStoreTab {
     } else if (this.to === 'toml') {
       this.toLang = 'toml'
       editor.setModelLanguage(model, 'toml')
-      if (this.type === 'TOML') {
-        value = this.value
-      } else {
-        value = jsonToTOML(json)
-      }
-      FormatTOML(value).then((ts) => {
-        this.editor().setValue(ts)
-      })
-      return
+      value = jsonToTOML(json)
+    } else if (this.to === 'goStruct') {
+      this.toLang = 'go'
+      editor.setModelLanguage(model, 'go')
+      value = jsonToGoStruct(json)
+    } else if (this.to === 'goBson') {
+      this.toLang = 'go'
+      editor.setModelLanguage(model, 'go')
+      value = jsonToGoBase(json)
+    } else if (this.to === 'Java') {
+      this.toLang = 'java'
+      editor.setModelLanguage(model, 'java')
+      value = jsonToJava(json)
+    } else if (this.to === 'Kotlin') {
+      this.toLang = 'kotlin'
+      editor.setModelLanguage(model, 'kotlin')
+      value = jsonToKotlin(json)
+    } else if (this.to === 'rustSerde') {
+      this.toLang = 'rust'
+      editor.setModelLanguage(model, 'rust')
+      value = jsonToRust(json)
+    } else if (this.to === 'MySQL') {
+      this.toLang = 'mysql'
+      editor.setModelLanguage(model, 'mysql')
+      value = jsonToMySQL(json)
+    } else if (this.to === 'JSDoc') {
+      this.toLang = 'javascript'
+      editor.setModelLanguage(model, 'javascript')
+      value = jsonToJSDoc(json)
     }
     this.editor().setValue(value)
   }
@@ -212,7 +240,7 @@ export class JSONStoreTab {
       return
     }
 
-    this.type = '未识别'
+    this.type = I18nT('tools.inputCheckFailTips')
     this.transformTo()
   }
 }
@@ -220,12 +248,19 @@ export class JSONStoreTab {
 export type JSONStoreType = {
   index: number
   currentTab: string
+  style: any
   tabs: { [k: string]: JSONStoreTab }
+}
+
+let style: any = localStorage.getItem('PWS-JSON-LeftStle')
+if (style) {
+  style = JSON.parse(style)
 }
 
 const JSONStore: JSONStoreType = {
   index: 1,
   currentTab: 'tab-1',
+  style: style,
   tabs: {
     'tab-1': new JSONStoreTab()
   }

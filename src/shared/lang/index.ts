@@ -10,6 +10,8 @@ import ENHost from './en/host'
 import ZHHost from './zh/host'
 import ENAI from './en/ai'
 import ZHAI from './zh/ai'
+import ENTools from './en/tools'
+import ZHTools from './zh/tools'
 import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 
@@ -20,7 +22,8 @@ export const lang = {
     tray: ENTray,
     util: ENUtil,
     host: ENHost,
-    ai: ENAI
+    ai: ENAI,
+    tools: ENTools
   },
   zh: {
     base: ZHBase,
@@ -28,7 +31,8 @@ export const lang = {
     tray: ZHTray,
     util: ZHUtil,
     host: ZHHost,
-    ai: ZHAI
+    ai: ZHAI,
+    tools: ZHTools
   }
 }
 

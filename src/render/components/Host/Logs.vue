@@ -44,12 +44,10 @@
   import { AppStore } from '@/store/app'
   import { EventBus } from '@/global'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import type { FSWatcher } from 'fs'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { existsSync } = require('fs')
@@ -82,7 +80,7 @@
       if (!inputDom || !inputDom?.style) {
         return
       }
-      monacoInstance = editor.create(inputDom, EditorConfigMake(log.value, true, 'on'))
+      monacoInstance = EditorCreate(inputDom, EditorConfigMake(log.value, true, 'on'))
     } else {
       monacoInstance.setValue(log.value)
     }

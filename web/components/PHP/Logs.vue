@@ -21,26 +21,23 @@
 
       <div class="tool">
         <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('open')">{{
-            $t('base.open')
-          }}</el-button>
+          $t('base.open')
+        }}</el-button>
         <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('refresh')">{{
-            $t('base.refresh')
-          }}</el-button>
+          $t('base.refresh')
+        }}</el-button>
         <el-button class="shrink0" :disabled="!filepath || noLog" @click="logDo('clean')">{{
-            $t('base.clean')
-          }}</el-button>
+          $t('base.clean')
+        }}</el-button>
       </div>
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts">
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { VueExtend } from '../../VueExtend'
   import { nextTick, defineComponent } from 'vue'
-  import { EditorConfigMake } from '../../fn'
+  import { EditorConfigMake, EditorCreate } from '../../fn'
 
   export default defineComponent({
     show(data: any) {
@@ -127,7 +124,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, EditorConfigMake(this.log, true, 'on'))
+          this.monacoInstance = EditorCreate(input, EditorConfigMake(this.log, true, 'on'))
           this.monacoInstance.revealLine(10000000, 1)
         } else {
           this.monacoInstance.setValue(this.log)

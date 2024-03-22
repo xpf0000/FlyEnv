@@ -15,11 +15,9 @@
 
 <script lang="ts">
   import { writeFileAsync, readFileAsync } from '@shared/file'
-  import { editor, KeyMod, KeyCode } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { KeyMod, KeyCode } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { nextTick, defineComponent } from 'vue'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { dialog } = require('@electron/remote')
@@ -129,7 +127,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, EditorConfigMake(this.config, false, 'off'))
+          this.monacoInstance = EditorCreate(input, EditorConfigMake(this.config, false, 'off'))
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

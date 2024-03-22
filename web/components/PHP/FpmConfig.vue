@@ -36,9 +36,7 @@
 <script lang="ts" setup>
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { EditorConfigMake } from '@web/fn'
+  import { EditorConfigMake, EditorCreate } from '@web/fn'
   import { AsyncComponentSetup } from '@web/fn'
   import { SoftInstalled } from '@web/store/brew'
 
@@ -63,7 +61,7 @@
       if (!dom || !dom?.style) {
         return
       }
-      monacoInstance = editor.create(dom, EditorConfigMake(config.value, false, 'off'))
+      monacoInstance = EditorCreate(dom, EditorConfigMake(config.value, false, 'off'))
       monacoInstance.addAction({
         id: 'save',
         label: 'save',

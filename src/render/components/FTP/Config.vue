@@ -17,8 +17,6 @@
   import { computed, onMounted, onUnmounted, ref } from 'vue'
   import { writeFileAsync, readFileAsync } from '@shared/file'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick } from 'vue'
   import IPC from '@/util/IPC'
   import { I18nT } from '@shared/lang'
@@ -26,7 +24,7 @@
   import { BrewStore } from '@/store/brew'
   import { startService } from '@/util/Service'
   import { FtpStore } from '@/store/ftp'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageSuccess, MessageError } from '@/util/Element'
 
   const { dialog } = require('@electron/remote')
@@ -104,7 +102,7 @@
       if (!dom || !dom?.style) {
         return
       }
-      monacoInstance = editor.create(dom, EditorConfigMake(config.value, false, 'off'))
+      monacoInstance = EditorCreate(dom, EditorConfigMake(config.value, false, 'off'))
       monacoInstance.addAction({
         id: 'save',
         label: 'save',

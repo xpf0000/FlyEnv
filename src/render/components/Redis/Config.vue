@@ -16,13 +16,11 @@
 <script lang="ts">
   import { defineComponent } from 'vue'
   import { writeFileAsync, readFileAsync } from '@shared/file'
-  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
+  import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { nextTick } from 'vue'
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { dialog } = require('@electron/remote')
@@ -173,7 +171,7 @@
           if (!input || !input?.style) {
             return
           }
-          this.monacoInstance = editor.create(input, EditorConfigMake(this.config, false, 'off'))
+          this.monacoInstance = EditorCreate(input, EditorConfigMake(this.config, false, 'off'))
           this.monacoInstance.addAction({
             id: 'save',
             label: 'save',

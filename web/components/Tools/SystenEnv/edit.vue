@@ -32,11 +32,9 @@
 </template>
 <script lang="ts" setup>
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-  import { AsyncComponentSetup, waitTime } from '@web/fn'
+  import { AsyncComponentSetup, EditorCreate, waitTime } from '@web/fn'
   import { I18nT } from '@shared/lang'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { EditorConfigMake } from '@web/fn'
   import { MessageSuccess } from '@/util/Element'
   import { ElMessageBox } from 'element-plus'
@@ -58,7 +56,7 @@
       if (!input?.value?.style) {
         return
       }
-      monacoInstance = editor.create(input.value, EditorConfigMake(content.value, false, 'off'))
+      monacoInstance = EditorCreate(input.value, EditorConfigMake(content.value, false, 'off'))
       monacoInstance.addAction({
         id: 'save',
         label: 'save',

@@ -32,12 +32,10 @@
 <script lang="ts" setup>
   import { readFileAsync, writeFileAsync } from '@shared/file'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { EditorConfigMake } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageSuccess } from '@/util/Element'
   import { reloadWebServer } from '@/util/Service'
   import IPC from '@/util/IPC'
@@ -90,7 +88,7 @@
       if (!input?.value?.style) {
         return
       }
-      monacoInstance = editor.create(input.value, EditorConfigMake(config.value, false, 'off'))
+      monacoInstance = EditorCreate(input.value, EditorConfigMake(config.value, false, 'off'))
       monacoInstance.addAction({
         id: 'save',
         label: 'save',
