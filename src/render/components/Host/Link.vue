@@ -4,7 +4,7 @@
     :title="$t('base.siteLinks')"
     width="600px"
     :destroy-on-close="true"
-    custom-class="host-link-dialog"
+    class="host-link-dialog"
     @closed="closedFn"
   >
     <div class="host-link">

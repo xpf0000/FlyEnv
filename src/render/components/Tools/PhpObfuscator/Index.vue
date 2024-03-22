@@ -16,7 +16,7 @@
           <el-select
             v-model="item.phpversion"
             class="w-p100"
-            :class="(errs['phpversion'] ? ' error' : '')"
+            :class="errs['phpversion'] ? ' error' : ''"
             :placeholder="$t('php.obfuscatorPhpVersion')"
           >
             <template v-for="(item, index) in phpVersions" :key="index">
@@ -72,7 +72,7 @@
     class="host-edit-drawer"
     :with-header="false"
   >
-    <Config :custom-config="item.config" @doClose="configCallBack"></Config>
+    <Config :custom-config="item.config" @do-close="configCallBack"></Config>
   </el-drawer>
 </template>
 

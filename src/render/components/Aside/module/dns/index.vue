@@ -13,9 +13,9 @@
     </div>
 
     <el-switch
+      v-model="serviceRunning"
       :loading="serviceFetching"
       :disabled="serviceFetching"
-      :value="serviceRunning"
       @click.stop="stopNav"
       @change="switchChange"
     >

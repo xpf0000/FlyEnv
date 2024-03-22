@@ -69,9 +69,13 @@ export class JSONStoreTab {
       if (!value.includes('<?php')) {
         value = '<?php\n' + value
       }
-      FormatPHP(value).then((php: string) => {
-        this.editor().setValue(php)
-      })
+      FormatPHP(value)
+        .then((php: string) => {
+          this.editor().setValue(php)
+        })
+        .catch(() => {
+          this.editor().setValue(value)
+        })
       return
     } else if (this.to === 'xml') {
       this.toLang = 'xml'
@@ -81,9 +85,14 @@ export class JSONStoreTab {
       } else {
         value = jsonToXML(json)
       }
-      FormatHtml(value).then((xml: string) => {
-        this.editor().setValue(xml)
-      })
+      console.log('xml value: ', value)
+      FormatHtml(value)
+        .then((xml: string) => {
+          this.editor().setValue(xml)
+        })
+        .catch(() => {
+          this.editor().setValue(value)
+        })
       return
     } else if (this.to === 'plist') {
       this.toLang = 'xml'
@@ -93,9 +102,13 @@ export class JSONStoreTab {
       } else {
         value = jsonToPList(json)
       }
-      FormatHtml(value).then((xml: string) => {
-        this.editor().setValue(xml)
-      })
+      FormatHtml(value)
+        .then((xml: string) => {
+          this.editor().setValue(xml)
+        })
+        .catch(() => {
+          this.editor().setValue(value)
+        })
       return
     } else if (this.to === 'yaml') {
       this.toLang = 'yaml'
@@ -105,17 +118,25 @@ export class JSONStoreTab {
       } else {
         value = jsonToYAML(json)
       }
-      FormatYaml(value).then((xml: string) => {
-        this.editor().setValue(xml)
-      })
+      FormatYaml(value)
+        .then((xml: string) => {
+          this.editor().setValue(xml)
+        })
+        .catch(() => {
+          this.editor().setValue(value)
+        })
       return
     } else if (this.to === 'ts') {
       this.toLang = 'typescript'
       editor.setModelLanguage(model, 'typescript')
       value = jsonToTs(json)
-      FormatTS(value).then((ts) => {
-        this.editor().setValue(ts)
-      })
+      FormatTS(value)
+        .then((ts) => {
+          this.editor().setValue(ts)
+        })
+        .catch(() => {
+          this.editor().setValue(value)
+        })
       return
     } else if (this.to === 'toml') {
       this.toLang = 'toml'

@@ -12,9 +12,8 @@ export function fixEnv(): { [k: string]: any } {
     env['PATH'] =
       '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
   } else {
-    env[
-      'PATH'
-    ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:${env['PATH']}`
+    env['PATH'] =
+      `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:${env['PATH']}`
   }
   if (global.Server.Proxy) {
     for (const k in global.Server.Proxy) {

@@ -72,7 +72,7 @@
     class="host-edit-drawer"
     :with-header="false"
   >
-    <Config :custom-config="item.config" @doClose="configCallBack"></Config>
+    <Config :custom-config="item.config" @do-close="configCallBack"></Config>
   </el-drawer>
 </template>
 

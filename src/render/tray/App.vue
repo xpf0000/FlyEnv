@@ -23,8 +23,8 @@
         </div>
 
         <el-switch
+          v-model="apache.run"
           :disabled="apache?.disabled"
-          :value="apache?.run"
           @change="switchChange('apache')"
         >
         </el-switch>
@@ -37,7 +37,7 @@
           </div>
           <span class="title">Nginx</span>
         </div>
-        <el-switch :disabled="nginx?.disabled" :value="nginx?.run" @change="switchChange('nginx')">
+        <el-switch v-model="nginx.run" :disabled="nginx?.disabled" @change="switchChange('nginx')">
         </el-switch>
       </li>
 
@@ -53,7 +53,7 @@
           </div>
           <span class="title">Caddy</span>
         </div>
-        <el-switch :disabled="caddy?.disabled" :value="caddy?.run" @change="switchChange('caddy')">
+        <el-switch v-model="caddy.run" :disabled="caddy?.disabled" @change="switchChange('caddy')">
         </el-switch>
       </li>
 
@@ -71,8 +71,8 @@
         </div>
 
         <el-switch
+          v-model="php.run"
           :disabled="php?.disabled"
-          :value="php?.run"
           @change="switchChange('php')"
         ></el-switch>
       </li>
@@ -84,7 +84,7 @@
           <span class="title">Mysql</span>
         </div>
 
-        <el-switch :disabled="mysql?.disabled" :value="mysql?.run" @change="switchChange('mysql')">
+        <el-switch v-model="mysql.run" :disabled="mysql?.disabled" @change="switchChange('mysql')">
         </el-switch>
       </li>
       <li v-if="mariadb?.show" class="non-draggable">
@@ -96,8 +96,8 @@
         </div>
 
         <el-switch
+          v-model="mariadb.run"
           :disabled="mariadb?.disabled"
-          :value="mariadb?.run"
           @change="switchChange('mariadb')"
         >
         </el-switch>
@@ -116,8 +116,8 @@
         </div>
 
         <el-switch
+          v-model="mongodb.run"
           :disabled="mongodb?.disabled"
-          :value="mongodb?.run"
           @change="switchChange('mongodb')"
         >
         </el-switch>
@@ -136,8 +136,8 @@
         </div>
 
         <el-switch
+          v-model="postgresql.run"
           :disabled="postgresql?.disabled"
-          :value="postgresql?.run"
           @change="switchChange('postgresql')"
         >
         </el-switch>
@@ -151,8 +151,8 @@
         </div>
 
         <el-switch
+          v-model="memcached.run"
           :disabled="memcached?.disabled"
-          :value="memcached?.run"
           @change="switchChange('memcached')"
         >
         </el-switch>
@@ -170,7 +170,7 @@
           <span class="title">Redis</span>
         </div>
 
-        <el-switch :disabled="redis?.disabled" :value="redis?.run" @change="switchChange('redis')">
+        <el-switch v-model="redis.run" :disabled="redis?.disabled" @change="switchChange('redis')">
         </el-switch>
       </li>
       <li v-if="dns?.show" class="non-draggable">
@@ -186,7 +186,7 @@
           <span class="title">DNS Server</span>
         </div>
 
-        <el-switch :disabled="dns?.running" :value="dns?.run" @change="switchChange('dns')">
+        <el-switch v-model="dns.run" :disabled="dns?.running" @change="switchChange('dns')">
         </el-switch>
       </li>
       <li v-if="ftp?.show" class="non-draggable">
@@ -202,7 +202,7 @@
           <span class="title">FTP</span>
         </div>
 
-        <el-switch :disabled="ftp?.running" :value="ftp?.run" @change="switchChange('ftp')">
+        <el-switch v-model="ftp.run" :disabled="ftp?.running" @change="switchChange('ftp')">
         </el-switch>
       </li>
     </ul>

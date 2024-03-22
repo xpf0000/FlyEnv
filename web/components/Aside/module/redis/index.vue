@@ -11,7 +11,7 @@
       <span class="title">Redis</span>
     </div>
 
-    <el-switch :disabled="serviceDisabled" :value="serviceRunning" @change="switchChange">
+    <el-switch v-model="serviceRunning" :disabled="serviceDisabled" @change="switchChange">
     </el-switch>
   </li>
 </template>

@@ -238,7 +238,9 @@
     text-align: start;
     text-decoration: none;
     border-radius: 8px;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 3%), 0 1px 6px -1px rgb(0 0 0 / 2%),
+    box-shadow:
+      0 1px 2px 0 rgb(0 0 0 / 3%),
+      0 1px 6px -1px rgb(0 0 0 / 2%),
       0 2px 4px 0 rgb(0 0 0 / 2%);
     border: none;
     background-clip: padding-box;
@@ -258,7 +260,9 @@
         width: 22px;
         height: 22px;
         color: rgba(0, 0, 0, 0.45);
-        transition: background-color 0.2s, color 0.2s;
+        transition:
+          background-color 0.2s,
+          color 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;

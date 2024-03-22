@@ -1,10 +1,3 @@
-<style>
-  .yb-icon {
-    display: inline-block;
-    fill: currentColor;
-  }
-</style>
-
 <script>
   import { createElementBlock, normalizeStyle } from 'vue'
   import { getExtractedSVG } from 'svg-inline-loader'
@@ -208,3 +201,10 @@
     return `fa-${(cursor++).toString(16)}`
   }
 </script>
+
+<style>
+  .yb-icon {
+    display: inline-block;
+    fill: currentColor;
+  }
+</style>

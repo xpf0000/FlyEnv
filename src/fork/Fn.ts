@@ -63,9 +63,8 @@ export function fixEnv(): { [k: string]: any } {
     env['PATH'] =
       '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
   } else {
-    env[
-      'PATH'
-    ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:${env['PATH']}`
+    env['PATH'] =
+      `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:${env['PATH']}`
   }
   if (global.Server.Proxy) {
     for (const k in global.Server.Proxy) {
@@ -289,10 +288,26 @@ export function getAllFile(fp: string, fullpath = true, basePath: Array<string> 
 
 export function downFile(url: string, savepath: string) {
   return new ForkPromise((resolve, reject, on) => {
+    const proxyUrl =
+      Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''
+    let proxy: any = {}
+    if (proxyUrl) {
+      try {
+        const u = new URL(proxyUrl)
+        proxy.protocol = u.protocol.replace(':', '')
+        proxy.host = u.hostname
+        proxy.port = u.port
+      } catch (e) {
+        proxy = undefined
+      }
+    } else {
+      proxy = undefined
+    }
     axios({
       method: 'get',
       url: url,
       responseType: 'stream',
+      proxy: proxy,
       onDownloadProgress: (progress) => {
         if (progress.total) {
           const percent = Math.round((progress.loaded * 100.0) / progress.total)

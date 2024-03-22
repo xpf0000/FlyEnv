@@ -3,7 +3,7 @@
     v-model="isShow"
     :title="title"
     :width="width"
-    :custom-class="className"
+    :class="className"
     :close-on-click-modal="false"
     :destroy-on-close="true"
     @closed="closed"

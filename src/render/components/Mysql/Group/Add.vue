@@ -4,7 +4,7 @@
     :title="item?.dataDir ? $t('base.edit') : $t('base.add')"
     width="600px"
     :destroy-on-close="true"
-    custom-class="host-edit new-project"
+    class="host-edit new-project"
     @closed="closedFn"
   >
     <template #default>

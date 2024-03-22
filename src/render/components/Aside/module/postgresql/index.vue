@@ -17,8 +17,8 @@
     </div>
 
     <el-switch
+      v-model="serviceRunning"
       :disabled="serviceDisabled"
-      :value="serviceRunning"
       @click.stop="stopNav"
       @change="switchChange"
     >
