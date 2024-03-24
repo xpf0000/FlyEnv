@@ -39,12 +39,12 @@
       <el-popover :show-after="600" placement="bottom" trigger="hover" width="300px">
         <template #reference>
           <li style="width: auto; padding: 0 15px; margin-left: 20px; margin-right: 10px">
-            <span style="margin-right: 10px">hosts: </span>
+            <span style="margin-right: 10px">{{ $t('host.enable') }}:</span>
             <el-switch v-model="hostsSet.write"></el-switch>
           </li>
         </template>
         <template #default>
-          <p>{{ $t('base.hostsWriteTips') }}</p>
+          <p>{{ $t('host.hostsWriteTips') }}</p>
         </template>
       </el-popover>
       <li class="no-hover" style="width: auto; padding: 0 15px; margin-right: 10px">

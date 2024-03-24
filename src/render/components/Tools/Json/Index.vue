@@ -349,6 +349,7 @@
     () => JSONStore.currentTab,
     () => {
       tabChanging = true
+      currentTab.value.editor = () => toEditor!
       fromEditor?.setValue(currentValue.value)
       toEditor?.setValue(currentToValue.value)
       const model = toEditor!.getModel()!

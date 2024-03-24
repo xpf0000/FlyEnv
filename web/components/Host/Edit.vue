@@ -121,23 +121,6 @@
           <div class="port-set mb-20">
             <div class="port-type">
               <span>Apache</span>
-              <el-popover
-                placement="top-start"
-                :title="$t('base.attention')"
-                :width="300"
-                trigger="hover"
-              >
-                <template #reference>
-                  <yb-icon
-                    :svg="import('@/svg/question.svg?raw')"
-                    width="12"
-                    height="12"
-                    style="margin-left: 5px"
-                  ></yb-icon>
-                </template>
-                <p>{{ $t('base.apachePortTips1') }}</p>
-                <p>{{ $t('base.apachePortTips2') }}</p>
-              </el-popover>
             </div>
             <input
               v-model.number="item.port.apache"
