@@ -33,7 +33,7 @@
             </div>
             <el-select v-model="form.php" filterable :disabled="loading || created">
               <template v-for="(v, k) in phpVersions" :key="k">
-                <el-option :value="v.path" :label="`${v.version}-${v.path}`"></el-option>
+                <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
               </template>
             </el-select>
           </div>
@@ -101,7 +101,20 @@
   })
 
   const phpVersions = computed(() => {
-    return brewStore?.php?.installed ?? []
+    console.log('phpVersions: ', brewStore?.php?.installed)
+    const all = brewStore?.php?.installed ?? []
+    return all.map((a) => {
+      const v: any = {
+        num: a.num,
+        version: a.version
+      }
+      if (a?.phpBin) {
+        v.bin = a.phpBin
+      } else {
+        v.bin = join(a.path, 'bin/php')
+      }
+      return v
+    })
   })
 
   const chooseRoot = () => {

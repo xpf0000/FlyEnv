@@ -2,19 +2,28 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
-import { spawnPromise } from '../Fn'
+import { execPromise, md5, spawnPromise, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { chmod, copyFile, unlink, writeFile } from 'fs-extra'
+import { chmod, copyFile, mkdirp, remove, unlink, writeFile } from 'fs-extra'
 
 class Manager extends Base {
   constructor() {
     super()
   }
 
-  createProject(dir: string, phpDir: string, framework: string, version: SoftInstalled) {
+  createProject(dir: string, phpBin: string, framework: string, version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      const phpBinDir = join(phpDir, 'bin')
       const cacheDir = global.Server.Cache
+      const binDir = join(global.Server.Cache!, 'bin')
+      await mkdirp(binDir)
+      const binPhp = join(binDir, 'php')
+      if (existsSync(binPhp)) {
+        await remove(binPhp)
+      }
+      const command = `echo '${global.Server.Password}' | sudo -S ln -s ${phpBin} ${binPhp}`
+      try {
+        await execPromise(command)
+      } catch (e) {}
       if (framework === 'wordpress') {
         const tmpl = `{
   "require": {
@@ -35,7 +44,7 @@ class Manager extends Base {
         await writeFile(join(dir, 'composer.json'), tmpl)
         await copyFile(sh, copyfile)
         await chmod(copyfile, '0777')
-        const params = [copyfile, cacheDir, dir, phpBinDir]
+        const params = [copyfile, cacheDir, dir, binDir]
         console.log('params: ', params.join(' '))
         spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
       } else {
@@ -56,9 +65,25 @@ class Manager extends Base {
         }
         await copyFile(sh, copyfile)
         await chmod(copyfile, '0777')
-        const params = [copyfile, cacheDir, dir, name, version, phpBinDir]
+        const params = [copyfile, cacheDir, dir, name, version, binDir]
         console.log('params: ', params.join(' '))
-        spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
+        spawnPromise('zsh', params)
+          .on(on)
+          .then(async () => {
+            if (framework === 'laravel') {
+              const envFile = join(dir, '.env')
+              if (!existsSync(envFile)) {
+                const key = md5(uuid())
+                await writeFile(
+                  envFile,
+                  `APP_DEBUG=true
+APP_KEY=${key}`
+                )
+              }
+            }
+            resolve(true)
+          })
+          .catch(reject)
       }
     })
   }

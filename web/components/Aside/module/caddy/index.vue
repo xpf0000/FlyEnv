@@ -11,7 +11,12 @@
       <span class="title">Caddy</span>
     </div>
 
-    <el-switch v-model="serviceRunning" :disabled="serviceDisabled" @change="switchChange()">
+    <el-switch
+      v-model="serviceRunning"
+      :disabled="serviceDisabled"
+      @click.stop="stopNav"
+      @change="switchChange()"
+    >
     </el-switch>
   </li>
 </template>
@@ -93,6 +98,8 @@
       }
     })
   }
+
+  const stopNav = () => {}
 
   defineExpose({
     groupDo,

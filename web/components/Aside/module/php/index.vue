@@ -11,7 +11,8 @@
       <span class="title">Php</span>
     </div>
 
-    <el-switch v-model="serviceRunning" :disabled="serviceDisabled"> </el-switch>
+    <el-switch v-model="serviceRunning" :disabled="serviceDisabled" @click.stop="stopNav">
+    </el-switch>
   </li>
 </template>
 
@@ -107,6 +108,8 @@
   const switchChange = () => {
     serviceRunning.value = !serviceRunning.value
   }
+
+  const stopNav = () => {}
 
   defineExpose({
     groupDo,

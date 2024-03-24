@@ -27,7 +27,12 @@
             <template v-else>
               <QrcodePopper :url="scope.row.name">
                 <div class="link" @click.stop="openSite()">
-                  <yb-icon :svg="import('@/svg/link.svg?raw')" width="18" height="18" />
+                  <yb-icon
+                    :class="{ active: linkEnable }"
+                    :svg="import('@/svg/link.svg?raw')"
+                    width="18"
+                    height="18"
+                  />
                   <span>
                     {{ siteName(scope.row) }}
                   </span>
@@ -227,6 +232,17 @@
       }
     })
     return arr
+  })
+
+  const writeHosts = computed(() => {
+    return appStore.config.setup.hosts.write
+  })
+
+  const linkEnable = computed(() => {
+    const apacheRunning = brewStore.apache.installed.find((a) => a.run)
+    const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
+    const caddyRunning = brewStore.caddy.installed.find((a) => a.run)
+    return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning)
   })
 
   const versionText = (v?: number) => {

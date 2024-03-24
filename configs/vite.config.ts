@@ -13,6 +13,12 @@ const config: UserConfig = {
   plugins: [wasm(), vue(), vueJsx()],
   assetsInclude: ['**/*.node'],
   optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+      supported: {
+        'top-level-await': true
+      }
+    },
     exclude: [
       'electron',
       'path',
@@ -66,6 +72,7 @@ const buildConfig: UserConfig = {
   build: {
     outDir: '../../dist/render',
     assetsDir: 'static',
+    target: 'esnext',
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, '../src/render/index.html'),

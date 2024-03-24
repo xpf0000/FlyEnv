@@ -17,12 +17,15 @@ const config: UserConfig = {
   plugins: [wasm(), vue(), vueJsx()],
   assetsInclude: ['**/*.node'],
   optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+      supported: {
+        'top-level-await': true
+      }
+    },
     exclude: ['fsevents']
   },
   root: __dirname,
-  define: {
-    env: process.env
-  },
   resolve: {
     alias: {
       '@': renderPath,
@@ -46,7 +49,8 @@ const serveConfig: UserConfig = {
   server: {
     port: 5000,
     open: true,
-    hmr: true
+    hmr: true,
+    host: '0.0.0.0'
   },
   ...config
 }
@@ -55,6 +59,7 @@ const buildConfig: UserConfig = {
   build: {
     outDir: '../dist/web',
     assetsDir: 'static',
+    target: 'esnext',
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, './index.html')

@@ -16,6 +16,7 @@
       v-model="serviceRunning"
       :loading="serviceFetching"
       :disabled="serviceFetching"
+      @click.stop="stopNav"
       @change="switchChange"
     >
     </el-switch>
@@ -79,6 +80,8 @@
       }
     })
   }
+
+  const stopNav = () => {}
 
   defineExpose({
     groupDo,
