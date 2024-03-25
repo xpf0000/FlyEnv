@@ -555,6 +555,10 @@ body {
       >.el-tabs {
         flex-shrink: 0;
 
+        .el-tabs__header {
+          margin: 0;
+        }
+
         #tab-tab-1 {
           .is-icon-close {
             display: none;
