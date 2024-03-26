@@ -52,7 +52,7 @@
             $t('base.brewLibrary')
           }}</span>
         </template>
-        <template #="scope">
+        <template #default="scope">
           <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.name }}</span>
         </template>
       </el-table-column>

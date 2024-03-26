@@ -5,7 +5,8 @@ extendV=$3
 arch=$4
 password=$5
 cd "$cachedir" || exit 1
-curl -C - -O -L -s http://pecl.php.net/get/xlswriter-"$extendV".tgz
+echo "downloading xlswriter-"$extendV".tgz from http://pecl.php.net/get/xlswriter-"$extendV".tgz"
+curl -C - -O -L http://pecl.php.net/get/xlswriter-"$extendV".tgz
 if [ -d "xlswriter-$extendV" ]; then
  echo "$password" | sudo -S rm -rf "xlswriter-$extendV"
 fi
@@ -14,6 +15,7 @@ if [ -f "xlswriter-$extendV.tgz" ]; then
 else
   exit 1
 fi
+echo "download success. start install"
 export HOMEBREW_NO_AUTO_UPDATE=1
 arch $arch brew install pkg-config autoconf automake libtool
 prefix=$(brew --prefix)

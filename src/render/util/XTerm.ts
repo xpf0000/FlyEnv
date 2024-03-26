@@ -85,9 +85,11 @@ class XTerm implements XTermType {
     if (appTheme === 'light') {
       theme.background = '#ffffff'
       theme.foreground = '#334455'
+      theme.selectionBackground = '#a0cfff'
     } else {
       theme.background = '#282b3d'
       theme.foreground = '#cfd3dc'
+      theme.selectionBackground = '#606266'
     }
     this.xterm = new Terminal({
       cols: cols,

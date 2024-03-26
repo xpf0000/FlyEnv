@@ -4,7 +4,8 @@ phpdir=$2
 extendv=$3
 arch=$4
 cd $cachedir
-curl -C - -O -L -s http://pecl.php.net/get/imagick-$extendv.tgz
+echo "downloading imagick-$extendv.tgz from http://pecl.php.net/get/imagick-$extendv.tgz"
+curl -C - -O -L http://pecl.php.net/get/imagick-$extendv.tgz
 if [ -d "imagick-$extendv" ]; then
  rm -rf "imagick-$extendv"
 fi
@@ -13,6 +14,7 @@ if [ -f "imagick-$extendv.tgz" ]; then
 else
   exit 1
 fi
+echo "download success. start install"
 export HOMEBREW_NO_AUTO_UPDATE=1
 arch $arch brew install pkg-config autoconf automake libtool
 arch $arch brew install ImageMagick

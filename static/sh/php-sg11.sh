@@ -5,7 +5,7 @@ phpv=$3
 arch=$4
 password=$5
 cd "$cachedir" || exit 1
-curl -C - -O -L -s https://www.sourceguardian.com/loaders/download/loaders.macosx"$arch".tar.gz
+curl -C - -O -L https://www.sourceguardian.com/loaders/download/loaders.macosx"$arch".tar.gz
 if [ ! -f "loaders.macosx$arch.tar.gz" ]; then
   exit 1
 fi

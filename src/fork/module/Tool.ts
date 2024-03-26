@@ -1,6 +1,6 @@
 import { createReadStream, readFileSync } from 'fs'
 import { Base } from './Base'
-import { getAllFileAsync, execPromise, uuid } from '../Fn'
+import { getAllFileAsync, execPromise, uuid, systemProxyGet } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { copy, existsSync, writeFile, mkdirp, appendFile } from 'fs-extra'
 import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
@@ -199,6 +199,18 @@ class Manager extends Base {
       } catch (e) {
         reject(e)
       }
+    })
+  }
+
+  sysetmProxy() {
+    return new ForkPromise((resolve) => {
+      systemProxyGet()
+        .then((proxy) => {
+          resolve(proxy)
+        })
+        .catch(() => {
+          resolve(false)
+        })
     })
   }
 }

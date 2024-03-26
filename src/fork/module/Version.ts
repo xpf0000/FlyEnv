@@ -18,7 +18,6 @@ class Manager extends Base {
     version?: string | null
     error?: string
   }> {
-    console.log('binVersion: ', bin, name)
     return new ForkPromise(async (resolve) => {
       if (name === 'pure-ftpd') {
         resolve({
@@ -40,7 +39,6 @@ class Manager extends Base {
         try {
           version = reg?.exec(str)?.[2]?.trim() ?? ''
           reg!.lastIndex = 0
-          console.log('version: ', str, version, reg?.exec(str))
         } catch (e) {}
         version = !isNaN(parseInt(version)) ? version : null
         const regx = /^\d[\d\.]*\d$/g

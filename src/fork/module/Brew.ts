@@ -52,7 +52,7 @@ class Brew extends Base {
   }
 
   brewinfo(name: string) {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject) => {
       const Info: { [k: string]: any } = {}
       try {
         const findAll = async () => {
@@ -61,7 +61,7 @@ class Brew extends Base {
           switch (name) {
             case 'php':
               all.push('php')
-              cammand = 'brew search --formula "/php@[\\d\\.]+$/"'
+              cammand = 'brew search -q --formula "/^(php|shivammathur/php/php)@[\\d\\.]+$/"'
               break
             case 'nginx':
               all.push('nginx')
@@ -80,22 +80,22 @@ class Brew extends Base {
               break
             case 'mysql':
               all.push('mysql')
-              cammand = 'brew search --formula "/mysql@[\\d\\.]+$/"'
+              cammand = 'brew search -q --formula "/mysql@[\\d\\.]+$/"'
               break
             case 'mariadb':
               all.push('mariadb')
-              cammand = 'brew search --formula "/mariadb@[\\d\\.]+$/"'
+              cammand = 'brew search -q --formula "/mariadb@[\\d\\.]+$/"'
               break
             case 'redis':
               all.push('redis')
-              cammand = 'brew search --formula "/^redis@[\\d\\.]+$/"'
+              cammand = 'brew search -q --formula "/^redis@[\\d\\.]+$/"'
               break
             case 'mongodb':
               cammand =
-                'brew search --desc --eval-all --formula "High-performance, schema-free, document-oriented database"'
+                'brew search -q --desc --eval-all --formula "High-performance, schema-free, document-oriented database"'
               break
             case 'postgresql':
-              cammand = 'brew search --formula "/^postgresql@[\\d\\.]+$/"'
+              cammand = 'brew search -q --formula "/^postgresql@[\\d\\.]+$/"'
               break
           }
           if (cammand) {
@@ -106,6 +106,7 @@ class Brew extends Base {
                 }
               })
               let content: any = res.stdout
+              console.log('brewinfo content: ', content)
               if (name === 'mongodb') {
                 content = content
                   .replace('==> Formulae', '')
@@ -123,16 +124,19 @@ class Brew extends Base {
               }
               content = content
                 .split('\n')
-                .filter((s: string) => !!s.trim())
                 .map((s: string) => s.trim())
+                .filter((s: string) => s && !s.includes(' '))
               all.push(...content)
-            } catch (e) {}
+            } catch (e) {
+              throw e
+            }
           }
           return all
         }
         const doRun = async () => {
           const all = await findAll()
           const cammand = ['brew', 'info', ...all, '--json', '--formula'].join(' ')
+          console.log('brewinfo doRun: ', cammand)
           try {
             const res = await execPromise(cammand, {
               env: {
@@ -148,10 +152,15 @@ class Brew extends Base {
                 flag: 'brew'
               }
             })
-          } catch (e) {}
+          } catch (e) {
+            throw e
+          }
         }
         await doRun()
-      } catch (e) {}
+      } catch (e) {
+        reject(e)
+        return
+      }
       resolve(Info)
     })
   }

@@ -1582,6 +1582,7 @@ body {
 
             .el-table {
               height: 100%;
+              user-select: text;
 
               .el-table__inner-wrapper::before {
                 display: none;

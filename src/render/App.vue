@@ -16,6 +16,7 @@
   import AI from '@/components/AI/index.vue'
   import { I18nT } from '@shared/lang'
   import Base from '@/core/Base'
+  import { MessageSuccess } from '@/util/Element'
 
   const inited = ref(false)
   const appStore = AppStore()
@@ -71,6 +72,7 @@
 
   const checkPassword = () => {
     passwordCheck().then(() => {
+      checkProxy()
       const dict: { [key: string]: boolean } = showItemLowcase()
       console.log('showItem dict: ', dict)
       const flags: Array<keyof typeof AppSofts> = [
@@ -95,6 +97,37 @@
         AppStore().versionInited = true
         inited.value = true
       })
+    })
+  }
+
+  const checkProxy = () => {
+    if (appStore?.config?.setup?.proxy?.on) {
+      return
+    }
+    const checked = localStorage.getItem('PhpWebStudy-Checked-Proxy')
+    if (checked) {
+      return
+    }
+    IPC.send('app-fork:tools', 'sysetmProxy').then((key: string, res: any) => {
+      IPC.off(key)
+      console.log('sysetmProxy: ', res)
+      const proxy = res?.data ?? {}
+      if (Object.keys(proxy).length > 0) {
+        Base._Confirm(I18nT('tools.systemProxyChech'), undefined, {
+          customClass: 'confirm-del',
+          type: 'warning'
+        }).then(() => {
+          const arr: string[] = ['export']
+          for (const k in proxy) {
+            arr.push(`${k}=${proxy[k]}`)
+          }
+          appStore.config.setup.proxy.on = true
+          appStore.config.setup.proxy.proxy = arr.join(' ')
+          appStore.saveConfig()
+          MessageSuccess(I18nT('tools.systemProxyUsed'))
+        })
+        localStorage.setItem('PhpWebStudy-Checked-Proxy', 'true')
+      }
     })
   }
 

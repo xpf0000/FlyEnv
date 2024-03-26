@@ -503,7 +503,12 @@
         MessageError(I18nT('base.fail'))
         getTableData().then()
       } else if (res.code === 200) {
-        logs.value.push(res.msg)
+        let msg = res.msg
+        if (res.msg.includes('\r')) {
+          logs.value.pop()
+          msg = msg.replace(/\\r/g, '\n')
+        }
+        logs.value.push(msg)
       }
     })
   }

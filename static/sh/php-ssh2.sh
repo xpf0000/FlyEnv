@@ -4,7 +4,8 @@ phpdir=$2
 version=$3
 arch=$4
 cd $cachedir
-curl -C - -O -L -s https://pecl.php.net/get/ssh2-$version.tgz
+echo "downloading ssh2-$version.tgz from http://pecl.php.net/get/ssh2-$version.tgz"
+curl -C - -O -L https://pecl.php.net/get/ssh2-$version.tgz
 if [ -d "ssh2-$version" ]; then
  rm -rf "ssh2-$version"
 fi
@@ -13,6 +14,7 @@ if [ -f "ssh2-$version.tgz" ]; then
 else
   exit 1
 fi
+echo "download success. start install"
 export HOMEBREW_NO_AUTO_UPDATE=1
 arch $arch brew install pkg-config autoconf automake libtool
 arch $arch brew install libssh2

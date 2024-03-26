@@ -5,12 +5,13 @@ extendV=$3
 arch=$4
 password=$5
 echo "$password" | sudo -S -v
-
 cd $cachedir
-curl -C - -O -L -s https://xdebug.org/files/xdebug-$extendV.tgz
+echo "downloading xdebug-$extendV.tgz from https://xdebug.org/files/xdebug-$extendV.tgz"
+curl -C - -O -L https://xdebug.org/files/xdebug-$extendV.tgz
 if [ ! -f "xdebug-$extendV.tgz" ]; then
   exit 1
 fi
+echo "download success. start install"
 cd "$phpdir/bin/"
 sudo $phpdir/bin/pecl uninstall xdebug
 fileEnv=$(file "$phpdir/bin/php")

@@ -407,3 +407,42 @@ export const hostAlias = (item: AppHost) => {
   arr.unshift(item.name)
   return arr
 }
+
+export const systemProxyGet = async () => {
+  const proxy: any = {}
+  const services = ['Wi-Fi', 'Ethernet']
+  try {
+    for (const service of services) {
+      let res = await execPromise(`networksetup -getwebproxy ${service}`)
+      let result = res?.stdout?.match(
+        /(?:Enabled:\s)(\w+)\n(?:Server:\s)([^\n]+)\n(?:Port:\s)(\d+)/
+      )
+      if (result) {
+        const [_, enabled, server, port] = result
+        if (enabled === 'Yes') {
+          proxy['http_proxy'] = `http://${server}:${port}`
+        }
+      }
+
+      res = await execPromise(`networksetup -getsecurewebproxy ${service}`)
+      result = res?.stdout?.match(/(?:Enabled:\s)(\w+)\n(?:Server:\s)([^\n]+)\n(?:Port:\s)(\d+)/)
+      if (result) {
+        const [_, enabled, server, port] = result
+        if (enabled === 'Yes') {
+          proxy['https_proxy'] = `http://${server}:${port}`
+        }
+      }
+
+      res = await execPromise(`networksetup -getsocksfirewallproxy ${service}`)
+      result = res?.stdout?.match(/(?:Enabled:\s)(\w+)\n(?:Server:\s)([^\n]+)\n(?:Port:\s)(\d+)/)
+      if (result) {
+        const [_, enabled, server, port] = result
+        if (enabled === 'Yes') {
+          proxy['all_proxy'] = `http://${server}:${port}`
+        }
+      }
+    }
+  } catch (e) {}
+  console.log('systemProxyGet: ', proxy)
+  return proxy
+}
