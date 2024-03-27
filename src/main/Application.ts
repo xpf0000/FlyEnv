@@ -17,7 +17,7 @@ import type { PtyLast, StaticHttpServe } from './type'
 import type { IPty } from 'node-pty'
 import type { ServerResponse } from 'http'
 import { fixEnv } from '@shared/utils'
-import SiteSuckerManager from './ui/SiteSuckerManager'
+import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
@@ -677,7 +677,7 @@ export default class Application extends EventEmitter {
         break
       case 'app-sitesucker-run':
         const url = args[0]
-        SiteSuckerManager.show(url).then()
+        SiteSuckerManager.show(url)
         break
       case 'app-sitesucker-setup':
         const setup = this.configManager.getConfig('tools.siteSucker')
@@ -686,7 +686,7 @@ export default class Application extends EventEmitter {
       case 'app-sitesucker-setup-save':
         this.configManager.setConfig('tools.siteSucker', args[0])
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-        SiteSuckerManager.updateConfig(args[0]).then()
+        SiteSuckerManager.updateConfig(args[0])
         return
     }
   }

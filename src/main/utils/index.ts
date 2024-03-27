@@ -31,3 +31,11 @@ export function getLanguage(locale?: string) {
   }
   return app?.getLocale()?.split('-')?.[0] ?? 'en'
 }
+
+export const wait = (time = 2000) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(true)
+    }, time)
+  })
+}

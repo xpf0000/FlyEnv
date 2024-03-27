@@ -52,6 +52,7 @@ type RunConfig = {
   timeout: number
   maxImgSize: number
   maxVideoSize: number
+  maxRetryTimes: number
 }
 
 type RunParams = {
@@ -143,7 +144,9 @@ class SiteSuckerManager {
   maxImgSize = 0
   maxVideoSize = 0
 
-  pageLoaded: Set<string> = new Set()
+  maxRetryTimes = 3
+
+  retryCount: { [k: string]: number } = {}
 
   constructor() {}
 
@@ -366,7 +369,8 @@ class SiteSuckerManager {
       }
       callback({})
     })
-    this.window.on('close', () => {
+    this.window.on('close', async () => {
+      await this.doReplace()
       this.destory()
       CallBack.fn('window-close')
     })
@@ -437,13 +441,27 @@ class SiteSuckerManager {
       return
     }
 
+    if (this.retryCount[page.url] && this.retryCount[page.url] >= this.maxRetryTimes) {
+      console.log('fetchPage retryCount out: ', this.retryCount[page.url], page)
+      const samePage = this.pages.filter(
+        (p) => p.url === page.url && (p.state === 'wait' || p.state === 'running')
+      )
+      samePage.forEach((p) => {
+        p.state = 'fail'
+      })
+      this.running = false
+      await this.fetchPage()
+      return
+    }
+
+    if (!this.retryCount[page.url]) {
+      this.retryCount[page.url] = 1
+    } else {
+      this.retryCount[page.url] += 1
+    }
+
     this.currentPage = page
     this.currentPage.state = 'running'
-
-    if (this.pageLoaded.has(page.url)) {
-      console.log('pageLoaded has ', page.url, page)
-    }
-    this.pageLoaded.add(page.url)
 
     /**
      * 设置10秒超时
@@ -460,7 +478,7 @@ class SiteSuckerManager {
     } catch (e) {}
     clearTimeout(timer)
     await this.wait()
-    await this.onPageLoaded()
+    await this.onPageLoaded(page)
     this.running = false
     await this.fetchPage()
   }
@@ -510,6 +528,25 @@ class SiteSuckerManager {
           this.task.delete(link.url)
           this.fetchLink().then()
           continue
+        }
+
+        if (this.retryCount[link.url] && this.retryCount[link.url] >= this.maxRetryTimes) {
+          console.log('fetchLink retryCount out: ', this.retryCount[link.url], link)
+          const sameUrl = this.pageLinks.filter(
+            (p) => p.url === link.url && (p.state === 'wait' || p.state === 'running')
+          )
+          sameUrl.forEach((l) => {
+            l.state = 'fail'
+          })
+          this.task.delete(link.url)
+          this.fetchLink().then()
+          continue
+        }
+
+        if (!this.retryCount[link.url]) {
+          this.retryCount[link.url] = 1
+        } else {
+          this.retryCount[link.url] += 1
         }
 
         this.task.add(link.url)
@@ -609,7 +646,7 @@ class SiteSuckerManager {
               timer = setTimeout(taskFail, this.timeout)
               this.fetchLink().then()
             })
-            .catch((e) => {
+            .catch(() => {
               clearTimeout(timer)
               taskFail()
             })
@@ -624,13 +661,11 @@ class SiteSuckerManager {
    * 获取页面HTML
    * 解析页面
    */
-  onPageLoaded() {
+  onPageLoaded(page: LinkItem) {
     return new Promise((resolve) => {
-      let exit: boolean = false
       const timer = setTimeout(() => {
-        console.log('onPageLoaded timer fail', this.currentPage)
-        exit = true
-        this.currentPage!.state = 'fail'
+        console.log('onPageLoaded timer fail', page)
+        page.state = 'fail'
         resolve(true)
       }, this.timeout)
       try {
@@ -641,39 +676,32 @@ class SiteSuckerManager {
         Promise.all(all)
           .then(async ([url, html]) => {
             clearTimeout(timer)
-            if (exit) {
-              console.log('onPageLoaded had exit !!!')
-              return
-            }
             if (this.checkIsExcludeUrl(url, true)) {
-              this.currentPage!.state = 'fail'
+              page.state = 'fail'
               resolve(true)
               return
             }
-            if (this.currentPage!.state === 'running') {
-              const saveFile = this.currentPage!.saveFile
-              if (existsSync(saveFile)) {
-                console.log('existsSync saveFile: ', saveFile, this.currentPage)
-              }
+            if (page.state === 'running') {
+              const saveFile = page.saveFile
               const dir = dirname(saveFile)
               try {
                 await mkdirp(dir)
               } catch (e) {}
               await writeFile(saveFile, html)
-              this.handlePageHtml(html)
+              this.handlePageHtml(html, page)
             }
             resolve(true)
           })
           .catch((e) => {
-            console.log('onPageLoaded catch fail 0000', this.currentPage, e)
+            console.log('onPageLoaded catch fail 0000', page, e)
             clearTimeout(timer)
-            this.currentPage!.state = 'fail'
+            page.state = 'fail'
             resolve(true)
           })
       } catch (e: any) {
-        console.log('onPageLoaded catch fail 1111', this.currentPage, e)
+        console.log('onPageLoaded catch fail 1111', page, e)
         clearTimeout(timer)
-        this.currentPage!.state = 'fail'
+        page.state = 'fail'
         resolve(true)
       }
     })
@@ -684,9 +712,9 @@ class SiteSuckerManager {
    * 获取页面各种链接
    * @param html
    */
-  handlePageHtml(html: string) {
-    this.parseHtmlPage(html)
-    this.parseHtmlLink(html)
+  handlePageHtml(html: string, page: LinkItem) {
+    this.parseHtmlPage(html, page)
+    this.parseHtmlLink(html, page)
     this.currentPage!.state = 'replace'
     const samePage = this.pages.filter(
       (p) => p.url === this.currentPage!.url && (p.state === 'wait' || p.state === 'fail')
@@ -700,7 +728,7 @@ class SiteSuckerManager {
    * 解析页面链接
    * @param html
    */
-  parseHtmlLink(html: string) {
+  parseHtmlLink(html: string, page: LinkItem) {
     const links = []
     let result
     let reg = new RegExp('<link([^<]+)href="([^"]+)"', 'g')
@@ -736,7 +764,7 @@ class SiteSuckerManager {
      */
     const linkUrls: Array<LinkItem> = links
       .filter((a) => {
-        const u = new URL(a, this.currentPage?.url)
+        const u = new URL(a, page.url)
         u.hash = ''
         const uu = u.toString()
         return (
@@ -749,7 +777,7 @@ class SiteSuckerManager {
         )
       })
       .map((a) => {
-        const u = new URL(a, this.currentPage?.url)
+        const u = new URL(a, page.url)
         u.hash = ''
         const linkUrl = u.toString()
         const saveFile = this.urlToDir(linkUrl)
@@ -758,10 +786,13 @@ class SiteSuckerManager {
           url: linkUrl,
           raw: a,
           replaceUrl,
-          fromPage: this.currentPage?.url ?? '',
+          fromPage: page.url ?? '',
           saveFile,
           state: 'wait'
         })
+      })
+      .filter((f) => {
+        return !this.retryCount[f.url] || this.retryCount[f.url] < this.maxRetryTimes
       })
       .sort((a, b) => {
         let an = 1
@@ -781,7 +812,7 @@ class SiteSuckerManager {
    * 获取页面A链接
    * @param html
    */
-  parseHtmlPage(html: string) {
+  parseHtmlPage(html: string, page: LinkItem) {
     const reg = new RegExp('<a([^<]+)href="([^"]+)"', 'g')
     let result
     const imgs = []
@@ -800,7 +831,7 @@ class SiteSuckerManager {
       }
       let right = true
       try {
-        const urlObj = new URL(u, this.currentPage?.url)
+        const urlObj = new URL(u, page.url)
         if (urlObj.host !== this.baseHost || !urlObj.protocol.includes('http')) {
           right = false
         }
@@ -821,7 +852,7 @@ class SiteSuckerManager {
      */
     const linkUrls: Array<LinkItem> = alinks
       .map((a) => {
-        const u = new URL(a, this.currentPage?.url)
+        const u = new URL(a, page.url)
         u.hash = ''
         const linkUrl = u.toString()
         const saveFile = this.urlToDir(linkUrl, true)
@@ -830,12 +861,15 @@ class SiteSuckerManager {
           url: linkUrl,
           raw: a,
           replaceUrl,
-          fromPage: this.currentPage?.saveFile ?? '',
+          fromPage: page?.saveFile ?? '',
           saveFile,
           state: 'wait',
           isPage: true,
           type: 'text/html'
         })
+      })
+      .filter((f) => {
+        return !this.retryCount[f.url] || this.retryCount[f.url] < this.maxRetryTimes
       })
       .sort((a, b) => {
         let an = 1
@@ -848,14 +882,6 @@ class SiteSuckerManager {
         }
         return an - bn
       })
-
-    const failed = linkUrls.filter((l) =>
-      this.pages.some((f) => f.url === l.url && f.state === 'fail')
-    )
-
-    if (failed.length > 0) {
-      console.log('parseHtmlPage failed: ', failed, this.currentPage)
-    }
 
     this.pages.push(...linkUrls)
   }
@@ -984,8 +1010,8 @@ class SiteSuckerManager {
       clearTimeout(this.timer)
       this.timer = undefined
     }
+    this.retryCount = {}
     this.task.clear()
-    this.pageLoaded.clear()
     this.pages.splice(0)
     this.pageLinks.splice(0)
     for (const u in NoticeDict) {
