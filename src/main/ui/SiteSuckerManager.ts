@@ -143,6 +143,8 @@ class SiteSuckerManager {
   maxImgSize = 0
   maxVideoSize = 0
 
+  pageLoaded: Set<string> = new Set()
+
   constructor() {}
 
   setCallBack(fn: Function) {
@@ -438,6 +440,11 @@ class SiteSuckerManager {
     this.currentPage = page
     this.currentPage.state = 'running'
 
+    if (this.pageLoaded.has(page.url)) {
+      console.log('pageLoaded has ', page.url, page)
+    }
+    this.pageLoaded.add(page.url)
+
     /**
      * 设置10秒超时
      */
@@ -619,7 +626,10 @@ class SiteSuckerManager {
    */
   onPageLoaded() {
     return new Promise((resolve) => {
+      let exit: boolean = false
       const timer = setTimeout(() => {
+        console.log('onPageLoaded timer fail', this.currentPage)
+        exit = true
         this.currentPage!.state = 'fail'
         resolve(true)
       }, this.timeout)
@@ -631,6 +641,10 @@ class SiteSuckerManager {
         Promise.all(all)
           .then(async ([url, html]) => {
             clearTimeout(timer)
+            if (exit) {
+              console.log('onPageLoaded had exit !!!')
+              return
+            }
             if (this.checkIsExcludeUrl(url, true)) {
               this.currentPage!.state = 'fail'
               resolve(true)
@@ -638,6 +652,9 @@ class SiteSuckerManager {
             }
             if (this.currentPage!.state === 'running') {
               const saveFile = this.currentPage!.saveFile
+              if (existsSync(saveFile)) {
+                console.log('existsSync saveFile: ', saveFile, this.currentPage)
+              }
               const dir = dirname(saveFile)
               try {
                 await mkdirp(dir)
@@ -648,11 +665,13 @@ class SiteSuckerManager {
             resolve(true)
           })
           .catch((e) => {
+            console.log('onPageLoaded catch fail 0000', this.currentPage, e)
             clearTimeout(timer)
             this.currentPage!.state = 'fail'
             resolve(true)
           })
       } catch (e: any) {
+        console.log('onPageLoaded catch fail 1111', this.currentPage, e)
         clearTimeout(timer)
         this.currentPage!.state = 'fail'
         resolve(true)
@@ -744,6 +763,17 @@ class SiteSuckerManager {
           state: 'wait'
         })
       })
+      .sort((a, b) => {
+        let an = 1
+        let bn = 1
+        if (this.pageLinks.find((f) => f.url === a.url && f.state === 'fail')) {
+          an = 0
+        }
+        if (this.pageLinks.find((f) => f.url === b.url && f.state === 'fail')) {
+          bn = 0
+        }
+        return an - bn
+      })
     this.pageLinks.push(...linkUrls)
   }
 
@@ -789,23 +819,44 @@ class SiteSuckerManager {
      * 此处不能根据url过滤
      * 多层页面可能有共同的url, 但是a链接里的不一样, 需要每个页面单独替换
      */
-    const linkUrls: Array<LinkItem> = alinks.map((a) => {
-      const u = new URL(a, this.currentPage?.url)
-      u.hash = ''
-      const linkUrl = u.toString()
-      const saveFile = this.urlToDir(linkUrl, true)
-      const replaceUrl = saveFile.replace(this.baseDir!, '')
-      return new LinkItem({
-        url: linkUrl,
-        raw: a,
-        replaceUrl,
-        fromPage: this.currentPage?.saveFile ?? '',
-        saveFile,
-        state: 'wait',
-        isPage: true,
-        type: 'text/html'
+    const linkUrls: Array<LinkItem> = alinks
+      .map((a) => {
+        const u = new URL(a, this.currentPage?.url)
+        u.hash = ''
+        const linkUrl = u.toString()
+        const saveFile = this.urlToDir(linkUrl, true)
+        const replaceUrl = saveFile.replace(this.baseDir!, '')
+        return new LinkItem({
+          url: linkUrl,
+          raw: a,
+          replaceUrl,
+          fromPage: this.currentPage?.saveFile ?? '',
+          saveFile,
+          state: 'wait',
+          isPage: true,
+          type: 'text/html'
+        })
       })
-    })
+      .sort((a, b) => {
+        let an = 1
+        let bn = 1
+        if (this.pages.find((f) => f.url === a.url && f.state === 'fail')) {
+          an = 0
+        }
+        if (this.pages.find((f) => f.url === b.url && f.state === 'fail')) {
+          bn = 0
+        }
+        return an - bn
+      })
+
+    const failed = linkUrls.filter((l) =>
+      this.pages.some((f) => f.url === l.url && f.state === 'fail')
+    )
+
+    if (failed.length > 0) {
+      console.log('parseHtmlPage failed: ', failed, this.currentPage)
+    }
+
     this.pages.push(...linkUrls)
   }
 
@@ -892,7 +943,18 @@ class SiteSuckerManager {
               })
               .forEach((link) => {
                 if (link.raw && link.raw !== link.replaceUrl) {
-                  content = content.replace(new RegExp(link.raw, 'g'), link.replaceUrl)
+                  content = content.replace(
+                    new RegExp(`href="${link.raw}"`, 'g'),
+                    `href="${link.replaceUrl}"`
+                  )
+                  content = content.replace(
+                    new RegExp(`poster="${link.raw}"`, 'g'),
+                    `poster="${link.replaceUrl}"`
+                  )
+                  content = content.replace(
+                    new RegExp(`src="${link.raw}"`, 'g'),
+                    `src="${link.replaceUrl}"`
+                  )
                 }
                 link.state = 'success'
               })
@@ -901,6 +963,8 @@ class SiteSuckerManager {
         }
       }
     }
+    await writeFile('/Users/x/Desktop/pages.json', JSON.stringify(this.pages))
+    await writeFile('/Users/x/Desktop/pageLinks.json', JSON.stringify(this.pageLinks))
   }
 
   /**
@@ -921,6 +985,7 @@ class SiteSuckerManager {
       this.timer = undefined
     }
     this.task.clear()
+    this.pageLoaded.clear()
     this.pages.splice(0)
     this.pageLinks.splice(0)
     for (const u in NoticeDict) {
