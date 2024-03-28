@@ -40,6 +40,16 @@
                   </div>
                 </div>
               </el-form-item>
+              <el-form-item :label="$t('tools.windowCount')">
+                <div class="path-choose w-p100">
+                  <el-slider
+                    v-model.number="form.windowCount"
+                    :min="1"
+                    :max="CPU_Count"
+                    show-input
+                  ></el-slider>
+                </div>
+              </el-form-item>
               <el-form-item :label="$t('util.proxy')">
                 <div class="path-choose w-p100">
                   <input
@@ -114,6 +124,8 @@
 
   const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+  const os = require('os')
+  const CPU_Count = os.cpus().length
 
   const form = ref({
     dir: '',
@@ -122,7 +134,8 @@
     pageLimit: '',
     timeout: undefined,
     maxImgSize: undefined,
-    maxVideoSize: undefined
+    maxVideoSize: undefined,
+    windowCount: 1
   })
 
   const store = SiteSuckerStore()

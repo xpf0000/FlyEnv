@@ -46,18 +46,10 @@ class PageTaskItem {
         const uobj = new URL(details.url)
         uobj.hash = ''
         const url = uobj.toString()
-        if (
-          Store.Pages.some((p) => p.url === url && p.state === 'success') ||
-          Store.Links.some((p) => p.url === url && p.state === 'success')
-        ) {
-          callback({
-            cancel: true
-          })
-          return
-        }
         let isPage = false
         let contentType = ''
         let size = 0
+        let isMedia = false
         const headers = details?.responseHeaders ?? {}
         for (const k in headers) {
           if (k.toLowerCase() === 'content-type') {
@@ -66,6 +58,13 @@ class PageTaskItem {
             contentType = type
             if (type.includes('text/html')) {
               isPage = true
+            }
+            if (
+              type.startsWith('image/') ||
+              type.startsWith('audio/') ||
+              type.startsWith('video/')
+            ) {
+              isMedia = true
             }
           } else if (k.toLowerCase() === 'content-length') {
             const length = headers[k]?.pop() ?? '0'
@@ -97,14 +96,17 @@ class PageTaskItem {
              * 新页面
              */
             const saveFile = urlToDir(url, true)
-            const item: PageLink = {
-              url,
-              saveFile,
-              state: 'wait',
-              type: contentType,
-              size
+            if (!Store.ExcludeUrl.has(url)) {
+              Store.ExcludeUrl.add(url)
+              const item: PageLink = {
+                url,
+                saveFile,
+                state: 'wait',
+                type: contentType,
+                size
+              }
+              Store.Pages.push(new LinkItem(item))
             }
-            Store.Pages.push(new LinkItem(item))
           }
         } else {
           if (checkIsExcludeUrl(details.url, false)) {
@@ -118,15 +120,24 @@ class PageTaskItem {
            */
           if (uobj.host === Store.host) {
             const saveFile = urlToDir(url)
-            const item: PageLink = {
-              url,
-              saveFile,
-              state: 'wait',
-              type: contentType,
-              size
+            if (!Store.ExcludeUrl.has(url)) {
+              Store.ExcludeUrl.add(url)
+              const item: PageLink = {
+                url,
+                saveFile,
+                state: 'wait',
+                type: contentType,
+                size
+              }
+              Store.Links.push(new LinkItem(item))
             }
-            Store.Links.push(new LinkItem(item))
           }
+        }
+        if (isMedia) {
+          callback({
+            cancel: true
+          })
+          return
         }
       }
       callback({})
@@ -157,6 +168,15 @@ class PageTaskItem {
     }
   }
 
+  #pageRetry(page: LinkItem) {
+    const index = Store.Pages.findIndex((f) => f === page)
+    if (index >= 0) {
+      Store.Pages.splice(index, 1)
+    }
+    page.state = 'wait'
+    Store.Pages.push(page)
+  }
+
   async run() {
     if (this.isDestory) {
       return
@@ -164,7 +184,7 @@ class PageTaskItem {
     /**
      * 查找正在等待运行的页面
      */
-    const page = Store.Pages.find((p) => p.state === 'wait')
+    const page = Store.Pages.shift()
     /**
      * 未找到
      * 等待间隔时间
@@ -195,18 +215,11 @@ class PageTaskItem {
      * 设置10秒超时
      */
     const timer = setTimeout(() => {
-      page.state = 'wait'
-      const index = Store.Pages.findIndex((f) => f === page)
-      if (index >= 0) {
-        Store.Pages.splice(index, 1)
-        Store.Pages.push(page)
-      }
+      this.#pageRetry(page)
       this.run()
       return
     }, Config.timeout)
-
-    console.log('PageTask page: ', page)
-
+    Store.LoadedUrl.push(page.url)
     try {
       await this.window!.loadURL(page.url)
     } catch (e) {}
@@ -270,7 +283,10 @@ class PageTaskItem {
           type: 'text/html'
         })
       })
-      .filter((f) => !Store.Pages.some((p) => p.url === f.url))
+      .filter((f) => !Store.ExcludeUrl.has(f.url))
+    linkUrls.forEach((l) => {
+      Store.ExcludeUrl.add(l.url)
+    })
     Store.Pages.push(...linkUrls)
     return replace
   }
@@ -318,8 +334,7 @@ class PageTaskItem {
         return (
           !Config.ExcludeHost.includes(u.host) &&
           u.protocol.includes('http') &&
-          !Store.Pages.find((p) => p.url === uu) &&
-          !Store.Links.find((p) => p.url === uu) &&
+          !Store.ExcludeUrl.has(uu) &&
           !a.includes('.html') &&
           !a.includes('.htm') &&
           !a.includes('.php')
@@ -340,6 +355,10 @@ class PageTaskItem {
           state: 'wait'
         })
       })
+      .filter((f) => !Store.ExcludeUrl.has(f.url))
+    linkUrls.forEach((l) => {
+      Store.ExcludeUrl.add(l.url)
+    })
     Store.Links.push(...linkUrls)
     return replace
   }
@@ -362,7 +381,7 @@ class PageTaskItem {
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
         console.log('onPageLoaded timer fail', page)
-        page.state = 'fail'
+        this.#pageRetry(page)
         resolve(true)
       }, Config.timeout)
       try {
@@ -401,13 +420,13 @@ class PageTaskItem {
           .catch((e) => {
             console.log('onPageLoaded catch fail 0000', page, e)
             clearTimeout(timer)
-            page.state = 'fail'
+            this.#pageRetry(page)
             resolve(true)
           })
       } catch (e: any) {
         console.log('onPageLoaded catch fail 1111', page, e)
         clearTimeout(timer)
-        page.state = 'fail'
+        this.#pageRetry(page)
         resolve(true)
       }
     })
@@ -440,10 +459,13 @@ class PageTask {
       this.task.push(item)
     }
   }
-  run() {
-    this.task.forEach((item) => {
-      item.run()
-    })
+  async run() {
+    Store.ExcludeUrl.clear()
+    Store.LoadedUrl.splice(0)
+    for (const item of this.task) {
+      item.run().then()
+      await wait(350)
+    }
   }
 
   updateConfig() {

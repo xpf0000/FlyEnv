@@ -5,17 +5,27 @@ import { Store } from './Store'
 import { wait } from '../../utils'
 import { dirname } from 'path'
 import { createWriteStream, existsSync, mkdirp, removeSync, stat } from 'fs-extra'
+import type { LinkItem } from './LinkItem'
 
 class LinkTaskItem {
   isDestory?: boolean
 
   constructor() {}
 
+  #retry(link: LinkItem) {
+    const index = Store.Links.findIndex((f) => f === link)
+    if (index >= 0) {
+      Store.Links.splice(index, 1)
+    }
+    link.state = 'wait'
+    Store.Links.push(link)
+  }
+
   async run() {
     if (this.isDestory) {
       return
     }
-    const link = Store.Links.find((l) => l.state === 'wait')
+    const link = Store.Links.shift()
     if (!link) {
       await wait()
       this.run().then()
@@ -63,13 +73,17 @@ class LinkTaskItem {
         } catch (e) {}
         const stream = createWriteStream(saveFile)
         const onError = () => {
-          stream.close(() => {
-            link.state = 'fail'
-            if (existsSync(saveFile)) {
-              removeSync(saveFile)
-            }
+          this.#retry(link)
+          try {
+            stream.close(() => {
+              if (existsSync(saveFile)) {
+                removeSync(saveFile)
+              }
+              this.run().then()
+            })
+          } catch (e) {
             this.run().then()
-          })
+          }
         }
         stream.on('finish', () => {
           stream.close(() => {
@@ -84,9 +98,7 @@ class LinkTaskItem {
           try {
             controller.abort()
           } catch (e) {}
-          if (!stream.destroyed) {
-            onError()
-          }
+          onError()
         }
         timer = setTimeout(taskFail, Config.timeout)
         request({
@@ -145,10 +157,11 @@ class LinkTask {
       this.task.push(item)
     }
   }
-  run() {
-    this.task.forEach((item) => {
+  async run() {
+    for (const item of this.task) {
       item.run().then()
-    })
+      await wait(350)
+    }
   }
 
   destory() {

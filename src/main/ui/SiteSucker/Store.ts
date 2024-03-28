@@ -8,6 +8,8 @@ export type StoreType = {
   dir: string
   cookie: string
   reinit: () => void
+  LoadedUrl: string[]
+  ExcludeUrl: Set<string>
 }
 
 export const Store: StoreType = {
@@ -17,6 +19,8 @@ export const Store: StoreType = {
   host: '',
   dir: '',
   cookie: '',
+  LoadedUrl: [],
+  ExcludeUrl: new Set(),
   reinit() {
     this.Pages.splice(0)
     this.Links.splice(0)

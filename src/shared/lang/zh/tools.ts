@@ -5,5 +5,6 @@ export default {
   parseFailTips: '解析失败',
   inputCheckFailTips: '未识别',
   systemProxyChech: '检测到网络使用了代理, 是否使用代理?',
-  systemProxyUsed: '设置成功. 如需修改, 请在 设置->代理设置 中修改.'
+  systemProxyUsed: '设置成功. 如需修改, 请在 设置->代理设置 中修改.',
+  windowCount: '窗口数量'
 }

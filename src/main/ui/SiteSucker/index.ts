@@ -26,7 +26,6 @@ class SiteSucker {
     url = urlObj.toString()
     Store.host = urlObj.host
     Store.dir = join(item.config.dir, urlObj.host)
-
     Config.update(item.config)
 
     const saveFile = urlToDir(url, true)
@@ -37,11 +36,12 @@ class SiteSucker {
       type: 'text/html'
     }
     Store.Pages.push(new LinkItem(currentPage))
-    PageTask.init(item?.config?.windowCount ?? 1)
+    PageTask.init(item?.config?.windowCount ?? 2)
     LinkTask.init(CPU_Count - 1)
     PageTask.updateConfig()
-    PageTask.run()
-    LinkTask.run()
+    PageTask.run().then()
+    LinkTask.run().then()
+    Store.ExcludeUrl.add(url)
   }
 
   updateConfig(config: RunConfig) {
