@@ -330,11 +330,9 @@ class PageTaskItem {
       .filter((a) => {
         const u = new URL(a, page.url)
         u.hash = ''
-        const uu = u.toString()
         return (
           !Config.ExcludeHost.includes(u.host) &&
           u.protocol.includes('http') &&
-          !Store.ExcludeUrl.has(uu) &&
           !a.includes('.html') &&
           !a.includes('.htm') &&
           !a.includes('.php')
