@@ -315,6 +315,7 @@ body {
       display: flex;
       align-items: center;
       padding: 6px 0;
+      overflow: hidden;
 
       .top-back-icon {
         width: 24px;
@@ -324,6 +325,14 @@ body {
         &:hover {
           color: #fdab1f;
         }
+      }
+
+      >.title {
+        overflow: hidden;
+        word-break: keep-all;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        flex: 1;
       }
     }
   }

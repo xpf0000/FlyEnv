@@ -20,64 +20,89 @@ class Php extends Base {
 
   getIniPath(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
+      let command = ''
+      let res: any
+      let ini = ''
+      if (version?.phpBin) {
+        command = `${version.phpBin} -i | grep php.ini`
+      } else {
+        command = `${join(version.path, 'bin/php')} -i | grep php.ini`
+      }
       try {
-        let command = ''
-        if (version?.phpBin) {
-          command = `${version.phpBin} -i | grep php.ini`
-        } else {
-          command = `${version.path}/bin/php -i | grep php.ini`
-        }
-        const res = await execPromise(command)
-        let ini: string = res?.stdout?.trim()?.split('=>')?.pop()?.trim() ?? ''
+        console.log('getIniPath: ', command)
+        res = await execPromise(command)
+        ini = res?.stdout?.trim()?.split('=>')?.pop()?.trim() ?? ''
         ini = ini?.split('=>')?.pop()?.trim() ?? ''
-        if (ini) {
-          if (!existsSync(ini)) {
-            if (!ini.endsWith('.ini')) {
-              ini = join(ini, 'php.ini')
+      } catch (e) {}
+
+      if (!ini) {
+        if (version?.phpConfig) {
+          command = `${version?.phpConfig} --ini-path`
+        } else {
+          command = `${join(version.path, 'bin/php-config')} --ini-path`
+        }
+        try {
+          res = await execPromise(command)
+          ini = res?.stdout?.trim()
+        } catch (e) {}
+      }
+
+      if (ini) {
+        if (!existsSync(ini)) {
+          if (!ini.endsWith('.ini')) {
+            const baseDir = ini
+            ini = join(baseDir, 'php.ini')
+          }
+          await mkdirp(dirname(ini))
+          const iniPath = join(global.Server.PhpDir!, 'common/conf/php.ini')
+          const iniDefaultPath = join(global.Server.PhpDir!, 'common/conf/php.ini.default')
+          if (existsSync(iniPath)) {
+            await copyFile(iniPath, ini)
+          } else if (existsSync(iniDefaultPath)) {
+            await copyFile(iniPath, ini)
+          }
+        }
+        if (existsSync(ini)) {
+          if (statSync(ini).isDirectory()) {
+            const baseIni = join(ini, 'php.ini')
+            ini = join(ini, 'php.ini-development')
+            if (!existsSync(baseIni)) {
+              if (existsSync(ini)) {
+                try {
+                  await execPromise(
+                    `echo '${global.Server.Password}' | sudo -S cp -f ${ini} ${baseIni}`
+                  )
+                  await execPromise(
+                    `echo '${global.Server.Password}' | sudo -S chmod 755 ${baseIni}`
+                  )
+                } catch (e) {}
+              } else {
+                const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
+                try {
+                  await execPromise(
+                    `echo '${global.Server.Password}' | sudo -S cp -f ${tmpl} ${baseIni}`
+                  )
+                  await execPromise(
+                    `echo '${global.Server.Password}' | sudo -S chmod 755 ${baseIni}`
+                  )
+                } catch (e) {}
+              }
             }
-            await mkdirp(dirname(ini))
-            const iniPath = join(global.Server.PhpDir!, 'common/conf/php.ini')
-            const iniDefaultPath = join(global.Server.PhpDir!, 'common/conf/php.ini.default')
-            if (existsSync(iniPath)) {
-              await copyFile(iniPath, ini)
-            } else if (existsSync(iniDefaultPath)) {
-              await copyFile(iniPath, ini)
-            }
+            ini = baseIni
           }
           if (existsSync(ini)) {
-            if (statSync(ini).isDirectory()) {
-              const baseIni = join(ini, 'php.ini')
-              ini = join(ini, 'php.ini-development')
-              if (!existsSync(baseIni)) {
-                if (existsSync(ini)) {
-                  try {
-                    await copyFile(ini, baseIni)
-                    await chmod(baseIni, '0755')
-                  } catch (e) {}
-                } else {
-                  const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
-                  try {
-                    await copyFile(tmpl, baseIni)
-                    await chmod(baseIni, '0755')
-                  } catch (e) {}
-                }
-              }
-              ini = baseIni
+            const iniDefault = `${ini}.default`
+            if (!existsSync(iniDefault)) {
+              await execPromise(
+                `echo '${global.Server.Password}' | sudo -S cp -f ${ini} ${iniDefault}`
+              )
             }
-            if (existsSync(ini)) {
-              const iniDefault = `${ini}.default`
-              if (!existsSync(iniDefault)) {
-                await copyFile(ini, iniDefault)
-              }
-              resolve(ini)
-              return
-            }
+            resolve(ini)
+            return
           }
         }
-        reject(new Error(I18nT('fork.phpiniNoFound')))
-      } catch (e) {
-        reject(e)
       }
+      reject(new Error(I18nT('fork.phpiniNoFound')))
     })
   }
 

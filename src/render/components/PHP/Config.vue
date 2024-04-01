@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">php.ini</span>
+          <span class="ml-15 title">{{ version.version }} - {{ version.path }} - php.ini</span>
         </div>
       </div>
 

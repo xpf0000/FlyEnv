@@ -234,6 +234,7 @@
             v-model="rewriteKey"
             filterable
             :placeholder="$t('base.commonTemplates')"
+            class="w-p100"
             @change="rewriteChange"
           >
             <el-option v-for="key in rewrites" :key="key" :label="key" :value="key"> </el-option>

@@ -68,7 +68,7 @@ class DnsServer {
           })
           .catch((e: Error) => {
             writeFileSync(logFile, e.toString())
-            reject(new Error('Need Node'))
+            reject(new Error('DNS Server Start Fail: Need NodeJS, Not Found NodeJS In System Env'))
           })
       }
       const npmInstall = () => {

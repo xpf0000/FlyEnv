@@ -11,12 +11,12 @@
       </div>
     </template>
     <template v-if="toolInstalling">
-      <div ref="logRef" class="logs cli-to-html">
+      <div ref="logRef" class="logs cli-to-html" style="padding: 20px">
         {{ logs?.join('') ?? '' }}
       </div>
     </template>
     <template v-else>
-      <el-form style="margin-top: 15px" label-position="left" label-width="150px">
+      <el-form style="margin-top: 15px; padding: 20px" label-position="left" label-width="150px">
         <el-form-item :label="$t('util.nodeToolChoose')">
           <el-radio-group v-model="form.tool">
             <el-radio-button key="fnm" label="fnm">fnm</el-radio-button>
