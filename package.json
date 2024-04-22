@@ -8,13 +8,13 @@
   },
   "copyright": "Copyright© pengfei xu",
   "scripts": {
-    "build-dev-runner": "cat scripts/args.esbuild.dev-runner | xargs npx esbuild",
+    "build-dev-runner": "npx esbuild --platform=node --bundle --external:vite --external:esbuild --external:consolidate --external:@vue/compiler-sfc scripts/dev-runner.ts --outfile=electron/dev-runner.js",
     "web": "vite -c web/vite.config.ts",
     "web-build": "vite -c web/vite.config.ts build",
-    "dev": "npm run clean:dev && npm run build-dev-runner && cross-env NODE_ENV=development TEST=electron node electron/dev-runner.js",
-    "clean:dev": "rm -rf dist/*",
-    "clean": "rm -rf dist/*;rm -rf node_modules/node-pty/build/*",
-    "build": "npm run clean && cat scripts/args.esbuild.app-builder | xargs npx esbuild && cross-env NODE_ENV=production node electron/app-builder.js",
+    "dev": "npm run build-dev-runner && cross-env NODE_ENV=development TEST=electron node electron/dev-runner.js",
+    "clean:dev": "rd /s /q dist",
+    "clean": "rd /s /q dist && rd /s /q node_modules/node-pty/build",
+    "build": "npx esbuild --platform=node --bundle --external:vite --external:esbuild --external:electron-builder --external:consolidate --external:@vue/compiler-sfc scripts/app-builder.ts --outfile=electron/app-builder.js && cross-env NODE_ENV=production node electron/app-builder.js",
     "postinstall": "electron-builder install-app-deps"
   },
   "main": "./dist/electron/main.js",
@@ -31,8 +31,7 @@
     "dns2": "^2.1.0",
     "electron-is": "^3.0.0",
     "electron-log": "^4.4.8",
-    "electron-store": "^8.1.0",
-    "electron-updater": "^5.3.0",
+    "electron-store": "^10.0.0",
     "fs-extra": "^10.0.0",
     "ftp-srv": "^4.6.3",
     "hpagent": "^1.2.0",
@@ -78,8 +77,8 @@
     "chalk": "^4.0.0",
     "concurrently": "^7.0.0",
     "cross-env": "^7.0.3",
-    "electron": "^23.1.1",
-    "electron-builder": "^23.6.0",
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0",
     "electron-debug": "^3.2.0",
     "electron-devtools-installer": "^3.2.0",
     "electron-notarize": "^1.2.2",
@@ -118,8 +117,6 @@
     "vite-plugin-wasm": "^3.3.0",
     "vue-router": "^4.1.6",
     "vue-tsc": "^1.2.0",
-    "xterm": "^5.0.0",
-    "xterm-addon-fit": "^0.6.0",
     "yamljs": "^0.3.0"
   }
 }

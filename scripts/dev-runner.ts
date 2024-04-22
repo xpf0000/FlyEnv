@@ -1,5 +1,5 @@
 import { createServer } from 'vite'
-import { spawn, ChildProcess } from 'child_process'
+import { spawn, ChildProcess, exec } from 'child_process'
 import { build } from 'esbuild'
 import _fs, { copySync } from 'fs-extra'
 import _path from 'path'
@@ -11,6 +11,54 @@ import esbuildConfig from '../configs/esbuild.config'
 
 let restart = false
 let electronProcess: ChildProcess | null
+
+function execRoot(cammand: string) {
+  return new Promise((resolve, reject) => {
+    try {
+      exec(
+        cammand,
+        (error, stdout, stderr) => {
+          if (!error) {
+            resolve({
+              stdout: stdout?.toString() ?? '',
+              stderr: stderr?.toString() ?? ''
+            })
+          } else {
+            reject(error)
+          }
+        }
+      )
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+async function killAllElectron() {
+  const command = `wmic process get commandline,ProcessId | findstr "electron.exe"`
+  console.log('_stopServer command: ', command)
+  let res: any = null
+  try {
+    res = await execRoot(command)
+  } catch (e) { }
+  const pids = res?.stdout?.trim()?.split('\n') ?? []
+  console.log('pids: ', pids)
+  const arr: Array<string> = []
+  for (const p of pids) {
+    const pid = p.split(' ').filter((s: string) => {
+      return !!s.trim()
+    }).pop()
+    arr.push(pid)
+  }
+  console.log('_stopServer arr: ', arr)
+  if (arr.length > 0) {
+    for (const pid of arr) {
+      try {
+        await execRoot(`wmic process where processid="${pid}" delete`)
+      } catch (e) { }
+    }
+  }
+}
 
 async function launchViteDevServer(openInBrowser = false) {
   const config = openInBrowser ? viteConfig.serveConfig : viteConfig.serverConfig
@@ -25,20 +73,13 @@ function buildMainProcess() {
   return new Promise((resolve, reject) => {
     Promise.all([build(esbuildConfig.dev), build(esbuildConfig.devFork)])
       .then(
-        () => {
+        async () => {
           try {
-            if (electronProcess && !electronProcess.killed) {
-              electronProcess.kill('SIGINT')
-              if (electronProcess.pid) {
-                process.kill(electronProcess.pid, 'SIGINT')
-              }
-              electronProcess = null
-            }
+            await killAllElectron()
           } catch (e) {
             console.log('close err: ', e)
           }
           resolve(true)
-          console.log('buildMainProcess !!!!!!')
         },
         (err) => {
           console.log(err)

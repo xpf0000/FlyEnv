@@ -29,32 +29,7 @@ export class Base {
 
   _linkVersion(version: SoftInstalled): ForkPromise<any> {
     return new ForkPromise(async (resolve) => {
-      if (version && version?.bin) {
-        try {
-          const v = version.bin
-            .split(global.Server.BrewCellar + '/')
-            .pop()
-            ?.split('/')?.[0]
-          if (v) {
-            const command = `brew unlink ${v} && brew link --overwrite --force ${v}`
-            console.log('_linkVersion: ', command)
-            execPromise(command, {
-              env: {
-                HOMEBREW_NO_INSTALL_FROM_API: 1
-              }
-            })
-              .then(() => { })
-              .catch(() => { })
-            resolve(true)
-          } else {
-            resolve(I18nT('fork.versionError'))
-          }
-        } catch (e: any) {
-          resolve(e.toString())
-        }
-      } else {
-        resolve(I18nT('fork.needSelectVersion'))
-      }
+      resolve(true)
     })
   }
 
@@ -79,10 +54,7 @@ export class Base {
       if (!version?.version) {
         reject(new Error(I18nT('fork.versionNoFound')))
         return
-      }
-      try {
-        this._linkVersion(version)
-      } catch (e) { }
+      }    
       try {
         await this._stopServer(version)
         await this._startServer(version).on(on)
@@ -106,10 +78,7 @@ export class Base {
       if (!version?.version) {
         reject(new Error(I18nT('fork.versionNoFound')))
         return
-      }
-      try {
-        this._linkVersion(version)
-      } catch (e) { }
+      }     
       try {
         await this._stopServer(version)
         await this._startServer(version).on(on)

@@ -17,12 +17,12 @@ const options: PageOptions = {
   index: {
     attrs: {
       title: 'PhpWebStudy',
-      width: 1100,
-      height: 780,
+      width: 1200,
+      height: 800,
       minWidth: 800,
       minHeight: 600,
       backgroundColor: '#262D3D',
-      transparent: !is.windows()
+      transparent: false
     },
     bindCloseToHide: true,
     url: is.dev() ? `http://localhost:${ViteDevPort}` : `file://${index}`

@@ -13,8 +13,8 @@ const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
   autoHideMenuBar: true,
   show: false,
-  width: 1024,
-  height: 768,
+  width: 1200,
+  height: 800,
   webPreferences: {
     nodeIntegration: true,
     contextIsolation: false,

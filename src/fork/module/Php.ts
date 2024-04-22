@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { execPromise, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, readFile, remove } from 'fs-extra'
+import { writeFile, readFile, remove, mkdirp } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
@@ -63,7 +63,7 @@ class Php extends Base {
 
       const devIni = join(version.path, 'php.ini-development')
       if (existsSync(devIni)) {
-        await initIniFile(devIni)      
+        await initIniFile(devIni)
         if (existsSync(ini)) {
           resolve(ini)
           return
@@ -72,13 +72,13 @@ class Php extends Base {
 
       const proIni = join(version.path, 'php.ini-production')
       if (existsSync(proIni)) {
-        await initIniFile(proIni) 
+        await initIniFile(proIni)
         if (existsSync(ini)) {
           resolve(ini)
           return
         }
       }
-  
+
       reject(new Error(I18nT('fork.phpiniNoFound')))
     })
   }
@@ -104,7 +104,7 @@ class Php extends Base {
       let res: any = null
       try {
         res = await execPromiseRoot(command)
-      } catch (e) {}
+      } catch (e) { }
       const pids = res?.stdout?.trim()?.split('\n') ?? []
       const arr: Array<string> = []
       for (const p of pids) {
@@ -113,16 +113,16 @@ class Php extends Base {
             return !!s.trim()
           }).pop()
           if (pid) {
-            arr.push(pid)          
-          }          
+            arr.push(pid)
+          }
         }
       }
       if (arr.length > 0) {
         for (const pid of arr) {
           try {
             await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-          } catch (e) {}
-        }      
+          } catch (e) { }
+        }
       }
       resolve(true)
     })
@@ -133,8 +133,8 @@ class Php extends Base {
       console.log('initLocalApp: ', version.bin, global.Server.AppDir)
       if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `php-${version.version}`))) {
         zipUnPack(join(global.Server.Static!, `zip/php-${version.version}.7z`), global.Server.AppDir!)
-        .then(resolve)
-        .catch(resolve)
+          .then(resolve)
+          .catch(resolve)
         return
       }
       resolve(true)
@@ -146,8 +146,8 @@ class Php extends Base {
       const fpm = join(global.Server.PhpDir!, 'php-cgi-spawner.exe')
       if (!existsSync(fpm)) {
         zipUnPack(join(global.Server.Static!, `zip/php_cgi_spawner.7z`), global.Server.PhpDir!)
-        .then(resolve)
-        .catch(resolve)
+          .then(resolve)
+          .catch(resolve)
         return
       }
       resolve(true)
@@ -181,6 +181,7 @@ class Php extends Base {
     return new ForkPromise(async (resolve) => {
       const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
       const confPath = join(global.Server.NginxDir!, 'conf/enable-php.conf')
+      await mkdirp(join(global.Server.NginxDir!, 'conf'))
       const tmplPath = join(global.Server.Static!, 'tmpl/enable-php.conf')
       if (existsSync(tmplPath)) {
         let content = await readFile(tmplPath, 'utf-8')
@@ -317,71 +318,71 @@ class Php extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const urls = [
-          'https://windows.php.net/download/', 
+          'https://windows.php.net/download/',
           'https://windows.php.net/downloads/releases/archives/'
-      ]
-      const fetchVersions = async (url: string) => {
+        ]
+        const fetchVersions = async (url: string) => {
           const all: any = []
           const res = await axios({
             url,
             method: 'get'
-        })
-        const html = res.data        
-        const reg = /\/downloads\/releases\/(archives\/)?php-([\d\.]+)-Win([a-zA-Z\d-]+)-x64\.zip/g
-        let r
-        while((r = reg.exec(html)) !== null) {          
+          })
+          const html = res.data
+          const reg = /\/downloads\/releases\/(archives\/)?php-([\d\.]+)-Win([a-zA-Z\d-]+)-x64\.zip/g
+          let r
+          while ((r = reg.exec(html)) !== null) {
             const u = new URL(r[0], url).toString()
             const version = r[2]
             const mv = version.split('.').slice(0, 2).join('.')
             const item = {
-                url: u,
-                version,
-                mVersion: mv
+              url: u,
+              version,
+              mVersion: mv
             }
             const find = all.find((f: any) => f.mVersion === item.mVersion)
             if (!find) {
-                all.push(item)
+              all.push(item)
             } else {
               if (compareVersions(item.version, find.version) > 0) {
                 const index = all.indexOf(find)
-                all.splice(index, 1, item)          
+                all.splice(index, 1, item)
               }
             }
-        }
-        return all
-      }
-      const all: any = []
-      const res = await Promise.all(urls.map((u) => fetchVersions(u)))
-      const list = res.flat()
-      list.forEach((l: any) => {
-        const find = all.find((f: any) => f.mVersion === l.mVersion)
-        if (!find) {
-            all.push(l)
-        } else {
-          if (compareVersions(l.version, find.version) > 0) {
-            const index = all.indexOf(find)
-            all.splice(index, 1, l)          
           }
+          return all
         }
-      })
-  
-      all.sort((a: any, b: any) => {
-        return compareVersions(b.version, a.version)
-      })
-  
-      all.forEach((a: any) => {
-        const dir = join(global.Server.AppDir!, `php-${a.version}`, 'php.exe')
-        const zip = join(global.Server.Cache!, `php-${a.version}.zip`)
-        a.appDir = join(global.Server.AppDir!, `php-${a.version}`)
-        a.zip = zip
-        a.bin = dir
-        a.downloaded = existsSync(zip)
-        a.installed = existsSync(dir)
-      })
-          resolve(all)
-      } catch(e) {
+        const all: any = []
+        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
+        const list = res.flat()
+        list.forEach((l: any) => {
+          const find = all.find((f: any) => f.mVersion === l.mVersion)
+          if (!find) {
+            all.push(l)
+          } else {
+            if (compareVersions(l.version, find.version) > 0) {
+              const index = all.indexOf(find)
+              all.splice(index, 1, l)
+            }
+          }
+        })
+
+        all.sort((a: any, b: any) => {
+          return compareVersions(b.version, a.version)
+        })
+
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `php-${a.version}`, 'php.exe')
+          const zip = join(global.Server.Cache!, `php-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `php-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+        })
+        resolve(all)
+      } catch (e) {
         resolve([])
-      }    
+      }
     })
   }
 }
