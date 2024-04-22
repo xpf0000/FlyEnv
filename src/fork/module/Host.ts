@@ -346,17 +346,15 @@ subjectAltName=@alt_names
     if (!dir || dir === '/') {
       return
     }
-    try {
-      if (existsSync(dir)) {
-        if (depth === 0) {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S chmod -R 755 ${dir}`)
-        } else {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
-        }
-        const parentDir = dirname(dir)
+    if (existsSync(dir)) {
+      try {
+        await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
+      } catch (e) {}
+      const parentDir = dirname(dir)
+      if (parentDir !== dir) {
         await this.#setDirRole(parentDir, depth + 1)
       }
-    } catch (e) {}
+    }
   }
 
   /**

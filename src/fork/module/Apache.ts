@@ -78,6 +78,20 @@ IncludeOptional "${vhost}*.conf"`
   }
 
   async #handleListenPort(version: SoftInstalled) {
+    let lsal: any = await execPromise(`ls -al`, {
+      cwd: global.Server.BaseDir
+    })
+    lsal = lsal.stdout
+      .split('\n')
+      .filter((s: string) => s.includes('..'))
+      .pop()
+      .split(' ')
+      .filter((s: string) => !!s.trim())
+      .map((s: string) => s.trim())
+    console.log('lsal: ', lsal)
+    const user = lsal[2]
+    const group = lsal[3]
+
     const hostfile = join(global.Server.BaseDir!, 'host.json')
     const json = await readFile(hostfile, 'utf-8')
     let host: Array<AppHost> = []
@@ -99,7 +113,7 @@ IncludeOptional "${vhost}*.conf"`
       }
     })
     const portRegex = /<VirtualHost\s+\*:(\d+)>/g
-    const regex = /([\s\n]?[^\n]*)Listen\s+\d+(.*?)([^\n])(\n|$)/g
+    let regex = /([\s\n]?[^\n]*)Listen\s+\d+(.*?)([^\n])(\n|$)/g
     const allVhostFile = await getAllFileAsync(join(global.Server.BaseDir!, 'vhost/apache'))
     for (const file of allVhostFile) {
       portRegex.lastIndex = 0
@@ -129,14 +143,26 @@ IncludeOptional "${vhost}*.conf"`
       regex.lastIndex = 0
       confContent = confContent.replace(regex, '\n').replace(/\n+/g, '\n').trim()
     }
+
+    regex = /([\s\n#]?[^\n]*)User\s+(.*?)([^\n])(\n|$)/g
+    console.log('confContent.match(regex): ', confContent.match(regex))
+    confContent = confContent.replace(regex, `\n\n`)
+
+    regex = /([\s\n#]?[^\n]*)Group\s+(.*?)([^\n])(\n|$)/g
+    console.log('confContent.match(regex): ', confContent.match(regex))
+    confContent = confContent.replace(regex, `\n\n`).replace(/\n+/g, '\n').trim()
+
     confContent = confContent
       .replace(/#PhpWebStudy-Apache-Listen-Begin#([\s\S]*?)#PhpWebStudy-Apache-Listen-End#/g, '')
       .replace(/\n+/g, '\n')
       .trim()
     const txts: Array<string> = Array.from(allNeedPort).map((s) => `Listen ${s}`)
     txts.unshift('#PhpWebStudy-Apache-Listen-Begin#')
+    txts.push(`User ${user}`)
+    txts.push(`Group ${group}`)
     txts.push('#PhpWebStudy-Apache-Listen-End#')
     confContent = txts.join('\n') + '\n' + confContent
+
     await writeFile(configpath, confContent)
   }
 
