@@ -1,8 +1,0 @@
-https://www.tubangzhu.com/design/eyJtZXRob2QiOiJtZW1iZXIiLCJ0ZW1wbGF0ZUlkIjozNjMyNDA4fQ%3D%3D
-这个站点主要是做设计的. 咱们现在的 PC diy或者小程序 diy, 名片 diy 全都用不上.
-
-目前方案:
-1. 如果想往设计方向走, 可以考虑做一个类似的产品. 主要功能咱们这边基本都有. 完全参照他们的 diy 功能. 大概需要30个工作日
-但是模板是个问题. 完全照搬他们的模板有点不太合适
-
-2. 考虑把他们模板里的名片模板, 转到咱们的名片系统. PC 另找模板
