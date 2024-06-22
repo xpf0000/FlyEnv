@@ -8,6 +8,13 @@
         <theme-set />
       </div>
     </div>
+    <div class="row-2">
+      <div class="col">
+        <ForceStart />
+      </div>
+      <div class="col">
+      </div>
+    </div>
     <div class="plant-title">{{ $t('base.showItem') }}</div>
     <div class="main user-select-none">
       <el-form label-position="left" label-width="100px">
@@ -110,30 +117,6 @@
       </el-form>
     </div>
     <ProxySet />
-    <div class="row-2">
-      <div class="col">
-        <BrewSrc />
-      </div>
-      <div class="col">
-        <MacPortsSrc />
-      </div>
-    </div>
-    <div class="row-2">
-      <div class="col">
-        <ForceStart />
-      </div>
-      <div class="col">
-        <ShowAI />
-      </div>
-    </div>
-    <div class="row-2">
-      <div class="col">
-        <AutoUpdate />
-      </div>
-      <div class="col">
-        <RestPassword />
-      </div>
-    </div>
   </div>
 </template>
 

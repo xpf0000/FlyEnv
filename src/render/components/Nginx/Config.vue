@@ -38,7 +38,7 @@
     computed: {},
     watch: {},
     created: function () {
-      this.configpath = join(global.Server.NginxDir, 'common/conf/nginx.conf')
+      this.configpath = join(global.Server.NginxDir, 'conf/nginx.conf')
     },
     mounted() {
       this.getConfig()
@@ -111,7 +111,7 @@
         })
       },
       getDefault() {
-        let configpath = join(global.Server.NginxDir, 'common/conf/nginx.conf.default')
+        let configpath = join(global.Server.NginxDir, 'conf/nginx.conf.default')
         if (!existsSync(configpath)) {
           MessageError(this.$t('base.defaultConFileNoFound'))
           return

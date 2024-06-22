@@ -31,7 +31,7 @@
 
 (enable-php-select) {
     try_files {path} {path}/ /index.php?{query}
-    php_fastcgi unix//tmp/phpwebstudy-php-cgi-{args[0]}.sock
+    php_fastcgi 127.0.0.1:90{args[0]}
 }
 
 import ##VHOST-DIR##/*

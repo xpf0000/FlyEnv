@@ -66,7 +66,10 @@ function logPrinter(data: string[]) {
 
 function runElectronApp() {
   const args = ['--inspect=5858', 'dist/electron/main.js']
-  electronProcess = spawn('electron', args)
+  electronProcess = spawn('electron', args, {
+    stdio: 'pipe',
+    shell: process.platform === 'win32'
+  })
   electronProcess?.stderr?.on('data', (data) => {
     logPrinter(data)
   })
@@ -85,6 +88,7 @@ function runElectronApp() {
 }
 
 if (process.env.TEST === 'electron') {
+  console.log('process.env.TEST electron !!!!!!')
   Promise.all([launchViteDevServer(), buildMainProcess()])
     .then(() => {
       runElectronApp()

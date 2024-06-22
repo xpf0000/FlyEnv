@@ -25,7 +25,6 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { startService, stopService } from '@/util/Service'
-  import { passwordCheck } from '@/util/Brew'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { I18nT } from '@shared/lang'
@@ -87,8 +86,7 @@
   }
 
   const switchChange = () => {
-    passwordCheck().then(() => {
-      let fn = null
+    let fn = null
       let promise: Promise<any> | null = null
       if (!currentVersion?.value?.version) return
       fn = serviceRunning?.value ? stopService : startService
@@ -100,7 +98,6 @@
           MessageSuccess(I18nT('base.success'))
         }
       })
-    })
   }
 
   const stopNav = () => {}

@@ -11,10 +11,10 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="mariadb" title="MariaDB"></Service>
-      <Config v-if="current_tab === 1"></Config>
-      <Manager v-else-if="current_tab === 2" type-flag="mariadb"></Manager>
-      <Logs v-if="current_tab === 3" type="error"></Logs>
-      <Logs v-if="current_tab === 4" type="slow"></Logs>
+      <Config v-else-if="current_tab === 1"></Config>
+      <Manager v-else-if="current_tab === 2" url="https://mariadb.com/downloads/" title="Mariadb" type-flag="mariadb"></Manager>
+      <Logs v-else-if="current_tab === 3" type="error"></Logs>
+      <Logs v-else-if="current_tab === 4" type="slow"></Logs>
     </div>
   </div>
 </template>
@@ -24,8 +24,8 @@
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
-  import Manager from '../VersionManager/index.vue'
   import { AppStore } from '@/store/app'
+  import Manager from '../VersionManager/index.vue'
 
   const current_tab = ref(0)
 
@@ -55,10 +55,6 @@
       }
     },
     watch: {},
-    created: function () {
-      if (!this.version) {
-        this.current_tab = 2
-      }
-    }
+    created: function () {}
   })
 </script>

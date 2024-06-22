@@ -2,7 +2,7 @@ import { I18nT } from '../lang'
 import { existsSync } from 'fs'
 import { join } from 'path'
 import type { SoftInstalled } from '@shared/app'
-import { execPromise, spawnPromise, waitTime } from '../Fn'
+import { execPromise, execPromiseRoot, spawnPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, copyFile, unlink, chmod } from 'fs-extra'
 
@@ -102,11 +102,7 @@ export class Base {
   }
 
   startService(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      if (!existsSync(version?.bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
+    return new ForkPromise(async (resolve, reject, on) => {      
       if (!version?.version) {
         reject(new Error(I18nT('fork.versionNoFound')))
         return
@@ -140,51 +136,40 @@ export class Base {
         'pure-ftpd': 'pure-ftpd'
       }
       const serverName = dis[this.type]
-      const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+      const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
       console.log('_stopServer command: ', command)
       let res: any = null
       try {
-        res = await execPromise(command)
+        res = await execPromiseRoot(command)
       } catch (e) {}
       const pids = res?.stdout?.trim()?.split('\n') ?? []
+      console.log('pids: ', pids)
       const arr: Array<string> = []
       for (const p of pids) {
         if (this.type === 'redis' || global.Server.ForceStart === true) {
           if (
-            p.includes(' grep ') ||
-            p.includes(' /bin/sh -c') ||
-            p.includes('/Contents/MacOS/') ||
-            p.startsWith('/bin/bash ') ||
-            p.includes('brew.rb ') ||
-            p.includes(' install ') ||
-            p.includes(' uninstall ') ||
-            p.includes(' link ') ||
-            p.includes(' unlink ')
+            p.includes('findstr')
           ) {
             continue
           }
-          arr.push(p.split(' ')[0])
+          const pid = p.split(' ').filter((s: string) => {
+            return !!s.trim()
+          }).pop()
+          arr.push(pid)
         } else if (p.includes(global.Server.BaseDir!)) {
-          arr.push(p.split(' ')[0])
+          const pid = p.split(' ').filter((s: string) => {
+            return !!s.trim()
+          }).pop()
+          arr.push(pid)
         }
       }
       console.log('_stopServer arr: ', arr)
       if (arr.length > 0) {
-        const pids = arr.join(' ')
-        let sig = ''
-        switch (this.type) {
-          case 'mysql':
-          case 'mariadb':
-          case 'mongodb':
-            sig = '-TERM'
-            break
-          default:
-            sig = '-INT'
-            break
-        }
-        try {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
-        } catch (e) {}
+        for (const pid of arr) {
+          try {
+            await execPromiseRoot(`wmic process where processid="${pid}" delete`)
+          } catch (e) {}
+        }      
       }
       await waitTime(300)
       resolve(true)

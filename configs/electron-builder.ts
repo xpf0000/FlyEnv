@@ -1,9 +1,8 @@
 import type { Configuration } from 'electron-builder'
-import PublishConfig from './publish'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
-  buildVersion: '2.4.2',
+  buildVersion: '3.0.0',
   electronVersion: '23.1.1',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -17,49 +16,31 @@ const conf: Configuration = {
     '!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}',
     '!**/node_modules/*.d.ts',
     '!**/node_modules/.bin',
-    '!**/node_modules/node-pty/build/node_gyp_bins',
-    '!**/node_modules/nodejieba/dict'
+    '!**/node_modules/node-pty/build/node_gyp_bins'
   ],
-  dmg: {
-    sign: false,
-    window: {
-      width: 540,
-      height: 380
-    },
-    contents: [
+  win: {
+    icon: 'build/icon.ico',
+    requestedExecutionLevel: 'requireAdministrator',
+    target: [
       {
-        x: 410,
-        y: 230,
-        type: 'link',
-        path: '/Applications'
+        target: 'nsis',
+        arch: ['x64', 'ia32']
       },
       {
-        x: 130,
-        y: 230,
-        type: 'file'
+        target: 'zip',
+        arch: ['x64', 'ia32']
+      },
+      {
+        target: 'portable',
+        arch: ['x64', 'ia32']
       }
     ]
   },
-  mac: {
-    icon: 'build/Icon.icns',
-    target: {
-      target: 'default',
-      arch: ['x64', 'arm64']
-    },
-    asarUnpack: ['**/*.node'],
-    extendInfo: {
-      'Icon file': 'icon.icns'
-    },
-    type: 'distribution',
-    darkModeSupport: true,
-    category: 'public.app-category.developer-tools',
-    entitlements: 'build/entitlements.mac.plist',
-    entitlementsInherit: 'build/entitlements.mac.plist',
-    hardenedRuntime: true,
-    gatekeeperAssess: false
+  nsis: {
+    oneClick: false,
+    allowToChangeInstallationDirectory: true
   },
-  afterSign: 'build/notarize.js',
-  publish: [PublishConfig]
+  publish: []
 }
 
 export default conf

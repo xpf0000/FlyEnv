@@ -25,7 +25,7 @@
         <template v-else>
           <el-button
             type="primary"
-            :disabled="phpMyAdminStore.percent < 100"
+            :disabled="phpMyAdminStore.percent < 100 || !state"
             :loading="phpMyAdminStore.percent < 100"
             @click="doSubmit"
             >{{ $t('base.confirm') }}</el-button

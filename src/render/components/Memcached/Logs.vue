@@ -114,7 +114,7 @@
         }
       },
       init() {
-        this.filepath = join(global.Server.MemcachedDir, 'logs/memcached.log')
+        this.filepath = join(global.Server.MemcachedDir, 'memcached.log')
         this.getLog()
       }
     }

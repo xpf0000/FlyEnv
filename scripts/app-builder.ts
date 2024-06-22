@@ -10,10 +10,6 @@ import electronBuilderConfig from '../configs/electron-builder'
 
 async function packMain() {
   try {
-    await copy(
-      resolve(__dirname, '../node_modules/nodejieba/dict'),
-      resolve(__dirname, '../static/nodejieba')
-    )
     await esbuild(esbuildConfig.dist)
     await esbuild(esbuildConfig.distFork)
   } catch (err) {

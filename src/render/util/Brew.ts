@@ -3,10 +3,12 @@ import Base from '@/core/Base'
 import { ElMessageBox } from 'element-plus'
 import { chmod } from '@shared/file'
 import XTerm from '@/util/XTerm'
-import { AppStore } from '@/store/app'
-import { BrewStore } from '@/store/brew'
+import { AllAppSofts, AppStore } from '@/store/app'
+import { BrewStore, OnlineVersionItem } from '@/store/brew'
 import { I18nT } from '@shared/lang'
 import { MessageError } from '@/util/Element'
+import { reactive } from 'vue'
+
 const { getGlobal } = require('@electron/remote')
 const { join } = require('path')
 const { existsSync, unlinkSync, copyFileSync } = require('fs')
@@ -155,6 +157,55 @@ export function portInfo(flag: string) {
       } else if (res.code === 1) {
         IPC.off(key)
         reject(new Error(res))
+      }
+    })
+  })
+}
+
+export const fetchVerion = (typeFlag: AllAppSofts): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const brewStore = BrewStore()
+    const currentType = brewStore[typeFlag]
+    if (currentType.getListing) {
+      resolve(true)
+      return
+    }
+    currentType.getListing = true
+    let saved: any = localStorage.getItem(`fetchVerion-${typeFlag}`)
+    if (saved) {
+      saved = JSON.parse(saved)
+      const time = Math.round(new Date().getTime() / 1000)
+      if(time < saved.expire) {
+        const list: OnlineVersionItem[] = [...saved.data]
+        list.forEach((item) => {
+          item.downloaded = existsSync(item.zip)
+          item.installed = existsSync(item.bin)
+        })
+        currentType.list.splice(0)
+        currentType.list = reactive(list) 
+        currentType.getListing = false
+        resolve(true)
+        return
+      }
+    }
+    IPC.send(`app-fork:${typeFlag}`, 'fetchAllOnLineVersion').then((key: string, res: any) => {
+      IPC.off(key)
+      if (res.code === 0) {
+        const list = res.data
+        currentType.list.splice(0)
+        currentType.list = reactive(list)      
+        currentType.getListing = false
+        if (list.length > 0) {
+          localStorage.setItem(`fetchVerion-${typeFlag}`, JSON.stringify({
+            expire: Math.round(new Date().getTime() / 1000) + (24 * 60 * 60),
+            data: list
+          }))
+        }
+        resolve(true)
+      } else if (res.code === 1) {
+        currentType.getListing = false
+        MessageError(res.msg)
+        resolve(false)
       }
     })
   })

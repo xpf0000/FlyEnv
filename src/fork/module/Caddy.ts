@@ -2,10 +2,12 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { execPromise, hostAlias, spawnPromise, waitTime } from '../Fn'
+import { execPromiseRoot, hostAlias, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, remove } from 'fs-extra'
-import { I18nT } from '../lang'
+import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
+import { zipUnPack } from '@shared/file'
+import axios from 'axios'
+import { compareVersions } from 'compare-versions'
 
 class Caddy extends Base {
   constructor() {
@@ -15,6 +17,22 @@ class Caddy extends Base {
 
   init() {
     this.pidPath = join(global.Server.BaseDir!, 'caddy/caddy.pid')
+  }
+
+  #initLocalApp(version: SoftInstalled) {
+    return new Promise((resolve, reject) => {
+      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
+      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `caddy-${version.version}`))) {
+        zipUnPack(join(global.Server.Static!, `zip/caddy-${version.version}.7z`), global.Server.AppDir!)
+          .then(resolve)
+          .catch((err: any) => {
+            console.log('initLocalApp err: ', err)
+            reject(err)
+          })
+        return
+      }
+      resolve(true)
+    })
   }
 
   initConfig() {
@@ -45,7 +63,7 @@ class Caddy extends Base {
     return new ForkPromise(async (resolve) => {
       const baseDir = join(global.Server.BaseDir!, 'caddy')
       const logFile = join(baseDir, 'caddy.log')
-      await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 644 ${logFile}`)
+      await chmod(logFile, 0o644)
       resolve(true)
     })
   }
@@ -61,7 +79,7 @@ class Caddy extends Base {
         const jsonArr = JSON.parse(json)
         hostAll.push(...jsonArr)
       }
-    } catch (e) {}
+    } catch (e) { }
 
     let tmplContent = ''
     let tmplSSLContent = ''
@@ -127,40 +145,126 @@ class Caddy extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      await this.#initLocalApp(version)
       const bin = version.bin
       await this.#fixVHost()
       const iniFile = await this.initConfig()
-      const shFile = join(global.Server.BaseDir!, 'caddy/caddy.sh')
-      const command = `#!/bin/bash\necho '${global.Server.Password}' | sudo -S ${bin} start --config ${iniFile} --pidfile ${this.pidPath} --watch`
-      await writeFile(shFile, command)
-      await chmod(shFile, '0777')
-      if (existsSync(this.pidPath)) {
-        await remove(this.pidPath)
-      }
-      const checkPid = async (time = 0) => {
+
+      try {
         if (existsSync(this.pidPath)) {
-          resolve(true)
+          await unlink(this.pidPath)
+        }
+      } catch (e) { }
+
+      const waitPid = async (time = 0): Promise<boolean> => {
+        let res = false
+        if (existsSync(this.pidPath)) {
+          res = true
         } else {
           if (time < 40) {
             await waitTime(500)
-            await checkPid(time + 1)
+            res = res || await waitPid(time + 1)
           } else {
-            reject(new Error(I18nT('fork.startFail')))
+            res = false
           }
         }
+        console.log('waitPid: ', time, res)
+        return res
       }
+
+      const command = `start /b ${bin} start --config ${iniFile} --pidfile ${this.pidPath} --watch`
+      console.log('command: ', command)
+
       try {
-        spawnPromise('zsh', [shFile], {
-          detached: true,
-          stdio: 'ignore'
-        })
-          .on(on)
-          .then(() => {
-            checkPid()
-          })
-          .catch(reject)
+        const res = await execPromiseRoot(command)
+        console.log('start res: ', res)
+        on(res.stdout)
+        const check = await waitPid()
+        if (check) {
+          resolve(0)
+        } else {
+          reject(new Error('Start failed'))
+        }
       } catch (e: any) {
         reject(e)
+      }
+
+    })
+  }
+
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const urls = [
+          'https://api.github.com/repos/caddyserver/caddy/tags?page=1&per_page=1000',
+        ]
+        const fetchVersions = async (url: string) => {
+          const all: any = []
+          const res = await axios({
+            url,
+            method: 'get'
+          })
+          const html = res.data
+          let arr: any[] = []
+          try {
+            if (typeof html === 'string') {
+              arr = JSON.parse(html)
+            } else {
+              arr = html
+            }
+          } catch (e) { }
+          arr.forEach((a) => {
+            const version = a.name.replace('v', '')
+            const mv = version.split('.').slice(0, 2).join('.')
+            const u = `https://github.com/caddyserver/caddy/releases/download/v${version}/caddy_${version}_windows_amd64.zip`
+            const item = {
+              url: u,
+              version,
+              mVersion: mv
+            }
+            const find = all.find((f: any) => f.mVersion === item.mVersion)
+            if (!find) {
+              all.push(item)
+            } else {
+              if (compareVersions(item.version, find.version) > 0) {
+                const index = all.indexOf(find)
+                all.splice(index, 1, item)
+              }
+            }
+          })
+          return all
+        }
+        const all: any = []
+        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
+        const list = res.flat()
+        list.filter((l: any) => compareVersions(l.version, '2.0.0') > 0).forEach((l: any) => {
+          const find = all.find((f: any) => f.mVersion === l.mVersion)
+          if (!find) {
+            all.push(l)
+          } else {
+            if (compareVersions(l.version, find.version) > 0) {
+              const index = all.indexOf(find)
+              all.splice(index, 1, l)
+            }
+          }
+        })
+
+        all.sort((a: any, b: any) => {
+          return compareVersions(b.version, a.version)
+        })
+
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `caddy-${a.version}`, 'caddy.exe')
+          const zip = join(global.Server.Cache!, `caddy-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `caddy-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+        })
+        resolve(all)
+      } catch (e) {
+        resolve([])
       }
     })
   }

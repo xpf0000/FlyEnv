@@ -1,48 +1,33 @@
 import { EventEmitter } from 'events'
 import { app, BrowserWindow, ipcMain } from 'electron'
-import is from 'electron-is'
 import logger from './core/Logger'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
-import MenuManager from './ui/MenuManager'
-import UpdateManager from './core/UpdateManager'
 import { join, resolve } from 'path'
-import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { execSync } from 'child_process'
+import { readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
 import { AppI18n } from './lang'
-import DnsServerManager from './core/DnsServerManager'
-import type { PtyLast, StaticHttpServe } from './type'
-import type { IPty } from 'node-pty'
+import type { StaticHttpServe } from './type'
 import type { ServerResponse } from 'http'
-import { fixEnv } from '@shared/utils'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
+import { execPromiseRoot } from '../fork/Fn'
 
-const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
-const { execAsync, isAppleSilicon } = require('../shared/utils')
-const compressing = require('compressing')
-const execPromise = require('child-process-promise').exec
+const { createFolder } = require('../shared/file')
+const { isAppleSilicon } = require('../shared/utils')
 const ServeHandler = require('serve-handler')
 const Http = require('http')
-const Pty = require('node-pty')
 const IP = require('ip')
 
 export default class Application extends EventEmitter {
   isReady: boolean
   httpServes: { [k: string]: StaticHttpServe }
   configManager: ConfigManager
-  menuManager: MenuManager
   trayManager: TrayManager
   windowManager: WindowManager
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
-  pty?: IPty | null
-  ptyLastData = ''
-  ptyLast?: PtyLast | null
-  updateManager?: UpdateManager
-  dnsSuccessed = false
   forkManager?: ForkManager
 
   constructor() {
@@ -54,17 +39,13 @@ export default class Application extends EventEmitter {
     this.httpServes = {}
     this.configManager = new ConfigManager()
     this.initLang()
-    this.menuManager = new MenuManager()
-    this.menuManager.setup()
     this.windowManager = new WindowManager({
       configManager: this.configManager
     })
     this.initWindowManager()
     this.trayManager = new TrayManager()
     this.initTrayManager()
-    this.initUpdaterManager()
-    this.initServerDir()
-    this.checkBrewOrPort()
+    this.initServerDir()  
     this.handleCommands()
     this.handleIpcMessages()
     this.initForkManager()
@@ -85,9 +66,6 @@ export default class Application extends EventEmitter {
         link
       )
     })
-    DnsServerManager.onLog((msg: any) => {
-      this.windowManager.sendCommandTo(this.mainWindow!, 'App_DNS_Log', 'App_DNS_Log', msg)
-    })
   }
 
   initLang() {
@@ -107,9 +85,9 @@ export default class Application extends EventEmitter {
   }
 
   initTrayManager() {
-    this.trayManager.on('click', (x, poperX) => {
+    this.trayManager.on('click', (x, y, poperX) => {
       if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
-        this?.trayWindow?.setPosition(x, 0)
+        this?.trayWindow?.setPosition(x, y)
         this?.trayWindow?.setOpacity(1.0)
         this?.trayWindow?.show()
         this.windowManager.sendCommandTo(
@@ -124,90 +102,19 @@ export default class Application extends EventEmitter {
     })
   }
 
-  initNodePty() {
-    this.pty = Pty.spawn(process.env['SHELL'], [], {
-      name: 'xterm-color',
-      cols: 80,
-      rows: 34,
-      cwd: process.cwd(),
-      env: fixEnv(),
-      encoding: 'utf8'
-    })
-    this.pty!.onData((data) => {
-      console.log('pty.onData: ', data)
-      this.windowManager.sendCommandTo(this.mainWindow!, 'NodePty:data', 'NodePty:data', data)
-      if (data.includes('\r')) {
-        this.ptyLastData = data
-      } else {
-        this.ptyLastData += data
-      }
-    })
-    this.pty!.onExit((e) => {
-      console.log('this.pty.onExit !!!!!!', e)
-      this.exitNodePty()
-    })
-  }
+  initNodePty() {}
 
-  exitNodePty() {
-    try {
-      if (this?.pty?.pid) {
-        process.kill(this.pty.pid)
-      }
-      this?.pty?.kill()
-    } catch (e) {}
-    if (this.ptyLast) {
-      const { command, key } = this.ptyLast
-      this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-      this.ptyLast = null
-    }
-    this.pty = null
-  }
+  exitNodePty() {}
 
-  checkBrewOrPort() {
-    execAsync('which', ['brew'])
-      .then((res: string) => {
-        console.log('which brew: ', res)
-        execAsync('brew', ['--repo']).then((p: string) => {
-          console.log('brew --repo: ', p)
-          global.Server.BrewHome = p
-          execAsync('git', [
-            'config',
-            '--global',
-            '--add',
-            'safe.directory',
-            join(p, 'Library/Taps/homebrew/homebrew-core')
-          ]).then()
-          execAsync('git', [
-            'config',
-            '--global',
-            '--add',
-            'safe.directory',
-            join(p, 'Library/Taps/homebrew/homebrew-cask')
-          ]).then()
-        })
-        execAsync('brew', ['--cellar']).then((c: string) => {
-          console.log('brew --cellar: ', c)
-          global.Server.BrewCellar = c
-        })
-      })
-      .catch((e: Error) => {
-        console.log('which brew e: ', e)
-      })
-
-    execAsync('which', ['port'])
-      .then((c: string) => {
-        global.Server.MacPorts = c
-      })
-      .catch(() => {})
-  }
-
-  initServerDir() {
-    console.log('userData: ', app.getPath('userData'))
-    const runpath = app.getPath('userData').replace('Application Support/', '')
+  initServerDir() {  
+    const runpath = resolve(app.getPath('userData'), '../PhpWebStudy-Data').split('\\').join('/')
+    console.log('userData: ', runpath)
     this.setProxy()
     global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
+    global.Server.AppDir = join(runpath, 'app')
     createFolder(global.Server.BaseDir)
+    createFolder(global.Server.AppDir)
     global.Server.NginxDir = join(runpath, 'server/nginx')
     global.Server.PhpDir = join(runpath, 'server/php')
     global.Server.MysqlDir = join(runpath, 'server/mysql')
@@ -217,7 +124,7 @@ export default class Application extends EventEmitter {
     global.Server.RedisDir = join(runpath, 'server/redis')
     global.Server.MongoDBDir = join(runpath, 'server/mongodb')
     global.Server.FTPDir = join(runpath, 'server/ftp')
-    global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
+    global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')  
     createFolder(global.Server.NginxDir)
     createFolder(global.Server.PhpDir)
     createFolder(global.Server.MysqlDir)
@@ -229,30 +136,6 @@ export default class Application extends EventEmitter {
     global.Server.Cache = join(runpath, 'server/cache')
     createFolder(global.Server.Cache)
     global.Server.Static = __static
-    global.Server.Password = this.configManager.getConfig('password')
-    console.log('global.Server.Password: ', global.Server.Password)
-
-    const httpdcong = join(global.Server.ApacheDir, 'common/conf/')
-    createFolder(httpdcong)
-
-    const ngconf = join(global.Server.NginxDir, 'common/conf/nginx.conf')
-    if (!existsSync(ngconf)) {
-      compressing.zip
-        .uncompress(join(__static, 'zip/nginx-common.zip'), global.Server.NginxDir)
-        .then(() => {
-          readFileAsync(ngconf).then((content: string) => {
-            content = content
-              .replace(/#PREFIX#/g, global.Server.NginxDir!)
-              .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx'))
-            writeFileAsync(ngconf, content).then()
-            writeFileAsync(
-              join(global.Server.NginxDir!, 'common/conf/nginx.conf.default'),
-              content
-            ).then()
-          })
-        })
-        .catch()
-    }
   }
 
   initWindowManager() {
@@ -264,9 +147,6 @@ export default class Application extends EventEmitter {
     })
     this.windowManager.on('window-closed', (data) => {
       this.storeWindowState(data)
-      if (is.windows()) {
-        this.emit('application:exit')
-      }
     })
   }
 
@@ -316,79 +196,56 @@ export default class Application extends EventEmitter {
     this.windowManager.destroyWindow(page)
   }
 
-  stop() {
+  async stop() {
     logger.info('[PhpWebStudy] application stop !!!')
-    DnsServerManager.close().then()
     SiteSuckerManager.destory()
     this.forkManager?.destory()
-    this.stopServer()
+    await this.stopServer()
   }
 
-  stopServerByPid() {
-    const TERM: Array<string> = []
-    const INT: Array<string> = []
-    let command = `ps aux | grep '${global.Server.BaseDir}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+  async stopServerByPid() {
+    let command = `wmic process get commandline,ProcessId | findstr "${global.Server.BaseDir}"`
+    console.log('_stopServer command: ', command)
     let res: any = null
     try {
-      res = execSync(command)?.toString()?.trim() ?? ''
+      res = await execPromiseRoot(command)
     } catch (e) {}
-    let pids = res.split('\n')
-    for (const p of pids) {
-      if (p.includes(global.Server.BaseDir!)) {
-        if (p.includes('mysqld') || p.includes('mariadbd') || p.includes('mongod')) {
-          TERM.push(p.split(' ')[0])
-        } else {
-          INT.push(p.split(' ')[0])
-        }
-      }
-    }
-    command = `ps aux | grep 'redis-server' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
-    try {
-      res = execSync(command)?.toString()?.trim() ?? ''
-    } catch (e) {}
-    pids = res.split('\n')
+    const pids = res?.stdout?.trim()?.split('\n') ?? []
+    console.log('pids: ', pids)
+    const arr: Array<string> = []
     for (const p of pids) {
       if (
-        p.includes(' grep ') ||
-        p.includes(' /bin/sh -c') ||
-        p.includes('/Contents/MacOS/') ||
-        p.startsWith('/bin/bash ') ||
-        p.includes('brew.rb ') ||
-        p.includes(' install ') ||
-        p.includes(' uninstall ') ||
-        p.includes(' link ') ||
-        p.includes(' unlink ')
+        p.includes('findstr')
       ) {
         continue
       }
-      INT.push(p.split(' ')[0])
+      
+      if (p.includes(global.Server.BaseDir!)) {
+        const pid = p.split(' ').filter((s: string) => {
+          return !!s.trim()
+        }).pop()
+        arr.push(pid)
+      }
     }
-    if (TERM.length > 0) {
-      const str = TERM.join(' ')
-      const sig = '-TERM'
-      try {
-        execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${str}`)
-      } catch (e) {}
-    }
-    if (INT.length > 0) {
-      const str = INT.join(' ')
-      const sig = '-INT'
-      try {
-        execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${str}`)
-      } catch (e) {}
+    console.log('_stopServer arr: ', arr)
+    if (arr.length > 0) {
+      for (const pid of arr) {
+        try {
+          await execPromiseRoot(`wmic process where processid="${pid}" delete`)
+        } catch (e) {}
+      }      
     }
   }
 
-  stopServer() {
-    this.ptyLast = null
-    this.exitNodePty()
-    this.stopServerByPid()
+  async stopServer() {
+    await this.stopServerByPid()
+    const hostsFile = join('c:/windows/system32/drivers/etc', 'hosts')
     try {
-      let hosts = readFileSync('/private/etc/hosts', 'utf-8')
+      let hosts = readFileSync(hostsFile, 'utf-8')
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x) {
         hosts = hosts.replace(x[0], '')
-        writeFileSync('/private/etc/hosts', hosts)
+        writeFileSync(hostsFile, hosts)
       }
     } catch (e) {}
   }
@@ -416,18 +273,8 @@ export default class Application extends EventEmitter {
     })
   }
 
-  initUpdaterManager() {
-    try {
-      const autoCheck = this.configManager.getConfig('setup.autoCheck') ?? true
-      this.updateManager = new UpdateManager(autoCheck)
-      this.handleUpdaterEvents()
-    } catch (err) {
-      console.log('initUpdaterManager err: ', err)
-    }
-  }
-
-  relaunch() {
-    this.stop()
+  async relaunch() {
+    await this.stop()
     app.relaunch()
     app.exit()
   }
@@ -436,16 +283,15 @@ export default class Application extends EventEmitter {
     this.on('application:save-preference', (config) => {
       console.log('application:save-preference.config====>', config)
       this.configManager.setConfig(config)
-      this.menuManager.rebuild()
     })
 
     this.on('application:relaunch', () => {
-      this.relaunch()
+      this.relaunch().then()
     })
 
-    this.on('application:exit', () => {
+    this.on('application:exit', async () => {
       console.log('application:exit !!!!!!')
-      this.stop()
+      await this.stop()
       app.exit()
       process.exit(0)
     })
@@ -460,11 +306,10 @@ export default class Application extends EventEmitter {
 
     this.on('application:reset', () => {
       this.configManager.reset()
-      this.relaunch()
+      this.relaunch().then()
     })
 
     this.on('application:change-menu-states', (visibleStates, enabledStates, checkedStates) => {
-      this.menuManager.updateMenuStates(visibleStates, enabledStates, checkedStates)
     })
 
     this.on('application:window-size-change', (size) => {
@@ -477,7 +322,6 @@ export default class Application extends EventEmitter {
     })
 
     this.on('application:check-for-updates', () => {
-      this.updateManager?.check()
     })
   }
 
@@ -527,6 +371,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:tools':
       case 'app-fork:macports':
       case 'app-fork:caddy':
+      case 'app-fork:dns':
         const module = command.replace('app-fork:', '')
         this.setProxy()
         global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
@@ -535,22 +380,6 @@ export default class Application extends EventEmitter {
           ?.send(module, ...args)
           .on(callBack)
           .then(callBack)
-        break
-      case 'app:password-check':
-        const pass = args[0]
-        execPromise(`echo '${pass}' | sudo -S -k -l`)
-          .then(() => {
-            this.configManager.setConfig('password', pass)
-            global.Server.Password = pass
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, pass)
-          })
-          .catch((err: Error) => {
-            console.log('err: ', err)
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, false)
-          })
-        return
-      case 'app:brew-install':
-        this.windowManager?.getFocusedWindow()?.minimize()
         break
       case 'Application:APP-Minimize':
         this.windowManager?.getFocusedWindow()?.minimize()
@@ -632,48 +461,11 @@ export default class Application extends EventEmitter {
         })
         break
       case 'NodePty:write':
-        if (!this.pty) {
-          this.initNodePty()
-        }
-        if (!this.ptyLast) {
-          this.ptyLast = {
-            command,
-            key
-          }
-        }
-        this?.pty?.write(args[0])
         break
       case 'NodePty:clear':
-        if (!this.pty) {
-          this.initNodePty()
-        }
-        this?.pty?.write('clear\r')
-        break
-      case 'NodePty:resize':
-        if (!this.pty) {
-          this.initNodePty()
-        }
-        const { cols, rows } = args[0]
-        this?.pty?.resize(cols, rows)
         break
       case 'NodePty:stop':
         this.exitNodePty()
-        break
-      case 'DNS:start':
-        DnsServerManager.start(this.dnsSuccessed)
-          .then(() => {
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-            this.dnsSuccessed = true
-          })
-          .catch((e) => {
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, e.toString())
-            this.dnsSuccessed = false
-          })
-        break
-      case 'DNS:stop':
-        DnsServerManager.close().then(() => {
-          this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-        })
         break
       case 'app-sitesucker-run':
         const url = args[0]
@@ -698,35 +490,6 @@ export default class Application extends EventEmitter {
     ipcMain.on('event', (event, eventName, ...args) => {
       console.log('receive event', eventName, ...args)
       this.emit(eventName, ...args)
-    })
-  }
-
-  handleUpdaterEvents() {
-    this.updateManager?.on('checking', () => {
-      this.menuManager.updateMenuItemEnabledState('app.check-for-updates', false)
-    })
-
-    this.updateManager?.on('download-progress', (event) => {
-      const win = this.windowManager.getWindow('index')
-      win.setProgressBar(event.percent / 100)
-    })
-
-    this.updateManager?.on('update-not-available', () => {
-      this.menuManager.updateMenuItemEnabledState('app.check-for-updates', true)
-    })
-
-    this.updateManager?.on('update-downloaded', () => {
-      this.menuManager.updateMenuItemEnabledState('app.check-for-updates', true)
-      const win = this.windowManager.getWindow('index')
-      win.setProgressBar(0)
-    })
-
-    this.updateManager?.on('will-updated', () => {
-      this.windowManager.setWillQuit(true)
-    })
-
-    this.updateManager?.on('update-error', () => {
-      this.menuManager.updateMenuItemEnabledState('app.check-for-updates', true)
     })
   }
 }

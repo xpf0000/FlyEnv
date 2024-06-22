@@ -19,7 +19,6 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { startService, stopService } from '@/util/Service'
-  import { passwordCheck } from '@/util/Brew'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { I18nT } from '@shared/lang'
@@ -47,8 +46,7 @@
       return phpVersions?.value?.length > 0 && phpVersions?.value?.some((v) => v.run)
     },
     set(v: boolean) {
-      passwordCheck().then(() => {
-        const all: Array<Promise<any>> = []
+      const all: Array<Promise<any>> = []
         if (v) {
           phpVersions?.value?.forEach((v) => {
             if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
@@ -70,7 +68,6 @@
             MessageSuccess(I18nT('base.success'))
           }
         })
-      })
     }
   })
 

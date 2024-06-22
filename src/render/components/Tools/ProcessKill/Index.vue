@@ -38,7 +38,6 @@
               @selection-change="handleSelectionChange"
             >
               <el-table-column type="selection" width="55" />
-              <el-table-column prop="USER" label="USER" width="110"> </el-table-column>
               <el-table-column prop="PID" label="PID" width="90"> </el-table-column>
               <el-table-column prop="COMMAND" label="COMMAND"> </el-table-column>
             </el-table>
@@ -52,8 +51,9 @@
 <script>
   import { markRaw } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { passwordCheck } from '@/util/Brew.ts'
   import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element.ts'
+  import IPC from '@/util/IPC'
+
   const { execSync } = require('child_process')
 
   export default {
@@ -70,9 +70,7 @@
     computed: {},
     watch: {},
     created: function () {},
-    mounted() {
-      passwordCheck().then(() => {})
-    },
+    mounted() {},
     unmounted() {},
     methods: {
       cleanSelect() {
@@ -85,14 +83,12 @@
               .map((s) => {
                 return s.PID
               })
-              .join(' ')
-            try {
-              execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
-              MessageSuccess(this.$t('base.success'))
-              this.doSearch()
-            } catch (e) {
-              MessageError(this.$t('base.fail'))
-            }
+              
+              IPC.send('app-fork:tools', 'processKill', pids).then((key, res) => {
+                IPC.off(key)
+                MessageSuccess(this.$t('base.success'))
+                this.doSearch()
+              })
           })
           .catch(() => {})
       },
@@ -106,14 +102,12 @@
               .map((s) => {
                 return s.PID
               })
-              .join(' ')
-            try {
-              execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
-              MessageSuccess(this.$t('base.success'))
-              this.doSearch()
-            } catch (e) {
-              MessageError(this.$t('base.fail'))
-            }
+
+              IPC.send('app-fork:tools', 'processKill', pids).then((key, res) => {
+                IPC.off(key)
+                MessageSuccess(this.$t('base.success'))
+                this.doSearch()
+              })
           })
           .catch(() => {})
       },
@@ -127,40 +121,16 @@
       },
       doSearch() {
         this.arrs.splice(0)
-        const res = execSync(
-          `echo '${global.Server.Password}' | sudo -S ps aux | grep '${this.searchKey}'`
-        )
-          .toString()
-          .trim()
-        const arr = res
-          .split('\n')
-          .filter((v) => {
-            return !v.includes(`grep ${this.searchKey}`) && !v.includes(`grep '${this.searchKey}'`)
-          })
-          .map((a) => {
-            const list = a.split(' ').filter((s) => {
-              return s.trim().length > 0
-            })
-            const USER = list.shift()
-            const PID = list.shift()
-            Array(8)
-              .fill(0)
-              .forEach(() => {
-                list.shift()
-              })
-            const COMMAND = list.join(' ')
-            return {
-              USER,
-              PID,
-              COMMAND
-            }
-          })
-        if (arr.length === 0) {
-          MessageWarning(this.$t('base.processNoFound'))
-          return
-        }
-        this.arrs.splice(0)
-        this.arrs.push(...arr)
+        IPC.send('app-fork:tools', 'processFind', this.searchKey).then((key, res) => {
+          IPC.off(key)
+          const data = res?.data ?? []
+          if (data.length === 0) {
+            MessageWarning(this.$t('base.processNoFound'))
+            return
+          }
+          this.arrs.splice(0)
+          this.arrs.push(...data)
+        })
       }
     }
   }

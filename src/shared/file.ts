@@ -1,5 +1,8 @@
 const fs = require('fs')
 const path = require('path')
+const compressing = require('7zip-min-electron')
+const crypto = require('crypto')
+const { copyFile } = require('fs-extra')
 
 export function getAllFile(fp: string, fullpath = true) {
   let arr: Array<string> = []
@@ -105,15 +108,15 @@ export function chmod(fp: string, mode: string) {
 }
 
 export function createFolder(fp: string) {
-  fp = fp.replace(/\\/g, '/')
   if (fs.existsSync(fp)) {
     return true
   }
-  const arr = fp.split('/')
-  let dir = '/'
+  const arr = fp.split(path.sep)
+  let dir = arr.shift()
   for (const p of arr) {
     dir = path.join(dir, p)
     if (!fs.existsSync(dir)) {
+      console.log('createFolder: ', dir)
       fs.mkdirSync(dir)
     }
   }
@@ -145,4 +148,47 @@ export function readFileAsync(fp: string, encode = 'utf-8') {
       }
     })
   })
+}
+
+export function zipUnPack(fp: string, dist: string) {
+  console.log('zipUnPack start: ', fp, dist, global.Server.Static!)
+  return new Promise(async (resolve, reject) => {
+    if (fp.includes(global.Server.Static!)) {
+      const cacheFP = path.join(global.Server.Cache!, path.basename(fp))
+      if (!fs.existsSync(cacheFP)) {
+        await copyFile(fp, cacheFP)
+      }
+      fp = cacheFP
+      console.log('cacheFP: ', fp)
+    }
+    compressing.unpack(fp, dist, (err: any, res: any) => {
+      console.log('zipUnPack end: ', err, res)
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(true)
+    })
+  })
+}
+
+// 读取文件并计算其MD5和SHA256
+export function getFileHashes(filePath: string, algorithm: 'sha1' | 'sha256' | 'md5' = 'sha256') {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash(algorithm);
+    const stream = fs.createReadStream(filePath);
+ 
+    stream.on('error', (err: any) => {
+      reject(err);
+    });
+ 
+    stream.on('data', (chunk: any) => {
+      hash.update(chunk);
+    });
+ 
+    stream.on('end', () => {
+      const md5 = hash.digest('hex');
+      resolve(md5);
+    });
+  });
 }

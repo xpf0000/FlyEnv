@@ -11,7 +11,10 @@ export interface NodeJSItem {
 
 interface State {
   tool: 'fnm' | 'nvm' | 'all' | ''
-  fetching: boolean
+  fetching: {
+    nvm: boolean,
+    fnm: boolean
+  }
   fnm: NodeJSItem
   nvm: NodeJSItem
   showInstall: boolean
@@ -23,7 +26,10 @@ interface State {
 
 const state: State = {
   tool: '',
-  fetching: false,
+  fetching: {
+    nvm: false,
+    fnm: false
+  },
   fnm: {
     all: [],
     local: [],
@@ -51,7 +57,7 @@ export const NodejsStore = defineStore('nodejs', {
       }
       this.toolInstalling = true
       this.logs.splice(0)
-      const flag = `${form.tool}-${form.installBy}`
+      const flag = form.tool
       return new Promise((resolve, reject) => {
         IPC.send('app-fork:node', 'installNvm', flag).then((key: string, res: any) => {
           if (res?.code === 0) {
@@ -107,10 +113,10 @@ export const NodejsStore = defineStore('nodejs', {
       )
     },
     fetchData(tool: 'fnm' | 'nvm', reset = false) {
-      if (!tool || this.fetching || (!reset && this?.[tool]?.all.length > 0)) {
+      if (!tool || this.fetching[tool] || (!reset && this?.[tool]?.all.length > 0)) {
         return
       }
-      this.fetching = true
+      this.fetching[tool] = true
       let allFetch = false
       let localFetch = false
 
@@ -121,7 +127,7 @@ export const NodejsStore = defineStore('nodejs', {
         item.all = res?.data?.all ?? []
         allFetch = true
         if (allFetch && localFetch) {
-          this.fetching = false
+          this.fetching[tool] = false
         }
       })
 
@@ -134,7 +140,7 @@ export const NodejsStore = defineStore('nodejs', {
         item.current = res?.data?.current ?? ''
         localFetch = true
         if (allFetch && localFetch) {
-          this.fetching = false
+          this.fetching[tool] = false
         }
       })
     },

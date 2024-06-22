@@ -25,17 +25,7 @@
               <el-dropdown-item divided command="hostsCopy">{{
                 $t('host.hostsCopy')
               }}</el-dropdown-item>
-              <el-dropdown-item command="hostsOpen">{{ $t('host.hostsOpen') }}</el-dropdown-item>
-              <el-dropdown-item divided command="newProject">
-                <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
-                  <template #reference>
-                    <span>{{ $t('host.newProject') }}</span>
-                  </template>
-                  <template #default>
-                    <p>{{ $t('host.newProjectTips') }}</p>
-                  </template>
-                </el-popover>
-              </el-dropdown-item>
+              <el-dropdown-item command="hostsOpen">{{ $t('host.hostsOpen') }}</el-dropdown-item>        
             </el-dropdown-menu>
           </template>
         </el-dropdown>

@@ -1,11 +1,14 @@
-import { join, basename, dirname } from 'path'
+import { join, dirname } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
-import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
+import { execPromise, waitTime, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
+import { zipUnPack } from '@shared/file'
+import axios from 'axios'
+import { compareVersions } from 'compare-versions'
 
 class Mysql extends Base {
   constructor() {
@@ -19,9 +22,8 @@ class Mysql extends Base {
 
   _initPassword(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
-      execPromise('./mysqladmin --socket=/tmp/mysql.sock -uroot password "root"', {
-        cwd: dirname(version.bin)
-      })
+      const bin = join(dirname(version.bin), 'mysqladmin.exe')
+      execPromise(`${bin} -uroot password "root"`)
         .then((res) => {
           console.log('_initPassword res: ', res)
           resolve(true)
@@ -33,13 +35,30 @@ class Mysql extends Base {
     })
   }
 
+  #initLocalApp(version: SoftInstalled) {
+    return new Promise((resolve, reject) => {
+      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
+      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `mysql-${version.version}`))) {
+        zipUnPack(join(global.Server.Static!, `zip/mysql-${version.version}.7z`), global.Server.AppDir!)
+          .then(resolve)
+          .catch((err: any) => {
+            console.log('initLocalApp err: ', err)
+            reject(err)
+          })
+        return
+      }
+      resolve(true)
+    })
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      await this.#initLocalApp(version)
       let bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
       const oldm = join(global.Server.MysqlDir!, 'my.cnf')
-      const dataDir = join(global.Server.MysqlDir!, `data-${v}`)
+      const dataDir = join(global.Server.MysqlDir!, `data-${v}`).split('\\').join('/')
       if (!existsSync(m)) {
         const conf = `[mysqld]
 # Only allow connections from localhost
@@ -61,80 +80,15 @@ datadir=${dataDir}`
         `--pid-file=${p}`,
         '--user=mysql',
         `--slow-query-log-file=${s}`,
-        `--log-error=${e}`,
-        '--socket=/tmp/mysql.sock'
+        `--log-error=${e}`
       ]
-      if (version?.flag === 'macports') {
-        params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
-      }
-      let needRestart = false
-      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
-        needRestart = true
-        await mkdirp(dataDir)
-        await chmod(dataDir, '0777')
-        const installdb = join(version.path, 'bin/mysql_install_db')
-        if (existsSync(installdb) && version.num! < 57) {
-          bin = installdb
-          params.splice(0)
-          params.push(`--defaults-file=${m}`)
-          params.push(`--datadir=${dataDir}`)
-          params.push(`--basedir=${version.path}`)
-          if (version?.flag === 'macports') {
-            const defaultCnf = join(version.path, 'my-default.cnf')
-            if (!existsSync(defaultCnf)) {
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp -f ${m} ${defaultCnf}`
-              )
-            }
-            const enDir = join(version.path, 'share')
-            if (!existsSync(enDir)) {
-              const shareDir = `/opt/local/share/${basename(version.path)}`
-              if (existsSync(shareDir)) {
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir}/* ${enDir}`
-                )
-                const langDir = join(enDir, basename(version.path))
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${langDir}`)
-                const langEnDir = join(shareDir, 'english')
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${langEnDir} ${langDir}`
-                )
-              }
-            }
-          }
-        } else {
-          params.push('--initialize-insecure')
-        }
-      }
+
       try {
         if (existsSync(p)) {
           await unlink(p)
         }
-      } catch (e) {}
-      console.log('mysql start: ', bin, params.join(' '))
-      on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
-      const { promise, spawn } = spawnPromiseMore(bin, params)
-      let success = false
-      let checking = false
-      async function checkpid(time = 0) {
-        if (existsSync(p)) {
-          console.log('time: ', time)
-          success = true
-          try {
-            await execPromise(`kill -9 ${spawn.pid}`)
-          } catch (e) {}
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            await checkpid(time + 1)
-          } else {
-            try {
-              await execPromise(`kill -9 ${spawn.pid}`)
-            } catch (e) {}
-          }
-        }
-      }
+      } catch (e) { }
+
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
           await remove(dataDir)
@@ -143,39 +97,69 @@ datadir=${dataDir}`
           await remove(m)
         }
       }
-      promise
-        .on(async (data) => {
-          on(data)
-          if (!checking) {
-            checking = true
-            await checkpid()
-          }
-        })
-        .then(async (code) => {
-          if (success) {
-            resolve(code)
+
+      const waitPid = async (time = 0): Promise<boolean> => {
+        let res = false
+        if (existsSync(p)) {
+          res = true
+        } else {
+          if (time < 40) {
+            await waitTime(500)
+            res = res || await waitPid(time + 1)
           } else {
-            if (needRestart) {
-              try {
-                await this._startServer(version).on(on)
-                await this._initPassword(version)
-                on(I18nT('fork.postgresqlInit', { dir: dataDir }))
-                resolve(code)
-              } catch (e) {
-                await unlinkDirOnFail()
-                reject(e)
-              }
-            } else {
-              reject(code)
-            }
+            res = false
           }
-        })
-        .catch(async (err) => {
-          if (needRestart) {
-            await unlinkDirOnFail()
+        }
+        console.log('waitPid: ', time, res)
+        return res
+      }
+
+      let command = ''
+      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
+        await mkdirp(dataDir)
+        await chmod(dataDir, '0777')
+        params.push('--initialize-insecure')
+
+        command = `${bin} ${params.join(' ')}`
+        console.log('command: ', command)
+        try {
+          const res = await execPromiseRoot(command)
+          console.log('init res: ', res)
+          on(res.stdout)
+        } catch (e: any) {
+          reject(e)
+          return
+        }
+        await waitTime(500)
+        try {
+          await this._startServer(version).on(on)
+          await waitTime(500)
+          await this._initPassword(version)
+          on(I18nT('fork.postgresqlInit', { dir: dataDir }))
+          resolve(true)
+        } catch (e) {
+          await unlinkDirOnFail()
+          reject(e)
+        }
+
+      } else {
+        params.push('--standalone')
+        command = `start /b ${bin} ${params.join(' ')}`
+        console.log('command: ', command)
+        try {
+          const res = await execPromiseRoot(command)
+          console.log('start res: ', res)
+          on(res.stdout)
+          const check = await waitPid()
+          if (check) {
+            resolve(0)
+          } else {
+            reject(new Error('Start failed'))
           }
-          reject(err)
-        })
+        } catch (e: any) {
+          reject(e)
+        }
+      }
     })
   }
 
@@ -185,32 +169,39 @@ datadir=${dataDir}`
       const id = version?.id ?? ''
       const conf = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
       const serverName = 'mysqld'
-      const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+      const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
       console.log('_stopServer command: ', command)
+      let res: any = null
       try {
-        const res = await execPromise(command)
-        const pids = res?.stdout?.trim()?.split('\n') ?? []
-        const arr: Array<string> = []
-        for (const p of pids) {
-          if (p.includes(conf)) {
-            arr.push(p.split(' ')[0])
+        res = await execPromiseRoot(command)
+      } catch (e) { }
+      const pids = res?.stdout?.trim()?.split('\n') ?? []
+      const arr: Array<string> = []
+      for (const p of pids) {
+        if (p.includes(conf)) {
+          const pid = p.split(' ').filter((s: string) => {
+            return !!s.trim()
+          }).pop()
+          if (pid) {
+            arr.push(pid)
           }
         }
-        if (arr.length > 0) {
-          const pids = arr.join(' ')
-          const sig = '-TERM'
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
-        }
-        await waitTime(500)
-        resolve(true)
-      } catch (e) {
-        reject(e)
       }
+      if (arr.length > 0) {
+        for (const pid of arr) {
+          try {
+            await execPromiseRoot(`wmic process where processid="${pid}" delete`)
+          } catch (e) { }
+        }
+      }
+      await waitTime(500)
+      resolve(true)
     })
   }
 
   startGroupServer(version: MysqlGroupItem) {
     return new ForkPromise(async (resolve, reject, on) => {
+      await this.#initLocalApp(version.version as any)
       await this.stopGroupService(version)
       let bin = version.version.bin
       const id = version?.id ?? ''
@@ -238,65 +229,42 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         `--log-error=${e}`,
         `--socket=${sock}`
       ]
-      if (version?.version?.flag === 'macports') {
-        params.push(`--lc-messages-dir=/opt/local/share/${basename(version.version.path!)}/english`)
-      }
-      let needRestart = false
-      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
-        const currentVersion = version.version!
-        needRestart = true
-        await mkdirp(dataDir)
-        await chmod(dataDir, '0755')
-        const installdb = join(currentVersion.path!, 'bin/mysql_install_db')
-        if (existsSync(installdb) && version.version.num! < 57) {
-          bin = installdb
-          params.splice(0)
-          params.push(`--defaults-file=${m}`)
-          params.push(`--datadir=${dataDir}`)
-          params.push(`--basedir=${currentVersion.path}`)
-          if (currentVersion?.flag === 'macports') {
-            const defaultCnf = join(currentVersion.path!, 'my-default.cnf')
-            if (!existsSync(defaultCnf)) {
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp -f ${m} ${defaultCnf}`
-              )
-            }
-            const enDir = join(currentVersion.path!, 'share')
-            if (!existsSync(enDir)) {
-              const shareDir = `/opt/local/share/${basename(currentVersion.path!)}`
-              if (existsSync(shareDir)) {
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir}/* ${enDir}`
-                )
-                const langDir = join(enDir, basename(currentVersion.path!))
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${langDir}`)
-                const langEnDir = join(shareDir, 'english')
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${langEnDir} ${langDir}`
-                )
-              }
-            }
-          }
-        } else {
-          params.push('--initialize-insecure')
-        }
-      }
+
       try {
         if (existsSync(p)) {
           await unlink(p)
         }
-      } catch (e) {}
-      console.log('mysql start: ', bin, params.join(' '))
-      on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
-      const { promise, spawn } = spawnPromiseMore(bin!, params)
-      let success = false
-      let checking = false
+      } catch (e) { }
+
+      const unlinkDirOnFail = async () => {
+        if (existsSync(dataDir)) {
+          await remove(dataDir)
+        }
+        if (existsSync(m)) {
+          await remove(m)
+        }
+      }
+
+      const waitPid = async (time = 0): Promise<boolean> => {
+        let res = false
+        if (existsSync(p)) {
+          res = true
+        } else {
+          if (time < 40) {
+            await waitTime(500)
+            res = res || await waitPid(time + 1)
+          } else {
+            res = false
+          }
+        }
+        console.log('waitPid: ', time, res)
+        return res
+      }
+
       const initPassword = () => {
         return new ForkPromise((resolve, reject) => {
-          execPromise(`./mysqladmin -P${version.port} -S${sock} -uroot password "root"`, {
-            cwd: dirname(version.version.bin!)
-          })
+          const bin = join(dirname(version.version.bin!), 'mysqladmin.exe')
+          execPromise(`${bin} -P${version.port} -S${sock} -uroot password "root"`)
             .then((res) => {
               console.log('_initPassword res: ', res)
               resolve(true)
@@ -307,65 +275,133 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
             })
         })
       }
-      async function checkpid(time = 0) {
-        if (existsSync(p)) {
-          console.log('time: ', time)
-          success = true
-          try {
-            await execPromise(`kill -9 ${spawn.pid}`)
-          } catch (e) {}
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            await checkpid(time + 1)
+
+      let command = ''
+      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
+        await mkdirp(dataDir)
+        await chmod(dataDir, '0777')
+        params.push('--initialize-insecure')
+
+        command = `${bin} ${params.join(' ')}`
+        console.log('command: ', command)
+        try {
+          const res = await execPromiseRoot(command)
+          console.log('init res: ', res)
+          on(res.stdout)
+        } catch (e: any) {
+          reject(e)
+          return
+        }
+        await waitTime(500)
+        try {
+          await this.startGroupServer(version).on(on)
+          await waitTime(500)
+          await initPassword()
+          on(I18nT('fork.postgresqlInit', { dir: dataDir }))
+          resolve(true)
+        } catch (e) {
+          await unlinkDirOnFail()
+          reject(e)
+        }
+
+      } else {
+        params.push('--standalone')
+        command = `start /b ${bin} ${params.join(' ')}`
+        console.log('command: ', command)
+        try {
+          const res = await execPromiseRoot(command)
+          console.log('start res: ', res)
+          on(res.stdout)
+          const check = await waitPid()
+          if (check) {
+            resolve(0)
           } else {
-            try {
-              await execPromise(`kill -9 ${spawn.pid}`)
-            } catch (e) {}
+            reject(new Error('Start failed'))
           }
+        } catch (e: any) {
+          reject(e)
         }
       }
-      const unlinkDirOnFail = async () => {
-        if (existsSync(dataDir)) {
-          await remove(dataDir)
-        }
-        if (existsSync(m)) {
-          await remove(m)
-        }
-      }
-      promise
-        .on(async (data) => {
-          on(data)
-          if (!checking) {
-            checking = true
-            await checkpid()
-          }
-        })
-        .then(async (code) => {
-          if (success) {
-            resolve(code)
-          } else {
-            if (needRestart) {
-              try {
-                await this.startGroupServer(version).on(on)
-                await initPassword()
-                on(I18nT('fork.postgresqlInit', { dir: dataDir }))
-                resolve(code)
-              } catch (e) {
-                await unlinkDirOnFail()
-                reject(e)
+    })
+  }
+
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const urls = [
+          // 'https://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.51-winx64.zip',
+          // 'https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.37-winx64.zip',
+          // 'https://downloads.mysql.com/archives/get/p/23/file/mysql-8.2.0-winx64.zip',
+          // 'https://downloads.mysql.com/archives/get/p/23/file/mysql-5.6.51-winx64.zip',
+          // 'https://downloads.mysql.com/archives/get/p/23/file/mysql-5.5.62-winx64.zip',
+          'https://dev.mysql.com/downloads/mysql/',
+          'https://downloads.mysql.com/archives/community/'
+        ]
+        const fetchVersions = async (url: string) => {
+          const all: any = []
+          const res = await axios({
+            url,
+            method: 'get'
+          })
+          const html = res.data
+          const regSelect = /<select name="version"([\s\S\n]*?)<\/select>/g
+          html.match(regSelect).forEach((select: string) => {
+            const reg = /<option ([a-z="\d\.\s\n]+)>(\d[\d\.]+)([a-zA-Z\s\n]*?)<\/option>/g
+            let r
+            while ((r = reg.exec(select)) !== null) {
+              const version = r[2]
+              const mv = version.split('.').slice(0, 2).join('.')
+              const u = `https://dev.mysql.com/get/Downloads/MySQL-${mv}/mysql-${version}-winx64.zip`
+              const item = {
+                url: u,
+                version,
+                mVersion: mv
               }
-            } else {
-              reject(code)
+              const find = all.find((f: any) => f.mVersion === item.mVersion)
+              if (!find) {
+                all.push(item)
+              } else {
+                if (compareVersions(item.version, find.version) > 0) {
+                  const index = all.indexOf(find)
+                  all.splice(index, 1, item)
+                }
+              }
+            }
+          })
+          return all
+        }
+        const all: any = []
+        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
+        const list = res.flat()
+        list.filter((l: any) => Number(l.mVersion) > 5.6).forEach((l: any) => {
+          const find = all.find((f: any) => f.mVersion === l.mVersion)
+          if (!find) {
+            all.push(l)
+          } else {
+            if (compareVersions(l.version, find.version) > 0) {
+              const index = all.indexOf(find)
+              all.splice(index, 1, l)
             }
           }
         })
-        .catch(async (err) => {
-          if (needRestart) {
-            await unlinkDirOnFail()
-          }
-          reject(err)
+
+        all.sort((a: any, b: any) => {
+          return compareVersions(b.version, a.version)
         })
+
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `mysql-${a.version}`, `mysql-${a.version}-winx64`, 'bin/mysqld.exe')
+          const zip = join(global.Server.Cache!, `mysql-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `mysql-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+        })
+        resolve(all)
+      } catch (e) {
+        resolve([])
+      }
     })
   }
 }

@@ -17,6 +17,7 @@ class PageTaskItem {
 
   constructor() {
     this.window = new BrowserWindow({
+      autoHideMenuBar: true,
       show: true,
       width: 1440,
       height: 960,

@@ -26,10 +26,12 @@ export default class TrayManager extends EventEmitter {
   handleTrayClick = (event: any) => {
     event?.preventDefault && event?.preventDefault()
     const bounds = this.tray.getBounds()
+    console.log('handleTrayClick: ', event, bounds)
     const screenWidth = screen.getPrimaryDisplay().workAreaSize.width
     const x = Math.min(bounds.x - 150 + bounds.width * 0.5, screenWidth - 300)
+    const y = bounds.y - 445
     const poperX = Math.max(15, bounds.x + bounds.width * 0.5 - x - 6)
-    this.emit('click', x, poperX)
+    this.emit('click', x, y, poperX)
   }
 
   destroy() {

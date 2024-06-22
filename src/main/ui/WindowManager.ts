@@ -11,6 +11,7 @@ initialize()
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
+  autoHideMenuBar: true,
   show: false,
   width: 1024,
   height: 768,
@@ -199,10 +200,11 @@ export default class WindowManager extends EventEmitter {
 
   handleWindowClose(pageOptions: { [key: string]: any }, page: string, window: BrowserWindow) {
     window.on('close', (event: Event) => {
+      console.log('window close !!!', pageOptions.bindCloseToHide, this.willQuit)
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
         window.hide()
-        app.dock.hide()
+        app?.dock?.hide()
       }
       const bounds = window.getBounds()
       this.emit('window-closed', { page, bounds })
@@ -215,7 +217,7 @@ export default class WindowManager extends EventEmitter {
       return
     }
     window.show()
-    app.dock.show().then()
+    app?.dock?.show().then()
   }
 
   hideWindow(page: string) {
@@ -250,6 +252,7 @@ export default class WindowManager extends EventEmitter {
 
   handleBeforeQuit() {
     app.on('before-quit', () => {
+      console.log('app before-quit !!!')
       this.setWillQuit(true)
     })
   }

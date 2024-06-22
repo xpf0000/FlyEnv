@@ -48,8 +48,9 @@
 </template>
 
 <script>
-  import { uuid } from '@shared/utils.ts'
-  import { MessageError } from '@/util/Element.ts'
+  import { MessageError, MessageSuccess } from '@/util/Element.ts'
+  import IPC from '@/util/IPC'
+  import { I18nT } from '@shared/lang'
 
   const { existsSync, writeFileSync } = require('fs')
   const { execSync } = require('child_process')
@@ -138,58 +139,17 @@
           return
         }
         this.running = true
-        let domains = this.item.domains
-          .split('\n')
-          .map((item) => {
-            return item.trim()
-          })
-          .filter((item) => {
-            return item && item.length > 0
-          })
-        let saveName = uuid(6) + '.' + domains[0].replace('*.', '')
-        let caFile = this.item.root
-        let caFileName = basename(caFile)
-        if (caFile.length === 0) {
-          caFile = join(this.item.savePath, uuid(6) + '.RootCA.crt')
-          caFileName = basename(caFile)
-        }
-        caFile = caFile.replace('.crt', '')
-        caFileName = caFileName.replace('.crt', '')
-        let opt = { cwd: this.item.savePath }
-        if (!existsSync(caFile + '.crt')) {
-          let command = `openssl genrsa -out ${caFileName}.key 2048;`
-          command += `openssl req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=Dev Root CA ${caFileName}";`
-          command += `echo "basicConstraints=CA:true" > ${caFileName}.cnf;`
-          command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650;`
-          execSync(command, opt)
-        }
-        let ext = `authorityKeyIdentifier=keyid,issuer
-basicConstraints=CA:FALSE
-keyUsage=digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-subjectAltName=@alt_names
-
-[alt_names]${EOL}`
-        domains.forEach((item, index) => {
-          ext += `DNS.${index + 1} = ${item}${EOL}`
-        })
-        ext += `IP.1 = 127.0.0.1${EOL}`
-        writeFileSync(join(this.item.savePath, `${saveName}.ext`), ext)
-
-        let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${saveName}.key -out ${saveName}.csr -sha256 -subj "/CN=${saveName}";`
-        command += `openssl x509 -req -in ${saveName}.csr -out ${saveName}.crt -extfile ${saveName}.ext -CA "${caFile}.crt" -CAkey "${caFile}.key" -CAcreateserial -sha256 -days 3650;`
-        execSync(command, opt)
-        if (existsSync(join(this.item.savePath, `${saveName}.crt`))) {
-          this.$alert(this.$t('base.sslMakeAlert', { caFileName }), this.$t('base.prompt'), {
-            confirmButtonText: this.$t('base.confirm'),
-            callback: () => {
-              this.doClose()
-              shell.showItemInFolder(`${caFile}.crt`)
-            }
-          })
-        } else {
+        IPC.send('app-fork:tools', 'sslMake', JSON.parse(JSON.stringify(this.item))).then((key, res) => {
+          IPC.off(key)
           this.running = false
-          MessageError(this.$t('base.fail'))
-        }
+          if (res?.code === 0) {
+            MessageSuccess(I18nT('base.success'))
+            shell.openPath(this.item.savePath)
+            this.doClose()
+          } else {
+            MessageError(this.$t('base.fail'))
+          } 
+      })
       }
     }
   }

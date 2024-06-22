@@ -5,10 +5,6 @@
         <yb-icon :svg="import('@/svg/json1.svg?raw')" width="30" height="30" />
         <span>{{ $t('tools.jsonParseTitle') }}</span>
       </li>
-      <li @click="showPage('env')">
-        <yb-icon :svg="import('@/svg/env.svg?raw')" width="30" height="30" />
-        <span>{{ $t('util.toolSystemEnv') }}</span>
-      </li>
       <li @click="showPage('sslmake')">
         <yb-icon :svg="import('@/svg/sslmake.svg?raw')" width="30" height="30" />
         <span>{{ $t('util.toolSSL') }}</span>

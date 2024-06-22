@@ -20,6 +20,7 @@ import Project from './module/Project'
 import Tool from './module/Tool'
 import MacPorts from './module/MacPorts'
 import Caddy from './module/Caddy'
+import DNS from './module/DNS'
 
 class BaseManager {
   constructor() {}
@@ -38,13 +39,6 @@ class BaseManager {
 
   exec(commands: Array<any>) {
     const ipcCommandKey = commands.shift()
-    try {
-      execSync(`echo '${global.Server.Password}' | sudo -S -k -l`)
-    } catch (e) {
-      ProcessSendError(ipcCommandKey, I18nT('fork.needPassWord'))
-      ProcessSendError('application:need-password', false)
-      return
-    }
     const then = (res: any) => {
       ProcessSendSuccess(ipcCommandKey, res)
     }
@@ -93,6 +87,8 @@ class BaseManager {
       func = MacPorts.exec(fn, ...commands)
     } else if (module === 'caddy') {
       func = Caddy.exec(fn, ...commands)
+    } else if (module === 'dns') {
+      func = DNS.exec(fn, ...commands)
     }
     func?.on(onData).then(then).catch(error)
   }

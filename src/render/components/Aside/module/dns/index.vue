@@ -26,7 +26,6 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { dnsStart, dnsStop } from '@/util/Service'
-  import { passwordCheck } from '@/util/Brew'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@shared/lang'
   import { DnsStore } from '@/store/dns'
@@ -68,8 +67,7 @@
   }
 
   const switchChange = () => {
-    passwordCheck().then(() => {
-      let fn = null
+    let fn = null
       let promise: Promise<any> | null = null
       if (serviceFetching?.value) return
       fn = serviceRunning?.value ? dnsStop : dnsStart
@@ -81,7 +79,6 @@
           MessageSuccess(I18nT('base.success'))
         }
       })
-    })
   }
 
   const stopNav = () => {}

@@ -23,34 +23,8 @@
               <span @click.stop="copyPass(linkIp)">{{ linkIp }}</span>
             </div>
           </template>
-          <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-30">
-            <template v-for="(item, index) in versions" :key="index">
-              <template v-if="!item?.version">
-                <el-popover popper-class="version-error-tips" width="auto" placement="top">
-                  <template #default>
-                    <span>{{ item?.error ?? $t('base.versionErrorTips') }}</span>
-                  </template>
-                  <template #reference>
-                    <el-option
-                      :disabled="true"
-                      :label="$t('base.versionError') + ' - ' + item.path"
-                      :value="$t('base.versionError') + ' - ' + item.path"
-                    >
-                    </el-option>
-                  </template>
-                </el-popover>
-              </template>
-              <template v-else>
-                <el-option
-                  :label="item?.version + ' - ' + item.path"
-                  :value="item?.version + ' - ' + item.path"
-                >
-                </el-option>
-              </template>
-            </template>
-          </el-select>
         </div>
-        <el-button :disabled="ftpDisabled" @click.stop="doAdd">{{ $t('base.add') }}</el-button>
+        <el-button @click.stop="doAdd">{{ $t('base.add') }}</el-button>
       </div>
     </template>
     <el-auto-resizer>
@@ -92,10 +66,6 @@
   const appStore = AppStore()
   const brewStore = BrewStore()
 
-  const versions = computed(() => {
-    return brewStore?.['pure-ftpd']?.installed
-  })
-
   const linkLocal = computed(() => {
     return `ftp://127.0.0.1:${ftpStore.port}`
   })
@@ -115,33 +85,6 @@
     }
     const installed = brewStore?.['pure-ftpd']?.installed
     return installed?.find((i) => i.path === current?.path && i.version === current?.version)
-  })
-
-  const currentVersion = computed({
-    get() {
-      const current = appStore.config.server?.['pure-ftpd']?.current
-      if (!current) {
-        return undefined
-      }
-      return `${current.version} - ${current.path}`
-    },
-    set(vstr: string) {
-      const isRun = ftpVersion?.value?.run
-      const find = versions?.value?.find((v) => {
-        const txt = `${v.version} - ${v.path}`
-        return txt === vstr
-      })
-      if (find) {
-        appStore.UPDATE_SERVER_CURRENT({
-          flag: 'pure-ftpd',
-          data: JSON.parse(JSON.stringify(find))
-        })
-        appStore.saveConfig()
-        if (isRun) {
-          serviceDo('restart')
-        }
-      }
-    }
   })
 
   const ftpRunning = computed(() => {

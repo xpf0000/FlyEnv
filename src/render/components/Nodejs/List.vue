@@ -128,9 +128,6 @@
   const nodejsStore = NodejsStore()
   const appStore = AppStore()
 
-  const loading = computed(() => {
-    return nodejsStore.fetching
-  })
   const tool = computed({
     get() {
       return nodejsStore.tool
@@ -149,6 +146,10 @@
         appStore.saveConfig()
       }
     }
+  })
+  const loading = computed(() => {
+    const flag: any = currentTool.value
+    return nodejsStore.fetching[flag]
   })
 
   const currentItem: ComputedRef<NodeJSItem | undefined> = computed(() => {
@@ -221,6 +222,7 @@
     currentTool,
     (v) => {
       if (v) {
+        console.log('watch currentTool: ', v)
         nodejsStore.fetchData(v)
       }
     },

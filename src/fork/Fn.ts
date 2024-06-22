@@ -7,6 +7,8 @@ import crypto from 'crypto'
 import axios from 'axios'
 import { readdir } from 'fs-extra'
 import type { AppHost } from '@shared/app'
+import sudoPrompt from '@vscode/sudo-prompt'
+
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
     on,
@@ -59,18 +61,6 @@ export function waitTime(time: number) {
 
 export function fixEnv(): { [k: string]: any } {
   const env = { ...process.env }
-  if (!env['PATH']) {
-    env['PATH'] =
-      '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
-  } else {
-    env['PATH'] =
-      `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:${env['PATH']}`
-  }
-  if (global.Server.Proxy) {
-    for (const k in global.Server.Proxy) {
-      env[k] = global.Server.Proxy[k]
-    }
-  }
   return env
 }
 
@@ -90,6 +80,33 @@ export function execSyncFix(cammand: string, opt?: { [k: string]: any }): string
     res = undefined
   }
   return res
+}
+
+export function execPromiseRoot(
+  cammand: string
+): ForkPromise<{
+  stdout: string
+  stderr: string
+}> {
+  return new ForkPromise((resolve, reject) => {
+    try {
+      sudoPrompt.exec(
+        cammand,      
+        (error, stdout, stderr) => {
+          if (!error) {
+            resolve({
+              stdout: stdout?.toString() ?? '',
+              stderr: stderr?.toString() ?? ''
+            })
+          } else {
+            reject(error)
+          }
+        }
+      )
+    } catch (e) {
+      reject(e)
+    }
+  })
 }
 
 export function execPromise(
@@ -157,6 +174,7 @@ export function spawnPromise(
         reject(new Error(Buffer.concat(stderr).toString().trim()))
       }
     }
+
     child?.stdout?.on('data', (data) => {
       stdout.push(data)
       on(data.toString(), stdinFn)
@@ -175,21 +193,31 @@ export function spawnPromiseMore(
   params: Array<any>,
   opt?: { [k: string]: any }
 ): {
-  promise: ForkPromise<any>
-  spawn: ChildProcess
+  promise?: ForkPromise<any>
+  spawn?: ChildProcess
 } {
   const stdout: Array<Buffer> = []
   const stderr: Array<Buffer> = []
-  const child = spawn(
-    cammand,
-    params,
-    merge(
-      {
-        env: fixEnv()
-      },
-      opt
+  let child
+  try {
+    child = spawn(
+      cammand,
+      params,
+      merge(
+        {
+          env: fixEnv(),
+          windowsHide: true
+        },
+        opt
+      )
     )
-  )
+  } catch(e) {
+    console.log('spawnPromiseMore err: ', e)
+    return {
+      promise: undefined,
+      spawn: undefined
+    }
+  }
   const stdinFn = (txt: string) => {
     child?.stdin?.write(`${txt}\n`)
   }
@@ -205,10 +233,12 @@ export function spawnPromiseMore(
       }
     }
     child.stdout.on('data', (data) => {
+      console.log('spawnPromiseMore stdout: ', data.toString())
       stdout.push(data)
       on(data.toString(), stdinFn)
     })
     child.stderr.on('data', (err) => {
+      console.log('spawnPromiseMore stderr: ', err.toString())
       stderr.push(err)
       on(err.toString(), stdinFn)
     })

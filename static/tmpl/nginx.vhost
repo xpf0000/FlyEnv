@@ -28,14 +28,14 @@ server
     {
         expires      30d;
         error_log off;
-        access_log /dev/null;
+        access_log off;
     }
 
     location ~ .*\.(js|css)?$
     {
         expires      12h;
         error_log off;
-        access_log /dev/null;
+        access_log off;
     }
     access_log  #Log_Path#/#Server_Name#.log;
     error_log  #Log_Path#/#Server_Name#.error.log;

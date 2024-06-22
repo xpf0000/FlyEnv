@@ -69,10 +69,10 @@ export const dnsStart = (): Promise<boolean | string> => {
       return
     }
     store.fetching = true
-    IPC.send('DNS:start').then((key: string, res: boolean | string) => {
+    IPC.send('app-fork:dns', 'startService').then((key: string, res: any) => {
       IPC.off(key)
       store.fetching = false
-      store.running = res === true
+      store.running = res?.data === true
       resolve(res)
     })
   })
@@ -86,7 +86,7 @@ export const dnsStop = (): Promise<boolean> => {
       return
     }
     store.fetching = true
-    IPC.send('DNS:stop').then((key: string, res: boolean) => {
+    IPC.send('app-fork:dns', 'stopService').then((key: string, res: boolean) => {
       IPC.off(key)
       store.fetching = false
       store.running = false

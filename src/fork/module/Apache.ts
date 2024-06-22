@@ -3,9 +3,12 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { execPromise, getAllFileAsync, md5 } from '../Fn'
+import { execPromise, execPromiseRoot, getAllFileAsync } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
+import { mkdirp, readFile, writeFile } from 'fs-extra'
+import { zipUnPack } from '@shared/file'
+import axios from 'axios'
+import { compareVersions } from 'compare-versions'
 
 class Apache extends Base {
   constructor() {
@@ -14,62 +17,117 @@ class Apache extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.ApacheDir!, 'common/logs/httpd.pid')
+    this.pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
   }
 
   #resetConf(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
-      const defaultFile = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
+      const defaultFile = join(global.Server.ApacheDir!, `${version.version}.conf`)
       const defaultFileBack = join(
         global.Server.ApacheDir!,
-        `common/conf/${md5(version.bin)}.default.conf`
-      )
-      let logs = join(global.Server.ApacheDir!, 'common/logs')
-      await mkdirp(logs)
+        `${version.version}.default.conf`
+      )    
       const bin = version.bin
       if (existsSync(defaultFile)) {
+        let content = await readFile(defaultFile, 'utf-8')
+        let srvroot = ''
+        const reg = new RegExp('(Define SRVROOT ")([\\s\\S]*?)(")', 'g')
+        try {
+          srvroot = reg?.exec?.(content)?.[2] ?? ''
+        } catch (e) {}
+        if (srvroot) {
+          const srvrootReplace = version.path.split('\\').join('/')
+          if (srvroot !== srvrootReplace) {
+            content = content.replace(`Define SRVROOT "${srvroot}"`, `Define SRVROOT "${srvrootReplace}"`)
+          }
+          await writeFile(defaultFile, content)
+          await writeFile(defaultFileBack, content)
+        }
         resolve(true)
         return
       }
       // 获取httpd的默认配置文件路径
-      const res = await execPromise(`${bin} -D DUMP_INCLUDES`)
-      const str = res?.stdout?.toString() ?? ''
-      let reg = new RegExp('(\\(*\\) )([\\s\\S]*?)(\\n)', 'g')
+      let str = ''
+      try {
+        const res = await execPromise(`${bin} -V`)
+        str = res?.stdout?.toString() ?? ''
+      } catch(e: any) {
+        reject(new Error(I18nT('fork.apacheLogPathErr')))
+        return
+      }
+      console.log('resetConf: ', str)
+
+      let reg = new RegExp('(SERVER_CONFIG_FILE=")([\\s\\S]*?)(")', 'g')
       let file = ''
       try {
         file = reg?.exec?.(str)?.[2] ?? ''
       } catch (e) {}
       file = file.trim()
+      file = join(version.path, file)
+
+      console.log('file: ', file)
+
       if (!file || !existsSync(file)) {
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
       let content = await readFile(file, 'utf-8')
-      reg = new RegExp('(CustomLog ")([\\s\\S]*?)(access_log")', 'g')
-      let path = ''
+
+      reg = new RegExp('(CustomLog ")([\\s\\S]*?)(")', 'g')
+      let logPath = ''
       try {
-        path = reg?.exec?.(content)?.[2] ?? ''
+        logPath = reg?.exec?.(content)?.[2] ?? ''
       } catch (e) {}
-      path = path.trim()
-      if (!path) {
-        reject(new Error(I18nT('fork.apacheLogPathErr')))
-        return
-      }
-      logs = join(global.Server.ApacheDir!, 'common/logs/')
-      const vhost = join(global.Server.BaseDir!, 'vhost/apache/')
-      content = content
-        .replace(new RegExp(path, 'g'), logs)
+      logPath = logPath.trim()
+
+      reg = new RegExp('(ErrorLog ")([\\s\\S]*?)(")', 'g')
+      let errLogPath = ''
+      try {
+        errLogPath = reg?.exec?.(content)?.[2] ?? ''
+      } catch (e) {}
+      errLogPath = errLogPath.trim()
+
+      let srvroot = ''
+      reg = new RegExp('(Define SRVROOT ")([\\s\\S]*?)(")', 'g')
+      try {
+        srvroot = reg?.exec?.(content)?.[2] ?? ''
+      } catch (e) {}
+
+      content = content        
+        .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
         .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
         .replace('#LoadModule proxy_module', 'LoadModule proxy_module')
         .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')
         .replace('#LoadModule ssl_module', 'LoadModule ssl_module')
+        .replace('#LoadModule access_compat_module', 'LoadModule access_compat_module')
+        .replace('#ServerName www.', 'ServerName www.')
+      
+        if (logPath) {
+          const logPathReplace = join(global.Server.ApacheDir!, `${version.version}.access.log`).split('\\').join('/')
+          content = content.replace(`CustomLog "${logPath}"`, `CustomLog "${logPathReplace}"`)
+        }
+
+        if (errLogPath) {
+          const errLogPathReplace = join(global.Server.ApacheDir!, `${version.version}.error.log`).split('\\').join('/')
+          content = content.replace(`ErrorLog "${errLogPath}"`, `ErrorLog "${errLogPathReplace}"`)
+        }
+
+        if (srvroot) {
+          const srvrootReplace = version.path.split('\\').join('/')
+          content = content.replace(`Define SRVROOT "${srvroot}"`, `Define SRVROOT "${srvrootReplace}"`)
+        }
 
       let find = content.match(/\nUser _www(.*?)\n/g)
       content = content.replace(find?.[0] ?? '###@@@&&&', '\n#User _www\n')
       find = content.match(/\nGroup _www(.*?)\n/g)
       content = content.replace(find?.[0] ?? '###@@@&&&', '\n#Group _www\n')
 
-      content += `\nPidFile "${logs}httpd.pid"
+      const pidPath = join(global.Server.ApacheDir!, 'httpd.pid').split('\\').join('/')
+      let vhost = join(global.Server.BaseDir!, 'vhost/apache/')
+      await mkdirp(vhost)
+      vhost = vhost.split('\\').join('/')
+
+      content += `\nPidFile "${pidPath}"
 IncludeOptional "${vhost}*.conf"`
       await writeFile(defaultFile, content)
       await writeFile(defaultFileBack, content)
@@ -121,8 +179,7 @@ IncludeOptional "${vhost}*.conf"`
       }
     }
     console.log('allNeedPort: ', allNeedPort)
-    const name = md5(version.bin!)
-    const configpath = join(global.Server.ApacheDir!, `common/conf/${name}.conf`)
+    const configpath = join(global.Server.ApacheDir!, `${version.version}.conf`)
     let confContent = await readFile(configpath, 'utf-8')
     regex.lastIndex = 0
     if (regex.test(confContent)) {
@@ -140,27 +197,119 @@ IncludeOptional "${vhost}*.conf"`
     await writeFile(configpath, confContent)
   }
 
+  #initLocalApp(version: SoftInstalled) {
+    return new Promise((resolve, reject) => {
+      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
+      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `apache-${version.version}`))) {      
+        zipUnPack(join(global.Server.Static!, `zip/apache-${version.version}.7z`), global.Server.AppDir!)
+        .then(resolve)
+        .catch(reject)
+        return
+      }
+      resolve(true)
+    })
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      await this.#initLocalApp(version)
       await this.#resetConf(version)
       await this.#handleListenPort(version)
-      const logs = join(global.Server.ApacheDir!, 'common/logs')
-      await mkdirp(logs)
       const bin = version.bin
-      const conf = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
+      const conf = join(global.Server.ApacheDir!, `${version.version}.conf`)
       if (!existsSync(conf)) {
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
+      let command = `${bin} -k install`
       try {
-        const res = await execPromise(
-          `echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`
-        )
+        await execPromiseRoot(command)
+      } catch(e){
+        console.log('-k install err: ', e)
+      }
+
+      command = `${bin} -f ${conf} -k start`
+      console.log('_startServer: ', command)
+      try {
+        const res = await execPromiseRoot(command)
         on(res?.stdout)
         resolve(0)
       } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
       }
+    })
+  }
+
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const urls = [
+          'https://www.apachelounge.com/download/'   
+      ]
+      const fetchVersions = async (url: string) => {
+          const all: any = []
+          const res = await axios({
+            url,
+            method: 'get'
+        })
+        const html = res.data        
+        const reg = /\/download([a-zA-Z\d\/]+?)\/httpd-(\d[\d\.]+)-([\d\-a-zA-Z]+?)\.zip/g
+        let r
+        while((r = reg.exec(html)) !== null) {      
+            const u = new URL(r[0], url).toString()
+            const version = r[2]
+            const mv = version.split('.').slice(0, 2).join('.')
+            const item = {
+                url: u,
+                version,
+                mVersion: mv
+            }
+            const find = all.find((f: any) => f.mVersion === item.mVersion)
+            if (!find) {
+                all.push(item)
+            } else {
+              if (compareVersions(item.version, find.version) > 0) {
+                const index = all.indexOf(find)
+                all.splice(index, 1, item)          
+              }
+            }
+        }
+        return all
+      }
+      const all: any = []
+      const res = await Promise.all(urls.map((u) => fetchVersions(u)))
+      const list = res.flat()
+      list.filter((l:any) => compareVersions(l.version, '2.0.0') > 0).forEach((l: any) => {
+        const find = all.find((f: any) => f.mVersion === l.mVersion)
+        if (!find) {
+            all.push(l)
+        } else {
+          if (compareVersions(l.version, find.version) > 0) {
+            const index = all.indexOf(find)
+            all.splice(index, 1, l)          
+          }
+        }
+      })
+  
+      all.sort((a: any, b: any) => {
+        return compareVersions(b.version, a.version)
+      })
+  
+      all.forEach((a: any) => {
+        const subDir = `Apache${a.mVersion.split('.').join('')}`
+        const dir = join(global.Server.AppDir!, `apache-${a.version}`, subDir, 'bin/httpd.exe')
+        const zip = join(global.Server.Cache!, `apache-${a.version}.zip`)
+        a.appDir = join(global.Server.AppDir!, `apache-${a.version}`)
+        a.zip = zip
+        a.bin = dir
+        a.downloaded = existsSync(zip)
+        a.installed = existsSync(dir)
+      })
+          resolve(all)
+      } catch(e) {
+        resolve([])
+      }    
     })
   }
 }

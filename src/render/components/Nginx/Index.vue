@@ -12,7 +12,7 @@
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="nginx" title="Nginx"></Service>
       <Config v-if="current_tab === 1"></Config>
-      <Manager v-else-if="current_tab === 2" type-flag="nginx"></Manager>
+      <Manager v-if="current_tab === 2" url="https://nginx.org/en/download.html" title="Nginx" type-flag="nginx"></Manager>
       <Logs v-if="current_tab === 3" type="error"></Logs>
       <Logs v-if="current_tab === 4" type="access"></Logs>
     </div>
@@ -24,8 +24,8 @@
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
-  import Manager from '../VersionManager/index.vue'
   import { AppStore } from '@/store/app'
+  import Manager from '../VersionManager/index.vue'
 
   const current_tab = ref(0)
 
@@ -55,11 +55,7 @@
       }
     },
     watch: {},
-    created: function () {
-      if (!this.version) {
-        this.current_tab = 2
-      }
-    },
+    created: function () {},
     methods: {}
   })
 </script>

@@ -115,6 +115,8 @@ export class ForkManager {
   file: string
   forks: Array<ForkItem> = []
   fenciFork?: ForkItem
+  ftpFork?: ForkItem
+  dnsFork?: ForkItem
   _on: Function = () => {}
   constructor(file: string) {
     this.file = file
@@ -130,6 +132,18 @@ export class ForkManager {
         this.fenciFork = new ForkItem(this.file, true)
       }
       return this.fenciFork!.send(...args)
+    }
+    if (args.includes('pure-ftpd')) {
+      if (!this.ftpFork) {
+        this.ftpFork = new ForkItem(this.file, false)
+      }
+      return this.ftpFork!.send(...args)
+    }
+    if (args.includes('dns')) {
+      if (!this.dnsFork) {
+        this.dnsFork = new ForkItem(this.file, false)
+      }
+      return this.dnsFork!.send(...args)
     }
     /**
      * 找到没有任务的线程
@@ -149,6 +163,8 @@ export class ForkManager {
   }
 
   destory() {
+    this.fenciFork && this.fenciFork.destory()
+    this.ftpFork && this.ftpFork.destory()
     this.forks.forEach((fork) => {
       fork.destory()
     })

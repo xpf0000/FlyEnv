@@ -147,7 +147,7 @@
         }
         running.value = true
         const php = this.phpVersions.find((p) => `${p.path}-${p.version}` === this.item.phpversion)
-        const bin = join(php!.path, 'bin/php')
+        const bin = join(php!.path, 'php.exe')
         const params = JSON.parse(
           JSON.stringify({
             ...this.item,

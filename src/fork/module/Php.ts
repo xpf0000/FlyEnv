@@ -1,12 +1,14 @@
-import { join, basename, dirname } from 'path'
-import { existsSync, statSync } from 'fs'
+import { join } from 'path'
+import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { execPromise, getAllFileAsync, spawnPromise, downFile } from '../Fn'
+import { execPromise, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import compressing from 'compressing'
-import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
+import { writeFile, readFile, remove } from 'fs-extra'
+import { zipUnPack } from '@shared/file'
+import axios from 'axios'
+import { compareVersions } from 'compare-versions'
 
 class Php extends Base {
   constructor() {
@@ -15,209 +17,146 @@ class Php extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.PhpDir!, 'common/var/run/php-fpm.pid')
+    this.pidPath = join(global.Server.PhpDir!, 'php.pid')
   }
 
   getIniPath(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
-      let command = ''
-      let res: any
-      let ini = ''
-      if (version?.phpBin) {
-        command = `${version.phpBin} -i | grep php.ini`
-      } else {
-        command = `${join(version.path, 'bin/php')} -i | grep php.ini`
-      }
-      try {
-        console.log('getIniPath: ', command)
-        res = await execPromise(command)
-        ini = res?.stdout?.trim()?.split('=>')?.pop()?.trim() ?? ''
-        ini = ini?.split('=>')?.pop()?.trim() ?? ''
-      } catch (e) {}
-
-      if (!ini) {
-        if (version?.phpConfig) {
-          command = `${version?.phpConfig} --ini-path`
-        } else {
-          command = `${join(version.path, 'bin/php-config')} --ini-path`
-        }
-        try {
-          res = await execPromise(command)
-          ini = res?.stdout?.trim()
-        } catch (e) {}
+      let ini = join(version.path, 'php.ini')
+      if (existsSync(ini)) {
+        resolve(ini)
+        return
       }
 
-      if (ini) {
-        if (!existsSync(ini)) {
-          if (!ini.endsWith('.ini')) {
-            const baseDir = ini
-            ini = join(baseDir, 'php.ini')
-          }
-          await mkdirp(dirname(ini))
-          const iniPath = join(global.Server.PhpDir!, 'common/conf/php.ini')
-          const iniDefaultPath = join(global.Server.PhpDir!, 'common/conf/php.ini.default')
-          if (existsSync(iniPath)) {
-            await copyFile(iniPath, ini)
-          } else if (existsSync(iniDefaultPath)) {
-            await copyFile(iniPath, ini)
-          }
+      const initIniFile = async (file: string) => {
+        let content = await readFile(file, 'utf-8')
+        content = content.replace(';extension_dir = "ext"', 'extension_dir = "ext"')
+        let dll = join(version.path, 'ext/php_redis.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_redis.dll`
         }
+        dll = join(version.path, 'ext/php_xdebug.dll')
+        if (existsSync(dll)) {
+          content = content + `\nzend_extension=php_xdebug.dll`
+        }
+        dll = join(version.path, 'ext/php_mongodb.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_mongodb.dll`
+        }
+        dll = join(version.path, 'ext/php_memcache.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_memcache.dll`
+        }
+        dll = join(version.path, 'ext/php_pdo_sqlsrv.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_pdo_sqlsrv.dll`
+        }
+
+        content = content + `\nextension=php_mysqli.dll`
+        content = content + `\nextension=php_pdo_mysql.dll`
+        content = content + `\nextension=php_pdo_odbc.dll`
+
+        await writeFile(ini, content)
+        const iniDefault = join(version.path, 'php.ini.default')
+        await writeFile(iniDefault, content)
+      }
+
+      const devIni = join(version.path, 'php.ini-development')
+      if (existsSync(devIni)) {
+        await initIniFile(devIni)      
         if (existsSync(ini)) {
-          if (statSync(ini).isDirectory()) {
-            const baseIni = join(ini, 'php.ini')
-            ini = join(ini, 'php.ini-development')
-            if (!existsSync(baseIni)) {
-              if (existsSync(ini)) {
-                try {
-                  await execPromise(
-                    `echo '${global.Server.Password}' | sudo -S cp -f ${ini} ${baseIni}`
-                  )
-                  await execPromise(
-                    `echo '${global.Server.Password}' | sudo -S chmod 755 ${baseIni}`
-                  )
-                } catch (e) {}
-              } else {
-                const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
-                try {
-                  await execPromise(
-                    `echo '${global.Server.Password}' | sudo -S cp -f ${tmpl} ${baseIni}`
-                  )
-                  await execPromise(
-                    `echo '${global.Server.Password}' | sudo -S chmod 755 ${baseIni}`
-                  )
-                } catch (e) {}
-              }
-            }
-            ini = baseIni
-          }
-          if (existsSync(ini)) {
-            const iniDefault = `${ini}.default`
-            if (!existsSync(iniDefault)) {
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp -f ${ini} ${iniDefault}`
-              )
-            }
-            resolve(ini)
-            return
-          }
+          resolve(ini)
+          return
         }
       }
+
+      const proIni = join(version.path, 'php.ini-production')
+      if (existsSync(proIni)) {
+        await initIniFile(proIni) 
+        if (existsSync(ini)) {
+          resolve(ini)
+          return
+        }
+      }
+  
       reject(new Error(I18nT('fork.phpiniNoFound')))
     })
   }
 
   installExtends(args: any) {
     return new ForkPromise(async (resolve, reject, on) => {
-      const { version, versionNumber, extend, installExtensionDir } = args
-      if (!existsSync(version?.bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
-      if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNoFound')))
-        return
-      }
-      console.log('args?.flag: ', args?.flag, args.libName)
-      if (args?.flag === 'homebrew') {
-        const checkSo = async () => {
-          const baseDir = args.libName.split('/').pop()
-          const dir = join(global.Server.BrewCellar!, baseDir)
-          const allFile = await getAllFileAsync(dir)
-          const so = allFile.filter((f) => f.endsWith('.so')).pop()
-          if (so) {
-            const destSo = join(installExtensionDir, basename(so))
-            await mkdirp(installExtensionDir)
-            await copyFile(so, destSo)
-            return existsSync(destSo)
-          }
-          return false
-        }
-        let check = await checkSo()
-        if (check) {
-          resolve(0)
-          return
-        }
-        try {
-          await this._doInstallOrUnInstallByBrew(args.libName, 'install').on(on)
-        } catch (e) {}
-
-        check = await checkSo()
-        if (check) {
-          resolve(0)
-        } else {
-          reject(new Error(I18nT('fork.ExtensionInstallFail')))
-        }
-        return
-      }
-      if (args?.flag === 'macports') {
-        try {
-          await this._doInstallOrUnInstallByPort(args.libName, 'install').on(on)
-          resolve(0)
-        } catch (e) {
-          reject(e)
-        }
-        return
-      }
-      try {
-        await this._doInstallExtends(version, versionNumber, extend, installExtensionDir).on(on)
-        let name = `${extend}.so`
-        if (extend === 'sg11') {
-          name = 'ixed.dar'
-        }
-        const installedSo = join(installExtensionDir, name)
-        if (existsSync(installedSo)) {
-          resolve(0)
-        } else {
-          reject(new Error(I18nT('fork.ExtensionInstallFail')))
-        }
-      } catch (e) {
-        reject(e)
-      }
+      resolve(true)
     })
   }
 
   unInstallExtends(soPath: string) {
     return new ForkPromise(async (resolve, reject) => {
-      try {
-        if (existsSync(soPath)) {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${soPath}`)
-        }
-      } catch (e) {
-        reject(e)
-        return
-      }
       resolve(true)
     })
   }
 
   _stopServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
-      const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
-      const confPath = join(global.Server.PhpDir!, v, 'conf')
-      const command = `ps aux | grep 'php' | awk '{print $2,$11,$12,$13,$14,$15}'`
-      const res = await execPromise(command)
-      const pids = res?.stdout?.toString()?.trim()?.split('\n') ?? []
+      const confPath = join(version.path, 'php.ini')
+      const serverName = 'php-cgi'
+      const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
+      console.log('_stopServer command: ', command)
+      let res: any = null
+      try {
+        res = await execPromiseRoot(command)
+      } catch (e) {}
+      const pids = res?.stdout?.trim()?.split('\n') ?? []
       const arr: Array<string> = []
       for (const p of pids) {
         if (p.includes(confPath)) {
-          arr.push(p.split(' ')[0])
+          const pid = p.split(' ').filter((s: string) => {
+            return !!s.trim()
+          }).pop()
+          if (pid) {
+            arr.push(pid)          
+          }          
         }
       }
-      if (arr.length === 0) {
-        resolve(true)
-      } else {
-        const pids = arr.join(' ')
-        const sig = '-INT'
-        try {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
-        } catch (e) {}
-        resolve(true)
+      if (arr.length > 0) {
+        for (const pid of arr) {
+          try {
+            await execPromiseRoot(`wmic process where processid="${pid}" delete`)
+          } catch (e) {}
+        }      
       }
+      resolve(true)
+    })
+  }
+
+  #initLocalApp(version: SoftInstalled) {
+    return new Promise((resolve) => {
+      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
+      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `php-${version.version}`))) {
+        zipUnPack(join(global.Server.Static!, `zip/php-${version.version}.7z`), global.Server.AppDir!)
+        .then(resolve)
+        .catch(resolve)
+        return
+      }
+      resolve(true)
+    })
+  }
+
+  #initFPM() {
+    return new Promise((resolve) => {
+      const fpm = join(global.Server.PhpDir!, 'php-cgi-spawner.exe')
+      if (!existsSync(fpm)) {
+        zipUnPack(join(global.Server.Static!, `zip/php_cgi_spawner.7z`), global.Server.PhpDir!)
+        .then(resolve)
+        .catch(resolve)
+        return
+      }
+      resolve(true)
     })
   }
 
   startService(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      await this.#initLocalApp(version)
       if (!existsSync(version?.bin)) {
         reject(new Error(I18nT('fork.binNoFound')))
         return
@@ -241,7 +180,7 @@ class Php extends Base {
   _resetEnablePhpConf(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
       const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
-      const confPath = join(global.Server.NginxDir!, 'common/conf/enable-php.conf')
+      const confPath = join(global.Server.NginxDir!, 'conf/enable-php.conf')
       const tmplPath = join(global.Server.Static!, 'tmpl/enable-php.conf')
       if (existsSync(tmplPath)) {
         let content = await readFile(tmplPath, 'utf-8')
@@ -291,7 +230,7 @@ class Php extends Base {
         if (existsSync(avhost)) {
           let content = await readFile(avhost, 'utf-8')
           const find = content.match(/SetHandler "proxy:(.*?)"/g)
-          const replace = `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${v}.sock|fcgi://localhost"`
+          const replace = `SetHandler "proxy:fcgi:127.0.0.1:90${v}"`
           content = content.replace(find?.[0] ?? '###@@@&&&', replace)
           await writeFile(avhost, content)
         }
@@ -316,24 +255,26 @@ class Php extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      const bin = version.bin
-      const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
-      const confPath = join(global.Server.PhpDir!, v, 'conf')
-      const varPath = join(global.Server.PhpDir!, v, 'var')
-      const logPath = join(varPath, 'log')
-      const runPath = join(varPath, 'run')
-      await mkdirp(confPath)
-      await mkdirp(varPath)
-      await mkdirp(logPath)
-      await mkdirp(runPath)
-      const phpFpmConf = join(confPath, 'php-fpm.conf')
-      if (!existsSync(phpFpmConf)) {
-        const phpFpmConfTmpl = join(global.Server.Static!, 'tmpl/php-fpm.conf')
-        let content = await readFile(phpFpmConfTmpl, 'utf-8')
-        content = content.replace('##PHP-CGI-VERSION##', v)
-        await writeFile(phpFpmConf, content)
+      await this.#initFPM()
+      await this.getIniPath(version)
+      const confPath = join(version.path, 'php.ini')
+      const fpmBin = join(global.Server.PhpDir!, 'php-cgi-spawner.exe')
+
+      const command = `start /b ${fpmBin} "${version.bin} -c ${confPath}" 90${version.num} 4`
+      console.log('_startServer command: ', command)
+
+      try {
+        const res = await execPromiseRoot(command)
+        console.log('start res: ', res)
+        if (res.stderr) {
+          reject(new Error(res.stderr))
+          return
+        }
+        on(res.stdout)
+        resolve(0)
+      } catch (e: any) {
+        reject(e)
       }
-      spawnPromise(bin, ['-p', varPath, '-y', phpFpmConf]).on(on).then(resolve).catch(reject)
     })
   }
 
@@ -344,310 +285,6 @@ class Php extends Base {
     extendsDir: string
   ) {
     return new ForkPromise(async (resolve, reject, on) => {
-      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-      const doRun = (copyfile: string, extendVersion: string, isPort = false) => {
-        let params = [
-          copyfile,
-          global.Server.Cache!,
-          version.path,
-          extendVersion,
-          arch,
-          global.Server.Password
-        ]
-        if (isPort) {
-          params = [
-            copyfile,
-            global.Server.Cache!,
-            extendVersion,
-            global.Server.Password,
-            version.phpize,
-            version.phpConfig
-          ]
-        }
-        const command = params.join(' ')
-        on(I18nT('fork.ExtensionInstallFailTips', { command }))
-        spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
-      }
-
-      const installByMacports = async (type: string) => {
-        if (version?.phpBin) {
-          const baseName = basename(version.phpBin)
-          let name = ''
-          switch (type) {
-            case 'redis':
-            case 'memcache':
-            case 'memcached':
-            case 'swoole':
-            case 'xdebug':
-            case 'ssh2':
-            case 'mongodb':
-            case 'yaf':
-              name = `${baseName}-${type}`
-              break
-            case 'imagick':
-              name = `pkgconfig autoconf automake libtool ImageMagick ${baseName}-imagick`
-              break
-          }
-          sh = join(global.Server.Static!, 'sh/port-install.sh')
-          copyfile = join(global.Server.Cache!, 'port-install.sh')
-          if (existsSync(copyfile)) {
-            await unlink(copyfile)
-          }
-          let content = await readFile(sh, 'utf-8')
-          content = content
-            .replace('##PASSWORD##', global.Server.Password!)
-            .replace('##NAME##', name)
-          await writeFile(copyfile, content)
-          await chmod(copyfile, '0777')
-          const params = [copyfile]
-          const command = params.join(' ')
-          on(I18nT('fork.ExtensionInstallFailTips', { command }))
-          try {
-            spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
-          } catch (e) {}
-          return true
-        }
-        return false
-      }
-
-      const installByShell = async (shellFile: string, extendv: string) => {
-        sh = join(global.Server.Static!, `sh/${shellFile}`)
-        copyfile = join(global.Server.Cache!, shellFile)
-        if (existsSync(copyfile)) {
-          await unlink(copyfile)
-        }
-        await copyFile(sh, copyfile)
-        await chmod(copyfile, '0777')
-        doRun(copyfile, extendv, shellFile.endsWith('-port.sh'))
-      }
-
-      let sh = ''
-      let copyfile = ''
-      let soPath = ''
-      let extendv = ''
-      switch (extend) {
-        case 'ionCube':
-          soPath = join(extendsDir, 'ioncube.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          const tmplPath = join(global.Server.Cache!, `ioncube_loader_mac_${versionNumber}.so`)
-          const doCopy = async () => {
-            if (existsSync(tmplPath)) {
-              if (!existsSync(extendsDir)) {
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S mkdir -p ${extendsDir}`
-                )
-              }
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp ${tmplPath} ${soPath}`
-              )
-              if (existsSync(soPath)) {
-                resolve(true)
-                return true
-              }
-            }
-            return false
-          }
-          let res = await doCopy()
-          if (res) {
-            return
-          }
-          const url = `http://mbimage.ybvips.com/electron/phpwebstudy/ioncube/ioncube_loader_mac_${versionNumber}.so`
-          try {
-            await downFile(url, tmplPath)
-            res = await doCopy()
-            if (res) {
-              return
-            }
-          } catch (e) {
-            reject(new Error('File Download Fail'))
-          }
-          break
-        case 'redis':
-          soPath = join(extendsDir, 'redis.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.0 ? '4.3.0' : '5.3.7'
-          await installByShell('php-redis.sh', extendv)
-          break
-        case 'memcache':
-          soPath = join(extendsDir, 'memcache.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.0 ? '3.0.8' : versionNumber >= 8.0 ? '8.2' : '4.0.5.2'
-          await installByShell('php-memcache.sh', extendv)
-          break
-        case 'memcached':
-          soPath = join(extendsDir, 'memcached.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.0 ? '2.2.0' : '3.2.0'
-          await installByShell('php-memcached.sh', extendv)
-          break
-        case 'swoole':
-          soPath = join(extendsDir, 'swoole.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          if (versionNumber < 5.5) {
-            extendv = '1.10.5'
-          } else if (versionNumber < 7.0) {
-            extendv = '2.2.0'
-          } else if (versionNumber < 7.2) {
-            extendv = '4.5.11'
-          } else if (versionNumber < 8.0) {
-            extendv = '4.8.11'
-          } else if (versionNumber < 8.3) {
-            extendv = '5.0.3'
-          } else {
-            extendv = '5.1.1'
-          }
-          await installByShell('php-swoole.sh', extendv)
-          break
-        case 'xdebug':
-          soPath = join(extendsDir, 'xdebug.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          if (versionNumber < 7.2) {
-            extendv = '2.5.5'
-          } else {
-            extendv = '3.1.5'
-          }
-          await installByShell('php-xdebug.sh', extendv)
-          break
-        case 'xlswriter':
-          soPath = join(extendsDir, 'xlswriter.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          extendv = '1.5.5'
-          await installByShell(
-            version?.phpBin ? 'php-xlswriter-port.sh' : 'php-xlswriter.sh',
-            extendv
-          )
-          break
-        case 'ssh2':
-          soPath = join(extendsDir, 'ssh2.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.0 ? '1.1.2' : '1.4'
-          await installByShell('php-ssh2.sh', extendv)
-          break
-        case 'pdo_sqlsrv':
-          soPath = join(extendsDir, 'pdo_sqlsrv.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (versionNumber < 7.0) {
-            extendv = '3.0.1'
-          } else if (versionNumber < 7.3) {
-            extendv = '5.9.0'
-          } else {
-            extendv = '5.11.1'
-          }
-          await installByShell(
-            version?.phpBin ? 'php-pdo_sqlsrv-port.sh' : 'php-pdo_sqlsrv.sh',
-            extendv
-          )
-          break
-        case 'imagick':
-          if (existsSync(join(extendsDir, 'imagick.so'))) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = '3.7.0'
-          await installByShell('php-imagick.sh', extendv)
-          break
-        case 'mongodb':
-          soPath = join(extendsDir, 'mongodb.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.2 ? '1.7.5' : '1.14.1'
-          await installByShell('php-mongodb.sh', extendv)
-          break
-        case 'yaf':
-          soPath = join(extendsDir, 'yaf.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.0 ? '2.3.5' : '3.3.5'
-          await installByShell('php-yaf.sh', extendv)
-          break
-        case 'sg11':
-          if (existsSync(join(extendsDir, 'ixed.dar'))) {
-            resolve(true)
-            return
-          }
-          sh = join(global.Server.Static!, 'sh/php-sg11.sh')
-          copyfile = join(global.Server.Cache!, 'php-sg11.sh')
-          if (existsSync(copyfile)) {
-            await unlink(copyfile)
-          }
-          await copyFile(sh, copyfile)
-          await chmod(copyfile, '0777')
-          const versionNums = version?.version?.split('.')?.splice(2)?.join('.') ?? ''
-          let archStr = ''
-          if (versionNumber >= 7.4 && arch === '-arm64') {
-            archStr = arch
-          }
-          const params = [
-            copyfile,
-            global.Server.Cache!,
-            extendsDir,
-            versionNums,
-            archStr,
-            global.Server.Password
-          ]
-          const command = params.join(' ')
-          on(I18nT('fork.ExtensionInstallFailTips', { command }))
-          spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
-          break
-      }
     })
   }
 
@@ -658,7 +295,7 @@ class Php extends Base {
         const obfuscatorDir = join(cacheDir, 'php-obfuscator')
         await remove(obfuscatorDir)
         const zipFile = join(global.Server.Static!, 'zip/php-obfuscator.zip')
-        await compressing.zip.uncompress(zipFile, obfuscatorDir)
+        await zipUnPack(zipFile, obfuscatorDir)
         const bin = join(obfuscatorDir, 'yakpro-po.php')
         let command = ''
         if (params.config) {
@@ -673,6 +310,78 @@ class Php extends Base {
       } catch (e) {
         reject(e)
       }
+    })
+  }
+
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const urls = [
+          'https://windows.php.net/download/', 
+          'https://windows.php.net/downloads/releases/archives/'
+      ]
+      const fetchVersions = async (url: string) => {
+          const all: any = []
+          const res = await axios({
+            url,
+            method: 'get'
+        })
+        const html = res.data        
+        const reg = /\/downloads\/releases\/(archives\/)?php-([\d\.]+)-Win([a-zA-Z\d-]+)-x64\.zip/g
+        let r
+        while((r = reg.exec(html)) !== null) {          
+            const u = new URL(r[0], url).toString()
+            const version = r[2]
+            const mv = version.split('.').slice(0, 2).join('.')
+            const item = {
+                url: u,
+                version,
+                mVersion: mv
+            }
+            const find = all.find((f: any) => f.mVersion === item.mVersion)
+            if (!find) {
+                all.push(item)
+            } else {
+              if (compareVersions(item.version, find.version) > 0) {
+                const index = all.indexOf(find)
+                all.splice(index, 1, item)          
+              }
+            }
+        }
+        return all
+      }
+      const all: any = []
+      const res = await Promise.all(urls.map((u) => fetchVersions(u)))
+      const list = res.flat()
+      list.forEach((l: any) => {
+        const find = all.find((f: any) => f.mVersion === l.mVersion)
+        if (!find) {
+            all.push(l)
+        } else {
+          if (compareVersions(l.version, find.version) > 0) {
+            const index = all.indexOf(find)
+            all.splice(index, 1, l)          
+          }
+        }
+      })
+  
+      all.sort((a: any, b: any) => {
+        return compareVersions(b.version, a.version)
+      })
+  
+      all.forEach((a: any) => {
+        const dir = join(global.Server.AppDir!, `php-${a.version}`, 'php.exe')
+        const zip = join(global.Server.Cache!, `php-${a.version}.zip`)
+        a.appDir = join(global.Server.AppDir!, `php-${a.version}`)
+        a.zip = zip
+        a.bin = dir
+        a.downloaded = existsSync(zip)
+        a.installed = existsSync(dir)
+      })
+          resolve(all)
+      } catch(e) {
+        resolve([])
+      }    
     })
   }
 }

@@ -220,9 +220,6 @@
   import IPC from '../util/IPC'
 
   const store = AppStore()
-  const password = computed(() => {
-    return store.password
-  })
   const php = computed(() => {
     return store.php
   })
@@ -272,7 +269,7 @@
   })
 
   const groupDo = () => {
-    if (groupDisabled?.value || !password?.value) {
+    if (groupDisabled?.value) {
       return
     }
     IPC.send('APP:Tray-Command', 'groupDo').then((key: string) => {
@@ -281,9 +278,6 @@
   }
 
   const switchChange = (flag: string) => {
-    if (!password?.value) {
-      return
-    }
     IPC.send('APP:Tray-Command', 'switchChange', flag).then((key: string) => {
       IPC.off(key)
     })
@@ -312,12 +306,12 @@
     background: transparent !important;
   }
   #app {
-    padding-top: 6px;
+    padding-bottom: 6px;
 
     .popper-arrow {
       position: absolute;
       left: calc(50% - 6px);
-      top: 0;
+      bottom: 2.5px;
       width: 12px;
       height: 12px;
       z-index: -1;
@@ -331,15 +325,15 @@
         transform: rotate(45deg);
         box-sizing: border-box;
         right: 0;
-        border-bottom-color: transparent !important;
-        border-right-color: transparent !important;
-        border-top-left-radius: 2px;
+        border-top-color: transparent !important;
+        border-left-color: transparent !important;
+        border-bottom-right-radius: 1px;
       }
     }
   }
   .tray-aside-inner {
     display: flex;
-    height: 100vh;
+    height: calc(100vh - 6px);
     flex-flow: column;
     border-radius: 10px !important;
     overflow: hidden;

@@ -8,6 +8,9 @@ import wasm from 'vite-plugin-wasm'
 const renderPath = path.resolve(__dirname, '../src/render/')
 const sharePath = path.resolve(__dirname, '../src/shared/')
 
+console.log('renderPath: ', renderPath)
+console.log('sharePath: ', sharePath)
+
 const config: UserConfig = {
   base: './',
   plugins: [wasm(), vue(), vueJsx()],
@@ -28,7 +31,8 @@ const config: UserConfig = {
       'mock-aws-s3',
       'aws-sdk',
       'nock',
-      'nodejieba'
+      '7zip-min-electron',
+      'tangerine'
     ]
   },
   root: renderPath,

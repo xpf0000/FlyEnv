@@ -19,19 +19,8 @@
       <el-form style="margin-top: 15px; padding: 20px" label-position="left" label-width="150px">
         <el-form-item :label="$t('util.nodeToolChoose')">
           <el-radio-group v-model="form.tool">
-            <el-radio-button key="fnm" label="fnm">fnm</el-radio-button>
             <el-radio-button key="nvm" label="nvm">nvm</el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item :label="$t('util.nodeToolInstallBy')">
-          <el-radio-group v-model="form.installBy">
-            <template v-if="form.tool === 'nvm'">
-              <el-radio-button key="shell" label="shell">{{
-                $t('util.nodeToolShell')
-              }}</el-radio-button>
-            </template>
-            <el-radio-button key="brew" :disabled="!hasBrew" label="brew">Homebrew</el-radio-button>
-            <el-radio-button key="port" :disabled="!hasPort" label="port">Macports</el-radio-button>
+            <el-radio-button key="fnm" label="fnm">fnm</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-button type="primary" @click.stop="doInstallTool">{{
@@ -50,17 +39,9 @@
 
   const logRef = ref()
   const form = ref({
-    tool: 'fnm',
+    tool: 'nvm',
     installBy: ''
   })
-
-  const hasBrew = !!global.Server.BrewCellar
-  const hasPort = !!global.Server.MacPorts
-  if (hasPort) {
-    form.value.installBy = 'port'
-  } else if (hasBrew) {
-    form.value.installBy = 'brew'
-  }
 
   const toolInstalling = computed(() => {
     return nodejsStore.toolInstalling

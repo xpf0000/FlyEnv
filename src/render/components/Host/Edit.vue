@@ -45,7 +45,7 @@
               type="text"
               :class="'input' + (errs['root'] ? ' error' : '')"
               :placeholder="$t('host.placeholderRootPath')"
-              readonly=""
+              :readonly="true"
               :value="item.root"
             />
             <div class="icon-block" @click="chooseRoot('root')">
@@ -148,7 +148,7 @@
                 type="text"
                 :class="'input' + (errs['cert'] ? ' error' : '')"
                 placeholder="cert"
-                readonly=""
+                :readonly="true"
                 :value="item.ssl.cert"
               />
               <div class="icon-block" @click="chooseRoot('cert', true)">
@@ -166,7 +166,7 @@
                 type="text"
                 :class="'input' + (errs['certkey'] ? ' error' : '')"
                 placeholder="cert key"
-                readonly=""
+                :readonly="true"
                 :value="item.ssl.key"
               />
               <div class="icon-block" @click="chooseRoot('certkey', true)">
@@ -254,7 +254,7 @@
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { I18nT } from '@shared/lang'
   import Base from '@/core/Base'
   import { RewriteAll } from '@/components/Host/store'
@@ -263,6 +263,7 @@
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError } from '@/util/Element'
   import { ElMessageBox } from 'element-plus'
+  import IPC from '@/util/IPC.ts'
 
   const { exec } = require('child-process-promise')
   const { dialog } = require('@electron/remote')
@@ -537,38 +538,13 @@
     }
     const saveFn = () => {
       running.value = true
-      let flag = props.isEdit ? 'edit' : 'add'
-      let access = false
-      try {
-        accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
-        access = true
-        console.log('可以读写')
-      } catch (err) {
-        console.error('无权访问')
-      }
-      passwordCheck().then(() => {
-        item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
-        if (!access) {
-          exec(`echo '${password.value}' | sudo -S chmod 777 /private/etc`)
-            .then(() => {
-              return exec(`echo '${password.value}' | sudo -S chmod 777 /private/etc/hosts`)
-            })
-            .then(() => {
-              handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
-                running.value = false
-                show.value = false
-              })
-            })
-            .catch(() => {
-              MessageError(I18nT('base.hostNoRole'))
-              running.value = false
-            })
-        } else {
-          handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
+      const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
+      IPC.send('app-fork:host', 'doFixHostsRole').then((key: string) => {
+        IPC.off(key)
+        handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
             running.value = false
             show.value = false
           })
-        }
       })
     }
     if (!item.value.phpVersion && !props.isEdit) {

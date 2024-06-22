@@ -58,7 +58,6 @@
 
 <script lang="ts" setup>
   import { ref, computed, watch } from 'vue'
-  import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { DnsStore } from '@/store/dns'
@@ -283,8 +282,8 @@
     if (groupDisabled.value) {
       return
     }
-    passwordCheck().then(() => {
-      const modules = [
+  
+    const modules = [
         apacheModule,
         nginxModule,
         phpModule,
@@ -334,7 +333,6 @@
         }
         run()
       }
-    })
   }
 
   const switchChange = (flag: string) => {

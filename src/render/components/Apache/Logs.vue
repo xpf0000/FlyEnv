@@ -40,9 +40,9 @@
       }
     },
     computed: {
-      password() {
-        return AppStore().config.password
-      }
+      version() {
+        return AppStore().config.server?.apache?.current
+      },
     },
     watch: {
       type() {
@@ -96,18 +96,8 @@
                 this.log = ''
                 MessageSuccess(this.$t('base.success'))
               })
-              .catch(() => {
-                if (!this.password) {
-                  EventBus.emit('vue:need-password')
-                } else {
-                  exec(`echo '${this.password}' | sudo -S chmod 777 ${this.filepath}`)
-                    .then(() => {
-                      this.logDo('clean')
-                    })
-                    .catch(() => {
-                      EventBus.emit('vue:need-password')
-                    })
-                }
+              .catch((e) => {
+               MessageError(e.toString())
               })
             break
         }
@@ -122,7 +112,7 @@
         }
       },
       init() {
-        this.filepath = join(global.Server.ApacheDir, `common/logs/${this.type}`)
+        this.filepath = join(global.Server.ApacheDir, `${this.version.version}.${this.type}.log`)
         this.getLog()
       }
     }

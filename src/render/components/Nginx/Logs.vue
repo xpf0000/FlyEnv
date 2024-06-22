@@ -122,7 +122,7 @@
         }
       },
       init() {
-        this.filepath = join(global.Server.NginxDir, `common/logs/${this.type}.log`)
+        this.filepath = join(global.Server.NginxDir, `logs/${this.type}.log`)
         this.getLog()
       }
     }

@@ -49,9 +49,7 @@
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
 
-  const { existsSync, statSync, unlink } = require('fs')
-  const { join } = require('path')
-  const { execSync } = require('child_process')
+  const { existsSync, statSync } = require('fs')
   const { shell } = require('@electron/remote')
   const { dialog } = require('@electron/remote')
   const IniFiles: { [key: string]: any } = {}
@@ -177,12 +175,7 @@
           return
         }
         const content = this.monacoInstance.getValue()
-        const tmplFile = join(global.Server.Cache, 'php.ini.edit')
-        writeFileAsync(tmplFile, content).then(() => {
-          try {
-            execSync(`echo '${global.Server.Password}' | sudo -S cp ${tmplFile} ${this.configpath}`)
-          } catch (e) {}
-          unlink(tmplFile, () => {})
+        writeFileAsync(this.configpath, content).then(() => {
           MessageSuccess(this.$t('base.success'))
           if (this.phpRunning) {
             reloadService('php', this.version as SoftInstalled)

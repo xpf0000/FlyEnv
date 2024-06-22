@@ -1,16 +1,14 @@
 import { join, dirname } from 'path'
-import { existsSync, accessSync, constants, readdirSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { downFile, execPromise, getSubDir, hostAlias, uuid } from '../Fn'
+import { downFile, getSubDir, hostAlias, uuid, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import dns from 'dns'
-import util from 'util'
-import { readFile, writeFile, copyFile, mkdirp, remove, copy } from 'fs-extra'
+import { readFile, writeFile, copyFile, mkdirp, remove, copy, chmod } from 'fs-extra'
 import { EOL } from 'os'
 import { isEqual } from 'lodash'
-import compressing from 'compressing'
+import { zipUnPack } from '@shared/file'
 
 class Host extends Base {
   NginxTmpl = ''
@@ -20,8 +18,34 @@ class Host extends Base {
   CaddyTmpl = ''
   CaddySSLTmpl = ''
 
+  hostsFile = join('c:/windows/system32/drivers/etc', 'hosts')
+
   constructor() {
     super()
+  }
+
+  #initCARoot() {
+    return new Promise(async (resolve) => {
+      let command = `certutil -store root`
+      let res: any = null
+      try {
+        res = await execPromiseRoot(command)
+        res = res.stdout
+      }
+      catch(e) {}
+      console.log('initCARoot res000: ', res)
+      if (res && !res.includes('CN=PhpWebStudy-Root-CA')) {
+        const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+        command = `certutil -addstore root ${CARoot}`
+        try {
+          res = await execPromiseRoot(command)
+        }
+        catch(e) {}
+
+        console.log('initCARoot res111: ', res)
+      }
+      resolve(true)
+    })
   }
 
   _makeAutoSSL(host: AppHost): ForkPromise<{ crt: string; key: string } | false> {
@@ -30,36 +54,18 @@ class Host extends Base {
         const alias = hostAlias(host)
         const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
         const CADir = dirname(CARoot)
-        const caFileName = 'PhpWebStudy-Root-CA'
         if (!existsSync(CARoot)) {
           await mkdirp(CADir)
-          let command = `openssl genrsa -out ${caFileName}.key 2048;`
-          command += `openssl req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=${caFileName}";`
-          command += `echo "basicConstraints=CA:true" > ${caFileName}.cnf;`
-          command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650;`
-          await execPromise(command, {
-            cwd: CADir
-          })
-          if (!existsSync(CARoot)) {
-            resolve(false)
-            return
-          }
-          command = `echo '${global.Server.Password}' | sudo -S security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "PhpWebStudy-Root-CA.crt"`
-          await execPromise(command, {
-            cwd: CADir
-          })
-          command = `echo '${global.Server.Password}' | sudo -S security find-certificate -c "PhpWebStudy-Root-CA"`
-          const res = await execPromise(command, {
-            cwd: CADir
-          })
-          if (
-            !res.stdout.includes('PhpWebStudy-Root-CA') &&
-            !res.stderr.includes('PhpWebStudy-Root-CA')
-          ) {
-            resolve(false)
-            return
-          }
+          await zipUnPack(join(global.Server.Static!, `zip/CA.7z`), CADir)
         }
+        
+        await this.#initCARoot()
+        
+        const openssl = join(global.Server.AppDir!, 'openssl/bin/openssl.exe')
+        if (!existsSync(openssl)) {
+          await zipUnPack(join(global.Server.Static!, `zip/openssl.7z`), global.Server.AppDir!)
+        }
+
         const hostCAName = `CA-${host.id}`
         const hostCADir = join(CADir, `${host.id}`)
         if (existsSync(hostCADir)) {
@@ -80,11 +86,16 @@ subjectAltName=@alt_names
 
         const rootCA = join(CADir, 'PhpWebStudy-Root-CA')
 
-        let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}";`
-        command += `openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
-        await execPromise(command, {
-          cwd: hostCADir
-        })
+        process.chdir(hostCADir);
+        let command = `${openssl} req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}"`
+        console.log('command: ', command)
+        await execPromiseRoot(command)
+        
+        process.chdir(hostCADir);
+        command = `${openssl} x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650`
+        console.log('command: ', command)
+        await execPromiseRoot(command)
+
         const crt = join(hostCADir, `${hostCAName}.crt`)
         if (!existsSync(crt)) {
           resolve(false)
@@ -162,12 +173,14 @@ subjectAltName=@alt_names
     return new ForkPromise(async (resolve) => {
       const hostfile = join(global.Server.BaseDir!, 'host.json')
       let hostList: Array<AppHost> = []
+
       const writeHostFile = async () => {
         await writeFile(hostfile, JSON.stringify(hostList))
         resolve({
           host: hostList
         })
       }
+
       if (existsSync(hostfile)) {
         const content = await readFile(hostfile, 'utf-8')
         try {
@@ -284,12 +297,16 @@ subjectAltName=@alt_names
             !existsSync(apacheConfPath) ||
             host.useSSL !== old?.useSSL
           ) {
+            console.log('edit host !!!')
             await this._delVhost(old!)
+            console.log('edit _delVhost end !!!')
             await this._addVhost(host, addApachePort, addApachePortSSL)
+            console.log('edit _addVhost end !!!')
           } else {
             await this._editVhost(host, old, addApachePort, addApachePortSSL)
           }
           await doPark()
+          console.log('edit doPark end !!!')
           index = hostList.findIndex((h) => h.id === old?.id)
           if (index >= 0) {
             hostList[index] = host
@@ -333,7 +350,7 @@ subjectAltName=@alt_names
       for (const f of arr) {
         if (existsSync(f)) {
           try {
-            await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${f}`)
+            await remove(f)
           } catch (e) {}
         }
       }
@@ -343,20 +360,15 @@ subjectAltName=@alt_names
 
   async #setDirRole(dir: string, depth = 0) {
     console.log('#setDirRole: ', dir, depth)
-    if (!dir || dir === '/') {
-      return
-    }
     try {
       if (existsSync(dir)) {
-        if (depth === 0) {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S chmod -R 755 ${dir}`)
-        } else {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
-        }
-        const parentDir = dirname(dir)
-        await this.#setDirRole(parentDir, depth + 1)
+        await chmod(dir, 0o755)
       }
-    } catch (e) {}
+      console.log('#setDirRole success !!!')
+    } catch (e) {
+      console.log('#setDirRole err: ', e)
+    }
+    return true
   }
 
   /**
@@ -417,7 +429,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
   async #handlePhpEnableConf(v: number) {
     try {
       const name = `enable-php-${v}.conf`
-      const confFile = join(global.Server.NginxDir!, 'common/conf/', name)
+      const confFile = join(global.Server.NginxDir!, 'conf', name)
       if (!existsSync(confFile)) {
         await mkdirp(dirname(confFile))
         const tmplFile = join(global.Server.Static!, 'tmpl/enable-php.conf')
@@ -453,8 +465,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
 
     const httpHostNameAll = httpNames.join(',\n')
     const content = this.CaddyTmpl.replace('##HOST-ALL##', httpHostNameAll)
-      .replace('##LOG-PATH##', logFile)
-      .replace('##ROOT##', root)
+      .replace('##LOG-PATH##', logFile.split('\\').join('/'))
+      .replace('##ROOT##', root.split('\\').join('/'))
       .replace('##PHP-VERSION##', `${phpv}`)
     contentList.push(content)
 
@@ -465,9 +477,9 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       }
       const httpHostNameAll = httpsNames.join(',\n')
       const content = this.CaddySSLTmpl.replace('##HOST-ALL##', httpHostNameAll)
-        .replace('##LOG-PATH##', logFile)
+        .replace('##LOG-PATH##', logFile.split('\\').join('/'))
         .replace('##SSL##', tls)
-        .replace('##ROOT##', root)
+        .replace('##ROOT##', root.split('\\').join('/'))
         .replace('##PHP-VERSION##', `${phpv}`)
       contentList.push(content)
     }
@@ -494,12 +506,12 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     const hostalias = hostAlias(host).join(' ')
     ntmpl = ntmpl
       .replace(/#Server_Alias#/g, hostalias)
-      .replace(/#Server_Root#/g, host.root)
-      .replace(/#Rewrite_Path#/g, rewritepath)
+      .replace(/#Server_Root#/g, host.root.split('\\').join('/'))
+      .replace(/#Rewrite_Path#/g, rewritepath.split('\\').join('/'))
       .replace(/#Server_Name#/g, hostname)
-      .replace(/#Log_Path#/g, logpath)
-      .replace(/#Server_Cert#/g, host.ssl.cert)
-      .replace(/#Server_CertKey#/g, host.ssl.key)
+      .replace(/#Log_Path#/g, logpath.split('\\').join('/'))
+      .replace(/#Server_Cert#/g, host.ssl.cert.split('\\').join('/'))
+      .replace(/#Server_CertKey#/g, host.ssl.key.split('\\').join('/'))
       .replace(/#Port_Nginx#/g, `${host.port.nginx}`)
       .replace(/#Port_Nginx_SSL#/g, `${host.port.nginx_ssl}`)
 
@@ -538,18 +550,18 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
 
     atmpl = atmpl
       .replace(/#Server_Alias#/g, hostalias)
-      .replace(/#Server_Root#/g, host.root)
-      .replace(/#Rewrite_Path#/g, rewritepath)
+      .replace(/#Server_Root#/g, host.root.split('\\').join('/'))
+      .replace(/#Rewrite_Path#/g, rewritepath.split('\\').join('/'))
       .replace(/#Server_Name#/g, hostname)
-      .replace(/#Log_Path#/g, logpath)
-      .replace(/#Server_Cert#/g, host.ssl.cert)
-      .replace(/#Server_CertKey#/g, host.ssl.key)
+      .replace(/#Log_Path#/g, logpath.split('\\').join('/'))
+      .replace(/#Server_Cert#/g, host.ssl.cert.split('\\').join('/'))
+      .replace(/#Server_CertKey#/g, host.ssl.key.split('\\').join('/'))
       .replace(/#Port_Apache#/g, `${host.port.apache}`)
       .replace(/#Port_Apache_SSL#/g, `${host.port.apache_ssl}`)
     if (host.phpVersion) {
       atmpl = atmpl.replace(
         /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
-        `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
+        `SetHandler "proxy:fcgi:127.0.0.1:90${host.phpVersion}`
       )
     } else {
       atmpl = atmpl.replace(
@@ -662,13 +674,13 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         ]
         for (const f of arr) {
           if (existsSync(f.oldFile)) {
-            await execPromise(
-              `echo '${global.Server.Password}' | sudo -S cp -f ${f.oldFile} ${f.newFile}`
+            await execPromiseRoot(
+              `copy -Force ${f.oldFile} ${f.newFile}`
             )
-            await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${f.oldFile}`)
+            await execPromiseRoot(`del -Force ${f.oldFile}`)
           }
           if (existsSync(f.newFile)) {
-            await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 777 ${f.newFile}`)
+            await execPromiseRoot(`icacls ${f.newFile} /grant Everyone:F`)
           }
         }
       }
@@ -882,7 +894,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           find.push(
             ...[
               `include enable-php-${old.phpVersion}.conf;`,
-              `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${old.phpVersion}.sock\\|fcgi://localhost"`,
+              `SetHandler "proxy:fcgi:127.0.0.1:90${old.phpVersion}"`,
               `import enable-php-select ${old.phpVersion}`
             ]
           )
@@ -899,7 +911,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           replace.push(
             ...[
               `include enable-php-${host.phpVersion}.conf;`,
-              `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`,
+              `SetHandler "proxy:fcgi:127.0.0.1:90${host.phpVersion}"`,
               `import enable-php-select ${host.phpVersion}`
             ]
           )
@@ -958,9 +970,10 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         if (chmod) {
           await this.#setDirRole(host.root)
         }
+        console.log("_addVhost success !!!")
         resolve(true)
       } catch (e) {
-        console.log('_addVhost: ', e)
+        console.log('_addVhost err: ', e)
         reject(e)
       }
     })
@@ -985,7 +998,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         resolve(true)
         return
       }
-      const filePath = '/private/etc/hosts'
+      const filePath = this.hostsFile
       if (!existsSync(filePath)) {
         reject(new Error(I18nT('fork.hostsFileNoFound')))
         return
@@ -1008,64 +1021,15 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     })
   }
 
-  githubFix() {
-    return new ForkPromise((resolve, reject) => {
-      const hosts = [
-        'github.com',
-        'github.global.ssl.fastly.net',
-        'assets-cdn.github.com',
-        'raw.githubusercontent.com',
-        'macphpstudy.com',
-        'pkg-containers.githubusercontent.com'
-      ]
-      dns.setServers(['8.8.8.8', '8.8.4.4', '64.6.64.6', '64.6.65.6', '168.95.192.1', '168.95.1.1'])
-      const all = []
-      for (const host of hosts) {
-        all.push(util.promisify(dns.resolve)(host))
-      }
-      Promise.all(all).then(async (arr) => {
-        const list = ['#GITHUB-HOSTS-BEGIN#']
-        arr.forEach((ips, i) => {
-          const host = hosts[i]
-          ips.forEach((ip) => {
-            list.push(`${ip}  ${host}`)
-          })
-        })
-        list.push('#GITHUB-HOSTS-END#')
-        try {
-          const hostFile = '/private/etc/hosts'
-          let content = await readFile(hostFile, 'utf-8')
-          let x: any = content.match(/(#GITHUB-HOSTS-BEGIN#)([\s\S]*?)(#GITHUB-HOSTS-END#)/g)
-          if (x && x[0]) {
-            x = x[0]
-            content = content.replace(x, '')
-          }
-          content = content.trim()
-          content += `\n${list.join('\n')}`
-          await writeFile(hostFile, content.trim())
-          resolve(0)
-        } catch (e) {
-          reject(e)
-        }
-      })
-    })
-  }
-
   async _fixHostsRole() {
-    let access = false
+    console.log('_fixHostsRole !!!')
     try {
-      accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
-      access = true
-      console.log('可以读写')
-    } catch (err) {
-      console.error('无权访问')
-    }
-    if (!access) {
-      const password = global.Server.Password
-      try {
-        await execPromise(`echo '${password}' | sudo -S chmod 777 /private/etc`)
-        await execPromise(`echo '${password}' | sudo -S chmod 777 /private/etc/hosts`)
-      } catch (e) {}
+      await chmod(this.hostsFile, 0o666)
+    } catch(e) {}
+    try {
+      await execPromiseRoot(`icacls ${this.hostsFile} /grant Everyone:F`)      
+    } catch (e) {
+      console.log('_fixHostsRole err: ', e)
     }
   }
 
@@ -1092,11 +1056,11 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       if (write) {
         this._initHost(appHost).then(resolve)
       } else {
-        let hosts = await readFile('/private/etc/hosts', 'utf-8')
+        let hosts = await readFile(this.hostsFile, 'utf-8')
         const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
         if (x) {
           hosts = hosts.replace(x[0], '')
-          await writeFile('/private/etc/hosts', hosts.trim())
+          await writeFile(this.hostsFile, hosts.trim())
         }
         this._initHost(appHost, false).then(resolve)
       }
@@ -1211,7 +1175,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           }
           await mkdirp(wwwDir)
           try {
-            await compressing.zip.uncompress(zipFile, wwwDir)
+            await zipUnPack(zipFile, wwwDir)
           } catch (e) {
             reject(e)
             return
@@ -1220,6 +1184,21 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             reject(new Error(I18nT('fork.downFileFail')))
             return
           }
+        }
+
+        const iniDefualtFile = join(siteDir, 'config.simple.inc.php')
+        if (existsSync(iniDefualtFile)) {
+          const iniFile = join(siteDir, 'config.inc.php')
+          let iniContent = await readFile(iniDefualtFile, 'utf-8')
+          iniContent = iniContent.replace(`['host'] = 'localhost';`, `['host'] = '127.0.0.1';`)
+          await writeFile(iniFile, iniContent)
+        }
+
+        const librariesIni = join(siteDir, 'libraries/config.default.php')
+        if (existsSync(librariesIni)) {
+          let iniContent = await readFile(librariesIni, 'utf-8')
+          iniContent = iniContent.replace(`['host'] = 'localhost';`, `['host'] = '127.0.0.1';`)
+          await writeFile(librariesIni, iniContent)
         }
 
         let useSSL = false

@@ -15,14 +15,22 @@ export interface SoftInstalled {
   flag?: string
 }
 
+export interface OnlineVersionItem {
+  appDir: string
+  zip: string
+  bin: string
+  downloaded: boolean
+  installed: boolean
+  url: string
+  version: string
+  mVersion: string
+}
+
 export interface AppSoftInstalledItem {
   getListing: boolean
   installedInited: boolean
   installed: Array<SoftInstalled>
-  list: {
-    brew: { [key: string]: any }
-    port: { [key: string]: any }
-  }
+  list: OnlineVersionItem[]
 }
 
 interface State {
@@ -56,100 +64,67 @@ const state: State = {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   },
   postgresql: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   },
   caddy: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   },
   nginx: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   },
   apache: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   },
   php: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   },
   memcached: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   },
   mysql: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   },
   mariadb: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   },
   redis: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   },
   mongodb: {
     getListing: false,
     installedInited: false,
     installed: [],
-    list: {
-      brew: {},
-      port: {}
-    }
+    list: []
   }
 }
 

@@ -17,7 +17,6 @@
   import { writeFileAsync, readFileAsync } from '@shared/file'
   import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { nextTick, defineComponent } from 'vue'
-  import { md5 } from '@/util/Index'
   import { AppStore } from '@/store/app'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
@@ -121,9 +120,8 @@
           MessageError(this.config)
           this.initEditor()
           return
-        }
-        const name = md5(this.version.bin!)
-        this.configpath = join(global.Server.ApacheDir, `common/conf/${name}.conf`)
+        }      
+        this.configpath = join(global.Server.ApacheDir, `${this.version.version}.conf`)
         if (!existsSync(this.configpath)) {
           this.config = this.$t('base.configNoFound')
           MessageError(this.config)
@@ -140,8 +138,7 @@
           MessageError(this.$t('base.needSelectVersion'))
           return
         }
-        const name = md5(this.version.bin!)
-        const configpath = join(global.Server.ApacheDir, `common/conf/${name}.default.conf`)
+        const configpath = join(global.Server.ApacheDir, `${this.version.version}.default.conf`)
         if (!existsSync(configpath)) {
           MessageError(this.$t('base.defaultConFileNoFound'))
           return

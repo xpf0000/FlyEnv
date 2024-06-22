@@ -60,6 +60,7 @@
 <script>
   import { formatBytes } from '@shared/utils.ts'
   import moment from 'moment'
+  import { getFileHashes } from '@shared/file.ts'
 
   const { exec } = require('child-process-promise')
   const { stat } = require('fs')
@@ -145,41 +146,37 @@
             this.info.ctime_str = moment(stats.ctimeMs).format()
             this.info.mtime = stats.mtimeMs
             this.info.mtime_str = moment(stats.mtimeMs).format()
-          }
-        })
-        exec(`md5 ${this.path}`)
-          .then((res) => {
-            console.log(res)
-            this.info.md5 = res.stdout.split(' = ')[1]
-            console.log(this.info.md5)
-          })
-          .catch(() => {
+
+            if (stats.isFile()) {
+              getFileHashes(this.path, 'md5').then((res) => {
+          this.info.md5 = res
+        }).catch(() => {
             this.info.md5 = ''
           })
-        exec(`shasum -a 1 ${this.path}`)
-          .then((res) => {
-            console.log(res)
-            this.info.sha1 = res.stdout.split(' ')[0]
-            console.log(this.info.sha1)
-          })
-          .catch(() => {
+
+          getFileHashes(this.path, 'sha1').then((res) => {
+          this.info.sha1 = res
+        }).catch(() => {
             this.info.sha1 = ''
           })
-        exec(`shasum -a 256 ${this.path}`)
-          .then((res) => {
-            console.log(res)
-            this.info.sha256 = res.stdout.split(' ')[0]
-            console.log(this.info.sha256)
-          })
-          .catch(() => {
+
+          getFileHashes(this.path, 'sha256').then((res) => {
+          this.info.sha256 = res
+        }).catch(() => {
             this.info.sha256 = ''
           })
-        this.$nextTick(() => {
+
+          this.$nextTick(() => {
           let container = this.$el.querySelector('.main-wapper')
           if (container) {
             this.scroll(container)
           }
         })
+
+            }
+          }
+        })
+
       },
       scroll(container) {
         this.timer = requestAnimationFrame(() => {

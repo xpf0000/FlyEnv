@@ -58,6 +58,7 @@ class InstalledVersions {
             Object.assign(item, find)
             return reactive(item)
           })
+          console.log('allInstalledVersions installed: ', installed)
           data.installed.splice(0)
           data.installed.push(...installed)
           data.installedInited = true
