@@ -89,9 +89,12 @@ export function execPromiseRoot(
   stderr: string
 }> {
   return new ForkPromise((resolve, reject) => {
-    try {
+    try {       
       sudoPrompt.exec(
-        cammand,      
+        cammand,
+        {
+          name: 'PhpWebStudy'
+        },   
         (error, stdout, stderr) => {
           if (!error) {
             resolve({

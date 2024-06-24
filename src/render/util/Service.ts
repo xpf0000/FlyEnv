@@ -7,8 +7,9 @@ import { I18nT } from '@shared/lang'
 
 const exec = (
   typeFlag: AllAppSofts,
+  fn: string,
   version: SoftInstalled,
-  fn: string
+  lastVersion?: SoftInstalled,
 ): Promise<string | boolean> => {
   return new Promise((resolve) => {
     if (version.running) {
@@ -25,11 +26,23 @@ const exec = (
     const taskStore = TaskStore()
     const task = taskStore[typeFlag]
     task.log.splice(0)
-    IPC.send(`app-fork:${typeFlag}`, fn, args).then((key: string, res: any) => {
+    IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion).then((key: string, res: any) => {
       if (res.code === 0) {
+        console.log('### key: ', key)
         IPC.off(key)
+        const brewStore = BrewStore()
+      
+        const findV = brewStore[typeFlag].installed?.find(
+          (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
+        )
+        console.log('findV: ', findV === version)
+        
         version.run = fn !== 'stopService'
         version.running = false
+        if (findV) {
+          findV.run = version.run
+          findV.running = false
+        }
         if (typeFlag === 'php' && fn === 'startService') {
           const hosts = appStore.hosts
           if (hosts && hosts?.[0] && !hosts?.[0]?.phpVersion) {
@@ -50,15 +63,15 @@ const exec = (
 }
 
 export const stopService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
-  return exec(typeFlag, version, 'stopService')
+  return exec(typeFlag, 'stopService', version)
 }
 
-export const startService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
-  return exec(typeFlag, version, 'startService')
+export const startService = (typeFlag: AllAppSofts, version: SoftInstalled, lastVersion?: SoftInstalled) => {
+  return exec(typeFlag, 'startService', version, lastVersion)
 }
 
 export const reloadService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
-  return exec(typeFlag, version, 'reloadService')
+  return exec(typeFlag, 'reloadService', version)
 }
 
 export const dnsStart = (): Promise<boolean | string> => {

@@ -56,6 +56,7 @@ class Host extends Base {
         const CADir = dirname(CARoot)
         if (!existsSync(CARoot)) {
           await mkdirp(CADir)
+
           await zipUnPack(join(global.Server.Static!, `zip/CA.7z`), CADir)
         }
         
@@ -86,8 +87,13 @@ subjectAltName=@alt_names
 
         const rootCA = join(CADir, 'PhpWebStudy-Root-CA')
 
+        const opensslCnf = join(global.Server.AppDir!, 'openssl/openssl.cnf')
+        if (!existsSync(opensslCnf)) {
+          await copyFile(join(global.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
+        }
+
         process.chdir(hostCADir);
-        let command = `${openssl} req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}"`
+        let command = `${openssl} req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}" -config ${opensslCnf}`
         console.log('command: ', command)
         await execPromiseRoot(command)
         
@@ -561,7 +567,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     if (host.phpVersion) {
       atmpl = atmpl.replace(
         /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
-        `SetHandler "proxy:fcgi:127.0.0.1:90${host.phpVersion}`
+        `SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}/"`
       )
     } else {
       atmpl = atmpl.replace(
@@ -894,7 +900,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           find.push(
             ...[
               `include enable-php-${old.phpVersion}.conf;`,
-              `SetHandler "proxy:fcgi:127.0.0.1:90${old.phpVersion}"`,
+              `SetHandler "proxy:fcgi://127.0.0.1:90${old.phpVersion}/"`,
               `import enable-php-select ${old.phpVersion}`
             ]
           )
@@ -911,7 +917,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
           replace.push(
             ...[
               `include enable-php-${host.phpVersion}.conf;`,
-              `SetHandler "proxy:fcgi:127.0.0.1:90${host.phpVersion}"`,
+              `SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}/"`,
               `import enable-php-select ${host.phpVersion}`
             ]
           )
@@ -1090,9 +1096,11 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         },
         port: {
           nginx: 80,
-          apache: 8080,
+          apache: 80,
+          caddy: 80,
           nginx_ssl: 443,
-          apache_ssl: 8443
+          apache_ssl: 443,
+          caddy_ssl: 443
         },
         nginx: {
           rewrite: ''

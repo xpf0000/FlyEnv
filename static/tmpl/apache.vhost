@@ -14,7 +14,11 @@
 
     #PHP
     <FilesMatch \.php$>
-        SetHandler "proxy:fcgi://127.0.0.1:9000"
+        <If "-f %{REQUEST_FILENAME}">
+            SetHandler "proxy:fcgi://127.0.0.1:9000"
+            ProxyFCGIBackendType GENERIC
+            ProxyFCGISetEnvIf "reqenv('SCRIPT_FILENAME') =~ m#^/?(.*)$#" SCRIPT_FILENAME "$1"
+        </If>
     </FilesMatch>
 
     #PATH

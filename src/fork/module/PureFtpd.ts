@@ -3,7 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { FtpItem, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile } from 'fs-extra'
+import { readFile, writeFile, mkdirp } from 'fs-extra'
 import FtpServer from 'ftp-srv'
 
 class Manager extends Base {
@@ -116,6 +116,7 @@ class Manager extends Base {
       if (findOld >= 0) {
         all.splice(findOld, 1)
       }
+      await mkdirp(global.Server.FTPDir!)
       await writeFile(json, JSON.stringify(all))
       resolve(true)
     })
@@ -138,6 +139,7 @@ class Manager extends Base {
       } else {
         all.unshift(item)
       }
+      await mkdirp(global.Server.FTPDir!)
       await writeFile(json, JSON.stringify(all))
       resolve(true)
     })

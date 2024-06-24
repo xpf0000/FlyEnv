@@ -43,8 +43,8 @@ export class Base {
                 HOMEBREW_NO_INSTALL_FROM_API: 1
               }
             })
-              .then(() => {})
-              .catch(() => {})
+              .then(() => { })
+              .catch(() => { })
             resolve(true)
           } else {
             resolve(I18nT('fork.versionError'))
@@ -82,7 +82,7 @@ export class Base {
       }
       try {
         this._linkVersion(version)
-      } catch (e) {}
+      } catch (e) { }
       try {
         await this._stopServer(version)
         await this._startServer(version).on(on)
@@ -102,14 +102,14 @@ export class Base {
   }
 
   startService(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {      
+    return new ForkPromise(async (resolve, reject, on) => {
       if (!version?.version) {
         reject(new Error(I18nT('fork.versionNoFound')))
         return
       }
       try {
         this._linkVersion(version)
-      } catch (e) {}
+      } catch (e) { }
       try {
         await this._stopServer(version)
         await this._startServer(version).on(on)
@@ -141,7 +141,7 @@ export class Base {
       let res: any = null
       try {
         res = await execPromiseRoot(command)
-      } catch (e) {}
+      } catch (e) { }
       const pids = res?.stdout?.trim()?.split('\n') ?? []
       console.log('pids: ', pids)
       const arr: Array<string> = []
@@ -168,8 +168,14 @@ export class Base {
         for (const pid of arr) {
           try {
             await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-          } catch (e) {}
-        }      
+          } catch (e) { }
+        }
+      }
+      if (this.type === 'apache') {
+        let command = `${version.bin} -k uninstall`
+        try {
+          await execPromiseRoot(command)
+        } catch (e) { }
       }
       await waitTime(300)
       resolve(true)
@@ -184,9 +190,9 @@ export class Base {
           const pid = await readFile(this.pidPath, 'utf-8')
           const sign =
             this.type === 'apache' ||
-            this.type === 'mysql' ||
-            this.type === 'nginx' ||
-            this.type === 'mariadb'
+              this.type === 'mysql' ||
+              this.type === 'nginx' ||
+              this.type === 'mariadb'
               ? '-HUP'
               : '-USR2'
           await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sign} ${pid}`)

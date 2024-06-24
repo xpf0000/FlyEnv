@@ -210,7 +210,7 @@ IncludeOptional "${vhost}*.conf"`
     })
   }
 
-  _startServer(version: SoftInstalled) {
+  _startServer(version: SoftInstalled, lastVersion?: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       await this.#initLocalApp(version)
       await this.#resetConf(version)
@@ -221,12 +221,19 @@ IncludeOptional "${vhost}*.conf"`
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
-      let command = `${bin} -k install`
+
+      let command = ''
+      if (lastVersion && lastVersion?.bin !== version.bin) {
+        command = `${lastVersion.bin} -k uninstall`
+        try {
+          await execPromiseRoot(command)
+        } catch(e){}  
+      }
+
+      command = `${bin} -k install`
       try {
         await execPromiseRoot(command)
-      } catch(e){
-        console.log('-k install err: ', e)
-      }
+      } catch(e){}
 
       command = `${bin} -f ${conf} -k start`
       console.log('_startServer: ', command)
