@@ -332,7 +332,7 @@ export default class Application extends EventEmitter {
     try {
       res = execSync(command)?.toString()?.trim() ?? ''
     } catch (e) {}
-    let pids = res.split('\n')
+    let pids = res?.split('\n') ?? []
     for (const p of pids) {
       if (p.includes(global.Server.BaseDir!)) {
         if (p.includes('mysqld') || p.includes('mariadbd') || p.includes('mongod')) {
@@ -346,7 +346,7 @@ export default class Application extends EventEmitter {
     try {
       res = execSync(command)?.toString()?.trim() ?? ''
     } catch (e) {}
-    pids = res.split('\n')
+    pids = res?.split('\n') ?? []
     for (const p of pids) {
       if (
         p.includes(' grep ') ||
@@ -386,7 +386,7 @@ export default class Application extends EventEmitter {
     try {
       let hosts = readFileSync('/private/etc/hosts', 'utf-8')
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-      if (x) {
+      if (x && x.length > 0) {
         hosts = hosts.replace(x[0], '')
         writeFileSync('/private/etc/hosts', hosts)
       }
@@ -537,7 +537,7 @@ export default class Application extends EventEmitter {
           .then(callBack)
         break
       case 'app:password-check':
-        const pass = args[0]
+        const pass = args?.[0] ?? ''
         execPromise(`echo '${pass}' | sudo -S -k -l`)
           .then(() => {
             this.configManager.setConfig('password', pass)
@@ -564,7 +564,7 @@ export default class Application extends EventEmitter {
         }
         break
       case 'Application:tray-status-change':
-        this.trayManager.iconChange(args[0])
+        this.trayManager.iconChange(args?.[0] ?? false)
         break
       case 'application:save-preference':
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)

@@ -303,6 +303,10 @@
 </script>
 
 <style lang="scss">
+  * {
+    user-select: none !important;
+  }
+
   html,
   body,
   #app {

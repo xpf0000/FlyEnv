@@ -2,7 +2,9 @@
 
 <img src="https://raw.githubusercontent.com/xpf0000/PhpWebStudy/master/build/256x256.png" width="256" alt="App Icon" />
 
-## Powerful Web and PHP Development Environment for macOS
+## Powerful Web and PHP Development Environment
+
+## Support both macOS and windows
 
 [![GitHub release](https://img.shields.io/github/release/xpf0000/PhpWebStudy.svg)](https://github.com/xpf0000/PhpWebStudy/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/PhpWebStudy/total.svg)](https://github.com/xpf0000/PhpWebStudy/releases)
 
@@ -110,20 +112,6 @@ You can add it by yourself, add command.
 ```
 brew tap shivammathur/php
 ```
-
-
-## 🛠 Technology Stacks
-
-- [Electron](https://electronjs.org/)
-- [vite](https://vitejs.dev/)
-- [Vue3](https://v3.vuejs.org/)
-- [Pinia](https://pinia.vuejs.org/)
-- [Vue Router](https://router.vuejs.org/)
-- [vue-i18n](https://github.com/intlify/vue-i18n-next)
-- [Element-Plus](https://element-plus.org/en-US/)
-- [Xterm](https://xtermjs.org)
-- [node-pty](https://github.com/microsoft/node-pty)
-- [monaco-editor](https://github.com/microsoft/monaco-editor)
 
 ## Contribution
 
