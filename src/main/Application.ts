@@ -3,7 +3,7 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import logger from './core/Logger'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
-import { join, resolve } from 'path'
+import { join, resolve, dirname } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
@@ -45,7 +45,7 @@ export default class Application extends EventEmitter {
     this.initWindowManager()
     this.trayManager = new TrayManager()
     this.initTrayManager()
-    this.initServerDir()  
+    this.initServerDir()
     this.handleCommands()
     this.handleIpcMessages()
     this.initForkManager()
@@ -102,11 +102,11 @@ export default class Application extends EventEmitter {
     })
   }
 
-  initNodePty() {}
+  initNodePty() { }
 
-  exitNodePty() {}
+  exitNodePty() { }
 
-  initServerDir() {  
+  initServerDir() {
     const runpath = resolve(app.getPath('userData'), '../PhpWebStudy-Data').split('\\').join('/')
     console.log('userData: ', runpath)
     this.setProxy()
@@ -124,7 +124,7 @@ export default class Application extends EventEmitter {
     global.Server.RedisDir = join(runpath, 'server/redis')
     global.Server.MongoDBDir = join(runpath, 'server/mongodb')
     global.Server.FTPDir = join(runpath, 'server/ftp')
-    global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')  
+    global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
     createFolder(global.Server.NginxDir)
     createFolder(global.Server.PhpDir)
     createFolder(global.Server.MysqlDir)
@@ -204,12 +204,13 @@ export default class Application extends EventEmitter {
   }
 
   async stopServerByPid() {
-    let command = `wmic process get commandline,ProcessId | findstr "${global.Server.BaseDir}"`
+    const root = dirname(global.Server.BaseDir!)
+    let command = `wmic process get commandline,ProcessId | findstr "${root}"`
     console.log('_stopServer command: ', command)
     let res: any = null
     try {
       res = await execPromiseRoot(command)
-    } catch (e) {}
+    } catch (e) { }
     const pids = res?.stdout?.trim()?.split('\n') ?? []
     console.log('pids: ', pids)
     const arr: Array<string> = []
@@ -219,8 +220,8 @@ export default class Application extends EventEmitter {
       ) {
         continue
       }
-      
-      if (p.includes(global.Server.BaseDir!)) {
+
+      if (p.includes(root)) {
         const pid = p.split(' ').filter((s: string) => {
           return !!s.trim()
         }).pop()
@@ -232,13 +233,14 @@ export default class Application extends EventEmitter {
       for (const pid of arr) {
         try {
           await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-        } catch (e) {}
-      }      
+        } catch (e) { }
+      }
     }
   }
 
   async stopServer() {
     await this.stopServerByPid()
+    console.log('stopServer !!!')
     const hostsFile = join('c:/windows/system32/drivers/etc', 'hosts')
     try {
       let hosts = readFileSync(hostsFile, 'utf-8')
@@ -247,7 +249,8 @@ export default class Application extends EventEmitter {
         hosts = hosts.replace(x[0], '')
         writeFileSync(hostsFile, hosts)
       }
-    } catch (e) {}
+    } catch (e) { }
+    console.log('stopServer End !!!')
   }
 
   sendCommand(command: string, ...args: any) {
@@ -273,10 +276,11 @@ export default class Application extends EventEmitter {
     })
   }
 
-  async relaunch() {
-    await this.stop()
-    app.relaunch()
-    app.exit()
+  relaunch() {
+    this.stop().then(() => {
+      app.relaunch()
+      app.exit()
+    })
   }
 
   handleCommands() {
@@ -286,14 +290,17 @@ export default class Application extends EventEmitter {
     })
 
     this.on('application:relaunch', () => {
-      this.relaunch().then()
+      this.relaunch()
     })
 
-    this.on('application:exit', async () => {
+    this.on('application:exit', () => {
       console.log('application:exit !!!!!!')
-      await this.stop()
-      app.exit()
-      process.exit(0)
+      this.windowManager.hideAllWindow()
+      this.stop().then(() => {
+        console.log('application real exit !!!!!!')
+        app.exit()
+        process.exit(0)
+      })
     })
 
     this.on('application:show', (page) => {
@@ -306,7 +313,7 @@ export default class Application extends EventEmitter {
 
     this.on('application:reset', () => {
       this.configManager.reset()
-      this.relaunch().then()
+      this.relaunch()
     })
 
     this.on('application:change-menu-states', (visibleStates, enabledStates, checkedStates) => {

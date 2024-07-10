@@ -31,7 +31,7 @@ const dist: BuildOptions = {
   bundle: true,
   external: external,
   plugins: [BuildPlugin()],
-  // drop: ['debugger', 'console']
+  drop: ['debugger', 'console']
 }
 
 const devFork: BuildOptions = {
@@ -52,7 +52,7 @@ const distFork: BuildOptions = {
   bundle: true,
   external,
   plugins: [BuildPlugin()],
-  // drop: ['debugger', 'console']
+  drop: ['debugger', 'console']
 }
 
 export default {
