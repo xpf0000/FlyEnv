@@ -91,9 +91,7 @@ install_nvm_by_shell() {
 }
 
 install_nvm_by_brew() {
-  local ARCH
-  ARCH="${1-}"
-  arch "$ARCH" brew install nvm
+  brew install nvm
   local BREW_HOME
   BREW_HOME="$(brew --repo)"
   nvm_write_to_env
@@ -116,9 +114,7 @@ install_nvm_by_port() {
 }
 
 install_fnm_by_brew() {
-  local ARCH
-  ARCH="${1-}"
-  arch "$ARCH" brew install fnm
+  brew install fnm
   fnm_write_to_env
 }
 
@@ -129,6 +125,11 @@ install_fnm_by_port() {
   ARCH="${2-}"
   echo "$PASSWORD" | arch "$ARCH" sudo -S port clean -v fnm
   echo "$PASSWORD" | arch "$ARCH" sudo -S port install -v fnm
+  fnm_write_to_env
+}
+
+install_fnm_by_shell() {
+  curl -fsSL https://fnm.vercel.app/install | bash
   fnm_write_to_env
 }
 
@@ -153,6 +154,12 @@ check_fnm_or_nvm() {
 FLAG=$1
 PASSWORD=$2
 ARCH=$3
+if [ -f "~/.bashrc" ]; then
+  source ~/.bashrc
+fi
+if [ -f "~/.zshrc" ]; then
+  source ~/.zshrc
+fi
 case $FLAG in
 "check")
 check_fnm_or_nvm
@@ -171,5 +178,8 @@ install_fnm_by_brew "$ARCH"
 ;;
 "fnm-port")
 install_fnm_by_port "$PASSWORD" "$ARCH"
+;;
+"fnm-shell")
+install_fnm_by_shell
 ;;
 esac
