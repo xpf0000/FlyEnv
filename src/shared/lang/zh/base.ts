@@ -77,7 +77,7 @@ export default {
   needSelectVersion: '请先选择版本',
   hostNoRole: 'hosts文件权限不正确',
   hostsSaveFailed: '系统Hosts保存失败, 请查看文件是否存在, 文件权限是否正确',
-  hostsReadFailed: '/private/etc/hosts 文件读取失败, 请查看文件是否存在, 文件权限是否正确',
+  hostsReadFailed: '/etc/hosts 文件读取失败, 请查看文件是否存在, 文件权限是否正确',
   needSelectDir: '请选择文件夹!',
   processNoFound: '未查询到相关进程',
   nvmInstallfailed: 'NVM安装失败',

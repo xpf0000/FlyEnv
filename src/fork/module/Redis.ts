@@ -31,7 +31,7 @@ class Redis extends Base {
   }
   _initConf(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
-      const v = version?.version?.split('.')?.[0] ?? ''
+      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const confFile = join(global.Server.RedisDir!, `redis-${v}.conf`)
       if (!existsSync(confFile)) {
         const tmplFile = join(global.Server.Static!, 'tmpl/redis.conf')

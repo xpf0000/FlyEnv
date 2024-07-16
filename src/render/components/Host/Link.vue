@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, Ref } from 'vue'
+  import { ref, type Ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import type { AppHost } from '@/store/app'
   import { I18nT } from '@shared/lang'

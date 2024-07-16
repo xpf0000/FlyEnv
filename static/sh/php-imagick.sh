@@ -16,8 +16,8 @@ else
 fi
 echo "download success. start install"
 export HOMEBREW_NO_AUTO_UPDATE=1
-arch $arch brew install pkg-config autoconf automake libtool
-arch $arch brew install ImageMagick
+brew install pkg-config autoconf automake libtool
+brew install ImageMagick
 prefix=$(brew --prefix)
 export CFLAGS=-I$prefix/include
 lib=$prefix/opt/imagemagick

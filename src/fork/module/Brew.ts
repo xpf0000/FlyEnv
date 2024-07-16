@@ -1,9 +1,10 @@
 import { join } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, realpathSync } from 'fs'
 import { Base } from './Base'
 import { execPromise, spawnPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { copyFile, unlink, chmod } from 'fs-extra'
+import { SoftInstalled } from '@shared/app'
 class Brew extends Base {
   constructor() {
     super()
@@ -168,72 +169,110 @@ class Brew extends Base {
   portinfo(flag: string) {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = {}
+      let params: string[] = []
       try {
-        let reg = `^${flag}\\d*$`
-        if (flag === 'mariadb') {
-          reg = '^mariadb-([\\d\\.]*)\\d$'
+        if (flag === 'apache') {
+          params = ['show', 'apache2']
+        } else if (flag === 'nginx') {
+          params = ['show', 'apache2']
+        } else if (flag === 'caddy') {
+          params = ['show', 'caddy']
+        } else if (flag === 'php') {
+          params = ['search', '(FPM-CGI binary)']
+        } else if (flag === 'mysql') {
+          params = ['show', 'mysql-server']
+        } else if (flag === 'mariadb') {
+          params = ['show', 'mariadb-server']
+        } else if (flag === 'postgresql') {
+          params = ['show', 'postgresql']
+        } else if (flag === 'memcached') {
+          params = ['show', 'memcached']
+        } else if (flag === 'redis') {
+          params = ['show', 'redis']
         }
         let arr = []
-        const info = await spawnPromise('port', ['search', '--name', '--line', '--regex', reg])
+        const info = await spawnPromise('apt', params)
+        console.log('info: ', info)
         arr = info
           .split('\n')
           .filter((f: string) => {
+            if ([
+              'nginx', 
+              'caddy', 
+              'apache', 
+              'mysql', 
+              'mariadb', 
+              'postgresql', 
+              'memcached', 
+              'redis'
+            ].includes(flag)) {
+              return f.startsWith('Version:')
+            }
             if (flag === 'php') {
-              return f.includes('lang www') && f.includes('PHP: Hypertext Preprocessor')
-            }
-            if (flag === 'nginx') {
-              return f.includes('High-performance HTTP(S) server')
-            }
-            if (flag === 'caddy') {
-              return (
-                f.includes('www') &&
-                f.includes('Fast, multi-platform web server with automatic HTTPS')
-              )
-            }
-            if (flag === 'apache') {
-              return f.includes('The extremely popular second version of the Apache http server')
-            }
-            if (flag === 'mysql') {
-              return f.includes('Multithreaded SQL database server')
-            }
-            if (flag === 'mariadb') {
-              return f.includes('Multithreaded SQL database server')
-            }
-            if (flag === 'memcached') {
-              return f.includes('A high performance, distributed memory object caching system.')
-            }
+              return f.includes('-fpm/')
+            }                       
             if (flag === 'redis') {
               return f.includes('Redis is an open source, advanced key-value store.')
-            }
-            if (flag === 'mongodb') {
-              return f.includes('high-performance, schema-free, document-oriented')
-            }
-            if (flag === 'postgresql') {
-              return f.includes('The most advanced open-source database available anywhere.')
-            }
+            }                  
             return true
           })
           .map((m: string) => {
-            const a = m.split('\t').filter((f) => f.trim().length > 0)
+            let a: string[] = [flag]
+            if ([
+              'nginx', 
+              'caddy', 
+              'apache', 
+              'mysql', 
+              'mariadb', 
+              'memcached',
+              'redis'
+            ].includes(flag)) {
+              let v = m.replace('Version:', '').trim().split('-').shift() ?? ''
+              v = v.split(':').filter((s) => s.includes('.')).shift()!
+              a.push(v)
+            } else if (flag === 'php') {
+              console.log('php m:', m)
+              const arr = m.trim().split('/')
+              a = [arr.shift()!.replace('-fpm', '')]
+              const str = arr.shift()!.split('+').shift()!
+              const regex = /(\d+(\.\d+){1,4})/g
+              const v = str.match(regex)?.[0] ?? ''
+              console.log('php v:', v)
+              a.push(v)
+            } else if(flag === 'postgresql') {
+              let v = m.replace('Version:', '').trim().split('-').shift() ?? ''
+              if (v.includes(':')) {
+                v = v.split(':').filter((s) => s.includes('.')).shift()!  
+              } 
+              if(v.includes('+')) {
+                v = v.split('+').shift()!
+              }
+                      
+              a.push(v)
+            } else {
+              a = m.split('\t').filter((f) => f.trim().length > 0)
+            }
             const name = a.shift() ?? ''
             const version = a.shift() ?? ''
             let installed = false
             if (flag === 'php') {
-              installed = existsSync(join('/opt/local/bin/', name))
+              const num = version.split('.').slice(0, 2).join('.')
+              installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
             } else if (flag === 'nginx') {
-              installed = existsSync(join('/opt/local/sbin/', name))
+              installed = existsSync(join('/usr/sbin/', name))
             } else if (flag === 'caddy') {
-              installed = existsSync(join('/opt/local/bin/', name))
+              installed = existsSync(join('/usr/bin/', name))
             } else if (flag === 'apache') {
-              installed = existsSync(join('/opt/local/sbin/', 'apachectl'))
+              installed = existsSync(join('/usr/sbin/', 'apachectl'))
             } else if (flag === 'mysql') {
-              installed = existsSync(join('/opt/local/lib', name, 'bin/mysqld_safe'))
+              const bin = join('/usr/bin/', 'mysqld_safe')
+              installed = existsSync(bin) && realpathSync(bin) === bin
             } else if (flag === 'mariadb') {
-              installed = existsSync(join('/opt/local/lib', name, 'bin/mariadbd-safe'))
+              installed = existsSync(join('/usr/bin/', 'mariadbd-safe'))
             } else if (flag === 'memcached') {
-              installed = existsSync(join('/opt/local/bin', name))
+              installed = existsSync(join('/usr/bin', 'memcached'))
             } else if (flag === 'redis') {
-              installed = existsSync(join('/opt/local/bin', `${name}-server`))
+              installed = existsSync(join('/usr/bin', `redis-server`))
             } else if (flag === 'mongodb') {
               installed =
                 existsSync(join('/opt/local/bin', 'mongod')) ||
@@ -243,7 +282,8 @@ class Brew extends Base {
                 existsSync(join('/opt/local/bin', 'pure-pw')) ||
                 existsSync(join('/opt/local/sbin', 'pure-ftpd'))
             } else if (flag === 'postgresql') {
-              installed = existsSync(join('/opt/local/lib', name, 'bin/pg_ctl'))
+              const v = version.split('.').shift()!
+              installed = existsSync(join('/lib/postgresql', v, 'bin/pg_ctl'))
             }
             return {
               name,
@@ -255,7 +295,7 @@ class Brew extends Base {
         arr.forEach((item: any) => {
           Info[item.name] = item
         })
-      } catch (e) {}
+      } catch (e) { }
       resolve(Info)
     })
   }
@@ -270,6 +310,21 @@ class Brew extends Base {
         } else {
           resolve(1)
         }
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  initPhpApt() {
+    return new ForkPromise(async (resolve, reject) => {
+      const sh = join(global.Server.Static!, 'sh/php-apt-init.sh')
+      const cp = join(global.Server.Cache!, 'php-apt-init.sh')
+      try {
+        await copyFile(sh, cp)
+        const stdout = await spawnPromise('bash', [cp, global.Server.Password!])
+        console.log('initPhpApt: ', stdout)
+        resolve(true)
       } catch (e) {
         reject(e)
       }
@@ -366,7 +421,7 @@ class Brew extends Base {
     })
   }
 
-  fetchAllPhpExtensionsByPort(num: string) {
+  fetchAllPhpExtensionsByPort(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
       const names: { [k: string]: string } = {
         pecl_http: 'http.so',
@@ -379,20 +434,20 @@ class Brew extends Base {
       }
       const zend: Array<string> = ['xdebug']
       try {
-        const numStr = `${num}`.split('.').join('')
-        const cammand = `port search --name --line php${numStr}-`
+        const numStr = version.phpBin!.split('/').pop()!
+        const cammand = `apt search ${numStr}-`
         console.log('cammand: ', cammand)
         let res: any = await execPromise(cammand)
         res = res?.stdout.toString() ?? ''
         const arr = res
           .split('\n')
           .filter((f: string) => {
-            return !!f.trim() && !f.includes('lang www')
+            return !!f.trim() && f.startsWith(`${numStr}-`)
           })
-          .map((m: string) => {
-            const a = m.split('\t').filter((f) => f.trim().length > 0)
+          .map((m: string) => {          
+            const a = m.split('/')
             const libName = a.shift() ?? ''
-            const name = libName.replace(`php${numStr}-`, '').toLowerCase()
+            const name = libName.split('-').pop()!.toLowerCase()
             const item: { [k: string]: any } = {
               name,
               libName,

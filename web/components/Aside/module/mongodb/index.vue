@@ -9,7 +9,7 @@
       <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon
           style="padding: 5px"
-          :svg="import('@/svg/MongoDB.svg?raw')"
+          :svg="import('@/svg/Mongodb.svg?raw')"
           width="30"
           height="30"
         />

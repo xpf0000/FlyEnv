@@ -28,8 +28,7 @@
         <CaddyModule ref="caddyModule" :current-page="currentPage" @nav="nav" />
         <PhpModule ref="phpModule" :current-page="currentPage" @nav="nav" />
         <MysqlModule ref="mysqlModule" :current-page="currentPage" @nav="nav" />
-        <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />
-        <MongodbModule ref="mongoModule" :current-page="currentPage" @nav="nav" />
+        <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />        
         <PostgreSqlModule ref="postgresqlModule" :current-page="currentPage" @nav="nav" />
         <MemcachedModule ref="memcachedModule" :current-page="currentPage" @nav="nav" />
         <RedisModule ref="redisModule" :current-page="currentPage" @nav="nav" />
@@ -73,7 +72,6 @@
   import PhpModule from './module/php/index.vue'
   import MysqlModule from './module/mysql/index.vue'
   import MariadbModule from './module/mariadb/index.vue'
-  import MongodbModule from './module/mongodb/index.vue'
   import MemcachedModule from './module/memcached/index.vue'
   import RedisModule from './module/redis/index.vue'
   import DnsModule from './module/dns/index.vue'
@@ -95,7 +93,6 @@
   const phpModule = ref()
   const mysqlModule = ref()
   const mariadbModule = ref()
-  const mongoModule = ref()
   const memcachedModule = ref()
   const redisModule = ref()
   const dnsModule = ref()
@@ -122,7 +119,6 @@
       phpModule?.value?.serviceRunning ||
       redisModule?.value?.serviceRunning ||
       memcachedModule?.value?.serviceRunning ||
-      mongoModule?.value?.serviceRunning ||
       dnsModule?.value?.serviceRunning ||
       ftpModule?.value?.serviceRunning ||
       postgresqlModule?.value?.serviceRunning ||
@@ -139,7 +135,6 @@
       nginxModule?.value?.serviceDisabled &&
       phpModule?.value?.serviceDisabled &&
       redisModule?.value?.serviceDisabled &&
-      mongoModule?.value?.serviceDisabled &&
       ftpModule?.value?.serviceDisabled &&
       postgresqlModule?.value?.serviceDisabled &&
       caddyModule?.value?.serviceDisabled
@@ -152,7 +147,6 @@
       nginxModule?.value?.serviceFetching ||
       phpModule?.value?.serviceFetching ||
       redisModule?.value?.serviceFetching ||
-      mongoModule?.value?.serviceFetching ||
       dnsModule?.value?.serviceFetching ||
       ftpModule?.value?.serviceFetching ||
       postgresqlModule?.value?.serviceFetching ||
@@ -223,12 +217,6 @@
         run: redisModule?.value?.serviceRunning,
         running: redisModule?.value?.serviceFetching
       },
-      mongodb: {
-        show: showItem?.value?.MongoDB,
-        disabled: mongoModule?.value?.serviceDisabled,
-        run: mongoModule?.value?.serviceRunning,
-        running: mongoModule?.value?.serviceFetching
-      },
       dns: {
         show: showItem?.value?.DNS,
         run: dnsModule?.value?.serviceRunning,
@@ -290,7 +278,6 @@
         phpModule,
         mysqlModule,
         mariadbModule,
-        mongoModule,
         memcachedModule,
         redisModule,
         dnsModule,
@@ -359,9 +346,6 @@
         break
       case 'redis':
         redisModule?.value?.switchChange()
-        break
-      case 'mongodb':
-        mongoModule?.value?.switchChange()
         break
       case 'ftp':
         ftpModule?.value?.switchChange()

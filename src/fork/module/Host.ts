@@ -227,8 +227,8 @@ subjectAltName=@alt_names
             }
             const aliasArr = item.alias
               ? item.alias.split('\n').filter((n: string) => {
-                  return n && n?.trim()?.length > 0
-                })
+                return n && n?.trim()?.length > 0
+              })
               : []
             item.alias = aliasArr
               .map((a: string) => {
@@ -334,7 +334,7 @@ subjectAltName=@alt_names
         if (existsSync(f)) {
           try {
             await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${f}`)
-          } catch (e) {}
+          } catch (e) { }
         }
       }
       resolve(true)
@@ -349,7 +349,7 @@ subjectAltName=@alt_names
     if (existsSync(dir)) {
       try {
         await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
-      } catch (e) {}
+      } catch (e) { }
       const parentDir = dirname(dir)
       if (parentDir !== dir) {
         await this.#setDirRole(parentDir, depth + 1)
@@ -423,7 +423,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         const content = tmplContent.replace('##VERSION##', `${v}`)
         await writeFile(confFile, content)
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   async #initCaddyConf(host: AppHost) {
@@ -983,7 +983,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         resolve(true)
         return
       }
-      const filePath = '/private/etc/hosts'
+      const filePath = '/etc/hosts'
       if (!existsSync(filePath)) {
         reject(new Error(I18nT('fork.hostsFileNoFound')))
         return
@@ -1001,7 +1001,11 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       }
       content = content.trim()
       content += `\n${x}`
-      await writeFile(filePath, content.trim())
+
+      const tmpFile = join(global.Server.Cache!, 'hosts-tmpl')
+      await writeFile(tmpFile, content.trim())
+      await execPromise(`echo "${global.Server.Password}" | sudo -S cp ${tmpFile} /etc/hosts`)
+
       resolve(true)
     })
   }
@@ -1031,7 +1035,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         })
         list.push('#GITHUB-HOSTS-END#')
         try {
-          const hostFile = '/private/etc/hosts'
+          const hostFile = '/etc/hosts'
           let content = await readFile(hostFile, 'utf-8')
           let x: any = content.match(/(#GITHUB-HOSTS-BEGIN#)([\s\S]*?)(#GITHUB-HOSTS-END#)/g)
           if (x && x[0]) {
@@ -1052,7 +1056,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
   async _fixHostsRole() {
     let access = false
     try {
-      accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
+      accessSync('/etc/hosts', constants.R_OK | constants.W_OK)
       access = true
       console.log('可以读写')
     } catch (err) {
@@ -1062,8 +1066,8 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       const password = global.Server.Password
       try {
         await execPromise(`echo '${password}' | sudo -S chmod 777 /private/etc`)
-        await execPromise(`echo '${password}' | sudo -S chmod 777 /private/etc/hosts`)
-      } catch (e) {}
+        await execPromise(`echo '${password}' | sudo -S chmod 777 /etc/hosts`)
+      } catch (e) { }
     }
   }
 
@@ -1084,17 +1088,18 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         try {
           json = JSON.parse(json)
           appHost.push(...json)
-        } catch (e) {}
+        } catch (e) { }
       }
-      console.log('writeHosts: ', write)
       if (write) {
         this._initHost(appHost).then(resolve)
       } else {
-        let hosts = await readFile('/private/etc/hosts', 'utf-8')
+        let hosts = await readFile('/etc/hosts', 'utf-8')
         const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
         if (x) {
           hosts = hosts.replace(x[0], '')
-          await writeFile('/private/etc/hosts', hosts.trim())
+          const tmpFile = join(global.Server.Cache!, 'hosts-tmpl')
+          await writeFile(tmpFile, hosts.trim())
+          await execPromise(`echo "${global.Server.Password}" | sudo -S cp ${tmpFile} /etc/hosts`)
         }
         this._initHost(appHost, false).then(resolve)
       }
@@ -1191,7 +1196,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       const content = await readFile(hostfile, 'utf-8')
       try {
         hostList = JSON.parse(content)
-      } catch (e) {}
+      } catch (e) { }
       const find = hostList.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
       if (find) {
         resolve(true)

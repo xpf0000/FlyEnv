@@ -102,26 +102,6 @@
         >
         </el-switch>
       </li>
-      <li v-if="mongodb?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: mongodb?.run }">
-            <yb-icon
-              style="padding: 5px"
-              :svg="import('@/svg/MongoDB.svg?raw')"
-              width="28"
-              height="28"
-            />
-          </div>
-          <span class="title">MongoDB</span>
-        </div>
-
-        <el-switch
-          v-model="mongodb.run"
-          :disabled="mongodb?.disabled"
-          @change="switchChange('mongodb')"
-        >
-        </el-switch>
-      </li>
       <li v-if="postgresql?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block" :class="{ run: postgresql?.run }">
@@ -215,7 +195,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, Ref } from 'vue'
+  import { computed, ref, type Ref } from 'vue'
   import { AppStore } from './store/app'
   import IPC from '../util/IPC'
 
@@ -246,9 +226,6 @@
   })
   const redis = computed(() => {
     return store.redis
-  })
-  const mongodb = computed(() => {
-    return store.mongodb
   })
   const dns = computed(() => {
     return store.dns

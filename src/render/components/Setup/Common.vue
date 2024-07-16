@@ -52,25 +52,20 @@
             <el-form-item label="MariaDB">
               <el-switch v-model="showItem.mariadb" />
             </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="MongoDB">
-              <el-switch v-model="showItem.MongoDB" />
-            </el-form-item>
-          </el-col>
+          </el-col>        
           <el-col :span="8">
             <el-form-item label="PostgreSql">
               <el-switch v-model="postgresqlShow" />
             </el-form-item>
           </el-col>
-        </el-row>
-
-        <el-row>
           <el-col :span="8">
             <el-form-item label="Memcached">
               <el-switch v-model="showItem.Memcached" />
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row>          
           <el-col :span="8">
             <el-form-item label="Redis">
               <el-switch v-model="showItem.Redis" />
@@ -81,14 +76,14 @@
               <el-switch v-model="showItem.NodeJS" />
             </el-form-item>
           </el-col>
-        </el-row>
-
-        <el-row>
           <el-col :span="8">
             <el-form-item label="Http Serve">
               <el-switch v-model="showItem.HttpServe" />
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row>          
           <el-col :span="8">
             <el-form-item label="DNS Server">
               <el-switch v-model="showItem.DNS" />
@@ -99,25 +94,15 @@
               <el-switch v-model="showItem.FTP" />
             </el-form-item>
           </el-col>
-        </el-row>
-        <el-row>
           <el-col :span="8">
             <el-form-item label="Tools">
               <el-switch v-model="showItem.Tools" />
             </el-form-item>
           </el-col>
-        </el-row>
+        </el-row>      
       </el-form>
     </div>
     <ProxySet />
-    <div class="row-2">
-      <div class="col">
-        <BrewSrc />
-      </div>
-      <div class="col">
-        <MacPortsSrc />
-      </div>
-    </div>
     <div class="row-2">
       <div class="col">
         <ForceStart />
@@ -138,57 +123,53 @@
 </template>
 
 <script lang="ts">
-  import BrewSrc from './BrewSrc/index.vue'
-  import RestPassword from './RestPassword/index.vue'
-  import ProxySet from './ProxySet/index.vue'
-  import LangeSet from './Lang/index.vue'
-  import AutoUpdate from './AutoUpdate/index.vue'
-  import { AppStore } from '@/store/app'
-  import { defineComponent } from 'vue'
-  import ForceStart from './ForceStart/index.vue'
-  import ShowAI from './AI/index.vue'
-  import MacPortsSrc from './MacPortsSrc/index.vue'
-  import ThemeSet from './Theme/index.vue'
+import RestPassword from './RestPassword/index.vue'
+import ProxySet from './ProxySet/index.vue'
+import LangeSet from './Lang/index.vue'
+import AutoUpdate from './AutoUpdate/index.vue'
+import { AppStore } from '@/store/app'
+import { defineComponent } from 'vue'
+import ForceStart from './ForceStart/index.vue'
+import ShowAI from './AI/index.vue'
+import ThemeSet from './Theme/index.vue'
 
-  export default defineComponent({
-    components: {
-      BrewSrc,
-      RestPassword,
-      ProxySet,
-      LangeSet,
-      AutoUpdate,
-      ForceStart,
-      ShowAI,
-      MacPortsSrc,
-      ThemeSet
+export default defineComponent({
+  components: {
+    RestPassword,
+    ProxySet,
+    LangeSet,
+    AutoUpdate,
+    ForceStart,
+    ShowAI,
+    ThemeSet
+  },
+  props: {},
+  data() {
+    return {}
+  },
+  computed: {
+    showItem() {
+      return AppStore().config.setup.common.showItem
     },
-    props: {},
-    data() {
-      return {}
-    },
-    computed: {
-      showItem() {
-        return AppStore().config.setup.common.showItem
+    postgresqlShow: {
+      get() {
+        return this?.showItem?.PostgreSql ?? true
       },
-      postgresqlShow: {
-        get() {
-          return this?.showItem?.PostgreSql ?? true
-        },
-        set(v: boolean) {
-          this.showItem.PostgreSql = v
-        }
+      set(v: boolean) {
+        this.showItem.PostgreSql = v
       }
-    },
-    watch: {
-      showItem: {
-        handler() {
-          AppStore().saveConfig()
-        },
-        deep: true
-      }
-    },
-    created: function () {},
-    unmounted() {},
-    methods: {}
-  })
+    }
+  },
+  watch: {
+    showItem: {
+      handler() {
+        AppStore().saveConfig()
+      },
+      deep: true
+    }
+  },
+  created: function () { },
+  unmounted() { },
+  methods: {}
+})
 </script>

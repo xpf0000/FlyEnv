@@ -19,6 +19,7 @@ import type { ServerResponse } from 'http'
 import { fixEnv } from '@shared/utils'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
+import { userInfo } from 'os'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
@@ -193,17 +194,11 @@ export default class Application extends EventEmitter {
       .catch((e: Error) => {
         console.log('which brew e: ', e)
       })
-
-    execAsync('which', ['port'])
-      .then((c: string) => {
-        global.Server.MacPorts = c
-      })
-      .catch(() => {})
   }
 
   initServerDir() {
     console.log('userData: ', app.getPath('userData'))
-    const runpath = app.getPath('userData').replace('Application Support/', '')
+    const runpath = join(app.getPath('userData'), '../PhpWebStudy') 
     this.setProxy()
     global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
@@ -240,10 +235,13 @@ export default class Application extends EventEmitter {
       compressing.zip
         .uncompress(join(__static, 'zip/nginx-common.zip'), global.Server.NginxDir)
         .then(() => {
-          readFileAsync(ngconf).then((content: string) => {
+          readFileAsync(ngconf).then((content: string) => {            
             content = content
               .replace(/#PREFIX#/g, global.Server.NginxDir!)
               .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx'))
+            const username = userInfo().username
+            content = `user ${username};\n` + content
+
             writeFileAsync(ngconf, content).then()
             writeFileAsync(
               join(global.Server.NginxDir!, 'common/conf/nginx.conf.default'),
@@ -384,11 +382,11 @@ export default class Application extends EventEmitter {
     this.exitNodePty()
     this.stopServerByPid()
     try {
-      let hosts = readFileSync('/private/etc/hosts', 'utf-8')
+      let hosts = readFileSync('/etc/hosts', 'utf-8')
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x && x.length > 0) {
         hosts = hosts.replace(x[0], '')
-        writeFileSync('/private/etc/hosts', hosts)
+        writeFileSync('/etc/hosts', hosts)
       }
     } catch (e) {}
   }

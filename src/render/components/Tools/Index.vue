@@ -92,36 +92,36 @@
             this.component = markRaw(defineAsyncComponent(() => import('./Json/Index.vue')))
             break
           case 'env':
-            this.component = markRaw(defineAsyncComponent(() => import('./SystenEnv/index.vue')))
+            this.component = markRaw(defineAsyncComponent(() => import('./SystenEnv/Index.vue')))
             break
           case 'sslmake':
-            this.component = markRaw(defineAsyncComponent(() => import('./SSLMake/index.vue')))
+            this.component = markRaw(defineAsyncComponent(() => import('./SSLMake/Index.vue')))
             break
           case 'fileinfo':
-            this.component = markRaw(defineAsyncComponent(() => import('./FileInfo/index.vue')))
+            this.component = markRaw(defineAsyncComponent(() => import('./FileInfo/Index.vue')))
             break
           case 'timestamp':
-            this.component = markRaw(defineAsyncComponent(() => import('./Timestamp/index.vue')))
+            this.component = markRaw(defineAsyncComponent(() => import('./Timestamp/Index.vue')))
             break
           case 'decode':
-            this.component = markRaw(defineAsyncComponent(() => import('./Decode/index.vue')))
+            this.component = markRaw(defineAsyncComponent(() => import('./Decode/Index.vue')))
             break
           case 'portkill':
-            this.component = markRaw(defineAsyncComponent(() => import('./PortKill/index.vue')))
+            this.component = markRaw(defineAsyncComponent(() => import('./PortKill/Index.vue')))
             break
           case 'processkill':
-            this.component = markRaw(defineAsyncComponent(() => import('./ProcessKill/index.vue')))
+            this.component = markRaw(defineAsyncComponent(() => import('./ProcessKill/Index.vue')))
             break
           case 'phpObfuscator':
             this.component = markRaw(
-              defineAsyncComponent(() => import('./PhpObfuscator/index.vue'))
+              defineAsyncComponent(() => import('./PhpObfuscator/Index.vue'))
             )
             break
           case 'bomClean':
-            this.component = markRaw(defineAsyncComponent(() => import('./BomClean/index.vue')))
+            this.component = markRaw(defineAsyncComponent(() => import('./BomClean/Index.vue')))
             break
           case 'siteSucker':
-            this.component = markRaw(defineAsyncComponent(() => import('./SiteSucker/index.vue')))
+            this.component = markRaw(defineAsyncComponent(() => import('./SiteSucker/Index.vue')))
             break
         }
       },

@@ -45,7 +45,7 @@
       },
       vNum() {
         const version = this?.version ?? ''
-        return version.split('.')?.[0]
+        return version.split('.')?.slice(0, 2)?.join('.')
       },
       configPath() {
         if (this.vNum) {

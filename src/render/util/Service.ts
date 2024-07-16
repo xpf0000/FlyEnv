@@ -1,6 +1,6 @@
 import IPC from '@/util/IPC'
 import { BrewStore, type SoftInstalled } from '@/store/brew'
-import { AllAppSofts, type AppHost, AppStore } from '@/store/app'
+import { type AllAppSofts, type AppHost, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
 import { DnsStore } from '@/store/dns'
 import { I18nT } from '@shared/lang'

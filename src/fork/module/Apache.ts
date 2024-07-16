@@ -3,7 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { execPromise, getAllFileAsync, md5 } from '../Fn'
+import { execPromise, execPromiseFinal, getAllFileAsync, md5 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 
@@ -32,37 +32,40 @@ class Apache extends Base {
         return
       }
       // 获取httpd的默认配置文件路径
-      const res = await execPromise(`${bin} -D DUMP_INCLUDES`)
+      const res = await execPromiseFinal(`${bin} -D DUMP_INCLUDES`)
       const str = res?.stdout?.toString() ?? ''
       let reg = new RegExp('(\\(*\\) )([\\s\\S]*?)(\\n)', 'g')
       let file = ''
       try {
         file = reg?.exec?.(str)?.[2] ?? ''
-      } catch (e) {}
+      } catch (e) { }
       file = file.trim()
       if (!file || !existsSync(file)) {
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
       let content = await readFile(file, 'utf-8')
+      console.log('file: ', file)
       reg = new RegExp('(CustomLog ")([\\s\\S]*?)(access_log")', 'g')
       let path = ''
       try {
         path = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) {}
+      } catch (e) { }
       path = path.trim()
-      if (!path) {
-        reject(new Error(I18nT('fork.apacheLogPathErr')))
-        return
-      }
       logs = join(global.Server.ApacheDir!, 'common/logs/')
       const vhost = join(global.Server.BaseDir!, 'vhost/apache/')
-      content = content
-        .replace(new RegExp(path, 'g'), logs)
+      content = content        
         .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
         .replace('#LoadModule proxy_module', 'LoadModule proxy_module')
         .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')
         .replace('#LoadModule ssl_module', 'LoadModule ssl_module')
+        .replace('\nInclude ports.conf', '\n#Include ports.conf')
+        if (path) {
+          content = content
+          .replace(new RegExp(path, 'g'), logs)
+        } else {
+          content += `\nCustomLog "${logs}access_log" common`
+        }
 
       let find = content.match(/\nUser _www(.*?)\n/g)
       content = content.replace(find?.[0] ?? '###@@@&&&', '\n#User _www\n')
@@ -97,7 +100,7 @@ IncludeOptional "${vhost}*.conf"`
     let host: Array<AppHost> = []
     try {
       host = JSON.parse(json)
-    } catch (e) {}
+    } catch (e) { }
     if (host.length === 0) {
       return
     }
@@ -179,8 +182,13 @@ IncludeOptional "${vhost}*.conf"`
         return
       }
       try {
+        if (bin === '/usr/sbin/apache2ctl') {
+          await execPromise(`echo '${global.Server.Password}' | sudo -S a2enmod actions alias proxy_fcgi`)
+        }
+        const command = `echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`
+        console.log('command: ', command)
         const res = await execPromise(
-          `echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`
+          command
         )
         on(res?.stdout)
         resolve(0)

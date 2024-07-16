@@ -14,8 +14,32 @@ class Manager extends Base {
 
   init() {}
 
+  async #handleLockFileRole() {
+    try {
+      let lsal: any = await execPromise(`ls -al`, {
+        cwd: global.Server.BaseDir
+      })
+      lsal = lsal.stdout
+        .split('\n')
+        .filter((s: string) => s.includes('..'))
+        .pop()
+        .split(' ')
+        .filter((s: string) => !!s.trim())
+        .map((s: string) => s.trim())
+      console.log('lsal: ', lsal)
+      const user = lsal[2]
+      const group = lsal[3]
+      const command = `echo "${global.Server.Password}" | sudo -S chown -R ${user}:${group} /var/run/postgresql`    
+      const res = await execPromise(command)
+      console.log('handleLockFileRole: ', command, res)
+    } catch(e) {
+      console.log('handleLockFileRole err: ', e)
+    }
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      await this.#handleLockFileRole()
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)

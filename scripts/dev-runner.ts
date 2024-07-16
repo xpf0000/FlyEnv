@@ -1,5 +1,5 @@
 import { createServer } from 'vite'
-import { spawn, ChildProcess } from 'child_process'
+import { spawn, ChildProcess, exec } from 'child_process'
 import { build } from 'esbuild'
 import _fs, { copySync } from 'fs-extra'
 import _path from 'path'
@@ -21,34 +21,45 @@ async function launchViteDevServer(openInBrowser = false) {
   await server.listen()
 }
 
-function buildMainProcess() {
-  return new Promise((resolve, reject) => {
-    Promise.all([build(esbuildConfig.dev), build(esbuildConfig.devFork)])
-      .then(
-        () => {
-          try {
-            if (electronProcess && !electronProcess.killed) {
-              electronProcess.kill('SIGINT')
-              if (electronProcess.pid) {
-                process.kill(electronProcess.pid, 'SIGINT')
-              }
-              electronProcess = null
-            }
-          } catch (e) {
-            console.log('close err: ', e)
-          }
-          resolve(true)
-          console.log('buildMainProcess !!!!!!')
-        },
-        (err) => {
-          console.log(err)
+function closeElectron() {
+  return new Promise((resolve) => {
+    let command = `ps aux | grep 'electron' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+    exec(command, (error, stdout, stderr) => {
+      const pids = stdout?.trim()?.split('\n') ?? []
+      const arr: Array<string> = []
+      for (const p of pids) {
+        if (
+          p.includes(' grep ') ||
+          p.includes(' /bin/sh -c') ||
+          p.includes('/Contents/MacOS/') ||
+          p.startsWith('/bin/bash ') ||
+          p.includes('brew.rb ') ||
+          p.includes(' install ') ||
+          p.includes(' uninstall ') ||
+          p.includes(' link ') ||
+          p.includes(' unlink ') ||
+          p.includes('electron/dev-runner.js')
+        ) {
+          continue
         }
-      )
-      .catch((e) => {
-        console.log(e)
-        reject(e)
-      })
+        console.log(p)
+        arr.push(p.split(' ')[0])  
+      }
+      console.log('closeElectron: ', arr)
+      if (arr.length > 0) {
+        command = `kill -INT ${arr.join(' ')}`
+        exec(command, () => {
+          resolve(true)
+        })
+      } else {
+        resolve(true)
+      }
+    })
   })
+}
+
+function buildMainProcess() {
+  return Promise.all([build(esbuildConfig.dev), build(esbuildConfig.devFork), closeElectron()])
 }
 
 function logPrinter(data: string[]) {

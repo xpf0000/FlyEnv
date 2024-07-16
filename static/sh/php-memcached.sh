@@ -16,9 +16,9 @@ else
 fi
 echo "download success. start install"
 export HOMEBREW_NO_AUTO_UPDATE=1
-arch $arch brew install pkg-config autoconf automake libtool
-arch $arch brew install zlib
-arch $arch brew install libmemcached
+brew install pkg-config autoconf automake libtool
+brew install zlib
+brew install libmemcached
 prefix=$(brew --prefix)
 export CFLAGS=-I$prefix/include
 zlib=$prefix/opt/zlib

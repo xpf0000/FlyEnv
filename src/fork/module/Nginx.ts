@@ -5,6 +5,7 @@ import type { SoftInstalled } from '@shared/app'
 import { execPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
+
 class Nginx extends Base {
   constructor() {
     super()

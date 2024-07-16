@@ -41,7 +41,7 @@
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { SoftInstalled } from '@/store/brew'
+  import { type SoftInstalled } from '@/store/brew'
   import { reloadService } from '@/util/Service'
 
   const { existsSync, statSync, mkdirp, writeFile } = require('fs-extra')

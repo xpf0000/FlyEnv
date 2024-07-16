@@ -15,7 +15,7 @@ else
 fi
 echo "download success. start install"
 export HOMEBREW_NO_AUTO_UPDATE=1
-arch $arch brew install pkg-config autoconf automake libtool
+brew install pkg-config autoconf automake libtool
 prefix=$(brew --prefix)
 export CFLAGS=-I$prefix/include
 cd "mongodb-$mongodbv"

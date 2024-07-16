@@ -126,6 +126,38 @@ export function execPromise(
   })
 }
 
+export function execPromiseFinal(
+  cammand: string,
+  opt?: { [k: string]: any }
+): ForkPromise<{
+  error: any
+  stdout: string
+  stderr: string
+}> {
+  return new ForkPromise((resolve, reject) => {
+    try {
+      exec(
+        cammand,
+        merge(
+          {
+            env: fixEnv()
+          },
+          opt
+        ),
+        (error, stdout, stderr) => {
+          resolve({
+            error,
+            stdout,
+            stderr
+          })
+        }
+      )
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
 export function spawnPromise(
   cammand: string,
   params: Array<any>,
@@ -351,7 +383,7 @@ export function getSubDir(fp: string, fullpath = true) {
           }
         }
       })
-    } catch (e) {}
+    } catch (e) { }
   }
   return arr
 }
@@ -400,8 +432,8 @@ export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<
 export const hostAlias = (item: AppHost) => {
   const alias = item.alias
     ? item.alias.split('\n').filter((n) => {
-        return n && n.length > 0
-      })
+      return n && n.length > 0
+    })
     : []
   const arr = Array.from(new Set(alias)).sort()
   arr.unshift(item.name)
@@ -442,7 +474,7 @@ export const systemProxyGet = async () => {
         }
       }
     }
-  } catch (e) {}
+  } catch (e) { }
   console.log('systemProxyGet: ', proxy)
   return proxy
 }

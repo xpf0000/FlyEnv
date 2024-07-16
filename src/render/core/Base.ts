@@ -1,5 +1,5 @@
 import { ElLoading as Loading } from 'element-plus'
-import { nextTick, render, App } from 'vue'
+import { nextTick, render, type App } from 'vue'
 import { ElMessageBox as MessageBox } from 'element-plus'
 import { ElMessage as Message } from 'element-plus'
 import BaseDialog from '../components/YbBaseDialog/dialog'

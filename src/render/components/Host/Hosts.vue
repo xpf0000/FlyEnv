@@ -57,7 +57,7 @@
       return {
         show: true,
         config: '',
-        configpath: '/private/etc/hosts'
+        configpath: '/etc/hosts'
       }
     },
     computed: {},

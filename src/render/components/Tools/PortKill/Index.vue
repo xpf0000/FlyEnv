@@ -135,7 +135,7 @@
       doSearch() {
         this.arrs.splice(0)
         const res = execSync(
-          `echo '${global.Server.Password}' | sudo -S lsof -nP -i:${this.port} | awk '{print $1,$2,$3}'`
+          `echo '${global.Server.Password}' | sudo -S lsof -i:${this.port} | awk '{print $1,$2,$3}'`
         )
           .toString()
           .trim()

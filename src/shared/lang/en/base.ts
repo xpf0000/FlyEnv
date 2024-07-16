@@ -83,7 +83,7 @@ export default {
   hostsSaveFailed:
     'System Hosts file failed to save. Please check whether the file exists and whether the file permissions are correct',
   hostsReadFailed:
-    '/private/etc/hosts Failed to read the file. Please check whether the file exists and whether the file permissions are correct',
+    '/etc/hosts Failed to read the file. Please check whether the file exists and whether the file permissions are correct',
   needSelectDir: 'Please select a folder!',
   processNoFound: 'No processes found',
   nvmInstallfailed: 'NVM Install Failed',

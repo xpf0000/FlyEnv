@@ -130,8 +130,8 @@ export class Base {
       const dis: { [k: string]: string } = {
         caddy: 'caddy',
         nginx: 'nginx',
-        apache: 'httpd',
-        mysql: 'mysqld',
+        apache: '/server/apache/',
+        mysql: '/server/mysql/',
         mariadb: 'mariadbd',
         memcached: 'memcached',
         redis: 'redis-server',
@@ -232,7 +232,7 @@ export class Base {
         reject(e)
         return
       }
-      spawnPromise('zsh', [copyfile, arch, action, name]).on(on).then(resolve).catch(reject)
+      spawnPromise('bash', [copyfile, arch, action, name]).on(on).then(resolve).catch(reject)
     })
   }
 
@@ -257,7 +257,7 @@ export class Base {
       } catch (e) {
         reject(e)
       }
-      spawnPromise('zsh', [copyfile]).on(on).then(resolve).catch(reject)
+      spawnPromise('bash', [copyfile]).on(on).then(resolve).catch(reject)
     })
   }
 }

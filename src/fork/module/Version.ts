@@ -37,10 +37,10 @@ class Manager extends Base {
         const str = res.stdout + res.stderr
         let version: string | null = ''
         try {
-          version = reg?.exec(str)?.[2]?.trim() ?? ''
-          reg!.lastIndex = 0
-        } catch (e) {}
-        version = !isNaN(parseInt(version)) ? version : null
+          version = reg?.exec(str)?.[2]?.trim() ?? str?.trim() ?? ''
+          reg && (reg!.lastIndex = 0)
+        } catch (e) { }
+        version = !isNaN(parseInt(version!)) ? version : null
         const regx = /^\d[\d\.]*\d$/g
         if (version && !regx.test(version)) {
           version = null
@@ -52,7 +52,7 @@ class Manager extends Base {
       reg = /\d+(\.\d+){1,4}/g
       switch (name) {
         case 'apachectl':
-          command = `${bin} -v`
+          command = `echo "${global.Server.Password}" | sudo -S ${bin} -v`
           reg = /(Apache\/)(\d+(\.\d+){1,4})( )/g
           break
         case 'nginx':
@@ -60,21 +60,31 @@ class Manager extends Base {
           reg = /(\/)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'caddy':
-          command = `${bin} -v`
-          reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
+          command = `${bin} version`
+          reg = /([v]?)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'php-fpm':
           command = `${bin} -n -v`
           reg = /(\s)(\d+(\.\d+){1,4})([-\s])/g
           break
         case 'mysqld_safe':
-          bin = bin.replace('_safe', '')
-          command = `${bin} -V`
-          reg = /(Ver )(\d+(\.\d+){1,4})( )/g
+          console.log('bin: ', bin)
+          if (bin === '/usr/bin/mysqld_safe') {
+            bin = '/usr/sbin/mysqld'
+          } else {
+            bin = bin.replace('_safe', '')
+          }
+          command = `echo "${global.Server.Password}" | sudo -S ${bin} -V`
+          console.log('command: ', command)
+          reg = /(Ver )(\d+(\.\d+){1,4})([\s-]?)/g
           break
         case 'mariadbd-safe':
-          bin = bin.replace('-safe', '')
-          command = `${bin} -V`
+          if (bin === '/usr/bin/mariadbd-safe') {
+            bin = '/usr/sbin/mariadbd'
+          } else {
+            bin = bin.replace('-safe', '')
+          }          
+          command = `echo "${global.Server.Password}" | sudo -S ${bin} -V`
           reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
           break
         case 'memcached':
@@ -86,7 +96,7 @@ class Manager extends Base {
           reg = /([=\s])(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'mongod':
-          command = `${bin} --version`
+          command = `echo "${global.Server.Password}" | sudo -S ${bin} --version`
           reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'pg_ctl':
@@ -137,23 +147,26 @@ class Manager extends Base {
           const binName = binNames[flag]
           const searchName = searchNames[flag]
           const installed: Set<string> = new Set()
-          const systemDirs = ['/', '/opt', '/usr']
+          const systemDirs = ['/', '/opt', '/usr', '/lib/postgresql']
 
           const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
             let res: string | false = false
             let binPath = join(dir, `bin/${binName}`)
-            if (existsSync(binPath)) {
+            if (existsSync(binPath)) {                 
               binPath = realpathSync(binPath)
-              if (binPath.includes(binName)) {
-                return binPath
+              console.log('binPath real: ', binPath)
+              if (flag === 'mysql' && binPath.includes('mariadb')) {
+                return false
               }
+              if (binPath === '/usr/bin/redis-check-rdb') {
+                binPath = '/usr/bin/redis-server'
+              }
+              return binPath
             }
             binPath = join(dir, `sbin/${binName}`)
             if (existsSync(binPath)) {
               binPath = realpathSync(binPath)
-              if (binPath.includes(binName)) {
-                return binPath
-              }
+              return binPath
             }
             if (depth >= maxDepth) {
               return res
@@ -173,7 +186,7 @@ class Manager extends Base {
             }
           }
 
-          const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
+          const base = ['/home/linuxbrew/.linuxbrew/Cellar']
           for (const b of base) {
             const subDir = await getSubDirAsync(b)
             const subDirFilter = subDir.filter((f) => {
@@ -204,7 +217,7 @@ class Manager extends Base {
           const list: Array<SoftInstalled> = []
           const installedList: Array<string> = Array.from(installed)
           for (const i of installedList) {
-            const path = i.replace(`/sbin/${binName}`, '').replace(`/bin/${binName}`, '')
+            const path = i.replace(`/sbin/`, '/##SPLIT##/').replace(`/bin/`, '/##SPLIT##/').split('/##SPLIT##/').shift()
             const { error, version } = await this.binVersion(i, binName)
             const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
             const item = {
@@ -245,7 +258,7 @@ class Manager extends Base {
       })
       const findFromMacPorts = async (type: string) => {
         const list: Array<SoftInstalled> = []
-        const base = '/opt/local/'
+        const base = '/usr/'
         if (type === 'php') {
           const allSbinFile = await getAllFileAsync(join(base, 'sbin'), false)
           const fpms = allSbinFile.filter((f) => f.startsWith('php-fpm')).map((f) => `sbin/${f}`)
@@ -264,235 +277,9 @@ class Manager extends Base {
                 error,
                 run: false,
                 running: false,
-                phpBin: `/opt/local/bin/php${v}`,
-                phpConfig: `/opt/local/bin/php-config${v}`,
-                phpize: `/opt/local/bin/phpize${v}`
-              }
-              list.push(item as any)
-            }
-            return true
-          }
-          for (const fpm of fpms) {
-            await find(fpm)
-          }
-        } else if (type === 'nginx') {
-          const fpms = ['sbin/nginx']
-          const find = async (fpm: string) => {
-            const bin = join(base, fpm)
-            if (existsSync(bin)) {
-              const { error, version } = await this.binVersion(bin, 'nginx')
-              const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
-              const item = {
-                version: version,
-                bin,
-                path: base,
-                num,
-                enable: version !== null,
-                error,
-                run: false,
-                running: false
-              }
-              list.push(item as any)
-            }
-            return true
-          }
-          for (const fpm of fpms) {
-            await find(fpm)
-          }
-        } else if (type === 'caddy') {
-          const fpms = ['bin/caddy']
-          const find = async (fpm: string) => {
-            const bin = join(base, fpm)
-            if (existsSync(bin)) {
-              const { error, version } = await this.binVersion(bin, 'caddy')
-              const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
-              const item = {
-                version: version,
-                bin,
-                path: base,
-                num,
-                enable: version !== null,
-                error,
-                run: false,
-                running: false
-              }
-              list.push(item as any)
-            }
-            return true
-          }
-          for (const fpm of fpms) {
-            await find(fpm)
-          }
-        } else if (type === 'apache') {
-          const fpms = ['sbin/apachectl']
-          const find = async (fpm: string) => {
-            const bin = join(base, fpm)
-            if (existsSync(bin)) {
-              const { error, version } = await this.binVersion(bin, 'apachectl')
-              const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
-              const item = {
-                version: version,
-                bin,
-                path: base,
-                num,
-                enable: version !== null,
-                error,
-                run: false,
-                running: false
-              }
-              list.push(item as any)
-            }
-            return true
-          }
-          for (const fpm of fpms) {
-            await find(fpm)
-          }
-        } else if (type === 'mysql') {
-          const allLibFile = await getSubDirAsync(join(base, 'lib'), false)
-          const fpms = allLibFile
-            .filter((f) => f.startsWith('mysql'))
-            .map((f) => `lib/${f}/bin/mysqld_safe`)
-          const find = async (fpm: string) => {
-            const bin = join(base, fpm)
-            if (existsSync(bin)) {
-              const { error, version } = await this.binVersion(bin, 'mysqld_safe')
-              const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
-              const item = {
-                version: version,
-                bin,
-                path: dirname(dirname(bin)) + '/',
-                num,
-                enable: version !== null,
-                error,
-                run: false,
-                running: false
-              }
-              list.push(item as any)
-            }
-            return true
-          }
-          for (const fpm of fpms) {
-            await find(fpm)
-          }
-        } else if (type === 'mariadb') {
-          const allLibFile = await getSubDirAsync(join(base, 'lib'), false)
-          const fpms = allLibFile
-            .filter((f) => f.startsWith('mariadb'))
-            .map((f) => `lib/${f}/bin/mariadbd-safe`)
-          const find = async (fpm: string) => {
-            const bin = join(base, fpm)
-            if (existsSync(bin)) {
-              const { error, version } = await this.binVersion(bin, 'mariadbd-safe')
-              const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
-              const item = {
-                version: version,
-                bin,
-                path: dirname(dirname(bin)),
-                num,
-                enable: version !== null,
-                error,
-                run: false,
-                running: false
-              }
-              list.push(item as any)
-            }
-            return true
-          }
-          for (const fpm of fpms) {
-            await find(fpm)
-          }
-        } else if (type === 'memcached') {
-          const fpms = ['bin/memcached']
-          const find = async (fpm: string) => {
-            const bin = join(base, fpm)
-            if (existsSync(bin)) {
-              const { error, version } = await this.binVersion(bin, 'memcached')
-              const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
-              const item = {
-                version: version,
-                bin,
-                path: base,
-                num,
-                enable: version !== null,
-                error,
-                run: false,
-                running: false
-              }
-              list.push(item as any)
-            }
-            return true
-          }
-          for (const fpm of fpms) {
-            await find(fpm)
-          }
-        } else if (type === 'redis') {
-          const fpms = ['bin/redis-server']
-          const find = async (fpm: string) => {
-            const bin = join(base, fpm)
-            if (existsSync(bin)) {
-              const { error, version } = await this.binVersion(bin, 'redis-server')
-              const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
-              const item = {
-                version: version,
-                bin,
-                path: base,
-                num,
-                enable: version !== null,
-                error,
-                run: false,
-                running: false
-              }
-              list.push(item as any)
-            }
-            return true
-          }
-          for (const fpm of fpms) {
-            await find(fpm)
-          }
-        } else if (type === 'mongodb') {
-          const fpms = ['bin/mongod', 'sbin/mongod']
-          const find = async (fpm: string) => {
-            const bin = join(base, fpm)
-            if (existsSync(bin)) {
-              const { error, version } = await this.binVersion(bin, 'mongod')
-              const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
-              const item = {
-                version: version,
-                bin,
-                path: base,
-                num,
-                enable: version !== null,
-                error,
-                run: false,
-                running: false
-              }
-              list.push(item as any)
-            }
-            return true
-          }
-          for (const fpm of fpms) {
-            await find(fpm)
-          }
-        } else if (type === 'postgresql') {
-          const allLibFile = await getSubDirAsync(join(base, 'lib'), false)
-          const fpms = allLibFile
-            .filter((f) => f.startsWith('postgresql1'))
-            .map((f) => `lib/${f}/bin/pg_ctl`)
-
-          const find = async (fpm: string) => {
-            const bin = join(base, fpm)
-            if (existsSync(bin)) {
-              const { error, version } = await this.binVersion(bin, 'pg_ctl')
-              const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
-              const item = {
-                version: version,
-                bin,
-                path: dirname(dirname(bin)) + '/',
-                num,
-                enable: version !== null,
-                error,
-                run: false,
-                running: false
+                phpBin: `/usr/bin/php${v}`,
+                phpConfig: `/usr/bin/php-config${v}`,
+                phpize: `/usr/bin/phpize${v}`
               }
               list.push(item as any)
             }

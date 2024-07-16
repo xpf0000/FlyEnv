@@ -1,11 +1,9 @@
-#!/bin/zsh
-if [ -f "~/.bash_profile" ]; then
-  source ~/.bash_profile
+#!/usr/bin/bash
+if [ -f "~/.bashrc" ]; then
+  source ~/.bashrc
 fi
 if [ -f "~/.zshrc" ]; then
   source ~/.zshrc
 fi
-echo "arch ##ARCH## sudo port clean -v ##NAME##"
-echo "##PASSWORD##" | arch ##ARCH## sudo -S port clean -v ##NAME##
-echo "arch ##ARCH## sudo port ##ACTION## -v ##NAME##"
-echo "##PASSWORD##" | arch ##ARCH## sudo -S port ##ACTION## -v ##NAME##
+echo "sudo apt ##ACTION## ##NAME##"
+echo "##PASSWORD##" | sudo -S apt ##ACTION## -y ##NAME##

@@ -167,7 +167,7 @@
   import { startService, stopService } from '@/util/Service'
   import installedVersions from '@/util/InstalledVersions'
   import IPC from '@/util/IPC'
-  import { BrewStore, SoftInstalled } from '@/store/brew'
+  import { BrewStore, type SoftInstalled } from '@/store/brew'
   import { ElLoading } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@/util/AsyncComponent'

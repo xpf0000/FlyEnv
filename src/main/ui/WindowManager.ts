@@ -11,9 +11,10 @@ initialize()
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
+  autoHideMenuBar: true,
   show: false,
-  width: 1024,
-  height: 768,
+  width: 1200,
+  height: 800,
   webPreferences: {
     nodeIntegration: true,
     contextIsolation: false,
@@ -84,6 +85,7 @@ export default class WindowManager extends EventEmitter {
     }
     const pageOptions = this.getPageOptions(page)
     window = new BrowserWindow(trayBrowserOptions)
+    window.removeMenu()
     enable(window.webContents)
     window.loadURL(pageOptions.url).then()
     window.on('close', (event: Event) => {
@@ -115,6 +117,7 @@ export default class WindowManager extends EventEmitter {
       ...defaultBrowserOptions,
       ...pageOptions.attrs
     })
+    window.removeMenu()
     enable(window.webContents)
     const bounds = this.getPageBounds(page)
     if (bounds) {

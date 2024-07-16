@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/bash
 mkdir tmp.iconset
 sips -z 16 16     static/512x512.png --out tmp.iconset/icon_16x16.png
 sips -z 32 32     static/512x512.png --out tmp.iconset/icon_16x16@2x.png

@@ -1,5 +1,5 @@
 import IPC from '@/util/IPC.js'
-import { BrewStore, SoftInstalled } from '@/store/brew'
+import { BrewStore, type SoftInstalled } from '@/store/brew'
 import type { AppSofts } from '@/store/app'
 import { AppStore } from '@/store/app'
 import { reactive } from 'vue'
