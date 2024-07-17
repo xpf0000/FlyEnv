@@ -33,6 +33,7 @@ class DnsServer {
           encoding: 'utf8'
         })
         this.pty.onData((data: string) => {
+          console.log('dns data: ', data)
           stdout += data
           if (!resolved && stdout.includes('Start Success')) {
             resolved = true
