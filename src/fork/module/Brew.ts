@@ -189,6 +189,8 @@ class Brew extends Base {
           params = ['show', 'memcached']
         } else if (flag === 'redis') {
           params = ['show', 'redis']
+        } else if (flag === 'pure-ftpd') {
+          params = ['show', 'pure-ftpd']
         }
         let arr = []
         const info = await spawnPromise('apt', params)
@@ -204,7 +206,8 @@ class Brew extends Base {
               'mariadb', 
               'postgresql', 
               'memcached', 
-              'redis'
+              'redis',
+              'pure-ftpd'
             ].includes(flag)) {
               return f.startsWith('Version:')
             }
@@ -225,7 +228,8 @@ class Brew extends Base {
               'mysql', 
               'mariadb', 
               'memcached',
-              'redis'
+              'redis',
+              'pure-ftpd'
             ].includes(flag)) {
               let v = m.replace('Version:', '').trim().split('-').shift() ?? ''
               v = v.split(':').filter((s) => s.includes('.')).shift()!
@@ -273,14 +277,10 @@ class Brew extends Base {
               installed = existsSync(join('/usr/bin', 'memcached'))
             } else if (flag === 'redis') {
               installed = existsSync(join('/usr/bin', `redis-server`))
-            } else if (flag === 'mongodb') {
-              installed =
-                existsSync(join('/opt/local/bin', 'mongod')) ||
-                existsSync(join('/opt/local/sbin', 'mongod'))
             } else if (flag === 'pure-ftpd') {
               installed =
-                existsSync(join('/opt/local/bin', 'pure-pw')) ||
-                existsSync(join('/opt/local/sbin', 'pure-ftpd'))
+                existsSync(join('/usr/bin', 'pure-pw')) ||
+                existsSync(join('/usr/sbin', 'pure-ftpd'))
             } else if (flag === 'postgresql') {
               const v = version.split('.').shift()!
               installed = existsSync(join('/lib/postgresql', v, 'bin/pg_ctl'))
