@@ -229,10 +229,16 @@ class Brew extends Base {
               'mariadb', 
               'memcached',
               'redis',
-              'pure-ftpd'
+              'pure-ftpd',
+              'postgresql'
             ].includes(flag)) {
               let v = m.replace('Version:', '').trim().split('-').shift() ?? ''
-              v = v.split(':').filter((s) => s.includes('.')).shift()!
+              if (v.includes(':')) {
+                v = v.split(':').filter((s) => s.includes('.')).shift()!  
+              } 
+              if(v.includes('+')) {
+                v = v.split('+').shift()!
+              }
               a.push(v)
             } else if (flag === 'php') {
               console.log('php m:', m)
@@ -242,16 +248,6 @@ class Brew extends Base {
               const regex = /(\d+(\.\d+){1,4})/g
               const v = str.match(regex)?.[0] ?? ''
               console.log('php v:', v)
-              a.push(v)
-            } else if(flag === 'postgresql') {
-              let v = m.replace('Version:', '').trim().split('-').shift() ?? ''
-              if (v.includes(':')) {
-                v = v.split(':').filter((s) => s.includes('.')).shift()!  
-              } 
-              if(v.includes('+')) {
-                v = v.split('+').shift()!
-              }
-                      
               a.push(v)
             } else {
               a = m.split('\t').filter((f) => f.trim().length > 0)
