@@ -138,6 +138,8 @@ class Manager extends Base {
       const pdb = join(global.Server.FTPDir!, 'pureftpd.pdb')
       const passwd = join(global.Server.FTPDir!, 'pureftpd.passwd')
 
+      await mkdirp(global.Server.FTPDir!)
+
       const stdout: Array<string> = []
       const { promise, spawn } = spawnPromiseMore(
         './pure-pw',
