@@ -52,6 +52,14 @@ class Host extends Base {
           await execPromise(command, {
             cwd: CADir
           })
+          command = `echo '${global.Server.Password}' | sudo -S cp PhpWebStudy-Root-CA.csr /usr/local/share/ca-certificates/`
+          await execPromise(command, {
+            cwd: CADir
+          })
+          command = `echo '${global.Server.Password}' | sudo -S cp PhpWebStudy-Root-CA.cnf /usr/local/share/ca-certificates/`
+          await execPromise(command, {
+            cwd: CADir
+          })
           command = `echo '${global.Server.Password}' | sudo -S update-ca-certificates`
           await execPromise(command, {
             cwd: CADir
