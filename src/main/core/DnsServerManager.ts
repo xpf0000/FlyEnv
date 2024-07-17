@@ -135,7 +135,7 @@ class DnsServer {
       }
       this?.pty?.kill()
       execPromise(
-        `echo '${global.Server.Password}' | sudo -S lsof -nP -i:53 | awk '{print $1,$2,$3}'`
+        `echo '${global.Server.Password}' | sudo -S lsof -i:53 | awk '{print $1,$2,$3}'`
       )
         .then((res: any) => {
           const str = res?.stdout?.toString()?.trim() ?? ''
