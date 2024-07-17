@@ -58,7 +58,7 @@ class DnsServer {
       }
       const checkNode = () => {
         execPromise(
-          '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";which node',
+          '[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";which node',
           {
             env
           }
@@ -78,7 +78,7 @@ class DnsServer {
         if (existsSync(node_modules) && existsSync(package_lock)) {
           copyFile()
         } else {
-          const command = `[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";cd ${cacheDir};npm install dns2 tangerine undici ip;`
+          const command = `[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";cd ${cacheDir};npm install dns2 tangerine undici ip;`
           execPromise(command, {
             env
           })
@@ -109,7 +109,7 @@ class DnsServer {
           }, 20000)
           try {
             this.pty?.write(
-              '[ -s "$HOME/.bash_profile" ] && source "$HOME/.bash_profile";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";\r'
+              '[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";\r'
             )
             this.pty?.write(`cd ${cacheDir}\r`)
             this.pty?.write(`chmod 777 ${cacheFile}\r`)
