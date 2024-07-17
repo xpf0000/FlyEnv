@@ -109,13 +109,10 @@ class DnsServer {
               reject(new Error('Start Fail'))
             }
           }, 20000)
-          try {
-            this.pty?.write(
-              '[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";\r'
-            )
+          try {          
             this.pty?.write(`cd ${cacheDir}\r`)
             this.pty?.write(`chmod 777 ${cacheFile}\r`)
-            const shell = `echo '${global.Server.Password}' | sudo -S ${node} ${cacheFile}\r`
+            const shell = `[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";echo '${global.Server.Password}' | sudo -S node ${cacheFile}\r`
             this.pty?.write(shell)
           } catch (e: any) {}
         })
