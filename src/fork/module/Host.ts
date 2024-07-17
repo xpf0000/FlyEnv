@@ -90,7 +90,8 @@ subjectAltName=@alt_names
           cwd: hostCADir
         })
         console.log('res 00: ', res)
-        command = `openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
+        command = `echo "${global.Server.Password}" | sudo -S openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
+        console.log('command: ', command)
         res = await execPromise(command, {
           cwd: hostCADir
         })
