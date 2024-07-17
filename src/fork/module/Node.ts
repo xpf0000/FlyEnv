@@ -27,7 +27,9 @@ class Manager extends Base {
           {
             env: fixEnv()
           },
-          (error, stdout) => {
+          (error, stdout, stderr) => {
+            console.log('stdout: ', stdout)
+            console.log('stderr: ', stderr)
             const str = stdout ?? ''
             const all =
               str?.match(/\sv\d+(\.\d+){1,4}\s/g)?.map((v) => {
