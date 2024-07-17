@@ -364,7 +364,7 @@ const chooseRoot = (flag: 'root' | 'certkey' | 'cert', choosefile = false) => {
   const options: any = {}
   let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
   if (choosefile) {
-    opt.push('openFile')
+    opt = ['openFile', 'showHiddenFiles']
   }
   options.properties = opt
   if (flag === 'root' && item?.value?.root) {

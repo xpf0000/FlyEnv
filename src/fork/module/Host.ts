@@ -86,10 +86,15 @@ subjectAltName=@alt_names
         const rootCA = join('/usr/local/share/ca-certificates/', 'PhpWebStudy-Root-CA')
 
         let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}";`
-        command += `openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
-        await execPromise(command, {
+        let res = await execPromise(command, {
           cwd: hostCADir
         })
+        console.log('res 00: ', res)
+        command = `openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
+        res = await execPromise(command, {
+          cwd: hostCADir
+        })
+        console.log('res 11: ', res)
         const crt = join(hostCADir, `${hostCAName}.crt`)
         if (!existsSync(crt)) {
           resolve(false)
