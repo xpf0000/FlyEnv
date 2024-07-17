@@ -16,6 +16,7 @@ class DnsServer {
     let log = ''
     let resolved = false
     let timer: NodeJS.Timeout | undefined
+    let node = ''
     return new Promise((resolve, reject) => {
       const env = fixEnv() as any
       const cacheDir = global.Server.Cache
@@ -64,7 +65,8 @@ class DnsServer {
           }
         )
           .then((res: any) => {
-            console.log('node: ', res.stdout.toString())
+            node = res.stdout.toString()
+            console.log('node: ', node)
             npmInstall()
           })
           .catch((e: Error) => {
@@ -113,7 +115,7 @@ class DnsServer {
             )
             this.pty?.write(`cd ${cacheDir}\r`)
             this.pty?.write(`chmod 777 ${cacheFile}\r`)
-            const shell = `echo '${global.Server.Password}' | sudo -S node ${cacheFile}\r`
+            const shell = `echo '${global.Server.Password}' | sudo -S ${node} ${cacheFile}\r`
             this.pty?.write(shell)
           } catch (e: any) {}
         })
