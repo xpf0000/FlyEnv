@@ -1,5 +1,5 @@
 import { spawn, IPty } from 'node-pty'
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { copyFileSync, writeFileSync, existsSync } from 'fs'
 import { fixEnv } from '@shared/utils'
 const execPromise = require('child-process-promise').exec
@@ -110,9 +110,10 @@ class DnsServer {
             }
           }, 20000)
           try {          
+            this.pty?.write(`export PATH="${dirname(node)}:$PATH"\r`)
             this.pty?.write(`cd ${cacheDir}\r`)
             this.pty?.write(`chmod 777 ${cacheFile}\r`)
-            const shell = `[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";echo '${global.Server.Password}' | sudo -S node ${cacheFile}\r`
+            const shell = `echo '${global.Server.Password}' | sudo -S node ${cacheFile}\r`
             this.pty?.write(shell)
           } catch (e: any) {}
         })
