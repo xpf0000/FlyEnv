@@ -311,15 +311,16 @@ const handleEdit = (index: number, row: any) => {
       names = ['mariadb-server']
     } else if (props.typeFlag === 'redis') {
       names = ['redis-server']
+    } else if (props.typeFlag === 'apache') {
+      names = ['apache2']
+      stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop apache2`
     }
     const sh = join(global.Server.Static, 'sh/port-cmd.sh')
     const copyfile = join(global.Server.Cache, 'port-cmd.sh')
     if (existsSync(copyfile)) {
       unlinkSync(copyfile)
     }
-    if (name === 'apache') {
-      names = ['apache2']
-    }
+  
     let content = readFileSync(sh, 'utf-8')
     content = content
       .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password)

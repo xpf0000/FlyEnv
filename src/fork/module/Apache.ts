@@ -54,7 +54,7 @@ class Apache extends Base {
       path = path.trim()
       logs = join(global.Server.ApacheDir!, 'common/logs/')
       const vhost = join(global.Server.BaseDir!, 'vhost/apache/')
-      content = content        
+      content = content
         .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
         .replace('#LoadModule proxy_module', 'LoadModule proxy_module')
         .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')
@@ -101,10 +101,9 @@ IncludeOptional "${vhost}*.conf"`
     try {
       host = JSON.parse(json)
     } catch (e) { }
-    if (host.length === 0) {
-      return
-    }
+
     const allNeedPort: Set<number> = new Set()
+    allNeedPort.add(80)
     host.forEach((h) => {
       const apache = Number(h?.port?.apache)
       const apache_ssl = Number(h?.port?.apache_ssl)
@@ -183,7 +182,7 @@ IncludeOptional "${vhost}*.conf"`
       }
       try {
         if (bin === '/usr/sbin/apache2ctl') {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S a2enmod actions alias proxy_fcgi`)
+          await execPromise(`echo '${global.Server.Password}' | sudo -S a2enmod ssl actions alias proxy_fcgi`)
         }
         const command = `echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`
         console.log('command: ', command)
