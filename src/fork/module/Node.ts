@@ -140,7 +140,7 @@ class Manager extends Base {
         const password = global.Server.Password!
         const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
         const params = ['node.sh', flag, password, arch]
-        spawnPromise('zsh', params, {
+        spawnPromise('bash', params, {
           cwd: global.Server.Cache
         })
           .on(on)
@@ -200,7 +200,7 @@ class Manager extends Base {
         }
         await copyFile(sh, copyfile)
         await chmod(copyfile, '0777')
-        const { stdout } = await execPromise(`source node.sh check`, {
+        const { stdout } = await execPromise(`bash node.sh check`, {
           cwd: global.Server.Cache
         })
         resolve(stdout.trim())
