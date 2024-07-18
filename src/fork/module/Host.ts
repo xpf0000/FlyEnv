@@ -33,20 +33,12 @@ class Host extends Base {
         const caFileName = 'PhpWebStudy-Root-CA'
         if (!existsSync(CARoot) || !existsSync('/usr/local/share/ca-certificates/PhpWebStudy-Root-CA.crt')) {
           await mkdirp(CADir)
-          const cnf = `[ v3_ca ]
-subjectKeyIdentifier=hash
-authorityKeyIdentifier=keyid:always,issuer
-basicConstraints = critical,CA:true
-[ req ]
-req_extensions = v3_req
-[ v3_req ]
-basicConstraints = CA:FALSE
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth`
+          const cnf = `basicConstraints = critical, CA:true
+keyUsage = critical, digitalSignature, keyCertSign`
           await writeFile(join(CADir, `${caFileName}.cnf`), cnf)
           let command = `openssl genrsa -out ${caFileName}.key 2048;`
           command += `openssl req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=${caFileName}/O=PhpWebStudy/OU=PhpWebStudy";`
-          command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -extensions v3_ca -sha256 -days 3650;`
+          command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650;`
           let res = await execPromise(command, {
             cwd: CADir
           })
@@ -71,6 +63,8 @@ extendedKeyUsage = serverAuth`
           await execPromise(command, {
             cwd: CADir
           })
+          command = `echo '${global.Server.Password}' | sudo -S rm -rf /etc/ssl/certs/PhpWebStudy-Root-CA*`
+          await execPromise(command)
           command = `echo '${global.Server.Password}' | sudo -S update-ca-certificates`
           res = await execPromise(command)
           console.log('res: ', res)
@@ -82,23 +76,9 @@ extendedKeyUsage = serverAuth`
         }
         await mkdirp(hostCADir)
         let ext = `authorityKeyIdentifier=keyid,issuer
-basicConstraints=CA:FALSE
-keyUsage=digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-[ req ]
-default_bits = 2048
-prompt = no
-default_md = sha256
-req_extensions = req_ext
-distinguished_name = dn
-[ dn ]
-C = SE
-ST = Stockholm
-L = Stockholm
-O = PhpWebStudy
-OU = PhpWebStudy
-emailAddress = 250881478@qq.com
-CN = ${host.name}
-[ req_ext ]
+basicConstraints=critical,CA:FALSE
+keyUsage=critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage=serverAuth,clientAuth
 subjectAltName=@alt_names
 
 [alt_names]${EOL}`
@@ -110,12 +90,12 @@ subjectAltName=@alt_names
 
         const rootCA = join('/usr/local/share/ca-certificates/', 'PhpWebStudy-Root-CA')
 
-        let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -config ${hostCAName}.ext -sha256 -subj "/CN=${hostCAName}/O=PhpWebStudy/OU=PhpWebStudy";`
+        let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}/O=PhpWebStudy/OU=PhpWebStudy";`
         let res = await execPromise(command, {
           cwd: hostCADir
         })
         console.log('res 00: ', res)
-        command = `echo "${global.Server.Password}" | sudo -S openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -extensions req_ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
+        command = `echo "${global.Server.Password}" | sudo -S openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
         console.log('command: ', command)
         res = await execPromise(command, {
           cwd: hostCADir
