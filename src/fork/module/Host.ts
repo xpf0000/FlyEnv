@@ -101,7 +101,7 @@ OU = LEARNOPS
 CN = ${hostCAName}
 [v3_req]
 authorityKeyIdentifier=keyid,issuer
-basicConstraints=critical,CA:FALSE
+basicConstraints=CA:FALSE
 keyUsage=digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
 extendedKeyUsage=serverAuth,clientAuth
 subjectAltName=@alt_names
