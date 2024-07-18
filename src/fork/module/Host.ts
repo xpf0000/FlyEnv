@@ -102,7 +102,7 @@ CN = ${hostCAName}
 [v3_req]
 authorityKeyIdentifier=keyid,issuer
 basicConstraints=critical,CA:FALSE
-keyUsage=critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+keyUsage=digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
 extendedKeyUsage=serverAuth,clientAuth
 subjectAltName=@alt_names
 
