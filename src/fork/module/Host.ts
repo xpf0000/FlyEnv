@@ -31,14 +31,31 @@ class Host extends Base {
         const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
         const CADir = dirname(CARoot)
         const caFileName = 'PhpWebStudy-Root-CA'
-        if (!existsSync(CARoot) || !existsSync('/usr/local/share/ca-certificates/PhpWebStudy-Root-CA.crt')) {
+        if (
+          !existsSync(CARoot) ||
+          !existsSync('/usr/local/share/ca-certificates/PhpWebStudy-Root-CA.crt')
+        ) {
           await mkdirp(CADir)
-          const cnf = `basicConstraints = critical, CA:true
-keyUsage = critical, digitalSignature, keyCertSign`
+          const cnf = `[req]
+distinguished_name=dn
+req_extensions=v3_req
+prompt = no
+
+[v3_req]
+basicConstraints = critical, CA:TRUE
+keyUsage = critical, digitalSignature, keyCertSign
+[dn]
+C = US
+ST = LA
+L = Alexandria
+O = TDPS Certification Authority
+OU = LEARNOPS
+CN = ${caFileName}`
           await writeFile(join(CADir, `${caFileName}.cnf`), cnf)
           let command = `openssl genrsa -out ${caFileName}.key 2048;`
-          command += `openssl req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=${caFileName}/O=PhpWebStudy/OU=PhpWebStudy";`
-          command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650;`
+          //command += `openssl req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=${caFileName}/O=PhpWebStudy/OU=PhpWebStudy";`
+          command += `openssl req -x509 -new -nodes -config ${caFileName}.cnf -sha256 -days 3650 -extensions v3_req -key ${caFileName}.key -out ${caFileName}.crt;`
+          console.log('command: ', command)
           let res = await execPromise(command, {
             cwd: CADir
           })
@@ -52,10 +69,6 @@ keyUsage = critical, digitalSignature, keyCertSign`
             cwd: CADir
           })
           command = `echo '${global.Server.Password}' | sudo -S cp PhpWebStudy-Root-CA.key /usr/local/share/ca-certificates/`
-          await execPromise(command, {
-            cwd: CADir
-          })
-          command = `echo '${global.Server.Password}' | sudo -S cp PhpWebStudy-Root-CA.csr /usr/local/share/ca-certificates/`
           await execPromise(command, {
             cwd: CADir
           })
@@ -75,7 +88,19 @@ keyUsage = critical, digitalSignature, keyCertSign`
           await remove(hostCADir)
         }
         await mkdirp(hostCADir)
-        let ext = `authorityKeyIdentifier=keyid,issuer
+        let ext = `[req]
+distinguished_name=dn
+req_extensions=v3_req
+prompt = no
+[dn]
+C = US
+ST = LA
+L = Alexandria
+O = TDPS Certification Authority
+OU = LEARNOPS
+CN = ${hostCAName}
+[v3_req]
+authorityKeyIdentifier=keyid,issuer
 basicConstraints=critical,CA:FALSE
 keyUsage=critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
 extendedKeyUsage=serverAuth,clientAuth
@@ -95,7 +120,7 @@ subjectAltName=@alt_names
           cwd: hostCADir
         })
         console.log('res 00: ', res)
-        command = `echo "${global.Server.Password}" | sudo -S openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
+        command = `echo "${global.Server.Password}" | sudo -S openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -extensions v3_req -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
         console.log('command: ', command)
         res = await execPromise(command, {
           cwd: hostCADir
@@ -244,8 +269,8 @@ subjectAltName=@alt_names
             }
             const aliasArr = item.alias
               ? item.alias.split('\n').filter((n: string) => {
-                return n && n?.trim()?.length > 0
-              })
+                  return n && n?.trim()?.length > 0
+                })
               : []
             item.alias = aliasArr
               .map((a: string) => {
@@ -351,7 +376,7 @@ subjectAltName=@alt_names
         if (existsSync(f)) {
           try {
             await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${f}`)
-          } catch (e) { }
+          } catch (e) {}
         }
       }
       resolve(true)
@@ -366,7 +391,7 @@ subjectAltName=@alt_names
     if (existsSync(dir)) {
       try {
         await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
-      } catch (e) { }
+      } catch (e) {}
       const parentDir = dirname(dir)
       if (parentDir !== dir) {
         await this.#setDirRole(parentDir, depth + 1)
@@ -440,7 +465,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         const content = tmplContent.replace('##VERSION##', `${v}`)
         await writeFile(confFile, content)
       }
-    } catch (e) { }
+    } catch (e) {}
   }
 
   async #initCaddyConf(host: AppHost) {
@@ -1084,7 +1109,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       try {
         await execPromise(`echo '${password}' | sudo -S chmod 777 /private/etc`)
         await execPromise(`echo '${password}' | sudo -S chmod 777 /etc/hosts`)
-      } catch (e) { }
+      } catch (e) {}
     }
   }
 
@@ -1105,7 +1130,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         try {
           json = JSON.parse(json)
           appHost.push(...json)
-        } catch (e) { }
+        } catch (e) {}
       }
       if (write) {
         this._initHost(appHost).then(resolve)
@@ -1213,7 +1238,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       const content = await readFile(hostfile, 'utf-8')
       try {
         hostList = JSON.parse(content)
-      } catch (e) { }
+      } catch (e) {}
       const find = hostList.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
       if (find) {
         resolve(true)
