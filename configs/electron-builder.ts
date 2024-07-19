@@ -2,7 +2,7 @@ import type { Configuration } from 'electron-builder'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
-  buildVersion: '3.0.0',
+  buildVersion: '4.0.0',
   electronVersion: '30.2.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -23,7 +23,10 @@ const conf: Configuration = {
     icon: 'build/Icon@256x256.icns',
     asarUnpack: ['**/*.node'],
     category: 'Development',
-    target: ['deb']
+    target: [{
+      target: 'deb',
+      arch: ['x64', 'arm64']
+    }]
   }
 }
 
