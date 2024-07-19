@@ -23,7 +23,8 @@ export default class TrayManager extends EventEmitter {
       { label: 'Mysql', type: 'checkbox' }
     ])
     this.tray.setContextMenu(contextMenu)
-    // this.tray.on('click', this.handleTrayClick)
+    this.tray.on('click', this.handleTrayClick)
+    this.tray.on('right-click', this.handleTrayClick)
   }
 
   iconChange(status: boolean) {
@@ -31,11 +32,11 @@ export default class TrayManager extends EventEmitter {
     this.tray.setImage(this.active ? this.activeIcon : this.normalIcon)
   }
 
-  handleTrayClick = (event: any) => {
+  handleTrayClick = (event: any, bounds: any) => {
     event?.preventDefault && event?.preventDefault()
     const points = screen.getCursorScreenPoint()  
     const screenWidth = screen.getPrimaryDisplay().workAreaSize.width
-    console.log('handleTrayClick: ',screenWidth, points, event)
+    console.log('handleTrayClick: ',screenWidth, points, event, bounds)
     const x = Math.min(points.x - 135, screenWidth - 270)
     const poperX = Math.max(15, points.x - x - 6)
     this.emit('click', x, poperX)
