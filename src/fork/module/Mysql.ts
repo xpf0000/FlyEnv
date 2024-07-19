@@ -64,9 +64,6 @@ datadir=${dataDir}`
         `--log-error=${e}`,
         '--socket=/tmp/mysql.sock'
       ]
-      if (version?.flag === 'macports') {
-        params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
-      }
       let needRestart = false
       if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
         needRestart = true
@@ -79,30 +76,6 @@ datadir=${dataDir}`
           params.push(`--defaults-file=${m}`)
           params.push(`--datadir=${dataDir}`)
           params.push(`--basedir=${version.path}`)
-          if (version?.flag === 'macports') {
-            const defaultCnf = join(version.path, 'my-default.cnf')
-            if (!existsSync(defaultCnf)) {
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp -f ${m} ${defaultCnf}`
-              )
-            }
-            const enDir = join(version.path, 'share')
-            if (!existsSync(enDir)) {
-              const shareDir = `/opt/local/share/${basename(version.path)}`
-              if (existsSync(shareDir)) {
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir}/* ${enDir}`
-                )
-                const langDir = join(enDir, basename(version.path))
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${langDir}`)
-                const langEnDir = join(shareDir, 'english')
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${langEnDir} ${langDir}`
-                )
-              }
-            }
-          }
         } else {
           params.push('--initialize-insecure')
         }
@@ -155,7 +128,7 @@ datadir=${dataDir}`
           if (success) {
             resolve(code)
           } else {
-            if (needRestart) {
+            if (needRestart && readdirSync(dataDir).length > 0) {
               try {
                 await this._startServer(version).on(on)
                 await this._initPassword(version)

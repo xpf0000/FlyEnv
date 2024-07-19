@@ -46,7 +46,7 @@ class Manager extends Base {
         await chmod(copyfile, '0777')
         const params = [copyfile, cacheDir, dir, binDir]
         console.log('params: ', params.join(' '))
-        spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
+        spawnPromise('bash', params).on(on).then(resolve).catch(reject)
       } else {
         const names: { [k: string]: string } = {
           laravel: 'laravel/laravel',
@@ -67,7 +67,7 @@ class Manager extends Base {
         await chmod(copyfile, '0777')
         const params = [copyfile, cacheDir, dir, name, version, binDir]
         console.log('params: ', params.join(' '))
-        spawnPromise('zsh', params)
+        spawnPromise('bash', params)
           .on(on)
           .then(async () => {
             if (framework === 'laravel') {
