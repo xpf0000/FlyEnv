@@ -31,7 +31,6 @@ export default class TrayManager extends EventEmitter {
       enabled: !status.groupDisabled
     })
     menus.push({
-      label: '', 
       type: 'separator'
     })
     if (status.apache.show) {
@@ -123,7 +122,6 @@ export default class TrayManager extends EventEmitter {
       })
     }
     menus.push({
-      label: '', 
       type: 'separator'
     })
     menus.push({
