@@ -108,20 +108,16 @@ export default class Application extends EventEmitter {
   }
 
   initTrayManager() {
-    this.trayManager.on('click', (x, poperX) => {
-      if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
-        this?.trayWindow?.setPosition(x, 0)
-        this?.trayWindow?.setOpacity(1.0)
-        this?.trayWindow?.show()
-        this.windowManager.sendCommandTo(
-          this.trayWindow!,
-          'APP:Poper-Left',
-          'APP:Poper-Left',
-          poperX
-        )
-      } else {
-        this?.trayWindow?.hide()
-      }
+    this.trayManager.on('action', (action, service) => {
+     if (action === 'serviceOne') {
+      this.windowManager.sendCommandTo(this.mainWindow!, 'APP:Tray-Command', 'APP:Tray-Command', 'switchChange', service)
+     } else if (action === 'serviceAll') {
+      this.windowManager.sendCommandTo(this.mainWindow!, 'APP:Tray-Command', 'APP:Tray-Command', 'groupDo')
+     } else if (action === 'show') {
+      this.show('index')
+     } else if (action === 'exit') {
+      this.emit('application:exit')
+     }
     })
   }
 

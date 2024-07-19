@@ -25,13 +25,17 @@ export default class TrayManager extends EventEmitter {
     console.log('menuChange: ', status)
     const serviceOne = (flag: string) => {
       console.log('serviceOne: ', flag)
+      this.emit('action', 'serviceOne', flag)
     }
     const menus: any[] = []
     menus.push({
       label: 'ALL', 
       type: 'checkbox', 
       checked: status.groupIsRunning,
-      enabled: !status.groupDisabled,    
+      enabled: !status.groupDisabled,
+      click: () => {
+        this.emit('action', 'serviceAll')
+      }
     })
     menus.push({
       type: 'separator'
@@ -162,11 +166,17 @@ export default class TrayManager extends EventEmitter {
     })
     menus.push({
       label: I18nT('menu.showMainWin'), 
-      type: 'normal'
+      type: 'normal',
+      click: () => {
+        this.emit('action', 'show')
+      }
     })
     menus.push({
       label: I18nT('menu.exit'),
-      type: 'normal'
+      type: 'normal',
+      click: () => {
+        this.emit('action', 'exit')
+      }
     })
     const contextMenu = Menu.buildFromTemplate(menus)
   
