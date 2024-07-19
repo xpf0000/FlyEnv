@@ -172,71 +172,122 @@ class Brew extends Base {
       let params: string[] = []
       try {
         if (flag === 'apache') {
-          params = ['show', 'apache2']
+          if (global.Server.SystemPackger === 'apt') {
+            params = ['show', 'apache2']
+          } else {
+            params = ['info', 'httpd']
+          }
         } else if (flag === 'nginx') {
-          params = ['show', 'apache2']
+          if (global.Server.SystemPackger === 'apt') {
+            params = ['show', 'nginx']
+          } else {
+            params = ['info', 'nginx']
+          }
         } else if (flag === 'caddy') {
-          params = ['show', 'caddy']
+          if (global.Server.SystemPackger === 'apt') {
+            params = ['show', 'caddy']
+          } else {
+            params = ['info', 'caddy']
+          }
         } else if (flag === 'php') {
-          params = ['search', '(FPM-CGI binary)']
+          if (global.Server.SystemPackger === 'apt') {
+            params = ['search', '(FPM-CGI binary)']
+          } else {
+            params = ['search', '-v', 'PHP FastCGI Process Manager']
+          }
         } else if (flag === 'mysql') {
-          params = ['show', 'mysql-server']
+          if (global.Server.SystemPackger === 'apt') {
+            params = ['show', 'mysql-server']
+          } else {
+            params = ['info', 'community-mysql-server']
+          }
         } else if (flag === 'mariadb') {
-          params = ['show', 'mariadb-server']
+          if (global.Server.SystemPackger === 'apt') {
+            params = ['show', 'mariadb-server']
+          } else {
+            params = ['info', 'mariadb-server']
+          }
         } else if (flag === 'postgresql') {
-          params = ['show', 'postgresql']
+          if (global.Server.SystemPackger === 'apt') {
+            params = ['show', 'postgresql']
+          } else {
+            params = ['info', 'postgresql']
+          }
         } else if (flag === 'memcached') {
-          params = ['show', 'memcached']
+          if (global.Server.SystemPackger === 'apt') {
+            params = ['show', 'memcached']
+          } else {
+            params = ['info', 'memcached']
+          }
         } else if (flag === 'redis') {
-          params = ['show', 'redis']
+          if (global.Server.SystemPackger === 'apt') {
+            params = ['show', 'redis']
+          } else {
+            params = ['info', 'redis']
+          }
         } else if (flag === 'pure-ftpd') {
-          params = ['show', 'pure-ftpd']
+          if (global.Server.SystemPackger === 'apt') {
+            params = ['show', 'pure-ftpd']
+          } else {
+            params = ['info', 'pure-ftpd']
+          }
         }
         let arr = []
-        const info = await spawnPromise('apt', params)
+        const info = await spawnPromise(global.Server.SystemPackger!, params)
         console.log('info: ', info)
         arr = info
           .split('\n')
           .filter((f: string) => {
-            if ([
-              'nginx', 
-              'caddy', 
-              'apache', 
-              'mysql', 
-              'mariadb', 
-              'postgresql', 
-              'memcached', 
-              'redis',
-              'pure-ftpd'
-            ].includes(flag)) {
-              return f.startsWith('Version:')
+            if (
+              [
+                'nginx',
+                'caddy',
+                'apache',
+                'mysql',
+                'mariadb',
+                'postgresql',
+                'memcached',
+                'redis',
+                'pure-ftpd'
+              ].includes(flag)
+            ) {
+              if (global.Server.SystemPackger === 'apt') {
+                return f.startsWith('Version:')
+              }
+              return f.startsWith('Version')
             }
             if (flag === 'php') {
-              return f.includes('-fpm/')
-            }                       
-            if (flag === 'redis') {
-              return f.includes('Redis is an open source, advanced key-value store.')
-            }                  
+              if (global.Server.SystemPackger === 'apt') {
+                return f.includes('-fpm/')
+              }
+              return f.includes('-fpm = ')
+            }
             return true
           })
           .map((m: string) => {
             let a: string[] = [flag]
-            if ([
-              'nginx', 
-              'caddy', 
-              'apache', 
-              'mysql', 
-              'mariadb', 
-              'memcached',
-              'redis',
-              'pure-ftpd',
-              'postgresql'
-            ].includes(flag)) {
+            if (
+              [
+                'nginx',
+                'caddy',
+                'apache',
+                'mysql',
+                'mariadb',
+                'memcached',
+                'redis',
+                'pure-ftpd',
+                'postgresql'
+              ].includes(flag)
+            ) {
+              console.log('m: ', m)
               let v = m.replace('Version:', '').trim().split('-').shift() ?? ''
               if (v.includes(':')) {
-                v = v.split(':').filter((s) => s.includes('.')).shift()!  
-              } 
-              if(v.includes('+')) {
+                v = v
+                  .split(':')
+                  .filter((s) => s.includes('.'))
+                  .shift()!
+              }
+              if (v.includes('+')) {
                 v = v.split('+').shift()!
               }
               a.push(v)
@@ -291,7 +342,7 @@ class Brew extends Base {
         arr.forEach((item: any) => {
           Info[item.name] = item
         })
-      } catch (e) { }
+      } catch (e) {}
       resolve(Info)
     })
   }
@@ -440,7 +491,7 @@ class Brew extends Base {
           .filter((f: string) => {
             return !!f.trim() && f.startsWith(`${numStr}-`)
           })
-          .map((m: string) => {          
+          .map((m: string) => {
             const a = m.split('/')
             const libName = a.shift() ?? ''
             const name = libName.split('-').pop()!.toLowerCase()

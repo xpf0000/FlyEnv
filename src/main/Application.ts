@@ -204,11 +204,13 @@ export default class Application extends EventEmitter {
     execAsync('which', ['apt'])
       .then((res: string) => {
         console.log('apt: ', res)
+        global.Server.SystemPackger = 'apt'
       })
       .catch()
     execAsync('which', ['dnf'])
       .then((res: string) => {
         console.log('dnf: ', res)
+        global.Server.SystemPackger = 'dnf'
       })
       .catch()
   }
