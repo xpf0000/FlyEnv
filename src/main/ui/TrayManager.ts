@@ -27,7 +27,7 @@ export default class TrayManager extends EventEmitter {
     event?.preventDefault && event?.preventDefault()
     const points = screen.getCursorScreenPoint()  
     const screenWidth = screen.getPrimaryDisplay().workAreaSize.width
-    console.log('handleTrayClick: ',screenWidth, points)
+    console.log('handleTrayClick: ',screenWidth, points, event)
     const x = Math.min(points.x - 135, screenWidth - 270)
     const poperX = Math.max(15, points.x - x - 6)
     this.emit('click', x, poperX)
