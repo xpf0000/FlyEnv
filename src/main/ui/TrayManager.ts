@@ -23,12 +23,15 @@ export default class TrayManager extends EventEmitter {
 
   menuChange(status: any) {
     console.log('menuChange: ', status)
+    const serviceOne = (flag: string) => {
+      console.log('serviceOne: ', flag)
+    }
     const menus: any[] = []
     menus.push({
       label: 'ALL', 
       type: 'checkbox', 
       checked: status.groupIsRunning,
-      enabled: !status.groupDisabled
+      enabled: !status.groupDisabled,    
     })
     menus.push({
       type: 'separator'
@@ -38,7 +41,10 @@ export default class TrayManager extends EventEmitter {
         label: 'Apache', 
         type: 'checkbox', 
         checked: status.apache.run,
-        enabled: !status.apache.running
+        enabled: !status.apache.running,
+        click: () => {
+          serviceOne('apache')
+        }
       })
     }
     if (status.nginx.show) {
@@ -46,7 +52,10 @@ export default class TrayManager extends EventEmitter {
         label: 'Nginx', 
         type: 'checkbox', 
         checked: status.nginx.run,
-        enabled: !status.nginx.running
+        enabled: !status.nginx.running,
+        click: () => {
+          serviceOne('nginx')
+        }
       })
     }
     if (status.caddy.show) {
@@ -54,7 +63,10 @@ export default class TrayManager extends EventEmitter {
         label: 'Caddy', 
         type: 'checkbox', 
         checked: status.caddy.run,
-        enabled: !status.caddy.running
+        enabled: !status.caddy.running,
+        click: () => {
+          serviceOne('caddy')
+        }
       })
     }
     if (status.php.show) {
@@ -62,7 +74,10 @@ export default class TrayManager extends EventEmitter {
         label: 'Php', 
         type: 'checkbox', 
         checked: status.php.run,
-        enabled: !status.php.running
+        enabled: !status.php.running,
+        click: () => {
+          serviceOne('php')
+        }
       })
     }
     if (status.mysql.show) {
@@ -70,7 +85,10 @@ export default class TrayManager extends EventEmitter {
         label: 'Mysql', 
         type: 'checkbox', 
         checked: status.mysql.run,
-        enabled: !status.mysql.running
+        enabled: !status.mysql.running,
+        click: () => {
+          serviceOne('mysql')
+        }
       })
     }
     if (status.mariadb.show) {
@@ -78,7 +96,10 @@ export default class TrayManager extends EventEmitter {
         label: 'MariaDB', 
         type: 'checkbox', 
         checked: status.mariadb.run,
-        enabled: !status.mariadb.running
+        enabled: !status.mariadb.running,
+        click: () => {
+          serviceOne('mariadb')
+        }
       })
     }
     if (status.postgresql.show) {
@@ -86,7 +107,10 @@ export default class TrayManager extends EventEmitter {
         label: 'PostgreSql', 
         type: 'checkbox', 
         checked: status.postgresql.run,
-        enabled: !status.postgresql.running
+        enabled: !status.postgresql.running,
+        click: () => {
+          serviceOne('postgresql')
+        }
       })
     }
     if (status.memcached.show) {
@@ -94,7 +118,10 @@ export default class TrayManager extends EventEmitter {
         label: 'Memcached', 
         type: 'checkbox', 
         checked: status.memcached.run,
-        enabled: !status.memcached.running
+        enabled: !status.memcached.running,
+        click: () => {
+          serviceOne('memcached')
+        }
       })
     }
     if (status.redis.show) {
@@ -102,7 +129,10 @@ export default class TrayManager extends EventEmitter {
         label: 'Redis', 
         type: 'checkbox', 
         checked: status.redis.run,
-        enabled: !status.redis.running
+        enabled: !status.redis.running,
+        click: () => {
+          serviceOne('redis')
+        }
       })
     }
     if (status.dns.show) {
@@ -110,7 +140,10 @@ export default class TrayManager extends EventEmitter {
         label: 'DNS Server', 
         type: 'checkbox', 
         checked: status.dns.run,
-        enabled: !status.dns.running
+        enabled: !status.dns.running,
+        click: () => {
+          serviceOne('dns')
+        }
       })
     }
     if (status.ftp.show) {
@@ -118,7 +151,10 @@ export default class TrayManager extends EventEmitter {
         label: 'FTP', 
         type: 'checkbox', 
         checked: status.ftp.run,
-        enabled: !status.ftp.running
+        enabled: !status.ftp.running,
+        click: () => {
+          serviceOne('ftp')
+        }
       })
     }
     menus.push({
