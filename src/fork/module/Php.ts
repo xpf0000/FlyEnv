@@ -366,7 +366,7 @@ class Php extends Base {
         }
         const command = params.join(' ')
         on(I18nT('fork.ExtensionInstallFailTips', { command }))
-        spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
+        spawnPromise('bash', params).on(on).then(resolve).catch(reject)
       }
 
       const installByMacports = async (type: string) => {
@@ -645,7 +645,7 @@ class Php extends Base {
           ]
           const command = params.join(' ')
           on(I18nT('fork.ExtensionInstallFailTips', { command }))
-          spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
+          spawnPromise('bash', params).on(on).then(resolve).catch(reject)
           break
       }
     })

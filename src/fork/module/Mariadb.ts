@@ -1,5 +1,5 @@
 import { join, basename, dirname } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
@@ -60,11 +60,8 @@ datadir=${dataDir}`
         `--log-error=${e}`,
         `--socket=/tmp/mysql.sock`
       ]
-      if (version?.flag === 'macports') {
-        params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
-      }
       let needRestart = false
-      if (!existsSync(dataDir)) {
+      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
         needRestart = true
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
@@ -77,18 +74,6 @@ datadir=${dataDir}`
         params.push(`--datadir=${dataDir}`)
         params.push(`--basedir=${version.path}`)
         params.push('--auth-root-authentication-method=normal')
-        if (version?.flag === 'macports') {
-          const enDir = join(version.path, 'share')
-          if (!existsSync(enDir)) {
-            const shareDir = `/opt/local/share/${basename(version.path)}`
-            if (existsSync(shareDir)) {
-              await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir} ${enDir}`
-              )
-            }
-          }
-        }
       }
       try {
         if (existsSync(p)) {
@@ -142,7 +127,7 @@ datadir=${dataDir}`
           if (success) {
             resolve(code)
           } else {
-            if (needRestart) {
+            if (needRestart && readdirSync(dataDir).length > 0) {
               try {
                 await this._startServer(version).on(on)
                 await this._initPassword(version)

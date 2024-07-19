@@ -62,12 +62,10 @@ export default {
   inputPasswordDesc:
     'PhpWebStudy需要电脑密码来完成以下事情\n\n' +
     '1. Nginx/Apache/Caddy以80和443端口启动\n\n' +
-    'MacOS中, 使用小于1024的端口, 必须用sudo命令, 否则无法使用. http和https的默认端口是80和443. 如果不想使用域名访问站点还要携带端口号, 那么nginx/apache/caddy就必须以sudo的形式启动\n\n' +
-    '2. MacPorts中软件的安装和卸载\n\n' +
-    'MacPorts安装和卸载软件, 必须使用sudo\n\n' +
-    '3. MacPorts安装的软件的配置文件的读写\n\n' +
-    'MacPorts安装的软件, 里面的文件的读取和写入是需要使用sudu的. 例如php的php.ini配置文件\n\n' +
-    '4. DNS服务器\n\n' +
+    'Linux中, 使用小于1024的端口, 必须用sudo命令, 否则无法使用. http和https的默认端口是80和443. 如果不想使用域名访问站点还要携带端口号, 那么nginx/apache/caddy就必须以sudo的形式启动\n\n' +
+    '2. Apt中软件的安装和卸载\n\n' +
+    'Apt安装和卸载软件, 必须使用sudo\n\n' +
+    '3. DNS服务器\n\n' +
     'DNS服务器默认使用53端口, 因为小于1024, 所以也必须使用sudo命令启动\n\n' +
     '这些都是系统的硬性限制, 所有同类型的应用, 都会询问用户的许可, PhpWebStudy和其他应用并没有什么不同',
   passwordError: '密码错误,请重新输入',

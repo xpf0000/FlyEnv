@@ -1171,9 +1171,11 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         },
         port: {
           nginx: 80,
-          apache: 8080,
+          apache: 80,
+          caddy: 80,
           nginx_ssl: 443,
-          apache_ssl: 8443
+          apache_ssl: 443,
+          caddy_ssl: 443
         },
         nginx: {
           rewrite: ''

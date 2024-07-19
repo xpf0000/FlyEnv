@@ -111,10 +111,7 @@
         <ShowAI />
       </div>
     </div>
-    <div class="row-2">
-      <div class="col">
-        <AutoUpdate />
-      </div>
+    <div class="row-2">    
       <div class="col">
         <RestPassword />
       </div>
@@ -126,7 +123,6 @@
 import RestPassword from './RestPassword/index.vue'
 import ProxySet from './ProxySet/index.vue'
 import LangeSet from './Lang/index.vue'
-import AutoUpdate from './AutoUpdate/index.vue'
 import { AppStore } from '@/store/app'
 import { defineComponent } from 'vue'
 import ForceStart from './ForceStart/index.vue'
@@ -138,7 +134,6 @@ export default defineComponent({
     RestPassword,
     ProxySet,
     LangeSet,
-    AutoUpdate,
     ForceStart,
     ShowAI,
     ThemeSet

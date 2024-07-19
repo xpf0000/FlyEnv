@@ -30,15 +30,6 @@ export const AIKeys: Array<AIKeyItem> = [
   },
   {
     tips: [
-      ['macports', 'port', 'macport', '版本'],
-      ['无法', '怎么', '没有', '没'],
-      ['使用', '安装', '添加']
-    ],
-    txt: 'MacPorts安装',
-    task: 'MacportInstall'
-  },
-  {
-    tips: [
       ['homebrew', 'brew', '版本'],
       ['无法', '怎么', '没有', '没'],
       ['使用', '安装', '添加']
@@ -142,15 +133,6 @@ export const AIKeysEN: Array<AIKeyItem> = [
     ],
     txt: 'Abort Task',
     task: 'StopTask'
-  },
-  {
-    tips: [
-      ['macports', 'port', 'macport'],
-      [`can't`, 'how', 'can not', 'not'],
-      ['use', 'installed', 'install', 'add']
-    ],
-    txt: 'MacPorts Installation',
-    task: 'MacportInstall'
   },
   {
     tips: [

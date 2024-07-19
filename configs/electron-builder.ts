@@ -1,5 +1,4 @@
 import type { Configuration } from 'electron-builder'
-import PublishConfig from './publish'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
@@ -20,46 +19,12 @@ const conf: Configuration = {
     '!**/node_modules/node-pty/build/node_gyp_bins',
     '!**/node_modules/nodejieba/dict'
   ],
-  dmg: {
-    sign: false,
-    window: {
-      width: 540,
-      height: 380
-    },
-    contents: [
-      {
-        x: 410,
-        y: 230,
-        type: 'link',
-        path: '/Applications'
-      },
-      {
-        x: 130,
-        y: 230,
-        type: 'file'
-      }
-    ]
-  },
-  mac: {
-    icon: 'build/Icon.icns',
-    target: {
-      target: 'default',
-      arch: ['x64', 'arm64']
-    },
+  linux: {
+    icon: 'build/Icon@256x256.icns',
     asarUnpack: ['**/*.node'],
-    extendInfo: {
-      'Icon file': 'icon.icns'
-    },
-    type: 'distribution',
-    darkModeSupport: true,
-    category: 'public.app-category.developer-tools',
-    entitlements: 'build/entitlements.mac.plist',
-    entitlementsInherit: 'build/entitlements.mac.plist',
-    hardenedRuntime: true,
-    gatekeeperAssess: false
-  },
-  afterSign: 'build/notarize.js',
-  publish: [PublishConfig]
+    category: 'Development',
+    target: ['deb']
+  }
 }
 
 export default conf

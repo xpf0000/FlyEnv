@@ -66,12 +66,10 @@ export default {
   inputPasswordDesc:
     'PhpWebStudy requires a computer password to do the following things\n\n' +
     '1. Nginx/Apache/Caddy start on ports 80 and 443\n\n' +
-    `On macOS, to use ports smaller than 1024, you must use the sudo command, otherwise it won't work. The default ports for http and https are 80 and 443. If you don't want to carry a port number when you access a site with a domain name, then nginx/apache/caddy must be started as sudo.\n\n` +
-    '2. Installation and uninstallation of software in MacPorts\n\n' +
-    'MacPorts installs and uninstalls software, which must be installed using sudo.\n\n' +
-    '3. Reading and writing configuration files for software installed by MacPorts\n\n' +
-    'MacPorts installs software that requires sudu to read and write files. For example, the php.ini configuration file for php.\n\n' +
-    '4. DNS Server\n\n' +
+    `On Linux, to use ports smaller than 1024, you must use the sudo command, otherwise it won't work. The default ports for http and https are 80 and 443. If you don't want to carry a port number when you access a site with a domain name, then nginx/apache/caddy must be started as sudo.\n\n` +
+    '2. Installation and uninstallation of software in Apt\n\n' +
+    'Apt installs and uninstalls software, which must be installed using sudo.\n\n' +
+    '3. DNS Server\n\n' +
     'The DNS server uses port 53 by default, and since it is smaller than 1024, it must also be started with a sudo command.\n\n' +
     'These are computer system limits, all applications of the same type, ask for permission, PhpWebStudy is no different from any other application.',
   passwordError: 'Password error, please re-enter',
