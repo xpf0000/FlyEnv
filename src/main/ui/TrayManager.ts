@@ -22,9 +22,14 @@ export default class TrayManager extends EventEmitter {
       { label: 'Php', type: 'checkbox', checked: true },
       { label: 'Mysql', type: 'checkbox' }
     ])
+  
     this.tray.setContextMenu(contextMenu)
-    this.tray.on('click', this.handleTrayClick)
-    this.tray.on('right-click', this.handleTrayClick)
+    // this.tray.on('click', this.handleTrayClick)
+    // this.tray.on('right-click', this.handleTrayClick)
+  }
+
+  menuChange(status: any) {
+    console.log('menuChange: ', status)
   }
 
   iconChange(status: boolean) {

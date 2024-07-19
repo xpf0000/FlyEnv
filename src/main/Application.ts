@@ -568,7 +568,8 @@ export default class Application extends EventEmitter {
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)
         break
       case 'APP:Tray-Store-Sync':
-        this.windowManager.sendCommandTo(this.trayWindow!, command, command, args[0])
+        this.trayManager?.menuChange(args[0])
+        // this.windowManager.sendCommandTo(this.trayWindow!, command, command, args[0])
         break
       case 'APP:Tray-Command':
         this.windowManager.sendCommandTo(this.mainWindow!, command, command, ...args)
