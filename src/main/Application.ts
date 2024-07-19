@@ -109,15 +109,26 @@ export default class Application extends EventEmitter {
 
   initTrayManager() {
     this.trayManager.on('action', (action, service) => {
-     if (action === 'serviceOne') {
-      this.windowManager.sendCommandTo(this.mainWindow!, 'APP:Tray-Command', 'APP:Tray-Command', 'switchChange', service)
-     } else if (action === 'serviceAll') {
-      this.windowManager.sendCommandTo(this.mainWindow!, 'APP:Tray-Command', 'APP:Tray-Command', 'groupDo')
-     } else if (action === 'show') {
-      this.show('index')
-     } else if (action === 'exit') {
-      this.emit('application:exit')
-     }
+      if (action === 'serviceOne') {
+        this.windowManager.sendCommandTo(
+          this.mainWindow!,
+          'APP:Tray-Command',
+          'APP:Tray-Command',
+          'switchChange',
+          service
+        )
+      } else if (action === 'serviceAll') {
+        this.windowManager.sendCommandTo(
+          this.mainWindow!,
+          'APP:Tray-Command',
+          'APP:Tray-Command',
+          'groupDo'
+        )
+      } else if (action === 'show') {
+        this.show('index')
+      } else if (action === 'exit') {
+        this.emit('application:exit')
+      }
     })
   }
 
@@ -190,11 +201,21 @@ export default class Application extends EventEmitter {
       .catch((e: Error) => {
         console.log('which brew e: ', e)
       })
+    execAsync('which', ['apt'])
+      .then((res: string) => {
+        console.log('apt: ', res)
+      })
+      .catch()
+    execAsync('which', ['dnf'])
+      .then((res: string) => {
+        console.log('dnf: ', res)
+      })
+      .catch()
   }
 
   initServerDir() {
     console.log('userData: ', app.getPath('userData'))
-    const runpath = join(app.getPath('userData'), '../PhpWebStudy') 
+    const runpath = join(app.getPath('userData'), '../PhpWebStudy')
     this.setProxy()
     global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
@@ -231,7 +252,7 @@ export default class Application extends EventEmitter {
       compressing.zip
         .uncompress(join(__static, 'zip/nginx-common.zip'), global.Server.NginxDir)
         .then(() => {
-          readFileAsync(ngconf).then((content: string) => {            
+          readFileAsync(ngconf).then((content: string) => {
             content = content
               .replace(/#PREFIX#/g, global.Server.NginxDir!)
               .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx'))

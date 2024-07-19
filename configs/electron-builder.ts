@@ -23,10 +23,12 @@ const conf: Configuration = {
     icon: 'build/Icon@256x256.icns',
     asarUnpack: ['**/*.node'],
     category: 'Development',
-    target: [{
-      target: 'deb',
-      arch: ['x64', 'arm64']
-    }]
+    target: [
+      {
+        target: 'deb',
+        arch: ['x64', 'arm64']
+      }
+    ]
   }
 }
 
