@@ -3,7 +3,7 @@ import type { Configuration } from 'electron-builder'
 const conf: Configuration = {
   productName: 'PhpWebStudy',
   buildVersion: '3.0.0',
-  electronVersion: '23.1.1',
+  electronVersion: '30.2.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,
   directories: {
