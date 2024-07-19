@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import { join } from 'path'
-import { Tray, nativeImage, screen } from 'electron'
+import { Menu, Tray, nativeImage, screen } from 'electron'
 import NativeImage = Electron.NativeImage
 
 export default class TrayManager extends EventEmitter {
@@ -15,7 +15,15 @@ export default class TrayManager extends EventEmitter {
     this.activeIcon = nativeImage.createFromPath(join(__static, '32x32_active.png'))
     this.tray = new Tray(this.normalIcon)
     this.tray.setToolTip('PhpWebStudy')
-    this.tray.on('click', this.handleTrayClick)
+
+    const contextMenu = Menu.buildFromTemplate([
+      { label: 'Apache', type: 'checkbox' },
+      { label: 'Nginx', type: 'checkbox' },
+      { label: 'Php', type: 'checkbox', checked: true },
+      { label: 'Mysql', type: 'checkbox' }
+    ])
+    this.tray.setContextMenu(contextMenu)
+    // this.tray.on('click', this.handleTrayClick)
   }
 
   iconChange(status: boolean) {
