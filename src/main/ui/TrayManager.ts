@@ -2,7 +2,7 @@ import { EventEmitter } from 'events'
 import { join } from 'path'
 import { Menu, Tray, nativeImage, screen } from 'electron'
 import NativeImage = Electron.NativeImage
-import { I18nT } from '../lang'
+import { I18nT } from '../lang/index'
 
 export default class TrayManager extends EventEmitter {
   normalIcon: NativeImage
@@ -24,6 +24,16 @@ export default class TrayManager extends EventEmitter {
   menuChange(status: any) {
     console.log('menuChange: ', status)
     const menus: any[] = []
+    menus.push({
+      label: 'ALL', 
+      type: 'checkbox', 
+      checked: status.groupIsRunning,
+      enabled: !status.groupDisabled
+    })
+    menus.push({
+      label: '', 
+      type: 'separator'
+    })
     if (status.apache.show) {
       menus.push({
         label: 'Apache', 
@@ -112,6 +122,10 @@ export default class TrayManager extends EventEmitter {
         enabled: !status.ftp.running
       })
     }
+    menus.push({
+      label: '', 
+      type: 'separator'
+    })
     menus.push({
       label: I18nT('menu.showMainWin'), 
       type: 'normal'
