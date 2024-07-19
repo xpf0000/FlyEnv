@@ -11,8 +11,8 @@ export default class TrayManager extends EventEmitter {
   constructor() {
     super()
     this.active = false
-    this.normalIcon = nativeImage.createFromPath(join(__static, '32x32.png'))
-    this.activeIcon = nativeImage.createFromPath(join(__static, '32x32_active.png'))
+    this.normalIcon = nativeImage.createFromPath(join(__static, '24x24.png'))
+    this.activeIcon = nativeImage.createFromPath(join(__static, '24x24_active.png'))
     this.tray = new Tray(this.normalIcon)
     this.tray.setToolTip('PhpWebStudy')
     this.tray.on('click', this.handleTrayClick)
@@ -27,6 +27,7 @@ export default class TrayManager extends EventEmitter {
     event?.preventDefault && event?.preventDefault()
     const bounds = this.tray.getBounds()
     const screenWidth = screen.getPrimaryDisplay().workAreaSize.width
+    console.log('handleTrayClick: ', bounds, screenWidth)
     const x = Math.min(bounds.x - 135 + bounds.width * 0.5, screenWidth - 270)
     const poperX = Math.max(15, bounds.x + bounds.width * 0.5 - x - 6)
     this.emit('click', x, poperX)
