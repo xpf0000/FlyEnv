@@ -193,7 +193,7 @@ class Brew extends Base {
           if (global.Server.SystemPackger === 'apt') {
             params = ['search', '(FPM-CGI binary)']
           } else {
-            params = ['search', '-v', 'PHP FastCGI Process Manager']
+            params = ['info', 'php-fpm']
           }
         } else if (flag === 'mysql') {
           if (global.Server.SystemPackger === 'apt') {
@@ -260,7 +260,7 @@ class Brew extends Base {
               if (global.Server.SystemPackger === 'apt') {
                 return f.includes('-fpm/')
               }
-              return f.includes('-fpm = ')
+              return f.startsWith('Version')
             }
             return true
           })
@@ -277,10 +277,17 @@ class Brew extends Base {
                 'redis',
                 'pure-ftpd',
                 'postgresql'
-              ].includes(flag)
+              ].includes(flag) ||
+              (global.Server.SystemPackger === 'dnf' && flag === 'php')
             ) {
               console.log('m: ', m)
-              let v = m.replace('Version:', '').trim().split('-').shift() ?? ''
+              let v =
+                m
+                  .replace('Version:', '')
+                  .replace('Version      : ', '')
+                  .trim()
+                  .split('-')
+                  .shift() ?? ''
               if (v.includes(':')) {
                 v = v
                   .split(':')
