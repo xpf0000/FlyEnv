@@ -236,7 +236,11 @@
               fetchData('brew')
             }
           })
-        } else if (src === 'port' && !appStore?.config?.setup?.phpAptInited) {
+        } else if (
+          src === 'port' &&
+          !appStore?.config?.setup?.phpAptInited &&
+          global.Server.SystemPackger === 'apt'
+        ) {
           IPC.send('app-fork:brew', 'initPhpApt').then((key: string, res: any) => {
             IPC.off(key)
             appStore.config.setup.phpAptInited = true
@@ -312,21 +316,36 @@
       let stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop ${name}`
       let names = [name]
       if (props.typeFlag === 'php') {
-        names.push(`${name}-fpm`, `${name}-dev`, `${name}-mysql`, `${name}-odbc`)
-        if (name !== 'php') {
-          names.push(`${name}-dba`)
+        if (global.Server.SystemPackger === 'apt') {
+          names.push(`${name}-fpm`, `${name}-dev`, `${name}-mysql`, `${name}-odbc`)
+          if (name !== 'php') {
+            names.push(`${name}-dba`)
+          }
+          const v = row.version.split('.').slice(0, 2).join('.')
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php${v}-fpm`
+        } else {
+          names.push(`${name}-cli`, `${name}-fpm`, `${name}-odbc`, `${name}-dba`)
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php-fpm`
         }
-        const v = row.version.split('.').slice(0, 2).join('.')
-        stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php${v}-fpm`
       } else if (props.typeFlag === 'mysql') {
-        names = ['mysql-server']
+        if (global.Server.SystemPackger === 'apt') {
+          names = ['mysql-server']
+        } else {
+          names = ['community-mysql-server']
+        }
       } else if (props.typeFlag === 'mariadb') {
         names = ['mariadb-server']
       } else if (props.typeFlag === 'redis') {
-        names = ['redis-server']
+        if (global.Server.SystemPackger === 'apt') {
+          names = ['redis-server']
+        }
       } else if (props.typeFlag === 'apache') {
         names = ['apache2']
-        stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop apache2`
+        if (global.Server.SystemPackger === 'apt') {
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop apache2`
+        } else {
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop httpd`
+        }
       }
       const sh = join(global.Server.Static, 'sh/port-cmd.sh')
       const copyfile = join(global.Server.Cache, 'port-cmd.sh')
@@ -336,6 +355,7 @@
 
       let content = readFileSync(sh, 'utf-8')
       content = content
+        .replace(new RegExp('##PACKGER##', 'g'), global.Server.SystemPackger)
         .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password)
         .replace(new RegExp('##ARCH##', 'g'), arch)
         .replace(new RegExp('##ACTION##', 'g'), fn === 'uninstall' ? 'remove' : 'install')
