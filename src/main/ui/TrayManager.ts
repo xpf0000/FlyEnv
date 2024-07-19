@@ -23,14 +23,13 @@ export default class TrayManager extends EventEmitter {
     this.tray.setImage(this.active ? this.activeIcon : this.normalIcon)
   }
 
-  handleTrayClick = (event: any, rect: any, position: any) => {
+  handleTrayClick = (event: any) => {
     event?.preventDefault && event?.preventDefault()
-    const points = screen.getCursorScreenPoint()
-    const bounds = this.tray.getBounds()
+    const points = screen.getCursorScreenPoint()  
     const screenWidth = screen.getPrimaryDisplay().workAreaSize.width
-    console.log('handleTrayClick: ', bounds, screenWidth, rect, position, points)
-    const x = Math.min(bounds.x - 135 + bounds.width * 0.5, screenWidth - 270)
-    const poperX = Math.max(15, bounds.x + bounds.width * 0.5 - x - 6)
+    console.log('handleTrayClick: ',screenWidth, points)
+    const x = Math.min(points.x - 135, screenWidth - 270)
+    const poperX = Math.max(15, points.x - x - 6)
     this.emit('click', x, poperX)
   }
 
