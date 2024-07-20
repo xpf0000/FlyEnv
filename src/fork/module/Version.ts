@@ -150,6 +150,9 @@ class Manager extends Base {
           const systemDirs = ['/', '/opt', '/usr', '/lib/postgresql', '/opt/remi/']
 
           const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
+            if (!existsSync(dir)) {
+              return false
+            }
             let res: string | false = false
             let binPath = join(dir, `bin/${binName}`)
             if (existsSync(binPath)) {
