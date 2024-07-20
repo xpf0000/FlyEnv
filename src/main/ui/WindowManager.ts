@@ -202,11 +202,9 @@ export default class WindowManager extends EventEmitter {
 
   handleWindowClose(pageOptions: { [key: string]: any }, page: string, window: BrowserWindow) {
     window.on('close', (event: Event) => {
-      if (pageOptions.bindCloseToHide && !this.willQuit) {
-        event.preventDefault()
-        window.hide()
-      }
+      event.preventDefault()
       const bounds = window.getBounds()
+      window.hide()
       this.emit('window-closed', { page, bounds })
     })
   }

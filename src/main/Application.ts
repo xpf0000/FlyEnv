@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events'
 import { app, BrowserWindow, ipcMain } from 'electron'
-import is from 'electron-is'
 import logger from './core/Logger'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
@@ -280,9 +279,7 @@ export default class Application extends EventEmitter {
     })
     this.windowManager.on('window-closed', (data) => {
       this.storeWindowState(data)
-      if (is.windows()) {
-        this.emit('application:exit')
-      }
+      this.emit('application:exit')
     })
   }
 
