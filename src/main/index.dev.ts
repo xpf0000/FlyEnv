@@ -4,6 +4,10 @@
  *  modify this file, but it can be used to extend your development
  *  environment.
  */
+require('electron-debug')({
+  // devToolsMode: 'right',
+  showDevTools: true
+})
 
 // Require `main` process to boot app
 require('./index')
