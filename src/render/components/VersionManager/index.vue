@@ -322,9 +322,21 @@
           stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php${v}-fpm`
         } else {
           if (name === 'php') {
-            names.push(`${name}-cli`, `${name}-fpm`, `${name}-odbc`, `${name}-dba`)
+            names.push(
+              `${name}-cli`,
+              `${name}-fpm`,
+              `${name}-odbc`,
+              `${name}-dba`,
+              `${name}-mysqlnd`
+            )
           } else {
-            names.push(`${name}-php-cli`, `${name}-php-fpm`, `${name}-php-odbc`, `${name}-php-dba`)
+            names.push(
+              `${name}-php-cli`,
+              `${name}-php-fpm`,
+              `${name}-php-odbc`,
+              `${name}-php-dba`,
+              `${name}-php-mysqlnd`
+            )
           }
           stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php-fpm`
         }
