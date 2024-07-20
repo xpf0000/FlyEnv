@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 arch=$(uname -m)
 echo "$arch"
-if [[ $arch != "x86_64" ]]
+if [[ $arch != "x86_64" ]]; then
   exit 0;
 fi
 if [ -f "~/.bashrc" ]; then
