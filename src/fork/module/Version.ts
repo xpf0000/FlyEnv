@@ -183,7 +183,11 @@ class Manager extends Base {
           }
 
           for (const s of systemDirs) {
-            const bin = await findInstalled(s, 0, 1)
+            let max = 1
+            if (s === '/opt/remi/') {
+              max = 2
+            }
+            const bin = await findInstalled(s, 0, max)
             if (bin) {
               installed.add(bin)
             }
