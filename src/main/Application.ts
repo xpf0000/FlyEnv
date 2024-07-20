@@ -38,7 +38,6 @@ export default class Application extends EventEmitter {
   trayManager: TrayManager
   windowManager: WindowManager
   mainWindow?: BrowserWindow
-  trayWindow?: BrowserWindow
   pty?: IPty | null
   ptyLastData = ''
   ptyLast?: PtyLast | null
@@ -310,7 +309,6 @@ export default class Application extends EventEmitter {
       this.emit('ready')
       this.windowManager.sendCommandTo(win, 'APP-Ready-To-Show', true)
     })
-    this.trayWindow = this.windowManager.openTrayWindow()
   }
 
   show(page = 'index') {
@@ -588,7 +586,6 @@ export default class Application extends EventEmitter {
         break
       case 'APP:Tray-Store-Sync':
         this.trayManager?.menuChange(args[0])
-        // this.windowManager.sendCommandTo(this.trayWindow!, command, command, args[0])
         break
       case 'APP:Tray-Command':
         this.windowManager.sendCommandTo(this.mainWindow!, command, command, ...args)
