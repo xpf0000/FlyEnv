@@ -1,4 +1,4 @@
-import { join, dirname } from 'path'
+import { join } from 'path'
 import { existsSync, realpathSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
@@ -39,7 +39,7 @@ class Manager extends Base {
         try {
           version = reg?.exec(str)?.[2]?.trim() ?? str?.trim() ?? ''
           reg && (reg!.lastIndex = 0)
-        } catch (e) { }
+        } catch (e) {}
         version = !isNaN(parseInt(version!)) ? version : null
         const regx = /^\d[\d\.]*\d$/g
         if (version && !regx.test(version)) {
@@ -83,7 +83,7 @@ class Manager extends Base {
             bin = '/usr/sbin/mariadbd'
           } else {
             bin = bin.replace('-safe', '')
-          }          
+          }
           command = `echo "${global.Server.Password}" | sudo -S ${bin} -V`
           reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
           break
@@ -147,12 +147,12 @@ class Manager extends Base {
           const binName = binNames[flag]
           const searchName = searchNames[flag]
           const installed: Set<string> = new Set()
-          const systemDirs = ['/', '/opt', '/usr', '/lib/postgresql']
+          const systemDirs = ['/', '/opt', '/usr', '/lib/postgresql', '/opt/remi/']
 
           const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
             let res: string | false = false
             let binPath = join(dir, `bin/${binName}`)
-            if (existsSync(binPath)) {                 
+            if (existsSync(binPath)) {
               binPath = realpathSync(binPath)
               console.log('binPath real: ', binPath)
               if (flag === 'mysql' && binPath.includes('mariadb')) {
@@ -217,7 +217,11 @@ class Manager extends Base {
           const list: Array<SoftInstalled> = []
           const installedList: Array<string> = Array.from(installed)
           for (const i of installedList) {
-            const path = i.replace(`/sbin/`, '/##SPLIT##/').replace(`/bin/`, '/##SPLIT##/').split('/##SPLIT##/').shift()
+            const path = i
+              .replace(`/sbin/`, '/##SPLIT##/')
+              .replace(`/bin/`, '/##SPLIT##/')
+              .split('/##SPLIT##/')
+              .shift()
             const { error, version } = await this.binVersion(i, binName)
             const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
             const item = {
