@@ -193,7 +193,7 @@ class Brew extends Base {
           if (global.Server.SystemPackger === 'apt') {
             params = ['search', '(FPM-CGI binary)']
           } else {
-            params = ['info', 'php-fpm']
+            params = ['search', '"PHP FastCGI Process Manager"']
           }
         } else if (flag === 'mysql') {
           if (global.Server.SystemPackger === 'apt') {
@@ -260,11 +260,11 @@ class Brew extends Base {
               if (global.Server.SystemPackger === 'apt') {
                 return f.includes('-fpm/')
               }
-              return f.startsWith('Version')
+              return f.includes('php-fpm.') && f.includes('PHP FastCGI Process Manager')
             }
             return true
           })
-          .map((m: string) => {
+          .map(async (m: string) => {
             let a: string[] = [flag]
             if (
               [
@@ -277,8 +277,7 @@ class Brew extends Base {
                 'redis',
                 'pure-ftpd',
                 'postgresql'
-              ].includes(flag) ||
-              (global.Server.SystemPackger === 'dnf' && flag === 'php')
+              ].includes(flag)
             ) {
               console.log('m: ', m)
               let v =
@@ -300,13 +299,26 @@ class Brew extends Base {
               a.push(v)
             } else if (flag === 'php') {
               console.log('php m:', m)
-              const arr = m.trim().split('/')
-              a = [arr.shift()!.replace('-fpm', '')]
-              const str = arr.shift()!.split('+').shift()!
-              const regex = /(\d+(\.\d+){1,4})/g
-              const v = str.match(regex)?.[0] ?? ''
-              console.log('php v:', v)
-              a.push(v)
+              if (global.Server.SystemPackger === 'apt') {
+                const arr = m.trim().split('/')
+                a = [arr.shift()!.replace('-fpm', '')]
+                const str = arr.shift()!.split('+').shift()!
+                const regex = /(\d+(\.\d+){1,4})/g
+                const v = str.match(regex)?.[0] ?? ''
+                console.log('php v:', v)
+                a.push(v)
+              } else {
+                const name = m.split('.').shift()!
+                const res = await execPromise(`dnf info ${name}`)
+                const version =
+                  res?.stdout
+                    ?.split('\n')
+                    ?.find((s) => s.startsWith('Version'))
+                    ?.split(':')
+                    ?.pop()
+                    ?.trim() ?? ''
+                a = [name.split('-').shift()!, version]
+              }
             } else {
               a = m.split('\t').filter((f) => f.trim().length > 0)
             }
@@ -378,6 +390,21 @@ class Brew extends Base {
         await copyFile(sh, cp)
         const stdout = await spawnPromise('bash', [cp, global.Server.Password!])
         console.log('initPhpApt: ', stdout)
+        resolve(true)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  initPhpDnf() {
+    return new ForkPromise(async (resolve, reject) => {
+      const sh = join(global.Server.Static!, 'sh/php-dnf-init.sh')
+      const cp = join(global.Server.Cache!, 'php-dnf-init.sh')
+      try {
+        await copyFile(sh, cp)
+        const stdout = await spawnPromise('bash', [cp, global.Server.Password!])
+        console.log('initPhpDnf: ', stdout)
         resolve(true)
       } catch (e) {
         reject(e)

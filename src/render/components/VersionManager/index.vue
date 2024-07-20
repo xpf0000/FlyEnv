@@ -236,12 +236,9 @@
               fetchData('brew')
             }
           })
-        } else if (
-          src === 'port' &&
-          !appStore?.config?.setup?.phpAptInited &&
-          global.Server.SystemPackger === 'apt'
-        ) {
-          IPC.send('app-fork:brew', 'initPhpApt').then((key: string, res: any) => {
+        } else if (src === 'port' && !appStore?.config?.setup?.phpAptInited) {
+          const fn = global.Server.SystemPackger === 'apt' ? 'initPhpApt' : 'initPhpDnf'
+          IPC.send('app-fork:brew', fn).then((key: string) => {
             IPC.off(key)
             appStore.config.setup.phpAptInited = true
             appStore.saveConfig()
