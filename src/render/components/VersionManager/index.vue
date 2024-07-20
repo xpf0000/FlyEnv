@@ -327,7 +327,8 @@
               `${name}-fpm`,
               `${name}-odbc`,
               `${name}-dba`,
-              `${name}-mysqlnd`
+              `${name}-mysqlnd`,
+              `${name}-devel`
             )
           } else {
             names.push(
@@ -335,7 +336,8 @@
               `${name}-php-fpm`,
               `${name}-php-odbc`,
               `${name}-php-dba`,
-              `${name}-php-mysqlnd`
+              `${name}-php-mysqlnd`,
+              `${name}-php-devel`
             )
           }
           stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php-fpm`
