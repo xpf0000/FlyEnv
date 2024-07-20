@@ -210,32 +210,6 @@
     homebrew: []
   })
 
-  const showTableDataFilter = computed(() => {
-    const sortName = (a: any, b: any) => {
-      return a.name - b.name
-    }
-    const sortStatus = (a: any, b: any) => {
-      if (a.status === b.status) {
-        return 0
-      }
-      if (a.status) {
-        return -1
-      }
-      if (b.status) {
-        return 1
-      }
-      return 0
-    }
-    if (!search.value) {
-      console.log('showTableData.value: ', showTableData.value, lib.value)
-      return Array.from(showTableData.value?.[lib.value]).sort(sortName).sort(sortStatus)
-    }
-    return showTableData.value?.[lib.value]
-      .filter((d: any) => d.name.toLowerCase().includes(search.value.toLowerCase()))
-      .sort(sortName)
-      .sort(sortStatus)
-  })
-
   const brewStore = BrewStore()
   const taskStore = TaskStore()
   const brewRunning = computed(() => {
@@ -298,6 +272,37 @@
   } else if (isHomeBrew.value) {
     lib.value = 'homebrew'
   }
+
+  const showTableDataFilter = computed(() => {
+    const sortName = (a: any, b: any) => {
+      return a.name - b.name
+    }
+    const sortStatus = (a: any, b: any) => {
+      if (a.status === b.status) {
+        return 0
+      }
+      if (a.status) {
+        return -1
+      }
+      if (b.status) {
+        return 1
+      }
+      return 0
+    }
+    const k: 'macports' | 'homebrew' = lib?.value as any
+    if (!search.value) {
+      console.log('showTableData.value: ', showTableData.value, lib.value)
+      return Array.from(showTableData.value?.[k] ?? [])
+        .sort(sortName)
+        .sort(sortStatus)
+    }
+    return (
+      showTableData.value?.[k]
+        ?.filter((d: any) => d.name.toLowerCase().includes(search.value.toLowerCase()))
+        ?.sort(sortName)
+        ?.sort(sortStatus) ?? []
+    )
+  })
 
   const openDir = () => {
     if (!installExtensionDir?.value) {
