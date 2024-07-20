@@ -264,7 +264,7 @@ class Brew extends Base {
             }
             return true
           })
-          .map(async (m: string) => {
+          .map((m: string) => {
             let a: string[] = [flag]
             if (
               [
@@ -309,15 +309,7 @@ class Brew extends Base {
                 a.push(v)
               } else {
                 const name = m.split('.').shift()!
-                const res = await execPromise(`dnf info ${name}`)
-                const version =
-                  res?.stdout
-                    ?.split('\n')
-                    ?.find((s) => s.startsWith('Version'))
-                    ?.split(':')
-                    ?.pop()
-                    ?.trim() ?? ''
-                a = [name.split('-').shift()!, version]
+                a = [name, '']
               }
             } else {
               a = m.split('\t').filter((f) => f.trim().length > 0)
@@ -358,6 +350,23 @@ class Brew extends Base {
               flag: 'port'
             }
           })
+        if (global.Server.SystemPackger === 'dnf' && flag === 'php') {
+          for (const item of arr) {
+            const res = await execPromise(`dnf info ${item.name}`)
+            console.log('res: ', res)
+            const version =
+              res?.stdout
+                ?.split('\n')
+                ?.find((s) => s.startsWith('Version'))
+                ?.split(':')
+                ?.pop()
+                ?.trim() ?? ''
+            item.name = item.name.split('-').shift()!
+            item.version = version
+            const num = version.split('.').slice(0, 2).join('.')
+            item.installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
+          }
+        }
         arr.forEach((item: any) => {
           Info[item.name] = item
         })
