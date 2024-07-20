@@ -363,8 +363,12 @@ class Brew extends Base {
                 ?.trim() ?? ''
             item.name = item.name.split('-').shift()!
             item.version = version
-            const num = version.split('.').slice(0, 2).join('.')
-            item.installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
+            if (item.name === 'php') {
+              item.installed = existsSync(join('/usr/sbin/', `php-fpm`))
+            } else {
+              const num = version.split('.').slice(0, 2).join('.')
+              item.installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
+            }
           }
         }
         arr.forEach((item: any) => {

@@ -321,7 +321,11 @@
           const v = row.version.split('.').slice(0, 2).join('.')
           stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php${v}-fpm`
         } else {
-          names.push(`${name}-cli`, `${name}-fpm`, `${name}-odbc`, `${name}-dba`)
+          if (name === 'php') {
+            names.push(`${name}-cli`, `${name}-fpm`, `${name}-odbc`, `${name}-dba`)
+          } else {
+            names.push(`${name}-php-cli`, `${name}-php-fpm`, `${name}-php-odbc`, `${name}-php-dba`)
+          }
           stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php-fpm`
         }
       } else if (props.typeFlag === 'mysql') {
