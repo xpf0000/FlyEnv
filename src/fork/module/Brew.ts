@@ -193,7 +193,7 @@ class Brew extends Base {
           if (global.Server.SystemPackger === 'apt') {
             params = ['search', '(FPM-CGI binary)']
           } else {
-            params = ['search', '"PHP FastCGI Process Manager"']
+            params = ['search', '\"PHP FastCGI Process Manager\"']
           }
         } else if (flag === 'mysql') {
           if (global.Server.SystemPackger === 'apt') {
