@@ -194,13 +194,15 @@
         return n
       })
       const num = parseInt(nums.join(''))
-      arr.push({
-        name,
-        version: value.version,
-        installed: value.installed,
-        num,
-        flag: value.flag
-      })
+      arr.push(
+        Object.assign({}, value, {
+          name,
+          version: value.version,
+          installed: value.installed,
+          num,
+          flag: value.flag
+        })
+      )
     }
     arr.sort((a, b) => {
       return b.num - a.num
@@ -225,7 +227,9 @@
       brewStore.LibUse[props.typeFlag] = v
     }
   })
+  let fetchFlag: Set<string> = new Set()
   const fetchData = (src: 'brew' | 'port' | 'static') => {
+    fetchFlag.add(src)
     const currentItem = currentType.value
     const list = currentItem.list?.[src] ?? {}
     let getInfo: Promise<any>
@@ -247,16 +251,18 @@
         if (src === libSrc.value) {
           currentItem.getListing = false
         }
+        fetchFlag.delete(src)
       })
       .catch(() => {
         if (src === libSrc.value) {
           currentItem.getListing = false
         }
+        fetchFlag.delete(src)
       })
   }
   const getData = () => {
     const currentItem = currentType.value
-    if (brewRunning?.value || !libSrc?.value) {
+    if (brewRunning?.value || !libSrc?.value || fetchFlag.has(libSrc?.value)) {
       return
     }
     const src = libSrc.value
