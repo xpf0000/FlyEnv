@@ -15,6 +15,17 @@ export interface SoftInstalled {
   flag?: string
 }
 
+export interface OnlineVersionItem {
+  appDir: string
+  zip: string
+  bin: string
+  downloaded: boolean
+  installed: boolean
+  url: string
+  version: string
+  mVersion: string
+}
+
 export interface AppSoftInstalledItem {
   getListing: boolean
   installedInited: boolean
@@ -22,6 +33,7 @@ export interface AppSoftInstalledItem {
   list: {
     brew: { [key: string]: any }
     port: { [key: string]: any }
+    static?: { [key: string]: OnlineVersionItem }
   }
 }
 
@@ -103,7 +115,8 @@ const state: State = {
     installed: [],
     list: {
       brew: {},
-      port: {}
+      port: {},
+      static: {}
     }
   },
   memcached: {

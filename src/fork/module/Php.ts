@@ -7,6 +7,8 @@ import { execPromise, getAllFileAsync, spawnPromise, downFile } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
 import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
+import axios from 'axios'
+import { compareVersions } from 'compare-versions'
 
 class Php extends Base {
   constructor() {
@@ -672,6 +674,79 @@ class Php extends Base {
         resolve(true)
       } catch (e) {
         reject(e)
+      }
+    })
+  }
+
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const urls = ['https://dl.static-php.dev/static-php-cli/bulk/']
+        const fetchVersions = async (url: string) => {
+          const all: any = []
+          const res = await axios({
+            url,
+            method: 'get'
+          })
+          const html = res.data
+          const reg: RegExp = new RegExp(
+            `php-([\\d\\.]+)-fpm-linux-${global.Server.Arch}\\.tar\\.gz`,
+            'g'
+          )
+          let r
+          while ((r = reg.exec(html)) !== null) {
+            const u = new URL(r[0], url).toString()
+            const version = r[1]
+            const mv = version.split('.').slice(0, 2).join('.')
+            const item = {
+              url: u,
+              version,
+              mVersion: mv
+            }
+            const find = all.find((f: any) => f.mVersion === item.mVersion)
+            if (!find) {
+              all.push(item)
+            } else {
+              if (compareVersions(item.version, find.version) > 0) {
+                const index = all.indexOf(find)
+                all.splice(index, 1, item)
+              }
+            }
+          }
+          return all
+        }
+        const all: any = []
+        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
+        const list = res.flat()
+        list.forEach((l: any) => {
+          const find = all.find((f: any) => f.mVersion === l.mVersion)
+          if (!find) {
+            all.push(l)
+          } else {
+            if (compareVersions(l.version, find.version) > 0) {
+              const index = all.indexOf(find)
+              all.splice(index, 1, l)
+            }
+          }
+        })
+
+        all.sort((a: any, b: any) => {
+          return compareVersions(b.version, a.version)
+        })
+        const dict: any = {}
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `static-php-${a.version}`, 'php.exe')
+          const zip = join(global.Server.Cache!, `static-php-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `php-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+          dict[`php-${a.version}`] = a
+        })
+        resolve(dict)
+      } catch (e) {
+        resolve([])
       }
     })
   }

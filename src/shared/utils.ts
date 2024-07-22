@@ -25,16 +25,12 @@ export function execAsync(
   command: string,
   arg: Array<string> = [],
   options: { [key: string]: any } = {}
-) {
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const optdefault = {
       env: fixEnv()
     }
     const opt = merge(optdefault, options)
-    if (global.Server.isAppleSilicon) {
-      arg.unshift('-arm64', command)
-      command = 'arch'
-    }
     const cp = spawn(command, arg, opt)
     const stdout: Array<Buffer> = []
     const stderr: Array<Buffer> = []

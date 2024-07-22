@@ -219,7 +219,9 @@ export default class Application extends EventEmitter {
     this.setProxy()
     global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
+    global.Server.AppDir = join(runpath, 'app')
     createFolder(global.Server.BaseDir)
+    createFolder(global.Server.AppDir)
     global.Server.NginxDir = join(runpath, 'server/nginx')
     global.Server.PhpDir = join(runpath, 'server/php')
     global.Server.MysqlDir = join(runpath, 'server/mysql')
@@ -268,6 +270,11 @@ export default class Application extends EventEmitter {
         })
         .catch()
     }
+
+    execAsync('uname', ['-m']).then((res) => {
+      global.Server.Arch = res
+      console.log('global.Server.Arch: ', res)
+    })
   }
 
   initWindowManager() {

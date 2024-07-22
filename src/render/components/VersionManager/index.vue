@@ -8,6 +8,9 @@
             <el-select v-model="libSrc" style="margin-left: 8px">
               <el-option :disabled="!checkBrew()" value="brew" label="Homebrew"></el-option>
               <el-option value="port" :label="systemPackger"></el-option>
+              <template v-if="typeFlag === 'php'">
+                <el-option value="static" label="static-php"></el-option>
+              </template>
             </el-select>
           </template>
         </div>
@@ -65,25 +68,49 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="$t('base.operation')" width="120">
-        <template #default="scope">
-          <el-button
-            type="primary"
-            link
-            :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
-            :disabled="brewRunning"
-            @click="handleEdit(scope.$index, scope.row)"
-            >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
-          >
-        </template>
-      </el-table-column>
+      <template v-if="libSrc === 'static'">
+        <el-table-column :label="null">
+          <template #default="scope">
+            <div class="cell-progress">
+              <el-progress v-if="scope.row.downing" :percentage="scope.row.progress"></el-progress>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" :label="$t('base.operation')" width="150">
+          <template #default="scope">
+            <el-button
+              type="primary"
+              link
+              :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
+              :loading="scope.row.downing"
+              :disabled="scope.row.downing"
+              @click="handleEditDown(scope.$index, scope.row, scope.row.installed)"
+              >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
+            >
+          </template>
+        </el-table-column>
+      </template>
+      <template v-else>
+        <el-table-column align="center" :label="$t('base.operation')" width="120">
+          <template #default="scope">
+            <el-button
+              type="primary"
+              link
+              :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
+              :disabled="brewRunning"
+              @click="handleEdit(scope.$index, scope.row)"
+              >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
+            >
+          </template>
+        </el-table-column>
+      </template>
     </el-table>
   </el-card>
 </template>
 
 <script lang="ts" setup>
   import { computed, type ComputedRef, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
-  import { brewInfo, portInfo } from '@/util/Brew'
+  import { brewInfo, fetchVerion, portInfo } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import XTerm from '@/util/XTerm'
   import { chmod } from '@shared/file'
@@ -91,8 +118,11 @@
   import { type AppSoftInstalledItem, BrewStore } from '@/store/brew'
   import { I18nT } from '@shared/lang'
   import installedVersions from '@/util/InstalledVersions'
+  import Base from '@/core/Base'
+  import { MessageSuccess, MessageError } from '@/util/Element'
   const { join } = require('path')
   const { existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } = require('fs')
+  const { removeSync } = require('fs-extra')
 
   const props = defineProps<{
     typeFlag:
@@ -195,10 +225,17 @@
       brewStore.LibUse[props.typeFlag] = v
     }
   })
-  const fetchData = (src: 'brew' | 'port') => {
+  const fetchData = (src: 'brew' | 'port' | 'static') => {
     const currentItem = currentType.value
-    const list = currentItem.list?.[src]
-    const getInfo = libSrc?.value === 'brew' ? brewInfo(props.typeFlag) : portInfo(props.typeFlag)
+    const list = currentItem.list?.[src] ?? {}
+    let getInfo: Promise<any>
+    if (src === 'brew') {
+      getInfo = brewInfo(props.typeFlag)
+    } else if (src === 'port') {
+      getInfo = portInfo(props.typeFlag)
+    } else {
+      getInfo = fetchVerion(props.typeFlag)
+    }
     getInfo
       .then((res: any) => {
         for (const k in list) {
@@ -267,6 +304,57 @@
       delete list[k]
     }
     getData()
+  }
+
+  const regetInstalled = () => {
+    brewStore.showInstallLog = false
+    brewStore.brewRunning = false
+    currentType.value.installedInited = false
+    reGetData()
+    installedVersions.allInstalledVersions([props.typeFlag])
+  }
+
+  const handleEditDown = (index: number, row: any, installed: boolean) => {
+    console.log('row: ', row, installed)
+    if (!installed) {
+      if (row.downing) {
+        return
+      }
+      row.downing = true
+      row.type = props.typeFlag
+      IPC.send('app-fork:brew', 'installSoft', JSON.parse(JSON.stringify(row))).then(
+        (key: string, res: any) => {
+          console.log('res: ', res)
+          if (res?.code === 200) {
+            Object.assign(row, res.msg)
+          } else if (res?.code === 0) {
+            IPC.off(key)
+            if (res?.data) {
+              regetInstalled()
+            }
+            row.downing = false
+          }
+        }
+      )
+    } else {
+      Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+        customClass: 'confirm-del',
+        type: 'warning'
+      })
+        .then(() => {
+          try {
+            if (existsSync(row.appDir)) {
+              removeSync(row.appDir)
+            }
+            row.installed = false
+            regetInstalled()
+            MessageSuccess(I18nT('base.success'))
+          } catch (e) {
+            MessageError(I18nT('base.fail'))
+          }
+        })
+        .catch(() => {})
+    }
   }
 
   const handleEdit = (index: number, row: any) => {
@@ -389,11 +477,7 @@
     XTerm.send(`${params};exit 0;`, true).then((key: string) => {
       IPC.off(key)
       showNextBtn.value = true
-      brewStore.showInstallLog = false
-      brewStore.brewRunning = false
-      currentType.value.installedInited = false
-      reGetData()
-      installedVersions.allInstalledVersions([props.typeFlag])
+      regetInstalled()
     })
   }
 
