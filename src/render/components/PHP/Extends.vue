@@ -267,10 +267,10 @@
     return props.version?.path?.includes(global?.Server?.BrewCellar ?? '-----')
   })
 
-  if (isMacPorts.value) {
-    lib.value = 'macports'
-  } else if (isHomeBrew.value) {
+  if (isHomeBrew.value) {
     lib.value = 'homebrew'
+  } else {
+    lib.value = 'macports'
   }
 
   const showTableDataFilter = computed(() => {
