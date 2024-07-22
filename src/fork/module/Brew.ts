@@ -543,7 +543,9 @@ class Brew extends Base {
           let arr: any[] = []
           const map = (s: string) => {
             const libName = s.split('.').shift()!
-            const name = libName.split('-').pop()!
+            const name = libName.includes('php-pecl-')
+              ? libName.split('php-pecl-').pop()!
+              : libName.split('php-').pop()!
             const item: any = {
               name,
               libName,
