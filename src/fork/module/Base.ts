@@ -248,6 +248,7 @@ export class Base {
         let content = await readFile(sh, 'utf-8')
         content = content
           .trim()
+          .replace(new RegExp('##PACKGER##', 'g'), global.Server.SystemPackger!)
           .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password!)
           .replace(new RegExp('##ARCH##', 'g'), arch)
           .replace(new RegExp('##ACTION##', 'g'), action)
