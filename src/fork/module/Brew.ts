@@ -1,11 +1,14 @@
 import { join } from 'path'
-import { existsSync, realpathSync } from 'fs'
+import { createWriteStream, existsSync, realpathSync, unlinkSync } from 'fs'
 import { Base } from './Base'
 import { execPromise, spawnPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { copyFile, unlink, chmod } from 'fs-extra'
 import { SoftInstalled } from '@shared/app'
 import { I18nT } from '../lang'
+import { zipUnPack } from '@shared/file'
+import axios from 'axios'
+
 class Brew extends Base {
   constructor() {
     super()
@@ -615,6 +618,103 @@ class Brew extends Base {
       } catch (err) {
         reject(err)
       }
+    })
+  }
+
+  installSoft(row: any) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      const refresh = () => {
+        row.downloaded = existsSync(row.zip)
+        row.installed = existsSync(row.bin)
+      }
+
+      if (existsSync(row.zip)) {
+        let success = false
+        try {
+          await zipUnPack(row.zip, row.appDir)
+          success = true
+        } catch (e) {}
+        if (success) {
+          refresh()
+          row.downState = 'success'
+          row.progress = 100
+          on(row)
+          resolve(true)
+          return
+        }
+        unlinkSync(row.zip)
+      }
+      const proxyUrl =
+        Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''
+      let proxy: any = {}
+      if (proxyUrl) {
+        try {
+          const u = new URL(proxyUrl)
+          proxy.protocol = u.protocol.replace(':', '')
+          proxy.host = u.hostname
+          proxy.port = u.port
+        } catch (e) {
+          proxy = undefined
+        }
+      } else {
+        proxy = undefined
+      }
+      axios({
+        method: 'get',
+        url: row.url,
+        proxy,
+        responseType: 'stream',
+        onDownloadProgress: (progress) => {
+          if (progress.total) {
+            const percent = Math.round((progress.loaded * 100.0) / progress.total)
+            row.progress = percent
+            on(row)
+          }
+        }
+      })
+        .then(function (response) {
+          const stream = createWriteStream(row.zip)
+          response.data.pipe(stream)
+          stream.on('error', (err: any) => {
+            console.log('stream error: ', err)
+            row.downState = 'exception'
+            try {
+              if (existsSync(row.zip)) {
+                unlinkSync(row.zip)
+              }
+            } catch (e) {}
+            refresh()
+            on(row)
+            setTimeout(() => {
+              resolve(false)
+            }, 1500)
+          })
+          stream.on('finish', async () => {
+            row.downState = 'success'
+            try {
+              if (existsSync(row.zip)) {
+                await zipUnPack(row.zip, row.appDir)
+              }
+            } catch (e) {}
+            refresh()
+            on(row)
+            resolve(true)
+          })
+        })
+        .catch((err) => {
+          console.log('down error: ', err)
+          row.downState = 'exception'
+          try {
+            if (existsSync(row.zip)) {
+              unlinkSync(row.zip)
+            }
+          } catch (e) {}
+          refresh()
+          on(row)
+          setTimeout(() => {
+            resolve(false)
+          }, 1500)
+        })
     })
   }
 }

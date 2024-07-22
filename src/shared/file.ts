@@ -1,5 +1,7 @@
 const fs = require('fs')
 const path = require('path')
+const { copyFile } = require('fs-extra')
+const compressing = require('7zip-min-electron')
 
 export function getAllFile(fp: string, fullpath = true) {
   let arr: Array<string> = []
@@ -143,6 +145,28 @@ export function readFileAsync(fp: string, encode = 'utf-8') {
       } else {
         resolve(data)
       }
+    })
+  })
+}
+
+export function zipUnPack(fp: string, dist: string) {
+  console.log('zipUnPack start: ', fp, dist, global.Server.Static!)
+  return new Promise(async (resolve, reject) => {
+    if (fp.includes(global.Server.Static!)) {
+      const cacheFP = path.join(global.Server.Cache!, path.basename(fp))
+      if (!fs.existsSync(cacheFP)) {
+        await copyFile(fp, cacheFP)
+      }
+      fp = cacheFP
+      console.log('cacheFP: ', fp)
+    }
+    compressing.unpack(fp, dist, (err: any, res: any) => {
+      console.log('zipUnPack end: ', err, res)
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(true)
     })
   })
 }

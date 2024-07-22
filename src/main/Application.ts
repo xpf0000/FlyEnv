@@ -271,7 +271,7 @@ export default class Application extends EventEmitter {
         .catch()
     }
 
-    execAsync('uname', ['-m']).then((res) => {
+    execAsync('uname', ['-m']).then((res: string) => {
       global.Server.Arch = res
       console.log('global.Server.Arch: ', res)
     })

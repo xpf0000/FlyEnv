@@ -244,10 +244,14 @@
         for (const name in res) {
           list[name] = reactive(res[name])
         }
-        currentItem.getListing = false
+        if (src === libSrc.value) {
+          currentItem.getListing = false
+        }
       })
       .catch(() => {
-        currentItem.getListing = false
+        if (src === libSrc.value) {
+          currentItem.getListing = false
+        }
       })
   }
   const getData = () => {
@@ -488,7 +492,10 @@
 
   watch(libSrc, (v) => {
     if (v) {
-      reGetData()
+      const list = currentType.value.list?.[v] ?? {}
+      if (list && Object.keys(list).length === 0) {
+        reGetData()
+      }
     }
   })
 

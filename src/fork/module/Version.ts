@@ -147,7 +147,14 @@ class Manager extends Base {
           const binName = binNames[flag]
           const searchName = searchNames[flag]
           const installed: Set<string> = new Set()
-          const systemDirs = ['/', '/opt', '/usr', '/lib/postgresql', '/opt/remi/']
+          const systemDirs = [
+            '/',
+            '/opt',
+            '/usr',
+            '/lib/postgresql',
+            '/opt/remi/',
+            global.Server.AppDir!
+          ]
 
           const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
             if (!existsSync(dir)) {
