@@ -5,6 +5,7 @@ import { execPromise, spawnPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { copyFile, unlink, chmod } from 'fs-extra'
 import { SoftInstalled } from '@shared/app'
+import { I18nT } from '../lang'
 class Brew extends Base {
   constructor() {
     super()
@@ -517,6 +518,10 @@ class Brew extends Base {
 
   fetchAllPhpExtensionsByPort(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
+      if (!version.version) {
+        reject(new Error(I18nT('fork.versionNoFound')))
+        return
+      }
       const names: { [k: string]: string } = {
         pecl_http: 'http.so',
         phalcon3: 'phalcon.so',
@@ -528,21 +533,18 @@ class Brew extends Base {
       }
       const zend: Array<string> = ['xdebug']
       try {
-        const numStr = version.phpBin!.split('/').pop()!
-        const cammand = `apt search ${numStr}-`
-        console.log('cammand: ', cammand)
-        let res: any = await execPromise(cammand)
-        res = res?.stdout.toString() ?? ''
-        const arr = res
-          .split('\n')
-          .filter((f: string) => {
-            return !!f.trim() && f.startsWith(`${numStr}-`)
-          })
-          .map((m: string) => {
-            const a = m.split('/')
-            const libName = a.shift() ?? ''
-            const name = libName.split('-').pop()!.toLowerCase()
-            const item: { [k: string]: any } = {
+        if (version.bin.startsWith('/opt/remi/') || global.Server.SystemPackger === 'dnf') {
+          const v = version.version!.split('.').slice(0, 2).join('')
+          const command = `dnf search --all "php-pecl-" "module for PHP applications"`
+          let res: any = await execPromise(command)
+          res = res?.stdout.toString() ?? ''
+          res = res.split('\n')
+
+          let arr: any[] = []
+          const map = (s: string) => {
+            const libName = s.split('.').shift()!
+            const name = libName.split('-').pop()!
+            const item: any = {
               name,
               libName,
               installed: false,
@@ -554,8 +556,57 @@ class Brew extends Base {
               item['extendPre'] = 'zend_extension='
             }
             return item
-          })
-        resolve(arr)
+          }
+          if (version.bin.startsWith('/opt/remi/')) {
+            arr = res
+              .filter((s: string) => {
+                return (
+                  (s.includes('module for PHP applications') && s.startsWith(`php${v}-php-`)) ||
+                  s.startsWith(`php${v}-php-pecl-`)
+                )
+              })
+              .map(map)
+          } else if (version.bin === '/usr/sbin/php-fpm') {
+            arr = res
+              .filter((s: string) => {
+                return (
+                  (s.includes('module for PHP applications') && s.startsWith(`php-`)) ||
+                  s.startsWith(`php-pecl-`)
+                )
+              })
+              .map(map)
+          }
+          resolve(arr)
+        } else {
+          const numStr = version.phpBin!.split('/').pop()!
+          const cammand = `apt search ${numStr}-`
+          console.log('cammand: ', cammand)
+          let res: any = await execPromise(cammand)
+          res = res?.stdout.toString() ?? ''
+          const arr = res
+            .split('\n')
+            .filter((f: string) => {
+              return !!f.trim() && f.startsWith(`${numStr}-`)
+            })
+            .map((m: string) => {
+              const a = m.split('/')
+              const libName = a.shift() ?? ''
+              const name = libName.split('-').pop()!.toLowerCase()
+              const item: { [k: string]: any } = {
+                name,
+                libName,
+                installed: false,
+                status: false,
+                soname: names[name] ?? `${name}.so`,
+                flag: 'macports'
+              }
+              if (zend.includes(name)) {
+                item['extendPre'] = 'zend_extension='
+              }
+              return item
+            })
+          resolve(arr)
+        }
       } catch (err) {
         reject(err)
       }
