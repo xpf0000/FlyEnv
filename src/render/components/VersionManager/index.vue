@@ -498,6 +498,10 @@
 
   watch(libSrc, (v) => {
     if (v) {
+      if (fetchFlag.has(v)) {
+        currentType.value.getListing = true
+        return
+      }
       const list = currentType.value.list?.[v] ?? {}
       if (list && Object.keys(list).length === 0) {
         reGetData()
@@ -531,6 +535,7 @@
   watch(
     () => props.typeFlag,
     () => {
+      fetchFlag.clear()
       reGetData()
     }
   )

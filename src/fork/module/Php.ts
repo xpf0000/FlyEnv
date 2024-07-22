@@ -1,5 +1,5 @@
 import { join, basename, dirname } from 'path'
-import { existsSync, statSync } from 'fs'
+import { createWriteStream, existsSync, statSync, unlinkSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
@@ -9,6 +9,7 @@ import compressing from 'compressing'
 import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
+import { zipUnPack } from '@shared/file'
 
 class Php extends Base {
   constructor() {
@@ -735,8 +736,8 @@ class Php extends Base {
         })
         const dict: any = {}
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `static-php-${a.version}`, 'php.exe')
-          const zip = join(global.Server.Cache!, `static-php-${a.version}.zip`)
+          const dir = join(global.Server.AppDir!, `static-php-${a.version}`, 'sbin/php-fpm')
+          const zip = join(global.Server.Cache!, `static-php-${a.version}.tar.gz`)
           a.appDir = join(global.Server.AppDir!, `php-${a.version}`)
           a.zip = zip
           a.bin = dir
@@ -748,6 +749,162 @@ class Php extends Base {
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  installSoft(row: any) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      const refresh = () => {
+        row.downloaded = existsSync(row.zip)
+        row.installed = existsSync(row.bin)
+      }
+
+      const cliZIP = join(dirname(row.zip), `static-php-${row.version}-cli.tar.gz`)
+      if (existsSync(row.zip) && existsSync(cliZIP)) {
+        let success = false
+        try {
+          await zipUnPack(row.zip, row.appDir)
+          await zipUnPack(cliZIP, row.appDir)
+          success = true
+        } catch (e) {}
+        if (success) {
+          refresh()
+          row.downState = 'success'
+          row.progress = 100
+          on(row)
+          resolve(true)
+          return
+        }
+      }
+      const proxyUrl =
+        Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''
+      let proxy: any = {}
+      if (proxyUrl) {
+        try {
+          const u = new URL(proxyUrl)
+          proxy.protocol = u.protocol.replace(':', '')
+          proxy.host = u.hostname
+          proxy.port = u.port
+        } catch (e) {
+          proxy = undefined
+        }
+      } else {
+        proxy = undefined
+      }
+      let p0 = 0
+      let p1 = 0
+      const downFPM = (): Promise<boolean> => {
+        return new Promise((resolve) => {
+          axios({
+            method: 'get',
+            url: row.url,
+            proxy,
+            responseType: 'stream',
+            onDownloadProgress: (progress) => {
+              if (progress.total) {
+                p0 = (progress.loaded * 100.0) / progress.total
+                row.progress = Math.round((p0 + p1) / 200.0)
+                on(row)
+              }
+            }
+          })
+            .then(function (response) {
+              const stream = createWriteStream(row.zip)
+              response.data.pipe(stream)
+              stream.on('error', (err: any) => {
+                console.log('stream error: ', err)
+                try {
+                  if (existsSync(row.zip)) {
+                    unlinkSync(row.zip)
+                  }
+                } catch (e) {}
+                resolve(false)
+              })
+              stream.on('finish', async () => {
+                try {
+                  if (existsSync(row.zip)) {
+                    await zipUnPack(row.zip, row.appDir)
+                  }
+                } catch (e) {}
+                resolve(true)
+              })
+            })
+            .catch((err) => {
+              console.log('down error: ', err)
+              try {
+                if (existsSync(row.zip)) {
+                  unlinkSync(row.zip)
+                }
+              } catch (e) {}
+              resolve(false)
+            })
+        })
+      }
+      const downCLI = (): Promise<boolean> => {
+        return new Promise((resolve) => {
+          const url = row.url.replace('-fpm-', '-cli-')
+          axios({
+            method: 'get',
+            url,
+            proxy,
+            responseType: 'stream',
+            onDownloadProgress: (progress) => {
+              if (progress.total) {
+                p1 = (progress.loaded * 100.0) / progress.total
+                row.progress = Math.round((p0 + p1) / 200.0)
+                on(row)
+              }
+            }
+          })
+            .then(function (response) {
+              const stream = createWriteStream(cliZIP)
+              response.data.pipe(stream)
+              stream.on('error', (err: any) => {
+                console.log('stream error: ', err)
+                try {
+                  if (existsSync(cliZIP)) {
+                    unlinkSync(cliZIP)
+                  }
+                } catch (e) {}
+                resolve(false)
+              })
+              stream.on('finish', async () => {
+                try {
+                  if (existsSync(cliZIP)) {
+                    await zipUnPack(cliZIP, row.appDir)
+                  }
+                } catch (e) {}
+                resolve(true)
+              })
+            })
+            .catch((err) => {
+              console.log('down error: ', err)
+              try {
+                if (existsSync(cliZIP)) {
+                  unlinkSync(cliZIP)
+                }
+              } catch (e) {}
+              resolve(false)
+            })
+        })
+      }
+
+      Promise.all([downFPM(), downCLI()]).then(async ([res0, res1]: [boolean, boolean]) => {
+        if (res0 && res1) {
+          row.downState = 'success'
+          refresh()
+          on(row)
+          resolve(true)
+          return
+        }
+        await remove(row.appDir)
+        row.downState = 'exception'
+        refresh()
+        on(row)
+        setTimeout(() => {
+          resolve(false)
+        }, 1500)
+      })
     })
   }
 }
