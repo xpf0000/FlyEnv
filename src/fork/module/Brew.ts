@@ -529,7 +529,10 @@ class Brew extends Base {
         phalcon5: 'phalcon.so',
         tideways_xhprof: 'xhprof.so',
         postgresql: 'pgsql.so',
-        mysql: 'mysqli.so'
+        mysql: 'mysqli.so',
+        redis5: 'redis.so',
+        redis6: 'redis.so',
+        redis7: 'redis.so'
       }
       const zend: Array<string> = ['xdebug']
       try {
