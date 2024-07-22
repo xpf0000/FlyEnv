@@ -9,7 +9,6 @@ import compressing from 'compressing'
 import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
-import { zipUnPack } from '@shared/file'
 
 class Php extends Base {
   constructor() {
@@ -763,8 +762,14 @@ class Php extends Base {
       if (existsSync(row.zip) && existsSync(cliZIP)) {
         let success = false
         try {
-          await zipUnPack(row.zip, row.appDir)
-          await zipUnPack(cliZIP, row.appDir)
+          let bin = join(row.appDir, 'bin')
+          await mkdirp(bin)
+          await execPromise(`tar -xf ${cliZIP} ${bin}`)
+
+          bin = join(row.appDir, 'sbin')
+          await mkdirp(bin)
+          await execPromise(`tar -xf ${row.zip} ${bin}`)
+
           success = true
         } catch (e) {}
         if (success) {
@@ -803,7 +808,7 @@ class Php extends Base {
             onDownloadProgress: (progress) => {
               if (progress.total) {
                 p0 = (progress.loaded * 100.0) / progress.total
-                row.progress = Math.round((p0 + p1) / 200.0)
+                row.progress = Math.round(((p0 + p1) / 200.0) * 100.0)
                 on(row)
               }
             }
@@ -823,7 +828,9 @@ class Php extends Base {
               stream.on('finish', async () => {
                 try {
                   if (existsSync(row.zip)) {
-                    await zipUnPack(row.zip, row.appDir)
+                    const sbin = join(row.appDir, 'sbin')
+                    await mkdirp(sbin)
+                    await execPromise(`tar -xf ${row.zip} ${sbin}`)
                   }
                 } catch (e) {}
                 resolve(true)
@@ -851,7 +858,7 @@ class Php extends Base {
             onDownloadProgress: (progress) => {
               if (progress.total) {
                 p1 = (progress.loaded * 100.0) / progress.total
-                row.progress = Math.round((p0 + p1) / 200.0)
+                row.progress = Math.round(((p0 + p1) / 200.0) * 100.0)
                 on(row)
               }
             }
@@ -871,7 +878,9 @@ class Php extends Base {
               stream.on('finish', async () => {
                 try {
                   if (existsSync(cliZIP)) {
-                    await zipUnPack(cliZIP, row.appDir)
+                    const bin = join(row.appDir, 'bin')
+                    await mkdirp(bin)
+                    await execPromise(`tar -xf ${cliZIP} ${bin}`)
                   }
                 } catch (e) {}
                 resolve(true)
