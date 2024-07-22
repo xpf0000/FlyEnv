@@ -332,7 +332,7 @@
       }
       row.downing = true
       row.type = props.typeFlag
-      IPC.send('app-fork:brew', 'installSoft', JSON.parse(JSON.stringify(row))).then(
+      IPC.send(`app-fork:${props.typeFlag}`, 'installSoft', JSON.parse(JSON.stringify(row))).then(
         (key: string, res: any) => {
           console.log('res: ', res)
           if (res?.code === 200) {
