@@ -28,7 +28,9 @@ const config: UserConfig = {
       'mock-aws-s3',
       'aws-sdk',
       'nock',
-      'nodejieba'
+      'nodejieba',
+      '7zip-min-electron',
+      'dohdec'
     ]
   },
   root: renderPath,
