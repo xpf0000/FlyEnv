@@ -764,11 +764,11 @@ class Php extends Base {
         try {
           let bin = join(row.appDir, 'bin')
           await mkdirp(bin)
-          await execPromise(`tar -xf ${cliZIP} ${bin}`)
+          await execPromise(`tar -xzf ${cliZIP} -C ${bin}`)
 
           bin = join(row.appDir, 'sbin')
           await mkdirp(bin)
-          await execPromise(`tar -xf ${row.zip} ${bin}`)
+          await execPromise(`tar -xzf ${row.zip} -C ${bin}`)
 
           success = true
         } catch (e) {}
@@ -830,7 +830,7 @@ class Php extends Base {
                   if (existsSync(row.zip)) {
                     const sbin = join(row.appDir, 'sbin')
                     await mkdirp(sbin)
-                    await execPromise(`tar -xf ${row.zip} ${sbin}`)
+                    await execPromise(`tar -xzf ${row.zip} -C ${sbin}`)
                   }
                 } catch (e) {}
                 resolve(true)
@@ -880,7 +880,7 @@ class Php extends Base {
                   if (existsSync(cliZIP)) {
                     const bin = join(row.appDir, 'bin')
                     await mkdirp(bin)
-                    await execPromise(`tar -xf ${cliZIP} ${bin}`)
+                    await execPromise(`tar -xzf ${cliZIP} -C ${bin}`)
                   }
                 } catch (e) {}
                 resolve(true)
