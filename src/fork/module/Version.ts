@@ -175,18 +175,18 @@ class Manager extends Base {
               return false
             }
             console.log('findInstalled dir: ', dir)
-            let binPath = join(dir, `${binName}`)
-            if (checkBin(binPath)) {
+            let binPath = checkBin(join(dir, `${binName}`))
+            if (binPath) {
               installed.add(binPath)
               return
             }
-            binPath = join(dir, `bin/${binName}`)
-            if (checkBin(binPath)) {
+            binPath = checkBin(join(dir, `bin/${binName}`))
+            if (binPath) {
               installed.add(binPath)
               return
             }
-            binPath = join(dir, `sbin/${binName}`)
-            if (checkBin(binPath)) {
+            binPath = checkBin(join(dir, `sbin/${binName}`))
+            if (binPath) {
               installed.add(binPath)
               return
             }
