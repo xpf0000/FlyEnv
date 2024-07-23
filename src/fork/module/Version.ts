@@ -166,6 +166,7 @@ class Manager extends Base {
             console.log('findInstalled binPath 0: ', binPath)
             if (existsSync(binPath)) {
               binPath = realpathSync(binPath)
+              console.log('findInstalled binPath realpathSync 0: ', binPath)
               if (flag === 'mysql' && binPath.includes('mariadb')) {
                 return false
               }
@@ -178,6 +179,7 @@ class Manager extends Base {
             console.log('findInstalled binPath 1: ', binPath)
             if (existsSync(binPath)) {
               binPath = realpathSync(binPath)
+              console.log('findInstalled binPath realpathSync 1: ', binPath)
               return binPath
             }
             if (depth >= maxDepth) {
