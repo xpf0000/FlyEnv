@@ -737,7 +737,7 @@ class Php extends Base {
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-php-${a.version}`, 'sbin/php-fpm')
           const zip = join(global.Server.Cache!, `static-php-${a.version}.tar.gz`)
-          a.appDir = join(global.Server.AppDir!, `php-${a.version}`)
+          a.appDir = join(global.Server.AppDir!, `static-php-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
