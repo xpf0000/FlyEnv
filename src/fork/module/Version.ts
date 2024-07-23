@@ -160,8 +160,10 @@ class Manager extends Base {
             if (!existsSync(dir)) {
               return false
             }
+            console.log('findInstalled dir: ', dir)
             let res: string | false = false
             let binPath = join(dir, `bin/${binName}`)
+            console.log('findInstalled binPath 0: ', binPath)
             if (existsSync(binPath)) {
               binPath = realpathSync(binPath)
               if (flag === 'mysql' && binPath.includes('mariadb')) {
@@ -173,6 +175,7 @@ class Manager extends Base {
               return binPath
             }
             binPath = join(dir, `sbin/${binName}`)
+            console.log('findInstalled binPath 1: ', binPath)
             if (existsSync(binPath)) {
               binPath = realpathSync(binPath)
               return binPath
