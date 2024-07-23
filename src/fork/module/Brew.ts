@@ -1,13 +1,11 @@
 import { join } from 'path'
-import { createWriteStream, existsSync, realpathSync, unlinkSync } from 'fs'
+import { existsSync, realpathSync } from 'fs'
 import { Base } from './Base'
 import { execPromise, spawnPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { copyFile, unlink, chmod } from 'fs-extra'
 import { SoftInstalled } from '@shared/app'
 import { I18nT } from '../lang'
-import { zipUnPack } from '@shared/file'
-import axios from 'axios'
 
 class Brew extends Base {
   constructor() {
@@ -215,7 +213,7 @@ class Brew extends Base {
           if (global.Server.SystemPackger === 'apt') {
             params = ['show', 'postgresql']
           } else {
-            params = ['info', 'postgresql']
+            params = ['info', 'postgresql-server']
           }
         } else if (flag === 'memcached') {
           if (global.Server.SystemPackger === 'apt') {

@@ -147,14 +147,7 @@ class Manager extends Base {
           const binName = binNames[flag]
           const searchName = searchNames[flag]
           const installed: Set<string> = new Set()
-          const systemDirs = [
-            '/',
-            '/opt',
-            '/usr',
-            '/lib/postgresql',
-            '/opt/remi/',
-            global.Server.AppDir!
-          ]
+          const systemDirs = ['/', '/opt', '/usr']
 
           const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
             if (!existsSync(dir)) {
@@ -194,11 +187,7 @@ class Manager extends Base {
           }
 
           for (const s of systemDirs) {
-            let max = 1
-            if (s === '/opt/remi/') {
-              max = 2
-            }
-            const bin = await findInstalled(s, 0, max)
+            const bin = await findInstalled(s, 0, 1)
             if (bin) {
               installed.add(bin)
             }
@@ -206,7 +195,12 @@ class Manager extends Base {
 
           console.log('installed: ', [...installed])
 
-          const base = ['/home/linuxbrew/.linuxbrew/Cellar']
+          const base = [
+            '/home/linuxbrew/.linuxbrew/Cellar',
+            '/lib/postgresql',
+            '/opt/remi/',
+            global.Server.AppDir!
+          ]
           for (const b of base) {
             const subDir = await getSubDirAsync(b)
             const subDirFilter = subDir.filter((f) => {
