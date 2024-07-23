@@ -164,7 +164,6 @@ class Manager extends Base {
             let binPath = join(dir, `bin/${binName}`)
             if (existsSync(binPath)) {
               binPath = realpathSync(binPath)
-              console.log('binPath real: ', binPath)
               if (flag === 'mysql' && binPath.includes('mariadb')) {
                 return false
               }
@@ -199,6 +198,8 @@ class Manager extends Base {
               installed.add(bin)
             }
           }
+
+          console.log('installed: ', [...installed])
 
           const base = ['/home/linuxbrew/.linuxbrew/Cellar']
           for (const b of base) {
