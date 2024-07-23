@@ -163,7 +163,9 @@ class Manager extends Base {
             }
             const checkBin = (binPath: string) => {
               if (existsSync(binPath)) {
+                console.log('binPath: ', binPath)
                 binPath = realpathSync(binPath)
+                console.log('binPath realpathSync: ', binPath)
                 if (flag === 'mysql' && binPath.includes('mariadb')) {
                   return false
                 }
