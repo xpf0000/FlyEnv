@@ -147,60 +147,69 @@ class Manager extends Base {
           const binName = binNames[flag]
           const searchName = searchNames[flag]
           const installed: Set<string> = new Set()
-          const systemDirs = ['/', '/opt', '/usr']
+          const systemDirs = [
+            '/',
+            '/opt',
+            '/usr',
+            '/lib/postgresql',
+            '/opt/remi/',
+            global.Server.AppDir!,
+            ...customDirs
+          ]
 
           const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
             if (!existsSync(dir)) {
+              return
+            }
+            const checkBin = (binPath: string) => {
+              if (existsSync(binPath)) {
+                binPath = realpathSync(binPath)
+                if (flag === 'mysql' && binPath.includes('mariadb')) {
+                  return false
+                }
+                if (binPath === '/usr/bin/redis-check-rdb') {
+                  binPath = '/usr/bin/redis-server'
+                }
+                return binPath
+              }
               return false
             }
             console.log('findInstalled dir: ', dir)
-            let res: string | false = false
-            let binPath = join(dir, `bin/${binName}`)
-            console.log('findInstalled binPath 0: ', binPath)
-            if (existsSync(binPath)) {
-              binPath = realpathSync(binPath)
-              console.log('findInstalled binPath realpathSync 0: ', binPath)
-              if (flag === 'mysql' && binPath.includes('mariadb')) {
-                return false
-              }
-              if (binPath === '/usr/bin/redis-check-rdb') {
-                binPath = '/usr/bin/redis-server'
-              }
-              return binPath
+            let binPath = join(dir, `${binName}`)
+            if (checkBin(binPath)) {
+              installed.add(binPath)
+              return
+            }
+            binPath = join(dir, `bin/${binName}`)
+            if (checkBin(binPath)) {
+              installed.add(binPath)
+              return
             }
             binPath = join(dir, `sbin/${binName}`)
-            console.log('findInstalled binPath 1: ', binPath)
-            if (existsSync(binPath)) {
-              binPath = realpathSync(binPath)
-              console.log('findInstalled binPath realpathSync 1: ', binPath)
-              return binPath
+            if (checkBin(binPath)) {
+              installed.add(binPath)
+              return
             }
             if (depth >= maxDepth) {
-              return res
+              return
             }
             const sub = await getSubDirAsync(dir)
             for (const s of sub) {
-              const sres: any = await findInstalled(s, depth + 1, maxDepth)
-              res = res || sres
+              await findInstalled(s, depth + 1, maxDepth)
             }
-            return res
           }
 
           for (const s of systemDirs) {
-            const bin = await findInstalled(s, 0, 1)
-            if (bin) {
-              installed.add(bin)
+            let max = 1
+            if (s === '/opt/remi/') {
+              max = 2
             }
+            await findInstalled(s, 0, max)
           }
 
           console.log('installed: ', [...installed])
 
-          const base = [
-            '/home/linuxbrew/.linuxbrew/Cellar',
-            '/lib/postgresql',
-            '/opt/remi/',
-            global.Server.AppDir!
-          ]
+          const base = ['/home/linuxbrew/.linuxbrew/Cellar']
           for (const b of base) {
             const subDir = await getSubDirAsync(b)
             const subDirFilter = subDir.filter((f) => {
@@ -209,19 +218,11 @@ class Manager extends Base {
             for (const f of subDirFilter) {
               const subDir1 = await getSubDirAsync(f)
               for (const s of subDir1) {
-                const bin = await findInstalled(s)
-                if (bin) {
-                  installed.add(bin)
-                }
+                await findInstalled(s)
               }
             }
           }
-          for (const s of customDirs) {
-            const bin = await findInstalled(s, 0, 1)
-            if (bin) {
-              installed.add(bin)
-            }
-          }
+
           const count = installed.size
           if (count === 0) {
             resolve([])
