@@ -347,34 +347,40 @@ class Brew extends Base {
           }
         })
       if (global.Server.SystemPackger === 'dnf' && flag === 'php') {
-        const all: any[] = []
+        const all: string[] = []
         for (const item of arr) {
-          all.push(execPromise(`dnf info ${item.name}`))
+          all.push(item.name)
         }
-        Promise.all(all).then((list) => {
-          list.forEach((res, index) => {
-            const item = arr[index]
-            const version =
-              res?.stdout
-                ?.split('\n')
-                ?.find((s: string) => s.startsWith('Version'))
-                ?.split(':')
-                ?.pop()
-                ?.trim() ?? ''
-            item.name = item.name.split('-').shift()!
-            item.version = version
-            if (item.name === 'php') {
-              item.installed = existsSync(join('/usr/sbin/', `php-fpm`))
-            } else {
-              const num = version.split('.').slice(0, 2).join('.')
-              item.installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
-            }
-          })
-          arr.forEach((item: any) => {
-            Info[item.name] = item
-          })
-          resolve(Info)
-        })
+        const res = await execPromise(`dnf info ${all.join(' ')}`)
+        const reg = /(Name         : )(.*?)\n(Version      : )([\d\.]+)\n/g
+        let r
+        while ((r = reg.exec(res.stdout)) !== null) {
+          console.log(r)
+        }
+        // Promise.all(all).then((list) => {
+        //   list.forEach((res, index) => {
+        //     const item = arr[index]
+        //     const version =
+        //       res?.stdout
+        //         ?.split('\n')
+        //         ?.find((s: string) => s.startsWith('Version'))
+        //         ?.split(':')
+        //         ?.pop()
+        //         ?.trim() ?? ''
+        //     item.name = item.name.split('-').shift()!
+        //     item.version = version
+        //     if (item.name === 'php') {
+        //       item.installed = existsSync(join('/usr/sbin/', `php-fpm`))
+        //     } else {
+        //       const num = version.split('.').slice(0, 2).join('.')
+        //       item.installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
+        //     }
+        //   })
+        //   arr.forEach((item: any) => {
+        //     Info[item.name] = item
+        //   })
+        //   resolve(Info)
+        // })
       } else {
         arr.forEach((item: any) => {
           Info[item.name] = item
