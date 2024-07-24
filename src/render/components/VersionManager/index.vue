@@ -262,10 +262,10 @@
   }
   const getData = () => {
     const currentItem = currentType.value
-    if (brewRunning?.value || !libSrc?.value || fetchFlag.has(libSrc?.value)) {
+    const src = libSrc?.value
+    if (brewRunning?.value || !src || fetchFlag.has(src)) {
       return
     }
-    const src = libSrc.value
     const list = currentItem.list?.[src]
     if (Object.keys(list).length === 0) {
       currentItem.getListing = true
@@ -498,6 +498,7 @@
 
   watch(libSrc, (v) => {
     if (v) {
+      console.log('watch libSrc', v, fetchFlag.has(v))
       if (fetchFlag.has(v)) {
         currentType.value.getListing = true
         return
@@ -506,6 +507,12 @@
       if (list && Object.keys(list).length === 0) {
         reGetData()
       }
+    }
+  })
+
+  watch(() => currentType.value.getListing, (v) => {
+    if (v) {
+      console.trace('getListing !!!')
     }
   })
 
