@@ -269,6 +269,7 @@ export function spawnPromiseMore(
     const onEnd = (code: number | null) => {
       if (exit) return
       exit = true
+      console.log('onEnd: ', code, stdout, stderr)
       if (!code) {
         resolve(Buffer.concat(stdout).toString().trim())
       } else {

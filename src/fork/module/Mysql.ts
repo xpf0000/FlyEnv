@@ -3,7 +3,7 @@ import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
-import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
+import { spawnPromiseMore, execPromise, waitTime, execPromiseMore } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
 import type { ChildProcess } from 'child_process'
@@ -84,19 +84,6 @@ datadir=${dataDir}`
           await unlink(p)
         }
       } catch (e) {}
-      const command = `nohup ${bin} ${params.join(' ')} < /dev/null`
-      console.log('mysql start: ', command)
-      on(I18nT('fork.command') + `: ${command}`)
-      let promise!: ForkPromise<{
-        stdout: string
-        stderr: string
-      }>
-      let spawn: ChildProcess
-      try {
-        const more = spawnPromiseMore('nohup', [bin, ...params, '<', '/dev/null'])
-        promise = more.promise
-        spawn = more.spawn
-      } catch (e) {}
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
           await remove(dataDir)
@@ -108,25 +95,22 @@ datadir=${dataDir}`
       const checkpid = async (time = 0) => {
         if (existsSync(p)) {
           console.log('time: ', time)
-          try {
-            await execPromise(`kill -9 ${spawn.pid}`)
-          } catch (e) {}
           resolve(true)
         } else {
           if (time < 40) {
             await waitTime(500)
             await checkpid(time + 1)
           } else {
-            try {
-              await execPromise(`kill -9 ${spawn.pid}`)
-            } catch (e) {}
             reject(new Error('Start Failed'))
           }
         }
       }
       try {
         if (needRestart) {
-          await promise
+          const command = `${bin} ${params.join(' ')}`
+          console.log('mysql start: ', command)
+          on(I18nT('fork.command') + `: ${command}`)
+          await execPromise(command)
           if (readdirSync(dataDir).length > 0) {
             await this._startServer(version).on(on)
             await this._initPassword(version)
@@ -136,7 +120,10 @@ datadir=${dataDir}`
             return
           }
         } else {
-          promise.then(() => {})
+          const command = `nohup ${bin} ${params.join(' ')} &`
+          console.log('mysql start: ', command)
+          on(I18nT('fork.command') + `: ${command}`)
+          await execPromise(command)
           console.log('command end checkpid !!!')
           await checkpid()
         }
