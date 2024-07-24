@@ -3,7 +3,7 @@ import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
-import { spawnPromiseMore, execPromise, waitTime, execPromiseMore } from '../Fn'
+import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
 import type { ChildProcess } from 'child_process'
@@ -93,7 +93,7 @@ datadir=${dataDir}`
       }>
       let spawn: ChildProcess
       try {
-        const more = execPromiseMore(command)
+        const more = spawnPromiseMore('nohup', [bin, ...params, '<', '/dev/null'])
         promise = more.promise
         spawn = more.spawn
       } catch (e) {}
@@ -109,7 +109,7 @@ datadir=${dataDir}`
         if (existsSync(p)) {
           console.log('time: ', time)
           try {
-            await execPromise(`kill -TERM ${spawn.pid}`)
+            await execPromise(`kill -9 ${spawn.pid}`)
           } catch (e) {}
           resolve(true)
         } else {
@@ -118,7 +118,7 @@ datadir=${dataDir}`
             await checkpid(time + 1)
           } else {
             try {
-              await execPromise(`kill -TERM ${spawn.pid}`)
+              await execPromise(`kill -9 ${spawn.pid}`)
             } catch (e) {}
             reject(new Error('Start Failed'))
           }
