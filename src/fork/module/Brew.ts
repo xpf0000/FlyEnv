@@ -352,7 +352,7 @@ class Brew extends Base {
           all.push(item.name)
         }
         const res = await execPromise(`dnf info ${all.join(' ')}`)
-        const reg = /(Name         : )(.*?)\n(Version      : )([\d\.]+)\n/g
+        const reg = /(Name         : )(.*?)\n(Version      : )(.*?)\n/g
         const vd: { [k: string]: string } = {}
         let r
         while ((r = reg.exec(res.stdout)) !== null) {
