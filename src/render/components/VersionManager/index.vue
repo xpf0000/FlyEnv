@@ -506,13 +506,9 @@
       const list = currentType.value.list?.[v] ?? {}
       if (list && Object.keys(list).length === 0) {
         reGetData()
+        return
       }
-    }
-  })
-
-  watch(() => currentType.value.getListing, (v) => {
-    if (v) {
-      console.trace('getListing !!!')
+      currentType.value.getListing = false
     }
   })
 
