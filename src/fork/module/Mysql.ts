@@ -109,7 +109,7 @@ datadir=${dataDir}`
         if (existsSync(p)) {
           console.log('time: ', time)
           try {
-            await execPromise(`kill -INT ${spawn.pid}`)
+            await execPromise(`kill -9 ${spawn.pid}`)
           } catch (e) {}
           resolve(true)
         } else {
@@ -118,7 +118,7 @@ datadir=${dataDir}`
             await checkpid(time + 1)
           } else {
             try {
-              await execPromise(`kill -INT ${spawn.pid}`)
+              await execPromise(`kill -9 ${spawn.pid}`)
             } catch (e) {}
             reject(new Error('Start Failed'))
           }
