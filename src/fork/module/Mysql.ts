@@ -86,8 +86,7 @@ datadir=${dataDir}`
         isInit = true
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        params.push('--initialize-insecure')
-        const command = `${bin} ${params.join(' ')}`
+        const command = `${bin} ${params.join(' ')} --initialize-insecure`
         console.log('mysql start: ', command)
         on(I18nT('fork.command') + `: ${command}`)
         await execPromise(command)
