@@ -356,14 +356,12 @@ class Brew extends Base {
         const vd: { [k: string]: string } = {}
         let r
         while ((r = reg.exec(res.stdout)) !== null) {
-          console.log(r)
-          if (r.length < 4) {
-            continue
-          }
           vd[r[2]] = r[4]
         }
+        console.log('vd: ', vd)
         arr.forEach((item) => {
           const version = vd[item.name]
+          console.log('item.name: ', item.name, vd[item.name])
           item.name = item.name.split('-').shift()!
           item.version = version
           if (item.name === 'php') {
