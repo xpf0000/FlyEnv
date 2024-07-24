@@ -137,25 +137,28 @@ export function execPromiseMore(
   spawn: ChildProcess
 } {
   const promise: ForkPromise<any> = new ForkPromise(() => {})
-  const spawn: ChildProcess = exec(
-    cammand,
-    merge(
-      {
-        env: fixEnv()
-      },
-      opt
-    ),
-    (error, stdout, stderr) => {
-      if (!error) {
-        promise.resolve({
-          stdout,
-          stderr
-        })
-      } else {
-        promise.reject(error)
+  let spawn!: ChildProcess
+  try {
+    spawn = exec(
+      cammand,
+      merge(
+        {
+          env: fixEnv()
+        },
+        opt
+      ),
+      (error, stdout, stderr) => {
+        if (!error) {
+          promise.resolve({
+            stdout,
+            stderr
+          })
+        } else {
+          promise.reject(error)
+        }
       }
-    }
-  )
+    )
+  } catch (e) {}
   return {
     promise,
     spawn

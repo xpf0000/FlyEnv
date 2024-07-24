@@ -6,7 +6,6 @@ import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
 import { spawnPromiseMore, execPromise, waitTime, execPromiseMore } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
-import type { ChildProcess } from 'child_process'
 
 class Mysql extends Base {
   constructor() {
@@ -87,16 +86,7 @@ datadir=${dataDir}`
       const command = `nohup ${bin} ${params.join(' ')} < /dev/null`
       console.log('mysql start: ', command)
       on(I18nT('fork.command') + `: ${command}`)
-      let promise!: ForkPromise<{
-        stdout: string
-        stderr: string
-      }>
-      let spawn: ChildProcess
-      try {
-        const more = execPromiseMore(command)
-        promise = more.promise
-        spawn = more.spawn
-      } catch (e) {}
+      const { promise, spawn } = execPromiseMore(command)
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
           await remove(dataDir)
