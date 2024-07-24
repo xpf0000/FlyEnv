@@ -135,6 +135,7 @@ datadir=${dataDir}`
       promise
         .on(async (data) => {
           on(data)
+          console.log('data: ', data)
           if (!checking) {
             checking = true
             await checkpid()
