@@ -57,17 +57,12 @@ class Mysql extends Base {
       }
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
-      const oldm = join(global.Server.MysqlDir!, 'my.cnf')
       const dataDir = join(global.Server.MysqlDir!, `data-${v}`)
       if (!existsSync(m)) {
         const conf = `[mysqld]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-#设置数据目录
-#brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
-#如果配置文件已更改, 原配置文件在: ${oldm}
-#可以复制原配置文件的内容, 使用原来的配置
 datadir=${dataDir}`
         await writeFile(m, conf)
       }
@@ -99,7 +94,7 @@ datadir=${dataDir}`
           params.push('--initialize-insecure')
         }
       } else if (!bin.endsWith('_safe')) {
-        params.push('&')
+        params.push(`\&`)
       }
       try {
         if (existsSync(p)) {
