@@ -324,8 +324,12 @@ class Brew extends Base {
           } else if (flag === 'apache') {
             installed = existsSync(join('/usr/sbin/', 'apachectl'))
           } else if (flag === 'mysql') {
-            const bin = join('/usr/bin/', 'mysqld')
-            installed = existsSync(bin) && realpathSync(bin) === bin
+            if (global.Server.SystemPackger === 'dnf') {
+              installed = existsSync('/usr/libexec/mysqld')
+            } else {
+              const bin = join('/usr/bin/', 'mysqld')
+              installed = existsSync(bin) && realpathSync(bin) === bin
+            }
           } else if (flag === 'mariadb') {
             installed = existsSync(join('/usr/bin/', 'mariadbd-safe'))
           } else if (flag === 'memcached') {
