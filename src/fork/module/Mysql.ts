@@ -31,6 +31,7 @@ class Mysql extends Base {
         reject(new Error('Init Password Failed'))
         return
       }
+      console.log('_initPassword cwd: ', cwd)
       execPromise('./mysqladmin --socket=/tmp/mysql.sock -uroot password "root"', {
         cwd
       })
