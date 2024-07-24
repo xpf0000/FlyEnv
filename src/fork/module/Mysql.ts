@@ -72,11 +72,11 @@ datadir=${dataDir}`
       const e = join(global.Server.MysqlDir!, 'error.log')
       const params = [
         `--defaults-file=${m}`,
-        `--pid-file=${p}`,
         '--user=mysql',
-        `--slow-query-log-file=${s}`,
+        `--pid-file=${p}`,
+        '--socket=/tmp/mysql.sock',
         `--log-error=${e}`,
-        '--socket=/tmp/mysql.sock'
+        `--slow-query-log-file=${s}`
       ]
       let needRestart = false
       if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
@@ -94,7 +94,7 @@ datadir=${dataDir}`
           params.push('--initialize-insecure')
         }
       } else if (!bin.endsWith('_safe')) {
-        params.push(`\&`)
+        // params.push(`\&`)
       }
       try {
         if (existsSync(p)) {
