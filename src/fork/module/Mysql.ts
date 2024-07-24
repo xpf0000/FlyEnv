@@ -21,11 +21,11 @@ class Mysql extends Base {
     return new ForkPromise((resolve, reject) => {
       let cwd = ''
       if (existsSync(join(version.path, 'bin/mysqladmin'))) {
-        cwd = join(version.path, 'bin/mysqladmin')
+        cwd = join(version.path, 'bin')
       } else if (existsSync(join(version.path, 'sbin/mysqladmin'))) {
-        cwd = join(version.path, 'sbin/mysqladmin')
+        cwd = join(version.path, 'sbin')
       } else if (version.bin === '/usr/libexec/mysqld' && existsSync('/usr/bin/mysqladmin')) {
-        cwd = '/usr/bin/mysqladmin'
+        cwd = '/usr/bin'
       }
       if (!cwd) {
         reject(new Error('Init Password Failed'))
