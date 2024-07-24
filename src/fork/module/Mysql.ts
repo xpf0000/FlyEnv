@@ -166,6 +166,14 @@ datadir=${dataDir}`
           }
           reject(err)
         })
+      if (!needRestart && readdirSync(dataDir).length > 0) {
+        setTimeout(async () => {
+          if (!checking) {
+            checking = true
+            await checkpid()
+          }
+        }, 1000)
+      }
     })
   }
 
