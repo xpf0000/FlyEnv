@@ -83,8 +83,6 @@ datadir=${dataDir}`
           await unlink(p)
         }
       } catch (e) {}
-      console.log('mysql start: ', bin, params.join(' '))
-      on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
           await remove(dataDir)
@@ -107,6 +105,8 @@ datadir=${dataDir}`
         }
       }
       const command = `nohup ${bin} ${params.join(' ')} < /dev/null`
+      console.log('mysql start: ', command)
+      on(I18nT('fork.command') + `: ${command}`)
       try {
         await execPromise(command)
         if (needRestart) {
@@ -119,9 +119,11 @@ datadir=${dataDir}`
             return
           }
         } else {
+          console.log('command end checkpid !!!')
           await checkpid()
         }
       } catch (e) {
+        console.log('command error: ', e)
         if (needRestart) {
           await unlinkDirOnFail()
         }
