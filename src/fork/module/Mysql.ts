@@ -72,18 +72,7 @@ datadir=${dataDir}`
         `--log-error=${e}`,
         `--slow-query-log-file=${s}`
       ]
-      let needRestart = false
-      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
-        needRestart = true
-        await mkdirp(dataDir)
-        await chmod(dataDir, '0777')
-        params.push('--initialize-insecure')
-      }
-      try {
-        if (existsSync(p)) {
-          await unlink(p)
-        }
-      } catch (e) {}
+
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
           await remove(dataDir)
@@ -92,6 +81,27 @@ datadir=${dataDir}`
           await remove(m)
         }
       }
+      let isInit = false
+      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
+        isInit = true
+        await mkdirp(dataDir)
+        await chmod(dataDir, '0777')
+        params.push('--initialize-insecure')
+        const command = `${bin} ${params.join(' ')}`
+        console.log('mysql start: ', command)
+        on(I18nT('fork.command') + `: ${command}`)
+        await execPromise(command)
+        if (readdirSync(dataDir).length === 0) {
+          await unlinkDirOnFail()
+          reject(new Error('Start Failed'))
+          return
+        }
+      }
+      try {
+        if (existsSync(p)) {
+          await unlink(p)
+        }
+      } catch (e) {}
       const checkpid = async (time = 0) => {
         if (existsSync(p)) {
           console.log('time: ', time)
@@ -106,32 +116,17 @@ datadir=${dataDir}`
         }
       }
       try {
-        if (needRestart) {
-          const command = `${bin} ${params.join(' ')}`
-          console.log('mysql start: ', command)
-          on(I18nT('fork.command') + `: ${command}`)
-          await execPromise(command)
-          if (readdirSync(dataDir).length > 0) {
-            await this._startServer(version).on(on)
-            await this._initPassword(version)
-          } else {
-            await unlinkDirOnFail()
-            reject(new Error('Start Failed'))
-            return
-          }
-        } else {
-          const command = `nohup ${bin} ${params.join(' ')} &`
-          console.log('mysql start: ', command)
-          on(I18nT('fork.command') + `: ${command}`)
-          await execPromise(command)
-          console.log('command end checkpid !!!')
-          await checkpid()
+        const command = `nohup ${bin} ${params.join(' ')} &`
+        console.log('mysql start: ', command)
+        on(I18nT('fork.command') + `: ${command}`)
+        await execPromise(command)
+        if (isInit) {
+          await this._initPassword(version)
         }
+        console.log('command end checkpid !!!')
+        await checkpid()
       } catch (e) {
         console.log('command error: ', e)
-        if (needRestart) {
-          await unlinkDirOnFail()
-        }
         reject(e)
         return
       }
