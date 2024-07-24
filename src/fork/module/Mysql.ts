@@ -94,7 +94,7 @@ datadir=${dataDir}`
           params.push('--initialize-insecure')
         }
       } else if (!bin.endsWith('_safe')) {
-        // params.push(`\&`)
+        params.push(`&`)
       }
       try {
         if (existsSync(p)) {
@@ -103,6 +103,29 @@ datadir=${dataDir}`
       } catch (e) {}
       console.log('mysql start: ', bin, params.join(' '))
       on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
+      if (!bin.endsWith('_safe')) {
+        const checkpid = async (time = 0) => {
+          if (existsSync(p)) {
+            console.log('time: ', time)
+            resolve(true)
+          } else {
+            if (time < 40) {
+              await waitTime(500)
+              await checkpid(time + 1)
+            } else {
+              reject(new Error('Start Failed'))
+            }
+          }
+        }
+        try {
+          await execPromise(params.join(' '))
+          await checkpid()
+        } catch (e) {
+          reject(e)
+          return
+        }
+        return
+      }
       const { promise, spawn } = spawnPromiseMore(bin, params)
       let success = false
       let checking = false
