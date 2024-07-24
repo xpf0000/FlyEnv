@@ -67,13 +67,8 @@ class Manager extends Base {
           command = `${bin} -n -v`
           reg = /(\s)(\d+(\.\d+){1,4})([-\s])/g
           break
-        case 'mysqld_safe':
+        case 'mysqld':
           console.log('bin: ', bin)
-          if (bin === '/usr/bin/mysqld_safe') {
-            bin = '/usr/sbin/mysqld'
-          } else {
-            bin = bin.replace('_safe', '')
-          }
           command = `echo "${global.Server.Password}" | sudo -S ${bin} -V`
           console.log('command: ', command)
           reg = /(Ver )(\d+(\.\d+){1,4})([\s-]?)/g
@@ -133,7 +128,7 @@ class Manager extends Base {
         nginx: 'nginx',
         caddy: 'caddy',
         php: 'php-fpm',
-        mysql: 'mysqld_safe',
+        mysql: 'mysqld',
         mariadb: 'mariadbd-safe',
         memcached: 'memcached',
         redis: 'redis-server',

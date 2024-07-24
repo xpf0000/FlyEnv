@@ -1,4 +1,4 @@
-import { join, basename, dirname } from 'path'
+import { join, basename } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
@@ -19,8 +19,18 @@ class Mysql extends Base {
 
   _initPassword(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
+      let cwd = ''
+      if (existsSync(join(version.path, 'bin/mysqladmin'))) {
+        cwd = join(version.path, 'bin/mysqladmin')
+      } else if (existsSync(join(version.path, 'sbin/mysqladmin'))) {
+        cwd = join(version.path, 'sbin/mysqladmin')
+      }
+      if (!cwd) {
+        reject(new Error('Init Password Failed'))
+        return
+      }
       execPromise('./mysqladmin --socket=/tmp/mysql.sock -uroot password "root"', {
-        cwd: dirname(version.bin)
+        cwd
       })
         .then((res) => {
           console.log('_initPassword res: ', res)
@@ -36,6 +46,11 @@ class Mysql extends Base {
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       let bin = version.bin
+      if (existsSync(join(version.path, 'bin/mysqld_safe'))) {
+        bin = join(version.path, 'bin/mysqld_safe')
+      } else if (existsSync(join(version.path, 'sbin/mysqld_safe'))) {
+        bin = join(version.path, 'sbin/mysqld_safe')
+      }
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
       const oldm = join(global.Server.MysqlDir!, 'my.cnf')
@@ -186,6 +201,12 @@ datadir=${dataDir}`
     return new ForkPromise(async (resolve, reject, on) => {
       await this.stopGroupService(version)
       let bin = version.version.bin
+      if (existsSync(join(version.version.path!, 'bin/mysqld_safe'))) {
+        bin = join(version.version.path!, 'bin/mysqld_safe')
+      } else if (existsSync(join(version.version.path!, 'sbin/mysqld_safe'))) {
+        bin = join(version.version.path!, 'sbin/mysqld_safe')
+      }
+
       const id = version?.id ?? ''
       const m = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
       const dataDir = version.dataDir
@@ -267,8 +288,14 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       let checking = false
       const initPassword = () => {
         return new ForkPromise((resolve, reject) => {
+          let cwd = ''
+          if (existsSync(join(version.version.path!, 'bin/mysqladmin'))) {
+            cwd = join(version.version.path!, 'bin/mysqladmin')
+          } else if (existsSync(join(version.version.path!, 'sbin/mysqladmin'))) {
+            cwd = join(version.version.path!, 'sbin/mysqladmin')
+          }
           execPromise(`./mysqladmin -P${version.port} -S${sock} -uroot password "root"`, {
-            cwd: dirname(version.version.bin!)
+            cwd
           })
             .then((res) => {
               console.log('_initPassword res: ', res)
