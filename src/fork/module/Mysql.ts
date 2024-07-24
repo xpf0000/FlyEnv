@@ -3,10 +3,9 @@ import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
-import { spawnPromiseMore, execPromise, waitTime, execPromiseMore } from '../Fn'
+import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
-import type { ChildProcess } from 'child_process'
 
 class Mysql extends Base {
   constructor() {
