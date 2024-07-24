@@ -172,194 +172,192 @@ class Brew extends Base {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = {}
       let params: string[] = []
-      try {
-        if (flag === 'apache') {
-          if (global.Server.SystemPackger === 'apt') {
-            params = ['show', 'apache2']
-          } else {
-            params = ['info', 'httpd']
-          }
-        } else if (flag === 'nginx') {
-          if (global.Server.SystemPackger === 'apt') {
-            params = ['show', 'nginx']
-          } else {
-            params = ['info', 'nginx']
-          }
-        } else if (flag === 'caddy') {
-          if (global.Server.SystemPackger === 'apt') {
-            params = ['show', 'caddy']
-          } else {
-            params = ['info', 'caddy']
-          }
-        } else if (flag === 'php') {
-          if (global.Server.SystemPackger === 'apt') {
-            params = ['search', '(FPM-CGI binary)']
-          } else {
-            params = ['search', `PHP FastCGI Process Manager`]
-          }
-        } else if (flag === 'mysql') {
-          if (global.Server.SystemPackger === 'apt') {
-            params = ['show', 'mysql-server']
-          } else {
-            params = ['info', 'community-mysql-server']
-          }
-        } else if (flag === 'mariadb') {
-          if (global.Server.SystemPackger === 'apt') {
-            params = ['show', 'mariadb-server']
-          } else {
-            params = ['info', 'mariadb-server']
-          }
-        } else if (flag === 'postgresql') {
-          if (global.Server.SystemPackger === 'apt') {
-            params = ['show', 'postgresql']
-          } else {
-            params = ['info', 'postgresql-server']
-          }
-        } else if (flag === 'memcached') {
-          if (global.Server.SystemPackger === 'apt') {
-            params = ['show', 'memcached']
-          } else {
-            params = ['info', 'memcached']
-          }
-        } else if (flag === 'redis') {
-          if (global.Server.SystemPackger === 'apt') {
-            params = ['show', 'redis']
-          } else {
-            params = ['info', 'redis']
-          }
-        } else if (flag === 'pure-ftpd') {
-          if (global.Server.SystemPackger === 'apt') {
-            params = ['show', 'pure-ftpd']
-          } else {
-            params = ['info', 'pure-ftpd']
-          }
+      if (flag === 'apache') {
+        if (global.Server.SystemPackger === 'apt') {
+          params = ['show', 'apache2']
+        } else {
+          params = ['info', 'httpd']
         }
-        let arr = []
-        const info = await spawnPromise(global.Server.SystemPackger!, params)
-        console.log('info: ', info)
-        arr = info
-          .split('\n')
-          .filter((f: string) => {
-            if (
-              [
-                'nginx',
-                'caddy',
-                'apache',
-                'mysql',
-                'mariadb',
-                'postgresql',
-                'memcached',
-                'redis',
-                'pure-ftpd'
-              ].includes(flag)
-            ) {
-              if (global.Server.SystemPackger === 'apt') {
-                return f.startsWith('Version:')
-              }
-              return f.startsWith('Version')
+      } else if (flag === 'nginx') {
+        if (global.Server.SystemPackger === 'apt') {
+          params = ['show', 'nginx']
+        } else {
+          params = ['info', 'nginx']
+        }
+      } else if (flag === 'caddy') {
+        if (global.Server.SystemPackger === 'apt') {
+          params = ['show', 'caddy']
+        } else {
+          params = ['info', 'caddy']
+        }
+      } else if (flag === 'php') {
+        if (global.Server.SystemPackger === 'apt') {
+          params = ['search', '(FPM-CGI binary)']
+        } else {
+          params = ['search', `PHP FastCGI Process Manager`]
+        }
+      } else if (flag === 'mysql') {
+        if (global.Server.SystemPackger === 'apt') {
+          params = ['show', 'mysql-server']
+        } else {
+          params = ['info', 'community-mysql-server']
+        }
+      } else if (flag === 'mariadb') {
+        if (global.Server.SystemPackger === 'apt') {
+          params = ['show', 'mariadb-server']
+        } else {
+          params = ['info', 'mariadb-server']
+        }
+      } else if (flag === 'postgresql') {
+        if (global.Server.SystemPackger === 'apt') {
+          params = ['show', 'postgresql']
+        } else {
+          params = ['info', 'postgresql-server']
+        }
+      } else if (flag === 'memcached') {
+        if (global.Server.SystemPackger === 'apt') {
+          params = ['show', 'memcached']
+        } else {
+          params = ['info', 'memcached']
+        }
+      } else if (flag === 'redis') {
+        if (global.Server.SystemPackger === 'apt') {
+          params = ['show', 'redis']
+        } else {
+          params = ['info', 'redis']
+        }
+      } else if (flag === 'pure-ftpd') {
+        if (global.Server.SystemPackger === 'apt') {
+          params = ['show', 'pure-ftpd']
+        } else {
+          params = ['info', 'pure-ftpd']
+        }
+      }
+      let arr: any[] = []
+      const info = await spawnPromise(global.Server.SystemPackger!, params)
+      console.log('info: ', info)
+      arr = info
+        .split('\n')
+        .filter((f: string) => {
+          if (
+            [
+              'nginx',
+              'caddy',
+              'apache',
+              'mysql',
+              'mariadb',
+              'postgresql',
+              'memcached',
+              'redis',
+              'pure-ftpd'
+            ].includes(flag)
+          ) {
+            if (global.Server.SystemPackger === 'apt') {
+              return f.startsWith('Version:')
             }
-            if (flag === 'php') {
-              if (global.Server.SystemPackger === 'apt') {
-                return f.includes('-fpm/')
-              }
-              return f.includes('php-fpm.') && f.includes('PHP FastCGI Process Manager')
+            return f.startsWith('Version')
+          }
+          if (flag === 'php') {
+            if (global.Server.SystemPackger === 'apt') {
+              return f.includes('-fpm/')
             }
-            return true
-          })
-          .map((m: string) => {
-            let a: string[] = [flag]
-            if (
-              [
-                'nginx',
-                'caddy',
-                'apache',
-                'mysql',
-                'mariadb',
-                'memcached',
-                'redis',
-                'pure-ftpd',
-                'postgresql'
-              ].includes(flag)
-            ) {
-              console.log('m: ', m)
-              let v =
-                m
-                  .replace('Version:', '')
-                  .replace('Version      : ', '')
-                  .trim()
-                  .split('-')
-                  .shift() ?? ''
-              if (v.includes(':')) {
-                v = v
-                  .split(':')
-                  .filter((s) => s.includes('.'))
-                  .shift()!
-              }
-              if (v.includes('+')) {
-                v = v.split('+').shift()!
-              }
+            return f.includes('php-fpm.') && f.includes('PHP FastCGI Process Manager')
+          }
+          return true
+        })
+        .map((m: string) => {
+          let a: string[] = [flag]
+          if (
+            [
+              'nginx',
+              'caddy',
+              'apache',
+              'mysql',
+              'mariadb',
+              'memcached',
+              'redis',
+              'pure-ftpd',
+              'postgresql'
+            ].includes(flag)
+          ) {
+            console.log('m: ', m)
+            let v =
+              m.replace('Version:', '').replace('Version      : ', '').trim().split('-').shift() ??
+              ''
+            if (v.includes(':')) {
+              v = v
+                .split(':')
+                .filter((s) => s.includes('.'))
+                .shift()!
+            }
+            if (v.includes('+')) {
+              v = v.split('+').shift()!
+            }
+            a.push(v)
+          } else if (flag === 'php') {
+            console.log('php m:', m)
+            if (global.Server.SystemPackger === 'apt') {
+              const arr = m.trim().split('/')
+              a = [arr.shift()!.replace('-fpm', '')]
+              const str = arr.shift()!.split('+').shift()!
+              const regex = /(\d+(\.\d+){1,4})/g
+              const v = str.match(regex)?.[0] ?? ''
+              console.log('php v:', v)
               a.push(v)
-            } else if (flag === 'php') {
-              console.log('php m:', m)
-              if (global.Server.SystemPackger === 'apt') {
-                const arr = m.trim().split('/')
-                a = [arr.shift()!.replace('-fpm', '')]
-                const str = arr.shift()!.split('+').shift()!
-                const regex = /(\d+(\.\d+){1,4})/g
-                const v = str.match(regex)?.[0] ?? ''
-                console.log('php v:', v)
-                a.push(v)
-              } else {
-                const name = m.split('.').shift()!
-                a = [name, '']
-              }
             } else {
-              a = m.split('\t').filter((f) => f.trim().length > 0)
+              const name = m.split('.').shift()!
+              a = [name, '']
             }
-            const name = a.shift() ?? ''
-            const version = a.shift() ?? ''
-            let installed = false
-            if (flag === 'php') {
-              const num = version.split('.').slice(0, 2).join('.')
-              installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
-            } else if (flag === 'nginx') {
-              installed = existsSync(join('/usr/sbin/', name))
-            } else if (flag === 'caddy') {
-              installed = existsSync(join('/usr/bin/', name))
-            } else if (flag === 'apache') {
-              installed = existsSync(join('/usr/sbin/', 'apachectl'))
-            } else if (flag === 'mysql') {
-              const bin = join('/usr/bin/', 'mysqld_safe')
-              installed = existsSync(bin) && realpathSync(bin) === bin
-            } else if (flag === 'mariadb') {
-              installed = existsSync(join('/usr/bin/', 'mariadbd-safe'))
-            } else if (flag === 'memcached') {
-              installed = existsSync(join('/usr/bin', 'memcached'))
-            } else if (flag === 'redis') {
-              installed = existsSync(join('/usr/bin', `redis-server`))
-            } else if (flag === 'pure-ftpd') {
-              installed =
-                existsSync(join('/usr/bin', 'pure-pw')) ||
-                existsSync(join('/usr/sbin', 'pure-ftpd'))
-            } else if (flag === 'postgresql') {
-              const v = version.split('.').shift()!
-              installed = existsSync(join('/lib/postgresql', v, 'bin/pg_ctl'))
-            }
-            return {
-              name,
-              version,
-              installed,
-              flag: 'port'
-            }
-          })
-        if (global.Server.SystemPackger === 'dnf' && flag === 'php') {
-          for (const item of arr) {
-            const res = await execPromise(`dnf info ${item.name}`)
-            console.log('res: ', res)
+          } else {
+            a = m.split('\t').filter((f) => f.trim().length > 0)
+          }
+          const name = a.shift() ?? ''
+          const version = a.shift() ?? ''
+          let installed = false
+          if (flag === 'php') {
+            const num = version.split('.').slice(0, 2).join('.')
+            installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
+          } else if (flag === 'nginx') {
+            installed = existsSync(join('/usr/sbin/', name))
+          } else if (flag === 'caddy') {
+            installed = existsSync(join('/usr/bin/', name))
+          } else if (flag === 'apache') {
+            installed = existsSync(join('/usr/sbin/', 'apachectl'))
+          } else if (flag === 'mysql') {
+            const bin = join('/usr/bin/', 'mysqld_safe')
+            installed = existsSync(bin) && realpathSync(bin) === bin
+          } else if (flag === 'mariadb') {
+            installed = existsSync(join('/usr/bin/', 'mariadbd-safe'))
+          } else if (flag === 'memcached') {
+            installed = existsSync(join('/usr/bin', 'memcached'))
+          } else if (flag === 'redis') {
+            installed = existsSync(join('/usr/bin', `redis-server`))
+          } else if (flag === 'pure-ftpd') {
+            installed =
+              existsSync(join('/usr/bin', 'pure-pw')) || existsSync(join('/usr/sbin', 'pure-ftpd'))
+          } else if (flag === 'postgresql') {
+            const v = version.split('.').shift()!
+            installed = existsSync(join('/lib/postgresql', v, 'bin/pg_ctl'))
+          }
+          return {
+            name,
+            version,
+            installed,
+            flag: 'port'
+          }
+        })
+      if (global.Server.SystemPackger === 'dnf' && flag === 'php') {
+        const all: any[] = []
+        for (const item of arr) {
+          all.push(execPromise(`dnf info ${item.name}`))
+        }
+        Promise.all(all).then((list) => {
+          list.forEach((res, index) => {
+            const item = arr[index]
             const version =
               res?.stdout
                 ?.split('\n')
-                ?.find((s) => s.startsWith('Version'))
+                ?.find((s: string) => s.startsWith('Version'))
                 ?.split(':')
                 ?.pop()
                 ?.trim() ?? ''
@@ -371,13 +369,18 @@ class Brew extends Base {
               const num = version.split('.').slice(0, 2).join('.')
               item.installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
             }
-          }
-        }
+          })
+          arr.forEach((item: any) => {
+            Info[item.name] = item
+          })
+          resolve(Info)
+        })
+      } else {
         arr.forEach((item: any) => {
           Info[item.name] = item
         })
-      } catch (e) {}
-      resolve(Info)
+        resolve(Info)
+      }
     })
   }
 
