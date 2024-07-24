@@ -353,40 +353,31 @@ class Brew extends Base {
         }
         const res = await execPromise(`dnf info ${all.join(' ')}`)
         const reg = /(Name         : )(.*?)\n(Version      : )([\d\.]+)\n/g
+        const vd: { [k: string]: string } = {}
         let r
         while ((r = reg.exec(res.stdout)) !== null) {
           console.log(r)
+          if (r.length < 4) {
+            continue
+          }
+          vd[r[2]] = r[4]
         }
-        // Promise.all(all).then((list) => {
-        //   list.forEach((res, index) => {
-        //     const item = arr[index]
-        //     const version =
-        //       res?.stdout
-        //         ?.split('\n')
-        //         ?.find((s: string) => s.startsWith('Version'))
-        //         ?.split(':')
-        //         ?.pop()
-        //         ?.trim() ?? ''
-        //     item.name = item.name.split('-').shift()!
-        //     item.version = version
-        //     if (item.name === 'php') {
-        //       item.installed = existsSync(join('/usr/sbin/', `php-fpm`))
-        //     } else {
-        //       const num = version.split('.').slice(0, 2).join('.')
-        //       item.installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
-        //     }
-        //   })
-        //   arr.forEach((item: any) => {
-        //     Info[item.name] = item
-        //   })
-        //   resolve(Info)
-        // })
-      } else {
-        arr.forEach((item: any) => {
-          Info[item.name] = item
+        arr.forEach((item) => {
+          const version = vd[item.name]
+          item.name = item.name.split('-').shift()!
+          item.version = version
+          if (item.name === 'php') {
+            item.installed = existsSync(join('/usr/sbin/', `php-fpm`))
+          } else {
+            const num = version.split('.').slice(0, 2).join('.')
+            item.installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
+          }
         })
-        resolve(Info)
       }
+      arr.forEach((item: any) => {
+        Info[item.name] = item
+      })
+      resolve(Info)
     })
   }
 
