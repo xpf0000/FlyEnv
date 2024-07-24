@@ -85,51 +85,6 @@ datadir=${dataDir}`
       } catch (e) {}
       console.log('mysql start: ', bin, params.join(' '))
       on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
-      if (!bin.endsWith('_safe')) {
-        const checkpid = async (time = 0) => {
-          if (existsSync(p)) {
-            console.log('time: ', time)
-            resolve(true)
-          } else {
-            if (time < 40) {
-              await waitTime(500)
-              await checkpid(time + 1)
-            } else {
-              reject(new Error('Start Failed'))
-            }
-          }
-        }
-        const command = `nohup ${bin} ${params.join(' ')} < /dev/null`
-        try {
-          await execPromise(command)
-          await checkpid()
-        } catch (e) {
-          reject(e)
-          return
-        }
-        return
-      }
-      const { promise, spawn } = spawnPromiseMore(bin, params)
-      let success = false
-      let checking = false
-      async function checkpid(time = 0) {
-        if (existsSync(p)) {
-          console.log('time: ', time)
-          success = true
-          try {
-            await execPromise(`kill -9 ${spawn.pid}`)
-          } catch (e) {}
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            await checkpid(time + 1)
-          } else {
-            try {
-              await execPromise(`kill -9 ${spawn.pid}`)
-            } catch (e) {}
-          }
-        }
-      }
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
           await remove(dataDir)
@@ -138,47 +93,40 @@ datadir=${dataDir}`
           await remove(m)
         }
       }
-      promise
-        .on(async (data) => {
-          on(data)
-          console.log('data: ', data)
-          if (!checking) {
-            checking = true
-            await checkpid()
-          }
-        })
-        .then(async (code) => {
-          if (success) {
-            resolve(code)
+      const checkpid = async (time = 0) => {
+        if (existsSync(p)) {
+          console.log('time: ', time)
+          resolve(true)
+        } else {
+          if (time < 40) {
+            await waitTime(500)
+            await checkpid(time + 1)
           } else {
-            if (needRestart && readdirSync(dataDir).length > 0) {
-              try {
-                await this._startServer(version).on(on)
-                await this._initPassword(version)
-                on(I18nT('fork.postgresqlInit', { dir: dataDir }))
-                resolve(code)
-              } catch (e) {
-                await unlinkDirOnFail()
-                reject(e)
-              }
-            } else {
-              reject(code)
-            }
+            reject(new Error('Start Failed'))
           }
-        })
-        .catch(async (err) => {
-          if (needRestart) {
+        }
+      }
+      const command = `nohup ${bin} ${params.join(' ')} < /dev/null`
+      try {
+        await execPromise(command)
+        if (needRestart) {
+          if (readdirSync(dataDir).length > 0) {
+            await this._startServer(version).on(on)
+            await this._initPassword(version)
+          } else {
             await unlinkDirOnFail()
+            reject(new Error('Start Failed'))
+            return
           }
-          reject(err)
-        })
-      if (!needRestart && readdirSync(dataDir).length > 0) {
-        setTimeout(async () => {
-          if (!checking) {
-            checking = true
-            await checkpid()
-          }
-        }, 1000)
+        } else {
+          await checkpid()
+        }
+      } catch (e) {
+        if (needRestart) {
+          await unlinkDirOnFail()
+        }
+        reject(e)
+        return
       }
     })
   }
