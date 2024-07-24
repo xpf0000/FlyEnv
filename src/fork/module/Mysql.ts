@@ -105,6 +105,9 @@ datadir=${dataDir}`
       const checkpid = async (time = 0) => {
         if (existsSync(p)) {
           console.log('time: ', time)
+          if (isInit) {
+            await this._initPassword(version)
+          }
           resolve(true)
         } else {
           if (time < 40) {
@@ -120,9 +123,6 @@ datadir=${dataDir}`
         console.log('mysql start: ', command)
         on(I18nT('fork.command') + `: ${command}`)
         await execPromise(command)
-        if (isInit) {
-          await this._initPassword(version)
-        }
         console.log('command end checkpid !!!')
         await checkpid()
       } catch (e) {
