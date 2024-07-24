@@ -26,10 +26,15 @@ class Apache extends Base {
       )
       let logs = join(global.Server.ApacheDir!, 'common/logs')
       await mkdirp(logs)
-      const bin = version.bin
+      let bin = version.bin
       if (existsSync(defaultFile)) {
         resolve(true)
         return
+      }
+      if (existsSync(join(version.path, 'bin/httpd'))) {
+        bin = join(version.path, 'bin/httpd')
+      } else if (existsSync(join(version.path, 'sbin/httpd'))) {
+        bin = join(version.path, 'sbin/httpd')
       }
       // 获取httpd的默认配置文件路径
       const res = await execPromiseFinal(`${bin} -D DUMP_INCLUDES`)
@@ -38,7 +43,7 @@ class Apache extends Base {
       let file = ''
       try {
         file = reg?.exec?.(str)?.[2] ?? ''
-      } catch (e) { }
+      } catch (e) {}
       file = file.trim()
       if (!file || !existsSync(file)) {
         reject(new Error(I18nT('fork.confNoFound')))
@@ -50,7 +55,7 @@ class Apache extends Base {
       let path = ''
       try {
         path = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) { }
+      } catch (e) {}
       path = path.trim()
       logs = join(global.Server.ApacheDir!, 'common/logs/')
       const vhost = join(global.Server.BaseDir!, 'vhost/apache/')
@@ -60,12 +65,11 @@ class Apache extends Base {
         .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')
         .replace('#LoadModule ssl_module', 'LoadModule ssl_module')
         .replace('\nInclude ports.conf', '\n#Include ports.conf')
-        if (path) {
-          content = content
-          .replace(new RegExp(path, 'g'), logs)
-        } else {
-          content += `\nCustomLog "${logs}access_log" common`
-        }
+      if (path) {
+        content = content.replace(new RegExp(path, 'g'), logs)
+      } else {
+        content += `\nCustomLog "${logs}access_log" common`
+      }
 
       let find = content.match(/\nUser _www(.*?)\n/g)
       content = content.replace(find?.[0] ?? '###@@@&&&', '\n#User _www\n')
@@ -100,7 +104,7 @@ IncludeOptional "${vhost}*.conf"`
     let host: Array<AppHost> = []
     try {
       host = JSON.parse(json)
-    } catch (e) { }
+    } catch (e) {}
 
     const allNeedPort: Set<number> = new Set()
     allNeedPort.add(80)
@@ -182,13 +186,13 @@ IncludeOptional "${vhost}*.conf"`
       }
       try {
         if (bin === '/usr/sbin/apache2ctl') {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S a2enmod ssl actions alias proxy_fcgi`)
+          await execPromise(
+            `echo '${global.Server.Password}' | sudo -S a2enmod ssl actions alias proxy_fcgi`
+          )
         }
         const command = `echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`
         console.log('command: ', command)
-        const res = await execPromise(
-          command
-        )
+        const res = await execPromise(command)
         on(res?.stdout)
         resolve(0)
       } catch (e: any) {
