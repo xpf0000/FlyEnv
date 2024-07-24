@@ -518,6 +518,8 @@ export default class Application extends EventEmitter {
   }
 
   handleCommand(command: string, key: string, ...args: any) {
+    // eslint-disable-next-line prefer-rest-params
+    console.log('handleCommand: ', ...arguments)
     this.emit(command, ...args)
     let window
     const callBack = (info: any) => {
