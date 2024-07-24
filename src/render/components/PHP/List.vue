@@ -125,10 +125,12 @@
                 <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ $t('base.slowLog') }}</span>
               </li>
-              <li @click.stop="action(scope.row, scope.$index, 'extend')">
-                <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('php.extension') }}</span>
-              </li>
+              <template v-if="!scope.row.bin.includes('static-php-')">
+                <li @click.stop="action(scope.row, scope.$index, 'extend')">
+                  <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
+                  <span class="ml-15">{{ $t('php.extension') }}</span>
+                </li>
+              </template>
               <li @click.stop="action(scope.row, scope.$index, 'groupstart')">
                 <yb-icon
                   style="padding: 0"
