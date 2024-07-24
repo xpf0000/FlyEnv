@@ -47,14 +47,7 @@ class Mysql extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      let bin = version.bin
-      if (existsSync(join(version.path, 'mysqld_safe'))) {
-        bin = join(version.path, 'mysqld_safe')
-      } else if (existsSync(join(version.path, 'bin/mysqld_safe'))) {
-        bin = join(version.path, 'bin/mysqld_safe')
-      } else if (existsSync(join(version.path, 'sbin/mysqld_safe'))) {
-        bin = join(version.path, 'sbin/mysqld_safe')
-      }
+      const bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
       const dataDir = join(global.Server.MysqlDir!, `data-${v}`)
@@ -71,30 +64,19 @@ datadir=${dataDir}`
       const s = join(global.Server.MysqlDir!, 'slow.log')
       const e = join(global.Server.MysqlDir!, 'error.log')
       const params = [
-        `"--defaults-file=${m}"`,
-        `"--user=mysql"`,
-        `"--pid-file=${p}"`,
-        `"--socket=/tmp/mysql.sock"`,
-        `"--log-error=${e}"`,
-        `"--slow-query-log-file=${s}"`
+        `--defaults-file=${m}`,
+        '--user=mysql',
+        `--pid-file=${p}`,
+        '--socket=/tmp/mysql.sock',
+        `--log-error=${e}`,
+        `--slow-query-log-file=${s}`
       ]
       let needRestart = false
       if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
         needRestart = true
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        const installdb = join(version.path, 'bin/mysql_install_db')
-        if (existsSync(installdb) && version.num! < 57) {
-          bin = installdb
-          params.splice(0)
-          params.push(`--defaults-file=${m}`)
-          params.push(`--datadir=${dataDir}`)
-          params.push(`--basedir=${version.path}`)
-        } else {
-          params.push('"--initialize-insecure"')
-        }
-      } else if (!bin.endsWith('_safe')) {
-        params.push(`&`)
+        params.push('--initialize-insecure')
       }
       try {
         if (existsSync(p)) {
@@ -117,8 +99,9 @@ datadir=${dataDir}`
             }
           }
         }
+        const command = `bash nohup ${params.join(' ')} < /dev/null`
         try {
-          await execPromise(params.join(' '))
+          await execPromise(command)
           await checkpid()
         } catch (e) {
           reject(e)
