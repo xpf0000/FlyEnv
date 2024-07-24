@@ -99,7 +99,7 @@ datadir=${dataDir}`
             }
           }
         }
-        const command = `bash nohup ${params.join(' ')} < /dev/null`
+        const command = `bash nohup ${bin} ${params.join(' ')} < /dev/null`
         try {
           await execPromise(command)
           await checkpid()
