@@ -98,6 +98,8 @@ datadir=${dataDir}`
         } else {
           params.push('--initialize-insecure')
         }
+      } else if (!bin.endsWith('_safe')) {
+        params.push('&')
       }
       try {
         if (existsSync(p)) {
