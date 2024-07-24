@@ -335,12 +335,12 @@ export default class Application extends EventEmitter {
     this.windowManager.destroyWindow(page)
   }
 
-  stop() {
+  async stop() {
     logger.info('[PhpWebStudy] application stop !!!')
-    DnsServerManager.close().then()
+    await DnsServerManager.close()
     SiteSuckerManager.destory()
     this.forkManager?.destory()
-    this.stopServer()
+    await this.stopServer()
   }
 
   stopServerByPid() {
@@ -398,7 +398,7 @@ export default class Application extends EventEmitter {
     }
   }
 
-  stopServer() {
+  async stopServer() {
     this.ptyLast = null
     this.exitNodePty()
     this.stopServerByPid()
@@ -446,9 +446,10 @@ export default class Application extends EventEmitter {
   }
 
   relaunch() {
-    this.stop()
-    app.relaunch()
-    app.exit()
+    this.stop().then(() => {
+      app.relaunch()
+      app.exit()
+    })
   }
 
   handleCommands() {
@@ -464,9 +465,10 @@ export default class Application extends EventEmitter {
 
     this.on('application:exit', () => {
       console.log('application:exit !!!!!!')
-      this.stop()
-      app.exit()
-      process.exit(0)
+      this.stop().then(() => {
+        app.exit()
+        process.exit(0)
+      })
     })
 
     this.on('application:show', (page) => {
