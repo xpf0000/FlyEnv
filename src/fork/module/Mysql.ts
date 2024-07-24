@@ -3,7 +3,7 @@ import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
-import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
+import { spawnPromiseMore, execPromise, waitTime, execPromiseMore } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
 
@@ -83,6 +83,10 @@ datadir=${dataDir}`
           await unlink(p)
         }
       } catch (e) {}
+      const command = `nohup ${bin} ${params.join(' ')} < /dev/null`
+      console.log('mysql start: ', command)
+      on(I18nT('fork.command') + `: ${command}`)
+      const { promise, spawn } = execPromiseMore(command)
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
           await remove(dataDir)
@@ -94,22 +98,25 @@ datadir=${dataDir}`
       const checkpid = async (time = 0) => {
         if (existsSync(p)) {
           console.log('time: ', time)
+          try {
+            await execPromise(`kill -9 ${spawn.pid}`)
+          } catch (e) {}
           resolve(true)
         } else {
           if (time < 40) {
             await waitTime(500)
             await checkpid(time + 1)
           } else {
+            try {
+              await execPromise(`kill -9 ${spawn.pid}`)
+            } catch (e) {}
             reject(new Error('Start Failed'))
           }
         }
       }
-      const command = `nohup ${bin} ${params.join(' ')} < /dev/null`
-      console.log('mysql start: ', command)
-      on(I18nT('fork.command') + `: ${command}`)
       try {
-        await execPromise(command)
         if (needRestart) {
+          await promise
           if (readdirSync(dataDir).length > 0) {
             await this._startServer(version).on(on)
             await this._initPassword(version)
@@ -119,6 +126,7 @@ datadir=${dataDir}`
             return
           }
         } else {
+          promise.then(() => {})
           console.log('command end checkpid !!!')
           await checkpid()
         }

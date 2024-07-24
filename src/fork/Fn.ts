@@ -126,6 +126,42 @@ export function execPromise(
   })
 }
 
+export function execPromiseMore(
+  cammand: string,
+  opt?: { [k: string]: any }
+): {
+  promise: ForkPromise<{
+    stdout: string
+    stderr: string
+  }>
+  spawn: ChildProcess
+} {
+  const promise: ForkPromise<any> = new ForkPromise(() => {})
+  const spawn: ChildProcess = exec(
+    cammand,
+    merge(
+      {
+        env: fixEnv()
+      },
+      opt
+    ),
+    (error, stdout, stderr) => {
+      if (!error) {
+        promise.resolve({
+          stdout,
+          stderr
+        })
+      } else {
+        promise.reject(error)
+      }
+    }
+  )
+  return {
+    promise,
+    spawn
+  }
+}
+
 export function execPromiseFinal(
   cammand: string,
   opt?: { [k: string]: any }
@@ -383,7 +419,7 @@ export function getSubDir(fp: string, fullpath = true) {
           }
         }
       })
-    } catch (e) { }
+    } catch (e) {}
   }
   return arr
 }
@@ -432,8 +468,8 @@ export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<
 export const hostAlias = (item: AppHost) => {
   const alias = item.alias
     ? item.alias.split('\n').filter((n) => {
-      return n && n.length > 0
-    })
+        return n && n.length > 0
+      })
     : []
   const arr = Array.from(new Set(alias)).sort()
   arr.unshift(item.name)
@@ -451,6 +487,7 @@ export const systemProxyGet = async () => {
       )
       if (result) {
         const [_, enabled, server, port] = result
+        console.log(_)
         if (enabled === 'Yes') {
           proxy['http_proxy'] = `http://${server}:${port}`
         }
@@ -460,6 +497,7 @@ export const systemProxyGet = async () => {
       result = res?.stdout?.match(/(?:Enabled:\s)(\w+)\n(?:Server:\s)([^\n]+)\n(?:Port:\s)(\d+)/)
       if (result) {
         const [_, enabled, server, port] = result
+        console.log(_)
         if (enabled === 'Yes') {
           proxy['https_proxy'] = `http://${server}:${port}`
         }
@@ -469,12 +507,13 @@ export const systemProxyGet = async () => {
       result = res?.stdout?.match(/(?:Enabled:\s)(\w+)\n(?:Server:\s)([^\n]+)\n(?:Port:\s)(\d+)/)
       if (result) {
         const [_, enabled, server, port] = result
+        console.log(_)
         if (enabled === 'Yes') {
           proxy['all_proxy'] = `http://${server}:${port}`
         }
       }
     }
-  } catch (e) { }
+  } catch (e) {}
   console.log('systemProxyGet: ', proxy)
   return proxy
 }
