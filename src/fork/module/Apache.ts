@@ -178,7 +178,7 @@ IncludeOptional "${vhost}*.conf"`
       await this.#handleListenPort(version)
       const logs = join(global.Server.ApacheDir!, 'common/logs')
       await mkdirp(logs)
-      const bin = version.bin
+      let bin = version.bin
       const conf = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
       if (!existsSync(conf)) {
         reject(new Error(I18nT('fork.confNoFound')))
@@ -189,6 +189,11 @@ IncludeOptional "${vhost}*.conf"`
           await execPromise(
             `echo '${global.Server.Password}' | sudo -S a2enmod ssl actions alias proxy_fcgi`
           )
+        }
+        if (existsSync(join(version.path, 'bin/httpd'))) {
+          bin = join(version.path, 'bin/httpd')
+        } else if (existsSync(join(version.path, 'sbin/httpd'))) {
+          bin = join(version.path, 'sbin/httpd')
         }
         const command = `echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`
         console.log('command: ', command)
