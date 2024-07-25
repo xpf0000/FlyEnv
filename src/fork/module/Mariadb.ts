@@ -48,7 +48,7 @@ class Manager extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      let bin = version.bin
+      const bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
       const dataDir = join(global.Server.MariaDBDir!, `data-${v}`)
@@ -88,22 +88,22 @@ datadir=${dataDir}`
         isInit = true
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        bin = ''
+        let installDBBin = ''
         if (existsSync(join(version.path, 'mariadb-install-db'))) {
-          bin = join(version.path, 'mariadb-install-db')
+          installDBBin = join(version.path, 'mariadb-install-db')
         } else if (existsSync(join(version.path, 'bin/mariadb-install-db'))) {
-          bin = join(version.path, 'bin/mariadb-install-db')
+          installDBBin = join(version.path, 'bin/mariadb-install-db')
         } else if (existsSync(join(version.path, 'sbin/mariadb-install-db'))) {
-          bin = join(version.path, 'sbin/mariadb-install-db')
+          installDBBin = join(version.path, 'sbin/mariadb-install-db')
         } else if (existsSync(join(version.path, 'script/mariadb-install-db'))) {
-          bin = join(version.path, 'script/mariadb-install-db')
+          installDBBin = join(version.path, 'script/mariadb-install-db')
         } else if (
           version.bin === '/usr/libexec/mariadbd' &&
           existsSync('/usr/bin/mariadb-install-db')
         ) {
-          bin = '/usr/bin/mariadb-install-db'
+          installDBBin = '/usr/bin/mariadb-install-db'
         }
-        if (!bin) {
+        if (!installDBBin) {
           reject(new Error('Start Failed: No Found mariadb-install-db'))
           return
         }
@@ -113,7 +113,7 @@ datadir=${dataDir}`
         params.push(`--basedir=${version.path}`)
         params.push('--auth-root-authentication-method=normal')
 
-        const command = `${bin} ${params.join(' ')}`
+        const command = `${installDBBin} ${params.join(' ')}`
         console.log('mysql start: ', command)
         on(I18nT('fork.command') + `: ${command}`)
         await execPromise(command)
