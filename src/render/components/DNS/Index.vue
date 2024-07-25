@@ -31,11 +31,11 @@
                 v-else
                 :loading="fetching"
                 class="status"
-                text
+                link
                 :class="{ disabled: fetching }"
               >
                 <yb-icon
-                  v-show="!fetching"
+                  v-if="!fetching"
                   :svg="import('@/svg/play.svg?raw')"
                   @click.stop="dnsStart"
                 />
