@@ -27,7 +27,7 @@
                   <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="dnsStart" />
                 </div>
               </template>
-              <div v-else class="status" :class="{ disabled: fetching }">
+              <div v-else class="status" :class="{ disabled: fetching }" :loading="fetching">
                 <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStart" />
               </div>
             </div>

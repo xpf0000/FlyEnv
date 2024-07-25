@@ -29,10 +29,10 @@ class Manager extends Base {
       console.log('lsal: ', lsal)
       const user = lsal[2]
       const group = lsal[3]
-      const command = `echo "${global.Server.Password}" | sudo -S chown -R ${user}:${group} /var/run/postgresql`    
+      const command = `echo "${global.Server.Password}" | sudo -S chown -R ${user}:${group} /var/run/postgresql`
       const res = await execPromise(command)
       console.log('handleLockFileRole: ', command, res)
-    } catch(e) {
+    } catch (e) {
       console.log('handleLockFileRole err: ', e)
     }
   }
