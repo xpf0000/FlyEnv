@@ -251,7 +251,7 @@ class Brew extends Base {
             'pure-ftpd'
           ].includes(flag)
         ) {
-          const reg = /(Name         : )(.*?)\n(Version      : )(.*?)\n/g
+          const reg = /(Name         : )(.*?)\n([\s\S]?)(Version      : )(.*?)\n/g
           const vd: { [k: string]: string } = {}
           let r
           while ((r = reg.exec(info)) !== null) {
