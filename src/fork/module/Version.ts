@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync, realpathSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
@@ -146,11 +146,12 @@ class Manager extends Base {
             global.Server.AppDir!,
             ...customDirs
           ]
-
+          const realDirDict: { [k: string]: string } = {}
           const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
             if (!existsSync(dir)) {
               return
             }
+            dir = realpathSync(dir)
             const checkBin = (binPath: string) => {
               if (existsSync(binPath)) {
                 console.log('binPath: ', binPath)
@@ -169,16 +170,19 @@ class Manager extends Base {
             console.log('findInstalled dir: ', dir)
             let binPath = checkBin(join(dir, `${binName}`))
             if (binPath) {
+              realDirDict[binPath] = join(dir, `${binName}`)
               installed.add(binPath)
               return
             }
             binPath = checkBin(join(dir, `bin/${binName}`))
             if (binPath) {
+              realDirDict[binPath] = join(dir, `bin/${binName}`)
               installed.add(binPath)
               return
             }
             binPath = checkBin(join(dir, `sbin/${binName}`))
             if (binPath) {
+              realDirDict[binPath] = join(dir, `sbin/${binName}`)
               installed.add(binPath)
               return
             }
@@ -224,11 +228,16 @@ class Manager extends Base {
           const list: Array<SoftInstalled> = []
           const installedList: Array<string> = Array.from(installed)
           for (const i of installedList) {
-            const path = i
-              .replace(`/sbin/`, '/##SPLIT##/')
-              .replace(`/bin/`, '/##SPLIT##/')
-              .split('/##SPLIT##/')
-              .shift()
+            let path = realDirDict[i]
+            if (path.includes('/sbin/') || path.includes('/bin/')) {
+              path = path
+                .replace(`/sbin/`, '/##SPLIT##/')
+                .replace(`/bin/`, '/##SPLIT##/')
+                .split('/##SPLIT##/')
+                .shift()!
+            } else {
+              path = dirname(path)
+            }
             const { error, version } = await this.binVersion(i, binName)
             const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
             const item = {
