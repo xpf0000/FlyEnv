@@ -34,7 +34,11 @@
                 text
                 :class="{ disabled: fetching }"
               >
-                <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStart" />
+                <yb-icon
+                  v-show="!fetching"
+                  :svg="import('@/svg/play.svg?raw')"
+                  @click.stop="dnsStart"
+                />
               </el-button>
             </div>
             <el-button @click.stop="cleanLog">{{ $t('base.clean') }}</el-button>
