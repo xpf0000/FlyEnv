@@ -233,154 +233,96 @@ class Brew extends Base {
           params = ['info', 'pure-ftpd']
         }
       }
-      let arr: any[] = []
-      const info = await spawnPromise(global.Server.SystemPackger!, params)
+      const arr: any[] = []
+      const info: string = await spawnPromise(global.Server.SystemPackger!, params)
       console.log('info: ', info)
-      arr = info
-        .split('\n')
-        .filter((f: string) => {
-          if (
-            [
-              'nginx',
-              'caddy',
-              'apache',
-              'mysql',
-              'mariadb',
-              'postgresql',
-              'memcached',
-              'redis',
-              'pure-ftpd'
-            ].includes(flag)
-          ) {
-            if (global.Server.SystemPackger === 'apt') {
-              return f.startsWith('Version:')
-            }
-            return f.startsWith('Version')
+      if (global.Server.SystemPackger === 'apt') {
+      } else {
+        if (
+          [
+            'nginx',
+            'caddy',
+            'apache',
+            'mysql',
+            'mariadb',
+            'postgresql',
+            'memcached',
+            'redis',
+            'pure-ftpd'
+          ].includes(flag)
+        ) {
+          const reg = /(Name         : )(.*?)\n(Version      : )(.*?)\n/g
+          const vd: { [k: string]: string } = {}
+          let r
+          while ((r = reg.exec(info)) !== null) {
+            vd[r[2]] = r[4]
           }
-          if (flag === 'php') {
-            if (global.Server.SystemPackger === 'apt') {
-              return f.includes('-fpm/')
-            }
-            return f.includes('php-fpm.') && f.includes('PHP FastCGI Process Manager')
-          }
-          return true
-        })
-        .map((m: string) => {
-          let a: string[] = [flag]
-          if (
-            [
-              'nginx',
-              'caddy',
-              'apache',
-              'mysql',
-              'mariadb',
-              'memcached',
-              'redis',
-              'pure-ftpd',
-              'postgresql'
-            ].includes(flag)
-          ) {
-            console.log('m: ', m)
-            let v =
-              m.replace('Version:', '').replace('Version      : ', '').trim().split('-').shift() ??
-              ''
-            if (v.includes(':')) {
-              v = v
-                .split(':')
-                .filter((s) => s.includes('.'))
-                .shift()!
-            }
-            if (v.includes('+')) {
-              v = v.split('+').shift()!
-            }
-            a.push(v)
-          } else if (flag === 'php') {
-            console.log('php m:', m)
-            if (global.Server.SystemPackger === 'apt') {
-              const arr = m.trim().split('/')
-              a = [arr.shift()!.replace('-fpm', '')]
-              const str = arr.shift()!.split('+').shift()!
-              const regex = /(\d+(\.\d+){1,4})/g
-              const v = str.match(regex)?.[0] ?? ''
-              console.log('php v:', v)
-              a.push(v)
-            } else {
-              const name = m.split('.').shift()!
-              a = [name, '']
-            }
-          } else {
-            a = m.split('\t').filter((f) => f.trim().length > 0)
-          }
-          const name = a.shift() ?? ''
-          const version = a.shift() ?? ''
-          let installed = false
-          if (flag === 'php') {
-            const num = version.split('.').slice(0, 2).join('.')
-            installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
-          } else if (flag === 'nginx') {
-            installed = existsSync(join('/usr/sbin/', name))
-          } else if (flag === 'caddy') {
-            installed = existsSync(join('/usr/bin/', name))
-          } else if (flag === 'apache') {
-            installed = existsSync(join('/usr/sbin/', 'apachectl'))
-          } else if (flag === 'mysql') {
-            if (global.Server.SystemPackger === 'dnf') {
+          for (const packName in vd) {
+            const version = vd[packName]
+            let installed = false
+            if (flag === 'nginx') {
+              installed = existsSync(join('/usr/sbin/', flag))
+            } else if (flag === 'caddy') {
+              installed = existsSync(join('/usr/bin/', flag))
+            } else if (flag === 'apache') {
+              installed = existsSync(join('/usr/sbin/', 'apachectl'))
+            } else if (flag === 'mysql') {
               installed = existsSync('/usr/libexec/mysqld')
-            } else {
-              const bin = join('/usr/bin/', 'mysqld')
-              installed = existsSync(bin) && realpathSync(bin) === bin
-            }
-          } else if (flag === 'mariadb') {
-            if (global.Server.SystemPackger === 'dnf') {
+            } else if (flag === 'mariadb') {
               installed = existsSync('/usr/libexec/mariadbd')
-            } else {
-              const bin = join('/usr/bin/', 'mariadbd')
-              installed = existsSync(bin) && realpathSync(bin) === bin
+            } else if (flag === 'memcached') {
+              installed = existsSync(join('/usr/bin', 'memcached'))
+            } else if (flag === 'redis') {
+              installed = existsSync(join('/usr/bin', `redis-server`))
+            } else if (flag === 'pure-ftpd') {
+              installed =
+                existsSync(join('/usr/bin', 'pure-pw')) ||
+                existsSync(join('/usr/sbin', 'pure-ftpd'))
+            } else if (flag === 'postgresql') {
+              installed = existsSync(join('/usr/bin/pg_ctl'))
             }
-          } else if (flag === 'memcached') {
-            installed = existsSync(join('/usr/bin', 'memcached'))
-          } else if (flag === 'redis') {
-            installed = existsSync(join('/usr/bin', `redis-server`))
-          } else if (flag === 'pure-ftpd') {
-            installed =
-              existsSync(join('/usr/bin', 'pure-pw')) || existsSync(join('/usr/sbin', 'pure-ftpd'))
-          } else if (flag === 'postgresql') {
-            const v = version.split('.').shift()!
-            installed = existsSync(join('/lib/postgresql', v, 'bin/pg_ctl'))
+            const item = {
+              name: flag,
+              packName,
+              version,
+              installed,
+              flag: 'port'
+            }
+            arr.push(item)
           }
-          return {
-            name,
-            version,
-            installed,
-            flag: 'port'
+        } else if (flag === 'php') {
+          const packs = info
+            .split('\n')
+            .filter((s) => s.includes('php-fpm.') && s.includes('PHP FastCGI Process Manager'))
+            .map((s) => s.split('.').shift()!)
+          const res = await execPromise(`dnf info ${packs.join(' ')}`)
+          const reg = /(Name         : )(.*?)\n(Version      : )(.*?)\n/g
+          const vd: { [k: string]: string } = {}
+          let r
+          while ((r = reg.exec(res.stdout)) !== null) {
+            vd[r[2]] = r[4]
           }
-        })
-      if (global.Server.SystemPackger === 'dnf' && flag === 'php') {
-        const all: string[] = []
-        for (const item of arr) {
-          all.push(item.name)
+          for (const packName in vd) {
+            const version = vd[packName]
+            let installed = false
+            const name = packName.split('-').shift()!
+            if (name === 'php') {
+              installed = existsSync(join('/usr/sbin/', `php-fpm`))
+            } else {
+              const num = version.split('.').slice(0, 2).join('.')
+              installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
+            }
+            const item = {
+              name: flag,
+              version,
+              installed,
+              flag: 'port'
+            }
+            arr.push(item)
+          }
         }
-        const res = await execPromise(`dnf info ${all.join(' ')}`)
-        const reg = /(Name         : )(.*?)\n(Version      : )(.*?)\n/g
-        const vd: { [k: string]: string } = {}
-        let r
-        while ((r = reg.exec(res.stdout)) !== null) {
-          vd[r[2]] = r[4]
-        }
-        console.log('vd: ', vd)
-        arr.forEach((item) => {
-          const version = vd[item.name]
-          console.log('item.name: ', item.name, vd[item.name])
-          item.name = item.name.split('-').shift()!
-          item.version = version
-          if (item.name === 'php') {
-            item.installed = existsSync(join('/usr/sbin/', `php-fpm`))
-          } else {
-            const num = version.split('.').slice(0, 2).join('.')
-            item.installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
-          }
-        })
       }
+
       arr.forEach((item: any) => {
         Info[item.name] = item
       })

@@ -131,6 +131,7 @@
       | 'apache'
       | 'memcached'
       | 'mysql'
+      | 'postgresql'
       | 'mariadb'
       | 'redis'
       | 'php'
@@ -384,7 +385,7 @@
     }
 
     const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-    const name = row.name
+    const name = row?.packName ?? row.name
     let params = ''
     if (row.flag === 'brew') {
       const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
@@ -428,6 +429,7 @@
               `${name}-mysqlnd`,
               `${name}-devel`
             )
+            stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php-fpm`
           } else {
             names.push(
               `${name}-php-cli`,
@@ -437,27 +439,20 @@
               `${name}-php-mysqlnd`,
               `${name}-php-devel`
             )
+            stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop ${name}-php-fpm`
           }
-          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php-fpm`
-        }
-      } else if (props.typeFlag === 'mysql') {
-        if (global.Server.SystemPackger === 'apt') {
-          names = ['mysql-server']
-        } else {
-          names = ['community-mysql-server']
-        }
-      } else if (props.typeFlag === 'mariadb') {
-        names = ['mariadb-server']
-      } else if (props.typeFlag === 'redis') {
-        if (global.Server.SystemPackger === 'apt') {
-          names = ['redis-server']
         }
       } else if (props.typeFlag === 'apache') {
-        names = ['apache2']
         if (global.Server.SystemPackger === 'apt') {
           stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop apache2`
         } else {
           stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop httpd`
+        }
+      } else if (props.typeFlag === 'postgresql') {
+        if (global.Server.SystemPackger === 'apt') {
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop postgresql`
+        } else {
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop postgresql-server`
         }
       }
       const sh = join(global.Server.Static, 'sh/port-cmd.sh')
