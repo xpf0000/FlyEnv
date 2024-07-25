@@ -331,7 +331,7 @@ class Brew extends Base {
               installed = existsSync(bin) && realpathSync(bin) === bin
             }
           } else if (flag === 'mariadb') {
-            installed = existsSync(join('/usr/bin/', 'mariadbd-safe'))
+            installed = existsSync(join('/usr/bin/', 'mariadbd'))
           } else if (flag === 'memcached') {
             installed = existsSync(join('/usr/bin', 'memcached'))
           } else if (flag === 'redis') {

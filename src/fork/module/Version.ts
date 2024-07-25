@@ -73,12 +73,7 @@ class Manager extends Base {
           console.log('command: ', command)
           reg = /(Ver )(\d+(\.\d+){1,4})([\s-]?)/g
           break
-        case 'mariadbd-safe':
-          if (bin === '/usr/bin/mariadbd-safe') {
-            bin = '/usr/sbin/mariadbd'
-          } else {
-            bin = bin.replace('-safe', '')
-          }
+        case 'mariadbd':
           command = `echo "${global.Server.Password}" | sudo -S ${bin} -V`
           reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
           break
@@ -129,7 +124,7 @@ class Manager extends Base {
         caddy: 'caddy',
         php: 'php-fpm',
         mysql: 'mysqld',
-        mariadb: 'mariadbd-safe',
+        mariadb: 'mariadbd',
         memcached: 'memcached',
         redis: 'redis-server',
         mongodb: 'mongod',
