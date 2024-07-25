@@ -1,9 +1,9 @@
-import { join, basename, dirname } from 'path'
+import { join } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
-import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
+import { execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, mkdirp, chmod, unlink, remove } from 'fs-extra'
 
@@ -19,8 +19,21 @@ class Manager extends Base {
 
   _initPassword(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
+      let cwd = ''
+      if (existsSync(join(version.path, 'bin/mariadb-admin'))) {
+        cwd = join(version.path, 'bin')
+      } else if (existsSync(join(version.path, 'sbin/mariadb-admin'))) {
+        cwd = join(version.path, 'sbin')
+      } else if (version.bin === '/usr/libexec/mysqld' && existsSync('/usr/bin/mariadb-admin')) {
+        cwd = '/usr/bin'
+      }
+      if (!cwd) {
+        reject(new Error('Init Password Failed'))
+        return
+      }
+
       execPromise('./mariadb-admin --socket=/tmp/mysql.sock -uroot password "root"', {
-        cwd: dirname(version.bin)
+        cwd
       })
         .then((res) => {
           console.log('_initPassword res: ', res)
@@ -44,7 +57,7 @@ class Manager extends Base {
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-port = 3307
+port = 3306
 datadir=${dataDir}`
         await writeFile(m, conf)
       }
@@ -60,51 +73,7 @@ datadir=${dataDir}`
         `--log-error=${e}`,
         `--socket=/tmp/mysql.sock`
       ]
-      let needRestart = false
-      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
-        needRestart = true
-        await mkdirp(dataDir)
-        await chmod(dataDir, '0777')
-        bin = join(version.path, 'bin/mariadb-install-db')
-        if (!existsSync(bin)) {
-          bin = join(version.path, 'bin/mysql_install_db')
-        }        
-        params.splice(0)
-        params.push(`--defaults-file=${m}`)
-        params.push(`--datadir=${dataDir}`)
-        params.push(`--basedir=${version.path}`)
-        params.push('--auth-root-authentication-method=normal')
-      }
-      try {
-        if (existsSync(p)) {
-          await unlink(p)
-        }
-      } catch (e) {}
 
-      on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
-      const { promise, spawn } = spawnPromiseMore(bin, params)
-      let success = false
-      let checking = false
-
-      console.log('mariadb start: ', bin, params.join(' '))
-      async function checkpid(time = 0) {
-        if (existsSync(p)) {
-          console.log('time: ', time)
-          success = true
-          try {
-            await execPromise(`kill -9 ${spawn.pid}`)
-          } catch (e) {}
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            await checkpid(time + 1)
-          } else {
-            try {
-              await execPromise(`kill -9 ${spawn.pid}`)
-            } catch (e) {}
-          }
-        }
-      }
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
           await remove(dataDir)
@@ -113,42 +82,77 @@ datadir=${dataDir}`
           await remove(m)
         }
       }
-      promise
-        .on(async (data) => {
-          console.log('promise on: ', data)
-          on(data)
-          if (!checking) {
-            checking = true
-            await checkpid()
+
+      let isInit = false
+      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
+        isInit = true
+        await mkdirp(dataDir)
+        await chmod(dataDir, '0777')
+        bin = ''
+        if (existsSync(join(version.path, 'mariadb-install-db'))) {
+          bin = join(version.path, 'mariadb-install-db')
+        } else if (existsSync(join(version.path, 'bin/mariadb-install-db'))) {
+          bin = join(version.path, 'bin/mariadb-install-db')
+        } else if (existsSync(join(version.path, 'sbin/mariadb-install-db'))) {
+          bin = join(version.path, 'sbin/mariadb-install-db')
+        } else if (existsSync(join(version.path, 'script/mariadb-install-db'))) {
+          bin = join(version.path, 'script/mariadb-install-db')
+        }
+        if (!bin) {
+          reject(new Error('Start Failed: No Found mariadb-install-db'))
+          return
+        }
+        params.splice(0)
+        params.push(`--defaults-file=${m}`)
+        params.push(`--datadir=${dataDir}`)
+        params.push(`--basedir=${version.path}`)
+        params.push('--auth-root-authentication-method=normal')
+
+        const command = `${bin} ${params.join(' ')}`
+        console.log('mysql start: ', command)
+        on(I18nT('fork.command') + `: ${command}`)
+        await execPromise(command)
+        if (readdirSync(dataDir).length === 0) {
+          await unlinkDirOnFail()
+          reject(new Error('Start Failed'))
+          return
+        }
+      }
+
+      try {
+        if (existsSync(p)) {
+          await unlink(p)
+        }
+      } catch (e) {}
+
+      const checkpid = async (time = 0) => {
+        if (existsSync(p)) {
+          console.log('time: ', time)
+          if (isInit) {
+            await this._initPassword(version)
           }
-        })
-        .then(async (code) => {
-          console.log('promise then: ', code)
-          if (success) {
-            resolve(code)
+          resolve(true)
+        } else {
+          if (time < 40) {
+            await waitTime(500)
+            await checkpid(time + 1)
           } else {
-            if (needRestart && readdirSync(dataDir).length > 0) {
-              try {
-                await this._startServer(version).on(on)
-                await this._initPassword(version)
-                on(I18nT('fork.postgresqlInit', { dir: dataDir }))
-                resolve(code)
-              } catch (e) {
-                await unlinkDirOnFail()
-                reject(e)
-              }
-            } else {
-              reject(code)
-            }
+            reject(new Error('Start Failed'))
           }
-        })
-        .catch(async (err) => {
-          console.log('promise catch: ', err)
-          if (needRestart) {
-            await unlinkDirOnFail()
-          }
-          reject(err)
-        })
+        }
+      }
+      try {
+        const command = `nohup ${bin} ${params.join(' ')} &`
+        console.log('mysql start: ', command)
+        on(I18nT('fork.command') + `: ${command}`)
+        await execPromise(command)
+        console.log('command end checkpid !!!')
+        await checkpid()
+      } catch (e) {
+        console.log('command error: ', e)
+        reject(e)
+        return
+      }
     })
   }
 }
