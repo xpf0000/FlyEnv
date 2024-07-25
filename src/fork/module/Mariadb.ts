@@ -107,15 +107,17 @@ datadir=${dataDir}`
           reject(new Error('Start Failed: No Found mariadb-install-db'))
           return
         }
-        params.splice(0)
-        params.push(`--defaults-file=${m}`)
-        params.push(`--datadir=${dataDir}`)
-        params.push(`--basedir=${version.path}`)
-        params.push('--auth-root-authentication-method=normal')
+        const params = [
+          `--defaults-file=${m}`,
+          `--datadir=${dataDir}`,
+          `--basedir=${version.path}`,
+          '--auth-root-authentication-method=normal'
+        ]
 
         const command = `${installDBBin} ${params.join(' ')}`
         console.log('mysql start: ', command)
         on(I18nT('fork.command') + `: ${command}`)
+
         await execPromise(command)
         if (readdirSync(dataDir).length === 0) {
           await unlinkDirOnFail()
