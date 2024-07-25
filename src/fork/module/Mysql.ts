@@ -1,9 +1,9 @@
-import { join, basename } from 'path'
+import { join } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
-import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
+import { execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
 
@@ -165,14 +165,7 @@ datadir=${dataDir}`
   startGroupServer(version: MysqlGroupItem) {
     return new ForkPromise(async (resolve, reject, on) => {
       await this.stopGroupService(version)
-      let bin = version.version.bin
-      if (existsSync(join(version.version.path!, 'mysqld_safe'))) {
-        bin = join(version.version.path!, 'mysqld_safe')
-      } else if (existsSync(join(version.version.path!, 'bin/mysqld_safe'))) {
-        bin = join(version.version.path!, 'bin/mysqld_safe')
-      } else if (existsSync(join(version.version.path!, 'sbin/mysqld_safe'))) {
-        bin = join(version.version.path!, 'sbin/mysqld_safe')
-      }
+      const bin = version.version.bin
 
       const id = version?.id ?? ''
       const m = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
@@ -199,72 +192,50 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         `--log-error=${e}`,
         `--socket=${sock}`
       ]
-      if (version?.version?.flag === 'macports') {
-        params.push(`--lc-messages-dir=/opt/local/share/${basename(version.version.path!)}/english`)
-      }
-      let needRestart = false
-      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
-        const currentVersion = version.version!
-        needRestart = true
-        await mkdirp(dataDir)
-        await chmod(dataDir, '0755')
-        const installdb = join(currentVersion.path!, 'bin/mysql_install_db')
-        if (existsSync(installdb) && version.version.num! < 57) {
-          bin = installdb
-          params.splice(0)
-          params.push(`--defaults-file=${m}`)
-          params.push(`--datadir=${dataDir}`)
-          params.push(`--basedir=${currentVersion.path}`)
-          if (currentVersion?.flag === 'macports') {
-            const defaultCnf = join(currentVersion.path!, 'my-default.cnf')
-            if (!existsSync(defaultCnf)) {
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp -f ${m} ${defaultCnf}`
-              )
-            }
-            const enDir = join(currentVersion.path!, 'share')
-            if (!existsSync(enDir)) {
-              const shareDir = `/opt/local/share/${basename(currentVersion.path!)}`
-              if (existsSync(shareDir)) {
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir}/* ${enDir}`
-                )
-                const langDir = join(enDir, basename(currentVersion.path!))
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${langDir}`)
-                const langEnDir = join(shareDir, 'english')
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${langEnDir} ${langDir}`
-                )
-              }
-            }
-          }
-        } else {
-          params.push('--initialize-insecure')
+
+      const unlinkDirOnFail = async () => {
+        if (existsSync(dataDir)) {
+          await remove(dataDir)
+        }
+        if (existsSync(m)) {
+          await remove(m)
         }
       }
+
+      let isInit = false
+      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
+        isInit = true
+        await mkdirp(dataDir)
+        await chmod(dataDir, '0777')
+        const command = `${bin} ${params.join(' ')} --initialize-insecure`
+        console.log('mysql start: ', command)
+        on(I18nT('fork.command') + `: ${command}`)
+        await execPromise(command)
+        if (readdirSync(dataDir).length === 0) {
+          await unlinkDirOnFail()
+          reject(new Error('Start Failed'))
+          return
+        }
+      }
+
       try {
         if (existsSync(p)) {
           await unlink(p)
         }
       } catch (e) {}
-      console.log('mysql start: ', bin, params.join(' '))
-      on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
-      const { promise, spawn } = spawnPromiseMore(bin!, params)
-      let success = false
-      let checking = false
+
       const initPassword = () => {
         return new ForkPromise((resolve, reject) => {
           let cwd = ''
           if (existsSync(join(version.version.path!, 'bin/mysqladmin'))) {
-            cwd = join(version.version.path!, 'bin/mysqladmin')
+            cwd = join(version.version.path!, 'bin')
           } else if (existsSync(join(version.version.path!, 'sbin/mysqladmin'))) {
-            cwd = join(version.version.path!, 'sbin/mysqladmin')
+            cwd = join(version.version.path!, 'sbin')
           } else if (
             version.version.bin === '/usr/libexec/mysqld' &&
             existsSync('/usr/bin/mysqladmin')
           ) {
-            cwd = '/usr/bin/mysqladmin'
+            cwd = '/usr/bin'
           }
           execPromise(`./mysqladmin -P${version.port} -S${sock} -uroot password "root"`, {
             cwd
@@ -279,65 +250,35 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
             })
         })
       }
-      async function checkpid(time = 0) {
+
+      const checkpid = async (time = 0) => {
         if (existsSync(p)) {
           console.log('time: ', time)
-          success = true
-          try {
-            await execPromise(`kill -9 ${spawn.pid}`)
-          } catch (e) {}
+          if (isInit) {
+            await initPassword()
+          }
+          resolve(true)
         } else {
           if (time < 40) {
             await waitTime(500)
             await checkpid(time + 1)
           } else {
-            try {
-              await execPromise(`kill -9 ${spawn.pid}`)
-            } catch (e) {}
+            reject(new Error('Start Failed'))
           }
         }
       }
-      const unlinkDirOnFail = async () => {
-        if (existsSync(dataDir)) {
-          await remove(dataDir)
-        }
-        if (existsSync(m)) {
-          await remove(m)
-        }
+      try {
+        const command = `nohup ${bin} ${params.join(' ')} &`
+        console.log('mysql start: ', command)
+        on(I18nT('fork.command') + `: ${command}`)
+        await execPromise(command)
+        console.log('command end checkpid !!!')
+        await checkpid()
+      } catch (e) {
+        console.log('command error: ', e)
+        reject(e)
+        return
       }
-      promise
-        .on(async (data) => {
-          on(data)
-          if (!checking) {
-            checking = true
-            await checkpid()
-          }
-        })
-        .then(async (code) => {
-          if (success) {
-            resolve(code)
-          } else {
-            if (needRestart) {
-              try {
-                await this.startGroupServer(version).on(on)
-                await initPassword()
-                on(I18nT('fork.postgresqlInit', { dir: dataDir }))
-                resolve(code)
-              } catch (e) {
-                await unlinkDirOnFail()
-                reject(e)
-              }
-            } else {
-              reject(code)
-            }
-          }
-        })
-        .catch(async (err) => {
-          if (needRestart) {
-            await unlinkDirOnFail()
-          }
-          reject(err)
-        })
     })
   }
 }
