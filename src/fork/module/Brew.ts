@@ -251,11 +251,11 @@ class Brew extends Base {
             'pure-ftpd'
           ].includes(flag)
         ) {
-          const reg = /(Name         : )(.*?)\n([\s\S]?)(Version      : )(.*?)\n/g
+          const reg = /(Name         : )(.*?)\n([\s\S]*?)(Version      : )(.*?)\n/g
           const vd: { [k: string]: string } = {}
           let r
           while ((r = reg.exec(info)) !== null) {
-            vd[r[2]] = r[4]
+            vd[r[2]] = r[5]
           }
           for (const packName in vd) {
             const version = vd[packName]
@@ -296,11 +296,11 @@ class Brew extends Base {
             .filter((s) => s.includes('php-fpm.') && s.includes('PHP FastCGI Process Manager'))
             .map((s) => s.split('.').shift()!)
           const res = await execPromise(`dnf info ${packs.join(' ')}`)
-          const reg = /(Name         : )(.*?)\n(Version      : )(.*?)\n/g
+          const reg = /(Name         : )(.*?)\n([\s\S]*?)(Version      : )(.*?)\n/g
           const vd: { [k: string]: string } = {}
           let r
           while ((r = reg.exec(res.stdout)) !== null) {
-            vd[r[2]] = r[4]
+            vd[r[2]] = r[5]
           }
           for (const packName in vd) {
             const version = vd[packName]
