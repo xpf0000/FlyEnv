@@ -27,9 +27,15 @@
                   <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="dnsStart" />
                 </div>
               </template>
-              <div v-else class="status" :class="{ disabled: fetching }" :loading="fetching">
+              <el-button
+                v-else
+                :loading="fetching"
+                class="status"
+                text
+                :class="{ disabled: fetching }"
+              >
                 <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStart" />
-              </div>
+              </el-button>
             </div>
             <el-button @click.stop="cleanLog">{{ $t('base.clean') }}</el-button>
           </div>
