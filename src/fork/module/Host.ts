@@ -26,15 +26,16 @@ class Host extends Base {
 
   _makeAutoSSL(host: AppHost): ForkPromise<{ crt: string; key: string } | false> {
     return new ForkPromise(async (resolve) => {
+      const systemCADir =
+        global.Server.SystemPackger === 'apt'
+          ? '/usr/local/share/ca-certificates/'
+          : '/etc/pki/ca-trust/source/anchors/'
       try {
         const alias = hostAlias(host)
         const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
         const CADir = dirname(CARoot)
         const caFileName = 'PhpWebStudy-Root-CA'
-        if (
-          !existsSync(CARoot) ||
-          !existsSync('/usr/local/share/ca-certificates/PhpWebStudy-Root-CA.crt')
-        ) {
+        if (!existsSync(CARoot) || !existsSync(`${systemCADir}PhpWebStudy-Root-CA.crt`)) {
           await mkdirp(CADir)
           const cnf = `[req]
 distinguished_name=dn
@@ -64,15 +65,15 @@ CN = ${caFileName}`
             resolve(false)
             return
           }
-          command = `echo '${global.Server.Password}' | sudo -S cp PhpWebStudy-Root-CA.crt /usr/local/share/ca-certificates/`
+          command = `echo '${global.Server.Password}' | sudo -S cp PhpWebStudy-Root-CA.crt ${systemCADir}`
           await execPromise(command, {
             cwd: CADir
           })
-          command = `echo '${global.Server.Password}' | sudo -S cp PhpWebStudy-Root-CA.key /usr/local/share/ca-certificates/`
+          command = `echo '${global.Server.Password}' | sudo -S cp PhpWebStudy-Root-CA.key ${systemCADir}`
           await execPromise(command, {
             cwd: CADir
           })
-          command = `echo '${global.Server.Password}' | sudo -S cp PhpWebStudy-Root-CA.cnf /usr/local/share/ca-certificates/`
+          command = `echo '${global.Server.Password}' | sudo -S cp PhpWebStudy-Root-CA.cnf ${systemCADir}`
           await execPromise(command, {
             cwd: CADir
           })
@@ -113,7 +114,7 @@ subjectAltName=@alt_names
         ext += `IP.1 = 127.0.0.1${EOL}`
         await writeFile(join(hostCADir, `${hostCAName}.ext`), ext)
 
-        const rootCA = join('/usr/local/share/ca-certificates/', 'PhpWebStudy-Root-CA')
+        const rootCA = join(systemCADir, 'PhpWebStudy-Root-CA')
 
         let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}/O=PhpWebStudy/OU=PhpWebStudy";`
         let res = await execPromise(command, {
