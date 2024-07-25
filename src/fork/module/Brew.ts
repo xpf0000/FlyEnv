@@ -331,7 +331,12 @@ class Brew extends Base {
               installed = existsSync(bin) && realpathSync(bin) === bin
             }
           } else if (flag === 'mariadb') {
-            installed = existsSync(join('/usr/bin/', 'mariadbd'))
+            if (global.Server.SystemPackger === 'dnf') {
+              installed = existsSync('/usr/libexec/mariadbd')
+            } else {
+              const bin = join('/usr/bin/', 'mariadbd')
+              installed = existsSync(bin) && realpathSync(bin) === bin
+            }
           } else if (flag === 'memcached') {
             installed = existsSync(join('/usr/bin', 'memcached'))
           } else if (flag === 'redis') {

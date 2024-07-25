@@ -97,6 +97,11 @@ datadir=${dataDir}`
           bin = join(version.path, 'sbin/mariadb-install-db')
         } else if (existsSync(join(version.path, 'script/mariadb-install-db'))) {
           bin = join(version.path, 'script/mariadb-install-db')
+        } else if (
+          version.bin === '/usr/libexec/mariadbd' &&
+          existsSync('/usr/bin/mariadb-install-db')
+        ) {
+          bin = '/usr/bin/mariadb-install-db'
         }
         if (!bin) {
           reject(new Error('Start Failed: No Found mariadb-install-db'))
