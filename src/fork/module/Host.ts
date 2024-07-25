@@ -79,7 +79,11 @@ CN = ${caFileName}`
           })
           command = `echo '${global.Server.Password}' | sudo -S rm -rf /etc/ssl/certs/PhpWebStudy-Root-CA*`
           await execPromise(command)
-          command = `echo '${global.Server.Password}' | sudo -S update-ca-certificates`
+          if (global.Server.SystemPackger === 'apt') {
+            command = `echo '${global.Server.Password}' | sudo -S update-ca-certificates`
+          } else {
+            command = `echo '${global.Server.Password}' | sudo -S update-ca-trust extract`
+          }
           res = await execPromise(command)
           console.log('res: ', res)
         }
