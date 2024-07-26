@@ -138,6 +138,7 @@ interface State {
       showAIRobot: boolean
       phpBrewInited: boolean
       phpAptInited: boolean
+      caddyAptInited: boolean
       currentNodeTool: 'fnm' | 'nvm' | ''
       editorConfig: EditorConfig
       phpGroupStart: { [k: string]: boolean }
@@ -259,6 +260,7 @@ const state: State = {
       phpGroupStart: {},
       currentNodeTool: '',
       phpAptInited: false,
+      caddyAptInited: false,
       phpBrewInited: false
     }
   },

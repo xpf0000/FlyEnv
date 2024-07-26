@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 # 字符串染色程序
 if [[ -t 1 ]]; then
   tty_escape() { printf "\033[%sm" "$1"; }

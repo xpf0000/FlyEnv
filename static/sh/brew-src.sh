@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 srcFlag=$1
 brewHome=$2
 case $srcFlag in

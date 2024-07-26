@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 arch=$(uname -m)
 echo "$arch"
 if [[ $arch != "x86_64" ]]; then
@@ -6,9 +6,6 @@ if [[ $arch != "x86_64" ]]; then
 fi
 if [ -f "~/.bashrc" ]; then
   source ~/.bashrc
-fi
-if [ -f "~/.zshrc" ]; then
-  source ~/.zshrc
 fi
 password=$1
 if [ -f "/etc/fedora-release" ]; then

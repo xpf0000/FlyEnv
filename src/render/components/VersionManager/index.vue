@@ -11,6 +11,9 @@
               <template v-if="typeFlag === 'php'">
                 <el-option value="static" label="static-php"></el-option>
               </template>
+              <template v-else-if="typeFlag === 'caddy'">
+                <el-option value="static" label="static-caddy"></el-option>
+              </template>
             </el-select>
           </template>
         </div>
@@ -302,6 +305,16 @@
             }
           })
         }
+      } else if (props.typeFlag === 'caddy') {
+        if (src === 'port' && !appStore?.config?.setup?.caddyAptInited) {
+          const fn = global.Server.SystemPackger === 'apt' ? 'initCaddyApt' : 'initCaddyDnf'
+          IPC.send('app-fork:caddy', fn).then((key: string) => {
+            IPC.off(key)
+            appStore.config.setup.caddyAptInited = true
+            appStore.saveConfig()
+            fetchData('port')
+          })
+        }
       }
       fetchData(src)
     }
@@ -413,10 +426,7 @@
       let names = [name]
       if (props.typeFlag === 'php') {
         if (global.Server.SystemPackger === 'apt') {
-          names.push(`${name}-fpm`, `${name}-dev`, `${name}-mysql`, `${name}-odbc`)
-          if (name !== 'php') {
-            names.push(`${name}-dba`)
-          }
+          names.push(`${name}-fpm`, `${name}-dev`, `${name}-mysql`, `${name}-odbc`, `${name}-dba`)
           const v = row.version.split('.').slice(0, 2).join('.')
           stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php${v}-fpm`
         } else {

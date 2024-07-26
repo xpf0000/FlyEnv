@@ -237,6 +237,96 @@ class Brew extends Base {
       const info: string = await spawnPromise(global.Server.SystemPackger!, params)
       console.log('info: ', info)
       if (global.Server.SystemPackger === 'apt') {
+        if (
+          [
+            'nginx',
+            'caddy',
+            'apache',
+            'mysql',
+            'mariadb',
+            'postgresql',
+            'memcached',
+            'redis',
+            'pure-ftpd'
+          ].includes(flag)
+        ) {
+          const reg = /(Package: )(.*?)\n([\s\S]*?)(Version: )(.*?)\n/g
+          const vd: { [k: string]: string } = {}
+          let r
+          while ((r = reg.exec(info)) !== null) {
+            vd[r[2]] = r[5]
+          }
+          for (const packName in vd) {
+            let version = vd[packName]
+            version = version.split('-').shift() ?? ''
+            if (version.includes(':')) {
+              version = version
+                .split(':')
+                .filter((s) => s.includes('.'))
+                .shift()!
+            }
+            if (version.includes('+')) {
+              version = version.split('+').shift()!
+            }
+
+            let installed = false
+            if (flag === 'nginx') {
+              installed = existsSync(join('/usr/sbin/', flag))
+            } else if (flag === 'caddy') {
+              installed = existsSync(join('/usr/bin/', flag))
+            } else if (flag === 'apache') {
+              installed = existsSync(join('/usr/sbin/', 'apachectl'))
+            } else if (flag === 'mysql') {
+              installed = existsSync('/usr/libexec/mysqld')
+            } else if (flag === 'mariadb') {
+              installed = existsSync('/usr/libexec/mariadbd')
+            } else if (flag === 'memcached') {
+              installed = existsSync(join('/usr/bin', 'memcached'))
+            } else if (flag === 'redis') {
+              installed = existsSync(join('/usr/bin', `redis-server`))
+            } else if (flag === 'pure-ftpd') {
+              installed =
+                existsSync(join('/usr/bin', 'pure-pw')) ||
+                existsSync(join('/usr/sbin', 'pure-ftpd'))
+            } else if (flag === 'postgresql') {
+              installed = existsSync(join('/usr/bin/pg_ctl'))
+            }
+            const item = {
+              name: flag,
+              packName,
+              version,
+              installed,
+              flag: 'port'
+            }
+            arr.push(item)
+          }
+        } else if (flag === 'php') {
+          const reg = /(php(.*?)-fpm)\/(.*?)([:\s]+?)([\d\.]+)([+-~])/g
+          const vd: { [k: string]: string } = {}
+          let r
+          while ((r = reg.exec(info)) !== null) {
+            vd[r[1]] = r[5]
+          }
+          for (const packName in vd) {
+            const version = vd[packName]
+            let installed = false
+            const name = packName.split('-').shift()!
+            if (name === 'php') {
+              const res = await execPromise('apt show php-fpm')
+              installed = res?.stdout?.includes('APT-Manual-Installed: yes') ?? false
+            } else {
+              const num = version.split('.').slice(0, 2).join('.')
+              installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
+            }
+            const item = {
+              name: flag,
+              version,
+              installed,
+              flag: 'port'
+            }
+            arr.push(item)
+          }
+        }
       } else {
         if (
           [
