@@ -464,6 +464,8 @@
         } else {
           stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop postgresql-server`
         }
+      } else if (props.typeFlag === 'mariadb') {
+        stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop mariadb`
       }
       const sh = join(global.Server.Static, 'sh/port-cmd.sh')
       const copyfile = join(global.Server.Cache, 'port-cmd.sh')

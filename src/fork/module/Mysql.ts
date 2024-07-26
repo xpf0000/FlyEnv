@@ -89,7 +89,9 @@ datadir=${dataDir}`
         const command = `${bin} ${params.join(' ')} --initialize-insecure`
         console.log('mysql start: ', command)
         on(I18nT('fork.command') + `: ${command}`)
-        await execPromise(command)
+        try {
+          await execPromise(command)
+        } catch (e) {}
         if (readdirSync(dataDir).length === 0) {
           await unlinkDirOnFail()
           reject(new Error('Start Failed'))
@@ -105,7 +107,9 @@ datadir=${dataDir}`
         if (existsSync(p)) {
           console.log('time: ', time)
           if (isInit) {
-            await this._initPassword(version)
+            try {
+              await this._initPassword(version)
+            } catch (e) {}
           }
           resolve(true)
         } else {
