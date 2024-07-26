@@ -66,6 +66,7 @@ datadir=${dataDir}`
       const e = join(global.Server.MysqlDir!, 'error.log')
       const params = [
         `--defaults-file=${m}`,
+        '--user=mysql',
         `--pid-file=${p}`,
         '--socket=/tmp/mysql.sock',
         `--log-error=${e}`,
@@ -94,7 +95,7 @@ datadir=${dataDir}`
           console.log(e)
         }
         if (readdirSync(dataDir).length === 0) {
-          // await unlinkDirOnFail()
+          await unlinkDirOnFail()
           reject(new Error('Start Failed'))
           return
         }
@@ -123,7 +124,7 @@ datadir=${dataDir}`
         }
       }
       try {
-        const command = `nohup ${bin} ${params.join(' ')} --user=mysql &`
+        const command = `nohup ${bin} ${params.join(' ')} &`
         console.log('mysql start: ', command)
         on(I18nT('fork.command') + `: ${command}`)
         await execPromise(command)
