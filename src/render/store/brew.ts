@@ -88,7 +88,8 @@ const state: State = {
     installed: [],
     list: {
       brew: {},
-      port: {}
+      port: {},
+      static: {}
     }
   },
   nginx: {
