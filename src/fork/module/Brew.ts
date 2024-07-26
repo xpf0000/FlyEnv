@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { existsSync, realpathSync } from 'fs'
+import { existsSync } from 'fs'
 import { Base } from './Base'
 import { execPromise, spawnPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
