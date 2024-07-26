@@ -442,6 +442,7 @@ class Brew extends Base {
       const cp = join(global.Server.Cache!, 'php-apt-init.sh')
       try {
         await copyFile(sh, cp)
+        await execPromise(`echo "${global.Server.Password}" | sudo -S chmod 777 ${cp}`)
         const stdout = await spawnPromise('bash', [cp, global.Server.Password!])
         console.log('initPhpApt: ', stdout)
         resolve(true)
@@ -457,6 +458,7 @@ class Brew extends Base {
       const cp = join(global.Server.Cache!, 'php-dnf-init.sh')
       try {
         await copyFile(sh, cp)
+        await execPromise(`echo "${global.Server.Password}" | sudo -S chmod 777 ${cp}`)
         const stdout = await spawnPromise('bash', [cp, global.Server.Password!])
         console.log('initPhpDnf: ', stdout)
         resolve(true)

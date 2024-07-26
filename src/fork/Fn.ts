@@ -223,9 +223,17 @@ export function spawnPromise(
       if (exit) return
       exit = true
       if (!code) {
-        resolve(Buffer.concat(stdout).toString().trim())
+        let str = ''
+        try {
+          str = Buffer.concat(stdout).toString().trim()
+        } catch (e) {}
+        resolve(str)
       } else {
-        reject(new Error(Buffer.concat(stderr).toString().trim()))
+        let str = ''
+        try {
+          str = Buffer.concat(stderr).toString().trim()
+        } catch (e) {}
+        reject(new Error(str))
       }
     }
     child?.stdout?.on('data', (data) => {

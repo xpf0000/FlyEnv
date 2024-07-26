@@ -173,6 +173,7 @@ class Caddy extends Base {
       const cp = join(global.Server.Cache!, 'caddy-apt-init.sh')
       try {
         await copyFile(sh, cp)
+        await execPromise(`echo "${global.Server.Password}" | sudo -S chmod 777 ${cp}`)
         const stdout = await spawnPromise('bash', [cp, global.Server.Password!])
         console.log('initCaddyApt: ', stdout)
         resolve(true)
@@ -188,6 +189,7 @@ class Caddy extends Base {
       const cp = join(global.Server.Cache!, 'caddy-dnf-init.sh')
       try {
         await copyFile(sh, cp)
+        await execPromise(`echo "${global.Server.Password}" | sudo -S chmod 777 ${cp}`)
         const stdout = await spawnPromise('bash', [cp, global.Server.Password!])
         console.log('initCaddyDnf: ', stdout)
         resolve(true)
