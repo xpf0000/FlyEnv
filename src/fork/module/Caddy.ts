@@ -133,7 +133,8 @@ class Caddy extends Base {
       await this.#fixVHost()
       const iniFile = await this.initConfig()
       const shFile = join(global.Server.BaseDir!, 'caddy/caddy.sh')
-      const command = `#!/usr/bin/bash\necho '${global.Server.Password}' | sudo -S ${bin} start --config ${iniFile} --pidfile ${this.pidPath} --watch`
+      const command = `#!/bin/bash\necho '${global.Server.Password}' | sudo -S ${bin} start --config ${iniFile} --pidfile ${this.pidPath} --watch`
+      console.log('command: ', command)
       await writeFile(shFile, command)
       await chmod(shFile, '0777')
       if (existsSync(this.pidPath)) {
