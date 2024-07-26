@@ -54,7 +54,7 @@ interface State {
   showInstallLog: boolean
   brewSrc: string
   log: Array<string>
-  LibUse: { [k: string]: 'brew' | 'port' }
+  LibUse: { [k: string]: 'brew' | 'port' | 'static' }
 }
 
 const state: State = {

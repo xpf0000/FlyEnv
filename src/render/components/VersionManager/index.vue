@@ -7,7 +7,9 @@
           <template v-if="!brewRunning && !showNextBtn">
             <el-select v-model="libSrc" style="margin-left: 8px">
               <el-option :disabled="!checkBrew()" value="brew" label="Homebrew"></el-option>
-              <el-option value="port" :label="systemPackger"></el-option>
+              <template v-if="typeFlag !== 'caddy'">
+                <el-option value="port" :label="systemPackger"></el-option>
+              </template>
               <template v-if="typeFlag === 'php'">
                 <el-option value="static" label="static-php"></el-option>
               </template>
@@ -224,10 +226,13 @@
     return !!global.Server.BrewCellar
   }
   const libSrc = computed({
-    get(): 'brew' | 'port' {
-      return brewStore.LibUse[props.typeFlag] ?? (checkBrew() ? 'brew' : 'port')
+    get(): 'brew' | 'port' | 'static' {
+      return (
+        brewStore.LibUse[props.typeFlag] ??
+        (checkBrew() ? 'brew' : props.typeFlag === 'caddy' ? 'static' : 'port')
+      )
     },
-    set(v: 'brew' | 'port') {
+    set(v: 'brew' | 'port' | 'static') {
       brewStore.LibUse[props.typeFlag] = v
     }
   })
@@ -303,16 +308,6 @@
             if (res?.data === 2) {
               fetchData('brew')
             }
-          })
-        }
-      } else if (props.typeFlag === 'caddy') {
-        if (src === 'port' && !appStore?.config?.setup?.caddyAptInited) {
-          const fn = global.Server.SystemPackger === 'apt' ? 'initCaddyApt' : 'initCaddyDnf'
-          IPC.send('app-fork:caddy', fn).then((key: string) => {
-            IPC.off(key)
-            appStore.config.setup.caddyAptInited = true
-            appStore.saveConfig()
-            fetchData('port')
           })
         }
       }
