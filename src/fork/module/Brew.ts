@@ -291,7 +291,8 @@ class Brew extends Base {
                 existsSync(join('/usr/bin', 'pure-pw')) ||
                 existsSync(join('/usr/sbin', 'pure-ftpd'))
             } else if (flag === 'postgresql') {
-              installed = existsSync(join('/usr/bin/pg_ctl'))
+              const v = version.split('.').shift()!
+              installed = existsSync(join('/lib/postgresql', v, 'bin/pg_ctl'))
             }
             const item = {
               name: flag,
