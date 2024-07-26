@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, realpathSync } from 'fs'
 import { Base } from './Base'
 import { execPromise, spawnPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -277,7 +277,9 @@ class Brew extends Base {
             } else if (flag === 'apache') {
               installed = existsSync(join('/usr/sbin/', 'apachectl'))
             } else if (flag === 'mysql') {
-              installed = existsSync('/usr/sbin/mysqld')
+              installed =
+                existsSync('/usr/sbin/mysqld') &&
+                realpathSync('/usr/sbin/mysqld') === '/usr/sbin/mysqld'
             } else if (flag === 'mariadb') {
               installed = existsSync('/usr/sbin/mariadbd')
             } else if (flag === 'memcached') {
