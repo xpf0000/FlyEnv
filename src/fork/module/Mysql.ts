@@ -94,7 +94,7 @@ datadir=${dataDir}`
           console.log(e)
         }
         if (readdirSync(dataDir).length === 0) {
-          await unlinkDirOnFail()
+          // await unlinkDirOnFail()
           reject(new Error('Start Failed'))
           return
         }
