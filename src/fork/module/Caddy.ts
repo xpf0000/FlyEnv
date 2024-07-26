@@ -260,7 +260,7 @@ class Caddy extends Base {
         all.sort((a: any, b: any) => {
           return compareVersions(b.version, a.version)
         })
-
+        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-caddy-${a.version}`, 'caddy')
           const zip = join(global.Server.Cache!, `static-caddy-${a.version}.tar.gz`)
@@ -269,10 +269,11 @@ class Caddy extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
+          dict[`caddy-${a.version}`] = a
         })
-        resolve(all)
+        resolve(dict)
       } catch (e) {
-        resolve([])
+        resolve({})
       }
     })
   }

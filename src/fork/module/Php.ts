@@ -746,7 +746,7 @@ class Php extends Base {
         })
         resolve(dict)
       } catch (e) {
-        resolve([])
+        resolve({})
       }
     })
   }
