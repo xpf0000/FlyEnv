@@ -91,7 +91,9 @@ datadir=${dataDir}`
         on(I18nT('fork.command') + `: ${command}`)
         try {
           await execPromise(command)
-        } catch (e) {}
+        } catch (e) {
+          console.log(e)
+        }
         if (readdirSync(dataDir).length === 0) {
           await unlinkDirOnFail()
           reject(new Error('Start Failed'))
