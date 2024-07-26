@@ -35,7 +35,7 @@ php8.3-fpm/jammy 8.3.9-1+ubuntu22.04.1+deb.sury.org+1 amd64
 
 php8.4-fpm/jammy 8.4.0~alpha2-1+ubuntu22.04.1+deb.sury.org+1 amd64
   server-side, HTML-embedded scripting language (FPM-CGI binary)`
-const reg = /(php(.*?)-fpm)\/(.*?)([:\s]+?)([\d\.]+)([+-~])/g
+const reg = /(php(.*?)-fpm)\/(.*?)(\d+(\.\d+){1,4})([\+-\~])/g
 let r
 const all = new Set()
 while ((r = reg.exec(html)) !== null) {

@@ -301,11 +301,11 @@ class Brew extends Base {
             arr.push(item)
           }
         } else if (flag === 'php') {
-          const reg = /(php(.*?)-fpm)\/(.*?)([:\s]+?)([\d\.]+)([+-~])/g
+          const reg = /(php(.*?)-fpm)\/(.*?)(\d+(\.\d+){1,4})([\+-\~])/g
           const vd: { [k: string]: string } = {}
           let r
           while ((r = reg.exec(info)) !== null) {
-            vd[r[1]] = r[5]
+            vd[r[1]] = r[4]
           }
           for (const packName in vd) {
             const version = vd[packName]
