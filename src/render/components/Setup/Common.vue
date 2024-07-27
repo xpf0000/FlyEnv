@@ -174,7 +174,7 @@
     unmounted() {},
     methods: {
       showAbout() {
-        Base.Dialog(import('./components/About/index.vue'))
+        Base.Dialog(import('@/components/About/index.vue'))
           .className('about-dialog')
           .title(I18nT('base.about'))
           .noFooter()
