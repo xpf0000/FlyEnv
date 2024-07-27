@@ -98,7 +98,7 @@ export default {
   serviceReLoad: '重载配置',
   gettingVersion: '可用版本获取中...',
   brewLibrary: '库',
-  about: '关于我们',
+  about: '关于PhpWebStudy',
   success: '操作成功',
   fail: '操作失败',
   configNoFound: '未找到配置文件, 请重新选择版本',

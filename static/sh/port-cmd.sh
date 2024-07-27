@@ -7,3 +7,4 @@ if [ -f "~/.zshrc" ]; then
 fi
 echo "sudo ##PACKGER## ##ACTION## ##NAME##"
 echo "##PASSWORD##" | sudo -S ##PACKGER## ##ACTION## -y ##NAME##
+echo "##PASSWORD##" | sudo -S ##PACKGER## autoremove -y

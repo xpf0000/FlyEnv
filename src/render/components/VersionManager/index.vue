@@ -417,13 +417,13 @@
       }
     } else {
       console.log('row: ', row)
-      let stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop ${name}`
+      let stopService = `echo "${global.Server.Password}" | sudo -S systemctl disable ${name} && echo "${global.Server.Password}" | sudo -S systemctl stop ${name}`
       let names = [name]
       if (props.typeFlag === 'php') {
         if (global.Server.SystemPackger === 'apt') {
           names.push(`${name}-fpm`, `${name}-dev`, `${name}-mysql`, `${name}-odbc`, `${name}-dba`)
           const v = row.version.split('.').slice(0, 2).join('.')
-          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php${v}-fpm`
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl disable php${v}-fpm && echo "${global.Server.Password}" | sudo -S systemctl stop php${v}-fpm`
         } else {
           if (name === 'php') {
             names.push(
@@ -434,7 +434,7 @@
               `${name}-mysqlnd`,
               `${name}-devel`
             )
-            stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop php-fpm`
+            stopService = `echo "${global.Server.Password}" | sudo -S systemctl disable php-fpm && echo "${global.Server.Password}" | sudo -S systemctl stop php-fpm`
           } else {
             names.push(
               `${name}-php-cli`,
@@ -444,23 +444,23 @@
               `${name}-php-mysqlnd`,
               `${name}-php-devel`
             )
-            stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop ${name}-php-fpm`
+            stopService = `echo "${global.Server.Password}" | sudo -S systemctl disable ${name}-php-fpm && echo "${global.Server.Password}" | sudo -S systemctl stop ${name}-php-fpm`
           }
         }
       } else if (props.typeFlag === 'apache') {
         if (global.Server.SystemPackger === 'apt') {
-          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop apache2`
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl disable apache2 && echo "${global.Server.Password}" | sudo -S systemctl stop apache2`
         } else {
-          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop httpd`
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl disable httpd && echo "${global.Server.Password}" | sudo -S systemctl stop httpd`
         }
       } else if (props.typeFlag === 'postgresql') {
         if (global.Server.SystemPackger === 'apt') {
-          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop postgresql`
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl disable postgresql && echo "${global.Server.Password}" | sudo -S systemctl stop postgresql`
         } else {
-          stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop postgresql-server`
+          stopService = `echo "${global.Server.Password}" | sudo -S systemctl disable postgresql-server && echo "${global.Server.Password}" | sudo -S systemctl stop postgresql-server`
         }
       } else if (props.typeFlag === 'mariadb') {
-        stopService = `echo "${global.Server.Password}" | sudo -S systemctl stop mariadb`
+        stopService = `echo "${global.Server.Password}" | sudo -S systemctl disable mariadb && echo "${global.Server.Password}" | sudo -S systemctl stop mariadb`
       }
       const sh = join(global.Server.Static, 'sh/port-cmd.sh')
       const copyfile = join(global.Server.Cache, 'port-cmd.sh')

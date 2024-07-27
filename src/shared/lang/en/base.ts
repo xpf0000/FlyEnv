@@ -105,7 +105,7 @@ export default {
   serviceReLoad: 'Reload Config File',
   gettingVersion: 'Getting available versions...',
   brewLibrary: 'library',
-  about: 'About',
+  about: 'About PhpWebStudy',
   success: 'Success',
   fail: 'Fail',
   configNoFound: 'No config file found, please reselect the version',

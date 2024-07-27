@@ -52,7 +52,7 @@
             <el-form-item label="MariaDB">
               <el-switch v-model="showItem.mariadb" />
             </el-form-item>
-          </el-col>        
+          </el-col>
           <el-col :span="8">
             <el-form-item label="PostgreSql">
               <el-switch v-model="postgresqlShow" />
@@ -65,7 +65,7 @@
           </el-col>
         </el-row>
 
-        <el-row>          
+        <el-row>
           <el-col :span="8">
             <el-form-item label="Redis">
               <el-switch v-model="showItem.Redis" />
@@ -83,7 +83,7 @@
           </el-col>
         </el-row>
 
-        <el-row>          
+        <el-row>
           <el-col :span="8">
             <el-form-item label="DNS Server">
               <el-switch v-model="showItem.DNS" />
@@ -99,7 +99,7 @@
               <el-switch v-model="showItem.Tools" />
             </el-form-item>
           </el-col>
-        </el-row>      
+        </el-row>
       </el-form>
     </div>
     <ProxySet />
@@ -111,60 +111,75 @@
         <ShowAI />
       </div>
     </div>
-    <div class="row-2">    
+    <div class="row-2">
       <div class="col">
         <RestPassword />
+      </div>
+    </div>
+    <div class="row-2">
+      <div class="col">
+        <el-button @click.stop="showAbout">{{ $t('base.about') }}</el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import RestPassword from './RestPassword/index.vue'
-import ProxySet from './ProxySet/index.vue'
-import LangeSet from './Lang/index.vue'
-import { AppStore } from '@/store/app'
-import { defineComponent } from 'vue'
-import ForceStart from './ForceStart/index.vue'
-import ShowAI from './AI/index.vue'
-import ThemeSet from './Theme/index.vue'
+  import RestPassword from './RestPassword/index.vue'
+  import ProxySet from './ProxySet/index.vue'
+  import LangeSet from './Lang/index.vue'
+  import { AppStore } from '@/store/app'
+  import { defineComponent } from 'vue'
+  import ForceStart from './ForceStart/index.vue'
+  import ShowAI from './AI/index.vue'
+  import ThemeSet from './Theme/index.vue'
+  import Base from '@/core/Base'
+  import { I18nT } from '@shared/lang'
 
-export default defineComponent({
-  components: {
-    RestPassword,
-    ProxySet,
-    LangeSet,
-    ForceStart,
-    ShowAI,
-    ThemeSet
-  },
-  props: {},
-  data() {
-    return {}
-  },
-  computed: {
-    showItem() {
-      return AppStore().config.setup.common.showItem
+  export default defineComponent({
+    components: {
+      RestPassword,
+      ProxySet,
+      LangeSet,
+      ForceStart,
+      ShowAI,
+      ThemeSet
     },
-    postgresqlShow: {
-      get() {
-        return this?.showItem?.PostgreSql ?? true
+    props: {},
+    data() {
+      return {}
+    },
+    computed: {
+      showItem() {
+        return AppStore().config.setup.common.showItem
       },
-      set(v: boolean) {
-        this.showItem.PostgreSql = v
+      postgresqlShow: {
+        get() {
+          return this?.showItem?.PostgreSql ?? true
+        },
+        set(v: boolean) {
+          this.showItem.PostgreSql = v
+        }
+      }
+    },
+    watch: {
+      showItem: {
+        handler() {
+          AppStore().saveConfig()
+        },
+        deep: true
+      }
+    },
+    created: function () {},
+    unmounted() {},
+    methods: {
+      showAbout() {
+        Base.Dialog(import('./components/About/index.vue'))
+          .className('about-dialog')
+          .title(I18nT('base.about'))
+          .noFooter()
+          .show()
       }
     }
-  },
-  watch: {
-    showItem: {
-      handler() {
-        AppStore().saveConfig()
-      },
-      deep: true
-    }
-  },
-  created: function () { },
-  unmounted() { },
-  methods: {}
-})
+  })
 </script>

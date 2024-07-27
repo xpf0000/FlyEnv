@@ -16,6 +16,35 @@
         </a>
       </el-col>
     </el-row>
+    <el-row>
+      <el-col>
+        感谢使用PhpWebStudy. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub
+        Issues
+      </el-col>
+      <el-col> 如果PhpWebStudy有帮助到你. 为了项目更好的发展, 烦请star和赞助. 感谢 </el-col>
+      <el-col>
+        GitHub:
+        <a
+          target="_blank"
+          href="javascript:"
+          rel="noopener noreferrer"
+          @click="openUrl($event, 'https://github.com/xpf0000/PhpWebStudy')"
+        >
+          https://github.com/xpf0000/PhpWebStudy
+        </a>
+      </el-col>
+      <el-col>
+        赞助:
+        <a
+          target="_blank"
+          href="javascript:"
+          rel="noopener noreferrer"
+          @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
+        >
+          https://www.macphpstudy.com/sponsor.html
+        </a>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -32,6 +61,10 @@
     },
     computed: {},
     methods: {
+      openUrl(e, u) {
+        e.preventDefault()
+        shell.openExternal(u)
+      },
       toHome(e) {
         e.preventDefault()
         shell.openExternal('https://www.macphpstudy.com')
