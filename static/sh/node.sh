@@ -1,4 +1,8 @@
 #!/bin/bash
+if [ -f "~/.bashrc" ]; then
+  source ~/.bashrc
+fi
+
 nvm_echo() {
   command printf %s\\n "$*" 2>/dev/null
 }
