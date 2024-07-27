@@ -207,7 +207,7 @@ class Manager extends Base {
         })
         await appendFile(
           join(global.Server.BaseDir!, 'debug.log'),
-          `[Node][nvmDir][Info]: stdout: ${stdout}\nstderr: ${stderr}`
+          `[Node][nvmDir][Info]: stdout: ${stdout}\nstderr: ${stderr}\n${JSON.stringify(process.env, undefined, 4)}`
         )
         resolve(stdout.trim())
       } catch (e) {

@@ -1,8 +1,4 @@
 #!/bin/bash
-if [ -f "$HOME/.bashrc" ]; then
-  source "$HOME/.bashrc"
-fi
-
 nvm_echo() {
   command printf %s\\n "$*" 2>/dev/null
 }
@@ -159,10 +155,7 @@ FLAG=$1
 PASSWORD=$2
 ARCH=$3
 if [ -f "$HOME/.bashrc" ]; then
-  source $HOME/.bashrc
-fi
-if [ -f "~/.zshrc" ]; then
-  source ~/.zshrc
+  source "$HOME/.bashrc"
 fi
 case $FLAG in
 "check")
