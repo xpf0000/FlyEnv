@@ -360,7 +360,9 @@ class Brew extends Base {
             } else if (flag === 'apache') {
               installed = existsSync(join('/usr/sbin/', 'apachectl'))
             } else if (flag === 'mysql') {
-              installed = existsSync('/usr/libexec/mysqld')
+              installed =
+                existsSync('/usr/libexec/mysqld') &&
+                realpathSync('/usr/libexec/mysqld') === '/usr/libexec/mysqld'
             } else if (flag === 'mariadb') {
               installed = existsSync('/usr/libexec/mariadbd')
             } else if (flag === 'memcached') {
