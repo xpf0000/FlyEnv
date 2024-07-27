@@ -4,7 +4,7 @@
       <ul class="top-tool">
         <el-popover :show-after="800">
           <template #default>
-            <span>Documentation</span>
+            <span>{{ $t('base.about') }}</span>
           </template>
           <template #reference>
             <li @click="toDoc">
@@ -28,7 +28,7 @@
         <CaddyModule ref="caddyModule" :current-page="currentPage" @nav="nav" />
         <PhpModule ref="phpModule" :current-page="currentPage" @nav="nav" />
         <MysqlModule ref="mysqlModule" :current-page="currentPage" @nav="nav" />
-        <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />        
+        <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />
         <PostgreSqlModule ref="postgresqlModule" :current-page="currentPage" @nav="nav" />
         <MemcachedModule ref="memcachedModule" :current-page="currentPage" @nav="nav" />
         <RedisModule ref="redisModule" :current-page="currentPage" @nav="nav" />
@@ -82,6 +82,7 @@
   import PostgreSqlModule from './module/postgresql/index.vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { MysqlStore } from '@/store/mysql'
+  import Base from '@/core/Base'
 
   const { shell } = require('@electron/remote')
 
@@ -264,7 +265,11 @@
   )
 
   const toDoc = () => {
-    shell.openExternal('https://www.macphpstudy.com/help-0-1.html')
+    Base.Dialog(import('@/components/About/index.vue'))
+      .className('about-dialog')
+      .title(I18nT('base.about'))
+      .noFooter()
+      .show()
   }
 
   const groupDo = () => {
