@@ -5,7 +5,7 @@ import { join } from 'path'
 import { compareVersions } from 'compare-versions'
 import { exec } from 'child_process'
 import { existsSync } from 'fs'
-import { chmod, copyFile, unlink } from 'fs-extra'
+import { chmod, copyFile, unlink, appendFile } from 'fs-extra'
 
 class Manager extends Base {
   constructor() {
@@ -201,12 +201,17 @@ class Manager extends Base {
           await unlink(copyfile)
         }
         await copyFile(sh, copyfile)
-        await chmod(copyfile, '0777')
-        const { stdout } = await execPromise(`bash node.sh check`, {
+        await execPromise(`echo "${global.Server.Password}" | sudo -S chmod 777 ${copyfile}`)
+        const { stdout, stderr } = await execPromise(`bash node.sh check`, {
           cwd: global.Server.Cache
         })
+        await appendFile(
+          join(global.Server.BaseDir!, 'debug.log'),
+          `[Node][nvmDir][Info]: stdout: ${stdout}\nstderr: ${stderr}`
+        )
         resolve(stdout.trim())
       } catch (e) {
+        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[Node][nvmDir][Error]: ${e}`)
         reject(e)
       }
     })
