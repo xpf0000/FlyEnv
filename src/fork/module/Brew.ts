@@ -406,7 +406,7 @@ class Brew extends Base {
               installed = existsSync(join('/usr/sbin/', `php-fpm${num}`))
             }
             const item = {
-              name: flag,
+              name,
               version,
               installed,
               flag: 'port'
