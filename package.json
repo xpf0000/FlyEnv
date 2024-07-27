@@ -15,7 +15,7 @@
     "clean:dev": "rm -rf dist/*",
     "clean": "rm -rf dist/*;rm -rf node_modules/node-pty/build/*",
     "build": "yarn run clean && cat scripts/args.esbuild.app-builder | xargs npx esbuild && cross-env NODE_ENV=production node electron/app-builder.js",
-    "build:arm64": "yarn run clean && cat scripts/args.esbuild.app-builder | xargs npx esbuild && cross-env NODE_ENV=production ARCH=arm64 node electron/app-builder.js",
+    "build:arm64": "yarn run clean && cat scripts/args.esbuild.app-builder | xargs npx esbuild && cross-env USE_SYSTEM_FPM=true NODE_ENV=production ARCH=arm64 node electron/app-builder.js",
     "build:amd64": "yarn run clean && cat scripts/args.esbuild.app-builder | xargs npx esbuild && cross-env NODE_ENV=production ARCH=amd64 node electron/app-builder.js",
     "postinstall": "electron-builder install-app-deps"
   },
