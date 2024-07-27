@@ -202,12 +202,10 @@ class Manager extends Base {
         }
         await copyFile(sh, copyfile)
         await execPromise(`echo "${global.Server.Password}" | sudo -S chmod 777 ${copyfile}`)
-        const { stdout, stderr } = await execPromise(`bash node.sh check`, {
-          cwd: global.Server.Cache
-        })
+        const stdout = await spawnPromise(`bash`, [copyfile, 'check'])
         await appendFile(
           join(global.Server.BaseDir!, 'debug.log'),
-          `[Node][nvmDir][Info]: stdout: ${stdout}\nstderr: ${stderr}\n${JSON.stringify(process.env, undefined, 4)}`
+          `[Node][nvmDir][Info]: stdout: ${stdout}\n${JSON.stringify(process.env, undefined, 4)}`
         )
         resolve(stdout.trim())
       } catch (e) {

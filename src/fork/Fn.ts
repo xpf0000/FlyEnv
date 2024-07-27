@@ -201,7 +201,7 @@ export function spawnPromise(
   cammand: string,
   params: Array<any>,
   opt?: { [k: string]: any }
-): ForkPromise<any> {
+): ForkPromise<string> {
   return new ForkPromise((resolve, reject, on) => {
     const stdout: Array<Buffer> = []
     const stderr: Array<Buffer> = []
