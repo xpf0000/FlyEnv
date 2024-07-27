@@ -4,8 +4,8 @@ echo "$arch"
 if [[ $arch != "x86_64" ]]; then
   exit 0;
 fi
-if [ -f "~/.bashrc" ]; then
-  source ~/.bashrc
+if [ -f "$HOME/.bashrc" ]; then
+  source "$HOME/.bashrc"
 fi
 password=$1
 if [ -f "/etc/fedora-release" ]; then

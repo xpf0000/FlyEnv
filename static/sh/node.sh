@@ -1,6 +1,6 @@
 #!/bin/bash
-if [ -f "~/.bashrc" ]; then
-  source ~/.bashrc
+if [ -f "$HOME/.bashrc" ]; then
+  source "$HOME/.bashrc"
 fi
 
 nvm_echo() {
@@ -158,8 +158,8 @@ check_fnm_or_nvm() {
 FLAG=$1
 PASSWORD=$2
 ARCH=$3
-if [ -f "~/.bashrc" ]; then
-  source ~/.bashrc
+if [ -f "$HOME/.bashrc" ]; then
+  source $HOME/.bashrc
 fi
 if [ -f "~/.zshrc" ]; then
   source ~/.zshrc

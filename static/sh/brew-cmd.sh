@@ -1,6 +1,6 @@
 #!/bin/bash
-if [ -f "~/.bashrc" ]; then
-  source ~/.bashrc
+if [ -f "$HOME/.bashrc" ]; then
+  source "$HOME/.bashrc"
 fi
 arch=$1
 action=$2
