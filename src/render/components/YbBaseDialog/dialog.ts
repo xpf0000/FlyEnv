@@ -96,6 +96,7 @@ class BaseDialog {
       let vm = VueExtend(DialogView, opt) as any
       const intance = vm.mount(dom!) as any
       intance.onClosed = () => {
+        console.log('onClosed !!!')
         dom?.remove()
         dom = null
         vm.unmount()

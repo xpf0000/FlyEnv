@@ -117,7 +117,7 @@
       </div>
     </div>
     <div class="row-2">
-      <div class="col">
+      <div class="col" style="padding: 20px 0">
         <el-button @click.stop="showAbout">{{ $t('base.about') }}</el-button>
       </div>
     </div>

@@ -17,13 +17,15 @@
       </el-col>
     </el-row>
     <template v-if="lang === 'zh'">
-      <el-row>
+      <el-row style="padding: 0 20px; margin-top: 12px">
         <el-col>
           感谢使用PhpWebStudy. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub
           Issues
         </el-col>
-        <el-col> 如果PhpWebStudy有帮助到你. 为了项目更好的发展, 烦请star和赞助. 感谢 </el-col>
-        <el-col>
+        <el-col style="margin-top: 12px">
+          如果PhpWebStudy有帮助到你. 为了项目更好的发展, 烦请star和赞助. 感谢
+        </el-col>
+        <el-col style="margin-top: 12px">
           GitHub:
           <a
             target="_blank"
@@ -34,7 +36,7 @@
             https://github.com/xpf0000/PhpWebStudy
           </a>
         </el-col>
-        <el-col>
+        <el-col style="margin-top: 12px">
           赞助:
           <a
             target="_blank"
@@ -48,15 +50,15 @@
       </el-row>
     </template>
     <template v-else>
-      <el-row>
+      <el-row style="padding: 0 20px; margin-top: 12px">
         <el-col>
           Thanks for using PhpWebStudy. If you have any questions or suggestions, you can join the
           community for discussion. You can also submit GitHub Issues
         </el-col>
-        <el-col>
+        <el-col style="margin-top: 12px">
           If PhpWebStudy is helpful to you, please star and sponsor for the project. Thanks
         </el-col>
-        <el-col>
+        <el-col style="margin-top: 12px">
           GitHub:
           <a
             target="_blank"
@@ -67,7 +69,7 @@
             https://github.com/xpf0000/PhpWebStudy
           </a>
         </el-col>
-        <el-col>
+        <el-col style="margin-top: 12px">
           Sponsor:
           <a
             target="_blank"
