@@ -8,16 +8,18 @@
         <span>Version {{ version }}</span>
       </div>
       <div class="app-icon"></div>
+      <a
+        style="position: absolute; bottom: 0"
+        target="_blank"
+        href="javascript:"
+        rel="noopener noreferrer"
+        @click="toHome($event)"
+      >
+        PhpWebStudy - https://www.macphpstudy.com
+      </a>
     </div>
-    <el-row class="copyright">
-      <el-col class="copyright-left">
-        <a target="_blank" href="javascript:" rel="noopener noreferrer" @click="toHome($event)">
-          PhpWebStudy - https://www.macphpstudy.com
-        </a>
-      </el-col>
-    </el-row>
     <template v-if="lang === 'zh'">
-      <el-row style="padding: 0 20px; margin-top: 12px">
+      <el-row style="padding: 0 20px; margin-top: 30px">
         <el-col>
           感谢使用PhpWebStudy. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub
           Issues
@@ -50,7 +52,7 @@
       </el-row>
     </template>
     <template v-else>
-      <el-row style="padding: 0 20px; margin-top: 12px">
+      <el-row style="padding: 0 20px; margin-top: 30px">
         <el-col>
           Thanks for using PhpWebStudy. If you have any questions or suggestions, you can join the
           community for discussion. You can also submit GitHub Issues
