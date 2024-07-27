@@ -117,8 +117,13 @@
       </div>
     </div>
     <div class="row-2">
-      <div class="col" style="padding: 20px 0">
-        <el-button @click.stop="showAbout">{{ $t('base.about') }}</el-button>
+      <div class="col">
+        <div class="plant-title force-start-plant">
+          <span>{{ $t('base.about') }}</span>
+        </div>
+        <div class="main reset-pass">
+          <el-button @click.stop="showAbout">{{ $t('base.about') }}</el-button>
+        </div>
       </div>
     </div>
   </div>
