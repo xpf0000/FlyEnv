@@ -16,39 +16,76 @@
         </a>
       </el-col>
     </el-row>
-    <el-row>
-      <el-col>
-        感谢使用PhpWebStudy. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub
-        Issues
-      </el-col>
-      <el-col> 如果PhpWebStudy有帮助到你. 为了项目更好的发展, 烦请star和赞助. 感谢 </el-col>
-      <el-col>
-        GitHub:
-        <a
-          target="_blank"
-          href="javascript:"
-          rel="noopener noreferrer"
-          @click="openUrl($event, 'https://github.com/xpf0000/PhpWebStudy')"
-        >
-          https://github.com/xpf0000/PhpWebStudy
-        </a>
-      </el-col>
-      <el-col>
-        赞助:
-        <a
-          target="_blank"
-          href="javascript:"
-          rel="noopener noreferrer"
-          @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
-        >
-          https://www.macphpstudy.com/sponsor.html
-        </a>
-      </el-col>
-    </el-row>
+    <template v-if="lang === 'zh'">
+      <el-row>
+        <el-col>
+          感谢使用PhpWebStudy. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub
+          Issues
+        </el-col>
+        <el-col> 如果PhpWebStudy有帮助到你. 为了项目更好的发展, 烦请star和赞助. 感谢 </el-col>
+        <el-col>
+          GitHub:
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://github.com/xpf0000/PhpWebStudy')"
+          >
+            https://github.com/xpf0000/PhpWebStudy
+          </a>
+        </el-col>
+        <el-col>
+          赞助:
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
+          >
+            https://www.macphpstudy.com/sponsor.html
+          </a>
+        </el-col>
+      </el-row>
+    </template>
+    <template v-else>
+      <el-row>
+        <el-col>
+          Thanks for using PhpWebStudy. If you have any questions or suggestions, you can join the
+          community for discussion. You can also submit GitHub Issues
+        </el-col>
+        <el-col>
+          If PhpWebStudy is helpful to you, please star and sponsor for the project. Thanks
+        </el-col>
+        <el-col>
+          GitHub:
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://github.com/xpf0000/PhpWebStudy')"
+          >
+            https://github.com/xpf0000/PhpWebStudy
+          </a>
+        </el-col>
+        <el-col>
+          Sponsor:
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
+          >
+            https://www.macphpstudy.com/sponsor.html
+          </a>
+        </el-col>
+      </el-row>
+    </template>
   </div>
 </template>
 
 <script>
+  import { AppStore } from '@/store/app.ts'
+
   const { app, shell } = require('@electron/remote')
   const version = app.getVersion()
   export default {
@@ -59,7 +96,12 @@
         version
       }
     },
-    computed: {},
+    computed: {
+      lang() {
+        const app = AppStore()
+        return app.config.setup.lang
+      }
+    },
     methods: {
       openUrl(e, u) {
         e.preventDefault()
