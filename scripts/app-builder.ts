@@ -37,9 +37,33 @@ const buildStart = Date.now()
 
 Promise.all([packMain(), packRenderer()])
   .then(() => {
+    const config = JSON.parse(JSON.stringify(electronBuilderConfig))
+    if (process.env.ARCH === 'arm64') {
+      config.linux.target = [
+        {
+          target: 'deb',
+          arch: ['arm64']
+        },
+        {
+          target: 'rpm',
+          arch: ['arm64']
+        }
+      ]
+    } else if (process.env.ARCH === 'amd64') {
+      config.linux.target = [
+        {
+          target: 'deb',
+          arch: ['x64']
+        },
+        {
+          target: 'rpm',
+          arch: ['x64']
+        }
+      ]
+    }
     const options: CliOptions = {
       targets: Platform.current().createTarget(),
-      config: electronBuilderConfig
+      config: config
     }
 
     electronBuild(options)
