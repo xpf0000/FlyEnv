@@ -136,6 +136,11 @@ install_fnm_by_shell() {
 check_fnm_or_nvm() {
   export NVM_DIR="${HOME}/.nvm"
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  FNM_PATH="$HOME/.local/share/fnm"
+  if [ -d "$FNM_PATH" ]; then
+    export PATH="$FNM_PATH:$PATH"
+    eval "`fnm env`"
+  fi
   local BIN
   # 有nvm
   if command -v nvm &> /dev/null; then
