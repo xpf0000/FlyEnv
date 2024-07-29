@@ -19,5 +19,6 @@ export default {
   extensionsLibDefault: '默认',
   groupStartOff: '关闭群组快捷启动',
   groupStartOn: '开启群组快捷启动',
-  quickStart: '群组启动'
+  quickStart: '群组启动',
+  official: '官方'
 }

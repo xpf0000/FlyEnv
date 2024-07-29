@@ -107,7 +107,7 @@ export default class Application extends EventEmitter {
   exitNodePty() { }
 
   initServerDir() {
-    const runpath = resolve(app.getPath('userData'), '../PhpWebStudy-Data').split('\\').join('/')
+    const runpath = resolve(app.getPath('exe'), '../PhpWebStudy-Data').split('\\').join('/')
     console.log('userData: ', runpath)
     this.setProxy()
     global.Server.isAppleSilicon = isAppleSilicon()

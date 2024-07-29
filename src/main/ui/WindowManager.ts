@@ -204,7 +204,6 @@ export default class WindowManager extends EventEmitter {
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
         window.hide()
-        app?.dock?.hide()
       }
       const bounds = window.getBounds()
       this.emit('window-closed', { page, bounds })
@@ -217,7 +216,6 @@ export default class WindowManager extends EventEmitter {
       return
     }
     window.show()
-    app?.dock?.show().then()
   }
 
   hideWindow(page: string) {

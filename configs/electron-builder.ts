@@ -2,8 +2,8 @@ import type { Configuration } from 'electron-builder'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
-  buildVersion: '3.0.0',
-  electronVersion: '23.1.1',
+  buildVersion: '4.0.0',
+  electronVersion: '30.2.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,
   directories: {
@@ -24,15 +24,15 @@ const conf: Configuration = {
     target: [
       {
         target: 'nsis',
-        arch: ['x64', 'ia32']
+        arch: ['x64']
       },
       {
         target: 'zip',
-        arch: ['x64', 'ia32']
+        arch: ['x64']
       },
       {
         target: 'portable',
-        arch: ['x64', 'ia32']
+        arch: ['x64']
       }
     ]
   },

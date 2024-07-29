@@ -320,7 +320,7 @@ class Php extends Base {
         const urls = [
           'https://windows.php.net/download/',
           'https://windows.php.net/downloads/releases/archives/'
-        ]
+        ]      
         const fetchVersions = async (url: string) => {
           const all: any = []
           const res = await axios({
@@ -328,7 +328,8 @@ class Php extends Base {
             method: 'get'
           })
           const html = res.data
-          const reg = /\/downloads\/releases\/(archives\/)?php-([\d\.]+)-Win([a-zA-Z\d-]+)-x64\.zip/g
+          console.log('html: ', html)
+          const reg = /\/downloads\/releases\/(archives\/)?php-([\d\.]+)-Win([a-zA-Z\d-]+)-x64\.zip/g          
           let r
           while ((r = reg.exec(html)) !== null) {
             const u = new URL(r[0], url).toString()

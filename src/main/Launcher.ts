@@ -25,7 +25,6 @@ export default class Launcher extends EventEmitter {
       app.on('second-instance', (event, argv, workingDirectory) => {
         logger.warn('second-instance====>', argv, workingDirectory)
         global.application.showPage('index')
-        app.dock.show().then()
       })
       callback()
     }
@@ -70,7 +69,6 @@ export default class Launcher extends EventEmitter {
       if (global.application) {
         logger.info('[PhpWebStudy] activate')
         global.application.showPage('index')
-        app.dock.show().then()
       }
     })
   }
