@@ -494,7 +494,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     const hostName = host.name
     const root = host.root
     const phpv = host.phpVersion
-    const logFile = `${hostName}.caddy.log`
+    const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
 
     const httpHostNameAll = httpNames.join(',\n')
     const content = this.CaddyTmpl.replace('##HOST-ALL##', httpHostNameAll)
@@ -749,7 +749,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `ErrorLog "${logpath}/${old.name}-error_log"`,
             `CustomLog "${logpath}/${old.name}-access_log" combined`,
             `ServerName SSL.${old.name}`,
-            `${old.name}.caddy.log`
+            join(logpath, `${old.name}.caddy.log`)
           ]
         )
         replace.push(
@@ -761,7 +761,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
             `ErrorLog "${logpath}/${host.name}-error_log"`,
             `CustomLog "${logpath}/${host.name}-access_log" combined`,
             `ServerName SSL.${host.name}`,
-            `${host.name}.caddy.log`
+            join(logpath, `${host.name}.caddy.log`)
           ]
         )
       }

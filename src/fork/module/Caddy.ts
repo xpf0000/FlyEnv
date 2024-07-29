@@ -30,12 +30,10 @@ class Caddy extends Base {
         await mkdirp(sslDir)
         const logFile = join(baseDir, 'caddy.log')
         const vhostDir = join(global.Server.BaseDir!, 'vhost/caddy')
-        const logDir = join(global.Server.BaseDir!, 'vhost/logs')
         await mkdirp(sslDir)
         content = content
           .replace('##SSL_ROOT##', sslDir)
           .replace('##LOG_FILE##', logFile)
-          .replace('##LOG_DIR##', logDir)
           .replace('##VHOST-DIR##', vhostDir)
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'Caddyfile.default')
@@ -101,7 +99,7 @@ class Caddy extends Base {
       const hostName = host.name
       const root = host.root
       const phpv = host.phpVersion
-      const logFile = `${hostName}.caddy.log`
+      const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
 
       const httpHostNameAll = httpNames.join(',\n')
       const content = tmplContent
