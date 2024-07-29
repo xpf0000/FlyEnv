@@ -34,7 +34,13 @@ class Manager extends Base {
       try {
         const copyfile = await this._init_sh()
         const flag = tool === 'fnm' ? 'fnm-version-list' : 'nvm-version-list'
-        const stdout = await spawnPromise(`bash`, [copyfile, flag, global.Server.Password, 'null', 'ls-remote'])
+        const stdout = await spawnPromise(`bash`, [
+          copyfile,
+          flag,
+          global.Server.Password,
+          'null',
+          'ls-remote'
+        ])
         const str = stdout ?? ''
         const all =
           str?.match(/\sv\d+(\.\d+){1,4}\s/g)?.map((v) => {
@@ -55,7 +61,13 @@ class Manager extends Base {
       try {
         const copyfile = await this._init_sh()
         const flag = tool === 'fnm' ? 'fnm-version-list' : 'nvm-version-list'
-        const stdout = await spawnPromise(`bash`, [copyfile, flag, global.Server.Password, 'null', 'ls'])
+        const stdout = await spawnPromise(`bash`, [
+          copyfile,
+          flag,
+          global.Server.Password,
+          'null',
+          'ls'
+        ])
         let localVersions: Array<string> = []
         let current = ''
         if (tool === 'fnm') {
