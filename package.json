@@ -36,8 +36,8 @@
     "hpagent": "^1.2.0",
     "ip": "^1.1.8",
     "lodash": "^4.17.21",
-    "node-pty": "^0.10.1",
-    "nodejieba": "^2.6.0",
+    "node-pty": "^1.0.0",
+    "nodejieba": "^3.4.0",
     "normalize.css": "^8.0.1",
     "serve": "^14.2.0",
     "vue": "^3.2.47",
@@ -115,8 +115,8 @@
     "vite-plugin-wasm": "^3.3.0",
     "vue-router": "^4.1.6",
     "vue-tsc": "^1.2.0",
-    "xterm": "^5.0.0",
-    "xterm-addon-fit": "^0.6.0",
-    "yamljs": "^0.3.0"
+    "yamljs": "^0.3.0",
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0"
   }
 }

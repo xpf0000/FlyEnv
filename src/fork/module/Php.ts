@@ -690,10 +690,8 @@ class Php extends Base {
             proxy: this.getAxiosProxy()
           })
           const html = res.data
-          const reg: RegExp = new RegExp(
-            `php-([\\d\\.]+)-fpm-macos-${global.Server.Arch}\\.tar\\.gz`,
-            'g'
-          )
+          const arch = global.Server.Arch === 'x86_64' ? 'x86_64' : 'aarch64'
+          const reg: RegExp = new RegExp(`php-([\\d\\.]+)-fpm-macos-${arch}\\.tar\\.gz`, 'g')
           let r
           while ((r = reg.exec(html)) !== null) {
             const u = new URL(r[0], url).toString()

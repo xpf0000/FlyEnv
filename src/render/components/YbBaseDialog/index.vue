@@ -90,7 +90,6 @@
         this.vm && this.vm.unmount()
         this.vm = null
         this.onClosed()
-        this.$destroy()
       },
       close() {
         this.isShow = false

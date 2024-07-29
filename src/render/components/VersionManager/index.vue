@@ -199,15 +199,14 @@
         return n
       })
       const num = parseInt(nums.join(''))
-      arr.push(
-        Object.assign({}, value, {
-          name,
-          version: value.version,
-          installed: value.installed,
-          num,
-          flag: value.flag
-        })
-      )
+      Object.assign(value, {
+        name,
+        version: value.version,
+        installed: value.installed,
+        num,
+        flag: value.flag
+      })
+      arr.push(value)
     }
     arr.sort((a, b) => {
       return b.num - a.num
