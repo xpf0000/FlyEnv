@@ -4,7 +4,7 @@
       <ul class="top-tool">
         <el-popover :show-after="800">
           <template #default>
-            <span>Documentation</span>
+            <span>{{ $t('base.about') }}</span>
           </template>
           <template #reference>
             <li @click="toDoc">
@@ -83,8 +83,7 @@
   import PostgreSqlModule from './module/postgresql/index.vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { MysqlStore } from '@/store/mysql'
-
-  const { shell } = require('@electron/remote')
+  import Base from '@/core/Base'
 
   let lastTray = ''
 
@@ -275,7 +274,11 @@
   )
 
   const toDoc = () => {
-    shell.openExternal('https://www.macphpstudy.com/help-0-1.html')
+    Base.Dialog(import('@/components/About/index.vue'))
+      .className('about-dialog')
+      .title(I18nT('base.about'))
+      .noFooter()
+      .show()
   }
 
   const groupDo = () => {

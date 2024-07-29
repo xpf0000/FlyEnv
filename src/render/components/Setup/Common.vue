@@ -117,6 +117,16 @@
       </el-form>
     </div>
     <ProxySet />
+    <div class="row-2">
+      <div class="col">
+        <div class="plant-title force-start-plant">
+          <span>{{ $t('base.about') }}</span>
+        </div>
+        <div class="main reset-pass">
+          <el-button @click.stop="showAbout">{{ $t('base.about') }}</el-button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -132,6 +142,8 @@
   import ShowAI from './AI/index.vue'
   import MacPortsSrc from './MacPortsSrc/index.vue'
   import ThemeSet from './Theme/index.vue'
+  import Base from '@/core/Base'
+  import { I18nT } from '@shared/lang'
 
   export default defineComponent({
     components: {
@@ -172,6 +184,14 @@
     },
     created: function () {},
     unmounted() {},
-    methods: {}
+    methods: {
+      showAbout() {
+        Base.Dialog(import('@/components/About/index.vue'))
+          .className('about-dialog')
+          .title(I18nT('base.about'))
+          .noFooter()
+          .show()
+      }
+    }
   })
 </script>
