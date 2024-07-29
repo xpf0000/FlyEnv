@@ -208,7 +208,8 @@ class Caddy extends Base {
           const all: any = []
           const res = await axios({
             url,
-            method: 'get'
+            method: 'get',
+            proxy: this.getAxiosProxy()
           })
           const html = res.data
           let arr: any[] = []
@@ -245,7 +246,7 @@ class Caddy extends Base {
         const res = await Promise.all(urls.map((u) => fetchVersions(u)))
         const list = res.flat()
         list
-          .filter((l: any) => compareVersions(l.version, '2.0.0') > 0)
+          .filter((l: any) => compareVersions(l.version, '2.5.0') > 0)
           .forEach((l: any) => {
             const find = all.find((f: any) => f.mVersion === l.mVersion)
             if (!find) {
@@ -322,26 +323,10 @@ class Caddy extends Base {
         return
       }
 
-      const proxyUrl =
-        Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''
-      let proxy: any = {}
-      if (proxyUrl) {
-        try {
-          const u = new URL(proxyUrl)
-          proxy.protocol = u.protocol.replace(':', '')
-          proxy.host = u.hostname
-          proxy.port = u.port
-        } catch (e) {
-          proxy = undefined
-        }
-      } else {
-        proxy = undefined
-      }
-
       axios({
         method: 'get',
         url: row.url,
-        proxy,
+        proxy: this.getAxiosProxy(),
         responseType: 'stream',
         onDownloadProgress: (progress) => {
           if (progress.total) {

@@ -686,7 +686,8 @@ class Php extends Base {
           const all: any = []
           const res = await axios({
             url,
-            method: 'get'
+            method: 'get',
+            proxy: this.getAxiosProxy()
           })
           const html = res.data
           const reg: RegExp = new RegExp(
@@ -781,21 +782,9 @@ class Php extends Base {
           return
         }
       }
-      const proxyUrl =
-        Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''
-      let proxy: any = {}
-      if (proxyUrl) {
-        try {
-          const u = new URL(proxyUrl)
-          proxy.protocol = u.protocol.replace(':', '')
-          proxy.host = u.hostname
-          proxy.port = u.port
-        } catch (e) {
-          proxy = undefined
-        }
-      } else {
-        proxy = undefined
-      }
+
+      const proxy: any = this.getAxiosProxy()
+
       let p0 = 0
       let p1 = 0
       const downFPM = (): Promise<boolean> => {
