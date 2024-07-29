@@ -100,31 +100,8 @@ install_nvm_by_brew() {
   fi
 }
 
-install_nvm_by_port() {
-  local PASSWORD
-  PASSWORD="${1-}"
-  local ARCH
-  ARCH="${2-}"
-  echo "$PASSWORD" | arch "$ARCH" sudo -S port clean -v nvm
-  echo "$PASSWORD" | arch "$ARCH" sudo -S port install -v nvm
-  nvm_write_to_env
-  if [ -f "/opt/local/share/nvm/init-nvm.sh" ] ; then
-      source "/opt/local/share/nvm/init-nvm.sh"
-  fi
-}
-
 install_fnm_by_brew() {
   brew install fnm
-  fnm_write_to_env
-}
-
-install_fnm_by_port() {
-  local PASSWORD
-  PASSWORD="${1-}"
-  local ARCH
-  ARCH="${2-}"
-  echo "$PASSWORD" | arch "$ARCH" sudo -S port clean -v fnm
-  echo "$PASSWORD" | arch "$ARCH" sudo -S port install -v fnm
   fnm_write_to_env
 }
 
@@ -134,13 +111,6 @@ install_fnm_by_shell() {
 }
 
 check_fnm_or_nvm() {
-  export NVM_DIR="${HOME}/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-  FNM_PATH="$HOME/.local/share/fnm"
-  if [ -d "$FNM_PATH" ]; then
-    export PATH="$FNM_PATH:$PATH"
-    eval "`fnm env`"
-  fi
   local BIN
   # 有nvm
   if command -v nvm &> /dev/null; then
@@ -156,32 +126,94 @@ check_fnm_or_nvm() {
   echo "$BIN"
 }
 
+fnm_install_version() {
+  local ACTION
+  ACTION="${1-}"
+  local VERSION
+  VERSION="${2-}"
+  fnm "$ACTION" "$VERSION"
+}
+
+nvm_install_version() {
+  local ACTION
+  ACTION="${1-}"
+  local VERSION
+  VERSION="${2-}"
+  nvm "$ACTION" "$VERSION"
+}
+
+fnm_default_version_change() {
+  local VERSIO
+  VERSION="${1-}"
+  fnm default "$VERSION"
+}
+
+nvm_default_version_change() {
+  local VERSION
+  VERSION="${1-}"
+  nvm alias default "$VERSION"
+}
+
+fnm_version_list() {
+  local ACTION
+  ACTION="${1-}"
+  fnm "$ACTION"
+}
+
+nvm_version_list() {
+  local ACTION
+  ACTION="${1-}"
+  nvm "$ACTION"
+}
+
 FLAG=$1
 PASSWORD=$2
-ARCH=$3
+VERSION=$3
+ACTION=$4
+
 if [ -f "$HOME/.bashrc" ]; then
   source "$HOME/.bashrc"
 fi
+export NVM_DIR="${HOME}/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+FNM_PATH="$HOME/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+  eval "`fnm env`"
+fi
+
 case $FLAG in
 "check")
-check_fnm_or_nvm
+  check_fnm_or_nvm
 ;;
 "nvm-shell")
-install_nvm_by_shell
+  install_nvm_by_shell
 ;;
 "nvm-brew")
-install_nvm_by_brew "$ARCH"
-;;
-"nvm-port")
-install_nvm_by_port "$PASSWORD" "$ARCH"
+  install_nvm_by_brew
 ;;
 "fnm-brew")
-install_fnm_by_brew "$ARCH"
-;;
-"fnm-port")
-install_fnm_by_port "$PASSWORD" "$ARCH"
+  install_fnm_by_brew
 ;;
 "fnm-shell")
-install_fnm_by_shell
+  install_fnm_by_shell
+;;
+"fnm-install-version")
+  fnm_install_version "$ACTION" "$VERSION"
+;;
+"nvm-install-version")
+  nvm_install_version "$ACTION" "$VERSION"
+;;
+"fnm-default-version-change")
+  fnm_default_version_change "$VERSION"
+;;
+"nvm-default-version-change")
+  nvm_default_version_change "$VERSION"
+;;
+"fnm-version-list")
+  fnm_version_list "$ACTION"
+;;
+"nvm-version-list")
+  nvm_version_list "$ACTION"
 ;;
 esac
