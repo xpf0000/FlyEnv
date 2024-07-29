@@ -1,5 +1,5 @@
 import { join, basename, dirname } from 'path'
-import { existsSync, statSync } from 'fs'
+import { createWriteStream, existsSync, statSync, unlinkSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
@@ -7,6 +7,8 @@ import { execPromise, getAllFileAsync, spawnPromise, downFile } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
 import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
+import axios from 'axios'
+import { compareVersions } from 'compare-versions'
 
 class Php extends Base {
   constructor() {
@@ -673,6 +675,232 @@ class Php extends Base {
       } catch (e) {
         reject(e)
       }
+    })
+  }
+
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const urls = ['https://dl.static-php.dev/static-php-cli/bulk/']
+        const fetchVersions = async (url: string) => {
+          const all: any = []
+          const res = await axios({
+            url,
+            method: 'get',
+            proxy: this.getAxiosProxy()
+          })
+          const html = res.data
+          const reg: RegExp = new RegExp(
+            `php-([\\d\\.]+)-fpm-macos-${global.Server.Arch}\\.tar\\.gz`,
+            'g'
+          )
+          let r
+          while ((r = reg.exec(html)) !== null) {
+            const u = new URL(r[0], url).toString()
+            const version = r[1]
+            const mv = version.split('.').slice(0, 2).join('.')
+            const item = {
+              url: u,
+              version,
+              mVersion: mv
+            }
+            const find = all.find((f: any) => f.mVersion === item.mVersion)
+            if (!find) {
+              all.push(item)
+            } else {
+              if (compareVersions(item.version, find.version) > 0) {
+                const index = all.indexOf(find)
+                all.splice(index, 1, item)
+              }
+            }
+          }
+          return all
+        }
+        const all: any = []
+        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
+        const list = res.flat()
+        list.forEach((l: any) => {
+          const find = all.find((f: any) => f.mVersion === l.mVersion)
+          if (!find) {
+            all.push(l)
+          } else {
+            if (compareVersions(l.version, find.version) > 0) {
+              const index = all.indexOf(find)
+              all.splice(index, 1, l)
+            }
+          }
+        })
+
+        all.sort((a: any, b: any) => {
+          return compareVersions(b.version, a.version)
+        })
+        const dict: any = {}
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `static-php-${a.version}`, 'sbin/php-fpm')
+          const zip = join(global.Server.Cache!, `static-php-${a.version}.tar.gz`)
+          a.appDir = join(global.Server.AppDir!, `static-php-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+          dict[`php-${a.version}`] = a
+        })
+        resolve(dict)
+      } catch (e) {
+        resolve({})
+      }
+    })
+  }
+
+  installSoft(row: any) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      const refresh = () => {
+        row.downloaded = existsSync(row.zip)
+        row.installed = existsSync(row.bin)
+      }
+
+      const cliZIP = join(dirname(row.zip), `static-php-${row.version}-cli.tar.gz`)
+      if (existsSync(row.zip) && existsSync(cliZIP)) {
+        let success = false
+        try {
+          let bin = join(row.appDir, 'bin')
+          await mkdirp(bin)
+          await execPromise(`tar -xzf ${cliZIP} -C ${bin}`)
+
+          bin = join(row.appDir, 'sbin')
+          await mkdirp(bin)
+          await execPromise(`tar -xzf ${row.zip} -C ${bin}`)
+
+          success = true
+        } catch (e) {}
+        if (success) {
+          refresh()
+          row.downState = 'success'
+          row.progress = 100
+          on(row)
+          resolve(true)
+          return
+        }
+      }
+      const proxy = this.getAxiosProxy()
+      let p0 = 0
+      let p1 = 0
+      const downFPM = (): Promise<boolean> => {
+        return new Promise((resolve) => {
+          axios({
+            method: 'get',
+            url: row.url,
+            proxy,
+            responseType: 'stream',
+            onDownloadProgress: (progress) => {
+              if (progress.total) {
+                p0 = (progress.loaded * 100.0) / progress.total
+                row.progress = Math.round(((p0 + p1) / 200.0) * 100.0)
+                on(row)
+              }
+            }
+          })
+            .then(function (response) {
+              const stream = createWriteStream(row.zip)
+              response.data.pipe(stream)
+              stream.on('error', (err: any) => {
+                console.log('stream error: ', err)
+                try {
+                  if (existsSync(row.zip)) {
+                    unlinkSync(row.zip)
+                  }
+                } catch (e) {}
+                resolve(false)
+              })
+              stream.on('finish', async () => {
+                try {
+                  if (existsSync(row.zip)) {
+                    const sbin = join(row.appDir, 'sbin')
+                    await mkdirp(sbin)
+                    await execPromise(`tar -xzf ${row.zip} -C ${sbin}`)
+                  }
+                } catch (e) {}
+                resolve(true)
+              })
+            })
+            .catch((err) => {
+              console.log('down error: ', err)
+              try {
+                if (existsSync(row.zip)) {
+                  unlinkSync(row.zip)
+                }
+              } catch (e) {}
+              resolve(false)
+            })
+        })
+      }
+      const downCLI = (): Promise<boolean> => {
+        return new Promise((resolve) => {
+          const url = row.url.replace('-fpm-', '-cli-')
+          axios({
+            method: 'get',
+            url,
+            proxy,
+            responseType: 'stream',
+            onDownloadProgress: (progress) => {
+              if (progress.total) {
+                p1 = (progress.loaded * 100.0) / progress.total
+                row.progress = Math.round(((p0 + p1) / 200.0) * 100.0)
+                on(row)
+              }
+            }
+          })
+            .then(function (response) {
+              const stream = createWriteStream(cliZIP)
+              response.data.pipe(stream)
+              stream.on('error', (err: any) => {
+                console.log('stream error: ', err)
+                try {
+                  if (existsSync(cliZIP)) {
+                    unlinkSync(cliZIP)
+                  }
+                } catch (e) {}
+                resolve(false)
+              })
+              stream.on('finish', async () => {
+                try {
+                  if (existsSync(cliZIP)) {
+                    const bin = join(row.appDir, 'bin')
+                    await mkdirp(bin)
+                    await execPromise(`tar -xzf ${cliZIP} -C ${bin}`)
+                  }
+                } catch (e) {}
+                resolve(true)
+              })
+            })
+            .catch((err) => {
+              console.log('down error: ', err)
+              try {
+                if (existsSync(cliZIP)) {
+                  unlinkSync(cliZIP)
+                }
+              } catch (e) {}
+              resolve(false)
+            })
+        })
+      }
+
+      Promise.all([downFPM(), downCLI()]).then(async ([res0, res1]: [boolean, boolean]) => {
+        if (res0 && res1) {
+          row.downState = 'success'
+          refresh()
+          on(row)
+          resolve(true)
+          return
+        }
+        await remove(row.appDir)
+        row.downState = 'exception'
+        refresh()
+        on(row)
+        setTimeout(() => {
+          resolve(false)
+        }, 1500)
+      })
     })
   }
 }

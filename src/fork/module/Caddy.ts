@@ -1,11 +1,13 @@
 import { join } from 'path'
-import { existsSync } from 'fs'
+import { createWriteStream, existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { execPromise, hostAlias, spawnPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, remove } from 'fs-extra'
 import { I18nT } from '../lang'
+import axios from 'axios'
+import { compareVersions } from 'compare-versions'
 
 class Caddy extends Base {
   constructor() {
@@ -162,6 +164,162 @@ class Caddy extends Base {
       } catch (e: any) {
         reject(e)
       }
+    })
+  }
+
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const urls = ['https://api.github.com/repos/caddyserver/caddy/tags?page=1&per_page=1000']
+        const fetchVersions = async (url: string) => {
+          const all: any = []
+          const res = await axios({
+            url,
+            method: 'get',
+            proxy: this.getAxiosProxy()
+          })
+          const html = res.data
+          let arr: any[] = []
+          try {
+            if (typeof html === 'string') {
+              arr = JSON.parse(html)
+            } else {
+              arr = html
+            }
+          } catch (e) {}
+          const arch = global.Server.Arch === 'x86_64' ? 'amd64' : 'arm64'
+          arr.forEach((a) => {
+            const version = a.name.replace('v', '')
+            const mv = version.split('.').slice(0, 2).join('.')
+            const u = `https://github.com/caddyserver/caddy/releases/download/v${version}/caddy_${version}_mac_${arch}.tar.gz`
+            const item = {
+              url: u,
+              version,
+              mVersion: mv
+            }
+            const find = all.find((f: any) => f.mVersion === item.mVersion)
+            if (!find) {
+              all.push(item)
+            } else {
+              if (compareVersions(item.version, find.version) > 0) {
+                const index = all.indexOf(find)
+                all.splice(index, 1, item)
+              }
+            }
+          })
+          return all
+        }
+        const all: any = []
+        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
+        const list = res.flat()
+        list
+          .filter((l: any) => compareVersions(l.version, '2.7.0') > 0)
+          .forEach((l: any) => {
+            const find = all.find((f: any) => f.mVersion === l.mVersion)
+            if (!find) {
+              all.push(l)
+            } else {
+              if (compareVersions(l.version, find.version) > 0) {
+                const index = all.indexOf(find)
+                all.splice(index, 1, l)
+              }
+            }
+          })
+
+        all.sort((a: any, b: any) => {
+          return compareVersions(b.version, a.version)
+        })
+        const dict: any = {}
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `static-caddy-${a.version}`, 'caddy')
+          const zip = join(global.Server.Cache!, `static-caddy-${a.version}.tar.gz`)
+          a.appDir = join(global.Server.AppDir!, `static-caddy-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+          dict[`caddy-${a.version}`] = a
+        })
+        resolve(dict)
+      } catch (e) {
+        resolve({})
+      }
+    })
+  }
+
+  installSoft(row: any) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      const refresh = () => {
+        row.downloaded = existsSync(row.zip)
+        row.installed = existsSync(row.bin)
+      }
+      const end = () => {
+        refresh()
+        if (row.installed) {
+          row.downState = 'success'
+          row.progress = 100
+          on(row)
+          resolve(true)
+        } else {
+          row.downState = 'exception'
+          on(row)
+          resolve(false)
+        }
+      }
+
+      const fail = async () => {
+        try {
+          await remove(row.zip)
+          await remove(row.appDir)
+        } catch (e) {}
+      }
+
+      const unpack = async () => {
+        try {
+          const dir = row.appDir
+          await mkdirp(dir)
+          await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
+        } catch (e) {
+          await fail()
+        }
+      }
+
+      if (existsSync(row.zip)) {
+        await unpack()
+        end()
+        return
+      }
+
+      axios({
+        method: 'get',
+        url: row.url,
+        proxy: this.getAxiosProxy(),
+        responseType: 'stream',
+        onDownloadProgress: (progress) => {
+          if (progress.total) {
+            row.progress = Math.round((progress.loaded * 100.0) / progress.total)
+            on(row)
+          }
+        }
+      })
+        .then(function (response) {
+          const stream = createWriteStream(row.zip)
+          response.data.pipe(stream)
+          stream.on('error', async (err: any) => {
+            console.log('stream error: ', err)
+            await fail()
+            end()
+          })
+          stream.on('finish', async () => {
+            await unpack()
+            end()
+          })
+        })
+        .catch(async (err) => {
+          console.log('down error: ', err)
+          await fail()
+          end()
+        })
     })
   }
 }

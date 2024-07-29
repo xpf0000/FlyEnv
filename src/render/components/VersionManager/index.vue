@@ -8,6 +8,12 @@
             <el-select v-model="libSrc" style="margin-left: 8px">
               <el-option :disabled="!checkBrew()" value="brew" label="Homebrew"></el-option>
               <el-option :disabled="!checkPort()" value="port" label="MacPorts"></el-option>
+              <template v-if="typeFlag === 'php'">
+                <el-option value="static" label="static-php"></el-option>
+              </template>
+              <template v-else-if="typeFlag === 'caddy'">
+                <el-option value="static" label="static-caddy"></el-option>
+              </template>
             </el-select>
           </template>
         </div>
@@ -36,7 +42,7 @@
     </template>
     <el-table v-else height="100%" :data="tableData" :border="false" style="width: 100%">
       <template #empty>
-        <template v-if="!checkBrew() && !checkPort()">
+        <template v-if="!checkBrew() && !checkPort() && !['php', 'caddy'].includes(typeFlag)">
           <div class="no-lib-found" v-html="$t('util.noLibFound')"></div>
         </template>
         <template v-else-if="currentType.getListing">
@@ -68,25 +74,49 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="$t('base.operation')" width="120">
-        <template #default="scope">
-          <el-button
-            type="primary"
-            link
-            :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
-            :disabled="brewRunning"
-            @click="handleEdit(scope.$index, scope.row)"
-            >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
-          >
-        </template>
-      </el-table-column>
+      <template v-if="libSrc === 'static'">
+        <el-table-column :label="null">
+          <template #default="scope">
+            <div class="cell-progress">
+              <el-progress v-if="scope.row.downing" :percentage="scope.row.progress"></el-progress>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" :label="$t('base.operation')" width="150">
+          <template #default="scope">
+            <el-button
+              type="primary"
+              link
+              :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
+              :loading="scope.row.downing"
+              :disabled="scope.row.downing"
+              @click="handleEditDown(scope.$index, scope.row, scope.row.installed)"
+              >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
+            >
+          </template>
+        </el-table-column>
+      </template>
+      <template v-else>
+        <el-table-column align="center" :label="$t('base.operation')" width="120">
+          <template #default="scope">
+            <el-button
+              type="primary"
+              link
+              :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
+              :disabled="brewRunning"
+              @click="handleEdit(scope.$index, scope.row)"
+              >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
+            >
+          </template>
+        </el-table-column>
+      </template>
     </el-table>
   </el-card>
 </template>
 
 <script lang="ts" setup>
   import { computed, ComputedRef, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
-  import { brewInfo, brewCheck, portInfo } from '@/util/Brew'
+  import { brewInfo, brewCheck, portInfo, fetchVerion } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import XTerm from '@/util/XTerm'
   import { chmod } from '@shared/file'
@@ -94,7 +124,11 @@
   import { AppSoftInstalledItem, BrewStore } from '@/store/brew'
   import { I18nT } from '@shared/lang'
   import installedVersions from '@/util/InstalledVersions'
+  import Base from '@/core/Base'
+  import { MessageError, MessageSuccess } from '@/util/Element'
+
   const { join } = require('path')
+  const { removeSync } = require('fs-extra')
   const { existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } = require('fs')
 
   const props = defineProps<{
@@ -165,13 +199,15 @@
         return n
       })
       const num = parseInt(nums.join(''))
-      arr.push({
-        name,
-        version: value.version,
-        installed: value.installed,
-        num,
-        flag: value.flag
-      })
+      arr.push(
+        Object.assign({}, value, {
+          name,
+          version: value.version,
+          installed: value.installed,
+          num,
+          flag: value.flag
+        })
+      )
     }
     arr.sort((a, b) => {
       return b.num - a.num
@@ -192,20 +228,36 @@
     return !!global.Server.MacPorts
   }
   const libSrc = computed({
-    get(): 'brew' | 'port' | undefined {
+    get(): 'brew' | 'port' | 'static' | undefined {
       return (
         brewStore.LibUse[props.typeFlag] ??
-        (checkBrew() ? 'brew' : checkPort() ? 'port' : undefined)
+        (checkBrew()
+          ? 'brew'
+          : checkPort()
+            ? 'port'
+            : ['php', 'caddy'].includes(props.typeFlag)
+              ? 'static'
+              : undefined)
       )
     },
-    set(v: 'brew' | 'port') {
+    set(v: 'brew' | 'port' | 'static') {
       brewStore.LibUse[props.typeFlag] = v
     }
   })
-  const fetchData = (src: 'brew' | 'port') => {
+  let fetchFlag: Set<string> = new Set()
+  const fetchData = (src: 'brew' | 'port' | 'static') => {
+    fetchFlag.add(src)
     const currentItem = currentType.value
-    const list = currentItem.list?.[src]
-    const getInfo = libSrc?.value === 'brew' ? brewInfo(props.typeFlag) : portInfo(props.typeFlag)
+    const list = currentItem.list?.[src] ?? {}
+    let getInfo: Promise<any>
+    if (src === 'brew') {
+      getInfo = brewInfo(props.typeFlag)
+    } else if (src === 'port') {
+      getInfo = portInfo(props.typeFlag)
+    } else {
+      getInfo = fetchVerion(props.typeFlag)
+    }
+
     getInfo
       .then((res: any) => {
         for (const k in list) {
@@ -214,53 +266,75 @@
         for (const name in res) {
           list[name] = reactive(res[name])
         }
-        currentItem.getListing = false
+        if (src === libSrc.value) {
+          currentItem.getListing = false
+        }
+        fetchFlag.delete(src)
       })
       .catch(() => {
-        currentItem.getListing = false
+        if (src === libSrc.value) {
+          currentItem.getListing = false
+        }
+        fetchFlag.delete(src)
       })
   }
   const getData = () => {
     const currentItem = currentType.value
-    if (brewRunning?.value || !libSrc?.value) {
+    const src = libSrc.value
+
+    if (brewRunning?.value || !src || fetchFlag.has(src)) {
       return
     }
-    const src = libSrc.value
+
     const list = currentItem.list?.[src]
-    if (Object.keys(list).length === 0) {
+    if (list && Object.keys(list).length === 0) {
       currentItem.getListing = true
-      brewCheck()
-        .then(() => {
-          if (props.typeFlag === 'php') {
-            if (src === 'brew') {
-              /**
-               * 先获取已安装的 php, 同时安装shivammathur/php库, 安装成功后, 再刷新数据
-               * 避免国内用户添加库非常慢, 导致已安装数据也无法获取
-               */
-              IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then(
-                (key: string, res: any) => {
-                  IPC.off(key)
-                  if (res?.data === 2) {
-                    fetchData('brew')
+      if (src === 'brew') {
+        brewCheck()
+          .then(() => {
+            if (props.typeFlag === 'php') {
+              if (src === 'brew' && !appStore?.config?.setup?.phpBrewInited) {
+                /**
+                 * 先获取已安装的 php, 同时安装shivammathur/php库, 安装成功后, 再刷新数据
+                 * 避免国内用户添加库非常慢, 导致已安装数据也无法获取
+                 */
+                IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then(
+                  (key: string, res: any) => {
+                    IPC.off(key)
+                    appStore.config.setup.phpBrewInited = true
+                    appStore.saveConfig()
+                    if (res?.data === 2) {
+                      fetchData('brew')
+                    }
                   }
-                }
-              )
+                )
+              }
+            } else if (
+              props.typeFlag === 'mongodb' &&
+              !appStore?.config?.setup?.mongodbBrewInited
+            ) {
+              if (src === 'brew') {
+                IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then(
+                  (key: string, res: any) => {
+                    IPC.off(key)
+                    appStore.config.setup.mongodbBrewInited = true
+                    appStore.saveConfig()
+                    if (res?.data === 2) {
+                      fetchData('brew')
+                    }
+                  }
+                )
+              }
             }
-          } else if (props.typeFlag === 'mongodb') {
-            if (src === 'brew') {
-              IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string, res: any) => {
-                IPC.off(key)
-                if (res?.data === 2) {
-                  fetchData('brew')
-                }
-              })
+          })
+          .catch(() => {
+            if (src === libSrc.value) {
+              currentItem.getListing = false
             }
-          }
-          fetchData(src)
-        })
-        .catch(() => {
-          currentItem.getListing = false
-        })
+            fetchFlag.delete(src)
+          })
+      }
+      fetchData(src)
     }
   }
   const reGetData = () => {
@@ -272,6 +346,57 @@
       delete list[k]
     }
     getData()
+  }
+
+  const regetInstalled = () => {
+    brewStore.showInstallLog = false
+    brewStore.brewRunning = false
+    currentType.value.installedInited = false
+    reGetData()
+    installedVersions.allInstalledVersions([props.typeFlag])
+  }
+
+  const handleEditDown = (index: number, row: any, installed: boolean) => {
+    console.log('row: ', row, installed)
+    if (!installed) {
+      if (row.downing) {
+        return
+      }
+      row.downing = true
+      row.type = props.typeFlag
+      IPC.send(`app-fork:${props.typeFlag}`, 'installSoft', JSON.parse(JSON.stringify(row))).then(
+        (key: string, res: any) => {
+          console.log('res: ', res)
+          if (res?.code === 200) {
+            Object.assign(row, res.msg)
+          } else if (res?.code === 0) {
+            IPC.off(key)
+            if (res?.data) {
+              regetInstalled()
+            }
+            row.downing = false
+          }
+        }
+      )
+    } else {
+      Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+        customClass: 'confirm-del',
+        type: 'warning'
+      })
+        .then(() => {
+          try {
+            if (existsSync(row.appDir)) {
+              removeSync(row.appDir)
+            }
+            row.installed = false
+            regetInstalled()
+            MessageSuccess(I18nT('base.success'))
+          } catch (e) {
+            MessageError(I18nT('base.fail'))
+          }
+        })
+        .catch(() => {})
+    }
   }
 
   const handleEdit = (index: number, row: any) => {
@@ -365,11 +490,7 @@
     XTerm.send(`${params};exit 0;`, true).then((key: string) => {
       IPC.off(key)
       showNextBtn.value = true
-      brewStore.showInstallLog = false
-      brewStore.brewRunning = false
-      currentType.value.installedInited = false
-      reGetData()
-      installedVersions.allInstalledVersions([props.typeFlag])
+      regetInstalled()
     })
   }
 
@@ -380,7 +501,17 @@
 
   watch(libSrc, (v) => {
     if (v) {
-      reGetData()
+      console.log('watch libSrc', v, fetchFlag.has(v))
+      if (fetchFlag.has(v)) {
+        currentType.value.getListing = true
+        return
+      }
+      const list = currentType.value.list?.[v] ?? {}
+      if (list && Object.keys(list).length === 0) {
+        reGetData()
+        return
+      }
+      currentType.value.getListing = false
     }
   })
 
@@ -410,6 +541,7 @@
   watch(
     () => props.typeFlag,
     () => {
+      fetchFlag.clear()
       reGetData()
     }
   )

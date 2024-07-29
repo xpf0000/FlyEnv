@@ -3,8 +3,8 @@ import Base from '@/core/Base'
 import { ElMessageBox } from 'element-plus'
 import { chmod } from '@shared/file'
 import XTerm from '@/util/XTerm'
-import { AppStore } from '@/store/app'
-import { BrewStore } from '@/store/brew'
+import { AllAppSofts, AppStore } from '@/store/app'
+import { BrewStore, type OnlineVersionItem } from '@/store/brew'
 import { I18nT } from '@shared/lang'
 import { MessageError } from '@/util/Element'
 const { getGlobal } = require('@electron/remote')
@@ -155,6 +155,47 @@ export function portInfo(flag: string) {
       } else if (res.code === 1) {
         IPC.off(key)
         reject(new Error(res))
+      }
+    })
+  })
+}
+
+export const fetchVerion = (
+  typeFlag: AllAppSofts
+): Promise<{ [key: string]: OnlineVersionItem }> => {
+  return new Promise((resolve) => {
+    let saved: any = localStorage.getItem(`fetchVerion-${typeFlag}`)
+    if (saved) {
+      saved = JSON.parse(saved)
+      const time = Math.round(new Date().getTime() / 1000)
+      if (time < saved.expire) {
+        const list: { [key: string]: OnlineVersionItem } = { ...saved.data }
+        for (const k in list) {
+          const item = list[k]
+          item.downloaded = existsSync(item.zip)
+          item.installed = existsSync(item.bin)
+        }
+        resolve(list)
+        return
+      }
+    }
+    IPC.send(`app-fork:${typeFlag}`, 'fetchAllOnLineVersion').then((key: string, res: any) => {
+      IPC.off(key)
+      if (res.code === 0) {
+        const list = res.data
+        if (Object.keys(list).length > 0) {
+          localStorage.setItem(
+            `fetchVerion-${typeFlag}`,
+            JSON.stringify({
+              expire: Math.round(new Date().getTime() / 1000) + 24 * 60 * 60,
+              data: list
+            })
+          )
+        }
+        resolve(list)
+      } else if (res.code === 1) {
+        MessageError(res.msg)
+        resolve({})
       }
     })
   })

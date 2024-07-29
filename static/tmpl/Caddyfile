@@ -21,7 +21,7 @@
 
 (set-log) {
   log {
-      output file {args[0]} {
+      output file ##LOG_DIR##/{args[0]} {
           roll_size 1gb
           roll_keep 5
           roll_keep_for 4320h

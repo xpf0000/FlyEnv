@@ -2,6 +2,8 @@ import 'pinia'
 import Launcher from './main/Launcher'
 
 export interface ServerType {
+  AppDir?: string
+  Arch?: string
   BrewCellar?: string
   Password?: string
   Proxy?: { [key: string]: string }

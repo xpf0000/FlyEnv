@@ -60,7 +60,7 @@ class Manager extends Base {
           reg = /(\/)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'caddy':
-          command = `${bin} -v`
+          command = `${bin} version`
           reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'php-fpm':
@@ -137,40 +137,56 @@ class Manager extends Base {
           const binName = binNames[flag]
           const searchName = searchNames[flag]
           const installed: Set<string> = new Set()
-          const systemDirs = ['/', '/opt', '/usr']
+          const systemDirs = ['/', '/opt', '/usr', global.Server.AppDir!, ...customDirs]
 
+          const realDirDict: { [k: string]: string } = {}
           const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
-            let res: string | false = false
-            let binPath = join(dir, `bin/${binName}`)
-            if (existsSync(binPath)) {
-              binPath = realpathSync(binPath)
-              if (binPath.includes(binName)) {
-                return binPath
-              }
+            if (!existsSync(dir)) {
+              return
             }
-            binPath = join(dir, `sbin/${binName}`)
-            if (existsSync(binPath)) {
-              binPath = realpathSync(binPath)
-              if (binPath.includes(binName)) {
+            dir = realpathSync(dir)
+            const checkBin = (binPath: string) => {
+              if (existsSync(binPath)) {
+                console.log('binPath: ', binPath)
+                binPath = realpathSync(binPath)
+                console.log('binPath realpathSync: ', binPath)
+                if (flag === 'mysql' && binPath.includes('mariadb')) {
+                  return false
+                }
                 return binPath
               }
+              return false
+            }
+            console.log('findInstalled dir: ', dir)
+            let binPath = checkBin(join(dir, `${binName}`))
+            if (binPath) {
+              realDirDict[binPath] = join(dir, `${binName}`)
+              installed.add(binPath)
+              return
+            }
+            binPath = checkBin(join(dir, `bin/${binName}`))
+            if (binPath) {
+              realDirDict[binPath] = join(dir, `bin/${binName}`)
+              installed.add(binPath)
+              return
+            }
+            binPath = checkBin(join(dir, `sbin/${binName}`))
+            if (binPath) {
+              realDirDict[binPath] = join(dir, `sbin/${binName}`)
+              installed.add(binPath)
+              return
             }
             if (depth >= maxDepth) {
-              return res
+              return
             }
             const sub = await getSubDirAsync(dir)
             for (const s of sub) {
-              const sres: any = await findInstalled(s, depth + 1, maxDepth)
-              res = res || sres
+              await findInstalled(s, depth + 1, maxDepth)
             }
-            return res
           }
 
           for (const s of systemDirs) {
-            const bin = await findInstalled(s, 0, 1)
-            if (bin) {
-              installed.add(bin)
-            }
+            await findInstalled(s, 0, 1)
           }
 
           const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
@@ -182,17 +198,8 @@ class Manager extends Base {
             for (const f of subDirFilter) {
               const subDir1 = await getSubDirAsync(f)
               for (const s of subDir1) {
-                const bin = await findInstalled(s)
-                if (bin) {
-                  installed.add(bin)
-                }
+                await findInstalled(s)
               }
-            }
-          }
-          for (const s of customDirs) {
-            const bin = await findInstalled(s, 0, 1)
-            if (bin) {
-              installed.add(bin)
             }
           }
           const count = installed.size
@@ -204,7 +211,16 @@ class Manager extends Base {
           const list: Array<SoftInstalled> = []
           const installedList: Array<string> = Array.from(installed)
           for (const i of installedList) {
-            const path = i.replace(`/sbin/${binName}`, '').replace(`/bin/${binName}`, '')
+            let path = realDirDict[i]
+            if (path.includes('/sbin/') || path.includes('/bin/')) {
+              path = path
+                .replace(`/sbin/`, '/##SPLIT##/')
+                .replace(`/bin/`, '/##SPLIT##/')
+                .split('/##SPLIT##/')
+                .shift()!
+            } else {
+              path = dirname(path)
+            }
             const { error, version } = await this.binVersion(i, binName)
             const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
             const item = {
