@@ -60,7 +60,7 @@ class Manager extends Base {
           reg = /(\/)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'caddy.exe':
-          command = `${bin} -v`
+          command = `${bin} version`
           reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'php-cgi.exe':

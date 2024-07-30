@@ -237,7 +237,7 @@ class Caddy extends Base {
         const all: any = []
         const res = await Promise.all(urls.map((u) => fetchVersions(u)))
         const list = res.flat()
-        list.filter((l: any) => compareVersions(l.version, '2.0.0') > 0).forEach((l: any) => {
+        list.filter((l: any) => compareVersions(l.version, '2.5.0') > 0).forEach((l: any) => {
           const find = all.find((f: any) => f.mVersion === l.mVersion)
           if (!find) {
             all.push(l)
