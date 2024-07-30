@@ -161,10 +161,14 @@ export default class WindowManager extends EventEmitter {
   destroyWindow(page: string) {
     const win = this.getWindow(page)
     this.removeWindow(page)
-    win.removeAllListeners('closed')
-    win.removeAllListeners('move')
-    win.removeAllListeners('resize')
-    win.destroy()
+    if(win) {
+      win.removeAllListeners('closed')
+      win.removeAllListeners('move')
+      win.removeAllListeners('resize')
+      if (!win.isDestroyed()) {
+        win.destroy()
+      }
+    }
   }
 
   removeWindow(page: string) {
@@ -184,6 +188,9 @@ export default class WindowManager extends EventEmitter {
     window.on(
       'resize',
       debounce(() => {
+        if (!window || window.isDestroyed()) {
+          return
+        }
         const bounds = window.getBounds()
         this.emit('window-resized', { page, bounds })
       }, 500)
@@ -192,6 +199,9 @@ export default class WindowManager extends EventEmitter {
     window.on(
       'move',
       debounce(() => {
+        if (!window || window.isDestroyed()) {
+          return
+        }
         const bounds = window.getBounds()
         this.emit('window-moved', { page, bounds })
       }, 500)
@@ -212,7 +222,7 @@ export default class WindowManager extends EventEmitter {
 
   showWindow(page: string) {
     const window = this.getWindow(page)
-    if (!window) {
+    if (!window || window.isDestroyed()) {
       return
     }
     window.show()
@@ -220,7 +230,7 @@ export default class WindowManager extends EventEmitter {
 
   hideWindow(page: string) {
     const window = this.getWindow(page)
-    if (!window) {
+    if (!window || window.isDestroyed()) {
       return
     }
     window.hide()
@@ -228,13 +238,15 @@ export default class WindowManager extends EventEmitter {
 
   hideAllWindow() {
     this.getWindowList().forEach((window) => {
-      window.hide()
+      if (window && !window.isDestroyed()) {
+        window.hide()
+      }
     })
   }
 
   toggleWindow(page: string) {
     const window = this.getWindow(page)
-    if (!window) {
+    if (!window || window.isDestroyed()) {
       return
     }
     if (window.isVisible()) {
@@ -262,14 +274,14 @@ export default class WindowManager extends EventEmitter {
   }
 
   sendCommandTo(window: BrowserWindow, command: string, ...args: any) {
-    if (!window) {
+    if (!window || window.isDestroyed()) {
       return
     }
     window.webContents.send('command', command, ...args)
   }
 
   sendMessageTo(window: BrowserWindow, channel: string, ...args: any) {
-    if (!window) {
+    if (!window || window.isDestroyed()) {
       return
     }
     window.webContents.send(channel, ...args)
