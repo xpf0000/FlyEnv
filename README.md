@@ -2,13 +2,59 @@
 
 <img src="https://raw.githubusercontent.com/xpf0000/PhpWebStudy/master/build/256x256.png" width="256" alt="App Icon" />
 
-## Powerful Web and PHP Development Environment
+## Powerful Web Server and PHP Environment
 
-## Support both macOS and windows
+## Support macOS / Windows / Linux
 
 [![GitHub release](https://img.shields.io/github/release/xpf0000/PhpWebStudy.svg)](https://github.com/xpf0000/PhpWebStudy/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/PhpWebStudy/total.svg)](https://github.com/xpf0000/PhpWebStudy/releases)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R5R2OJXTM)
+
+## macOS:
+
+### Homebrew
+
+```
+brew install phpwebstudy
+```
+
+### Intel X86:
+
+[PhpWebStudy-4.0.0.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy-4.0.0.dmg)
+
+[PhpWebStudy-4.0.0-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy-4.0.0-mac.zip)
+
+### Apple Silicon
+
+[PhpWebStudy-4.0.0-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy-4.0.0-arm64.dmg)
+
+[PhpWebStudy-4.0.0-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy-4.0.0-arm64-mac.zip)
+
+## Windows
+
+[PhpWebStudy-4.0.0-Windows.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy-4.0.0-Windows.zip)
+
+## Linux
+
+### Debin / Ubuntu
+
+#### X86_64
+
+[PhpWebStudy_4.0.0_amd64.deb](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy_4.0.0_amd64.deb)
+
+#### arm64
+
+[PhpWebStudy_4.0.0_arm64.deb](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy_4.0.0_arm64.deb)
+
+### Red Hat / Fedora / SUSE / CentOS
+
+#### X86_64
+
+[PhpWebStudy-4.0.0.x86_64.rpm](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy-4.0.0.x86_64.rpm)
+
+#### arm64
+
+[PhpWebStudy-4.0.0.aarch64.rpm](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy-4.0.0.aarch64.rpm)
 
 PhpWebStudy is an all-in-one software designed to revolutionize the way you develop and test websites locally. With its advanced features and sleek design, PhpWebStudy allows you to effortlessly create a local web server and access your websites using domain names. Say goodbye to tedious configurations and hello to streamlined web development.
 
@@ -55,20 +101,6 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 ![theme-black.png](https://www.macphpstudy.com/image/index/index-main-dark.png)
 ![php-white.png](https://www.macphpstudy.com/image/index/php-light.png)
 ![php-extension-white.png](https://www.macphpstudy.com/image/index/php-extension-light.png)
-
-## 💽 Installation
-
-1. [GitHub](https://github.com/xpf0000/PhpWebStudy/releases) provides the compiled stable version of the installation package
-
-The latest version of the intel and Apple M installer has been separated, with arm64 for Apple M, without for intel, pay attention not to download the wrong one!
-
-2. Installation with brew
-
-```
-brew install phpwebstudy
-```
-
-3. Of course you can also clone the code yourself to compile and package it.
 
 ## ⌨️ Development
 

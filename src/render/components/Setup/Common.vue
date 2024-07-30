@@ -206,6 +206,7 @@
         Base.Dialog(import('@/components/About/index.vue'))
           .className('about-dialog')
           .title(I18nT('base.about'))
+          .width('665px')
           .noFooter()
           .show()
       }
