@@ -1,5 +1,5 @@
 import { spawn, IPty } from 'node-pty'
-import { join, dirname } from 'path'
+import { join } from 'path'
 import { copyFileSync, writeFileSync, existsSync } from 'fs'
 import { fixEnv } from '@shared/utils'
 const execPromise = require('child-process-promise').exec
@@ -58,12 +58,10 @@ class DnsServer {
         })
       }
       const checkNode = () => {
-        execPromise(
-          '[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";which node',
-          {
-            env
-          }
-        )
+        execPromise('[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";which node', {
+          env,
+          shell: '/bin/bash'
+        })
           .then((res: any) => {
             node = res.stdout.toString()
             console.log('node: ', node)
@@ -80,9 +78,10 @@ class DnsServer {
         if (existsSync(node_modules) && existsSync(package_lock)) {
           copyFile()
         } else {
-          const command = `[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";cd ${cacheDir};npm install dns2 tangerine undici ip;`
+          const command = `[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";cd ${cacheDir};npm install dns2 tangerine undici ip;`
           execPromise(command, {
-            env
+            env,
+            shell: '/bin/bash'
           })
             .then(() => {
               copyFile()
@@ -109,10 +108,10 @@ class DnsServer {
               reject(new Error('Start Fail'))
             }
           }, 20000)
-          try {                    
+          try {
             this.pty?.write(`cd ${cacheDir}\r`)
             this.pty?.write(`chmod 777 ${cacheFile}\r`)
-            const shell = `[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";[ -s "$HOME/.zshrc" ] && source "$HOME/.zshrc";echo '${global.Server.Password}' | sudo -S $(which node) ${cacheFile}\r`
+            const shell = `[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";echo '${global.Server.Password}' | sudo -S $(which node) ${cacheFile}\r`
             this.pty?.write(shell)
           } catch (e: any) {}
         })
@@ -134,9 +133,7 @@ class DnsServer {
         } catch (e) {}
       }
       this?.pty?.kill()
-      execPromise(
-        `echo '${global.Server.Password}' | sudo -S lsof -i:53 | awk '{print $1,$2,$3}'`
-      )
+      execPromise(`echo '${global.Server.Password}' | sudo -S lsof -i:53 | awk '{print $1,$2,$3}'`)
         .then((res: any) => {
           const str = res?.stdout?.toString()?.trim() ?? ''
           const arr = str
