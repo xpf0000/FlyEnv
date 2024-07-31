@@ -137,7 +137,7 @@ class DnsServer {
           try {
             this.pty?.write(`cd ${cacheDir}\r`)
             this.pty?.write(`chmod 777 ${cacheFile}\r`)
-            const shell = `[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";echo '${global.Server.Password}' | sudo -S $(which node) ${cacheFile}\r`
+            const shell = `echo '${global.Server.Password}' | sudo -S ${node} ${cacheFile}\r`
             this.pty?.write(shell)
           } catch (e: any) {}
         })
