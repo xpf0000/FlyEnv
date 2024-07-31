@@ -94,8 +94,9 @@ class DnsServer {
           shell: '/bin/bash'
         })
         npm = res.stdout.toString().trim()
+        writeFileSync(logFile, `node: ${node}\nnpm:${npm}`)
       } catch (e: any) {
-        writeFileSync(logFile, e.toString())
+        writeFileSync(logFile, `${e}`)
         reject(new Error('DNS Server Start Fail: Need NodeJS, Not Found NodeJS In System Env'))
         return
       }
@@ -117,7 +118,7 @@ class DnsServer {
               copyFile()
             })
             .catch((e: Error) => {
-              writeFileSync(logFile, e.toString())
+              writeFileSync(logFile, `${e}`)
               const err = new Error(
                 `Dependencies install failed.\nuse this command install, then retry.\n${command}`
               )
