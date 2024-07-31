@@ -83,18 +83,21 @@ class DnsServer {
         })
       }
       const nodesh = await this._init_sh()
+      const err = []
       try {
         let res = execPromise(`bash ${nodesh} which-node`, {
           env,
           shell: '/bin/bash'
         })
-        node = res.stdout.toString().trim()
+        node = res?.stdout?.toString()?.trim() ?? ''
+        err.push(res?.stderr?.toString())
         res = execPromise(`bash ${nodesh} which-npm`, {
           env,
           shell: '/bin/bash'
         })
-        npm = res.stdout.toString().trim()
-        writeFileSync(logFile, `node: ${node}\nnpm:${npm}`)
+        npm = res?.stdout?.toString()?.trim()
+        err.push(res?.stderr?.toString())
+        writeFileSync(logFile, `node: ${node}\nnpm:${npm}\n${JSON.stringify(err)}`)
       } catch (e: any) {
         writeFileSync(logFile, `${e}`)
         reject(new Error('DNS Server Start Fail: Need NodeJS, Not Found NodeJS In System Env'))
