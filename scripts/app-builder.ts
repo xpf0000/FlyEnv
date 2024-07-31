@@ -9,7 +9,7 @@ import viteConfig from '../configs/vite.config'
 import electronBuilderConfig from '../configs/electron-builder'
 
 async function packMain() {
-  try {  
+  try {
     await esbuild(esbuildConfig.dist)
     await esbuild(esbuildConfig.distFork)
   } catch (err) {
@@ -39,11 +39,11 @@ Promise.all([packMain(), packRenderer()])
         {
           target: 'deb',
           arch: ['arm64']
-        },
-        {
-          target: 'rpm',
-          arch: ['arm64']
         }
+        // {
+        //   target: 'rpm',
+        //   arch: ['arm64']
+        // }
       ]
     } else if (process.env.ARCH === 'amd64') {
       config.linux.target = [
