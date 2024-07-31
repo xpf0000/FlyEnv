@@ -1,5 +1,5 @@
 import { spawn, IPty } from 'node-pty'
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { copyFileSync, writeFileSync, existsSync } from 'fs'
 import { fixEnv } from '@shared/utils'
 import { appendFile, copyFile, unlink } from 'fs-extra'
@@ -41,6 +41,7 @@ class DnsServer {
     let resolved = false
     let timer: NodeJS.Timeout | undefined
     let node = ''
+    let npm = ''
     return new Promise(async (resolve, reject) => {
       const env = fixEnv() as any
       const cacheDir = global.Server.Cache
@@ -82,29 +83,32 @@ class DnsServer {
         })
       }
       const nodesh = await this._init_sh()
-      const checkNode = async () => {
-        execPromise(`bash ${nodesh} which-node`, {
+      try {
+        let res = execPromise(`bash ${nodesh} which-node`, {
           env,
           shell: '/bin/bash'
         })
-          .then((res: any) => {
-            node = res.stdout.toString()
-            console.log('node: ', node)
-            npmInstall()
-          })
-          .catch((e: Error) => {
-            writeFileSync(logFile, e.toString())
-            reject(new Error('DNS Server Start Fail: Need NodeJS, Not Found NodeJS In System Env'))
-          })
+        node = res.stdout.toString().trim()
+        res = execPromise(`bash ${nodesh} which-npm`, {
+          env,
+          shell: '/bin/bash'
+        })
+        npm = res.stdout.toString().trim()
+      } catch (e: any) {
+        writeFileSync(logFile, e.toString())
+        reject(new Error('DNS Server Start Fail: Need NodeJS, Not Found NodeJS In System Env'))
+        return
       }
-      const npmInstall = async () => {
+      env.PATH = Array.from(
+        new Set(`${dirname(npm)}:${dirname(node)}:${env.PATH}`.split(':'))
+      ).join(':')
+      const npmInstall = () => {
         const node_modules = join(cacheDir!, 'node_modules')
         const package_lock = join(cacheDir!, 'package-lock.json')
         if (existsSync(node_modules) && existsSync(package_lock)) {
           copyFile()
         } else {
-          const res = await execPromise(`bash ${nodesh} which-npm`)
-          const command = `cd ${cacheDir};${res.stdout.toString().trim()} install dns2 tangerine undici ip;`
+          const command = `cd ${cacheDir};npm install dns2 tangerine undici ip;`
           execPromise(command, {
             env,
             shell: '/bin/bash'
@@ -146,7 +150,7 @@ class DnsServer {
       if (hasSuccessed) {
         next()
       } else {
-        checkNode().then()
+        npmInstall()
       }
     })
   }
