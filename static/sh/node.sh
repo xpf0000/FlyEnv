@@ -217,9 +217,9 @@ case $FLAG in
   nvm_version_list "$ACTION"
 ;;
 "which-node")
-  which node
+  command -v node
 ;;
 "which-npm")
-  which npm
+  command -v npm
 ;;
 esac
