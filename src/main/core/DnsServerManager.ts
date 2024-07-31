@@ -2,6 +2,7 @@ import { spawn, IPty } from 'node-pty'
 import { join } from 'path'
 import { copyFileSync, writeFileSync, existsSync } from 'fs'
 import { fixEnv } from '@shared/utils'
+import { appendFile, copyFile, unlink } from 'fs-extra'
 const execPromise = require('child-process-promise').exec
 
 class DnsServer {
@@ -11,13 +12,36 @@ class DnsServer {
   onLog(fn: Function) {
     this._callbak = fn
   }
+
+  _init_sh() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const sh = join(global.Server.Static!, 'sh/node.sh')
+        const copyfile = join(global.Server.Cache!, 'node.sh')
+        if (existsSync(copyfile)) {
+          await unlink(copyfile)
+        }
+        await copyFile(sh, copyfile)
+        const env = fixEnv() as any
+        await execPromise(`echo "${global.Server.Password}" | sudo -S chmod 777 ${copyfile}`, {
+          env,
+          shell: '/bin/bash'
+        })
+        resolve(copyfile)
+      } catch (e) {
+        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[Node][nvmDir][Error]: ${e}`)
+        reject(e)
+      }
+    })
+  }
+
   start(hasSuccessed?: boolean) {
     let stdout = ''
     let log = ''
     let resolved = false
     let timer: NodeJS.Timeout | undefined
     let node = ''
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const env = fixEnv() as any
       const cacheDir = global.Server.Cache
       const file = join(__static, 'fork/dnsServer.js')
@@ -57,8 +81,9 @@ class DnsServer {
           }
         })
       }
-      const checkNode = () => {
-        execPromise('[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";which node', {
+      const nodesh = await this._init_sh()
+      const checkNode = async () => {
+        execPromise(`bash ${nodesh} which-node`, {
           env,
           shell: '/bin/bash'
         })
@@ -72,13 +97,14 @@ class DnsServer {
             reject(new Error('DNS Server Start Fail: Need NodeJS, Not Found NodeJS In System Env'))
           })
       }
-      const npmInstall = () => {
+      const npmInstall = async () => {
         const node_modules = join(cacheDir!, 'node_modules')
         const package_lock = join(cacheDir!, 'package-lock.json')
         if (existsSync(node_modules) && existsSync(package_lock)) {
           copyFile()
         } else {
-          const command = `[ -s "$HOME/.bashrc" ] && source "$HOME/.bashrc";cd ${cacheDir};npm install dns2 tangerine undici ip;`
+          const res = await execPromise(`bash ${nodesh} which-npm`)
+          const command = `cd ${cacheDir};${res.stdout.toString().trim()} install dns2 tangerine undici ip;`
           execPromise(command, {
             env,
             shell: '/bin/bash'
@@ -120,7 +146,7 @@ class DnsServer {
       if (hasSuccessed) {
         next()
       } else {
-        checkNode()
+        checkNode().then()
       }
     })
   }

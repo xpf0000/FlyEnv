@@ -216,4 +216,10 @@ case $FLAG in
 "nvm-version-list")
   nvm_version_list "$ACTION"
 ;;
+"which-node")
+  which node
+;;
+"which-npm")
+  which npm
+;;
 esac
