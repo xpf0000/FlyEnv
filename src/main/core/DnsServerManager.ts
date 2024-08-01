@@ -4,6 +4,7 @@ import { copyFileSync, writeFileSync, existsSync, createWriteStream, unlinkSync 
 import { fixEnv, getAxiosProxy } from '@shared/utils'
 import { appendFile, copyFile, unlink, remove, mkdirp } from 'fs-extra'
 import axios from 'axios'
+
 const execPromise = require('child-process-promise').exec
 
 class DnsServer {
@@ -68,10 +69,22 @@ class DnsServer {
           } catch (e) {}
           if (existsSync(join(unzipDir, 'bin/node'))) {
             await mkdirp(nodeDir)
-            await execPromise(`mv "${unzipDir}/*" "${nodeDir}/"`, {
-              env,
-              shell: '/bin/bash'
-            })
+            const command = `mv "${unzipDir}/*" "${nodeDir}/"`
+            await appendFile(
+              join(global.Server.BaseDir!, 'debug.log'),
+              `[Node][_init_node][info]: ${command}`
+            )
+            try {
+              await execPromise(`mv "${unzipDir}/*" "${nodeDir}/"`, {
+                env,
+                shell: '/bin/bash'
+              })
+            } catch (e) {
+              await appendFile(
+                join(global.Server.BaseDir!, 'debug.log'),
+                `[Node][_init_node][error]: ${e}`
+              )
+            }
             await remove(unzipDir)
             if (existsSync(bin)) {
               resolve({
@@ -187,7 +200,7 @@ class DnsServer {
           env,
           shell: '/bin/bash'
         })
-        npm = res?.stdout?.toString()?.trim()
+        npm = res?.stdout?.toString()?.trim() ?? ''
       } catch (e: any) {}
       if (!node || !npm) {
         try {
@@ -240,9 +253,9 @@ class DnsServer {
             }
           }, 20000)
           try {
-            this.pty?.write(`cd ${cacheDir}\r`)
-            this.pty?.write(`chmod 777 ${cacheFile}\r`)
-            const shell = `echo '${global.Server.Password}' | sudo -S ${node} ${cacheFile}\r`
+            this.pty?.write(`cd "${cacheDir}"\r`)
+            this.pty?.write(`chmod 777 "${cacheFile}"\r`)
+            const shell = `cd "${dirname(node)}" && echo '${global.Server.Password}' | sudo -S ./node "${cacheFile}"\r`
             this.pty?.write(shell)
           } catch (e: any) {}
         })
