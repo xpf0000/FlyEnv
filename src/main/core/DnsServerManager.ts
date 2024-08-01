@@ -31,7 +31,7 @@ class DnsServer {
         })
         resolve(copyfile)
       } catch (e) {
-        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[Node][nvmDir][Error]: ${e}`)
+        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `\n[Node][nvmDir][Error]: ${e}`)
         reject(e)
       }
     })
@@ -72,7 +72,7 @@ class DnsServer {
             const command = `mv "${unzipDir}/*" "${nodeDir}/"`
             await appendFile(
               join(global.Server.BaseDir!, 'debug.log'),
-              `[Node][_init_node][info]: ${command}`
+              `\n[Node][_init_node][info]: ${command}`
             )
             try {
               await execPromise(`mv "${unzipDir}/*" "${nodeDir}/"`, {
@@ -82,10 +82,10 @@ class DnsServer {
             } catch (e) {
               await appendFile(
                 join(global.Server.BaseDir!, 'debug.log'),
-                `[Node][_init_node][error]: ${e}`
+                `\n[Node][_init_node][error]: ${e}`
               )
             }
-            await remove(unzipDir)
+            // await remove(unzipDir)
             if (existsSync(bin)) {
               resolve({
                 node: bin,
@@ -94,7 +94,7 @@ class DnsServer {
               return true
             }
           }
-          await remove(zip)
+          //await remove(zip)
         }
         return false
       }
@@ -112,8 +112,12 @@ class DnsServer {
         .then(function (response) {
           const stream = createWriteStream(zip)
           response.data.pipe(stream)
-          stream.on('error', (err: any) => {
+          stream.on('error', async (err: any) => {
             console.log('stream error: ', err)
+            await appendFile(
+              join(global.Server.BaseDir!, 'debug.log'),
+              `\n[Node][stream][error]: ${err}`
+            )
             try {
               if (existsSync(zip)) {
                 unlinkSync(zip)
@@ -130,8 +134,12 @@ class DnsServer {
             }
           })
         })
-        .catch((err) => {
+        .catch(async (err) => {
           console.log('down error: ', err)
+          await appendFile(
+            join(global.Server.BaseDir!, 'debug.log'),
+            `\n[Node][down][error]: ${err}`
+          )
           try {
             if (existsSync(zip)) {
               unlinkSync(zip)
