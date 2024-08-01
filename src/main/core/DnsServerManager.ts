@@ -189,7 +189,12 @@ class DnsServer {
           const res = await this._init_node()
           node = res.node
           npm = res.npm
-        } catch (e) {}
+        } catch (e) {
+          await appendFile(
+            join(global.Server.BaseDir!, 'debug.log'),
+            `\n[Node][_init_node][error]: ${e}`
+          )
+        }
       }
       if (!node || !npm) {
         reject(new Error('NodeJs Not Found And Install Failed'))
