@@ -1,8 +1,8 @@
 import { spawn, IPty } from 'node-pty'
 import { dirname, join } from 'path'
-import { copyFileSync, writeFileSync, existsSync, createWriteStream, unlinkSync } from 'fs'
+import { copyFileSync, existsSync, createWriteStream, unlinkSync } from 'fs'
 import { fixEnv, getAxiosProxy } from '@shared/utils'
-import { appendFile, copyFile, unlink, remove, mkdirp } from 'fs-extra'
+import { copyFile, unlink, remove, mkdirp } from 'fs-extra'
 import axios from 'axios'
 
 const execPromise = require('child-process-promise').exec
@@ -25,13 +25,12 @@ class DnsServer {
         }
         await copyFile(sh, copyfile)
         const env = fixEnv() as any
-        await execPromise(`echo "${global.Server.Password}" | sudo -S chmod 777 ${copyfile}`, {
+        await execPromise(`echo "${global.Server.Password}" | sudo -S chmod 777 "${copyfile}"`, {
           env,
           shell: '/bin/bash'
         })
         resolve(copyfile)
       } catch (e) {
-        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `\n[Node][nvmDir][Error]: ${e}`)
         reject(e)
       }
     })
@@ -39,8 +38,6 @@ class DnsServer {
 
   _init_node(): Promise<{ node: string; npm: string }> {
     return new Promise(async (resolve, reject) => {
-      // https://nodejs.org/dist/v18.20.4/node-v18.20.4-linux-arm64.tar.xz
-      // https://nodejs.org/dist/v18.20.4/node-v18.20.4-linux-x64.tar.xz
       const arch = global.Server.Arch === 'x86_64' ? 'x64' : 'arm64'
       const zipName = `node-v18.20.4-linux-${arch}`
       const nodeDir = join(global.Server.AppDir!, 'static-node')
@@ -71,22 +68,12 @@ class DnsServer {
           }
           if (existsSync(join(unzipDir, 'bin/node'))) {
             await mkdirp(nodeDir)
-            const command = `mv "${unzipDir}/*" "${nodeDir}/"`
-            await appendFile(
-              join(global.Server.BaseDir!, 'debug.log'),
-              `\n[Node][_init_node][info]: ${command}`
-            )
             try {
               await execPromise(`cd "${unzipDir}" && mv ./* "${nodeDir}/"`, {
                 env,
                 shell: '/bin/bash'
               })
-            } catch (e) {
-              await appendFile(
-                join(global.Server.BaseDir!, 'debug.log'),
-                `\n[Node][_init_node][error]: ${e}`
-              )
-            }
+            } catch (e) {}
             await remove(unzipDir)
             if (existsSync(bin)) {
               resolve({
@@ -113,17 +100,11 @@ class DnsServer {
         .then(function (response) {
           const stream = createWriteStream(zip)
           response.data.pipe(stream)
-          stream.on('error', async (err: any) => {
+          stream.on('error', (err: any) => {
             console.log('stream error: ', err)
-            await appendFile(
-              join(global.Server.BaseDir!, 'debug.log'),
-              `\n[Node][stream][error]: ${err}`
-            )
-            try {
-              if (existsSync(zip)) {
-                unlinkSync(zip)
-              }
-            } catch (e) {}
+            if (existsSync(zip)) {
+              unlinkSync(zip)
+            }
             reject(new Error('down failed'))
           })
           stream.on('finish', async () => {
@@ -137,15 +118,9 @@ class DnsServer {
         })
         .catch(async (err) => {
           console.log('down error: ', err)
-          await appendFile(
-            join(global.Server.BaseDir!, 'debug.log'),
-            `\n[Node][down][error]: ${err}`
-          )
-          try {
-            if (existsSync(zip)) {
-              unlinkSync(zip)
-            }
-          } catch (e) {}
+          if (existsSync(zip)) {
+            unlinkSync(zip)
+          }
           reject(new Error('down failed'))
         })
     })
@@ -163,8 +138,6 @@ class DnsServer {
       const cacheDir = global.Server.Cache
       const file = join(__static, 'fork/dnsServer.js')
       const cacheFile = join(cacheDir!, 'dnsServer.js')
-      const logFile = join(cacheDir!, 'dnsLog.txt')
-      writeFileSync(logFile, '')
       const initPty = () => {
         this.pty = spawn(process.env['SHELL']!, [], {
           name: 'xterm-color',
@@ -239,8 +212,7 @@ class DnsServer {
             .then(() => {
               copyFile()
             })
-            .catch((e: Error) => {
-              writeFileSync(logFile, `${e}`)
+            .catch(() => {
               const err = new Error(
                 `Dependencies install failed.\nuse this command install, then retry.\n${command}`
               )
