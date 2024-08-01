@@ -66,7 +66,9 @@ class DnsServer {
               shell: '/bin/bash',
               cwd: global.Server.Cache!
             })
-          } catch (e) {}
+          } catch (e) {
+            await remove(zip)
+          }
           if (existsSync(join(unzipDir, 'bin/node'))) {
             await mkdirp(nodeDir)
             const command = `mv "${unzipDir}/*" "${nodeDir}/"`
@@ -75,7 +77,7 @@ class DnsServer {
               `\n[Node][_init_node][info]: ${command}`
             )
             try {
-              await execPromise(`mv "${unzipDir}/*" "${nodeDir}/"`, {
+              await execPromise(`cd "${unzipDir}" && mv ./* "${nodeDir}/"`, {
                 env,
                 shell: '/bin/bash'
               })
@@ -85,7 +87,7 @@ class DnsServer {
                 `\n[Node][_init_node][error]: ${e}`
               )
             }
-            // await remove(unzipDir)
+            await remove(unzipDir)
             if (existsSync(bin)) {
               resolve({
                 node: bin,
@@ -94,7 +96,6 @@ class DnsServer {
               return true
             }
           }
-          //await remove(zip)
         }
         return false
       }
