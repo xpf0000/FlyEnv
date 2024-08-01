@@ -32,12 +32,15 @@ const buildStart = Date.now()
 Promise.all([packMain(), packRenderer()])
   .then(() => {
     const config = JSON.parse(JSON.stringify(electronBuilderConfig))
-    if (process.env.ARCH === 'arm64') {
+    if (process.env.ARCH === 'arm64-deb') {
       config.linux.target = [
         {
           target: 'deb',
           arch: ['arm64']
-        },
+        }
+      ]
+    } else if (process.env.ARCH === 'arm64-rpm') {
+      config.linux.target = [
         {
           target: 'rpm',
           arch: ['arm64']
