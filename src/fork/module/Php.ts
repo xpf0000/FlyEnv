@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
@@ -261,7 +261,9 @@ class Php extends Base {
       const confPath = join(version.path, 'php.ini')
       const fpmBin = join(global.Server.PhpDir!, 'php-cgi-spawner.exe')
 
-      const command = `start /b ${fpmBin} "${version.bin} -c ${confPath}" 90${version.num} 4`
+      process.chdir(dirname(fpmBin));
+
+      const command = `start /b ./php-cgi-spawner.exe "${version.bin} -c ${confPath}" 90${version.num} 4`
       console.log('_startServer command: ', command)
 
       try {
@@ -302,11 +304,13 @@ class Php extends Base {
         if (params.config) {
           const configFile = join(cacheDir, 'php-obfuscator.cnf')
           await writeFile(configFile, params.config)
-          command = `${params.bin} ${bin} --config-file ${configFile} ${params.src} -o ${params.desc}`
+          command = `${basename(params.bin)} "${bin}" --config-file "${configFile}" "${params.src}" -o "${params.desc}"`
         } else {
-          command = `${params.bin} ${bin} ${params.src} -o ${params.desc}`
+          command = `${basename(params.bin)} "${bin}" "${params.src}" -o "${params.desc}"`
         }
-        await execPromise(command)
+        await execPromise(command, {
+          cwd: dirname(params.bin)
+        })
         resolve(true)
       } catch (e) {
         reject(e)
@@ -320,7 +324,7 @@ class Php extends Base {
         const urls = [
           'https://windows.php.net/download/',
           'https://windows.php.net/downloads/releases/archives/'
-        ]      
+        ]
         const fetchVersions = async (url: string) => {
           const all: any = []
           const res = await axios({
@@ -329,7 +333,7 @@ class Php extends Base {
           })
           const html = res.data
           console.log('html: ', html)
-          const reg = /\/downloads\/releases\/(archives\/)?php-([\d\.]+)-Win([a-zA-Z\d-]+)-x64\.zip/g          
+          const reg = /\/downloads\/releases\/(archives\/)?php-([\d\.]+)-Win([a-zA-Z\d-]+)-x64\.zip/g
           let r
           while ((r = reg.exec(html)) !== null) {
             const u = new URL(r[0], url).toString()

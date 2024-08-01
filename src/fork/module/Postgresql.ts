@@ -1,4 +1,4 @@
-import { join, dirname } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
@@ -64,7 +64,8 @@ class Manager extends Base {
         }
       }
       const doRun = async () => {
-        const command = `start /b ${bin} -D ${dbPath} -l ${logFile} start`
+        process.chdir(dirname(bin));
+        const command = `start /b ./${basename(bin)} -D "${dbPath}" -l "${logFile}" start`
         try {
           await execPromiseRoot(command)
         } catch (e) {
@@ -85,7 +86,8 @@ class Manager extends Base {
 
         const binDir = dirname(bin)
         const initDB = join(binDir, 'initdb.exe')
-        const command = `start /b ${initDB} -D ${dbPath} -U root`
+        process.chdir(dirname(initDB));
+        const command = `start /b ./${basename(initDB)} -D "${dbPath}" -U root`
         try {
           await execPromiseRoot(command)
         } catch (e) {

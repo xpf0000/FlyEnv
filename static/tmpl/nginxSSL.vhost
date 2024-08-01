@@ -19,7 +19,7 @@ server
     #PHP-INFO-END
 
     #REWRITE-START URL重写规则引用,修改后将导致面板设置的伪静态规则失效
-    include #Rewrite_Path#/#Server_Name#.conf;
+    include "#Rewrite_Path#/#Server_Name#.conf";
     #REWRITE-END
 
     #禁止访问的文件或目录
@@ -46,6 +46,6 @@ server
         error_log off;
         access_log off;
     }
-    access_log  #Log_Path#/#Server_Name#.log;
-    error_log  #Log_Path#/#Server_Name#.error.log;
+    access_log  "#Log_Path#/#Server_Name#.log";
+    error_log  "#Log_Path#/#Server_Name#.error.log";
 }

@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
@@ -20,7 +20,7 @@ class Manager extends Base {
       if (existsSync(binPhp)) {
         await remove(binPhp)
       }
-      const command = `echo '${global.Server.Password}' | sudo -S ln -s ${phpBin} ${binPhp}`
+      const command = `echo '${global.Server.Password}' | sudo -S ln -s "${phpBin}" "${binPhp}"`
       try {
         await execPromise(command)
       } catch (e) {}

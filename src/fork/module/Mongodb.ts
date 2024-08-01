@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
@@ -74,8 +74,8 @@ class Manager extends Base {
         return res
       }
 
-
-      const command = `start /b ${bin} --config ${m} --logpath ${logPath} --pidfilepath ${this.pidPath}`
+      process.chdir(dirname(bin));
+      const command = `start /b ./${basename(bin)} --config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}"`
 
       console.log('command: ', command)
 

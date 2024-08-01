@@ -25,25 +25,14 @@ class Host extends Base {
   }
 
   #initCARoot() {
-    return new Promise(async (resolve) => {
-      let command = `certutil -store root`
-      let res: any = null
+    return new Promise(async (resolve) => {  
+      const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+      const command = `certutil -addstore root "${CARoot}"`
       try {
-        res = await execPromiseRoot(command)
-        res = res.stdout
-      }
-      catch(e) {}
-      console.log('initCARoot res000: ', res)
-      if (res && !res.includes('CN=PhpWebStudy-Root-CA')) {
-        const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
-        command = `certutil -addstore root ${CARoot}`
-        try {
-          res = await execPromiseRoot(command)
-        }
-        catch(e) {}
-
+        const res = await execPromiseRoot(command)
         console.log('initCARoot res111: ', res)
       }
+      catch (e) { }
       resolve(true)
     })
   }
@@ -56,12 +45,10 @@ class Host extends Base {
         const CADir = dirname(CARoot)
         if (!existsSync(CARoot)) {
           await mkdirp(CADir)
-
           await zipUnPack(join(global.Server.Static!, `zip/CA.7z`), CADir)
+          await this.#initCARoot()
         }
-        
-        await this.#initCARoot()
-        
+
         const openssl = join(global.Server.AppDir!, 'openssl/bin/openssl.exe')
         if (!existsSync(openssl)) {
           await zipUnPack(join(global.Server.Static!, `zip/openssl.7z`), global.Server.AppDir!)
@@ -92,13 +79,17 @@ subjectAltName=@alt_names
           await copyFile(join(global.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
         }
 
-        process.chdir(hostCADir);
-        let command = `${openssl} req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}" -config ${opensslCnf}`
+        process.chdir(dirname(openssl));
+        const caKey = join(hostCADir, `${hostCAName}.key`)
+        const caCSR = join(hostCADir, `${hostCAName}.csr`)
+        let command = `openssl.exe req -new -newkey rsa:2048 -nodes -keyout "${caKey}" -out "${caCSR}" -sha256 -subj "/CN=${hostCAName}" -config "${opensslCnf}"`
         console.log('command: ', command)
         await execPromiseRoot(command)
-        
-        process.chdir(hostCADir);
-        command = `${openssl} x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650`
+
+        process.chdir(dirname(openssl));
+        const caCRT = join(hostCADir, `${hostCAName}.crt`)
+        const caEXT = join(hostCADir, `${hostCAName}.ext`)
+        command = `openssl.exe x509 -req -in "${caCSR}" -out "${caCRT}" -extfile "${caEXT}" -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650`
         console.log('command: ', command)
         await execPromiseRoot(command)
 
@@ -246,8 +237,8 @@ subjectAltName=@alt_names
             }
             const aliasArr = item.alias
               ? item.alias.split('\n').filter((n: string) => {
-                  return n && n?.trim()?.length > 0
-                })
+                return n && n?.trim()?.length > 0
+              })
               : []
             item.alias = aliasArr
               .map((a: string) => {
@@ -357,7 +348,7 @@ subjectAltName=@alt_names
         if (existsSync(f)) {
           try {
             await remove(f)
-          } catch (e) {}
+          } catch (e) { }
         }
       }
       resolve(true)
@@ -443,7 +434,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         const content = tmplContent.replace('##VERSION##', `${v}`)
         await writeFile(confFile, content)
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   async #initCaddyConf(host: AppHost) {
@@ -479,12 +470,12 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     if (host.useSSL) {
       let tls = 'internal'
       if (host.ssl.cert && host.ssl.key) {
-        tls = `${host.ssl.cert} ${host.ssl.key}`
+        tls = `"${host.ssl.cert}" "${host.ssl.key}"`
       }
       const httpHostNameAll = httpsNames.join(',\n')
       const content = this.CaddySSLTmpl.replace('##HOST-ALL##', httpHostNameAll)
         .replace('##LOG-PATH##', logFile.split('\\').join('/'))
-        .replace('##SSL##', tls)
+        .replace('##SSL##', tls.split('\\').join('/'))
         .replace('##ROOT##', root.split('\\').join('/'))
         .replace('##PHP-VERSION##', `${phpv}`)
       contentList.push(content)
@@ -1031,9 +1022,9 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     console.log('_fixHostsRole !!!')
     try {
       await chmod(this.hostsFile, 0o666)
-    } catch(e) {}
+    } catch (e) { }
     try {
-      await execPromiseRoot(`icacls ${this.hostsFile} /grant Everyone:F`)      
+      await execPromiseRoot(`icacls ${this.hostsFile} /grant Everyone:F`)
     } catch (e) {
       console.log('_fixHostsRole err: ', e)
     }
@@ -1056,7 +1047,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         try {
           json = JSON.parse(json)
           appHost.push(...json)
-        } catch (e) {}
+        } catch (e) { }
       }
       console.log('writeHosts: ', write)
       if (write) {
@@ -1165,7 +1156,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       const content = await readFile(hostfile, 'utf-8')
       try {
         hostList = JSON.parse(content)
-      } catch (e) {}
+      } catch (e) { }
       const find = hostList.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
       if (find) {
         resolve(true)

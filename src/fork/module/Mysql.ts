@@ -1,4 +1,4 @@
-import { join, dirname } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
@@ -23,7 +23,9 @@ class Mysql extends Base {
   _initPassword(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
       const bin = join(dirname(version.bin), 'mysqladmin.exe')
-      execPromise(`${bin} -uroot password "root"`)
+      execPromise(`mysqladmin.exe -uroot password "root"`, {
+        cwd: dirname(bin)
+      })
         .then((res) => {
           console.log('_initPassword res: ', res)
           resolve(true)
@@ -68,7 +70,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION
 #brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
 #如果配置文件已更改, 原配置文件在: ${oldm}
 #可以复制原配置文件的内容, 使用原来的配置
-datadir=${dataDir}`
+datadir="${dataDir}"`
         await writeFile(m, conf)
       }
 
@@ -76,11 +78,11 @@ datadir=${dataDir}`
       const s = join(global.Server.MysqlDir!, 'slow.log')
       const e = join(global.Server.MysqlDir!, 'error.log')
       const params = [
-        `--defaults-file=${m}`,
-        `--pid-file=${p}`,
+        `--defaults-file="${m}"`,
+        `--pid-file="${p}"`,
         '--user=mysql',
-        `--slow-query-log-file=${s}`,
-        `--log-error=${e}`
+        `--slow-query-log-file="${s}"`,
+        `--log-error="${e}"`
       ]
 
       try {
@@ -120,7 +122,8 @@ datadir=${dataDir}`
         await chmod(dataDir, '0777')
         params.push('--initialize-insecure')
 
-        command = `${bin} ${params.join(' ')}`
+        process.chdir(dirname(bin));
+        command = `${basename(bin)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
           const res = await execPromiseRoot(command)
@@ -144,7 +147,8 @@ datadir=${dataDir}`
 
       } else {
         params.push('--standalone')
-        command = `start /b ${bin} ${params.join(' ')}`
+        process.chdir(dirname(bin));
+        command = `start /b ./${basename(bin)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
           const res = await execPromiseRoot(command)
@@ -220,14 +224,14 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       const e = join(global.Server.MysqlDir!, `group/my-group-${id}-error.log`)
       const sock = join(global.Server.MysqlDir!, `group/my-group-${id}.sock`)
       const params = [
-        `--defaults-file=${m}`,
-        `--datadir=${dataDir}`,
-        `--port=${version.port}`,
-        `--pid-file=${p}`,
+        `--defaults-file="${m}"`,
+        `--datadir="${dataDir}"`,
+        `--port="${version.port}"`,
+        `--pid-file="${p}"`,
         '--user=mysql',
-        `--slow-query-log-file=${s}`,
-        `--log-error=${e}`,
-        `--socket=${sock}`
+        `--slow-query-log-file="${s}"`,
+        `--log-error="${e}"`,
+        `--socket="${sock}"`
       ]
 
       try {
@@ -264,7 +268,11 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       const initPassword = () => {
         return new ForkPromise((resolve, reject) => {
           const bin = join(dirname(version.version.bin!), 'mysqladmin.exe')
-          execPromise(`${bin} -P${version.port} -S${sock} -uroot password "root"`)
+          execPromise(`${basename(bin)} -P${version.port} -S"${sock}" -uroot password "root"`,
+            {
+              cwd: dirname(bin)
+            }
+          )
             .then((res) => {
               console.log('_initPassword res: ', res)
               resolve(true)
@@ -281,8 +289,8 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
         params.push('--initialize-insecure')
-
-        command = `${bin} ${params.join(' ')}`
+        process.chdir(dirname(bin!));
+        command = `${basename(bin!)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
           const res = await execPromiseRoot(command)
@@ -306,7 +314,8 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
 
       } else {
         params.push('--standalone')
-        command = `start /b ${bin} ${params.join(' ')}`
+        process.chdir(dirname(bin!));
+        command = `start /b ./${basename(bin!)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
           const res = await execPromiseRoot(command)

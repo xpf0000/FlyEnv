@@ -1,10 +1,10 @@
-import { join } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
 import { execPromiseRoot, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
+import { readFile, writeFile, mkdirp, chmod, unlink, copyFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
@@ -92,14 +92,11 @@ class Redis extends Base {
         return res
       }
 
-      try {
-        process.chdir(global.Server.RedisDir!);
-        console.log(`新的工作目录: ${process.cwd()}`);
-      } catch (err) {
-        console.error(`改变工作目录失败: ${err}`);
-      }
-
-      const command = `start /b ${bin} redis-${v}.conf`
+      const confName = `redis-${v}.conf`
+      const conf = join(global.Server.RedisDir!, confName)
+      await copyFile(conf, join(dirname(bin), confName))
+      process.chdir(dirname(bin));
+      const command = `start /b ./${basename(bin)} ${confName}`
       console.log('command: ', command)
 
       try {

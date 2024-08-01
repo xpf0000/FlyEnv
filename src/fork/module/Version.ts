@@ -1,4 +1,4 @@
-import { join, basename } from 'path'
+import { join, basename, dirname } from 'path'
 import { existsSync, realpathSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
@@ -52,48 +52,50 @@ class Manager extends Base {
       reg = /\d+(\.\d+){1,4}/g
       switch (name) {
         case 'httpd.exe':
-          command = `${bin} -v`
+          command = `${basename(bin)} -v`
           reg = /(Apache\/)(\d+(\.\d+){1,4})( )/g
           break
         case 'nginx.exe':
-          command = `${bin} -v`
+          command = `${basename(bin)} -v`
           reg = /(\/)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'caddy.exe':
-          command = `${bin} version`
+          command = `${basename(bin)} version`
           reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'php-cgi.exe':
-          command = `${bin} -n -v`
+          command = `${basename(bin)} -n -v`
           reg = /(PHP )(\d+(\.\d+){1,4})( )/g
           break
         case 'mysqld.exe':
-          command = `${bin} -V`
+          command = `${basename(bin)} -V`
           reg = /(Ver )(\d+(\.\d+){1,4})( )/g
           break
         case 'mariadbd.exe':
-          command = `${bin} -V`
+          command = `${basename(bin)} -V`
           reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
           break
         case 'memcached.exe':
-          command = `${bin} -V`
+          command = `${basename(bin)} -V`
           reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'redis-server.exe':
-          command = `${bin} -v`
+          command = `${basename(bin)} -v`
           reg = /([=\s])(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'mongod.exe':
-          command = `${bin} --version`
+          command = `${basename(bin)} --version`
           reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
           break
         case 'pg_ctl.exe':
-          command = `${bin} --version`
+          command = `${basename(bin)} --version`
           reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
           break
       }
       try {
-        const res = await execPromise(command)
+        const res = await execPromise(command, {
+          cwd: dirname(bin)
+        })
         handleThen(res)
       } catch (e) {
         handleCatch(e)

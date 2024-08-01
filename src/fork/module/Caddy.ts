@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, SoftInstalled } from '@shared/app'
@@ -48,9 +48,9 @@ class Caddy extends Base {
         const vhostDir = join(global.Server.BaseDir!, 'vhost/caddy')
         await mkdirp(sslDir)
         content = content
-          .replace('##SSL_ROOT##', sslDir)
-          .replace('##LOG_FILE##', logFile)
-          .replace('##VHOST-DIR##', vhostDir)
+          .replace('##SSL_ROOT##', sslDir.split('\\').join('/'))
+          .replace('##LOG_FILE##', logFile.split('\\').join('/'))
+          .replace('##VHOST-DIR##', vhostDir.split('\\').join('/'))
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'Caddyfile.default')
         await writeFile(defaultIniFile, content)
@@ -120,22 +120,22 @@ class Caddy extends Base {
       const httpHostNameAll = httpNames.join(',\n')
       const content = tmplContent
         .replace('##HOST-ALL##', httpHostNameAll)
-        .replace('##LOG-PATH##', logFile)
-        .replace('##ROOT##', root)
+        .replace('##LOG-PATH##', logFile.split('\\').join('/'))
+        .replace('##ROOT##', root.split('\\').join('/'))
         .replace('##PHP-VERSION##', `${phpv}`)
       contentList.push(content)
 
       if (host.useSSL) {
         let tls = 'internal'
         if (host.ssl.cert && host.ssl.key) {
-          tls = `${host.ssl.cert} ${host.ssl.key}`
+          tls = `"${host.ssl.cert}" "${host.ssl.key}"`
         }
         const httpHostNameAll = httpsNames.join(',\n')
         const content = tmplSSLContent
           .replace('##HOST-ALL##', httpHostNameAll)
-          .replace('##LOG-PATH##', logFile)
-          .replace('##SSL##', tls)
-          .replace('##ROOT##', root)
+          .replace('##LOG-PATH##', logFile.split('\\').join('/'))
+          .replace('##SSL##', tls.split('\\').join('/'))
+          .replace('##ROOT##', root.split('\\').join('/'))
           .replace('##PHP-VERSION##', `${phpv}`)
         contentList.push(content)
       }
@@ -172,7 +172,14 @@ class Caddy extends Base {
         return res
       }
 
-      const command = `start /b ${bin} start --config ${iniFile} --pidfile ${this.pidPath} --watch`
+      try {
+        process.chdir(dirname(bin));
+        console.log(`新的工作目录: ${process.cwd()}`);
+      } catch (err) {
+        console.error(`改变工作目录失败: ${err}`);
+      }
+
+      const command = `start /b ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
       console.log('command: ', command)
 
       try {

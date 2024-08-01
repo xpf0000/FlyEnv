@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
@@ -65,7 +65,9 @@ class Memcached extends Base {
         return res
       }
 
-      const command = `start /b ${bin} -d -P ${pid} -vv >> ${log} 2>&1`
+      process.chdir(dirname(bin));
+
+      const command = `start /b ./${basename(bin)} -d -P "${pid}" -vv >> "${log}" 2>&1`
 
       try {
         const res = await execPromiseRoot(command)

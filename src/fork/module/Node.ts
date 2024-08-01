@@ -133,7 +133,7 @@ class Manager extends Base {
             content = content.replace('##NVM_PATH##', nvmDir)
             await writeFile(installcmd, content)
             process.chdir(nvmDir);
-            const res = await execPromiseRoot('./install.cmd')
+            const res = await execPromiseRoot('install.cmd')
             console.log('installNvm res: ', res)
           }
         } else if (flag === 'fnm') {
@@ -153,7 +153,7 @@ class Manager extends Base {
             content = content.replace('##PROFILE##', profile)
             await writeFile(installcmd, content)
             process.chdir(nvmDir);
-            const res = await execPromiseRoot('./install.cmd')
+            const res = await execPromiseRoot('install.cmd')
             console.log('installNvm res: ', res)
           }
         }

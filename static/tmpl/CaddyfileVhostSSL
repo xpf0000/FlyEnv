@@ -1,6 +1,6 @@
 ##HOST-ALL## {
     encode zstd gzip
-    import set-log ##LOG-PATH##
+    import set-log "##LOG-PATH##"
 
     tls ##SSL##
 
@@ -13,7 +13,7 @@
 
     redir @canonicalPath {path}/ 308
 
-    root * ##ROOT##
+    root * "##ROOT##"
 
     route {
         import enable-php-select ##PHP-VERSION##

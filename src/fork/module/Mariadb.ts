@@ -1,4 +1,4 @@
-import { join, dirname } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
@@ -42,7 +42,9 @@ class Manager extends Base {
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
 
-      execPromise(`${bin} --defaults-file=${m} --port=3307 -uroot password "root"`)
+      execPromise(`${basename(bin)} --defaults-file="${m}" --port=3307 -uroot password "root"`, {
+        cwd: dirname(bin)
+      })
       .then((res) => {
         console.log('_initPassword res: ', res)
         resolve(true)
@@ -68,7 +70,7 @@ class Manager extends Base {
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
 port = 3307
-datadir=${dataDir}`
+datadir="${dataDir}"`
         await writeFile(m, conf)
       }
 
@@ -76,11 +78,11 @@ datadir=${dataDir}`
       const s = join(global.Server.MariaDBDir!, 'slow.log')
       const e = join(global.Server.MariaDBDir!, 'error.log')
       const params = [
-        `--defaults-file=${m}`,
-        `--pid-file=${p}`,
+        `--defaults-file="${m}"`,
+        `--pid-file="${p}"`,
         '--slow-query-log=ON',
-        `--slow-query-log-file=${s}`,
-        `--log-error=${e}`
+        `--slow-query-log-file="${s}"`,
+        `--log-error="${e}"`
       ]
 
       try {
@@ -121,10 +123,16 @@ datadir=${dataDir}`
 
         bin = join(version.path, 'bin/mariadb-install-db.exe')
         params.splice(0)
-        params.push(`--datadir=${dataDir}`)
-        params.push(`--config=${m}`)
+        params.push(`--datadir="${dataDir}"`)
+        params.push(`--config="${m}"`)
 
-        command = `${bin} ${params.join(' ')}`
+        try {
+          process.chdir(dirname(bin));
+          console.log(`新的工作目录: ${process.cwd()}`);
+        } catch (err) {
+          console.error(`改变工作目录失败: ${err}`);
+        }
+        command = `${basename(bin)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
           const res = await execPromiseRoot(command)
@@ -147,8 +155,14 @@ datadir=${dataDir}`
         }
 
       } else {
+        try {
+          process.chdir(dirname(bin));
+          console.log(`新的工作目录: ${process.cwd()}`);
+        } catch (err) {
+          console.error(`改变工作目录失败: ${err}`);
+        }
         params.push('--standalone')
-        command = `start /b ${bin} ${params.join(' ')}`
+        command = `start /b ./${basename(bin)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
           const res = await execPromiseRoot(command)

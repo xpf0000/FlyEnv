@@ -1,4 +1,4 @@
-import { join, dirname } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
@@ -116,7 +116,13 @@ class Nginx extends Base {
         return res
       }
 
-      const command = `start /b ${bin} -p ${p}`
+      try {
+        process.chdir(dirname(bin));
+        console.log(`新的工作目录: ${process.cwd()}`);
+      } catch (err) {
+        console.error(`改变工作目录失败: ${err}`);
+      }
+      const command = `start /b ./${basename(bin)} -p "${p}"`
       console.log('command: ', command)
 
       try {

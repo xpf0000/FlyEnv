@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, basename, dirname } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
@@ -49,7 +49,9 @@ class Apache extends Base {
       // 获取httpd的默认配置文件路径
       let str = ''
       try {
-        const res = await execPromise(`${bin} -V`)
+        const res = await execPromise(`${basename(bin)} -V`, {
+          cwd: dirname(bin)
+        })
         str = res?.stdout?.toString() ?? ''
       } catch(e: any) {
         reject(new Error(I18nT('fork.apacheLogPathErr')))
@@ -216,26 +218,41 @@ IncludeOptional "${vhost}*.conf"`
       await this.#resetConf(version)
       await this.#handleListenPort(version)
       const bin = version.bin
-      const conf = join(global.Server.ApacheDir!, `${version.version}.conf`)
+      let conf = join(global.Server.ApacheDir!, `${version.version}.conf`)
       if (!existsSync(conf)) {
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
 
-      let command = ''
-      if (lastVersion && lastVersion?.bin !== version.bin) {
-        command = `${lastVersion.bin} -k uninstall`
-        try {
-          await execPromiseRoot(command)
-        } catch(e){}  
+      try {
+        process.chdir(dirname(bin));
+        console.log(`新的工作目录: ${process.cwd()}`);
+      } catch (err) {
+        console.error(`改变工作目录失败: ${err}`);
       }
-
-      command = `${bin} -k install`
+      let command = `${basename(bin)} -k uninstall`
       try {
         await execPromiseRoot(command)
       } catch(e){}
 
-      command = `${bin} -f ${conf} -k start`
+      try {
+        process.chdir(dirname(bin));
+        console.log(`新的工作目录: ${process.cwd()}`);
+      } catch (err) {
+        console.error(`改变工作目录失败: ${err}`);
+      }
+      command = `${basename(bin)} -k install`
+      try {
+        await execPromiseRoot(command)
+      } catch(e){}
+
+      try {
+        process.chdir(dirname(bin));
+        console.log(`新的工作目录: ${process.cwd()}`);
+      } catch (err) {
+        console.error(`改变工作目录失败: ${err}`);
+      }
+      command = `${basename(bin)} -f "${conf}" -k start`
       console.log('_startServer: ', command)
       try {
         const res = await execPromiseRoot(command)

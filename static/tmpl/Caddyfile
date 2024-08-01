@@ -1,9 +1,9 @@
 {
   storage file_system {
-      root ##SSL_ROOT##
+      root "##SSL_ROOT##"
   }
   log global_log {
-      output file ##LOG_FILE## {
+      output file "##LOG_FILE##" {
           roll_size 1gb
           roll_keep 5
           roll_keep_for 720h
@@ -34,4 +34,4 @@
     php_fastcgi 127.0.0.1:90{args.0}
 }
 
-import ##VHOST-DIR##/*
+import "##VHOST-DIR##/*"
