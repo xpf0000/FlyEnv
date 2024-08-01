@@ -8,6 +8,7 @@ import { readFile, writeFile, mkdirp, chmod, remove, copyFile } from 'fs-extra'
 import { I18nT } from '../lang'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
+import {getAxiosProxy} from "@shared/utils";
 
 class Caddy extends Base {
   constructor() {
@@ -209,7 +210,7 @@ class Caddy extends Base {
           const res = await axios({
             url,
             method: 'get',
-            proxy: this.getAxiosProxy()
+            proxy: getAxiosProxy()
           })
           const html = res.data
           let arr: any[] = []
@@ -326,7 +327,7 @@ class Caddy extends Base {
       axios({
         method: 'get',
         url: row.url,
-        proxy: this.getAxiosProxy(),
+        proxy: getAxiosProxy(),
         responseType: 'stream',
         onDownloadProgress: (progress) => {
           if (progress.total) {

@@ -1,4 +1,4 @@
-import { exec, spawn, execSync, type ChildProcess } from 'child_process'
+import { exec, spawn, type ChildProcess } from 'child_process'
 import { merge } from 'lodash'
 import { statSync, chmodSync, readdirSync, mkdirSync, existsSync, createWriteStream } from 'fs'
 import path, { join, dirname } from 'path'
@@ -72,24 +72,6 @@ export function fixEnv(): { [k: string]: any } {
     }
   }
   return env
-}
-
-export function execSyncFix(cammand: string, opt?: { [k: string]: any }): string | undefined {
-  let res: any = undefined
-  try {
-    res = execSync(
-      cammand,
-      merge(
-        {
-          env: fixEnv()
-        },
-        opt
-      )
-    ).toString()
-  } catch (e) {
-    res = undefined
-  }
-  return res
 }
 
 export function execPromise(

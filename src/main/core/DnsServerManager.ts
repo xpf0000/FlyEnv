@@ -1,8 +1,9 @@
 import { spawn, IPty } from 'node-pty'
 import { dirname, join } from 'path'
-import { copyFileSync, writeFileSync, existsSync } from 'fs'
-import { fixEnv } from '@shared/utils'
-import { appendFile, copyFile, unlink } from 'fs-extra'
+import { copyFileSync, writeFileSync, existsSync, createWriteStream, unlinkSync } from 'fs'
+import { fixEnv, getAxiosProxy } from '@shared/utils'
+import { appendFile, copyFile, unlink, remove, mkdirp } from 'fs-extra'
+import axios from 'axios'
 const execPromise = require('child-process-promise').exec
 
 class DnsServer {
@@ -32,6 +33,99 @@ class DnsServer {
         await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[Node][nvmDir][Error]: ${e}`)
         reject(e)
       }
+    })
+  }
+
+  _init_node(): Promise<{ node: string; npm: string }> {
+    return new Promise(async (resolve, reject) => {
+      // https://nodejs.org/dist/v18.20.4/node-v18.20.4-linux-arm64.tar.xz
+      // https://nodejs.org/dist/v18.20.4/node-v18.20.4-linux-x64.tar.xz
+      const arch = global.Server.Arch === 'x86_64' ? 'x64' : 'arm64'
+      const zipName = `node-v18.20.4-linux-${arch}`
+      const nodeDir = join(global.Server.AppDir!, 'static-node')
+      const bin = join(nodeDir, 'bin/node')
+      if (existsSync(bin)) {
+        resolve({
+          node: bin,
+          npm: join(nodeDir, 'bin/npm')
+        })
+        return
+      }
+      const zip = join(global.Server.Cache!, 'static-node.tar.xz')
+      const checkZip = async () => {
+        if (existsSync(zip)) {
+          const unzipDir = join(global.Server.Cache!, zipName)
+          if (existsSync(unzipDir)) {
+            await remove(unzipDir)
+          }
+          const env = fixEnv() as any
+          try {
+            await execPromise(`tar -xf "${zip}"`, {
+              env,
+              shell: '/bin/bash',
+              cwd: global.Server.Cache!
+            })
+          } catch (e) {}
+          if (existsSync(join(unzipDir, 'bin/node'))) {
+            await mkdirp(nodeDir)
+            await execPromise(`mv "${unzipDir}/*" "${nodeDir}/"`, {
+              env,
+              shell: '/bin/bash'
+            })
+            await remove(unzipDir)
+            if (existsSync(bin)) {
+              resolve({
+                node: bin,
+                npm: join(nodeDir, 'bin/npm')
+              })
+              return true
+            }
+          }
+          await remove(zip)
+        }
+        return false
+      }
+      const res = await checkZip()
+      if (res) {
+        return
+      }
+      const url = `https://nodejs.org/dist/v18.20.4/${zipName}.tar.xz`
+      axios({
+        method: 'get',
+        url: url,
+        proxy: getAxiosProxy(),
+        responseType: 'stream'
+      })
+        .then(function (response) {
+          const stream = createWriteStream(zip)
+          response.data.pipe(stream)
+          stream.on('error', (err: any) => {
+            console.log('stream error: ', err)
+            try {
+              if (existsSync(zip)) {
+                unlinkSync(zip)
+              }
+            } catch (e) {}
+            reject(new Error('down failed'))
+          })
+          stream.on('finish', async () => {
+            const res = await checkZip()
+            if (res) {
+              return
+            } else {
+              reject(new Error('down failed'))
+            }
+          })
+        })
+        .catch((err) => {
+          console.log('down error: ', err)
+          try {
+            if (existsSync(zip)) {
+              unlinkSync(zip)
+            }
+          } catch (e) {}
+          reject(new Error('down failed'))
+        })
     })
   }
 
@@ -83,24 +177,27 @@ class DnsServer {
         })
       }
       const nodesh = await this._init_sh()
-      const err = []
       try {
         let res = execPromise(`bash ${nodesh} which-node`, {
           env,
           shell: '/bin/bash'
         })
         node = res?.stdout?.toString()?.trim() ?? ''
-        err.push(res?.stderr?.toString())
         res = execPromise(`bash ${nodesh} which-npm`, {
           env,
           shell: '/bin/bash'
         })
         npm = res?.stdout?.toString()?.trim()
-        err.push(res?.stderr?.toString())
-        writeFileSync(logFile, `node: ${node}\nnpm:${npm}\n${JSON.stringify(err)}`)
-      } catch (e: any) {
-        writeFileSync(logFile, `${e}`)
-        reject(new Error('DNS Server Start Fail: Need NodeJS, Not Found NodeJS In System Env'))
+      } catch (e: any) {}
+      if (!node || !npm) {
+        try {
+          const res = await this._init_node()
+          node = res.node
+          npm = res.npm
+        } catch (e) {}
+      }
+      if (!node || !npm) {
+        reject(new Error('NodeJs Not Found And Install Failed'))
         return
       }
       env.PATH = Array.from(

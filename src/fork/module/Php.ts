@@ -9,6 +9,7 @@ import compressing from 'compressing'
 import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
+import { getAxiosProxy } from '@shared/utils'
 
 class Php extends Base {
   constructor() {
@@ -687,7 +688,7 @@ class Php extends Base {
           const res = await axios({
             url,
             method: 'get',
-            proxy: this.getAxiosProxy()
+            proxy: getAxiosProxy()
           })
           const html = res.data
           const reg: RegExp = new RegExp(
@@ -783,7 +784,7 @@ class Php extends Base {
         }
       }
 
-      const proxy: any = this.getAxiosProxy()
+      const proxy: any = getAxiosProxy()
 
       let p0 = 0
       let p1 = 0
