@@ -2,7 +2,7 @@ import { spawn, IPty } from 'node-pty'
 import { dirname, join } from 'path'
 import { copyFileSync, existsSync, createWriteStream, unlinkSync } from 'fs'
 import { fixEnv, getAxiosProxy } from '@shared/utils'
-import { copyFile, unlink, remove, mkdirp } from 'fs-extra'
+import { copyFile, unlink, remove, mkdirp, appendFile } from 'fs-extra'
 import axios from 'axios'
 
 const execPromise = require('child-process-promise').exec
@@ -212,7 +212,11 @@ class DnsServer {
             .then(() => {
               copyFile()
             })
-            .catch(() => {
+            .catch(async (e: Error) => {
+              await appendFile(
+                join(global.Server.BaseDir!, 'debug.log'),
+                `\n[Node][npm-install][error]: ${e}`
+              )
               const err = new Error(
                 `Dependencies install failed.\nuse this command install, then retry.\n${command}`
               )
