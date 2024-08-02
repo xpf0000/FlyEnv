@@ -5,7 +5,7 @@ import { dirname, join } from 'path'
 import { compareVersions } from 'compare-versions'
 import { exec } from 'child_process'
 import { existsSync } from 'fs'
-import { mkdirp, readFile, writeFile } from 'fs-extra'
+import { mkdirp, readFile, writeFile, appendFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 
@@ -145,12 +145,12 @@ class Manager extends Base {
             let content = await readFile(installcmd, 'utf-8')
             content = content.replace('##FNM_PATH##', nvmDir)
             let profile: any = await execPromise('$profile', { shell: 'powershell.exe' })
-            profile = profile.stdout
+            profile = profile.stdout.trim()
             const profile_root = profile.replace('WindowsPowerShell', 'PowerShell')
             await mkdirp(dirname(profile))
             await mkdirp(dirname(profile_root))
-            content = content.replace('##PROFILE_ROOT##', profile_root)
-            content = content.replace('##PROFILE##', profile)
+            content = content.replace('##PROFILE_ROOT##', profile_root.trim())
+            content = content.replace('##PROFILE##', profile.trim())
             await writeFile(installcmd, content)
             process.chdir(nvmDir);
             const res = await execPromiseRoot('install.cmd')
@@ -161,7 +161,9 @@ class Manager extends Base {
         reject(e)
         return
       }
-      resolve(true)
+      setTimeout(() => {
+        resolve(true)
+      }, 5000)
     })
   }
 
@@ -203,26 +205,41 @@ class Manager extends Base {
 
   nvmDir() {
     return new ForkPromise(async (resolve) => {
-      let bin = []
+      let bin: Set<string> = new Set()
       try {
         await spawnPromise('cmd.exe', ['/c', 'nvm.exe', '-v'], { shell: 'cmd.exe' })
-        bin.push('nvm')
+        bin.add('nvm')
       } catch(e) {
-        console.log('nvmDir nvm err: ', e)
-      }
-      try {
-        await spawnPromise('cmd.exe', ['/c', 'fnm.exe', '-V'], { shell: 'cmd.exe' })
-        bin.push('fnm')
-      } catch(e) {
-        console.log('nvmDir fnm err: ', e)
+        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[node][nvmDir-cmd-nvm][error]: ${e}\n`)      
       }
 
-      if (bin.length === 2) {
+      try {
+        await execPromise('nvm -v', { shell: 'powershell.exe' })
+        bin.add('nvm')
+      } catch(e) {
+        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[node][nvmDir-ps-nvm][error]: ${e}\n`)
+      }
+
+      try {
+        await spawnPromise('cmd.exe', ['/c', 'fnm.exe', '-V'], { shell: 'cmd.exe' })
+        bin.add('fnm')
+      } catch(e) {
+        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[node][nvmDir-cmd-fnm][error]: ${e}\n`)
+      }
+
+      try {
+        await execPromise('fnm -V', { shell: 'powershell.exe' })
+        bin.add('fnm')
+      } catch(e) {
+        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[node][nvmDir-ps-fnm][error]: ${e}\n`)
+      }
+
+      if (bin.size === 2) {
         resolve('all')
         return
       }
 
-      resolve(bin.pop() ?? '')
+      resolve([...bin].pop() ?? '')
       // resolve('')
     })
   }
