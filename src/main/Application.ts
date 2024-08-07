@@ -355,9 +355,6 @@ export default class Application extends EventEmitter {
     const callBack = (info: any) => {
       const win = this.mainWindow!
       this.windowManager.sendCommandTo(win, command, key, info)
-      if (args?.[0] === 'installBrew' && info?.data?.BrewCellar) {
-        global.Server = info?.data
-      }
     }
     switch (command) {
       case 'app-fork:apache':

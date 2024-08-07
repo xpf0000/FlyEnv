@@ -23,5 +23,6 @@ export default {
   versionNoFound: '未获取到软件版本,操作失败',
   postgresqlInit: '服务启动成功\n数据文件夹位于 {dir}\n初始用户root, 密码root',
   toolFileNotExist: '文件不存在',
-  downFileFail: '文件下载失败'
+  downFileFail: '文件下载失败',
+  noPowerShell: '环境变量中未找到PowerShell, 请先在环境变量中配置PowerShell然后重启PWS重试'
 }

@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const compressing = require('7zip-min-electron')
 const crypto = require('crypto')
-const { copyFile } = require('fs-extra')
+const { copyFile, appendFile } = require('fs-extra')
 
 export function getAllFile(fp: string, fullpath = true) {
   let arr: Array<string> = []
@@ -153,17 +153,29 @@ export function readFileAsync(fp: string, encode = 'utf-8') {
 export function zipUnPack(fp: string, dist: string) {
   console.log('zipUnPack start: ', fp, dist, global.Server.Static!)
   return new Promise(async (resolve, reject) => {
+    const info = {
+      fp,
+      dist,
+      static: global.Server.Static,
+      isIncludes: fp.includes(global.Server.Static!)
+    }
+    await appendFile(path.join(global.Server.BaseDir!, 'debug.log'), `[zipUnPack][info]: ${JSON.stringify(info, undefined, 4)}\n`)      
     if (fp.includes(global.Server.Static!)) {
       const cacheFP = path.join(global.Server.Cache!, path.basename(fp))
       if (!fs.existsSync(cacheFP)) {
-        await copyFile(fp, cacheFP)
+        try {
+          await copyFile(fp, cacheFP)
+        } catch(e) {
+          await appendFile(path.join(global.Server.BaseDir!, 'debug.log'), `[zipUnPack][copyFile][error]: ${e}\n`)      
+        }
       }
       fp = cacheFP
       console.log('cacheFP: ', fp)
     }
-    compressing.unpack(fp, dist, (err: any, res: any) => {
+    compressing.unpack(fp, dist, async (err: any, res: any) => {
       console.log('zipUnPack end: ', err, res)
       if (err) {
+        await appendFile(path.join(global.Server.BaseDir!, 'debug.log'), `[zipUnPack][unpack][error]: ${err}\n`)      
         reject(err)
         return
       }

@@ -73,6 +73,20 @@ export class Base {
     return this._reloadServer(version)
   }
 
+  _checkPowerShell() {
+    //%SYSTEMROOT%\System32\WindowsPowerShell\v1.0\
+    return new Promise(async (resolve, reject) => {
+      const command = `powershell.exe -Help`
+      try {
+        const res = await execPromise(command)
+        console.log('_checkPowerShell: ', res)
+        resolve(true)
+      } catch(e) {
+        reject(new Error(I18nT('fork.noPowerShell')))
+      }
+    })
+  }
+
   startService(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       if (!version?.version) {
@@ -80,6 +94,7 @@ export class Base {
         return
       }     
       try {
+        await this._checkPowerShell()
         await this._stopServer(version)
         await this._startServer(version).on(on)
         resolve(true)
