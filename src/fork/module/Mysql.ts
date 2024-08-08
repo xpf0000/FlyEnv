@@ -171,7 +171,7 @@ datadir="${dataDir}"`
     console.log(version)
     return new ForkPromise(async (resolve, reject) => {
       const id = version?.id ?? ''
-      const conf = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
+      const conf = 'PhpWebStudy-Data' + join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
       const serverName = 'mysqld'
       const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
       console.log('_stopServer command: ', command)

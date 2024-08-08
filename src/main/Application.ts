@@ -3,7 +3,7 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import logger from './core/Logger'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
-import { join, resolve, dirname } from 'path'
+import { join, resolve } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
@@ -90,6 +90,7 @@ export default class Application extends EventEmitter {
         this?.trayWindow?.setPosition(x, y)
         this?.trayWindow?.setOpacity(1.0)
         this?.trayWindow?.show()
+        this?.trayWindow?.moveTop()
         this.windowManager.sendCommandTo(
           this.trayWindow!,
           'APP:Poper-Left',
@@ -200,12 +201,12 @@ export default class Application extends EventEmitter {
     logger.info('[PhpWebStudy] application stop !!!')
     SiteSuckerManager.destory()
     this.forkManager?.destory()
+    this.trayManager?.destroy()
     await this.stopServer()
   }
 
   async stopServerByPid() {
-    const root = dirname(global.Server.BaseDir!)
-    let command = `wmic process get commandline,ProcessId | findstr "${root}"`
+    let command = `wmic process get commandline,ProcessId | findstr "PhpWebStudy-Data"`
     console.log('_stopServer command: ', command)
     let res: any = null
     try {
@@ -214,6 +215,7 @@ export default class Application extends EventEmitter {
     const pids = res?.stdout?.trim()?.split('\n') ?? []
     console.log('pids: ', pids)
     const arr: Array<string> = []
+    const fpm: Array<string> = []
     for (const p of pids) {
       if (
         p.includes('findstr')
@@ -221,13 +223,18 @@ export default class Application extends EventEmitter {
         continue
       }
 
-      if (p.includes(root)) {
+      if (p.includes('PhpWebStudy-Data')) {
         const pid = p.split(' ').filter((s: string) => {
           return !!s.trim()
         }).pop()
-        arr.push(pid)
+        if (p.includes('php-cgi-spawner.exe')) {
+          fpm.push(pid.trim())
+        } else {
+          arr.push(pid.trim())
+        }
       }
     }
+    arr.unshift(...fpm)
     console.log('_stopServer arr: ', arr)
     if (arr.length > 0) {
       for (const pid of arr) {

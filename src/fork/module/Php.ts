@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { execPromise, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, readFile, remove, mkdirp } from 'fs-extra'
+import { writeFile, readFile, remove, mkdirp, copyFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
@@ -97,7 +97,8 @@ class Php extends Base {
 
   _stopServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
-      const confPath = join(version.path, 'php.ini')
+      let confPath = 'PhpWebStudy-Data' + join(version.path, 'php.ini').split('PhpWebStudy-Data').pop()
+      confPath = confPath.split('\\').join('/')
       const serverName = 'php-cgi'
       const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
       console.log('_stopServer command: ', command)
@@ -106,17 +107,26 @@ class Php extends Base {
         res = await execPromiseRoot(command)
       } catch (e) { }
       const pids = res?.stdout?.trim()?.split('\n') ?? []
+      console.log('confPath: ', confPath)
+      console.log('php pids: ', pids)
       const arr: Array<string> = []
+      const fpm: Array<string> = []
       for (const p of pids) {
         if (p.includes(confPath)) {
           const pid = p.split(' ').filter((s: string) => {
             return !!s.trim()
           }).pop()
           if (pid) {
-            arr.push(pid)
+            if (p.includes('php-cgi-spawner.exe')) {
+              fpm.push(pid.trim())
+            } else {
+              arr.push(pid.trim())
+            }
           }
         }
       }
+      arr.unshift(...fpm)
+      console.log('php arr: ', arr)
       if (arr.length > 0) {
         for (const pid of arr) {
           try {
@@ -258,12 +268,15 @@ class Php extends Base {
     return new ForkPromise(async (resolve, reject, on) => {
       await this.#initFPM()
       await this.getIniPath(version)
-      const confPath = join(version.path, 'php.ini')
-      const fpmBin = join(global.Server.PhpDir!, 'php-cgi-spawner.exe')
+      if (!existsSync(join(version.path, 'php-cgi-spawner.exe'))) {
+        await copyFile(join(global.Server.PhpDir!, 'php-cgi-spawner.exe'), join(version.path, 'php-cgi-spawner.exe'))
+      }    
+    
+      process.chdir(dirname(dirname(global.Server.BaseDir!)));
 
-      process.chdir(dirname(fpmBin));
+      const dir = `PhpWebStudy-Data/app/${basename(version.path)}`
 
-      const command = `start /b ./php-cgi-spawner.exe "${version.bin} -c ${confPath}" 90${version.num} 4`
+      const command = `start /b ./${dir}/php-cgi-spawner.exe "${dir}/php-cgi.exe -c ${dir}/php.ini" 90${version.num} 4`
       console.log('_startServer command: ', command)
 
       try {

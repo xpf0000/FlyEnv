@@ -35,6 +35,8 @@ export default class TrayManager extends EventEmitter {
   }
 
   destroy() {
+    this.tray.removeAllListeners()
+    this.tray.removeBalloon()
     this.tray.destroy()
   }
 }

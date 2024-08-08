@@ -7,7 +7,7 @@ import crypto from 'crypto'
 import axios from 'axios'
 import { readdir } from 'fs-extra'
 import type { AppHost } from '@shared/app'
-import sudoPrompt from '@vscode/sudo-prompt'
+import sudoPrompt from '@shared/sudo'
 
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -60,7 +60,9 @@ export function waitTime(time: number) {
 }
 
 export function fixEnv(): { [k: string]: any } {
-  const env = { ...process.env }
+  let path = `C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;%SYSTEMROOT%\\System32\\WindowsPowerShell\\v1.0\\;${process.env['PATH']}`
+  path = Array.from(new Set(path.split(';'))).join(';')
+  const env = { ...process.env, PATH: path }
   return env
 }
 
@@ -89,13 +91,16 @@ export function execPromiseRoot(
   stderr: string
 }> {
   return new ForkPromise((resolve, reject) => {
-    try {       
-      sudoPrompt.exec(
+    try {
+      sudoPrompt(
         cammand,
         {
-          name: 'PhpWebStudy'
-        },   
-        (error, stdout, stderr) => {
+          name: 'PhpWebStudy',
+          dir: global.Server.Cache!,
+          // dir: 'E:/test aaa/新建 文件夹',
+          debug: false
+        },
+        (error: any, stdout?: string, stderr?: string) => {
           if (!error) {
             resolve({
               stdout: stdout?.toString() ?? '',
@@ -214,7 +219,7 @@ export function spawnPromiseMore(
         opt
       )
     )
-  } catch(e) {
+  } catch (e) {
     console.log('spawnPromiseMore err: ', e)
     return {
       promise: undefined,
@@ -384,7 +389,7 @@ export function getSubDir(fp: string, fullpath = true) {
           }
         }
       })
-    } catch (e) {}
+    } catch (e) { }
   }
   return arr
 }
@@ -433,8 +438,8 @@ export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<
 export const hostAlias = (item: AppHost) => {
   const alias = item.alias
     ? item.alias.split('\n').filter((n) => {
-        return n && n.length > 0
-      })
+      return n && n.length > 0
+    })
     : []
   const arr = Array.from(new Set(alias)).sort()
   arr.unshift(item.name)
@@ -475,7 +480,7 @@ export const systemProxyGet = async () => {
         }
       }
     }
-  } catch (e) {}
+  } catch (e) { }
   console.log('systemProxyGet: ', proxy)
   return proxy
 }
