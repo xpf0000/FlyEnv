@@ -1,20 +1,28 @@
 html.light {
-  --main-bg-color: #f1f2f3;
-  --base-bg-color: rgba(51, 68, 85, 0.35);
-  --base-bg-color-2: rgba(51, 68, 85, 0.2);
-  --base-bg-color-1: rgba(51, 68, 85, 0.15);
+  --main-bg-color: #fff;
+  --bg-secondary: #fafafa;
+  --bg-primary-hover: #eff0f0;
+  --grey-7: #8a8f8d;
+  --grey-9: #262626;
 
   #app {
-    background: #fff;
+    background: var(--main-bg-color);
 
     #container {
-      background: #fff;
+      background: var(--main-bg-color);
 
       .aside {
-        background: var(--main-bg-color);
-        color: #345;
+        background: var(--bg-secondary);
+        border-right: 1px solid rgba(0, 0, 0, 0.04);
+        color: var(--grey-9);
 
         .top-tool {
+          li {
+            &:hover {
+              background-color: var(--bg-primary-hover);
+            }
+          }
+
           svg {
             &:hover {
               color: #fdab1f;
@@ -29,62 +37,73 @@ html.light {
             padding: 0 15px;
             border-radius: 6px;
 
+            &:not(:last-child) {
+              margin: 5px 0;
+            }
+
             &:hover {
-              background-color: var(--base-bg-color-2);
+              background-color: var(--bg-primary-hover);
               backdrop-filter: blur(5px);
             }
 
             &.active {
-              background-color: var(--base-bg-color);
+              background-color: var(--bg-primary-hover);
               backdrop-filter: blur(5px);
 
-              svg {
-                color: #fff;
+              .left {
+                .title {
+                  color: var(--grey-9);
+                }
               }
             }
           }
 
           svg {
-            color: #345;
+            color: var(--grey-9);
           }
 
           &::-webkit-scrollbar-thumb {
-            background-color: var(--base-bg-color-1);
+            border-radius: 6px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+            background-color: var(--bg-secondary-1);
           }
         }
 
         .setup-menu {
           border: none;
-          padding: 0 19px 8px 12px;
+          padding: 8px 19px 8px 12px;
 
           >li {
             padding: 0 15px;
             border-radius: 6px;
 
             &:hover {
-              background-color: var(--base-bg-color-2);
+              background-color: var(--bg-primary-hover);
               backdrop-filter: blur(5px);
             }
 
             &.active {
-              background-color: var(--base-bg-color);
+              background-color: var(--bg-primary-hover);
               backdrop-filter: blur(5px);
 
-              svg {
-                color: #fff;
+              .left {
+                .title {
+                  color: var(--grey-9);
+                }
               }
             }
           }
 
           svg {
-            color: #345;
+            color: var(--grey-9);
           }
         }
       }
 
       .main-right-panel {
         background: var(--main-bg-color);
-        color: #345;
+        color: var(--grey-9);
 
         > .top-tab {
           .el-button-group>.el-button:not(:last-child) {
@@ -92,37 +111,40 @@ html.light {
           }
 
           >li {
+            align-items: center;
+            /* height: 55px; */
+            /* min-width: 259px; */
+            margin-right: 12px;
+            display: flex;
+            border: 1px solid #e7e9e8;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--grey-7);
+
             &:not(.no-hover):hover {
-              background-color: var(--base-bg-color-2);
+              background-color: var(--bg-secondary);
               backdrop-filter: blur(5px);
             }
             &.active {
-              background: var(--base-bg-color);
+              background: var(--bg-primary-hover);
               backdrop-filter: blur(5px);
-              color: #fff;
-            }
-          }
-        }
-
-        >.host-list {
-          .el-table__header {
-            thead {
-              tr {
-                background: #fff;
-                th.el-table__cell {
-                  background: #fff;
-                }
-              }
+              color: var(--grey-9);
             }
           }
         }
 
         .php-versions-list {
           &::-webkit-scrollbar-thumb {
-            background-color: var(--base-bg-color-1);
+            border-radius: 6px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+            background-color: var(--bg-secondary-1);
           }
           .http-serve-item {
-            background-color: var(--base-bg-color-1);
+            background-color: var(--bg-secondary-1);
             backdrop-filter: blur(5px);
           }
         }
@@ -130,28 +152,31 @@ html.light {
         >.main-block {
           >.module-config {
             >.block {
-              border: 1px solid var(--base-bg-color-2);
+              border: 1px solid var(--bg-primary-hover);
             }
           }
 
           >.setup-common {
             &::-webkit-scrollbar-thumb {
-              background-color: var(--base-bg-color-1);
+              border-radius: 6px;
+              border: 2px solid transparent;
+              background-clip: content-box;
+              background-color: var(--bg-secondary-1);
             }
             .main {
-              background: var(--base-bg-color-1);
+              background: var(--bg-secondary-1);
               backdrop-filter: blur(5px);
             }
           }
 
           >.setup-config {
             .main {
-              background: var(--base-bg-color-1);
+              background: var(--bg-secondary-1);
               backdrop-filter: blur(5px);
 
               .path-choose {
                 .input {
-                  color: #345;
+                  color: var(--grey-9);
                   border-bottom: 1px solid rgba(51, 68, 85, 0.4);
 
                   &::-webkit-input-placeholder {
@@ -174,17 +199,21 @@ html.light {
 
         >.http-serve-list {
           &::-webkit-scrollbar-thumb {
-            background-color: var(--base-bg-color-1);
+            border-radius: 6px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+            background-color: var(--bg-secondary-1);
           }
 
           > .empty {
             > .wapper {
-              color: #345;
+              color: var(--grey-9);
+              background-color: var(--bg-secondary);
             }
           }
 
           .http-serve-item {
-            background-color: var(--base-bg-color-1);
+            background-color: var(--bg-secondary-1);
             backdrop-filter: blur(5px);
 
             .left {
@@ -200,7 +229,7 @@ html.light {
                 > .url {
                   color: #409eff;
                   &.empty {
-                    color: #345;
+                    color: var(--grey-9);
                   }
                 }
               }
@@ -210,15 +239,23 @@ html.light {
 
         >.tools-panel {
           > li {
-            background-color: var(--base-bg-color-1);
+            background-color: var(--bg-primary-hover);
             backdrop-filter: blur(5px);
+
+            .tool-item {
+              background: var(--main-bg-color);
+
+              &:hover {
+                box-shadow: 0 6px 30px 5px #0000000d, 0 16px 24px 2px #0000000a, 0 8px 10px -5px #00000014;
+              }
+            }
           }
         }
 
         &.dns-panel {
           .top-tab {
             svg {
-              color: #345;
+              color: var(--grey-9);
             }
           }
         }
@@ -227,7 +264,17 @@ html.light {
   }
 
   .el-table {
-    --el-table-text-color: #345;
+    --el-table-text-color: var(--grey-9);
+
+    .el-table__body {
+      tr {
+        &:hover{
+          >td.el-table__cell{
+          background-color: var(--bg-secondary);
+          }
+        }
+      }
+    }
   }
 
   .el-popover.el-popper.host-list-poper {
@@ -237,7 +284,7 @@ html.light {
     .host-list-menu {
       > li {
         .el-dropdown {
-          color: #fff;
+          color: var(--main-bg-color);
         }
         &:hover {
           background: rgba(51, 68, 85, 0.5);
@@ -252,12 +299,12 @@ html.light {
       .main-wapper {
 
         .main {
-          background: var(--base-bg-color-1);
+          background: var(--bg-secondary-1);
           backdrop-filter: blur(5px);
 
           .input,
           .input-textarea {
-            color: #345;
+            color: var(--grey-9);
             &::-webkit-input-placeholder {
               color: rgba(51, 68, 85, 0.7);
             }
@@ -312,7 +359,7 @@ html.light {
   }
 
   .el-drawer .el-drawer__body {
-    background: #fff !important;
+    background: var(--main-bg-color) !important;
     padding: 0 !important;
 
     .host-vhost {
@@ -324,22 +371,22 @@ html.light {
       }
 
       .main-wapper {
-        background: #fff;
+        background: var(--main-bg-color);
       }
     }
 
     .host-edit {
-      background: #fff;
+      background: var(--main-bg-color);
 
       .nav {
         background: var(--main-bg-color);
       }
 
       .main-wapper {
-        color: #345;
+        color: var(--grey-9);
 
         .main {
-          background: var(--base-bg-color-1);
+          background: var(--bg-secondary-1);
           backdrop-filter: blur(5px);
         }
 
@@ -354,7 +401,7 @@ html.light {
 
         .input,
         .input-textarea {
-          color: #345;
+          color: var(--grey-9);
           &::-webkit-input-placeholder {
             color: rgba(51, 68, 85, 0.7);
           }
@@ -396,28 +443,28 @@ html.light {
 
       &.json-parse {
         .main {
-          background: #fff;
+          background: var(--main-bg-color);
         }
       }
     }
 
     .host-logs {
-      background: #fff;
+      background: var(--main-bg-color);
       > .top-tab {
         > li {
           &:hover {
-            background: var(--base-bg-color-2);
+            background: var(--bg-primary-hover);
             backdrop-filter: blur(5px);
           }
           &.active {
-            background: var(--base-bg-color);
+            background: var(--bg-primary-hover);
             backdrop-filter: blur(5px);
-            color: #fff;
+            color: var(--main-bg-color);
           }
         }
       }
       > .block {
-        border: 1px solid var(--base-bg-color-2);
+        border: 1px solid var(--bg-primary-hover);
       }
     }
 
@@ -426,7 +473,7 @@ html.light {
         .select-dir-wapper {
           #selectDir {
             border: 2px dashed #ccc;
-            color: #345;
+            color: var(--grey-9);
           }
         }
       }
@@ -441,26 +488,46 @@ html.light {
 
   .app-chat {
     .nav {
-      background: #fff;
+      background: var(--main-bg-color);
     }
   }
   .app-ai-tool {
-    background: #fff;
+    background: var(--main-bg-color);
+  }
+
+  .app-ai-btn{
+    background: rgba(238, 238, 238, 0.6);
+
+    &:hover {
+      border-radius: 32px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(0,0,0,0.06), rgba(0,0,0,0.06), rgba(0,0,0,0.06), #006cfc, #05c4f4, #7ee94c);
+      background-size: 400%;
+    }
   }
 
   .tools-system-env {
     .main-wapper {
 
       >.file {
-        background: var(--base-bg-color-1);
+        background: var(--bg-secondary-1);
       }
     }
   }
 
   .app-el-message {
     &::-webkit-scrollbar-thumb {
-      background-color: var(--base-bg-color-1);
+      border-radius: 6px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+      background-color: var(--bg-secondary-1);
     }
+  }
+}
+
+.editor-config {
+  .editor-wapper {
+    border: 1px solid var(--bg-primary-hover);
   }
 }
 
@@ -469,11 +536,16 @@ html.light {
     #app {
       #container {
         .aside {
-          width: 45px;
+          width: 60px;
 
           .top-tool {
             padding: 50px 0 12px 0;
             justify-content: center;
+            border-bottom: 1px solid hsla(100%,100%,0,0.12);
+
+            .title {
+              display: none;
+            }
 
             >.el-tooltip__trigger {
               display: none;
@@ -481,7 +553,7 @@ html.light {
           }
 
           .menu {
-            padding: 0;
+            padding: 8px 13.5px;
 
             &::-webkit-scrollbar {
               display: none;
@@ -489,7 +561,13 @@ html.light {
 
             >li {
               padding: 0;
-              border-radius: 0;
+              // border-radius: 0;
+              line-height: 32px;
+              height: 32px;
+              border-radius: 6px;
+              width: 100%;
+              display: block;
+              margin: 0 0 6px;
 
               >.left {
                 justify-content: space-between;

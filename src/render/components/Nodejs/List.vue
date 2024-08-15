@@ -7,11 +7,26 @@
       <template #header>
         <div class="card-header">
           <div class="left">
-            <span> {{ $t('base.currentVersionLib') }} </span>
+            <!-- <span> {{ $t('base.currentVersionLib') }} </span>
             <el-select v-model="currentTool" style="margin-left: 8px">
               <el-option value="fnm" label="fnm" :disabled="!tool || tool === 'nvm'"></el-option>
               <el-option value="nvm" label="nvm" :disabled="!tool || tool === 'fnm'"></el-option>
-            </el-select>
+            </el-select> -->
+            <el-dropdown trigger="click" @command="handleCommand">
+              <span class="el-dropdown-link">
+                {{ $t('base.currentVersionLib') }}<el-icon class="el-icon--right"><arrow-down /></el-icon>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="fnm" :disabled="!tool || tool === 'nvm'"
+                    >fnm</el-dropdown-item
+                  >
+                  <el-dropdown-item command="nvm" :disabled="!tool || tool === 'fnm'"
+                    >nvm</el-dropdown-item
+                  >
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
           <el-button class="button" :disabled="!tool || !currentTool" link @click="resetData">
             <yb-icon
@@ -120,6 +135,7 @@
 
 <script lang="ts" setup>
   import { ref, computed, watch, type ComputedRef } from 'vue'
+  import { ArrowDown } from '@element-plus/icons-vue'
   import { AppStore } from '@/store/app'
   import { type NodeJSItem, NodejsStore } from '@/components/Nodejs/node'
   import ToolInstall from '@/components/Nodejs/ToolInstall.vue'
@@ -198,6 +214,10 @@
       return
     }
     nodejsStore.fetchData(currentTool.value, true)
+  }
+
+  const handleCommand = (command: string | number | object) => {
+    currentTool.value = command as any
   }
 
   const doUse = (item: any) => {

@@ -31,6 +31,7 @@ body {
   }
 
   .el-dialog {
+    border-radius: 8px;
     .el-dialog__header {
     }
   }
@@ -112,8 +113,26 @@ body {
     overflow: hidden;
     padding: 20px 18px;
 
-    .el-card__header {
-      padding: 14px 12px;
+    .is-always-shadow {
+      box-shadow: none;
+    }
+
+    .el-card {
+      border: none;
+      background-color: transparent;
+
+      .el-card__header {
+        padding: 14px 12px;
+      }
+    }
+
+    .setup-common {
+      .el-form-item  {
+        .el-form-item__label {
+          font-weight: 500;
+          color: var(--grey-9);
+        }
+      }
     }
   }
 }
@@ -127,8 +146,8 @@ body {
   flex-direction: column;
   height: 100%;
   width: 100%;
-  padding: 5px 0 0 0;
   .block {
+    border-radius: 8px;
     width: 100%;
     flex: 1;
     overflow: hidden;
@@ -166,20 +185,39 @@ body {
   height: 100%;
   overflow: auto;
   line-height: 1.75;
-  padding: 0 18px;
+  padding: 20px 18px 0;
   display: flex;
   flex-direction: column;
   > .top-tab {
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    margin-top: 50px;
     flex-shrink: 0;
+    > li {
+      user-select: none;
+      cursor: pointer;
+      min-width: 100px;
+      padding: 0 12px;
+      height: 36px;
+      margin-right: 20px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
 
-    &.running {
-      color: #01cc74;
+      > svg {
+        margin-left: 8px;
+        display: none;
+      }
+      &.active {
+        >svg {
+          display: flex;
+        }
+      }
+      &.grouprun {
+        color: #01cc74 !important;
+      }
     }
 
     > svg {
@@ -194,15 +232,21 @@ body {
   .main-block {
     flex: 1;
     width: 100%;
-    padding: 30px 0 20px;
+    padding: 20px 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 
+    .is-always-shadow {
+      box-shadow: none;
+    }
+
     .el-card {
+      border: none;
       display: flex;
       flex-direction: column;
       height: 100%;
+      background-color: transparent;
 
       >.el-card__header {
         flex-shrink: 0;
@@ -532,6 +576,7 @@ body {
   &.custom-path {
     width: 500px;
     height: auto;
+    border-radius: 8px;
 
     .el-dialog__body {
       padding: 5px 10px;
@@ -647,9 +692,16 @@ body {
   overflow: hidden;
   padding: 20px 18px;
 
+  .el-card.is-always-shadow {
+    box-shadow: none;
+  }
+
   .el-card {
+    border: none;
     height: 100%;
     overflow: hidden;
+    background-color: transparent;
+
     .el-card__body {
       height: 100%;
       overflow: hidden;
@@ -866,6 +918,7 @@ body {
       flex-direction: column;
       max-height: 100%;
       height: 100%;
+      background-color: transparent;
 
       .el-card__header {
         flex-shrink: 0;
@@ -1133,6 +1186,7 @@ body {
     flex-direction: column;
     width: 100%;
     height: 100%;
+    background-color: transparent;
 
     >.el-card__header {
       flex-shrink: 0;
@@ -1365,8 +1419,8 @@ body {
     justify-content: center;
 
     > .wapper {
-      width: 70%;
-      height: 70%;
+      width: 100%;
+      height: 100%;
       border: 2px dashed #ccc;
       border-radius: 10px;
       display: flex;
@@ -1412,10 +1466,27 @@ body {
     cursor: pointer;
     transition: all 0.25s;
     user-select: none;
-    box-shadow: var(--el-box-shadow-light);
+    border-radius: 6px;
+    padding: 12px;
+    box-sizing: border-box;
 
-    &:hover {
-      transform: scale(1.1);
+    .tool-item {
+      border-radius: 3px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-evenly;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform .24s cubic-bezier(.38,0,.24,1), box-shadow .24s linear, opacity .24s linear;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
     }
 
     > span {
@@ -1583,6 +1654,7 @@ body {
         .el-card {
           flex: 1;
           margin-top: 20px;
+          background-color: transparent;
 
           .el-card__body {
             height: 100%;
@@ -1626,6 +1698,7 @@ body {
       align-items: center;
       margin-bottom: 12px;
       flex-shrink: 0;
+      border-bottom: none;
     }
 
     > .table-wapper {
@@ -1887,19 +1960,44 @@ body {
   align-items: center;
   justify-content: center;
   position: fixed;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   right: 20px;
   bottom: 20px;
-  border-radius: 44px;
-  background: #fff;
+  padding: 1px;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+  border-radius: 32px;
+  background: rgba(238, 238, 238, .6);
   box-shadow: 0 1px 6px 0 #20212447;
-  color: #20212447;
   z-index: 9998;
+  transition: width 0.3s;
   cursor: pointer;
+
+  .el-button.is-circle {
+    height: 46px;
+    width: 100%;
+    border-radius: 24px;
+    border: none;
+    margin: auto;
+  }
+
+  @keyframes toConic {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 100% 50%;
+    }
+  }
 
   &:hover {
     color: #aa88ee;
+    animation: toConic .5s cubic-bezier(.38,0,.24,1) forwards;
+    border-radius: 32px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(0,0,0,0.06), rgba(0,0,0,0.06), rgba(0,0,0,0.06), #006cfc, #05c4f4, #7ee94c);
+    background-size: 400%;
   }
 }
 .app-chat-mask {
@@ -2163,6 +2261,16 @@ body {
     list-style: none;
     flex-shrink: 0;
 
+    > .title {
+      font-weight: 500;
+      width: auto;
+      cursor: default;
+
+      &:hover {
+        background-color: transparent !important;
+      }
+    }
+
     > li {
       width: 30px;
       height: 30px;
@@ -2172,9 +2280,6 @@ body {
       display: flex;
       justify-content: center;
       align-items: center;
-      &:hover {
-        background-color: rgba(255, 255, 255, 0.15);
-      }
     }
   }
   .menu {
@@ -2184,7 +2289,7 @@ body {
     user-select: none;
     cursor: default;
     > li {
-      height: 45px;
+      height: 32px;
       cursor: pointer;
       transition: background-color 0.25s;
       display: flex;
@@ -2197,14 +2302,15 @@ body {
       &.active {
         color: #fff;
         background-color: #1d2033;
+        font-weight: 500;
       }
       .left {
         height: 100%;
         display: flex;
         align-items: center;
         .icon-block {
-          width: 38px;
-          height: 45px;
+          width: 32px;
+          height: 32px;
           display: flex;
           align-items: center;
         }
@@ -2381,7 +2487,24 @@ body {
   display: flex;
   align-items: center;
 }
+
+.el-table {
+  tr {
+    background-color: transparent;
+  }
+
+  th.el-table__cell {
+    background-color: transparent;
+  }
+}
+
 .el-dialog {
+  &.host-edit {
+    .main-wapper {
+      padding: 0;
+    }
+  }
+
   &.host-link-dialog {
     .host-link {
       max-height: 50vh;
@@ -2429,6 +2552,7 @@ body {
   &.el-card {
     display: flex;
     flex-direction: column;
+    background-color: transparent;
 
     .el-card__header {
       flex-shrink: 0;
@@ -2442,6 +2566,18 @@ body {
           display: flex;
           align-items: center;
           justify-content: space-between;
+
+          .el-dropdown {
+            span {
+              display: flex;
+              align-items: center;
+            }
+          }
+
+          span {
+            font-size: 18px;
+            font-weight: 500;
+          }
 
           .custom-folder-add-btn {
             margin-left: 12px;
@@ -2636,6 +2772,8 @@ body {
 
   .editor-wapper {
     flex: 1;
+    border-radius: 8px;
+    overflow: hidden;
   }
 }
 .site-sucker-setup {
@@ -2719,26 +2857,6 @@ body {
 
   a {
     text-decoration: none;
-  }
-}
-.el-dialog {
-  &.host-edit {
-    .main-wapper {
-      padding: 0;
-    }
-  }
-}
-@media (max-width: 1100px) {
-  html {
-    #app {
-      #container {
-        .main-right-panel {
-          > .top-tab {
-            padding-left: 30px;
-          }
-        }
-      }
-    }
   }
 }
 
