@@ -1,3 +1,4 @@
+import { nativeTheme } from 'electron'
 import is from 'electron-is'
 import path from 'path'
 import { ViteDevPort } from '../../../configs/vite.port'
@@ -21,7 +22,9 @@ const options: PageOptions = {
       height: 780,
       minWidth: 800,
       minHeight: 600,
-      backgroundColor: '#262D3D',
+      trafficLightPosition: { x: 3, y: 6 },
+      backgroundColor: nativeTheme.shouldUseDarkColors ? '#000' : '#fff',
+      // backgroundColor: '#262D3D',
       transparent: !is.windows()
     },
     bindCloseToHide: true,
