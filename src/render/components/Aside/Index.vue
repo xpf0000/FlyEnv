@@ -2,7 +2,7 @@
   <el-aside width="280px" class="aside">
     <div class="aside-inner">
       <ul class="top-tool">
-        <el-popover :show-after="800">
+        <!-- <el-popover :show-after="800">
           <template #default>
             <span>{{ $t('base.about') }}</span>
           </template>
@@ -16,7 +16,11 @@
               />
             </li>
           </template>
-        </el-popover>
+        </el-popover> -->
+        <li class="title">
+          <img src="@/assets/256x256.png" alt="logo" />
+          <span>PhpWebStudy</span>
+        </li>
         <li :class="groupClass" @click="groupDo">
           <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
         </li>

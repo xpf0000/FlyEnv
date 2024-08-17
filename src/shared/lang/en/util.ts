@@ -39,6 +39,13 @@ export default {
 
   mysqlPopperSocket: 'Copy Socket Path',
 
+  brewDefault: 'Default',
+  brewTsinghua: 'Tsinghua',
+  brewBfsu: 'Bfsu',
+  brewTencent: 'Tencent',
+  brewAliyun: 'Aliyun',
+  brewUstc: 'Ustc',
+
   macPortsSrcSwitch: 'MacPorts Mirror Switch',
 
   macPortsSrcDefault: 'Default',
@@ -80,6 +87,13 @@ export default {
   toolSaveConfim: 'Are you sure you want to save it?',
 
   auto: 'Auto',
+
+  edit: {
+    vsLight: 'Vs Light',
+    vsDark: 'Vs Dark',
+    hcLight: 'Hc Light',
+    hcBlack: 'Hc Black'
+  },
 
   noVerionsFoundInLib: 'No available version',
 

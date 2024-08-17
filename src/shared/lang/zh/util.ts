@@ -37,6 +37,13 @@ export default {
 
   mysqlPopperSocket: '复制socket路径',
 
+  brewDefault: '默认',
+  brewTsinghua: '清华大学',
+  brewBfsu: '北京外国语大学',
+  brewTencent: '腾讯云',
+  brewAliyun: '阿里云',
+  brewUstc: '中国科学技术大学',
+
   macPortsSrcSwitch: 'MacPorts镜像切换',
 
   macPortsSrcDefault: '默认',
@@ -78,6 +85,13 @@ export default {
   toolSaveConfim: '确定保存?',
 
   auto: '自动',
+
+  edit: {
+    vsLight: 'Vs Light',
+    vsDark: 'Vs Dark',
+    hcLight: 'Hc Light',
+    hcBlack: 'Hc Black'
+  },
 
   noVerionsFoundInLib: '无可用版本',
 
