@@ -38,7 +38,6 @@
     "lodash": "^4.17.21",
     "node-pty": "^1.0.0",
     "normalize.css": "^8.0.1",
-    "rebuild": "^0.1.2",
     "serve": "^14.2.0",
     "vue": "^3.2.47",
     "vue-i18n": "9"
