@@ -247,6 +247,12 @@ html.light {
     }
   }
 
+  .el-popover.el-popper.host-sort-poper {
+    background: rgba(51, 68, 85, 0.6);
+    backdrop-filter: blur(5px);
+    color: #fff;
+  }
+
   .el-dialog {
     &.host-edit {
       .main-wapper {

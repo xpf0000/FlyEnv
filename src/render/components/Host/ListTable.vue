@@ -88,7 +88,7 @@
                 <el-popover
                   effect="dark"
                   popper-class="host-list-poper"
-                  placement="bottom-end"
+                  placement="left-start"
                   width="auto"
                   :show-arrow="false"
                 >
@@ -125,6 +125,11 @@
                       <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ $t('base.log') }}</span>
                     </li>
+                    <li>
+                      <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ $t('host.sort') }}</span>
+                    </li>
+                    <Sort :host-id="scope.row.id" />
                     <li @click.stop="action(scope.row, scope.$index, 'del')">
                       <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ $t('base.del') }}</span>
@@ -166,6 +171,7 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'
+  import Sort from './Sort/index.vue'
 
   const { shell } = require('@electron/remote')
 

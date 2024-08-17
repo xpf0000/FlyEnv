@@ -100,7 +100,7 @@
           <el-popover
             effect="dark"
             popper-class="host-list-poper"
-            placement="bottom-end"
+            placement="left-start"
             :show-arrow="false"
             width="auto"
           >

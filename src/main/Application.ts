@@ -118,6 +118,7 @@ export default class Application extends EventEmitter {
           'APP:Poper-Left',
           poperX
         )
+        this?.trayWindow?.moveTop()
       } else {
         this?.trayWindow?.hide()
       }

@@ -43,5 +43,7 @@ export default {
 
   enable: 'Enable',
 
-  hostsWriteTips: 'Enable / Disable all hosts in this list'
+  hostsWriteTips: 'Enable / Disable all hosts in this list',
+
+  sort: 'Sort'
 }

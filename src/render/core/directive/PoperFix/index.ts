@@ -12,9 +12,11 @@ const install = function (Vue: App) {
           const rect = poper.getBoundingClientRect()
           const rectBody = document.body.getBoundingClientRect()
           if (rect.bottom > rectBody.bottom) {
-            poper.style.top = `${rectBody.bottom - rect.bottom - 10}px`
+            poper.style.top = `${rectBody.bottom - rect.height - 10}px`
             const arrow = poper.querySelector('.el-popper__arrow') as HTMLElement
-            arrow.style.display = 'none'
+            if (arrow) {
+              arrow.style.display = 'none'
+            }
           }
         }
       })

@@ -12,6 +12,7 @@ export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd'
 
 export interface AppHost {
   id: number
+  isTop?: boolean
   name: string
   alias: string
   useSSL: boolean
