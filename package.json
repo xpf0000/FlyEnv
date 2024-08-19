@@ -1,6 +1,6 @@
 {
   "name": "PhpWebStudy",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Powerful Web Server and PHP Environment",
   "author": {
     "name": "pengfei xu",
@@ -23,7 +23,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@electron/remote": "^2.0.9",
+    "@electron/remote": "^2.1.2",
     "axios": "^1.5.1",
     "child-process-promise": "^2.2.1",
     "compare-versions": "^6.1.0",
@@ -71,12 +71,12 @@
     "concurrently": "^7.0.0",
     "cross-env": "^7.0.3",
     "dns2": "^2.1.0",
-    "electron": "^23.3.13",
+    "electron": "^30.0.0",
     "electron-builder": "^24.0.0",
     "electron-debug": "^3.2.0",
     "electron-devtools-installer": "^3.2.0",
-    "electron-notarize": "^1.2.2",
-    "electron-osx-sign": "^0.6.0",
+    "@electron/notarize": "^2.4.0",
+    "@electron/osx-sign": "^1.3.1",
     "element-plus": "^2.7.0",
     "esbuild": "^0.23.0",
     "eslint": "^8.57.0",

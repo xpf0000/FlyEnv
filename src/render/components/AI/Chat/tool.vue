@@ -3,19 +3,18 @@
     <el-autocomplete
       ref="el"
       v-model="content"
+      :trigger-on-focus="true"
       :clearable="true"
       popper-class="app-ai-tool-suggest-popper"
       :fetch-suggestions="querySearch"
-      :autosize="{ minRows: 1, maxRows: 9 }"
       resize="none"
-      type="textarea"
     ></el-autocomplete>
     <el-button round :icon="ChatLineRound"></el-button>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref, onBeforeUnmount, computed } from 'vue'
+  import { onMounted, ref, onBeforeUnmount, computed, nextTick } from 'vue'
   import { ChatLineRound } from '@element-plus/icons-vue'
   import { AIStore } from '@/components/AI/store'
   import { CreateSiteTest } from '@/components/AI/Task/CreateSiteTest'
@@ -57,6 +56,7 @@
   const FenciDict: { [k: string]: Array<string> } = {}
 
   const querySearch = (queryString: string, cb: any) => {
+    console.log('querySearch: ', queryString)
     const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys : AIKeysEN
     const find = ALLKeys.find((a) => a.txt === queryString.trim())
     if (find) {
@@ -229,7 +229,9 @@
   })
 
   const onShow = () => {
+    console.log('onShow !!!')
     el?.value?.focus()
+    content.value = ' '
   }
 
   defineExpose({
