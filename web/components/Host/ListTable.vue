@@ -88,11 +88,11 @@
               <el-popover
                 effect="dark"
                 popper-class="host-list-poper"
-                placement="bottom-end"
+                placement="left-start"
                 width="auto"
                 :show-arrow="false"
               >
-                <ul v-poper-fix class="host-list-menu">
+                <ul class="host-list-menu">
                   <li @click.stop="action(scope.row, scope.$index, 'open')">
                     <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
                     <span class="ml-15">{{ $t('base.open') }}</span>
