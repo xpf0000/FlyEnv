@@ -64,5 +64,149 @@ export const Hosts = [
     url: '',
     root: '/Users/XXX/Desktop/Web/www.php.com',
     phpVersion: 83
+  },
+  {
+    id: 1701746096150,
+    name: 'laravel.com',
+    alias: '',
+    useSSL: true,
+    ssl: {
+      cert: '/Users/XXX/Desktop/CA/pQvEHH.laravel.com',
+      key: '/Users/XXX/Desktop/CA/pQvEHH.laravel.com'
+    },
+    port: {
+      nginx: 80,
+      apache: 80,
+      caddy: 80,
+      nginx_ssl: 443,
+      apache_ssl: 443,
+      caddy_ssl: 443
+    },
+    nginx: {
+      rewrite: ''
+    },
+    url: '',
+    root: '/Users/XXX/Desktop/Web/www.php.com',
+    phpVersion: 83
+  },
+  {
+    id: 1701746096151,
+    name: 'doc.laravel.com',
+    alias: '',
+    useSSL: true,
+    ssl: {
+      cert: '/Users/XXX/Desktop/CA/pQvEHH.doc.laravel.com',
+      key: '/Users/XXX/Desktop/CA/pQvEHH.doc.laravel.com'
+    },
+    port: {
+      nginx: 80,
+      apache: 80,
+      caddy: 80,
+      nginx_ssl: 443,
+      apache_ssl: 443,
+      caddy_ssl: 443
+    },
+    nginx: {
+      rewrite: ''
+    },
+    url: '',
+    root: '/Users/XXX/Desktop/Web/doc.laravel.com',
+    phpVersion: 83
+  },
+  {
+    id: 1701746096152,
+    name: 'dev.laravel.com',
+    alias: '',
+    useSSL: true,
+    ssl: {
+      cert: '/Users/XXX/Desktop/CA/pQvEHH.dev.laravel.com',
+      key: '/Users/XXX/Desktop/CA/pQvEHH.dev.laravel.com'
+    },
+    port: {
+      nginx: 80,
+      apache: 80,
+      caddy: 80,
+      nginx_ssl: 443,
+      apache_ssl: 443,
+      caddy_ssl: 443
+    },
+    nginx: {
+      rewrite: ''
+    },
+    url: '',
+    root: '/Users/XXX/Desktop/Web/dev.laravel.com',
+    phpVersion: 83
+  },
+  {
+    id: 1701746096153,
+    name: 'down.laravel.com',
+    alias: '',
+    useSSL: true,
+    ssl: {
+      cert: '/Users/XXX/Desktop/CA/pQvEHH.down.dev.laravel.com',
+      key: '/Users/XXX/Desktop/CA/pQvEHH.down.dev.laravel.com'
+    },
+    port: {
+      nginx: 80,
+      apache: 80,
+      caddy: 80,
+      nginx_ssl: 443,
+      apache_ssl: 443,
+      caddy_ssl: 443
+    },
+    nginx: {
+      rewrite: ''
+    },
+    url: '',
+    root: '/Users/XXX/Desktop/Web/down.dev.laravel.com',
+    phpVersion: 83
+  },
+  {
+    id: 1701746096154,
+    name: 'wordpress.com',
+    alias: '',
+    useSSL: true,
+    ssl: {
+      cert: '/Users/XXX/Desktop/CA/pQvEHH.wordpress.com',
+      key: '/Users/XXX/Desktop/CA/pQvEHH.wordpress.com'
+    },
+    port: {
+      nginx: 80,
+      apache: 80,
+      caddy: 80,
+      nginx_ssl: 443,
+      apache_ssl: 443,
+      caddy_ssl: 443
+    },
+    nginx: {
+      rewrite: ''
+    },
+    url: '',
+    root: '/Users/XXX/Desktop/Web/wordpress.com',
+    phpVersion: 83
+  },
+  {
+    id: 1701746096155,
+    name: 'doc.wordpress.com',
+    alias: '',
+    useSSL: true,
+    ssl: {
+      cert: '/Users/XXX/Desktop/CA/pQvEHH.doc.wordpress.com',
+      key: '/Users/XXX/Desktop/CA/pQvEHH.doc.wordpress.com'
+    },
+    port: {
+      nginx: 80,
+      apache: 80,
+      caddy: 80,
+      nginx_ssl: 443,
+      apache_ssl: 443,
+      caddy_ssl: 443
+    },
+    nginx: {
+      rewrite: ''
+    },
+    url: '',
+    root: '/Users/XXX/Desktop/Web/doc.wordpress.com',
+    phpVersion: 83
   }
 ]

@@ -3,7 +3,6 @@ import { app } from 'electron'
 import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
-import { splitArgv } from './utils'
 
 export default class Launcher extends EventEmitter {
   exceptionHandler?: ExceptionHandler
@@ -31,28 +30,12 @@ export default class Launcher extends EventEmitter {
 
   init() {
     this.exceptionHandler = new ExceptionHandler()
-    if (process.argv.length > 1) {
-      this.handleAppLaunchArgv(process.argv)
-    }
     this.handleAppEvents()
   }
 
   handleAppEvents() {
     this.handelAppReady()
     this.handleAppWillQuit()
-  }
-
-  /**
-   * handleAppLaunchArgv
-   * For Windows, Linux
-   * @param {array} argv
-   */
-  handleAppLaunchArgv(argv?: any) {
-    logger.info('handleAppLaunchArgv===>', argv)
-    // args: array, extra: map
-    const { args, extra } = splitArgv(argv)
-    logger.info('splitArgv.args===>', args)
-    logger.info('splitArgv.extra===>', extra)
   }
 
   handelAppReady() {

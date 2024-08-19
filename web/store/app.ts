@@ -6,6 +6,8 @@ import { User } from '../config/user'
 export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd'
 export interface AppHost {
   id: number
+  isTop?: boolean
+  isSorting?: boolean
   name: string
   alias: string
   useSSL: boolean
@@ -34,7 +36,7 @@ export interface AppServerCurrent {
 }
 
 interface EditorConfig {
-  theme: 'vs-dark' | 'vs-light' | 'hc-dark' | 'hc-light'
+  theme: 'vs-dark' | 'vs-light' | 'hc-dark' | 'hc-light' | 'auto'
   fontSize: number
   lineHeight: number
 }

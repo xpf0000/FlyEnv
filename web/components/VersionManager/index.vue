@@ -8,6 +8,12 @@
             <el-select v-model="libSrc" style="margin-left: 8px" :disabled="currentType.getListing">
               <el-option :disabled="!checkBrew()" value="brew" label="Homebrew"></el-option>
               <el-option :disabled="!checkPort()" value="port" label="MacPorts"></el-option>
+              <template v-if="typeFlag === 'php'">
+                <el-option value="static" label="static-php"></el-option>
+              </template>
+              <template v-else-if="typeFlag === 'caddy'">
+                <el-option value="static" label="static-caddy"></el-option>
+              </template>
             </el-select>
           </template>
         </div>
@@ -62,18 +68,42 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="$t('base.operation')" width="120">
-        <template #default="scope">
-          <el-button
-            type="primary"
-            link
-            :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
-            :disabled="brewRunning"
-            @click="handleEdit(scope.$index, scope.row)"
-            >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
-          >
-        </template>
-      </el-table-column>
+      <template v-if="libSrc === 'static'">
+        <el-table-column :label="null">
+          <template #default="scope">
+            <div class="cell-progress">
+              <el-progress v-if="scope.row.downing" :percentage="scope.row.progress"></el-progress>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" :label="$t('base.operation')" width="150">
+          <template #default="scope">
+            <el-button
+              type="primary"
+              link
+              :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
+              :loading="scope.row.downing"
+              :disabled="scope.row.downing"
+              @click="handleEditDown(scope.$index, scope.row, scope.row.installed)"
+              >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
+            >
+          </template>
+        </el-table-column>
+      </template>
+      <template v-else>
+        <el-table-column align="center" :label="$t('base.operation')" width="120">
+          <template #default="scope">
+            <el-button
+              type="primary"
+              link
+              :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
+              :disabled="brewRunning"
+              @click="handleEdit(scope.$index, scope.row)"
+              >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
+            >
+          </template>
+        </el-table-column>
+      </template>
     </el-table>
   </el-card>
 </template>
@@ -83,6 +113,8 @@
   import { AppSoftInstalledItem, BrewStore } from '../../store/brew'
   import { I18nT } from '@shared/lang'
   import { waitTime } from '../../fn'
+  import { MessageSuccess } from '@/util/Element'
+  import { ElMessageBox } from 'element-plus'
 
   const props = defineProps<{
     typeFlag:
@@ -120,13 +152,19 @@
   })
 
   const libSrc = computed({
-    get() {
+    get(): 'brew' | 'port' | 'static' | undefined {
       return (
         brewStore.LibUse[props.typeFlag] ??
-        (checkBrew() ? 'brew' : checkPort() ? 'port' : undefined)
+        (checkBrew()
+          ? 'brew'
+          : checkPort()
+            ? 'port'
+            : ['php', 'caddy'].includes(props.typeFlag)
+              ? 'static'
+              : undefined)
       )
     },
-    set(v: 'brew' | 'port') {
+    set(v: 'brew' | 'port' | 'static') {
       brewStore.LibUse[props.typeFlag] = v
     }
   })
@@ -136,8 +174,10 @@
     let list: any
     if (libSrc.value === 'brew') {
       list = currentType.value.list.homebrew
-    } else {
+    } else if (libSrc.value === 'port') {
       list = currentType.value.list.macports
+    } else if (libSrc.value === 'static') {
+      list = currentType.value.list.static
     }
     console.log('list: ', list)
     for (const name in list) {
@@ -186,6 +226,46 @@
   const getData = () => {}
   const reGetData = () => {
     getData()
+  }
+
+  const handleEditDown = (index: number, row: any, installed: boolean) => {
+    console.log('row: ', row, installed)
+    if (!installed) {
+      if (row.downing) {
+        return
+      }
+      row.downing = true
+      row.type = props.typeFlag
+
+      let p = 0
+      const run = () => {
+        p += 1
+        row.progress = p
+        if (p === 100) {
+          row.downState = 'success'
+          row.installed = true
+          row.downing = false
+          return
+        }
+        requestAnimationFrame(run)
+      }
+      requestAnimationFrame(run)
+    } else {
+      ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
+        closeOnClickModal: false,
+        customClass: 'confirm-del',
+        type: 'warning'
+      }).then(() => {
+        setTimeout(() => {
+          row.installed = false
+          row.progress = 0
+          row.downState = ''
+          MessageSuccess(I18nT('base.success'))
+        }, 350)
+      })
+    }
   }
 
   const handleEdit = (index: number, row: any) => {

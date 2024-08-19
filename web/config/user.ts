@@ -182,8 +182,9 @@ export const User = {
       dirs: []
     },
     autoCheck: true,
+    theme: 'system',
     editorConfig: {
-      theme: 'vs-dark',
+      theme: 'auto',
       fontSize: 16,
       lineHeight: 2
     },

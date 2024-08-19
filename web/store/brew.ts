@@ -11,6 +11,7 @@ import { Redis } from '../config/redis'
 import { Mongodb } from '../config/mongodb'
 import { Postgresql } from '../config/postgresql'
 import { Caddy } from '../config/caddy'
+import type { OnlineVersionItem } from '@/store/brew'
 
 export interface SoftInstalled {
   version: string | null
@@ -31,7 +32,11 @@ export interface AppSoftInstalledItem {
   getListing: boolean
   installedInited: boolean
   installed: Array<SoftInstalled>
-  list: { [key: string]: any }
+  list: {
+    homebrew: { [key: string]: any }
+    macports: { [key: string]: any }
+    static?: { [key: string]: OnlineVersionItem }
+  }
 }
 
 interface State {
@@ -51,7 +56,7 @@ interface State {
   showInstallLog: boolean
   brewSrc: string
   log: Array<string>
-  LibUse: { [k: string]: string }
+  LibUse: { [k: string]: 'brew' | 'port' | 'static' }
 }
 
 const state: State = {

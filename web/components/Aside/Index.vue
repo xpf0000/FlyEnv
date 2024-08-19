@@ -16,24 +16,26 @@
           <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
         </li>
       </ul>
-      <ul class="menu top-menu">
-        <HostModule :current-page="currentPage" @nav="nav" />
-        <ApacheModule ref="apacheModule" :current-page="currentPage" @nav="nav" />
-        <NginxModule ref="nginxModule" :current-page="currentPage" @nav="nav" />
-        <CaddyModule ref="caddyModule" :current-page="currentPage" @nav="nav" />
-        <PhpModule ref="phpModule" :current-page="currentPage" @nav="nav" />
-        <MysqlModule ref="mysqlModule" :current-page="currentPage" @nav="nav" />
-        <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />
-        <MongodbModule ref="mongoModule" :current-page="currentPage" @nav="nav" />
-        <PostgreSqlModule ref="postgresqlModule" :current-page="currentPage" @nav="nav" />
-        <MemcachedModule ref="memcachedModule" :current-page="currentPage" @nav="nav" />
-        <RedisModule ref="redisModule" :current-page="currentPage" @nav="nav" />
-        <NodejsModule :current-page="currentPage" @nav="nav" />
-        <HttpserveModule :current-page="currentPage" @nav="nav" />
-        <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
-        <FtpModule ref="ftpModule" :current-page="currentPage" @nav="nav" />
-        <ToolsModule :current-page="currentPage" @nav="nav" />
-      </ul>
+      <el-scrollbar>
+        <ul class="menu top-menu">
+          <HostModule :current-page="currentPage" @nav="nav" />
+          <ApacheModule ref="apacheModule" :current-page="currentPage" @nav="nav" />
+          <NginxModule ref="nginxModule" :current-page="currentPage" @nav="nav" />
+          <CaddyModule ref="caddyModule" :current-page="currentPage" @nav="nav" />
+          <PhpModule ref="phpModule" :current-page="currentPage" @nav="nav" />
+          <MysqlModule ref="mysqlModule" :current-page="currentPage" @nav="nav" />
+          <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />
+          <MongodbModule ref="mongoModule" :current-page="currentPage" @nav="nav" />
+          <PostgreSqlModule ref="postgresqlModule" :current-page="currentPage" @nav="nav" />
+          <MemcachedModule ref="memcachedModule" :current-page="currentPage" @nav="nav" />
+          <RedisModule ref="redisModule" :current-page="currentPage" @nav="nav" />
+          <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
+          <FtpModule ref="ftpModule" :current-page="currentPage" @nav="nav" />
+          <NodejsModule :current-page="currentPage" @nav="nav" />
+          <HttpserveModule :current-page="currentPage" @nav="nav" />
+          <ToolsModule :current-page="currentPage" @nav="nav" />
+        </ul>
+      </el-scrollbar>
       <ul class="menu setup-menu">
         <li
           :class="'non-draggable' + (currentPage === '/setup' ? ' active' : '')"

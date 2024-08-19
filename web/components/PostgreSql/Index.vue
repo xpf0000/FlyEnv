@@ -11,8 +11,8 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="postgresql" title="PostgreSQL"></Service>
-      <Config v-else-if="current_tab === 1" :config="conf"></Config>
-      <Manager v-else-if="current_tab === 2" type-flag="postgresql"></Manager>
+      <Manager v-else-if="current_tab === 1" type-flag="postgresql"></Manager>
+      <Config v-else-if="current_tab === 2" :config="conf"></Config>
       <Logs v-else-if="current_tab === 3"></Logs>
     </div>
   </div>
@@ -47,8 +47,8 @@
       tabs() {
         return [
           this.$t('base.service'),
-          this.$t('base.configFile'),
           this.$t('base.versionManager'),
+          this.$t('base.configFile'),
           this.$t('base.log')
         ]
       },

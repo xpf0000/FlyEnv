@@ -1,140 +1,142 @@
 <template>
-  <div class="setup-common">
-    <div class="row-2">
-      <div class="col">
-        <LangeSet />
+  <el-scrollbar>
+    <div class="setup-common">
+      <div class="row-2">
+        <div class="col">
+          <LangeSet />
+        </div>
+        <div class="col">
+          <theme-set />
+        </div>
       </div>
-      <div class="col">
-        <theme-set />
-      </div>
-    </div>
-    <div class="plant-title">{{ $t('base.showItem') }}</div>
-    <div class="main user-select-none">
-      <el-form label-position="left" label-width="100px">
-        <el-row>
-          <el-col :span="8">
-            <el-form-item label="Hosts">
-              <el-switch v-model="showItem.Hosts" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="Apache">
-              <el-switch v-model="showItem.Apache" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="Nginx">
-              <el-switch v-model="showItem.Nginx" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+      <div class="plant-title">{{ $t('base.showItem') }}</div>
+      <div class="main user-select-none">
+        <el-form label-position="left" label-width="100px">
+          <el-row>
+            <el-col :span="8">
+              <el-form-item label="Hosts">
+                <el-switch v-model="showItem.Hosts" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="Apache">
+                <el-switch v-model="showItem.Apache" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="Nginx">
+                <el-switch v-model="showItem.Nginx" />
+              </el-form-item>
+            </el-col>
+          </el-row>
 
-        <el-row>
-          <el-col :span="8">
-            <el-form-item label="Caddy">
-              <el-switch v-model="showItem.Caddy" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="Php">
-              <el-switch v-model="showItem.Php" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="Mysql">
-              <el-switch v-model="showItem.Mysql" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+          <el-row>
+            <el-col :span="8">
+              <el-form-item label="Caddy">
+                <el-switch v-model="showItem.Caddy" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="Php">
+                <el-switch v-model="showItem.Php" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="Mysql">
+                <el-switch v-model="showItem.Mysql" />
+              </el-form-item>
+            </el-col>
+          </el-row>
 
-        <el-row>
-          <el-col :span="8">
-            <el-form-item label="MariaDB">
-              <el-switch v-model="showItem.mariadb" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="MongoDB">
-              <el-switch v-model="showItem.MongoDB" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="PostgreSql">
-              <el-switch v-model="postgresqlShow" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+          <el-row>
+            <el-col :span="8">
+              <el-form-item label="MariaDB">
+                <el-switch v-model="showItem.mariadb" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="MongoDB">
+                <el-switch v-model="showItem.MongoDB" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="PostgreSql">
+                <el-switch v-model="postgresqlShow" />
+              </el-form-item>
+            </el-col>
+          </el-row>
 
-        <el-row>
-          <el-col :span="8">
-            <el-form-item label="Memcached">
-              <el-switch v-model="showItem.Memcached" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="Redis">
-              <el-switch v-model="showItem.Redis" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="NodeJS">
-              <el-switch v-model="showItem.NodeJS" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+          <el-row>
+            <el-col :span="8">
+              <el-form-item label="Memcached">
+                <el-switch v-model="showItem.Memcached" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="Redis">
+                <el-switch v-model="showItem.Redis" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="NodeJS">
+                <el-switch v-model="showItem.NodeJS" />
+              </el-form-item>
+            </el-col>
+          </el-row>
 
-        <el-row>
-          <el-col :span="8">
-            <el-form-item label="Http Serve">
-              <el-switch v-model="showItem.HttpServe" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="DNS Server">
-              <el-switch v-model="showItem.DNS" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="FTP">
-              <el-switch v-model="showItem.FTP" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="8">
-            <el-form-item label="Tools">
-              <el-switch v-model="showItem.Tools" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
+          <el-row>
+            <el-col :span="8">
+              <el-form-item label="Http Serve">
+                <el-switch v-model="showItem.HttpServe" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="DNS Server">
+                <el-switch v-model="showItem.DNS" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="FTP">
+                <el-switch v-model="showItem.FTP" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="8">
+              <el-form-item label="Tools">
+                <el-switch v-model="showItem.Tools" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+      </div>
+      <ProxySet />
+      <div class="row-2">
+        <div class="col">
+          <BrewSrc />
+        </div>
+        <div class="col">
+          <MacPortsSrc />
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="col">
+          <ForceStart />
+        </div>
+        <div class="col">
+          <ShowAI />
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="col">
+          <AutoUpdate />
+        </div>
+        <div class="col">
+          <RestPassword />
+        </div>
+      </div>
     </div>
-    <ProxySet />
-    <div class="row-2">
-      <div class="col">
-        <BrewSrc />
-      </div>
-      <div class="col">
-        <MacPortsSrc />
-      </div>
-    </div>
-    <div class="row-2">
-      <div class="col">
-        <ForceStart />
-      </div>
-      <div class="col">
-        <ShowAI />
-      </div>
-    </div>
-    <div class="row-2">
-      <div class="col">
-        <AutoUpdate />
-      </div>
-      <div class="col">
-        <RestPassword />
-      </div>
-    </div>
-  </div>
+  </el-scrollbar>
 </template>
 
 <script lang="ts">

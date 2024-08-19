@@ -4,6 +4,7 @@ import { computed, watch, ref } from 'vue'
 export const ThemeInit = () => {
   const store = AppStore()
   const index = ref(0)
+
   const theme = computed(() => {
     if (index.value < 0) {
       return ''
@@ -11,7 +12,10 @@ export const ThemeInit = () => {
     const t = store?.config?.setup?.theme
     console.log('theme: ', t)
     if (!t || t === 'system') {
-      return 'dark'
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark'
+      }
+      return 'light'
     }
     return t
   })
@@ -23,6 +27,11 @@ export const ThemeInit = () => {
   resetHtmlThemeTag()
 
   watch(theme, () => {
+    resetHtmlThemeTag()
+  })
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    index.value += 1
     resetHtmlThemeTag()
   })
 }

@@ -1,11 +1,15 @@
 <template>
   <div class="module-config">
-    <div ref="input" class="block"></div>
-    <div class="tool">
-      <el-button @click="logDo">{{ $t('base.open') }}</el-button>
-      <el-button @click="logDo">{{ $t('base.refresh') }}</el-button>
-      <el-button @click="logDo">{{ $t('base.clean') }}</el-button>
-    </div>
+    <el-card>
+      <div ref="input" class="block"></div>
+      <template #footer>
+        <div class="tool">
+          <el-button @click="logDo">{{ $t('base.open') }}</el-button>
+          <el-button @click="logDo">{{ $t('base.refresh') }}</el-button>
+          <el-button @click="logDo">{{ $t('base.clean') }}</el-button>
+        </div>
+      </template>
+    </el-card>
   </div>
 </template>
 

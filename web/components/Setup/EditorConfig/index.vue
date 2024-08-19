@@ -8,6 +8,7 @@
             <el-radio-button label="vs-light" />
             <el-radio-button label="hc-black" />
             <el-radio-button label="hc-light" />
+            <el-radio-button label="auto">{{ $t('util.auto') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="$t('util.fontSize')">

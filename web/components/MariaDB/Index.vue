@@ -11,8 +11,8 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="mariadb" title="MariaDB"></Service>
-      <Config v-if="current_tab === 1" :config="conf"></Config>
-      <Manager v-else-if="current_tab === 2" type-flag="mariadb"></Manager>
+      <Manager v-else-if="current_tab === 1" type-flag="mariadb"></Manager>
+      <Config v-if="current_tab === 2" :config="conf"></Config>
       <Logs v-if="current_tab === 3" type="error"></Logs>
       <Logs v-if="current_tab === 4" type="slow"></Logs>
     </div>
@@ -48,8 +48,8 @@
       tabs() {
         return [
           this.$t('base.service'),
-          this.$t('base.configFile'),
           this.$t('base.versionManager'),
+          this.$t('base.configFile'),
           this.$t('base.log'),
           this.$t('base.slowLog')
         ]

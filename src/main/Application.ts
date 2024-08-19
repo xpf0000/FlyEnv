@@ -512,7 +512,7 @@ export default class Application extends EventEmitter {
     const callBack = (info: any) => {
       const win = this.mainWindow!
       this.windowManager.sendCommandTo(win, command, key, info)
-      if (args?.[0] === 'installBrew' && info?.data?.BrewCellar) {
+      if (args && args?.[0] === 'installBrew' && info?.data?.BrewCellar) {
         global.Server = info?.data
       }
     }
@@ -578,7 +578,7 @@ export default class Application extends EventEmitter {
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)
         break
       case 'APP:Tray-Store-Sync':
-        this.windowManager.sendCommandTo(this.trayWindow!, command, command, args[0])
+        this.windowManager.sendCommandTo(this.trayWindow!, command, command, args?.[0])
         break
       case 'APP:Tray-Command':
         this.windowManager.sendCommandTo(this.mainWindow!, command, command, ...args)

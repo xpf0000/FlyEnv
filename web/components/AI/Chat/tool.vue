@@ -3,12 +3,10 @@
     <el-autocomplete
       ref="el"
       v-model="content"
+      :trigger-on-focus="true"
       :clearable="true"
       popper-class="app-ai-tool-suggest-popper"
       :fetch-suggestions="querySearch"
-      :autosize="{ minRows: 1, maxRows: 9 }"
-      resize="none"
-      type="textarea"
     ></el-autocomplete>
     <el-button round :icon="ChatLineRound"></el-button>
   </div>

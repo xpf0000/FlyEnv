@@ -437,10 +437,19 @@ export const Installed = {
   ],
   caddy: [
     {
-      version: '2.7.6',
-      bin: '/usr/local/Cellar/caddy/2.7.6/bin/caddy',
-      path: '/usr/local/Cellar/caddy/2.7.6/',
-      num: 27,
+      version: '2.8.4',
+      bin: '/usr/local/Cellar/caddy/2.8.4/bin/caddy',
+      path: '/usr/local/Cellar/caddy/2.8.4/',
+      num: 28,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '2.8.4',
+      bin: '/usr/local/Cellar/caddy/2.8.4/bin/caddy',
+      path: '/Users/xxx/Library/PhpWebStudy/app/static-caddy-2.8.4/',
+      num: 28,
       enable: true,
       run: false,
       running: false

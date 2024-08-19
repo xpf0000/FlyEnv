@@ -176,5 +176,47 @@ export const Php = {
       installed: false,
       flag: 'port'
     }
+  },
+  static: {
+    'php-8.3.10': {
+      url: 'https://dl.static-php.dev/static-php-cli/bulk/php-8.3.10-fpm-macos-aarch64.tar.gz',
+      version: '8.3.10',
+      mVersion: '8.3',
+      appDir: '/Users/x/Library/PhpWebStudy/app/static-php-8.3.10',
+      zip: '/Users/x/Library/PhpWebStudy/server/cache/static-php-8.3.10.tar.gz',
+      bin: '/Users/x/Library/PhpWebStudy/app/static-php-8.3.10/sbin/php-fpm',
+      downloaded: false,
+      installed: false
+    },
+    'php-8.2.22': {
+      url: 'https://dl.static-php.dev/static-php-cli/bulk/php-8.2.22-fpm-macos-aarch64.tar.gz',
+      version: '8.2.22',
+      mVersion: '8.2',
+      appDir: '/Users/x/Library/PhpWebStudy/app/static-php-8.2.22',
+      zip: '/Users/x/Library/PhpWebStudy/server/cache/static-php-8.2.22.tar.gz',
+      bin: '/Users/x/Library/PhpWebStudy/app/static-php-8.2.22/sbin/php-fpm',
+      downloaded: false,
+      installed: false
+    },
+    'php-8.1.29': {
+      url: 'https://dl.static-php.dev/static-php-cli/bulk/php-8.1.29-fpm-macos-aarch64.tar.gz',
+      version: '8.1.29',
+      mVersion: '8.1',
+      appDir: '/Users/x/Library/PhpWebStudy/app/static-php-8.1.29',
+      zip: '/Users/x/Library/PhpWebStudy/server/cache/static-php-8.1.29.tar.gz',
+      bin: '/Users/x/Library/PhpWebStudy/app/static-php-8.1.29/sbin/php-fpm',
+      downloaded: false,
+      installed: false
+    },
+    'php-8.0.30': {
+      url: 'https://dl.static-php.dev/static-php-cli/bulk/php-8.0.30-fpm-macos-aarch64.tar.gz',
+      version: '8.0.30',
+      mVersion: '8.0',
+      appDir: '/Users/x/Library/PhpWebStudy/app/static-php-8.0.30',
+      zip: '/Users/x/Library/PhpWebStudy/server/cache/static-php-8.0.30.tar.gz',
+      bin: '/Users/x/Library/PhpWebStudy/app/static-php-8.0.30/sbin/php-fpm',
+      downloaded: false,
+      installed: false
+    }
   }
 }

@@ -1,9 +1,9 @@
+import { onMounted, ref } from 'vue'
 import type { SoftInstalled } from './store/brew'
 import { DnsStore } from './store/dns'
 import { I18nT } from '@shared/lang'
 import type { AllAppSofts } from './store/app'
 import { VueExtend } from './VueExtend'
-import { onMounted, ref } from 'vue'
 import { AppStore } from './store/app'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import 'monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codicon.css'
@@ -193,7 +193,25 @@ export function uuid(length = 32) {
 }
 
 export const EditorConfigMake = (value: string, readOnly: boolean, wordWrap: 'off' | 'on') => {
+  const appStore = AppStore()
   const editorConfig = AppStore().editorConfig
+  let theme = editorConfig.theme
+  if (theme === 'auto') {
+    let appTheme = appStore?.config?.setup?.theme ?? ''
+    console.log('appTheme: ', appTheme)
+    if (!appTheme || appTheme === 'system') {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        appTheme = 'dark'
+      } else {
+        appTheme = 'light'
+      }
+    }
+    if (appTheme === 'light') {
+      theme = 'vs-light'
+    } else {
+      theme = 'vs-dark'
+    }
+  }
   return {
     value,
     language: 'ini',
@@ -202,7 +220,7 @@ export const EditorConfigMake = (value: string, readOnly: boolean, wordWrap: 'of
     overviewRulerBorder: true,
     automaticLayout: true,
     wordWrap,
-    theme: editorConfig.theme,
+    theme: theme,
     fontSize: editorConfig.fontSize,
     lineHeight: editorConfig.lineHeight
   }
