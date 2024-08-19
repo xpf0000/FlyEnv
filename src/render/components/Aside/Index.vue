@@ -2,7 +2,7 @@
   <el-aside width="280px" class="aside">
     <div class="aside-inner">
       <ul class="top-tool">
-        <!-- <el-popover :show-after="800">
+        <el-popover :show-after="800">
           <template #default>
             <span>{{ $t('base.about') }}</span>
           </template>
@@ -16,11 +16,7 @@
               />
             </li>
           </template>
-        </el-popover> -->
-        <li class="title">
-          <img src="@/assets/256x256.png" alt="logo" />
-          <span>PhpWebStudy</span>
-        </li>
+        </el-popover>
         <li :class="groupClass" @click="groupDo">
           <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
         </li>
@@ -38,10 +34,10 @@
           <PostgreSqlModule ref="postgresqlModule" :current-page="currentPage" @nav="nav" />
           <MemcachedModule ref="memcachedModule" :current-page="currentPage" @nav="nav" />
           <RedisModule ref="redisModule" :current-page="currentPage" @nav="nav" />
-          <NodejsModule :current-page="currentPage" @nav="nav" />
-          <HttpserveModule :current-page="currentPage" @nav="nav" />
           <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
           <FtpModule ref="ftpModule" :current-page="currentPage" @nav="nav" />
+          <NodejsModule :current-page="currentPage" @nav="nav" />
+          <HttpserveModule :current-page="currentPage" @nav="nav" />
           <ToolsModule :current-page="currentPage" @nav="nav" />
         </ul>
       </el-scrollbar>

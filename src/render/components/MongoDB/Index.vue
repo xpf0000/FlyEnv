@@ -11,8 +11,8 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="mongodb" title="MongoDB"></Service>
-      <Config v-if="current_tab === 1"></Config>
-      <Manager v-else-if="current_tab === 2" type-flag="mongodb"></Manager>
+      <Manager v-else-if="current_tab === 1" type-flag="mongodb"></Manager>
+      <Config v-if="current_tab === 2"></Config>
       <Logs v-if="current_tab === 3"></Logs>
     </div>
   </div>
@@ -41,8 +41,8 @@
         current_tab,
         tabs: [
           this.$t('base.service'),
-          this.$t('base.configFile'),
           this.$t('base.versionManager'),
+          this.$t('base.configFile'),
           this.$t('base.log')
         ]
       }
@@ -55,7 +55,7 @@
     watch: {},
     created: function () {
       if (!this.version) {
-        this.current_tab = 2
+        this.current_tab = 1
       }
     }
   })

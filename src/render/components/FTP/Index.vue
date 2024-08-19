@@ -11,8 +11,8 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0"></Service>
-      <Config v-if="current_tab === 1"></Config>
-      <Manager v-else-if="current_tab === 2" type-flag="pure-ftpd"></Manager>
+      <Manager v-else-if="current_tab === 1" type-flag="pure-ftpd"></Manager>
+      <Config v-if="current_tab === 2"></Config>
     </div>
   </div>
 </template>
@@ -37,7 +37,7 @@
     data() {
       return {
         current_tab,
-        tabs: [this.$t('base.service'), this.$t('base.configFile'), this.$t('base.versionManager')]
+        tabs: [this.$t('base.service'), this.$t('base.versionManager'), this.$t('base.configFile')]
       }
     },
     computed: {
@@ -48,7 +48,7 @@
     watch: {},
     created: function () {
       if (!this.version) {
-        this.current_tab = 2
+        this.current_tab = 1
       }
     }
   })

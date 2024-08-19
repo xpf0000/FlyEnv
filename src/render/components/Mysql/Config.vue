@@ -1,21 +1,29 @@
 <template>
   <div class="module-config">
-    <div ref="input" class="block"></div>
-    <div class="tool">
-      <el-button :disabled="!currentVersion" @click="openConfig">{{ $t('base.open') }}</el-button>
-      <el-button :disabled="!currentVersion" @click="saveConfig">{{ $t('base.save') }}</el-button>
-      <el-button :disabled="!currentVersion" @click="getDefault">{{
-        $t('base.loadDefault')
-      }}</el-button>
-      <el-button-group style="margin-left: 12px">
-        <el-button :disabled="!currentVersion" @click="loadCustom">{{
-          $t('base.loadCustom')
-        }}</el-button>
-        <el-button :disabled="!currentVersion" @click="saveCustom">{{
-          $t('base.saveCustom')
-        }}</el-button>
-      </el-button-group>
-    </div>
+    <el-card>
+      <div ref="input" class="block"></div>
+      <template #footer>
+        <div class="tool">
+          <el-button :disabled="!currentVersion" @click="openConfig">{{
+            $t('base.open')
+          }}</el-button>
+          <el-button :disabled="!currentVersion" @click="saveConfig">{{
+            $t('base.save')
+          }}</el-button>
+          <el-button :disabled="!currentVersion" @click="getDefault">{{
+            $t('base.loadDefault')
+          }}</el-button>
+          <el-button-group style="margin-left: 12px">
+            <el-button :disabled="!currentVersion" @click="loadCustom">{{
+              $t('base.loadCustom')
+            }}</el-button>
+            <el-button :disabled="!currentVersion" @click="saveCustom">{{
+              $t('base.saveCustom')
+            }}</el-button>
+          </el-button-group>
+        </div>
+      </template>
+    </el-card>
   </div>
 </template>
 

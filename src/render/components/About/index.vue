@@ -106,6 +106,9 @@
         return app.config.setup.lang
       }
     },
+    unmounted() {
+      console.log('about unmounted !!!')
+    },
     methods: {
       openUrl(e, u) {
         e.preventDefault()

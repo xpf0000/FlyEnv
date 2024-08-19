@@ -3,9 +3,9 @@
     <template #header>
       <div class="card-header">
         <div class="left">
-          <!-- <span> {{ cardHeadTitle }} </span> -->
+          <span> {{ cardHeadTitle }} </span>
           <template v-if="!brewRunning && !showNextBtn">
-            <!-- <el-select v-model="libSrc" style="margin-left: 8px">
+            <el-select v-model="libSrc" style="margin-left: 8px">
               <el-option :disabled="!checkBrew()" value="brew" label="Homebrew"></el-option>
               <el-option :disabled="!checkPort()" value="port" label="MacPorts"></el-option>
               <template v-if="typeFlag === 'php'">
@@ -14,29 +14,7 @@
               <template v-else-if="typeFlag === 'caddy'">
                 <el-option value="static" label="static-caddy"></el-option>
               </template>
-            </el-select> -->
-
-            <el-dropdown trigger="click" @command="handleCommand">
-              <span class="el-dropdown-link">
-                {{ cardHeadTitle }}<el-icon class="el-icon--right"><arrow-down /></el-icon>
-              </span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="brew" :disabled="!checkBrew()"
-                    >Homebrew</el-dropdown-item
-                  >
-                  <el-dropdown-item command="port" :disabled="!checkPort()"
-                    >MacPorts</el-dropdown-item
-                  >
-                  <template v-if="typeFlag === 'php'">
-                    <el-dropdown-item command="static">static-php</el-dropdown-item>
-                  </template>
-                  <template v-else-if="typeFlag === 'caddy'">
-                    <el-dropdown-item command="static">static-cadd</el-dropdown-item>
-                  </template>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            </el-select>
           </template>
         </div>
         <el-button v-if="showNextBtn" type="primary" @click="toNext">{{
@@ -138,7 +116,6 @@
 
 <script lang="ts" setup>
   import { computed, ComputedRef, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
-  import { ArrowDown } from '@element-plus/icons-vue'
   import { brewInfo, brewCheck, portInfo, fetchVerion } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import XTerm from '@/util/XTerm'
@@ -376,10 +353,6 @@
     currentType.value.installedInited = false
     reGetData()
     installedVersions.allInstalledVersions([props.typeFlag])
-  }
-
-  const handleCommand = (command: string | number | object) => {
-    libSrc.value = command as 'brew' | 'port' | 'static'
   }
 
   const handleEditDown = (index: number, row: any, installed: boolean) => {

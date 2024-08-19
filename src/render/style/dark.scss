@@ -326,6 +326,25 @@ html.dark {
         background: #32364a;
       }
     }
+
+    >.host-list {
+      .el-table {
+        .is-top {
+          --el-table-tr-bg-color: var(--el-color-info-light-9);
+        }
+
+        .is-sorting {
+          --el-table-tr-bg-color: #32364a;
+          filter: drop-shadow(0 0 5px rgba(60,60,60,0.5));
+          position: relative;
+          z-index: 1500;
+
+          td.el-table__cell {
+            border: none;
+          }
+        }
+      }
+    }
   }
   .app-chat {
     .nav {

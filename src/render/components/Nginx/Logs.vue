@@ -1,13 +1,19 @@
 <template>
   <div class="module-config">
-    <div ref="input" class="block"></div>
-    <div class="tool">
-      <el-button :disabled="!filepath" @click="logDo('open')">{{ $t('base.open') }}</el-button>
-      <el-button :disabled="!filepath" @click="logDo('refresh')">{{
-        $t('base.refresh')
-      }}</el-button>
-      <el-button :disabled="!filepath" @click="logDo('clean')">{{ $t('base.clean') }}</el-button>
-    </div>
+    <el-card>
+      <div ref="input" class="block"></div>
+      <template #footer>
+        <div class="tool">
+          <el-button :disabled="!filepath" @click="logDo('open')">{{ $t('base.open') }}</el-button>
+          <el-button :disabled="!filepath" @click="logDo('refresh')">{{
+            $t('base.refresh')
+          }}</el-button>
+          <el-button :disabled="!filepath" @click="logDo('clean')">{{
+            $t('base.clean')
+          }}</el-button>
+        </div>
+      </template>
+    </el-card>
   </div>
 </template>
 

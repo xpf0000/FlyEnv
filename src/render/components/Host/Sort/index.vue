@@ -5,45 +5,111 @@
     trigger="hover"
     popper-class="host-sort-poper"
     :show-arrow="false"
+    :visible="show"
     @show="onShow"
     @hide="onHide"
   >
+    <template #reference>
+      <div :style="style"></div>
+    </template>
     <template #default>
-      <div v-poper-fix class="host-sort">
+      <div v-poper-fix v-click-outside="onClickOut" class="host-sort">
         <div class="top">
           <span>置顶</span>
           <el-switch v-model="isTop" :disabled="!editHost"></el-switch>
         </div>
-        <el-slider
-          v-model="value"
-          :max="max"
-          :disabled="isTop || !editHost"
-          vertical
-          height="200px"
-        />
+        <template v-if="disabled">
+          <el-slider :show-tooltip="false" :max="1" :disabled="true" vertical height="200px" />
+        </template>
+        <template v-else>
+          <el-slider
+            v-model="value"
+            :debounce="350"
+            :show-tooltip="false"
+            :max="max"
+            :disabled="!editHost"
+            vertical
+            height="200px"
+          />
+        </template>
       </div>
     </template>
   </el-popover>
 </template>
 <script lang="ts" setup>
-  import { computed, type Ref, ref } from 'vue'
+  import { computed, nextTick, type Ref, ref } from 'vue'
   import { type AppHost, AppStore } from '@/store/app'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { ClickOutside as vClickOutside } from 'element-plus'
+
+  const { join } = require('path')
+  const { writeFile } = require('fs-extra')
+
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
     hostId: number
+    rect: DOMRect
   }>()
 
+  const style = {
+    position: 'fixed',
+    left: `${props.rect.left}px`,
+    top: `${props.rect.top}px`,
+    width: `${props.rect.width}px`,
+    height: `${props.rect.height}px`,
+    opacity: 0
+  }
   const appStore = AppStore()
 
+  let hostBack = JSON.stringify(appStore.hosts)
+
   let editHost: Ref<AppHost | undefined> = ref()
+  editHost.value = appStore.hosts.find((h) => h?.id === props?.hostId)
+
+  show.value = true
+
+  let isShow = false
 
   const onShow = () => {
-    console.log('onShow !!!', props.hostId)
-    editHost.value = appStore.hosts.find((h) => h?.id === props?.hostId)
+    isShow = true
+  }
+
+  const doSave = (host: string) => {
+    const hostfile = join(global.Server.BaseDir!, 'host.json')
+    writeFile(hostfile, host).then()
   }
 
   const onHide = () => {
-    editHost.value = undefined
+    delete editHost.value?.isSorting
+    closedFn && closedFn()
+    const host = JSON.stringify(appStore.hosts)
+    if (hostBack !== host) {
+      console.log('has changed !!!')
+      doSave(host)
+    }
+  }
+
+  const onClickOut = () => {
+    console.log('onClickOut !!!', show.value, isShow)
+    if (isShow) {
+      show.value = false
+    }
+  }
+
+  const flowScroll = () => {
+    nextTick().then(() => {
+      let dom: HTMLElement | null | undefined = document.querySelector(
+        `[data-host-id="${props.hostId}"]`
+      ) as any
+      if (dom) {
+        dom = dom?.parentElement?.parentElement?.parentElement
+        dom?.scrollIntoView({
+          block: 'center',
+          behavior: 'smooth'
+        })
+      }
+    })
   }
 
   const isTop = computed({
@@ -54,6 +120,7 @@
       if (!editHost?.value) {
         return
       }
+      editHost.value!.isSorting = true
       const host: any = editHost.value
       host.isTop = v
       if (v) {
@@ -70,6 +137,7 @@
           appStore.hosts.splice(list.length, 0, host)
         }
       }
+      flowScroll()
     }
   })
 
@@ -97,17 +165,37 @@
       if (!editHost?.value) {
         return
       }
-      console.log('value: ', v)
+      editHost.value!.isSorting = true
+      const host: any = editHost.value
+      let index = v
+      if (isTop.value) {
+        const list = appStore.hosts.filter((h) => !!h?.isTop)
+        index = list.length - 1 - v
+      } else {
+        const list = appStore.hosts.filter((h) => !h?.isTop)
+        index = list.length - 1 - v
+      }
       const list = appStore.hosts.filter((h) => !!h?.isTop)
-      const rawIndex = appStore.hosts.findIndex((h) => h === editHost.value)
+      const rawIndex = appStore.hosts.findIndex((h) => h === host)
       if (rawIndex >= 0) {
         appStore.hosts.splice(rawIndex, 1)
-        let index = v
         if (!isTop.value) {
           index += list.length
         }
-        appStore.hosts.splice(index, 0, editHost.value as any)
+        appStore.hosts.splice(index, 0, host)
       }
+      flowScroll()
     }
+  })
+
+  const disabled = computed(() => {
+    return !editHost?.value || max.value === 0 || max.value < value?.value
+  })
+
+  defineExpose({
+    show,
+    onSubmit,
+    onClosed,
+    closedFn
   })
 </script>

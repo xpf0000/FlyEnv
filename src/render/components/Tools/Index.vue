@@ -2,90 +2,58 @@
   <div class="main-right-panel">
     <ul class="tools-panel">
       <li @click="showPage('json')">
-        <a class="tool-item">
-          <yb-icon :svg="import('@/svg/json1.svg?raw')" width="30" height="30" />
-          <span>{{ $t('tools.jsonParseTitle') }}</span>
-        </a>
+        <yb-icon :svg="import('@/svg/json1.svg?raw')" width="30" height="30" />
+        <span>{{ $t('tools.jsonParseTitle') }}</span>
       </li>
       <li @click="showPage('env')">
-        <a class="tool-item">
-          <yb-icon :svg="import('@/svg/env.svg?raw')" width="30" height="30" />
-          <span>{{ $t('util.toolSystemEnv') }}</span>
-        </a>
+        <yb-icon :svg="import('@/svg/env.svg?raw')" width="30" height="30" />
+        <span>{{ $t('util.toolSystemEnv') }}</span>
       </li>
       <li @click="showPage('sslmake')">
-        <a class="tool-item">
-          <yb-icon :svg="import('@/svg/sslmake.svg?raw')" width="30" height="30" />
-          <span>{{ $t('util.toolSSL') }}</span>
-        </a>
+        <yb-icon :svg="import('@/svg/sslmake.svg?raw')" width="30" height="30" />
+        <span>{{ $t('util.toolSSL') }}</span>
       </li>
       <li @click="showPage('fileinfo')">
-        <a class="tool-item">
-          <yb-icon :svg="import('@/svg/fileinfo.svg?raw')" width="30" height="30" />
-          <span>{{ $t('util.toolFileInfo') }}</span>
-        </a>
+        <yb-icon :svg="import('@/svg/fileinfo.svg?raw')" width="30" height="30" />
+        <span>{{ $t('util.toolFileInfo') }}</span>
       </li>
       <li @click="showPage('timestamp')">
-        <a class="tool-item">
-          <yb-icon
-            :svg="import('@/svg/time.svg?raw')"
-            width="30"
-            height="30"
-            style="padding: 2px"
-          />
-          <span>{{ $t('util.toolTimestamp') }}</span>
-        </a>
+        <yb-icon :svg="import('@/svg/time.svg?raw')" width="30" height="30" style="padding: 2px" />
+        <span>{{ $t('util.toolTimestamp') }}</span>
       </li>
       <li @click="showPage('decode')">
-        <a class="tool-item">
-          <yb-icon
-            :svg="import('@/svg/decode.svg?raw')"
-            width="30"
-            height="30"
-            style="padding: 2px"
-          />
-          <span>{{ $t('util.toolDecode') }}</span>
-        </a>
+        <yb-icon
+          :svg="import('@/svg/decode.svg?raw')"
+          width="30"
+          height="30"
+          style="padding: 2px"
+        />
+        <span>{{ $t('util.toolDecode') }}</span>
       </li>
       <li @click="showPage('portkill')">
-        <a class="tool-item">
-          <yb-icon
-            :svg="import('@/svg/portkill.svg?raw')"
-            width="30"
-            height="30"
-            style="padding: 0"
-          />
-          <span>{{ $t('util.toolPortKill') }}</span>
-        </a>
+        <yb-icon
+          :svg="import('@/svg/portkill.svg?raw')"
+          width="30"
+          height="30"
+          style="padding: 0"
+        />
+        <span>{{ $t('util.toolPortKill') }}</span>
       </li>
       <li @click="showPage('processkill')">
-        <a class="tool-item">
-          <yb-icon
-            :svg="import('@/svg/process.svg?raw')"
-            width="30"
-            height="30"
-            style="padding: 0"
-          />
-          <span>{{ $t('util.toolProcessKill') }}</span>
-        </a>
+        <yb-icon :svg="import('@/svg/process.svg?raw')" width="30" height="30" style="padding: 0" />
+        <span>{{ $t('util.toolProcessKill') }}</span>
       </li>
       <li @click="showPage('phpObfuscator')">
-        <a class="tool-item">
-          <yb-icon :svg="import('@/svg/jiami.svg?raw')" width="30" height="30" style="padding: 0" />
-          <span>{{ $t('util.toolPhpObfuscator') }}</span>
-        </a>
+        <yb-icon :svg="import('@/svg/jiami.svg?raw')" width="30" height="30" style="padding: 0" />
+        <span>{{ $t('util.toolPhpObfuscator') }}</span>
       </li>
       <li @click="showPage('bomClean')">
-        <a class="tool-item">
-          <yb-icon :svg="import('@/svg/BOM.svg?raw')" width="30" height="30" style="padding: 1px" />
-          <span>{{ $t('util.toolUTF8BomClean') }}</span>
-        </a>
+        <yb-icon :svg="import('@/svg/BOM.svg?raw')" width="30" height="30" style="padding: 1px" />
+        <span>{{ $t('util.toolUTF8BomClean') }}</span>
       </li>
       <li @click="showPage('siteSucker')">
-        <a class="tool-item">
-          <yb-icon :svg="import('@/svg/sucker.svg?raw')" width="30" height="30" />
-          <span>{{ $t('util.toolSiteSucker') }}</span>
-        </a>
+        <yb-icon :svg="import('@/svg/sucker.svg?raw')" width="30" height="30" />
+        <span>{{ $t('util.toolSiteSucker') }}</span>
       </li>
     </ul>
     <el-drawer

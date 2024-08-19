@@ -1,8 +1,6 @@
 <template>
-  <div class="app-ai-btn">
-    <el-button circle @click.stop="showChat">
-      <yb-icon :svg="import('@/svg/ai.svg?raw')" width="26" height="26" />
-    </el-button>
+  <div class="app-ai-btn" @click.stop="showChat">
+    <yb-icon :svg="import('@/svg/ai.svg?raw')" width="26" height="26" />
   </div>
   <Chat ref="chat" />
 </template>

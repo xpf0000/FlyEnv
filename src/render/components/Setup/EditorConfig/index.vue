@@ -4,26 +4,18 @@
       <el-form label-width="130px" label-position="left" @submit.prevent>
         <el-form-item :label="$t('util.theme')">
           <el-radio-group v-model="editorConfig.theme">
-            <el-radio-button label="vs-dark">{{ $t('util.edit.vsDark') }}</el-radio-button>
-            <el-radio-button label="vs-light">{{ $t('util.edit.vsLight') }}</el-radio-button>
-            <el-radio-button label="hc-black">{{ $t('util.edit.hcBlack') }}</el-radio-button>
-            <el-radio-button label="hc-light">{{ $t('util.edit.hcLight') }}</el-radio-button>
+            <el-radio-button label="vs-dark" />
+            <el-radio-button label="vs-light" />
+            <el-radio-button label="hc-black" />
+            <el-radio-button label="hc-light" />
             <el-radio-button label="auto">{{ $t('util.auto') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="$t('util.fontSize')">
-          <el-input
-            v-model.number="editorConfig.fontSize"
-            type="number"
-            style="width: 80px"
-          ></el-input>
+          <el-input v-model.number="editorConfig.fontSize" type="number"></el-input>
         </el-form-item>
         <el-form-item :label="$t('util.lineHeight')">
-          <el-input
-            v-model.number="editorConfig.lineHeight"
-            type="number"
-            style="width: 80px"
-          ></el-input>
+          <el-input v-model.number="editorConfig.lineHeight" type="number"></el-input>
         </el-form-item>
       </el-form>
     </div>

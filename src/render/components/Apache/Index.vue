@@ -9,8 +9,8 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="apache" title="Apache"></Service>
-      <Config v-else-if="current_tab === 1"></Config>
-      <Manager v-else-if="current_tab === 2" type-flag="apache"></Manager>
+      <Manager v-else-if="current_tab === 1" type-flag="apache"></Manager>
+      <Config v-else-if="current_tab === 2"></Config>
       <Logs v-else-if="current_tab === 3" type="error_log"></Logs>
       <Logs v-else-if="current_tab === 4" type="access_log"></Logs>
     </div>
@@ -40,8 +40,8 @@
         current_tab,
         tabs: [
           this.$t('base.service'),
-          this.$t('base.configFile'),
           this.$t('base.versionManager'),
+          this.$t('base.configFile'),
           this.$t('base.errorLog'),
           this.$t('base.log')
         ]
@@ -55,7 +55,7 @@
     watch: {},
     created: function () {
       if (!this.version) {
-        this.current_tab = 2
+        this.current_tab = 1
       }
     }
   })

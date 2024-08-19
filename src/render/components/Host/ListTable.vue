@@ -1,7 +1,13 @@
 <template>
   <div ref="hostList" class="host-list">
     <el-card :header="null">
-      <el-table v-loading="loading" :data="hosts" row-key="id" default-expand-all>
+      <el-table
+        v-loading="loading"
+        :data="hosts"
+        row-key="id"
+        default-expand-all
+        :row-class-name="tableRowClassName"
+      >
         <el-table-column :label="$t('host.name')">
           <template #header>
             <div class="w-p100 name-cell">
@@ -125,11 +131,10 @@
                       <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ $t('base.log') }}</span>
                     </li>
-                    <li>
+                    <li @click.stop="showSort($event, scope.row.id)">
                       <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ $t('host.sort') }}</span>
                     </li>
-                    <Sort :host-id="scope.row.id" />
                     <li @click.stop="action(scope.row, scope.$index, 'del')">
                       <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ $t('base.del') }}</span>
@@ -171,7 +176,6 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'
-  import Sort from './Sort/index.vue'
 
   const { shell } = require('@electron/remote')
 
@@ -276,6 +280,16 @@
     })
   })
 
+  const tableRowClassName = ({ row }: { row: AppHost }) => {
+    if (row?.isSorting) {
+      return 'is-sorting'
+    }
+    if (row?.isTop) {
+      return 'is-top'
+    }
+    return ''
+  }
+
   const versionText = (v?: number) => {
     if (typeof v === 'number') {
       return `${(v / 10.0).toFixed(1)}`
@@ -375,6 +389,23 @@
           .catch(() => {})
         break
     }
+  }
+
+  let SortVM: any
+  import('./Sort/index.vue').then((res) => {
+    SortVM = res.default
+  })
+
+  const showSort = (event: MouseEvent, id: string) => {
+    let dom: HTMLElement = event.target as any
+    while (dom.tagName.toUpperCase() !== 'LI' && dom.parentElement && dom.parentElement !== dom) {
+      dom = dom.parentElement
+    }
+    const rect = dom.getBoundingClientRect()
+    AsyncComponentShow(SortVM, {
+      hostId: id,
+      rect
+    }).then()
   }
 
   const showConfig = (item: any) => {

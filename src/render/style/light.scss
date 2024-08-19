@@ -1,28 +1,20 @@
 html.light {
-  --main-bg-color: #fff;
-  --bg-secondary: #fafafa;
-  --bg-primary-hover: #eff0f0;
-  --grey-7: #8a8f8d;
-  --grey-9: #262626;
+  --main-bg-color: #f1f2f3;
+  --base-bg-color: rgba(51, 68, 85, 0.35);
+  --base-bg-color-2: rgba(51, 68, 85, 0.2);
+  --base-bg-color-1: rgba(51, 68, 85, 0.15);
 
   #app {
-    background: var(--main-bg-color);
+    background: #fff;
 
     #container {
-      background: var(--main-bg-color);
+      background: #fff;
 
       .aside {
-        background: var(--bg-secondary);
-        border-right: 1px solid rgba(0, 0, 0, 0.04);
-        color: var(--grey-9);
+        background: var(--main-bg-color);
+        color: #345;
 
         .top-tool {
-          li {
-            &:hover {
-              background-color: var(--bg-primary-hover);
-            }
-          }
-
           svg {
             &:hover {
               color: #fdab1f;
@@ -37,73 +29,62 @@ html.light {
             padding: 0 15px;
             border-radius: 6px;
 
-            &:not(:last-child) {
-              margin: 5px 0;
-            }
-
             &:hover {
-              background-color: var(--bg-primary-hover);
+              background-color: var(--base-bg-color-2);
               backdrop-filter: blur(5px);
             }
 
             &.active {
-              background-color: var(--bg-primary-hover);
+              background-color: var(--base-bg-color);
               backdrop-filter: blur(5px);
 
-              .left {
-                .title {
-                  color: var(--grey-9);
-                }
+              svg {
+                color: #fff;
               }
             }
           }
 
           svg {
-            color: var(--grey-9);
+            color: #345;
           }
 
           &::-webkit-scrollbar-thumb {
-            border-radius: 6px;
-            border: 2px solid transparent;
-            background-clip: content-box;
-            background-color: var(--bg-secondary-1);
+            background-color: var(--base-bg-color-1);
           }
         }
 
         .setup-menu {
           border: none;
-          padding: 8px 19px 8px 12px;
+          padding: 0 19px 8px 12px;
 
           >li {
             padding: 0 15px;
             border-radius: 6px;
 
             &:hover {
-              background-color: var(--bg-primary-hover);
+              background-color: var(--base-bg-color-2);
               backdrop-filter: blur(5px);
             }
 
             &.active {
-              background-color: var(--bg-primary-hover);
+              background-color: var(--base-bg-color);
               backdrop-filter: blur(5px);
 
-              .left {
-                .title {
-                  color: var(--grey-9);
-                }
+              svg {
+                color: #fff;
               }
             }
           }
 
           svg {
-            color: var(--grey-9);
+            color: #345;
           }
         }
       }
 
       .main-right-panel {
         background: var(--main-bg-color);
-        color: var(--grey-9);
+        color: #345;
 
         > .top-tab {
           .el-button-group>.el-button:not(:last-child) {
@@ -111,40 +92,54 @@ html.light {
           }
 
           >li {
-            align-items: center;
-            /* height: 55px; */
-            /* min-width: 259px; */
-            margin-right: 12px;
-            display: flex;
-            border: 1px solid #e7e9e8;
-            border-radius: 8px;
-            cursor: pointer;
-            position: relative;
-            font-weight: 500;
-            font-size: 14px;
-            color: var(--grey-7);
-
             &:not(.no-hover):hover {
-              background-color: var(--bg-secondary);
+              background-color: var(--base-bg-color-2);
               backdrop-filter: blur(5px);
             }
             &.active {
-              background: var(--bg-primary-hover);
+              background: var(--base-bg-color);
               backdrop-filter: blur(5px);
-              color: var(--grey-9);
+              color: #fff;
+            }
+          }
+        }
+
+        >.host-list {
+          .el-table__header {
+            thead {
+              tr {
+                background: #fff;
+                th.el-table__cell {
+                  background: #fff;
+                }
+              }
+            }
+          }
+
+          .el-table {
+            .is-top {
+              --el-table-tr-bg-color: var(--el-color-info-light-9);
+            }
+
+            .is-sorting {
+              --el-table-tr-bg-color: #f8f8f8;
+              filter: drop-shadow(0 0 5px rgba(120,120,120,0.5));
+              position: relative;
+              z-index: 1500;
+
+              td.el-table__cell {
+                border: none;
+              }
             }
           }
         }
 
         .php-versions-list {
           &::-webkit-scrollbar-thumb {
-            border-radius: 6px;
-            border: 2px solid transparent;
-            background-clip: content-box;
-            background-color: var(--bg-secondary-1);
+            background-color: var(--base-bg-color-1);
           }
           .http-serve-item {
-            background-color: var(--bg-secondary-1);
+            background-color: var(--base-bg-color-1);
             backdrop-filter: blur(5px);
           }
         }
@@ -152,31 +147,28 @@ html.light {
         >.main-block {
           >.module-config {
             >.block {
-              border: 1px solid var(--bg-primary-hover);
+              border: 1px solid var(--base-bg-color-2);
             }
           }
 
-          >.setup-common {
+          .setup-common {
             &::-webkit-scrollbar-thumb {
-              border-radius: 6px;
-              border: 2px solid transparent;
-              background-clip: content-box;
-              background-color: var(--bg-secondary-1);
+              background-color: var(--base-bg-color-1);
             }
             .main {
-              background: var(--bg-secondary-1);
+              background: var(--base-bg-color-1);
               backdrop-filter: blur(5px);
             }
           }
 
           >.setup-config {
             .main {
-              background: var(--bg-secondary-1);
+              background: var(--base-bg-color-1);
               backdrop-filter: blur(5px);
 
               .path-choose {
                 .input {
-                  color: var(--grey-9);
+                  color: #345;
                   border-bottom: 1px solid rgba(51, 68, 85, 0.4);
 
                   &::-webkit-input-placeholder {
@@ -199,21 +191,17 @@ html.light {
 
         >.http-serve-list {
           &::-webkit-scrollbar-thumb {
-            border-radius: 6px;
-            border: 2px solid transparent;
-            background-clip: content-box;
-            background-color: var(--bg-secondary-1);
+            background-color: var(--base-bg-color-1);
           }
 
           > .empty {
             > .wapper {
-              color: var(--grey-9);
-              background-color: var(--bg-secondary);
+              color: #345;
             }
           }
 
           .http-serve-item {
-            background-color: var(--bg-secondary-1);
+            background-color: var(--base-bg-color-1);
             backdrop-filter: blur(5px);
 
             .left {
@@ -229,7 +217,7 @@ html.light {
                 > .url {
                   color: #409eff;
                   &.empty {
-                    color: var(--grey-9);
+                    color: #345;
                   }
                 }
               }
@@ -239,23 +227,15 @@ html.light {
 
         >.tools-panel {
           > li {
-            background-color: var(--bg-primary-hover);
+            background-color: var(--base-bg-color-1);
             backdrop-filter: blur(5px);
-
-            .tool-item {
-              background: var(--main-bg-color);
-
-              &:hover {
-                box-shadow: 0 6px 30px 5px #0000000d, 0 16px 24px 2px #0000000a, 0 8px 10px -5px #00000014;
-              }
-            }
           }
         }
 
         &.dns-panel {
           .top-tab {
             svg {
-              color: var(--grey-9);
+              color: #345;
             }
           }
         }
@@ -264,17 +244,7 @@ html.light {
   }
 
   .el-table {
-    --el-table-text-color: var(--grey-9);
-
-    .el-table__body {
-      tr {
-        &:hover{
-          >td.el-table__cell{
-          background-color: var(--bg-secondary);
-          }
-        }
-      }
-    }
+    --el-table-text-color: #345;
   }
 
   .el-popover.el-popper.host-list-poper {
@@ -284,7 +254,7 @@ html.light {
     .host-list-menu {
       > li {
         .el-dropdown {
-          color: var(--main-bg-color);
+          color: #fff;
         }
         &:hover {
           background: rgba(51, 68, 85, 0.5);
@@ -305,12 +275,12 @@ html.light {
       .main-wapper {
 
         .main {
-          background: var(--bg-secondary-1);
+          background: var(--base-bg-color-1);
           backdrop-filter: blur(5px);
 
           .input,
           .input-textarea {
-            color: var(--grey-9);
+            color: #345;
             &::-webkit-input-placeholder {
               color: rgba(51, 68, 85, 0.7);
             }
@@ -365,7 +335,7 @@ html.light {
   }
 
   .el-drawer .el-drawer__body {
-    background: var(--main-bg-color) !important;
+    background: #fff !important;
     padding: 0 !important;
 
     .host-vhost {
@@ -377,22 +347,22 @@ html.light {
       }
 
       .main-wapper {
-        background: var(--main-bg-color);
+        background: #fff;
       }
     }
 
     .host-edit {
-      background: var(--main-bg-color);
+      background: #fff;
 
       .nav {
         background: var(--main-bg-color);
       }
 
       .main-wapper {
-        color: var(--grey-9);
+        color: #345;
 
         .main {
-          background: var(--bg-secondary-1);
+          background: var(--base-bg-color-1);
           backdrop-filter: blur(5px);
         }
 
@@ -407,7 +377,7 @@ html.light {
 
         .input,
         .input-textarea {
-          color: var(--grey-9);
+          color: #345;
           &::-webkit-input-placeholder {
             color: rgba(51, 68, 85, 0.7);
           }
@@ -449,28 +419,28 @@ html.light {
 
       &.json-parse {
         .main {
-          background: var(--main-bg-color);
+          background: #fff;
         }
       }
     }
 
     .host-logs {
-      background: var(--main-bg-color);
+      background: #fff;
       > .top-tab {
         > li {
           &:hover {
-            background: var(--bg-primary-hover);
+            background: var(--base-bg-color-2);
             backdrop-filter: blur(5px);
           }
           &.active {
-            background: var(--bg-primary-hover);
+            background: var(--base-bg-color);
             backdrop-filter: blur(5px);
-            color: var(--main-bg-color);
+            color: #fff;
           }
         }
       }
       > .block {
-        border: 1px solid var(--bg-primary-hover);
+        border: 1px solid var(--base-bg-color-2);
       }
     }
 
@@ -479,7 +449,7 @@ html.light {
         .select-dir-wapper {
           #selectDir {
             border: 2px dashed #ccc;
-            color: var(--grey-9);
+            color: #345;
           }
         }
       }
@@ -494,46 +464,26 @@ html.light {
 
   .app-chat {
     .nav {
-      background: var(--main-bg-color);
+      background: #fff;
     }
   }
   .app-ai-tool {
-    background: var(--main-bg-color);
-  }
-
-  .app-ai-btn{
-    background: rgba(238, 238, 238, 0.6);
-
-    &:hover {
-      border-radius: 32px;
-      padding: 1px;
-      background: linear-gradient(135deg, rgba(0,0,0,0.06), rgba(0,0,0,0.06), rgba(0,0,0,0.06), #006cfc, #05c4f4, #7ee94c);
-      background-size: 400%;
-    }
+    background: #fff;
   }
 
   .tools-system-env {
     .main-wapper {
 
       >.file {
-        background: var(--bg-secondary-1);
+        background: var(--base-bg-color-1);
       }
     }
   }
 
   .app-el-message {
     &::-webkit-scrollbar-thumb {
-      border-radius: 6px;
-      border: 2px solid transparent;
-      background-clip: content-box;
-      background-color: var(--bg-secondary-1);
+      background-color: var(--base-bg-color-1);
     }
-  }
-}
-
-.editor-config {
-  .editor-wapper {
-    border: 1px solid var(--bg-primary-hover);
   }
 }
 
@@ -542,16 +492,11 @@ html.light {
     #app {
       #container {
         .aside {
-          width: 60px;
+          width: 45px;
 
           .top-tool {
             padding: 50px 0 12px 0;
             justify-content: center;
-            border-bottom: 1px solid hsla(100%,100%,0,0.12);
-
-            .title {
-              display: none;
-            }
 
             >.el-tooltip__trigger {
               display: none;
@@ -559,7 +504,7 @@ html.light {
           }
 
           .menu {
-            padding: 8px 13.5px;
+            padding: 0;
 
             &::-webkit-scrollbar {
               display: none;
@@ -567,13 +512,7 @@ html.light {
 
             >li {
               padding: 0;
-              // border-radius: 0;
-              line-height: 32px;
-              height: 32px;
-              border-radius: 6px;
-              width: 100%;
-              display: block;
-              margin: 0 0 6px;
+              border-radius: 0;
 
               >.left {
                 justify-content: space-between;

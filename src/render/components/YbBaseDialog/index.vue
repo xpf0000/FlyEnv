@@ -69,7 +69,9 @@
       this.isShow = this.show
     },
     beforeCreate() {},
-    unmounted() {},
+    unmounted() {
+      console.log('dialog unmounted !!!')
+    },
     mounted() {
       if (!this.component) {
         return
@@ -84,8 +86,6 @@
     methods: {
       closed() {
         this.callBack = null
-        this.$el.remove()
-        this.$el = null
         this.vmInstance = null
         this.vm && this.vm.unmount()
         this.vm = null

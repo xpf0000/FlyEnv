@@ -51,8 +51,8 @@
           <p>{{ $t('host.hostsWriteTips') }}</p>
         </template>
       </el-popover>
-      <li class="no-hover" style="width: auto; padding: 0 15px;" @click="openHosts">
-        {{ $t('base.openHosts') }}
+      <li class="no-hover" style="width: auto; padding: 0 15px; margin-right: 10px">
+        <el-button @click="openHosts">{{ $t('base.openHosts') }}</el-button>
       </li>
     </ul>
     <List></List>

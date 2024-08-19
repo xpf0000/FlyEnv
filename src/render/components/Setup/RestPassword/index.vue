@@ -1,17 +1,5 @@
 <template>
-  <el-form-item :label="$t('base.resetPassword')" label-position="left" label-width="110">
-    <el-space wrap>
-      <el-input
-        v-model="password"
-        type="password"
-        show-password
-        placeholder="Please input password"
-        style="width: 255px"
-      />
-    </el-space>
-  </el-form-item>
-
-  <!-- <div class="plant-title">{{ $t('base.resetPassword') }}</div>
+  <div class="plant-title">{{ $t('base.resetPassword') }}</div>
   <div class="main reset-pass">
     <el-input
       v-if="show"
@@ -36,27 +24,66 @@
         <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" :width="15" :height="15"></yb-icon>
       </el-button>
     </el-button-group>
-  </div> -->
+  </div>
 </template>
 
-<script lang="ts" setup>
-  import { computed, watch } from 'vue'
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import IPC from '@/util/IPC'
+  import { ElMessageBox } from 'element-plus'
   import { AppStore } from '@/store/app'
-
-  const store = AppStore()
-
-  watch(
-    () => store.config.password,
-    () => {
-      store.saveConfig()
+  import { MessageSuccess } from '@/util/Element'
+  export default defineComponent({
+    components: {},
+    props: {},
+    data() {
+      return {
+        show: false
+      }
     },
-    { deep: true }
-  )
-
-  const password = computed({
-    get: () => store.config.password,
-    set: (v) => {
-      store.config.password = v
+    computed: {
+      password() {
+        return AppStore().config.password
+      }
+    },
+    methods: {
+      resetPassword() {
+        ElMessageBox.prompt(this.$t('base.inputPassword'), {
+          confirmButtonText: this.$t('base.confirm'),
+          cancelButtonText: this.$t('base.cancel'),
+          inputType: 'password',
+          customClass: 'password-prompt',
+          beforeClose: (action, instance, done) => {
+            if (action === 'confirm') {
+              // 去除trim, 有些电脑的密码是空格...
+              if (instance.inputValue) {
+                IPC.send('app:password-check', instance.inputValue).then(
+                  (key: string, res: any) => {
+                    IPC.off(key)
+                    if (res === false) {
+                      instance.editorErrorMessage = this.$t('base.passwordError')
+                    } else {
+                      global.Server.Password = res
+                      AppStore()
+                        .initConfig()
+                        .then(() => {
+                          done && done()
+                          MessageSuccess(this.$t('base.success'))
+                        })
+                    }
+                  }
+                )
+              }
+            } else {
+              done()
+            }
+          }
+        })
+          .then(() => {})
+          .catch((err) => {
+            console.log('err: ', err)
+          })
+      }
     }
   })
 </script>

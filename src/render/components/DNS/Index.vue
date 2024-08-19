@@ -1,22 +1,6 @@
 <template>
   <div class="dns-panel main-right-panel">
-    <ul class="top-tab" :class="{ running: running }">
-      <li class="active">
-        <span class="title">DNS IP: </span>
-        <span class="ip"> {{ ip }}</span>
-        <el-popover popper-class="dns-tips-popper" :show-after="800" width="auto">
-          <template #default>
-            <div>
-              {{ $t('host.dnsInfo', { ip: `@${ip}` }) }}
-            </div>
-          </template>
-          <template #reference>
-            <yb-icon :svg="import('@/svg/question.svg?raw')" width="14" height="14" />
-          </template>
-        </el-popover>
-      </li>
-    </ul>
-    <!-- <div class="top-tab" :class="{ running: running }">
+    <div class="top-tab" :class="{ running: running }">
       <span class="title">DNS IP: </span>
       <span class="ip"> {{ ip }}</span>
       <el-popover popper-class="dns-tips-popper" :show-after="800" width="auto">
@@ -29,7 +13,7 @@
           <yb-icon :svg="import('@/svg/question.svg?raw')" width="17" height="17" />
         </template>
       </el-popover>
-    </div> -->
+    </div>
     <div class="main-block">
       <el-card>
         <template #header>
