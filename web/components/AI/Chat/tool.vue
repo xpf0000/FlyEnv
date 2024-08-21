@@ -8,7 +8,7 @@
       popper-class="app-ai-tool-suggest-popper"
       :fetch-suggestions="querySearch"
     ></el-autocomplete>
-    <el-button round :icon="ChatLineRound"></el-button>
+    <el-button round :icon="ChatLineRound" @click.stop="submit"></el-button>
   </div>
 </template>
 
@@ -215,14 +215,20 @@
     }
   }
 
+  const submit = () => {
+    keyEvent({
+      key: 'Enter'
+    } as any)
+  }
+
   onMounted(() => {
     const dom: HTMLElement = input?.value as any
-    const textarea: HTMLTextAreaElement = dom?.querySelector('textarea') as any
+    const textarea: HTMLTextAreaElement = dom?.querySelector('input') as any
     textarea?.addEventListener('keydown', keyEvent)
   })
   onBeforeUnmount(() => {
     const dom: HTMLElement = input?.value as any
-    const textarea: HTMLTextAreaElement = dom?.querySelector('textarea') as any
+    const textarea: HTMLTextAreaElement = dom?.querySelector('input') as any
     textarea?.removeEventListener('keydown', keyEvent)
   })
 
