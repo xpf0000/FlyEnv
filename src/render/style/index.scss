@@ -162,7 +162,7 @@ body {
   width: max-content !important;
   max-width: 70vw;
   max-height: 70vh;
-  overflow: auto;
+  overflow: hidden;
   align-items: start;
 
   .el-message__icon,
@@ -177,6 +177,7 @@ body {
     user-select: text;
     word-break: break-word;
     overflow: auto;
+    max-height: calc(70vh - 30px);
   }
 }
 .dns-panel {
@@ -773,6 +774,30 @@ body {
       align-items: center;
       padding: 8px 15px;
       cursor: pointer;
+
+      .el-button {
+        --el-button-text-color: #fff;
+        --el-fill-color-light: rgba(0,0,0,0);
+        --el-mask-color-extra-light: rgba(0,0,0,0);
+        height: 20px;
+        padding: 0;
+        pointer-events: none;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 10px;
+
+        &.el-button--success {
+          .el-icon {
+            color: #01cc74;
+          }
+        }
+
+        &.noinstalled {
+          .el-icon {
+            opacity: 0;
+          }
+        }
+      }
     }
   }
 }

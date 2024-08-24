@@ -1,16 +1,9 @@
 #!/bin/zsh
-## Macports 路径替换为自己的
-export PGROOT="/opt/local/lib/postgresql14"
-export PATH="/opt/local/lib/postgresql14/bin:$PATH"
-## Homebrew 路径替换为自己的
-#export PGROOT="/usr/local/Cellar/postgresql@16/16.3"
-#export PATH="/usr/local/Cellar/postgresql@16/16.3/bin:$PATH"
-echo "$PGROOT"
-echo "$PATH"
+export PATH="##BIN_PATH##:$PATH"
 cd /tmp
-sudo rm -rf pgvector
-git clone --branch v0.7.4 https://github.com/pgvector/pgvector.git
+echo "##PASSWORD##" | sudo -S rm -rf pgvector
+git clone --branch ##BRANCH## https://github.com/pgvector/pgvector.git
 cd pgvector
-sudo make
-sudo make install
-sudo rm -rf pgvector
+echo "##PASSWORD##" | sudo -S make
+echo "##PASSWORD##" | sudo -S make install
+echo "##PASSWORD##" | sudo -S rm -rf pgvector

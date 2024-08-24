@@ -163,6 +163,13 @@
           </template>
         </template>
       </el-table-column>
+      <template v-if="typeFlag === 'postgresql'">
+        <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
+          <template #default="scope">
+            <PGSQL :item="scope.row" />
+          </template>
+        </el-table-column>
+      </template>
     </el-table>
   </el-card>
 </template>
@@ -179,6 +186,7 @@
   import installedVersions from '@/util/InstalledVersions'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import PGSQL from './Pgsql/index.vue'
 
   const { shell } = require('@electron/remote')
 

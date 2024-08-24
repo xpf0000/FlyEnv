@@ -143,6 +143,7 @@
       | 'php'
       | 'mongodb'
       | 'pure-ftpd'
+      | 'postgresql'
   }>()
 
   const showNextBtn = ref(false)

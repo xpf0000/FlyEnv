@@ -3,9 +3,11 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
-import { execPromise, waitTime } from '../Fn'
+import { execPromise, spawnPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, unlink } from 'fs-extra'
+import { chmod, copyFile, readFile, unlink, writeFile } from 'fs-extra'
+import axios from 'axios'
+
 class Manager extends Base {
   constructor() {
     super()
@@ -82,6 +84,54 @@ class Manager extends Base {
         await doRun()
       } else {
         reject(new Error(`Data Dir ${dbPath} has exists, but conf file not found in dir`))
+      }
+    })
+  }
+
+  fetchLastedTag() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const url = 'https://api.github.com/repos/pgvector/pgvector/tags?page=1&per_page=1'
+        const res = await axios({
+          url,
+          method: 'get',
+          proxy: this.getAxiosProxy()
+        })
+        const html = res.data
+        let arr: any
+        try {
+          if (typeof html === 'string') {
+            arr = JSON.parse(html)
+          } else {
+            arr = html
+          }
+        } catch (e) {}
+        resolve(arr?.[0]?.name)
+      } catch (e) {
+        resolve('v0.7.4')
+      }
+    })
+  }
+
+  installPgvector(version: SoftInstalled, tag: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const sh = join(global.Server.Static!, 'sh/pgsql-pgvector.sh')
+      const copyfile = join(global.Server.Cache!, 'pgsql-pgvector.sh')
+      if (existsSync(copyfile)) {
+        await unlink(copyfile)
+      }
+      let content = await readFile(sh, 'utf-8')
+      content = content
+        .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password!)
+        .replace('##BIN_PATH##', dirname(version.bin))
+        .replace('##BRANCH##', tag)
+      await writeFile(copyfile, content)
+      await chmod(copyfile, '0777')
+      const params = [copyfile]
+      try {
+        spawnPromise('zsh', params).then(resolve).catch(reject)
+      } catch (e) {
+        reject(e)
       }
     })
   }
