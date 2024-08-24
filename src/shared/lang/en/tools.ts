@@ -9,5 +9,7 @@ export default {
     'Detected that the network is using a proxy, is PhpWebStudy set to use this proxy?',
   systemProxyUsed:
     'Setting successful. If you want to modify it, please do so in Settings->Proxy Settings.',
-  windowCount: 'Window Count'
+  windowCount: 'Window Count',
+  phpPlayground: 'PHP Playground',
+  raw: 'Raw'
 }

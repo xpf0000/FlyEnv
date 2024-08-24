@@ -1,6 +1,10 @@
 <template>
   <div class="main-right-panel">
     <ul class="tools-panel">
+      <li @click="showPage('phpPlayground')">
+        <yb-icon :svg="import('@/svg/php-icon.svg?raw')" width="30" height="30" />
+        <span>{{ $t('tools.phpPlayground') }}</span>
+      </li>
       <li @click="showPage('json')">
         <yb-icon :svg="import('@/svg/json1.svg?raw')" width="30" height="30" />
         <span>{{ $t('tools.jsonParseTitle') }}</span>
@@ -87,6 +91,12 @@
         this.width = '75%'
         this.show = true
         switch (flag) {
+          case 'phpPlayground':
+            this.width = '90%'
+            this.component = markRaw(
+              defineAsyncComponent(() => import('./PHPPlayground/Index.vue'))
+            )
+            break
           case 'json':
             this.width = '90%'
             this.component = markRaw(defineAsyncComponent(() => import('./Json/Index.vue')))
