@@ -72,11 +72,7 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 
 [https://www.macphpstudy.com](https://www.macphpstudy.com)
 
-[Documentation](https://www.macphpstudy.com/help-0-1.html)
-
 [https://www.phpwebstudy.com](https://www.phpwebstudy.com)
-
-[Documentation](https://www.phpwebstudy.com/help-0-1.html)
 
 [Discord Community:](https://discord.gg/E6vZDgm9) https://discord.gg/E6vZDgm9
 
