@@ -44,7 +44,7 @@ class Manager extends Base {
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-port = 3307
+port = 3306
 datadir=${dataDir}`
         await writeFile(m, conf)
       }
