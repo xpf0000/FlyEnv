@@ -19,6 +19,16 @@ class Manager extends Base {
     error?: string
   }> {
     return new ForkPromise(async (resolve) => {
+      console.log('binVersion: ', bin, name)
+      if (name === 'composer.phar') {
+        if (bin.includes(global.Server.AppDir!)) {
+          const version = basename(dirname(bin)).replace('composer-', '')
+          resolve({
+            version
+          })
+        }
+        return
+      }
       if (name === 'pure-ftpd') {
         resolve({
           version: '1.0'
@@ -116,7 +126,8 @@ class Manager extends Base {
         redis: 'redis-server.exe',
         mongodb: 'mongod.exe',
         'pure-ftpd': 'pure-ftpd',
-        postgresql: 'pg_ctl.exe'
+        postgresql: 'pg_ctl.exe',
+        composer: 'composer.phar'
       }
       const fetchVersion = async (flag: string) => {
         return new ForkPromise(async (resolve) => {
@@ -260,7 +271,8 @@ class Manager extends Base {
           memcached: 'memcached.exe',
           mongodb: 'bin/mongod.exe',
           postgresql: 'bin/pg_ctl.exe',
-          mariadb: 'bin/mariadbd.exe'
+          mariadb: 'bin/mariadbd.exe',
+          composer: 'composer.phar'
         }
 
         for (const type of flag) {
@@ -293,7 +305,7 @@ class Manager extends Base {
             }
           ]
         }
-        
+
         for (const type of flag) {
           const arr: Array<SoftInstalled> = []
           versions[type].forEach((f) => {

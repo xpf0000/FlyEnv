@@ -11,8 +11,8 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="caddy" title="Caddy"></Service>
-      <Config v-else-if="current_tab === 1"></Config>
-      <Manager v-else-if="current_tab === 2" url="https://github.com/caddyserver/caddy/releases" title="Caddy" type-flag="caddy"></Manager>
+      <Manager v-else-if="current_tab === 1" url="https://github.com/caddyserver/caddy/releases" title="Caddy" type-flag="caddy"></Manager>
+      <Config v-else-if="current_tab === 2"></Config>
       <Logs v-else-if="current_tab === 3"></Logs>
     </div>
   </div>
@@ -40,9 +40,9 @@
       return {
         current_tab,
         tabs: [
-          this.$t('base.service'),
-          this.$t('base.configFile'),
+          this.$t('base.service'),          
           this.$t('base.versionManager'), 
+          this.$t('base.configFile'),
           this.$t('base.log')
         ]
       }

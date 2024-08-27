@@ -143,6 +143,16 @@ html.dark {
       }
     }
   }
+
+  .el-popover.el-popper.host-sort-poper {
+    background: #3f4358;
+    color: #fff;
+
+    .el-slider__runway {
+      background: #e4e7ed;
+    }
+  }
+
   .el-dialog {
     &.host-link-dialog {
       background: #1d2033;
@@ -244,7 +254,7 @@ html.dark {
         }
       }
 
-      >.setup-common {
+      .setup-common {
         .main {
           background: #32364a;
         }
@@ -313,6 +323,25 @@ html.dark {
     >.tools-panel {
       > li {
         background: #32364a;
+      }
+    }
+
+    >.host-list {
+      .el-table {
+        .is-top {
+          --el-table-tr-bg-color: var(--el-color-info-light-9);
+        }
+
+        .is-sorting {
+          --el-table-tr-bg-color: #32364a;
+          filter: drop-shadow(0 0 5px rgba(60,60,60,0.5));
+          position: relative;
+          z-index: 1500;
+
+          td.el-table__cell {
+            border: none;
+          }
+        }
       }
     }
   }

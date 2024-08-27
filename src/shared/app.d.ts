@@ -17,6 +17,8 @@ export interface SoftInstalled {
 
 export interface AppHost {
   id: number
+  isTop?: boolean
+  isSorting?: boolean
   name: string
   alias: string
   useSSL: boolean

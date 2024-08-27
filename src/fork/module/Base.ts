@@ -54,7 +54,7 @@ export class Base {
       if (!version?.version) {
         reject(new Error(I18nT('fork.versionNoFound')))
         return
-      }    
+      }
       try {
         await this._stopServer(version)
         await this._startServer(version).on(on)
@@ -78,7 +78,7 @@ export class Base {
       if (!version?.version) {
         reject(new Error(I18nT('fork.versionNoFound')))
         return
-      }     
+      }
       try {
         await this._stopServer(version)
         await this._startServer(version).on(on)

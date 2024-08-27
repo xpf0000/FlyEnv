@@ -42,5 +42,7 @@ export default {
 
   enable: '开启',
 
-  hostsWriteTips: '开启或关闭全部站点'
+  hostsWriteTips: '开启或关闭全部站点',
+
+   sort: '排序'
 }

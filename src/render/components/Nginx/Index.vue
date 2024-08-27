@@ -11,8 +11,8 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="nginx" title="Nginx"></Service>
-      <Config v-if="current_tab === 1"></Config>
-      <Manager v-if="current_tab === 2" url="https://nginx.org/en/download.html" title="Nginx" type-flag="nginx"></Manager>
+      <Manager v-if="current_tab === 1" url="https://nginx.org/en/download.html" title="Nginx" type-flag="nginx"></Manager>
+      <Config v-if="current_tab === 2"></Config>
       <Logs v-if="current_tab === 3" type="error"></Logs>
       <Logs v-if="current_tab === 4" type="access"></Logs>
     </div>
@@ -42,8 +42,8 @@
         current_tab,
         tabs: [
           this.$t('base.service'),
-          this.$t('base.configFile'),
           this.$t('base.versionManager'),
+          this.$t('base.configFile'),
           this.$t('base.errorLog'),
           this.$t('base.log')
         ]

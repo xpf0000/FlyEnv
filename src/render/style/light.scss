@@ -115,6 +115,23 @@ html.light {
               }
             }
           }
+
+          .el-table {
+            .is-top {
+              --el-table-tr-bg-color: var(--el-color-info-light-9);
+            }
+
+            .is-sorting {
+              --el-table-tr-bg-color: #f8f8f8;
+              filter: drop-shadow(0 0 5px rgba(120,120,120,0.5));
+              position: relative;
+              z-index: 1500;
+
+              td.el-table__cell {
+                border: none;
+              }
+            }
+          }
         }
 
         .php-versions-list {
@@ -134,7 +151,7 @@ html.light {
             }
           }
 
-          >.setup-common {
+          .setup-common {
             &::-webkit-scrollbar-thumb {
               background-color: var(--base-bg-color-1);
             }
@@ -245,6 +262,12 @@ html.light {
         }
       }
     }
+  }
+
+  .el-popover.el-popper.host-sort-poper {
+    background: rgba(51, 68, 85, 0.6);
+    backdrop-filter: blur(5px);
+    color: #fff;
   }
 
   .el-dialog {

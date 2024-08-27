@@ -270,8 +270,8 @@ class Php extends Base {
       await this.getIniPath(version)
       if (!existsSync(join(version.path, 'php-cgi-spawner.exe'))) {
         await copyFile(join(global.Server.PhpDir!, 'php-cgi-spawner.exe'), join(version.path, 'php-cgi-spawner.exe'))
-      }    
-    
+      }
+
       process.chdir(dirname(dirname(global.Server.BaseDir!)));
 
       const dir = `PhpWebStudy-Data/app/${basename(version.path)}`

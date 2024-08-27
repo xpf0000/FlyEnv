@@ -112,6 +112,7 @@ export const fetchVerion = (typeFlag: AllAppSofts): Promise<boolean> => {
         return
       }
     }
+    
     IPC.send(`app-fork:${typeFlag}`, 'fetchAllOnLineVersion').then((key: string, res: any) => {
       IPC.off(key)
       if (res.code === 0) {

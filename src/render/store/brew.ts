@@ -24,6 +24,7 @@ export interface OnlineVersionItem {
   url: string
   version: string
   mVersion: string
+  downing?: boolean
 }
 
 export interface AppSoftInstalledItem {
@@ -34,6 +35,7 @@ export interface AppSoftInstalledItem {
 }
 
 interface State {
+  composer: AppSoftInstalledItem
   postgresql: AppSoftInstalledItem
   caddy: AppSoftInstalledItem
   nginx: AppSoftInstalledItem
@@ -60,6 +62,12 @@ const state: State = {
   brewSrc: '',
   log: [],
   LibUse: {},
+  composer: {
+    getListing: false,
+    installedInited: false,
+    installed: [],
+    list: []
+  },
   'pure-ftpd': {
     getListing: false,
     installedInited: false,

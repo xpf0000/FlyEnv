@@ -166,5 +166,7 @@ export default {
   theme: 'Theme',
   themeDark: 'Dark',
   themeLight: 'Light',
-  themeAuto: 'System'
+  themeAuto: 'System',
+
+  addToPath: 'Add To PATH'
 }

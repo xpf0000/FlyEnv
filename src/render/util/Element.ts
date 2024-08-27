@@ -2,16 +2,19 @@ import { ElMessage } from 'element-plus'
 
 export const MessageSuccess = (msg: string) => {
   ElMessage({
-    message: msg,
+    message: `<div class="wapper">${msg}</div>`,
+    dangerouslyUseHTMLString: true,
     type: 'success',
     showClose: true,
+    grouping: true,
     customClass: 'app-el-message'
   })
 }
 
 export const MessageError = (msg: string) => {
   ElMessage({
-    message: msg,
+    message: `<div class="wapper">${msg}</div>`,
+    dangerouslyUseHTMLString: true,
     type: 'error',
     showClose: true,
     customClass: 'app-el-message'

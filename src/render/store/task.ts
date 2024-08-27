@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 
 interface State {
+  composer: {
+    log: Array<string>
+  }
   postgresql: {
     log: Array<string>
   }
@@ -49,6 +52,7 @@ interface State {
 }
 
 const state: State = {
+  composer: { log: [] },
   postgresql: { log: [] },
   apache: { log: [] },
   memcached: { log: [] },

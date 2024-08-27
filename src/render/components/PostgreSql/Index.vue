@@ -6,9 +6,9 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="postgresql" title="PostgreSQL"></Service>
-      <Config v-else-if="current_tab === 1"></Config>
-      <Manager v-else-if="current_tab === 2" url="https://www.enterprisedb.com/downloads/postgres-postgresql-downloads"
+      <Manager v-else-if="current_tab === 1" url="https://www.enterprisedb.com/downloads/postgres-postgresql-downloads"
         title="PostgreSQL" type-flag="postgresql"></Manager>
+      <Config v-else-if="current_tab === 2"></Config>
       <Logs v-else-if="current_tab === 3"></Logs>
     </div>
   </div>
@@ -37,8 +37,8 @@ export default defineComponent({
       current_tab,
       tabs: [
         this.$t('base.service'),
-        this.$t('base.configFile'),
         this.$t('base.versionManager'),
+        this.$t('base.configFile'),
         this.$t('base.log')
       ]
     }

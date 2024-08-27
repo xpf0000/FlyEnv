@@ -445,11 +445,19 @@ class Brew extends Base {
           await remove(tmpDir)
         }
       }
+      const handleComposer = async () => {
+        if (!existsSync(row.appDir)) {
+          await mkdirp(row.appDir)
+        }
+        await copyFile(row.zip, join(row.appDir, 'composer.phar'))
+      }
       if (existsSync(row.zip)) {
         let success = false
         try {
           if (row.type === 'memcached') {
             await handleMemcached()
+          } else if (row.type === 'composer') {
+            await handleComposer()
           } else {
             await zipUnPack(row.zip, row.appDir)
           }
@@ -516,6 +524,8 @@ class Brew extends Base {
               if (existsSync(row.zip)) {
                 if (row.type === 'memcached') {
                   await handleMemcached()
+                } else if (row.type === 'composer') {
+                  await handleComposer()
                 } else {
                   await zipUnPack(row.zip, row.appDir)
                 }

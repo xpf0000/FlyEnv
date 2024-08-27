@@ -14,8 +14,8 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="mysql" title="Mysql"></Service>
-      <Config v-if="current_tab === 1"></Config>
-      <Manager v-if="current_tab === 2" url="https://dev.mysql.com/downloads/mysql/" title="Mysql" type-flag="mysql"></Manager>
+      <Manager v-if="current_tab === 1" url="https://dev.mysql.com/downloads/mysql/" title="Mysql" type-flag="mysql"></Manager>
+      <Config v-if="current_tab === 2"></Config>
       <Logs v-if="current_tab === 3" type="error"></Logs>
       <Logs v-if="current_tab === 4" type="slow"></Logs>
       <Group v-if="current_tab === 5"></Group>
@@ -49,8 +49,8 @@
         current_tab,
         tabs: [
           this.$t('base.service'),
-          this.$t('base.configFile'),
           this.$t('base.versionManager'),
+          this.$t('base.configFile'),
           this.$t('base.log'),
           this.$t('base.slowLog'),
           this.$t('base.group')

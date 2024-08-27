@@ -274,7 +274,8 @@ subjectAltName=@alt_names
           await this.#initTmpl()
           await this._addVhost(host, addApachePort, addApachePortSSL)
           await doPark()
-          hostList.unshift(host)
+          const topList = hostList.filter((h) => !!h?.isTop)
+          hostList.splice(topList.length, 0, host)
           await writeHostFile()
           break
         case 'del':

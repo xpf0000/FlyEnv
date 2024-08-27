@@ -9,8 +9,8 @@
     </ul>
     <div class="main-block">
       <Service v-if="current_tab === 0" type-flag="apache" title="Apache"></Service>
-      <Config v-else-if="current_tab === 1"></Config>
-      <Manager v-if="current_tab === 2" url="https://www.apachelounge.com/download/" title="Apache" type-flag="apache"></Manager>
+      <Manager v-if="current_tab === 1" url="https://www.apachelounge.com/download/" title="Apache" type-flag="apache"></Manager>
+      <Config v-else-if="current_tab === 2"></Config>
       <Logs v-else-if="current_tab === 3" type="error"></Logs>
       <Logs v-else-if="current_tab === 4" type="access"></Logs>
     </div>
@@ -39,9 +39,9 @@
       return {
         current_tab,
         tabs: [
-          this.$t('base.service'),
-          this.$t('base.configFile'),    
+          this.$t('base.service'),    
           this.$t('base.versionManager'), 
+          this.$t('base.configFile'),
           this.$t('base.errorLog'),
           this.$t('base.log')
         ]

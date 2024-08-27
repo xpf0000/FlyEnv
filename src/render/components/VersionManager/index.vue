@@ -85,6 +85,7 @@ const props = defineProps<{
   | 'php'
   | 'mongodb'
   | 'pure-ftpd'
+  | 'composer'
   title: string
   url: string
 }>()

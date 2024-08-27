@@ -5,7 +5,7 @@ import { AppStore } from '@/store/app'
 import { reactive } from 'vue'
 import { isEqual } from 'lodash'
 
-type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd'
+type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd' | 'composer'
 
 class InstalledVersions {
   _cb: Array<Function>

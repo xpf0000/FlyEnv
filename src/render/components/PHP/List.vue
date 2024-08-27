@@ -16,7 +16,7 @@
             Composer
           </el-button>
           <el-button link @click="openUrl('http://pecl.php.net/')">
-            Pecl          
+            Pecl
           </el-button>
         </div>
         <el-button class="button" :disabled="service?.fetching" link @click="resetData">
@@ -85,8 +85,8 @@
       </el-table-column>
       <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
-          <el-popover effect="dark" popper-class="host-list-poper" placement="bottom-end" :show-arrow="false"
-            width="auto">
+          <el-popover @show="onPoperShow" effect="dark" popper-class="host-list-poper" placement="bottom-end"
+            :show-arrow="false" width="auto">
             <ul v-poper-fix class="host-list-menu">
               <li @click.stop="action(scope.row, scope.$index, 'open')">
                 <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
@@ -109,6 +109,11 @@
                   <span class="ml-10">{{ $t('php.groupStartOff') }}</span>
                 </template>
               </li>
+              <li v-loading="pathLoading(scope.row)" class="path-set" :class="pathState(scope.row)"
+                @click.stop="pathChange(scope.row)">
+                <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+                <span class="ml-15">{{ $t('base.addToPath') }}</span>
+              </li>
             </ul>
             <template #reference>
               <el-button link class="status">
@@ -123,7 +128,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, Ref } from 'vue'
 import { startService, stopService } from '@/util/Service'
 import installedVersions from '@/util/InstalledVersions'
 import { BrewStore, SoftInstalled } from '@/store/brew'
@@ -133,9 +138,10 @@ import { AppStore } from '@/store/app'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { Service } from '@/components/ServiceManager/service'
 import { FolderAdd } from '@element-plus/icons-vue'
+import { ServiceActionStore } from '../ServiceManager/EXT/store'
 
 const { shell } = require('@electron/remote')
-const { join } = require('path')
+const { join, dirname } = require('path')
 
 if (!Service.php) {
   Service.php = {
@@ -166,6 +172,26 @@ const init = () => {
   installedVersions.allInstalledVersions(['php']).then(() => {
     initing.value = false
   })
+}
+
+const onPoperShow = () => {
+  ServiceActionStore.fetchPath()
+}
+
+const pathLoading = (item: SoftInstalled) => {
+  return ServiceActionStore.pathSeting?.[item.bin] ?? false
+}
+
+const pathState = (item: SoftInstalled) => {
+  if (ServiceActionStore.allPath.length === 0) {
+    return ''
+  }
+
+  return ServiceActionStore.allPath.includes(dirname(item.bin)) ? 'seted' : 'noset'
+}
+
+const pathChange = (item: SoftInstalled) => {
+  ServiceActionStore.updatePath(item, 'php')
 }
 
 const reinit = () => {

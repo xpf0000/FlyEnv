@@ -117,6 +117,11 @@
           </template>
         </template>
       </el-table-column>
+      <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
+        <template #default="scope">
+          <ExtSet :item="scope.row" :type="typeFlag" />
+        </template>
+      </el-table-column>
     </el-table>
   </el-card>
 </template>
@@ -133,6 +138,7 @@ import { Service } from '@/components/ServiceManager/service'
 import installedVersions from '@/util/InstalledVersions'
 import { FolderAdd } from '@element-plus/icons-vue'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
+import ExtSet from './EXT/index.vue'
 
 const { shell } = require('@electron/remote')
 

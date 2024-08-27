@@ -31,12 +31,12 @@ const exec = (
         console.log('### key: ', key)
         IPC.off(key)
         const brewStore = BrewStore()
-      
+
         const findV = brewStore[typeFlag].installed?.find(
           (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
         )
         console.log('findV: ', findV === version)
-        
+
         version.run = fn !== 'stopService'
         version.running = false
         if (findV) {

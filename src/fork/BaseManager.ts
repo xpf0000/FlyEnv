@@ -21,9 +21,10 @@ import Tool from './module/Tool'
 import MacPorts from './module/MacPorts'
 import Caddy from './module/Caddy'
 import DNS from './module/DNS'
+import Composer from './module/Composer'
 
 class BaseManager {
-  constructor() {}
+  constructor() { }
 
   init() {
     Apache.init()
@@ -89,10 +90,12 @@ class BaseManager {
       func = Caddy.exec(fn, ...commands)
     } else if (module === 'dns') {
       func = DNS.exec(fn, ...commands)
+    } else if (module === 'composer') {
+      func = Composer.exec(fn, ...commands)
     }
     func?.on(onData).then(then).catch(error)
   }
 
-  async destory() {}
+  async destory() { }
 }
 export default BaseManager

@@ -2,12 +2,13 @@ import { createReadStream, readFileSync } from 'fs'
 import { Base } from './Base'
 import { getAllFileAsync, execPromise, uuid, systemProxyGet, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { existsSync, writeFile, copyFile } from 'fs-extra'
+import { existsSync, writeFile, copyFile, readFile, remove } from 'fs-extra'
 import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
 import { join, basename, dirname } from 'path'
 import { I18nT } from '../lang'
 import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
+import type { SoftInstalled } from '@shared/app'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -324,6 +325,80 @@ subjectAltName=@alt_names
         })
       }
       resolve(arr)
+    })
+  }
+
+  fetchPATH() {
+    return new ForkPromise(async (resolve, reject, on) => {
+      const sh = join(global.Server.Static!, 'sh/path.cmd')
+      const copySh = join(global.Server.Cache!, 'path.cmd')
+      if (existsSync(copySh)) {
+        await remove(copySh)
+      }
+      await copyFile(sh, copySh)
+      process.chdir(global.Server.Cache!)
+      try {
+        const res = await execPromiseRoot('path.cmd')
+        const oldPath = Array.from(new Set(res?.stdout?.split(';') ?? [])).filter((s) => !!s.trim())
+        resolve(oldPath)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  updatePATH(item: SoftInstalled, typeFlag: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      let sh = join(global.Server.Static!, 'sh/path.cmd')
+      let copySh = join(global.Server.Cache!, 'path.cmd')
+      if (existsSync(copySh)) {
+        await remove(copySh)
+      }
+      await copyFile(sh, copySh)
+      process.chdir(global.Server.Cache!)
+      let oldPath: string[] = []
+      try {
+        const res = await execPromiseRoot('path.cmd')
+        oldPath = Array.from(new Set(res?.stdout?.split(';') ?? [])).filter((s) => !!s.trim())
+      } catch (e) {
+        reject(e)
+        return
+      }
+      if (oldPath.length === 0) {
+        reject(new Error('Fail'))
+        return
+      }
+      const binDir = dirname(item.bin)
+      const index = oldPath.indexOf(binDir)
+      if (index >= 0) {
+        oldPath.splice(index, 1)
+      } else {
+        const findOtherVersion = oldPath.filter((o) => o.includes(join(global.Server.AppDir!, `${typeFlag}-`)))
+        for (const v of findOtherVersion) {
+          const index = oldPath.findIndex((o) => o === v)
+          if (index >= 0) {
+            oldPath.splice(index, 1)
+          }
+        }
+        oldPath.push(binDir)
+      }
+      oldPath.push('')
+
+      sh = join(global.Server.Static!, 'sh/path-set.cmd')
+      copySh = join(global.Server.Cache!, 'path-set.cmd')
+      if (existsSync(copySh)) {
+        await remove(copySh)
+      }
+      let content = await readFile(sh, 'utf-8')
+      content = content.replace('##NEW_PATH##', oldPath.join(';'))
+      await writeFile(copySh, content)
+      process.chdir(global.Server.Cache!)
+      try {
+        await execPromiseRoot('path-set.cmd')
+        resolve(oldPath)
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 }
