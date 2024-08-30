@@ -5,6 +5,7 @@ import type { SoftInstalled } from '@shared/app'
 import { execPromise, execPromiseRoot, spawnPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, copyFile, unlink, chmod } from 'fs-extra'
+import { zipUnPack } from '@shared/file'
 
 export class Base {
   type: string
@@ -18,6 +19,22 @@ export class Base {
     // @ts-ignore
     const fn: (...args: any) => ForkPromise<any> = this?.[fnName] as any
     return fn.call(this, ...args)
+  }
+
+  initLocalApp(version: SoftInstalled, flag: string) {
+    return new ForkPromise((resolve, reject) => {
+      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
+      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `${flag}-${version.version}`))) {
+        const local7ZFile = join(global.Server.Static!, `zip/${flag}-${version.version}.7z`)
+        if (existsSync(local7ZFile)) {
+          zipUnPack(join(global.Server.Static!, `zip/${flag}-${version.version}.7z`), global.Server.AppDir!)
+            .then(resolve)
+            .catch(reject)
+          return
+        }
+      }
+      resolve(true)
+    })
   }
 
   _startServer(version: SoftInstalled): ForkPromise<any> {

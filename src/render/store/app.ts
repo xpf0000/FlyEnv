@@ -49,6 +49,7 @@ export interface AppServerCurrent {
   num?: number
   enable?: boolean
   run?: boolean
+  isLocal7Z?: boolean
 }
 
 export enum AppSofts {

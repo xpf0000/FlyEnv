@@ -59,7 +59,7 @@
           <template v-if="!scope.row.version">
             <el-popover popper-class="version-error-tips" width="auto" placement="top">
               <template #reference>
-                <span class="path error" @click.stop="openDir(scope.row.path)">{{
+                <span class="path error" @click.stop="openDir(scope.row.path, scope.row)">{{
                   scope.row.path
                 }}</span>
               </template>
@@ -73,7 +73,7 @@
               current:
                 currentVersion?.version === scope.row.version &&
                 currentVersion?.path === scope.row.path
-            }" @click.stop="openDir(scope.row.path)">{{ scope.row.path }}</span>
+            }" @click.stop="openDir(scope.row.path, scope.row)">{{ scope.row.path }}</span>
           </template>
         </template>
       </el-table-column>
@@ -128,19 +128,20 @@
 
 <script lang="ts" setup>
 import { computed, type ComputedRef, reactive } from 'vue'
-import { reloadService, startService, stopService } from '@/util/Service'
+import { reGetInstalled, reloadService, startService, stopService } from '@/util/Service'
 import { type AppHost, AppSofts, AppStore } from '@/store/app'
 import { BrewStore, type SoftInstalled } from '@/store/brew'
 import { I18nT } from '@shared/lang'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { MysqlStore } from '@/store/mysql'
 import { Service } from '@/components/ServiceManager/service'
-import installedVersions from '@/util/InstalledVersions'
 import { FolderAdd } from '@element-plus/icons-vue'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import ExtSet from './EXT/index.vue'
+import IPC from '@/util/IPC'
 
 const { shell } = require('@electron/remote')
+const { existsSync } = require('fs')
 
 const props = defineProps<{
   typeFlag:
@@ -206,19 +207,23 @@ const groupTrunOn = (item: SoftInstalled) => {
 }
 
 const resetData = () => {
-  if (service?.value?.fetching) {
-    return
-  }
-  service.value.fetching = true
-  const data = brewStore[props.typeFlag]
-  data.installedInited = false
-  installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
-    service.value.fetching = false
-  })
+  reGetInstalled(props.typeFlag)
 }
 
-const openDir = (dir: string) => {
-  shell.openPath(dir)
+const openDir = (dir: string, item: SoftInstalled) => {
+  if (existsSync(dir)) {
+    shell.openPath(dir)
+  } else if (item?.isLocal7Z) {
+    IPC.send(`app-fork:${props.typeFlag}`, 'initLocalApp', JSON.parse(JSON.stringify(item)), props.typeFlag)
+      .then((key: string, res: any) => {
+        IPC.off(key)
+        if (existsSync(dir)) {
+          shell.openPath(dir)
+          return
+        }
+        MessageError(res?.msg ?? I18nT('base.fail'))
+      })
+  }
 }
 
 const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: SoftInstalled) => {

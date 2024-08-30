@@ -138,19 +138,6 @@ class Php extends Base {
     })
   }
 
-  #initLocalApp(version: SoftInstalled) {
-    return new Promise((resolve) => {
-      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
-      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `php-${version.version}`))) {
-        zipUnPack(join(global.Server.Static!, `zip/php-${version.version}.7z`), global.Server.AppDir!)
-          .then(resolve)
-          .catch(resolve)
-        return
-      }
-      resolve(true)
-    })
-  }
-
   #initFPM() {
     return new Promise((resolve) => {
       const fpm = join(global.Server.PhpDir!, 'php-cgi-spawner.exe')
@@ -166,7 +153,7 @@ class Php extends Base {
 
   startService(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.#initLocalApp(version)
+      await this.initLocalApp(version, 'php')
       if (!existsSync(version?.bin)) {
         reject(new Error(I18nT('fork.binNoFound')))
         return

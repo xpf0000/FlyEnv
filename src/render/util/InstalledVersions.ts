@@ -50,7 +50,10 @@ class InstalledVersions {
         let needSaveConfig = false
         for (const f in versions) {
           const flag: keyof typeof AppSofts = f as keyof typeof AppSofts
-          let installed = versions[flag]
+          let installed = versions[flag].filter((v) => {
+            return !v?.isLocal7Z || (v?.isLocal7Z && !appStore.config.setup?.excludeLocalVersion?.includes(`${flag}-${v.version}`))
+          })
+          console.log('appStore.config.setup.excludeLocalVersion', appStore.config.setup.excludeLocalVersion)
           const data = brewStore[flag]
           const old = [...data.installed]
           installed = installed.map((item) => {

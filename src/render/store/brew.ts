@@ -13,6 +13,7 @@ export interface SoftInstalled {
   phpConfig?: string
   phpize?: string
   flag?: string
+  isLocal7Z?: boolean
 }
 
 export interface OnlineVersionItem {

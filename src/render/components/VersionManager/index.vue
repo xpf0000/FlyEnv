@@ -69,6 +69,7 @@ import { I18nT } from '@shared/lang'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { Service } from '@/components/ServiceManager/service'
 import installedVersions from '@/util/InstalledVersions'
+import { reGetInstalled } from '@/util/Service'
 
 const { shell } = require('@electron/remote')
 const { removeSync, existsSync } = require('fs-extra')
@@ -128,16 +129,7 @@ const reGetData = () => {
 }
 
 const regetInstalled = () => {
-  const service = Service[props.typeFlag]
-  if (service?.fetching) {
-    return
-  }
-  service.fetching = true
-  const data = brewStore[props.typeFlag]
-  data.installedInited = false
-  installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
-    service.fetching = false
-  })
+  reGetInstalled(props.typeFlag).then()
 }
 
 const handleEdit = (index: number, row: any, installed: boolean) => {

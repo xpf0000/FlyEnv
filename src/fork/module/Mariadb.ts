@@ -6,7 +6,6 @@ import type { SoftInstalled } from '@shared/app'
 import { execPromise, waitTime, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, mkdirp, chmod, unlink, remove } from 'fs-extra'
-import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
 
@@ -18,22 +17,6 @@ class Manager extends Base {
 
   init() {
     this.pidPath = join(global.Server.MariaDBDir!, 'mariadb.pid')
-  }
-
-  #initLocalApp(version: SoftInstalled) {
-    return new Promise((resolve, reject) => {
-      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
-      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `mariadb-${version.version}`))) {
-        zipUnPack(join(global.Server.Static!, `zip/mariadb-${version.version}.7z`), global.Server.AppDir!)
-        .then(resolve)
-        .catch((err: any) => {
-          console.log('initLocalApp err: ', err)
-          reject(err)
-        })
-        return
-      }
-      resolve(true)
-    })
   }
 
   _initPassword(version: SoftInstalled) {
@@ -58,8 +41,6 @@ class Manager extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.#initLocalApp(version)
-
       let bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)

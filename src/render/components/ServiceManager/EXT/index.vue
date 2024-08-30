@@ -6,6 +6,10 @@
                 <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
                 <span class="ml-15">{{ $t('base.addToPath') }}</span>
             </li>
+            <li v-loading="delLoading" @click.stop="doDel">
+                <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
+                <span class="ml-15">{{ $t('base.del') }}</span>
+            </li>
         </ul>
         <template #reference>
             <el-button link class="status">
@@ -30,6 +34,10 @@ const loading = computed(() => {
     return ServiceActionStore.pathSeting?.[props.item.bin] ?? false
 })
 
+const delLoading = computed(() => {
+    return ServiceActionStore.versionDeling?.[props.item.bin] ?? false
+})
+
 const state = computed(() => {
     if (ServiceActionStore.allPath.length === 0) {
         return ''
@@ -51,5 +59,10 @@ const onShow = () => {
 
 const doChange = () => {
     ServiceActionStore.updatePath(props.item, props.type)
+}
+
+const doDel = () => {
+    console.log('doDel: ', props.item, props.type)
+    ServiceActionStore.delVersion(props.item, props.type)
 }
 </script>

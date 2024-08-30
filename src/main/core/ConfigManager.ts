@@ -1,6 +1,5 @@
-import Store from 'electron-store'
+import Store, { Options } from 'electron-store'
 import { AppI18n } from '../lang'
-import type ElectronStore from 'electron-store'
 
 interface ConfigOptions {
   'last-check-update-time': number
@@ -97,14 +96,14 @@ interface ConfigOptions {
 }
 
 export default class ConfigManager {
-  config?: ElectronStore<ConfigOptions>
+  config?: any
 
   constructor() {
     this.initConfig()
   }
 
   initConfig() {
-    const options: ElectronStore.Options<ConfigOptions> = {
+    const options: Options<ConfigOptions> = {
       name: 'user',
       defaults: {
         'last-check-update-time': 0,

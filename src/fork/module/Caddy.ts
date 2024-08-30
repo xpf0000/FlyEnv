@@ -5,7 +5,6 @@ import type { AppHost, SoftInstalled } from '@shared/app'
 import { execPromiseRoot, hostAlias, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
-import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
 
@@ -17,22 +16,6 @@ class Caddy extends Base {
 
   init() {
     this.pidPath = join(global.Server.BaseDir!, 'caddy/caddy.pid')
-  }
-
-  #initLocalApp(version: SoftInstalled) {
-    return new Promise((resolve, reject) => {
-      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
-      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `caddy-${version.version}`))) {
-        zipUnPack(join(global.Server.Static!, `zip/caddy-${version.version}.7z`), global.Server.AppDir!)
-          .then(resolve)
-          .catch((err: any) => {
-            console.log('initLocalApp err: ', err)
-            reject(err)
-          })
-        return
-      }
-      resolve(true)
-    })
   }
 
   initConfig() {
@@ -145,7 +128,7 @@ class Caddy extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.#initLocalApp(version)
+      await this.initLocalApp(version, 'caddy')
       const bin = version.bin
       await this.#fixVHost()
       const iniFile = await this.initConfig()

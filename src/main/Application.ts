@@ -252,7 +252,7 @@ export default class Application extends EventEmitter {
     try {
       let hosts = readFileSync(hostsFile, 'utf-8')
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-      if (x) {
+      if (x && x.length > 0) {
         hosts = hosts.replace(x[0], '')
         writeFileSync(hostsFile, hosts)
       }
@@ -405,13 +405,17 @@ export default class Application extends EventEmitter {
         }
         break
       case 'Application:tray-status-change':
-        this.trayManager.iconChange(args[0])
+        if (args && Array.isArray(args) && args.length > 0) {
+          this.trayManager.iconChange(args[0])
+        }
         break
       case 'application:save-preference':
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)
         break
       case 'APP:Tray-Store-Sync':
-        this.windowManager.sendCommandTo(this.trayWindow!, command, command, args[0])
+        if (args && Array.isArray(args) && args.length > 0) {
+          this.windowManager.sendCommandTo(this.trayWindow!, command, command, args[0])
+        }
         break
       case 'APP:Tray-Command':
         this.windowManager.sendCommandTo(this.mainWindow!, command, command, ...args)
@@ -426,51 +430,55 @@ export default class Application extends EventEmitter {
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)
         break
       case 'app-http-serve-run':
-        const path = args[0]
-        const httpServe = this.httpServes[path]
-        if (httpServe) {
-          httpServe.server.close()
-          delete this.httpServes[path]
+        if (args && Array.isArray(args) && args.length > 0) {
+          const path = args[0]
+          const httpServe = this.httpServes[path]
+          if (httpServe) {
+            httpServe.server.close()
+            delete this.httpServes[path]
+          }
+          const server = Http.createServer((request: Request, response: ServerResponse) => {
+            response.setHeader('Access-Control-Allow-Origin', '*')
+            response.setHeader('Access-Control-Allow-Headers', '*')
+            response.setHeader('Access-Control-Allow-Methods', '*')
+            return ServeHandler(request, response, {
+              public: path
+            })
+          })
+          server.listen(0, () => {
+            console.log('server.address(): ', server.address())
+            const port = server.address().port
+            const host = [`http://localhost:${port}/`]
+            const ip = IP.address()
+            if (ip && typeof ip === 'string' && ip.includes('.')) {
+              host.push(`http://${ip}:${port}/`)
+            }
+            this.httpServes[path] = {
+              server,
+              port,
+              host
+            }
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              path,
+              port,
+              host
+            })
+          })
         }
-        const server = Http.createServer((request: Request, response: ServerResponse) => {
-          response.setHeader('Access-Control-Allow-Origin', '*')
-          response.setHeader('Access-Control-Allow-Headers', '*')
-          response.setHeader('Access-Control-Allow-Methods', '*')
-          return ServeHandler(request, response, {
-            public: path
-          })
-        })
-        server.listen(0, () => {
-          console.log('server.address(): ', server.address())
-          const port = server.address().port
-          const host = [`http://localhost:${port}/`]
-          const ip = IP.address()
-          if (ip && typeof ip === 'string' && ip.includes('.')) {
-            host.push(`http://${ip}:${port}/`)
-          }
-          this.httpServes[path] = {
-            server,
-            port,
-            host
-          }
-          this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-            path,
-            port,
-            host
-          })
-        })
         break
       case 'app-http-serve-stop':
-        const path1 = args[0]
-        const httpServe1 = this.httpServes[path1]
-        console.log('httpServe1: ', httpServe1)
-        if (httpServe1) {
-          httpServe1.server.close()
-          delete this.httpServes[path1]
+        if (args && Array.isArray(args) && args.length > 0) {
+          const path1 = args[0]
+          const httpServe1 = this.httpServes[path1]
+          console.log('httpServe1: ', httpServe1)
+          if (httpServe1) {
+            httpServe1.server.close()
+            delete this.httpServes[path1]
+          }
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+            path: path1
+          })
         }
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-          path: path1
-        })
         break
       case 'NodePty:write':
         break
@@ -480,17 +488,21 @@ export default class Application extends EventEmitter {
         this.exitNodePty()
         break
       case 'app-sitesucker-run':
-        const url = args[0]
-        SiteSuckerManager.show(url)
+        if (args && Array.isArray(args) && args.length > 0) {
+          const url = args[0]
+          SiteSuckerManager.show(url)
+        }
         break
       case 'app-sitesucker-setup':
         const setup = this.configManager.getConfig('tools.siteSucker')
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, setup)
         return
       case 'app-sitesucker-setup-save':
-        this.configManager.setConfig('tools.siteSucker', args[0])
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-        SiteSuckerManager.updateConfig(args[0])
+        if (args && Array.isArray(args) && args.length > 0) {
+          this.configManager.setConfig('tools.siteSucker', args[0])
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+          SiteSuckerManager.updateConfig(args[0])
+        }
         return
     }
   }

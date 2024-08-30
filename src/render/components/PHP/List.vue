@@ -114,6 +114,10 @@
                 <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
                 <span class="ml-15">{{ $t('base.addToPath') }}</span>
               </li>
+              <li v-loading="delLoading(scope.row)" @click.stop="doDel(scope.row)">
+                <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
+                <span class="ml-15">{{ $t('base.del') }}</span>
+              </li>
             </ul>
             <template #reference>
               <el-button link class="status">
@@ -182,12 +186,20 @@ const pathLoading = (item: SoftInstalled) => {
   return ServiceActionStore.pathSeting?.[item.bin] ?? false
 }
 
+const delLoading = (item: SoftInstalled) => {
+  return ServiceActionStore.versionDeling?.[item.bin] ?? false
+}
+
 const pathState = (item: SoftInstalled) => {
   if (ServiceActionStore.allPath.length === 0) {
     return ''
   }
 
   return ServiceActionStore.allPath.includes(dirname(item.bin)) ? 'seted' : 'noset'
+}
+
+const doDel = (item: SoftInstalled) => {
+  ServiceActionStore.delVersion(item, 'php')
 }
 
 const pathChange = (item: SoftInstalled) => {

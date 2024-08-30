@@ -6,7 +6,6 @@ import type { SoftInstalled } from '@shared/app'
 import { execPromiseRoot, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { copyFile, unlink, readFile, writeFile } from 'fs-extra'
-import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
 
@@ -18,23 +17,8 @@ class Manager extends Base {
 
   init() { }
 
-  #initLocalApp(version: SoftInstalled) {
-    return new Promise((resolve) => {
-      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
-      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `postgresql-${version.version}`))) {
-        zipUnPack(join(global.Server.Static!, `zip/postgresql-${version.version}.7z`), global.Server.AppDir!)
-          .then(resolve)
-          .catch(resolve)
-        return
-      }
-      resolve(true)
-    })
-  }
-
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.#initLocalApp(version)
-
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)

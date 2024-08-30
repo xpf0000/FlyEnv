@@ -82,7 +82,6 @@ const checkPassword = () => {
     'memcached',
     'redis',
     'mongodb',
-    'pure-ftpd',
     'postgresql'
   ].filter((f) => dict?.[f] !== false) as Array<keyof typeof AppSofts>
   if (flags.length === 0) {

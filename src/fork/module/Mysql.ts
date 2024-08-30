@@ -6,7 +6,6 @@ import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
 import { execPromise, waitTime, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
-import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
 
@@ -37,25 +36,9 @@ class Mysql extends Base {
     })
   }
 
-  #initLocalApp(version: SoftInstalled) {
-    return new Promise((resolve, reject) => {
-      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
-      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `mysql-${version.version}`))) {
-        zipUnPack(join(global.Server.Static!, `zip/mysql-${version.version}.7z`), global.Server.AppDir!)
-          .then(resolve)
-          .catch((err: any) => {
-            console.log('initLocalApp err: ', err)
-            reject(err)
-          })
-        return
-      }
-      resolve(true)
-    })
-  }
-
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.#initLocalApp(version)
+      await this.initLocalApp(version, 'mysql')     
       let bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
@@ -205,7 +188,7 @@ datadir="${dataDir}"`
 
   startGroupServer(version: MysqlGroupItem) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.#initLocalApp(version.version as any)
+      await this.initLocalApp(version.version as any, 'mysql')   
       await this.stopGroupService(version)
       let bin = version.version.bin
       const id = version?.id ?? ''

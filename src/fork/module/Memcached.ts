@@ -5,7 +5,6 @@ import type { SoftInstalled } from '@shared/app'
 import { execPromiseRoot, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { unlink } from 'fs-extra'
-import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
 
@@ -19,26 +18,8 @@ class Memcached extends Base {
     this.pidPath = join(global.Server.MemcachedDir!, 'memcached.pid')
   }
 
-  #initLocalApp(version: SoftInstalled) {
-    return new Promise((resolve, reject) => {
-      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
-      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `memcached-${version.version}`))) {
-        zipUnPack(join(global.Server.Static!, `zip/memcached-${version.version}.7z`), global.Server.AppDir!)
-          .then(resolve)
-          .catch((err: any) => {
-            console.log('initLocalApp err: ', err)
-            reject(err)
-          })
-        return
-      }
-      resolve(true)
-    })
-  }
-
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.#initLocalApp(version)
-
       const bin = version.bin
       const pid = join(global.Server.MemcachedDir!, 'memcached.pid')
       const log = join(global.Server.MemcachedDir!, 'memcached.log')

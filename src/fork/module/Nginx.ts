@@ -71,22 +71,9 @@ class Nginx extends Base {
     })
   }
 
-  #initLocalApp(version: SoftInstalled) {
-    return new Promise((resolve) => {
-      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
-      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `nginx-${version.version}`))) {
-        zipUnPack(join(global.Server.Static!, `zip/nginx-${version.version}.7z`), global.Server.AppDir!)
-        .then(resolve)
-        .catch(resolve)
-        return
-      }
-      resolve(true)
-    })
-  }
-
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.#initLocalApp(version)
+      await this.initLocalApp(version, 'nginx')   
       await this.#initConfig()
       await this.#handlePhpEnableConf()
       console.log('_startServer: ', version)

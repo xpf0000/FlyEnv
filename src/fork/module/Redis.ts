@@ -5,7 +5,6 @@ import type { SoftInstalled } from '@shared/app'
 import { execPromiseRoot, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, unlink, copyFile } from 'fs-extra'
-import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
 
@@ -17,22 +16,6 @@ class Redis extends Base {
 
   init() {
     this.pidPath = join(global.Server.RedisDir!, 'redis.pid')
-  }
-
-  #initLocalApp(version: SoftInstalled) {
-    return new Promise((resolve, reject) => {
-      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
-      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `redis-${version.version}`))) {
-        zipUnPack(join(global.Server.Static!, `zip/redis-${version.version}.7z`), global.Server.AppDir!)
-          .then(resolve)
-          .catch((err: any) => {
-            console.log('initLocalApp err: ', err)
-            reject(err)
-          })
-        return
-      }
-      resolve(true)
-    })
   }
 
   initConf(version: SoftInstalled) {
@@ -64,7 +47,7 @@ class Redis extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.#initLocalApp(version)
+      await this.initLocalApp(version, 'redis')
       await this._initConf(version)
 
       const v = version?.version?.split('.')?.[0] ?? ''

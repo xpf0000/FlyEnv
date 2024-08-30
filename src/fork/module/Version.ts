@@ -287,23 +287,10 @@ class Manager extends Base {
               enable: true,
               error: undefined,
               run: false,
-              running: false
+              running: false,
+              isLocal7Z: true
             })
           })
-        }
-        if (flag.includes('pure-ftpd')) {
-          versions['pure-ftpd'] = [
-            {
-              version: '1.0',
-              bin: '',
-              path: '',
-              num: 1,
-              enable: true,
-              error: undefined,
-              run: false,
-              running: false
-            }
-          ]
         }
 
         for (const type of flag) {
