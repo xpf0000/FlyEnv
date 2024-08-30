@@ -142,6 +142,7 @@ interface State {
       currentNodeTool: 'fnm' | 'nvm' | ''
       editorConfig: EditorConfig
       phpGroupStart: { [k: string]: boolean }
+      excludeLocalVersion: string[]
     }
   }
   httpServe: Array<string>
@@ -196,6 +197,7 @@ const state: State = {
     password: '',
     showTour: true,
     setup: {
+      excludeLocalVersion: [],
       common: {
         showItem: {
           Hosts: true,
@@ -374,17 +376,20 @@ export const AppStore = defineStore('app', {
       })
     },
     saveConfig() {
-      const args = JSON.parse(
-        JSON.stringify({
-          server: this.config.server,
-          password: this.config.password,
-          setup: this.config.setup,
-          httpServe: this.httpServe,
-          showTour: this.config.showTour
+      return new Promise((resolve) => {
+        const args = JSON.parse(
+          JSON.stringify({
+            server: this.config.server,
+            password: this.config.password,
+            setup: this.config.setup,
+            httpServe: this.httpServe,
+            showTour: this.config.showTour
+          })
+        )
+        IPC.send('application:save-preference', args).then((key: string) => {
+          IPC.off(key)
+          resolve(true)
         })
-      )
-      IPC.send('application:save-preference', args).then((key: string) => {
-        IPC.off(key)
       })
     }
   }
