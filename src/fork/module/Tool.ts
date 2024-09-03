@@ -9,6 +9,7 @@ import { I18nT } from '../lang'
 import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
+import { replace } from 'lodash'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -339,7 +340,10 @@ subjectAltName=@alt_names
       process.chdir(global.Server.Cache!)
       try {
         const res = await execPromiseRoot('path.cmd')
-        const oldPath = Array.from(new Set(res?.stdout?.split(';') ?? [])).filter((s) => !!s.trim())
+        let str = res?.stdout ?? ''
+        str = str.replace(new RegExp(`\n`, 'g'), '')
+        const oldPath = Array.from(new Set(str.split(';') ?? [])).filter((s) => !!s.trim()).map((s) => s.trim())
+        console.log('fetchPATH path: ', str, oldPath)
         resolve(oldPath)
       } catch (e) {
         reject(e)
@@ -359,7 +363,10 @@ subjectAltName=@alt_names
       let oldPath: string[] = []
       try {
         const res = await execPromiseRoot('path.cmd')
-        oldPath = Array.from(new Set(res?.stdout?.split(';') ?? [])).filter((s) => !!s.trim())
+        let str = res?.stdout ?? ''
+        str = str.replace(new RegExp(`\n`, 'g'), '')
+        oldPath = Array.from(new Set(str.split(';') ?? [])).filter((s) => !!s.trim()).map((s) => s.trim())
+        console.log('updatePATH path: ', str, oldPath)
       } catch (e) {
         reject(e)
         return
@@ -368,6 +375,7 @@ subjectAltName=@alt_names
         reject(new Error('Fail'))
         return
       }
+    
       const binDir = dirname(item.bin)
       const index = oldPath.indexOf(binDir)
       if (index >= 0) {
@@ -382,7 +390,22 @@ subjectAltName=@alt_names
         }
         oldPath.push(binDir)
       }
-      oldPath.push('')
+
+      oldPath = oldPath.map((p) => {
+        if (p.includes('%')) {
+          const np = p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
+          return np
+        }
+        return p
+      })
+
+      if (typeFlag === 'composer') {
+        const bat = join(binDir, 'composer.bat')
+        if (!existsSync(bat)) {
+          await writeFile(bat, `@echo off
+php "%~dp0composer.phar" %*`)
+        }
+      }
 
       sh = join(global.Server.Static!, 'sh/path-set.cmd')
       copySh = join(global.Server.Cache!, 'path-set.cmd')
@@ -391,11 +414,61 @@ subjectAltName=@alt_names
       }
       let content = await readFile(sh, 'utf-8')
       content = content.replace('##NEW_PATH##', oldPath.join(';'))
+      console.log('updatePATH: ', content)
       await writeFile(copySh, content)
       process.chdir(global.Server.Cache!)
       try {
         await execPromiseRoot('path-set.cmd')
         resolve(oldPath)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  updatePATHEXT(ext: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      let sh = join(global.Server.Static!, 'sh/pathext.cmd')
+      let copySh = join(global.Server.Cache!, 'pathext.cmd')
+      if (existsSync(copySh)) {
+        await remove(copySh)
+      }
+      await copyFile(sh, copySh)
+      process.chdir(global.Server.Cache!)
+      let old: string[] = []
+      try {
+        const res = await execPromiseRoot('pathext.cmd')
+        let str = res?.stdout ?? ''
+        str = str.replace(new RegExp(`\n`, 'g'), '')
+        old = Array.from(new Set(str.split(';') ?? [])).filter((s) => !!s.trim()).map((s) => s.trim())
+        console.log('updatePATHEXT path: ', str, old)
+      } catch (e) {
+        reject(e)
+        return
+      }
+      if (old.length === 0) {
+        reject(new Error('Fail'))
+        return
+      }
+      ext = ext.toUpperCase()
+      if (old.includes(ext)) {
+        resolve(true)
+        return
+      }
+      old.push(ext)
+      sh = join(global.Server.Static!, 'sh/pathext-set.cmd')
+      copySh = join(global.Server.Cache!, 'pathext-set.cmd')
+      if (existsSync(copySh)) {
+        await remove(copySh)
+      }
+      let content = await readFile(sh, 'utf-8')
+      content = content.replace('##NEW_PATHEXT##', old.join(';'))
+      console.log('updatePATHEXT: ', content)
+      await writeFile(copySh, content)
+      process.chdir(global.Server.Cache!)
+      try {
+        await execPromiseRoot('pathext-set.cmd')
+        resolve(true)
       } catch (e) {
         reject(e)
       }

@@ -3,7 +3,7 @@ import { existsSync, createWriteStream, unlinkSync } from 'fs'
 import { Base } from './Base'
 import { execPromise, spawnPromise, getAllFileAsync } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, unlink, chmod, remove, mkdirp } from 'fs-extra'
+import { copyFile, unlink, chmod, remove, mkdirp, writeFile } from 'fs-extra'
 import axios from 'axios'
 import { zipUnPack } from '@shared/file'
 
@@ -450,6 +450,8 @@ class Brew extends Base {
           await mkdirp(row.appDir)
         }
         await copyFile(row.zip, join(row.appDir, 'composer.phar'))
+        await writeFile(join(row.appDir, 'composer.bat'), `@echo off
+php "%~dp0composer.phar" %*`)
       }
       if (existsSync(row.zip)) {
         let success = false

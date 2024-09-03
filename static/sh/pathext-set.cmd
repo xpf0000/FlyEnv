@@ -1,0 +1,3 @@
+@echo off
+set NEW_PATHEXT=##NEW_PATHEXT##
+setx /M PATHEXT "%NEW_PATHEXT%"
