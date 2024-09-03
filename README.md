@@ -32,7 +32,7 @@ brew install phpwebstudy
 
 ## Windows
 
-[PhpWebStudy-4.2.0-Windows.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.2.0/PhpWebStudy-4.2.0-Windows.zip)
+[PhpWebStudy-4.2.1-Windows.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.2.1/PhpWebStudy-4.2.1-Windows.zip)
 
 ## Linux
 
