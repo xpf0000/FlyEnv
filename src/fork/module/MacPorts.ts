@@ -1,8 +1,8 @@
 import { join } from 'path'
 import { Base } from './Base'
-import { execPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, remove } from 'fs-extra'
+import { execPromiseRoot } from '@shared/Exec'
 class MacPorts extends Base {
   constructor() {
     super()
@@ -27,9 +27,7 @@ class MacPorts extends Base {
         content = content.trim() + '\n' + `${src.url} [default]`
         let cacheFile = join(global.Server.Cache!, 'macports-sources.conf')
         await writeFile(cacheFile, content)
-        await execPromise(
-          `echo '${global.Server.Password}' | sudo -S cp -f ${cacheFile} ${sourcesConf}`
-        )
+        await execPromiseRoot([`cp`, `-f`, cacheFile, sourcesConf])
         await remove(cacheFile)
 
         content = await readFile(macportsConf, 'utf-8')
@@ -54,9 +52,7 @@ class MacPorts extends Base {
         }
         cacheFile = join(global.Server.Cache!, 'macports-macports.conf')
         await writeFile(cacheFile, content)
-        await execPromise(
-          `echo '${global.Server.Password}' | sudo -S cp -f ${cacheFile} ${macportsConf}`
-        )
+        await execPromiseRoot([`cp`, `-f`, cacheFile, macportsConf])
         await remove(cacheFile)
 
         resolve(true)

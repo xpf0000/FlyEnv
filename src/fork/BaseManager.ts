@@ -1,5 +1,4 @@
 import { I18nT } from './lang'
-import { execSync } from 'child_process'
 import { ProcessSendError, ProcessSendLog, ProcessSendSuccess } from './Fn'
 import type { ForkPromise } from '@shared/ForkPromise'
 import Apache from './module/Apache'
@@ -20,6 +19,7 @@ import Project from './module/Project'
 import Tool from './module/Tool'
 import MacPorts from './module/MacPorts'
 import Caddy from './module/Caddy'
+import { execPromiseRoot } from '@shared/Exec'
 import Composer from './module/Composer'
 
 class BaseManager {
@@ -37,10 +37,10 @@ class BaseManager {
     Caddy.init()
   }
 
-  exec(commands: Array<any>) {
+  async exec(commands: Array<any>) {
     const ipcCommandKey = commands.shift()
     try {
-      execSync(`echo '${global.Server.Password}' | sudo -S -k -l`)
+      await execPromiseRoot([`uname`, `-a`])
     } catch (e) {
       ProcessSendError(ipcCommandKey, I18nT('fork.needPassWord'))
       ProcessSendError('application:need-password', false)

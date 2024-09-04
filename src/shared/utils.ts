@@ -1,8 +1,8 @@
 import crypto from 'crypto'
+import { merge } from 'lodash'
 
 const { spawn } = require('child_process')
 const os = require('os')
-const { merge } = require('lodash')
 
 export function fixEnv() {
   const env = { ...process.env }

@@ -6,6 +6,7 @@ import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
 import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
+import { execPromiseRoot } from '@shared/Exec'
 
 class Mysql extends Base {
   constructor() {
@@ -82,24 +83,18 @@ datadir=${dataDir}`
           if (version?.flag === 'macports') {
             const defaultCnf = join(version.path, 'my-default.cnf')
             if (!existsSync(defaultCnf)) {
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp -f ${m} ${defaultCnf}`
-              )
+              await execPromiseRoot([`cp`, `-f`, m, defaultCnf])
             }
             const enDir = join(version.path, 'share')
             if (!existsSync(enDir)) {
               const shareDir = `/opt/local/share/${basename(version.path)}`
               if (existsSync(shareDir)) {
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir}/* ${enDir}`
-                )
+                await execPromiseRoot([`mkdir`, `-p`, enDir])
+                await execPromiseRoot([`cp`, `-R`, `${shareDir}/*`, enDir])
                 const langDir = join(enDir, basename(version.path))
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${langDir}`)
+                await execPromiseRoot([`mkdir`, `-p`, langDir])
                 const langEnDir = join(shareDir, 'english')
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${langEnDir} ${langDir}`
-                )
+                await execPromiseRoot([`cp`, `-R`, langEnDir, langDir])
               }
             }
           }
@@ -197,9 +192,8 @@ datadir=${dataDir}`
           }
         }
         if (arr.length > 0) {
-          const pids = arr.join(' ')
           const sig = '-TERM'
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
+          await execPromiseRoot([`kill`, sig, ...arr])
         }
         await waitTime(500)
         resolve(true)
@@ -257,24 +251,18 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           if (currentVersion?.flag === 'macports') {
             const defaultCnf = join(currentVersion.path!, 'my-default.cnf')
             if (!existsSync(defaultCnf)) {
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp -f ${m} ${defaultCnf}`
-              )
+              await execPromiseRoot([`cp`, `-f`, m, defaultCnf])
             }
             const enDir = join(currentVersion.path!, 'share')
             if (!existsSync(enDir)) {
               const shareDir = `/opt/local/share/${basename(currentVersion.path!)}`
               if (existsSync(shareDir)) {
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir}/* ${enDir}`
-                )
+                await execPromiseRoot([`mkdir`, `-p`, enDir])
+                await execPromiseRoot([`cp`, `-R`, `${shareDir}/*`, enDir])
                 const langDir = join(enDir, basename(currentVersion.path!))
-                await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${langDir}`)
+                await execPromiseRoot([`mkdir`, `-p`, langDir])
                 const langEnDir = join(shareDir, 'english')
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S cp -R ${langEnDir} ${langDir}`
-                )
+                await execPromiseRoot([`cp`, `-R`, langEnDir, langDir])
               }
             }
           }

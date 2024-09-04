@@ -6,6 +6,7 @@ import type { AppHost, SoftInstalled } from '@shared/app'
 import { execPromise, getAllFileAsync, md5 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
+import { execPromiseRoot } from '@shared/Exec'
 
 class Apache extends Base {
   constructor() {
@@ -179,9 +180,7 @@ IncludeOptional "${vhost}*.conf"`
         return
       }
       try {
-        const res = await execPromise(
-          `echo '${global.Server.Password}' | sudo -S ${bin} -f ${conf} -k start`
-        )
+        const res = await execPromiseRoot([bin, `-f`, conf, `-k`, `start`])
         on(res?.stdout)
         resolve(0)
       } catch (e: any) {

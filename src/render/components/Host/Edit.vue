@@ -263,8 +263,8 @@
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError } from '@/util/Element'
   import { ElMessageBox } from 'element-plus'
+  import { execPromiseRoot } from '@shared/Exec'
 
-  const { exec } = require('child-process-promise')
   const { dialog } = require('@electron/remote')
   const { accessSync, constants } = require('fs')
   const { join } = require('path')
@@ -324,9 +324,6 @@
   const brewStore = BrewStore()
   const hosts = computed(() => {
     return appStore.hosts
-  })
-  const password = computed(() => {
-    return appStore.config.password
   })
   const php = computed(() => {
     return brewStore.php
@@ -537,7 +534,7 @@
     }
     const saveFn = () => {
       running.value = true
-      let flag = props.isEdit ? 'edit' : 'add'
+      let flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
       let access = false
       try {
         accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
@@ -549,9 +546,9 @@
       passwordCheck().then(() => {
         item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
         if (!access) {
-          exec(`echo '${password.value}' | sudo -S chmod 777 /private/etc`)
+          execPromiseRoot(`chmod 777 /private/etc`.split(' '))
             .then(() => {
-              return exec(`echo '${password.value}' | sudo -S chmod 777 /private/etc/hosts`)
+              return execPromiseRoot(`chmod 777 /private/etc/hosts`.split(' '))
             })
             .then(() => {
               handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {

@@ -48,10 +48,10 @@
   import type { SoftInstalled } from '@/store/brew'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { execPromiseRoot } from '@shared/Exec'
 
   const { existsSync, statSync, unlink } = require('fs')
   const { join } = require('path')
-  const { execSync } = require('child_process')
   const { shell } = require('@electron/remote')
   const { dialog } = require('@electron/remote')
   const IniFiles: { [key: string]: any } = {}
@@ -178,14 +178,14 @@
         }
         const content = this.monacoInstance.getValue()
         const tmplFile = join(global.Server.Cache, 'php.ini.edit')
-        writeFileAsync(tmplFile, content).then(() => {
+        writeFileAsync(tmplFile, content).then(async () => {
           try {
-            execSync(`echo '${global.Server.Password}' | sudo -S cp ${tmplFile} ${this.configpath}`)
+            await execPromiseRoot(['cp', tmplFile, this.configpath])
           } catch (e) {}
           unlink(tmplFile, () => {})
           MessageSuccess(this.$t('base.success'))
           if (this.phpRunning) {
-            reloadService('php', this.version as SoftInstalled)
+            reloadService('php', this.version as SoftInstalled).then()
           }
         })
       },

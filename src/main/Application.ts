@@ -19,11 +19,11 @@ import type { ServerResponse } from 'http'
 import { fixEnv } from '@shared/utils'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
+import { execPromiseRoot } from '@shared/Exec'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
 const compressing = require('compressing')
-const execPromise = require('child-process-promise').exec
 const ServeHandler = require('serve-handler')
 const Http = require('http')
 const Pty = require('node-pty')
@@ -88,6 +88,7 @@ export default class Application extends EventEmitter {
     DnsServerManager.onLog((msg: any) => {
       this.windowManager.sendCommandTo(this.mainWindow!, 'App_DNS_Log', 'App_DNS_Log', msg)
     })
+    console.log('Application inited !!!')
   }
 
   initLang() {
@@ -324,15 +325,15 @@ export default class Application extends EventEmitter {
     this.windowManager.destroyWindow(page)
   }
 
-  stop() {
+  async stop() {
     logger.info('[PhpWebStudy] application stop !!!')
-    DnsServerManager.close().then()
+    await DnsServerManager.close()
     SiteSuckerManager.destory()
     this.forkManager?.destory()
-    this.stopServer()
+    await this.stopServer()
   }
 
-  stopServerByPid() {
+  async stopServerByPid() {
     const TERM: Array<string> = []
     const INT: Array<string> = []
     let command = `ps aux | grep '${global.Server.BaseDir}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
@@ -372,25 +373,23 @@ export default class Application extends EventEmitter {
       INT.push(p.split(' ')[0])
     }
     if (TERM.length > 0) {
-      const str = TERM.join(' ')
       const sig = '-TERM'
       try {
-        execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${str}`)
+        await execPromiseRoot([`kill`, sig, ...TERM])
       } catch (e) {}
     }
     if (INT.length > 0) {
-      const str = INT.join(' ')
       const sig = '-INT'
       try {
-        execSync(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${str}`)
+        await execPromiseRoot([`kill`, sig, ...INT])
       } catch (e) {}
     }
   }
 
-  stopServer() {
+  async stopServer() {
     this.ptyLast = null
     this.exitNodePty()
-    this.stopServerByPid()
+    await this.stopServerByPid()
     try {
       let hosts = readFileSync('/private/etc/hosts', 'utf-8')
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
@@ -435,9 +434,10 @@ export default class Application extends EventEmitter {
   }
 
   relaunch() {
-    this.stop()
-    app.relaunch()
-    app.exit()
+    this.stop().then(() => {
+      app.relaunch()
+      app.exit()
+    })
   }
 
   handleCommands() {
@@ -453,9 +453,10 @@ export default class Application extends EventEmitter {
 
     this.on('application:exit', () => {
       console.log('application:exit !!!!!!')
-      this.stop()
-      app.exit()
-      process.exit(0)
+      this.stop().then(() => {
+        app.exit()
+        process.exit(0)
+      })
     })
 
     this.on('application:show', (page) => {
@@ -547,7 +548,7 @@ export default class Application extends EventEmitter {
         break
       case 'app:password-check':
         const pass = args?.[0] ?? ''
-        execPromise(`echo '${pass}' | sudo -S -k -l`)
+        execPromiseRoot([`-k`, 'uname', '-a'], undefined, pass)
           .then(() => {
             this.configManager.setConfig('password', pass)
             global.Server.Password = pass

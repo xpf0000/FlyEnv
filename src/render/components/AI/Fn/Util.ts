@@ -2,6 +2,7 @@ import { merge } from 'lodash'
 import type BaseTask from '@/components/AI/Task/BaseTask'
 import type { AllAppSofts } from '@/store/app'
 import installedVersions from '@/util/InstalledVersions'
+import { execPromiseRoot } from '@shared/Exec'
 
 const { exec } = require('child_process')
 
@@ -60,8 +61,8 @@ export function killPort(this: BaseTask, ports: Array<string>) {
   return new Promise(async (resolve) => {
     const pids: Set<string> = new Set()
     for (const port of ports) {
-      let res: any = await execPromise(
-        `echo '${global.Server.Password}' | sudo -S lsof -nP -i:${port} | grep '(LISTEN)' | awk '{print $1,$2,$3,$9,$10}'`
+      let res: any = await execPromiseRoot(
+        `lsof -nP -i:${port} | grep '(LISTEN)' | awk '{print $1,$2,$3,$9,$10}'`
       )
       res = res?.stdout ?? ''
       const arr: Array<string> = res
@@ -78,9 +79,8 @@ export function killPort(this: BaseTask, ports: Array<string>) {
       arr.forEach((a: string) => pids.add(a))
     }
     if (pids.size > 0) {
-      const pidStr: string = Array.from(pids).join(' ')
       try {
-        await execPromise(`echo '${global.Server.Password}' | sudo -S kill -9 ${pidStr}`)
+        await execPromiseRoot(['kill', '-9', ...Array.from(pids)])
       } catch (e) {}
     }
     resolve(true)
@@ -89,9 +89,8 @@ export function killPort(this: BaseTask, ports: Array<string>) {
 
 export function killPid(this: BaseTask, pids: Array<string>) {
   return new Promise(async (resolve) => {
-    const pidStr: string = pids.join(' ')
     try {
-      await execPromise(`echo '${global.Server.Password}' | sudo -S kill -9 ${pidStr}`)
+      await execPromiseRoot(['kill', '-9', ...pids])
     } catch (e) {}
     resolve(true)
   })

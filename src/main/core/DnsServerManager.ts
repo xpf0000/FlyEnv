@@ -2,6 +2,7 @@ import { spawn, IPty } from 'node-pty'
 import { join } from 'path'
 import { copyFileSync, writeFileSync, existsSync } from 'fs'
 import { fixEnv } from '@shared/utils'
+import { execPromiseRoot } from '@shared/Exec'
 const execPromise = require('child-process-promise').exec
 
 class DnsServer {
@@ -112,8 +113,9 @@ class DnsServer {
             )
             this.pty?.write(`cd ${cacheDir}\r`)
             this.pty?.write(`chmod 777 ${cacheFile}\r`)
-            const shell = `echo '${global.Server.Password}' | sudo -S node ${cacheFile}\r`
+            const shell = `sudo -S node ${cacheFile}\r`
             this.pty?.write(shell)
+            this.pty?.write(`${global.Server.Password}\r`)
           } catch (e: any) {}
         })
       }
@@ -134,10 +136,8 @@ class DnsServer {
         } catch (e) {}
       }
       this?.pty?.kill()
-      execPromise(
-        `echo '${global.Server.Password}' | sudo -S lsof -nP -i:53 | awk '{print $1,$2,$3}'`
-      )
-        .then((res: any) => {
+      execPromiseRoot(`lsof -nP -i:53 | awk '{print $1,$2,$3}'`)
+        .then((res) => {
           const str = res?.stdout?.toString()?.trim() ?? ''
           const arr = str
             .split('\n')
@@ -156,8 +156,7 @@ class DnsServer {
             arr.push(pid)
           }
           if (arr.length > 0) {
-            const shell = `echo '${global.Server.Password}' | sudo -S kill -9 ${arr.join(' ')}`
-            return execPromise(shell)
+            return execPromiseRoot(['kill', '-9', ...arr]) as any
           } else {
             return Promise.resolve(true)
           }

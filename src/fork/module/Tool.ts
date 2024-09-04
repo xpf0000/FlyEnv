@@ -6,6 +6,7 @@ import { existsSync, mkdirp, readdir, readFile, remove, writeFile } from 'fs-ext
 import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
 import { join, dirname } from 'path'
 import { I18nT } from '../lang'
+import { execPromiseRoot } from '@shared/Exec'
 import type { SoftInstalled } from '@shared/app'
 
 class BomCleanTask implements TaskItem {
@@ -131,7 +132,7 @@ class Manager extends Base {
       try {
         const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
         await writeFile(cacheFile, content)
-        await execPromise(`echo '${global.Server.Password}' | sudo -S cp -f ${cacheFile} ${file}`)
+        await execPromiseRoot([`cp`, `-f`, cacheFile, file])
         await remove(cacheFile)
         resolve(true)
       } catch (e) {
@@ -203,7 +204,7 @@ class Manager extends Base {
       const flagDir = join(envDir, flag)
       await remove(flagDir)
       if (!all.includes(bin)) {
-        await execPromise(`echo '${global.Server.Password}' | sudo -S ln -s ${bin} ${flagDir}`)
+        await execPromiseRoot(['ln', '-s', bin, flagDir])
       }
 
       let allFile = await readdir(envDir)
@@ -238,7 +239,7 @@ class Manager extends Base {
 
           const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
           await writeFile(cacheFile, content)
-          await execPromise(`echo '${global.Server.Password}' | sudo -S cp -f ${cacheFile} ${file}`)
+          await execPromiseRoot(['cp', '-f', cacheFile, file])
           await remove(cacheFile)
         }
       }

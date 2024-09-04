@@ -11,6 +11,7 @@ import { readFile, writeFile, copyFile, mkdirp, remove, copy } from 'fs-extra'
 import { EOL } from 'os'
 import { isEqual } from 'lodash'
 import compressing from 'compressing'
+import { execPromiseRoot } from '@shared/Exec'
 
 class Host extends Base {
   NginxTmpl = ''
@@ -44,12 +45,12 @@ class Host extends Base {
             resolve(false)
             return
           }
-          command = `echo '${global.Server.Password}' | sudo -S security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "PhpWebStudy-Root-CA.crt"`
-          await execPromise(command, {
+          command = `security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "PhpWebStudy-Root-CA.crt"`
+          await execPromiseRoot(command.split(' '), {
             cwd: CADir
           })
-          command = `echo '${global.Server.Password}' | sudo -S security find-certificate -c "PhpWebStudy-Root-CA"`
-          const res = await execPromise(command, {
+          command = `security find-certificate -c "PhpWebStudy-Root-CA"`
+          const res = await execPromiseRoot(command.split(' '), {
             cwd: CADir
           })
           if (
@@ -334,7 +335,7 @@ subjectAltName=@alt_names
       for (const f of arr) {
         if (existsSync(f)) {
           try {
-            await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${f}`)
+            await execPromiseRoot([`rm`, `-rf`, f])
           } catch (e) {}
         }
       }
@@ -349,7 +350,7 @@ subjectAltName=@alt_names
     }
     if (existsSync(dir)) {
       try {
-        await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 755 ${dir}`)
+        await execPromiseRoot([`chmod`, `755`, dir])
       } catch (e) {}
       const parentDir = dirname(dir)
       if (parentDir !== dir) {
@@ -661,13 +662,11 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         ]
         for (const f of arr) {
           if (existsSync(f.oldFile)) {
-            await execPromise(
-              `echo '${global.Server.Password}' | sudo -S cp -f ${f.oldFile} ${f.newFile}`
-            )
-            await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${f.oldFile}`)
+            await execPromiseRoot([`cp`, `-f`, f.oldFile, f.newFile])
+            await execPromiseRoot([`rm`, `-rf`, f.oldFile])
           }
           if (existsSync(f.newFile)) {
-            await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 777 ${f.newFile}`)
+            await execPromiseRoot([`chmod`, `777`, f.newFile])
           }
         }
       }
@@ -1060,10 +1059,9 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       console.error('无权访问')
     }
     if (!access) {
-      const password = global.Server.Password
       try {
-        await execPromise(`echo '${password}' | sudo -S chmod 777 /private/etc`)
-        await execPromise(`echo '${password}' | sudo -S chmod 777 /private/etc/hosts`)
+        await execPromiseRoot(`chmod 777 /private/etc`.split(' '))
+        await execPromiseRoot(`chmod 777 /private/etc/hosts`.split(' '))
       } catch (e) {}
     }
   }

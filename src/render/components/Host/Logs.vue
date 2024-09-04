@@ -49,10 +49,10 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { execPromiseRoot } from '@shared/Exec'
 
   const { existsSync } = require('fs')
   const fsWatch = require('fs').watch
-  const { exec } = require('child-process-promise')
   const { join } = require('path')
   const { shell } = require('@electron/remote')
 
@@ -136,7 +136,7 @@
       }
       const doFixRule = () => {
         return new Promise((resolve, reject) => {
-          exec(`echo '${password.value}' | sudo -S chmod 777 ${filepath.value}`)
+          execPromiseRoot(['chmod', '777', filepath.value])
             .then(() => {
               resolve(true)
             })
@@ -205,7 +205,7 @@
             if (!password.value) {
               EventBus.emit('vue:need-password')
             } else {
-              exec(`echo '${password.value}' | sudo -S chmod 777 ${filepath.value}`)
+              execPromiseRoot(['chmod', '777', filepath.value])
                 .then(() => {
                   logDo('clean')
                 })

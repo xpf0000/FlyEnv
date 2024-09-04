@@ -6,6 +6,7 @@ import type { FtpItem, SoftInstalled } from '@shared/app'
 import { execPromise, spawnPromiseMore, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
+import { execPromiseRoot } from '@shared/Exec'
 class Manager extends Base {
   constructor() {
     super()
@@ -19,7 +20,7 @@ class Manager extends Base {
   initConf() {
     return this._initConf()
   }
-  _initConf() {
+  _initConf(): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
       await mkdirp(global.Server.FTPDir!)
       const confFile = join(global.Server.FTPDir!, 'pure-ftpd.conf')
@@ -37,12 +38,9 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       const confFile = await this._initConf()
       const bin = version.bin
-      const command = `echo '${global.Server.Password}' | sudo -S ${bin} ${confFile}`
-      await execPromise(command)
+      await execPromiseRoot([bin, confFile])
       await waitTime(500)
-      let res: any = await execPromise(
-        `echo '${global.Server.Password}' | sudo -S ps aux | grep 'pure-ftpd'`
-      )
+      let res: any = await execPromiseRoot(`ps aux | grep "pure-ftpd"`)
       res = res.stdout.toString()
       if (res.includes(`${bin} ${confFile}`)) {
         resolve(true)

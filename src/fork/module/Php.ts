@@ -9,6 +9,7 @@ import compressing from 'compressing'
 import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
+import { execPromiseRoot } from '@shared/Exec'
 
 class Php extends Base {
   constructor() {
@@ -71,22 +72,14 @@ class Php extends Base {
             if (!existsSync(baseIni)) {
               if (existsSync(ini)) {
                 try {
-                  await execPromise(
-                    `echo '${global.Server.Password}' | sudo -S cp -f ${ini} ${baseIni}`
-                  )
-                  await execPromise(
-                    `echo '${global.Server.Password}' | sudo -S chmod 755 ${baseIni}`
-                  )
+                  await execPromiseRoot([`cp`, `-f`, ini, baseIni])
+                  await execPromiseRoot([`chmod`, `755`, baseIni])
                 } catch (e) {}
               } else {
                 const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
                 try {
-                  await execPromise(
-                    `echo '${global.Server.Password}' | sudo -S cp -f ${tmpl} ${baseIni}`
-                  )
-                  await execPromise(
-                    `echo '${global.Server.Password}' | sudo -S chmod 755 ${baseIni}`
-                  )
+                  await execPromiseRoot([`cp`, `-f`, tmpl, baseIni])
+                  await execPromiseRoot([`chmod`, `755`, baseIni])
                 } catch (e) {}
               }
             }
@@ -95,9 +88,7 @@ class Php extends Base {
           if (existsSync(ini)) {
             const iniDefault = `${ini}.default`
             if (!existsSync(iniDefault)) {
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp -f ${ini} ${iniDefault}`
-              )
+              await execPromiseRoot([`cp`, `-f`, ini, iniDefault])
             }
             resolve(ini)
             return
@@ -182,7 +173,7 @@ class Php extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         if (existsSync(soPath)) {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S rm -rf ${soPath}`)
+          await execPromiseRoot([`rm`, `-rf`, soPath])
         }
       } catch (e) {
         reject(e)
@@ -208,10 +199,9 @@ class Php extends Base {
       if (arr.length === 0) {
         resolve(true)
       } else {
-        const pids = arr.join(' ')
         const sig = '-INT'
         try {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
+          await execPromiseRoot([`kill`, sig, ...arr])
         } catch (e) {}
         resolve(true)
       }
@@ -438,13 +428,9 @@ class Php extends Base {
           const doCopy = async () => {
             if (existsSync(tmplPath)) {
               if (!existsSync(extendsDir)) {
-                await execPromise(
-                  `echo '${global.Server.Password}' | sudo -S mkdir -p ${extendsDir}`
-                )
+                await execPromiseRoot([`mkdir`, '-p', extendsDir])
               }
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp ${tmplPath} ${soPath}`
-              )
+              await execPromiseRoot([`cp`, tmplPath, soPath])
               if (existsSync(soPath)) {
                 resolve(true)
                 return true

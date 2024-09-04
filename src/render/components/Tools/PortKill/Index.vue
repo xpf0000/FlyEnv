@@ -53,7 +53,7 @@
   import { Search } from '@element-plus/icons-vue'
   import { passwordCheck } from '@/util/Brew'
   import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
-  const { execSync } = require('child_process')
+  import { execPromiseRoot } from '@shared/Exec'
 
   const SearchIcon = markRaw(Search)
   export default defineComponent({
@@ -87,16 +87,14 @@
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(() => {
-            const pids = this.select
-              .map((s: any) => {
-                return s.PID
-              })
-              .join(' ')
+          .then(async () => {
+            const pids = this.select.map((s: any) => {
+              return s.PID
+            })
             try {
-              execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
+              await execPromiseRoot(['kill', '-9', ...pids])
               MessageSuccess(this.$t('base.success'))
-              this.doSearch()
+              this.doSearch().then()
             } catch (e) {
               MessageError(this.$t('base.fail'))
             }
@@ -108,16 +106,14 @@
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(() => {
-            const pids = this.arrs
-              .map((s: any) => {
-                return s.PID
-              })
-              .join(' ')
+          .then(async () => {
+            const pids = this.arrs.map((s: any) => {
+              return s.PID
+            })
             try {
-              execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
+              await execPromiseRoot(['kill', '-9', ...pids])
               MessageSuccess(this.$t('base.success'))
-              this.doSearch()
+              this.doSearch().then()
             } catch (e) {
               MessageError(this.$t('base.fail'))
             }
@@ -132,14 +128,12 @@
       doClose() {
         this.$emit('doClose')
       },
-      doSearch() {
+      async doSearch() {
         this.arrs.splice(0)
-        const res = execSync(
-          `echo '${global.Server.Password}' | sudo -S lsof -nP -i:${this.port} | awk '{print $1,$2,$3}'`
-        )
+        const res = await execPromiseRoot(`lsof -nP -i:${this.port} | awk '{print $1,$2,$3}'`)
+        const arr = res.stdout
           .toString()
           .trim()
-        const arr = res
           .split('\n')
           .filter((v: any, i: number) => {
             return i > 0

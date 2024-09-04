@@ -5,6 +5,7 @@ import type { SoftInstalled } from '@shared/app'
 import { execPromise, spawnPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, copyFile, unlink, chmod } from 'fs-extra'
+import { execPromiseRoot } from '@shared/Exec'
 
 export class Base {
   type: string
@@ -170,7 +171,6 @@ export class Base {
       }
       console.log('_stopServer arr: ', arr)
       if (arr.length > 0) {
-        const pids = arr.join(' ')
         let sig = ''
         switch (this.type) {
           case 'mysql':
@@ -183,7 +183,7 @@ export class Base {
             break
         }
         try {
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sig} ${pids}`)
+          await execPromiseRoot([`kill`, sig, ...arr])
         } catch (e) {}
       }
       await waitTime(300)
@@ -204,7 +204,7 @@ export class Base {
             this.type === 'mariadb'
               ? '-HUP'
               : '-USR2'
-          await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sign} ${pid}`)
+          await execPromiseRoot([`kill`, sign, pid])
           await waitTime(1000)
           resolve(0)
         } catch (e) {

@@ -2,9 +2,9 @@ import { join, dirname } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
-import { execPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
+import { execPromiseRoot } from '@shared/Exec'
 class Nginx extends Base {
   constructor() {
     super()
@@ -50,10 +50,10 @@ class Nginx extends Base {
       const pid = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
       const errlog = join(global.Server.NginxDir!, 'common/logs/error.log')
       const g = `pid ${pid};error_log ${errlog};`
-      const command = `echo '${global.Server.Password}' | sudo -S ${bin} -c ${c} -g '${g}'`
+      const command = `${bin} -c ${c} -g '${g}'`
       console.log('command: ', command)
       try {
-        const res = await execPromise(command)
+        const res = await execPromiseRoot([bin, '-c', c, '-g', `${g}`])
         on(res.stdout)
         resolve(0)
       } catch (e: any) {

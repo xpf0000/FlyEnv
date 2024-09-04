@@ -6,6 +6,7 @@ import type { SoftInstalled } from '@shared/app'
 import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, mkdirp, chmod, unlink, remove } from 'fs-extra'
+import { execPromiseRoot } from '@shared/Exec'
 
 class Manager extends Base {
   constructor() {
@@ -78,10 +79,8 @@ datadir=${dataDir}`
           if (!existsSync(enDir)) {
             const shareDir = `/opt/local/share/${basename(version.path)}`
             if (existsSync(shareDir)) {
-              await execPromise(`echo '${global.Server.Password}' | sudo -S mkdir -p ${enDir}`)
-              await execPromise(
-                `echo '${global.Server.Password}' | sudo -S cp -R ${shareDir} ${enDir}`
-              )
+              await execPromiseRoot([`mkdir`, `-p`, enDir])
+              await execPromiseRoot([`cp`, `-R`, shareDir, enDir])
             }
           }
         }

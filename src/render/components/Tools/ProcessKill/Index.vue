@@ -54,7 +54,7 @@
   import { Search } from '@element-plus/icons-vue'
   import { passwordCheck } from '@/util/Brew.ts'
   import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element.ts'
-  const { execSync } = require('child_process')
+  import { execPromiseRoot } from '@shared/Exec.ts'
 
   export default {
     components: {},
@@ -80,16 +80,14 @@
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(() => {
-            const pids = this.select
-              .map((s) => {
-                return s.PID
-              })
-              .join(' ')
+          .then(async () => {
+            const pids = this.select.map((s) => {
+              return s.PID
+            })
             try {
-              execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
+              await execPromiseRoot(['kill', '-9', ...pids])
               MessageSuccess(this.$t('base.success'))
-              this.doSearch()
+              this.doSearch().then()
             } catch (e) {
               MessageError(this.$t('base.fail'))
             }
@@ -101,16 +99,14 @@
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(() => {
-            const pids = this.arrs
-              .map((s) => {
-                return s.PID
-              })
-              .join(' ')
+          .then(async () => {
+            const pids = this.arrs.map((s) => {
+              return s.PID
+            })
             try {
-              execSync(`echo '${global.Server.Password}' | sudo -S kill -9 ${pids}`)
+              await execPromiseRoot(['kill', '-9', ...pids])
               MessageSuccess(this.$t('base.success'))
-              this.doSearch()
+              this.doSearch().then()
             } catch (e) {
               MessageError(this.$t('base.fail'))
             }
@@ -125,14 +121,12 @@
       doClose() {
         this.$emit('doClose')
       },
-      doSearch() {
+      async doSearch() {
         this.arrs.splice(0)
-        const res = execSync(
-          `echo '${global.Server.Password}' | sudo -S ps aux | grep '${this.searchKey}'`
-        )
+        const res = await execPromiseRoot(`ps aux | grep '${this.searchKey}'`)
+        const arr = res.stdout
           .toString()
           .trim()
-        const arr = res
           .split('\n')
           .filter((v) => {
             return !v.includes(`grep ${this.searchKey}`) && !v.includes(`grep '${this.searchKey}'`)

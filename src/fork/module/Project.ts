@@ -2,9 +2,10 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
-import { execPromise, md5, spawnPromise, uuid } from '../Fn'
+import { md5, spawnPromise, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { chmod, copyFile, mkdirp, remove, unlink, writeFile } from 'fs-extra'
+import { execPromiseRoot } from '@shared/Exec'
 
 class Manager extends Base {
   constructor() {
@@ -20,9 +21,8 @@ class Manager extends Base {
       if (existsSync(binPhp)) {
         await remove(binPhp)
       }
-      const command = `echo '${global.Server.Password}' | sudo -S ln -s ${phpBin} ${binPhp}`
       try {
-        await execPromise(command)
+        await execPromiseRoot(['ln', '-s', phpBin, binPhp])
       } catch (e) {}
       if (framework === 'wordpress') {
         const tmpl = `{

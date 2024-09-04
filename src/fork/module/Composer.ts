@@ -5,7 +5,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
 import { copyFile, mkdirp, remove } from 'fs-extra'
-import { execPromise } from '../Fn'
+import { execPromiseRoot } from '@shared/Exec'
 
 class Composer extends Base {
   constructor() {
@@ -108,7 +108,7 @@ class Composer extends Base {
         }
         const bin = join(row.appDir, 'composer')
         await copyFile(row.zip, bin)
-        await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 777 ${bin}`)
+        await execPromiseRoot([`chmod`, `777`, bin])
       }
 
       if (existsSync(row.zip)) {

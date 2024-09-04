@@ -25,9 +25,9 @@
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import IPC from '@/util/IPC'
+  import { execPromiseRoot } from '@shared/Exec'
 
   const { existsSync } = require('fs')
-  const { exec } = require('child-process-promise')
   const { join } = require('path')
   const { shell } = require('@electron/remote')
 
@@ -101,7 +101,7 @@
                 if (!this.password) {
                   EventBus.emit('vue:need-password')
                 } else {
-                  exec(`echo '${this.password}' | sudo -S chmod 777 ${this.filepath}`)
+                  execPromiseRoot(['chmod', '777', this.filepath])
                     .then(() => {
                       this.logDo('clean')
                     })

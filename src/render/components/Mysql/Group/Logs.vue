@@ -42,9 +42,9 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
   import { AppStore } from '@/store/app'
+  import { execPromiseRoot } from '@shared/Exec'
 
   const { existsSync } = require('fs')
-  const { exec } = require('child-process-promise')
   const { join } = require('path')
   const { shell } = require('@electron/remote')
 
@@ -147,7 +147,7 @@
             if (!password.value) {
               EventBus.emit('vue:need-password')
             } else {
-              exec(`echo '${password.value}' | sudo -S chmod 777 ${filepath.value}`)
+              execPromiseRoot(['chmod', '777', filepath.value])
                 .then(() => {
                   logDo('clean')
                 })

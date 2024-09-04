@@ -2,12 +2,15 @@ import { join } from 'path'
 import { createWriteStream, existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { execPromise, hostAlias, spawnPromise, waitTime } from '../Fn'
+import { execPromise, hostAlias, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, remove } from 'fs-extra'
+import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
 import { I18nT } from '../lang'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
+import { execPromiseRoot } from '@shared/Exec'
+import { spawn } from 'child_process'
+import { fixEnv } from '@shared/utils'
 
 class Caddy extends Base {
   constructor() {
@@ -19,7 +22,7 @@ class Caddy extends Base {
     this.pidPath = join(global.Server.BaseDir!, 'caddy/caddy.pid')
   }
 
-  initConfig() {
+  initConfig(): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
       const baseDir = join(global.Server.BaseDir!, 'caddy')
       const iniFile = join(baseDir, 'Caddyfile')
@@ -47,7 +50,7 @@ class Caddy extends Base {
     return new ForkPromise(async (resolve) => {
       const baseDir = join(global.Server.BaseDir!, 'caddy')
       const logFile = join(baseDir, 'caddy.log')
-      await execPromise(`echo '${global.Server.Password}' | sudo -S chmod 644 ${logFile}`)
+      await execPromiseRoot([`chmod`, `644`, logFile])
       resolve(true)
     })
   }
@@ -128,17 +131,25 @@ class Caddy extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject) => {
       const bin = version.bin
       await this.#fixVHost()
       const iniFile = await this.initConfig()
-      const shFile = join(global.Server.BaseDir!, 'caddy/caddy.sh')
-      const command = `#!/bin/bash\necho '${global.Server.Password}' | sudo -S ${bin} start --config ${iniFile} --pidfile ${this.pidPath} --watch`
-      await writeFile(shFile, command)
-      await chmod(shFile, '0777')
       if (existsSync(this.pidPath)) {
         await remove(this.pidPath)
       }
+
+      const child = spawn(
+        bin,
+        ['start', '--config', iniFile, '--pidfile', this.pidPath, '--watch'],
+        {
+          detached: true,
+          stdio: 'ignore',
+          env: fixEnv()
+        }
+      )
+
+      let checking = false
       const checkPid = async (time = 0) => {
         if (existsSync(this.pidPath)) {
           resolve(true)
@@ -151,19 +162,15 @@ class Caddy extends Base {
           }
         }
       }
-      try {
-        spawnPromise('zsh', [shFile], {
-          detached: true,
-          stdio: 'ignore'
-        })
-          .on(on)
-          .then(() => {
-            checkPid()
-          })
-          .catch(reject)
-      } catch (e: any) {
-        reject(e)
+
+      const onPassword = () => {
+        if (!checking) {
+          checking = true
+          checkPid()
+        }
       }
+      child.on('exit', onPassword)
+      child.on('close', onPassword)
     })
   }
 

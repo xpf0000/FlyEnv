@@ -3,9 +3,10 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
-import { execPromise, waitTime } from '../Fn'
+import { waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
+import { execPromiseRoot } from '@shared/Exec'
 class Redis extends Base {
   constructor() {
     super()
@@ -29,7 +30,7 @@ class Redis extends Base {
       this._initConf(version).then(resolve)
     })
   }
-  _initConf(version: SoftInstalled) {
+  _initConf(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
       const v = version?.version?.split('.')?.[0] ?? ''
       const confFile = join(global.Server.RedisDir!, `redis-${v}.conf`)
@@ -73,8 +74,7 @@ class Redis extends Base {
         }
       } catch (e) {}
       try {
-        const command = `echo '${global.Server.Password}' | sudo -S ${bin} ${confFile}`
-        const res = await execPromise(command)
+        const res = await execPromiseRoot([bin, confFile])
         on(res.stdout)
         await checkpid()
       } catch (e) {

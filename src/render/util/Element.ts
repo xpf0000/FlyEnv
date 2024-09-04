@@ -6,7 +6,6 @@ export const MessageSuccess = (msg: string) => {
     dangerouslyUseHTMLString: true,
     type: 'success',
     showClose: true,
-    grouping: true,
     customClass: 'app-el-message'
   })
 }
