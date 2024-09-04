@@ -4,6 +4,8 @@ import { AllAppSofts, type AppHost, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
 import { DnsStore } from '@/store/dns'
 import { I18nT } from '@shared/lang'
+import { Service } from '@/components/ServiceManager/service'
+import installedVersions from '@/util/InstalledVersions'
 
 const exec = (
   typeFlag: AllAppSofts,
@@ -173,4 +175,22 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
       }
     }
   }
+}
+
+export const reGetInstalled = (type: AllAppSofts) => {
+  return new Promise((resolve) => {
+    const service = Service[type]
+    if (service?.fetching) {
+      resolve(true)
+      return
+    }
+    service.fetching = true
+    const brewStore = BrewStore()
+    const data = brewStore[type]
+    data.installedInited = false
+    installedVersions.allInstalledVersions([type]).then(() => {
+      service.fetching = false
+      resolve(true)
+    })
+  })
 }

@@ -24,6 +24,7 @@ export interface OnlineVersionItem {
   url: string
   version: string
   mVersion: string
+  downing?: boolean
 }
 
 export interface AppSoftInstalledItem {
@@ -38,6 +39,7 @@ export interface AppSoftInstalledItem {
 }
 
 interface State {
+  composer: AppSoftInstalledItem
   postgresql: AppSoftInstalledItem
   caddy: AppSoftInstalledItem
   nginx: AppSoftInstalledItem
@@ -71,6 +73,16 @@ const state: State = {
     list: {
       brew: {},
       port: {}
+    }
+  },
+  composer: {
+    getListing: false,
+    installedInited: false,
+    installed: [],
+    list: {
+      brew: {},
+      port: {},
+      static: {}
     }
   },
   postgresql: {

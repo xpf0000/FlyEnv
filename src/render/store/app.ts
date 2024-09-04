@@ -8,7 +8,7 @@ const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
 
-export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd'
+export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd' | 'composer'
 
 export interface AppHost {
   id: number

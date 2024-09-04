@@ -20,6 +20,7 @@ import Project from './module/Project'
 import Tool from './module/Tool'
 import MacPorts from './module/MacPorts'
 import Caddy from './module/Caddy'
+import Composer from './module/Composer'
 
 class BaseManager {
   constructor() {}
@@ -93,6 +94,8 @@ class BaseManager {
       func = MacPorts.exec(fn, ...commands)
     } else if (module === 'caddy') {
       func = Caddy.exec(fn, ...commands)
+    } else if (module === 'composer') {
+      func = Composer.exec(fn, ...commands)
     }
     func?.on(onData).then(then).catch(error)
   }

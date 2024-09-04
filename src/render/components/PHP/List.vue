@@ -103,6 +103,7 @@
             placement="left-start"
             :show-arrow="false"
             width="auto"
+            @before-enter="onPoperShow"
           >
             <ul v-poper-fix class="host-list-menu">
               <li @click.stop="action(scope.row, scope.$index, 'open')">
@@ -143,12 +144,20 @@
                   <span class="ml-10">{{ $t('php.groupStartOff') }}</span>
                 </template>
               </li>
-              <template v-if="checkBrew(scope.row)">
-                <li @click.stop="action(scope.row, scope.$index, 'brewLink')">
-                  <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                  <span class="ml-15">{{ $t('php.phpSetGlobal') }}</span>
-                </li>
-              </template>
+              <li
+                v-loading="pathLoading(scope.row)"
+                class="path-set"
+                :class="pathState(scope.row)"
+                @click.stop="pathChange(scope.row)"
+              >
+                <yb-icon
+                  class="current"
+                  :svg="import('@/svg/select.svg?raw')"
+                  width="17"
+                  height="17"
+                />
+                <span class="ml-15">{{ $t('base.addToPath') }}</span>
+              </li>
             </ul>
             <template #reference>
               <el-button link class="status">
@@ -175,8 +184,10 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { Service } from '@/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
+  import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 
   const { shell } = require('@electron/remote')
+  const { dirname, join } = require('path')
 
   if (!Service.php) {
     Service.php = {
@@ -187,6 +198,26 @@
   const initing = ref(false)
   const brewStore = BrewStore()
   const appStore = AppStore()
+
+  const onPoperShow = () => {
+    ServiceActionStore.fetchPath()
+  }
+
+  const pathLoading = (item: SoftInstalled) => {
+    return ServiceActionStore.pathSeting?.[item.bin] ?? false
+  }
+
+  const pathState = (item: SoftInstalled) => {
+    if (ServiceActionStore.allPath.length === 0) {
+      return ''
+    }
+    const bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
+    return ServiceActionStore.allPath.includes(bin) ? 'seted' : 'noset'
+  }
+
+  const pathChange = (item: SoftInstalled) => {
+    ServiceActionStore.updatePath(item, 'php')
+  }
 
   const service = computed(() => {
     return Service.php

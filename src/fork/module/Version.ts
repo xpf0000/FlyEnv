@@ -1,4 +1,4 @@
-import { join, dirname } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync, realpathSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
@@ -19,6 +19,15 @@ class Manager extends Base {
     error?: string
   }> {
     return new ForkPromise(async (resolve) => {
+      if (name === 'composer') {
+        if (bin.includes(global.Server.AppDir!)) {
+          const version = basename(dirname(bin)).replace('composer-', '')
+          resolve({
+            version
+          })
+        }
+        return
+      }
       if (name === 'pure-ftpd') {
         resolve({
           version: '1.0'
@@ -129,7 +138,8 @@ class Manager extends Base {
         redis: 'redis-server',
         mongodb: 'mongod',
         'pure-ftpd': 'pure-ftpd',
-        postgresql: 'pg_ctl'
+        postgresql: 'pg_ctl',
+        composer: 'composer'
       }
       const fetchVersion = async (flag: string) => {
         return new ForkPromise(async (resolve) => {
@@ -137,7 +147,11 @@ class Manager extends Base {
           const binName = binNames[flag]
           const searchName = searchNames[flag]
           const installed: Set<string> = new Set()
-          const systemDirs = ['/', '/opt', '/usr', global.Server.AppDir!, ...customDirs]
+          let systemDirs = ['/', '/opt', '/usr', global.Server.AppDir!, ...customDirs]
+
+          if (flag === 'composer') {
+            systemDirs = [global.Server.AppDir!]
+          }
 
           const realDirDict: { [k: string]: string } = {}
           const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {

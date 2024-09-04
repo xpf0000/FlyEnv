@@ -164,5 +164,7 @@ export default {
   theme: '主题',
   themeDark: '暗色',
   themeLight: '亮色',
-  themeAuto: '系统'
+  themeAuto: '系统',
+
+  addToPath: '添加到环境变量'
 }

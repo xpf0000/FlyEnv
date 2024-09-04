@@ -798,6 +798,19 @@ body {
           }
         }
       }
+
+      &.path-set {
+        >svg {
+          opacity: 0.5;
+        }
+
+        &.seted {
+          >svg {
+            opacity: 1;
+            color: #01cc74;
+          }
+        }
+      }
     }
   }
 }
