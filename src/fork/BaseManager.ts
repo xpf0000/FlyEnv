@@ -21,6 +21,7 @@ import MacPorts from './module/MacPorts'
 import Caddy from './module/Caddy'
 import { execPromiseRoot } from '@shared/Exec'
 import Composer from './module/Composer'
+import Java from './module/Java'
 
 class BaseManager {
   constructor() {}
@@ -96,6 +97,8 @@ class BaseManager {
       func = Caddy.exec(fn, ...commands)
     } else if (module === 'composer') {
       func = Composer.exec(fn, ...commands)
+    } else if (module === 'java') {
+      func = Java.exec(fn, ...commands)
     }
     func?.on(onData).then(then).catch(error)
   }

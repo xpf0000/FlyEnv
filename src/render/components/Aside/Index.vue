@@ -37,6 +37,7 @@
           <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
           <FtpModule ref="ftpModule" :current-page="currentPage" @nav="nav" />
           <NodejsModule :current-page="currentPage" @nav="nav" />
+          <JavaModule :current-page="currentPage" @nav="nav" />
           <HttpserveModule :current-page="currentPage" @nav="nav" />
           <ToolsModule :current-page="currentPage" @nav="nav" />
         </ul>
@@ -87,6 +88,7 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { MysqlStore } from '@/store/mysql'
   import Base from '@/core/Base'
+  import JavaModule from './module/java/index.vue'
 
   let lastTray = ''
 

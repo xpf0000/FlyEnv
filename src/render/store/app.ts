@@ -8,7 +8,7 @@ const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
 
-export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd' | 'composer'
+export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd' | 'composer' | 'java'
 
 export interface AppHost {
   id: number
@@ -93,6 +93,7 @@ interface State {
           FTP: boolean
           HttpServe?: boolean
           PostgreSql?: boolean
+          java?: boolean
         }
       }
       hosts: {
@@ -133,6 +134,9 @@ interface State {
         dirs: Array<string>
       }
       mongodb: {
+        dirs: Array<string>
+      }
+      java?: {
         dirs: Array<string>
       }
       autoCheck: boolean

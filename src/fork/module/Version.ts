@@ -1,5 +1,5 @@
 import { join, dirname, basename } from 'path'
-import { existsSync, realpathSync } from 'fs'
+import { existsSync, realpathSync, statSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
 import { execPromise, getAllFileAsync, getSubDirAsync } from '../Fn'
@@ -102,6 +102,10 @@ class Manager extends Base {
           command = `${bin} --version`
           reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
           break
+        case 'java':
+          command = `${bin} -version`
+          reg = /(")(\d+([\.|\d]+){1,4})(["_])/g
+          break
       }
       try {
         const res = await execPromise(command)
@@ -125,7 +129,8 @@ class Manager extends Base {
         redis: 'redis',
         mongodb: 'mongodb-',
         'pure-ftpd': 'pure-ftpd',
-        postgresql: 'postgresql'
+        postgresql: 'postgresql',
+        java: 'jdk'
       }
       const binNames: { [k: string]: string } = {
         apache: 'apachectl',
@@ -139,7 +144,8 @@ class Manager extends Base {
         mongodb: 'mongod',
         'pure-ftpd': 'pure-ftpd',
         postgresql: 'pg_ctl',
-        composer: 'composer'
+        composer: 'composer',
+        java: 'java'
       }
       const fetchVersion = async (flag: string) => {
         return new ForkPromise(async (resolve) => {
@@ -151,6 +157,8 @@ class Manager extends Base {
 
           if (flag === 'composer') {
             systemDirs = [global.Server.AppDir!]
+          } else if (flag === 'java') {
+            systemDirs.push('/Library/Java/JavaVirtualMachines')
           }
 
           const realDirDict: { [k: string]: string } = {}
@@ -163,6 +171,12 @@ class Manager extends Base {
               if (existsSync(binPath)) {
                 console.log('binPath: ', binPath)
                 binPath = realpathSync(binPath)
+                if (!existsSync(binPath)) {
+                  return false
+                }
+                if (!statSync(binPath).isFile()) {
+                  return false
+                }
                 console.log('binPath realpathSync: ', binPath)
                 if (flag === 'mysql' && binPath.includes('mariadb')) {
                   return false
@@ -190,10 +204,19 @@ class Manager extends Base {
               installed.add(binPath)
               return
             }
+            if (flag === 'java') {
+              binPath = checkBin(join(dir, `Contents/Home/bin/java`))
+              if (binPath) {
+                realDirDict[binPath] = join(dir, `Contents/Home/bin/java`)
+                installed.add(binPath)
+                return
+              }
+            }
             if (depth >= maxDepth) {
               return
             }
             const sub = await getSubDirAsync(dir)
+            console.log('sub: ', sub)
             for (const s of sub) {
               await findInstalled(s, depth + 1, maxDepth)
             }
@@ -225,7 +248,7 @@ class Manager extends Base {
           const list: Array<SoftInstalled> = []
           const installedList: Array<string> = Array.from(installed)
           for (const i of installedList) {
-            let path = realDirDict[i]
+            let path = flag === 'java' ? i : realDirDict[i]
             if (path.includes('/sbin/') || path.includes('/bin/')) {
               path = path
                 .replace(`/sbin/`, '/##SPLIT##/')

@@ -68,7 +68,7 @@
     })
   }
 
-  const dirs = ref(appStore.config.setup[flag].dirs)
+  const dirs = ref(appStore.config.setup?.[flag]?.dirs ?? [])
 
   const changed = ref(false)
 
@@ -77,6 +77,11 @@
     (v: any) => {
       changed.value = true
       nextTick().then(() => {
+        if (!appStore.config.setup?.[flag]) {
+          appStore.config.setup[flag] = reactive({
+            dirs: []
+          })
+        }
         appStore.config.setup[flag].dirs = reactive(v)
         appStore.saveConfig()
         brewStore[flag].installedInited = false

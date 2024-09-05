@@ -39,6 +39,7 @@ export interface AppSoftInstalledItem {
 }
 
 interface State {
+  java: AppSoftInstalledItem
   composer: AppSoftInstalledItem
   postgresql: AppSoftInstalledItem
   caddy: AppSoftInstalledItem
@@ -73,6 +74,16 @@ const state: State = {
     list: {
       brew: {},
       port: {}
+    }
+  },
+  java: {
+    getListing: false,
+    installedInited: false,
+    installed: [],
+    list: {
+      brew: {},
+      port: {},
+      static: {}
     }
   },
   composer: {

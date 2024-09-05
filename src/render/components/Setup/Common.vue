@@ -96,12 +96,17 @@
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="Http Serve">
-                <el-switch v-model="showItem.HttpServe" />
+              <el-form-item label="Java">
+                <el-switch v-model="javaShow" />
               </el-form-item>
             </el-col>
           </el-row>
           <el-row>
+            <el-col :span="8">
+              <el-form-item label="Http Serve">
+                <el-switch v-model="showItem.HttpServe" />
+              </el-form-item>
+            </el-col>
             <el-col :span="8">
               <el-form-item label="Tools">
                 <el-switch v-model="showItem.Tools" />
@@ -190,6 +195,14 @@
         },
         set(v: boolean) {
           this.showItem.PostgreSql = v
+        }
+      },
+      javaShow: {
+        get() {
+          return this?.showItem?.java ?? true
+        },
+        set(v: boolean) {
+          this.showItem.java = v
         }
       }
     },

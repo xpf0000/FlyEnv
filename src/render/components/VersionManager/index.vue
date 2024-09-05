@@ -14,6 +14,9 @@
               <template v-else-if="typeFlag === 'caddy'">
                 <el-option value="static" label="static-caddy"></el-option>
               </template>
+              <template v-else-if="typeFlag === 'java'">
+                <el-option value="static" label="static-java"></el-option>
+              </template>
             </el-select>
           </template>
         </div>
@@ -144,6 +147,7 @@
       | 'mongodb'
       | 'pure-ftpd'
       | 'postgresql'
+      | 'java'
   }>()
 
   const showNextBtn = ref(false)

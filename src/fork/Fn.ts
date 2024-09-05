@@ -1,6 +1,14 @@
 import { exec, spawn, execSync, type ChildProcess } from 'child_process'
 import { merge } from 'lodash'
-import { statSync, chmodSync, readdirSync, mkdirSync, existsSync, createWriteStream } from 'fs'
+import {
+  statSync,
+  chmodSync,
+  readdirSync,
+  mkdirSync,
+  existsSync,
+  createWriteStream,
+  realpathSync
+} from 'fs'
 import path, { join, dirname } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
@@ -389,7 +397,13 @@ export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<
   const files = await readdir(dirPath, { withFileTypes: true })
   for (const file of files) {
     const childPath = path.join(dirPath, file.name)
-    if (file.isDirectory()) {
+    if (!existsSync(childPath)) {
+      continue
+    }
+    if (
+      file.isDirectory() ||
+      (file.isSymbolicLink() && statSync(realpathSync(childPath)).isDirectory())
+    ) {
       const name = fullpath ? childPath : file.name
       list.push(name)
     }

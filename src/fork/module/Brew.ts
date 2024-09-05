@@ -97,6 +97,9 @@ class Brew extends Base {
             case 'postgresql':
               cammand = 'brew search -q --formula "/^postgresql@[\\d\\.]+$/"'
               break
+            case 'java':
+              cammand = 'brew search -q --formula "/^(jdk|openjdk)((@[\\d\\.]+)?)$/"'
+              break
           }
           if (cammand) {
             try {
@@ -172,12 +175,17 @@ class Brew extends Base {
         let reg = `^${flag}\\d*$`
         if (flag === 'mariadb') {
           reg = '^mariadb-([\\d\\.]*)\\d$'
+        } else if (flag === 'java') {
+          reg = `^((open)?)jdk([\\d\\.]*)$`
         }
         let arr = []
         const info = await spawnPromise('port', ['search', '--name', '--line', '--regex', reg])
         arr = info
           .split('\n')
           .filter((f: string) => {
+            if (flag === 'java') {
+              return f.includes('Oracle Java SE Development Kit ') || f.includes('OpenJDK ')
+            }
             if (flag === 'php') {
               return f.includes('lang www') && f.includes('PHP: Hypertext Preprocessor')
             }
@@ -244,6 +252,10 @@ class Brew extends Base {
                 existsSync(join('/opt/local/sbin', 'pure-ftpd'))
             } else if (flag === 'postgresql') {
               installed = existsSync(join('/opt/local/lib', name, 'bin/pg_ctl'))
+            } else if (flag === 'java') {
+              installed = existsSync(
+                join('/Library/Java/JavaVirtualMachines', name, 'Contents/Home/bin/java')
+              )
             }
             return {
               name,

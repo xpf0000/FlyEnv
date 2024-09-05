@@ -537,6 +537,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:macports':
       case 'app-fork:caddy':
       case 'app-fork:composer':
+      case 'app-fork:java':
         const module = command.replace('app-fork:', '')
         this.setProxy()
         global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'

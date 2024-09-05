@@ -1,10 +1,10 @@
 import { join } from 'path'
-import { createWriteStream, existsSync } from 'fs'
+import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { execPromise, hostAlias, waitTime } from '../Fn'
+import { hostAlias, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
+import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '../lang'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
@@ -272,82 +272,6 @@ class Caddy extends Base {
       } catch (e) {
         resolve({})
       }
-    })
-  }
-
-  installSoft(row: any) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      const refresh = () => {
-        row.downloaded = existsSync(row.zip)
-        row.installed = existsSync(row.bin)
-      }
-      const end = () => {
-        refresh()
-        if (row.installed) {
-          row.downState = 'success'
-          row.progress = 100
-          on(row)
-          resolve(true)
-        } else {
-          row.downState = 'exception'
-          on(row)
-          resolve(false)
-        }
-      }
-
-      const fail = async () => {
-        try {
-          await remove(row.zip)
-          await remove(row.appDir)
-        } catch (e) {}
-      }
-
-      const unpack = async () => {
-        try {
-          const dir = row.appDir
-          await mkdirp(dir)
-          await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
-        } catch (e) {
-          await fail()
-        }
-      }
-
-      if (existsSync(row.zip)) {
-        await unpack()
-        end()
-        return
-      }
-
-      axios({
-        method: 'get',
-        url: row.url,
-        proxy: this.getAxiosProxy(),
-        responseType: 'stream',
-        onDownloadProgress: (progress) => {
-          if (progress.total) {
-            row.progress = Math.round((progress.loaded * 100.0) / progress.total)
-            on(row)
-          }
-        }
-      })
-        .then(function (response) {
-          const stream = createWriteStream(row.zip)
-          response.data.pipe(stream)
-          stream.on('error', async (err: any) => {
-            console.log('stream error: ', err)
-            await fail()
-            end()
-          })
-          stream.on('finish', async () => {
-            await unpack()
-            end()
-          })
-        })
-        .catch(async (err) => {
-          console.log('down error: ', err)
-          await fail()
-          end()
-        })
     })
   }
 }

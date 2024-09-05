@@ -229,11 +229,23 @@ class Manager extends Base {
           content = content.replace(`\n${x}`, '')
         }
         if (allFile.length > 0) {
+          let java = allFile.find(
+            (f) => f.includes('java') && realpathSync(f).includes('/Contents/Home/')
+          )
+          let java_home = ''
+          if (java) {
+            java = dirname(realpathSync(java))
+            if (file.includes('.zshrc')) {
+              java_home = `\nexport JAVA_HOME="${java}"`
+            } else {
+              java_home = `\nset -gx JAVA_HOME "${java}"`
+            }
+          }
           if (file.includes('.zshrc')) {
-            const text = `\n#PHPWEBSTUDY-PATH-SET-BEGIN#\nexport PATH="${allFile.join(':')}:$PATH"\n#PHPWEBSTUDY-PATH-SET-END#`
+            const text = `\n#PHPWEBSTUDY-PATH-SET-BEGIN#\nexport PATH="${allFile.join(':')}:$PATH"${java_home}\n#PHPWEBSTUDY-PATH-SET-END#`
             content = content.trim() + text
           } else {
-            const text = `\n#PHPWEBSTUDY-PATH-SET-BEGIN#\nset -gx PATH ${allFile.join(' ')} $PATH\n#PHPWEBSTUDY-PATH-SET-END#`
+            const text = `\n#PHPWEBSTUDY-PATH-SET-BEGIN#\nset -gx PATH ${allFile.join(' ')} $PATH${java_home}\n#PHPWEBSTUDY-PATH-SET-END#`
             content = content.trim() + text
           }
 
