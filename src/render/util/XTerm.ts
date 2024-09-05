@@ -244,7 +244,7 @@ class XTerm implements XTermType {
         if (this.cammand.length > 0) {
           this.addHistory()
           const cammand = this.cammand.join('')
-          IPC.send('NodePty:write', cammand + '\r').then((key: string) => {
+          IPC.send('NodePty:write', [cammand]).then((key: string) => {
             console.log('cammand finished: ', cammand)
             IPC.off(key)
             this._callBack && this._callBack()
@@ -334,16 +334,27 @@ class XTerm implements XTermType {
      * 接收node-pty数据
      */
     IPC.on('NodePty:data').then((key: string, data: string) => {
-      this.xterm?.write(data)
-      this.storeCurrentCursor()
-      const max = 300
-      if (logs.length === max) {
-        logs.shift()
-      }
-      logs.push(data)
-      this.cammand.splice(0)
-      this.index = 0
+      this.write(data)
     })
+  }
+
+  initLog(log?: string[]) {
+    logs.splice(0)
+    if (log) {
+      logs.push(...log)
+    }
+  }
+
+  write(data: string) {
+    this.xterm?.write(data)
+    this.storeCurrentCursor()
+    const max = 300
+    if (logs.length === max) {
+      logs.shift()
+    }
+    logs.push(data)
+    this.cammand.splice(0)
+    this.index = 0
   }
 
   onWindowResit() {
@@ -368,9 +379,10 @@ class XTerm implements XTermType {
     this.historyIndex = 0
   }
 
-  static send(cammand: string, exit = false) {
+  static send(cammand: string[], exit = false) {
+    console.log('XTerm send:', cammand)
     return new Promise((resolve) => {
-      IPC.send('NodePty:write', cammand + '\r', exit).then((key: string) => {
+      IPC.send('NodePty:write', JSON.parse(JSON.stringify(cammand)), exit).then((key: string) => {
         console.log('static cammand finished: ', cammand)
         IPC.off(key)
         logs.splice(0)

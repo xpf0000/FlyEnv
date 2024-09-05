@@ -3,10 +3,11 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
-import { execPromise, spawnPromise, waitTime } from '../Fn'
+import { execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { chmod, copyFile, readFile, unlink, writeFile } from 'fs-extra'
 import axios from 'axios'
+import { execPromiseRootWhenNeed } from '@shared/Exec'
 
 class Manager extends Base {
   constructor() {
@@ -121,15 +122,12 @@ class Manager extends Base {
         await unlink(copyfile)
       }
       let content = await readFile(sh, 'utf-8')
-      content = content
-        .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password!)
-        .replace('##BIN_PATH##', dirname(version.bin))
-        .replace('##BRANCH##', tag)
+      content = content.replace('##BIN_PATH##', dirname(version.bin)).replace('##BRANCH##', tag)
       await writeFile(copyfile, content)
       await chmod(copyfile, '0777')
       const params = [copyfile]
       try {
-        spawnPromise('zsh', params).then(resolve).catch(reject)
+        execPromiseRootWhenNeed('zsh', params).then(resolve).catch(reject)
       } catch (e) {
         reject(e)
       }

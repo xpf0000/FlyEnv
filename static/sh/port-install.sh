@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "y" | echo "##PASSWORD##" | sudo -S port install ##NAME##
+sudo -S port install -v ##NAME##

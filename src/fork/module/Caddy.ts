@@ -136,15 +136,14 @@ class Caddy extends Base {
       await this.#fixVHost()
       const iniFile = await this.initConfig()
       if (existsSync(this.pidPath)) {
-        await remove(this.pidPath)
+        await execPromiseRoot(['rm', '-rf', this.pidPath])
       }
 
       const child = spawn(
-        bin,
-        ['start', '--config', iniFile, '--pidfile', this.pidPath, '--watch'],
+        'sudo',
+        ['-S', bin, 'start', '--config', iniFile, '--pidfile', this.pidPath, '--watch', '&'],
         {
           detached: true,
-          stdio: 'ignore',
           env: fixEnv()
         }
       )
@@ -152,25 +151,47 @@ class Caddy extends Base {
       let checking = false
       const checkPid = async (time = 0) => {
         if (existsSync(this.pidPath)) {
+          try {
+            await execPromiseRoot(['kill', '-9', `${child.pid}`])
+          } catch (e) {}
           resolve(true)
         } else {
           if (time < 40) {
             await waitTime(500)
             await checkPid(time + 1)
           } else {
+            try {
+              await execPromiseRoot(['kill', '-9', `${child.pid}`])
+            } catch (e) {}
             reject(new Error(I18nT('fork.startFail')))
           }
         }
       }
 
-      const onPassword = () => {
+      const onPassword = (data: Buffer) => {
+        const str = data.toString()
+        if (str.startsWith('Password:')) {
+          child?.stdin?.write(global.Server.Password!)
+          child?.stdin?.write(`\n`)
+          return
+        }
         if (!checking) {
           checking = true
           checkPid()
         }
       }
-      child.on('exit', onPassword)
-      child.on('close', onPassword)
+      child?.stdout?.on('data', (data: Buffer) => {
+        onPassword(data)
+      })
+      child?.stderr?.on('data', (err: Buffer) => {
+        onPassword(err)
+      })
+      child.on('exit', (err) => {
+        console.log('exit: ', err)
+      })
+      child.on('close', (code) => {
+        console.log('close: ', code)
+      })
     })
   }
 

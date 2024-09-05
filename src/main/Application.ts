@@ -651,7 +651,10 @@ export default class Application extends EventEmitter {
             key
           }
         }
-        this?.pty?.write(args[0])
+        const arr: string[] = args[0]
+        arr.forEach((s) => {
+          this?.pty?.write(`${s}\r`)
+        })
         break
       case 'NodePty:clear':
         if (!this.pty) {

@@ -88,13 +88,13 @@ export const brewCheck = () => {
                 }
                 copyFileSync(sh, copyfile)
                 chmod(copyfile, '0777')
-                let params = copyfile + ' ' + global.Server.Password + ';exit 0;'
+                const params = [`sudo -S ${copyfile} && exit 0`, global.Server.Password!]
 
                 const proxy = appStore.config.setup.proxy
                 if (proxy?.on) {
                   const proxyStr = proxy?.proxy
                   if (proxyStr) {
-                    params = `${proxyStr};${params}`
+                    params.unshift(proxyStr)
                   }
                 }
 

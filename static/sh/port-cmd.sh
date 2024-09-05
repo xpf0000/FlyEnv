@@ -6,6 +6,6 @@ if [ -f "~/.zshrc" ]; then
   source ~/.zshrc
 fi
 echo "arch ##ARCH## sudo port clean -v ##NAME##"
-echo "##PASSWORD##" | arch ##ARCH## sudo -S port clean -v ##NAME##
+arch ##ARCH## sudo -S port clean -v ##NAME##
 echo "arch ##ARCH## sudo port ##ACTION## -v ##NAME##"
-echo "##PASSWORD##" | arch ##ARCH## sudo -S port ##ACTION## -v ##NAME##
+arch ##ARCH## sudo -S port ##ACTION## -v ##NAME##

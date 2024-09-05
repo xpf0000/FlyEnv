@@ -3,12 +3,11 @@ cachedir=$1
 phpdir=$2
 extendV=$3
 arch=$4
-password=$5
 cd "$cachedir" || exit 1
 echo "downloading xlswriter-"$extendV".tgz from http://pecl.php.net/get/xlswriter-"$extendV".tgz"
 curl -C - -O -L http://pecl.php.net/get/xlswriter-"$extendV".tgz
 if [ -d "xlswriter-$extendV" ]; then
- echo "$password" | sudo -S rm -rf "xlswriter-$extendV"
+  sudo -S rm -rf "xlswriter-$extendV"
 fi
 if [ -f "xlswriter-$extendV.tgz" ]; then
   tar -zxf xlswriter-"$extendV".tgz

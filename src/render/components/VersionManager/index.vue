@@ -417,7 +417,7 @@
 
     const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
     const name = row.name
-    let params = ''
+    let params = []
     if (row.flag === 'brew') {
       const sh = join(global.Server.Static, 'sh/brew-cmd.sh')
       const copyfile = join(global.Server.Cache, 'brew-cmd.sh')
@@ -426,9 +426,9 @@
       }
       copyFileSync(sh, copyfile)
       chmod(copyfile, '0777')
-      params = [copyfile, arch, fn, name].join(' ')
+      params = [`${copyfile} ${arch} ${fn} ${name} && exit 0`]
       if (proxyStr?.value) {
-        params = `${proxyStr?.value};${params}`
+        params.unshift(proxyStr?.value)
       }
     } else {
       let names = [name]
@@ -448,21 +448,22 @@
         const libs = names.join(' ')
         const arrs = [
           `echo "arch ${arch} sudo port clean -v ${libs}"`,
-          `echo "${global.Server.Password}" | arch ${arch} sudo -S port clean -v ${libs}`
+          `arch ${arch} sudo -S port clean -v ${libs}`
         ]
         names.forEach((name) => {
           arrs.push(
             `echo "arch ${arch} sudo port install -v ${name} configure.compiler=macports-clang-10"`
           )
           arrs.push(
-            `echo "${global.Server.Password}" | arch ${arch} sudo -S port install -v ${name} configure.compiler=macports-clang-10`
+            `arch ${arch} sudo -S port install -v ${name} configure.compiler=macports-clang-10`
           )
         })
         let content = readFileSync(sh, 'utf-8')
         content = content.replace('##CONTENT##', arrs.join('\n'))
         writeFileSync(copyfile, content)
         chmod(copyfile, '0777')
-        params = [copyfile].join(' ')
+        params = [`sudo -S ${copyfile} && exit 0`]
+        params.push(global.Server.Password!)
       } else {
         const sh = join(global.Server.Static, 'sh/port-cmd.sh')
         const copyfile = join(global.Server.Cache, 'port-cmd.sh')
@@ -480,14 +481,15 @@
           .replace(new RegExp('##NAME##', 'g'), names.join(' '))
         writeFileSync(copyfile, content)
         chmod(copyfile, '0777')
-        params = [copyfile].join(' ')
+        params = [`sudo -S ${copyfile} && exit 0`]
+        params.push(global.Server.Password!)
       }
       if (proxyStr?.value) {
-        params = `${proxyStr?.value};${params}`
+        params.unshift(proxyStr?.value)
       }
     }
 
-    XTerm.send(`${params};exit 0;`, true).then((key: string) => {
+    XTerm.send(params, true).then((key: string) => {
       IPC.off(key)
       showNextBtn.value = true
       regetInstalled()

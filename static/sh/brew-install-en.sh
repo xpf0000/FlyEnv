@@ -16,8 +16,6 @@ if ! [[ "$hasBrew" == "brew not found" ]]; then
     exit 0
 fi
 
-password=$1
-echo "$password" | sudo -S -v
 echo "
               ${tty_green} Starting the Brew installer ${tty_reset}
 "

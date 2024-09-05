@@ -1,11 +1,12 @@
 import { Base } from './Base'
-import { execPromise, fixEnv, spawnPromise } from '../Fn'
+import { execPromise, fixEnv } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { compareVersions } from 'compare-versions'
 import { exec } from 'child_process'
 import { existsSync } from 'fs'
 import { chmod, copyFile, unlink } from 'fs-extra'
+import { execPromiseRootWhenNeed } from '@shared/Exec'
 
 class Manager extends Base {
   constructor() {
@@ -137,10 +138,9 @@ class Manager extends Base {
         }
         await copyFile(sh, copyfile)
         await chmod(copyfile, '0777')
-        const password = global.Server.Password!
         const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-        const params = ['node.sh', flag, password, arch]
-        spawnPromise('zsh', params, {
+        const params = ['node.sh', flag, arch]
+        execPromiseRootWhenNeed('zsh', params, {
           cwd: global.Server.Cache
         })
           .on(on)

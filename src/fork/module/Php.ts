@@ -9,7 +9,7 @@ import compressing from 'compressing'
 import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
-import { execPromiseRoot } from '@shared/Exec'
+import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 
 class Php extends Base {
   constructor() {
@@ -338,27 +338,19 @@ class Php extends Base {
     return new ForkPromise(async (resolve, reject, on) => {
       const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
       const doRun = (copyfile: string, extendVersion: string, isPort = false) => {
-        let params = [
-          copyfile,
-          global.Server.Cache!,
-          version.path,
-          extendVersion,
-          arch,
-          global.Server.Password
-        ]
+        let params: string[] = [copyfile, global.Server.Cache!, version.path, extendVersion, arch]
         if (isPort) {
           params = [
             copyfile,
             global.Server.Cache!,
             extendVersion,
-            global.Server.Password,
-            version.phpize,
-            version.phpConfig
+            version.phpize!,
+            version.phpConfig!
           ]
         }
         const command = params.join(' ')
         on(I18nT('fork.ExtensionInstallFailTips', { command }))
-        spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
+        execPromiseRootWhenNeed('zsh', params).on(on).then(resolve).catch(reject)
       }
 
       const installByMacports = async (type: string) => {
@@ -386,16 +378,14 @@ class Php extends Base {
             await unlink(copyfile)
           }
           let content = await readFile(sh, 'utf-8')
-          content = content
-            .replace('##PASSWORD##', global.Server.Password!)
-            .replace('##NAME##', name)
+          content = content.replace('##NAME##', name)
           await writeFile(copyfile, content)
           await chmod(copyfile, '0777')
           const params = [copyfile]
           const command = params.join(' ')
           on(I18nT('fork.ExtensionInstallFailTips', { command }))
           try {
-            spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
+            execPromiseRootWhenNeed('zsh', params).on(on).then(resolve).catch(reject)
           } catch (e) {}
           return true
         }
@@ -623,17 +613,10 @@ class Php extends Base {
           if (versionNumber >= 7.4 && arch === '-arm64') {
             archStr = arch
           }
-          const params = [
-            copyfile,
-            global.Server.Cache!,
-            extendsDir,
-            versionNums,
-            archStr,
-            global.Server.Password
-          ]
+          const params = [copyfile, global.Server.Cache!, extendsDir, versionNums, archStr]
           const command = params.join(' ')
           on(I18nT('fork.ExtensionInstallFailTips', { command }))
-          spawnPromise('zsh', params).on(on).then(resolve).catch(reject)
+          execPromiseRootWhenNeed('zsh', params).on(on).then(resolve).catch(reject)
           break
       }
     })

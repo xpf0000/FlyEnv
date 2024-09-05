@@ -3,12 +3,11 @@ cachedir=$1
 phpdir=$2
 extendv=$3
 arch=$4
-password=$5
 cd "$cachedir" || exit 1
 echo "downloading pdo_sqlsrv-$extendv.tgz from http://pecl.php.net/get/pdo_sqlsrv-$extendv.tgz"
 curl -C - -O -L http://pecl.php.net/get/pdo_sqlsrv-"$extendv".tgz
 if [ -d "pdo_sqlsrv-$extendv" ]; then
- echo "$password" | sudo -S rm -rf "pdo_sqlsrv-$extendv"
+  sudo -S rm -rf "pdo_sqlsrv-$extendv"
 fi
 if [ -f "pdo_sqlsrv-$extendv.tgz" ]; then
   tar -zxf pdo_sqlsrv-"$extendv".tgz

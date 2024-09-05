@@ -3,8 +3,6 @@ cachedir=$1
 phpdir=$2
 extendV=$3
 arch=$4
-password=$5
-echo "$password" | sudo -S -v
 cd $cachedir
 echo "downloading xdebug-$extendV.tgz from https://xdebug.org/files/xdebug-$extendV.tgz"
 curl -C - -O -L https://xdebug.org/files/xdebug-$extendV.tgz

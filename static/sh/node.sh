@@ -103,12 +103,10 @@ install_nvm_by_brew() {
 }
 
 install_nvm_by_port() {
-  local PASSWORD
-  PASSWORD="${1-}"
   local ARCH
-  ARCH="${2-}"
-  echo "$PASSWORD" | arch "$ARCH" sudo -S port clean -v nvm
-  echo "$PASSWORD" | arch "$ARCH" sudo -S port install -v nvm
+  ARCH="${1-}"
+  arch "$ARCH" sudo -S port clean -v nvm
+  arch "$ARCH" sudo -S port install -v nvm
   nvm_write_to_env
   if [ -f "/opt/local/share/nvm/init-nvm.sh" ] ; then
       source "/opt/local/share/nvm/init-nvm.sh"
@@ -123,12 +121,10 @@ install_fnm_by_brew() {
 }
 
 install_fnm_by_port() {
-  local PASSWORD
-  PASSWORD="${1-}"
   local ARCH
-  ARCH="${2-}"
-  echo "$PASSWORD" | arch "$ARCH" sudo -S port clean -v fnm
-  echo "$PASSWORD" | arch "$ARCH" sudo -S port install -v fnm
+  ARCH="${1-}"
+  arch "$ARCH" sudo -S port clean -v fnm
+  arch "$ARCH" sudo -S port install -v fnm
   fnm_write_to_env
 }
 
@@ -151,8 +147,7 @@ check_fnm_or_nvm() {
 }
 
 FLAG=$1
-PASSWORD=$2
-ARCH=$3
+ARCH=$2
 case $FLAG in
 "check")
 check_fnm_or_nvm
@@ -164,12 +159,12 @@ install_nvm_by_shell
 install_nvm_by_brew "$ARCH"
 ;;
 "nvm-port")
-install_nvm_by_port "$PASSWORD" "$ARCH"
+install_nvm_by_port "$ARCH"
 ;;
 "fnm-brew")
 install_fnm_by_brew "$ARCH"
 ;;
 "fnm-port")
-install_fnm_by_port "$PASSWORD" "$ARCH"
+install_fnm_by_port "$ARCH"
 ;;
 esac
