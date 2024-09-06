@@ -109,7 +109,7 @@ datadir=${dataDir}`
       } catch (e) {}
       console.log('mysql start: ', bin, params.join(' '))
       on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
-      const { promise, spawn } = spawnPromiseMore(bin, params)
+      const { promise, spawn } = await spawnPromiseMore(bin, params)
       let success = false
       let checking = false
       async function checkpid(time = 0) {
@@ -277,7 +277,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       } catch (e) {}
       console.log('mysql start: ', bin, params.join(' '))
       on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
-      const { promise, spawn } = spawnPromiseMore(bin!, params)
+      const { promise, spawn } = await spawnPromiseMore(bin!, params)
       let success = false
       let checking = false
       const initPassword = () => {

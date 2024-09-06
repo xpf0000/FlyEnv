@@ -5,11 +5,8 @@ import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import {execPromiseRoot, execPromiseRootWhenNeed} from '@shared/Exec'
-import { spawn } from 'child_process'
-import { fixEnv } from '@shared/utils'
-import { hostAlias, waitTime } from '../Fn'
-import { I18nT } from '../lang'
+import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
+import { hostAlias } from '../Fn'
 import { mkdirp, readFile, writeFile } from 'fs-extra'
 import { XMLParser, XMLBuilder } from 'fast-xml-parser'
 
@@ -113,12 +110,14 @@ class Tomcat extends Base {
     const parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: '',
-      attributesGroupName: ''
+      attributesGroupName: '',
+      allowBooleanAttributes: true
     })
     const builder = new XMLBuilder({
       attributeNamePrefix: '',
       attributesGroupName: '',
       ignoreAttributes: false,
+      suppressBooleanAttributes: false,
       format: true
     })
 
@@ -139,7 +138,7 @@ class Tomcat extends Base {
         const xmlObj = parser.parse(xml)
         serverXML.Server.Service.Connector = xmlObj.Connector
       } else if (!Array.isArray(serverXML.Server.Service.Connector)) {
-        if (serverXML.Server.Service.Connector.port !== port) {
+        if (`${serverXML.Server.Service.Connector.port}` !== `${port}`) {
           serverXML.Server.Service.Connector = [serverXML.Server.Service.Connector]
           const xml = `<Connector port="${port}" protocol="HTTP/1.1" connectionTimeout="60000"/>`
           const xmlObj = parser.parse(xml)
@@ -151,7 +150,11 @@ class Tomcat extends Base {
         if (!Array.isArray(serverXML.Server.Service.Connector)) {
           serverXML.Server.Service.Connector = [serverXML.Server.Service.Connector]
         }
-        const find: any = serverXML.Server.Service.Connector.find((c: any) => c.port === port)
+        console.log('serverXML.Server.Service.Connector: ', serverXML.Server.Service.Connector)
+        const find: any = serverXML.Server.Service.Connector.find(
+          (c: any) => `${c.port}` === `${port}`
+        )
+        console.log('find: ', find)
         if (!find) {
           const arr = [
             `<Connector port="${port}" protocol="org.apache.coyote.http11.Http11NioProtocol"
@@ -220,6 +223,7 @@ class Tomcat extends Base {
         hostAlias(host).forEach((h) => {
           arr.push(`<Host name="${h}" appBase="${host.root}"
                   unpackWARs="true" autoDeploy="true">
+                <Context path="" docBase=""></Context>
                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logDir}"
                        prefix="${host.name}-tomcat_access_log" suffix=".log"
                        pattern="%h %l %u %t &quot;%r&quot; %s %b"/>
@@ -239,6 +243,7 @@ class Tomcat extends Base {
           } else {
             const str = `<Host name="${h}" appBase="${host.root}"
                   unpackWARs="true" autoDeploy="true">
+                  <Context path="" docBase=""></Context>
                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logDir}"
                        prefix="${host.name}-tomcat_access_log" suffix=".log"
                        pattern="%h %l %u %t &quot;%r&quot; %s %b"/>
@@ -267,8 +272,7 @@ class Tomcat extends Base {
         await execPromiseRoot(['rm', '-rf', this.pidPath])
       }
       try {
-        const res = await execPromiseRootWhenNeed([bin, '-c', c, '-g', `${g}`])
-        on(res.stdout)
+        await execPromiseRootWhenNeed('zsh', [bin, `--APPFLAG=${global.Server.BaseDir!}`])
         resolve(0)
       } catch (e: any) {
         reject(e)

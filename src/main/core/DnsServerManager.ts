@@ -17,8 +17,8 @@ class DnsServer {
     let log = ''
     let resolved = false
     let timer: NodeJS.Timeout | undefined
-    return new Promise((resolve, reject) => {
-      const env = fixEnv() as any
+    return new Promise(async (resolve, reject) => {
+      const env = await fixEnv()
       const cacheDir = global.Server.Cache
       const file = join(__static, 'fork/dnsServer.js')
       const cacheFile = join(cacheDir!, 'dnsServer.js')

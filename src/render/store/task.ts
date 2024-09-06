@@ -1,7 +1,16 @@
 import { defineStore } from 'pinia'
 
 interface State {
+  composer?: {
+    log: Array<string>
+  }
+  java?: {
+    log: Array<string>
+  }
   postgresql: {
+    log: Array<string>
+  }
+  tomcat: {
     log: Array<string>
   }
   caddy: {
@@ -49,6 +58,7 @@ interface State {
 }
 
 const state: State = {
+  tomcat: { log: [] },
   postgresql: { log: [] },
   apache: { log: [] },
   memcached: { log: [] },

@@ -1,12 +1,13 @@
 import { Base } from './Base'
-import { execPromise, fixEnv } from '../Fn'
+import { execPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { compareVersions } from 'compare-versions'
-import { exec } from 'child_process'
+import { exec } from 'child-process-promise'
 import { existsSync } from 'fs'
 import { chmod, copyFile, unlink } from 'fs-extra'
 import { execPromiseRootWhenNeed } from '@shared/Exec'
+import { fixEnv } from '@shared/utils'
 
 class Manager extends Base {
   constructor() {
@@ -14,7 +15,7 @@ class Manager extends Base {
   }
 
   allVersion(tool: 'fnm' | 'nvm') {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
         command = 'fnm ls-remote'
@@ -23,23 +24,19 @@ class Manager extends Base {
           'export NVM_DIR="${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ls-remote'
       }
       try {
-        exec(
-          command,
-          {
-            env: fixEnv()
-          },
-          (error, stdout) => {
-            const str = stdout ?? ''
-            const all =
-              str?.match(/\sv\d+(\.\d+){1,4}\s/g)?.map((v) => {
-                return v.trim().replace('v', '')
-              }) ?? []
-            resolve({
-              all: all.reverse(),
-              tool
-            })
-          }
-        )
+        const env = await fixEnv()
+        const res = await exec(command, {
+          env
+        })
+        const str = res?.stdout ?? ''
+        const all =
+          str?.match(/\sv\d+(\.\d+){1,4}\s/g)?.map((v) => {
+            return v.trim().replace('v', '')
+          }) ?? []
+        resolve({
+          all: all.reverse(),
+          tool
+        })
       } catch (e) {
         reject(e)
       }
@@ -47,7 +44,7 @@ class Manager extends Base {
   }
 
   localVersion(tool: 'fnm' | 'nvm') {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
         command = 'fnm ls'
@@ -56,43 +53,40 @@ class Manager extends Base {
           'export NVM_DIR="${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ls'
       }
       try {
-        exec(
-          command,
-          {
-            env: fixEnv()
-          },
-          (error, stdout) => {
-            let localVersions: Array<string> = []
-            let current = ''
-            if (tool === 'fnm') {
-              localVersions = stdout.match(/\d+(\.\d+){1,4}/g) ?? []
-              const regex = /(\d+(\.\d+){1,4}) default/g
-              const arr = regex.exec(stdout)
-              if (arr && arr.length > 1) {
-                current = arr[1]
-              }
-            } else {
-              const str = stdout
-              const ls = str.split('default')[0]
-              localVersions = ls.match(/\d+(\.\d+){1,4}/g) ?? []
-              const reg = /default.*?(\d+(\.\d+){1,4}).*?\(/g
-              const currentArr: any = reg.exec(str)
-              if (currentArr?.length > 1) {
-                current = currentArr[1]
-              } else {
-                current = ''
-              }
-            }
-            localVersions?.sort((a, b) => {
-              return compareVersions(b, a)
-            })
-            resolve({
-              versions: localVersions,
-              current: current,
-              tool
-            })
+        const env = await fixEnv()
+        const res = await exec(command, {
+          env
+        })
+        const stdout = res?.stdout ?? ''
+        let localVersions: Array<string> = []
+        let current = ''
+        if (tool === 'fnm') {
+          localVersions = stdout.match(/\d+(\.\d+){1,4}/g) ?? []
+          const regex = /(\d+(\.\d+){1,4}) default/g
+          const arr = regex.exec(stdout)
+          if (arr && arr.length > 1) {
+            current = arr[1]
           }
-        )
+        } else {
+          const str = stdout
+          const ls = str.split('default')[0]
+          localVersions = ls.match(/\d+(\.\d+){1,4}/g) ?? []
+          const reg = /default.*?(\d+(\.\d+){1,4}).*?\(/g
+          const currentArr: any = reg.exec(str)
+          if (currentArr?.length > 1) {
+            current = currentArr[1]
+          } else {
+            current = ''
+          }
+        }
+        localVersions?.sort((a, b) => {
+          return compareVersions(b, a)
+        })
+        resolve({
+          versions: localVersions,
+          current: current,
+          tool
+        })
       } catch (e) {
         reject(e)
       }
@@ -100,7 +94,7 @@ class Manager extends Base {
   }
 
   versionChange(tool: 'fnm' | 'nvm', select: string) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
         command = `fnm default ${select}`
@@ -108,20 +102,16 @@ class Manager extends Base {
         command = `export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm alias default ${select}`
       }
       try {
-        exec(
-          command,
-          {
-            env: fixEnv()
-          },
-          async () => {
-            const { current }: any = await this.localVersion(tool)
-            if (current === select) {
-              resolve(true)
-            } else {
-              reject(new Error('Fail'))
-            }
-          }
-        )
+        const env = await fixEnv()
+        await exec(command, {
+          env
+        })
+        const { current }: any = await this.localVersion(tool)
+        if (current === select) {
+          resolve(true)
+        } else {
+          reject(new Error('Fail'))
+        }
       } catch (e) {
         reject(e)
       }
@@ -155,7 +145,7 @@ class Manager extends Base {
   }
 
   installOrUninstall(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', version: string) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
         command = `fnm ${action} ${version}`
@@ -163,27 +153,23 @@ class Manager extends Base {
         command = `export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ${action} ${version}`
       }
       try {
-        exec(
-          command,
-          {
-            env: fixEnv()
-          },
-          async () => {
-            const { versions, current }: { versions: Array<string>; current: string } =
-              (await this.localVersion(tool)) as any
-            if (
-              (action === 'install' && versions.includes(version)) ||
-              (action === 'uninstall' && !versions.includes(version))
-            ) {
-              resolve({
-                versions,
-                current
-              })
-            } else {
-              reject(new Error('Fail'))
-            }
-          }
-        )
+        const env = await fixEnv()
+        await exec(command, {
+          env
+        })
+        const { versions, current }: { versions: Array<string>; current: string } =
+          (await this.localVersion(tool)) as any
+        if (
+          (action === 'install' && versions.includes(version)) ||
+          (action === 'uninstall' && !versions.includes(version))
+        ) {
+          resolve({
+            versions,
+            current
+          })
+        } else {
+          reject(new Error('Fail'))
+        }
       } catch (e) {
         reject(e)
       }

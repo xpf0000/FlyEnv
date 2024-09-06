@@ -29,12 +29,13 @@ export function execPromiseRoot(
       args.push(...params)
     }
     console.log('args: ', args)
+    const env = await fixEnv()
     const child = spawn(
       'sudo',
       args,
       merge(
         {
-          env: fixEnv()
+          env
         },
         opt
       )
@@ -90,12 +91,13 @@ export function execPromiseRootWhenNeed(
   return new ForkPromise(async (resolve, reject, on) => {
     const stdout: Array<Buffer> = []
     const stderr: Array<Buffer> = []
+    const env = await fixEnv()
     const child = spawn(
       command,
       params,
       merge(
         {
-          env: fixEnv()
+          env
         },
         opt
       )

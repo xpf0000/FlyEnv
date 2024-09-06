@@ -2,23 +2,46 @@ import crypto from 'crypto'
 import { merge } from 'lodash'
 
 const { spawn } = require('child_process')
+const { exec } = require('child-process-promise')
 const os = require('os')
+const { join } = require('path')
+const { chmod, copyFile } = require('fs-extra')
 
-export function fixEnv() {
-  const env = { ...process.env }
-  if (!env['PATH']) {
-    env['PATH'] =
-      '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
-  } else {
-    env['PATH'] =
-      `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:${env['PATH']}`
+let AppEnv: any
+
+export async function fixEnv(): Promise<{ [k: string]: any }> {
+  console.log('fixEnv !!!', typeof AppEnv)
+  if (AppEnv) {
+    return AppEnv
   }
+  const file = join(global.Server.Cache!, 'env.sh')
+  await copyFile(join(global.Server.Static!, 'sh/env.sh'), file)
+  await chmod(file, '0777')
+  const res = await exec(`zsh env.sh`, {
+    cwd: global.Server.Cache!
+  })
+  AppEnv = {}
+  res.stdout
+    .toString()
+    .trim()
+    .split('\n')
+    .forEach((l: string) => {
+      const arr = l.split('=')
+      const k = arr.shift()
+      const v = arr.join('')
+      if (k) {
+        AppEnv[k] = v
+      }
+    })
+  const PATH = `${AppEnv['PATH']}:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin`
+  AppEnv['PATH'] = Array.from(new Set(PATH.split(':'))).join(':')
+  console.log('PATH: ', AppEnv['PATH'])
   if (global.Server.Proxy) {
     for (const k in global.Server.Proxy) {
-      env[k] = global.Server.Proxy[k]
+      AppEnv[k] = global.Server.Proxy[k]
     }
   }
-  return env
+  return AppEnv
 }
 
 export function execAsync(
@@ -26,9 +49,10 @@ export function execAsync(
   arg: Array<string> = [],
   options: { [key: string]: any } = {}
 ) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    const env = await fixEnv()
     const optdefault = {
-      env: fixEnv()
+      env
     }
     const opt = merge(optdefault, options)
     if (global.Server.isAppleSilicon) {

@@ -139,35 +139,50 @@ export class Base {
         redis: 'redis-server',
         mongodb: 'mongod',
         postgresql: 'postgres',
-        'pure-ftpd': 'pure-ftpd'
+        'pure-ftpd': 'pure-ftpd',
+        tomcat: 'org.apache.catalina.startup.Bootstrap'
       }
       const serverName = dis[this.type]
-      const command = `ps aux | grep '${serverName}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+      const command = `ps aux | grep '${serverName}'`
       console.log('_stopServer command: ', command)
       let res: any = null
       try {
         res = await execPromise(command)
       } catch (e) {}
-      const pids = res?.stdout?.trim()?.split('\n') ?? []
+      const pids =
+        res?.stdout
+          ?.trim()
+          ?.split('\n')
+          ?.filter((v: string) => {
+            return !v.includes(`ps aux | grep `)
+          }) ?? []
       const arr: Array<string> = []
       for (const p of pids) {
+        const parr = p.split(' ').filter((s: string) => {
+          return s.trim().length > 0
+        })
+        parr.shift()
+        const pid = parr.shift()
+        const runstr = parr.slice(8).join(' ')
+        console.log('pid: ', pid)
+        console.log('runstr: ', runstr)
         if (this.type === 'redis' || global.Server.ForceStart === true) {
           if (
-            p.includes(' grep ') ||
-            p.includes(' /bin/sh -c') ||
-            p.includes('/Contents/MacOS/') ||
-            p.startsWith('/bin/bash ') ||
-            p.includes('brew.rb ') ||
-            p.includes(' install ') ||
-            p.includes(' uninstall ') ||
-            p.includes(' link ') ||
-            p.includes(' unlink ')
+            runstr.includes(' grep ') ||
+            runstr.includes(' /bin/sh -c') ||
+            runstr.includes('/Contents/MacOS/') ||
+            runstr.startsWith('/bin/bash ') ||
+            runstr.includes('brew.rb ') ||
+            runstr.includes(' install ') ||
+            runstr.includes(' uninstall ') ||
+            runstr.includes(' link ') ||
+            runstr.includes(' unlink ')
           ) {
             continue
           }
-          arr.push(p.split(' ')[0])
-        } else if (p.includes(global.Server.BaseDir!)) {
-          arr.push(p.split(' ')[0])
+          arr.push(pid)
+        } else if (runstr.includes(global.Server.BaseDir!)) {
+          arr.push(pid)
         }
       }
       console.log('_stopServer arr: ', arr)
@@ -177,6 +192,7 @@ export class Base {
           case 'mysql':
           case 'mariadb':
           case 'mongodb':
+          case 'tomcat':
             sig = '-TERM'
             break
           default:
@@ -188,6 +204,9 @@ export class Base {
         } catch (e) {}
       }
       await waitTime(300)
+      if (this.type === 'tomcat' && arr.length > 0) {
+        await waitTime(5000)
+      }
       resolve(true)
     })
   }

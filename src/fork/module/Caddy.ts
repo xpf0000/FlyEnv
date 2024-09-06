@@ -9,7 +9,7 @@ import { I18nT } from '../lang'
 import axios from 'axios'
 import { compareVersions } from 'compare-versions'
 import { execPromiseRoot } from '@shared/Exec'
-import { spawn } from 'child_process'
+import { type ChildProcess, spawn } from 'child_process'
 import { fixEnv } from '@shared/utils'
 
 class Caddy extends Base {
@@ -138,15 +138,28 @@ class Caddy extends Base {
       if (existsSync(this.pidPath)) {
         await execPromiseRoot(['rm', '-rf', this.pidPath])
       }
-
-      const child = spawn(
-        'sudo',
-        ['-S', bin, 'start', '--config', iniFile, '--pidfile', this.pidPath, '--watch', '&'],
-        {
-          detached: true,
-          env: fixEnv()
-        }
-      )
+      const env = await fixEnv()
+      let child: ChildProcess
+      if (global.Server.isAppleSilicon) {
+        child = spawn(
+          bin,
+          ['start', '--config', iniFile, '--pidfile', this.pidPath, '--watch', '&'],
+          {
+            detached: true,
+            stdio: 'ignore',
+            env
+          }
+        )
+      } else {
+        child = spawn(
+          'sudo',
+          ['-S', bin, 'start', '--config', iniFile, '--pidfile', this.pidPath, '--watch', '&'],
+          {
+            detached: true,
+            env
+          }
+        )
+      }
 
       let checking = false
       const checkPid = async (time = 0) => {
@@ -188,9 +201,11 @@ class Caddy extends Base {
       })
       child.on('exit', (err) => {
         console.log('exit: ', err)
+        onPassword(Buffer.from(''))
       })
       child.on('close', (code) => {
         console.log('close: ', code)
+        onPassword(Buffer.from(''))
       })
     })
   }

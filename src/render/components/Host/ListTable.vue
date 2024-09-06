@@ -267,7 +267,8 @@
     const apacheRunning = brewStore.apache.installed.find((a) => a.run)
     const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
     const caddyRunning = brewStore.caddy.installed.find((a) => a.run)
-    return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning)
+    const tomcatRunning = brewStore.tomcat.installed.find((a) => a.run)
+    return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning || tomcatRunning)
   })
 
   if (!hosts?.value || hosts?.value?.length === 0) {

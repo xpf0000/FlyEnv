@@ -92,7 +92,7 @@ datadir=${dataDir}`
       } catch (e) {}
 
       on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
-      const { promise, spawn } = spawnPromiseMore(bin, params)
+      const { promise, spawn } = await spawnPromiseMore(bin, params)
       let success = false
       let checking = false
 

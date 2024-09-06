@@ -1,20 +1,14 @@
-import { exec, spawn, execSync, type ChildProcess } from 'child_process'
+import { spawn, type ChildProcess } from 'child_process'
+import { exec } from 'child-process-promise'
 import { merge } from 'lodash'
-import {
-  statSync,
-  chmodSync,
-  readdirSync,
-  mkdirSync,
-  existsSync,
-  createWriteStream,
-  realpathSync
-} from 'fs'
+import { statSync, readdirSync, mkdirSync, existsSync, createWriteStream, realpathSync } from 'fs'
 import path, { join, dirname } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
 import { readdir } from 'fs-extra'
 import type { AppHost } from '@shared/app'
+import { fixEnv } from '@shared/utils'
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
     on,
@@ -65,41 +59,6 @@ export function waitTime(time: number) {
   })
 }
 
-export function fixEnv(): { [k: string]: any } {
-  const env = { ...process.env }
-  if (!env['PATH']) {
-    env['PATH'] =
-      '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
-  } else {
-    env['PATH'] =
-      `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:${env['PATH']}`
-  }
-  if (global.Server.Proxy) {
-    for (const k in global.Server.Proxy) {
-      env[k] = global.Server.Proxy[k]
-    }
-  }
-  return env
-}
-
-export function execSyncFix(cammand: string, opt?: { [k: string]: any }): string | undefined {
-  let res: any = undefined
-  try {
-    res = execSync(
-      cammand,
-      merge(
-        {
-          env: fixEnv()
-        },
-        opt
-      )
-    ).toString()
-  } catch (e) {
-    res = undefined
-  }
-  return res
-}
-
 export function execPromise(
   cammand: string,
   opt?: { [k: string]: any }
@@ -107,27 +66,19 @@ export function execPromise(
   stdout: string
   stderr: string
 }> {
-  return new ForkPromise((resolve, reject) => {
+  return new ForkPromise(async (resolve, reject) => {
     try {
-      exec(
+      const env = await fixEnv()
+      const res = await exec(
         cammand,
         merge(
           {
-            env: fixEnv()
+            env
           },
           opt
-        ),
-        (error, stdout, stderr) => {
-          if (!error) {
-            resolve({
-              stdout,
-              stderr
-            })
-          } else {
-            reject(error)
-          }
-        }
+        )
       )
+      resolve(res)
     } catch (e) {
       reject(e)
     }
@@ -139,15 +90,16 @@ export function spawnPromise(
   params: Array<any>,
   opt?: { [k: string]: any }
 ): ForkPromise<any> {
-  return new ForkPromise((resolve, reject, on) => {
+  return new ForkPromise(async (resolve, reject, on) => {
     const stdout: Array<Buffer> = []
     const stderr: Array<Buffer> = []
+    const env = await fixEnv()
     const child = spawn(
       cammand,
       params,
       merge(
         {
-          env: fixEnv()
+          env
         },
         opt
       )
@@ -178,22 +130,23 @@ export function spawnPromise(
   })
 }
 
-export function spawnPromiseMore(
+export async function spawnPromiseMore(
   cammand: string,
   params: Array<any>,
   opt?: { [k: string]: any }
-): {
+): Promise<{
   promise: ForkPromise<any>
   spawn: ChildProcess
-} {
+}> {
   const stdout: Array<Buffer> = []
   const stderr: Array<Buffer> = []
+  const env = await fixEnv()
   const child = spawn(
     cammand,
     params,
     merge(
       {
-        env: fixEnv()
+        env
       },
       opt
     )
@@ -227,22 +180,6 @@ export function spawnPromiseMore(
     promise,
     spawn: child
   }
-}
-
-export function chmod(fp: string, mode: string) {
-  if (statSync(fp).isFile()) {
-    chmodSync(fp, mode)
-    return
-  }
-  const files = readdirSync(fp)
-  files.forEach(function (item) {
-    const fPath = join(fp, item)
-    chmodSync(fPath, mode)
-    const stat = statSync(fPath)
-    if (stat.isDirectory()) {
-      chmod(fPath, mode)
-    }
-  })
 }
 
 export function createFolder(fp: string) {

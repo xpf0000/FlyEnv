@@ -26,7 +26,7 @@ const exec = (
     const appStore = AppStore()
     const taskStore = TaskStore()
     const task = taskStore[typeFlag]
-    task.log.splice(0)
+    task?.log?.splice(0)
     IPC.send(`app-fork:${typeFlag}`, fn, args).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
@@ -41,11 +41,11 @@ const exec = (
         resolve(true)
       } else if (res.code === 1) {
         IPC.off(key)
-        task.log.push(res.msg)
+        task?.log?.push(res.msg)
         version.running = false
-        resolve(task.log.join('\n'))
+        resolve(task?.log?.join('\n') ?? '')
       } else if (res.code === 200) {
-        task.log.push(res.msg)
+        task?.log?.push(res.msg)
       }
     })
   })

@@ -126,13 +126,17 @@ export default class Application extends EventEmitter {
     })
   }
 
-  initNodePty() {
+  async initNodePty() {
+    if (!!this.pty) {
+      return
+    }
+    const env = await fixEnv()
     this.pty = Pty.spawn(process.env['SHELL'], [], {
       name: 'xterm-color',
       cols: 80,
       rows: 34,
       cwd: process.cwd(),
-      env: fixEnv(),
+      env,
       encoding: 'utf8'
     })
     this.pty!.onData((data) => {
@@ -336,41 +340,64 @@ export default class Application extends EventEmitter {
   async stopServerByPid() {
     const TERM: Array<string> = []
     const INT: Array<string> = []
-    let command = `ps aux | grep '${global.Server.BaseDir}' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+    let command = `ps aux | grep '${global.Server.BaseDir}'`
     let res: any = null
     try {
       res = execSync(command)?.toString()?.trim() ?? ''
     } catch (e) {}
-    let pids = res?.split('\n') ?? []
+    let pids =
+      res?.split('\n')?.filter((v: string) => {
+        return !v.includes(`ps aux | grep `)
+      }) ?? []
     for (const p of pids) {
       if (p.includes(global.Server.BaseDir!)) {
-        if (p.includes('mysqld') || p.includes('mariadbd') || p.includes('mongod')) {
-          TERM.push(p.split(' ')[0])
+        const parr = p.split(' ').filter((s: string) => {
+          return s.trim().length > 0
+        })
+        parr.shift()
+        const pid = parr.shift()
+        const runstr = parr.slice(8).join(' ')
+        if (
+          runstr.includes('mysqld') ||
+          runstr.includes('mariadbd') ||
+          runstr.includes('mongod') ||
+          runstr.includes('org.apache.catalina')
+        ) {
+          TERM.push(pid)
         } else {
-          INT.push(p.split(' ')[0])
+          INT.push(pid)
         }
       }
     }
-    command = `ps aux | grep 'redis-server' | awk '{print $2,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20}'`
+    command = `ps aux | grep 'redis-server'`
     try {
       res = execSync(command)?.toString()?.trim() ?? ''
     } catch (e) {}
-    pids = res?.split('\n') ?? []
+    pids =
+      res?.split('\n')?.filter((v: string) => {
+        return !v.includes(`ps aux | grep `)
+      }) ?? []
     for (const p of pids) {
+      const parr = p.split(' ').filter((s: string) => {
+        return s.trim().length > 0
+      })
+      parr.shift()
+      const pid = parr.shift()
+      const runstr = parr.slice(8).join(' ')
       if (
-        p.includes(' grep ') ||
-        p.includes(' /bin/sh -c') ||
-        p.includes('/Contents/MacOS/') ||
-        p.startsWith('/bin/bash ') ||
-        p.includes('brew.rb ') ||
-        p.includes(' install ') ||
-        p.includes(' uninstall ') ||
-        p.includes(' link ') ||
-        p.includes(' unlink ')
+        runstr.includes(' grep ') ||
+        runstr.includes(' /bin/sh -c') ||
+        runstr.includes('/Contents/MacOS/') ||
+        runstr.startsWith('/bin/bash ') ||
+        runstr.includes('brew.rb ') ||
+        runstr.includes(' install ') ||
+        runstr.includes(' uninstall ') ||
+        runstr.includes(' link ') ||
+        runstr.includes(' unlink ')
       ) {
         continue
       }
-      INT.push(p.split(' ')[0])
+      INT.push(pid)
     }
     if (TERM.length > 0) {
       const sig = '-TERM'
@@ -644,32 +671,29 @@ export default class Application extends EventEmitter {
         })
         break
       case 'NodePty:write':
-        if (!this.pty) {
-          this.initNodePty()
-        }
-        if (!this.ptyLast) {
-          this.ptyLast = {
-            command,
-            key
+        this.initNodePty().then(() => {
+          if (!this.ptyLast) {
+            this.ptyLast = {
+              command,
+              key
+            }
           }
-        }
-        const arr: string[] = args[0]
-        arr.forEach((s) => {
-          this?.pty?.write(`${s}\r`)
+          const arr: string[] = args[0]
+          arr.forEach((s) => {
+            this?.pty?.write(`${s}\r`)
+          })
         })
         break
       case 'NodePty:clear':
-        if (!this.pty) {
-          this.initNodePty()
-        }
-        this?.pty?.write('clear\r')
+        this.initNodePty().then(() => {
+          this?.pty?.write('clear\r')
+        })
         break
       case 'NodePty:resize':
-        if (!this.pty) {
-          this.initNodePty()
-        }
-        const { cols, rows } = args[0]
-        this?.pty?.resize(cols, rows)
+        this.initNodePty().then(() => {
+          const { cols, rows } = args[0]
+          this?.pty?.resize(cols, rows)
+        })
         break
       case 'NodePty:stop':
         this.exitNodePty()
