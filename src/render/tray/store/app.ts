@@ -4,6 +4,12 @@ export interface TrayState {
   password: string
   lang: string
   theme: string
+  tomcat: {
+    show: boolean
+    run: boolean
+    running: boolean
+    disabled: boolean
+  }
   caddy: {
     show: boolean
     run: boolean
@@ -81,6 +87,7 @@ export interface TrayState {
 const state: TrayState = {
   lang: '',
   theme: '',
+  tomcat: { show: true, disabled: true, run: false, running: false },
   apache: { show: true, disabled: true, run: false, running: false },
   memcached: { show: true, disabled: true, run: false, running: false },
   mysql: { show: true, disabled: true, run: false, running: false },

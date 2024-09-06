@@ -80,6 +80,10 @@ const routes = [
       {
         path: '/java',
         component: defineAsyncComponent(() => import('@/components/Java/Index.vue'))
+      },
+      {
+        path: '/tomcat',
+        component: defineAsyncComponent(() => import('@/components/Tomcat/Index.vue'))
       }
     ]
   }

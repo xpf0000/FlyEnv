@@ -1,14 +1,19 @@
 <template>
   <li
-    v-if="showItem.Redis"
-    :class="'non-draggable' + (currentPage === '/redis' ? ' active' : '')"
-    @click="emit('nav', '/redis')"
+    v-if="showItem?.tomcat !== false"
+    :class="'non-draggable' + (currentPage === '/tomcat' ? ' active' : '')"
+    @click="emit('nav', '/tomcat')"
   >
     <div class="left">
       <div class="icon-block" :class="{ run: serviceRunning }">
-        <yb-icon style="padding: 7px" :svg="import('@/svg/redis.svg?raw')" width="30" height="30" />
+        <yb-icon
+          style="padding: 5px"
+          :svg="import('@/svg/Tomcat.svg?raw')"
+          width="30"
+          height="30"
+        />
       </div>
-      <span class="title">Redis</span>
+      <span class="title">Tomcat</span>
     </div>
 
     <el-switch
@@ -44,18 +49,18 @@
   })
 
   const currentVersion = computed(() => {
-    const current = appStore.config.server?.redis?.current
+    const current = appStore.config.server?.tomcat?.current
     if (!current) {
       return undefined
     }
-    const installed = brewStore?.redis?.installed
+    const installed = brewStore?.tomcat?.installed
     return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
   const serviceDisabled = computed(() => {
     return (
       !currentVersion?.value?.version ||
-      brewStore?.redis?.installed?.some((v) => v.running) ||
+      brewStore?.tomcat?.installed?.some((v) => v.running) ||
       !appStore.versionInited
     )
   })
@@ -71,15 +76,19 @@
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
     const all: Array<Promise<string | boolean>> = []
     if (isRunning) {
-      if (showItem?.value?.Redis && serviceRunning?.value && currentVersion?.value?.version) {
-        all.push(stopService('redis', currentVersion?.value))
+      if (
+        showItem?.value?.tomcat !== false &&
+        serviceRunning?.value &&
+        currentVersion?.value?.version
+      ) {
+        all.push(stopService('tomcat', currentVersion?.value))
       }
     } else {
       if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
         return all
       }
-      if (showItem?.value?.Redis && currentVersion?.value?.version) {
-        all.push(startService('redis', currentVersion?.value))
+      if (showItem?.value?.tomcat !== false && currentVersion?.value?.version) {
+        all.push(startService('tomcat', currentVersion?.value))
       }
     }
     return all
@@ -91,7 +100,7 @@
       let promise: Promise<any> | null = null
       if (!currentVersion?.value?.version) return
       fn = serviceRunning?.value ? stopService : startService
-      promise = fn('redis', currentVersion?.value)
+      promise = fn('tomcat', currentVersion?.value)
       promise?.then((res) => {
         if (typeof res === 'string') {
           MessageError(res)

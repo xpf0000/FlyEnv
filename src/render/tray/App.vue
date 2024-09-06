@@ -57,6 +57,26 @@
         </el-switch>
       </li>
 
+      <li v-if="tomcat?.show" class="non-draggable">
+        <div class="left">
+          <div class="icon-block" :class="{ run: tomcat?.run }">
+            <yb-icon
+              :svg="import('@/svg/Tomcat.svg?raw')"
+              style="padding: 5px"
+              width="28"
+              height="28"
+            />
+          </div>
+          <span class="title">Tomcat</span>
+        </div>
+        <el-switch
+          v-model="tomcat.run"
+          :disabled="tomcat?.disabled"
+          @change="switchChange('tomcat')"
+        >
+        </el-switch>
+      </li>
+
       <li v-if="php?.show" class="non-draggable">
         <div class="left">
           <div class="icon-block" :class="{ run: php?.run }">
@@ -231,6 +251,9 @@
   })
   const caddy = computed(() => {
     return store.caddy
+  })
+  const tomcat = computed(() => {
+    return store.tomcat
   })
   const apache = computed(() => {
     return store.apache

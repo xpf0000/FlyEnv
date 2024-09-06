@@ -100,6 +100,9 @@ class Brew extends Base {
             case 'java':
               cammand = 'brew search -q --formula "/^(jdk|openjdk)((@[\\d\\.]+)?)$/"'
               break
+            case 'tomcat':
+              cammand = 'brew search -q --formula "/^tomcat((@[\\d\\.]+)?)$/"'
+              break
           }
           if (cammand) {
             try {

@@ -312,7 +312,7 @@ export class Base {
           const dir = row.appDir
           await mkdirp(dir)
           await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
-          if (this.type === 'java') {
+          if (['java', 'tomcat'].includes(this.type)) {
             const subDirs = await readdir(dir)
             const subDir = subDirs.pop()
             if (subDir) {

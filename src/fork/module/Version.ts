@@ -5,6 +5,7 @@ import type { SoftInstalled } from '@shared/app'
 import { execPromise, getAllFileAsync, getSubDirAsync } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { compareVersions } from 'compare-versions'
+import { execPromiseRoot } from '@shared/Exec'
 
 class Manager extends Base {
   constructor() {
@@ -46,14 +47,9 @@ class Manager extends Base {
         const str = res.stdout + res.stderr
         let version: string | null = ''
         try {
-          version = reg?.exec(str)?.[2]?.trim() ?? ''
+          version = reg?.exec(str)?.[2]?.trim() ?? null
           reg!.lastIndex = 0
         } catch (e) {}
-        version = !isNaN(parseInt(version)) ? version : null
-        const regx = /^\d[\d\.]*\d$/g
-        if (version && !regx.test(version)) {
-          version = null
-        }
         resolve({
           version
         })
@@ -106,6 +102,12 @@ class Manager extends Base {
           command = `${bin} -version`
           reg = /(")(\d+([\.|\d]+){1,4})(["_])/g
           break
+        case 'catalina.sh':
+          bin = join(dirname(bin), 'version.sh')
+          await execPromiseRoot(['chmod', '777', bin])
+          command = `zsh ${bin}`
+          reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
+          break
       }
       try {
         const res = await execPromise(command)
@@ -130,7 +132,8 @@ class Manager extends Base {
         mongodb: 'mongodb-',
         'pure-ftpd': 'pure-ftpd',
         postgresql: 'postgresql',
-        java: 'jdk'
+        java: 'jdk',
+        tomcat: 'tomcat'
       }
       const binNames: { [k: string]: string } = {
         apache: 'apachectl',
@@ -145,7 +148,8 @@ class Manager extends Base {
         'pure-ftpd': 'pure-ftpd',
         postgresql: 'pg_ctl',
         composer: 'composer',
-        java: 'java'
+        java: 'java',
+        tomcat: 'catalina.sh'
       }
       const fetchVersion = async (flag: string) => {
         return new ForkPromise(async (resolve) => {
@@ -262,7 +266,7 @@ class Manager extends Base {
             const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
             const item = {
               version: version,
-              bin: i,
+              bin: flag === 'tomcat' ? join(dirname(i), 'startup.sh') : i,
               path: `${path}/`,
               num,
               enable: version !== null,

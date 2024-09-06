@@ -6,7 +6,7 @@
   >
     <div class="left">
       <div class="icon-block">
-        <yb-icon :svg="import('@/svg/nodejs.svg?raw')" width="28" height="28" />
+        <yb-icon :svg="import('@/svg/nodejs.svg?raw')" width="30" height="30" />
       </div>
       <span class="title">NodeJS</span>
     </div>
