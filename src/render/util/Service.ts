@@ -122,6 +122,13 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
     useSeted = true
   }
 
+  const tomcatRunning = brewStore.tomcat.installed.find((a) => a.run)
+  const tomcatTaskRunning = brewStore.tomcat.installed.some((a) => a.running)
+  if (tomcatRunning && !tomcatTaskRunning) {
+    startService('tomcat', tomcatRunning).then()
+    useSeted = true
+  }
+
   if (useSeted || !hosts || hosts?.length > 1) {
     return
   }

@@ -127,6 +127,16 @@
               placeholder="default: 80"
             />
           </div>
+
+          <div class="port-set mb-20">
+            <div class="port-type"> Tomcat </div>
+            <input
+              v-model.number="item.port.tomcat"
+              type="number"
+              :class="'input' + (errs['port_tomcat'] ? ' error' : '')"
+              placeholder="default: 80"
+            />
+          </div>
         </div>
 
         <div class="plant-title">{{ $t('host.hostSSL') }}</div>
@@ -208,6 +218,15 @@
                 v-model.number="item.port.apache_ssl"
                 type="number"
                 :class="'input' + (errs['port_apache_ssl'] ? ' error' : '')"
+                placeholder="default: 443"
+              />
+            </div>
+            <div class="port-set port-ssl mb-20">
+              <div class="port-type"> Tomcat </div>
+              <input
+                v-model.number="item.port.tomcat_ssl"
+                type="number"
+                :class="'input' + (errs['port_tomcat_ssl'] ? ' error' : '')"
                 placeholder="default: 443"
               />
             </div>
@@ -294,7 +313,9 @@
       apache: 80,
       apache_ssl: 443,
       caddy: 80,
-      caddy_ssl: 443
+      caddy_ssl: 443,
+      tomcat: 80,
+      tomcat_ssl: 443
     },
     nginx: {
       rewrite: ''
@@ -314,7 +335,9 @@
     port_apache: false,
     port_nginx_ssl: false,
     port_apache_ssl: false,
-    port_caddy_ssl: false
+    port_caddy_ssl: false,
+    port_tomcat: false,
+    port_tomcat_ssl: false
   })
   merge(item.value, props.edit)
   const rewrites: Ref<Array<string>> = ref([])
@@ -494,6 +517,9 @@
     if (!Number.isInteger(item.value.port.caddy)) {
       errs.value['port_caddy'] = true
     }
+    if (!Number.isInteger(item.value.port.tomcat)) {
+      errs.value['port_tomcat'] = true
+    }
 
     if (item.value.useSSL) {
       if (!Number.isInteger(item.value.port.nginx_ssl)) {
@@ -504,6 +530,9 @@
       }
       if (!Number.isInteger(item.value.port.caddy_ssl)) {
         errs.value['port_caddy_ssl'] = true
+      }
+      if (!Number.isInteger(item.value.port.tomcat_ssl)) {
+        errs.value['port_tomcat_ssl'] = true
       }
     }
 

@@ -22,7 +22,12 @@ const handleHostEnd = (arr: Array<AppHost>, isAdd?: boolean) => {
   MessageSuccess(I18nT('base.success'))
 }
 
-export const handleHost = (host: AppHost, flag: 'add' | 'edit', old?: AppHost, park?: boolean) => {
+export const handleHost = (
+  host: AppHost,
+  flag: 'add' | 'edit' | 'del',
+  old?: AppHost,
+  park?: boolean
+) => {
   return new Promise((resolve) => {
     host = JSON.parse(JSON.stringify(host))
     old = JSON.parse(JSON.stringify(old ?? {}))

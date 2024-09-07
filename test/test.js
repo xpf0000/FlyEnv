@@ -2,16 +2,18 @@ const { XMLParser, XMLBuilder } = require('fast-xml-parser')
 const fs = require('fs')
 const path = require('path')
 
-const content = fs.readFileSync(path.join(__dirname, 'serve.xml'), 'utf-8')
+// const content = fs.readFileSync(path.join(__dirname, 'serve.xml'), 'utf-8')
+//
+// const parser = new XMLParser({
+//   ignoreAttributes: false,
+//   attributeNamePrefix: '',
+//   attributesGroupName: ''
+// })
+// let jObj = parser.parse(content)
 
-const parser = new XMLParser({
-  ignoreAttributes: false,
-  attributeNamePrefix: '',
-  attributesGroupName: ''
-})
-let jObj = parser.parse(content)
+console.log(path.resolve('/usr/bin', 'java'))
 
-console.log(jObj)
+console.log(path.resolve('/usr/bin', '/user/x/abc'))
 //
 // if (!Array.isArray(jObj.Server.Service.Connector)) {
 //   jObj.Server.Service.Connector = [jObj.Server.Service.Connector]

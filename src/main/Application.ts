@@ -110,7 +110,7 @@ export default class Application extends EventEmitter {
   initTrayManager() {
     this.trayManager.on('click', (x, poperX) => {
       if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
-        this?.trayWindow?.setPosition(x, 0)
+        this?.trayWindow?.setPosition(Math.round(x), 0)
         this?.trayWindow?.setOpacity(1.0)
         this?.trayWindow?.show()
         this.windowManager.sendCommandTo(
@@ -505,7 +505,9 @@ export default class Application extends EventEmitter {
 
     this.on('application:window-size-change', (size) => {
       console.log('application:window-size-change: ', size)
-      this.windowManager?.getFocusedWindow()?.setSize(size.width, size.height, true)
+      this.windowManager
+        ?.getFocusedWindow()
+        ?.setSize(Math.round(size.width), Math.round(size.height), true)
     })
 
     this.on('application:window-open-new', (page) => {

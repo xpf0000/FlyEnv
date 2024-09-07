@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, resolve as pathResolve } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -134,13 +134,13 @@ class Tomcat extends Base {
     const handlePort = (host: AppHost) => {
       const port = host?.port?.tomcat ?? 80
       if (!serverXML.Server.Service.Connector) {
-        const xml = `<Connector port="${port}" protocol="HTTP/1.1" connectionTimeout="60000"/>`
+        const xml = `<Connector appFlag="PhpWebStudy" port="${port}" protocol="HTTP/1.1" connectionTimeout="60000"/>`
         const xmlObj = parser.parse(xml)
         serverXML.Server.Service.Connector = xmlObj.Connector
       } else if (!Array.isArray(serverXML.Server.Service.Connector)) {
         if (`${serverXML.Server.Service.Connector.port}` !== `${port}`) {
           serverXML.Server.Service.Connector = [serverXML.Server.Service.Connector]
-          const xml = `<Connector port="${port}" protocol="HTTP/1.1" connectionTimeout="60000"/>`
+          const xml = `<Connector appFlag="PhpWebStudy" port="${port}" protocol="HTTP/1.1" connectionTimeout="60000"/>`
           const xmlObj = parser.parse(xml)
           serverXML.Server.Service.Connector.push(xmlObj.Connector)
         }
@@ -157,7 +157,7 @@ class Tomcat extends Base {
         console.log('find: ', find)
         if (!find) {
           const arr = [
-            `<Connector port="${port}" protocol="org.apache.coyote.http11.Http11NioProtocol"
+            `<Connector appFlag="PhpWebStudy" port="${port}" protocol="org.apache.coyote.http11.Http11NioProtocol"
                    maxThreads="150" SSLEnabled="true" scheme="https">`,
             `<SSLHostConfig sslProtocol="TLS" certificateVerification="false">
                 <Certificate certificateFile="${host.ssl.cert}"
@@ -166,7 +166,7 @@ class Tomcat extends Base {
             </SSLHostConfig>`
           ]
           hostAlias(host).forEach((h) => {
-            arr.push(`<SSLHostConfig hostName="${h}" sslProtocol="TLS" certificateVerification="false">
+            arr.push(`<SSLHostConfig appFlag="PhpWebStudy" hostName="${h}" sslProtocol="TLS" certificateVerification="false">
                 <Certificate certificateFile="${host.ssl.cert}"
                              certificateKeyFile="${host.ssl.key}"
                              type="RSA"/>
@@ -179,7 +179,7 @@ class Tomcat extends Base {
           const hostConfig = find.SSLHostConfig
           if (!hostConfig) {
             const arr = [
-              `<Connector port="${port}" protocol="org.apache.coyote.http11.Http11NioProtocol"
+              `<Connector appFlag="PhpWebStudy" port="${port}" protocol="org.apache.coyote.http11.Http11NioProtocol"
                    maxThreads="150" SSLEnabled="true" scheme="https">`,
               `<SSLHostConfig sslProtocol="TLS" certificateVerification="false">
                 <Certificate certificateFile="${host.ssl.cert}"
@@ -188,7 +188,7 @@ class Tomcat extends Base {
             </SSLHostConfig>`
             ]
             hostAlias(host).forEach((h) => {
-              arr.push(`<SSLHostConfig hostName="${h}" sslProtocol="TLS" certificateVerification="false">
+              arr.push(`<SSLHostConfig appFlag="PhpWebStudy" hostName="${h}" sslProtocol="TLS" certificateVerification="false">
                 <Certificate certificateFile="${host.ssl.cert}"
                              certificateKeyFile="${host.ssl.key}"
                              type="RSA"/>
@@ -201,7 +201,7 @@ class Tomcat extends Base {
             hostAlias(host).forEach((h) => {
               const findHost = hostConfig.find((c: any) => c.hostName === h)
               if (!findHost) {
-                const str = `<SSLHostConfig hostName="${h}" sslProtocol="TLS" certificateVerification="false">
+                const str = `<SSLHostConfig appFlag="PhpWebStudy" hostName="${h}" sslProtocol="TLS" certificateVerification="false">
                 <Certificate certificateFile="${host.ssl.cert}"
                              certificateKeyFile="${host.ssl.key}"
                              type="RSA"/>
@@ -210,6 +210,16 @@ class Tomcat extends Base {
                 hostConfig.push(xml.SSLHostConfig)
               }
             })
+            const defaultConf = hostConfig.find((h: any) => !h?.hostName)
+            if (defaultConf) {
+              const cert = defaultConf.Certificate.certificateFile
+              const key = defaultConf.Certificate.certificateKeyFile
+              const base = join(version.path, 'conf')
+              if (!existsSync(pathResolve(base, cert)) || !existsSync(pathResolve(base, key))) {
+                defaultConf.Certificate.certificateFile = host.ssl.cert
+                defaultConf.Certificate.certificateKeyFile = host.ssl.key
+              }
+            }
           }
         }
       }
@@ -221,7 +231,7 @@ class Tomcat extends Base {
       if (!hosts) {
         const arr: string[] = []
         hostAlias(host).forEach((h) => {
-          arr.push(`<Host name="${h}" appBase="${host.root}"
+          arr.push(`<Host name="${h}" appBase="${host.root}" appFlag="PhpWebStudy"
                   unpackWARs="true" autoDeploy="true">
                 <Context path="" docBase=""></Context>
                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logDir}"
@@ -241,7 +251,7 @@ class Tomcat extends Base {
           if (findHost) {
             findHost.appBase = host.root
           } else {
-            const str = `<Host name="${h}" appBase="${host.root}"
+            const str = `<Host name="${h}" appBase="${host.root}" appFlag="PhpWebStudy"
                   unpackWARs="true" autoDeploy="true">
                   <Context path="" docBase=""></Context>
                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logDir}"
@@ -255,10 +265,82 @@ class Tomcat extends Base {
       }
     }
 
+    const cleanPort = (allPort: Set<number>) => {
+      if (!serverXML.Server.Service.Connector) {
+        return
+      }
+      if (!Array.isArray(serverXML.Server.Service.Connector)) {
+        return
+      }
+      const allApp = serverXML.Server.Service.Connector.filter(
+        (c: any) => c.appFlag === 'PhpWebStudy'
+      )
+      for (const c of allApp) {
+        const port = Number(c.port)
+        if (!allPort.has(port)) {
+          const index = serverXML.Server.Service.Connector.indexOf(c)
+          if (index >= 0) {
+            serverXML.Server.Service.Connector.splice(index, 1)
+          }
+        }
+      }
+    }
+
+    const cleanVhost = (allName: Set<string>) => {
+      if (Array.isArray(serverXML.Server.Service.Engine.Host)) {
+        const allHost = serverXML.Server.Service.Engine.Host.filter(
+          (c: any) => c.appFlag === 'PhpWebStudy'
+        )
+        for (const c of allHost) {
+          const name = c.name
+          if (!allName.has(name)) {
+            const index = serverXML.Server.Service.Engine.Host.indexOf(c)
+            if (index >= 0) {
+              serverXML.Server.Service.Engine.Host.splice(index, 1)
+            }
+          }
+        }
+      }
+      if (Array.isArray(serverXML.Server.Service.Connector)) {
+        for (const Connector of serverXML.Server.Service.Connector) {
+          if (Connector?.appFlag !== 'PhpWebStudy') {
+            continue
+          }
+          const SSLHostConfig = Connector.SSLHostConfig
+          if (!SSLHostConfig || !Array.isArray(SSLHostConfig)) {
+            continue
+          }
+          for (const c of SSLHostConfig) {
+            if (c?.appFlag !== 'PhpWebStudy') {
+              continue
+            }
+            const name = c.hostName
+            if (!allName.has(name)) {
+              const index = SSLHostConfig.indexOf(c)
+              if (index >= 0) {
+                SSLHostConfig.splice(index, 1)
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const allPort: Set<number> = new Set()
+    const allName: Set<string> = new Set()
+
     for (const host of hostAll) {
       handlePort(host)
       handleVhost(host)
+      allPort.add(host.port?.tomcat ?? 80)
+      if (host.useSSL) {
+        allPort.add(host.port?.tomcat_ssl ?? 443)
+      }
+      hostAlias(host).forEach((n) => allName.add(n))
     }
+
+    cleanPort(allPort)
+    cleanVhost(allName)
 
     const content = builder.build(serverXML)
     await writeFile(configFile, content)
