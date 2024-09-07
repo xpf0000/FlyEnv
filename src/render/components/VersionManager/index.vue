@@ -436,7 +436,7 @@
       }
       copyFileSync(sh, copyfile)
       chmod(copyfile, '0777')
-      params = [`${copyfile} ${arch} ${fn} ${name} && exit 0`]
+      params = [`${copyfile} ${arch} ${fn} ${name}; exit 0`]
       if (proxyStr?.value) {
         params.unshift(proxyStr?.value)
       }
@@ -472,7 +472,7 @@
         content = content.replace('##CONTENT##', arrs.join('\n'))
         writeFileSync(copyfile, content)
         chmod(copyfile, '0777')
-        params = [`sudo -S ${copyfile} && exit 0`]
+        params = [`sudo -S ${copyfile}; exit 0`]
         params.push(global.Server.Password!)
       } else {
         const sh = join(global.Server.Static, 'sh/port-cmd.sh')
@@ -491,7 +491,7 @@
           .replace(new RegExp('##NAME##', 'g'), names.join(' '))
         writeFileSync(copyfile, content)
         chmod(copyfile, '0777')
-        params = [`sudo -S ${copyfile} && exit 0`]
+        params = [`sudo -S ${copyfile}; exit 0`]
         params.push(global.Server.Password!)
       }
       if (proxyStr?.value) {

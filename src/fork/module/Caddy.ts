@@ -2,7 +2,7 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { hostAlias, waitTime } from '../Fn'
+import { execPromise, hostAlias, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '../lang'
@@ -141,6 +141,13 @@ class Caddy extends Base {
       const env = await fixEnv()
       let child: ChildProcess
       if (global.Server.isAppleSilicon) {
+        const sslDir = join(global.Server.BaseDir!, 'caddy/ssl')
+        if (existsSync(sslDir)) {
+          const res = await execPromise(`ls -al "${sslDir}"`)
+          if (res.stdout.includes(' root ')) {
+            await execPromiseRoot(['rm', '-rf', sslDir])
+          }
+        }
         child = spawn(
           bin,
           ['start', '--config', iniFile, '--pidfile', this.pidPath, '--watch', '&'],

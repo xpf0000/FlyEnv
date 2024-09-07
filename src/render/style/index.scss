@@ -178,6 +178,7 @@ body {
     word-break: break-word;
     overflow: auto;
     max-height: calc(70vh - 30px);
+    line-height: 18px !important;
   }
 }
 .dns-panel {
