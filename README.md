@@ -93,10 +93,7 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 
 ## 🖥 application interface
 
-![theme-white.png](https://www.macphpstudy.com/image/index/index-main-light.png)
-![theme-black.png](https://www.macphpstudy.com/image/index/index-main-dark.png)
-![php-white.png](https://www.macphpstudy.com/image/index/php-light.png)
-![php-extension-white.png](https://www.macphpstudy.com/image/index/php-extension-light.png)
+![screen.png](screen.png)
 
 ## ⌨️ Development
 
