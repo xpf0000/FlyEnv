@@ -1,44 +1,33 @@
-import { I18nT } from './lang'
-import { execSync } from 'child_process'
 import { ProcessSendError, ProcessSendLog, ProcessSendSuccess } from './Fn'
-import type { ForkPromise } from '@shared/ForkPromise'
-import Apache from './module/Apache'
-import Nginx from './module/Nginx'
-import Php from './module/Php'
-import Host from './module/Host'
-import Mysql from './module/Mysql'
-import Redis from './module/Redis'
-import Memcached from './module/Memcached'
-import Mongodb from './module/Mongodb'
-import Mariadb from './module/Mariadb'
-import Postgresql from './module/Postgresql'
-import PureFtpd from './module/PureFtpd'
-import Node from './module/Node'
-import Brew from './module/Brew'
-import Version from './module/Version'
-import Project from './module/Project'
-import Tool from './module/Tool'
-import MacPorts from './module/MacPorts'
-import Caddy from './module/Caddy'
-import DNS from './module/DNS'
-import Composer from './module/Composer'
 
 class BaseManager {
+  Apache: any
+  Nginx: any
+  Php: any
+  Host: any
+  Mysql: any
+  Redis: any
+  Memcached: any
+  Mongodb: any
+  Mariadb: any
+  Postgresql: any
+  PureFtpd: any
+  Node: any
+  Brew: any
+  Version: any
+  Project: any
+  Tool: any
+  MacPorts: any
+  Caddy: any
+  Composer: any
+  Java: any
+  Tomcat: any
+
   constructor() { }
 
-  init() {
-    Apache.init()
-    Nginx.init()
-    Mysql.init()
-    Redis.init()
-    Memcached.init()
-    Mongodb.init()
-    Mariadb.init()
-    PureFtpd.init()
-    Caddy.init()
-  }
+  init() { }
 
-  exec(commands: Array<any>) {
+  async exec(commands: Array<any>) {
     const ipcCommandKey = commands.shift()
     const then = (res: any) => {
       ProcessSendSuccess(ipcCommandKey, res)
@@ -49,51 +38,146 @@ class BaseManager {
     const onData = (log: string) => {
       ProcessSendLog(ipcCommandKey, log)
     }
+
     const module: string = commands.shift()
     const fn: string = commands.shift()
-    let func: ForkPromise<any> | undefined
-    if (module === 'apache') {
-      func = Apache.exec(fn, ...commands)
-    } else if (module === 'nginx') {
-      func = Nginx.exec(fn, ...commands)
-    } else if (module === 'php') {
-      func = Php.exec(fn, ...commands)
-    } else if (module === 'host') {
-      func = Host.exec(fn, ...commands)
-    } else if (module === 'mysql') {
-      func = Mysql.exec(fn, ...commands)
-    } else if (module === 'redis') {
-      func = Redis.exec(fn, ...commands)
-    } else if (module === 'memcached') {
-      func = Memcached.exec(fn, ...commands)
-    } else if (module === 'mongodb') {
-      func = Mongodb.exec(fn, ...commands)
-    } else if (module === 'mariadb') {
-      func = Mariadb.exec(fn, ...commands)
-    } else if (module === 'postgresql') {
-      func = Postgresql.exec(fn, ...commands)
-    } else if (module === 'pure-ftpd') {
-      func = PureFtpd.exec(fn, ...commands)
-    } else if (module === 'node') {
-      func = Node.exec(fn, ...commands)
-    } else if (module === 'brew') {
-      func = Brew.exec(fn, ...commands)
-    } else if (module === 'version') {
-      func = Version.exec(fn, ...commands)
-    } else if (module === 'project') {
-      func = Project.exec(fn, ...commands)
-    } else if (module === 'tools') {
-      func = Tool.exec(fn, ...commands)
-    } else if (module === 'macports') {
-      func = MacPorts.exec(fn, ...commands)
-    } else if (module === 'caddy') {
-      func = Caddy.exec(fn, ...commands)
-    } else if (module === 'dns') {
-      func = DNS.exec(fn, ...commands)
-    } else if (module === 'composer') {
-      func = Composer.exec(fn, ...commands)
+
+    const doRun = (module: any) => {
+      module.init && module.init()
+      module
+        .exec(fn, ...commands)
+        ?.on(onData)
+        ?.then(then)
+        ?.catch(error)
     }
-    func?.on(onData).then(then).catch(error)
+
+    if (module === 'apache') {
+      if (!this.Apache) {
+        const res = await import('./module/Apache')
+        this.Apache = res.default
+      }
+      doRun(this.Apache)
+    } else if (module === 'nginx') {
+      if (!this.Nginx) {
+        const res = await import('./module/Nginx')
+        this.Nginx = res.default
+      }
+      doRun(this.Nginx)
+    } else if (module === 'php') {
+      if (!this.Php) {
+        const res = await import('./module/Php')
+        this.Php = res.default
+      }
+      doRun(this.Php)
+    } else if (module === 'host') {
+      if (!this.Host) {
+        const res = await import('./module/Host')
+        this.Host = res.default
+      }
+      doRun(this.Host)
+    } else if (module === 'mysql') {
+      if (!this.Mysql) {
+        const res = await import('./module/Mysql')
+        this.Mysql = res.default
+      }
+      doRun(this.Mysql)
+    } else if (module === 'redis') {
+      if (!this.Redis) {
+        const res = await import('./module/Redis')
+        this.Redis = res.default
+      }
+      doRun(this.Redis)
+    } else if (module === 'memcached') {
+      if (!this.Memcached) {
+        const res = await import('./module/Memcached')
+        this.Memcached = res.default
+      }
+      doRun(this.Memcached)
+    } else if (module === 'mongodb') {
+      if (!this.Mongodb) {
+        const res = await import('./module/Mongodb')
+        this.Mongodb = res.default
+      }
+      doRun(this.Mongodb)
+    } else if (module === 'mariadb') {
+      if (!this.Mariadb) {
+        const res = await import('./module/Mariadb')
+        this.Mariadb = res.default
+      }
+      doRun(this.Mariadb)
+    } else if (module === 'postgresql') {
+      if (!this.Postgresql) {
+        const res = await import('./module/Postgresql')
+        this.Postgresql = res.default
+      }
+      doRun(this.Postgresql)
+    } else if (module === 'pure-ftpd') {
+      if (!this.PureFtpd) {
+        const res = await import('./module/PureFtpd')
+        this.PureFtpd = res.default
+      }
+      doRun(this.PureFtpd)
+    } else if (module === 'node') {
+      if (!this.Node) {
+        const res = await import('./module/Node')
+        this.Node = res.default
+      }
+      doRun(this.Node)
+    } else if (module === 'brew') {
+      if (!this.Brew) {
+        const res = await import('./module/Brew')
+        this.Brew = res.default
+      }
+      doRun(this.Brew)
+    } else if (module === 'version') {
+      if (!this.Version) {
+        const res = await import('./module/Version')
+        this.Version = res.default
+      }
+      doRun(this.Version)
+    } else if (module === 'project') {
+      if (!this.Project) {
+        const res = await import('./module/Project')
+        this.Project = res.default
+      }
+      doRun(this.Project)
+    } else if (module === 'tools') {
+      if (!this.Tool) {
+        const res = await import('./module/Tool')
+        this.Tool = res.default
+      }
+      doRun(this.Tool)
+    } else if (module === 'macports') {
+      if (!this.MacPorts) {
+        const res = await import('./module/MacPorts')
+        this.MacPorts = res.default
+      }
+      doRun(this.MacPorts)
+    } else if (module === 'caddy') {
+      if (!this.Caddy) {
+        const res = await import('./module/Caddy')
+        this.Caddy = res.default
+      }
+      doRun(this.Caddy)
+    } else if (module === 'composer') {
+      if (!this.Composer) {
+        const res = await import('./module/Composer')
+        this.Composer = res.default
+      }
+      doRun(this.Composer)
+    } else if (module === 'java') {
+      if (!this.Java) {
+        const res = await import('./module/Java')
+        this.Java = res.default
+      }
+      doRun(this.Java)
+    } else if (module === 'tomcat') {
+      if (!this.Tomcat) {
+        const res = await import('./module/Tomcat')
+        this.Tomcat = res.default
+      }
+      doRun(this.Tomcat)
+    }
   }
 
   async destory() { }

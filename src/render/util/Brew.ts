@@ -94,8 +94,8 @@ export const fetchVerion = (typeFlag: AllAppSofts): Promise<boolean> => {
       return
     }
     currentType.getListing = true
-    const key = `fetchVerion-${typeFlag}`
-    let saved: any = localStorage.getItem(key)
+    const saveKey = `fetchVerion-${typeFlag}`
+    let saved: any = localStorage.getItem(saveKey)
     if (saved) {
       saved = JSON.parse(saved)
       const time = Math.round(new Date().getTime() / 1000)
@@ -121,7 +121,7 @@ export const fetchVerion = (typeFlag: AllAppSofts): Promise<boolean> => {
         currentType.list = reactive(list)      
         currentType.getListing = false
         if (list.length > 0) {
-          localStorage.setItem(key, JSON.stringify({
+          localStorage.setItem(saveKey, JSON.stringify({
             expire: Math.round(new Date().getTime() / 1000) + (24 * 60 * 60),
             data: list
           }))

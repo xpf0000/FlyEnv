@@ -36,6 +36,8 @@ export interface AppSoftInstalledItem {
 }
 
 interface State {
+  tomcat: AppSoftInstalledItem
+  java: AppSoftInstalledItem
   composer: AppSoftInstalledItem
   postgresql: AppSoftInstalledItem
   caddy: AppSoftInstalledItem
@@ -63,6 +65,18 @@ const state: State = {
   brewSrc: '',
   log: [],
   LibUse: {},
+  tomcat: {
+    getListing: false,
+    installedInited: false,
+    installed: [],
+    list: []
+  },
+  java: {
+    getListing: false,
+    installedInited: false,
+    installed: [],
+    list: []
+  },
   composer: {
     getListing: false,
     installedInited: false,

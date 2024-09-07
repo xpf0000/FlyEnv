@@ -9,7 +9,6 @@ import { I18nT } from '../lang'
 import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
-import { replace } from 'lodash'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -375,7 +374,7 @@ subjectAltName=@alt_names
         reject(new Error('Fail'))
         return
       }
-    
+
       const binDir = dirname(item.bin)
       const index = oldPath.indexOf(binDir)
       if (index >= 0) {
@@ -414,6 +413,11 @@ php "%~dp0composer.phar" %*`)
       }
       let content = await readFile(sh, 'utf-8')
       content = content.replace('##NEW_PATH##', oldPath.join(';'))
+      if (typeFlag === 'java') {
+        content = content.replace('##OTHER##', `setx /M JAVA_HOME "${item.path}"`)
+      } else {
+        content = content.replace('##OTHER##', ``)
+      }
       console.log('updatePATH: ', content)
       await writeFile(copySh, content)
       process.chdir(global.Server.Cache!)

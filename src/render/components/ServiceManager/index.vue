@@ -156,6 +156,7 @@ const props = defineProps<{
   | 'mongodb'
   | 'pure-ftpd'
   | 'postgresql'
+  | 'tomcat'
   title: string
 }>()
 

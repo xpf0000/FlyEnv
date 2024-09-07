@@ -1,9 +1,9 @@
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync, createWriteStream, unlinkSync } from 'fs'
 import { Base } from './Base'
 import { execPromise, spawnPromise, getAllFileAsync } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, unlink, chmod, remove, mkdirp, writeFile } from 'fs-extra'
+import { copyFile, unlink, chmod, remove, mkdirp, writeFile, readdir } from 'fs-extra'
 import axios from 'axios'
 import { zipUnPack } from '@shared/file'
 
@@ -422,6 +422,7 @@ class Brew extends Base {
         row.downloaded = existsSync(row.zip)
         row.installed = existsSync(row.bin)
       }
+
       const handleMemcached = async () => {
         const tmpDir = join(global.Server.Cache!, `memcached-${row.version}-tmp`)
         if (existsSync(tmpDir)) {
@@ -445,6 +446,30 @@ class Brew extends Base {
           await remove(tmpDir)
         }
       }
+
+      const handleTwoLevDir = async (flag: string) => {
+        const tmpDir = join(global.Server.Cache!, `${flag}-${row.version}-tmp`)
+        if (existsSync(tmpDir)) {
+          await remove(tmpDir)
+        }
+        await zipUnPack(row.zip, tmpDir)
+        const sub = await readdir(tmpDir)
+        const subDir = join(tmpDir, sub.pop()!)
+        const allFile = await getAllFileAsync(subDir, false)
+        console.log('handleTwoLevDir: ', sub, subDir, allFile)
+        if (!existsSync(row.appDir)) {
+          await mkdirp(row.appDir)
+        }
+        for (const f of allFile) {
+          const destFile = join(row.appDir, f)
+          await mkdirp(dirname(destFile))
+          await copyFile(join(subDir, f), destFile)
+        }
+        if (existsSync(tmpDir)) {
+          await remove(tmpDir)
+        }
+      }
+
       const handleComposer = async () => {
         if (!existsSync(row.appDir)) {
           await mkdirp(row.appDir)
@@ -453,6 +478,7 @@ class Brew extends Base {
         await writeFile(join(row.appDir, 'composer.bat'), `@echo off
 php "%~dp0composer.phar" %*`)
       }
+
       if (existsSync(row.zip)) {
         let success = false
         try {
@@ -460,11 +486,17 @@ php "%~dp0composer.phar" %*`)
             await handleMemcached()
           } else if (row.type === 'composer') {
             await handleComposer()
+          } else if (row.type === 'java') {
+            await handleTwoLevDir('java')
+          } else if (row.type === 'tomcat') {
+            await handleTwoLevDir('tomcat')
           } else {
             await zipUnPack(row.zip, row.appDir)
           }
           success = true
-        } catch (e) { }
+        } catch (e) {
+          console.log('ERROR: ', e)
+        }
         if (success) {
           refresh()
           row.downState = 'success'
@@ -475,25 +507,11 @@ php "%~dp0composer.phar" %*`)
         }
         unlinkSync(row.zip)
       }
-      const proxyUrl =
-        Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''
-      let proxy: any = {}
-      if (proxyUrl) {
-        try {
-          const u = new URL(proxyUrl)
-          proxy.protocol = u.protocol.replace(':', '')
-          proxy.host = u.hostname
-          proxy.port = u.port
-        } catch (e) {
-          proxy = undefined
-        }
-      } else {
-        proxy = undefined
-      }
+
       axios({
         method: 'get',
         url: row.url,
-        proxy,
+        proxy: this.getAxiosProxy(),
         responseType: 'stream',
         onDownloadProgress: (progress) => {
           if (progress.total) {
@@ -528,6 +546,10 @@ php "%~dp0composer.phar" %*`)
                   await handleMemcached()
                 } else if (row.type === 'composer') {
                   await handleComposer()
+                } else if (row.type === 'java') {
+                  await handleTwoLevDir('java')
+                } else if (row.type === 'tomcat') {
+                  await handleTwoLevDir('tomcat')
                 } else {
                   await zipUnPack(row.zip, row.appDir)
                 }

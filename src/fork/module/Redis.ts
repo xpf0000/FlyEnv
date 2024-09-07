@@ -109,7 +109,8 @@ class Redis extends Base {
           const all: any = []
           const res = await axios({
             url,
-            method: 'get'
+            method: 'get',
+            proxy: this.getAxiosProxy()
           })
           const html = res.data
           let arr: any[] = []

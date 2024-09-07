@@ -34,7 +34,14 @@ const showAI = computed(() => {
 
 const showItemLowcase = () => {
   const dict: { [key: string]: boolean } = {}
-  const all = showItem.value as any
+  const all: any = Object.assign(
+    {
+      PostgreSql: true,
+      java: true,
+      tomcat: true
+    },
+    showItem.value
+  )
   for (const k in all) {
     let key = k.toLowerCase()
     if (key === 'ftp') {
@@ -42,6 +49,7 @@ const showItemLowcase = () => {
     }
     dict[key] = all[k] !== false
   }
+  console.log('dict: ', dict)
   return dict
 }
 
@@ -82,7 +90,8 @@ const checkPassword = () => {
     'memcached',
     'redis',
     'mongodb',
-    'postgresql'
+    'postgresql',
+    'tomcat'
   ].filter((f) => dict?.[f] !== false) as Array<keyof typeof AppSofts>
   if (flags.length === 0) {
     AppStore().versionInited = true

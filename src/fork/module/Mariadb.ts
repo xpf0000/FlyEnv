@@ -172,7 +172,8 @@ datadir="${dataDir}"`
           const all: any = []
           const res = await axios({
             url,
-            method: 'get'
+            method: 'get',
+            proxy: this.getAxiosProxy()
         })
         const html = res.data
         const regSelect = /<select id="version-select-community_server"([\s\S\n]*?)<\/select>/g

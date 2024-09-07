@@ -30,7 +30,7 @@
           }}</span>
         </template>
         <template #default="scope">
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.version }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row?.name ?? scope.row.version }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="null">
@@ -67,8 +67,6 @@ import IPC from '@/util/IPC'
 import Base from '@/core/Base'
 import { I18nT } from '@shared/lang'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { Service } from '@/components/ServiceManager/service'
-import installedVersions from '@/util/InstalledVersions'
 import { reGetInstalled } from '@/util/Service'
 
 const { shell } = require('@electron/remote')
@@ -87,6 +85,8 @@ const props = defineProps<{
   | 'mongodb'
   | 'pure-ftpd'
   | 'composer'
+  | 'java'
+  | 'tomcat'
   title: string
   url: string
 }>()
@@ -101,6 +101,7 @@ const currentType: ComputedRef<AppSoftInstalledItem> = computed(() => {
 })
 
 const isRunning = computed(() => {
+  console.log('currentType.value: ', props.typeFlag, currentType.value, currentType.value.list)
   return currentType.value.list.some((l) => l?.downing === true)
 })
 

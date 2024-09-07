@@ -2,9 +2,10 @@ import { join, basename, dirname } from 'path'
 import { existsSync, realpathSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
-import { execPromise, getAllFile, getSubDirAsync } from '../Fn'
+import { execPromise, execPromiseRoot, getAllFile, getSubDirAsync, spawnPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { compareVersions } from 'compare-versions'
+import { chmod } from 'fs-extra'
 
 class Manager extends Base {
   constructor() {
@@ -101,13 +102,42 @@ class Manager extends Base {
           command = `${basename(bin)} --version`
           reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
           break
+        case 'java.exe':
+          command = `${basename(bin)} -version`
+          reg = /(")(\d+([\.|\d]+){1,4})(["_])/g
+          break
+        case 'catalina.bat':
+          command = 'call version.bat'
+          reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
+          break
       }
+      if (name === 'catalina.bat') {
+        try {
+          process.chdir(dirname(bin));
+          process.env['JAVA_HOME'] = 'C:\\Users\\25088\\Downloads\\microsoft-jdk-21.0.4-windows-x64\\jdk-21.0.4+7'
+          await chmod(bin, '0777')
+          const str = `cmd.exe /c "${bin}" version`
+          console.log('str: ', str)
+          const res = await execPromiseRoot(str)
+          handleThen(res)
+          // handleThen({
+          //   stdout: res,
+          //   stderr: ''
+          // })
+        } catch (e) {
+          console.log('bin version: ', e)
+          handleCatch(e)
+        }
+        return
+      }
+      console.log('bin: ', bin, dirname(bin))
       try {
         const res = await execPromise(command, {
           cwd: dirname(bin)
         })
         handleThen(res)
       } catch (e) {
+        console.log('bin version: ', e)
         handleCatch(e)
       }
     })
@@ -127,7 +157,9 @@ class Manager extends Base {
         mongodb: 'mongod.exe',
         'pure-ftpd': 'pure-ftpd',
         postgresql: 'pg_ctl.exe',
-        composer: 'composer.phar'
+        composer: 'composer.phar',
+        java: 'java.exe',
+        tomcat: 'catalina.bat'
       }
       const fetchVersion = async (flag: string) => {
         return new ForkPromise(async (resolve) => {
@@ -187,6 +219,9 @@ class Manager extends Base {
           const base = global.Server.AppDir!
           const subDir = await getSubDirAsync(base)
           const subDirFilter = subDir.filter((f) => {
+            if (flag === 'java') {
+              return basename(f).startsWith('jdk') || basename(f).startsWith('openjdk')
+            }
             return basename(f).startsWith(flag)
           })
           for (const f of subDirFilter) {

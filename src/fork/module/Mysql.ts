@@ -333,7 +333,8 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           const all: any = []
           const res = await axios({
             url,
-            method: 'get'
+            method: 'get',
+            proxy: this.getAxiosProxy()
           })
           const html = res.data
           const regSelect = /<select name="version"([\s\S\n]*?)<\/select>/g

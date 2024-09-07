@@ -8,7 +8,7 @@ const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
 
-export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd' | 'composer'
+export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd' | 'composer' | 'java'
 
 export interface AppHost {
   id: number
@@ -29,6 +29,8 @@ export interface AppHost {
     apache_ssl: number
     caddy: number
     caddy_ssl: number
+    tomcat: number
+    tomcat_ssl: number
   }
   nginx: {
     rewrite: string
@@ -62,7 +64,8 @@ export enum AppSofts {
   memcached = 'memcached',
   redis = 'redis',
   mongodb = 'mongodb',
-  postgresql = 'postgresql'
+  postgresql = 'postgresql',
+  tomcat = 'tomcat'
 }
 
 interface State {
@@ -94,6 +97,8 @@ interface State {
           FTP: boolean
           HttpServe?: boolean
           PostgreSql?: boolean
+          java?: boolean
+          tomcat?: boolean
         }
       }
       hosts: {
@@ -106,6 +111,12 @@ interface State {
       }
       lang: string
       theme?: string
+      java?: {
+        dirs: Array<string>
+      }
+      tomcat?: {
+        dirs: Array<string>
+      }
       postgresql: {
         dirs: Array<string>
       }
@@ -161,6 +172,9 @@ const state: State = {
   config: {
     server: {
       'pure-ftpd': {
+        current: {}
+      },
+      tomcat: {
         current: {}
       },
       postgresql: {
@@ -315,6 +329,11 @@ export const AppStore = defineStore('app', {
       dir: string
       index?: number
     }) {
+      if (!this.config.setup?.[typeFlag]) {
+        this.config.setup[typeFlag] = reactive({
+          dirs: []
+        })
+      }
       const common = this.config.setup[typeFlag]
       const dirs = JSON.parse(JSON.stringify(common.dirs))
       if (index !== undefined) {
@@ -326,6 +345,9 @@ export const AppStore = defineStore('app', {
     },
     DEL_CUSTOM_DIR({ typeFlag, index }: { typeFlag: keyof typeof AppSofts; index: number }) {
       const common = this.config.setup[typeFlag]
+      if (!common) {
+        return
+      }
       const dirs = JSON.parse(JSON.stringify(common.dirs))
       dirs.splice(index, 1)
       common.dirs = reactive(dirs)

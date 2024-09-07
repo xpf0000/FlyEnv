@@ -119,7 +119,8 @@ export class Base {
         redis: 'redis-server',
         mongodb: 'mongod',
         postgresql: 'postgres',
-        'pure-ftpd': 'pure-ftpd'
+        'pure-ftpd': 'pure-ftpd',
+        tomcat: 'org.apache.catalina.startup.Bootstrap'
       }
       const serverName = dis[this.type]
       const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
@@ -236,5 +237,24 @@ export class Base {
       }
       spawnPromise('zsh', [copyfile]).on(on).then(resolve).catch(reject)
     })
+  }
+
+  getAxiosProxy() {
+    const proxyUrl =
+      Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''
+    let proxy: any = {}
+    if (proxyUrl) {
+      try {
+        const u = new URL(proxyUrl)
+        proxy.protocol = u.protocol.replace(':', '')
+        proxy.host = u.hostname
+        proxy.port = u.port
+      } catch (e) {
+        proxy = undefined
+      }
+    } else {
+      proxy = undefined
+    }
+    return proxy
   }
 }

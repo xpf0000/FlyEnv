@@ -22,6 +22,7 @@
           <ApacheModule ref="apacheModule" :current-page="currentPage" @nav="nav" />
           <NginxModule ref="nginxModule" :current-page="currentPage" @nav="nav" />
           <CaddyModule ref="caddyModule" :current-page="currentPage" @nav="nav" />
+          <TomcatModule ref="tomcatModule" :current-page="currentPage" @nav="nav" />
           <PhpModule ref="phpModule" :current-page="currentPage" @nav="nav" />
           <MysqlModule ref="mysqlModule" :current-page="currentPage" @nav="nav" />
           <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />
@@ -30,6 +31,7 @@
           <MemcachedModule ref="memcachedModule" :current-page="currentPage" @nav="nav" />
           <RedisModule ref="redisModule" :current-page="currentPage" @nav="nav" />
           <NodejsModule :current-page="currentPage" @nav="nav" />
+          <JavaModule :current-page="currentPage" @nav="nav" />
           <HttpserveModule :current-page="currentPage" @nav="nav" />
           <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
           <FtpModule ref="ftpModule" :current-page="currentPage" @nav="nav" />
@@ -78,6 +80,8 @@ import PostgreSqlModule from './module/postgresql/index.vue'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { MysqlStore } from '@/store/mysql'
 import Base from '@/core/Base'
+import JavaModule from './module/java/index.vue'
+import TomcatModule from './module/tomcat/index.vue'
 
 let lastTray = ''
 
@@ -93,6 +97,7 @@ const redisModule = ref()
 const dnsModule = ref()
 const ftpModule = ref()
 const postgresqlModule = ref()
+const tomcatModule = ref()
 
 const appStore = AppStore()
 const dnsStore = DnsStore()
@@ -118,7 +123,8 @@ const groupIsRunning = computed(() => {
     dnsModule?.value?.serviceRunning ||
     ftpModule?.value?.serviceRunning ||
     postgresqlModule?.value?.serviceRunning ||
-    caddyModule?.value?.serviceRunning
+    caddyModule?.value?.serviceRunning ||
+    tomcatModule?.value?.serviceRunning
   )
 })
 
@@ -134,7 +140,8 @@ const groupDisabled = computed(() => {
     mongoModule?.value?.serviceDisabled &&
     ftpModule?.value?.serviceDisabled &&
     postgresqlModule?.value?.serviceDisabled &&
-    caddyModule?.value?.serviceDisabled
+    caddyModule?.value?.serviceDisabled &&
+    tomcatModule?.value?.serviceDisabled
 
   const running =
     apacheModule?.value?.serviceFetching ||
@@ -148,7 +155,8 @@ const groupDisabled = computed(() => {
     dnsModule?.value?.serviceFetching ||
     ftpModule?.value?.serviceFetching ||
     postgresqlModule?.value?.serviceFetching ||
-    caddyModule?.value?.serviceFetching
+    caddyModule?.value?.serviceFetching ||
+    tomcatModule?.value?.serviceFetching
 
   return allDisabled || running || !appStore.versionInited
 })
@@ -164,6 +172,12 @@ const groupClass = computed(() => {
 
 const trayStore = computed(() => {
   return {
+    tomcat: {
+      show: showItem?.value?.tomcat !== false,
+      disabled: tomcatModule?.value?.serviceDisabled,
+      run: tomcatModule?.value?.serviceRunning,
+      running: tomcatModule?.value?.serviceFetching
+    },
     apache: {
       show: showItem?.value?.Apache,
       disabled: apacheModule?.value?.serviceDisabled,
@@ -293,7 +307,8 @@ const groupDo = () => {
     dnsModule,
     ftpModule,
     postgresqlModule,
-    caddyModule
+    caddyModule,
+    tomcatModule
   ]
   const all: Array<Promise<string | boolean>> = []
   modules.forEach((m: any) => {
@@ -367,6 +382,9 @@ const switchChange = (flag: string) => {
       break
     case 'caddy':
       caddyModule?.value?.switchChange()
+      break
+    case 'tomcat':
+      tomcatModule?.value?.switchChange()
       break
   }
 }
