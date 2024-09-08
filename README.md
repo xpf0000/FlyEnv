@@ -10,6 +10,28 @@
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R5R2OJXTM)
 
+## Main Modules
+
+### Web Server
+
+Apache | Nginx | Caddy | Tomcat
+
+### Database Server
+
+MySQL | MariaDB | PostgreSQL | MongoDB
+
+### Language
+
+PHP | Java | NodeJS
+
+### Data Queue & Data Cache
+
+Redis | Memcached
+
+### Other
+
+DNS Server | FTP Server | Static Http Server
+
 ## macOS:
 
 ### Homebrew
