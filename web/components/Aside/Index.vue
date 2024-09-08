@@ -22,6 +22,7 @@
           <ApacheModule ref="apacheModule" :current-page="currentPage" @nav="nav" />
           <NginxModule ref="nginxModule" :current-page="currentPage" @nav="nav" />
           <CaddyModule ref="caddyModule" :current-page="currentPage" @nav="nav" />
+          <TomcatModule ref="tomcatModule" :current-page="currentPage" @nav="nav" />
           <PhpModule ref="phpModule" :current-page="currentPage" @nav="nav" />
           <MysqlModule ref="mysqlModule" :current-page="currentPage" @nav="nav" />
           <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />
@@ -32,6 +33,7 @@
           <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
           <FtpModule ref="ftpModule" :current-page="currentPage" @nav="nav" />
           <NodejsModule :current-page="currentPage" @nav="nav" />
+          <JavaModule :current-page="currentPage" @nav="nav" />
           <HttpserveModule :current-page="currentPage" @nav="nav" />
           <ToolsModule :current-page="currentPage" @nav="nav" />
         </ul>
@@ -77,7 +79,10 @@
   import ToolsModule from './module/tools/index.vue'
   import PostgreSqlModule from './module/postgresql/index.vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import TomcatModule from './module/tomcat/index.vue'
+  import JavaModule from './module/java/index.vue'
 
+  const tomcatModule = ref()
   const caddyModule = ref()
   const apacheModule = ref()
   const nginxModule = ref()
@@ -113,7 +118,8 @@
       dnsModule?.value?.serviceRunning ||
       ftpModule?.value?.serviceRunning ||
       postgresqlModule?.value?.serviceRunning ||
-      caddyModule?.value?.serviceRunning
+      caddyModule?.value?.serviceRunning ||
+      tomcatModule?.value?.serviceRunning
     )
   })
 
@@ -129,7 +135,8 @@
       mongoModule?.value?.serviceDisabled &&
       ftpModule?.value?.serviceDisabled &&
       postgresqlModule?.value?.serviceDisabled &&
-      caddyModule?.value?.serviceDisabled
+      caddyModule?.value?.serviceDisabled &&
+      tomcatModule?.value?.serviceDisabled
 
     const running =
       apacheModule?.value?.serviceFetching ||
@@ -143,7 +150,8 @@
       dnsModule?.value?.serviceFetching ||
       ftpModule?.value?.serviceFetching ||
       postgresqlModule?.value?.serviceFetching ||
-      caddyModule?.value?.serviceFetching
+      caddyModule?.value?.serviceFetching ||
+      tomcatModule?.value?.serviceFetching
 
     return allDisabled || running || !appStore.versionInited
   })
@@ -176,7 +184,8 @@
       redisModule,
       dnsModule,
       ftpModule,
-      postgresqlModule
+      postgresqlModule,
+      tomcatModule
     ]
     const all: Array<Promise<string | boolean>> = []
     modules.forEach((m: any) => {

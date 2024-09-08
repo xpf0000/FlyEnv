@@ -152,6 +152,11 @@
           </template>
         </template>
       </el-table-column>
+      <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
+        <template #default="scope">
+          <EXT :item="scope.row" :type="typeFlag" />
+        </template>
+      </el-table-column>
     </el-table>
   </el-card>
 </template>
@@ -166,6 +171,7 @@
   import { MysqlStore } from '@web/store/mysql'
   import { Service } from '@/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
+  import EXT from '@web/components/ServiceManager/EXT/index.vue'
 
   const props = defineProps<{
     typeFlag:

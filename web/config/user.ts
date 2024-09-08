@@ -1,5 +1,16 @@
 export const User = {
   server: {
+    tomcat: {
+      current: {
+        version: '10.1.28',
+        bin: '/opt/homebrew/Cellar/tomcat/10.1.28/libexec/bin/startup.sh',
+        path: '/opt/homebrew/Cellar/tomcat/10.1.28/libexec/',
+        num: 101,
+        enable: true,
+        run: true,
+        running: false
+      }
+    },
     caddy: {
       current: {
         version: '2.7.6',
@@ -139,7 +150,9 @@ export const User = {
         mariadb: true,
         DNS: true,
         FTP: true,
-        PostgreSql: true
+        PostgreSql: true,
+        java: true,
+        tomcat: true
       }
     },
     postgresql: {

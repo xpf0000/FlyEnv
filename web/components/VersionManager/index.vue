@@ -7,12 +7,20 @@
           <template v-if="!brewRunning && !showNextBtn">
             <el-select v-model="libSrc" style="margin-left: 8px" :disabled="currentType.getListing">
               <el-option :disabled="!checkBrew()" value="brew" label="Homebrew"></el-option>
-              <el-option :disabled="!checkPort()" value="port" label="MacPorts"></el-option>
+              <template v-if="typeFlag !== 'tomcat'">
+                <el-option :disabled="!checkPort()" value="port" label="MacPorts"></el-option>
+              </template>
               <template v-if="typeFlag === 'php'">
                 <el-option value="static" label="static-php"></el-option>
               </template>
               <template v-else-if="typeFlag === 'caddy'">
                 <el-option value="static" label="static-caddy"></el-option>
+              </template>
+              <template v-else-if="typeFlag === 'tomcat'">
+                <el-option value="static" label="static-tomcat"></el-option>
+              </template>
+              <template v-else-if="typeFlag === 'java'">
+                <el-option value="static" label="static-java"></el-option>
               </template>
             </el-select>
           </template>

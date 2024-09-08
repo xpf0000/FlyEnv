@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Server port="8005" shutdown="SHUTDOWN">
+  <Listener className="org.apache.catalina.startup.VersionLoggerListener"></Listener>
+  <Listener className="org.apache.catalina.core.AprLifecycleListener"></Listener>
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener"></Listener>
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener"></Listener>
+  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener"></Listener>
+  <GlobalNamingResources>
+    <Resource name="UserDatabase" auth="Container" type="org.apache.catalina.UserDatabase" description="User database that can be updated and saved" factory="org.apache.catalina.users.MemoryUserDatabaseFactory" pathname="conf/tomcat-users.xml"></Resource>
+  </GlobalNamingResources>
+  <Service name="Catalina">
+    <Connector port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" maxParameterCount="1000"></Connector>
+    <Connector appFlag="PhpWebStudy" port="80" protocol="HTTP/1.1" connectionTimeout="60000"></Connector>
+    <Connector appFlag="PhpWebStudy" port="443" protocol="org.apache.coyote.http11.Http11NioProtocol" maxThreads="150" SSLEnabled="true" scheme="https">
+      <SSLHostConfig sslProtocol="TLS" certificateVerification="false">
+        <Certificate certificateFile="/Users/xxx/Library/PhpWebStudy/server/CA/1724767110668/CA-1724767110668.crt" certificateKeyFile="/Users/xxx/Library/PhpWebStudy/server/CA/1724767110668/CA-1724767110668.key" type="RSA"></Certificate>
+      </SSLHostConfig>
+      <SSLHostConfig appFlag="PhpWebStudy" hostName="phpmyadmin.phpwebstudy.test" sslProtocol="TLS" certificateVerification="false">
+        <Certificate certificateFile="/Users/xxx/Library/PhpWebStudy/server/CA/1724767110668/CA-1724767110668.crt" certificateKeyFile="/Users/xxx/Library/PhpWebStudy/server/CA/1724767110668/CA-1724767110668.key" type="RSA"></Certificate>
+      </SSLHostConfig>
+    </Connector>
+    <Engine name="Catalina" defaultHost="localhost">
+      <Realm className="org.apache.catalina.realm.LockOutRealm">
+        <Realm className="org.apache.catalina.realm.UserDatabaseRealm" resourceName="UserDatabase"></Realm>
+      </Realm>
+      <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true">
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs" prefix="localhost_access_log" suffix=".txt" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
+      </Host>
+      <Host name="phpmyadmin.phpwebstudy.test" appBase="/Users/xxx/Library/PhpWebStudy/server/www/phpMyAdmin-5.2.1-all-languages" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
+        <Context path="" docBase=""></Context>
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="phpmyadmin.phpwebstudy.test-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
+      </Host>
+      <Host name="www.lvtest.com" appBase="/Users/xxx/Desktop/AAA/laravel11-test/public" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
+        <Context path="" docBase=""></Context>
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="www.lvtest.com-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
+      </Host>
+      <Host name="www.lv123.com" appBase="/Users/xxx/Desktop/AAA/laravel11-test/public" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
+        <Context path="" docBase=""></Context>
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="www.lv123.com-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
+      </Host>
+      <Host name="www.lv11.com" appBase="/Users/xxx/Desktop/AAA/laravel11-test/public" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
+        <Context path="" docBase=""></Context>
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="www.lv11.com-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
+      </Host>
+      <Host name="www.test.com" appBase="/Users/xxx/Library/PhpWebStudy/server/www/www.test.com" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
+        <Context path="" docBase=""></Context>
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="www.test.com-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
+      </Host>
+    </Engine>
+  </Service>
+</Server>

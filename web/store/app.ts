@@ -51,7 +51,8 @@ export enum AppSofts {
   memcached = 'memcached',
   redis = 'redis',
   mongodb = 'mongodb',
-  postgresql = 'postgresql'
+  postgresql = 'postgresql',
+  tomcat = 'tomcat'
 }
 
 interface State {
@@ -86,6 +87,8 @@ interface State {
           FTP: boolean
           PostgreSql: boolean
           HttpServe: boolean
+          java?: boolean
+          tomcat?: boolean
         }
       }
       hosts: {
@@ -125,6 +128,9 @@ interface State {
         dirs: Array<string>
       }
       mongodb: {
+        dirs: Array<string>
+      }
+      tomcat: {
         dirs: Array<string>
       }
       autoCheck: boolean

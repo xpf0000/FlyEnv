@@ -12,6 +12,8 @@ import { Mongodb } from '../config/mongodb'
 import { Postgresql } from '../config/postgresql'
 import { Caddy } from '../config/caddy'
 import type { OnlineVersionItem } from '@/store/brew'
+import { Tomcat } from '@web/config/tomcat'
+import { Java } from '@web/config/java'
 
 export interface SoftInstalled {
   version: string | null
@@ -40,6 +42,8 @@ export interface AppSoftInstalledItem {
 }
 
 interface State {
+  tomcat: AppSoftInstalledItem
+  java: AppSoftInstalledItem
   postgresql: AppSoftInstalledItem
   nginx: AppSoftInstalledItem
   caddy: AppSoftInstalledItem
@@ -66,6 +70,18 @@ const state: State = {
   brewSrc: '',
   log: [],
   LibUse: {},
+  tomcat: {
+    getListing: false,
+    installedInited: true,
+    installed: Installed.tomcat,
+    list: Tomcat
+  },
+  java: {
+    getListing: false,
+    installedInited: true,
+    installed: Installed.java,
+    list: Java
+  },
   postgresql: {
     getListing: false,
     installedInited: true,

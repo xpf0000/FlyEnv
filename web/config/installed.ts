@@ -463,5 +463,54 @@ export const Installed = {
       run: false,
       running: false
     }
+  ],
+  tomcat: [
+    {
+      version: '10.1.28',
+      bin: '/opt/homebrew/Cellar/tomcat/10.1.28/libexec/bin/startup.sh',
+      path: '/opt/homebrew/Cellar/tomcat/10.1.28/libexec/',
+      num: 101,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '9.0.93',
+      bin: '/opt/homebrew/Cellar/tomcat@9/9.0.93/libexec/bin/startup.sh',
+      path: '/opt/homebrew/Cellar/tomcat@9/9.0.93/libexec/',
+      num: 90,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '8.5.100',
+      bin: '/opt/homebrew/Cellar/tomcat@8/8.5.100/libexecbin/startup.sh',
+      path: '/opt/homebrew/Cellar/tomcat@8/8.5.100/libexec',
+      num: 85,
+      enable: true,
+      run: false,
+      running: false
+    }
+  ],
+  java: [
+    {
+      version: '22.0.2',
+      bin: '/opt/homebrew/Cellar/openjdk/22.0.2/libexec/openjdk.jdk/Contents/Home/bin/java',
+      path: '/opt/homebrew/Cellar/openjdk/22.0.2/libexec/openjdk.jdk/Contents/Home/',
+      num: 220,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '17.0.12',
+      bin: '/Users/x/Library/PhpWebStudy/app/static-jdk-17/Contents/Home/bin/java',
+      path: '/Users/x/Library/PhpWebStudy/app/static-jdk-17/Contents/Home/',
+      num: 170,
+      enable: true,
+      run: false,
+      running: false
+    }
   ]
 }

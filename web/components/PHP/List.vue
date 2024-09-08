@@ -137,12 +137,15 @@
                   <span class="ml-10">{{ $t('php.groupStartOff') }}</span>
                 </template>
               </li>
-              <template v-if="checkBrew(scope.row)">
-                <li @click.stop="action(scope.row, scope.$index, 'brewLink')">
-                  <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                  <span class="ml-15">{{ $t('php.phpSetGlobal') }}</span>
-                </li>
-              </template>
+              <li class="path-set noset">
+                <yb-icon
+                  class="current"
+                  :svg="import('@/svg/select.svg?raw')"
+                  width="17"
+                  height="17"
+                />
+                <span class="ml-15">{{ $t('base.addToPath') }}</span>
+              </li>
             </ul>
             <template #reference>
               <el-button link class="status">
