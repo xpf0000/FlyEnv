@@ -17,8 +17,9 @@ global.Server = getGlobal('Server')
 const app = VueExtend(App)
 
 let inited = false
-IPC.on('APP-Ready-To-Show').then(() => {
-  console.log('APP-Ready-To-Show !!!!!!')
+IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
+  console.log('APP-Ready-To-Show !!!!!!', key, res)
+  Object.assign(global.Server, res)
   if (!inited) {
     inited = true
     const store = AppStore()
@@ -38,4 +39,8 @@ IPC.on('APP-Ready-To-Show').then(() => {
   } else {
     console.log('has inited !!!!')
   }
+})
+IPC.on('APP-Update-Global-Server').then((key: string, res: any) => {
+  console.log('APP-Update-Global-Server: ', key, res)
+  Object.assign(global.Server, res)
 })

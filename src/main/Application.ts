@@ -173,28 +173,48 @@ export default class Application extends EventEmitter {
     execAsync('which', ['brew'])
       .then((res: string) => {
         console.log('which brew: ', res)
-        execAsync('brew', ['--repo']).then((p: string) => {
-          console.log('brew --repo: ', p)
-          global.Server.BrewHome = p
-          execAsync('git', [
-            'config',
-            '--global',
-            '--add',
-            'safe.directory',
-            join(p, 'Library/Taps/homebrew/homebrew-core')
-          ]).then()
-          execAsync('git', [
-            'config',
-            '--global',
-            '--add',
-            'safe.directory',
-            join(p, 'Library/Taps/homebrew/homebrew-cask')
-          ]).then()
-        })
-        execAsync('brew', ['--cellar']).then((c: string) => {
-          console.log('brew --cellar: ', c)
-          global.Server.BrewCellar = c
-        })
+        execAsync('brew', ['--repo'])
+          .then((p: string) => {
+            console.log('brew --repo: ', p)
+            global.Server.BrewHome = p
+            this.windowManager.sendCommandTo(
+              this.mainWindow!,
+              'APP-Update-Global-Server',
+              'APP-Update-Global-Server',
+              JSON.parse(JSON.stringify(global.Server))
+            )
+            execAsync('git', [
+              'config',
+              '--global',
+              '--add',
+              'safe.directory',
+              join(p, 'Library/Taps/homebrew/homebrew-core')
+            ]).then()
+            execAsync('git', [
+              'config',
+              '--global',
+              '--add',
+              'safe.directory',
+              join(p, 'Library/Taps/homebrew/homebrew-cask')
+            ]).then()
+          })
+          .catch((e: Error) => {
+            console.log('brew --repo err: ', e)
+          })
+        execAsync('brew', ['--cellar'])
+          .then((c: string) => {
+            console.log('brew --cellar: ', c)
+            global.Server.BrewCellar = c
+            this.windowManager.sendCommandTo(
+              this.mainWindow!,
+              'APP-Update-Global-Server',
+              'APP-Update-Global-Server',
+              JSON.parse(JSON.stringify(global.Server))
+            )
+          })
+          .catch((e: Error) => {
+            console.log('brew --cellar err: ', e)
+          })
       })
       .catch((e: Error) => {
         console.log('which brew e: ', e)
@@ -204,7 +224,9 @@ export default class Application extends EventEmitter {
       .then((c: string) => {
         global.Server.MacPorts = c
       })
-      .catch(() => {})
+      .catch((e: Error) => {
+        console.log('which port e: ', e)
+      })
   }
 
   initServerDir() {
@@ -304,7 +326,12 @@ export default class Application extends EventEmitter {
     win.once('ready-to-show', () => {
       this.isReady = true
       this.emit('ready')
-      this.windowManager.sendCommandTo(win, 'APP-Ready-To-Show', true)
+      this.windowManager.sendCommandTo(
+        win,
+        'APP-Ready-To-Show',
+        'APP-Ready-To-Show',
+        JSON.parse(JSON.stringify(global.Server))
+      )
     })
     this.trayWindow = this.windowManager.openTrayWindow()
   }

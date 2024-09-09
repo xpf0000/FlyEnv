@@ -5,7 +5,7 @@ const { spawn } = require('child_process')
 const { exec } = require('child-process-promise')
 const os = require('os')
 const { join } = require('path')
-const { chmod, copyFile } = require('fs-extra')
+const { chmod, copyFile, existsSync, writeFile } = require('fs-extra')
 
 let AppEnv: any
 
@@ -33,14 +33,17 @@ export async function fixEnv(): Promise<{ [k: string]: any }> {
         AppEnv[k] = v
       }
     })
-  const PATH = `${AppEnv['PATH']}:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin`
-  AppEnv['PATH'] = Array.from(new Set(PATH.split(':'))).join(':')
+  const PATH = `${AppEnv['PATH']}:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/Homebrew/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin`
+  AppEnv['PATH'] = Array.from(new Set(PATH.split(':')))
+    .filter((p) => existsSync(p))
+    .join(':')
   console.log('PATH: ', AppEnv['PATH'])
   if (global.Server.Proxy) {
     for (const k in global.Server.Proxy) {
       AppEnv[k] = global.Server.Proxy[k]
     }
   }
+  await writeFile(join(global.Server.BaseDir!, 'AppEnv.txt'), JSON.stringify(AppEnv))
   return AppEnv
 }
 
