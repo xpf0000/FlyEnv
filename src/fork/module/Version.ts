@@ -6,6 +6,7 @@ import { execPromise, execPromiseRoot, getAllFile, getSubDirAsync, spawnPromise 
 import { ForkPromise } from '@shared/ForkPromise'
 import { compareVersions } from 'compare-versions'
 import { chmod } from 'fs-extra'
+import { exec } from 'child_process'
 
 class Manager extends Base {
   constructor() {
@@ -45,17 +46,14 @@ class Manager extends Base {
         })
       }
       const handleThen = (res: any) => {
-        const str = res.stdout + res.stderr
+        let str = res.stdout + res.stderr
+        str = str.replace(new RegExp(`\r\n`, 'g'), `\n`)
         let version: string | null = ''
         try {
           version = reg?.exec(str)?.[2]?.trim() ?? ''
           reg!.lastIndex = 0
         } catch (e) { }
-        version = !isNaN(parseInt(version)) ? version : null
-        const regx = /^\d[\d\.]*\d$/g
-        if (version && !regx.test(version)) {
-          version = null
-        }
+        console.log('handleThen version: ', version, str)
         resolve({
           version
         })
@@ -111,35 +109,18 @@ class Manager extends Base {
           reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
           break
       }
-      if (name === 'catalina.bat') {
-        try {
-          process.chdir(dirname(bin));
-          process.env['JAVA_HOME'] = 'C:\\Users\\25088\\Downloads\\microsoft-jdk-21.0.4-windows-x64\\jdk-21.0.4+7'
-          await chmod(bin, '0777')
-          const str = `cmd.exe /c "${bin}" version`
-          console.log('str: ', str)
-          const res = await execPromiseRoot(str)
-          handleThen(res)
-          // handleThen({
-          //   stdout: res,
-          //   stderr: ''
-          // })
-        } catch (e) {
-          console.log('bin version: ', e)
-          handleCatch(e)
-        }
-        return
-      }
       console.log('bin: ', bin, dirname(bin))
+      let res: any
       try {
-        const res = await execPromise(command, {
+        res = await execPromise(command, {
           cwd: dirname(bin)
         })
-        handleThen(res)
       } catch (e) {
         console.log('bin version: ', e)
         handleCatch(e)
+        return
       }
+      handleThen(res)
     })
   }
 
@@ -253,7 +234,7 @@ class Manager extends Base {
             const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
             const item = {
               version: version,
-              bin: i.bin,
+              bin: flag === 'tomcat' ? join(dirname(i.bin), 'startup.bat') : i.bin,
               path: i.path,
               num,
               enable: version !== null,

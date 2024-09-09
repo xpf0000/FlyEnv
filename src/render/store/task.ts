@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia'
 
 interface State {
+  java: {
+    log: Array<string>
+  }
+  tomcat: {
+    log: Array<string>
+  }
   composer: {
     log: Array<string>
   }
@@ -52,6 +58,8 @@ interface State {
 }
 
 const state: State = {
+  java: { log: [] },
+  tomcat: { log: [] },
   composer: { log: [] },
   postgresql: { log: [] },
   apache: { log: [] },

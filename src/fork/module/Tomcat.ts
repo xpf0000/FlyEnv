@@ -1,4 +1,4 @@
-import { dirname, join, resolve as pathResolve } from 'path'
+import { basename, dirname, join, resolve as pathResolve } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -8,6 +8,7 @@ import type { AppHost, SoftInstalled } from '@shared/app'
 import { execPromiseRoot, hostAlias } from '../Fn'
 import { mkdirp, readFile, writeFile } from 'fs-extra'
 import { XMLParser, XMLBuilder } from 'fast-xml-parser'
+import { spawn } from 'child_process'
 
 class Tomcat extends Base {
     constructor() {
@@ -343,17 +344,42 @@ class Tomcat extends Base {
         await writeFile(configFile, content)
     }
 
+    async _fixStartBat(version: SoftInstalled) {
+        const file = join(dirname(version.bin), 'setclasspath.bat')
+        if (existsSync(file)) {
+            let content = await readFile(file, 'utf-8')
+            content = content.replace(`set "_RUNJAVA=%JRE_HOME%\\bin\\java.exe"`, `set "_RUNJAVA=%JRE_HOME%\\bin\\javaw.exe"`)
+            await writeFile(file, content)
+        }
+    }
+
     _startServer(version: SoftInstalled) {
         return new ForkPromise(async (resolve, reject) => {
             const bin = version.bin
             await this.#fixVHost(version)
+            await this._fixStartBat(version)
+
+            process.chdir(dirname(bin));
+
+            const command = `start /b ${basename(bin)} --APPFLAG="${global.Server.BaseDir!}"`
+            console.log('command: ', command)
+
             try {
-                process.chdir(dirname(bin));
-                await execPromiseRoot(`startup.bat --APPFLAG=${global.Server.BaseDir!}`)
+                const res = await execPromiseRoot(command)
+                console.log('start res: ', res)
                 resolve(0)
             } catch (e: any) {
                 reject(e)
             }
+
+            // const child = spawn('startup.bat', [`--APPFLAG=${global.Server.BaseDir!}`], {
+            //     cwd: dirname(bin),
+            //     detached: true,
+            //     stdio: 'ignore',
+            //     shell: false
+            // })
+            // child.on('close', resolve)
+            // child.on('error', reject)
         })
     }
 }

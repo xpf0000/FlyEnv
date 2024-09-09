@@ -16,7 +16,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { startService, stopService } from '@/util/Service'
-import { passwordCheck } from '@/util/Brew'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import { I18nT } from '@shared/lang'
@@ -82,19 +81,17 @@ const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {
 }
 
 const switchChange = () => {
-    passwordCheck().then(() => {
-        let fn = null
-        let promise: Promise<any> | null = null
-        if (!currentVersion?.value?.version) return
-        fn = serviceRunning?.value ? stopService : startService
-        promise = fn('tomcat', currentVersion?.value)
-        promise?.then((res) => {
-            if (typeof res === 'string') {
-                MessageError(res)
-            } else {
-                MessageSuccess(I18nT('base.success'))
-            }
-        })
+    let fn = null
+    let promise: Promise<any> | null = null
+    if (!currentVersion?.value?.version) return
+    fn = serviceRunning?.value ? stopService : startService
+    promise = fn('tomcat', currentVersion?.value)
+    promise?.then((res) => {
+        if (typeof res === 'string') {
+            MessageError(res)
+        } else {
+            MessageSuccess(I18nT('base.success'))
+        }
     })
 }
 
