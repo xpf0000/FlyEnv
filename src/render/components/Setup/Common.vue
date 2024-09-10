@@ -44,18 +44,23 @@
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="Php">
-                <el-switch v-model="showItem.Php" />
+              <el-form-item label="Tomcat">
+                <el-switch v-model="tomcatShow" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="Mysql">
-                <el-switch v-model="showItem.Mysql" />
+              <el-form-item label="Php">
+                <el-switch v-model="showItem.Php" />
               </el-form-item>
             </el-col>
           </el-row>
 
           <el-row>
+            <el-col :span="8">
+              <el-form-item label="Mysql">
+                <el-switch v-model="showItem.Mysql" />
+              </el-form-item>
+            </el-col>
             <el-col :span="8">
               <el-form-item label="MariaDB">
                 <el-switch v-model="showItem.mariadb" />
@@ -66,14 +71,14 @@
                 <el-switch v-model="showItem.MongoDB" />
               </el-form-item>
             </el-col>
+          </el-row>
+
+          <el-row>
             <el-col :span="8">
               <el-form-item label="PostgreSql">
                 <el-switch v-model="postgresqlShow" />
               </el-form-item>
             </el-col>
-          </el-row>
-
-          <el-row>
             <el-col :span="8">
               <el-form-item label="Memcached">
                 <el-switch v-model="showItem.Memcached" />
@@ -84,19 +89,9 @@
                 <el-switch v-model="showItem.Redis" />
               </el-form-item>
             </el-col>
-            <el-col :span="8">
-              <el-form-item label="NodeJS">
-                <el-switch v-model="showItem.NodeJS" />
-              </el-form-item>
-            </el-col>
           </el-row>
 
           <el-row>
-            <el-col :span="8">
-              <el-form-item label="Http Serve">
-                <el-switch v-model="showItem.HttpServe" />
-              </el-form-item>
-            </el-col>
             <el-col :span="8">
               <el-form-item label="DNS Server">
                 <el-switch v-model="showItem.DNS" />
@@ -107,8 +102,23 @@
                 <el-switch v-model="showItem.FTP" />
               </el-form-item>
             </el-col>
+            <el-col :span="8">
+              <el-form-item label="NodeJS">
+                <el-switch v-model="showItem.NodeJS" />
+              </el-form-item>
+            </el-col>
           </el-row>
           <el-row>
+            <el-col :span="8">
+              <el-form-item label="Java">
+                <el-switch v-model="javaShow" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="Http Serve">
+                <el-switch v-model="showItem.HttpServe" />
+              </el-form-item>
+            </el-col>
             <el-col :span="8">
               <el-form-item label="Tools">
                 <el-switch v-model="showItem.Tools" />
@@ -173,6 +183,22 @@ export default defineComponent({
       },
       set(v: boolean) {
         this.showItem.PostgreSql = v
+      }
+    },
+    javaShow: {
+      get() {
+        return this?.showItem?.java ?? true
+      },
+      set(v: boolean) {
+        this.showItem.java = v
+      }
+    },
+    tomcatShow: {
+      get() {
+        return this?.showItem?.tomcat ?? true
+      },
+      set(v: boolean) {
+        this.showItem.tomcat = v
       }
     }
   },

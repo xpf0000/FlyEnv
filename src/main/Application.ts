@@ -86,20 +86,16 @@ export default class Application extends EventEmitter {
 
   initTrayManager() {
     this.trayManager.on('click', (x, y, poperX) => {
-      if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
-        this?.trayWindow?.setPosition(Math.round(x), Math.round(y))
-        this?.trayWindow?.setOpacity(1.0)
-        this?.trayWindow?.show()
-        this?.trayWindow?.moveTop()
-        this.windowManager.sendCommandTo(
-          this.trayWindow!,
-          'APP:Poper-Left',
-          'APP:Poper-Left',
-          poperX
-        )
-      } else {
-        this?.trayWindow?.hide()
-      }
+      this?.trayWindow?.setPosition(Math.round(x), Math.round(y))
+      this?.trayWindow?.setOpacity(1.0)
+      this?.trayWindow?.show()
+      this?.trayWindow?.moveTop()
+      this.windowManager.sendCommandTo(
+        this.trayWindow!,
+        'APP:Poper-Left',
+        'APP:Poper-Left',
+        poperX
+      )
     })
   }
 
@@ -199,54 +195,68 @@ export default class Application extends EventEmitter {
 
   async stop() {
     logger.info('[PhpWebStudy] application stop !!!')
-    SiteSuckerManager.destory()
-    this.forkManager?.destory()
-    this.trayManager?.destroy()
-    await this.stopServer()
+    try {
+      SiteSuckerManager.destory()
+      this.forkManager?.destory()
+      this.trayManager?.destroy()
+      await this.stopServer()
+    } catch (e) {
+      console.log('stop e: ', e)
+    }
   }
 
   async stopServerByPid() {
-    let command = `wmic process get commandline,ProcessId | findstr "PhpWebStudy-Data"`
-    console.log('_stopServer command: ', command)
-    let res: any = null
-    try {
-      res = await execPromiseRoot(command)
-    } catch (e) { }
-    const pids = res?.stdout?.trim()?.split('\n') ?? []
-    console.log('pids: ', pids)
     const arr: Array<string> = []
     const fpm: Array<string> = []
-    for (const p of pids) {
-      if (
-        p.includes('findstr')
-      ) {
-        continue
-      }
 
-      if (p.includes('PhpWebStudy-Data')) {
-        const pid = p.split(' ').filter((s: string) => {
-          return !!s.trim()
-        }).pop()
-        if (p.includes('php-cgi-spawner.exe')) {
-          fpm.push(pid.trim())
-        } else {
-          arr.push(pid.trim())
+    const keys: string[] = ['PhpWebStudy-Data', 'redis-server', 'php.phpwebstudy']
+    for (const key of keys) {
+      let command = `wmic process get commandline,ProcessId | findstr "${key}"`
+      console.log('_stopServer command: ', command)
+      let res: any = null
+      try {
+        res = await execPromiseRoot(command)
+      } catch (e) { }
+      const pids = res?.stdout?.trim()?.split('\n') ?? []
+      console.log('pids: ', pids)
+      for (const p of pids) {
+        if (
+          p.includes('findstr')
+        ) {
+          continue
+        }
+
+        if (p.includes('PhpWebStudy-Data') || p.includes('redis-server') || p.includes('php.phpwebstudy')) {
+          const pid = p.split(' ').filter((s: string) => {
+            return !!s.trim()
+          }).pop()
+          if (p.includes('php-cgi-spawner.exe')) {
+            fpm.push(pid.trim())
+          } else {
+            arr.push(pid.trim())
+          }
         }
       }
+      arr.unshift(...fpm)
     }
-    arr.unshift(...fpm)
+
     console.log('_stopServer arr: ', arr)
     if (arr.length > 0) {
-      for (const pid of arr) {
-        try {
-          await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-        } catch (e) { }
+      const str = arr.map((s) => `/pid ${s}`).join(' ')
+      try {
+        await execPromiseRoot(`taskkill /f /t ${str}`)
+      } catch (e) {
+        console.log('taskkill e: ', e)
       }
     }
   }
 
   async stopServer() {
-    await this.stopServerByPid()
+    try {
+      await this.stopServerByPid()
+    } catch (e) {
+      console.log('stopServerByPid e: ', e)
+    }
     console.log('stopServer !!!')
     const hostsFile = join('c:/windows/system32/drivers/etc', 'hosts')
     try {
@@ -256,7 +266,9 @@ export default class Application extends EventEmitter {
         hosts = hosts.replace(x[0], '')
         writeFileSync(hostsFile, hosts)
       }
-    } catch (e) { }
+    } catch (e) {
+      console.log('hostsFile clean e: ', e)
+    }
     console.log('stopServer End !!!')
   }
 
@@ -287,6 +299,10 @@ export default class Application extends EventEmitter {
     this.stop().then(() => {
       app.relaunch()
       app.exit()
+    }).catch((e) => {
+      console.log('relaunch e: ', e)
+      app.relaunch()
+      app.exit()
     })
   }
 
@@ -305,6 +321,10 @@ export default class Application extends EventEmitter {
       this.windowManager.hideAllWindow()
       this.stop().then(() => {
         console.log('application real exit !!!!!!')
+        app.exit()
+        process.exit(0)
+      }).catch((e) => {
+        console.log('application:exit e: ', e)
         app.exit()
         process.exit(0)
       })

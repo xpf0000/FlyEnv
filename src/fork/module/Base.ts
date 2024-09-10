@@ -152,11 +152,13 @@ export class Base {
       }
       console.log('_stopServer arr: ', arr)
       if (arr.length > 0) {
-        for (const pid of arr) {
-          try {
-            await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-          } catch (e) { }
-        }
+        const str = arr.map((s) => `/pid ${s}`).join(' ')
+        await execPromiseRoot(`taskkill /f /t ${str}`)
+        // for (const pid of arr) {
+        //   try {
+        //     await execPromiseRoot(`wmic process where processid="${pid}" delete`)
+        //   } catch (e) { }
+        // }
       }
       if (this.type === 'apache') {
         let command = `${version.bin} -k uninstall`

@@ -52,11 +52,8 @@ async function killAllElectron() {
   }
   console.log('_stopServer arr: ', arr)
   if (arr.length > 0) {
-    for (const pid of arr) {
-      try {
-        await execRoot(`wmic process where processid="${pid}" delete`)
-      } catch (e) { }
-    }
+    const str = arr.map((s) => `/pid ${s}`).join(' ')
+    await execRoot(`taskkill /f /t ${str}`)
   }
 }
 

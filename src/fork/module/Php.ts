@@ -97,8 +97,6 @@ class Php extends Base {
 
   _stopServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
-      let confPath = 'PhpWebStudy-Data' + join(version.path, 'php.ini').split('PhpWebStudy-Data').pop()
-      confPath = confPath.split('\\').join('/')
       const serverName = 'php-cgi'
       const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
       console.log('_stopServer command: ', command)
@@ -107,12 +105,10 @@ class Php extends Base {
         res = await execPromiseRoot(command)
       } catch (e) { }
       const pids = res?.stdout?.trim()?.split('\n') ?? []
-      console.log('confPath: ', confPath)
-      console.log('php pids: ', pids)
       const arr: Array<string> = []
       const fpm: Array<string> = []
       for (const p of pids) {
-        if (p.includes(confPath)) {
+        if (p.includes(`phpwebstudy.90${version.num}`)) {
           const pid = p.split(' ').filter((s: string) => {
             return !!s.trim()
           }).pop()
@@ -128,11 +124,14 @@ class Php extends Base {
       arr.unshift(...fpm)
       console.log('php arr: ', arr)
       if (arr.length > 0) {
-        for (const pid of arr) {
-          try {
-            await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-          } catch (e) { }
-        }
+        const str = arr.map((s) => `/pid ${s}`).join(' ')
+        await execPromiseRoot(`taskkill /f /t ${str}`)
+
+        // for (const pid of arr) {
+        //   try {
+        //     await execPromiseRoot(`wmic process where processid="${pid}" delete`)
+        //   } catch (e) { }
+        // }
       }
       resolve(true)
     })
@@ -259,11 +258,16 @@ class Php extends Base {
         await copyFile(join(global.Server.PhpDir!, 'php-cgi-spawner.exe'), join(version.path, 'php-cgi-spawner.exe'))
       }
 
-      process.chdir(dirname(dirname(global.Server.BaseDir!)));
+      const ini = join(version.path, 'php.ini')
+      const runIni = join(version.path, `php.phpwebstudy.90${version.num}.ini`)
+      if (existsSync(runIni)) {
+        await remove(runIni)
+      }
+      await copyFile(ini, runIni)
 
-      const dir = `PhpWebStudy-Data/app/${basename(version.path)}`
+      process.chdir(dirname(version.bin));
 
-      const command = `start /b ./${dir}/php-cgi-spawner.exe "${dir}/php-cgi.exe -c ${dir}/php.ini" 90${version.num} 4`
+      const command = `start /b ./php-cgi-spawner.exe "php-cgi.exe -c php.phpwebstudy.90${version.num}.ini" 90${version.num} 4`
       console.log('_startServer command: ', command)
 
       try {

@@ -38,7 +38,7 @@ class Mysql extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.initLocalApp(version, 'mysql')     
+      await this.initLocalApp(version, 'mysql')
       let bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
@@ -175,11 +175,14 @@ datadir="${dataDir}"`
         }
       }
       if (arr.length > 0) {
-        for (const pid of arr) {
-          try {
-            await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-          } catch (e) { }
-        }
+        const str = arr.map((s) => `/pid ${s}`).join(' ')
+        await execPromiseRoot(`taskkill /f /t ${str}`)
+
+        // for (const pid of arr) {
+        //   try {
+        //     await execPromiseRoot(`wmic process where processid="${pid}" delete`)
+        //   } catch (e) { }
+        // }
       }
       await waitTime(500)
       resolve(true)
@@ -188,7 +191,7 @@ datadir="${dataDir}"`
 
   startGroupServer(version: MysqlGroupItem) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.initLocalApp(version.version as any, 'mysql')   
+      await this.initLocalApp(version.version as any, 'mysql')
       await this.stopGroupService(version)
       let bin = version.version.bin
       const id = version?.id ?? ''

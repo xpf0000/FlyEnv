@@ -274,11 +274,13 @@ subjectAltName=@alt_names
 
   processKill(pids: string[]) {
     return new ForkPromise(async (resolve) => {
-      for (const pid of pids) {
-        try {
-          await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-        } catch (e) { }
-      }
+      const str = pids.map((s) => `/pid ${s}`).join(' ')
+      await execPromiseRoot(`taskkill /f /t ${str}`)
+      // for (const pid of pids) {
+      //   try {
+      //     await execPromiseRoot(`wmic process where processid="${pid}" delete`)
+      //   } catch (e) { }
+      // }
       resolve(true)
     })
   }
