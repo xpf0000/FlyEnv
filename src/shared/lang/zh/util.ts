@@ -103,5 +103,7 @@ export default {
     '按照文档说明进行安装.\n' +
     '如想安装 Homebrew, 可以点击此链接\n' +
     '<a href="javascript:void();" onclick="openUrl(\'https://www.macphpstudy.com/zh/help-4-2.html\')">https://www.macphpstudy.com/zh/help-4-2.html</a>\n' +
-    '按照文档说明进行安装.'
+    '按照文档说明进行安装.',
+
+  showToolBtn: '显示工具浮动按钮'
 }

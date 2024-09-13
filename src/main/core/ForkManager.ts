@@ -145,6 +145,7 @@ export class ForkManager {
         this.forks.push(find)
       }
     }
+    find._on = this._on
     return find.send(...args)
   }
 

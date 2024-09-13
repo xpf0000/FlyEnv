@@ -139,10 +139,17 @@
       </div>
       <div class="row-2">
         <div class="col">
-          <AutoUpdate />
+          <Tool />
         </div>
         <div class="col">
+          <AutoUpdate />
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="col">
           <RestPassword />
+        </div>
+        <div class="col">
         </div>
       </div>
       <div class="row-2">
@@ -173,6 +180,7 @@
   import ThemeSet from './Theme/index.vue'
   import Base from '@/core/Base'
   import { I18nT } from '@shared/lang'
+  import Tool from './Tool/index.vue'
 
   export default defineComponent({
     components: {
@@ -184,7 +192,8 @@
       ForceStart,
       ShowAI,
       MacPortsSrc,
-      ThemeSet
+      ThemeSet,
+      Tool
     },
     props: {},
     data() {

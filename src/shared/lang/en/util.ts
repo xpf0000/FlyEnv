@@ -105,5 +105,7 @@ export default {
     'Follow the documentation to install.\n' +
     'Install Homebrew, you can click on this link\n' +
     '<a href="javascript:void();" onclick="openUrl(\'https://www.macphpstudy.com/zh/help-4-2.html\')">https://www.macphpstudy.com/zh/help-4-2.html</a>\n' +
-    'Follow the documentation to install.'
+    'Follow the documentation to install.',
+
+  showToolBtn: 'Display Tool Floating Button'
 }

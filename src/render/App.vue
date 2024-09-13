@@ -1,7 +1,7 @@
 <template>
   <TitleBar />
   <router-view />
-  <AI v-if="showAI" />
+  <FloatButton />
 </template>
 
 <script lang="ts" setup>
@@ -13,10 +13,11 @@
   import installedVersions from '@/util/InstalledVersions'
   import { AppSofts, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import AI from '@/components/AI/index.vue'
   import { I18nT } from '@shared/lang'
   import Base from '@/core/Base'
   import { MessageSuccess } from '@/util/Element'
+  import FloatButton from '@/components/FloatBtn/index.vue'
+  import { ElMessageBox } from 'element-plus'
 
   const inited = ref(false)
   const appStore = AppStore()
@@ -28,10 +29,6 @@
 
   const showItem = computed(() => {
     return appStore.config.setup.common.showItem
-  })
-
-  const showAI = computed(() => {
-    return appStore?.config?.setup?.showAIRobot ?? true
   })
 
   const showItemLowcase = () => {
@@ -99,14 +96,17 @@
         'tomcat'
       ].filter((f) => dict?.[f] !== false) as Array<keyof typeof AppSofts>
       if (flags.length === 0) {
-        AppStore().versionInited = true
+        appStore.versionInited = true
         inited.value = true
         return
       }
       installedVersions.allInstalledVersions(flags).then(() => {
-        AppStore().versionInited = true
+        appStore.versionInited = true
         inited.value = true
       })
+      if (appStore.hosts.length === 0) {
+        appStore.initHost().then()
+      }
     })
   }
 
@@ -164,6 +164,42 @@
       deep: true
     }
   )
+  let passChecking = false
+
+  IPC.on('application:need-password').then(() => {
+    if (passChecking) {
+      return
+    }
+    passChecking = true
+    ElMessageBox.prompt(I18nT('base.inputPasswordDesc'), I18nT('base.inputPassword'), {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      inputType: 'password',
+      customClass: 'password-prompt',
+      beforeClose: (action, instance, done) => {
+        if (action === 'confirm') {
+          // 去除trim, 有些电脑的密码是空格...
+          if (instance.inputValue) {
+            IPC.send('app:password-check', instance.inputValue).then((key: string, res: any) => {
+              IPC.off(key)
+              if (res === false) {
+                instance.editorErrorMessage = I18nT('base.passwordError')
+              } else {
+                global.Server.Password = res
+                AppStore().initConfig().then()
+                checkPassword()
+                done && done()
+              }
+              passChecking = false
+            })
+          }
+        } else {
+          passChecking = false
+          done()
+        }
+      }
+    })
+  })
 
   onMounted(() => {
     checkPassword()
@@ -173,5 +209,6 @@
   onUnmounted(() => {
     EventBus.off('vue:need-password', checkPassword)
     IPC.off('application:about')
+    IPC.off('application:need-password')
   })
 </script>

@@ -32,10 +32,12 @@ class BaseManager {
   async exec(commands: Array<any>) {
     const ipcCommandKey = commands.shift()
     try {
-      await execPromiseRoot([`uname`, `-a`])
+      const res = await execPromiseRoot([`uname`, `-a`])
+      console.log('exec uname res: ', res)
     } catch (e) {
+      console.log('exec uname e: ', e)
       ProcessSendError(ipcCommandKey, I18nT('fork.needPassWord'))
-      ProcessSendError('application:need-password', false)
+      ProcessSendError('application:need-password', false, true)
       return
     }
     const then = (res: any) => {

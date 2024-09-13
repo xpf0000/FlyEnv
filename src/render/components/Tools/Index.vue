@@ -56,24 +56,21 @@
         <span>{{ $t('util.toolSiteSucker') }}</span>
       </li>
     </ul>
-    <el-drawer
-      ref="host-edit-drawer"
-      v-model="show"
-      :size="width"
-      :destroy-on-close="true"
-      class="host-edit-drawer"
-      :with-header="false"
-    >
-      <component :is="component" @do-close="hidePage"></component>
-    </el-drawer>
   </div>
 </template>
 
 <script>
   import { markRaw, defineAsyncComponent } from 'vue'
+  import { AsyncComponentShow } from '@/util/AsyncComponent.ts'
+
+  let AppDrawerVM
+  import('@/components/AppDrawer/index.vue').then((res) => {
+    AppDrawerVM = res.default
+  })
 
   export default {
     components: {},
+    emits: ['onToolShow'],
     data() {
       return {
         show: false,
@@ -84,6 +81,7 @@
     computed: {},
     methods: {
       showPage(flag) {
+        this.$emit('onToolShow')
         this.width = '75%'
         this.show = true
         switch (flag) {
@@ -124,6 +122,12 @@
             this.component = markRaw(defineAsyncComponent(() => import('./SiteSucker/index.vue')))
             break
         }
+
+        AsyncComponentShow(AppDrawerVM, {
+          component: this.component,
+          size: this.width,
+          drawerClass: 'host-edit-drawer'
+        }).then()
       },
       hidePage() {
         this.component = null

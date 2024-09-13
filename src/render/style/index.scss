@@ -815,7 +815,6 @@ body {
     }
   }
 }
-
 .el-popover.el-popper.host-sort-poper {
   border: none;
   padding: 0;
@@ -841,7 +840,6 @@ body {
     }
   }
 }
-
 .host-logs {
   display: flex;
   flex-direction: column;
@@ -1965,26 +1963,6 @@ body {
     }
   }
 }
-.app-ai-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: fixed;
-  width: 40px;
-  height: 40px;
-  right: 20px;
-  bottom: 20px;
-  border-radius: 44px;
-  background: #fff;
-  box-shadow: 0 1px 6px 0 #20212447;
-  color: #20212447;
-  z-index: 9998;
-  cursor: pointer;
-
-  &:hover {
-    color: #aa88ee;
-  }
-}
 .app-chat-mask {
   position: fixed;
   inset: 0;
@@ -2808,6 +2786,34 @@ body {
   &.host-edit {
     .main-wapper {
       padding: 0;
+    }
+  }
+}
+.app-float-btn-wapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9998;
+  gap: 15px;
+
+  .app-ai-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 44px;
+    background: #fff;
+    box-shadow: 0 1px 6px 0 #20212447;
+    color: #20212447;
+    cursor: pointer;
+
+    &:hover {
+      color: #aa88ee;
     }
   }
 }

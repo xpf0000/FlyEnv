@@ -147,6 +147,7 @@ interface State {
       autoCheck: boolean
       forceStart: boolean
       showAIRobot: boolean
+      showTool?: boolean
       phpBrewInited: boolean
       mongodbBrewInited: boolean
       currentNodeTool: 'fnm' | 'nvm' | ''
