@@ -88,6 +88,9 @@ export default class Application extends EventEmitter {
     DnsServerManager.onLog((msg: any) => {
       this.windowManager.sendCommandTo(this.mainWindow!, 'App_DNS_Log', 'App_DNS_Log', msg)
     })
+    if (!is.dev()) {
+      this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
+    }
     console.log('Application inited !!!')
   }
 
@@ -189,14 +192,18 @@ export default class Application extends EventEmitter {
               '--add',
               'safe.directory',
               join(p, 'Library/Taps/homebrew/homebrew-core')
-            ]).then()
-            execAsync('git', [
-              'config',
-              '--global',
-              '--add',
-              'safe.directory',
-              join(p, 'Library/Taps/homebrew/homebrew-cask')
-            ]).then()
+            ])
+              .then(() => {
+                return execAsync('git', [
+                  'config',
+                  '--global',
+                  '--add',
+                  'safe.directory',
+                  join(p, 'Library/Taps/homebrew/homebrew-cask')
+                ])
+              })
+              .then()
+              .catch()
           })
           .catch((e: Error) => {
             console.log('brew --repo err: ', e)
@@ -595,6 +602,7 @@ export default class Application extends EventEmitter {
       case 'app-fork:composer':
       case 'app-fork:java':
       case 'app-fork:tomcat':
+      case 'app-fork:app':
         const module = command.replace('app-fork:', '')
         this.setProxy()
         global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'

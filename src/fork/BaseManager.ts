@@ -24,6 +24,7 @@ class BaseManager {
   Composer: any
   Java: any
   Tomcat: any
+  App: any
 
   constructor() {}
 
@@ -188,6 +189,12 @@ class BaseManager {
         this.Tomcat = res.default
       }
       doRun(this.Tomcat)
+    } else if (module === 'app') {
+      if (!this.App) {
+        const res = await import('./module/App')
+        this.App = res.default
+      }
+      doRun(this.App)
     }
   }
 

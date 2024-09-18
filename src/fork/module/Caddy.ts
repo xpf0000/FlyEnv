@@ -1,13 +1,11 @@
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import type { AppHost, SoftInstalled } from '@shared/app'
+import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromise, hostAlias, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '../lang'
-import axios from 'axios'
-import { compareVersions } from 'compare-versions'
 import { execPromiseRoot } from '@shared/Exec'
 import { type ChildProcess, spawn } from 'child_process'
 import { fixEnv } from '@shared/utils'
@@ -220,65 +218,7 @@ class Caddy extends Base {
   fetchAllOnLineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const urls = ['https://api.github.com/repos/caddyserver/caddy/tags?page=1&per_page=1000']
-        const fetchVersions = async (url: string) => {
-          const all: any = []
-          const res = await axios({
-            url,
-            method: 'get',
-            proxy: this.getAxiosProxy()
-          })
-          const html = res.data
-          let arr: any[] = []
-          try {
-            if (typeof html === 'string') {
-              arr = JSON.parse(html)
-            } else {
-              arr = html
-            }
-          } catch (e) {}
-          const arch = global.Server.Arch === 'x86_64' ? 'amd64' : 'arm64'
-          arr.forEach((a) => {
-            const version = a.name.replace('v', '')
-            const mv = version.split('.').slice(0, 2).join('.')
-            const u = `https://github.com/caddyserver/caddy/releases/download/v${version}/caddy_${version}_mac_${arch}.tar.gz`
-            const item = {
-              url: u,
-              version,
-              mVersion: mv
-            }
-            const find = all.find((f: any) => f.mVersion === item.mVersion)
-            if (!find) {
-              all.push(item)
-            } else {
-              if (compareVersions(item.version, find.version) > 0) {
-                const index = all.indexOf(find)
-                all.splice(index, 1, item)
-              }
-            }
-          })
-          return all
-        }
-        const all: any = []
-        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
-        const list = res.flat()
-        list
-          .filter((l: any) => compareVersions(l.version, '2.7.0') > 0)
-          .forEach((l: any) => {
-            const find = all.find((f: any) => f.mVersion === l.mVersion)
-            if (!find) {
-              all.push(l)
-            } else {
-              if (compareVersions(l.version, find.version) > 0) {
-                const index = all.indexOf(find)
-                all.splice(index, 1, l)
-              }
-            }
-          })
-
-        all.sort((a: any, b: any) => {
-          return compareVersions(b.version, a.version)
-        })
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('caddy')
         const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-caddy-${a.version}`, 'caddy')

@@ -29,11 +29,9 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
         ThemeInit()
         const config = store.config.setup
         AppI18n(config?.lang)
-        return store.initHost()
-      })
-      .then(() => {
         app.mount('#app')
       })
+      .catch()
     SiteSuckerStore().init()
     DnsStore().init()
   } else {

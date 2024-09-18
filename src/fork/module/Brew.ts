@@ -240,7 +240,7 @@ class Brew extends Base {
             } else if (flag === 'mysql') {
               installed = existsSync(join('/opt/local/lib', name, 'bin/mysqld_safe'))
             } else if (flag === 'mariadb') {
-              installed = existsSync(join('/opt/local/lib', name, 'bin/mariadbd-safe'))
+              installed = existsSync(join('/opt/local/lib', name, 'bin/mariadbd-safe')) || existsSync(join('/opt/local/lib', name, 'bin/mysqld_safe'))
             } else if (flag === 'memcached') {
               installed = existsSync(join('/opt/local/bin', name))
             } else if (flag === 'redis') {

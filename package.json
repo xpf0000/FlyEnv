@@ -24,6 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "@electron/remote": "^2.1.2",
+    "@lzwme/get-physical-address": "^1.1.0",
     "axios": "^1.5.1",
     "child-process-promise": "^2.2.1",
     "compare-versions": "^6.1.0",

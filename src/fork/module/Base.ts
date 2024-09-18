@@ -1,7 +1,7 @@
 import { I18nT } from '../lang'
 import { createWriteStream, existsSync } from 'fs'
 import { join } from 'path'
-import type { SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromise, spawnPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, copyFile, unlink, chmod, remove, mkdirp, readdir } from 'fs-extra'
@@ -297,6 +297,24 @@ export class Base {
       proxy = undefined
     }
     return proxy
+  }
+
+  async _fetchOnlineVersion(app: string): Promise<OnlineVersionItem[]> {
+    let list: OnlineVersionItem[] = []
+    try {
+      const res = await axios({
+        url: 'https://api.macphpstudy.com/api/version/fetch',
+        method: 'post',
+        data: {
+          app,
+          os: 'mac',
+          arch: global.Server.Arch === 'x86_64' ? 'x86' : 'arm'
+        },
+        proxy: this.getAxiosProxy()
+      })
+      list = res?.data?.data ?? []
+    } catch (e) {}
+    return list
   }
 
   installSoft(row: any) {

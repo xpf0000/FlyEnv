@@ -3,8 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
-import { compareVersions } from 'compare-versions'
-import type { AppHost, SoftInstalled } from '@shared/app'
+import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import { hostAlias } from '../Fn'
 import { mkdirp, readFile, writeFile } from 'fs-extra'
@@ -40,42 +39,7 @@ class Tomcat extends Base {
     console.log('Tomcat fetchAllOnLineVersion !!!')
     return new ForkPromise(async (resolve) => {
       try {
-        const urls = await this._fatchUrls()
-        console.log('urls: ', urls)
-        const fetchVersions = async (url: string) => {
-          const all: any = []
-          const res = await axios({
-            url,
-            method: 'get',
-            proxy: this.getAxiosProxy()
-          })
-          const html = res.data
-          const reg: RegExp = new RegExp(`href="v(.*?)/"`, 'g')
-          let r
-          while ((r = reg.exec(html)) !== null) {
-            const version = r[1]
-            const mv = version.split('.').slice(0, 2).join('.')
-            const item = {
-              url: new URL(`v${version}/bin/apache-tomcat-${version}.tar.gz`, url).toString(),
-              version,
-              mVersion: mv
-            }
-            const find = all.find((f: any) => f.mVersion === item.mVersion)
-            if (!find) {
-              all.push(item)
-            } else {
-              if (compareVersions(item.version, find.version) > 0) {
-                const index = all.indexOf(find)
-                all.splice(index, 1, item)
-              }
-            }
-          }
-          return all
-        }
-        const all: any = []
-        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
-        const list = res.flat()
-        all.push(...list)
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('tomcat')
         const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-tomcat-${a.version}`, 'bin/catalina.sh')

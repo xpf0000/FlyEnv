@@ -69,11 +69,15 @@ datadir=${dataDir}`
         needRestart = true
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        bin = join(version.path, 'bin/mysql_install_db')
+        bin = join(version.path, 'bin/mariadb-install-db')
+        if (!existsSync(bin)) {
+          bin = join(version.path, 'bin/mysql_install_db')
+        }
         params.splice(0)
         params.push(`--datadir=${dataDir}`)
         params.push(`--basedir=${version.path}`)
         params.push('--auth-root-authentication-method=normal')
+        params.push(`--defaults-file=${m}`)
         if (version?.flag === 'macports') {
           const enDir = join(version.path, 'share')
           if (!existsSync(enDir)) {

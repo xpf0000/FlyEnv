@@ -5,7 +5,7 @@ const { spawn } = require('child_process')
 const { exec } = require('child-process-promise')
 const os = require('os')
 const { join } = require('path')
-const { chmod, copyFile, existsSync, writeFile } = require('fs-extra')
+const { chmod, copyFile, existsSync } = require('fs-extra')
 
 let AppEnv: any
 
@@ -43,7 +43,6 @@ export async function fixEnv(): Promise<{ [k: string]: any }> {
       AppEnv[k] = global.Server.Proxy[k]
     }
   }
-  await writeFile(join(global.Server.BaseDir!, 'AppEnv.txt'), JSON.stringify(AppEnv))
   return AppEnv
 }
 
