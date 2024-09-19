@@ -42,19 +42,19 @@ brew install phpwebstudy
 
 ### Intel X86:
 
-[PhpWebStudy-4.3.1.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.1/PhpWebStudy-4.3.1.dmg)
+[PhpWebStudy-4.3.2.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.2/PhpWebStudy-4.3.2.dmg)
 
-[PhpWebStudy-4.3.1-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.1/PhpWebStudy-4.3.1-mac.zip)
+[PhpWebStudy-4.3.2-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.2/PhpWebStudy-4.3.2-mac.zip)
 
 ### Apple Silicon
 
-[PhpWebStudy-4.3.1-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.1/PhpWebStudy-4.3.1-arm64.dmg)
+[PhpWebStudy-4.3.2-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.2/PhpWebStudy-4.3.2-arm64.dmg)
 
-[PhpWebStudy-4.3.1-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.1/PhpWebStudy-4.3.1-arm64-mac.zip)
+[PhpWebStudy-4.3.2-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.2/PhpWebStudy-4.3.2-arm64-mac.zip)
 
 ## Windows
 
-[PhpWebStudy-4.3.1-Windows.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.1/PhpWebStudy-4.3.1-Windows.zip)
+[PhpWebStudy.Setup.4.3.2.exe](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.2/PhpWebStudy.Setup.4.3.2.exe)
 
 ## Linux
 
