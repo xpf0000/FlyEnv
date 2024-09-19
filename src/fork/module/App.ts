@@ -15,7 +15,7 @@ class App extends Base {
             const mac = await getMac()
             const cpu = cpus()?.pop()?.model ?? ''
             const uuid = md5(`${mac}-${cpu}`)
-            const os = `macOS ${arch()}`
+            const os = `Windows ${arch()}`
 
             const data = {
                 uuid,
