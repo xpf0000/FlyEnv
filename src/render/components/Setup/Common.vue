@@ -9,13 +9,6 @@
           <theme-set />
         </div>
       </div>
-      <div class="row-2">
-        <div class="col">
-          <ForceStart />
-        </div>
-        <div class="col">
-        </div>
-      </div>
       <div class="plant-title">{{ $t('base.showItem') }}</div>
       <div class="main user-select-none">
         <el-form label-position="left" label-width="100px">
@@ -127,6 +120,21 @@
           </el-row>
         </el-form>
       </div>
+      <div class="row-2">
+        <div class="col">
+          <ForceStart />
+        </div>
+        <div class="col">
+          <AI />
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="col">
+          <Tool />
+        </div>
+        <div class="col">
+        </div>
+      </div>
       <ProxySet />
       <div class="row-2">
         <div class="col">
@@ -156,6 +164,8 @@ import MacPortsSrc from './MacPortsSrc/index.vue'
 import ThemeSet from './Theme/index.vue'
 import Base from '@/core/Base'
 import { I18nT } from '@shared/lang'
+import Tool from './Tool/index.vue'
+import AI from './AI/index.vue'
 
 export default defineComponent({
   components: {
@@ -167,7 +177,9 @@ export default defineComponent({
     ForceStart,
     ShowAI,
     MacPortsSrc,
-    ThemeSet
+    ThemeSet,
+    Tool,
+    AI
   },
   props: {},
   data() {

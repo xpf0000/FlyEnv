@@ -1,6 +1,6 @@
 {
   "name": "PhpWebStudy",
-  "version": "4.3.1",
+  "version": "4.3.2",
   "description": "PHP and Web develop environment manager for Mac/Mac上的PHP&Web开发环境管理工具",
   "author": {
     "name": "pengfei xu",
@@ -25,6 +25,7 @@
   "dependencies": {
     "7zip-min-electron": "^1.4.4",
     "@electron/remote": "^2.0.9",
+    "@lzwme/get-physical-address": "^1.1.0",
     "axios": "^1.5.1",
     "child-process-promise": "^2.2.1",
     "compare-versions": "^6.1.0",
@@ -33,6 +34,7 @@
     "electron-is": "^3.0.0",
     "electron-log": "^4.4.8",
     "electron-store": "^10.0.0",
+    "electron-updater": "^6.3.4",
     "fast-xml-parser": "^4.5.0",
     "fs-extra": "^10.0.0",
     "ftp-srv": "^4.6.3",
@@ -84,7 +86,7 @@
     "electron-devtools-installer": "^3.2.0",
     "electron-notarize": "^1.2.2",
     "electron-osx-sign": "^0.6.0",
-    "element-plus": "^2.6.1",
+    "element-plus": "^2.8.3",
     "esbuild": "^0.17.10",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",

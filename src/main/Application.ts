@@ -13,6 +13,8 @@ import type { ServerResponse } from 'http'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseRoot } from '../fork/Fn'
+import is from 'electron-is'
+import UpdateManager from './core/UpdateManager'
 
 const { createFolder } = require('../shared/file')
 const { isAppleSilicon } = require('../shared/utils')
@@ -29,6 +31,7 @@ export default class Application extends EventEmitter {
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
   forkManager?: ForkManager
+  updateManager?: UpdateManager
 
   constructor() {
     super()
@@ -45,6 +48,7 @@ export default class Application extends EventEmitter {
     this.initWindowManager()
     this.trayManager = new TrayManager()
     this.initTrayManager()
+    this.initUpdaterManager()
     this.initServerDir()
     this.handleCommands()
     this.handleIpcMessages()
@@ -66,6 +70,9 @@ export default class Application extends EventEmitter {
         link
       )
     })
+    if (!is.dev()) {
+      this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
+    }
   }
 
   initLang() {
@@ -303,6 +310,29 @@ export default class Application extends EventEmitter {
       console.log('relaunch e: ', e)
       app.relaunch()
       app.exit()
+    })
+  }
+
+  initUpdaterManager() {
+    try {
+      this.updateManager = new UpdateManager(true)
+      this.handleUpdaterEvents()
+    } catch (err) {
+      console.log('initUpdaterManager err: ', err)
+    }
+  }
+
+  handleUpdaterEvents() {
+    this.updateManager?.on('download-progress', (event) => {
+      const win = this.windowManager.getWindow('index')
+      win.setProgressBar(event.percent / 100)
+    })
+    this.updateManager?.on('update-downloaded', () => {
+      const win = this.windowManager.getWindow('index')
+      win.setProgressBar(0)
+    })
+    this.updateManager?.on('will-updated', () => {
+      this.windowManager.setWillQuit(true)
     })
   }
 

@@ -2,12 +2,10 @@ import { join, basename, dirname } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
-import type { AppHost, SoftInstalled } from '@shared/app'
+import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromise, execPromiseRoot, getAllFileAsync } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, readFile, writeFile } from 'fs-extra'
-import axios from 'axios'
-import { compareVersions } from 'compare-versions'
 
 class Apache extends Base {
   constructor() {
@@ -254,58 +252,7 @@ IncludeOptional "${vhost}*.conf"`
   fetchAllOnLineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const urls = [
-          'https://www.apachelounge.com/download/'
-        ]
-        const fetchVersions = async (url: string) => {
-          const all: any = []
-          const res = await axios({
-            url,
-            method: 'get'
-          })
-          const html = res.data
-          const reg = /\/download([a-zA-Z\d\/]+?)\/httpd-(\d[\d\.]+)-([\d\-a-zA-Z]+?)\.zip/g
-          let r
-          while ((r = reg.exec(html)) !== null) {
-            const u = new URL(r[0], url).toString()
-            const version = r[2]
-            const mv = version.split('.').slice(0, 2).join('.')
-            const item = {
-              url: u,
-              version,
-              mVersion: mv
-            }
-            const find = all.find((f: any) => f.mVersion === item.mVersion)
-            if (!find) {
-              all.push(item)
-            } else {
-              if (compareVersions(item.version, find.version) > 0) {
-                const index = all.indexOf(find)
-                all.splice(index, 1, item)
-              }
-            }
-          }
-          return all
-        }
-        const all: any = []
-        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
-        const list = res.flat()
-        list.filter((l: any) => compareVersions(l.version, '2.0.0') > 0).forEach((l: any) => {
-          const find = all.find((f: any) => f.mVersion === l.mVersion)
-          if (!find) {
-            all.push(l)
-          } else {
-            if (compareVersions(l.version, find.version) > 0) {
-              const index = all.indexOf(find)
-              all.splice(index, 1, l)
-            }
-          }
-        })
-
-        all.sort((a: any, b: any) => {
-          return compareVersions(b.version, a.version)
-        })
-
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('apache')      
         all.forEach((a: any) => {
           const subDir = `Apache${a.mVersion.split('.').join('')}`
           const dir = join(global.Server.AppDir!, `apache-${a.version}`, subDir, 'bin/httpd.exe')

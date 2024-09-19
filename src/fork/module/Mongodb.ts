@@ -1,12 +1,10 @@
 import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import type { SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromiseRoot, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
-import axios from 'axios'
-import { compareVersions } from 'compare-versions'
 
 class Manager extends Base {
   constructor() {
@@ -83,60 +81,7 @@ class Manager extends Base {
   fetchAllOnLineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const urls = [
-          'https://www.mongodb.com/try/download/community',
-          // href="/redis-windows/redis-windows/releases/tag/7.2.5"
-        ]
-        const fetchVersions = async (url: string) => {
-          const all: any = []
-          const res = await axios({
-            url,
-            method: 'get',
-            proxy: this.getAxiosProxy()
-          })
-          const html = res.data
-          const reg = />([\d]+)\.([\d]+)\.([\d]+)(.*?)([\s<]+)/g
-          let r
-          while ((r = reg.exec(html)) !== null) {
-            const version = r[0].replace('>', '').replace('<', '').trim()
-            const mv = version.split('.').slice(0, 2).join('.')
-            const u = `https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-${version}.zip`
-            const item = {
-              url: u,
-              version,
-              mVersion: mv
-            }
-            const find = all.find((f: any) => f.mVersion === item.mVersion)
-            if (!find) {
-              all.push(item)
-            } else {
-              if (compareVersions(item.version, find.version) > 0) {
-                const index = all.indexOf(find)
-                all.splice(index, 1, item)
-              }
-            }
-          }
-          return all
-        }
-        const all: any = []
-        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
-        const list = res.flat()
-        list.filter((l: any) => compareVersions(l.version, '1.12.0') > 0).forEach((l: any) => {
-          const find = all.find((f: any) => f.mVersion === l.mVersion)
-          if (!find) {
-            all.push(l)
-          } else {
-            if (compareVersions(l.version, find.version) > 0) {
-              const index = all.indexOf(find)
-              all.splice(index, 1, l)
-            }
-          }
-        })
-
-        all.sort((a: any, b: any) => {
-          return compareVersions(b.version, a.version)
-        })
-
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mongodb')
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `mongodb-${a.version}`, `mongodb-win32-x86_64-windows-${a.version}`, 'bin/mongod.exe')
           const zip = join(global.Server.Cache!, `mongodb-${a.version}.zip`)

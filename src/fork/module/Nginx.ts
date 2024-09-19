@@ -1,13 +1,11 @@
 import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import type { SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromiseRoot, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, unlink } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
-import axios from 'axios'
-import { compareVersions } from 'compare-versions'
 
 class Nginx extends Base {
   constructor() {
@@ -26,7 +24,7 @@ class Nginx extends Base {
       try {
         const content = await readFile(hostfile, 'utf-8')
         host = JSON.parse(content)
-      } catch (e) {}
+      } catch (e) { }
     }
     const all = new Set(host.map((h: any) => h.phpVersion).filter((h: number | undefined) => !!h))
     const tmplFile = join(global.Server.Static!, 'tmpl/enable-php.conf')
@@ -50,21 +48,21 @@ class Nginx extends Base {
       const conf = join(global.Server.NginxDir!, 'conf/nginx.conf')
       if (!existsSync(conf)) {
         zipUnPack(join(global.Server.Static!, 'zip/nginx.zip'), global.Server.NginxDir!)
-      .then(() => {
-        return readFile(conf, 'utf-8')
-      })
-      .then((content: string) => {
-        content = content
-            .replace(/#PREFIX#/g, global.Server.NginxDir!.split('\\').join('/'))
-            .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx').split('\\').join('/'))
-        const defaultConf = join(global.Server.NginxDir!, 'conf/nginx.conf.default')
-        return Promise.all([writeFile(conf, content), writeFile(defaultConf, content)])
-      })
-      .then(resolve)
-      .catch((err: any) => {
-        console.log('initConfig err: ', err)
-        resolve(true)
-      })
+          .then(() => {
+            return readFile(conf, 'utf-8')
+          })
+          .then((content: string) => {
+            content = content
+              .replace(/#PREFIX#/g, global.Server.NginxDir!.split('\\').join('/'))
+              .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx').split('\\').join('/'))
+            const defaultConf = join(global.Server.NginxDir!, 'conf/nginx.conf.default')
+            return Promise.all([writeFile(conf, content), writeFile(defaultConf, content)])
+          })
+          .then(resolve)
+          .catch((err: any) => {
+            console.log('initConfig err: ', err)
+            resolve(true)
+          })
         return
       }
       resolve(true)
@@ -73,7 +71,7 @@ class Nginx extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.initLocalApp(version, 'nginx')   
+      await this.initLocalApp(version, 'nginx')
       await this.#initConfig()
       await this.#handlePhpEnableConf()
       console.log('_startServer: ', version)
@@ -85,8 +83,8 @@ class Nginx extends Base {
         if (existsSync(pid)) {
           await unlink(pid)
         }
-      } catch (e) {}
-      
+      } catch (e) { }
+
       const waitPid = async (time = 0): Promise<boolean> => {
         let res = false
         if (existsSync(pid)) {
@@ -131,72 +129,20 @@ class Nginx extends Base {
   fetchAllOnLineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const urls = [
-          'https://nginx.org/en/download.html'        
-      ]
-      const fetchVersions = async (url: string) => {
-          const all: any = []
-          const res = await axios({
-            url,
-            method: 'get',
-            proxy: this.getAxiosProxy()
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('nginx')
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `nginx-${a.version}`, `nginx-${a.version}`, 'nginx.exe')
+          const zip = join(global.Server.Cache!, `nginx-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `nginx-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
         })
-        const html = res.data        
-        const reg = /\/download\/nginx-(\d[\d\.]+)\.zip/g
-        let r
-        while((r = reg.exec(html)) !== null) {          
-            const u = new URL(r[0], url).toString()
-            const version = r[1]
-            const mv = version.split('.').slice(0, 2).join('.')
-            const item = {
-                url: u,
-                version,
-                mVersion: mv
-            }
-            const find = all.find((f: any) => f.mVersion === item.mVersion)
-            if (!find) {
-                all.push(item)
-            } else {
-              if (compareVersions(item.version, find.version) > 0) {
-                const index = all.indexOf(find)
-                all.splice(index, 1, item)          
-              }
-            }
-        }
-        return all
-      }
-      const all: any = []
-      const res = await Promise.all(urls.map((u) => fetchVersions(u)))
-      const list = res.flat()
-      list.filter((l:any) => compareVersions(l.version, '1.12.0') > 0).forEach((l: any) => {
-        const find = all.find((f: any) => f.mVersion === l.mVersion)
-        if (!find) {
-            all.push(l)
-        } else {
-          if (compareVersions(l.version, find.version) > 0) {
-            const index = all.indexOf(find)
-            all.splice(index, 1, l)          
-          }
-        }
-      })
-  
-      all.sort((a: any, b: any) => {
-        return compareVersions(b.version, a.version)
-      })
-  
-      all.forEach((a: any) => {
-        const dir = join(global.Server.AppDir!, `nginx-${a.version}`, `nginx-${a.version}`, 'nginx.exe')
-        const zip = join(global.Server.Cache!, `nginx-${a.version}.zip`)
-        a.appDir = join(global.Server.AppDir!, `nginx-${a.version}`)
-        a.zip = zip
-        a.bin = dir
-        a.downloaded = existsSync(zip)
-        a.installed = existsSync(dir)
-      })
-          resolve(all)
-      } catch(e) {
+        resolve(all)
+      } catch (e) {
         resolve([])
-      }    
+      }
     })
   }
 }

@@ -2,13 +2,11 @@ import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
-import type { AppHost, SoftInstalled } from '@shared/app'
+import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromise, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, readFile, remove, mkdirp, copyFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
-import axios from 'axios'
-import { compareVersions } from 'compare-versions'
 
 class Php extends Base {
   constructor() {
@@ -325,61 +323,7 @@ class Php extends Base {
   fetchAllOnLineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const urls = [
-          'https://windows.php.net/download/',
-          'https://windows.php.net/downloads/releases/archives/'
-        ]
-        const fetchVersions = async (url: string) => {
-          const all: any = []
-          const res = await axios({
-            url,
-            method: 'get',
-            proxy: this.getAxiosProxy()
-          })
-          const html = res.data
-          console.log('html: ', html)
-          const reg = /\/downloads\/releases\/(archives\/)?php-([\d\.]+)-Win([a-zA-Z\d-]+)-x64\.zip/g
-          let r
-          while ((r = reg.exec(html)) !== null) {
-            const u = new URL(r[0], url).toString()
-            const version = r[2]
-            const mv = version.split('.').slice(0, 2).join('.')
-            const item = {
-              url: u,
-              version,
-              mVersion: mv
-            }
-            const find = all.find((f: any) => f.mVersion === item.mVersion)
-            if (!find) {
-              all.push(item)
-            } else {
-              if (compareVersions(item.version, find.version) > 0) {
-                const index = all.indexOf(find)
-                all.splice(index, 1, item)
-              }
-            }
-          }
-          return all
-        }
-        const all: any = []
-        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
-        const list = res.flat()
-        list.forEach((l: any) => {
-          const find = all.find((f: any) => f.mVersion === l.mVersion)
-          if (!find) {
-            all.push(l)
-          } else {
-            if (compareVersions(l.version, find.version) > 0) {
-              const index = all.indexOf(find)
-              all.splice(index, 1, l)
-            }
-          }
-        })
-
-        all.sort((a: any, b: any) => {
-          return compareVersions(b.version, a.version)
-        })
-
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('php')
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `php-${a.version}`, 'php.exe')
           const zip = join(global.Server.Cache!, `php-${a.version}.zip`)

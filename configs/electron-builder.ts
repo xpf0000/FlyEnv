@@ -1,8 +1,9 @@
 import type { Configuration } from 'electron-builder'
+import PublishCnf from './publish'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
-  buildVersion: '4.3.1',
+  buildVersion: '4.3.2',
   electronVersion: '30.2.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -25,14 +26,6 @@ const conf: Configuration = {
       {
         target: 'nsis',
         arch: ['x64']
-      },
-      {
-        target: 'zip',
-        arch: ['x64']
-      },
-      {
-        target: 'portable',
-        arch: ['x64']
       }
     ]
   },
@@ -40,7 +33,7 @@ const conf: Configuration = {
     oneClick: false,
     allowToChangeInstallationDirectory: true
   },
-  publish: []
+  publish: [PublishCnf]
 }
 
 export default conf

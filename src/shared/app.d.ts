@@ -68,3 +68,9 @@ export interface MysqlGroupItem {
   port: number | string
   dataDir: string
 }
+
+export interface OnlineVersionItem {
+  url: string
+  version: string
+  mVersion: string
+}

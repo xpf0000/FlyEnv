@@ -2,12 +2,10 @@ import { join, dirname, basename } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
-import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
+import type { MysqlGroupItem, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromise, waitTime, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
-import axios from 'axios'
-import { compareVersions } from 'compare-versions'
 
 class Mysql extends Base {
   constructor() {
@@ -323,68 +321,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
   fetchAllOnLineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const urls = [
-          // 'https://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.51-winx64.zip',
-          // 'https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.37-winx64.zip',
-          // 'https://downloads.mysql.com/archives/get/p/23/file/mysql-8.2.0-winx64.zip',
-          // 'https://downloads.mysql.com/archives/get/p/23/file/mysql-5.6.51-winx64.zip',
-          // 'https://downloads.mysql.com/archives/get/p/23/file/mysql-5.5.62-winx64.zip',
-          'https://dev.mysql.com/downloads/mysql/',
-          'https://downloads.mysql.com/archives/community/'
-        ]
-        const fetchVersions = async (url: string) => {
-          const all: any = []
-          const res = await axios({
-            url,
-            method: 'get',
-            proxy: this.getAxiosProxy()
-          })
-          const html = res.data
-          const regSelect = /<select name="version"([\s\S\n]*?)<\/select>/g
-          html.match(regSelect).forEach((select: string) => {
-            const reg = /<option ([a-z="\d\.\s\n]+)>(\d[\d\.]+)([a-zA-Z\s\n]*?)<\/option>/g
-            let r
-            while ((r = reg.exec(select)) !== null) {
-              const version = r[2]
-              const mv = version.split('.').slice(0, 2).join('.')
-              const u = `https://dev.mysql.com/get/Downloads/MySQL-${mv}/mysql-${version}-winx64.zip`
-              const item = {
-                url: u,
-                version,
-                mVersion: mv
-              }
-              const find = all.find((f: any) => f.mVersion === item.mVersion)
-              if (!find) {
-                all.push(item)
-              } else {
-                if (compareVersions(item.version, find.version) > 0) {
-                  const index = all.indexOf(find)
-                  all.splice(index, 1, item)
-                }
-              }
-            }
-          })
-          return all
-        }
-        const all: any = []
-        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
-        const list = res.flat()
-        list.filter((l: any) => Number(l.mVersion) > 5.6).forEach((l: any) => {
-          const find = all.find((f: any) => f.mVersion === l.mVersion)
-          if (!find) {
-            all.push(l)
-          } else {
-            if (compareVersions(l.version, find.version) > 0) {
-              const index = all.indexOf(find)
-              all.splice(index, 1, l)
-            }
-          }
-        })
-
-        all.sort((a: any, b: any) => {
-          return compareVersions(b.version, a.version)
-        })
-
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mysql')
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `mysql-${a.version}`, `mysql-${a.version}-winx64`, 'bin/mysqld.exe')
           const zip = join(global.Server.Cache!, `mysql-${a.version}.zip`)

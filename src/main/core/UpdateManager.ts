@@ -71,14 +71,6 @@ export default class UpdateManager extends EventEmitter {
 
   updateNotAvailable(info: any) {
     this.emit('update-not-available', info)
-    if (this.autoCheckData.userCheck) {
-      dialog
-        .showMessageBox({
-          title: I18nT('update.checkForUpdates'),
-          message: I18nT('update.update-not-available-message')
-        })
-        .then()
-    }
   }
 
   /**
@@ -112,7 +104,5 @@ export default class UpdateManager extends EventEmitter {
 
   updateError(event: any, error: any) {
     this.emit('update-error', error)
-    const msg = I18nT('update.update-error-message')
-    dialog.showErrorBox(I18nT('update.checkForUpdates'), msg)
   }
 }

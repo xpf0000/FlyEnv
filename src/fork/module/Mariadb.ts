@@ -2,12 +2,10 @@ import { join, dirname, basename } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
-import type { SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromise, waitTime, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, mkdirp, chmod, unlink, remove } from 'fs-extra'
-import axios from 'axios'
-import { compareVersions } from 'compare-versions'
 
 class Manager extends Base {
   constructor() {
@@ -28,14 +26,14 @@ class Manager extends Base {
       execPromise(`${basename(bin)} --defaults-file="${m}" --port=3306 -uroot password "root"`, {
         cwd: dirname(bin)
       })
-      .then((res) => {
-        console.log('_initPassword res: ', res)
-        resolve(true)
-      })
-      .catch((err) => {
-        console.log('_initPassword err: ', err)
-        reject(err)
-      })
+        .then((res) => {
+          console.log('_initPassword res: ', res)
+          resolve(true)
+        })
+        .catch((err) => {
+          console.log('_initPassword err: ', err)
+          reject(err)
+        })
     })
   }
 
@@ -70,7 +68,7 @@ datadir="${dataDir}"`
         if (existsSync(p)) {
           await unlink(p)
         }
-      } catch (e) {}
+      } catch (e) { }
 
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
@@ -118,7 +116,7 @@ datadir="${dataDir}"`
         try {
           const res = await execPromiseRoot(command)
           console.log('init res: ', res)
-          on(res.stdout)        
+          on(res.stdout)
         } catch (e: any) {
           reject(e)
           return
@@ -165,75 +163,20 @@ datadir="${dataDir}"`
   fetchAllOnLineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const urls = [
-          'https://mariadb.com/downloads/'
-      ]
-      const fetchVersions = async (url: string) => {
-          const all: any = []
-          const res = await axios({
-            url,
-            method: 'get',
-            proxy: this.getAxiosProxy()
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mariadb')
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `mariadb-${a.version}`, `mariadb-${a.version}-winx64`, 'bin/mariadbd.exe')
+          const zip = join(global.Server.Cache!, `mariadb-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `mariadb-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
         })
-        const html = res.data
-        const regSelect = /<select id="version-select-community_server"([\s\S\n]*?)<\/select>/g
-        html.match(regSelect).forEach((select: string) => {
-          const reg = /<option ([a-z="\d\.\s\n]+)>(\d[\d\.]+)([a-zA-Z\-\s\n]*?)<\/option>/g
-          let r
-          while((r = reg.exec(select)) !== null) {
-              const version = r[2]
-              const mv = version.split('.').slice(0, 2).join('.')
-              const u = `https://downloads.mariadb.com/MariaDB/mariadb-${version}/winx64-packages/mariadb-${version}-winx64.zip`
-              const item = {
-                  url: u,
-                  version,
-                  mVersion: mv
-              }
-              const find = all.find((f: any) => f.mVersion === item.mVersion)
-              if (!find) {
-                  all.push(item)
-              } else {
-                if (compareVersions(item.version, find.version) > 0) {
-                  const index = all.indexOf(find)
-                  all.splice(index, 1, item)          
-                }
-              }
-          }
-        })        
-        return all
-      }
-      const all: any = []
-      const res = await Promise.all(urls.map((u) => fetchVersions(u)))
-      const list = res.flat()
-      list.filter((l:any) => Number(l.mVersion) > 11.0).forEach((l: any) => {
-        const find = all.find((f: any) => f.mVersion === l.mVersion)
-        if (!find) {
-            all.push(l)
-        } else {
-          if (compareVersions(l.version, find.version) > 0) {
-            const index = all.indexOf(find)
-            all.splice(index, 1, l)          
-          }
-        }
-      })
-  
-      all.sort((a: any, b: any) => {
-        return compareVersions(b.version, a.version)
-      })
-  
-      all.forEach((a: any) => {
-        const dir = join(global.Server.AppDir!, `mariadb-${a.version}`, `mariadb-${a.version}-winx64`, 'bin/mariadbd.exe')
-        const zip = join(global.Server.Cache!, `mariadb-${a.version}.zip`)
-        a.appDir = join(global.Server.AppDir!, `mariadb-${a.version}`)
-        a.zip = zip
-        a.bin = dir
-        a.downloaded = existsSync(zip)
-        a.installed = existsSync(dir)
-      })
-          resolve(all)
-      } catch(e) {
+        resolve(all)
+      } catch (e) {
         resolve([])
-      }    
+      }
     })
   }
 }

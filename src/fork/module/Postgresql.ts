@@ -2,12 +2,10 @@ import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
-import type { SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromiseRoot, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { copyFile, unlink, readFile, writeFile } from 'fs-extra'
-import axios from 'axios'
-import { compareVersions } from 'compare-versions'
 
 class Manager extends Base {
   constructor() {
@@ -109,71 +107,7 @@ class Manager extends Base {
   fetchAllOnLineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const urls = [
-          'https://www.enterprisedb.com/downloads/postgres-postgresql-downloads',
-        ]
-        const fetchVersions = async (url: string) => {
-          const all: any = []
-          const res = await axios({
-            url,
-            method: 'get',
-            proxy: this.getAxiosProxy()
-          })
-          const html = res.data
-          const reg = /<tbody((?!<\/table>)[\s\S]*?)<\/tbody>/g
-          let r
-          while ((r = reg.exec(html)) !== null) {
-            let table = r[0]
-            table = table.replace(/<svg((?!<\/svg>)[\s\S]*?)<\/svg>/g, '')
-              .replace(/[\n]+/g, '')
-              .replace(/[\s]+/g, ' ')
-              .replace(/<\!--(.*?)-->/g, ' ')
-
-            const reg1 = /<tr(.*?)<td(.*?)>(.*?)<\/td><td(.*?)>(.*?)<\/td><td(.*?)>(.*?)<\/td><td(.*?)>(.*?)<\/td><td(.*?)>(.*?)href="(.*?)"(.*?)<\/td><td(.*?)>(.*?)<\/td><\/tr>/g
-            let r1
-            while ((r1 = reg1.exec(table)) !== null) {
-              console.log(r1)
-              const version = r1[3]
-              const mv = version.split('.').slice(0, 2).join('.')
-              const u = `https://get.enterprisedb.com/postgresql/postgresql-${version}-1-windows-x64-binaries.zip`
-              const item = {
-                url: u,
-                version,
-                mVersion: mv
-              }
-              const find = all.find((f: any) => f.mVersion === item.mVersion)
-              if (!find) {
-                all.push(item)
-              } else {
-                if (compareVersions(item.version, find.version) > 0) {
-                  const index = all.indexOf(find)
-                  all.splice(index, 1, item)
-                }
-              }
-            }
-          }
-          return all
-        }
-        const all: any = []
-        const res = await Promise.all(urls.map((u) => fetchVersions(u)))
-        const list = res.flat()
-        console.log('list: ', list)
-        list.filter((l: any) => compareVersions(l.mVersion, '10.0') > 0).forEach((l: any) => {
-          const find = all.find((f: any) => f.mVersion === l.mVersion)
-          if (!find) {
-            all.push(l)
-          } else {
-            if (compareVersions(l.version, find.version) > 0) {
-              const index = all.indexOf(find)
-              all.splice(index, 1, l)
-            }
-          }
-        })
-        console.log('all: ', all)
-        all.sort((a: any, b: any) => {
-          return compareVersions(b.version, a.version)
-        })
-
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('postgresql')
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `postgresql-${a.version}`, `pgsql`, 'bin/pg_ctl.exe')
           const zip = join(global.Server.Cache!, `postgresql-${a.version}.zip`)
