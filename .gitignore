@@ -12,7 +12,6 @@ dist-ssr
 /icon.sh
 yarn.lock
 app-update.yml
-configs/publish.ts
 latest-mac.yml
 .idea
 /test.js
