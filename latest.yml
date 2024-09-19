@@ -1,0 +1,8 @@
+version: 4.3.2
+files:
+  - url: PhpWebStudy-Setup-4.3.2.exe
+    sha512: M1t9ZAT+Fptd77PzbUvzJ8gVPOS4MEDwBiJbAsOkq+0OSGRoCpMJO8WY65vq1BtxhwzkRcAGuudjXj2yxjM48g==
+    size: 165855571
+path: PhpWebStudy-Setup-4.3.2.exe
+sha512: M1t9ZAT+Fptd77PzbUvzJ8gVPOS4MEDwBiJbAsOkq+0OSGRoCpMJO8WY65vq1BtxhwzkRcAGuudjXj2yxjM48g==
+releaseDate: '2024-09-19T03:40:32.682Z'
