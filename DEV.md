@@ -105,12 +105,6 @@ dir: /src/render
 
 All modules split into /src/render/components
 
-If you want add a new module. flow this:
-
-1. Copy a exists module dir like nginx. change dir name to the module name
-2. find string 'nginx' from Index.vue file, and change it to module name
-3.
-
 
 
 
