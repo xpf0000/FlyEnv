@@ -3,10 +3,25 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
-import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
+import {
+  spawnPromiseMore,
+  execPromise,
+  waitTime,
+  versionLocalFetch,
+  versionMacportsFetch,
+  versionFixed,
+  versionSort,
+  getSubDirAsync,
+  versionBinVersion,
+  brewInfoJson,
+  brewSearch,
+  portSearch,
+  versionFilterSame
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, mkdirp, chmod, unlink, remove } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
+import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
   constructor() {
@@ -163,6 +178,83 @@ datadir=${dataDir}`
           }
           reject(err)
         })
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise(async (resolve) => {
+      const base = '/opt/local/'
+      const allLibFile = await getSubDirAsync(join(base, 'lib'), false)
+      const fpms = allLibFile
+        .filter((f) => f.startsWith('mariadb'))
+        .map((f) => `lib/${f}/bin/mariadbd-safe`)
+      let versions: SoftInstalled[] = []
+      Promise.all([
+        versionLocalFetch(setup?.mariadbd?.dirs ?? [], 'mariadbd-safe', 'mariadb'),
+        versionMacportsFetch(fpms)
+      ])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const bin = item.bin.replace('-safe', '')
+            const command = `${bin} -V`
+            const reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
+            return TaskQueue.run(versionBinVersion, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        let all: Array<string> = ['mariadb']
+        const cammand = 'brew search -q --formula "/mariadb@[\\d\\.]+$/"'
+        all = await brewSearch(all, cammand)
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      const Info: { [k: string]: any } = await portSearch(
+        '^mariadb-([\\d\\.]*)\\d$',
+        (f) => {
+          return f.includes('Multithreaded SQL database server')
+        },
+        (name) => {
+          return (
+            existsSync(join('/opt/local/lib', name, 'bin/mariadbd-safe')) ||
+            existsSync(join('/opt/local/lib', name, 'bin/mysqld_safe'))
+          )
+        }
+      )
+      resolve(Info)
     })
   }
 }

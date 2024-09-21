@@ -101,29 +101,29 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
   const brewStore = BrewStore()
   let useSeted = false
 
-  const apacheRunning = brewStore.apache.installed.find((a) => a.run)
-  const apacheTaskRunning = brewStore.apache.installed.some((a) => a.running)
+  const apacheRunning = brewStore.apache!.installed.find((a) => a.run)
+  const apacheTaskRunning = brewStore.apache!.installed.some((a) => a.running)
   if (apacheRunning && !apacheTaskRunning) {
     startService('apache', apacheRunning).then()
     useSeted = true
   }
 
-  const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
-  const nginxTaskRunning = brewStore.nginx.installed.some((a) => a.running)
+  const nginxRunning = brewStore.nginx!.installed.find((a) => a.run)
+  const nginxTaskRunning = brewStore.nginx!.installed.some((a) => a.running)
   if (nginxRunning && !nginxTaskRunning) {
     startService('nginx', nginxRunning).then()
     useSeted = true
   }
 
-  const caddyRunning = brewStore.caddy.installed.find((a) => a.run)
-  const caddyTaskRunning = brewStore.caddy.installed.some((a) => a.running)
+  const caddyRunning = brewStore.caddy!.installed.find((a) => a.run)
+  const caddyTaskRunning = brewStore.caddy!.installed.some((a) => a.running)
   if (caddyRunning && !caddyTaskRunning) {
     startService('caddy', caddyRunning).then()
     useSeted = true
   }
 
-  const tomcatRunning = brewStore.tomcat.installed.find((a) => a.run)
-  const tomcatTaskRunning = brewStore.tomcat.installed.some((a) => a.running)
+  const tomcatRunning = brewStore.tomcat!.installed.find((a) => a.run)
+  const tomcatTaskRunning = brewStore.tomcat!.installed.some((a) => a.running)
   if (tomcatRunning && !tomcatTaskRunning) {
     startService('tomcat', tomcatRunning).then()
     useSeted = true
@@ -194,7 +194,7 @@ export const reGetInstalled = (type: AllAppSofts) => {
     service.fetching = true
     const brewStore = BrewStore()
     const data = brewStore[type]
-    data.installedInited = false
+    data!.installedInited = false
     installedVersions.allInstalledVersions([type]).then(() => {
       service.fetching = false
       resolve(true)

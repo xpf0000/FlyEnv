@@ -175,7 +175,7 @@
 <script lang="ts" setup>
   import { computed, type ComputedRef, reactive } from 'vue'
   import { reloadService, startService, stopService } from '@/util/Service'
-  import { type AppHost, AppSofts, AppStore } from '@/store/app'
+  import { type AllAppSofts, type AppHost, AppSofts, AppStore } from '@/store/app'
   import { BrewStore, type SoftInstalled } from '@/store/brew'
   import { I18nT } from '@shared/lang'
   import { MessageError, MessageSuccess } from '@/util/Element'
@@ -189,18 +189,7 @@
   const { shell } = require('@electron/remote')
 
   const props = defineProps<{
-    typeFlag:
-      | 'nginx'
-      | 'caddy'
-      | 'apache'
-      | 'memcached'
-      | 'mysql'
-      | 'mariadb'
-      | 'redis'
-      | 'php'
-      | 'mongodb'
-      | 'pure-ftpd'
-      | 'postgresql'
+    typeFlag: AllAppSofts
     title: string
   }>()
 
@@ -222,20 +211,21 @@
   })
 
   const version = computed(() => {
-    const flag: keyof typeof AppSofts = props.typeFlag as any
-    return appStore.config.server[flag].current
+    const flag = props.typeFlag
+    const server: any = appStore.config.server
+    return server?.[flag]?.current
   })
 
   const currentVersion: ComputedRef<SoftInstalled | undefined> = computed(() => {
-    const flag: keyof typeof AppSofts = props.typeFlag as any
-    return brewStore[flag].installed?.find(
+    const flag = props.typeFlag
+    return brewStore[flag]?.installed?.find(
       (i) => i.path === version?.value?.path && i.version === version?.value?.version
     )
   })
 
   const versionRunning = computed(() => {
-    const flag: keyof typeof AppSofts = props.typeFlag as any
-    return brewStore[flag].installed?.some((f) => f.running)
+    const flag = props.typeFlag
+    return brewStore[flag]?.installed?.some((f) => f.running)
   })
 
   const groupTrunOn = (item: SoftInstalled) => {
@@ -256,7 +246,7 @@
       return
     }
     service.value.fetching = true
-    const data = brewStore[props.typeFlag]
+    const data = brewStore[props.typeFlag]!
     data.installedInited = false
     installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
       service.value.fetching = false
@@ -346,9 +336,9 @@
     const toOpenHost = (item: AppHost) => {
       const host = item.name
       const brewStore = BrewStore()
-      const nginxRunning = brewStore.nginx.installed.find((i) => i.run)
-      const apacheRunning = brewStore.apache.installed.find((i) => i.run)
-      const caddyRunning = brewStore.caddy.installed.find((i) => i.run)
+      const nginxRunning = brewStore.nginx!.installed.find((i) => i.run)
+      const apacheRunning = brewStore.apache!.installed.find((i) => i.run)
+      const caddyRunning = brewStore.caddy!.installed.find((i) => i.run)
       let http = 'http://'
       let port = 80
       if (item.useSSL) {

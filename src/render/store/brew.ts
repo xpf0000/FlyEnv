@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { AllAppSofts } from '@/store/app'
 
 export interface SoftInstalled {
   version: string | null
@@ -38,21 +39,9 @@ export interface AppSoftInstalledItem {
   }
 }
 
-interface State {
-  tomcat: AppSoftInstalledItem
-  java: AppSoftInstalledItem
-  composer: AppSoftInstalledItem
-  postgresql: AppSoftInstalledItem
-  caddy: AppSoftInstalledItem
-  nginx: AppSoftInstalledItem
-  apache: AppSoftInstalledItem
-  memcached: AppSoftInstalledItem
-  mysql: AppSoftInstalledItem
-  mariadb: AppSoftInstalledItem
-  redis: AppSoftInstalledItem
-  php: AppSoftInstalledItem
-  mongodb: AppSoftInstalledItem
-  'pure-ftpd': AppSoftInstalledItem
+type StateBase = Record<AllAppSofts, AppSoftInstalledItem | undefined>
+
+interface State extends StateBase {
   cardHeadTitle: string
   brewRunning: boolean
   showInstallLog: boolean
@@ -68,6 +57,7 @@ const state: State = {
   brewSrc: '',
   log: [],
   LibUse: {},
+  node: undefined,
   'pure-ftpd': {
     getListing: false,
     installedInited: false,

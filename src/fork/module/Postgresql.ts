@@ -3,11 +3,25 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
-import { execPromise, waitTime } from '../Fn'
+import {
+  brewInfoJson,
+  brewSearch,
+  execPromise,
+  getSubDirAsync,
+  portSearch,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionMacportsFetch,
+  versionSort,
+  waitTime
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { chmod, copyFile, readFile, unlink, writeFile } from 'fs-extra'
 import axios from 'axios'
 import { execPromiseRootWhenNeed } from '@shared/Exec'
+import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
   constructor() {
@@ -131,6 +145,79 @@ class Manager extends Base {
       } catch (e) {
         reject(e)
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise(async (resolve) => {
+      const base = '/opt/local/'
+      const allLibFile = await getSubDirAsync(join(base, 'lib'), false)
+      const fpms = allLibFile
+        .filter((f) => f.startsWith('postgresql1'))
+        .map((f) => `lib/${f}/bin/pg_ctl`)
+      let versions: SoftInstalled[] = []
+      Promise.all([
+        versionLocalFetch(setup?.apache?.dirs ?? [], 'pg_ctl', 'postgresql'),
+        versionMacportsFetch(fpms)
+      ])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${item.bin} --version`
+            const reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
+            return TaskQueue.run(versionBinVersion, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        let all: Array<string> = []
+        const cammand = 'brew search -q --formula "/^postgresql@[\\d\\.]+$/"'
+        all = await brewSearch(all, cammand)
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      const Info: { [k: string]: any } = await portSearch(
+        `^postgresql\\d*$`,
+        (f) => {
+          return f.includes('The most advanced open-source database available anywhere.')
+        },
+        (name) => {
+          return existsSync(join('/opt/local/lib', name, 'bin/pg_ctl'))
+        }
+      )
+      resolve(Info)
     })
   }
 }

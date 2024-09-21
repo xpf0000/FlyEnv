@@ -3,9 +3,11 @@ import { createWriteStream, existsSync, unlinkSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
-import { copyFile, mkdirp, remove } from 'fs-extra'
+import { copyFile, mkdirp, readFile, remove } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
-import type { OnlineVersionItem } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
+import { versionFilterSame, versionFixed, versionLocalFetch, versionSort } from '../Fn'
+import TaskQueue from '../TaskQueue'
 
 class Composer extends Base {
   constructor() {
@@ -125,6 +127,68 @@ class Composer extends Base {
           setTimeout(() => {
             resolve(false)
           }, 1500)
+        })
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      const binVersion = (bin: string): Promise<{ version?: string; error?: string }> => {
+        return new Promise(async (resolve) => {
+          const reg = /(public const VERSION = ')(\d+(\.\d+){1,4})(';)/g
+          const handleCatch = (err: any) => {
+            resolve({
+              error: '<br/>' + err.toString().trim().replace(new RegExp('\n', 'g'), '<br/>'),
+              version: undefined
+            })
+          }
+          const handleThen = (res: any) => {
+            const str = res.stdout + res.stderr
+            let version: string | undefined = ''
+            try {
+              version = reg?.exec(str)?.[2]?.trim()
+              reg!.lastIndex = 0
+            } catch (e) {}
+            resolve({
+              version
+            })
+          }
+          try {
+            const res = await readFile(bin, 'utf-8')
+            handleThen({
+              stdout: res,
+              stderr: ''
+            })
+          } catch (e) {
+            handleCatch(e)
+          }
+        })
+      }
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.composer?.dirs ?? [], 'composer', 'composer')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => TaskQueue.run(binVersion, item.bin))
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
         })
     })
   }

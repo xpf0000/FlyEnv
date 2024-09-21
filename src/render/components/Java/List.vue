@@ -148,7 +148,6 @@
   }
 
   const checkEnvPath = (item: SoftInstalled) => {
-    console.log('checkEnvPath: ', ServiceActionStore.allPath, dirname(item.bin))
     return ServiceActionStore.allPath.includes(dirname(item.bin))
   }
 

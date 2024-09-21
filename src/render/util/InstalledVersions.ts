@@ -1,11 +1,9 @@
 import IPC from '@/util/IPC.js'
 import { BrewStore, SoftInstalled } from '@/store/brew'
-import type { AppSofts } from '@/store/app'
+import type { AllAppSofts, AppSofts } from '@/store/app'
 import { AppStore } from '@/store/app'
 import { reactive } from 'vue'
 import { isEqual } from 'lodash'
-
-type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd' | 'composer' | 'java'
 
 class InstalledVersions {
   _cb: Array<Function>
@@ -36,7 +34,7 @@ class InstalledVersions {
     const brewStore = BrewStore()
     const appStore = AppStore()
     const setup = JSON.parse(JSON.stringify(AppStore().config.setup))
-    const arrs = flags.filter((f) => !brewStore[f].installedInited)
+    const arrs = flags.filter((f) => !brewStore[f]!.installedInited)
     if (arrs.length === 0) {
       setTimeout(() => {
         callBack()
@@ -51,7 +49,7 @@ class InstalledVersions {
         for (const f in versions) {
           const flag: keyof typeof AppSofts = f as keyof typeof AppSofts
           let installed = versions[flag]
-          const data = brewStore[flag]
+          const data = brewStore[flag]!
           const old = [...data.installed]
           installed = installed.map((item) => {
             const find = old.find((o) => o.path === item.path && o.version === item.version)

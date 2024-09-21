@@ -3,10 +3,25 @@ import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { MysqlGroupItem, OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { spawnPromiseMore, execPromise, waitTime } from '../Fn'
+import {
+  spawnPromiseMore,
+  execPromise,
+  waitTime,
+  versionLocalFetch,
+  versionMacportsFetch,
+  versionBinVersion,
+  versionFixed,
+  versionSort,
+  getSubDirAsync,
+  brewSearch,
+  brewInfoJson,
+  portSearch,
+  versionFilterSame
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
+import TaskQueue from '../TaskQueue'
 
 class Mysql extends Base {
   constructor() {
@@ -379,6 +394,80 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise(async (resolve) => {
+      const base = '/opt/local/'
+      const allLibFile = await getSubDirAsync(join(base, 'lib'), false)
+      const fpms = allLibFile
+        .filter((f) => f.startsWith('mysql'))
+        .map((f) => `lib/${f}/bin/mysqld_safe`)
+      let versions: SoftInstalled[] = []
+      Promise.all([
+        versionLocalFetch(setup?.mysql?.dirs ?? [], 'mysqld_safe', 'mysql'),
+        versionMacportsFetch(fpms)
+      ])
+        .then(async (list) => {
+          versions = list.flat().filter((v) => !v.bin.includes('mariadb'))
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const bin = item.bin.replace('_safe', '')
+            const command = `${bin} -V`
+            const reg = /(Ver )(\d+(\.\d+){1,4})( )/g
+            return TaskQueue.run(versionBinVersion, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        let all: Array<string> = ['mysql']
+        const cammand = 'brew search -q --formula "/mysql@[\\d\\.]+$/"'
+        all = await brewSearch(all, cammand)
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      const Info: { [k: string]: any } = await portSearch(
+        `^mysql\\d*$`,
+        (f) => {
+          return f.includes('Multithreaded SQL database server')
+        },
+        (name) => {
+          return existsSync(join('/opt/local/lib', name, 'bin/mysqld_safe'))
+        }
+      )
+      resolve(Info)
     })
   }
 }

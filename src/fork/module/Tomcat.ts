@@ -1,38 +1,27 @@
-import { join, resolve as pathResolve } from 'path'
+import { dirname, join, resolve as pathResolve } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import axios from 'axios'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
-import { hostAlias } from '../Fn'
+import {
+  brewInfoJson,
+  brewSearch,
+  hostAlias,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort
+} from '../Fn'
 import { mkdirp, readFile, writeFile } from 'fs-extra'
 import { XMLParser, XMLBuilder } from 'fast-xml-parser'
+import TaskQueue from '../TaskQueue'
 
 class Tomcat extends Base {
   constructor() {
     super()
     this.type = 'tomcat'
-  }
-
-  async _fatchUrls() {
-    const urls: string[] = []
-    const url = `https://dlcdn.apache.org/tomcat/`
-    const res = await axios({
-      url,
-      method: 'get',
-      proxy: this.getAxiosProxy()
-    })
-    const html = res.data
-    console.log('html: ', html)
-    const reg = new RegExp(`href="(tomcat-[\\d]+/)"`, 'g')
-    let r
-    while ((r = reg.exec(html)) !== null) {
-      const u = r[1]
-      const uu = new URL(u, url).toString()
-      urls.push(uu)
-    }
-    return urls
   }
 
   fetchAllOnLineVersion() {
@@ -323,6 +312,66 @@ class Tomcat extends Base {
       } catch (e: any) {
         reject(e)
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.tomcat?.dirs ?? [], 'catalina.sh', 'tomcat')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all: any[] = []
+          for (const item of versions) {
+            const bin = join(dirname(item.bin), 'version.sh')
+            await execPromiseRoot(['chmod', '777', bin])
+            const command = `zsh ${bin}`
+            const reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
+            all.push(TaskQueue.run(versionBinVersion, command, reg))
+          }
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              bin: join(dirname(versions[i].bin), 'startup.sh'),
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        let all: Array<string> = []
+        const cammand = 'brew search -q --formula "/^tomcat((@[\\d\\.]+)?)$/"'
+        all = await brewSearch(all, cammand)
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      resolve({})
     })
   }
 }

@@ -3,10 +3,22 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { execPromise, getAllFileAsync, md5 } from '../Fn'
+import {
+  brewInfoJson,
+  execPromise,
+  getAllFileAsync,
+  md5,
+  portSearch,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
+import TaskQueue from '../TaskQueue'
 
 class Apache extends Base {
   constructor() {
@@ -186,6 +198,67 @@ IncludeOptional "${vhost}*.conf"`
       } catch (e: any) {
         reject(e)
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.apache?.dirs ?? [], 'apachectl', 'httpd')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) =>
+            TaskQueue.run(versionBinVersion, `${item.bin} -v`, /(Apache\/)(\d+(\.\d+){1,4})( )/g)
+          )
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const all = ['httpd']
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      const Info: { [k: string]: any } = await portSearch(
+        `^apache\\d*$`,
+        (f) => {
+          return f.includes('The extremely popular second version of the Apache http server')
+        },
+        () => {
+          return existsSync(join('/opt/local/sbin/', 'apachectl'))
+        }
+      )
+      resolve(Info)
     })
   }
 }

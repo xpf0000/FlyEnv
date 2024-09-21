@@ -3,12 +3,27 @@ import { createWriteStream, existsSync, statSync, unlinkSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromise, getAllFileAsync, spawnPromise, downFile } from '../Fn'
+import {
+  execPromise,
+  getAllFileAsync,
+  spawnPromise,
+  downFile,
+  versionLocalFetch,
+  versionMacportsFetch,
+  versionBinVersion,
+  versionFixed,
+  versionSort,
+  brewSearch,
+  brewInfoJson,
+  portSearch,
+  versionFilterSame
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
 import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
 import axios from 'axios'
 import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
+import TaskQueue from '../TaskQueue'
 
 class Php extends Base {
   constructor() {
@@ -817,6 +832,87 @@ class Php extends Base {
           resolve(false)
         }, 1500)
       })
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise(async (resolve) => {
+      const base = '/opt/local/'
+      const allSbinFile = await getAllFileAsync(join(base, 'sbin'), false)
+      const fpms = allSbinFile.filter((f) => f.startsWith('php-fpm')).map((f) => `sbin/${f}`)
+      let versions: SoftInstalled[] = []
+      Promise.all([
+        versionLocalFetch(setup?.php?.dirs ?? [], 'php-fpm', 'php'),
+        versionMacportsFetch(fpms)
+      ])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${item.bin} -n -v`
+            const reg = /(\s)(\d+(\.\d+){1,4})([-\s])/g
+            return TaskQueue.run(versionBinVersion, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          for (const item of versions) {
+            if (item.flag === 'macports') {
+              const v = item.bin.split('sbin/php-fpm').pop() ?? ''
+              Object.assign(item, {
+                phpBin: `/opt/local/bin/php${v}`,
+                phpConfig: `/opt/local/bin/php-config${v}`,
+                phpize: `/opt/local/bin/phpize${v}`
+              })
+            }
+          }
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        let all: Array<string> = ['php']
+        const cammand = 'brew search -q --formula "/^(php|shivammathur/php/php)@[\\d\\.]+$/"'
+        all = await brewSearch(all, cammand)
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      const Info: { [k: string]: any } = await portSearch(
+        `^php\\d*$`,
+        (f) => {
+          return f.includes('lang www') && f.includes('PHP: Hypertext Preprocessor')
+        },
+        (name) => {
+          return existsSync(join('/opt/local/bin/', name))
+        }
+      )
+      resolve(Info)
     })
   }
 }

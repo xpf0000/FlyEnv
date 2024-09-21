@@ -7,8 +7,10 @@ import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
 import { readdir } from 'fs-extra'
-import type { AppHost } from '@shared/app'
+import type { AppHost, SoftInstalled } from '@shared/app'
 import { fixEnv } from '@shared/utils'
+import { compareVersions } from 'compare-versions'
+
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
     on,
@@ -370,6 +372,7 @@ export const systemProxyGet = async () => {
       )
       if (result) {
         const [_, enabled, server, port] = result
+        console.log(_)
         if (enabled === 'Yes') {
           proxy['http_proxy'] = `http://${server}:${port}`
         }
@@ -379,6 +382,7 @@ export const systemProxyGet = async () => {
       result = res?.stdout?.match(/(?:Enabled:\s)(\w+)\n(?:Server:\s)([^\n]+)\n(?:Port:\s)(\d+)/)
       if (result) {
         const [_, enabled, server, port] = result
+        console.log(_)
         if (enabled === 'Yes') {
           proxy['https_proxy'] = `http://${server}:${port}`
         }
@@ -388,6 +392,7 @@ export const systemProxyGet = async () => {
       result = res?.stdout?.match(/(?:Enabled:\s)(\w+)\n(?:Server:\s)([^\n]+)\n(?:Port:\s)(\d+)/)
       if (result) {
         const [_, enabled, server, port] = result
+        console.log(_)
         if (enabled === 'Yes') {
           proxy['all_proxy'] = `http://${server}:${port}`
         }
@@ -396,4 +401,304 @@ export const systemProxyGet = async () => {
   } catch (e) {}
   console.log('systemProxyGet: ', proxy)
   return proxy
+}
+
+export function versionFixed(version?: string | null) {
+  return (
+    version
+      ?.split('.')
+      ?.map((v) => {
+        const vn = parseInt(v)
+        if (isNaN(vn)) {
+          return '0'
+        }
+        return `${vn}`
+      })
+      ?.join('.') ?? '0'
+  )
+}
+
+export const versionCheckBin = (binPath: string) => {
+  if (existsSync(binPath)) {
+    console.log('binPath: ', binPath)
+    binPath = realpathSync(binPath)
+    if (!existsSync(binPath)) {
+      return false
+    }
+    if (!statSync(binPath).isFile()) {
+      return false
+    }
+    console.log('binPath realpathSync: ', binPath)
+    return binPath
+  }
+  return false
+}
+
+export const versionSort = (versions: SoftInstalled[]) => {
+  return versions.sort((a, b) => {
+    const bv = versionFixed(b.version)
+    const av = versionFixed(a.version)
+    return compareVersions(bv, av)
+  })
+}
+
+export const versionFilterSame = (versions: SoftInstalled[]) => {
+  const arr: SoftInstalled[] = []
+  let item = versions.pop()
+  while (item) {
+    const has = versions.some((v) => v.bin === item?.bin)
+    if (!has) {
+      arr.push(item)
+    }
+    item = versions.pop()
+  }
+  return arr
+}
+
+export const versionBinVersion = (
+  command: string,
+  reg: RegExp
+): Promise<{ version?: string; error?: string }> => {
+  return new Promise(async (resolve) => {
+    const handleCatch = (err: any) => {
+      resolve({
+        error: command + '<br/>' + err.toString().trim().replace(new RegExp('\n', 'g'), '<br/>'),
+        version: undefined
+      })
+    }
+    const handleThen = (res: any) => {
+      const str = res.stdout + res.stderr
+      let version: string | undefined = ''
+      try {
+        version = reg?.exec(str)?.[2]?.trim()
+        reg!.lastIndex = 0
+      } catch (e) {}
+      resolve({
+        version
+      })
+    }
+    try {
+      const res = await execPromise(command)
+      handleThen(res)
+    } catch (e) {
+      handleCatch(e)
+    }
+  })
+}
+
+export const versionDirCache: Record<string, string[]> = {}
+
+export const versionLocalFetch = async (
+  customDirs: string[],
+  binName: string,
+  searchName: string
+): Promise<Array<SoftInstalled>> => {
+  const installed: Set<string> = new Set()
+  const systemDirs = ['/', '/opt', '/usr', global.Server.AppDir!, ...customDirs]
+
+  const realDirDict: { [k: string]: string } = {}
+  const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
+    if (!existsSync(dir)) {
+      return
+    }
+    dir = realpathSync(dir)
+    console.log('findInstalled dir: ', dir)
+    let binPath = versionCheckBin(join(dir, `${binName}`))
+    if (binPath) {
+      realDirDict[binPath] = join(dir, `${binName}`)
+      installed.add(binPath)
+      return
+    }
+    binPath = versionCheckBin(join(dir, `bin/${binName}`))
+    if (binPath) {
+      realDirDict[binPath] = join(dir, `bin/${binName}`)
+      installed.add(binPath)
+      return
+    }
+    binPath = versionCheckBin(join(dir, `sbin/${binName}`))
+    if (binPath) {
+      realDirDict[binPath] = join(dir, `sbin/${binName}`)
+      installed.add(binPath)
+      return
+    }
+    if (depth >= maxDepth) {
+      return
+    }
+    const sub = versionDirCache?.[dir] ?? (await getSubDirAsync(dir))
+    if (!versionDirCache?.[dir]) {
+      versionDirCache[dir] = sub
+    }
+    console.log('sub: ', sub)
+    for (const s of sub) {
+      await findInstalled(s, depth + 1, maxDepth)
+    }
+  }
+
+  for (const s of systemDirs) {
+    await findInstalled(s, 0, 1)
+  }
+
+  const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
+  for (const b of base) {
+    const subDir = versionDirCache?.[b] ?? (await getSubDirAsync(b))
+    if (!versionDirCache?.[b]) {
+      versionDirCache[b] = subDir
+    }
+    const subDirFilter = subDir.filter((f) => {
+      return f.includes(searchName)
+    })
+    for (const f of subDirFilter) {
+      const subDir1 = versionDirCache?.[f] ?? (await getSubDirAsync(f))
+      if (!versionDirCache?.[f]) {
+        versionDirCache[f] = subDir1
+      }
+      for (const s of subDir1) {
+        await findInstalled(s)
+      }
+    }
+  }
+  const count = installed.size
+  if (count === 0) {
+    return []
+  }
+
+  const list: Array<SoftInstalled> = []
+  const installedList: Array<string> = Array.from(installed)
+  for (const i of installedList) {
+    let path = i
+    if (path.includes('/sbin/') || path.includes('/bin/')) {
+      path = path
+        .replace(`/sbin/`, '/##SPLIT##/')
+        .replace(`/bin/`, '/##SPLIT##/')
+        .split('/##SPLIT##/')
+        .shift()!
+    } else {
+      path = dirname(path)
+    }
+    const item = {
+      bin: i,
+      path: `${path}/`,
+      run: false,
+      running: false
+    }
+    if (!list.find((f) => f.path === item.path && f.bin === item.bin)) {
+      list.push(item as any)
+    }
+  }
+  return list
+}
+
+export const versionMacportsFetch = async (bins: string[]): Promise<Array<SoftInstalled>> => {
+  const list: Array<SoftInstalled> = []
+  const base = '/opt/local/'
+  const find = (fpm: string) => {
+    let bin = join(base, fpm)
+    if (existsSync(bin)) {
+      bin = realpathSync(bin)
+      let path = bin
+      if (bin.includes('/sbin/') || bin.includes('/bin/')) {
+        path = path
+          .replace(`/sbin/`, '/##SPLIT##/')
+          .replace(`/bin/`, '/##SPLIT##/')
+          .split('/##SPLIT##/')
+          .shift()!
+      } else {
+        path = dirname(path)
+      }
+      const item = {
+        bin,
+        path: `${path}/`,
+        run: false,
+        running: false
+      }
+      list.push(item as any)
+    }
+    return true
+  }
+  for (const fpm of bins) {
+    find(fpm)
+  }
+  list.forEach((item) => {
+    item.flag = 'macports'
+  })
+  return list
+}
+
+export const brewInfoJson = async (names: string[]) => {
+  const info: any = {}
+  const cammand = ['brew', 'info', ...names, '--json', '--formula'].join(' ')
+  console.log('brewinfo doRun: ', cammand)
+  try {
+    const res = await execPromise(cammand, {
+      env: {
+        HOMEBREW_NO_INSTALL_FROM_API: 1
+      }
+    })
+    const arr = JSON.parse(res.stdout)
+    arr.forEach((item: any) => {
+      info[item.full_name] = {
+        version: item?.versions?.stable ?? '',
+        installed: item?.installed?.length > 0,
+        name: item.full_name,
+        flag: 'brew'
+      }
+    })
+  } catch (e) {}
+  return info
+}
+
+export const brewSearch = async (
+  all: string[],
+  cammand: string,
+  handleContent?: (content: string) => string
+) => {
+  try {
+    const res = await execPromise(cammand, {
+      env: {
+        HOMEBREW_NO_INSTALL_FROM_API: 1
+      }
+    })
+    let content: any = res.stdout
+    console.log('brewinfo content: ', content)
+    if (handleContent) {
+      content = handleContent(content)
+    }
+    content = content
+      .split('\n')
+      .map((s: string) => s.trim())
+      .filter((s: string) => s && !s.includes(' '))
+    all.push(...content)
+  } catch (e) {}
+  return all
+}
+
+export const portSearch = async (
+  reg: string,
+  filter: (f: string) => boolean,
+  isInstalled: (name: string) => boolean
+) => {
+  const Info: { [k: string]: any } = {}
+  try {
+    let arr = []
+    const info = await spawnPromise('port', ['search', '--name', '--line', '--regex', reg])
+    arr = info
+      .split('\n')
+      .filter(filter)
+      .map((m: string) => {
+        const a = m.split('\t').filter((f) => f.trim().length > 0)
+        const name = a.shift() ?? ''
+        const version = a.shift() ?? ''
+        const installed = isInstalled(name)
+        return {
+          name,
+          version,
+          installed,
+          flag: 'port'
+        }
+      })
+    arr.forEach((item: any) => {
+      Info[item.name] = item
+    })
+  } catch (e) {}
+  return Info
 }

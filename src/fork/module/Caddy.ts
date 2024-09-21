@@ -2,13 +2,25 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromise, hostAlias, waitTime } from '../Fn'
+import {
+  brewInfoJson,
+  execPromise,
+  hostAlias,
+  portSearch,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort,
+  waitTime
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '../lang'
 import { execPromiseRoot } from '@shared/Exec'
 import { type ChildProcess, spawn } from 'child_process'
 import { fixEnv } from '@shared/utils'
+import TaskQueue from '../TaskQueue'
 
 class Caddy extends Base {
   constructor() {
@@ -234,6 +246,69 @@ class Caddy extends Base {
       } catch (e) {
         resolve({})
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.caddy?.dirs ?? [], 'caddy', 'caddy')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) =>
+            TaskQueue.run(versionBinVersion, `${item.bin} version`, /(v)(\d+(\.\d+){1,4})(.*?)/g)
+          )
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const all = ['caddy']
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      const Info: { [k: string]: any } = await portSearch(
+        `^caddy\\d*$`,
+        (f) => {
+          return (
+            f.includes('www') && f.includes('Fast, multi-platform web server with automatic HTTPS')
+          )
+        },
+        (name) => {
+          return existsSync(join('/opt/local/bin/', name))
+        }
+      )
+      resolve(Info)
     })
   }
 }

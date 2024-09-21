@@ -128,7 +128,7 @@
   import IPC from '@/util/IPC'
   import XTerm from '@/util/XTerm'
   import { chmod } from '@shared/file'
-  import { AppStore } from '@/store/app'
+  import { type AllAppSofts, AppStore } from '@/store/app'
   import { AppSoftInstalledItem, BrewStore } from '@/store/brew'
   import { I18nT } from '@shared/lang'
   import installedVersions from '@/util/InstalledVersions'
@@ -140,20 +140,7 @@
   const { existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } = require('fs')
 
   const props = defineProps<{
-    typeFlag:
-      | 'nginx'
-      | 'caddy'
-      | 'apache'
-      | 'memcached'
-      | 'mysql'
-      | 'mariadb'
-      | 'redis'
-      | 'php'
-      | 'mongodb'
-      | 'pure-ftpd'
-      | 'postgresql'
-      | 'java'
-      | 'tomcat'
+    typeFlag: AllAppSofts
   }>()
 
   const showNextBtn = ref(false)

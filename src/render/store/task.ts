@@ -1,63 +1,30 @@
 import { defineStore } from 'pinia'
+import type { AllAppSofts } from '@/store/app'
 
-interface State {
-  composer?: {
-    log: Array<string>
-  }
-  java?: {
-    log: Array<string>
-  }
-  postgresql: {
-    log: Array<string>
-  }
-  tomcat: {
-    log: Array<string>
-  }
-  caddy: {
-    log: Array<string>
-  }
-  nginx: {
-    log: Array<string>
-  }
-  apache: {
-    log: Array<string>
-  }
-  memcached: {
-    log: Array<string>
-  }
-  mysql: {
-    log: Array<string>
-  }
-  mariadb: {
-    log: Array<string>
-  }
-  mongodb: {
-    log: Array<string>
-  }
-  redis: {
-    log: Array<string>
-  }
-  'pure-ftpd': {
-    log: Array<string>
-  }
-  php: {
-    log: Array<string>
-    extendRunning: boolean
-    currentExtend: string
-    extendAction: string
-    extendRefreshing: boolean
-  }
-  node: {
-    isRunning: boolean
-    getVersioning: boolean
-    btnTxt: string
-    versions: Array<string>
-    NVM_DIR: string
-    tool?: 'fnm' | 'nvm' | 'all'
-  }
-}
+type StateBase = Record<
+  AllAppSofts,
+  | {
+      log?: Array<string>
+      extendRunning?: boolean
+      currentExtend?: string
+      extendAction?: string
+      extendRefreshing?: boolean
+
+      isRunning?: boolean
+      getVersioning?: boolean
+      btnTxt?: string
+      versions?: Array<string>
+      NVM_DIR?: string
+      tool?: 'fnm' | 'nvm' | 'all'
+    }
+  | undefined
+>
+
+interface State extends StateBase {}
 
 const state: State = {
+  java: undefined,
+  composer: undefined,
   tomcat: { log: [] },
   postgresql: { log: [] },
   apache: { log: [] },

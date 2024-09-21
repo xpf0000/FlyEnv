@@ -3,10 +3,21 @@ import { existsSync, statSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { FtpItem, SoftInstalled } from '@shared/app'
-import { execPromise, spawnPromiseMore, waitTime } from '../Fn'
+import {
+  brewInfoJson,
+  execPromise,
+  portSearch,
+  spawnPromiseMore,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort,
+  waitTime
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
+import TaskQueue from '../TaskQueue'
 class Manager extends Base {
   constructor() {
     super()
@@ -137,7 +148,7 @@ class Manager extends Base {
       const passwd = join(global.Server.FTPDir!, 'pureftpd.passwd')
 
       const stdout: Array<string> = []
-      const { promise, spawn } = spawnPromiseMore(
+      const { promise, spawn } = await spawnPromiseMore(
         './pure-pw',
         [
           'useradd',
@@ -189,6 +200,103 @@ class Manager extends Base {
         .catch(() => {
           reject(new Error(stdout.join('')))
         })
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      const binVersion = (bin: string): Promise<{ version?: string; error?: string }> => {
+        return new Promise(async (resolve) => {
+          const reg = /(#Software: Pure-FTPd )(\d+(\.\d+){1,4})(.*?)/g
+          const handleCatch = (err: any) => {
+            resolve({
+              error: '<br/>' + err.toString().trim().replace(new RegExp('\n', 'g'), '<br/>'),
+              version: undefined
+            })
+          }
+          const handleThen = (res: any) => {
+            const str = res.stdout + res.stderr
+            let version: string | undefined = ''
+            try {
+              version = reg?.exec(str)?.[2]?.trim()
+              reg!.lastIndex = 0
+            } catch (e) {}
+            resolve({
+              version
+            })
+          }
+          try {
+            const res = await readFile(bin, 'utf-8')
+            handleThen({
+              stdout: res,
+              stderr: ''
+            })
+          } catch (e) {
+            handleCatch(e)
+          }
+        })
+      }
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.['pure-ftpd']?.dirs ?? [], 'pure-ftpd', 'pure-ftpd')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            return TaskQueue.run(binVersion, item.bin)
+          })
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const all: Array<string> = ['pure-ftpd']
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      const Info: { [k: string]: any } = await portSearch(
+        `^pure-ftpd\\d*$`,
+        (f) => {
+          return f.includes(
+            'Pure-FTPd is a fast, production-quality, standard-conformant FTP (SSL/TLS) server, based upon Troll-FTPd.'
+          )
+        },
+        () => {
+          return (
+            existsSync(join('/opt/local/bin', 'pure-pw')) ||
+            existsSync(join('/opt/local/sbin', 'pure-ftpd'))
+          )
+        }
+      )
+      resolve(Info)
     })
   }
 }

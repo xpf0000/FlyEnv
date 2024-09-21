@@ -134,7 +134,7 @@ export const brewCheck = () => {
 
 export function brewInfo(key: string) {
   return new Promise((resolve, reject) => {
-    IPC.send('app-fork:brew', 'brewinfo', key).then((key: string, res: any) => {
+    IPC.send(`app-fork:${key}`, 'brewinfo', key).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
         resolve(res.data)
@@ -148,7 +148,7 @@ export function brewInfo(key: string) {
 
 export function portInfo(flag: string) {
   return new Promise((resolve, reject) => {
-    IPC.send('app-fork:brew', 'portinfo', flag).then((key: string, res: any) => {
+    IPC.send(`app-fork:${flag}`, 'portinfo', flag).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
         resolve(res.data)

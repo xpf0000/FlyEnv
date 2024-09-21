@@ -5,6 +5,16 @@ import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
+import {
+  brewInfoJson,
+  portSearch,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort
+} from '../Fn'
+import TaskQueue from '../TaskQueue'
 class Nginx extends Base {
   constructor() {
     super()
@@ -59,6 +69,69 @@ class Nginx extends Base {
       } catch (e: any) {
         reject(e)
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.nginx?.dirs ?? [], 'nginx', 'nginx')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${item.bin} -v`
+            const reg = /(\/)(\d+(\.\d+){1,4})(.*?)/g
+            return TaskQueue.run(versionBinVersion, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then((list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const all: Array<string> = ['nginx']
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      const Info: { [k: string]: any } = await portSearch(
+        `^nginx\\d*$`,
+        (f) => {
+          return f.includes('High-performance HTTP(S) server')
+        },
+        (name) => {
+          return existsSync(join('/opt/local/sbin/', name))
+        }
+      )
+      resolve(Info)
     })
   }
 }

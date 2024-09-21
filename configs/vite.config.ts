@@ -29,7 +29,11 @@ const config: UserConfig = {
       'mock-aws-s3',
       'aws-sdk',
       'nock',
-      'nodejieba'
+      'nodejieba',
+      'os',
+      'child_process',
+      'child-process-promise',
+      'fs-extra'
     ]
   },
   root: renderPath,

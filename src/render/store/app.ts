@@ -8,7 +8,7 @@ const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
 
-export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd' | 'composer' | 'java'
+export type AllAppSofts = keyof typeof AppSofts
 
 export interface AppHost {
   id: number
@@ -62,14 +62,18 @@ export enum AppSofts {
   redis = 'redis',
   mongodb = 'mongodb',
   postgresql = 'postgresql',
-  tomcat = 'tomcat'
+  tomcat = 'tomcat',
+  'pure-ftpd' = 'pure-ftpd',
+  java = 'java',
+  composer = 'composer',
+  node = 'node'
 }
 
 interface State {
   hosts: Array<AppHost>
   config: {
     server: {
-      [key in AppSofts | 'pure-ftpd']: {
+      [key in AppSofts]?: {
         current: AppServerCurrent
       }
     }
@@ -320,21 +324,14 @@ export const AppStore = defineStore('app', {
     INIT_HTTP_SERVE(obj: any) {
       this.httpServe = reactive(obj)
     },
-    SET_CUSTOM_DIR({
-      typeFlag,
-      dir,
-      index
-    }: {
-      typeFlag: keyof typeof AppSofts
-      dir: string
-      index?: number
-    }) {
-      if (!this.config.setup?.[typeFlag]) {
-        this.config.setup[typeFlag] = reactive({
+    SET_CUSTOM_DIR({ typeFlag, dir, index }: { typeFlag: string; dir: string; index?: number }) {
+      const setup: any = this.config.setup
+      if (!setup?.[typeFlag]) {
+        setup[typeFlag] = reactive({
           dirs: []
         })
       }
-      const common = this.config.setup[typeFlag]!
+      const common = setup[typeFlag]!
       const dirs = JSON.parse(JSON.stringify(common.dirs))
       if (index !== undefined) {
         dirs[index] = dir
@@ -343,8 +340,9 @@ export const AppStore = defineStore('app', {
       }
       common.dirs = reactive(dirs)
     },
-    DEL_CUSTOM_DIR({ typeFlag, index }: { typeFlag: keyof typeof AppSofts; index: number }) {
-      const common = this.config.setup[typeFlag]
+    DEL_CUSTOM_DIR({ typeFlag, index }: { typeFlag: string; index: number }) {
+      const setup: any = this.config.setup
+      const common = setup[typeFlag]
       if (!common) {
         return
       }
