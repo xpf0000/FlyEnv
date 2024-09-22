@@ -207,46 +207,6 @@ export default class ConfigManager {
       this.config.clear()
       this.config.set('password', password)
     }
-    if (!this.config.has('setup.common.showItem.HttpServe')) {
-      this.config.set('setup.common.showItem.HttpServe', true)
-    }
-    if (!this.config.has('setup.common.showItem.MongoDB')) {
-      this.config.set('setup.common.showItem.MongoDB', true)
-    }
-    if (!this.config.has('setup.common.showItem.mariadb')) {
-      this.config.set('setup.common.showItem.mariadb', true)
-    }
-    if (!this.config.has('setup.common.showItem.DNS')) {
-      this.config.set('setup.common.showItem.DNS', true)
-    }
-    if (!this.config.has('setup.common.showItem.FTP')) {
-      this.config.set('setup.common.showItem.FTP', true)
-    }
-    if (!this.config.has('server.mongodb')) {
-      this.config.set('server.mongodb', {
-        current: {}
-      })
-    }
-    if (!this.config.has('setup.mongodb')) {
-      this.config.set('setup.mongodb', {
-        dirs: []
-      })
-    }
-    if (!this.config.has('server.mariadb')) {
-      this.config.set('server.mariadb', {
-        current: {}
-      })
-    }
-    if (!this.config.has('server.pure-ftpd')) {
-      this.config.set('server.pure-ftpd', {
-        current: {}
-      })
-    }
-    if (!this.config.has('setup.mariadb')) {
-      this.config.set('setup.mariadb', {
-        dirs: []
-      })
-    }
     if (!this.config.has('setup.hosts')) {
       this.config.set('setup.hosts', {
         write: true
@@ -258,11 +218,6 @@ export default class ConfigManager {
         fastProxy: '',
         proxy: ''
       })
-    }
-    if (!this.config.has('showTour')) {
-      this.config.set('showTour', true)
-      this.config.set('setup.common.showItem.Hosts', true)
-      this.config.set('setup.common.showItem.Php', true)
     }
     if (!this.config.has('appFix')) {
       this.config.set('appFix', {})

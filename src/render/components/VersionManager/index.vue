@@ -26,7 +26,7 @@
           </template>
         </div>
         <el-button v-if="showNextBtn" type="primary" @click="toNext">{{
-          $t('base.confirm')
+          I18nT('base.confirm')
         }}</el-button>
         <el-button
           v-else
@@ -51,27 +51,27 @@
     <el-table v-else height="100%" :data="tableData" :border="false" style="width: 100%">
       <template #empty>
         <template v-if="!checkBrew() && !checkPort() && !['php', 'caddy'].includes(typeFlag)">
-          <div class="no-lib-found" v-html="$t('util.noLibFound')"></div>
+          <div class="no-lib-found" v-html="I18nT('util.noLibFound')"></div>
         </template>
         <template v-else-if="currentType.getListing">
-          {{ $t('base.gettingVersion') }}
+          {{ I18nT('base.gettingVersion') }}
         </template>
         <template v-else>
-          {{ $t('util.noVerionsFoundInLib') }}
+          {{ I18nT('util.noVerionsFoundInLib') }}
         </template>
       </template>
       <el-table-column prop="name">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{
-            $t('base.brewLibrary')
+            I18nT('base.brewLibrary')
           }}</span>
         </template>
         <template #default="scope">
           <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.name }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="version" :label="$t('base.version')" width="150"> </el-table-column>
-      <el-table-column align="center" :label="$t('base.isInstalled')" width="120">
+      <el-table-column prop="version" :label="I18nT('base.version')" width="150"> </el-table-column>
+      <el-table-column align="center" :label="I18nT('base.isInstalled')" width="120">
         <template #default="scope">
           <div class="cell-status">
             <yb-icon
@@ -90,7 +90,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column align="center" :label="$t('base.operation')" width="150">
+        <el-table-column align="center" :label="I18nT('base.operation')" width="150">
           <template #default="scope">
             <el-button
               type="primary"
@@ -99,13 +99,15 @@
               :loading="scope.row.downing"
               :disabled="scope.row.downing"
               @click="handleEditDown(scope.$index, scope.row, scope.row.installed)"
-              >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
+              >{{
+                scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install')
+              }}</el-button
             >
           </template>
         </el-table-column>
       </template>
       <template v-else>
-        <el-table-column align="center" :label="$t('base.operation')" width="120">
+        <el-table-column align="center" :label="I18nT('base.operation')" width="120">
           <template #default="scope">
             <el-button
               type="primary"
@@ -113,7 +115,9 @@
               :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
               :disabled="brewRunning"
               @click="handleEdit(scope.$index, scope.row)"
-              >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
+              >{{
+                scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install')
+              }}</el-button
             >
           </template>
         </el-table-column>
@@ -128,19 +132,20 @@
   import IPC from '@/util/IPC'
   import XTerm from '@/util/XTerm'
   import { chmod } from '@shared/file'
-  import { type AllAppSofts, AppStore } from '@/store/app'
+  import { AppStore } from '@/store/app'
   import { AppSoftInstalledItem, BrewStore } from '@/store/brew'
   import { I18nT } from '@shared/lang'
   import installedVersions from '@/util/InstalledVersions'
   import Base from '@/core/Base'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import type { AllAppModule } from '@/core/type'
 
   const { join } = require('path')
   const { removeSync } = require('fs-extra')
   const { existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } = require('fs')
 
   const props = defineProps<{
-    typeFlag: AllAppSofts
+    typeFlag: AllAppModule
   }>()
 
   const showNextBtn = ref(false)
@@ -172,7 +177,7 @@
     return proxy?.value?.proxy
   })
   const currentType: ComputedRef<AppSoftInstalledItem> = computed(() => {
-    return brewStore?.[props.typeFlag] as any
+    return brewStore.module(props.typeFlag)
   })
 
   const tableData = computed(() => {

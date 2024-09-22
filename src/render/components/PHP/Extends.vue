@@ -11,14 +11,14 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ $t('php.phpExtension') }}</span>
+          <span class="ml-15">{{ I18nT('php.phpExtension') }}</span>
         </div>
         <el-button
           type="primary"
           class="shrink0"
           :disabled="!installExtensionDir"
           @click="openDir"
-          >{{ $t('base.open') }}</el-button
+          >{{ I18nT('base.open') }}</el-button
         >
       </div>
       <div class="main-wapper">
@@ -41,13 +41,13 @@
                     </template>
                     <el-option
                       value="phpwebstudy"
-                      :label="$t('php.extensionsLibDefault')"
+                      :label="I18nT('php.extensionsLibDefault')"
                     ></el-option>
                   </el-select>
                 </template>
               </div>
               <el-button v-if="showNextBtn" type="primary" @click="toNext">{{
-                $t('base.confirm')
+                I18nT('base.confirm')
               }}</el-button>
               <el-button
                 v-else
@@ -74,10 +74,10 @@
             :data="showTableDataFilter"
             style="width: 100%"
           >
-            <el-table-column prop="name" class-name="name-cell-td" :label="$t('base.name')">
+            <el-table-column prop="name" class-name="name-cell-td" :label="I18nT('base.name')">
               <template #header>
                 <div class="w-p100 name-cell">
-                  <span style="display: inline-flex; padding: 2px 0">{{ $t('base.name') }}</span>
+                  <span style="display: inline-flex; padding: 2px 0">{{ I18nT('base.name') }}</span>
                   <el-input v-model.trim="search" placeholder="search" clearable></el-input>
                 </div>
               </template>
@@ -85,7 +85,7 @@
                 <div style="padding: 2px 0 2px 24px">{{ scope.row.name }}</div>
               </template>
             </el-table-column>
-            <el-table-column align="center" :label="$t('base.status')">
+            <el-table-column align="center" :label="I18nT('base.status')">
               <template #default="scope">
                 <div class="cell-status">
                   <yb-icon
@@ -100,14 +100,14 @@
             <el-table-column
               width="150px"
               align="left"
-              :label="$t('base.operation')"
+              :label="I18nT('base.operation')"
               class-name="operation"
             >
               <template v-if="version?.version" #default="scope">
                 <template v-if="scope.row.status">
                   <el-popover :show-after="600" placement="top" width="auto">
                     <template #default>
-                      <span>{{ $t('base.copyLink') }}</span>
+                      <span>{{ I18nT('base.copyLink') }}</span>
                     </template>
                     <template #reference>
                       <el-button
@@ -121,7 +121,7 @@
                   <template v-if="scope.row.name === 'xdebug'">
                     <el-popover :show-after="600" placement="top" width="auto">
                       <template #default>
-                        <span>{{ $t('php.copyConfTemplate') }}</span>
+                        <span>{{ I18nT('php.copyConfTemplate') }}</span>
                       </template>
                       <template #reference>
                         <el-button
@@ -135,7 +135,7 @@
                   </template>
                   <el-popover :show-after="600" placement="top" width="auto">
                     <template #default>
-                      <span>{{ $t('base.del') }}</span>
+                      <span>{{ I18nT('base.del') }}</span>
                     </template>
                     <template #reference>
                       <el-button
@@ -150,7 +150,7 @@
                 <template v-else>
                   <el-popover :show-after="600" placement="top" width="auto">
                     <template #default>
-                      <span>{{ $t('base.install') }}</span>
+                      <span>{{ I18nT('base.install') }}</span>
                     </template>
                     <template #reference>
                       <el-button
@@ -324,13 +324,13 @@
     return brewStore.brewRunning
   })
   const taskPhp = computed(() => {
-    return taskStore.php
+    return taskStore.php!
   })
   const serverRunning = computed(() => {
     return props?.version?.run
   })
   const logs = computed(() => {
-    return taskPhp?.value?.log
+    return taskPhp.value.log!
   })
   const extendRunning = computed(() => {
     return taskPhp?.value?.extendRunning
@@ -409,7 +409,7 @@
             item.soPath = join(installExtensionDir.value, item.soname)
           })
         }
-        taskStore.php.extendRefreshing = false
+        taskStore.php!.extendRefreshing = false
       })
     }
   }
@@ -444,7 +444,7 @@
 
   const getTableData = async () => {
     const currentLib = lib.value
-    taskStore.php.extendRefreshing = true
+    taskStore.php!.extendRefreshing = true
     if (currentLib === 'phpwebstudy') {
       showTableData.value.phpwebstudy = []
       showTableData.value.phpwebstudy = JSON.parse(JSON.stringify(tableData))
@@ -460,8 +460,8 @@
 
   const toNext = () => {
     showNextBtn.value = false
-    taskStore.php.currentExtend = ''
-    taskStore.php.extendAction = ''
+    taskStore.php!.currentExtend = ''
+    taskStore.php!.extendAction = ''
   }
 
   const handleEdit = (index: number, row: any) => {
@@ -470,9 +470,9 @@
       return
     }
     logs.value.splice(0)
-    taskStore.php.extendRunning = true
-    taskStore.php.currentExtend = row.name
-    taskStore.php.extendAction = row.status ? I18nT('base.uninstall') : I18nT('base.install')
+    taskStore.php!.extendRunning = true
+    taskStore.php!.currentExtend = row.name
+    taskStore.php!.extendAction = row.status ? I18nT('base.uninstall') : I18nT('base.install')
     const fn = row.status ? 'unInstallExtends' : 'installExtends'
     const args = JSON.parse(
       JSON.stringify({
@@ -487,7 +487,7 @@
       console.log(res)
       if (res.code === 0) {
         IPC.off(key)
-        taskStore.php.extendRunning = false
+        taskStore.php!.extendRunning = false
         if (serverRunning.value) {
           reloadService('php', props.version)
         }
@@ -498,7 +498,7 @@
       } else if (res.code === 1) {
         IPC.off(key)
         logs.value.push(res.msg)
-        taskStore.php.extendRunning = false
+        taskStore.php!.extendRunning = false
         showNextBtn.value = true
         MessageError(I18nT('base.fail'))
         getTableData().then()
@@ -577,7 +577,7 @@ xdebug.output_dir = /tmp`
   watch(
     () => props?.version?.version,
     () => {
-      taskStore.php.extendRefreshing = false
+      taskStore.php!.extendRefreshing = false
       getTableData().then()
     },
     {
@@ -586,7 +586,7 @@ xdebug.output_dir = /tmp`
   )
 
   watch(lib, () => {
-    taskStore.php.extendRefreshing = false
+    taskStore.php!.extendRefreshing = false
     getTableData().then()
   })
 
@@ -600,8 +600,8 @@ xdebug.output_dir = /tmp`
   })
 
   if (!taskPhp?.value?.extendRunning) {
-    taskStore.php.currentExtend = ''
-    taskStore.php.extendAction = ''
+    taskStore.php!.currentExtend = ''
+    taskStore.php!.extendAction = ''
   }
 
   defineExpose({

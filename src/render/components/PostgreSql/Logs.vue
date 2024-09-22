@@ -4,12 +4,14 @@
       <div ref="input" class="block"></div>
       <template #footer>
         <div class="tool">
-          <el-button :disabled="!filepath" @click="logDo('open')">{{ $t('base.open') }}</el-button>
+          <el-button :disabled="!filepath" @click="logDo('open')">{{
+            I18nT('base.open')
+          }}</el-button>
           <el-button :disabled="!filepath" @click="logDo('refresh')">{{
-            $t('base.refresh')
+            I18nT('base.refresh')
           }}</el-button>
           <el-button :disabled="!filepath" @click="logDo('clean')">{{
-            $t('base.clean')
+            I18nT('base.clean')
           }}</el-button>
         </div>
       </template>
@@ -26,6 +28,7 @@
   import { BrewStore } from '@/store/brew'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { execPromiseRoot } from '@shared/Exec'
+  import { I18nT } from '@shared/lang'
 
   const { existsSync } = require('fs')
   const { join } = require('path')
@@ -49,7 +52,7 @@
         if (!current) {
           return undefined
         }
-        const installed = BrewStore()?.postgresql?.installed
+        const installed = BrewStore().module('postgresql').installed
         return installed?.find((i) => i.path === current?.path && i.version === current?.version)
       }
     },
@@ -76,6 +79,7 @@
       this.monacoInstance = null
     },
     methods: {
+      I18nT,
       initEditor() {
         if (!this.monacoInstance) {
           const input: HTMLElement = this?.$refs?.input as HTMLElement
@@ -89,7 +93,7 @@
       },
       logDo(flag: string) {
         if (!existsSync(this.filepath)) {
-          MessageError(this.$t('base.noFoundLogFile'))
+          MessageError(this.I18nT('base.noFoundLogFile'))
           return
         }
         switch (flag) {
@@ -103,7 +107,7 @@
             writeFileAsync(this.filepath, '')
               .then(() => {
                 this.log = ''
-                MessageSuccess(this.$t('base.success'))
+                MessageSuccess(this.I18nT('base.success'))
               })
               .catch(() => {
                 if (!this.password) {
@@ -127,7 +131,7 @@
             this.log = log
           })
         } else {
-          this.log = this.$t('base.noLogs')
+          this.log = this.I18nT('base.noLogs')
         }
       },
       init() {

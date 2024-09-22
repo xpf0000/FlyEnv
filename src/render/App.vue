@@ -5,19 +5,21 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
   import TitleBar from './components/Native/TitleBar.vue'
   import { EventBus } from './global'
   import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import installedVersions from '@/util/InstalledVersions'
-  import { AppSofts, AppStore } from '@/store/app'
+  import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { I18nT } from '@shared/lang'
   import Base from '@/core/Base'
   import { MessageSuccess } from '@/util/Element'
   import FloatButton from '@/components/FloatBtn/index.vue'
   import { ElMessageBox } from 'element-plus'
+  import { type AllAppModule, AppModuleEnum } from '@/core/type'
+  import { AppModules } from '@/core/App'
 
   const inited = ref(false)
   const appStore = AppStore()
@@ -31,37 +33,17 @@
     return appStore.config.setup.common.showItem
   })
 
-  const showItemLowcase = () => {
-    const dict: { [key: string]: boolean } = {}
-    const all: any = Object.assign(
-      {
-        PostgreSql: true,
-        java: true,
-        tomcat: true
-      },
-      showItem.value
-    )
-    for (const k in all) {
-      let key = k.toLowerCase()
-      if (key === 'ftp') {
-        key = 'pure-ftpd'
-      }
-      dict[key] = all[k] !== false
-    }
-    console.log('dict: ', dict)
-    return dict
-  }
+  const allService = AppModules.filter((m) => m.isService).map((m) => m.typeFlag)
 
   const onShowItemChange = () => {
     if (!inited.value) {
       return
     }
-    const dict: { [key: string]: boolean } = showItemLowcase()
-    const store: any = brewStore
-    for (const k in dict) {
-      const brewSoft = store?.[k]
-      if (brewSoft && dict[k] && !brewSoft?.installedInited) {
-        const flags = [k] as Array<keyof typeof AppSofts>
+    let k: AllAppModule
+    for (k of allService) {
+      const module = brewStore.module(k)
+      if (showItem?.value?.[k] !== false && !module.installedInited) {
+        const flags = [k]
         installedVersions.allInstalledVersions(flags)
       }
     }
@@ -79,22 +61,9 @@
   const checkPassword = () => {
     passwordCheck().then(() => {
       checkProxy()
-      const dict: { [key: string]: boolean } = showItemLowcase()
-      console.log('showItem dict: ', dict)
-      const flags: Array<keyof typeof AppSofts> = [
-        'php',
-        'caddy',
-        'nginx',
-        'mysql',
-        'mariadb',
-        'apache',
-        'memcached',
-        'redis',
-        'mongodb',
-        'pure-ftpd',
-        'postgresql',
-        'tomcat'
-      ].filter((f) => dict?.[f] !== false) as Array<keyof typeof AppSofts>
+      const flags: Array<AllAppModule> = allService.filter(
+        (f: AllAppModule) => showItem?.value?.[f] !== false
+      ) as Array<keyof typeof AppModuleEnum>
       if (flags.length === 0) {
         appStore.versionInited = true
         inited.value = true
@@ -202,7 +171,9 @@
   })
 
   onMounted(() => {
-    checkPassword()
+    nextTick().then(() => {
+      checkPassword()
+    })
     brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
   })
 

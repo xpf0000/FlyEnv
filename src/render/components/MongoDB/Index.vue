@@ -4,59 +4,34 @@
       <li
         v-for="(item, index) in tabs"
         :key="index"
-        :class="current_tab === index ? 'active' : ''"
-        @click="current_tab = index"
+        :class="tab === index ? 'active' : ''"
+        @click="tab = index"
         >{{ item }}</li
       >
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="mongodb" title="MongoDB"></Service>
-      <Manager v-else-if="current_tab === 1" type-flag="mongodb"></Manager>
-      <Config v-if="current_tab === 2"></Config>
-      <Logs v-if="current_tab === 3"></Logs>
+      <Service v-if="tab === 0" type-flag="mongodb" title="MongoDB"></Service>
+      <Manager v-else-if="tab === 1" type-flag="mongodb"></Manager>
+      <Config v-if="tab === 2"></Config>
+      <Logs v-if="tab === 3"></Logs>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-  import { defineComponent, ref } from 'vue'
+<script lang="ts" setup>
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
-  import { AppStore } from '@/store/app'
+  import { AppModuleSetup } from '@/core/Module'
+  import { I18nT } from '@shared/lang'
 
-  const current_tab = ref(0)
-
-  export default defineComponent({
-    components: {
-      Config,
-      Service,
-      Logs,
-      Manager
-    },
-    props: {},
-    data() {
-      return {
-        current_tab,
-        tabs: [
-          this.$t('base.service'),
-          this.$t('base.versionManager'),
-          this.$t('base.configFile'),
-          this.$t('base.log')
-        ]
-      }
-    },
-    computed: {
-      version() {
-        return AppStore().config.server?.mongodb?.current?.version
-      }
-    },
-    watch: {},
-    created: function () {
-      if (!this.version) {
-        this.current_tab = 1
-      }
-    }
-  })
+  const { tab, checkVersion } = AppModuleSetup('mongodb')
+  const tabs = [
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    I18nT('base.configFile'),
+    I18nT('base.log')
+  ]
+  checkVersion()
 </script>

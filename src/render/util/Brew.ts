@@ -3,7 +3,7 @@ import Base from '@/core/Base'
 import { ElMessageBox } from 'element-plus'
 import { chmod } from '@shared/file'
 import XTerm from '@/util/XTerm'
-import { AllAppSofts, AppStore } from '@/store/app'
+import { AllAppModule, AppStore } from '@/store/app'
 import { BrewStore, type OnlineVersionItem } from '@/store/brew'
 import { I18nT } from '@shared/lang'
 import { MessageError } from '@/util/Element'
@@ -161,7 +161,7 @@ export function portInfo(flag: string) {
 }
 
 export const fetchVerion = (
-  typeFlag: AllAppSofts
+  typeFlag: AllAppModule
 ): Promise<{ [key: string]: OnlineVersionItem }> => {
   return new Promise((resolve) => {
     let saved: any = localStorage.getItem(`fetchVerion-${typeFlag}`)

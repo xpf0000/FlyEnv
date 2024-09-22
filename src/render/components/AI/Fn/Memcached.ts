@@ -12,7 +12,7 @@ export function startMemcached(this: BaseTask) {
     const appStore = AppStore()
     const brewStore = BrewStore()
     const current = appStore.config.server?.memcached?.current
-    const installed = brewStore?.memcached?.installed
+    const installed = brewStore.module('memcached').installed
     let memcached = installed?.find(
       (i) => i.path === current?.path && i.version === current?.version
     )

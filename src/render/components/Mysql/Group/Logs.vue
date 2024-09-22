@@ -18,13 +18,13 @@
       </div>
       <div class="tool">
         <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
-          $t('base.open')
+          I18nT('base.open')
         }}</el-button>
         <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
-          $t('base.refresh')
+          I18nT('base.refresh')
         }}</el-button>
         <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
-          $t('base.clean')
+          I18nT('base.clean')
         }}</el-button>
       </div>
     </div>

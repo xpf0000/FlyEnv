@@ -8,11 +8,11 @@
         default-expand-all
         :row-class-name="tableRowClassName"
       >
-        <el-table-column :label="$t('host.name')">
+        <el-table-column :label="I18nT('host.name')">
           <template #header>
             <div class="w-p100 name-cell">
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
-                $t('host.name')
+                I18nT('host.name')
               }}</span>
               <el-input v-model.trim="search" placeholder="search" clearable></el-input>
             </div>
@@ -47,15 +47,15 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column align="center" width="120px" :label="$t('host.phpVersion')">
+        <el-table-column align="center" width="120px" :label="I18nT('host.phpVersion')">
           <template #default="scope">
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-select
                 v-model="quickEdit.phpVersion"
                 class="w-p100"
-                :placeholder="$t('base.selectPhpVersion')"
+                :placeholder="I18nT('base.selectPhpVersion')"
               >
-                <el-option :value="undefined" :label="$t('host.staticSite')"></el-option>
+                <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
                 <template v-for="(v, i) in phpVersions" :key="i">
                   <el-option :value="v.num" :label="v.num"></el-option>
                 </template>
@@ -68,7 +68,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('host.mark')">
+        <el-table-column :label="I18nT('host.mark')">
           <template #default="scope">
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>
@@ -87,7 +87,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column align="center" :label="$t('host.setup')" width="100px">
+        <el-table-column align="center" :label="I18nT('host.setup')" width="100px">
           <template #default="scope">
             <template v-if="scope?.row?.deling || scope.row.id !== quickEdit?.id">
               <template v-if="!scope?.row?.deling">
@@ -101,43 +101,43 @@
                   <ul v-poper-fix class="host-list-menu">
                     <li @click.stop="action(scope.row, scope.$index, 'open')">
                       <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ $t('base.open') }}</span>
+                      <span class="ml-15">{{ I18nT('base.open') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'edit')">
                       <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ $t('base.edit') }}</span>
+                      <span class="ml-15">{{ I18nT('base.edit') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'park')">
                       <yb-icon :svg="import('@/svg/shengcheng.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ $t('host.park') }}</span>
+                      <span class="ml-15">{{ I18nT('host.park') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'link')">
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ $t('base.link') }}</span>
+                      <span class="ml-15">{{ I18nT('base.link') }}</span>
                     </li>
                     <li @click.stop="showConfig({ flag: 'nginx', item: scope.row })">
                       <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ $t('base.configFile') }} - Nginx</span>
+                      <span class="ml-15">{{ I18nT('base.configFile') }} - Nginx</span>
                     </li>
                     <li @click.stop="showConfig({ flag: 'caddy', item: scope.row })">
                       <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ $t('base.configFile') }} - Caddy</span>
+                      <span class="ml-15">{{ I18nT('base.configFile') }} - Caddy</span>
                     </li>
                     <li @click.stop="showConfig({ flag: 'apache', item: scope.row })">
                       <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ $t('base.configFile') }} - Apache</span>
+                      <span class="ml-15">{{ I18nT('base.configFile') }} - Apache</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'log')">
                       <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ $t('base.log') }}</span>
+                      <span class="ml-15">{{ I18nT('base.log') }}</span>
                     </li>
                     <li @click.stop="showSort($event, scope.row.id)">
                       <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ $t('host.sort') }}</span>
+                      <span class="ml-15">{{ I18nT('host.sort') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'del')">
                       <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ $t('base.del') }}</span>
+                      <span class="ml-15">{{ I18nT('base.del') }}</span>
                     </li>
                   </ul>
 
@@ -187,7 +187,7 @@
   const search = ref('')
 
   const php = computed(() => {
-    return brewStore.php
+    return brewStore.module('php')
   })
   const phpVersions = computed(() => {
     const set: Set<number> = new Set()
@@ -264,10 +264,10 @@
   })
 
   const linkEnable = computed(() => {
-    const apacheRunning = brewStore.apache.installed.find((a) => a.run)
-    const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
-    const caddyRunning = brewStore.caddy.installed.find((a) => a.run)
-    const tomcatRunning = brewStore.tomcat.installed.find((a) => a.run)
+    const apacheRunning = brewStore.module('apache').installed.find((a) => a.run)
+    const nginxRunning = brewStore.module('nginx').installed.find((a) => a.run)
+    const caddyRunning = brewStore.module('caddy').installed.find((a) => a.run)
+    const tomcatRunning = brewStore.module('tomcat').installed.find((a) => a.run)
     return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning || tomcatRunning)
   })
 
@@ -301,9 +301,9 @@
   const siteName = (item: AppHost) => {
     const host = item.name
     const brewStore = BrewStore()
-    const nginxRunning = brewStore.nginx.installed.find((i) => i.run)
-    const apacheRunning = brewStore.apache.installed.find((i) => i.run)
-    const caddyRunning = brewStore.caddy.installed.find((i) => i.run)
+    const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
+    const apacheRunning = brewStore.module('apache').installed.find((i) => i.run)
+    const caddyRunning = brewStore.module('caddy').installed.find((i) => i.run)
     let port = 80
     if (nginxRunning) {
       port = item.port.nginx

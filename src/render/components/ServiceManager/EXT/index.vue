@@ -11,7 +11,7 @@
     <ul v-poper-fix class="host-list-menu">
       <li v-loading="loading" class="path-set" :class="state" @click.stop="doChange">
         <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
-        <span class="ml-15">{{ $t('base.addToPath') }}</span>
+        <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
       </li>
       <template v-if="type === 'postgresql'">
         <Extension :item="item" />
@@ -29,6 +29,7 @@
   import type { SoftInstalled } from '@/store/brew'
   import { ServiceActionStore } from './store'
   import Extension from '@/components/ServiceManager/Pgsql/extension.vue'
+  import { I18nT } from '@shared/lang'
 
   const { dirname, join } = require('path')
 

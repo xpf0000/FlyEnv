@@ -48,27 +48,29 @@
 <script lang="ts" setup>
   import { reactive, ref, watch, onBeforeUnmount, nextTick } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { AppSofts, AppStore } from '@/store/app'
+  import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
+  import type { AllAppModule } from '@/core/type'
 
   const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const props = defineProps<{
-    flag: string
+    flag: AllAppModule
   }>()
 
   const appStore = AppStore()
   const brewStore = BrewStore()
 
-  const flag: keyof typeof AppSofts = props.flag as any
-  if (!appStore?.config?.setup?.[flag]) {
-    appStore.config.setup[flag] = reactive({
+  const flag = props.flag
+  const setupItem: any = appStore.config.setup
+  if (!setupItem?.[flag]) {
+    setupItem[flag] = reactive({
       dirs: []
     })
   }
 
-  const dirs = ref(appStore.config.setup?.[flag]?.dirs ?? [])
+  const dirs = ref(setupItem?.[flag]?.dirs ?? [])
 
   const changed = ref(false)
 
@@ -77,14 +79,14 @@
     (v: any) => {
       changed.value = true
       nextTick().then(() => {
-        if (!appStore.config.setup?.[flag]) {
-          appStore.config.setup[flag] = reactive({
+        if (!setupItem?.[flag]) {
+          setupItem[flag] = reactive({
             dirs: []
           })
         }
-        appStore.config.setup[flag].dirs = reactive(v)
+        setupItem[flag].dirs = reactive(v)
         appStore.saveConfig()
-        brewStore[flag].installedInited = false
+        brewStore.module(flag).installedInited = false
       })
     },
     {

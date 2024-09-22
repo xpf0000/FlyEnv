@@ -6,7 +6,7 @@
           <span> JAVA </span>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
-              <span>{{ $t('base.customVersionDir') }}</span>
+              <span>{{ I18nT('base.customVersionDir') }}</span>
             </template>
             <template #reference>
               <el-button
@@ -30,7 +30,9 @@
     <el-table v-loading="service?.fetching" class="service-table" :data="versions">
       <el-table-column prop="version" width="140px">
         <template #header>
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ $t('base.version') }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{
+            I18nT('base.version')
+          }}</span>
         </template>
         <template #default="scope">
           <span
@@ -42,7 +44,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.path')" :prop="null">
+      <el-table-column :label="I18nT('base.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
             <el-popover popper-class="version-error-tips" width="auto" placement="top">
@@ -52,7 +54,7 @@
                 }}</span>
               </template>
               <template #default>
-                <span>{{ scope.row?.error ?? $t('base.versionErrorTips') }}</span>
+                <span>{{ scope.row?.error ?? I18nT('base.versionErrorTips') }}</span>
               </template>
             </el-popover>
           </template>
@@ -68,7 +70,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <el-popover
             effect="dark"
@@ -91,7 +93,7 @@
                   width="17"
                   height="17"
                 />
-                <span class="ml-15">{{ $t('base.addToPath') }}</span>
+                <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
               </li>
             </ul>
             <template #reference>
@@ -114,6 +116,7 @@
   import { Service } from '@/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+  import { I18nT } from '@shared/lang'
 
   const { shell } = require('@electron/remote')
   const { dirname } = require('path')
@@ -156,10 +159,10 @@
   })
 
   const java = computed(() => {
-    return brewStore.java
+    return brewStore.module('java')
   })
   const versions = computed(() => {
-    return brewStore?.java?.installed ?? []
+    return brewStore.module('java').installed
   })
 
   const init = () => {
@@ -185,7 +188,7 @@
       return
     }
     service.value.fetching = true
-    const data = brewStore.java
+    const data = brewStore.module('java')
     data.installedInited = false
     installedVersions.allInstalledVersions(['java']).then(() => {
       service.value.fetching = false

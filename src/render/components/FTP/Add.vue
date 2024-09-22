@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="item?.user ? $t('base.edit') : $t('base.add')"
+    :title="item?.user ? I18nT('base.edit') : I18nT('base.add')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
@@ -44,7 +44,7 @@
               class="input"
               :class="{ error: errs?.dir }"
               placeholder="root path"
-              readonly=""
+              readonly="true"
               :value="form.dir"
             />
             <div class="icon-block" @click="chooseRoot()">
@@ -61,9 +61,9 @@
     </template>
     <template #footer>
       <div class="dialog-footer">
-        <el-button :disabled="running" @click="show = false">{{ $t('base.cancel') }}</el-button>
+        <el-button :disabled="running" @click="show = false">{{ I18nT('base.cancel') }}</el-button>
         <el-button :loading="running" :disabled="running" type="primary" @click="doSave">{{
-          $t('base.confirm')
+          I18nT('base.confirm')
         }}</el-button>
       </div>
     </template>
@@ -74,8 +74,8 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import IPC from '@/util/IPC'
   import { I18nT } from '@shared/lang'
-  import type { FtpItem } from '@/store/ftp'
-  import { FtpStore } from '@/store/ftp'
+  import type { FtpItem } from './ftp'
+  import { FtpStore } from './ftp'
   import { uuid } from '@shared/utils'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
@@ -112,7 +112,7 @@
     if (!current) {
       return undefined
     }
-    const installed = brewStore?.['pure-ftpd']?.installed
+    const installed = brewStore.module('pure-ftpd').installed
     return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 

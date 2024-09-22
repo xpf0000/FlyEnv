@@ -37,7 +37,7 @@
 
 <script lang="tsx" setup>
   import { computed } from 'vue'
-  import { MysqlStore } from '@/store/mysql'
+  import { MysqlStore } from '../mysql'
   import type { Column } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'

@@ -8,7 +8,7 @@
   >
     <div class="main-wapper">
       <template v-if="!phpMyAdminStore.fetching">
-        <span>{{ $t('host.phpMyAdminInstallTips') }}</span>
+        <span>{{ I18nT('host.phpMyAdminInstallTips') }}</span>
       </template>
       <template v-else>
         <div style="display: flex; align-items: center; justify-content: center; padding: 15px">
@@ -19,8 +19,8 @@
     <template #footer>
       <div class="dialog-footer">
         <template v-if="!phpMyAdminStore.fetching">
-          <el-button @click="show = false">{{ $t('base.cancel') }}</el-button>
-          <el-button type="primary" @click="doRun">{{ $t('base.confirm') }}</el-button>
+          <el-button @click="show = false">{{ I18nT('base.cancel') }}</el-button>
+          <el-button type="primary" @click="doRun">{{ I18nT('base.confirm') }}</el-button>
         </template>
         <template v-else>
           <el-button
@@ -28,7 +28,7 @@
             :disabled="phpMyAdminStore.percent < 100"
             :loading="phpMyAdminStore.percent < 100"
             @click="doSubmit"
-            >{{ $t('base.confirm') }}</el-button
+            >{{ I18nT('base.confirm') }}</el-button
           >
         </template>
       </div>
@@ -43,6 +43,7 @@
   import { PhpMyAdminTask } from '@/components/ServiceManager/service'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
+  import { I18nT } from '@shared/lang'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
@@ -53,7 +54,7 @@
   const phpVersions = computed(() => {
     const set: Set<number> = new Set()
     return (
-      brewStore?.php?.installed?.filter((p) => {
+      brewStore.module('php').installed.filter((p) => {
         if (p.version && p.num) {
           if (!set.has(p.num)) {
             set.add(p.num)

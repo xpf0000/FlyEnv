@@ -17,7 +17,7 @@ export function addRandaSite(this: BaseTask) {
   return new Promise(async (resolve, reject) => {
     const appStore = AppStore()
     const brewStore = BrewStore()
-    const php = brewStore.php.installed.find((p) => p.version) ?? {}
+    const php = brewStore.module('php').installed.find((p) => p.version) ?? {}
     IPC.send(`app-fork:host`, 'addRandaSite', JSON.parse(JSON.stringify(php))).then(
       (key: string, res: any) => {
         IPC.off(key)
@@ -54,18 +54,18 @@ export function openSiteBaseService(this: BaseTask, item: { host: string; php: S
     const appStore = AppStore()
     const brewStore = BrewStore()
     let current = appStore.config.server?.nginx?.current
-    let installed = brewStore?.nginx?.installed
+    let installed = brewStore.module('nginx').installed
     const nginx = installed?.find((i) => i.path === current?.path && i.version === current?.version)
 
     current = appStore.config.server?.apache?.current
-    installed = brewStore?.apache?.installed
+    installed = brewStore.module('apache').installed
     const apache = installed?.find(
       (i) => i.path === current?.path && i.version === current?.version
     )
 
-    const php = brewStore?.php?.installed?.find(
-      (i) => i.path === item?.php?.path && i.version === item?.php?.version
-    )
+    const php = brewStore
+      .module('php')
+      .installed.find((i) => i.path === item?.php?.path && i.version === item?.php?.version)
     try {
       let url = ''
       if (nginx && (!apache || !apache?.run)) {

@@ -116,7 +116,9 @@
         return running.value
       },
       phpVersions() {
-        return BrewStore().php.installed.filter((p) => p.enable && p.num && p?.num > 56)
+        return BrewStore()
+          .module('php')
+          .installed.filter((p) => p.enable && p.num && p?.num > 56)
       }
     },
     watch: {

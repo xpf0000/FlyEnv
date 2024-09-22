@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="item?.dataDir ? $t('base.edit') : $t('base.add')"
+    :title="item?.dataDir ? I18nT('base.edit') : I18nT('base.add')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
@@ -54,9 +54,9 @@
     </template>
     <template #footer>
       <div class="dialog-footer">
-        <el-button :disabled="running" @click="show = false">{{ $t('base.cancel') }}</el-button>
+        <el-button :disabled="running" @click="show = false">{{ I18nT('base.cancel') }}</el-button>
         <el-button :loading="running" :disabled="running" type="primary" @click="doSave">{{
-          $t('base.confirm')
+          I18nT('base.confirm')
         }}</el-button>
       </div>
     </template>
@@ -70,7 +70,7 @@
   import { BrewStore } from '@/store/brew'
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
-  import { MysqlStore } from '@/store/mysql'
+  import { MysqlStore } from '../mysql'
 
   const { join } = require('path')
   const { dialog } = require('@electron/remote')
@@ -103,7 +103,7 @@
   })
 
   const mysqlVersion = computed(() => {
-    return brewStore?.['mysql']?.installed ?? []
+    return brewStore.module('mysql').installed
   })
 
   watch(

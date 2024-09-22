@@ -1,11 +1,10 @@
 import { VueExtend } from './core/VueExtend'
+import { AppI18n } from '@shared/lang'
 import App from './App.vue'
 import '@/components/Theme/Index.scss'
 import IPC from '@/util/IPC'
-import { AppI18n } from '@shared/lang'
 import { AppStore } from '@/store/app'
 import { SiteSuckerStore } from '@/components/Tools/SiteSucker/store'
-import { DnsStore } from '@/store/dns'
 import './style/index.scss'
 import './style/dark.scss'
 import './style/light.scss'
@@ -33,7 +32,6 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
       })
       .catch()
     SiteSuckerStore().init()
-    DnsStore().init()
   } else {
     console.log('has inited !!!!')
   }

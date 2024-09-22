@@ -3,7 +3,7 @@
     <ul class="top-tab">
       <el-button-group>
         <el-button style="padding-left: 30px; padding-right: 30px" @click="toAdd">{{
-          $t('base.add')
+          I18nT('base.add')
         }}</el-button>
         <el-dropdown trigger="click" @command="handleCommand">
           <template #default>
@@ -19,20 +19,20 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item :disabled="!canExport" command="export">{{
-                $t('base.export')
+                I18nT('base.export')
               }}</el-dropdown-item>
-              <el-dropdown-item command="import">{{ $t('base.import') }}</el-dropdown-item>
+              <el-dropdown-item command="import">{{ I18nT('base.import') }}</el-dropdown-item>
               <el-dropdown-item divided command="hostsCopy">{{
-                $t('host.hostsCopy')
+                I18nT('host.hostsCopy')
               }}</el-dropdown-item>
-              <el-dropdown-item command="hostsOpen">{{ $t('host.hostsOpen') }}</el-dropdown-item>
+              <el-dropdown-item command="hostsOpen">{{ I18nT('host.hostsOpen') }}</el-dropdown-item>
               <el-dropdown-item divided command="newProject">
                 <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
                   <template #reference>
-                    <span>{{ $t('host.newProject') }}</span>
+                    <span>{{ I18nT('host.newProject') }}</span>
                   </template>
                   <template #default>
-                    <p>{{ $t('host.newProjectTips') }}</p>
+                    <p>{{ I18nT('host.newProjectTips') }}</p>
                   </template>
                 </el-popover>
               </el-dropdown-item>
@@ -43,16 +43,16 @@
       <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
         <template #reference>
           <li style="width: auto; padding: 0 15px; margin-left: 20px; margin-right: 10px">
-            <span style="margin-right: 10px">{{ $t('host.enable') }}: </span>
+            <span style="margin-right: 10px">{{ I18nT('host.enable') }}: </span>
             <el-switch v-model="hostsSet.write"></el-switch>
           </li>
         </template>
         <template #default>
-          <p>{{ $t('host.hostsWriteTips') }}</p>
+          <p>{{ I18nT('host.hostsWriteTips') }}</p>
         </template>
       </el-popover>
       <li class="no-hover" style="width: auto; padding: 0 15px; margin-right: 10px">
-        <el-button @click="openHosts">{{ $t('base.openHosts') }}</el-button>
+        <el-button @click="openHosts">{{ I18nT('base.openHosts') }}</el-button>
       </li>
     </ul>
     <List></List>

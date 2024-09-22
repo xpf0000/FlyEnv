@@ -6,7 +6,7 @@
           <span> PHP </span>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
-              <span>{{ $t('base.customVersionDir') }}</span>
+              <span>{{ I18nT('base.customVersionDir') }}</span>
             </template>
             <template #reference>
               <el-button
@@ -30,13 +30,15 @@
     <el-table v-loading="service?.fetching" class="service-table" :data="versions">
       <el-table-column prop="version" width="140px">
         <template #header>
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ $t('base.version') }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{
+            I18nT('base.version')
+          }}</span>
         </template>
         <template #default="scope">
           <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.version }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.path')" :prop="null">
+      <el-table-column :label="I18nT('base.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
             <el-popover popper-class="version-error-tips" width="auto" placement="top">
@@ -46,7 +48,7 @@
                 }}</span>
               </template>
               <template #default>
-                <span>{{ scope.row?.error ?? $t('base.versionErrorTips') }}</span>
+                <span>{{ scope.row?.error ?? I18nT('base.versionErrorTips') }}</span>
               </template>
             </el-popover>
           </template>
@@ -55,7 +57,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('php.quickStart')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <el-button
             link
@@ -70,7 +72,7 @@
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.service')" :prop="null" width="100px">
+      <el-table-column :label="I18nT('base.service')" :prop="null" width="100px">
         <template #default="scope">
           <template v-if="scope.row.running">
             <el-button :loading="true" link></el-button>
@@ -95,7 +97,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <el-popover
             effect="dark"
@@ -108,7 +110,7 @@
             <ul v-poper-fix class="host-list-menu">
               <li @click.stop="action(scope.row, scope.$index, 'open')">
                 <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('base.open') }}</span>
+                <span class="ml-15">{{ I18nT('base.open') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'conf')">
                 <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
@@ -120,15 +122,15 @@
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'log-fpm')">
                 <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('php.fpmLog') }}</span>
+                <span class="ml-15">{{ I18nT('php.fpmLog') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'log-slow')">
                 <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('base.slowLog') }}</span>
+                <span class="ml-15">{{ I18nT('base.slowLog') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'extend')">
                 <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('php.extension') }}</span>
+                <span class="ml-15">{{ I18nT('php.extension') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'groupstart')">
                 <yb-icon
@@ -138,10 +140,10 @@
                   height="18"
                 />
                 <template v-if="appStore?.phpGroupStart?.[scope.row.bin] === false">
-                  <span class="ml-10">{{ $t('php.groupStartOn') }}</span>
+                  <span class="ml-10">{{ I18nT('php.groupStartOn') }}</span>
                 </template>
                 <template v-else>
-                  <span class="ml-10">{{ $t('php.groupStartOff') }}</span>
+                  <span class="ml-10">{{ I18nT('php.groupStartOff') }}</span>
                 </template>
               </li>
               <li
@@ -156,7 +158,7 @@
                   width="17"
                   height="17"
                 />
-                <span class="ml-15">{{ $t('base.addToPath') }}</span>
+                <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
               </li>
             </ul>
             <template #reference>
@@ -224,10 +226,10 @@
   })
 
   const php = computed(() => {
-    return brewStore.php
+    return brewStore.module('php')
   })
   const versions = computed(() => {
-    return brewStore?.php?.installed ?? []
+    return brewStore.module('php').installed
   })
 
   const init = () => {
@@ -374,7 +376,7 @@
       return
     }
     service.value.fetching = true
-    const data = brewStore.php
+    const data = brewStore.module('php')
     data.installedInited = false
     installedVersions.allInstalledVersions(['php']).then(() => {
       service.value.fetching = false

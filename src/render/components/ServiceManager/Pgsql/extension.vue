@@ -25,7 +25,7 @@
     <template #reference>
       <li>
         <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-        <span class="ml-15">{{ $t('php.extension') }}</span>
+        <span class="ml-15">{{ I18nT('php.extension') }}</span>
       </li>
     </template>
   </el-popover>

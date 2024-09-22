@@ -8,22 +8,22 @@
   >
     <ul v-poper-fix class="host-list-menu">
       <li @click.stop="action('edit')">
-        <span class="ml-15">{{ $t('base.edit') }}</span>
+        <span class="ml-15">{{ I18nT('base.edit') }}</span>
       </li>
       <li @click.stop="action('socket')">
-        <span class="ml-15"> {{ $t('util.mysqlPopperSocket') }} </span>
+        <span class="ml-15"> {{ I18nT('util.mysqlPopperSocket') }} </span>
       </li>
       <li @click.stop="action('cnf')">
-        <span class="ml-15">{{ $t('base.configFile') }}</span>
+        <span class="ml-15">{{ I18nT('base.configFile') }}</span>
       </li>
       <li @click.stop="action('log')">
-        <span class="ml-15">{{ $t('base.log') }}</span>
+        <span class="ml-15">{{ I18nT('base.log') }}</span>
       </li>
       <li @click.stop="action('log-slow')">
-        <span class="ml-15">{{ $t('base.slowLog') }}</span>
+        <span class="ml-15">{{ I18nT('base.slowLog') }}</span>
       </li>
       <li @click.stop="action('del')">
-        <span class="ml-15">{{ $t('base.del') }}</span>
+        <span class="ml-15">{{ I18nT('base.del') }}</span>
       </li>
     </ul>
     <template #reference>
@@ -40,7 +40,7 @@
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
   import Base from '@/core/Base'
-  import { MysqlStore } from '@/store/mysql'
+  import { MysqlStore } from '../mysql'
 
   const { clipboard } = require('@electron/remote')
   const { join } = require('path')

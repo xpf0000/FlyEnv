@@ -29,15 +29,17 @@
     >
       <template #empty>
         <template v-if="currentType.getListing">
-          {{ $t('base.gettingVersion') }}
+          {{ I18nT('base.gettingVersion') }}
         </template>
         <template v-else>
-          {{ $t('util.noVerionsFoundInLib') }}
+          {{ I18nT('util.noVerionsFoundInLib') }}
         </template>
       </template>
       <el-table-column prop="version" width="200">
         <template #header>
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ $t('base.version') }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{
+            I18nT('base.version')
+          }}</span>
         </template>
         <template #default="scope">
           <span
@@ -49,7 +51,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.path')">
+      <el-table-column :label="I18nT('base.path')">
         <template #default="scope">
           <template v-if="scope.row?.path">
             <span
@@ -68,7 +70,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="$t('base.isInstalled')" width="150">
+      <el-table-column align="center" :label="I18nT('base.isInstalled')" width="150">
         <template #default="scope">
           <div class="cell-status">
             <yb-icon
@@ -79,7 +81,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="$t('base.operation')" width="150">
+      <el-table-column align="center" :label="I18nT('base.operation')" width="150">
         <template #default="scope">
           <template v-if="scope.row?.path">
             <ExtSet :item="scope.row" :type="typeFlag" />
@@ -92,7 +94,9 @@
               :loading="scope.row.downing"
               :disabled="scope.row.downing"
               @click="handleEdit(scope.$index, scope.row, scope.row.installed)"
-              >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
+              >{{
+                scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install')
+              }}</el-button
             >
           </template>
         </template>
@@ -135,7 +139,7 @@
     return brewStore.brewRunning
   })
   const currentType: ComputedRef<AppSoftInstalledItem> = computed(() => {
-    return brewStore?.[props.typeFlag] as any
+    return brewStore.module('composer')
   })
 
   const isRunning = computed(() => {
@@ -145,7 +149,7 @@
   })
 
   const tableData = computed(() => {
-    const localList = brewStore?.composer?.installed ?? []
+    const localList = brewStore.module('composer').installed
     const onLineList = Object.values(currentType?.value?.list?.static ?? {}).filter(
       (i) => !i.installed && !localList.find((l) => l.version === i.version)
     )
@@ -177,7 +181,7 @@
     if (service?.fetching) {
       return
     }
-    const data = brewStore[props.typeFlag]
+    const data = brewStore.module('composer')
     data.installedInited = false
     installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
       service.fetching = false
@@ -210,7 +214,7 @@
       return
     }
     service.fetching = true
-    const data = brewStore[props.typeFlag]
+    const data = brewStore.module('composer')
     data.installedInited = false
     installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
       service.fetching = false

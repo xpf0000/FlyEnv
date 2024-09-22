@@ -13,10 +13,10 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ isEdit ? $t('base.edit') : $t('base.add') }}</span>
+          <span class="ml-15">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
-          $t('base.save')
+          I18nT('base.save')
         }}</el-button>
       </div>
 
@@ -26,25 +26,25 @@
             v-model.trim="item.name"
             type="text"
             :class="'input' + (errs['name'] ? ' error' : '')"
-            :placeholder="$t('host.placeholderName')"
+            :placeholder="I18nT('host.placeholderName')"
           />
           <textarea
             v-model.trim="item.alias"
             type="text"
             class="input-textarea"
-            :placeholder="$t('host.placeholderAlias')"
+            :placeholder="I18nT('host.placeholderAlias')"
           ></textarea>
           <input
             v-model.trim="item.mark"
             style="margin: 15px 0 10px"
             class="input"
-            :placeholder="$t('host.placeholderRemarks')"
+            :placeholder="I18nT('host.placeholderRemarks')"
           />
           <div class="path-choose mt-20 mb-20">
             <input
               type="text"
               :class="'input' + (errs['root'] ? ' error' : '')"
-              :placeholder="$t('host.placeholderRootPath')"
+              :placeholder="I18nT('host.placeholderRootPath')"
               readonly=""
               :value="item.root"
             />
@@ -59,7 +59,7 @@
           </div>
           <div class="park">
             <div class="title">
-              <span>{{ $t('base.parkTitle') }}</span>
+              <span>{{ I18nT('base.parkTitle') }}</span>
               <el-popover placement="top" trigger="hover" width="auto">
                 <template #reference>
                   <yb-icon
@@ -71,7 +71,7 @@
                 </template>
                 <template #default>
                   <p>
-                    {{ $t('base.parkTips') }}
+                    {{ I18nT('base.parkTips') }}
                   </p>
                 </template>
               </el-popover>
@@ -80,15 +80,15 @@
           </div>
         </div>
 
-        <div class="plant-title">{{ $t('base.phpVersion') }}</div>
+        <div class="plant-title">{{ I18nT('base.phpVersion') }}</div>
         <div class="main">
           <div class="port-set">
             <el-select
               v-model="item.phpVersion"
               class="w-p100"
-              :placeholder="$t('base.selectPhpVersion')"
+              :placeholder="I18nT('base.selectPhpVersion')"
             >
-              <el-option :value="undefined" :label="$t('host.staticSite')"></el-option>
+              <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
               <template v-for="(v, i) in phpVersions" :key="i">
                 <el-option :value="v.num" :label="v.num"></el-option>
               </template>
@@ -96,7 +96,7 @@
           </div>
         </div>
 
-        <div class="plant-title">{{ $t('host.hostPort') }}</div>
+        <div class="plant-title">{{ I18nT('host.hostPort') }}</div>
         <div class="main">
           <div class="port-set mb-20">
             <div class="port-type"> Nginx </div>
@@ -139,7 +139,7 @@
           </div>
         </div>
 
-        <div class="plant-title">{{ $t('host.hostSSL') }}</div>
+        <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
 
         <div class="main">
           <div class="ssl-switch">
@@ -148,7 +148,7 @@
           </div>
 
           <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
-            <span>{{ $t('host.autoSSL') }}</span>
+            <span>{{ I18nT('host.autoSSL') }}</span>
             <el-switch v-model="item.autoSSL"></el-switch>
           </div>
 
@@ -235,7 +235,7 @@
 
         <div class="plant-title">
           <span>Nginx Url Rewrite</span>
-          <el-popover placement="top" :title="$t('base.attention')" width="auto" trigger="hover">
+          <el-popover placement="top" :title="I18nT('base.attention')" width="auto" trigger="hover">
             <template #reference>
               <yb-icon
                 :svg="import('@/svg/question.svg?raw')"
@@ -244,7 +244,7 @@
                 style="margin-left: 5px"
               ></yb-icon>
             </template>
-            <p>{{ $t('base.nginxRewriteTips') }}</p>
+            <p>{{ I18nT('base.nginxRewriteTips') }}</p>
           </el-popover>
         </div>
 
@@ -252,7 +252,7 @@
           <el-select
             v-model="rewriteKey"
             filterable
-            :placeholder="$t('base.commonTemplates')"
+            :placeholder="I18nT('base.commonTemplates')"
             class="w-p100"
             @change="rewriteChange"
           >
@@ -349,7 +349,7 @@
     return appStore.hosts
   })
   const php = computed(() => {
-    return brewStore.php
+    return brewStore.module('php')
   })
   const phpVersions = computed(() => {
     const set: Set<number> = new Set()

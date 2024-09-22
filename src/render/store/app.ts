@@ -4,11 +4,10 @@ import IPC from '@/util/IPC'
 import { I18nT } from '@shared/lang'
 import EditorBaseConfig, { EditorConfig } from '@/store/module/EditorConfig'
 import { MessageError } from '@/util/Element'
+import type { AllAppModule } from '@/core/type'
 const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
-
-export type AllAppSofts = keyof typeof AppSofts
 
 export interface AppHost {
   id: number
@@ -51,113 +50,58 @@ export interface AppServerCurrent {
   run?: boolean
 }
 
-export enum AppSofts {
-  caddy = 'caddy',
-  nginx = 'nginx',
-  php = 'php',
-  mysql = 'mysql',
-  mariadb = 'mariadb',
-  apache = 'apache',
-  memcached = 'memcached',
-  redis = 'redis',
-  mongodb = 'mongodb',
-  postgresql = 'postgresql',
-  tomcat = 'tomcat',
-  'pure-ftpd' = 'pure-ftpd',
-  java = 'java',
-  composer = 'composer',
-  node = 'node'
+type AppShowItem = Partial<Record<AllAppModule, boolean>>
+
+type ServerBase = Partial<
+  Record<
+    AllAppModule,
+    {
+      current: AppServerCurrent
+    }
+  >
+>
+
+type SetupBase = Partial<
+  Record<
+    AllAppModule,
+    {
+      dirs?: Array<string>
+      write?: boolean
+    }
+  >
+>
+
+type StateBase = SetupBase & {
+  common: {
+    showItem: AppShowItem
+  }
+  hosts: {
+    write: boolean
+  }
+  proxy: {
+    on: boolean
+    fastProxy: string
+    proxy: string
+  }
+  lang: string
+  theme?: string
+  autoCheck: boolean
+  forceStart: boolean
+  showAIRobot: boolean
+  showTool?: boolean
+  phpBrewInited: boolean
+  mongodbBrewInited: boolean
+  currentNodeTool: 'fnm' | 'nvm' | ''
+  editorConfig: EditorConfig
+  phpGroupStart: { [k: string]: boolean }
 }
 
 interface State {
   hosts: Array<AppHost>
   config: {
-    server: {
-      [key in AppSofts]?: {
-        current: AppServerCurrent
-      }
-    }
+    server: ServerBase
     password: string
-    showTour: boolean
-    setup: {
-      common: {
-        showItem: {
-          Hosts: boolean
-          Nginx: boolean
-          Caddy: boolean
-          Apache: boolean
-          Mysql: boolean
-          mariadb: boolean
-          Php: boolean
-          Memcached: boolean
-          Redis: boolean
-          MongoDB: boolean
-          NodeJS: boolean
-          Tools: boolean
-          DNS: boolean
-          FTP: boolean
-          HttpServe?: boolean
-          PostgreSql?: boolean
-          java?: boolean
-          tomcat?: boolean
-        }
-      }
-      hosts: {
-        write: boolean
-      }
-      proxy: {
-        on: boolean
-        fastProxy: string
-        proxy: string
-      }
-      lang: string
-      theme?: string
-      postgresql: {
-        dirs: Array<string>
-      }
-      nginx: {
-        dirs: Array<string>
-      }
-      caddy: {
-        dirs: Array<string>
-      }
-      php: {
-        dirs: Array<string>
-      }
-      mysql: {
-        dirs: Array<string>
-      }
-      mariadb: {
-        dirs: Array<string>
-      }
-      apache: {
-        dirs: Array<string>
-      }
-      memcached: {
-        dirs: Array<string>
-      }
-      redis: {
-        dirs: Array<string>
-      }
-      mongodb: {
-        dirs: Array<string>
-      }
-      java?: {
-        dirs: Array<string>
-      }
-      tomcat?: {
-        dirs: Array<string>
-      }
-      autoCheck: boolean
-      forceStart: boolean
-      showAIRobot: boolean
-      showTool?: boolean
-      phpBrewInited: boolean
-      mongodbBrewInited: boolean
-      currentNodeTool: 'fnm' | 'nvm' | ''
-      editorConfig: EditorConfig
-      phpGroupStart: { [k: string]: boolean }
-    }
+    setup: StateBase
   }
   httpServe: Array<string>
   versionInited: boolean
@@ -168,99 +112,17 @@ interface State {
       host: Array<string>
     }
   }
+  currentPage: string
 }
 
 const state: State = {
   hosts: [],
   config: {
-    server: {
-      tomcat: {
-        current: {}
-      },
-      'pure-ftpd': {
-        current: {}
-      },
-      postgresql: {
-        current: {}
-      },
-      caddy: {
-        current: {}
-      },
-      nginx: {
-        current: {}
-      },
-      php: {
-        current: {}
-      },
-      mysql: {
-        current: {}
-      },
-      mariadb: {
-        current: {}
-      },
-      apache: {
-        current: {}
-      },
-      memcached: {
-        current: {}
-      },
-      redis: {
-        current: {}
-      },
-      mongodb: {
-        current: {}
-      }
-    },
+    server: {},
     password: '',
-    showTour: true,
     setup: {
       common: {
-        showItem: {
-          Hosts: true,
-          Nginx: true,
-          Caddy: true,
-          Apache: true,
-          Mysql: true,
-          mariadb: true,
-          Php: true,
-          Memcached: true,
-          Redis: true,
-          MongoDB: true,
-          NodeJS: true,
-          Tools: true,
-          DNS: true,
-          FTP: true
-        }
-      },
-      caddy: {
-        dirs: []
-      },
-      nginx: {
-        dirs: []
-      },
-      postgresql: {
-        dirs: []
-      },
-      apache: {
-        dirs: []
-      },
-      mysql: {
-        dirs: []
-      },
-      mariadb: {
-        dirs: []
-      },
-      php: {
-        dirs: []
-      },
-      memcached: {
-        dirs: []
-      },
-      redis: {
-        dirs: []
-      },
-      mongodb: {
-        dirs: []
+        showItem: {} as any
       },
       hosts: {
         write: true
@@ -283,7 +145,8 @@ const state: State = {
   },
   httpServe: [],
   versionInited: false,
-  httpServeService: {}
+  httpServeService: {},
+  currentPage: '/host'
 }
 
 export const AppStore = defineStore('app', {
@@ -297,7 +160,15 @@ export const AppStore = defineStore('app', {
     }
   },
   actions: {
-    UPDATE_SERVER_CURRENT({ flag, data }: { flag: AllAppSofts; data: AppServerCurrent }) {
+    serverCurrent(flag: AllAppModule) {
+      if (!this.config.server?.[flag]) {
+        this.config.server[flag] = reactive({
+          current: {}
+        })
+      }
+      return this.config.server[flag]
+    },
+    UPDATE_SERVER_CURRENT({ flag, data }: { flag: AllAppModule; data: AppServerCurrent }) {
       const server = JSON.parse(JSON.stringify(this.config.server))
       if (!server[flag]) {
         server[flag] = {}
@@ -372,19 +243,24 @@ export const AppStore = defineStore('app', {
         if (!config.password) {
           config.password = ''
         }
-        if (!config.server.memcached) {
-          config.server.memcached = {
-            current: {}
+        const showItem = config.setup.common.showItem
+        console.log('initConfig showItem: ', JSON.parse(JSON.stringify(showItem)))
+        const fixed: { [key: string]: boolean } = {}
+        const dict: any = {
+          ftp: 'pure-ftpd'
+        }
+        for (const k in showItem) {
+          if (showItem[k] === false) {
+            let nk = k.toLowerCase()
+            if (nk !== k) {
+              if (dict[nk]) {
+                nk = dict[nk]
+              }
+            }
+            fixed[nk] = false
           }
         }
-        if (!config.server.redis) {
-          config.server.redis = {
-            current: {}
-          }
-        }
-        if (config.setup.common.showItem.Caddy === undefined) {
-          config.setup.common.showItem.Caddy = true
-        }
+        config.setup.common.showItem = fixed
         this.INIT_CONFIG({
           server: config.server,
           password: config.password,
@@ -401,8 +277,7 @@ export const AppStore = defineStore('app', {
           server: this.config.server,
           password: this.config.password,
           setup: this.config.setup,
-          httpServe: this.httpServe,
-          showTour: this.config.showTour
+          httpServe: this.httpServe
         })
       )
       IPC.send('application:save-preference', args).then((key: string) => {

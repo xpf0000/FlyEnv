@@ -106,7 +106,7 @@ let fsWait = false
 const next = (base: string, file?: string | null) => {
   if (file) {
     if (fsWait) return
-    const currentMd5 = _md5(_fs.readFileSync(_path.join(base, file)))
+    const currentMd5 = _md5(_fs.readFileSync(_path.join(base, file))) as string
     if (currentMd5 == preveMd5) {
       return
     }
@@ -156,7 +156,7 @@ _fs.watch(
     if (filename) {
       if (fsWait) return
       const from = _path.join(staticPath, filename)
-      const currentMd5 = _md5(_fs.readFileSync(from))
+      const currentMd5 = _md5(_fs.readFileSync(from)) as string
       if (currentMd5 == preveMd5) {
         return
       }

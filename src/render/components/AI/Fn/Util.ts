@@ -1,5 +1,5 @@
 import type BaseTask from '@/components/AI/Task/BaseTask'
-import type { AllAppSofts } from '@/store/app'
+import type { AllAppModule } from '@/store/app'
 import installedVersions from '@/util/InstalledVersions'
 import { execPromiseRoot } from '@shared/Exec'
 
@@ -42,7 +42,7 @@ export function killPid(this: BaseTask, pids: Array<string>) {
   })
 }
 
-export function fetchInstalled(flags: Array<AllAppSofts>) {
+export function fetchInstalled(flags: Array<AllAppModule>) {
   return new Promise(async (resolve) => {
     installedVersions.allInstalledVersions(flags).then(() => {
       resolve(true)

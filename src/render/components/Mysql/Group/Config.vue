@@ -10,7 +10,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ $t('base.configFile') }}</span>
+          <span class="ml-15">{{ I18nT('base.configFile') }}</span>
         </div>
       </div>
 
@@ -18,14 +18,14 @@
         <div ref="input" class="block"></div>
       </div>
       <div class="tool">
-        <el-button :disabled="disabled" @click="openConfig">{{ $t('base.open') }}</el-button>
-        <el-button :disabled="disabled" @click="saveConfig">{{ $t('base.save') }}</el-button>
+        <el-button :disabled="disabled" @click="openConfig">{{ I18nT('base.open') }}</el-button>
+        <el-button :disabled="disabled" @click="saveConfig">{{ I18nT('base.save') }}</el-button>
         <el-button-group style="margin-left: 12px">
           <el-button :disabled="disabled" @click="loadCustom">{{
-            $t('base.loadCustom')
+            I18nT('base.loadCustom')
           }}</el-button>
           <el-button :disabled="disabled" @click="saveCustom">{{
-            $t('base.saveCustom')
+            I18nT('base.saveCustom')
           }}</el-button>
         </el-button-group>
       </div>
@@ -41,7 +41,7 @@
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
-  import { MysqlStore } from '@/store/mysql'
+  import { MysqlStore } from '../mysql'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
 
   const { existsSync, statSync, mkdirp, writeFile } = require('fs-extra')

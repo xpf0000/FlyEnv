@@ -74,7 +74,7 @@
 <script lang="tsx" setup>
   import { computed, ref } from 'vue'
   import type { Column } from 'element-plus'
-  import { FtpStore } from '@/store/ftp'
+  import { FtpStore } from './ftp'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { startService, stopService } from '@/util/Service'
@@ -93,7 +93,7 @@
   const brewStore = BrewStore()
 
   const versions = computed(() => {
-    return brewStore?.['pure-ftpd']?.installed
+    return brewStore.module('pure-ftpd').installed
   })
 
   const linkLocal = computed(() => {
@@ -104,8 +104,7 @@
   })
 
   const ftpFetching = computed(() => {
-    const installed = brewStore?.['pure-ftpd']?.installed
-    return installed?.some((i) => i.running)
+    return versions.value?.some((i) => i.running)
   })
 
   const ftpVersion = computed(() => {
@@ -113,8 +112,7 @@
     if (!current) {
       return undefined
     }
-    const installed = brewStore?.['pure-ftpd']?.installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+    return versions.value.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
   const currentVersion = computed({
@@ -151,7 +149,7 @@
   const ftpDisabled = computed(() => {
     return (
       !ftpVersion?.value?.version ||
-      brewStore?.['pure-ftpd']?.installed?.some((v) => v.running) ||
+      versions.value.some((v) => v.running) ||
       !appStore.versionInited
     )
   })
@@ -288,7 +286,7 @@
       headerCellRenderer: () => {
         return <span class="flex items-center">{I18nT('util.ftpTableHeadSetup')}</span>
       },
-      cellRenderer: ({ rowData: data }) => (
+      cellRenderer: ({ rowData: data }): any => (
         <div class="setup">
           <Edit class="setup-icon" onClick={() => doEdit(data)}>
             编辑

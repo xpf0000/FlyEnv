@@ -12,7 +12,7 @@ export function startApache(this: BaseTask) {
     const appStore = AppStore()
     const brewStore = BrewStore()
     const current = appStore.config.server?.apache?.current
-    const installed = brewStore?.apache?.installed
+    const installed = brewStore.module('apache').installed
     let apache = installed?.find((i) => i.path === current?.path && i.version === current?.version)
     if (!apache || !apache?.version) {
       apache = installed?.find((i) => !!i.path && !!i.version)

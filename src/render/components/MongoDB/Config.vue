@@ -136,7 +136,6 @@
         if (!existsSync(this.configPath)) {
           this.config = this.$t('base.needSelectVersion')
           const appStore = AppStore()
-          appStore.config.server.mongodb.current = {}
           appStore.saveConfig()
           return
         }

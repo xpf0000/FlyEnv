@@ -4,17 +4,17 @@
       <div ref="input" class="block"></div>
       <template #footer>
         <div class="tool">
-          <el-button :disabled="disabled" @click="openConfig">{{ $t('base.open') }}</el-button>
-          <el-button :disabled="disabled" @click="saveConfig">{{ $t('base.save') }}</el-button>
+          <el-button :disabled="disabled" @click="openConfig">{{ I18nT('base.open') }}</el-button>
+          <el-button :disabled="disabled" @click="saveConfig">{{ I18nT('base.save') }}</el-button>
           <el-button :disabled="disabled" @click="getDefault">{{
-            $t('base.loadDefault')
+            I18nT('base.loadDefault')
           }}</el-button>
           <el-button-group style="margin-left: 12px">
             <el-button :disabled="disabled" @click="loadCustom">{{
-              $t('base.loadCustom')
+              I18nT('base.loadCustom')
             }}</el-button>
             <el-button :disabled="disabled" @click="saveCustom">{{
-              $t('base.saveCustom')
+              I18nT('base.saveCustom')
             }}</el-button>
           </el-button-group>
         </div>
@@ -33,7 +33,7 @@
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { startService } from '@/util/Service'
-  import { FtpStore } from '@/store/ftp'
+  import { FtpStore } from './ftp'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageSuccess, MessageError } from '@/util/Element'
 
@@ -57,7 +57,7 @@
     if (!current) {
       return undefined
     }
-    const installed = brewStore?.['pure-ftpd']?.installed
+    const installed = brewStore.module('pure-ftpd').installed
     return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 

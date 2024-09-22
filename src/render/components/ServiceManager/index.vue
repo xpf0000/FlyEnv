@@ -6,7 +6,7 @@
           <span> {{ title }} </span>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
-              <span>{{ $t('base.customVersionDirTips') }}</span>
+              <span>{{ I18nT('base.customVersionDirTips') }}</span>
             </template>
             <template #reference>
               <el-button
@@ -59,7 +59,9 @@
     <el-table v-loading="service?.fetching" class="service-table" :data="versions">
       <el-table-column prop="version" width="140px">
         <template #header>
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ $t('base.version') }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{
+            I18nT('base.version')
+          }}</span>
         </template>
         <template #default="scope">
           <span
@@ -73,7 +75,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.path')" :prop="null">
+      <el-table-column :label="I18nT('base.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
             <el-popover popper-class="version-error-tips" width="auto" placement="top">
@@ -83,7 +85,7 @@
                 }}</span>
               </template>
               <template #default>
-                <span>{{ scope.row?.error ?? $t('base.versionErrorTips') }}</span>
+                <span>{{ scope.row?.error ?? I18nT('base.versionErrorTips') }}</span>
               </template>
             </el-popover>
           </template>
@@ -101,7 +103,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('php.quickStart')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <template
             v-if="
@@ -123,7 +125,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.service')" :prop="null" width="110px">
+      <el-table-column :label="I18nT('base.service')" :prop="null" width="110px">
         <template #default="scope">
           <template v-if="scope.row.running">
             <el-button :loading="true" link></el-button>
@@ -163,7 +165,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <EXT :item="scope.row" :type="typeFlag" />
         </template>
@@ -175,21 +177,22 @@
 <script lang="ts" setup>
   import { computed, type ComputedRef, reactive } from 'vue'
   import { reloadService, startService, stopService } from '@/util/Service'
-  import { type AllAppSofts, type AppHost, AppSofts, AppStore } from '@/store/app'
+  import { type AppHost, AppStore } from '@/store/app'
   import { BrewStore, type SoftInstalled } from '@/store/brew'
   import { I18nT } from '@shared/lang'
   import { MessageError, MessageSuccess } from '@/util/Element'
-  import { MysqlStore } from '@/store/mysql'
+  import { MysqlStore } from '@/components/Mysql/mysql'
   import { Service } from '@/components/ServiceManager/service'
   import installedVersions from '@/util/InstalledVersions'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import EXT from './EXT/index.vue'
+  import type { AllAppModule } from '@/core/type'
 
   const { shell } = require('@electron/remote')
 
   const props = defineProps<{
-    typeFlag: AllAppSofts
+    typeFlag: AllAppModule
     title: string
   }>()
 
@@ -207,7 +210,7 @@
   })
 
   const versions = computed(() => {
-    return brewStore?.[props.typeFlag]?.installed
+    return brewStore.module(props.typeFlag).installed
   })
 
   const version = computed(() => {
@@ -246,7 +249,7 @@
       return
     }
     service.value.fetching = true
-    const data = brewStore[props.typeFlag]!
+    const data = brewStore.module(props.typeFlag)
     data.installedInited = false
     installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
       service.value.fetching = false
@@ -261,7 +264,7 @@
     if (!item?.version || !item?.path) {
       return
     }
-    const typeFlag: keyof typeof AppSofts = props.typeFlag as any
+    const typeFlag = props.typeFlag
     let action: any
     switch (flag) {
       case 'stop':
@@ -336,9 +339,9 @@
     const toOpenHost = (item: AppHost) => {
       const host = item.name
       const brewStore = BrewStore()
-      const nginxRunning = brewStore.nginx!.installed.find((i) => i.run)
-      const apacheRunning = brewStore.apache!.installed.find((i) => i.run)
-      const caddyRunning = brewStore.caddy!.installed.find((i) => i.run)
+      const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
+      const apacheRunning = brewStore.module('apache').installed.find((i) => i.run)
+      const caddyRunning = brewStore.module('caddy').installed.find((i) => i.run)
       let http = 'http://'
       let port = 80
       if (item.useSSL) {

@@ -4,7 +4,7 @@
       <ul class="top-tool">
         <el-popover :show-after="800">
           <template #default>
-            <span>{{ $t('base.about') }}</span>
+            <span>{{ I18nT('base.about') }}</span>
           </template>
           <template #reference>
             <li @click="toDoc">
@@ -23,24 +23,9 @@
       </ul>
       <el-scrollbar>
         <ul class="menu top-menu">
-          <HostModule :current-page="currentPage" @nav="nav" />
-          <ApacheModule ref="apacheModule" :current-page="currentPage" @nav="nav" />
-          <NginxModule ref="nginxModule" :current-page="currentPage" @nav="nav" />
-          <CaddyModule ref="caddyModule" :current-page="currentPage" @nav="nav" />
-          <TomcatModule ref="tomcatModule" :current-page="currentPage" @nav="nav" />
-          <PhpModule ref="phpModule" :current-page="currentPage" @nav="nav" />
-          <MysqlModule ref="mysqlModule" :current-page="currentPage" @nav="nav" />
-          <MariadbModule ref="mariadbModule" :current-page="currentPage" @nav="nav" />
-          <MongodbModule ref="mongoModule" :current-page="currentPage" @nav="nav" />
-          <PostgreSqlModule ref="postgresqlModule" :current-page="currentPage" @nav="nav" />
-          <MemcachedModule ref="memcachedModule" :current-page="currentPage" @nav="nav" />
-          <RedisModule ref="redisModule" :current-page="currentPage" @nav="nav" />
-          <DnsModule ref="dnsModule" :current-page="currentPage" @nav="nav" />
-          <FtpModule ref="ftpModule" :current-page="currentPage" @nav="nav" />
-          <NodejsModule :current-page="currentPage" @nav="nav" />
-          <JavaModule :current-page="currentPage" @nav="nav" />
-          <HttpserveModule :current-page="currentPage" @nav="nav" />
-          <ToolsModule :current-page="currentPage" @nav="nav" />
+          <template v-for="(item, index) in AppModules" :key="index">
+            <component :is="item.aside"></component>
+          </template>
         </ul>
       </el-scrollbar>
       <ul class="menu setup-menu">
@@ -52,7 +37,7 @@
             <div class="icon-block">
               <yb-icon :svg="import('@/svg/setup.svg?raw')" width="30" height="30" />
             </div>
-            <span class="title">{{ $t('base.leftSetup') }}</span>
+            <span class="title">{{ I18nT('base.leftSetup') }}</span>
           </div>
         </li>
       </ul>
@@ -61,112 +46,34 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, watch } from 'vue'
+  import { computed, watch } from 'vue'
   import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
-  import { DnsStore } from '@/store/dns'
-  import { FtpStore } from '@/store/ftp'
   import { I18nT } from '@shared/lang'
   import Router from '@/router/index'
-
-  import HostModule from './module/host/index.vue'
-  import ApacheModule from './module/apache/index.vue'
-  import NginxModule from './module/nginx/index.vue'
-  import CaddyModule from './module/caddy/index.vue'
-  import PhpModule from './module/php/index.vue'
-  import MysqlModule from './module/mysql/index.vue'
-  import MariadbModule from './module/mariadb/index.vue'
-  import MongodbModule from './module/mongodb/index.vue'
-  import MemcachedModule from './module/memcached/index.vue'
-  import RedisModule from './module/redis/index.vue'
-  import DnsModule from './module/dns/index.vue'
-  import FtpModule from './module/ftp/index.vue'
-  import NodejsModule from './module/nodejs/index.vue'
-  import HttpserveModule from './module/httpserve/index.vue'
-  import ToolsModule from './module/tools/index.vue'
-  import PostgreSqlModule from './module/postgresql/index.vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
-  import { MysqlStore } from '@/store/mysql'
   import Base from '@/core/Base'
-  import JavaModule from './module/java/index.vue'
-  import TomcatModule from './module/tomcat/index.vue'
+  import { AppModules } from '@/core/App'
+  import { AppServiceModule, type AppServiceModuleItem } from '@/core/ASide'
+  import type { AllAppModule } from '@/core/type'
 
   let lastTray = ''
 
-  const apacheModule = ref()
-  const caddyModule = ref()
-  const tomcatModule = ref()
-  const nginxModule = ref()
-  const phpModule = ref()
-  const mysqlModule = ref()
-  const mariadbModule = ref()
-  const mongoModule = ref()
-  const memcachedModule = ref()
-  const redisModule = ref()
-  const dnsModule = ref()
-  const ftpModule = ref()
-  const postgresqlModule = ref()
-
   const appStore = AppStore()
-  const dnsStore = DnsStore()
-  const ftpStore = FtpStore()
-  const mysqlStore = MysqlStore()
 
-  const currentPage = ref('/host')
-
-  const showItem = computed(() => {
-    return appStore.config.setup.common.showItem
+  const currentPage = computed(() => {
+    return appStore.currentPage
   })
 
   const groupIsRunning = computed(() => {
-    return (
-      nginxModule?.value?.serviceRunning ||
-      apacheModule?.value?.serviceRunning ||
-      mysqlModule?.value?.serviceRunning ||
-      mariadbModule?.value?.serviceRunning ||
-      phpModule?.value?.serviceRunning ||
-      redisModule?.value?.serviceRunning ||
-      memcachedModule?.value?.serviceRunning ||
-      mongoModule?.value?.serviceRunning ||
-      dnsModule?.value?.serviceRunning ||
-      ftpModule?.value?.serviceRunning ||
-      postgresqlModule?.value?.serviceRunning ||
-      caddyModule?.value?.serviceRunning ||
-      tomcatModule?.value?.serviceRunning
-    )
+    return Object.values(AppServiceModule).some((m) => !!m?.serviceRunning)
   })
 
   const groupDisabled = computed(() => {
-    const allDisabled =
-      apacheModule?.value?.serviceDisabled &&
-      memcachedModule?.value?.serviceDisabled &&
-      mysqlModule?.value?.serviceDisabled &&
-      mariadbModule?.value?.serviceDisabled &&
-      nginxModule?.value?.serviceDisabled &&
-      phpModule?.value?.serviceDisabled &&
-      redisModule?.value?.serviceDisabled &&
-      mongoModule?.value?.serviceDisabled &&
-      ftpModule?.value?.serviceDisabled &&
-      postgresqlModule?.value?.serviceDisabled &&
-      caddyModule?.value?.serviceDisabled &&
-      tomcatModule?.value?.serviceDisabled
-
-    const running =
-      apacheModule?.value?.serviceFetching ||
-      memcachedModule?.value?.serviceFetching ||
-      mysqlModule?.value?.serviceFetching ||
-      mariadbModule?.value?.serviceFetching ||
-      nginxModule?.value?.serviceFetching ||
-      phpModule?.value?.serviceFetching ||
-      redisModule?.value?.serviceFetching ||
-      mongoModule?.value?.serviceFetching ||
-      dnsModule?.value?.serviceFetching ||
-      ftpModule?.value?.serviceFetching ||
-      postgresqlModule?.value?.serviceFetching ||
-      caddyModule?.value?.serviceFetching ||
-      tomcatModule?.value?.serviceFetching
-
+    const modules = Object.values(AppServiceModule)
+    const allDisabled = modules.every((m) => !!m?.serviceDisabled)
+    const running = modules.some((m) => !!m?.serviceFetching)
     return allDisabled || running || !appStore.versionInited
   })
 
@@ -180,87 +87,22 @@
   })
 
   const trayStore = computed(() => {
+    const dict: any = {}
+    let k: AllAppModule
+    for (k in AppServiceModule) {
+      const m: AppServiceModuleItem = AppServiceModule[k]!
+      dict[k] = {
+        show: m.showItem,
+        disabled: m.serviceDisabled,
+        run: m.serviceRunning,
+        running: m.serviceFetching
+      }
+    }
     return {
-      tomcat: {
-        show: showItem?.value?.tomcat !== false,
-        disabled: tomcatModule?.value?.serviceDisabled,
-        run: tomcatModule?.value?.serviceRunning,
-        running: tomcatModule?.value?.serviceFetching
-      },
-      apache: {
-        show: showItem?.value?.Apache,
-        disabled: apacheModule?.value?.serviceDisabled,
-        run: apacheModule?.value?.serviceRunning,
-        running: apacheModule?.value?.serviceFetching
-      },
-      memcached: {
-        show: showItem?.value?.Memcached,
-        disabled: memcachedModule?.value?.serviceDisabled,
-        run: memcachedModule?.value?.serviceRunning,
-        running: memcachedModule?.value?.serviceFetching
-      },
-      mysql: {
-        show: showItem?.value?.Mysql,
-        disabled: mysqlModule?.value?.serviceDisabled,
-        run: mysqlModule?.value?.serviceRunning,
-        running: mysqlModule?.value?.serviceFetching
-      },
-      mariadb: {
-        show: showItem?.value?.mariadb,
-        disabled: mariadbModule?.value?.serviceDisabled,
-        run: mariadbModule?.value?.serviceRunning,
-        running: mariadbModule?.value?.serviceFetching
-      },
-      nginx: {
-        show: showItem?.value?.Nginx,
-        disabled: nginxModule?.value?.serviceDisabled,
-        run: nginxModule?.value?.serviceRunning,
-        running: nginxModule?.value?.serviceFetching
-      },
-      caddy: {
-        show: showItem?.value?.Caddy !== false,
-        disabled: caddyModule?.value?.serviceDisabled,
-        run: caddyModule?.value?.serviceRunning,
-        running: caddyModule?.value?.serviceFetching
-      },
+      ...dict,
       password: appStore?.config?.password,
       lang: appStore?.config?.setup?.lang,
       theme: appStore?.config?.setup?.theme,
-      php: {
-        show: showItem?.value?.Php,
-        disabled: phpModule?.value?.serviceDisabled,
-        run: phpModule?.value?.serviceRunning,
-        running: phpModule?.value?.serviceFetching
-      },
-      redis: {
-        show: showItem?.value?.Redis,
-        disabled: redisModule?.value?.serviceDisabled,
-        run: redisModule?.value?.serviceRunning,
-        running: redisModule?.value?.serviceFetching
-      },
-      mongodb: {
-        show: showItem?.value?.MongoDB,
-        disabled: mongoModule?.value?.serviceDisabled,
-        run: mongoModule?.value?.serviceRunning,
-        running: mongoModule?.value?.serviceFetching
-      },
-      dns: {
-        show: showItem?.value?.DNS,
-        run: dnsModule?.value?.serviceRunning,
-        running: dnsModule?.value?.serviceFetching
-      },
-      ftp: {
-        show: showItem?.value?.FTP,
-        disabled: ftpModule?.value?.serviceDisabled,
-        run: ftpModule?.value?.serviceRunning,
-        running: ftpModule?.value?.serviceFetching
-      },
-      postgresql: {
-        show: showItem?.value?.PostgreSql !== false,
-        disabled: postgresqlModule?.value?.serviceDisabled,
-        run: postgresqlModule?.value?.serviceRunning,
-        running: postgresqlModule?.value?.serviceFetching
-      },
       groupDisabled: groupDisabled.value,
       groupIsRunning: groupIsRunning.value
     }
@@ -304,29 +146,13 @@
       return
     }
     passwordCheck().then(() => {
-      const modules = [
-        apacheModule,
-        nginxModule,
-        phpModule,
-        mysqlModule,
-        mariadbModule,
-        mongoModule,
-        memcachedModule,
-        redisModule,
-        dnsModule,
-        ftpModule,
-        postgresqlModule,
-        caddyModule,
-        tomcatModule
-      ]
+      const modules = Object.values(AppServiceModule)
       const all: Array<Promise<string | boolean>> = []
-      modules.forEach((m: any) => {
-        const arr = m?.value?.groupDo(groupIsRunning?.value) ?? []
+      modules.forEach((m) => {
+        const arr = m?.groupDo(groupIsRunning?.value) ?? []
         all.push(...arr)
       })
       if (all.length > 0) {
-        let groupFn: () => Promise<true | string>
-        groupFn = groupIsRunning?.value ? mysqlStore.groupStop : mysqlStore.groupStart
         const err: Array<string> = []
         const run = () => {
           const task = all.pop()
@@ -344,9 +170,6 @@
               })
           } else {
             if (err.length === 0) {
-              if (showItem?.value?.Mysql) {
-                groupFn().then()
-              }
               MessageSuccess(I18nT('base.success'))
             } else {
               MessageError(err.join('<br/>'))
@@ -358,77 +181,28 @@
     })
   }
 
-  const switchChange = (flag: string) => {
-    switch (flag) {
-      case 'dns':
-        dnsModule?.value?.switchChange()
-        break
-      case 'nginx':
-        nginxModule?.value?.switchChange()
-        break
-      case 'mysql':
-        mysqlModule?.value?.switchChange()
-        break
-      case 'mariadb':
-        mariadbModule?.value?.switchChange()
-        break
-      case 'apache':
-        apacheModule?.value?.switchChange()
-        break
-      case 'memcached':
-        memcachedModule?.value?.switchChange()
-        break
-      case 'redis':
-        redisModule?.value?.switchChange()
-        break
-      case 'mongodb':
-        mongoModule?.value?.switchChange()
-        break
-      case 'ftp':
-        ftpModule?.value?.switchChange()
-        break
-      case 'postgresql':
-        postgresqlModule?.value?.switchChange()
-        break
-      case 'caddy':
-        caddyModule?.value?.switchChange()
-      case 'tomcat':
-        tomcatModule?.value?.switchChange()
-        break
-    }
+  const switchChange = (flag: AllAppModule) => {
+    AppServiceModule?.[flag]?.switchChange()
   }
 
   const nav = (page: string) => {
     return new Promise((resolve) => {
-      if (page === '/dns') {
-        dnsStore.getIP()
-      }
-      if (page === '/ftp') {
-        ftpStore.getIP()
-        ftpStore.getPort()
-        ftpStore.getAllFtp()
-      }
       if (currentPage.value === page) {
         resolve(true)
       }
       Router.push({
         path: page
       })
-        .then(() => {
-          resolve(true)
-        })
-        .catch((err) => {
-          console.log('router err: ', err)
-          resolve(true)
-        })
-      currentPage.value = page
+        .then()
+        .catch()
+      appStore.currentPage = page
     })
   }
 
   IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
     console.log('on APP:Tray-Command', key, fn, arg)
     if (fn === 'switchChange' && arg === 'php') {
-      phpModule?.value?.switchChange()
+      AppServiceModule.php?.switchChange()
       return
     }
     const fns: { [k: string]: Function } = {

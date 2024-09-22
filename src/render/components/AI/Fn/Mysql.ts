@@ -12,7 +12,7 @@ export function startMysql(this: BaseTask) {
     const appStore = AppStore()
     const brewStore = BrewStore()
     const current = appStore.config.server?.mysql?.current
-    const installed = brewStore?.mysql?.installed
+    const installed = brewStore.module('mysql').installed
     let mysql = installed?.find((i) => i.path === current?.path && i.version === current?.version)
     if (!mysql || !mysql?.version) {
       mysql = installed?.find((i) => !!i.path && !!i.version)

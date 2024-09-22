@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="$t('host.newProject')"
+    :title="I18nT('host.newProject')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
@@ -29,7 +29,7 @@
           </div>
           <div class="park">
             <div class="title">
-              <span>{{ $t('base.phpVersion') }}</span>
+              <span>{{ I18nT('base.phpVersion') }}</span>
             </div>
             <el-select v-model="form.php" filterable :disabled="loading || created">
               <template v-for="(v, k) in phpVersions" :key="k">
@@ -39,7 +39,7 @@
           </div>
           <div class="park">
             <div class="title">
-              <span>{{ $t('host.frameWork') }}</span>
+              <span>{{ I18nT('host.frameWork') }}</span>
             </div>
             <el-select v-model="form.framework" filterable :disabled="loading || created">
               <template v-for="(v, k) in Versions" :key="k">
@@ -57,18 +57,20 @@
     <template #footer>
       <div class="dialog-footer">
         <template v-if="!created">
-          <el-button @click="show = false">{{ $t('base.cancel') }}</el-button>
+          <el-button @click="show = false">{{ I18nT('base.cancel') }}</el-button>
           <el-button
             :loading="loading"
             :disabled="!createAble"
             type="primary"
             @click="doCreateProject"
-            >{{ $t('base.confirm') }}</el-button
+            >{{ I18nT('base.confirm') }}</el-button
           >
         </template>
         <template v-else>
-          <el-button @click="show = false">{{ $t('base.confirm') }}</el-button>
-          <el-button type="primary" @click="doCreateHost">{{ $t('host.toCreateHost') }}</el-button>
+          <el-button @click="show = false">{{ I18nT('base.confirm') }}</el-button>
+          <el-button type="primary" @click="doCreateHost">{{
+            I18nT('host.toCreateHost')
+          }}</el-button>
         </template>
       </div>
     </template>
@@ -101,8 +103,7 @@
   })
 
   const phpVersions = computed(() => {
-    console.log('phpVersions: ', brewStore?.php?.installed)
-    const all = brewStore?.php?.installed ?? []
+    const all = brewStore.module('php').installed
     return all.map((a) => {
       const v: any = {
         num: a.num,
