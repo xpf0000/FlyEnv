@@ -40,11 +40,23 @@ Main technology stack:
 
 [NodeJS](https://nodejs.org/)
 
+#### I18n
+
+dir: src/main/lang
+
+```typescript
+I18nT('update.checkForUpdates')
+```
+
 ### Fork Async Process
 
 All commands are executed here. Because it is an asynchronous process, it will not cause the main thread to block, causing the application to freeze.
 
 Dir: /src/fork
+
+Main technology stack:
+
+[NodeJS](https://nodejs.org/)
 
 All services are split into separate module files in /src/fork/module.
 
@@ -99,11 +111,132 @@ class Module extends Base {
 }
 ```
 
+#### I18n
+
+dir: src/fork/lang
+
+```typescript
+I18nT('fork.needPassWord')
+```
+
 ### Render Process(App Interface)
 
 dir: /src/render
 
-All modules split into /src/render/components
+Main technology stack:
+
+[Vue3](https://vuejs.org/)
+
+[Element-Plus](https://element-plus.org/)
+
+[Pinia](https://pinia.vuejs.org/)
+
+[Monaco-Editor](https://github.com/microsoft/monaco-editor)
+
+[NodeJS](https://nodejs.org/)
+
+
+All modules split into /src/render/components. The module will automatically load
+
+Define a module as follows:
+
+1. Add module flag in src/render/core/type.ts
+
+```typescript
+export enum AppModuleEnum {
+  caddy = 'caddy',
+  nginx = 'nginx',
+  php = 'php',
+  mysql = 'mysql',
+  mariadb = 'mariadb',
+  apache = 'apache',
+  memcached = 'memcached',
+  redis = 'redis',
+  mongodb = 'mongodb',
+  postgresql = 'postgresql',
+  tomcat = 'tomcat',
+  'pure-ftpd' = 'pure-ftpd',
+  java = 'java',
+  composer = 'composer',
+  node = 'node',
+  dns = 'dns',
+  hosts = 'hosts',
+  httpserver = 'httpserver',
+  tools = 'tools'
+}
+```
+
+2. Add module folder in /src/render/components. Then add Module.ts in module folder. Content is like this:
+
+```typescript
+import { defineAsyncComponent } from 'vue'
+import type { AppModuleItem } from '@/core/type'
+
+const module: AppModuleItem = {
+  typeFlag: 'redis',
+  label: 'Redis',
+  icon: import('@/svg/redis.svg?raw'),
+  index: defineAsyncComponent(() => import('./Index.vue')),
+  aside: defineAsyncComponent(() => import('./aside.vue')),
+  asideIndex: 11,
+  isService: true,
+  isTray: true
+}
+export default module
+```
+
+The AppModulaItem description is as follows:
+
+```typescript
+/**
+ * App Module Config
+ */
+export type AppModuleItem = {
+  /**
+   * Module flag has defined in AppModuleEnum
+   */
+  typeFlag: AllAppModule
+  /**
+   * Module label. display in Setup -> Menu Show/Hide & Tray Window
+   */
+  label?: string | LabelFn
+  /**
+   * Module icon. display in Tray Window
+   */
+  icon?: any
+  /**
+   * App left aside module component
+   */
+  aside: any
+  /**
+   * Module sort in app left aside
+   */
+  asideIndex: number
+  /**
+   * Module home page
+   */
+  index: any
+  /**
+   * If module is a service. can start/stop.
+   */
+  isService?: boolean
+  /**
+   * If module show in tray window
+   */
+  isTray?: boolean
+}
+```
+
+#### I18n
+
+dir: src/shared/lang
+
+You can also define the I18n of a module in the module folder. eg: /src/render/components/Setup/lang. I18n language configuration will automatically merge
+
+```typescript
+I18nT('fork.needPassWord')
+```
+
 
 
 

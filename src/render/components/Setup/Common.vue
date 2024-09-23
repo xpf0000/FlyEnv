@@ -15,7 +15,7 @@
           <el-row>
             <template v-for="(item, index) in AppModules" :key="index">
               <el-col :span="8">
-                <component :is="item.setup"></component>
+                <ModuleShowHide :label="item.label" :type-flag="item.typeFlag"></ModuleShowHide>
               </el-col>
             </template>
           </el-row>
@@ -82,6 +82,7 @@
   import { I18nT } from '@shared/lang'
   import Tool from './Tool/index.vue'
   import { AppModules } from '@/core/App'
+  import ModuleShowHide from './ModuleShowHide/index.vue'
 
   const appStore = AppStore()
 

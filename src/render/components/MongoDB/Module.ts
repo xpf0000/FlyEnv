@@ -8,7 +8,6 @@ const module: AppModuleItem = {
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 8,
-  setup: defineAsyncComponent(() => import('./setup.vue')),
   isService: true,
   isTray: true
 }

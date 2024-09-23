@@ -94,9 +94,7 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 
 [https://www.macphpstudy.com](https://www.macphpstudy.com)
 
-[https://www.phpwebstudy.com](https://www.phpwebstudy.com)
-
-[Discord Community:](https://discord.gg/E6vZDgm9) https://discord.gg/E6vZDgm9
+[Discord Community:](https://discord.gg/u5SuMGxjPE) https://discord.gg/u5SuMGxjPE
 
 ## ✨ FEATURES
 
@@ -171,6 +169,8 @@ Examples of things you can do include, but are not limited to:
 - Helping to share the software with a wider audience
 - Write a blog, or record a video.
 - Add features such as php extensions, software modules, common tools, etc.
+
+For developers You can take a look at this guide: [Development Guide](./DEV.md)
 
 Thank you to all the people who already contributed to PhpWebStudy!
 
