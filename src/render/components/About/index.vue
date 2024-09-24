@@ -84,11 +84,18 @@
         </el-col>
       </el-row>
     </template>
+    <div style="margin: 20px 20px 0">
+      <span style="margin-right: 12px">{{ $t('feedback.anythingToSay') }}</span>
+      <el-button type="primary" @click.stop="toFeedback">{{
+        $t('feedback.sendMessage')
+      }}</el-button>
+    </div>
   </div>
 </template>
 
 <script>
   import { AppStore } from '@/store/app.ts'
+  import { AsyncComponentShow } from '@/util/AsyncComponent.ts'
 
   const { app, shell } = require('@electron/remote')
   const version = app.getVersion()
@@ -117,6 +124,11 @@
       toHome(e) {
         e.preventDefault()
         shell.openExternal('https://www.macphpstudy.com')
+      },
+      toFeedback() {
+        import('@/components/Feedback/index.vue').then((res) => {
+          AsyncComponentShow(res.default).then()
+        })
       }
     }
   }

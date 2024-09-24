@@ -35,6 +35,34 @@ class App extends Base {
       resolve(true)
     })
   }
+
+  feedback(info: any) {
+    return new ForkPromise(async (resolve, reject) => {
+      const mac = await getMac()
+      const cpu = cpus()?.pop()?.model ?? ''
+      const uuid = md5(`${mac}-${cpu}`)
+
+      const data = {
+        uuid,
+        ...info
+      }
+
+      console.log('data: ', data)
+
+      axios({
+        url: 'https://api.macphpstudy.com/api/app/feedback_app',
+        method: 'post',
+        data,
+        proxy: this.getAxiosProxy()
+      })
+        .then(() => {
+          resolve(true)
+        })
+        .catch((e) => {
+          reject(e)
+        })
+    })
+  }
 }
 
 export default new App()
