@@ -1,7 +1,7 @@
 import type BaseTask from '@/components/AI/Task/BaseTask'
-import type { AllAppModule } from '@/store/app'
 import installedVersions from '@/util/InstalledVersions'
 import { execPromiseRoot } from '@shared/Exec'
+import type { AllAppModule } from '@/core/type'
 
 export function killPort(this: BaseTask, ports: Array<string>) {
   return new Promise(async (resolve) => {

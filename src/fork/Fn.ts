@@ -93,8 +93,8 @@ export function spawnPromise(
   opt?: { [k: string]: any }
 ): ForkPromise<any> {
   return new ForkPromise(async (resolve, reject, on) => {
-    const stdout: Array<Buffer> = []
-    const stderr: Array<Buffer> = []
+    const stdout: Array<Uint8Array> = []
+    const stderr: Array<Uint8Array> = []
     const env = await fixEnv()
     const child = spawn(
       cammand,
@@ -140,8 +140,8 @@ export async function spawnPromiseMore(
   promise: ForkPromise<any>
   spawn: ChildProcess
 }> {
-  const stdout: Array<Buffer> = []
-  const stderr: Array<Buffer> = []
+  const stdout: Array<Uint8Array> = []
+  const stderr: Array<Uint8Array> = []
   const env = await fixEnv()
   const child = spawn(
     cammand,

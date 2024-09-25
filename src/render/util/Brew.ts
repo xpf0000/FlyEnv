@@ -3,10 +3,12 @@ import Base from '@/core/Base'
 import { ElMessageBox } from 'element-plus'
 import { chmod } from '@shared/file'
 import XTerm from '@/util/XTerm'
-import { AllAppModule, AppStore } from '@/store/app'
+import { AppStore } from '@/store/app'
 import { BrewStore, type OnlineVersionItem } from '@/store/brew'
 import { I18nT } from '@shared/lang'
 import { MessageError } from '@/util/Element'
+import type { AllAppModule } from '@/core/type'
+
 const { getGlobal } = require('@electron/remote')
 const { join } = require('path')
 const { existsSync, unlinkSync, copyFileSync } = require('fs')
