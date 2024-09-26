@@ -42,7 +42,6 @@ export default class Application extends EventEmitter {
   ptyLastData = ''
   ptyLast?: PtyLast | null
   updateManager?: UpdateManager
-  dnsSuccessed = false
   forkManager?: ForkManager
 
   constructor() {
@@ -716,14 +715,12 @@ export default class Application extends EventEmitter {
         this.exitNodePty()
         break
       case 'DNS:start':
-        DnsServerManager.start(this.dnsSuccessed)
+        DnsServerManager.start()
           .then(() => {
             this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-            this.dnsSuccessed = true
           })
           .catch((e) => {
             this.windowManager.sendCommandTo(this.mainWindow!, command, key, e.toString())
-            this.dnsSuccessed = false
           })
         break
       case 'DNS:stop':

@@ -13,7 +13,10 @@ const external = [
   'os',
   'child_process',
   'child-process-promise',
-  'fs-extra'
+  'fs-extra',
+  'dns2',
+  'ip',
+  'tangerine'
 ]
 
 const dev: BuildOptions = {
@@ -58,9 +61,31 @@ const distFork: BuildOptions = {
   drop: ['debugger', 'console']
 }
 
+const devDNSFork: BuildOptions = {
+  platform: 'node',
+  entryPoints: ['src/fork/dns.ts'],
+  outfile: 'dist/electron/dns.js',
+  minify: true,
+  bundle: true,
+  external,
+  plugins: [BuildPlugin()]
+}
+
+const distDNSFork: BuildOptions = {
+  platform: 'node',
+  entryPoints: ['src/fork/dns.ts'],
+  outfile: 'dist/electron/dns.js',
+  minify: true,
+  bundle: true,
+  external,
+  plugins: [BuildPlugin()]
+}
+
 export default {
   dev,
   dist,
   devFork,
-  distFork
+  distFork,
+  devDNSFork,
+  distDNSFork
 }

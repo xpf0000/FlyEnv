@@ -23,7 +23,11 @@ async function launchViteDevServer(openInBrowser = false) {
 
 function buildMainProcess() {
   return new Promise((resolve, reject) => {
-    Promise.all([build(esbuildConfig.dev), build(esbuildConfig.devFork)])
+    Promise.all([
+      build(esbuildConfig.dev),
+      build(esbuildConfig.devFork),
+      build(esbuildConfig.devDNSFork)
+    ])
       .then(
         () => {
           try {

@@ -7,7 +7,7 @@ process.on('message', function (args: any) {
     AppI18n(args.Server.Lang)
     manager.init()
   } else {
-    manager.exec(args).then()
+    manager.exec(args).then().catch()
   }
 })
 export {}

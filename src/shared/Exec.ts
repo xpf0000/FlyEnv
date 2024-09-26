@@ -15,8 +15,8 @@ export function execPromiseRoot(
   stderr: string
 }> {
   return new ForkPromise(async (resolve, reject, on) => {
-    const stdout: Array<Buffer> = []
-    const stderr: Array<Buffer> = []
+    const stdout: Array<Uint8Array> = []
+    const stderr: Array<Uint8Array> = []
     const args: string[] = ['-S']
     let shFile = ''
     if (typeof params === 'string') {
@@ -57,7 +57,7 @@ export function execPromiseRoot(
         reject(new Error(Buffer.concat(stderr).toString().trim()))
       }
     }
-    const onPassword = (data: Buffer) => {
+    const onPassword = (data: Uint8Array) => {
       const str = data.toString()
       console.log('onPassword str: ', str, str.startsWith('Password:'))
       if (str.startsWith('Password:')) {
@@ -67,11 +67,11 @@ export function execPromiseRoot(
       }
       on(str)
     }
-    child?.stdout?.on('data', (data: Buffer) => {
+    child?.stdout?.on('data', (data: Uint8Array) => {
       stdout.push(data)
       onPassword(data)
     })
-    child?.stderr?.on('data', (err: Buffer) => {
+    child?.stderr?.on('data', (err: Uint8Array) => {
       stderr.push(err)
       onPassword(err)
     })
@@ -89,8 +89,8 @@ export function execPromiseRootWhenNeed(
   stderr: string
 }> {
   return new ForkPromise(async (resolve, reject, on) => {
-    const stdout: Array<Buffer> = []
-    const stderr: Array<Buffer> = []
+    const stdout: Array<Uint8Array> = []
+    const stderr: Array<Uint8Array> = []
     const env = await fixEnv()
     const child = spawn(
       command,
@@ -116,7 +116,7 @@ export function execPromiseRootWhenNeed(
         reject(new Error(Buffer.concat(stderr).toString().trim()))
       }
     }
-    const onPassword = (data: Buffer) => {
+    const onPassword = (data: Uint8Array) => {
       const str = data.toString()
       console.log('onPassword str: ', str, str.startsWith('Password:'))
       if (str.includes('Password:')) {
@@ -126,11 +126,11 @@ export function execPromiseRootWhenNeed(
       }
       on(str)
     }
-    child?.stdout?.on('data', (data: Buffer) => {
+    child?.stdout?.on('data', (data: Uint8Array) => {
       stdout.push(data)
       onPassword(data)
     })
-    child?.stderr?.on('data', (err: Buffer) => {
+    child?.stderr?.on('data', (err: Uint8Array) => {
       stderr.push(err)
       onPassword(err)
     })
