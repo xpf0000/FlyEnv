@@ -168,5 +168,12 @@ export default {
   themeLight: 'Light',
   themeAuto: 'System',
 
-  addToPath: 'Add To PATH'
+  addToPath: 'Add To PATH',
+
+  showHideTips: 'Whether to show hidden versions',
+  hide: 'Hidden Version',
+  noHide: 'Unhide',
+  delServiceSoftTips: 'Are you sure you want to hide this version?',
+  delSoftAlertContent:
+    'In order to ensure the safe of user data, PWS no longer provides the function of automatically deleting installed software. If you are sure you want to delete it, click OK. Manually delete the software in the open folder.'
 }

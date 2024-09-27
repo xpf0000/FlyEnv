@@ -1,68 +1,109 @@
 <template>
-    <el-popover @before-enter="onBeforEnter" @show="onShow" effect="dark" popper-class="host-list-poper"
-        placement="left-start" :show-arrow="false" width="auto">
-        <ul v-poper-fix class="host-list-menu">
-            <li v-loading="loading" class="path-set" :class="state" @click.stop="doChange">
-                <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
-                <span class="ml-15">{{ $t('base.addToPath') }}</span>
-            </li>
-            <li v-loading="delLoading" @click.stop="doDel">
-                <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('base.del') }}</span>
-            </li>
-        </ul>
-        <template #reference>
-            <el-button link class="status">
-                <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
-            </el-button>
-        </template>
-    </el-popover>
+  <el-popover
+    effect="dark"
+    popper-class="host-list-poper"
+    placement="left-start"
+    :show-arrow="false"
+    width="auto"
+    @before-enter="onBeforEnter"
+    @show="onShow"
+  >
+    <ul v-poper-fix class="host-list-menu">
+      <li v-loading="loading" class="path-set" :class="state" @click.stop="doChange">
+        <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+        <span class="ml-15">{{ $t('base.addToPath') }}</span>
+      </li>
+      <template v-if="isVersionHide">
+        <li v-loading="delLoading" @click.stop="doShow">
+          <yb-icon :svg="import('@/svg/show.svg?raw')" width="13" height="13" />
+          <span class="ml-15">{{ $t('base.noHide') }}</span>
+        </li>
+      </template>
+      <template v-else>
+        <li v-loading="delLoading" @click.stop="doHide">
+          <yb-icon :svg="import('@/svg/hide.svg?raw')" width="13" height="13" />
+          <span class="ml-15">{{ $t('base.hide') }}</span>
+        </li>
+      </template>
+    </ul>
+    <template #reference>
+      <el-button link class="status">
+        <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+      </el-button>
+    </template>
+  </el-popover>
 </template>
 <script lang="ts" setup>
-import { computed } from 'vue'
-import type { SoftInstalled } from '@/store/brew'
-import { ServiceActionStore } from './store'
+  import { computed, reactive } from 'vue'
+  import type { SoftInstalled } from '@/store/brew'
+  import { ServiceActionStore } from './store'
+  import { AppStore } from '@/store/app'
 
-const { dirname } = require('path')
+  const { dirname } = require('path')
 
-const props = defineProps<{
-    item: SoftInstalled,
+  const props = defineProps<{
+    item: SoftInstalled
     type: string
-}>()
+  }>()
 
-const loading = computed(() => {
+  const store = AppStore()
+
+  const excludeLocalVersion = computed(() => {
+    return store.config.setup.excludeLocalVersion ?? []
+  })
+
+  const isVersionHide = computed(() => {
+    return excludeLocalVersion?.value?.includes(props.item.bin)
+  })
+
+  const loading = computed(() => {
     return ServiceActionStore.pathSeting?.[props.item.bin] ?? false
-})
+  })
 
-const delLoading = computed(() => {
+  const delLoading = computed(() => {
     return ServiceActionStore.versionDeling?.[props.item.bin] ?? false
-})
+  })
 
-const state = computed(() => {
+  const state = computed(() => {
     if (ServiceActionStore.allPath.length === 0) {
-        return ''
+      return ''
     }
     if (ServiceActionStore.allPath.includes(dirname(props.item.bin))) {
-        return 'seted'
+      return 'seted'
     }
     return 'noset'
-})
+  })
 
-const onBeforEnter = () => {
+  const onBeforEnter = () => {
     console.log('onBeforEnter !!!')
     ServiceActionStore.fetchPath()
-}
+  }
 
-const onShow = () => {
+  const onShow = () => {
     console.log('onShow !!!')
-}
+  }
 
-const doChange = () => {
+  const doChange = () => {
     ServiceActionStore.updatePath(props.item, props.type)
-}
+  }
 
-const doDel = () => {
-    console.log('doDel: ', props.item, props.type)
-    ServiceActionStore.delVersion(props.item, props.type)
-}
+  const doShow = () => {
+    const arr = store.config.setup.excludeLocalVersion
+    if (!arr) {
+      return
+    }
+    const index = arr.indexOf(props.item.bin)
+    if (index >= 0) {
+      arr.splice(index, 1)
+    }
+    store.saveConfig().then()
+  }
+
+  const doHide = () => {
+    if (!store.config.setup?.excludeLocalVersion) {
+      store.config.setup.excludeLocalVersion = reactive([])
+    }
+    store.config.setup.excludeLocalVersion.push(props.item.bin)
+    store.saveConfig().then()
+  }
 </script>

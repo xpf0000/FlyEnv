@@ -79,6 +79,7 @@ interface State {
     password: string
     showTour: boolean
     setup: {
+      serviceShowHide: Record<string, boolean>
       common: {
         showItem: {
           Hosts: boolean
@@ -211,6 +212,7 @@ const state: State = {
     password: '',
     showTour: true,
     setup: {
+      serviceShowHide: {},
       excludeLocalVersion: [],
       common: {
         showItem: {
