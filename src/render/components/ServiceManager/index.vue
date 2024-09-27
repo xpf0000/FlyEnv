@@ -26,7 +26,7 @@
                 <el-button link style="padding: 0" @click.stop="isShowHide = false">
                   <yb-icon
                     :svg="import('@/svg/show.svg?raw')"
-                    style="width: 20px; height: 20px; color: #409eff"
+                    style="width: 24px; height: 24px; color: #409eff"
                     :class="{ 'fa-spin': service?.fetching }"
                   ></yb-icon>
                 </el-button>
@@ -35,7 +35,7 @@
                 <el-button link style="padding: 0" @click.stop="isShowHide = true">
                   <yb-icon
                     :svg="import('@/svg/hide.svg?raw')"
-                    style="width: 20px; height: 20px"
+                    style="width: 23px; height: 23px"
                     :class="{ 'fa-spin': service?.fetching }"
                   ></yb-icon>
                 </el-button>
@@ -336,10 +336,15 @@
   }
 
   const doShow = (bin: string) => {
-    const index = excludeLocalVersion?.value?.indexOf(bin)
-    if (index >= 0) {
-      excludeLocalVersion?.value?.splice(index, 1)
+    const setup = JSON.parse(JSON.stringify(appStore.config.setup))
+    if (!setup?.excludeLocalVersion) {
+      setup.excludeLocalVersion = reactive([])
     }
+    const index = setup.excludeLocalVersion.indexOf(bin)
+    if (index >= 0) {
+      setup.excludeLocalVersion.splice(index, 1)
+    }
+    appStore.config.setup = reactive(setup)
     appStore.saveConfig().then()
   }
 
