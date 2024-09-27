@@ -171,21 +171,12 @@
         }
       )
     } else {
-      Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+      Base._Confirm(I18nT('base.delSoftAlertContent'), undefined, {
         customClass: 'confirm-del',
         type: 'warning'
       })
         .then(() => {
-          try {
-            if (existsSync(row.appDir)) {
-              removeSync(row.appDir)
-            }
-            row.installed = false
-            regetInstalled()
-            MessageSuccess(I18nT('base.success'))
-          } catch (e) {
-            MessageError(I18nT('base.fail'))
-          }
+          shell.showItemInFolder(row.appDir)
         })
         .catch(() => {})
     }

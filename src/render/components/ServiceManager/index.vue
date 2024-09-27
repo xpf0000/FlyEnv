@@ -23,19 +23,19 @@
             </template>
             <template #reference>
               <template v-if="isShowHide">
-                <el-button link @click.stop="isShowHide = false">
+                <el-button link style="padding: 0" @click.stop="isShowHide = false">
                   <yb-icon
                     :svg="import('@/svg/show.svg?raw')"
-                    style="width: 27px; height: 27px; color: #409eff"
+                    style="width: 20px; height: 20px; color: #409eff"
                     :class="{ 'fa-spin': service?.fetching }"
                   ></yb-icon>
                 </el-button>
               </template>
               <template v-else>
-                <el-button link @click.stop="isShowHide = true">
+                <el-button link style="padding: 0" @click.stop="isShowHide = true">
                   <yb-icon
                     :svg="import('@/svg/hide.svg?raw')"
-                    style="width: 25px; height: 25px"
+                    style="width: 20px; height: 20px"
                     :class="{ 'fa-spin': service?.fetching }"
                   ></yb-icon>
                 </el-button>
@@ -151,7 +151,7 @@
       <el-table-column :label="$t('base.service')" :prop="null" width="110px">
         <template #default="scope">
           <template v-if="excludeLocalVersion.includes(scope.row.bin)">
-            <el-button link>
+            <el-button link @click.stop="doShow(scope.row.bin)">
               <yb-icon
                 :svg="import('@/svg/hide.svg?raw')"
                 style="width: 25px; height: 25px"
@@ -333,6 +333,14 @@
         MessageError(res?.msg ?? I18nT('base.fail'))
       })
     }
+  }
+
+  const doShow = (bin: string) => {
+    const index = excludeLocalVersion?.value?.indexOf(bin)
+    if (index >= 0) {
+      excludeLocalVersion?.value?.splice(index, 1)
+    }
+    appStore.saveConfig().then()
   }
 
   const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: SoftInstalled) => {
