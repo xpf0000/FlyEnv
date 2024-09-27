@@ -35,7 +35,7 @@
 </template>
 <script lang="ts" setup>
   import { computed, reactive } from 'vue'
-  import type { SoftInstalled } from '@/store/brew'
+  import { BrewStore, SoftInstalled } from '@/store/brew'
   import { ServiceActionStore } from './store'
   import { AppStore } from '@/store/app'
 
@@ -47,6 +47,7 @@
   }>()
 
   const store = AppStore()
+  const brewStore = BrewStore()
 
   const excludeLocalVersion = computed(() => {
     return store.config.setup.excludeLocalVersion ?? []
@@ -93,5 +94,10 @@
 
   const doHide = () => {
     store.serviceHide(props.item.bin)
+    const server: any = store.config.server
+    const current = server?.[props.type]?.current
+    if (current && current?.bin === props.item.bin) {
+      const all = brewStore?.[props.type]
+    }
   }
 </script>

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { reactive } from 'vue'
 
 export interface SoftInstalled {
   version: string | null
@@ -154,5 +155,22 @@ const state: State = {
 export const BrewStore = defineStore('brew', {
   state: (): State => state,
   getters: {},
-  actions: {}
+  actions: {
+    module(flag: string): AppSoftInstalledItem {
+      const f: keyof State = flag as any
+      if (!this?.[f]) {
+        this[f] = reactive({
+          getListing: false,
+          installedInited: false,
+          installed: [],
+          list: {
+            brew: {},
+            port: {},
+            static: {}
+          }
+        })
+      }
+      return this[f]
+    }
+  }
 })
