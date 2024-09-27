@@ -26,7 +26,7 @@
                 <el-button link @click.stop="isShowHide = false">
                   <yb-icon
                     :svg="import('@/svg/show.svg?raw')"
-                    style="width: 29px; height: 29px; color: #409eff"
+                    style="width: 27px; height: 27px; color: #409eff"
                     :class="{ 'fa-spin': service?.fetching }"
                   ></yb-icon>
                 </el-button>
@@ -35,7 +35,7 @@
                 <el-button link @click.stop="isShowHide = true">
                   <yb-icon
                     :svg="import('@/svg/hide.svg?raw')"
-                    style="width: 29px; height: 29px"
+                    style="width: 25px; height: 25px"
                     :class="{ 'fa-spin': service?.fetching }"
                   ></yb-icon>
                 </el-button>
@@ -150,40 +150,51 @@
       </el-table-column>
       <el-table-column :label="$t('base.service')" :prop="null" width="110px">
         <template #default="scope">
-          <template v-if="scope.row.running">
-            <el-button :loading="true" link></el-button>
+          <template v-if="excludeLocalVersion.includes(scope.row.bin)">
+            <el-button link>
+              <yb-icon
+                :svg="import('@/svg/hide.svg?raw')"
+                style="width: 25px; height: 25px"
+                :class="{ 'fa-spin': service?.fetching }"
+              ></yb-icon>
+            </el-button>
           </template>
           <template v-else>
-            <template v-if="scope.row.run">
-              <el-button link class="status running" :class="{ disabled: versionRunning }">
-                <yb-icon
-                  :svg="import('@/svg/stop2.svg?raw')"
-                  @click.stop="serviceDo('stop', scope.row)"
-                />
-              </el-button>
-              <el-button link class="status refresh" :class="{ disabled: versionRunning }">
-                <yb-icon
-                  :svg="import('@/svg/icon_refresh.svg?raw')"
-                  @click.stop="serviceDo('restart', scope.row)"
-                />
-              </el-button>
+            <template v-if="scope.row.running">
+              <el-button :loading="true" link></el-button>
             </template>
             <template v-else>
-              <el-button
-                link
-                class="status start"
-                :class="{
-                  disabled: versionRunning || !scope.row.version,
-                  current:
-                    currentVersion?.version === scope.row.version &&
-                    currentVersion?.path === scope.row.path
-                }"
-              >
-                <yb-icon
-                  :svg="import('@/svg/play.svg?raw')"
-                  @click.stop="serviceDo('start', scope.row)"
-                />
-              </el-button>
+              <template v-if="scope.row.run">
+                <el-button link class="status running" :class="{ disabled: versionRunning }">
+                  <yb-icon
+                    :svg="import('@/svg/stop2.svg?raw')"
+                    @click.stop="serviceDo('stop', scope.row)"
+                  />
+                </el-button>
+                <el-button link class="status refresh" :class="{ disabled: versionRunning }">
+                  <yb-icon
+                    :svg="import('@/svg/icon_refresh.svg?raw')"
+                    @click.stop="serviceDo('restart', scope.row)"
+                  />
+                </el-button>
+              </template>
+              <template v-else>
+                <el-button
+                  link
+                  class="status start"
+                  :class="{
+                    disabled: versionRunning || !scope.row.version,
+                    current:
+                      currentVersion?.version === scope.row.version &&
+                      currentVersion?.path === scope.row.path
+                  }"
+                >
+                  <yb-icon
+                    :svg="import('@/svg/play.svg?raw')"
+                    @click.stop="serviceDo('start', scope.row)"
+                  />
+                </el-button>
+              </template>
             </template>
           </template>
         </template>
@@ -257,7 +268,16 @@
     return Service[props.typeFlag]
   })
 
+  const excludeLocalVersion = computed(() => {
+    return appStore.config.setup?.excludeLocalVersion ?? []
+  })
+
   const versions = computed(() => {
+    if (!isShowHide?.value) {
+      return brewStore?.[props.typeFlag]?.installed?.filter(
+        (i) => !excludeLocalVersion.value.includes(i.bin)
+      )
+    }
     return brewStore?.[props.typeFlag]?.installed
   })
 
