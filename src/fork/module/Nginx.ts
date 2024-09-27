@@ -2,10 +2,20 @@ import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromiseRoot, waitTime } from '../Fn'
+import {
+  execPromiseRoot,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionInitedApp,
+  versionLocalFetch,
+  versionSort,
+  waitTime
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, unlink } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
+import TaskQueue from '../TaskQueue'
 
 class Nginx extends Base {
   constructor() {
@@ -24,7 +34,7 @@ class Nginx extends Base {
       try {
         const content = await readFile(hostfile, 'utf-8')
         host = JSON.parse(content)
-      } catch (e) { }
+      } catch (e) {}
     }
     const all = new Set(host.map((h: any) => h.phpVersion).filter((h: number | undefined) => !!h))
     const tmplFile = join(global.Server.Static!, 'tmpl/enable-php.conf')
@@ -54,7 +64,10 @@ class Nginx extends Base {
           .then((content: string) => {
             content = content
               .replace(/#PREFIX#/g, global.Server.NginxDir!.split('\\').join('/'))
-              .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx').split('\\').join('/'))
+              .replace(
+                '#VHostPath#',
+                join(global.Server.BaseDir!, 'vhost/nginx').split('\\').join('/')
+              )
             const defaultConf = join(global.Server.NginxDir!, 'conf/nginx.conf.default')
             return Promise.all([writeFile(conf, content), writeFile(defaultConf, content)])
           })
@@ -83,7 +96,7 @@ class Nginx extends Base {
         if (existsSync(pid)) {
           await unlink(pid)
         }
-      } catch (e) { }
+      } catch (e) {}
 
       const waitPid = async (time = 0): Promise<boolean> => {
         let res = false
@@ -92,7 +105,7 @@ class Nginx extends Base {
         } else {
           if (time < 40) {
             await waitTime(500)
-            res = res || await waitPid(time + 1)
+            res = res || (await waitPid(time + 1))
           } else {
             res = false
           }
@@ -102,10 +115,10 @@ class Nginx extends Base {
       }
 
       try {
-        process.chdir(dirname(bin));
-        console.log(`新的工作目录: ${process.cwd()}`);
+        process.chdir(dirname(bin))
+        console.log(`新的工作目录: ${process.cwd()}`)
       } catch (err) {
-        console.error(`改变工作目录失败: ${err}`);
+        console.error(`改变工作目录失败: ${err}`)
       }
       const command = `start /b ./${basename(bin)} -p "${p}"`
       console.log('command: ', command)
@@ -131,7 +144,12 @@ class Nginx extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('nginx')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `nginx-${a.version}`, `nginx-${a.version}`, 'nginx.exe')
+          const dir = join(
+            global.Server.AppDir!,
+            `nginx-${a.version}`,
+            `nginx-${a.version}`,
+            'nginx.exe'
+          )
           const zip = join(global.Server.Cache!, `nginx-${a.version}.zip`)
           a.appDir = join(global.Server.AppDir!, `nginx-${a.version}`)
           a.zip = zip
@@ -143,6 +161,43 @@ class Nginx extends Base {
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.nginx?.dirs ?? [], 'nginx.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} -v`
+            const reg = /(\/)(\d+(\.\d+){1,4})(.*?)/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          const appInited = await versionInitedApp('nginx', 'nginx.exe')
+          versions.push(...appInited)
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

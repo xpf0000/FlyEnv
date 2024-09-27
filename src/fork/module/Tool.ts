@@ -161,11 +161,7 @@ class Manager extends Base {
     })
   }
 
-  sslMake(param: {
-    domains: string
-    root: string
-    savePath: string
-  }) {
+  sslMake(param: { domains: string; root: string; savePath: string }) {
     return new ForkPromise(async (resolve, reject) => {
       const openssl = join(global.Server.AppDir!, 'openssl/bin/openssl.exe')
       if (!existsSync(openssl)) {
@@ -175,7 +171,7 @@ class Manager extends Base {
       if (!existsSync(opensslCnf)) {
         await copyFile(join(global.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
       }
-      let domains = param.domains
+      const domains = param.domains
         .split('\n')
         .map((item) => {
           return item.trim()
@@ -183,7 +179,7 @@ class Manager extends Base {
         .filter((item) => {
           return item && item.length > 0
         })
-      let saveName = uuid(6) + '.' + domains[0].replace('*.', '')
+      const saveName = uuid(6) + '.' + domains[0].replace('*.', '')
       let caFile = param.root
       let caFileName = basename(caFile)
       if (caFile.length === 0) {
@@ -196,24 +192,24 @@ class Manager extends Base {
       if (!existsSync(caFile + '.crt')) {
         const caKey = join(param.savePath, `${caFileName}.key`)
 
-        process.chdir(dirname(openssl));
+        process.chdir(dirname(openssl))
         let command = `${basename(openssl)} genrsa -out "${caKey}" 2048`
         await execPromiseRoot(command)
 
         const caCSR = join(param.savePath, `${caFileName}.csr`)
 
-        process.chdir(dirname(openssl));
+        process.chdir(dirname(openssl))
         command = `${basename(openssl)} req -new -key "${caKey}" -out "${caCSR}" -sha256 -subj "/CN=Dev Root CA ${caFileName}" -config "${opensslCnf}"`
         await execPromiseRoot(command)
 
-        process.chdir(param.savePath);
+        process.chdir(param.savePath)
         command = `echo basicConstraints=CA:true > "${caFileName}.cnf"`
         await execPromiseRoot(command)
 
         const caCRT = join(param.savePath, `${caFileName}.crt`)
         const caCnf = join(param.savePath, `${caFileName}.cnf`)
 
-        process.chdir(dirname(openssl));
+        process.chdir(dirname(openssl))
         command = `${basename(openssl)} x509 -req -in "${caCSR}" -signkey "${caKey}" -out "${caCRT}" -extfile "${caCnf}" -sha256 -days 3650`
         await execPromiseRoot(command)
       }
@@ -235,11 +231,11 @@ subjectAltName=@alt_names
       const saveCrt = join(param.savePath, `${saveName}.crt`)
       const saveExt = join(param.savePath, `${saveName}.ext`)
 
-      process.chdir(dirname(openssl));
+      process.chdir(dirname(openssl))
       let command = `${basename(openssl)} req -new -newkey rsa:2048 -nodes -keyout "${saveKey}" -out "${saveCSR}" -sha256 -subj "/CN=${saveName}" -config "${opensslCnf}"`
       await execPromiseRoot(command)
 
-      process.chdir(dirname(openssl));
+      process.chdir(dirname(openssl))
       command = `${basename(openssl)} x509 -req -in "${saveCSR}" -out "${saveCrt}" -extfile "${saveExt}" -CA "${caFile}.crt" -CAkey "${caFile}.key" -CAcreateserial -sha256 -days 3650`
       await execPromiseRoot(command)
 
@@ -257,17 +253,19 @@ subjectAltName=@alt_names
       const command = `wmic process get commandline,ProcessId | findstr "${name}"`
       const res = await execPromiseRoot(command)
       const lines = res?.stdout?.trim()?.split('\n') ?? []
-      const list = lines.filter(s => !s.includes(`findstr `)).map((i) => {
-        const all = i.split(' ').filter((s: string) => {
-          return !!s.trim()
+      const list = lines
+        .filter((s) => !s.includes(`findstr `))
+        .map((i) => {
+          const all = i.split(' ').filter((s: string) => {
+            return !!s.trim()
+          })
+          const PID = all.pop()
+          const COMMAND = all.join(' ')
+          return {
+            PID,
+            COMMAND
+          }
         })
-        const PID = all.pop()
-        const COMMAND = all.join(' ')
-        return {
-          PID,
-          COMMAND
-        }
-      })
       resolve(list)
     })
   }
@@ -290,17 +288,23 @@ subjectAltName=@alt_names
       const command = `netstat -ano | findstr :${name}`
       const res = await execPromiseRoot(command)
       const lines = res?.stdout?.trim()?.split('\n') ?? []
-      const list = lines.filter(s => !s.includes(`findstr `)).map((i) => {
-        const all = i.split(' ').filter((s: string) => {
-          return !!s.trim()
-        }).map(s => s.trim())
-        if (all[1].endsWith(`:${name}`)) {
-          const PID = all.pop()
-          return PID
-        } else {
-          return undefined
-        }
-      }).filter(p => !!p)
+      const list = lines
+        .filter((s) => !s.includes(`findstr `))
+        .map((i) => {
+          const all = i
+            .split(' ')
+            .filter((s: string) => {
+              return !!s.trim()
+            })
+            .map((s) => s.trim())
+          if (all[1].endsWith(`:${name}`)) {
+            const PID = all.pop()
+            return PID
+          } else {
+            return undefined
+          }
+        })
+        .filter((p) => !!p)
       const arr: any[] = []
       const pids = Array.from(new Set(list))
 
@@ -310,21 +314,23 @@ subjectAltName=@alt_names
         const command = `wmic process get commandline,ProcessId | findstr "${pid}"`
         const res = await execPromiseRoot(command)
         const lines = res?.stdout?.trim()?.split('\n') ?? []
-        lines.filter(s => !s.includes(`findstr `)).forEach((i) => {
-          const all = i.split(' ').filter((s: string) => {
-            return !!s.trim()
-          })
-          const PID = all.pop()
-          if (PID === pid) {
-            const COMMAND = all.join(' ')
-            if (!arr.find(a => a.PID === PID && a.COMMAND === COMMAND)) {
-              arr.push({
-                PID,
-                COMMAND
-              })
+        lines
+          .filter((s) => !s.includes(`findstr `))
+          .forEach((i) => {
+            const all = i.split(' ').filter((s: string) => {
+              return !!s.trim()
+            })
+            const PID = all.pop()
+            if (PID === pid) {
+              const COMMAND = all.join(' ')
+              if (!arr.find((a) => a.PID === PID && a.COMMAND === COMMAND)) {
+                arr.push({
+                  PID,
+                  COMMAND
+                })
+              }
             }
-          }
-        })
+          })
       }
       resolve(arr)
     })
@@ -343,7 +349,9 @@ subjectAltName=@alt_names
         const res = await execPromiseRoot('path.cmd')
         let str = res?.stdout ?? ''
         str = str.replace(new RegExp(`\n`, 'g'), '')
-        const oldPath = Array.from(new Set(str.split(';') ?? [])).filter((s) => !!s.trim()).map((s) => s.trim())
+        const oldPath = Array.from(new Set(str.split(';') ?? []))
+          .filter((s) => !!s.trim())
+          .map((s) => s.trim())
         console.log('fetchPATH path: ', str, oldPath)
         resolve(oldPath)
       } catch (e) {
@@ -366,7 +374,9 @@ subjectAltName=@alt_names
         const res = await execPromiseRoot('path.cmd')
         let str = res?.stdout ?? ''
         str = str.replace(new RegExp(`\n`, 'g'), '')
-        oldPath = Array.from(new Set(str.split(';') ?? [])).filter((s) => !!s.trim()).map((s) => s.trim())
+        oldPath = Array.from(new Set(str.split(';') ?? []))
+          .filter((s) => !!s.trim())
+          .map((s) => s.trim())
         console.log('updatePATH path: ', str, oldPath)
       } catch (e) {
         reject(e)
@@ -382,7 +392,9 @@ subjectAltName=@alt_names
       if (index >= 0) {
         oldPath.splice(index, 1)
       } else {
-        const findOtherVersion = oldPath.filter((o) => o.includes(join(global.Server.AppDir!, `${typeFlag}-`)))
+        const findOtherVersion = oldPath.filter((o) =>
+          o.includes(join(global.Server.AppDir!, `${typeFlag}-`))
+        )
         for (const v of findOtherVersion) {
           const index = oldPath.findIndex((o) => o === v)
           if (index >= 0) {
@@ -403,8 +415,11 @@ subjectAltName=@alt_names
       if (typeFlag === 'composer') {
         const bat = join(binDir, 'composer.bat')
         if (!existsSync(bat)) {
-          await writeFile(bat, `@echo off
-php "%~dp0composer.phar" %*`)
+          await writeFile(
+            bat,
+            `@echo off
+php "%~dp0composer.phar" %*`
+          )
         }
       }
 
@@ -446,7 +461,9 @@ php "%~dp0composer.phar" %*`)
         const res = await execPromiseRoot('pathext.cmd')
         let str = res?.stdout ?? ''
         str = str.replace(new RegExp(`\n`, 'g'), '')
-        old = Array.from(new Set(str.split(';') ?? [])).filter((s) => !!s.trim()).map((s) => s.trim())
+        old = Array.from(new Set(str.split(';') ?? []))
+          .filter((s) => !!s.trim())
+          .map((s) => s.trim())
         console.log('updatePATHEXT path: ', str, old)
       } catch (e) {
         reject(e)

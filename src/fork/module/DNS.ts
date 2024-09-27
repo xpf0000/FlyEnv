@@ -10,7 +10,6 @@ const Tangerine = require('@shared/Tangerine.js')
 const tangerine = new Tangerine()
 
 class Manager extends Base {
-
   server: any
   lastTime: number
   hosts: any
@@ -116,12 +115,12 @@ class Manager extends Base {
           }
         }
       })
-  
+
       server.on('listening', () => {
         console.log('Start Success')
         resolve(true)
       })
-  
+
       server
         .listen({
           // Optionally specify port, address and/or the family of socket() for udp server:
@@ -130,7 +129,7 @@ class Manager extends Base {
             address: LOCAL_IP,
             type: IS_IPV6 ? 'udp6' : 'udp4' // IPv4 or IPv6 (Must be either "udp4" or "udp6")
           },
-  
+
           // Optionally specify port and/or address for tcp server:
           tcp: {
             port: 53,

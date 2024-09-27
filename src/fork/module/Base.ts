@@ -25,10 +25,16 @@ export class Base {
   initLocalApp(version: SoftInstalled, flag: string) {
     return new ForkPromise((resolve, reject) => {
       console.log('initLocalApp: ', version.bin, global.Server.AppDir)
-      if (!existsSync(version.bin) && version.bin.includes(join(global.Server.AppDir!, `${flag}-${version.version}`))) {
+      if (
+        !existsSync(version.bin) &&
+        version.bin.includes(join(global.Server.AppDir!, `${flag}-${version.version}`))
+      ) {
         const local7ZFile = join(global.Server.Static!, `zip/${flag}-${version.version}.7z`)
         if (existsSync(local7ZFile)) {
-          zipUnPack(join(global.Server.Static!, `zip/${flag}-${version.version}.7z`), global.Server.AppDir!)
+          zipUnPack(
+            join(global.Server.Static!, `zip/${flag}-${version.version}.7z`),
+            global.Server.AppDir!
+          )
             .then(resolve)
             .catch(reject)
           return
@@ -129,25 +135,29 @@ export class Base {
       let res: any = null
       try {
         res = await execPromiseRoot(command)
-      } catch (e) { }
+      } catch (e) {}
       const pids = res?.stdout?.trim()?.split('\n') ?? []
       console.log('pids: ', pids)
       const arr: Array<string> = []
       for (const p of pids) {
         if (this.type === 'redis' || global.Server.ForceStart === true) {
-          if (
-            p.includes('findstr')
-          ) {
+          if (p.includes('findstr')) {
             continue
           }
-          const pid = p.split(' ').filter((s: string) => {
-            return !!s.trim()
-          }).pop()
+          const pid = p
+            .split(' ')
+            .filter((s: string) => {
+              return !!s.trim()
+            })
+            .pop()
           arr.push(pid)
         } else if (p.includes('PhpWebStudy-Data')) {
-          const pid = p.split(' ').filter((s: string) => {
-            return !!s.trim()
-          }).pop()
+          const pid = p
+            .split(' ')
+            .filter((s: string) => {
+              return !!s.trim()
+            })
+            .pop()
           arr.push(pid)
         }
       }
@@ -162,10 +172,10 @@ export class Base {
         // }
       }
       if (this.type === 'apache') {
-        let command = `${version.bin} -k uninstall`
+        const command = `${version.bin} -k uninstall`
         try {
           await execPromiseRoot(command)
-        } catch (e) { }
+        } catch (e) {}
       }
       await waitTime(300)
       resolve(true)
@@ -180,9 +190,9 @@ export class Base {
           const pid = await readFile(this.pidPath, 'utf-8')
           const sign =
             this.type === 'apache' ||
-              this.type === 'mysql' ||
-              this.type === 'nginx' ||
-              this.type === 'mariadb'
+            this.type === 'mysql' ||
+            this.type === 'nginx' ||
+            this.type === 'mariadb'
               ? '-HUP'
               : '-USR2'
           await execPromise(`echo '${global.Server.Password}' | sudo -S kill ${sign} ${pid}`)
@@ -275,7 +285,7 @@ export class Base {
         proxy: this.getAxiosProxy()
       })
       list = res?.data?.data ?? []
-    } catch (e) { }
+    } catch (e) {}
     return list
   }
 }

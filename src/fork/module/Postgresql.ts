@@ -3,9 +3,18 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromiseRoot, waitTime } from '../Fn'
+import {
+  execPromiseRoot,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort,
+  waitTime
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { copyFile, unlink, readFile, writeFile } from 'fs-extra'
+import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
   constructor() {
@@ -13,7 +22,7 @@ class Manager extends Base {
     this.type = 'postgresql'
   }
 
-  init() { }
+  init() {}
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
@@ -28,7 +37,7 @@ class Manager extends Base {
         if (existsSync(pidFile)) {
           await unlink(pidFile)
         }
-      } catch (e) { }
+      } catch (e) {}
 
       const checkpid = async (time = 0) => {
         if (existsSync(pidFile)) {
@@ -46,7 +55,7 @@ class Manager extends Base {
         }
       }
       const doRun = async () => {
-        process.chdir(dirname(bin));
+        process.chdir(dirname(bin))
         const command = `start /b ./${basename(bin)} -D "${dbPath}" -l "${logFile}" start`
         try {
           await execPromiseRoot(command)
@@ -60,7 +69,6 @@ class Manager extends Base {
       if (existsSync(confFile)) {
         await doRun()
       } else if (!existsSync(dbPath)) {
-
         process.env.LC_ALL = global.Server.Local!
         process.env.LANG = global.Server.Local!
 
@@ -68,7 +76,7 @@ class Manager extends Base {
 
         const binDir = dirname(bin)
         const initDB = join(binDir, 'initdb.exe')
-        process.chdir(dirname(initDB));
+        process.chdir(dirname(initDB))
         const command = `start /b ./${basename(initDB)} -D "${dbPath}" -U root`
         try {
           await execPromiseRoot(command)
@@ -109,7 +117,12 @@ class Manager extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('postgresql')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `postgresql-${a.version}`, `pgsql`, 'bin/pg_ctl.exe')
+          const dir = join(
+            global.Server.AppDir!,
+            `postgresql-${a.version}`,
+            `pgsql`,
+            'bin/pg_ctl.exe'
+          )
           const zip = join(global.Server.Cache!, `postgresql-${a.version}.zip`)
           a.appDir = join(global.Server.AppDir!, `postgresql-${a.version}`)
           a.zip = zip
@@ -121,6 +134,41 @@ class Manager extends Base {
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.postgresql?.dirs ?? [], 'pg_ctl.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} --version`
+            const reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

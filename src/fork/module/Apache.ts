@@ -3,9 +3,20 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromise, execPromiseRoot, getAllFileAsync } from '../Fn'
+import {
+  execPromise,
+  execPromiseRoot,
+  getAllFileAsync,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionInitedApp,
+  versionLocalFetch,
+  versionSort
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, readFile, writeFile } from 'fs-extra'
+import TaskQueue from '../TaskQueue'
 
 class Apache extends Base {
   constructor() {
@@ -20,10 +31,7 @@ class Apache extends Base {
   #resetConf(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
       const defaultFile = join(global.Server.ApacheDir!, `${version.version}.conf`)
-      const defaultFileBack = join(
-        global.Server.ApacheDir!,
-        `${version.version}.default.conf`
-      )
+      const defaultFileBack = join(global.Server.ApacheDir!, `${version.version}.default.conf`)
       const bin = version.bin
       if (existsSync(defaultFile)) {
         let content = await readFile(defaultFile, 'utf-8')
@@ -31,11 +39,14 @@ class Apache extends Base {
         const reg = new RegExp('(Define SRVROOT ")([\\s\\S]*?)(")', 'g')
         try {
           srvroot = reg?.exec?.(content)?.[2] ?? ''
-        } catch (e) { }
+        } catch (e) {}
         if (srvroot) {
           const srvrootReplace = version.path.split('\\').join('/')
           if (srvroot !== srvrootReplace) {
-            content = content.replace(`Define SRVROOT "${srvroot}"`, `Define SRVROOT "${srvrootReplace}"`)
+            content = content.replace(
+              `Define SRVROOT "${srvroot}"`,
+              `Define SRVROOT "${srvrootReplace}"`
+            )
           }
           await writeFile(defaultFile, content)
           await writeFile(defaultFileBack, content)
@@ -60,7 +71,7 @@ class Apache extends Base {
       let file = ''
       try {
         file = reg?.exec?.(str)?.[2] ?? ''
-      } catch (e) { }
+      } catch (e) {}
       file = file.trim()
       file = join(version.path, file)
 
@@ -76,21 +87,21 @@ class Apache extends Base {
       let logPath = ''
       try {
         logPath = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) { }
+      } catch (e) {}
       logPath = logPath.trim()
 
       reg = new RegExp('(ErrorLog ")([\\s\\S]*?)(")', 'g')
       let errLogPath = ''
       try {
         errLogPath = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) { }
+      } catch (e) {}
       errLogPath = errLogPath.trim()
 
       let srvroot = ''
       reg = new RegExp('(Define SRVROOT ")([\\s\\S]*?)(")', 'g')
       try {
         srvroot = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) { }
+      } catch (e) {}
 
       content = content
         .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
@@ -102,18 +113,25 @@ class Apache extends Base {
         .replace('#ServerName www.', 'ServerName www.')
 
       if (logPath) {
-        const logPathReplace = join(global.Server.ApacheDir!, `${version.version}.access.log`).split('\\').join('/')
+        const logPathReplace = join(global.Server.ApacheDir!, `${version.version}.access.log`)
+          .split('\\')
+          .join('/')
         content = content.replace(`CustomLog "${logPath}"`, `CustomLog "${logPathReplace}"`)
       }
 
       if (errLogPath) {
-        const errLogPathReplace = join(global.Server.ApacheDir!, `${version.version}.error.log`).split('\\').join('/')
+        const errLogPathReplace = join(global.Server.ApacheDir!, `${version.version}.error.log`)
+          .split('\\')
+          .join('/')
         content = content.replace(`ErrorLog "${errLogPath}"`, `ErrorLog "${errLogPathReplace}"`)
       }
 
       if (srvroot) {
         const srvrootReplace = version.path.split('\\').join('/')
-        content = content.replace(`Define SRVROOT "${srvroot}"`, `Define SRVROOT "${srvrootReplace}"`)
+        content = content.replace(
+          `Define SRVROOT "${srvroot}"`,
+          `Define SRVROOT "${srvrootReplace}"`
+        )
       }
 
       let find = content.match(/\nUser _www(.*?)\n/g)
@@ -140,7 +158,7 @@ IncludeOptional "${vhost}*.conf"`
     let host: Array<AppHost> = []
     try {
       host = JSON.parse(json)
-    } catch (e) { }
+    } catch (e) {}
     if (host.length === 0) {
       return
     }
@@ -196,45 +214,45 @@ IncludeOptional "${vhost}*.conf"`
     await writeFile(configpath, confContent)
   }
 
-  _startServer(version: SoftInstalled, lastVersion?: SoftInstalled) {
+  _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       await this.initLocalApp(version, 'apache')
       await this.#resetConf(version)
       await this.#handleListenPort(version)
       const bin = version.bin
-      let conf = join(global.Server.ApacheDir!, `${version.version}.conf`)
+      const conf = join(global.Server.ApacheDir!, `${version.version}.conf`)
       if (!existsSync(conf)) {
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
 
       try {
-        process.chdir(dirname(bin));
-        console.log(`新的工作目录: ${process.cwd()}`);
+        process.chdir(dirname(bin))
+        console.log(`新的工作目录: ${process.cwd()}`)
       } catch (err) {
-        console.error(`改变工作目录失败: ${err}`);
+        console.error(`改变工作目录失败: ${err}`)
       }
       let command = `${basename(bin)} -k uninstall`
       try {
         await execPromiseRoot(command)
-      } catch (e) { }
+      } catch (e) {}
 
       try {
-        process.chdir(dirname(bin));
-        console.log(`新的工作目录: ${process.cwd()}`);
+        process.chdir(dirname(bin))
+        console.log(`新的工作目录: ${process.cwd()}`)
       } catch (err) {
-        console.error(`改变工作目录失败: ${err}`);
+        console.error(`改变工作目录失败: ${err}`)
       }
       command = `${basename(bin)} -k install`
       try {
         await execPromiseRoot(command)
-      } catch (e) { }
+      } catch (e) {}
 
       try {
-        process.chdir(dirname(bin));
-        console.log(`新的工作目录: ${process.cwd()}`);
+        process.chdir(dirname(bin))
+        console.log(`新的工作目录: ${process.cwd()}`)
       } catch (err) {
-        console.error(`改变工作目录失败: ${err}`);
+        console.error(`改变工作目录失败: ${err}`)
       }
       command = `${basename(bin)} -f "${conf}" -k start`
       console.log('_startServer: ', command)
@@ -252,7 +270,7 @@ IncludeOptional "${vhost}*.conf"`
   fetchAllOnLineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
-        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('apache')      
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('apache')
         all.forEach((a: any) => {
           const subDir = `Apache${a.mVersion.split('.').join('')}`
           const dir = join(global.Server.AppDir!, `apache-${a.version}`, subDir, 'bin/httpd.exe')
@@ -267,6 +285,43 @@ IncludeOptional "${vhost}*.conf"`
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.apache?.dirs ?? [], 'httpd.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} -v`
+            const reg = /(Apache\/)(\d+(\.\d+){1,4})( )/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          const appInited = await versionInitedApp('apache', 'bin/httpd.exe')
+          versions.push(...appInited)
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

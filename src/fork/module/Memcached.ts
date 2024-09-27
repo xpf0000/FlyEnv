@@ -2,9 +2,18 @@ import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromiseRoot, waitTime } from '../Fn'
+import {
+  execPromiseRoot,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort,
+  waitTime
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { unlink } from 'fs-extra'
+import TaskQueue from '../TaskQueue'
 
 class Memcached extends Base {
   constructor() {
@@ -26,7 +35,7 @@ class Memcached extends Base {
         if (existsSync(pid)) {
           await unlink(pid)
         }
-      } catch (e) { }
+      } catch (e) {}
 
       const waitPid = async (time = 0): Promise<boolean> => {
         let res = false
@@ -35,7 +44,7 @@ class Memcached extends Base {
         } else {
           if (time < 40) {
             await waitTime(500)
-            res = res || await waitPid(time + 1)
+            res = res || (await waitPid(time + 1))
           } else {
             res = false
           }
@@ -44,7 +53,7 @@ class Memcached extends Base {
         return res
       }
 
-      process.chdir(dirname(bin));
+      process.chdir(dirname(bin))
 
       const command = `start /b ./${basename(bin)} -d -P "${pid}" -vv >> "${log}" 2>&1`
 
@@ -61,7 +70,6 @@ class Memcached extends Base {
       } catch (e: any) {
         reject(e)
       }
-
     })
   }
 
@@ -82,6 +90,41 @@ class Memcached extends Base {
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.memcached?.dirs ?? [], 'memcached.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} -V`
+            const reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

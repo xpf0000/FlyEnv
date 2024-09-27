@@ -6,35 +6,63 @@ import { md5 } from '../Fn'
 import axios from 'axios'
 
 class App extends Base {
-    constructor() {
-        super()
-    }
+  constructor() {
+    super()
+  }
 
-    start(version: string) {
-        return new ForkPromise(async (resolve) => {
-            const mac = await getMac()
-            const cpu = cpus()?.pop()?.model ?? ''
-            const uuid = md5(`${mac}-${cpu}`)
-            const os = `Windows ${arch()}`
+  start(version: string) {
+    return new ForkPromise(async (resolve) => {
+      const mac = await getMac()
+      const cpu = cpus()?.pop()?.model ?? ''
+      const uuid = md5(`${mac}-${cpu}`)
+      const os = `Windows ${arch()}`
 
-            const data = {
-                uuid,
-                os,
-                version
-            }
+      const data = {
+        uuid,
+        os,
+        version
+      }
 
-            console.log('data: ', data)
+      console.log('data: ', data)
 
-            await axios({
-                url: 'https://api.macphpstudy.com/api/app/start',
-                method: 'post',
-                data,
-                proxy: this.getAxiosProxy()
-            })
+      await axios({
+        url: 'https://api.macphpstudy.com/api/app/start',
+        method: 'post',
+        data,
+        proxy: this.getAxiosProxy()
+      })
 
-            resolve(true)
+      resolve(true)
+    })
+  }
+
+  feedback(info: any) {
+    return new ForkPromise(async (resolve, reject) => {
+      const mac = await getMac()
+      const cpu = cpus()?.pop()?.model ?? ''
+      const uuid = md5(`${mac}-${cpu}`)
+
+      const data = {
+        uuid,
+        ...info
+      }
+
+      console.log('data: ', data)
+
+      axios({
+        url: 'https://api.macphpstudy.com/api/app/feedback_app',
+        method: 'post',
+        data,
+        proxy: this.getAxiosProxy()
+      })
+        .then(() => {
+          resolve(true)
         })
-    }
+        .catch((e) => {
+          reject(e)
+        })
+    })
+  }
 }
 
 export default new App()

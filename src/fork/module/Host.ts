@@ -25,14 +25,13 @@ class Host extends Base {
   }
 
   #initCARoot() {
-    return new Promise(async (resolve) => {  
+    return new Promise(async (resolve) => {
       const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
       const command = `certutil -addstore root "${CARoot}"`
       try {
         const res = await execPromiseRoot(command)
         console.log('initCARoot res111: ', res)
-      }
-      catch (e) { }
+      } catch (e) {}
       resolve(true)
     })
   }
@@ -79,14 +78,14 @@ subjectAltName=@alt_names
           await copyFile(join(global.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
         }
 
-        process.chdir(dirname(openssl));
+        process.chdir(dirname(openssl))
         const caKey = join(hostCADir, `${hostCAName}.key`)
         const caCSR = join(hostCADir, `${hostCAName}.csr`)
         let command = `openssl.exe req -new -newkey rsa:2048 -nodes -keyout "${caKey}" -out "${caCSR}" -sha256 -subj "/CN=${hostCAName}" -config "${opensslCnf}"`
         console.log('command: ', command)
         await execPromiseRoot(command)
 
-        process.chdir(dirname(openssl));
+        process.chdir(dirname(openssl))
         const caCRT = join(hostCADir, `${hostCAName}.crt`)
         const caEXT = join(hostCADir, `${hostCAName}.ext`)
         command = `openssl.exe x509 -req -in "${caCSR}" -out "${caCRT}" -extfile "${caEXT}" -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650`
@@ -237,8 +236,8 @@ subjectAltName=@alt_names
             }
             const aliasArr = item.alias
               ? item.alias.split('\n').filter((n: string) => {
-                return n && n?.trim()?.length > 0
-              })
+                  return n && n?.trim()?.length > 0
+                })
               : []
             item.alias = aliasArr
               .map((a: string) => {
@@ -349,7 +348,7 @@ subjectAltName=@alt_names
         if (existsSync(f)) {
           try {
             await remove(f)
-          } catch (e) { }
+          } catch (e) {}
         }
       }
       resolve(true)
@@ -435,7 +434,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         const content = tmplContent.replace('##VERSION##', `${v}`)
         await writeFile(confFile, content)
       }
-    } catch (e) { }
+    } catch (e) {}
   }
 
   async #initCaddyConf(host: AppHost) {
@@ -672,9 +671,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         ]
         for (const f of arr) {
           if (existsSync(f.oldFile)) {
-            await execPromiseRoot(
-              `copy -Force ${f.oldFile} ${f.newFile}`
-            )
+            await execPromiseRoot(`copy -Force ${f.oldFile} ${f.newFile}`)
             await execPromiseRoot(`del -Force ${f.oldFile}`)
           }
           if (existsSync(f.newFile)) {
@@ -968,7 +965,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         if (chmod) {
           await this.#setDirRole(host.root)
         }
-        console.log("_addVhost success !!!")
+        console.log('_addVhost success !!!')
         resolve(true)
       } catch (e) {
         console.log('_addVhost err: ', e)
@@ -1023,7 +1020,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     console.log('_fixHostsRole !!!')
     try {
       await chmod(this.hostsFile, 0o666)
-    } catch (e) { }
+    } catch (e) {}
     try {
       await execPromiseRoot(`icacls ${this.hostsFile} /grant Everyone:F`)
     } catch (e) {
@@ -1048,7 +1045,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         try {
           json = JSON.parse(json)
           appHost.push(...json)
-        } catch (e) { }
+        } catch (e) {}
       }
       console.log('writeHosts: ', write)
       if (write) {
@@ -1157,7 +1154,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       const content = await readFile(hostfile, 'utf-8')
       try {
         hostList = JSON.parse(content)
-      } catch (e) { }
+      } catch (e) {}
       const find = hostList.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
       if (find) {
         resolve(true)

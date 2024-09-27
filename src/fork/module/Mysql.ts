@@ -3,9 +3,20 @@ import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { MysqlGroupItem, OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromise, waitTime, execPromiseRoot } from '../Fn'
+import {
+  execPromise,
+  waitTime,
+  execPromiseRoot,
+  versionLocalFetch,
+  versionFilterSame,
+  versionBinVersion,
+  versionFixed,
+  versionInitedApp,
+  versionSort
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
+import TaskQueue from '../TaskQueue'
 
 class Mysql extends Base {
   constructor() {
@@ -37,7 +48,7 @@ class Mysql extends Base {
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       await this.initLocalApp(version, 'mysql')
-      let bin = version.bin
+      const bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
       const oldm = join(global.Server.MysqlDir!, 'my.cnf')
@@ -70,7 +81,7 @@ datadir="${dataDir}"`
         if (existsSync(p)) {
           await unlink(p)
         }
-      } catch (e) { }
+      } catch (e) {}
 
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
@@ -88,7 +99,7 @@ datadir="${dataDir}"`
         } else {
           if (time < 40) {
             await waitTime(500)
-            res = res || await waitPid(time + 1)
+            res = res || (await waitPid(time + 1))
           } else {
             res = false
           }
@@ -103,7 +114,7 @@ datadir="${dataDir}"`
         await chmod(dataDir, '0777')
         params.push('--initialize-insecure')
 
-        process.chdir(dirname(bin));
+        process.chdir(dirname(bin))
         command = `${basename(bin)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
@@ -125,10 +136,9 @@ datadir="${dataDir}"`
           await unlinkDirOnFail()
           reject(e)
         }
-
       } else {
         params.push('--standalone')
-        process.chdir(dirname(bin));
+        process.chdir(dirname(bin))
         command = `start /b ./${basename(bin)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
@@ -152,21 +162,26 @@ datadir="${dataDir}"`
     console.log(version)
     return new ForkPromise(async (resolve, reject) => {
       const id = version?.id ?? ''
-      const conf = 'PhpWebStudy-Data' + join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
+      const conf =
+        'PhpWebStudy-Data' +
+        join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
       const serverName = 'mysqld'
       const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
       console.log('_stopServer command: ', command)
       let res: any = null
       try {
         res = await execPromiseRoot(command)
-      } catch (e) { }
+      } catch (e) {}
       const pids = res?.stdout?.trim()?.split('\n') ?? []
       const arr: Array<string> = []
       for (const p of pids) {
         if (p.includes(conf)) {
-          const pid = p.split(' ').filter((s: string) => {
-            return !!s.trim()
-          }).pop()
+          const pid = p
+            .split(' ')
+            .filter((s: string) => {
+              return !!s.trim()
+            })
+            .pop()
           if (pid) {
             arr.push(pid)
           }
@@ -191,7 +206,7 @@ datadir="${dataDir}"`
     return new ForkPromise(async (resolve, reject, on) => {
       await this.initLocalApp(version.version as any, 'mysql')
       await this.stopGroupService(version)
-      let bin = version.version.bin
+      const bin = version.version.bin
       const id = version?.id ?? ''
       const m = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
       const dataDir = version.dataDir
@@ -222,7 +237,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         if (existsSync(p)) {
           await unlink(p)
         }
-      } catch (e) { }
+      } catch (e) {}
 
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
@@ -240,7 +255,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         } else {
           if (time < 40) {
             await waitTime(500)
-            res = res || await waitPid(time + 1)
+            res = res || (await waitPid(time + 1))
           } else {
             res = false
           }
@@ -252,11 +267,9 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       const initPassword = () => {
         return new ForkPromise((resolve, reject) => {
           const bin = join(dirname(version.version.bin!), 'mysqladmin.exe')
-          execPromise(`${basename(bin)} -P${version.port} -S"${sock}" -uroot password "root"`,
-            {
-              cwd: dirname(bin)
-            }
-          )
+          execPromise(`${basename(bin)} -P${version.port} -S"${sock}" -uroot password "root"`, {
+            cwd: dirname(bin)
+          })
             .then((res) => {
               console.log('_initPassword res: ', res)
               resolve(true)
@@ -273,7 +286,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
         params.push('--initialize-insecure')
-        process.chdir(dirname(bin!));
+        process.chdir(dirname(bin!))
         command = `${basename(bin!)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
@@ -295,10 +308,9 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           await unlinkDirOnFail()
           reject(e)
         }
-
       } else {
         params.push('--standalone')
-        process.chdir(dirname(bin!));
+        process.chdir(dirname(bin!))
         command = `start /b ./${basename(bin!)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
@@ -323,7 +335,12 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mysql')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `mysql-${a.version}`, `mysql-${a.version}-winx64`, 'bin/mysqld.exe')
+          const dir = join(
+            global.Server.AppDir!,
+            `mysql-${a.version}`,
+            `mysql-${a.version}-winx64`,
+            'bin/mysqld.exe'
+          )
           const zip = join(global.Server.Cache!, `mysql-${a.version}.zip`)
           a.appDir = join(global.Server.AppDir!, `mysql-${a.version}`)
           a.zip = zip
@@ -335,6 +352,43 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.mysql?.dirs ?? [], 'mysqld.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} -V`
+            const reg = /(Ver )(\d+(\.\d+){1,4})( )/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          const appInited = await versionInitedApp('mysql', 'bin/mysqld.exe')
+          versions.push(...appInited)
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

@@ -24,9 +24,9 @@ class BaseManager {
   Tomcat: any
   App: any
 
-  constructor() { }
+  constructor() {}
 
-  init() { }
+  init() {}
 
   async exec(commands: Array<any>) {
     const ipcCommandKey = commands.shift()
@@ -187,6 +187,6 @@ class BaseManager {
     }
   }
 
-  async destory() { }
+  async destory() {}
 }
 export default BaseManager

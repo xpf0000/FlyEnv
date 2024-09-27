@@ -1,334 +1,125 @@
-import { join, basename, dirname } from 'path'
-import { existsSync, realpathSync } from 'fs'
 import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
-import { execPromise, execPromiseRoot, getAllFile, getSubDirAsync, spawnPromise } from '../Fn'
+import { versionDirCache } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { compareVersions } from 'compare-versions'
-import { chmod } from 'fs-extra'
-import { exec } from 'child_process'
 
 class Manager extends Base {
+  Apache: any
+  Nginx: any
+  Php: any
+  Mysql: any
+  Redis: any
+  Memcached: any
+  Mongodb: any
+  Mariadb: any
+  Postgresql: any
+  PureFtpd: any
+  Caddy: any
+  Composer: any
+  Java: any
+  Tomcat: any
   constructor() {
     super()
   }
 
-  binVersion(
-    bin: string,
-    name: string
-  ): ForkPromise<{
-    version?: string | null
-    error?: string
-  }> {
-    return new ForkPromise(async (resolve) => {
-      console.log('binVersion: ', bin, name)
-      if (name === 'composer.phar') {
-        if (bin.includes(global.Server.AppDir!)) {
-          const version = basename(dirname(bin)).replace('composer-', '')
-          resolve({
-            version
-          })
-        }
-        return
-      }
-      if (name === 'pure-ftpd') {
-        resolve({
-          version: '1.0'
-        })
-        return
-      }
-      let reg: RegExp | null = null
-      let command = ''
-      const handleCatch = (err: any) => {
-        resolve({
-          error: command + '<br/>' + err.toString().trim().replace(new RegExp('\n', 'g'), '<br/>'),
-          version: null
-        })
-      }
-      const handleThen = (res: any) => {
-        let str = res.stdout + res.stderr
-        str = str.replace(new RegExp(`\r\n`, 'g'), `\n`)
-        let version: string | null = ''
-        try {
-          version = reg?.exec(str)?.[2]?.trim() ?? ''
-          reg!.lastIndex = 0
-        } catch (e) { }
-        console.log('handleThen version: ', version, str)
-        resolve({
-          version
-        })
-      }
-      reg = /\d+(\.\d+){1,4}/g
-      switch (name) {
-        case 'httpd.exe':
-          command = `${basename(bin)} -v`
-          reg = /(Apache\/)(\d+(\.\d+){1,4})( )/g
-          break
-        case 'nginx.exe':
-          command = `${basename(bin)} -v`
-          reg = /(\/)(\d+(\.\d+){1,4})(.*?)/g
-          break
-        case 'caddy.exe':
-          command = `${basename(bin)} version`
-          reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
-          break
-        case 'php-cgi.exe':
-          command = `${basename(bin)} -n -v`
-          reg = /(PHP )(\d+(\.\d+){1,4})( )/g
-          break
-        case 'mysqld.exe':
-          command = `${basename(bin)} -V`
-          reg = /(Ver )(\d+(\.\d+){1,4})( )/g
-          break
-        case 'mariadbd.exe':
-          command = `${basename(bin)} -V`
-          reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
-          break
-        case 'memcached.exe':
-          command = `${basename(bin)} -V`
-          reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
-          break
-        case 'redis-server.exe':
-          command = `${basename(bin)} -v`
-          reg = /([=\s])(\d+(\.\d+){1,4})(.*?)/g
-          break
-        case 'mongod.exe':
-          command = `${basename(bin)} --version`
-          reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
-          break
-        case 'pg_ctl.exe':
-          command = `${basename(bin)} --version`
-          reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
-          break
-        case 'java.exe':
-          command = `${basename(bin)} -version`
-          reg = /(")(\d+([\.|\d]+){1,4})(["_])/g
-          break
-        case 'catalina.bat':
-          command = 'call version.bat'
-          reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
-          break
-      }
-      console.log('bin: ', bin, dirname(bin))
-      let res: any
-      try {
-        res = await execPromise(command, {
-          cwd: dirname(bin)
-        })
-      } catch (e) {
-        console.log('bin version: ', e)
-        handleCatch(e)
-        return
-      }
-      handleThen(res)
-    })
-  }
-
   allInstalledVersions(flag: Array<string>, setup: any) {
-    return new ForkPromise((resolve) => {
-      const binNames: { [k: string]: string } = {
-        apache: 'httpd.exe',
-        nginx: 'nginx.exe',
-        caddy: 'caddy.exe',
-        php: 'php-cgi.exe',
-        mysql: 'mysqld.exe',
-        mariadb: 'mariadbd.exe',
-        memcached: 'memcached.exe',
-        redis: 'redis-server.exe',
-        mongodb: 'mongod.exe',
-        'pure-ftpd': 'pure-ftpd',
-        postgresql: 'pg_ctl.exe',
-        composer: 'composer.phar',
-        java: 'java.exe',
-        tomcat: 'catalina.bat'
+    return new ForkPromise(async (resolve) => {
+      for (const k in versionDirCache) {
+        delete versionDirCache[k]
       }
-      const fetchVersion = async (flag: string) => {
-        return new ForkPromise(async (resolve) => {
-          const customDirs = setup?.[flag]?.dirs ?? []
-          const binName = binNames[flag]
-          const installed: Array<{
-            bin: string
-            path: string
-          }> = []
-
-          const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
-            let res: {
-              bin: string
-              path: string
-            } | false = false
-            let binPath = join(dir, binName)
-            if (existsSync(binPath)) {
-              binPath = realpathSync(binPath)
-              if (binPath.includes(binName)) {
-                return {
-                  bin: binPath,
-                  path: dir
-                }
-              }
-            }
-            binPath = join(dir, `bin`, binName)
-            if (existsSync(binPath)) {
-              binPath = realpathSync(binPath)
-              if (binPath.includes(binName)) {
-                return {
-                  bin: binPath,
-                  path: dir
-                }
-              }
-            }
-            binPath = join(dir, `sbin`, binName)
-            if (existsSync(binPath)) {
-              binPath = realpathSync(binPath)
-              if (binPath.includes(binName)) {
-                return {
-                  bin: binPath,
-                  path: dir
-                }
-              }
-            }
-            if (depth >= maxDepth) {
-              return res
-            }
-            const sub = await getSubDirAsync(dir)
-            for (const s of sub) {
-              const sres: any = await findInstalled(s, depth + 1, maxDepth)
-              res = res || sres
-            }
-            return res
+      const versions: { [k: string]: Array<SoftInstalled> } = {}
+      for (const type of flag) {
+        if (type === 'apache') {
+          if (!this.Apache) {
+            const res = await import('./Apache')
+            this.Apache = res.default
           }
-
-          const base = global.Server.AppDir!
-          const subDir = await getSubDirAsync(base)
-          const subDirFilter = subDir.filter((f) => {
-            if (flag === 'java') {
-              return basename(f).startsWith('jdk') || basename(f).startsWith('openjdk')
-            }
-            return basename(f).startsWith(flag)
-          })
-          for (const f of subDirFilter) {
-            const bin = await findInstalled(f)
-            if (bin) {
-              installed.push(bin)
-            }
+          versions.apache = this.Apache.allInstalledVersions(setup)
+        } else if (type === 'nginx') {
+          if (!this.Nginx) {
+            const res = await import('./Nginx')
+            this.Nginx = res.default
           }
-
-          for (const s of customDirs) {
-            const bin = await findInstalled(s, 0, 1)
-            if (bin && !installed.find(i => i.bin === bin.bin)) {
-              installed.push(bin)
-            }
+          versions.nginx = this.Nginx.allInstalledVersions(setup)
+        } else if (type === 'php') {
+          if (!this.Php) {
+            const res = await import('./Php')
+            this.Php = res.default
           }
-          const count = installed.length
-          if (count === 0) {
-            resolve([])
-            return
+          versions.php = this.Php.allInstalledVersions(setup)
+        } else if (type === 'mysql') {
+          if (!this.Mysql) {
+            const res = await import('./Mysql')
+            this.Mysql = res.default
           }
-          console.log('installed: ', installed)
-
-          let index = 0
-          const list: Array<SoftInstalled> = []
-
-          for (const i of installed) {
-            const { error, version } = await this.binVersion(i.bin, binName)
-            console.log('error version: ', error, version, i)
-            const num = version ? Number(version.split('.').slice(0, 2).join('')) : null
-            const item = {
-              version: version,
-              bin: flag === 'tomcat' ? join(dirname(i.bin), 'startup.bat') : i.bin,
-              path: i.path,
-              num,
-              enable: version !== null,
-              error,
-              run: false,
-              running: false
-            }
-            if (
-              !list.find(
-                (f) => f.version === item.version && f.path === item.path && f.bin === item.bin
-              )
-            ) {
-              list.push(item as any)
-            }
-            index += 1
-            if (index === count) {
-              const regx = /^\d[\d\.]*\d$/g
-              resolve(
-                list.sort((a, b) => {
-                  regx.lastIndex = 0
-                  const bv = regx.test(b?.version ?? 'a') ? b.version! : '0'
-                  regx.lastIndex = 0
-                  const av = regx.test(a?.version ?? 'a') ? a.version! : '0'
-                  return compareVersions(bv, av)
-                })
-              )
-            }
+          versions.mysql = this.Mysql.allInstalledVersions(setup)
+        } else if (type === 'redis') {
+          if (!this.Redis) {
+            const res = await import('./Redis')
+            this.Redis = res.default
           }
-        })
+          versions.redis = this.Redis.allInstalledVersions(setup)
+        } else if (type === 'memcached') {
+          if (!this.Memcached) {
+            const res = await import('./Memcached')
+            this.Memcached = res.default
+          }
+          versions.memcached = this.Memcached.allInstalledVersions(setup)
+        } else if (type === 'mongodb') {
+          if (!this.Mongodb) {
+            const res = await import('./Mongodb')
+            this.Mongodb = res.default
+          }
+          versions.mongodb = this.Mongodb.allInstalledVersions(setup)
+        } else if (type === 'mariadb') {
+          if (!this.Mariadb) {
+            const res = await import('./Mariadb')
+            this.Mariadb = res.default
+          }
+          versions.mariadb = this.Mariadb.allInstalledVersions(setup)
+        } else if (type === 'postgresql') {
+          if (!this.Postgresql) {
+            const res = await import('./Postgresql')
+            this.Postgresql = res.default
+          }
+          versions.postgresql = this.Postgresql.allInstalledVersions(setup)
+        } else if (type === 'caddy') {
+          if (!this.Caddy) {
+            const res = await import('./Caddy')
+            this.Caddy = res.default
+          }
+          versions.caddy = this.Caddy.allInstalledVersions(setup)
+        } else if (type === 'composer') {
+          if (!this.Composer) {
+            const res = await import('./Composer')
+            this.Composer = res.default
+          }
+          versions.composer = this.Composer.allInstalledVersions(setup)
+        } else if (type === 'java') {
+          if (!this.Java) {
+            const res = await import('./Java')
+            this.Java = res.default
+          }
+          versions.java = this.Java.allInstalledVersions(setup)
+        } else if (type === 'tomcat') {
+          if (!this.Tomcat) {
+            const res = await import('./Tomcat')
+            this.Tomcat = res.default
+          }
+          versions.tomcat = this.Tomcat.allInstalledVersions(setup)
+        }
       }
-      const all = flag.map((f) => {
-        return fetchVersion(f)
+      const keys: string[] = []
+      const tasks = []
+      for (const k in versions) {
+        keys.push(k)
+        tasks.push(versions[k])
+      }
+      const list = await Promise.all(tasks)
+      list.forEach((arr, i) => {
+        versions[keys[i]] = arr
       })
-      Promise.all(all).then(async (list) => {
-        console.log('AAAAAAA: ', JSON.parse(JSON.stringify(list)))
-        const versions: { [k: string]: Array<SoftInstalled> } = {}
-        list.forEach((o, i) => {
-          versions[flag[i]] = o as any
-        })
-
-        const allZip = getAllFile(join(global.Server.Static!, 'zip'), false)
-        console.log('allZip: ', allZip)
-        const appDict: { [k: string]: string } = {
-          apache: 'bin/httpd.exe',
-          nginx: 'nginx.exe',
-          mysql: 'bin/mysqld.exe',
-          php: 'php-cgi.exe',
-          caddy: 'caddy.exe',
-          redis: 'redis-server.exe',
-          memcached: 'memcached.exe',
-          mongodb: 'bin/mongod.exe',
-          postgresql: 'bin/pg_ctl.exe',
-          mariadb: 'bin/mariadbd.exe',
-          composer: 'composer.phar'
-        }
-
-        for (const type of flag) {
-          const varr = allZip.filter(z => z.startsWith(`${type}-`) && z.endsWith('.7z')).map(z => z.replace(`${type}-`, '').replace('.7z', ''))
-          varr.forEach(v => {
-            const num = Number(v.split('.').slice(0, 2).join(''))
-            versions[type].push({
-              version: v,
-              bin: join(global.Server.AppDir!, `${type}-${v}`, appDict[type]),
-              path: join(global.Server.AppDir!, `${type}-${v}`),
-              num: num,
-              enable: true,
-              error: undefined,
-              run: false,
-              running: false,
-              isLocal7Z: true
-            })
-          })
-        }
-
-        for (const type of flag) {
-          const arr: Array<SoftInstalled> = []
-          versions[type].forEach((f) => {
-            if (!arr.find((a) => f.version === a.version && f.path === a.path && f.bin === a.bin)) {
-              arr.push(f)
-            }
-          })
-          versions[type] = arr
-          const regx = /^\d[\d\.]*\d$/g
-          versions[type].sort((a, b) => {
-            regx.lastIndex = 0
-            const bv = regx.test(b?.version ?? 'a') ? b.version! : '0'
-            regx.lastIndex = 0
-            const av = regx.test(a?.version ?? 'a') ? a.version! : '0'
-            return compareVersions(bv, av)
-          })
-        }
-
-        resolve(versions)
-      })
+      resolve(versions)
     })
   }
 }

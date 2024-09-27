@@ -3,10 +3,20 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromise, execPromiseRoot } from '../Fn'
+import {
+  execPromise,
+  execPromiseRoot,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionInitedApp,
+  versionLocalFetch,
+  versionSort
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, readFile, remove, mkdirp, copyFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
+import TaskQueue from '../TaskQueue'
 
 class Php extends Base {
   constructor() {
@@ -20,7 +30,7 @@ class Php extends Base {
 
   getIniPath(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
-      let ini = join(version.path, 'php.ini')
+      const ini = join(version.path, 'php.ini')
       if (existsSync(ini)) {
         resolve(ini)
         return
@@ -101,15 +111,18 @@ class Php extends Base {
       let res: any = null
       try {
         res = await execPromiseRoot(command)
-      } catch (e) { }
+      } catch (e) {}
       const pids = res?.stdout?.trim()?.split('\n') ?? []
       const arr: Array<string> = []
       const fpm: Array<string> = []
       for (const p of pids) {
         if (p.includes(`phpwebstudy.90${version.num}`)) {
-          const pid = p.split(' ').filter((s: string) => {
-            return !!s.trim()
-          }).pop()
+          const pid = p
+            .split(' ')
+            .filter((s: string) => {
+              return !!s.trim()
+            })
+            .pop()
           if (pid) {
             if (p.includes('php-cgi-spawner.exe')) {
               fpm.push(pid.trim())
@@ -253,7 +266,10 @@ class Php extends Base {
       await this.#initFPM()
       await this.getIniPath(version)
       if (!existsSync(join(version.path, 'php-cgi-spawner.exe'))) {
-        await copyFile(join(global.Server.PhpDir!, 'php-cgi-spawner.exe'), join(version.path, 'php-cgi-spawner.exe'))
+        await copyFile(
+          join(global.Server.PhpDir!, 'php-cgi-spawner.exe'),
+          join(version.path, 'php-cgi-spawner.exe')
+        )
       }
 
       const ini = join(version.path, 'php.ini')
@@ -263,7 +279,7 @@ class Php extends Base {
       }
       await copyFile(ini, runIni)
 
-      process.chdir(dirname(version.bin));
+      process.chdir(dirname(version.bin))
 
       const command = `start /b ./php-cgi-spawner.exe "php-cgi.exe -c php.phpwebstudy.90${version.num}.ini" 90${version.num} 4`
       console.log('_startServer command: ', command)
@@ -289,8 +305,7 @@ class Php extends Base {
     extend: string,
     extendsDir: string
   ) {
-    return new ForkPromise(async (resolve, reject, on) => {
-    })
+    return new ForkPromise(async (resolve, reject, on) => {})
   }
 
   doObfuscator(params: any) {
@@ -337,6 +352,43 @@ class Php extends Base {
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.php?.dirs ?? [], 'php-cgi.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} -n -v`
+            const reg = /(PHP )(\d+(\.\d+){1,4})( )/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          const appInited = await versionInitedApp('php', 'php-cgi.exe')
+          versions.push(...appInited)
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

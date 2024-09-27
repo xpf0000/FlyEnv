@@ -30,9 +30,11 @@ class Manager extends Base {
         links.push(result[1].trim())
       }
       console.log('links: ', links)
-      links = links.filter(s => Number(s.split('.')[0]) > 5).sort((a, b) => {
-        return compareVersions(b, a)
-      })
+      links = links
+        .filter((s) => Number(s.split('.')[0]) > 5)
+        .sort((a, b) => {
+          return compareVersions(b, a)
+        })
       console.log('links: ', links)
       resolve({
         all: links,
@@ -82,7 +84,6 @@ class Manager extends Base {
           current: current,
           tool
         })
-
       } catch (e) {
         console.log('localVersion err: ', e)
         reject(e)
@@ -132,7 +133,7 @@ class Manager extends Base {
             let content = await readFile(installcmd, 'utf-8')
             content = content.replace('##NVM_PATH##', nvmDir)
             await writeFile(installcmd, content)
-            process.chdir(nvmDir);
+            process.chdir(nvmDir)
             const res = await execPromiseRoot('install.cmd')
             console.log('installNvm res: ', res)
           }
@@ -152,7 +153,7 @@ class Manager extends Base {
             content = content.replace('##PROFILE_ROOT##', profile_root.trim())
             content = content.replace('##PROFILE##', profile.trim())
             await writeFile(installcmd, content)
-            process.chdir(nvmDir);
+            process.chdir(nvmDir)
             const res = await execPromiseRoot('install.cmd')
             console.log('installNvm res: ', res)
           }
@@ -205,33 +206,45 @@ class Manager extends Base {
 
   nvmDir() {
     return new ForkPromise(async (resolve) => {
-      let bin: Set<string> = new Set()
+      const bin: Set<string> = new Set()
       try {
         await spawnPromise('cmd.exe', ['/c', 'nvm.exe', '-v'], { shell: 'cmd.exe' })
         bin.add('nvm')
-      } catch(e) {
-        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[node][nvmDir-cmd-nvm][error]: ${e}\n`)      
+      } catch (e) {
+        await appendFile(
+          join(global.Server.BaseDir!, 'debug.log'),
+          `[node][nvmDir-cmd-nvm][error]: ${e}\n`
+        )
       }
 
       try {
         await execPromise('nvm -v', { shell: 'powershell.exe' })
         bin.add('nvm')
-      } catch(e) {
-        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[node][nvmDir-ps-nvm][error]: ${e}\n`)
+      } catch (e) {
+        await appendFile(
+          join(global.Server.BaseDir!, 'debug.log'),
+          `[node][nvmDir-ps-nvm][error]: ${e}\n`
+        )
       }
 
       try {
         await spawnPromise('cmd.exe', ['/c', 'fnm.exe', '-V'], { shell: 'cmd.exe' })
         bin.add('fnm')
-      } catch(e) {
-        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[node][nvmDir-cmd-fnm][error]: ${e}\n`)
+      } catch (e) {
+        await appendFile(
+          join(global.Server.BaseDir!, 'debug.log'),
+          `[node][nvmDir-cmd-fnm][error]: ${e}\n`
+        )
       }
 
       try {
         await execPromise('fnm -V', { shell: 'powershell.exe' })
         bin.add('fnm')
-      } catch(e) {
-        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[node][nvmDir-ps-fnm][error]: ${e}\n`)
+      } catch (e) {
+        await appendFile(
+          join(global.Server.BaseDir!, 'debug.log'),
+          `[node][nvmDir-ps-fnm][error]: ${e}\n`
+        )
       }
 
       if (bin.size === 2) {

@@ -3,9 +3,19 @@ import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromise, waitTime, execPromiseRoot } from '../Fn'
+import {
+  execPromise,
+  waitTime,
+  execPromiseRoot,
+  versionLocalFetch,
+  versionFilterSame,
+  versionBinVersion,
+  versionFixed,
+  versionSort
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, mkdirp, chmod, unlink, remove } from 'fs-extra'
+import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
   constructor() {
@@ -68,7 +78,7 @@ datadir="${dataDir}"`
         if (existsSync(p)) {
           await unlink(p)
         }
-      } catch (e) { }
+      } catch (e) {}
 
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
@@ -86,7 +96,7 @@ datadir="${dataDir}"`
         } else {
           if (time < 40) {
             await waitTime(500)
-            res = res || await waitPid(time + 1)
+            res = res || (await waitPid(time + 1))
           } else {
             res = false
           }
@@ -106,10 +116,10 @@ datadir="${dataDir}"`
         params.push(`--config="${m}"`)
 
         try {
-          process.chdir(dirname(bin));
-          console.log(`新的工作目录: ${process.cwd()}`);
+          process.chdir(dirname(bin))
+          console.log(`新的工作目录: ${process.cwd()}`)
         } catch (err) {
-          console.error(`改变工作目录失败: ${err}`);
+          console.error(`改变工作目录失败: ${err}`)
         }
         command = `${basename(bin)} ${params.join(' ')}`
         console.log('command: ', command)
@@ -132,13 +142,12 @@ datadir="${dataDir}"`
           await unlinkDirOnFail()
           reject(e)
         }
-
       } else {
         try {
-          process.chdir(dirname(bin));
-          console.log(`新的工作目录: ${process.cwd()}`);
+          process.chdir(dirname(bin))
+          console.log(`新的工作目录: ${process.cwd()}`)
         } catch (err) {
-          console.error(`改变工作目录失败: ${err}`);
+          console.error(`改变工作目录失败: ${err}`)
         }
         params.push('--standalone')
         command = `start /b ./${basename(bin)} ${params.join(' ')}`
@@ -165,7 +174,12 @@ datadir="${dataDir}"`
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mariadb')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `mariadb-${a.version}`, `mariadb-${a.version}-winx64`, 'bin/mariadbd.exe')
+          const dir = join(
+            global.Server.AppDir!,
+            `mariadb-${a.version}`,
+            `mariadb-${a.version}-winx64`,
+            'bin/mariadbd.exe'
+          )
           const zip = join(global.Server.Cache!, `mariadb-${a.version}.zip`)
           a.appDir = join(global.Server.AppDir!, `mariadb-${a.version}`)
           a.zip = zip
@@ -177,6 +191,41 @@ datadir="${dataDir}"`
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.mariadb?.dirs ?? [], 'mariadbd.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} -V`
+            const reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

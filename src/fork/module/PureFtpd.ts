@@ -7,7 +7,6 @@ import { readFile, writeFile, mkdirp } from 'fs-extra'
 import FtpServer from 'ftp-srv'
 
 class Manager extends Base {
-
   server?: FtpServer
   users: Array<{
     user: string
@@ -23,7 +22,7 @@ class Manager extends Base {
 
   init() {}
 
-  _stopServer(version: SoftInstalled): ForkPromise<unknown> {
+  _stopServer(): ForkPromise<unknown> {
     return new ForkPromise((resolve) => {
       this.server?.close()
       this.server = undefined
@@ -31,14 +30,13 @@ class Manager extends Base {
     })
   }
 
-
-  _startServer(version: SoftInstalled) {
+  _startServer() {
     return new ForkPromise(async (resolve, reject) => {
-      const port=21;
+      const port = 21
       this.server = new FtpServer({
-          url: "ftp://0.0.0.0:" + port,
-          anonymous: true
-      });
+        url: 'ftp://0.0.0.0:' + port,
+        anonymous: true
+      })
 
       this.server.on('login', async ({ connection, username, password }, resolve, reject) => {
         const json = join(global.Server.FTPDir!, 'pureftpd.json')
@@ -51,9 +49,9 @@ class Manager extends Base {
           } catch (e) {}
         }
 
-        const finduser = all.find(a => a.user === username && a.pass === password)
+        const finduser = all.find((a) => a.user === username && a.pass === password)
         if (finduser) {
-          const find = this.users.find(u => u.user === username && u.pass === password)
+          const find = this.users.find((u) => u.user === username && u.pass === password)
           if (find) {
             find.id === connection.id
           } else {
@@ -62,21 +60,21 @@ class Manager extends Base {
               id: connection.id
             })
           }
-          return resolve({ root: finduser.dir.split('\\').join('/') });
+          return resolve({ root: finduser.dir.split('\\').join('/') })
         }
-        return reject(new Error('Invalid username or password'));
-      });
-    
+        return reject(new Error('Invalid username or password'))
+      })
+
       this.server.listen().then(() => {
         console.log('Ftp server is starting...')
         resolve(true)
-      });
+      })
     })
   }
 
   getPort() {
     return new ForkPromise(async (resolve) => {
-      let port: any = 21
+      const port: any = 21
       resolve(port)
     })
   }
@@ -98,7 +96,7 @@ class Manager extends Base {
 
   delFtp(item: FtpItem, version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
-      const find = this.users.find(u => u.user === item.user && u.pass === item.pass)
+      const find = this.users.find((u) => u.user === item.user && u.pass === item.pass)
       if (find) {
         const id = find.id
         this.server?.disconnectClient(id)

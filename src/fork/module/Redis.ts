@@ -2,9 +2,19 @@ import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromiseRoot, waitTime } from '../Fn'
+import {
+  execPromiseRoot,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionInitedApp,
+  versionLocalFetch,
+  versionSort,
+  waitTime
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, unlink, copyFile } from 'fs-extra'
+import TaskQueue from '../TaskQueue'
 
 class Redis extends Base {
   constructor() {
@@ -24,7 +34,7 @@ class Redis extends Base {
   _initConf(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
       const v = version?.version?.split('.')?.[0] ?? ''
-      let confFile = join(global.Server.RedisDir!, `redis-${v}.conf`)
+      const confFile = join(global.Server.RedisDir!, `redis-${v}.conf`)
       if (!existsSync(confFile)) {
         const tmplFile = join(global.Server.Static!, 'tmpl/redis.conf')
         const dbDir = join(global.Server.RedisDir!, `db-${v}`)
@@ -33,7 +43,10 @@ class Redis extends Base {
         let content = await readFile(tmplFile, 'utf-8')
         content = content
           .replace(/#PID_PATH#/g, join(global.Server.RedisDir!, 'redis.pid').split('\\').join('/'))
-          .replace(/#LOG_PATH#/g, join(global.Server.RedisDir!, `redis-${v}.log`).split('\\').join('/'))
+          .replace(
+            /#LOG_PATH#/g,
+            join(global.Server.RedisDir!, `redis-${v}.log`).split('\\').join('/')
+          )
           .replace(/#DB_PATH#/g, dbDir.split('\\').join('/'))
         await writeFile(confFile, content)
         const defaultFile = join(global.Server.RedisDir!, `redis-${v}-default.conf`)
@@ -55,7 +68,7 @@ class Redis extends Base {
         if (existsSync(this.pidPath)) {
           await unlink(this.pidPath)
         }
-      } catch (e) { }
+      } catch (e) {}
 
       const waitPid = async (time = 0): Promise<boolean> => {
         let res = false
@@ -64,7 +77,7 @@ class Redis extends Base {
         } else {
           if (time < 40) {
             await waitTime(500)
-            res = res || await waitPid(time + 1)
+            res = res || (await waitPid(time + 1))
           } else {
             res = false
           }
@@ -76,7 +89,7 @@ class Redis extends Base {
       const confName = `redis-${v}.conf`
       const conf = join(global.Server.RedisDir!, confName)
       await copyFile(conf, join(dirname(bin), confName))
-      process.chdir(dirname(bin));
+      process.chdir(dirname(bin))
       const command = `start /b ./${basename(bin)} ${confName}`
       console.log('command: ', command)
 
@@ -93,7 +106,6 @@ class Redis extends Base {
       } catch (e: any) {
         reject(e)
       }
-
     })
   }
 
@@ -102,7 +114,12 @@ class Redis extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('redis')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `redis-${a.version}`, `Redis-${a.version}-Windows-x64-msys2`, 'redis-server.exe')
+          const dir = join(
+            global.Server.AppDir!,
+            `redis-${a.version}`,
+            `Redis-${a.version}-Windows-x64-msys2`,
+            'redis-server.exe'
+          )
           const zip = join(global.Server.Cache!, `redis-${a.version}.zip`)
           a.appDir = join(global.Server.AppDir!, `redis-${a.version}`)
           a.zip = zip
@@ -114,6 +131,43 @@ class Redis extends Base {
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.redis?.dirs ?? [], 'redis-server.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} -v`
+            const reg = /([=\s])(\d+(\.\d+){1,4})(.*?)/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          const appInited = await versionInitedApp('redis', 'redis-server.exe')
+          versions.push(...appInited)
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

@@ -2,9 +2,18 @@ import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromiseRoot, waitTime } from '../Fn'
+import {
+  execPromiseRoot,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort,
+  waitTime
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
+import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
   constructor() {
@@ -38,7 +47,7 @@ class Manager extends Base {
         if (existsSync(this.pidPath)) {
           await unlink(this.pidPath)
         }
-      } catch (e) { }
+      } catch (e) {}
 
       const waitPid = async (time = 0): Promise<boolean> => {
         let res = false
@@ -47,7 +56,7 @@ class Manager extends Base {
         } else {
           if (time < 40) {
             await waitTime(500)
-            res = res || await waitPid(time + 1)
+            res = res || (await waitPid(time + 1))
           } else {
             res = false
           }
@@ -56,7 +65,7 @@ class Manager extends Base {
         return res
       }
 
-      process.chdir(dirname(bin));
+      process.chdir(dirname(bin))
       const command = `start /b ./${basename(bin)} --config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}"`
 
       console.log('command: ', command)
@@ -74,7 +83,6 @@ class Manager extends Base {
       } catch (e: any) {
         reject(e)
       }
-
     })
   }
 
@@ -83,7 +91,12 @@ class Manager extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mongodb')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `mongodb-${a.version}`, `mongodb-win32-x86_64-windows-${a.version}`, 'bin/mongod.exe')
+          const dir = join(
+            global.Server.AppDir!,
+            `mongodb-${a.version}`,
+            `mongodb-win32-x86_64-windows-${a.version}`,
+            'bin/mongod.exe'
+          )
           const zip = join(global.Server.Cache!, `mongodb-${a.version}.zip`)
           a.appDir = join(global.Server.AppDir!, `mongodb-${a.version}`)
           a.zip = zip
@@ -95,6 +108,41 @@ class Manager extends Base {
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.mongodb?.dirs ?? [], 'mongod.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} --version`
+            const reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

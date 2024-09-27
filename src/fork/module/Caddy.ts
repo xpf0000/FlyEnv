@@ -2,9 +2,20 @@ import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromiseRoot, hostAlias, waitTime } from '../Fn'
+import {
+  execPromiseRoot,
+  hostAlias,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionInitedApp,
+  versionLocalFetch,
+  versionSort,
+  waitTime
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
+import TaskQueue from '../TaskQueue'
 
 class Caddy extends Base {
   constructor() {
@@ -60,7 +71,7 @@ class Caddy extends Base {
         const jsonArr = JSON.parse(json)
         hostAll.push(...jsonArr)
       }
-    } catch (e) { }
+    } catch (e) {}
 
     let tmplContent = ''
     let tmplSSLContent = ''
@@ -135,7 +146,7 @@ class Caddy extends Base {
         if (existsSync(this.pidPath)) {
           await unlink(this.pidPath)
         }
-      } catch (e) { }
+      } catch (e) {}
 
       const waitPid = async (time = 0): Promise<boolean> => {
         let res = false
@@ -144,7 +155,7 @@ class Caddy extends Base {
         } else {
           if (time < 40) {
             await waitTime(500)
-            res = res || await waitPid(time + 1)
+            res = res || (await waitPid(time + 1))
           } else {
             res = false
           }
@@ -154,10 +165,10 @@ class Caddy extends Base {
       }
 
       try {
-        process.chdir(dirname(bin));
-        console.log(`新的工作目录: ${process.cwd()}`);
+        process.chdir(dirname(bin))
+        console.log(`新的工作目录: ${process.cwd()}`)
       } catch (err) {
-        console.error(`改变工作目录失败: ${err}`);
+        console.error(`改变工作目录失败: ${err}`)
       }
 
       const command = `start /b ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
@@ -176,7 +187,6 @@ class Caddy extends Base {
       } catch (e: any) {
         reject(e)
       }
-
     })
   }
 
@@ -197,6 +207,43 @@ class Caddy extends Base {
       } catch (e) {
         resolve([])
       }
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      Promise.all([versionLocalFetch(setup?.caddy?.dirs ?? [], 'caddy.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} version`
+            const reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          const appInited = await versionInitedApp('caddy', 'caddy.exe')
+          versions.push(...appInited)
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

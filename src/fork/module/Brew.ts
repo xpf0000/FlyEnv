@@ -258,7 +258,7 @@ class Brew extends Base {
         arr.forEach((item: any) => {
           Info[item.name] = item
         })
-      } catch (e) { }
+      } catch (e) {}
       resolve(Info)
     })
   }
@@ -475,8 +475,11 @@ class Brew extends Base {
           await mkdirp(row.appDir)
         }
         await copyFile(row.zip, join(row.appDir, 'composer.phar'))
-        await writeFile(join(row.appDir, 'composer.bat'), `@echo off
-php "%~dp0composer.phar" %*`)
+        await writeFile(
+          join(row.appDir, 'composer.bat'),
+          `@echo off
+php "%~dp0composer.phar" %*`
+        )
       }
 
       if (existsSync(row.zip)) {
@@ -531,7 +534,7 @@ php "%~dp0composer.phar" %*`)
               if (existsSync(row.zip)) {
                 unlinkSync(row.zip)
               }
-            } catch (e) { }
+            } catch (e) {}
             refresh()
             on(row)
             setTimeout(() => {
@@ -554,7 +557,7 @@ php "%~dp0composer.phar" %*`)
                   await zipUnPack(row.zip, row.appDir)
                 }
               }
-            } catch (e) { }
+            } catch (e) {}
             refresh()
             on(row)
             resolve(true)
@@ -567,7 +570,7 @@ php "%~dp0composer.phar" %*`)
             if (existsSync(row.zip)) {
               unlinkSync(row.zip)
             }
-          } catch (e) { }
+          } catch (e) {}
           refresh()
           on(row)
           setTimeout(() => {
