@@ -1,21 +1,19 @@
 import { readFileSync } from 'fs'
 import { createServer, Packet } from 'dns2'
 import { address, isV6Format } from 'ip'
-import * as DNS from 'dns2'
-import { Base } from './Base'
+import * as DNS2 from 'dns2'
 import { ForkPromise } from '@shared/ForkPromise'
 
 const Tangerine = require('tangerine')
 
 const tangerine = new Tangerine()
 
-class Manager extends Base {
-  server?: DNS.DnsServer
+class Manager {
+  server?: any
   lastTime = 0
   hosts: Record<string, string> = {}
 
   constructor() {
-    super()
     this.server = undefined
     this.lastTime = 0
     this.hosts = {}
@@ -48,7 +46,7 @@ class Manager extends Base {
       const IS_IPV6 = isV6Format(LOCAL_IP)
       const server = createServer({
         udp: true,
-        handle: (request: DNS.DnsRequest, send: (response: DNS.DnsResponse) => void) => {
+        handle: (request: DNS2.DnsRequest, send: (response: DNS2.DnsResponse) => void) => {
           const response = Packet.createResponseFromRequest(request)
           const [question] = request.questions
           const { name } = question
@@ -124,7 +122,7 @@ class Manager extends Base {
             port: 53,
             address: LOCAL_IP
           }
-        })
+        } as any)
         .then()
         .catch((e: any) => {
           reject(e)

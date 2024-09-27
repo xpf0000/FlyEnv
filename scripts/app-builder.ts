@@ -5,9 +5,11 @@ import { build as electronBuild, Platform, CliOptions } from 'electron-builder'
 import esbuildConfig from '../configs/esbuild.config'
 import viteConfig from '../configs/vite.config'
 import electronBuilderConfig from '../configs/electron-builder'
+import { DoFix } from './fix'
 
 async function packMain() {
   try {
+    await DoFix()
     await esbuild(esbuildConfig.dist)
     await esbuild(esbuildConfig.distFork)
     await esbuild(esbuildConfig.distDNSFork)

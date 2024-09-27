@@ -1,5 +1,4 @@
 import { spawn, type ChildProcess } from 'child_process'
-import { exec } from 'child-process-promise'
 import { merge } from 'lodash'
 import { statSync, readdirSync, mkdirSync, existsSync, createWriteStream, realpathSync } from 'fs'
 import path, { join, dirname } from 'path'
@@ -10,6 +9,9 @@ import { readdir } from 'fs-extra'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { fixEnv } from '@shared/utils'
 import { compareVersions } from 'compare-versions'
+import { execPromise } from '@shared/Exec'
+
+export { execPromise }
 
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -58,32 +60,6 @@ export function waitTime(time: number) {
     setTimeout(() => {
       resolve(true)
     }, time)
-  })
-}
-
-export function execPromise(
-  cammand: string,
-  opt?: { [k: string]: any }
-): ForkPromise<{
-  stdout: string
-  stderr: string
-}> {
-  return new ForkPromise(async (resolve, reject) => {
-    try {
-      const env = await fixEnv()
-      const res = await exec(
-        cammand,
-        merge(
-          {
-            env
-          },
-          opt
-        )
-      )
-      resolve(res)
-    } catch (e) {
-      reject(e)
-    }
   })
 }
 

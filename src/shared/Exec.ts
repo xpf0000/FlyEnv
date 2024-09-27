@@ -2,9 +2,36 @@ import { fixEnv, uuid } from './utils'
 import { merge } from 'lodash'
 import { ForkPromise } from '@shared/ForkPromise'
 
+const { exec } = require('child-process-promise')
 const { spawn } = require('child_process')
 const { join } = require('path')
 const { existsSync, remove, writeFile } = require('fs-extra')
+
+export function execPromise(
+  cammand: string,
+  opt?: { [k: string]: any }
+): ForkPromise<{
+  stdout: string
+  stderr: string
+}> {
+  return new ForkPromise(async (resolve, reject) => {
+    try {
+      const env = await fixEnv()
+      const res = await exec(
+        cammand,
+        merge(
+          {
+            env
+          },
+          opt
+        )
+      )
+      resolve(res)
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
 
 export function execPromiseRoot(
   params: string | string[],

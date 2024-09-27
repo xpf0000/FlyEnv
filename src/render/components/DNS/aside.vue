@@ -60,17 +60,9 @@
   const switchChange = () => {
     passwordCheck().then(() => {
       let fn = null
-      let promise: Promise<any> | null = null
       if (serviceFetching?.value) return
       fn = serviceRunning?.value ? dnsStore.dnsStop : dnsStore.dnsStart
-      promise = fn()
-      promise?.then((res) => {
-        if (typeof res === 'string') {
-          MessageError(res)
-        } else {
-          MessageSuccess(I18nT('base.success'))
-        }
-      })
+      fn().then()
     })
   }
 

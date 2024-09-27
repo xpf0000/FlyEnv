@@ -1,5 +1,6 @@
-import { resolve } from 'path'
-import { execPromiseRoot } from '@shared/Exec'
+import { resolve, join } from 'path'
+import { remove, copyFile } from 'fs-extra'
+import { execPromise, execPromiseRoot } from '@shared/Exec'
 
 class DnsServer {
   _callbak?: Function
@@ -12,7 +13,19 @@ class DnsServer {
     let timer: NodeJS.Timeout | undefined
     const file = resolve(__dirname, './dns.js')
     return new Promise(async (resolve, reject) => {
-      execPromiseRoot(`node ${file} App-DNS-Flag=${global.Server.BaseDir}`, {
+      try {
+        await execPromise('node -v')
+      } catch (e) {
+        reject(new Error('DNS Server Start Fail: Need NodeJS, Not Found NodeJS In System Env'))
+        return
+      }
+      const cacheFile = join(global.Server.Cache!, 'dns.js')
+      if (cacheFile) {
+        await remove(cacheFile)
+      }
+      await copyFile(file, cacheFile)
+      await execPromiseRoot(`chmod 777 ${cacheFile}`)
+      execPromiseRoot(`node ${cacheFile} App-DNS-Flag=${global.Server.BaseDir}`, {
         env: {
           PWSServer: global.Server
         }

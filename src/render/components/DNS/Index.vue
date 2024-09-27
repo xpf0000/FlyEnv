@@ -19,20 +19,25 @@
         <template #header>
           <div class="table-header">
             <div class="left">
-              <template v-if="running">
-                <div class="status running" :class="{ disabled: fetching }">
-                  <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="dnsStore.dnsStop" />
-                </div>
-                <div class="status refresh" :class="{ disabled: fetching }">
-                  <yb-icon
-                    :svg="import('@/svg/icon_refresh.svg?raw')"
-                    @click.stop="dnsStore.dnsStart"
-                  />
+              <template v-if="fetching">
+                <el-button :loading="true" link></el-button>
+              </template>
+              <template v-else>
+                <template v-if="running">
+                  <div class="status running" :class="{ disabled: fetching }">
+                    <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="dnsStore.dnsStop" />
+                  </div>
+                  <div class="status refresh" :class="{ disabled: fetching }">
+                    <yb-icon
+                      :svg="import('@/svg/icon_refresh.svg?raw')"
+                      @click.stop="dnsStore.dnsRestart"
+                    />
+                  </div>
+                </template>
+                <div v-else class="status" :class="{ disabled: fetching }">
+                  <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStore.dnsStart" />
                 </div>
               </template>
-              <div v-else class="status" :class="{ disabled: fetching }">
-                <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStore.dnsStart" />
-              </div>
             </div>
             <el-button @click.stop="cleanLog">{{ $t('base.clean') }}</el-button>
           </div>

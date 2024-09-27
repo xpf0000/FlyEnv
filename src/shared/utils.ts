@@ -62,13 +62,13 @@ export function execAsync(
       command = 'arch'
     }
     const cp = spawn(command, arg, opt)
-    const stdout: Array<Buffer> = []
-    const stderr: Array<Buffer> = []
-    cp.stdout.on('data', (data: Buffer) => {
+    const stdout: Array<Uint8Array> = []
+    const stderr: Array<Uint8Array> = []
+    cp.stdout.on('data', (data: Uint8Array) => {
       stdout.push(data)
     })
 
-    cp.stderr.on('data', (data: Buffer) => {
+    cp.stderr.on('data', (data: Uint8Array) => {
       stderr.push(data)
     })
 

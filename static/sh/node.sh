@@ -146,6 +146,13 @@ check_fnm_or_nvm() {
   echo "$BIN"
 }
 
+for CPROFILE in ".profile" ".bashrc" ".bash_profile" ".zprofile" ".zshrc"
+    do
+      if [ -f "${HOME}/${CPROFILE}" ]; then
+        source "${HOME}/${CPROFILE}"
+      fi
+    done
+
 FLAG=$1
 ARCH=$2
 case $FLAG in

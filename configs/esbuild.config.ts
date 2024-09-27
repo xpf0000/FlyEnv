@@ -16,7 +16,30 @@ const external = [
   'fs-extra',
   'dns2',
   'ip',
-  'tangerine'
+  'tangerine',
+  'lodash',
+  'axios',
+  'iconv-lite',
+  'compressing',
+  'fast-xml-parser',
+  'source-map',
+  'source-map-js',
+  'entities',
+  '@vue',
+  'vue',
+  'vue-i18n',
+  'estree-walker',
+  'serve-handler',
+  'electron-updater',
+  'js-yaml',
+  '@lzwme/get-physical-address',
+  '@electron/remote',
+  'atomically',
+  'electron-log',
+  'jszip',
+  'pako',
+  'electron-devtools-installer',
+  'conf'
 ]
 
 const dev: BuildOptions = {
@@ -25,7 +48,7 @@ const dev: BuildOptions = {
   outfile: 'dist/electron/main.js',
   minify: false,
   bundle: true,
-  external: external,
+  external,
   plugins: [BuildPlugin()]
 }
 
@@ -35,7 +58,7 @@ const dist: BuildOptions = {
   outfile: 'dist/electron/main.js',
   minify: true,
   bundle: true,
-  external: external,
+  external,
   plugins: [BuildPlugin()],
   drop: ['debugger', 'console']
 }
@@ -49,6 +72,8 @@ const devFork: BuildOptions = {
   external,
   plugins: [BuildPlugin()]
 }
+
+const dnsExternal = ['path', 'fs', 'os', 'child_process']
 
 const distFork: BuildOptions = {
   platform: 'node',
@@ -65,9 +90,9 @@ const devDNSFork: BuildOptions = {
   platform: 'node',
   entryPoints: ['src/fork/dns.ts'],
   outfile: 'dist/electron/dns.js',
-  minify: true,
+  minify: false,
   bundle: true,
-  external,
+  external: dnsExternal,
   plugins: [BuildPlugin()]
 }
 
@@ -77,7 +102,7 @@ const distDNSFork: BuildOptions = {
   outfile: 'dist/electron/dns.js',
   minify: true,
   bundle: true,
-  external,
+  external: dnsExternal,
   plugins: [BuildPlugin()]
 }
 

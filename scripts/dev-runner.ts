@@ -8,6 +8,7 @@ import _md5 from 'md5'
 
 import viteConfig from '../configs/vite.config'
 import esbuildConfig from '../configs/esbuild.config'
+import { DoFix } from './fix'
 
 let restart = false
 let electronProcess: ChildProcess | null
@@ -22,7 +23,8 @@ async function launchViteDevServer(openInBrowser = false) {
 }
 
 function buildMainProcess() {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    await DoFix()
     Promise.all([
       build(esbuildConfig.dev),
       build(esbuildConfig.devFork),
