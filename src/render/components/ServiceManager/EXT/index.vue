@@ -88,26 +88,10 @@
   }
 
   const doShow = () => {
-    const setup = JSON.parse(JSON.stringify(store.config.setup))
-    const arr = setup.excludeLocalVersion
-    if (!arr) {
-      return
-    }
-    const index = arr.indexOf(props.item.bin)
-    if (index >= 0) {
-      arr.splice(index, 1)
-    }
-    store.config.setup = reactive(setup)
-    store.saveConfig().then()
+    store.serviceShow(props.item.bin)
   }
 
   const doHide = () => {
-    const setup = JSON.parse(JSON.stringify(store.config.setup))
-    if (!setup?.excludeLocalVersion) {
-      setup.excludeLocalVersion = reactive([])
-    }
-    setup.excludeLocalVersion.push(props.item.bin)
-    store.config.setup = reactive(setup)
-    store.saveConfig().then()
+    store.serviceHide(props.item.bin)
   }
 </script>

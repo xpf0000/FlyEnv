@@ -415,6 +415,28 @@ export const AppStore = defineStore('app', {
           resolve(true)
         })
       })
+    },
+    serviceShow(bin: string) {
+      const setup = JSON.parse(JSON.stringify(this.config.setup))
+      const arr = setup.excludeLocalVersion
+      if (!arr) {
+        return
+      }
+      const index = arr.indexOf(bin)
+      if (index >= 0) {
+        arr.splice(index, 1)
+      }
+      this.config.setup = reactive(setup)
+      this.saveConfig().then()
+    },
+    serviceHide(bin: string) {
+      const setup = JSON.parse(JSON.stringify(this.config.setup))
+      if (!setup?.excludeLocalVersion) {
+        setup.excludeLocalVersion = reactive([])
+      }
+      setup.excludeLocalVersion.push(bin)
+      this.config.setup = reactive(setup)
+      this.saveConfig().then()
     }
   }
 })

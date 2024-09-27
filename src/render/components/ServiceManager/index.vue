@@ -336,16 +336,7 @@
   }
 
   const doShow = (bin: string) => {
-    const setup = JSON.parse(JSON.stringify(appStore.config.setup))
-    if (!setup?.excludeLocalVersion) {
-      setup.excludeLocalVersion = reactive([])
-    }
-    const index = setup.excludeLocalVersion.indexOf(bin)
-    if (index >= 0) {
-      setup.excludeLocalVersion.splice(index, 1)
-    }
-    appStore.config.setup = reactive(setup)
-    appStore.saveConfig().then()
+    appStore.serviceShow(bin)
   }
 
   const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: SoftInstalled) => {
