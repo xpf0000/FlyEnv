@@ -21,15 +21,6 @@
         <yb-icon :svg="import('@/svg/time.svg?raw')" width="30" height="30" style="padding: 2px" />
         <span>{{ $t('util.toolTimestamp') }}</span>
       </li>
-      <li @click="showPage('decode')">
-        <yb-icon
-          :svg="import('@/svg/decode.svg?raw')"
-          width="30"
-          height="30"
-          style="padding: 2px"
-        />
-        <span>{{ $t('util.toolDecode') }}</span>
-      </li>
       <li @click="showPage('portkill')">
         <yb-icon
           :svg="import('@/svg/portkill.svg?raw')"
@@ -100,9 +91,6 @@
             break
           case 'timestamp':
             this.component = markRaw(defineAsyncComponent(() => import('./Timestamp/index.vue')))
-            break
-          case 'decode':
-            this.component = markRaw(defineAsyncComponent(() => import('./Decode/index.vue')))
             break
           case 'portkill':
             this.component = markRaw(defineAsyncComponent(() => import('./PortKill/index.vue')))

@@ -221,14 +221,16 @@
 
   const currentVersion: ComputedRef<SoftInstalled | undefined> = computed(() => {
     const flag = props.typeFlag
-    return brewStore[flag]?.installed?.find(
-      (i) => i.path === version?.value?.path && i.version === version?.value?.version
-    )
+    return brewStore
+      .module(flag)
+      ?.installed?.find(
+        (i) => i.path === version?.value?.path && i.version === version?.value?.version
+      )
   })
 
   const versionRunning = computed(() => {
     const flag = props.typeFlag
-    return brewStore[flag]?.installed?.some((f) => f.running)
+    return brewStore.module(flag)?.installed?.some((f) => f.running)
   })
 
   const groupTrunOn = (item: SoftInstalled) => {
