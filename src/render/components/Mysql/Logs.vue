@@ -7,7 +7,7 @@
           <el-button :disabled="!filepath" @click="logDo('open')">{{ $t('base.open') }}</el-button>
           <el-button :disabled="!filepath" @click="logDo('refresh')">{{
             $t('base.refresh')
-            }}</el-button>
+          }}</el-button>
           <el-button :disabled="!filepath" @click="logDo('clean')">{{ $t('base.clean') }}</el-button>
         </div>
       </template>
@@ -18,13 +18,10 @@
 <script lang="ts">
 import { defineComponent, nextTick } from 'vue'
 import { writeFileAsync, readFileAsync } from '@shared/file'
-import { AppStore } from '@/store/app'
-import { EventBus } from '@/global'
 import { EditorConfigMake, EditorCreate } from '@/util/Editor'
 import { MessageError, MessageSuccess } from '@/util/Element'
 
 const { existsSync } = require('fs')
-const { exec } = require('child-process-promise')
 const { join } = require('path')
 const { shell } = require('@electron/remote')
 
@@ -44,9 +41,6 @@ export default defineComponent({
     }
   },
   computed: {
-    password() {
-      return AppStore().config.password
-    }
   },
   watch: {
     type() {
@@ -100,19 +94,7 @@ export default defineComponent({
               this.log = ''
               MessageSuccess(this.$t('base.success'))
             })
-            .catch(() => {
-              if (!this.password) {
-                EventBus.emit('vue:need-password')
-              } else {
-                exec(`echo '${this.password}' | sudo -S chmod 777 ${this.filepath}`)
-                  .then(() => {
-                    this.logDo('clean')
-                  })
-                  .catch(() => {
-                    EventBus.emit('vue:need-password')
-                  })
-              }
-            })
+            .catch((e) => { MessageError(e.toString()) })
           break
       }
     },

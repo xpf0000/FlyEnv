@@ -23,10 +23,11 @@ class BaseManager {
   Java: any
   Tomcat: any
   App: any
+  DNS: any
 
-  constructor() {}
+  constructor() { }
 
-  init() {}
+  init() { }
 
   async exec(commands: Array<any>) {
     const ipcCommandKey = commands.shift()
@@ -184,9 +185,15 @@ class BaseManager {
         this.App = res.default
       }
       doRun(this.App)
+    } else if (module === 'dns') {
+      if (!this.DNS) {
+        const res = await import('./module/DNS')
+        this.DNS = res.default
+      }
+      doRun(this.DNS)
     }
   }
 
-  async destory() {}
+  async destory() { }
 }
 export default BaseManager

@@ -54,9 +54,6 @@ const allService = AppModules.filter((m) => m.isTray).map((m) => {
 })
 
 const store = AppStore()
-const password = computed(() => {
-  return store.password
-})
 const groupIsRunning = computed(() => {
   return store.groupIsRunning
 })
@@ -70,7 +67,7 @@ IPC.on('APP:Poper-Left').then((key: string, res: any) => {
 })
 
 const groupDo = () => {
-  if (groupDisabled?.value || !password?.value) {
+  if (groupDisabled?.value) {
     return
   }
   IPC.send('APP:Tray-Command', 'groupDo').then((key: string) => {
@@ -79,9 +76,6 @@ const groupDo = () => {
 }
 
 const switchChange = (flag: string) => {
-  if (!password?.value) {
-    return
-  }
   IPC.send('APP:Tray-Command', 'switchChange', flag).then((key: string) => {
     IPC.off(key)
   })

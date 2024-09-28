@@ -15,7 +15,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { startService, stopService } from '@/util/Service'
-import { passwordCheck } from '@/util/Brew'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import { I18nT } from '@shared/lang'
@@ -28,7 +27,8 @@ const appStore = AppStore()
 const brewStore = BrewStore()
 
 const phpVersions = computed(() => {
-    return brewStore.module('php').installed
+    const exclude = appStore.config.setup?.excludeLocalVersion ?? []
+    return brewStore.module('php').installed.filter((v) => !exclude.includes(v.bin))
 })
 
 const serviceRunning = computed({
@@ -36,29 +36,27 @@ const serviceRunning = computed({
         return phpVersions?.value?.length > 0 && phpVersions?.value?.some((v) => v.run)
     },
     set(v: boolean) {
-        passwordCheck().then(() => {
-            const all: Array<Promise<any>> = []
-            if (v) {
-                phpVersions?.value?.forEach((v) => {
-                    if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
-                        all.push(startService('php', v))
-                    }
-                })
-            } else {
-                phpVersions?.value?.forEach((v) => {
-                    if (v?.version && v?.run) {
-                        all.push(stopService('php', v))
-                    }
-                })
-            }
-            Promise.all(all).then((res) => {
-                let find = res.find((s) => typeof s === 'string')
-                if (find) {
-                    MessageError(find)
-                } else {
-                    MessageSuccess(I18nT('base.success'))
+        const all: Array<Promise<any>> = []
+        if (v) {
+            phpVersions?.value?.forEach((v) => {
+                if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
+                    all.push(startService('php', v))
                 }
             })
+        } else {
+            phpVersions?.value?.forEach((v) => {
+                if (v?.version && v?.run) {
+                    all.push(stopService('php', v))
+                }
+            })
+        }
+        Promise.all(all).then((res) => {
+            let find = res.find((s) => typeof s === 'string')
+            if (find) {
+                MessageError(find)
+            } else {
+                MessageSuccess(I18nT('base.success'))
+            }
         })
     }
 })

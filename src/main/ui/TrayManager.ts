@@ -19,6 +19,9 @@ export default class TrayManager extends EventEmitter {
   }
 
   iconChange(status: boolean) {
+    if (this.active === status) {
+      return
+    }
     this.active = status
     this.tray.setImage(this.active ? this.activeIcon : this.normalIcon)
   }

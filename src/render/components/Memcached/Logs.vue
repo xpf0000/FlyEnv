@@ -39,9 +39,6 @@ export default defineComponent({
     }
   },
   computed: {
-    password() {
-      return AppStore().config.password
-    }
   },
   watch: {
     log() {
@@ -92,19 +89,7 @@ export default defineComponent({
               this.log = ''
               MessageSuccess(this.$t('base.success'))
             })
-            .catch(() => {
-              if (!this.password) {
-                EventBus.emit('vue:need-password')
-              } else {
-                exec(`echo '${this.password}' | sudo -S chmod 777 ${this.filepath}`)
-                  .then(() => {
-                    this.logDo('clean')
-                  })
-                  .catch(() => {
-                    EventBus.emit('vue:need-password')
-                  })
-              }
-            })
+            .catch((e) => {               MessageError(e.toString())             })
           break
       }
     },

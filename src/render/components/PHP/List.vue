@@ -12,6 +12,24 @@
               <el-button class="custom-folder-add-btn" :icon="FolderAdd" link @click.stop="showCustomDir"></el-button>
             </template>
           </el-popover>
+          <el-popover :show-after="600" placement="top" width="auto">
+            <template #default>
+              <span>{{ $t('base.showHideTips') }}</span>
+            </template>
+            <template #reference>
+              <template v-if="isShowHide">
+                <el-button link style="padding: 0" @click.stop="isShowHide = false">
+                  <yb-icon :svg="import('@/svg/show.svg?raw')"
+                    style="width: 24px; height: 24px; color: #409eff"></yb-icon>
+                </el-button>
+              </template>
+              <template v-else>
+                <el-button link style="padding: 0" @click.stop="isShowHide = true">
+                  <yb-icon :svg="import('@/svg/hide.svg?raw')" style="width: 23px; height: 23px"></yb-icon>
+                </el-button>
+              </template>
+            </template>
+          </el-popover>
           <el-button link @click="openUrl('https://getcomposer.org/')">
             Composer
           </el-button>
@@ -63,22 +81,30 @@
       </el-table-column>
       <el-table-column :label="$t('base.service')" :prop="null" width="100px">
         <template #default="scope">
-          <template v-if="scope.row.running">
-            <el-button :loading="true" link></el-button>
+          <template v-if="excludeLocalVersion.includes(scope.row.bin)">
+            <el-button link @click.stop="doShow(scope.row)">
+              <yb-icon :svg="import('@/svg/hide.svg?raw')" style="width: 24px; height: 24px"
+                :class="{ 'fa-spin': service?.fetching }"></yb-icon>
+            </el-button>
           </template>
           <template v-else>
-            <template v-if="scope.row.run">
-              <el-button link class="status running">
-                <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="doStop(scope.row)" />
-              </el-button>
-              <el-button link class="status refresh">
-                <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="doRun(scope.row)" />
-              </el-button>
+            <template v-if="scope.row.running">
+              <el-button :loading="true" link></el-button>
             </template>
             <template v-else>
-              <el-button link class="status start">
-                <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="doRun(scope.row)" />
-              </el-button>
+              <template v-if="scope.row.run">
+                <el-button link class="status running">
+                  <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="doStop(scope.row)" />
+                </el-button>
+                <el-button link class="status refresh">
+                  <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="doRun(scope.row)" />
+                </el-button>
+              </template>
+              <template v-else>
+                <el-button link class="status start">
+                  <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="doRun(scope.row)" />
+                </el-button>
+              </template>
             </template>
           </template>
         </template>
@@ -114,10 +140,18 @@
                 <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
                 <span class="ml-15">{{ $t('base.addToPath') }}</span>
               </li>
-              <li v-loading="delLoading(scope.row)" @click.stop="doDel(scope.row)">
-                <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('base.del') }}</span>
-              </li>
+              <template v-if="isVersionHide(scope.row)">
+                <li @click.stop="doShow(scope.row)">
+                  <yb-icon :svg="import('@/svg/show.svg?raw')" width="17" height="17" />
+                  <span class="ml-15">{{ $t('base.noHide') }}</span>
+                </li>
+              </template>
+              <template v-else>
+                <li @click.stop="doHide(scope.row)">
+                  <yb-icon :svg="import('@/svg/hide.svg?raw')" width="17" height="17" />
+                  <span class="ml-15">{{ $t('base.hide') }}</span>
+                </li>
+              </template>
             </ul>
             <template #reference>
               <el-button link class="status">
@@ -132,7 +166,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, reactive, Ref } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { startService, stopService } from '@/util/Service'
 import installedVersions from '@/util/InstalledVersions'
 import { BrewStore, SoftInstalled } from '@/store/brew'
@@ -165,6 +199,11 @@ const php = computed(() => {
   return brewStore.module('php')
 })
 const versions = computed(() => {
+  if (!isShowHide?.value) {
+    return brewStore?.module('php')?.installed?.filter(
+      (i) => !excludeLocalVersion.value.includes(i.bin)
+    )
+  }
   return brewStore.module('php')?.installed ?? []
 })
 
@@ -186,8 +225,24 @@ const pathLoading = (item: SoftInstalled) => {
   return ServiceActionStore.pathSeting?.[item.bin] ?? false
 }
 
-const delLoading = (item: SoftInstalled) => {
-  return ServiceActionStore.versionDeling?.[item.bin] ?? false
+const excludeLocalVersion = computed(() => {
+  return appStore.config.setup.excludeLocalVersion ?? []
+})
+
+
+const isVersionHide = (item: SoftInstalled) => {
+  return excludeLocalVersion?.value?.includes(item.bin)
+}
+
+const doShow = (item: SoftInstalled) => {
+  appStore.serviceShow(item.bin)
+}
+
+const doHide = (item: SoftInstalled) => {
+  appStore.serviceHide(item.bin)
+  if (item?.run) {
+    stopService('php', item)
+  }
 }
 
 const pathState = (item: SoftInstalled) => {
@@ -198,9 +253,14 @@ const pathState = (item: SoftInstalled) => {
   return ServiceActionStore.allPath.includes(dirname(item.bin)) ? 'seted' : 'noset'
 }
 
-const doDel = (item: SoftInstalled) => {
-  ServiceActionStore.delVersion(item, 'php')
-}
+const isShowHide = computed({
+  get() {
+    return appStore?.config?.setup?.serviceShowHide?.php ?? false
+  },
+  set(v) {
+    appStore.serviceShowHide('php', v)
+  }
+})
 
 const pathChange = (item: SoftInstalled) => {
   ServiceActionStore.updatePath(item, 'php')

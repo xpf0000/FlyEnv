@@ -11,7 +11,6 @@ type ModuleItemState = {
 type StateBase = Partial<Record<AllAppModule, ModuleItemState>>
 
 export interface TrayState extends StateBase {
-  password: string
   lang: string
   theme: string
   groupIsRunning: boolean
@@ -21,7 +20,6 @@ export interface TrayState extends StateBase {
 const state: TrayState = {
   lang: '',
   theme: '',
-  password: '',
   groupIsRunning: false,
   groupDisabled: true
 }

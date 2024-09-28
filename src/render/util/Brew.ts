@@ -1,62 +1,10 @@
 import IPC from './IPC'
-import { ElMessageBox } from 'element-plus'
-import { AppStore } from '@/store/app'
 import { BrewStore, OnlineVersionItem } from '@/store/brew'
-import { I18nT } from '@shared/lang'
 import { MessageError } from '@/util/Element'
 import { reactive } from 'vue'
 import { AllAppModule } from '@/core/type'
 
-const { getGlobal } = require('@electron/remote')
 const { existsSync } = require('fs')
-
-/**
- * 电脑密码检测, 很多操作需要电脑密码
- * @returns {Promise<unknown>}
- */
-export const passwordCheck = () => {
-  return new Promise((resolve, reject) => {
-    global.Server = getGlobal('Server')
-    if (!global.Server.Password) {
-      ElMessageBox.prompt(I18nT('base.inputPasswordDesc'), I18nT('base.inputPassword'), {
-        confirmButtonText: I18nT('base.confirm'),
-        cancelButtonText: I18nT('base.cancel'),
-        inputType: 'password',
-        customClass: 'password-prompt',
-        beforeClose: (action, instance, done) => {
-          if (action === 'confirm') {
-            // 去除trim, 有些电脑的密码是空格...
-            if (instance.inputValue) {
-              IPC.send('app:password-check', instance.inputValue).then((key: string, res: any) => {
-                IPC.off(key)
-                if (res === false) {
-                  instance.editorErrorMessage = I18nT('base.passwordError')
-                } else {
-                  global.Server.Password = res
-                  AppStore()
-                    .initConfig()
-                    .then(() => {
-                      done && done()
-                      resolve(true)
-                    })
-                }
-              })
-            }
-          } else {
-            done()
-          }
-        }
-      })
-        .then(() => { })
-        .catch((err) => {
-          console.log('err: ', err)
-          reject(err)
-        })
-    } else {
-      resolve(true)
-    }
-  })
-}
 
 export function brewInfo(key: string) {
   return new Promise((resolve, reject) => {

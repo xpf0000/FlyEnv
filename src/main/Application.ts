@@ -413,39 +413,18 @@ export default class Application extends EventEmitter {
       const win = this.mainWindow!
       this.windowManager.sendCommandTo(win, command, key, info)
     }
+    if (command.startsWith('app-fork:')) {
+      const module = command.replace('app-fork:', '')
+      this.setProxy()
+      global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
+      global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
+      this.forkManager
+        ?.send(module, ...args)
+        .on(callBack)
+        .then(callBack)
+      return
+    }
     switch (command) {
-      case 'app-fork:apache':
-      case 'app-fork:nginx':
-      case 'app-fork:php':
-      case 'app-fork:host':
-      case 'app-fork:mysql':
-      case 'app-fork:redis':
-      case 'app-fork:memcached':
-      case 'app-fork:mongodb':
-      case 'app-fork:mariadb':
-      case 'app-fork:postgresql':
-      case 'app-fork:pure-ftpd':
-      case 'app-fork:node':
-      case 'app-fork:brew':
-      case 'app-fork:version':
-      case 'app-fork:project':
-      case 'app-fork:tools':
-      case 'app-fork:macports':
-      case 'app-fork:caddy':
-      case 'app-fork:dns':
-      case 'app-fork:composer':
-      case 'app-fork:java':
-      case 'app-fork:tomcat':
-      case 'app-fork:app':
-        const module = command.replace('app-fork:', '')
-        this.setProxy()
-        global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
-        global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
-        this.forkManager
-          ?.send(module, ...args)
-          .on(callBack)
-          .then(callBack)
-        break
       case 'Application:APP-Minimize':
         this.windowManager?.getFocusedWindow()?.minimize()
         break
@@ -458,6 +437,7 @@ export default class Application extends EventEmitter {
         }
         break
       case 'Application:tray-status-change':
+        console.log("Application:tray-status-change: ", args)
         if (args && Array.isArray(args) && args.length > 0) {
           this.trayManager.iconChange(args[0])
         }
@@ -468,6 +448,8 @@ export default class Application extends EventEmitter {
       case 'APP:Tray-Store-Sync':
         if (args && Array.isArray(args) && args.length > 0) {
           this.windowManager.sendCommandTo(this.trayWindow!, command, command, args[0])
+          const state = args[0]?.groupIsRunning ?? false
+          this.trayManager.iconChange(state)
         }
         break
       case 'APP:Tray-Command':

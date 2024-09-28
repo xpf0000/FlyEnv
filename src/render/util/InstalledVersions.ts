@@ -76,12 +76,13 @@ class InstalledVersions {
                   d.version && d.enable && d.version === currentVersion && d.path === currentPath
               )
             if (!findCurrent) {
-              const find = data.installed.find((d) => d.version && d.enable)
-              if (find) {
-                appStore.UPDATE_SERVER_CURRENT({
-                  flag: flag,
-                  data: JSON.parse(JSON.stringify(find))
-                })
+              const exclude = appStore.config.setup?.excludeLocalVersion ?? []
+              const find = data.installed.find((d) => d.version && d.enable && !exclude.includes(d.bin))
+              appStore.UPDATE_SERVER_CURRENT({
+                flag: flag,
+                data: JSON.parse(JSON.stringify(find ?? {}))
+              })
+              if (!!find) {
                 needSaveConfig = true
               }
             }

@@ -2,7 +2,7 @@
     <div class="soft-index-panel main-right-panel">
         <ul class="top-tab">
             <template v-for="(item, index) in tabs" :key="index">
-                <li :class="tab === index ? 'active' : ''" @click="toTab(index)">{{ item }}</li>
+                <li :class="tab === index ? 'active' : ''" @click="tab = index">{{ item }}</li>
             </template>
         </ul>
         <div class="main-block">

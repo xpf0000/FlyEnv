@@ -50,14 +50,14 @@ export const FtpStore = defineStore('ftp', {
         })
       })
     },
-    start() {
+    start(): Promise<string | boolean> {
       return new Promise((resolve) => {
-        if (!this.running) {
+        if (this.running) {
           resolve(true)
           return
         }
         this.fetching = true
-        IPC.send('app-fork:ftp', 'startService').then((key: string, res?: any) => {
+        IPC.send('app-fork:pure-ftpd', 'startService', { version: '1.0' }).then((key: string, res?: any) => {
           IPC.off(key)
           this.fetching = false
           this.running = res?.data === true
@@ -69,17 +69,17 @@ export const FtpStore = defineStore('ftp', {
         })
       })
     },
-    stop() {
+    stop(): Promise<string | boolean> {
       return new Promise((resolve) => {
         if (!this.running) {
           resolve(true)
           return
         }
         this.fetching = true
-        IPC.send('app-fork:ftp', 'stopService').then((key: string, res?: any) => {
+        IPC.send('app-fork:pure-ftpd', 'stopService', { version: '1.0' }).then((key: string, res?: any) => {
           IPC.off(key)
           this.fetching = false
-          this.running = res?.data === true
+          this.running = false
           if (res?.code === 0) {
             resolve(true)
           } else {
@@ -88,7 +88,7 @@ export const FtpStore = defineStore('ftp', {
         })
       })
     },
-    reStart() {
+    reStart(): Promise<string | boolean> {
       return new Promise(async (resolve) => {
         await this.stop()
         await this.start()

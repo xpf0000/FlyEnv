@@ -48,7 +48,7 @@ export const DnsStore = defineStore('dns', {
           return
         }
         this.fetching = true
-        IPC.send('DNS:stop').then((key: string, res: boolean | string) => {
+        IPC.send('app-fork:dns', 'stopService').then((key: string, res: boolean | string) => {
           IPC.off(key)
           this.fetching = false
           if (typeof res === 'string') {
@@ -72,7 +72,7 @@ export const DnsStore = defineStore('dns', {
           return
         }
         this.fetching = true
-        IPC.send('DNS:start').then((key: string, res: boolean | string) => {
+        IPC.send('app-fork:dns', 'startService').then((key: string, res: boolean | string) => {
           IPC.off(key)
           this.fetching = false
           if (typeof res === 'string') {

@@ -162,7 +162,7 @@ class Redis extends Base {
             })
           })
           const appInited = await versionInitedApp('redis', 'redis-server.exe')
-          versions.push(...appInited)
+          versions.push(...appInited.filter((a) => !versions.find((v) => v.bin === a.bin)))
           resolve(versionSort(versions))
         })
         .catch(() => {

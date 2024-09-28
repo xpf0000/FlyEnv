@@ -7,10 +7,10 @@
                     <el-button :disabled="!filepath" @click="logDo('open')">{{ $t('base.open') }}</el-button>
                     <el-button :disabled="!filepath" @click="logDo('refresh')">{{
                         $t('base.refresh')
-                    }}</el-button>
+                        }}</el-button>
                     <el-button :disabled="!filepath" @click="logDo('clean')">{{
                         $t('base.clean')
-                    }}</el-button>
+                        }}</el-button>
                 </div>
             </template>
         </el-card>
@@ -45,9 +45,6 @@ export default defineComponent({
     computed: {
         version() {
             return AppStore().config.server?.tomcat?.current
-        },
-        password() {
-            return AppStore().config.password
         }
     },
     watch: {

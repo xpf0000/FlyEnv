@@ -39,7 +39,7 @@ class Apache extends Base {
         const reg = new RegExp('(Define SRVROOT ")([\\s\\S]*?)(")', 'g')
         try {
           srvroot = reg?.exec?.(content)?.[2] ?? ''
-        } catch (e) {}
+        } catch (e) { }
         if (srvroot) {
           const srvrootReplace = version.path.split('\\').join('/')
           if (srvroot !== srvrootReplace) {
@@ -71,7 +71,7 @@ class Apache extends Base {
       let file = ''
       try {
         file = reg?.exec?.(str)?.[2] ?? ''
-      } catch (e) {}
+      } catch (e) { }
       file = file.trim()
       file = join(version.path, file)
 
@@ -87,21 +87,21 @@ class Apache extends Base {
       let logPath = ''
       try {
         logPath = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) {}
+      } catch (e) { }
       logPath = logPath.trim()
 
       reg = new RegExp('(ErrorLog ")([\\s\\S]*?)(")', 'g')
       let errLogPath = ''
       try {
         errLogPath = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) {}
+      } catch (e) { }
       errLogPath = errLogPath.trim()
 
       let srvroot = ''
       reg = new RegExp('(Define SRVROOT ")([\\s\\S]*?)(")', 'g')
       try {
         srvroot = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) {}
+      } catch (e) { }
 
       content = content
         .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
@@ -158,7 +158,7 @@ IncludeOptional "${vhost}*.conf"`
     let host: Array<AppHost> = []
     try {
       host = JSON.parse(json)
-    } catch (e) {}
+    } catch (e) { }
     if (host.length === 0) {
       return
     }
@@ -235,7 +235,7 @@ IncludeOptional "${vhost}*.conf"`
       let command = `${basename(bin)} -k uninstall`
       try {
         await execPromiseRoot(command)
-      } catch (e) {}
+      } catch (e) { }
 
       try {
         process.chdir(dirname(bin))
@@ -246,7 +246,7 @@ IncludeOptional "${vhost}*.conf"`
       command = `${basename(bin)} -k install`
       try {
         await execPromiseRoot(command)
-      } catch (e) {}
+      } catch (e) { }
 
       try {
         process.chdir(dirname(bin))
@@ -316,7 +316,7 @@ IncludeOptional "${vhost}*.conf"`
             })
           })
           const appInited = await versionInitedApp('apache', 'bin/httpd.exe')
-          versions.push(...appInited)
+          versions.push(...appInited.filter((a) => !versions.find((v) => v.bin === a.bin)))
           resolve(versionSort(versions))
         })
         .catch(() => {

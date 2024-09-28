@@ -13,6 +13,25 @@
                                 @click.stop="showCustomDir"></el-button>
                         </template>
                     </el-popover>
+                    <el-popover :show-after="600" placement="top" width="auto">
+                        <template #default>
+                            <span>{{ $t('base.showHideTips') }}</span>
+                        </template>
+                        <template #reference>
+                            <template v-if="isShowHide">
+                                <el-button link style="padding: 0" @click.stop="isShowHide = false">
+                                    <yb-icon :svg="import('@/svg/show.svg?raw')"
+                                        style="width: 24px; height: 24px; color: #409eff"></yb-icon>
+                                </el-button>
+                            </template>
+                            <template v-else>
+                                <el-button link style="padding: 0" @click.stop="isShowHide = true">
+                                    <yb-icon :svg="import('@/svg/hide.svg?raw')"
+                                        style="width: 23px; height: 23px"></yb-icon>
+                                </el-button>
+                            </template>
+                        </template>
+                    </el-popover>
                 </div>
                 <el-button class="button" :disabled="service?.fetching" link @click="resetData">
                     <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" class="refresh-icon"
@@ -52,6 +71,16 @@
                     </template>
                 </template>
             </el-table-column>
+            <el-table-column label="" :prop="null" width="100px">
+                <template #default="scope">
+                    <template v-if="excludeLocalVersion.includes(scope.row.bin)">
+                        <el-button link @click.stop="doShow(scope.row)">
+                            <yb-icon :svg="import('@/svg/hide.svg?raw')" style="width: 24px; height: 24px"
+                                :class="{ 'fa-spin': service?.fetching }"></yb-icon>
+                        </el-button>
+                    </template>
+                </template>
+            </el-table-column>
             <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
                 <template #default="scope">
                     <el-popover effect="dark" popper-class="host-list-poper" placement="left-start" :show-arrow="false"
@@ -62,6 +91,18 @@
                                 <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
                                 <span class="ml-15">{{ $t('base.addToPath') }}</span>
                             </li>
+                            <template v-if="isVersionHide(scope.row)">
+                                <li @click.stop="doShow(scope.row)">
+                                    <yb-icon :svg="import('@/svg/show.svg?raw')" width="17" height="17" />
+                                    <span class="ml-15">{{ $t('base.noHide') }}</span>
+                                </li>
+                            </template>
+                            <template v-else>
+                                <li @click.stop="doHide(scope.row)">
+                                    <yb-icon :svg="import('@/svg/hide.svg?raw')" width="17" height="17" />
+                                    <span class="ml-15">{{ $t('base.hide') }}</span>
+                                </li>
+                            </template>
                         </ul>
                         <template #reference>
                             <el-button link class="status">
@@ -76,13 +117,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import installedVersions from '@/util/InstalledVersions'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { Service } from '@/components/ServiceManager/service'
 import { FolderAdd } from '@element-plus/icons-vue'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+import { AppStore } from '@/store/app'
 
 const { shell } = require('@electron/remote')
 const { dirname } = require('path')
@@ -95,6 +137,33 @@ if (!Service.java) {
 
 const initing = ref(false)
 const brewStore = BrewStore()
+const appStore = AppStore()
+
+const isShowHide = computed({
+    get() {
+        return appStore?.config?.setup?.serviceShowHide?.java ?? false
+    },
+    set(v) {
+        appStore.serviceShowHide('java', v)
+    }
+})
+
+const excludeLocalVersion = computed(() => {
+    return appStore.config.setup.excludeLocalVersion ?? []
+})
+
+
+const isVersionHide = (item: SoftInstalled) => {
+    return excludeLocalVersion?.value?.includes(item.bin)
+}
+
+const doShow = (item: SoftInstalled) => {
+    appStore.serviceShow(item.bin)
+}
+
+const doHide = (item: SoftInstalled) => {
+    appStore.serviceHide(item.bin)
+}
 
 const onPoperShow = () => {
     ServiceActionStore.fetchPath()
@@ -129,6 +198,11 @@ const java = computed(() => {
     return brewStore.module('java')
 })
 const versions = computed(() => {
+    if (!isShowHide?.value) {
+        return brewStore?.module('java')?.installed?.filter(
+            (i) => !excludeLocalVersion.value.includes(i.bin)
+        )
+    }
     return brewStore.module('java')?.installed ?? []
 })
 

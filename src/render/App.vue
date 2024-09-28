@@ -74,7 +74,7 @@ const showAbout = () => {
     .show()
 }
 
-const checkPassword = () => {
+const AppServiceInit = () => {
   const dict: { [key: string]: boolean } = showItemLowcase()
   console.log('showItem dict: ', dict)
   const flags: Array<keyof typeof AppSofts> = [
@@ -101,7 +101,6 @@ const checkPassword = () => {
   })
 }
 
-EventBus.on('vue:need-password', checkPassword)
 IPC.on('application:about').then(showAbout)
 
 watch(
@@ -126,12 +125,11 @@ watch(
 )
 
 onMounted(() => {
-  checkPassword()
+  AppServiceInit()
   brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
 })
 
 onUnmounted(() => {
-  EventBus.off('vue:need-password', checkPassword)
   IPC.off('application:about')
 })
 </script>

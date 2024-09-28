@@ -7,7 +7,7 @@
           <el-button :disabled="!filepath" @click="logDo('open')">{{ $t('base.open') }}</el-button>
           <el-button :disabled="!filepath" @click="logDo('refresh')">{{
             $t('base.refresh')
-            }}</el-button>
+          }}</el-button>
           <el-button :disabled="!filepath" @click="logDo('clean')">{{ $t('base.clean') }}</el-button>
         </div>
       </template>
@@ -42,11 +42,7 @@ export default defineComponent({
       log: ''
     }
   },
-  computed: {
-    password() {
-      return AppStore().config.password
-    }
-  },
+  computed: {},
   watch: {
     type() {
       this.init()
@@ -99,18 +95,8 @@ export default defineComponent({
               this.log = ''
               MessageSuccess(this.$t('base.success'))
             })
-            .catch(() => {
-              if (!this.password) {
-                EventBus.emit('vue:need-password')
-              } else {
-                exec(`echo '${this.password}' | sudo -S chmod 777 ${this.filepath}`)
-                  .then(() => {
-                    this.logDo('clean')
-                  })
-                  .catch(() => {
-                    EventBus.emit('vue:need-password')
-                  })
-              }
+            .catch((e) => {
+              MessageError(e.toString())
             })
           break
       }

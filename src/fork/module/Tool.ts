@@ -251,7 +251,10 @@ subjectAltName=@alt_names
   processFind(name: string) {
     return new ForkPromise(async (resolve) => {
       const command = `wmic process get commandline,ProcessId | findstr "${name}"`
-      const res = await execPromiseRoot(command)
+      let res
+      try {
+        res = await execPromiseRoot(command)
+      } catch (e) { }
       const lines = res?.stdout?.trim()?.split('\n') ?? []
       const list = lines
         .filter((s) => !s.includes(`findstr `))
@@ -286,11 +289,14 @@ subjectAltName=@alt_names
   portFind(name: string) {
     return new ForkPromise(async (resolve) => {
       const command = `netstat -ano | findstr :${name}`
-      const res = await execPromiseRoot(command)
+      let res: any
+      try {
+        res = await execPromiseRoot(command)
+      } catch (e) { }
       const lines = res?.stdout?.trim()?.split('\n') ?? []
       const list = lines
-        .filter((s) => !s.includes(`findstr `))
-        .map((i) => {
+        .filter((s: string) => !s.includes(`findstr `))
+        .map((i: string) => {
           const all = i
             .split(' ')
             .filter((s: string) => {
@@ -304,7 +310,7 @@ subjectAltName=@alt_names
             return undefined
           }
         })
-        .filter((p) => !!p)
+        .filter((p: string) => !!p)
       const arr: any[] = []
       const pids = Array.from(new Set(list))
 

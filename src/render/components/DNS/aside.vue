@@ -18,7 +18,6 @@
 import { AsideSetup, AppServiceModule } from '@/core/ASide'
 import { DnsStore } from './dns'
 import { computed } from 'vue'
-import { passwordCheck } from '@/util/Brew'
 
 const { showItem, serviceDisabled, currentPage, nav, stopNav } = AsideSetup('dns')
 

@@ -238,7 +238,7 @@ class Caddy extends Base {
             })
           })
           const appInited = await versionInitedApp('caddy', 'caddy.exe')
-          versions.push(...appInited)
+          versions.push(...appInited.filter((a) => !versions.find((v) => v.bin === a.bin)))
           resolve(versionSort(versions))
         })
         .catch(() => {

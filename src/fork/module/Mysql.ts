@@ -360,7 +360,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       let versions: SoftInstalled[] = []
       Promise.all([versionLocalFetch(setup?.mysql?.dirs ?? [], 'mysqld.exe')])
         .then(async (list) => {
-          versions = list.flat()
+          versions = list.flat().filter((v) => !v.bin.includes('mariadb'))
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
             const command = `${basename(item.bin)} -V`
@@ -383,7 +383,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
             })
           })
           const appInited = await versionInitedApp('mysql', 'bin/mysqld.exe')
-          versions.push(...appInited)
+          versions.push(...appInited.filter((a) => !versions.find((v) => v.bin === a.bin)))
           resolve(versionSort(versions))
         })
         .catch(() => {

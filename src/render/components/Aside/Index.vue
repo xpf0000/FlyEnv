@@ -38,8 +38,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, watch } from 'vue'
-import { passwordCheck } from '@/util/Brew'
+import { computed, onMounted, ref, watch } from 'vue'
 import IPC from '@/util/IPC'
 import { AppStore } from '@/store/app'
 import { I18nT } from '@shared/lang'
@@ -58,8 +57,15 @@ const currentPage = computed(() => {
   return appStore.currentPage
 })
 
+const index = ref(1)
+
 const groupIsRunning = computed(() => {
-  return Object.values(AppServiceModule).some((m) => !!m?.serviceRunning)
+  if (index.value > 0) {
+    const v = Object.values(AppServiceModule).some((m) => !!m?.serviceRunning)
+    console.log('groupIsRunning computed: ', v)
+    return v
+  }
+  return false
 })
 
 const groupDisabled = computed(() => {
@@ -92,37 +98,12 @@ const trayStore = computed(() => {
   }
   return {
     ...dict,
-    password: appStore?.config?.password,
     lang: appStore?.config?.setup?.lang,
     theme: appStore?.config?.setup?.theme,
     groupDisabled: groupDisabled.value,
     groupIsRunning: groupIsRunning.value
   }
 })
-
-watch(groupIsRunning, (val) => {
-  IPC.send('Application:tray-status-change', val).then((key: string) => {
-    IPC.off(key)
-  })
-})
-
-watch(
-  trayStore,
-  (v) => {
-    const current = JSON.stringify(v)
-    if (lastTray !== current) {
-      lastTray = current
-      console.log('trayStore changed: ', current)
-      IPC.send('APP:Tray-Store-Sync', JSON.parse(current)).then((key: string) => {
-        IPC.off(key)
-      })
-    }
-  },
-  {
-    immediate: true,
-    deep: true
-  }
-)
 
 const toDoc = () => {
   Base.Dialog(import('@/components/About/index.vue'))
@@ -137,40 +118,38 @@ const groupDo = () => {
   if (groupDisabled.value) {
     return
   }
-  passwordCheck().then(() => {
-    const modules = Object.values(AppServiceModule)
-    const all: Array<Promise<string | boolean>> = []
-    modules.forEach((m) => {
-      const arr = m?.groupDo(groupIsRunning?.value) ?? []
-      all.push(...arr)
-    })
-    if (all.length > 0) {
-      const err: Array<string> = []
-      const run = () => {
-        const task = all.pop()
-        if (task) {
-          task
-            .then((s: boolean | string) => {
-              if (typeof s === 'string') {
-                err.push(s)
-              }
-              run()
-            })
-            .catch((e: any) => {
-              err.push(e.toString())
-              run()
-            })
+  const modules = Object.values(AppServiceModule)
+  const all: Array<Promise<string | boolean>> = []
+  modules.forEach((m) => {
+    const arr = m?.groupDo(groupIsRunning?.value) ?? []
+    all.push(...arr)
+  })
+  if (all.length > 0) {
+    const err: Array<string> = []
+    const run = () => {
+      const task = all.pop()
+      if (task) {
+        task
+          .then((s: boolean | string) => {
+            if (typeof s === 'string') {
+              err.push(s)
+            }
+            run()
+          })
+          .catch((e: any) => {
+            err.push(e.toString())
+            run()
+          })
+      } else {
+        if (err.length === 0) {
+          MessageSuccess(I18nT('base.success'))
         } else {
-          if (err.length === 0) {
-            MessageSuccess(I18nT('base.success'))
-          } else {
-            MessageError(err.join('<br/>'))
-          }
+          MessageError(err.join('<br/>'))
         }
       }
-      run()
     }
-  })
+    run()
+  }
 }
 
 const switchChange = (flag: AllAppModule) => {
@@ -203,4 +182,24 @@ IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
   }
   fns[fn] && fns[fn](arg)
 })
+
+watch(
+  trayStore,
+  (v) => {
+    index.value += 1
+    const current = JSON.stringify(v)
+    if (lastTray !== current) {
+      lastTray = current
+      console.log('trayStore changed: ', current)
+      IPC.send('APP:Tray-Store-Sync', JSON.parse(current)).then((key: string) => {
+        IPC.off(key)
+      })
+    }
+  },
+  {
+    immediate: true,
+    deep: true
+  }
+)
+
 </script>

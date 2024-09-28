@@ -111,7 +111,7 @@ class Php extends Base {
       let res: any = null
       try {
         res = await execPromiseRoot(command)
-      } catch (e) {}
+      } catch (e) { }
       const pids = res?.stdout?.trim()?.split('\n') ?? []
       const arr: Array<string> = []
       const fpm: Array<string> = []
@@ -136,13 +136,9 @@ class Php extends Base {
       console.log('php arr: ', arr)
       if (arr.length > 0) {
         const str = arr.map((s) => `/pid ${s}`).join(' ')
-        await execPromiseRoot(`taskkill /f /t ${str}`)
-
-        // for (const pid of arr) {
-        //   try {
-        //     await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-        //   } catch (e) { }
-        // }
+        try {
+          await execPromiseRoot(`taskkill /f /t ${str}`)
+        } catch (e) { }
       }
       resolve(true)
     })
@@ -292,7 +288,7 @@ class Php extends Base {
           return
         }
         on(res.stdout)
-        resolve(0)
+        resolve(true)
       } catch (e: any) {
         reject(e)
       }
@@ -305,7 +301,7 @@ class Php extends Base {
     extend: string,
     extendsDir: string
   ) {
-    return new ForkPromise(async (resolve, reject, on) => {})
+    return new ForkPromise(async (resolve, reject, on) => { })
   }
 
   doObfuscator(params: any) {
@@ -383,7 +379,7 @@ class Php extends Base {
             })
           })
           const appInited = await versionInitedApp('php', 'php-cgi.exe')
-          versions.push(...appInited)
+          versions.push(...appInited.filter((a) => !versions.find((v) => v.bin === a.bin)))
           resolve(versionSort(versions))
         })
         .catch(() => {

@@ -19,14 +19,13 @@
             <template #reference>
               <template v-if="isShowHide">
                 <el-button link style="padding: 0" @click.stop="isShowHide = false">
-                  <yb-icon :svg="import('@/svg/show.svg?raw')" style="width: 24px; height: 24px; color: #409eff"
-                    :class="{ 'fa-spin': service?.fetching }"></yb-icon>
+                  <yb-icon :svg="import('@/svg/show.svg?raw')"
+                    style="width: 24px; height: 24px; color: #409eff"></yb-icon>
                 </el-button>
               </template>
               <template v-else>
                 <el-button link style="padding: 0" @click.stop="isShowHide = true">
-                  <yb-icon :svg="import('@/svg/hide.svg?raw')" style="width: 23px; height: 23px"
-                    :class="{ 'fa-spin': service?.fetching }"></yb-icon>
+                  <yb-icon :svg="import('@/svg/hide.svg?raw')" style="width: 23px; height: 23px"></yb-icon>
                 </el-button>
               </template>
             </template>
@@ -112,7 +111,7 @@
       <el-table-column :label="$t('base.service')" :prop="null" width="110px">
         <template #default="scope">
           <template v-if="excludeLocalVersion.includes(scope.row.bin)">
-            <el-button link @click.stop="doShow(scope.row.bin)">
+            <el-button link @click.stop="doShow(scope.row)">
               <yb-icon :svg="import('@/svg/hide.svg?raw')" style="width: 25px; height: 25px"
                 :class="{ 'fa-spin': service?.fetching }"></yb-icon>
             </el-button>
@@ -190,11 +189,7 @@ const isShowHide = computed({
     return appStore?.config?.setup?.serviceShowHide?.[props.typeFlag] ?? false
   },
   set(v) {
-    if (!appStore?.config?.setup?.serviceShowHide) {
-      appStore.config.setup.serviceShowHide = reactive({})
-    }
-    appStore.config.setup.serviceShowHide[props.typeFlag] = v
-    appStore.saveConfig().then()
+    appStore.serviceShowHide(props.typeFlag, v)
   }
 })
 
@@ -270,8 +265,17 @@ const openDir = (dir: string, item: SoftInstalled) => {
   }
 }
 
-const doShow = (bin: string) => {
-  appStore.serviceShow(bin)
+const doShow = (item: SoftInstalled) => {
+  appStore.serviceShow(item.bin)
+  const server: any = appStore.config.server
+  const current = server?.[props.typeFlag]?.current
+  if (!current?.bin) {
+    appStore.UPDATE_SERVER_CURRENT({
+      flag: props.typeFlag,
+      data: JSON.parse(JSON.stringify(item))
+    })
+    appStore.saveConfig().then()
+  }
 }
 
 const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: SoftInstalled) => {

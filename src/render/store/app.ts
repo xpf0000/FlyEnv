@@ -5,6 +5,8 @@ import { I18nT } from '@shared/lang'
 import EditorBaseConfig, { EditorConfig } from '@/store/module/EditorConfig'
 import { MessageError } from '@/util/Element'
 import { AllAppModule } from '@/core/type'
+import { SoftInstalled } from '@shared/app'
+
 const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
@@ -103,7 +105,6 @@ interface State {
   hosts: Array<AppHost>
   config: {
     server: ServerBase
-    password: string
     setup: StateBase
   }
   httpServe: Array<string>
@@ -122,7 +123,6 @@ const state: State = {
   hosts: [],
   config: {
     server: {},
-    password: '',
     setup: {
       serviceShowHide: {},
       excludeLocalVersion: [],
@@ -243,12 +243,26 @@ export const AppStore = defineStore('app', {
     initConfig() {
       return new Promise((resolve) => {
         const config = application.configManager.getConfig()
-        if (!config.password) {
-          config.password = ''
+        const showItem = config.setup.common.showItem
+        console.log('initConfig showItem: ', JSON.parse(JSON.stringify(showItem)))
+        const fixed: { [key: string]: boolean } = {}
+        const dict: any = {
+          ftp: 'pure-ftpd'
         }
+        for (const k in showItem) {
+          if (showItem[k] === false) {
+            let nk = k.toLowerCase()
+            if (nk !== k) {
+              if (dict[nk]) {
+                nk = dict[nk]
+              }
+            }
+            fixed[nk] = false
+          }
+        }
+        config.setup.common.showItem = fixed
         this.INIT_CONFIG({
           server: config.server,
-          password: config.password,
           setup: config.setup,
           showTour: config?.showTour ?? true
         })
@@ -261,7 +275,6 @@ export const AppStore = defineStore('app', {
         const args = JSON.parse(
           JSON.stringify({
             server: this.config.server,
-            password: this.config.password,
             setup: this.config.setup,
             httpServe: this.httpServe
           })
@@ -291,6 +304,15 @@ export const AppStore = defineStore('app', {
         setup.excludeLocalVersion = reactive([])
       }
       setup.excludeLocalVersion.push(bin)
+      this.config.setup = reactive(setup)
+      this.saveConfig().then()
+    },
+    serviceShowHide(flag: AllAppModule, v: boolean) {
+      const setup = JSON.parse(JSON.stringify(this.config.setup))
+      if (!setup?.serviceShowHide) {
+        setup.serviceShowHide = {}
+      }
+      setup.serviceShowHide[flag] = v
       this.config.setup = reactive(setup)
       this.saveConfig().then()
     }

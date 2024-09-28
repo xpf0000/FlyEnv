@@ -396,7 +396,7 @@ export function getSubDir(fp: string, fullpath = true) {
           }
         }
       })
-    } catch (e) {}
+    } catch (e) { }
   }
   return arr
 }
@@ -445,8 +445,8 @@ export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<
 export const hostAlias = (item: AppHost) => {
   const alias = item.alias
     ? item.alias.split('\n').filter((n) => {
-        return n && n.length > 0
-      })
+      return n && n.length > 0
+    })
     : []
   const arr = Array.from(new Set(alias)).sort()
   arr.unshift(item.name)
@@ -523,12 +523,13 @@ export const versionBinVersion = (
       })
     }
     const handleThen = (res: any) => {
-      const str = res.stdout + res.stderr
+      let str = res.stdout + res.stderr
+      str = str.replace(new RegExp(`\r\n`, 'g'), `\n`)
       let version: string | undefined = ''
       try {
         version = reg?.exec(str)?.[2]?.trim()
         reg!.lastIndex = 0
-      } catch (e) {}
+      } catch (e) { }
       resolve({
         version
       })
@@ -537,6 +538,7 @@ export const versionBinVersion = (
       const res = await execPromise(command, {
         cwd: dirname(bin)
       })
+      console.log('versionBinVersion: ', command, reg, res)
       handleThen(res)
     } catch (e) {
       handleCatch(e)
@@ -561,16 +563,16 @@ export const versionLocalFetch = async (
     maxDepth = 2
   ): Promise<
     | {
-        bin: string
-        path: string
-      }
+      bin: string
+      path: string
+    }
     | false
   > => {
     let res:
       | {
-          bin: string
-          path: string
-        }
+        bin: string
+        path: string
+      }
       | false = false
     if (!existsSync(dir)) {
       return false
