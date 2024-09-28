@@ -108,7 +108,7 @@ const brewRunning = computed(() => {
   return brewStore.brewRunning
 })
 const currentType: ComputedRef<AppSoftInstalledItem> = computed(() => {
-  return brewStore?.[props.typeFlag] as any
+  return brewStore?.module(props.typeFlag)
 })
 
 const isRunning = computed(() => {
@@ -116,7 +116,7 @@ const isRunning = computed(() => {
 })
 
 const tableData = computed(() => {
-  const localList = brewStore?.composer?.installed ?? []
+  const localList = brewStore.module('composer')?.installed ?? []
   const onLineList = currentType.value.list.filter((i) => !i.installed && !localList.find((l) => l.version === i.version))
   return [...localList, ...onLineList]
 })
@@ -136,7 +136,7 @@ const fetchData = () => {
   if (service?.fetching) {
     return
   }
-  const data = brewStore[props.typeFlag]
+  const data = brewStore.module(props.typeFlag)
   data.installedInited = false
   installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
     service.fetching = false
@@ -166,7 +166,7 @@ const regetInstalled = () => {
     return
   }
   service.fetching = true
-  const data = brewStore[props.typeFlag]
+  const data = brewStore.module(props.typeFlag)
   data.installedInited = false
   installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
     service.fetching = false

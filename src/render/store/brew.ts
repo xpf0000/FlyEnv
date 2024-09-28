@@ -1,3 +1,4 @@
+import { AllAppModule } from '@/core/type'
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
 
@@ -36,21 +37,9 @@ export interface AppSoftInstalledItem {
   list: OnlineVersionItem[]
 }
 
-interface State {
-  tomcat: AppSoftInstalledItem
-  java: AppSoftInstalledItem
-  composer: AppSoftInstalledItem
-  postgresql: AppSoftInstalledItem
-  caddy: AppSoftInstalledItem
-  nginx: AppSoftInstalledItem
-  apache: AppSoftInstalledItem
-  memcached: AppSoftInstalledItem
-  mysql: AppSoftInstalledItem
-  mariadb: AppSoftInstalledItem
-  redis: AppSoftInstalledItem
-  php: AppSoftInstalledItem
-  mongodb: AppSoftInstalledItem
-  'pure-ftpd': AppSoftInstalledItem
+type StateBase = Partial<Record<AllAppModule, AppSoftInstalledItem | undefined>>
+
+interface State extends StateBase {
   cardHeadTitle: string
   brewRunning: boolean
   showInstallLog: boolean
@@ -66,85 +55,7 @@ const state: State = {
   brewSrc: '',
   log: [],
   LibUse: {},
-  tomcat: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  java: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  composer: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  'pure-ftpd': {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  postgresql: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  caddy: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  nginx: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  apache: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  php: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  memcached: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  mysql: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  mariadb: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
   redis: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  },
-  mongodb: {
     getListing: false,
     installedInited: false,
     installed: [],
@@ -156,21 +67,16 @@ export const BrewStore = defineStore('brew', {
   state: (): State => state,
   getters: {},
   actions: {
-    module(flag: string): AppSoftInstalledItem {
-      const f: keyof State = flag as any
-      if (!this?.[f]) {
-        this[f] = reactive({
+    module(flag: AllAppModule) {
+      if (!this?.[flag]) {
+        this[flag] = reactive({
           getListing: false,
           installedInited: false,
           installed: [],
-          list: {
-            brew: {},
-            port: {},
-            static: {}
-          }
+          list: []
         })
       }
-      return this[f]
+      return this[flag]
     }
   }
 })

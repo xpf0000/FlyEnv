@@ -89,7 +89,7 @@ export class CreateSite extends BaseTask {
         run: () => {
           return new Promise<any>((resolve, reject) => {
             const brewStore = BrewStore()
-            const php = brewStore?.php?.installed?.find((i) => !!i.path && !!i.version)
+            const php = brewStore.module('php')?.installed?.find((i) => !!i.path && !!i.version)
             if (php?.num) {
               this.host.phpVersion = php.num
             }

@@ -101,8 +101,8 @@
   })
 
   const phpVersions = computed(() => {
-    console.log('phpVersions: ', brewStore?.php?.installed)
-    const all = brewStore?.php?.installed ?? []
+    console.log('phpVersions: ', brewStore.module('php')?.installed)
+    const all = brewStore.module('php')?.installed ?? []
     return all.map((a) => {
       const v: any = {
         num: a.num,

@@ -11,153 +11,28 @@
       </li>
     </ul>
     <ul class="menu top-menu">
-      <li v-if="apache?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: apache?.run }">
-            <yb-icon :svg="import('@/svg/apache.svg?raw')" width="30" height="30" />
-          </div>
-          <span class="title">Apache</span>
-        </div>
+      <el-scrollbar>
+        <template v-for="(item, index) in allService" :key="index">
+          <li v-if="store[item.typeFlag] && store[item.typeFlag]!.show" class="non-draggable">
+            <div class="left">
+              <div class="icon-block" :class="{ run: store[item.typeFlag]!.run }">
+                <yb-icon :svg="item.icon" width="30" height="30" />
+              </div>
+              <span class="title">{{
+                typeof item.label === 'string' ? item.label : (item.label?.() ?? '')
+              }}</span>
+            </div>
 
-        <el-switch v-model="apache.run" :disabled="apache?.disabled" @change="switchChange('apache')">
-        </el-switch>
-      </li>
-
-      <li v-if="nginx?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: nginx?.run }">
-            <yb-icon :svg="import('@/svg/nginx.svg?raw')" width="28" height="28" />
-          </div>
-          <span class="title">Nginx</span>
-        </div>
-        <el-switch v-model="nginx.run" :disabled="nginx?.disabled" @change="switchChange('nginx')">
-        </el-switch>
-      </li>
-
-      <li v-if="caddy?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: caddy?.run }">
-            <yb-icon :svg="import('@/svg/caddy.svg?raw')" style="padding: 5px" width="28" height="28" />
-          </div>
-          <span class="title">Caddy</span>
-        </div>
-        <el-switch v-model="caddy.run" :disabled="caddy?.disabled" @change="switchChange('caddy')">
-        </el-switch>
-      </li>
-
-      <li v-if="tomcat?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: tomcat?.run }">
-            <yb-icon :svg="import('@/svg/Tomcat.svg?raw')" style="padding: 5px" width="28" height="28" />
-          </div>
-          <span class="title">Tomcat</span>
-        </div>
-        <el-switch v-model="tomcat.run" :disabled="tomcat?.disabled" @change="switchChange('tomcat')">
-        </el-switch>
-      </li>
-
-      <li v-if="php?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: php?.run }">
-            <yb-icon style="padding: 4px" :svg="import('@/svg/php.svg?raw')" width="30" height="30" />
-          </div>
-          <span class="title">Php</span>
-        </div>
-
-        <el-switch v-model="php.run" :disabled="php?.disabled" @change="switchChange('php')"></el-switch>
-      </li>
-      <li v-if="mysql?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: mysql?.run }">
-            <yb-icon :svg="import('@/svg/mysql.svg?raw')" width="30" height="30" />
-          </div>
-          <span class="title">Mysql</span>
-        </div>
-
-        <el-switch v-model="mysql.run" :disabled="mysql?.disabled" @change="switchChange('mysql')">
-        </el-switch>
-      </li>
-      <li v-if="mariadb?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: mariadb?.run }">
-            <yb-icon :svg="import('@/svg/mariaDB.svg?raw')" width="30" height="30" />
-          </div>
-          <span class="title">MariaDB</span>
-        </div>
-
-        <el-switch v-model="mariadb.run" :disabled="mariadb?.disabled" @change="switchChange('mariadb')">
-        </el-switch>
-      </li>
-      <li v-if="mongodb?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: mongodb?.run }">
-            <yb-icon style="padding: 5px" :svg="import('@/svg/MongoDB.svg?raw')" width="28" height="28" />
-          </div>
-          <span class="title">MongoDB</span>
-        </div>
-
-        <el-switch v-model="mongodb.run" :disabled="mongodb?.disabled" @change="switchChange('mongodb')">
-        </el-switch>
-      </li>
-      <li v-if="postgresql?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: postgresql?.run }">
-            <yb-icon style="padding: 6.5px" :svg="import('@/svg/postgresql.svg?raw')" width="28" height="28" />
-          </div>
-          <span class="title">PostgreSql</span>
-        </div>
-
-        <el-switch v-model="postgresql.run" :disabled="postgresql?.disabled" @change="switchChange('postgresql')">
-        </el-switch>
-      </li>
-      <li v-if="memcached?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: memcached?.run }">
-            <yb-icon :svg="import('@/svg/memcached.svg?raw')" width="30" height="30" />
-          </div>
-          <span class="title">Memcached</span>
-        </div>
-
-        <el-switch v-model="memcached.run" :disabled="memcached?.disabled" @change="switchChange('memcached')">
-        </el-switch>
-      </li>
-      <li v-if="redis?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: redis?.run }">
-            <yb-icon style="padding: 7px" :svg="import('@/svg/redis.svg?raw')" width="28" height="28" />
-          </div>
-          <span class="title">Redis</span>
-        </div>
-
-        <el-switch v-model="redis.run" :disabled="redis?.disabled" @change="switchChange('redis')">
-        </el-switch>
-      </li>
-      <li v-if="dns?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ run: dns?.run }">
-            <yb-icon style="padding: 5px" :svg="import('@/svg/dns2.svg?raw')" width="28" height="28" />
-          </div>
-          <span class="title">DNS Server</span>
-        </div>
-
-        <el-switch v-model="dns.run" :disabled="dns?.running" @change="switchChange('dns')">
-        </el-switch>
-      </li>
-      <li v-if="ftp?.show" class="non-draggable">
-        <div class="left">
-          <div class="icon-block" :class="{ ftp: dns?.run }">
-            <yb-icon style="padding: 5px" :svg="import('@/svg/ftp.svg?raw')" width="28" height="28" />
-          </div>
-          <span class="title">FTP</span>
-        </div>
-
-        <el-switch v-model="ftp.run" :disabled="ftp?.running" @change="switchChange('ftp')">
-        </el-switch>
-      </li>
+            <el-switch v-model="store[item.typeFlag]!.run" :disabled="store[item.typeFlag]?.disabled"
+              @change="switchChange(item.typeFlag)">
+            </el-switch>
+          </li>
+        </template>
+      </el-scrollbar>
     </ul>
     <ul class="bottom-tool">
-      <li @click="showMainWin"> {{ $t('tray.showMainWin') }} </li>
-      <li @click="doExit"> {{ $t('tray.exit') }} </li>
+      <li @click="showMainWin"> {{ I18nT('tray.showMainWin') }} </li>
+      <li @click="doExit"> {{ I18nT('tray.exit') }} </li>
     </ul>
   </div>
   <span class="popper-arrow" :style="{ left: left }"></span>
@@ -167,46 +42,20 @@
 import { computed, ref, Ref } from 'vue'
 import { AppStore } from './store/app'
 import IPC from '../util/IPC'
+import { AppModules } from '@/core/App'
+import { I18nT } from '@shared/lang'
+
+const allService = AppModules.filter((m) => m.isTray).map((m) => {
+  return {
+    typeFlag: m.typeFlag,
+    label: m.label,
+    icon: m.icon
+  }
+})
 
 const store = AppStore()
-const php = computed(() => {
-  return store.php
-})
-const nginx = computed(() => {
-  return store.nginx
-})
-const caddy = computed(() => {
-  return store.caddy
-})
-const apache = computed(() => {
-  return store.apache
-})
-const tomcat = computed(() => {
-  return store.tomcat
-})
-const mysql = computed(() => {
-  return store.mysql
-})
-const mariadb = computed(() => {
-  return store.mariadb
-})
-const memcached = computed(() => {
-  return store.memcached
-})
-const redis = computed(() => {
-  return store.redis
-})
-const mongodb = computed(() => {
-  return store.mongodb
-})
-const dns = computed(() => {
-  return store.dns
-})
-const ftp = computed(() => {
-  return store.ftp
-})
-const postgresql = computed(() => {
-  return store.postgresql
+const password = computed(() => {
+  return store.password
 })
 const groupIsRunning = computed(() => {
   return store.groupIsRunning
@@ -221,7 +70,7 @@ IPC.on('APP:Poper-Left').then((key: string, res: any) => {
 })
 
 const groupDo = () => {
-  if (groupDisabled?.value) {
+  if (groupDisabled?.value || !password?.value) {
     return
   }
   IPC.send('APP:Tray-Command', 'groupDo').then((key: string) => {
@@ -230,6 +79,9 @@ const groupDo = () => {
 }
 
 const switchChange = (flag: string) => {
+  if (!password?.value) {
+    return
+  }
   IPC.send('APP:Tray-Command', 'switchChange', flag).then((key: string) => {
     IPC.off(key)
   })
@@ -263,12 +115,12 @@ body,
 }
 
 #app {
-  padding-bottom: 6px;
+  padding-top: 6px;
 
   .popper-arrow {
     position: absolute;
     left: calc(50% - 6px);
-    bottom: 2.5px;
+    top: 0;
     width: 12px;
     height: 12px;
     z-index: -1;
@@ -282,16 +134,16 @@ body,
       transform: rotate(45deg);
       box-sizing: border-box;
       right: 0;
-      border-top-color: transparent !important;
-      border-left-color: transparent !important;
-      border-bottom-right-radius: 1px;
+      border-bottom-color: transparent !important;
+      border-right-color: transparent !important;
+      border-top-left-radius: 2px;
     }
   }
 }
 
 .tray-aside-inner {
   display: flex;
-  height: calc(100vh - 6px);
+  height: 100vh;
   flex-flow: column;
   border-radius: 10px !important;
   overflow: hidden;
@@ -324,25 +176,27 @@ body,
     user-select: none;
     cursor: default;
 
-    >li {
+    li {
       height: 45px;
       cursor: pointer;
       transition: background-color 0.25s;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 18px;
 
       .left {
         height: 100%;
         display: flex;
         align-items: center;
+        gap: 10px;
 
         .icon-block {
-          width: 38px;
+          width: 30px;
           height: 45px;
           display: flex;
           align-items: center;
+          justify-content: center;
 
           &.run {
             svg {
@@ -364,7 +218,7 @@ body,
 
   .top-menu {
     flex: 1;
-    overflow: auto;
+    overflow: hidden;
   }
 
   >.bottom-tool {
@@ -410,7 +264,7 @@ html.dark {
     }
 
     .menu {
-      >li {
+      li {
         &:hover {
           background: #474b60;
         }
@@ -462,11 +316,7 @@ html.light {
     .menu {
       color: #345;
 
-      &::-webkit-scrollbar-thumb {
-        background-color: var(--base-bg-color-1);
-      }
-
-      >li {
+      li {
         &:hover {
           background: var(--base-bg-color-1);
         }

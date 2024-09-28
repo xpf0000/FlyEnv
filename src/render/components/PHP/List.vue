@@ -162,10 +162,10 @@ const service = computed(() => {
 })
 
 const php = computed(() => {
-  return brewStore.php
+  return brewStore.module('php')
 })
 const versions = computed(() => {
-  return brewStore?.php?.installed ?? []
+  return brewStore.module('php')?.installed ?? []
 })
 
 const init = () => {
@@ -287,7 +287,7 @@ const resetData = () => {
     return
   }
   service.value.fetching = true
-  const data = brewStore.php
+  const data = brewStore.module('php')
   data.installedInited = false
   installedVersions.allInstalledVersions(['php']).then(() => {
     service.value.fetching = false

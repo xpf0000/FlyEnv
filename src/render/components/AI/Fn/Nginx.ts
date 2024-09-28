@@ -12,7 +12,7 @@ export function startNginx(this: BaseTask) {
     const appStore = AppStore()
     const brewStore = BrewStore()
     const current = appStore.config.server?.nginx?.current
-    const installed = brewStore?.nginx?.installed
+    const installed = brewStore.module('nginx')?.installed
     let nginx = installed?.find((i) => i.path === current?.path && i.version === current?.version)
     if (!nginx || !nginx?.version) {
       nginx = installed?.find((i) => !!i.path && !!i.version)

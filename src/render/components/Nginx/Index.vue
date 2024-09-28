@@ -1,61 +1,34 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <ul class="top-tab">
-      <li
-        v-for="(item, index) in tabs"
-        :key="index"
-        :class="current_tab === index ? 'active' : ''"
-        @click="current_tab = index"
-        >{{ item }}</li
-      >
+      <li v-for="(item, index) in tabs" :key="index" :class="tab === index ? 'active' : ''" @click="tab = index">{{ item
+        }}</li>
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="nginx" title="Nginx"></Service>
-      <Manager v-if="current_tab === 1" url="https://nginx.org/en/download.html" title="Nginx" type-flag="nginx"></Manager>
-      <Config v-if="current_tab === 2"></Config>
-      <Logs v-if="current_tab === 3" type="error"></Logs>
-      <Logs v-if="current_tab === 4" type="access"></Logs>
+      <Service v-if="tab === 0" type-flag="nginx" title="Nginx"></Service>
+      <Manager v-if="tab === 1" url="https://nginx.org/en/download.html" title="Nginx" type-flag="nginx"></Manager>
+      <Config v-if="tab === 2"></Config>
+      <Logs v-if="tab === 3" type="error"></Logs>
+      <Logs v-if="tab === 4" type="access"></Logs>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-  import { defineComponent, ref } from 'vue'
-  import Service from '../ServiceManager/index.vue'
-  import Config from './Config.vue'
-  import Logs from './Logs.vue'
-  import { AppStore } from '@/store/app'
-  import Manager from '../VersionManager/index.vue'
+<script lang="ts" setup>
+import Service from '../ServiceManager/index.vue'
+import Config from './Config.vue'
+import Logs from './Logs.vue'
+import Manager from '../VersionManager/index.vue'
+import { AppModuleSetup } from '@/core/Module'
+import { I18nT } from '@shared/lang'
 
-  const current_tab = ref(0)
-
-  export default defineComponent({
-    components: {
-      Config,
-      Service,
-      Logs,
-      Manager
-    },
-    props: {},
-    data() {
-      return {
-        current_tab,
-        tabs: [
-          this.$t('base.service'),
-          this.$t('base.versionManager'),
-          this.$t('base.configFile'),
-          this.$t('base.errorLog'),
-          this.$t('base.log')
-        ]
-      }
-    },
-    computed: {
-      version() {
-        return AppStore().config.server?.nginx?.current?.version
-      }
-    },
-    watch: {},
-    created: function () {},
-    methods: {}
-  })
+const { tab, checkVersion } = AppModuleSetup('nginx')
+const tabs = [
+  I18nT('base.service'),
+  I18nT('base.versionManager'),
+  I18nT('base.configFile'),
+  I18nT('base.errorLog'),
+  I18nT('base.log')
+]
+checkVersion()
 </script>

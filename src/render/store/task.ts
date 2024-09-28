@@ -1,74 +1,32 @@
+import { reactive } from 'vue'
+import { AllAppModule } from '@/core/type'
 import { defineStore } from 'pinia'
 
-interface State {
-  java: {
-    log: Array<string>
-  }
-  tomcat: {
-    log: Array<string>
-  }
-  composer: {
-    log: Array<string>
-  }
-  postgresql: {
-    log: Array<string>
-  }
-  caddy: {
-    log: Array<string>
-  }
-  nginx: {
-    log: Array<string>
-  }
-  apache: {
-    log: Array<string>
-  }
-  memcached: {
-    log: Array<string>
-  }
-  mysql: {
-    log: Array<string>
-  }
-  mariadb: {
-    log: Array<string>
-  }
-  mongodb: {
-    log: Array<string>
-  }
-  redis: {
-    log: Array<string>
-  }
-  'pure-ftpd': {
-    log: Array<string>
-  }
-  php: {
-    log: Array<string>
-    extendRunning: boolean
-    currentExtend: string
-    extendAction: string
-    extendRefreshing: boolean
-  }
-  node: {
-    isRunning: boolean
-    getVersioning: boolean
-    btnTxt: string
-    versions: Array<string>
-    NVM_DIR: string
-    tool?: 'fnm' | 'nvm' | 'all'
-  }
-}
+
+type StateBase = Partial<
+  Record<
+    AllAppModule,
+    | {
+      log?: Array<string>
+      extendRunning?: boolean
+      currentExtend?: string
+      extendAction?: string
+      extendRefreshing?: boolean
+
+      isRunning?: boolean
+      getVersioning?: boolean
+      btnTxt?: string
+      versions?: Array<string>
+      NVM_DIR?: string
+      tool?: 'fnm' | 'nvm' | 'all'
+    }
+    | undefined
+  >
+>
+
+interface State extends StateBase { }
 
 const state: State = {
-  java: { log: [] },
-  tomcat: { log: [] },
-  composer: { log: [] },
-  postgresql: { log: [] },
-  apache: { log: [] },
-  memcached: { log: [] },
-  mysql: { log: [] },
-  mariadb: { log: [] },
-  mongodb: { log: [] },
-  caddy: { log: [] },
-  nginx: { log: [] },
   node: { NVM_DIR: '', btnTxt: '', getVersioning: false, isRunning: false, versions: [] },
   php: {
     currentExtend: '',
@@ -76,13 +34,20 @@ const state: State = {
     extendRefreshing: false,
     extendRunning: false,
     log: []
-  },
-  redis: { log: [] },
-  'pure-ftpd': { log: [] }
+  }
 }
 
 export const TaskStore = defineStore('task', {
   state: (): State => state,
   getters: {},
-  actions: {}
+  actions: {
+    module(flag: AllAppModule) {
+      if (!this?.[flag]) {
+        this[flag] = reactive({
+          log: []
+        })
+      }
+      return this[flag]
+    }
+  }
 })

@@ -126,10 +126,10 @@ const service = computed(() => {
 })
 
 const java = computed(() => {
-    return brewStore.java
+    return brewStore.module('java')
 })
 const versions = computed(() => {
-    return brewStore?.java?.installed ?? []
+    return brewStore.module('java')?.installed ?? []
 })
 
 const init = () => {
@@ -155,7 +155,7 @@ const resetData = () => {
         return
     }
     service.value.fetching = true
-    const data = brewStore.java
+    const data = brewStore.module('java')
     data.installedInited = false
     installedVersions.allInstalledVersions(['java']).then(() => {
         service.value.fetching = false

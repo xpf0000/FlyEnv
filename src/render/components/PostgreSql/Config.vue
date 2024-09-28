@@ -46,7 +46,7 @@ const currentVersion = computed(() => {
   if (!current) {
     return undefined
   }
-  const installed = brewStore?.postgresql?.installed
+  const installed = brewStore.module('postgresql')?.installed
   return installed?.find((i) => i.path === current?.path && i.version === current?.version)
 })
 

@@ -94,7 +94,7 @@ class Manager extends Base {
     })
   }
 
-  delFtp(item: FtpItem, version: SoftInstalled) {
+  delFtp(item: FtpItem) {
     return new ForkPromise(async (resolve) => {
       const find = this.users.find((u) => u.user === item.user && u.pass === item.pass)
       if (find) {
@@ -120,7 +120,7 @@ class Manager extends Base {
     })
   }
 
-  addFtp(item: FtpItem, version: SoftInstalled) {
+  addFtp(item: FtpItem) {
     return new ForkPromise(async (resolve) => {
       const json = join(global.Server.FTPDir!, 'pureftpd.json')
       const all = []

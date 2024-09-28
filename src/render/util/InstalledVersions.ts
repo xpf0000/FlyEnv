@@ -1,22 +1,20 @@
 import IPC from '@/util/IPC.js'
 import { BrewStore, SoftInstalled } from '@/store/brew'
-import type { AppSofts } from '@/store/app'
 import { AppStore } from '@/store/app'
 import { reactive } from 'vue'
 import { isEqual } from 'lodash'
-
-type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd' | 'composer' | 'java'
+import { AllAppModule, AppModuleEnum } from '@/core/type'
 
 class InstalledVersions {
   _cb: Array<Function>
   taskRunning: boolean
-  runningFlags: Array<Array<AllAppSofts>>
+  runningFlags: Array<Array<AllAppModule>>
   constructor() {
     this._cb = []
     this.runningFlags = []
     this.taskRunning = false
   }
-  allInstalledVersions(flags: Array<AllAppSofts>) {
+  allInstalledVersions(flags: Array<AllAppModule>) {
     if (this.taskRunning && this.runningFlags.find((f) => isEqual(f, flags))) {
       return this
     }
@@ -36,7 +34,7 @@ class InstalledVersions {
     const brewStore = BrewStore()
     const appStore = AppStore()
     const setup = JSON.parse(JSON.stringify(AppStore().config.setup))
-    const arrs = flags.filter((f) => !brewStore[f].installedInited)
+    const arrs = flags.filter((f) => !brewStore.module(f).installedInited)
     if (arrs.length === 0) {
       setTimeout(() => {
         callBack()
@@ -46,15 +44,15 @@ class InstalledVersions {
     IPC.send('app-fork:version', 'allInstalledVersions', arrs, setup).then(
       (key: string, res: any) => {
         IPC.off(key)
-        const versions: { [key in AppSofts]: Array<SoftInstalled> } = res?.data ?? {}
+        const versions: { [key in AppModuleEnum]: Array<SoftInstalled> } = res?.data ?? {}
         let needSaveConfig = false
         for (const f in versions) {
-          const flag: keyof typeof AppSofts = f as keyof typeof AppSofts
+          const flag: AllAppModule = f as AllAppModule
           let installed = versions[flag].filter((v) => {
             return !v?.isLocal7Z || (v?.isLocal7Z && !appStore.config.setup?.excludeLocalVersion?.includes(`${flag}-${v.version}`))
           })
           console.log('appStore.config.setup.excludeLocalVersion', appStore.config.setup.excludeLocalVersion)
-          const data = brewStore[flag]
+          const data = brewStore.module(flag)
           const old = [...data.installed]
           installed = installed.map((item) => {
             const find = old.find((o) => o.path === item.path && o.version === item.version)

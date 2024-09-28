@@ -15,27 +15,46 @@ import ZHTools from './zh/tools'
 import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 
-export const lang = {
-  en: {
-    base: ENBase,
-    php: ENPHP,
-    tray: ENTray,
-    util: ENUtil,
-    host: ENHost,
-    ai: ENAI,
-    tools: ENTools
-  },
-  zh: {
-    base: ZHBase,
-    php: ZHPHP,
-    tray: ZHTray,
-    util: ZHUtil,
-    host: ZHHost,
-    ai: ZHAI,
-    tools: ZHTools
+import { merge } from 'lodash'
+
+const { basename, dirname } = require('path')
+
+const modules: any = import.meta.glob('@/components/*/lang/*/*', { eager: true })
+console.log('lang modules: ', modules)
+const dict: any = {}
+for (const k in modules) {
+  const name = basename(k).split('.').shift()!
+  const lang = basename(dirname(k))
+  if (!dict[lang]) {
+    dict[lang] = {}
   }
+  dict[lang][name] = Object.assign({}, dict[lang][name], modules[k].default)
 }
 
+
+export const lang = merge(
+  {
+    en: {
+      base: ENBase,
+      php: ENPHP,
+      tray: ENTray,
+      util: ENUtil,
+      host: ENHost,
+      ai: ENAI,
+      tools: ENTools
+    },
+    zh: {
+      base: ZHBase,
+      php: ZHPHP,
+      tray: ZHTray,
+      util: ZHUtil,
+      host: ZHHost,
+      ai: ZHAI,
+      tools: ZHTools
+    }
+  },
+  dict
+)
 let i18n: I18n
 
 export const AppI18n = (l?: string): I18n => {

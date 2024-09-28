@@ -12,7 +12,7 @@ export function startMariaDB(this: BaseTask) {
     const appStore = AppStore()
     const brewStore = BrewStore()
     const current = appStore.config.server?.mariadb?.current
-    const installed = brewStore?.mariadb?.installed
+    const installed = brewStore.module('mariadb')?.installed
     let mariadb = installed?.find((i) => i.path === current?.path && i.version === current?.version)
     if (!mariadb || !mariadb?.version) {
       mariadb = installed?.find((i) => !!i.path && !!i.version)

@@ -233,7 +233,7 @@ const hosts = computed(() => {
 })
 
 const php = computed(() => {
-  return brewStore.php
+  return brewStore.module('php')
 })
 const phpVersions = computed(() => {
   const set: Set<number> = new Set()

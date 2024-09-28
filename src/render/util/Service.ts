@@ -1,14 +1,14 @@
 import IPC from '@/util/IPC'
 import { BrewStore, type SoftInstalled } from '@/store/brew'
-import { AllAppSofts, type AppHost, AppStore } from '@/store/app'
+import { type AppHost, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
-import { DnsStore } from '@/store/dns'
 import { I18nT } from '@shared/lang'
 import { Service } from '@/components/ServiceManager/service'
 import installedVersions from '@/util/InstalledVersions'
+import { AllAppModule } from '@/core/type'
 
 const exec = (
-  typeFlag: AllAppSofts,
+  typeFlag: AllAppModule,
   fn: string,
   version: SoftInstalled,
   lastVersion?: SoftInstalled,
@@ -26,15 +26,15 @@ const exec = (
     const args = JSON.parse(JSON.stringify(version))
     const appStore = AppStore()
     const taskStore = TaskStore()
-    const task = taskStore[typeFlag]
-    task.log.splice(0)
+    const task = taskStore.module(typeFlag)
+    task.log!.splice(0)
     IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion).then((key: string, res: any) => {
       if (res.code === 0) {
         console.log('### key: ', key)
         IPC.off(key)
         const brewStore = BrewStore()
 
-        const findV = brewStore[typeFlag].installed?.find(
+        const findV = brewStore.module(typeFlag).installed?.find(
           (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
         )
         console.log('findV: ', findV === version)
@@ -54,25 +54,25 @@ const exec = (
         resolve(true)
       } else if (res.code === 1) {
         IPC.off(key)
-        task.log.push(res.msg)
+        task.log!.push(res.msg)
         version.running = false
-        resolve(task.log.join('\n'))
+        resolve(task.log!.join('\n'))
       } else if (res.code === 200) {
-        task.log.push(res.msg)
+        task.log!.push(res.msg)
       }
     })
   })
 }
 
-export const stopService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
+export const stopService = (typeFlag: AllAppModule, version: SoftInstalled) => {
   return exec(typeFlag, 'stopService', version)
 }
 
-export const startService = (typeFlag: AllAppSofts, version: SoftInstalled, lastVersion?: SoftInstalled) => {
+export const startService = (typeFlag: AllAppModule, version: SoftInstalled, lastVersion?: SoftInstalled) => {
   return exec(typeFlag, 'startService', version, lastVersion)
 }
 
-export const reloadService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
+export const reloadService = (typeFlag: AllAppModule, version: SoftInstalled) => {
   return exec(typeFlag, 'reloadService', version)
 }
 
@@ -114,22 +114,22 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
   const brewStore = BrewStore()
   let useSeted = false
 
-  const apacheRunning = brewStore.apache.installed.find((a) => a.run)
-  const apacheTaskRunning = brewStore.apache.installed.some((a) => a.running)
+  const apacheRunning = brewStore.module('apache').installed.find((a) => a.run)
+  const apacheTaskRunning = brewStore.module('apache').installed.some((a) => a.running)
   if (apacheRunning && !apacheTaskRunning) {
     startService('apache', apacheRunning).then()
     useSeted = true
   }
 
-  const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
-  const nginxTaskRunning = brewStore.nginx.installed.some((a) => a.running)
+  const nginxRunning = brewStore.module('nginx').installed.find((a) => a.run)
+  const nginxTaskRunning = brewStore.module('nginx').installed.some((a) => a.running)
   if (nginxRunning && !nginxTaskRunning) {
     startService('nginx', nginxRunning).then()
     useSeted = true
   }
 
-  const caddyRunning = brewStore.caddy.installed.find((a) => a.run)
-  const caddyTaskRunning = brewStore.caddy.installed.some((a) => a.running)
+  const caddyRunning = brewStore.module('caddy').installed.find((a) => a.run)
+  const caddyTaskRunning = brewStore.module('caddy').installed.some((a) => a.running)
   if (caddyRunning && !caddyTaskRunning) {
     startService('caddy', caddyRunning).then()
     useSeted = true
@@ -144,7 +144,7 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
 
     const currentApacheGet = () => {
       const current = appStore.config.server?.apache?.current
-      const installed = brewStore?.apache?.installed
+      const installed = brewStore.module('apache')?.installed
       if (!current) {
         return installed?.find((i) => !!i.path && !!i.version)
       }
@@ -153,7 +153,7 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
 
     const currentNginxGet = () => {
       const current = appStore.config.server?.nginx?.current
-      const installed = brewStore?.nginx?.installed
+      const installed = brewStore.module('nginx')?.installed
       if (!current) {
         return installed?.find((i) => !!i.path && !!i.version)
       }
@@ -162,7 +162,7 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
 
     const currentCaddyGet = () => {
       const current = appStore.config.server?.caddy?.current
-      const installed = brewStore?.caddy?.installed
+      const installed = brewStore.module('caddy')?.installed
       if (!current) {
         return installed?.find((i) => !!i.path && !!i.version)
       }
@@ -181,7 +181,7 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
 
     const host = [...hosts].pop()
     if (host?.phpVersion) {
-      const phpVersions = brewStore?.php?.installed ?? []
+      const phpVersions = brewStore.module('php')?.installed ?? []
       const php = phpVersions?.find((p) => p.num === host.phpVersion)
       if (php) {
         startService('php', php).then()
@@ -190,7 +190,7 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
   }
 }
 
-export const reGetInstalled = (type: AllAppSofts) => {
+export const reGetInstalled = (type: AllAppModule) => {
   return new Promise((resolve) => {
     const service = Service[type]
     if (service?.fetching) {
@@ -199,7 +199,7 @@ export const reGetInstalled = (type: AllAppSofts) => {
     }
     service.fetching = true
     const brewStore = BrewStore()
-    const data = brewStore[type]
+    const data = brewStore.module(type)
     data.installedInited = false
     installedVersions.allInstalledVersions([type]).then(() => {
       service.fetching = false

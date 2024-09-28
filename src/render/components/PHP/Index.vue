@@ -1,54 +1,25 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <ul class="top-tab">
-      <li
-        v-for="(item, index) in tabs"
-        :key="index"
-        :class="current_tab === index ? 'active' : ''"
-        @click="current_tab = index"
-        >{{ item }}</li
-      >
+      <li v-for="(item, index) in tabs" :key="index" :class="tab === index ? 'active' : ''" @click="tab = index">{{ item
+        }}</li>
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" ref="service" type-flag="php"></Service>
-      <Manager
-        v-else-if="current_tab === 1"
-        url="https://windows.php.net/download/"
-        title="PHP"
-        type-flag="php"
-      >
+      <Service v-if="tab === 0" ref="service" type-flag="php"></Service>
+      <Manager v-else-if="tab === 1" url="https://windows.php.net/download/" title="PHP" type-flag="php">
       </Manager>
-      <Composer v-else-if="current_tab === 2" type-flag="composer"> </Composer>
+      <Composer v-else-if="tab === 2" type-flag="composer"> </Composer>
     </div>
   </div>
 </template>
 
-<script>
-  import { ref } from 'vue'
-  import Service from './List.vue'
-  import Manager from '../VersionManager/index.vue'
-  import Composer from './Composer.vue'
+<script lang="ts" setup>
+import Service from './List.vue'
+import Manager from '../VersionManager/index.vue'
+import Composer from './Composer.vue'
+import { AppModuleSetup } from '@/core/Module'
+import { I18nT } from '@shared/lang'
 
-  const current_tab = ref(0)
-
-  export default {
-    name: 'MoPhpPanel',
-    components: {
-      Service,
-      Manager,
-      Composer
-    },
-    props: {},
-    data() {
-      return {
-        current_tab,
-        tabs: [this.$t('base.service'), this.$t('base.versionManager'), 'Composer']
-      }
-    },
-    computed: {},
-    watch: {},
-    created: function () {},
-    unmounted() {},
-    methods: {}
-  }
+const { tab } = AppModuleSetup('php')
+const tabs = [I18nT('base.service'), I18nT('base.versionManager'), 'Composer']
 </script>

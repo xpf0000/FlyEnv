@@ -53,7 +53,7 @@
   const phpVersions = computed(() => {
     const set: Set<number> = new Set()
     return (
-      brewStore?.php?.installed?.filter((p) => {
+      brewStore.module('php')?.installed?.filter((p) => {
         if (p.version && p.num) {
           if (!set.has(p.num)) {
             set.add(p.num)

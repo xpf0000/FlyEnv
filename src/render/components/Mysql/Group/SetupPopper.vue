@@ -40,7 +40,7 @@
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
   import Base from '@/core/Base'
-  import { MysqlStore } from '@/store/mysql'
+  import { MysqlStore } from '@/components/Mysql/mysql'
 
   const { clipboard } = require('@electron/remote')
   const { join } = require('path')

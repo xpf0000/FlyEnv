@@ -41,7 +41,7 @@
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
-  import { MysqlStore } from '@/store/mysql'
+  import { MysqlStore } from '@/components/Mysql/mysql'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
 
   const { existsSync, statSync, mkdirp, writeFile } = require('fs-extra')

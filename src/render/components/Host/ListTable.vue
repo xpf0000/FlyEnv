@@ -160,7 +160,7 @@ const task_index = ref(0)
 const search = ref('')
 
 const php = computed(() => {
-  return brewStore.php
+  return brewStore.module('php')
 })
 const phpVersions = computed(() => {
   const set: Set<number> = new Set()
@@ -237,9 +237,9 @@ const writeHosts = computed(() => {
 })
 
 const linkEnable = computed(() => {
-  const apacheRunning = brewStore.apache.installed.find((a) => a.run)
-  const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
-  const caddyRunning = brewStore.caddy.installed.find((a) => a.run)
+  const apacheRunning = brewStore.module('apache').installed.find((a) => a.run)
+  const nginxRunning = brewStore.module('nginx').installed.find((a) => a.run)
+  const caddyRunning = brewStore.module('caddy').installed.find((a) => a.run)
   return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning)
 })
 
@@ -273,9 +273,9 @@ const versionText = (v?: number) => {
 const siteName = (item: AppHost) => {
   const host = item.name
   const brewStore = BrewStore()
-  const nginxRunning = brewStore.nginx.installed.find((i) => i.run)
-  const apacheRunning = brewStore.apache.installed.find((i) => i.run)
-  const caddyRunning = brewStore.caddy.installed.find((i) => i.run)
+  const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
+  const apacheRunning = brewStore.module('apache').installed.find((i) => i.run)
+  const caddyRunning = brewStore.module('caddy').installed.find((i) => i.run)
   let port = 80
   if (nginxRunning) {
     port = item.port.nginx
