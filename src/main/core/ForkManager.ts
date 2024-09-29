@@ -114,7 +114,7 @@ class ForkItem {
 export class ForkManager {
   file: string
   forks: Array<ForkItem> = []
-  fenciFork?: ForkItem
+  codemakeFork?: ForkItem
   _on: Function = () => {}
   constructor(file: string) {
     this.file = file
@@ -125,11 +125,11 @@ export class ForkManager {
   }
 
   send(...args: any) {
-    if (args.includes('tools') && args.includes('wordSplit')) {
-      if (!this.fenciFork) {
-        this.fenciFork = new ForkItem(this.file, true)
+    if (args.includes('codemake')) {
+      if (!this.codemakeFork) {
+        this.codemakeFork = new ForkItem(this.file, false)
       }
-      return this.fenciFork!.send(...args)
+      return this.codemakeFork!.send(...args)
     }
     /**
      * 找到没有任务的线程

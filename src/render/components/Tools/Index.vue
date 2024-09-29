@@ -46,6 +46,10 @@
         <yb-icon :svg="import('@/svg/sucker.svg?raw')" width="30" height="30" />
         <span>{{ $t('util.toolSiteSucker') }}</span>
       </li>
+      <li @click="showPage('codemake')">
+        <yb-icon :svg="import('@/svg/codemake.svg?raw')" width="30" height="30" />
+        <span>{{ $t('tool.codemake') }}</span>
+      </li>
     </ul>
   </div>
 </template>
@@ -108,6 +112,9 @@
             break
           case 'siteSucker':
             this.component = markRaw(defineAsyncComponent(() => import('./SiteSucker/index.vue')))
+            break
+          case 'codemake':
+            this.component = markRaw(defineAsyncComponent(() => import('./CodeMake/index.vue')))
             break
         }
 

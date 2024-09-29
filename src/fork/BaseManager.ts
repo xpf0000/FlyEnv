@@ -25,6 +25,7 @@ class BaseManager {
   Java: any
   Tomcat: any
   App: any
+  CodeMake: any
 
   constructor() {}
 
@@ -195,6 +196,12 @@ class BaseManager {
         this.App = res.default
       }
       doRun(this.App)
+    } else if (module === 'codemake') {
+      if (!this.CodeMake) {
+        const res = await import('./module/CodeMake')
+        this.CodeMake = res.default
+      }
+      doRun(this.CodeMake)
     }
   }
 
