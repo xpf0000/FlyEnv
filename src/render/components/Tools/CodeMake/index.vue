@@ -3,27 +3,26 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('tool.codemake') }}</span>
+        <span class="ml-15">{{ I18nT('tool.codemake') }}</span>
       </div>
     </div>
 
     <div class="main-wapper">
-      <div class="main">
-        <el-button @click.stop="doConnent">connent</el-button>
+      <div class="main min-h-full">
+        <template v-if="!CodeMake.isConnent">
+          <Connect />
+        </template>
       </div>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
-  import IPC from '@/util/IPC'
+  import { I18nT } from '@shared/lang'
+  import Connect from './connect.vue'
+  import { CodeMake } from './store'
 
-  const doConnent = () => {
-    const data = {
-      user: 'root',
-      password: 'root'
-    }
-    IPC.send('app-fork:codemake', 'connent', data).then((key: string, res: any) => {
-      IPC.off(key)
-    })
+  const emit = defineEmits(['doClose'])
+  const doClose = () => {
+    emit('doClose')
   }
 </script>

@@ -7,23 +7,30 @@ type ConnentType = {
   user: string
   password: string
   host?: string
+  port?: number
 }
 
-type CodeMakeType = {
+type CodeMakeType = ConnentType & {
   isConnent: boolean
   databases: string[]
-  connent: (opt: ConnentType) => void
+  connect: () => void
 }
 
 export const CodeMake: CodeMakeType = reactive({
+  user: '',
+  password: '',
+  host: '127.0.0.1',
+  port: 3306,
   isConnent: false,
   databases: [],
-  connent(opt: ConnentType) {
-    const data = { ...opt }
+  connect() {
+    let data: ConnentType = { ...this }
     if (!data.host) {
-      delete data.host
+      delete data?.host
     }
-    IPC.send('app-fork:codemake', 'connent', data).then((key: string, res: any) => {
+    data = JSON.parse(JSON.stringify(data))
+    console.log('data: ', data)
+    IPC.send('app-fork:codemake', 'connect', data).then((key: string, res: any) => {
       IPC.off(key)
       if (res.code === 0) {
         this.databases = res?.data ?? []
@@ -34,4 +41,4 @@ export const CodeMake: CodeMakeType = reactive({
       }
     })
   }
-}) as any
+} as CodeMakeType)
