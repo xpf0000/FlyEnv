@@ -192,6 +192,7 @@
               <iframe :src="toolComponent" class="flex-1 border-0 outline-0"></iframe>
             </template>
             <template v-else>
+
               <component :is="toolComponent" class="flex-1 overflow-hidden" />
             </template>
           </template>

@@ -28,7 +28,7 @@ for (const k in { ...modules, ...modulesTool }) {
   if (!dict[lang]) {
     dict[lang] = {}
   }
-  dict[lang][name] = Object.assign({}, dict[lang][name], modules[k].default)
+  dict[lang][name] = Object.assign({}, dict[lang][name], modules?.[k]?.default, modulesTool?.[k]?.default)
 }
 
 export const lang = merge(

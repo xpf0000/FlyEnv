@@ -94,5 +94,5 @@ export type AppToolModuleItem = {
   icon: any
   component: any
   index: number
-  isCustom: boolean
+  isCustom?: boolean
 }
