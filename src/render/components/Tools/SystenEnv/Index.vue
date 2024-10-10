@@ -1,9 +1,8 @@
 <template>
-  <div class="host-edit tools-system-env">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('util.toolSystemEnv') }}</span>
+  <div class="host-edit tools tools-system-env">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolSystemEnv') }}</span>
       </div>
     </div>
 

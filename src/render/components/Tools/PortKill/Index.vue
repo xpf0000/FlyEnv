@@ -1,14 +1,13 @@
 <template>
-  <div class="port-kill host-edit">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('util.toolPortKill') }}</span>
+  <div class="port-kill tools host-edit">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolPortKill') }}</span>
       </div>
     </div>
 
-    <div class="main-wapper">
-      <div class="main">
+    <div class="main-wapper pb-0">
+      <div class="main p-0">
         <el-input
           v-model.number="port"
           placeholder="Please input port"

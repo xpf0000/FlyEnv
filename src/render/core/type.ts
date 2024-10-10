@@ -58,3 +58,41 @@ export type AppModuleItem = {
    */
   isTray?: boolean
 }
+
+type ToolType =
+  | 'Crypto'
+  | 'Converter'
+  | 'Web'
+  | 'Images'
+  | 'Development'
+  | 'Network'
+  | 'Math'
+  | 'Measurement'
+  | 'Text'
+  | 'Custom'
+
+export const AppToolType: ToolType[] = [
+  'Crypto',
+  'Converter',
+  'Web',
+  'Images',
+  'Development',
+  'Network',
+  'Math',
+  'Measurement',
+  'Text',
+  'Custom'
+]
+
+/**
+ * App Tools Module Item
+ */
+export type AppToolModuleItem = {
+  id: string
+  type: ToolType | string
+  label: string | LabelFn
+  icon: any
+  component: any
+  index: number
+  isCustom: boolean
+}

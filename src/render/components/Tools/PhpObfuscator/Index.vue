@@ -1,9 +1,8 @@
 <template>
-  <div class="host-edit">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('util.toolPhpObfuscator') }}</span>
+  <div class="host-edit tools">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolPhpObfuscator') }}</span>
       </div>
       <el-button type="primary" class="shrink0" :loading="running" @click="doSave">{{
         $t('base.generate')

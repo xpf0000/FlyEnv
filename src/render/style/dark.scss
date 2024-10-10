@@ -29,7 +29,7 @@ html.dark {
         }
       }
 
-      .host-edit {
+      .host-edit:not(.tools) {
         background: #1d2033;
         .nav {
           background: #282b3d;
@@ -104,17 +104,6 @@ html.dark {
           background: #282b3d;
         }
       }
-
-      .tools-file-info {
-        .main-wapper {
-          .select-dir-wapper {
-            #selectDir {
-              border: 2px dashed #ccc;
-              color: #fff;
-            }
-          }
-        }
-      }
     }
   }
   .el-message-box {
@@ -151,6 +140,63 @@ html.dark {
 
     .el-slider__runway {
       background: #e4e7ed;
+    }
+  }
+
+  .host-edit.tools {
+    .main-wapper {
+
+      .input,
+      .input-textarea {
+        color: #fff;
+        &::-webkit-input-placeholder {
+          color: rgba(255, 255, 255, 0.7);
+        }
+      }
+      .input {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+
+        &:hover {
+          border-bottom: 2px solid rgba(255, 255, 255, 0.7);
+        }
+        &:focus {
+          border-bottom: 2px solid #01cc74;
+        }
+        &.error {
+          border-bottom: 2px solid #cc5441;
+        }
+      }
+      .input-textarea {
+        border: 1px solid rgba(255, 255, 255, 0.7);
+
+        &:hover {
+          border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+        &:focus {
+          border: 2px solid #01cc74;
+        }
+        &.error {
+          border: 2px solid #cc5441;
+        }
+      }
+      .el-select {
+        &.error {
+          .el-input__wrapper {
+            border: 1px solid #cc5441;
+          }
+        }
+      }
+    }
+
+    &.tools-file-info {
+      .main-wapper {
+        .select-dir-wapper {
+          #selectDir {
+            border: 2px dashed #ccc;
+            color: #fff;
+          }
+        }
+      }
     }
   }
 

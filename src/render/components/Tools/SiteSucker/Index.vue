@@ -1,15 +1,14 @@
 <template>
-  <div class="host-edit site-sucker">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('util.toolSiteSucker') }}</span>
+  <div class="host-edit tools site-sucker">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolSiteSucker') }}</span>
       </div>
       <yb-icon :svg="import('@/svg/setup.svg?raw')" width="24" height="24" @click.stop="toSet" />
     </div>
 
-    <div class="main-wapper">
-      <div class="main">
+    <div class="main-wapper pb-0">
+      <div class="main p-0">
         <div class="top-tool">
           <el-input
             v-model="url"
