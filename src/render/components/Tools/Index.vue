@@ -29,13 +29,13 @@
                   }}</span>
                 </template>
                 <template v-else>
-                  <div class="flex items-center gap-3 py-2">
+                  <div class="flex items-center gap-3 py-2 overflow-hidden truncate">
                     <yb-icon
                       :svg="data?.icon ?? import('@/svg/custom_tool.svg?raw')"
                       width="15"
                       height="15"
                     />
-                    <span class="select-none">{{
+                    <span class="select-none truncate">{{
                       typeof data.label === 'function' ? data.label() : data.label
                     }}</span>
                   </div>

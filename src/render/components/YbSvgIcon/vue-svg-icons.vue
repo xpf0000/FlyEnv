@@ -5,7 +5,6 @@
     removeTags: true,
     removingTags: ['p-id', 'id', 'class', 'title', 'desc', 'defs', 'style'],
     removingTagAttrs: [
-      'fill',
       't',
       'version',
       'p-id',
@@ -15,8 +14,6 @@
       'desc',
       'defs',
       'style',
-      'width',
-      'height',
       'xmlns',
       'xmlns:xlink'
     ]

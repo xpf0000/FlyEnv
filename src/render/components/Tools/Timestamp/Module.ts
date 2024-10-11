@@ -7,7 +7,7 @@ const module: AppToolModuleItem = {
   type: 'Converter',
   label: () => I18nT('util.toolTimestamp'),
   icon: import('@/svg/time.svg?raw'),
-  index: 4,
+  index: 0,
   component: markRaw(defineAsyncComponent(() => import('./Index.vue')))
 }
 export default module

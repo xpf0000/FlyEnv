@@ -1,8 +1,29 @@
 import type { AppToolModuleItem } from '@/core/type'
 import { reactive } from 'vue'
-import IPC from '@/util/IPC'
-import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { uuid } from '@/util/Index'
+
+const { existsSync, readFile, writeFile } = require('fs-extra')
+const { join } = require('path')
+
+const getToolData = async () => {
+  let obj = {
+    like: [],
+    custom: []
+  }
+  const file = join(global.Server.BaseDir!, 'app.tools.json')
+  if (existsSync(file)) {
+    const json = await readFile(file, 'utf-8')
+    try {
+      obj = JSON.parse(json)
+    } catch (e) {}
+  }
+  return obj
+}
+
+const setToolData = async (data: any) => {
+  const file = join(global.Server.BaseDir!, 'app.tools.json')
+  await writeFile(file, JSON.stringify(data))
+}
 
 export type AppToolStoreType = {
   id: string
@@ -12,7 +33,6 @@ export type AppToolStoreType = {
   like: string[]
   adding: boolean
   init: () => void
-  toDo: (action: string, item?: AppToolModuleItem) => Promise<boolean>
   doAdd: (item: AppToolModuleItem) => Promise<undefined>
   doDel: (item: AppToolModuleItem) => void
   doLike: (item: AppToolModuleItem) => void
@@ -26,34 +46,34 @@ export const AppToolStore = reactive({
   custom: [],
   like: [],
   adding: false,
-  toDo(action: string, item?: AppToolModuleItem) {
-    return new Promise((resolve) => {
-      IPC.send('app-fork:tools', action, JSON.parse(JSON.stringify(item ?? {}))).then(
-        (key: string, res: any) => {
-          IPC.off(key)
-          if (res?.code === 0) {
-            const custom = res?.data?.custom ?? []
-            const like = res?.data?.like ?? []
-            this.custom = reactive(custom)
-            this.like = reactive(like)
-            MessageSuccess(I18nT('base.success'))
-          } else {
-            MessageError(I18nT('base.fail'))
-          }
-          resolve(true)
-        }
-      )
-    })
-  },
   init() {
-    this.toDo('initTools').then().catch()
+    getToolData()
+      .then((res) => {
+        const custom = res?.custom ?? []
+        const like = res?.like ?? []
+        this.custom = reactive(custom)
+        this.like = reactive(like)
+      })
+      .catch()
   },
   async doAdd(item: AppToolModuleItem) {
     if (this.adding) {
       return
     }
     this.adding = true
-    await this.toDo('addCustomTools', item)
+    if (item?.id) {
+      const find = this.custom.find((c: any) => c.id === item.id)
+      if (find) {
+        Object.assign(find, item)
+      }
+    } else {
+      item.isCustom = true
+      item.id = uuid()
+      item.type = 'Custom'
+      item.index = 0
+      this.custom.unshift(item)
+    }
+    setToolData({ custom: this.custom, like: this.like }).then().catch()
     this.adding = false
     return
   },
@@ -66,20 +86,20 @@ export const AppToolStore = reactive({
     if (index >= 0) {
       this.like.splice(index, 1)
     }
-    this.toDo('delCustomTools', item).then().catch()
+    setToolData({ custom: this.custom, like: this.like }).then().catch()
   },
   doLike(item: AppToolModuleItem) {
     if (this.like.includes(item.id)) {
       return
     }
     this.like.push(item.id)
-    this.toDo('toolsLike', item).then().catch()
+    setToolData({ custom: this.custom, like: this.like }).then().catch()
   },
   doUnLike(item: AppToolModuleItem) {
     const index = this.like.indexOf(item.id)
     if (index >= 0) {
       this.like.splice(index, 1)
     }
-    this.toDo('toolsUnLike', item).then().catch()
+    setToolData({ custom: this.custom, like: this.like }).then().catch()
   }
 } as AppToolStoreType)
