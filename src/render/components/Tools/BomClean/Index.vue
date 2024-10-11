@@ -3,6 +3,7 @@
     <div class="nav p-0">
       <div class="left">
         <span class="text-xl">{{ $t('util.toolUTF8BomClean') }}</span>
+        <slot name="like"></slot>
       </div>
       <template v-if="data.end">
         <el-button type="primary" class="shrink0" @click="doEnd">{{ $t('util.ok') }}</el-button>

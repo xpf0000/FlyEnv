@@ -3,6 +3,7 @@
     <div class="nav p-0">
       <div class="left">
         <span class="text-xl">{{ $t('util.toolProcessKill') }}</span>
+        <slot name="like"></slot>
       </div>
     </div>
 

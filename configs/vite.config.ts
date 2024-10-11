@@ -11,7 +11,14 @@ const sharePath = path.resolve(__dirname, '../src/shared/')
 
 const config: UserConfig = {
   base: './',
-  plugins: [monacoEditorPlugin({}), wasm(), vue(), vueJsx()],
+  plugins: [
+    monacoEditorPlugin({}),
+    wasm(),
+    vue({
+      include: [/\.vue$/, /\.md$/] // <-- allows Vue to compile Markdown files
+    }),
+    vueJsx()
+  ],
   assetsInclude: ['**/*.node'],
   optimizeDeps: {
     esbuildOptions: {

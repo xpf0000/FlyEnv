@@ -82,7 +82,7 @@
                 >
                   <template v-for="(item, index) in likeData" :key="index">
                     <div
-                      class="group relative flex flex-col items-center justify-center py-6 bg-white gap-2 cursor-pointer hover:shadow-lg dark:bg-gray-700 dark:hover:shadow-slate-600"
+                      class="overflow-hidden p-2 group relative flex flex-col items-center justify-center py-6 bg-white gap-2 cursor-pointer hover:shadow-lg dark:bg-gray-700 dark:hover:shadow-slate-600"
                       @click.stop="AppToolStore.id = item.id"
                     >
                       <yb-icon
@@ -90,7 +90,7 @@
                         width="30"
                         height="30"
                       />
-                      <span>{{
+                      <span class="truncate px-1 max-w-full">{{
                         typeof item.label === 'function' ? item.label() : item.label
                       }}</span>
                       <StarFilled
@@ -134,7 +134,7 @@
               >
                 <template v-for="(item, index) in homeData" :key="index">
                   <div
-                    class="group flex flex-col items-center justify-center py-6 bg-white gap-2 cursor-pointer hover:shadow-lg relative dark:bg-gray-700 dark:hover:shadow-slate-600"
+                    class="overflow-hidden p-2 group flex flex-col items-center justify-center py-6 bg-white gap-2 cursor-pointer hover:shadow-lg relative dark:bg-gray-700 dark:hover:shadow-slate-600"
                     @click.stop="AppToolStore.id = item.id"
                   >
                     <yb-icon
@@ -142,7 +142,9 @@
                       width="30"
                       height="30"
                     />
-                    <span>{{ typeof item.label === 'function' ? item.label() : item.label }}</span>
+                    <span class="truncate px-1 max-w-full">{{
+                      typeof item.label === 'function' ? item.label() : item.label
+                    }}</span>
                     <template v-if="likeID.includes(item.id)">
                       <StarFilled
                         class="absolute left-2 top-2 w-6 h-6 text-emerald-500 hidden group-hover:inline-block"
@@ -192,8 +194,11 @@
               <iframe :src="toolComponent" class="flex-1 border-0 outline-0"></iframe>
             </template>
             <template v-else>
-
-              <component :is="toolComponent" class="flex-1 overflow-hidden" />
+              <component :is="toolComponent" class="flex-1 overflow-hidden">
+                <template #like>
+                  <LikeBtn />
+                </template>
+              </component>
             </template>
           </template>
         </div>
@@ -220,6 +225,7 @@
   } from '@element-plus/icons-vue'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import Base from '@/core/Base'
+  import LikeBtn from './like.vue'
 
   type AsideTreeDataType = {
     isTop: boolean

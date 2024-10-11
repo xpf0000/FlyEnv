@@ -3,6 +3,7 @@
     <div class="nav p-0">
       <div class="left">
         <span class="text-xl">{{ $t('util.toolPhpObfuscator') }}</span>
+        <slot name="like"></slot>
       </div>
       <el-button type="primary" class="shrink0" :loading="running" @click="doSave">{{
         $t('base.generate')

@@ -82,6 +82,7 @@
     <div class="nav p-0">
       <div class="left">
         <span class="text-xl">{{ I18nT('base64-file-converter.title') }}</span>
+        <slot name="like"></slot>
       </div>
     </div>
 

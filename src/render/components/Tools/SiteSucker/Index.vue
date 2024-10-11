@@ -3,6 +3,7 @@
     <div class="nav p-0">
       <div class="left">
         <span class="text-xl">{{ $t('util.toolSiteSucker') }}</span>
+        <slot name="like"></slot>
       </div>
       <yb-icon :svg="import('@/svg/setup.svg?raw')" width="24" height="24" @click.stop="toSet" />
     </div>
