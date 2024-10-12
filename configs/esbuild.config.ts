@@ -39,7 +39,8 @@ const external = [
   'jszip',
   'pako',
   'electron-devtools-installer',
-  'conf'
+  'conf',
+  'node-forge'
 ]
 
 const dev: BuildOptions = {

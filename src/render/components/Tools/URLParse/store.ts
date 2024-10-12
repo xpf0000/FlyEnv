@@ -21,7 +21,7 @@ const store = reactive({
   },
   copy(text: string) {
     clipboard.writeText(text)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   }
 })
 

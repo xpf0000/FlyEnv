@@ -23,7 +23,7 @@ const store = reactive({
   token: '',
   copy() {
     clipboard.writeText(this.token)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   },
   refreshToken() {
     this.createToken()

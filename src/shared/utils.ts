@@ -5,7 +5,7 @@ const { spawn } = require('child_process')
 const { exec } = require('child-process-promise')
 const os = require('os')
 const { join } = require('path')
-const { chmod, copyFile, existsSync } = require('fs-extra')
+const { chmod, copyFile } = require('fs-extra')
 
 let AppEnv: any
 
@@ -16,12 +16,17 @@ export async function fixEnv(): Promise<{ [k: string]: any }> {
   }
   const file = join(global.Server.Cache!, 'env.sh')
   await copyFile(join(global.Server.Static!, 'sh/env.sh'), file)
-  await chmod(file, '0777')
-  const res = await exec(`zsh env.sh`, {
-    cwd: global.Server.Cache!
-  })
+  let text = ''
+  try {
+    await chmod(file, '0777')
+    const res = await exec(`zsh env.sh`, {
+      cwd: global.Server.Cache!
+    })
+    text = res.stdout
+  } catch (e) {}
+
   AppEnv = {}
-  res.stdout
+  text
     .toString()
     .trim()
     .split('\n')
@@ -34,9 +39,7 @@ export async function fixEnv(): Promise<{ [k: string]: any }> {
       }
     })
   const PATH = `${AppEnv['PATH']}:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/Homebrew/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin`
-  AppEnv['PATH'] = Array.from(new Set(PATH.split(':')))
-    .filter((p) => existsSync(p))
-    .join(':')
+  AppEnv['PATH'] = Array.from(new Set(PATH.split(':'))).join(':')
   console.log('PATH: ', AppEnv['PATH'])
   if (global.Server.Proxy) {
     for (const k in global.Server.Proxy) {

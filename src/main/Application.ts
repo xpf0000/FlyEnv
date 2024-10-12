@@ -20,6 +20,7 @@ import { fixEnv } from '@shared/utils'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseRoot } from '@shared/Exec'
+import { arch } from 'os'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
@@ -289,11 +290,7 @@ export default class Application extends EventEmitter {
         })
         .catch()
     }
-
-    execAsync('uname', ['-m']).then((res: string) => {
-      global.Server.Arch = res
-      console.log('global.Server.Arch: ', res)
-    })
+    global.Server.Arch = arch() === 'arm64' ? 'arm64' : 'x86_64'
   }
 
   initWindowManager() {
@@ -593,7 +590,7 @@ export default class Application extends EventEmitter {
     switch (command) {
       case 'app:password-check':
         const pass = args?.[0] ?? ''
-        execPromiseRoot([`-k`, 'uname', '-a'], undefined, pass)
+        execPromiseRoot([`-k`, 'echo', 'PhpWebStudy'], undefined, pass)
           .then(() => {
             this.configManager.setConfig('password', pass)
             global.Server.Password = pass

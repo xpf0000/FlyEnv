@@ -40,7 +40,8 @@ const config: UserConfig = {
       'os',
       'child_process',
       'child-process-promise',
-      'fs-extra'
+      'fs-extra',
+      'node-forge'
     ]
   },
   root: renderPath,

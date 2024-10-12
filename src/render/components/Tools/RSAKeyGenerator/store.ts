@@ -48,11 +48,11 @@ const store = reactive({
   },
   copyPublicKey() {
     clipboard.writeText(this.publicKeyPem)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   },
   copyPrivateKey() {
     clipboard.writeText(this.privateKeyPem)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   }
 })
 

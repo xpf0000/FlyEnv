@@ -12,7 +12,7 @@ const store = reactive({
   },
   copyEncode() {
     clipboard.writeText(this.encodeOutput)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   },
   decodeInput: 'Hello%20world%20%3A)',
   decodeOutput: '',
@@ -21,7 +21,7 @@ const store = reactive({
   },
   copyDecode() {
     clipboard.writeText(this.decodeOutput)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   }
 })
 

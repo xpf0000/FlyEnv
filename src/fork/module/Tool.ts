@@ -179,8 +179,9 @@ class Manager extends Base {
         }
         let allFile = await readdir(dir)
         allFile = allFile
+          .filter((f) => existsSync(join(dir, f)))
           .map((f) => realpathSync(join(dir, f)))
-          .filter((f) => statSync(f).isDirectory())
+          .filter((f) => existsSync(f) && statSync(f).isDirectory())
         resolve(allFile)
       } catch (e) {
         reject(e)
@@ -202,15 +203,18 @@ class Manager extends Base {
         await mkdirp(envDir)
       }
       const flagDir = join(envDir, flag)
-      await remove(flagDir)
+      try {
+        await execPromiseRoot(['rm', '-rf', flagDir])
+      } catch (e) {}
       if (!all.includes(bin)) {
         await execPromiseRoot(['ln', '-s', bin, flagDir])
       }
 
       let allFile = await readdir(envDir)
       allFile = allFile
-        .filter((f) => statSync(realpathSync(join(envDir, f))).isDirectory())
-        .map((f) => join(envDir, f))
+        .filter((f) => existsSync(join(envDir, f)))
+        .map((f) => realpathSync(join(envDir, f)))
+        .filter((f) => existsSync(f) && statSync(f).isDirectory())
 
       const files = ['~/.zshrc', '~/.config/fish/config.fish']
       const home = await execPromise(`echo $HOME`)
@@ -221,16 +225,19 @@ class Manager extends Base {
           return
         }
         let content = await readFile(file, 'utf-8')
+        const contentBack = content
         let x: any = content.match(
           /(#PHPWEBSTUDY-PATH-SET-BEGIN#)([\s\S]*?)(#PHPWEBSTUDY-PATH-SET-END#)/g
         )
         if (x && x[0]) {
           x = x[0]
-          content = content.replace(`\n${x}`, '')
+          content = content.replace(`\n${x}`, '').replace(`${x}`, '')
         }
         if (allFile.length > 0) {
           let java = allFile.find(
-            (f) => f.includes('java') && realpathSync(f).includes('/Contents/Home/')
+            (f) =>
+              (f.toLowerCase().includes('java') || f.toLowerCase().includes('jdk')) &&
+              realpathSync(f).includes('/Contents/Home/')
           )
           let java_home = ''
           if (java) {
@@ -248,7 +255,8 @@ class Manager extends Base {
             const text = `\n#PHPWEBSTUDY-PATH-SET-BEGIN#\nset -gx PATH ${allFile.join(' ')} $PATH${java_home}\n#PHPWEBSTUDY-PATH-SET-END#`
             content = content.trim() + text
           }
-
+        }
+        if (content !== contentBack) {
           const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
           await writeFile(cacheFile, content)
           await execPromiseRoot(['cp', '-f', cacheFile, file])

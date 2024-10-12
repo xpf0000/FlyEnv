@@ -57,7 +57,7 @@
 
   const copyFileBase64 = () => {
     clipboard.writeText(fileBase64.value)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   }
 
   const onDrop = (e: DragEvent) => {

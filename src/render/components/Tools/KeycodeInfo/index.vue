@@ -57,7 +57,7 @@
 
   const copy = (v: string) => {
     clipboard.writeText(v)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   }
 </script>
 

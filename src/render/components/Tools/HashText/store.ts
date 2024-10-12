@@ -57,7 +57,7 @@ const store = reactive({
   copy(algo: string) {
     const value = this.hashText(algo)
     clipboard.writeText(value)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   }
 })
 

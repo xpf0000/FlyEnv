@@ -15,7 +15,7 @@ const store = reactive({
   },
   copyTextOutput() {
     clipboard.writeText(this.textOutput)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   },
   base64Input: '',
   base64Output: '',
@@ -31,7 +31,7 @@ const store = reactive({
   },
   copyBase64Output() {
     clipboard.writeText(this.base64Output)
-    MessageSuccess(I18nT('token-generator.copied'))
+    MessageSuccess(I18nT('base.success'))
   }
 })
 
