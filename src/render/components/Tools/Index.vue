@@ -190,11 +190,22 @@
             </el-scrollbar>
           </template>
           <template v-else>
-            <template v-if="typeof toolComponent === 'string'">
-              <iframe :src="toolComponent" class="flex-1 border-0 outline-0"></iframe>
+            <template v-if="typeof toolComponent?.component === 'string'">
+              <div class="flex-1 flex flex-col">
+                <div style="height: 55px" class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <span class="text-xl">{{ toolComponent.label }}</span>
+                    <LikeBtn />
+                  </div>
+                  <el-button link @click.stop="AppToolStore.openUrl(toolComponent.component)">
+                    <yb-icon :svg="import('@/svg/http.svg?raw')" class="w-6 h-6" />
+                  </el-button>
+                </div>
+                <iframe :src="toolComponent.component" class="flex-1 border-0 outline-0"></iframe>
+              </div>
             </template>
             <template v-else>
-              <component :is="toolComponent" class="flex-1 overflow-hidden">
+              <component :is="toolComponent?.component" class="flex-1 overflow-hidden">
                 <template #like>
                   <LikeBtn />
                 </template>
@@ -346,7 +357,7 @@
       return undefined
     }
     const all = [...AppToolStore.custom, ...AppToolModules]
-    return all.find((a) => a.id === AppToolStore.id)?.component
+    return all.find((a) => a.id === AppToolStore.id)
   })
 
   const onNodeClick = (data: any) => {

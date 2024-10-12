@@ -4,6 +4,7 @@ import { uuid } from '@/util/Index'
 
 const { existsSync, readFile, writeFile } = require('fs-extra')
 const { join } = require('path')
+const { shell } = require('@electron/remote')
 
 const getToolData = async () => {
   let obj = {
@@ -37,6 +38,7 @@ export type AppToolStoreType = {
   doDel: (item: AppToolModuleItem) => void
   doLike: (item: AppToolModuleItem) => void
   doUnLike: (item: AppToolModuleItem) => void
+  openUrl: (url: string) => void
 }
 
 export const AppToolStore = reactive({
@@ -46,6 +48,9 @@ export const AppToolStore = reactive({
   custom: [],
   like: [],
   adding: false,
+  openUrl(url: string) {
+    shell.openExternal(url)
+  },
   init() {
     getToolData()
       .then((res) => {

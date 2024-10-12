@@ -72,11 +72,11 @@ type ToolType =
   | 'Custom'
 
 export const AppToolType: ToolType[] = [
+  'Development',
   'Crypto',
   'Converter',
   'Web',
   'Images',
-  'Development',
   'Network',
   'Math',
   'Measurement',

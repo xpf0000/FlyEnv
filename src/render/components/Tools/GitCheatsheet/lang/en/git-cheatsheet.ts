@@ -1,3 +1,3 @@
 export default {
-  title: 'Git cheatsheet'
+  title: 'Git Cheatsheet'
 }
