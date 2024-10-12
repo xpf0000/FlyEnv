@@ -14,23 +14,37 @@
 
 ### Web Server
 
-Apache | Nginx | Caddy | Tomcat
+- [x] Apache
+- [x] Nginx
+- [x] Caddy
+- [x] Tomcat
 
 ### Database Server
 
-MySQL | MariaDB | PostgreSQL | MongoDB
+- [x] MySQL
+- [x] MariaDB
+- [x] PostgreSQL
+- [x] MongoDB
 
-### Language
+### Language Env
 
-PHP | Java | NodeJS
+- [x] PHP
+- [x] Java
+- [x] NodeJS
+- [ ] Python
+- [ ] Go
 
 ### Data Queue & Data Cache
 
-Redis | Memcached
+- [x] Redis
+- [x] Memcached
+- [ ] RabbitMQ
 
 ### Other
 
-DNS Server | FTP Server | Static Http Server
+- [x] DNS Server
+- [x] FTP Server
+- [x] Static Http Server
 
 ## macOS:
 
@@ -42,15 +56,15 @@ brew install phpwebstudy
 
 ### Intel X86:
 
-[PhpWebStudy-4.3.5.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.5/PhpWebStudy-4.3.5.dmg)
+[PhpWebStudy-4.4.0.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.4.0/PhpWebStudy-4.4.0.dmg)
 
-[PhpWebStudy-4.3.5-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.5/PhpWebStudy-4.3.5-mac.zip)
+[PhpWebStudy-4.4.0-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.4.0/PhpWebStudy-4.4.0-mac.zip)
 
 ### Apple Silicon
 
-[PhpWebStudy-4.3.5-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.5/PhpWebStudy-4.3.5-arm64.dmg)
+[PhpWebStudy-4.4.0-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.4.0/PhpWebStudy-4.4.0-arm64.dmg)
 
-[PhpWebStudy-4.3.5-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.5/PhpWebStudy-4.3.5-arm64-mac.zip)
+[PhpWebStudy-4.4.0-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.4.0/PhpWebStudy-4.4.0-arm64-mac.zip)
 
 ## Windows
 
