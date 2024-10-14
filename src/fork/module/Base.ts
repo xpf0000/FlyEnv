@@ -140,7 +140,8 @@ export class Base {
         mongodb: 'mongod',
         postgresql: 'postgres',
         'pure-ftpd': 'pure-ftpd',
-        tomcat: 'org.apache.catalina.startup.Bootstrap'
+        tomcat: 'org.apache.catalina.startup.Bootstrap',
+        rabbitmq: 'rabbit'
       }
       const serverName = dis[this.type]
       const command = `ps aux | grep '${serverName}'`
@@ -193,6 +194,7 @@ export class Base {
           case 'mariadb':
           case 'mongodb':
           case 'tomcat':
+          case 'rabbitmq':
             sig = '-TERM'
             break
           default:
@@ -349,7 +351,7 @@ export class Base {
           const dir = row.appDir
           await mkdirp(dir)
           await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
-          if (['java', 'tomcat'].includes(this.type)) {
+          if (['java', 'tomcat', 'golang'].includes(this.type)) {
             const subDirs = await readdir(dir)
             const subDir = subDirs.pop()
             if (subDir) {

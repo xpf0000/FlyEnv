@@ -18,6 +18,8 @@ class Manager extends Base {
   Composer: any
   Java: any
   Tomcat: any
+  GoLang: any
+  RabbitMQ: any
 
   constructor() {
     super()
@@ -114,6 +116,18 @@ class Manager extends Base {
             this.Tomcat = res.default
           }
           versions.tomcat = this.Tomcat.allInstalledVersions(setup)
+        } else if (type === 'golang') {
+          if (!this.GoLang) {
+            const res = await import('./GoLang')
+            this.GoLang = res.default
+          }
+          versions.golang = this.GoLang.allInstalledVersions(setup)
+        } else if (type === 'rabbitmq') {
+          if (!this.RabbitMQ) {
+            const res = await import('./RabbitMQ')
+            this.RabbitMQ = res.default
+          }
+          versions.rabbitmq = this.RabbitMQ.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

@@ -26,6 +26,8 @@ class BaseManager {
   Tomcat: any
   App: any
   CodeMake: any
+  GoLang: any
+  RabbitMQ: any
 
   constructor() {}
 
@@ -200,6 +202,18 @@ class BaseManager {
         this.CodeMake = res.default
       }
       doRun(this.CodeMake)
+    } else if (module === 'golang') {
+      if (!this.GoLang) {
+        const res = await import('./module/GoLang')
+        this.GoLang = res.default
+      }
+      doRun(this.GoLang)
+    } else if (module === 'rabbitmq') {
+      if (!this.RabbitMQ) {
+        const res = await import('./module/RabbitMQ')
+        this.RabbitMQ = res.default
+      }
+      doRun(this.RabbitMQ)
     }
   }
 

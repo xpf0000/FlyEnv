@@ -22,6 +22,9 @@
               <template v-else-if="typeFlag === 'tomcat'">
                 <el-option value="static" label="static-tomcat"></el-option>
               </template>
+              <template v-else-if="typeFlag === 'golang'">
+                <el-option value="static" label="static-go"></el-option>
+              </template>
             </el-select>
           </template>
         </div>

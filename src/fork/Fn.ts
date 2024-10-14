@@ -651,7 +651,7 @@ export const brewSearch = async (
 export const portSearch = async (
   reg: string,
   filter: (f: string) => boolean,
-  isInstalled: (name: string) => boolean
+  isInstalled: (name: string, version?: string) => boolean
 ) => {
   const Info: { [k: string]: any } = {}
   try {
@@ -664,7 +664,7 @@ export const portSearch = async (
         const a = m.split('\t').filter((f) => f.trim().length > 0)
         const name = a.shift() ?? ''
         const version = a.shift() ?? ''
-        const installed = isInstalled(name)
+        const installed = isInstalled(name, version)
         return {
           name,
           version,

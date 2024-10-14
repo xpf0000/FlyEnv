@@ -46,6 +46,7 @@
               </template>
             </el-popover>
           </template>
+          <slot name="tool-left"></slot>
         </div>
         <el-button class="button" :disabled="service?.fetching" link @click="resetData">
           <yb-icon
