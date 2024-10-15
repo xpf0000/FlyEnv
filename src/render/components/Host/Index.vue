@@ -1,6 +1,18 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <ul class="top-tab">
+      <el-dropdown class="mr-3" @command="setTab">
+        <el-button class="outline-0 focus:outline-0">
+          {{ tab }} <el-icon class="el-icon--right"><arrow-down /></el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <template v-for="(label, value) in tabs" :key="value">
+              <el-dropdown-item :command="value">{{ label }}</el-dropdown-item>
+            </template>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <el-button-group>
         <el-button style="padding-left: 30px; padding-right: 30px" @click="toAdd">{{
           I18nT('base.add')
@@ -55,7 +67,7 @@
         <el-button @click="openHosts">{{ I18nT('base.openHosts') }}</el-button>
       </li>
     </ul>
-    <List></List>
+    <List v-show="HostStore.tab === 'php'"></List>
   </div>
 </template>
 
@@ -67,15 +79,36 @@
   import { readFileAsync, writeFileAsync } from '@shared/file'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import { More } from '@element-plus/icons-vue'
+  import { More, ArrowDown } from '@element-plus/icons-vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import type { AppHost } from '@shared/app'
+  import { HostStore } from './store'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
   const { dialog, clipboard, shell } = require('@electron/remote')
   const { join, dirname } = require('path')
 
   const appStore = AppStore()
+
+  const tabs = computed(() => {
+    return {
+      php: I18nT('host.projectPhp'),
+      java: I18nT('host.projectJava'),
+      node: I18nT('host.projectNode'),
+      go: I18nT('host.projectGo'),
+      python: I18nT('host.projectPython'),
+      html: I18nT('host.projectHtml')
+    }
+  })
+
+  const tab = computed(() => {
+    const v: any = tabs.value
+    return v[HostStore.tab]
+  })
+
+  const setTab = (tab: string) => {
+    HostStore.tab = tab
+  }
 
   const hostsSet = computed(() => {
     return appStore.config.setup.hosts
