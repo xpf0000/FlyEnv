@@ -443,6 +443,8 @@
         names.push(`${name}-server`)
       } else if (props.typeFlag === 'mariadb') {
         names.push(`${name}-server`)
+      } else if (props.typeFlag === 'python') {
+        names.push(`${name.replace('python', 'py')}-pip`)
       }
       if (['php52', 'php53', 'php54', 'php55', 'php56'].includes(name) && fn === 'install') {
         const sh = join(global.Server.Static, 'sh/port-cmd-user.sh')

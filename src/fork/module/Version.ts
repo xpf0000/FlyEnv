@@ -20,6 +20,7 @@ class Manager extends Base {
   Tomcat: any
   GoLang: any
   RabbitMQ: any
+  Python: any
 
   constructor() {
     super()
@@ -128,6 +129,12 @@ class Manager extends Base {
             this.RabbitMQ = res.default
           }
           versions.rabbitmq = this.RabbitMQ.allInstalledVersions(setup)
+        } else if (type === 'python') {
+          if (!this.Python) {
+            const res = await import('./Python')
+            this.Python = res.default
+          }
+          versions.python = this.Python.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

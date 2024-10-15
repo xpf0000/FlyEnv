@@ -19,7 +19,8 @@ export enum AppModuleEnum {
   httpserver = 'httpserver',
   tools = 'tools',
   golang = 'golang',
-  rabbitmq = 'rabbitmq'
+  rabbitmq = 'rabbitmq',
+  python = 'python'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

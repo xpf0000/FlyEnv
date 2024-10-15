@@ -201,7 +201,7 @@
                     <yb-icon :svg="import('@/svg/http.svg?raw')" class="w-6 h-6" />
                   </el-button>
                 </div>
-                <iframe :src="toolComponent.component" class="flex-1 border-0 outline-0"></iframe>
+                <webview :src="toolComponent.component" class="flex-1 border-0 outline-0"></webview>
               </div>
             </template>
             <template v-else>

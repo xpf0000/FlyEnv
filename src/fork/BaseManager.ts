@@ -28,6 +28,7 @@ class BaseManager {
   CodeMake: any
   GoLang: any
   RabbitMQ: any
+  Python: any
 
   constructor() {}
 
@@ -214,6 +215,12 @@ class BaseManager {
         this.RabbitMQ = res.default
       }
       doRun(this.RabbitMQ)
+    } else if (module === 'python') {
+      if (!this.Python) {
+        const res = await import('./module/Python')
+        this.Python = res.default
+      }
+      doRun(this.Python)
     }
   }
 
