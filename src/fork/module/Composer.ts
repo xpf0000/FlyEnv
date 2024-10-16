@@ -29,7 +29,7 @@ class Composer extends Base {
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
           a.type = 'composer'
-          dict[`caddy-${a.version}`] = a
+          dict[`composer-${a.version}`] = a
         })
         resolve(dict)
       } catch (e) {

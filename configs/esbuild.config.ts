@@ -40,7 +40,8 @@ const external = [
   'pako',
   'electron-devtools-installer',
   'conf',
-  'node-forge'
+  'node-forge',
+  '@ayonli/jsext'
 ]
 
 const dev: BuildOptions = {

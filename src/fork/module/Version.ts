@@ -21,6 +21,7 @@ class Manager extends Base {
   GoLang: any
   RabbitMQ: any
   Python: any
+  Maven: any
 
   constructor() {
     super()
@@ -135,6 +136,12 @@ class Manager extends Base {
             this.Python = res.default
           }
           versions.python = this.Python.allInstalledVersions(setup)
+        } else if (type === 'maven') {
+          if (!this.Maven) {
+            const res = await import('./Maven')
+            this.Maven = res.default
+          }
+          versions.maven = this.Maven.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

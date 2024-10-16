@@ -29,6 +29,7 @@ class BaseManager {
   GoLang: any
   RabbitMQ: any
   Python: any
+  Maven: any
 
   constructor() {}
 
@@ -221,6 +222,12 @@ class BaseManager {
         this.Python = res.default
       }
       doRun(this.Python)
+    } else if (module === 'maven') {
+      if (!this.Maven) {
+        const res = await import('./module/Maven')
+        this.Maven = res.default
+      }
+      doRun(this.Maven)
     }
   }
 

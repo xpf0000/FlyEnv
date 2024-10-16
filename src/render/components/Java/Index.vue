@@ -8,6 +8,7 @@
     <div class="main-block">
       <Service v-if="tab === 0"></Service>
       <Manager v-else-if="tab === 1" type-flag="java"></Manager>
+      <Maven v-else-if="tab === 2" type-flag="maven" />
     </div>
   </div>
 </template>
@@ -17,7 +18,8 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@shared/lang'
+  import Maven from './Maven.vue'
 
   const { tab } = AppModuleSetup('java')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager')]
+  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), 'Maven']
 </script>

@@ -7,6 +7,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, copyFile, unlink, chmod, remove, mkdirp, readdir } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
 import axios from 'axios'
+import { lookup } from '../util/DNSLookUp'
 
 export class Base {
   type: string
@@ -298,6 +299,7 @@ export class Base {
     } else {
       proxy = undefined
     }
+    console.log('getAxiosProxy: ', proxy)
     return proxy
   }
 
@@ -312,10 +314,26 @@ export class Base {
           os: 'mac',
           arch: global.Server.Arch === 'x86_64' ? 'x86' : 'arm'
         },
-        proxy: this.getAxiosProxy()
+        timeout: 30000,
+        withCredentials: false,
+        proxy: this.getAxiosProxy(),
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
+        },
+        lookup(hostname: string, options: object) {
+          return new Promise(async (resolve) => {
+            const res: any = await lookup(hostname, options)
+            const item = res?.shift()
+            console.log('lookup res: ', options, res, item)
+            resolve([item.address, item.family])
+          })
+        }
       })
       list = res?.data?.data ?? []
-    } catch (e) {}
+    } catch (e) {
+      console.log('_fetchOnlineVersion: err', e)
+    }
     return list
   }
 
@@ -351,7 +369,7 @@ export class Base {
           const dir = row.appDir
           await mkdirp(dir)
           await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
-          if (['java', 'tomcat', 'golang'].includes(this.type)) {
+          if (['java', 'tomcat', 'golang', 'maven'].includes(this.type)) {
             const subDirs = await readdir(dir)
             const subDir = subDirs.pop()
             if (subDir) {
