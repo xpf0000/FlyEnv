@@ -7,7 +7,8 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, copyFile, unlink, chmod, remove, mkdirp, readdir } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
 import axios from 'axios'
-import { lookup } from '../util/DNSLookUp'
+import * as http from 'http'
+import * as https from 'https'
 
 export class Base {
   type: string
@@ -316,19 +317,9 @@ export class Base {
         },
         timeout: 30000,
         withCredentials: false,
-        proxy: this.getAxiosProxy(),
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
-        },
-        lookup(hostname: string, options: object) {
-          return new Promise(async (resolve) => {
-            const res: any = await lookup(hostname, options)
-            const item = res?.shift()
-            console.log('lookup res: ', options, res, item)
-            resolve([item.address, item.family])
-          })
-        }
+        httpAgent: new http.Agent({ keepAlive: false }),
+        httpsAgent: new https.Agent({ keepAlive: false }),
+        proxy: this.getAxiosProxy()
       })
       list = res?.data?.data ?? []
     } catch (e) {
