@@ -166,5 +166,9 @@ export default {
   themeLight: '亮色',
   themeAuto: '系统',
 
-  addToPath: '添加到环境变量'
+  addToPath: '添加到环境变量',
+  staticBinarie: '官方',
+  source: '源',
+  staticDelAlert:
+    '为了保证用户数据安全. 不再提供自动删除已安装软件的功能. 如确定要删除. 可点击确定. 在打开的文件夹中手动删除软件.'
 }

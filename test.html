@@ -1,16 +1,7 @@
-<html>
-<head>
-  <style>
+1. 服务端渲染
+https://cn.vuejs.org/guide/scaling-up/ssr.html#server-side-rendering-ssr
 
-  </style>
-</head>
-<body>
-<div class="main-wapper">
-  <div class="main">
-    <div class="left"></div>
-    <div class="move"></div>
-    <div class="right"></div>
-  </div>
-</div>
-</body>
-</html>
+本质上都是在服务端生成HTML代码. 和PHP没有什么不同.
+
+2. 列表数据加载问题
+方案: 列表设置上加个选项. 让用户可以选择是使用服务端方式加载分页. 还是使用 js ajax方式加载分页

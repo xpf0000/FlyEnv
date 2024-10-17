@@ -26,7 +26,7 @@ class App extends Base {
       console.log('data: ', data)
 
       await axios({
-        url: 'https://api.macphpstudy.com/api/app/start',
+        url: 'https://api.one-env.com/api/app/start',
         method: 'post',
         data,
         proxy: this.getAxiosProxy()
@@ -50,7 +50,7 @@ class App extends Base {
       console.log('data: ', data)
 
       axios({
-        url: 'https://api.macphpstudy.com/api/app/feedback_app',
+        url: 'https://api.one-env.com/api/app/feedback_app',
         method: 'post',
         data,
         proxy: this.getAxiosProxy()

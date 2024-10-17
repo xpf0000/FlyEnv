@@ -177,5 +177,9 @@ export default {
   themeLight: 'Light',
   themeAuto: 'System',
 
-  addToPath: 'Add To PATH'
+  addToPath: 'Add To PATH',
+  staticBinarie: 'Official',
+  source: 'Source',
+  staticDelAlert:
+    'In order to ensure the safe of user data, No longer provides the function of automatically deleting installed software. If you are sure you want to delete it, click OK. Manually delete the software in the open folder.'
 }

@@ -4,6 +4,8 @@ import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  brewInfoJson,
+  portSearch,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -45,7 +47,8 @@ class Maven extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.maven?.dirs ?? [], 'mvn', 'maven')])
+      const dirs = setup?.maven?.dirs ?? []
+      Promise.all([versionLocalFetch([...dirs, '/opt/local/share/java/'], 'mvn', 'maven')])
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
@@ -73,6 +76,34 @@ class Maven extends Base {
         .catch(() => {
           resolve([])
         })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const all = ['maven']
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
+    })
+  }
+
+  portinfo() {
+    return new ForkPromise(async (resolve) => {
+      const Info: { [k: string]: any } = await portSearch(
+        `^maven\\d*$`,
+        (f) => {
+          return f.toLowerCase().includes('a java-based build and project management environment.')
+        },
+        (name) => {
+          return existsSync(`/opt/local/share/java/${name}/bin/mvn`)
+        }
+      )
+      resolve(Info)
     })
   }
 }

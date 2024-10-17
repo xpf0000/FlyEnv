@@ -308,7 +308,7 @@ export class Base {
     let list: OnlineVersionItem[] = []
     try {
       const res = await axios({
-        url: 'https://api.macphpstudy.com/api/version/fetch',
+        url: 'https://api.one-env.com/api/version/fetch',
         method: 'post',
         data: {
           app,

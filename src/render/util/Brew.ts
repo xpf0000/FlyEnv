@@ -8,6 +8,7 @@ import { BrewStore, type OnlineVersionItem } from '@/store/brew'
 import { I18nT } from '@shared/lang'
 import { MessageError } from '@/util/Element'
 import type { AllAppModule } from '@/core/type'
+import { reactive } from 'vue'
 
 const { getGlobal } = require('@electron/remote')
 const { join } = require('path')
@@ -200,5 +201,39 @@ export const fetchVerion = (
         resolve({})
       }
     })
+  })
+}
+
+export const fetchAllVersion = (typeFlag: AllAppModule) => {
+  const brewStore = BrewStore()
+  const module = brewStore.module(typeFlag)
+  if (module.getListing) {
+    return
+  }
+  module.getListing = true
+  const all = [fetchVerion(typeFlag), brewInfo(typeFlag), portInfo(typeFlag)]
+  Promise.all(all).then(([online, brew, port]: any) => {
+    let list = module.list.static!
+    for (const k in list) {
+      delete list?.[k]
+    }
+    for (const name in online) {
+      list[name] = reactive(online[name])
+    }
+    list = module.list.brew
+    for (const k in list) {
+      delete list?.[k]
+    }
+    for (const name in brew) {
+      list[name] = reactive(brew[name])
+    }
+    list = module.list.port
+    for (const k in list) {
+      delete list?.[k]
+    }
+    for (const name in port) {
+      list[name] = reactive(port[name])
+    }
+    module.getListing = false
   })
 }

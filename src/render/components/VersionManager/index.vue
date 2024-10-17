@@ -139,12 +139,10 @@
   import { AppSoftInstalledItem, BrewStore } from '@/store/brew'
   import { I18nT } from '@shared/lang'
   import installedVersions from '@/util/InstalledVersions'
-  import Base from '@/core/Base'
-  import { MessageError, MessageSuccess } from '@/util/Element'
   import type { AllAppModule } from '@/core/type'
+  import { staticVersionDel } from '@/util/Version'
 
   const { join } = require('path')
-  const { removeSync } = require('fs-extra')
   const { existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } = require('fs')
 
   const props = defineProps<{
@@ -384,23 +382,7 @@
         }
       )
     } else {
-      Base._Confirm(I18nT('base.delAlertContent'), undefined, {
-        customClass: 'confirm-del',
-        type: 'warning'
-      })
-        .then(() => {
-          try {
-            if (existsSync(row.appDir)) {
-              removeSync(row.appDir)
-            }
-            row.installed = false
-            regetInstalled()
-            MessageSuccess(I18nT('base.success'))
-          } catch (e) {
-            MessageError(I18nT('base.fail'))
-          }
-        })
-        .catch(() => {})
+      staticVersionDel(row.appDir)
     }
   }
 

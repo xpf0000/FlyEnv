@@ -11,7 +11,10 @@
             ></yb-icon>
           </el-button>
         </div>
-        <el-button class="button" link :disabled="isRunning" @click="reGetData">
+        <el-button v-if="showNextBtn" type="primary" @click="toNext">{{
+          I18nT('base.confirm')
+        }}</el-button>
+        <el-button v-else class="button" link :disabled="isRunning" @click="reGetData">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="refresh-icon"
@@ -20,7 +23,13 @@
         </el-button>
       </div>
     </template>
+    <template v-if="showLog">
+      <div class="log-wapper">
+        <div ref="logs" class="logs"></div>
+      </div>
+    </template>
     <el-table
+      v-else
       class="service-table"
       height="100%"
       :data="tableData"
@@ -70,14 +79,17 @@
           </template>
         </template>
       </el-table-column>
+      <el-table-column :label="I18nT('base.source')" width="120">
+        <template #default="scope">
+          <span>{{ scope.row.source }}</span>
+        </template>
+      </el-table-column>
       <el-table-column align="center" :label="I18nT('base.isInstalled')" width="150">
         <template #default="scope">
           <div class="cell-status">
-            <yb-icon
-              v-if="scope.row.installed || scope.row?.path"
-              :svg="import('@/svg/ok.svg?raw')"
-              class="installed"
-            ></yb-icon>
+            <template v-if="scope.row.installed || scope.row?.path">
+              <yb-icon :svg="import('@/svg/ok.svg?raw')" class="installed"></yb-icon>
+            </template>
           </div>
         </template>
       </el-table-column>
@@ -106,21 +118,25 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ComputedRef, reactive } from 'vue'
-  import { fetchVerion } from '@/util/Brew'
+  import { computed, ComputedRef, nextTick, onUnmounted, ref, watch } from 'vue'
+  import { fetchAllVersion } from '@/util/Brew'
   import { AppSoftInstalledItem, BrewStore, type OnlineVersionItem } from '@/store/brew'
   import IPC from '@/util/IPC'
-  import Base from '@/core/Base'
   import { I18nT } from '@shared/lang'
-  import { MessageError, MessageSuccess } from '@/util/Element'
   import { Service } from '@/components/ServiceManager/service'
   import installedVersions from '@/util/InstalledVersions'
   import type { SoftInstalled } from '@/store/brew'
   import ExtSet from '@/components/ServiceManager/EXT/index.vue'
   import { ServiceActionStore } from '../ServiceManager/EXT/store'
+  import { staticVersionDel } from '@/util/Version'
+  import { join } from 'path'
+  import { copyFileSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
+  import { chmod } from '@shared/file'
+  import XTerm from '@/util/XTerm'
+  import { AppStore } from '@/store/app'
 
   const { shell } = require('@electron/remote')
-  const { removeSync, existsSync } = require('fs-extra')
+  const { existsSync } = require('fs-extra')
   const { dirname } = require('path')
 
   const props = defineProps<{
@@ -150,13 +166,34 @@
 
   const tableData = computed(() => {
     const localList = brewStore.module('maven').installed
-    const onLineList = Object.values(currentType?.value?.list?.static ?? {}).filter(
-      (i) => !i.installed && !localList.find((l) => l.version === i.version)
-    )
-    return [...localList, ...onLineList]
+    const onLineList = Object.values(currentType?.value?.list?.static ?? {}).map((item) => {
+      const obj: any = {
+        ...item
+      }
+      obj.source = I18nT('base.staticBinarie')
+      return obj
+    })
+    const brewList = Object.values(currentType?.value?.list?.brew ?? {}).map((item) => {
+      const obj: any = {
+        ...item
+      }
+      obj.source = 'Homebrew'
+      return obj
+    })
+    const portList = Object.values(currentType?.value?.list?.port ?? {}).map((item) => {
+      const obj: any = {
+        ...item
+      }
+      obj.source = 'MacPorts'
+      return obj
+    })
+    return [...localList, ...onLineList, ...brewList, ...portList]
   })
 
   const checkEnvPath = (item: SoftInstalled) => {
+    if (!item?.bin) {
+      return false
+    }
     console.log('checkEnvPath: ', ServiceActionStore.allPath, dirname(item.bin))
     return ServiceActionStore.allPath.includes(dirname(item.bin))
   }
@@ -166,17 +203,7 @@
   }
 
   const fetchData = () => {
-    currentType.value.getListing = true
-    fetchVerion(props.typeFlag).then((data) => {
-      const list: any = currentType.value.list.static
-      for (const k in list) {
-        delete list?.[k]
-      }
-      for (const name in data) {
-        list[name] = reactive(data[name])
-      }
-      currentType.value.getListing = false
-    })
+    fetchAllVersion(props.typeFlag)
     const service = Service[props.typeFlag]
     if (service?.fetching) {
       return
@@ -221,8 +248,87 @@
     })
   }
 
+  const showNextBtn = ref(false)
+  const appStore = AppStore()
+  const proxy = computed(() => {
+    return appStore.config.setup.proxy
+  })
+  const proxyStr = computed(() => {
+    if (!proxy?.value.on) {
+      return undefined
+    }
+    return proxy?.value?.proxy
+  })
+
+  const handleEditBrew = (row: any, installed: boolean, flag: 'Homebrew' | 'MacPorts') => {
+    if (brewRunning?.value) {
+      return
+    }
+    brewStore.log.splice(0)
+    brewStore.showInstallLog = true
+    brewStore.brewRunning = true
+    let fn = ''
+    if (installed) {
+      fn = 'uninstall'
+      brewStore.cardHeadTitle = `${I18nT('base.uninstall')} ${row.name}`
+    } else {
+      fn = 'install'
+      brewStore.cardHeadTitle = `${I18nT('base.install')} ${row.name}`
+    }
+
+    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const name = row.name
+    let params = []
+    if (flag === 'Homebrew') {
+      const sh = join(global.Server.Static!, 'sh/brew-cmd.sh')
+      const copyfile = join(global.Server.Cache!, 'brew-cmd.sh')
+      if (existsSync(copyfile)) {
+        unlinkSync(copyfile)
+      }
+      copyFileSync(sh, copyfile)
+      chmod(copyfile, '0777')
+      params = [`${copyfile} ${arch} ${fn} ${name}; exit 0`]
+      if (proxyStr?.value) {
+        params.unshift(proxyStr?.value)
+      }
+    } else {
+      let names = [name]
+      const sh = join(global.Server.Static!, 'sh/port-cmd.sh')
+      const copyfile = join(global.Server.Cache!, 'port-cmd.sh')
+      if (existsSync(copyfile)) {
+        unlinkSync(copyfile)
+      }
+      if (fn === 'uninstall') {
+        fn = 'uninstall --follow-dependents'
+      }
+      let content = readFileSync(sh, 'utf-8')
+      content = content
+        .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password!)
+        .replace(new RegExp('##ARCH##', 'g'), arch)
+        .replace(new RegExp('##ACTION##', 'g'), fn)
+        .replace(new RegExp('##NAME##', 'g'), names.join(' '))
+      writeFileSync(copyfile, content)
+      chmod(copyfile, '0777')
+      params = [`sudo -S ${copyfile}; exit 0`]
+      params.push(global.Server.Password!)
+      if (proxyStr?.value) {
+        params.unshift(proxyStr?.value)
+      }
+    }
+
+    XTerm.send(params, true).then((key: string) => {
+      IPC.off(key)
+      showNextBtn.value = true
+      regetInstalled()
+    })
+  }
+
   const handleEdit = (index: number, row: any, installed: boolean) => {
     console.log('row: ', row, installed)
+    if (['Homebrew', 'MacPorts'].includes(row.source)) {
+      handleEditBrew(row, installed, row.source)
+      return
+    }
     if (!installed) {
       if (row.downing) {
         return
@@ -244,29 +350,72 @@
         }
       )
     } else {
-      Base._Confirm(I18nT('base.delAlertContent'), undefined, {
-        customClass: 'confirm-del',
-        type: 'warning'
-      })
-        .then(() => {
-          try {
-            if (existsSync(row.appDir)) {
-              removeSync(row.appDir)
-            }
-            row.installed = false
-            regetInstalled()
-            MessageSuccess(I18nT('base.success'))
-          } catch (e) {
-            MessageError(I18nT('base.fail'))
-          }
-        })
-        .catch(() => {})
+      staticVersionDel(row.appDir)
     }
   }
+
+  const toNext = () => {
+    showNextBtn.value = false
+    BrewStore().cardHeadTitle = I18nT('base.currentVersionLib')
+  }
+
+  const showInstallLog = computed(() => {
+    return brewStore.showInstallLog
+  })
+
+  const showLog = computed(() => {
+    return showInstallLog?.value || showNextBtn?.value
+  })
+
+  const log = computed(() => {
+    return brewStore.log
+  })
 
   const openURL = () => {
     shell.openExternal('https://maven.apache.org/')
   }
+
+  const logLength = computed(() => {
+    return log?.value?.length
+  })
+
+  const logs = ref()
+  let xterm: XTerm | null = null
+
+  watch(
+    showLog,
+    (val) => {
+      nextTick().then(() => {
+        if (val) {
+          const dom = logs?.value
+          xterm = new XTerm()
+          xterm.mount(dom)
+        } else {
+          xterm && xterm.destory()
+          xterm = null
+        }
+      })
+    },
+    {
+      immediate: true
+    }
+  )
+
+  watch(logLength, () => {
+    if (showInstallLog?.value) {
+      nextTick(() => {
+        let container: HTMLElement = logs?.value as any
+        if (container) {
+          container.scrollTop = container.scrollHeight
+        }
+      })
+    }
+  })
+
+  onUnmounted(() => {
+    xterm && xterm.destory()
+    xterm = null
+  })
 
   getData()
   ServiceActionStore.fetchPath()
