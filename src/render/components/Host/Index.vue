@@ -280,7 +280,13 @@
     EditVM = res.default
   })
   const toAdd = () => {
-    AsyncComponentShow(EditVM).then()
+    if (HostStore.tab === 'php') {
+      AsyncComponentShow(EditVM).then()
+    } else if (HostStore.tab === 'java') {
+      import('./Java/Edit.vue').then((res) => {
+        AsyncComponentShow(res.default).then()
+      })
+    }
   }
   const openCreateProject = () => {
     import('./CreateProject/index.vue').then((res) => {

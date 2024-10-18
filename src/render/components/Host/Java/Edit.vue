@@ -21,6 +21,16 @@
       </div>
 
       <div class="main-wapper">
+        <div class="p-5 pt-2 flex items-center justify-center">
+          <el-radio-group v-model="item.subType">
+            <el-radio-button value="springboot" label="SpringBoot">
+              <div class="min-w-20">SpringBoot</div>
+            </el-radio-button>
+            <el-radio-button value="other" label="Other">
+              <div class="min-w-20">{{ I18nT('host.other') }}</div>
+            </el-radio-button>
+          </el-radio-group>
+        </div>
         <div class="main">
           <input
             v-model.trim="item.name"
@@ -299,6 +309,7 @@
   const park = ref(false)
   const item = ref({
     id: new Date().getTime(),
+    subType: 'springboot',
     name: '',
     alias: '',
     useSSL: false,

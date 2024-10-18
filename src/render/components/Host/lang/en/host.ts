@@ -4,5 +4,7 @@ export default {
   projectNode: 'Node Project',
   projectGo: 'Go Project',
   projectPython: 'Python Project',
-  projectHtml: 'HTML Project'
+  projectHtml: 'HTML Project',
+  projectType: 'Project Type',
+  other: 'Other'
 }
