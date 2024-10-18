@@ -15,32 +15,34 @@ class InstalledVersions {
     this.runningFlags = []
     this.taskRunning = false
   }
+  private callBack() {
+    this._cb.forEach((cb) => {
+      cb(true)
+    })
+    this._cb.splice(0)
+    this.runningFlags.splice(0)
+    this.taskRunning = false
+  }
   allInstalledVersions(flags: Array<AllAppModule>) {
     if (this.taskRunning && this.runningFlags.find((f) => isEqual(f, flags))) {
-      return this
+      return new Promise((resolve) => {
+        this._cb.push(resolve)
+      })
     }
     this.runningFlags.push(flags)
     this.taskRunning = true
 
-    const callBack = () => {
-      this._cb.forEach((cb) => {
-        if (typeof cb === 'function') {
-          cb(true)
-        }
-      })
-      this._cb.splice(0)
-      this.runningFlags.splice(0)
-      this.taskRunning = false
-    }
     const brewStore = BrewStore()
     const appStore = AppStore()
     const setup = JSON.parse(JSON.stringify(AppStore().config.setup))
     const arrs = flags.filter((f) => !brewStore.module(f).installedInited)
     if (arrs.length === 0) {
       setTimeout(() => {
-        callBack()
+        this.callBack()
       }, 30)
-      return this
+      return new Promise((resolve) => {
+        this._cb.push(resolve)
+      })
     }
     IPC.send('app-fork:version', 'allInstalledVersions', arrs, setup).then(
       (key: string, res: any) => {
@@ -87,13 +89,12 @@ class InstalledVersions {
         if (needSaveConfig) {
           appStore.saveConfig()
         }
-        callBack()
+        this.callBack()
       }
     )
-    return this
-  }
-  then(cb: Function) {
-    this._cb.push(cb)
+    return new Promise((resolve) => {
+      this._cb.push(resolve)
+    })
   }
 }
 

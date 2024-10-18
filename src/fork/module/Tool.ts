@@ -261,6 +261,11 @@ class Manager extends Base {
           await writeFile(cacheFile, content)
           await execPromiseRoot(['cp', '-f', cacheFile, file])
           await remove(cacheFile)
+          if (file.includes('.zshrc')) {
+            try {
+              await execPromiseRoot(['source', file])
+            } catch (e) {}
+          }
         }
       }
 

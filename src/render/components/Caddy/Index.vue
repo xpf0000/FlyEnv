@@ -11,7 +11,7 @@
     </ul>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="caddy" title="Caddy"></Service>
-      <Manager v-else-if="tab === 1" type-flag="caddy"></Manager>
+      <Manager v-else-if="tab === 1" type-flag="caddy" :has-static="true"></Manager>
       <Config v-if="tab === 2"></Config>
       <Logs v-if="tab === 3"></Logs>
     </div>

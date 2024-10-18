@@ -21,7 +21,12 @@ export class Base {
   exec(fnName: string, ...args: any) {
     // @ts-ignore
     const fn: (...args: any) => ForkPromise<any> = this?.[fnName] as any
-    return fn.call(this, ...args)
+    if (fn) {
+      return fn.call(this, ...args)
+    }
+    return new ForkPromise((resolve, reject) => {
+      reject(new Error('No Found Function'))
+    })
   }
 
   _startServer(version: SoftInstalled): ForkPromise<any> {

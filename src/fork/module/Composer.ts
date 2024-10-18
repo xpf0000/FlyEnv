@@ -6,7 +6,13 @@ import axios from 'axios'
 import { copyFile, mkdirp, readFile, remove } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { versionFilterSame, versionFixed, versionLocalFetch, versionSort } from '../Fn'
+import {
+  brewInfoJson,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort
+} from '../Fn'
 import TaskQueue from '../TaskQueue'
 
 class Composer extends Base {
@@ -190,6 +196,19 @@ class Composer extends Base {
         .catch(() => {
           resolve([])
         })
+    })
+  }
+
+  brewinfo() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const all = ['composer']
+        const info = await brewInfoJson(all)
+        resolve(info)
+      } catch (e) {
+        reject(e)
+        return
+      }
     })
   }
 }

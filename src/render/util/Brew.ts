@@ -135,7 +135,7 @@ export const brewCheck = () => {
   })
 }
 
-export function brewInfo(key: string) {
+export function brewInfo(key: string): Promise<{ [key: string]: OnlineVersionItem }> {
   return new Promise((resolve, reject) => {
     IPC.send(`app-fork:${key}`, 'brewinfo', key).then((key: string, res: any) => {
       if (res.code === 0) {
@@ -143,13 +143,13 @@ export function brewInfo(key: string) {
         resolve(res.data)
       } else if (res.code === 1) {
         IPC.off(key)
-        reject(new Error(res))
+        reject(new Error(res?.msg ?? ''))
       }
     })
   })
 }
 
-export function portInfo(flag: string) {
+export function portInfo(flag: string): Promise<{ [key: string]: OnlineVersionItem }> {
   return new Promise((resolve, reject) => {
     IPC.send(`app-fork:${flag}`, 'portinfo', flag).then((key: string, res: any) => {
       if (res.code === 0) {
@@ -157,7 +157,7 @@ export function portInfo(flag: string) {
         resolve(res.data)
       } else if (res.code === 1) {
         IPC.off(key)
-        reject(new Error(res))
+        reject(new Error(res?.msg ?? ''))
       }
     })
   })

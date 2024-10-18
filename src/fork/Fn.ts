@@ -455,7 +455,10 @@ export const versionBinVersion = (
     }
     try {
       const res = await execPromise(command)
-      console.log('versionBinVersion: ', command, res)
+      console.log('versionBinVersion: ', command, {
+        stdout: res.stdout,
+        stderr: res.stderr
+      })
       handleThen(res)
     } catch (e) {
       console.log('versionBinVersion err: ', e)

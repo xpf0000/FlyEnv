@@ -7,8 +7,8 @@
             <span> {{ cardHeadTitle }} </span>
           </template>
           <template v-else>
-            <span> {{title}} </span>
-            <el-button class="button" link @click="openURL('https://maven.apache.org/')">
+            <span> {{ title }} </span>
+            <el-button class="button" link @click="openURL(url)">
               <yb-icon
                 style="width: 20px; height: 20px; margin-left: 10px"
                 :svg="import('@/svg/http.svg?raw')"

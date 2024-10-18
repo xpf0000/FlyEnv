@@ -7,7 +7,12 @@
     </ul>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="tomcat" title="Tomcat"></Service>
-      <Manager v-else-if="tab === 1" type-flag="tomcat"></Manager>
+      <Manager
+        v-else-if="tab === 1"
+        type-flag="tomcat"
+        :has-static="true"
+        :show-port-lib="false"
+      ></Manager>
       <Config v-else-if="tab === 2" :file-name="'server.xml'"></Config>
       <Config v-else-if="tab === 3" :file-name="'web.xml'"></Config>
       <Logs v-else-if="tab === 4" type="access_log"></Logs>
