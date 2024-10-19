@@ -230,6 +230,12 @@ export default class Application extends EventEmitter {
     execAsync('which', ['port'])
       .then((c: string) => {
         global.Server.MacPorts = c
+        this.windowManager.sendCommandTo(
+          this.mainWindow!,
+          'APP-Update-Global-Server',
+          'APP-Update-Global-Server',
+          JSON.parse(JSON.stringify(global.Server))
+        )
       })
       .catch((e: Error) => {
         console.log('which port e: ', e)

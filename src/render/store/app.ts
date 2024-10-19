@@ -13,10 +13,12 @@ export interface AppHost {
   id: number
   isTop?: boolean
   isSorting?: boolean
+  projectName?: string
   name: string
   alias: string
   useSSL: boolean
   autoSSL: boolean
+  userReverseProxy?: boolean
   ssl: {
     cert: string
     key: string

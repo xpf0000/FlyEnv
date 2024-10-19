@@ -138,9 +138,7 @@
             />
           </div>
         </div>
-
         <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
-
         <div class="main">
           <div class="ssl-switch">
             <span>SSL</span>

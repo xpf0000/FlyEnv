@@ -14,5 +14,8 @@ export default {
   specifyVar: 'Specify',
   fileVar: 'File',
   envVarTips: 'Environment variables, one per line',
-  fileVarTips: 'Select the environment variable file'
+  fileVarTips: 'Select the environment variable file',
+  projectPort: 'Project Port',
+  reverseProxy: 'Reverse Proxy',
+  projectName: 'Project Name'
 }

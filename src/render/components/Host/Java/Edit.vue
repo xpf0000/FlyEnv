@@ -21,7 +21,7 @@
       </div>
 
       <div class="main-wapper">
-        <div class="p-5 pt-2 flex items-center justify-center">
+        <div class="p-5 py-2 flex items-center justify-center">
           <el-radio-group v-model="item.subType">
             <el-radio-button value="springboot" label="SpringBoot">
               <div class="min-w-20">SpringBoot</div>
@@ -31,27 +31,15 @@
             </el-radio-button>
           </el-radio-group>
         </div>
+        <div class="plant-title">{{ I18nT('host.projectName') }}</div>
         <div class="main">
           <input
-            v-model.trim="item.name"
+            v-model.trim="item.projectName"
             type="text"
-            :class="'input' + (errs['name'] ? ' error' : '')"
-            :placeholder="I18nT('host.placeholderName')"
-          />
-          <textarea
-            v-model.trim="item.alias"
-            type="text"
-            class="input-textarea"
-            :placeholder="I18nT('host.placeholderAlias')"
-          ></textarea>
-          <input
-            v-model.trim="item.mark"
-            style="margin: 15px 0 10px"
-            class="input"
-            :placeholder="I18nT('host.placeholderRemarks')"
+            :class="'input mb-3' + (errs['projectName'] ? ' error' : '')"
+            :placeholder="I18nT('host.projectName')"
           />
         </div>
-
         <div class="plant-title">{{ I18nT('host.jarPackage') }}</div>
         <div class="main">
           <div class="path-choose pb-4">
@@ -79,6 +67,18 @@
               <el-option :label="`java${item.version}-${item.bin}`" :value="item.bin"></el-option>
             </template>
           </el-select>
+        </div>
+
+        <div class="plant-title">{{ I18nT('host.projectPort') }}</div>
+        <div class="main">
+          <div class="port-set mb-20">
+            <input
+              v-model.number="item.projectPort"
+              type="number"
+              :class="'input' + (errs['projectPort'] ? ' error' : '')"
+              :placeholder="I18nT('host.projectPort')"
+            />
+          </div>
         </div>
 
         <div class="plant-title">{{ I18nT('host.startCommand') }}</div>
@@ -129,6 +129,171 @@
             </div>
           </div>
         </div>
+
+        <div class="plant-title">{{ I18nT('host.reverseProxy') }}</div>
+        <div class="main mb-4">
+          <div class="ssl-switch">
+            <span>{{ I18nT('host.reverseProxy') }}</span>
+            <el-switch v-model="item.userReverseProxy"></el-switch>
+          </div>
+        </div>
+
+        <template v-if="item.userReverseProxy">
+          <div class="main">
+            <input
+              v-model.trim="item.name"
+              type="text"
+              :class="'input' + (errs['name'] ? ' error' : '')"
+              :placeholder="I18nT('host.placeholderName')"
+            />
+            <textarea
+              v-model.trim="item.alias"
+              type="text"
+              class="input-textarea"
+              :placeholder="I18nT('host.placeholderAlias')"
+            ></textarea>
+            <input
+              v-model.trim="item.mark"
+              style="margin: 15px 0 10px"
+              class="input"
+              :placeholder="I18nT('host.placeholderRemarks')"
+            />
+          </div>
+          <div class="plant-title">{{ I18nT('host.hostPort') }}</div>
+          <div class="main">
+            <div class="port-set mb-20">
+              <div class="port-type"> Nginx </div>
+              <input
+                v-model.number="item.port.nginx"
+                type="number"
+                :class="'input' + (errs['port_nginx'] ? ' error' : '')"
+                placeholder="default: 80"
+              />
+            </div>
+
+            <div class="port-set mb-20">
+              <div class="port-type"> Caddy </div>
+              <input
+                v-model.number="item.port.caddy"
+                type="number"
+                :class="'input' + (errs['port_caddy'] ? ' error' : '')"
+                placeholder="default: 80"
+              />
+            </div>
+
+            <div class="port-set mb-20">
+              <div class="port-type"> Apache </div>
+              <input
+                v-model.number="item.port.apache"
+                type="number"
+                :class="'input' + (errs['port_apache'] ? ' error' : '')"
+                placeholder="default: 80"
+              />
+            </div>
+
+            <div class="port-set mb-20">
+              <div class="port-type"> Tomcat </div>
+              <input
+                v-model.number="item.port.tomcat"
+                type="number"
+                :class="'input' + (errs['port_tomcat'] ? ' error' : '')"
+                placeholder="default: 80"
+              />
+            </div>
+          </div>
+
+          <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
+          <div class="main">
+            <div class="ssl-switch">
+              <span>SSL</span>
+              <el-switch v-model="item.useSSL"></el-switch>
+            </div>
+
+            <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
+              <span>{{ I18nT('host.autoSSL') }}</span>
+              <el-switch v-model="item.autoSSL"></el-switch>
+            </div>
+
+            <template v-if="item.useSSL && !item.autoSSL">
+              <div class="path-choose mt-20">
+                <input
+                  v-model="item.ssl.cert"
+                  type="text"
+                  :class="'input' + (errs['cert'] ? ' error' : '')"
+                  placeholder="cert"
+                />
+                <div class="icon-block" @click="chooseRoot('cert')">
+                  <yb-icon
+                    :svg="import('@/svg/folder.svg?raw')"
+                    class="choose"
+                    width="18"
+                    height="18"
+                  />
+                </div>
+              </div>
+
+              <div class="path-choose mt-20 mb-20">
+                <input
+                  v-model="item.ssl.key"
+                  type="text"
+                  :class="'input' + (errs['certkey'] ? ' error' : '')"
+                  placeholder="cert key"
+                />
+                <div class="icon-block" @click="chooseRoot('certkey')">
+                  <yb-icon
+                    :svg="import('@/svg/folder.svg?raw')"
+                    class="choose"
+                    width="18"
+                    height="18"
+                  />
+                </div>
+              </div>
+            </template>
+
+            <template v-if="item.useSSL">
+              <div class="ssl-switch mb-20 mt-20">
+                <span>Port</span>
+              </div>
+              <div class="port-set port-ssl mb-20">
+                <div class="port-type"> Nginx </div>
+                <input
+                  v-model.number="item.port.nginx_ssl"
+                  type="number"
+                  :class="'input' + (errs['port_nginx_ssl'] ? ' error' : '')"
+                  placeholder="default: 443"
+                />
+              </div>
+              <div class="port-set port-ssl mb-20">
+                <div class="port-type"> Caddy </div>
+                <input
+                  v-model.number="item.port.caddy_ssl"
+                  type="number"
+                  :class="'input' + (errs['port_caddy_ssl'] ? ' error' : '')"
+                  placeholder="default: 443"
+                />
+              </div>
+              <div class="port-set port-ssl mb-20">
+                <div class="port-type"> Apache </div>
+                <input
+                  v-model.number="item.port.apache_ssl"
+                  type="number"
+                  :class="'input' + (errs['port_apache_ssl'] ? ' error' : '')"
+                  placeholder="default: 443"
+                />
+              </div>
+              <div class="port-set port-ssl mb-20">
+                <div class="port-type"> Tomcat </div>
+                <input
+                  v-model.number="item.port.tomcat_ssl"
+                  type="number"
+                  :class="'input' + (errs['port_tomcat_ssl'] ? ' error' : '')"
+                  placeholder="default: 443"
+                />
+              </div>
+            </template>
+          </div>
+        </template>
+        <div class="mt-7"></div>
       </div>
     </div>
   </el-drawer>
@@ -143,12 +308,10 @@
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
-  import { MessageError } from '@/util/Element'
-  import { execPromiseRoot } from '@shared/Exec'
   import installedVersions from '@/util/InstalledVersions'
 
   const { dialog } = require('@electron/remote')
-  const { accessSync, constants } = require('fs')
+  const { dirname } = require('path')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -163,20 +326,51 @@
     type: 'java',
     subType: 'springboot',
     envVarType: 'none',
+    projectName: '',
     name: '',
     alias: '',
     mark: '',
+    userReverseProxy: false,
+    useSSL: false,
+    autoSSL: false,
+    ssl: {
+      cert: '',
+      key: ''
+    },
+    port: {
+      nginx: 80,
+      nginx_ssl: 443,
+      apache: 80,
+      apache_ssl: 443,
+      caddy: 80,
+      caddy_ssl: 443,
+      tomcat: 80,
+      tomcat_ssl: 443
+    },
     jarDir: '',
     jdkDir: '',
+    projectPort: 8085,
     startCommand: '',
     envVar: '',
     envFile: ''
   })
   const errs = ref({
+    projectName: false,
     name: false,
     jarDir: false,
     jdkDir: false,
-    startCommand: false
+    projectPort: false,
+    startCommand: false,
+    cert: false,
+    certkey: false,
+    port_nginx: false,
+    port_caddy: false,
+    port_apache: false,
+    port_nginx_ssl: false,
+    port_apache_ssl: false,
+    port_caddy_ssl: false,
+    port_tomcat: false,
+    port_tomcat_ssl: false
   })
   merge(item.value, props.edit)
 
@@ -218,13 +412,25 @@
   })
 
   watch(
+    () => item.value.projectName,
+    (name) => {
+      for (let h of hosts.value) {
+        if (h?.projectName === name && h.id !== item.value.id) {
+          errs.value['projectName'] = true
+          break
+        }
+      }
+    }
+  )
+
+  watch(
     () => `${item.value.jarDir}-${item.value.jdkDir}`,
     () => {
       item.value.startCommand = `${item.value.jdkDir} -jar -Xmx1024M -Xms256M  ${item.value.jarDir}`
     }
   )
 
-  const chooseRoot = (flag: 'jarDir' | 'envFile') => {
+  const chooseRoot = (flag: 'jarDir' | 'envFile' | 'cert' | 'certkey') => {
     const options: any = {}
     let opt = ['openFile', 'showHiddenFiles']
     options.properties = opt
@@ -257,17 +463,67 @@
   }
 
   const checkItem = () => {
-    errs.value['name'] = item.value.name.length === 0
+    if (item.value.userReverseProxy) {
+      if (!Number.isInteger(item.value.port.nginx)) {
+        errs.value['port_nginx'] = true
+      }
+      if (!Number.isInteger(item.value.port.apache)) {
+        errs.value['port_apache'] = true
+      }
+      if (!Number.isInteger(item.value.port.caddy)) {
+        errs.value['port_caddy'] = true
+      }
+      if (!Number.isInteger(item.value.port.tomcat)) {
+        errs.value['port_tomcat'] = true
+      }
+      if (!Number.isInteger(item.value.projectPort)) {
+        errs.value['projectPort'] = true
+      }
+
+      if (item.value.useSSL) {
+        if (!Number.isInteger(item.value.port.nginx_ssl)) {
+          errs.value['port_nginx_ssl'] = true
+        }
+        if (!Number.isInteger(item.value.port.apache_ssl)) {
+          errs.value['port_apache_ssl'] = true
+        }
+        if (!Number.isInteger(item.value.port.caddy_ssl)) {
+          errs.value['port_caddy_ssl'] = true
+        }
+        if (!Number.isInteger(item.value.port.tomcat_ssl)) {
+          errs.value['port_tomcat_ssl'] = true
+        }
+      }
+
+      if (item.value.useSSL && !item.value.autoSSL) {
+        errs.value['cert'] = item.value.ssl.cert.length === 0
+        errs.value['certkey'] = item.value.ssl.key.length === 0
+      }
+
+      errs.value['name'] = item.value.name.length === 0
+      for (let h of hosts.value) {
+        if (h.name === item.value.name && h.id !== item.value.id) {
+          errs.value['name'] = true
+          break
+        }
+      }
+    }
+
+    errs.value['projectName'] = item.value.jdkDir.length === 0
     errs.value['jdkDir'] = item.value.jdkDir.length === 0
     errs.value['jarDir'] = item.value.jarDir.length === 0
     errs.value['startCommand'] = item.value.startCommand.length === 0
+    if (!Number.isInteger(item.value.projectPort)) {
+      errs.value['projectPort'] = true
+    }
 
     for (let h of hosts.value) {
-      if (h.name === item.value.name && h.id !== item.value.id) {
-        errs.value['name'] = true
+      if (h?.projectName === item.value.projectName && h.id !== item.value.id) {
+        errs.value['projectName'] = true
         break
       }
     }
+
     let k: keyof typeof errs.value
     for (k in errs.value) {
       if (errs.value[k]) {
@@ -283,37 +539,14 @@
     }
     const saveFn = () => {
       running.value = true
-      let flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-      let access = false
-      try {
-        accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
-        access = true
-        console.log('可以读写')
-      } catch (err) {
-        console.error('无权访问')
-      }
       passwordCheck().then(() => {
-        if (!access) {
-          execPromiseRoot(`chmod 777 /private/etc`.split(' '))
-            .then(() => {
-              return execPromiseRoot(`chmod 777 /private/etc/hosts`.split(' '))
-            })
-            .then(() => {
-              handleHost(item.value as any, flag, props.edit as AppHost, park.value).then(() => {
-                running.value = false
-                show.value = false
-              })
-            })
-            .catch(() => {
-              MessageError(I18nT('base.hostNoRole'))
-              running.value = false
-            })
-        } else {
-          handleHost(item.value as any, flag, props.edit as AppHost, park.value).then(() => {
-            running.value = false
-            show.value = false
-          })
-        }
+        const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
+        const data = JSON.parse(JSON.stringify(item.value))
+        data.root = dirname(data.jarDir)
+        handleHost(data, flag, props.edit as AppHost, park.value).then(() => {
+          running.value = false
+          show.value = false
+        })
       })
     }
     saveFn()

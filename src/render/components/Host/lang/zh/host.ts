@@ -14,5 +14,8 @@ export default {
   specifyVar: '指定变量',
   fileVar: '从文件加载',
   envVarTips: '环境变量, 一行一个',
-  fileVarTips: '请选择环境变量文件'
+  fileVarTips: '请选择环境变量文件',
+  projectPort: '项目端口',
+  reverseProxy: '反向代理',
+  projectName: '项目名称'
 }

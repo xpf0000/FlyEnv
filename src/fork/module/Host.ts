@@ -189,14 +189,16 @@ subjectAltName=@alt_names
       let addApachePort = true
       let addApachePortSSL = true
 
-      hostList.forEach((h) => {
-        if (h.port.apache === host.port.apache) {
-          addApachePort = false
-        }
-        if (h.port.apache_ssl === host.port.apache_ssl) {
-          addApachePortSSL = false
-        }
-      })
+      if (host?.userReverseProxy !== false) {
+        hostList.forEach((h) => {
+          if (h.port.apache === host.port.apache) {
+            addApachePort = false
+          }
+          if (h.port.apache_ssl === host.port.apache_ssl) {
+            addApachePortSSL = false
+          }
+        })
+      }
 
       const doPark = () => {
         console.log('doPark !!!')
@@ -262,15 +264,19 @@ subjectAltName=@alt_names
       let index: number
       switch (flag) {
         case 'add':
-          await this.#initTmpl()
-          await this._addVhost(host, addApachePort, addApachePortSSL)
-          await doPark()
+          if (host?.userReverseProxy !== false) {
+            await this.#initTmpl()
+            await this._addVhost(host, addApachePort, addApachePortSSL)
+            await doPark()
+          }
           const topList = hostList.filter((h) => !!h?.isTop)
           hostList.splice(topList.length, 0, host)
           await writeHostFile()
           break
         case 'del':
-          await this._delVhost(host)
+          if (host?.name) {
+            await this._delVhost(host)
+          }
           index = hostList.findIndex((h) => h.id === host.id)
           if (index >= 0) {
             hostList.splice(index, 1)
@@ -278,20 +284,30 @@ subjectAltName=@alt_names
           await writeHostFile()
           break
         case 'edit':
-          await this.#initTmpl()
-          const nginxConfPath = join(global.Server.BaseDir!, 'vhost/nginx/', `${old?.name}.conf`)
-          const apacheConfPath = join(global.Server.BaseDir!, 'vhost/apache/', `${old?.name}.conf`)
-          if (
-            !existsSync(nginxConfPath) ||
-            !existsSync(apacheConfPath) ||
-            host.useSSL !== old?.useSSL
-          ) {
-            await this._delVhost(old!)
-            await this._addVhost(host, addApachePort, addApachePortSSL)
+          if (host?.userReverseProxy !== false) {
+            await this.#initTmpl()
+            const nginxConfPath = join(global.Server.BaseDir!, 'vhost/nginx/', `${old?.name}.conf`)
+            const apacheConfPath = join(
+              global.Server.BaseDir!,
+              'vhost/apache/',
+              `${old?.name}.conf`
+            )
+            if (
+              !existsSync(nginxConfPath) ||
+              !existsSync(apacheConfPath) ||
+              host.useSSL !== old?.useSSL
+            ) {
+              await this._delVhost(old!)
+              await this._addVhost(host, addApachePort, addApachePortSSL)
+            } else {
+              await this._editVhost(host, old, addApachePort, addApachePortSSL)
+            }
+            await doPark()
           } else {
-            await this._editVhost(host, old, addApachePort, addApachePortSSL)
+            if (old?.name) {
+              await this._delVhost(old!)
+            }
           }
-          await doPark()
           index = hostList.findIndex((h) => h.id === old?.id)
           if (index >= 0) {
             hostList[index] = host
