@@ -207,7 +207,7 @@
 
   const hosts = computed(() => {
     let hosts: Array<any> = JSON.parse(JSON.stringify(appStore.hosts))
-    hosts = hosts.filter((h) => !h?.type || h.type === 'php')
+    hosts = hosts.filter((h) => h.type === 'java')
     if (search.value) {
       hosts = hosts.filter((h) => {
         const name = h?.name ?? ''

@@ -14,6 +14,7 @@ export interface AppHost {
   isTop?: boolean
   isSorting?: boolean
   projectName?: string
+  type?: string
   name: string
   alias: string
   useSSL: boolean
@@ -148,7 +149,7 @@ const state: State = {
   httpServe: [],
   versionInited: false,
   httpServeService: {},
-  currentPage: '/host'
+  currentPage: '/hosts'
 }
 
 export const AppStore = defineStore('app', {
@@ -181,6 +182,9 @@ export const AppStore = defineStore('app', {
     UPDATE_HOSTS(hosts: Array<AppHost>) {
       this.hosts.splice(0)
       hosts.forEach((host) => {
+        if (!host?.type) {
+          host.type = 'php'
+        }
         this.hosts.push(reactive(host))
       })
       console.log('UPDATE_HOSTS: ', this.hosts)

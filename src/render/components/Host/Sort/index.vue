@@ -41,6 +41,7 @@
   import { type AppHost, AppStore } from '@/store/app'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { ClickOutside as vClickOutside } from 'element-plus'
+  import { HostStore } from '@/components/Host/store'
 
   const { join } = require('path')
   const { writeFile } = require('fs-extra')
@@ -62,7 +63,8 @@
   }
   const appStore = AppStore()
 
-  let hostBack = JSON.stringify(appStore.hosts)
+  let filterHosts: AppHost[] = []
+  let hostBack = ''
 
   let editHost: Ref<AppHost | undefined> = ref()
   editHost.value = appStore.hosts.find((h) => h?.id === props?.hostId)
@@ -73,20 +75,25 @@
 
   const onShow = () => {
     isShow = true
+    filterHosts = appStore.hosts.filter((h) => h.type === HostStore.tab)
+    hostBack = JSON.stringify(filterHosts)
+    console.log('onShow: ', filterHosts, HostStore.tab)
   }
 
-  const doSave = (host: string) => {
+  const doSave = (host: AppHost[]) => {
     const hostfile = join(global.Server.BaseDir!, 'host.json')
-    writeFile(hostfile, host).then()
+    const arr = appStore.hosts.filter((h) => !host.find((f) => f.id === h.id))
+    arr.push(...host)
+    writeFile(hostfile, JSON.stringify(arr)).then()
   }
 
   const onHide = () => {
     delete editHost.value?.isSorting
     closedFn && closedFn()
-    const host = JSON.stringify(appStore.hosts)
+    const host = JSON.stringify(filterHosts)
     if (hostBack !== host) {
       console.log('has changed !!!')
-      doSave(host)
+      doSave(filterHosts)
     }
   }
 
@@ -124,17 +131,17 @@
       const host: any = editHost.value
       host.isTop = v
       if (v) {
-        const index = appStore.hosts.findIndex((h) => h === host)
+        const index = filterHosts.findIndex((h) => h === host)
         if (index >= 0) {
-          appStore.hosts.splice(index, 1)
-          appStore.hosts.unshift(host)
+          filterHosts.splice(index, 1)
+          filterHosts.unshift(host)
         }
       } else {
-        const index = appStore.hosts.findIndex((h) => h === host)
+        const index = filterHosts.findIndex((h) => h === host)
         if (index >= 0) {
-          appStore.hosts.splice(index, 1)
-          const list = appStore.hosts.filter((h) => !!h?.isTop)
-          appStore.hosts.splice(list.length, 0, host)
+          filterHosts.splice(index, 1)
+          const list = filterHosts.filter((h) => !!h?.isTop)
+          filterHosts.splice(list.length, 0, host)
         }
       }
       flowScroll()
@@ -143,10 +150,10 @@
 
   const max = computed(() => {
     if (isTop.value) {
-      const list = appStore.hosts.filter((h) => !!h?.isTop)
+      const list = filterHosts.filter((h) => !!h?.isTop)
       return Math.max(0, list.length - 1)
     }
-    const list = appStore.hosts.filter((h) => !h?.isTop)
+    const list = filterHosts.filter((h) => !h?.isTop)
     return Math.max(0, list.length - 1)
   })
 
@@ -155,9 +162,9 @@
       if (!editHost?.value) {
         return 0
       }
-      let list = appStore.hosts.filter((h) => !h?.isTop)
+      let list = filterHosts.filter((h) => !h?.isTop)
       if (isTop.value) {
-        list = appStore.hosts.filter((h) => !!h?.isTop)
+        list = filterHosts.filter((h) => !!h?.isTop)
       }
       return list.length - 1 - list.findIndex((h) => h === editHost?.value)
     },
@@ -169,26 +176,27 @@
       const host: any = editHost.value
       let index = v
       if (isTop.value) {
-        const list = appStore.hosts.filter((h) => !!h?.isTop)
+        const list = filterHosts.filter((h) => !!h?.isTop)
         index = list.length - 1 - v
       } else {
-        const list = appStore.hosts.filter((h) => !h?.isTop)
+        const list = filterHosts.filter((h) => !h?.isTop)
         index = list.length - 1 - v
       }
-      const list = appStore.hosts.filter((h) => !!h?.isTop)
-      const rawIndex = appStore.hosts.findIndex((h) => h === host)
+      const list = filterHosts.filter((h) => !!h?.isTop)
+      const rawIndex = filterHosts.findIndex((h) => h === host)
       if (rawIndex >= 0) {
-        appStore.hosts.splice(rawIndex, 1)
+        filterHosts.splice(rawIndex, 1)
         if (!isTop.value) {
           index += list.length
         }
-        appStore.hosts.splice(index, 0, host)
+        filterHosts.splice(index, 0, host)
       }
       flowScroll()
     }
   })
 
   const disabled = computed(() => {
+    console.log('disabled: ', editHost?.value, max.value, value?.value)
     return !editHost?.value || max.value === 0 || max.value < value?.value
   })
 

@@ -297,6 +297,7 @@
   const park = ref(false)
   const item = ref({
     id: new Date().getTime(),
+    type: 'php',
     name: '',
     alias: '',
     useSSL: false,
