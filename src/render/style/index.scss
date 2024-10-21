@@ -2582,39 +2582,6 @@ body {
         height: 100%;
         overflow: hidden;
 
-        .status {
-          svg {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-
-            &:hover {
-              color: #fdab1f;
-            }
-          }
-
-          &.running {
-            svg {
-              color: #01cc74;
-            }
-          }
-
-          &.disabled {
-            svg {
-              color: #7c7c7c;
-              cursor: not-allowed;
-            }
-          }
-
-          &.start:not(.current) {
-            display: none;
-          }
-
-          &.group-off:not(.off) {
-            opacity: 0;
-          }
-        }
-
         span.current {
           color: #409eff;
           overflow: hidden;
@@ -2684,6 +2651,40 @@ body {
     color: #01cc74;
   }
 }
+
+.el-button.status {
+  svg {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+
+    &:hover {
+      color: #fdab1f;
+    }
+  }
+
+  &.running {
+    svg {
+      color: #01cc74;
+    }
+  }
+
+  &.disabled {
+    svg {
+      color: #7c7c7c;
+      cursor: not-allowed;
+    }
+  }
+
+  &.start:not(.current) {
+    display: none;
+  }
+
+  &.group-off:not(.off) {
+    opacity: 0;
+  }
+}
+
 .editor-config {
   display: flex;
   flex-direction: column;

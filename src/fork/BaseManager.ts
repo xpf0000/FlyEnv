@@ -30,6 +30,7 @@ class BaseManager {
   RabbitMQ: any
   Python: any
   Maven: any
+  Service: any
 
   constructor() {}
 
@@ -228,6 +229,12 @@ class BaseManager {
         this.Maven = res.default
       }
       doRun(this.Maven)
+    } else if (module === 'service') {
+      if (!this.Service) {
+        const res = await import('./module/Service')
+        this.Service = res.default
+      }
+      doRun(this.Service)
     }
   }
 

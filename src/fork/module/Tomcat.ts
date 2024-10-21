@@ -307,7 +307,7 @@ class Tomcat extends Base {
         await execPromiseRoot(['rm', '-rf', this.pidPath])
       }
       try {
-        await execPromiseRootWhenNeed('zsh', [bin, `--APPFLAG=${global.Server.BaseDir!}`])
+        await execPromiseRootWhenNeed('zsh', [bin, `--PWSAPPFLAG=${global.Server.BaseDir!}`])
         resolve(0)
       } catch (e: any) {
         reject(e)

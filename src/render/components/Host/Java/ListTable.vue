@@ -47,27 +47,6 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column align="center" width="120px" :label="I18nT('host.phpVersion')">
-          <template #default="scope">
-            <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
-              <el-select
-                v-model="quickEdit.phpVersion"
-                class="w-p100"
-                :placeholder="I18nT('base.selectPhpVersion')"
-              >
-                <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
-                <template v-for="(v, i) in phpVersions" :key="i">
-                  <el-option :value="v.num" :label="v.num"></el-option>
-                </template>
-              </el-select>
-            </template>
-            <template v-else>
-              <span>
-                {{ versionText(scope.row.phpVersion) }}
-              </span>
-            </template>
-          </template>
-        </el-table-column>
         <el-table-column :label="I18nT('host.mark')">
           <template #default="scope">
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
@@ -84,6 +63,37 @@
                   </span>
                 </template>
               </el-popover>
+            </template>
+          </template>
+        </el-table-column>
+        <el-table-column
+          :label="I18nT('base.service')"
+          :prop="null"
+          width="110px"
+          class="app-service-table-cell"
+        >
+          <template #default="scope">
+            <template v-if="HostStore.state(scope.row.id).running">
+              <el-button :loading="true" link></el-button>
+            </template>
+            <template v-else>
+              <template v-if="HostStore.state(scope.row.id).isRun">
+                <el-button link class="status running" @click.stop="serviceDo('stop', scope.row)">
+                  <yb-icon :svg="import('@/svg/stop2.svg?raw')" />
+                </el-button>
+                <el-button link class="status refresh" @click.stop="serviceDo('start', scope.row)">
+                  <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" />
+                </el-button>
+              </template>
+              <template v-else>
+                <el-button
+                  link
+                  class="status start current"
+                  @click.stop="serviceDo('start', scope.row)"
+                >
+                  <yb-icon :svg="import('@/svg/play.svg?raw')" />
+                </el-button>
+              </template>
             </template>
           </template>
         </el-table-column>
@@ -107,26 +117,24 @@
                       <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ I18nT('base.edit') }}</span>
                     </li>
-                    <li @click.stop="action(scope.row, scope.$index, 'park')">
-                      <yb-icon :svg="import('@/svg/shengcheng.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('host.park') }}</span>
-                    </li>
                     <li @click.stop="action(scope.row, scope.$index, 'link')">
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ I18nT('base.link') }}</span>
                     </li>
-                    <li @click.stop="showConfig({ flag: 'nginx', item: scope.row })">
-                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.configFile') }} - Nginx</span>
-                    </li>
-                    <li @click.stop="showConfig({ flag: 'caddy', item: scope.row })">
-                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.configFile') }} - Caddy</span>
-                    </li>
-                    <li @click.stop="showConfig({ flag: 'apache', item: scope.row })">
-                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.configFile') }} - Apache</span>
-                    </li>
+                    <template v-if="scope.row.userReverseProxy">
+                      <li @click.stop="showConfig({ flag: 'nginx', item: scope.row })">
+                        <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                        <span class="ml-15">{{ I18nT('base.configFile') }} - Nginx</span>
+                      </li>
+                      <li @click.stop="showConfig({ flag: 'caddy', item: scope.row })">
+                        <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                        <span class="ml-15">{{ I18nT('base.configFile') }} - Caddy</span>
+                      </li>
+                      <li @click.stop="showConfig({ flag: 'apache', item: scope.row })">
+                        <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                        <span class="ml-15">{{ I18nT('base.configFile') }} - Apache</span>
+                      </li>
+                    </template>
                     <li @click.stop="action(scope.row, scope.$index, 'log')">
                       <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ I18nT('base.log') }}</span>
@@ -170,14 +178,18 @@
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import QrcodePopper from './Qrcode/Index.vue'
+  import QrcodePopper from '../Qrcode/Index.vue'
   import Base from '@/core/Base'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'
+  import { HostStore } from '@/components/Host/store'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { shell } = require('@electron/remote')
+
+  //nohup {project_cmd}{nohup_log} & echo $! > {pid_file}
 
   const hostList = ref()
   const loading = ref(false)
@@ -186,36 +198,25 @@
   const task_index = ref(0)
   const search = ref('')
 
-  const php = computed(() => {
-    return brewStore.module('php')
-  })
-  const phpVersions = computed(() => {
-    const set: Set<number> = new Set()
-    return (
-      php?.value?.installed?.filter((p) => {
-        if (p.version && p.num) {
-          if (!set.has(p.num)) {
-            set.add(p.num)
-            return true
-          }
-          return false
-        }
-        return false
-      }) ?? []
-    )
-  })
-
   const hosts = computed(() => {
-    let hosts: Array<any> = JSON.parse(JSON.stringify(appStore.hosts))
-    hosts = hosts.filter((h) => h.type === 'java')
+    if (appStore.hosts.length === 0 || HostStore.index === 0) {
+      return []
+    }
+    let hosts: Array<any> = JSON.parse(JSON.stringify(HostStore.tabList('java')))
     if (search.value) {
       hosts = hosts.filter((h) => {
         const name = h?.name ?? ''
+        const pname = h?.projectName ?? ''
         const mark = h?.mark ?? ''
-        return name.includes(search.value) || `${mark}`.includes(search.value)
+        return (
+          pname.includes(search.value) ||
+          name.includes(search.value) ||
+          `${mark}`.includes(search.value)
+        )
       })
     }
     const allHost = hosts
+      .filter((h) => !h.projectName && h.name)
       .map((h) => {
         return {
           id: h.id,
@@ -257,6 +258,7 @@
         arr.push(h)
       }
     })
+    console.log('hosts arr: ', arr)
     return arr
   })
 
@@ -272,8 +274,28 @@
     return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning || tomcatRunning)
   })
 
-  if (!hosts?.value || hosts?.value?.length === 0) {
+  if (appStore.hosts.length === 0) {
     appStore.initHost()
+  }
+
+  const serviceDo = (action: 'start' | 'stop', item: AppHost) => {
+    const state = HostStore.state(item.id)
+    if (state.running) {
+      return
+    }
+    state.running = true
+    IPC.send('app-fork:service', action, JSON.parse(JSON.stringify(item))).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        state.running = false
+        if (res?.code === 0) {
+          state.isRun = true
+          MessageSuccess(I18nT('base.success'))
+        } else {
+          MessageError(res?.msg ?? I18nT('base.fail'))
+        }
+      }
+    )
   }
 
   onMounted(() => {
@@ -292,14 +314,10 @@
     return ''
   }
 
-  const versionText = (v?: number) => {
-    if (typeof v === 'number') {
-      return `${(v / 10.0).toFixed(1)}`
-    }
-    return ''
-  }
-
   const siteName = (item: AppHost) => {
+    if (item?.projectName) {
+      return item.projectName
+    }
     const host = item.name
     const brewStore = BrewStore()
     const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
@@ -318,6 +336,11 @@
   }
 
   const openSite = (item: any) => {
+    if (item?.userReverseProxy === false) {
+      const url = `http://127.0.0.1:${item.projectPort}/`
+      shell.openExternal(url)
+      return
+    }
     const name = siteName(item)
     const url = `http://${name}`
     shell.openExternal(url)
@@ -328,15 +351,15 @@
     EditVM = res.default
   })
   let LogVM: any
-  import('./Logs.vue').then((res) => {
+  import('../Logs.vue').then((res) => {
     LogVM = res.default
   })
   let ConfigVM: any
-  import('./Vhost.vue').then((res) => {
+  import('../Vhost.vue').then((res) => {
     ConfigVM = res.default
   })
   let LinkVM: any
-  import('./Link.vue').then((res) => {
+  import('../Link.vue').then((res) => {
     LinkVM = res.default
   })
 
@@ -394,7 +417,7 @@
   }
 
   let SortVM: any
-  import('./Sort/index.vue').then((res) => {
+  import('../Sort/index.vue').then((res) => {
     SortVM = res.default
   })
 

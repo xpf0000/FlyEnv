@@ -93,7 +93,7 @@ PLUGINS_DIR="${pluginsDir}"`
         }
       } catch (e) {}
       try {
-        await spawnPromise(version.bin, ['-detached', `--APPFLAG=${global.Server.BaseDir!}`], {
+        await spawnPromise(version.bin, ['-detached', `--PWSAPPFLAG=${global.Server.BaseDir!}`], {
           env: {
             RABBITMQ_CONF_ENV_FILE: confFile
           }

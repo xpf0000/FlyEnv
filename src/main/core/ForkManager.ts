@@ -114,7 +114,7 @@ class ForkItem {
 export class ForkManager {
   file: string
   forks: Array<ForkItem> = []
-  codemakeFork?: ForkItem
+  serviceFork?: ForkItem
   _on: Function = () => {}
   constructor(file: string) {
     this.file = file
@@ -125,11 +125,11 @@ export class ForkManager {
   }
 
   send(...args: any) {
-    if (args.includes('codemake')) {
-      if (!this.codemakeFork) {
-        this.codemakeFork = new ForkItem(this.file, false)
+    if (args?.[0] === 'service') {
+      if (!this.serviceFork) {
+        this.serviceFork = new ForkItem(this.file, false)
       }
-      return this.codemakeFork!.send(...args)
+      return this.serviceFork!.send(...args)
     }
     /**
      * 找到没有任务的线程

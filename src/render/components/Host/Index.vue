@@ -68,6 +68,7 @@
       </li>
     </ul>
     <List v-show="HostStore.tab === 'php'"></List>
+    <ListJava v-show="HostStore.tab === 'java'"></ListJava>
   </div>
 </template>
 
@@ -83,6 +84,7 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
   import type { AppHost } from '@shared/app'
   import { HostStore } from './store'
+  import ListJava from './Java/ListTable.vue'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
   const { dialog, clipboard, shell } = require('@electron/remote')

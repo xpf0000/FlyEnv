@@ -20,6 +20,9 @@ export interface AppHost {
   isTop?: boolean
   isSorting?: boolean
   userReverseProxy?: boolean
+  projectName?: string
+  startCommand?: string
+  subType?: string
   name: string
   alias: string
   useSSL: boolean

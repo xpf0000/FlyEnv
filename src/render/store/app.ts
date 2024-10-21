@@ -20,6 +20,7 @@ export interface AppHost {
   useSSL: boolean
   autoSSL: boolean
   userReverseProxy?: boolean
+  subType?: string
   ssl: {
     cert: string
     key: string

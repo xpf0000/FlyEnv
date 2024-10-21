@@ -4,6 +4,7 @@ import type { AppHost } from '@/store/app'
 import { AppStore } from '@/store/app'
 import { I18nT } from '@shared/lang'
 import { MessageError, MessageSuccess } from '@/util/Element'
+import { HostStore } from '@/components/Host/store'
 const { shell } = require('@electron/remote')
 const handleHostEnd = (arr: Array<AppHost>, isAdd?: boolean) => {
   const appStore = AppStore()
@@ -13,6 +14,8 @@ const handleHostEnd = (arr: Array<AppHost>, isAdd?: boolean) => {
   const hosts = appStore.hosts
   hosts.splice(0)
   hosts.push(...arr)
+
+  HostStore.updateCurrentList()
 
   const writeHosts = appStore.config.setup.hosts.write
   IPC.send('app-fork:host', 'writeHosts', writeHosts).then((key: string) => {
