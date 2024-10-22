@@ -8,6 +8,9 @@
   >
     <div class="host-logs">
       <ul class="top-tab">
+        <template v-if="showSpring">
+          <li :class="type === 'spring' ? 'active' : ''" @click="initType('spring')">SpringBoot</li>
+        </template>
         <li :class="type === 'caddy' ? 'active' : ''" @click="initType('caddy')">Caddy</li>
         <li :class="type === 'nginx-access' ? 'active' : ''" @click="initType('nginx-access')"
           >Nginx-Access</li
@@ -22,16 +25,16 @@
           >Apache-Error</li
         >
       </ul>
-      <div ref="input" class="block"></div>
+      <LogVM ref="log" :log-file="filepath" />
       <div class="tool">
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
-          $t('base.open')
+        <el-button class="shrink0" :disabled="log?.isDisabled()" @click="log?.logDo('open')">{{
+          I18nT('base.open')
         }}</el-button>
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
-          $t('base.refresh')
+        <el-button class="shrink0" :disabled="log?.isDisabled()" @click="log?.logDo('refresh')">{{
+          I18nT('base.refresh')
         }}</el-button>
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
-          $t('base.clean')
+        <el-button class="shrink0" :disabled="log?.isDisabled()" @click="log?.logDo('clean')">{{
+          I18nT('base.clean')
         }}</el-button>
       </div>
     </div>
@@ -39,75 +42,25 @@
 </template>
 
 <script lang="ts" setup>
-  import { nextTick, ref, computed, watch, onMounted, onUnmounted } from 'vue'
-  import { writeFileAsync, readFileAsync } from '@shared/file'
-  import { AppStore } from '@/store/app'
-  import { EventBus } from '@/global'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import type { FSWatcher } from 'fs'
+  import { ref } from 'vue'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-  import { execPromiseRoot } from '@shared/Exec'
+  import LogVM from '@/components/Log/index.vue'
 
-  const { existsSync } = require('fs')
-  const fsWatch = require('fs').watch
   const { join } = require('path')
-  const { shell } = require('@electron/remote')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
+    id?: string
     name: string
+    showSpring?: boolean
   }>()
-
-  const appStore = AppStore()
 
   const type = ref('')
   const filepath = ref('')
-  const log = ref('')
   const logfile = ref({})
-
-  const password = computed(() => {
-    return appStore.config.password
-  })
-  const input = ref()
-  let monacoInstance: editor.IStandaloneCodeEditor | null
-  const initEditor = () => {
-    if (!monacoInstance) {
-      const inputDom: HTMLElement = input.value as HTMLElement
-      if (!inputDom || !inputDom?.style) {
-        return
-      }
-      monacoInstance = EditorCreate(inputDom, EditorConfigMake(log.value, true, 'on'))
-    } else {
-      monacoInstance.setValue(log.value)
-    }
-  }
-
-  watch(log, () => {
-    nextTick().then(() => {
-      initEditor()
-    })
-  })
-
-  onMounted(() => {
-    nextTick().then(() => {
-      initEditor()
-    })
-  })
-
-  let watcher: FSWatcher | null
-
-  onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
-    monacoInstance = null
-    if (watcher) {
-      watcher.close()
-      watcher = null
-    }
-  })
+  const log = ref()
 
   const init = () => {
     let logpath = join(global.Server.BaseDir, 'vhost/logs')
@@ -117,6 +70,7 @@
     let errorlogap = join(logpath, `${props.name}-error_log`)
     let caddyLog = join(logpath, `${props.name}.caddy.log`)
     logfile.value = {
+      spring: join(global.Server.BaseDir, `java/${props.id}.log`),
       'nginx-access': accesslogng,
       'nginx-error': errorlogng,
       'apache-access': accesslogap,
@@ -125,97 +79,11 @@
     }
   }
 
-  const getLog = () => {
-    if (existsSync(filepath.value)) {
-      const watchLog = () => {
-        if (!watcher) {
-          watcher = fsWatch(filepath.value, () => {
-            read().then()
-          })
-        }
-      }
-      const doFixRule = () => {
-        return new Promise((resolve, reject) => {
-          execPromiseRoot(['chmod', '777', filepath.value])
-            .then(() => {
-              resolve(true)
-            })
-            .catch((e: any) => {
-              MessageError(e.toString())
-              reject(e)
-            })
-        })
-      }
-      const read = () => {
-        return new Promise((resolve) => {
-          readFileAsync(filepath.value)
-            .then((str) => {
-              log.value = str
-              resolve(true)
-            })
-            .catch(() => {
-              doFixRule().then(() => {
-                readFileAsync(filepath.value)
-                  .then((str) => {
-                    log.value = str
-                    resolve(true)
-                  })
-                  .catch((e) => {
-                    MessageError(e.toString())
-                  })
-              })
-            })
-        })
-      }
-      read().then(() => {
-        watchLog()
-      })
-    } else {
-      log.value = I18nT('base.noLogs')
-    }
-  }
-
   const initType = (t: string) => {
     type.value = t
     const logFile: { [key: string]: string } = logfile.value
     filepath.value = logFile[t]
-    getLog()
     localStorage.setItem('PhpWebStudy-Host-Log-Type', t)
-  }
-
-  const logDo = (flag: string) => {
-    if (!existsSync(filepath.value)) {
-      MessageError(I18nT('base.noFoundLogFile'))
-      return
-    }
-    switch (flag) {
-      case 'open':
-        shell.showItemInFolder(filepath.value)
-        break
-      case 'refresh':
-        getLog()
-        break
-      case 'clean':
-        writeFileAsync(filepath.value, '')
-          .then(() => {
-            log.value = ''
-            MessageSuccess(I18nT('base.success'))
-          })
-          .catch(() => {
-            if (!password.value) {
-              EventBus.emit('vue:need-password')
-            } else {
-              execPromiseRoot(['chmod', '777', filepath.value])
-                .then(() => {
-                  logDo('clean')
-                })
-                .catch(() => {
-                  EventBus.emit('vue:need-password')
-                })
-            }
-          })
-        break
-    }
   }
 
   init()

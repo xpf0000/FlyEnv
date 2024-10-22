@@ -17,12 +17,18 @@ export interface SoftInstalled {
 
 export interface AppHost {
   id: number
+  type?: string
   isTop?: boolean
   isSorting?: boolean
   userReverseProxy?: boolean
+  customJDKAndTomcat?: boolean
   projectName?: string
   startCommand?: string
   subType?: string
+  envVarType?: string
+  envVar?: string
+  tomcatDir?: string
+  envFile: string
   name: string
   alias: string
   useSSL: boolean

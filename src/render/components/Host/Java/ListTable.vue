@@ -34,7 +34,7 @@
               <QrcodePopper :url="scope.row.name">
                 <div class="link" @click.stop="openSite(scope.row)">
                   <yb-icon
-                    :class="{ active: linkEnable }"
+                    :class="{ active: checkSiteOn(scope.row) }"
                     :svg="import('@/svg/link.svg?raw')"
                     width="18"
                     height="18"
@@ -289,7 +289,7 @@
         IPC.off(key)
         state.running = false
         if (res?.code === 0) {
-          state.isRun = true
+          state.isRun = action === 'start'
           MessageSuccess(I18nT('base.success'))
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
@@ -333,6 +333,10 @@
     }
     const portStr = port === 80 ? '' : `:${port}`
     return `${host}${portStr}`
+  }
+
+  const checkSiteOn = (item: AppHost) => {
+    return HostStore.state(`${item.id}`).isRun
   }
 
   const openSite = (item: any) => {
@@ -379,7 +383,9 @@
         break
       case 'log':
         AsyncComponentShow(LogVM, {
-          name: item.name
+          id: `${item.id}`,
+          name: item.name,
+          showSpring: true
         }).then()
         break
       case 'del':

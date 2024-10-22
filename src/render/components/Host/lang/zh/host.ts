@@ -9,6 +9,7 @@ export default {
   other: '其他',
   jarPackage: 'jar包路径',
   jdkPath: 'jdk路径',
+  tomcatPath: 'Tomcat路径',
   startCommand: '启动命令',
   envVar: '环境变量',
   specifyVar: '指定变量',
@@ -17,5 +18,7 @@ export default {
   fileVarTips: '请选择环境变量文件',
   projectPort: '项目端口',
   reverseProxy: '反向代理',
-  projectName: '项目名称'
+  projectName: '项目名称',
+  customJDKAndTomcat: '自定义JDK&Tomcat',
+  useSSL: '使用SSL'
 }

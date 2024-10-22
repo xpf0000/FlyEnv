@@ -95,11 +95,11 @@
   const tabs = computed(() => {
     return {
       php: I18nT('host.projectPhp'),
+      html: I18nT('host.projectHtml'),
       java: I18nT('host.projectJava'),
       node: I18nT('host.projectNode'),
       go: I18nT('host.projectGo'),
-      python: I18nT('host.projectPython'),
-      html: I18nT('host.projectHtml')
+      python: I18nT('host.projectPython')
     }
   })
 

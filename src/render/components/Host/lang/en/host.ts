@@ -9,6 +9,7 @@ export default {
   other: 'Other',
   jarPackage: 'JAR Package Path',
   jdkPath: 'JDK Path',
+  tomcatPath: 'Tomcat Path',
   startCommand: 'Start Command',
   envVar: 'Environment Variable',
   specifyVar: 'Specify',
@@ -17,5 +18,7 @@ export default {
   fileVarTips: 'Select the environment variable file',
   projectPort: 'Project Port',
   reverseProxy: 'Reverse Proxy',
-  projectName: 'Project Name'
+  projectName: 'Project Name',
+  customJDKAndTomcat: 'Custom JDK&Tomcat',
+  useSSL: 'Use SSL'
 }

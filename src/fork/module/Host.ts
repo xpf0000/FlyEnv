@@ -186,10 +186,14 @@ subjectAltName=@alt_names
         }
       }
 
+      const isMakeConf = () => {
+        return !['java', 'node', 'go', 'python'].includes(host?.type ?? '')
+      }
+
       let addApachePort = true
       let addApachePortSSL = true
 
-      if (host?.userReverseProxy !== false) {
+      if (isMakeConf()) {
         hostList.forEach((h) => {
           if (h.port.apache === host.port.apache) {
             addApachePort = false
@@ -264,7 +268,7 @@ subjectAltName=@alt_names
       let index: number
       switch (flag) {
         case 'add':
-          if (host?.userReverseProxy !== false) {
+          if (isMakeConf()) {
             await this.#initTmpl()
             await this._addVhost(host, addApachePort, addApachePortSSL)
             await doPark()
@@ -284,7 +288,7 @@ subjectAltName=@alt_names
           await writeHostFile()
           break
         case 'edit':
-          if (host?.userReverseProxy !== false) {
+          if (isMakeConf()) {
             await this.#initTmpl()
             const nginxConfPath = join(global.Server.BaseDir!, 'vhost/nginx/', `${old?.name}.conf`)
             const apacheConfPath = join(
