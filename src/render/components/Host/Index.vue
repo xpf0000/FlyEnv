@@ -75,6 +75,7 @@
     <List v-show="HostStore.tab === 'php'"></List>
     <ListJava v-show="HostStore.tab === 'java'"></ListJava>
     <ListNode v-show="HostStore.tab === 'node'"></ListNode>
+    <ListGo v-show="HostStore.tab === 'go'"></ListGo>
   </div>
 </template>
 
@@ -92,6 +93,7 @@
   import { type HostProjectType, HostStore } from './store'
   import ListJava from './Java/ListTable.vue'
   import ListNode from './Node/ListTable.vue'
+  import ListGo from './Go/ListTable.vue'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
   const { dialog, clipboard, shell } = require('@electron/remote')
@@ -316,6 +318,10 @@
       })
     } else if (HostStore.tab === 'node') {
       import('./Node/Edit.vue').then((res) => {
+        AsyncComponentShow(res.default).then()
+      })
+    } else if (HostStore.tab === 'go') {
+      import('./Go/Edit.vue').then((res) => {
         AsyncComponentShow(res.default).then()
       })
     }

@@ -213,8 +213,17 @@ class Manager extends Base {
       let allFile = await readdir(envDir)
       allFile = allFile
         .filter((f) => existsSync(join(envDir, f)))
-        .map((f) => realpathSync(join(envDir, f)))
-        .filter((f) => existsSync(f) && statSync(f).isDirectory())
+        .map((f) => join(envDir, f))
+        .filter((f) => {
+          let check = false
+          try {
+            const rf = realpathSync(f)
+            check = existsSync(rf) && statSync(rf).isDirectory()
+          } catch (e) {
+            check = false
+          }
+          return check
+        })
 
       const files = ['~/.zshrc', '~/.config/fish/config.fish']
       const home = await execPromise(`echo $HOME`)

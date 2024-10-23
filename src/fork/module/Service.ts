@@ -5,6 +5,7 @@ import type { ServiceItem } from './service/ServiceItem'
 import { ServiceItemJavaSpring } from './service/ServiceItemJavaSpring'
 import { ServiceItemJavaTomcat } from './service/ServiceItemJavaTomcat'
 import { ServiceItemNode } from './service/ServiceItemNode'
+import { ServiceItemGo } from './service/ServiceItemGo'
 
 class Service extends Base {
   all: Record<string, ServiceItem> = {}
@@ -14,27 +15,23 @@ class Service extends Base {
         const task = this.all[`${host.id}`]
         await task.stop()
       }
+      let item!: ServiceItem
       if (host.type === 'java') {
         if (host?.subType === 'springboot') {
-          const item = new ServiceItemJavaSpring()
-          item.id = `${host.id}`
-          item.watchDir = host.root
-          item.start(host).then(resolve).catch(reject)
-          this.all[`${host.id}`] = item
+          item = new ServiceItemJavaSpring()
         } else {
-          const item = new ServiceItemJavaTomcat()
-          item.id = `${host.id}`
-          item.watchDir = host.root
-          item.start(host).then(resolve).catch(reject)
-          this.all[`${host.id}`] = item
+          item = new ServiceItemJavaTomcat()
         }
       } else if (host.type === 'node') {
-        const item = new ServiceItemNode()
-        item.id = `${host.id}`
-        item.watchDir = host.root
-        item.start(host).then(resolve).catch(reject)
-        this.all[`${host.id}`] = item
+        item = new ServiceItemNode()
+      } else if (host.type === 'go') {
+        item = new ServiceItemGo()
       }
+
+      item.id = `${host.id}`
+      item.watchDir = host.root
+      item.start(host).then(resolve).catch(reject)
+      this.all[`${host.id}`] = item
     })
   }
   stop(host: AppHost) {

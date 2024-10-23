@@ -332,7 +332,7 @@
     EditVM = res.default
   })
   let LogVM: any
-  import('../Logs.vue').then((res) => {
+  import('./Logs.vue').then((res) => {
     LogVM = res.default
   })
   let ConfigVM: any
@@ -360,20 +360,17 @@
         break
       case 'log':
         let logFile = ''
+        let customTitle = ''
         if (item.subType === 'springboot') {
           logFile = join(global.Server.BaseDir!, `java/${item.id}.log`)
+          customTitle = 'SpringBoot'
         } else {
           logFile = join(global.Server.BaseDir!, `tomcat/${item.id}/logs/catalina.out`)
+          customTitle = 'Tomcat'
         }
         AsyncComponentShow(LogVM, {
-          id: `${item.id}`,
-          name: item.name,
-          showSpring: item.subType === 'springboot',
-          showTomcat: item.subType === 'other',
-          showNginx: false,
-          showApache: false,
-          showCaddy: false,
-          logFile
+          logFile,
+          customTitle
         }).then()
         break
       case 'del':

@@ -1,10 +1,9 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join } from 'path'
 import { existsSync, mkdirp, writeFile, remove } from 'fs-extra'
-import { execPromise } from '../../Fn'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseRoot } from '@shared/Exec'
+import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 
 export class ServiceItemNode extends ServiceItem {
   start(item: AppHost): ForkPromise<boolean> {
@@ -66,7 +65,7 @@ export class ServiceItemNode extends ServiceItem {
       await writeFile(sh, this.command)
       await execPromiseRoot([`chmod`, '777', sh])
       try {
-        const res = await execPromise(`zsh ${sh}`, opt)
+        const res = await execPromiseRootWhenNeed(`zsh`, [sh], opt)
         console.log('start res: ', res)
         resolve(true)
       } catch (e) {

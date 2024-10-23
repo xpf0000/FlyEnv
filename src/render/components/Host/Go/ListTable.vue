@@ -197,7 +197,7 @@
     if (appStore.hosts.length === 0 || HostStore.index === 0) {
       return []
     }
-    let hosts: Array<any> = JSON.parse(JSON.stringify(HostStore.tabList('node')))
+    let hosts: Array<any> = JSON.parse(JSON.stringify(HostStore.tabList('go')))
     if (search.value) {
       hosts = hosts.filter((h) => {
         const name = h?.name ?? ''
@@ -328,7 +328,7 @@
         }).then()
         break
       case 'log':
-        const logFile = join(global.Server.BaseDir!, `nodejs/${item.id}.log`)
+        const logFile = join(global.Server.BaseDir!, `go/${item.id}.log`)
         const customTitle = item.projectName
         AsyncComponentShow(LogVM, {
           logFile,
@@ -382,7 +382,7 @@
     }
     return (
       quickEdit?.value?.id &&
-      HostStore.tabList('node').some(
+      HostStore.tabList('go').some(
         (h) =>
           h.projectName &&
           h.projectName === quickEdit.value?.projectName &&
