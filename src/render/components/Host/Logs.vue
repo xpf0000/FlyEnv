@@ -11,19 +11,28 @@
         <template v-if="showSpring">
           <li :class="type === 'spring' ? 'active' : ''" @click="initType('spring')">SpringBoot</li>
         </template>
-        <li :class="type === 'caddy' ? 'active' : ''" @click="initType('caddy')">Caddy</li>
-        <li :class="type === 'nginx-access' ? 'active' : ''" @click="initType('nginx-access')"
-          >Nginx-Access</li
-        >
-        <li :class="type === 'nginx-error' ? 'active' : ''" @click="initType('nginx-error')"
-          >Nginx-Error</li
-        >
-        <li :class="type === 'apache-access' ? 'active' : ''" @click="initType('apache-access')"
-          >Apache-Access</li
-        >
-        <li :class="type === 'apache-error' ? 'active' : ''" @click="initType('apache-error')"
-          >Apache-Error</li
-        >
+        <template v-if="showTomcat">
+          <li :class="type === 'tomcat' ? 'active' : ''" @click="initType('tomcat')">Tomcat</li>
+        </template>
+        <template v-if="showCaddy !== false">
+          <li :class="type === 'caddy' ? 'active' : ''" @click="initType('caddy')">Caddy</li>
+        </template>
+        <template v-if="showNginx !== false">
+          <li :class="type === 'nginx-access' ? 'active' : ''" @click="initType('nginx-access')"
+            >Nginx-Access</li
+          >
+          <li :class="type === 'nginx-error' ? 'active' : ''" @click="initType('nginx-error')"
+            >Nginx-Error</li
+          >
+        </template>
+        <template v-if="showApache !== false">
+          <li :class="type === 'apache-access' ? 'active' : ''" @click="initType('apache-access')"
+            >Apache-Access</li
+          >
+          <li :class="type === 'apache-error' ? 'active' : ''" @click="initType('apache-error')"
+            >Apache-Error</li
+          >
+        </template>
       </ul>
       <LogVM ref="log" :log-file="filepath" />
       <div class="tool">
@@ -51,11 +60,23 @@
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
-  const props = defineProps<{
-    id?: string
-    name: string
-    showSpring?: boolean
-  }>()
+  const props = withDefaults(
+    defineProps<{
+      id?: string
+      name: string
+      showSpring?: boolean
+      showTomcat?: boolean
+      showNginx?: boolean
+      showApache?: boolean
+      showCaddy?: boolean
+      logFile?: string
+    }>(),
+    {
+      showNginx: true,
+      showApache: true,
+      showCaddy: true
+    }
+  )
 
   const type = ref('')
   const filepath = ref('')
@@ -82,7 +103,7 @@
   const initType = (t: string) => {
     type.value = t
     const logFile: { [key: string]: string } = logfile.value
-    filepath.value = logFile[t]
+    filepath.value = props?.logFile ?? logFile[t] ?? ''
     localStorage.setItem('PhpWebStudy-Host-Log-Type', t)
   }
 

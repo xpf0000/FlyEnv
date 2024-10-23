@@ -187,7 +187,7 @@ subjectAltName=@alt_names
       }
 
       const isMakeConf = () => {
-        return !['java', 'node', 'go', 'python'].includes(host?.type ?? '')
+        return !['java', 'node', 'go', 'python', 'tomcat'].includes(host?.type ?? '')
       }
 
       let addApachePort = true

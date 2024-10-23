@@ -7,8 +7,13 @@
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>
-            <template v-for="(label, value) in tabs" :key="value">
-              <el-dropdown-item :command="value">{{ label }}</el-dropdown-item>
+            <template v-for="(item, index) in tabs" :key="index">
+              <el-dropdown-item :disabled="true">
+                <div class="text-sm" :class="{ 'mt-2': index > 0 }">{{ item.label }}</div>
+              </el-dropdown-item>
+              <template v-for="(label, value) in item.sub" :key="value">
+                <el-dropdown-item :command="value">{{ label }}</el-dropdown-item>
+              </template>
             </template>
           </el-dropdown-menu>
         </template>
@@ -69,11 +74,12 @@
     </ul>
     <List v-show="HostStore.tab === 'php'"></List>
     <ListJava v-show="HostStore.tab === 'java'"></ListJava>
+    <ListNode v-show="HostStore.tab === 'node'"></ListNode>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { reactive, computed, watch } from 'vue'
+  import { reactive, computed, watch, onMounted } from 'vue'
   import List from './ListTable.vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
@@ -83,8 +89,9 @@
   import { More, ArrowDown } from '@element-plus/icons-vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import type { AppHost } from '@shared/app'
-  import { HostStore } from './store'
+  import { type HostProjectType, HostStore } from './store'
   import ListJava from './Java/ListTable.vue'
+  import ListNode from './Node/ListTable.vue'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
   const { dialog, clipboard, shell } = require('@electron/remote')
@@ -93,22 +100,38 @@
   const appStore = AppStore()
 
   const tabs = computed(() => {
-    return {
-      php: I18nT('host.projectPhp'),
-      html: I18nT('host.projectHtml'),
-      java: I18nT('host.projectJava'),
-      node: I18nT('host.projectNode'),
-      go: I18nT('host.projectGo'),
-      python: I18nT('host.projectPython')
-    }
+    return [
+      {
+        label: I18nT('host.projectAGroup'),
+        value: 'a',
+        sub: {
+          php: I18nT('host.projectPhp'),
+          html: I18nT('host.projectHtml'),
+          tomcat: I18nT('host.projectTomcat')
+        }
+      },
+      {
+        label: I18nT('host.projectBGroup'),
+        value: 'b',
+        sub: {
+          java: I18nT('host.projectJava'),
+          node: I18nT('host.projectNode'),
+          go: I18nT('host.projectGo'),
+          python: I18nT('host.projectPython')
+        }
+      }
+    ]
   })
 
   const tab = computed(() => {
-    const v: any = tabs.value
-    return v[HostStore.tab]
+    const dict: any = {}
+    tabs.value.forEach((v) => {
+      Object.assign(dict, v.sub)
+    })
+    return dict[HostStore.tab]
   })
 
-  const setTab = (tab: string) => {
+  const setTab = (tab: HostProjectType) => {
     HostStore.tab = tab
   }
 
@@ -130,10 +153,10 @@
     appStore.saveConfig()
   })
 
-  const hostsWrite = () => {
+  const hostsWrite = (showTips = true) => {
     IPC.send('app-fork:host', 'writeHosts', hostWrite.value).then((key: string) => {
       IPC.off(key)
-      MessageSuccess(I18nT('base.success'))
+      showTips && MessageSuccess(I18nT('base.success'))
     })
   }
   const hostAlias = (item: AppHost) => {
@@ -142,7 +165,10 @@
           return n && n.length > 0
         })
       : []
-    return [item.name, ...alias].join(' ')
+    if (item?.name) {
+      alias.unshift(item.name)
+    }
+    return alias.join(' ')
   }
   const handleCommand = (
     command: 'export' | 'import' | 'newProject' | 'hostsCopy' | 'hostsOpen'
@@ -161,7 +187,7 @@
       case 'hostsCopy':
         const host = []
         for (const item of hosts.value) {
-          const alias = hostAlias(item)
+          const alias = hostAlias(item as any)
           host.push(`127.0.0.1     ${alias}`)
         }
         clipboard.writeText(host.join('\n'))
@@ -288,6 +314,10 @@
       import('./Java/Edit.vue').then((res) => {
         AsyncComponentShow(res.default).then()
       })
+    } else if (HostStore.tab === 'node') {
+      import('./Node/Edit.vue').then((res) => {
+        AsyncComponentShow(res.default).then()
+      })
     }
   }
   const openCreateProject = () => {
@@ -305,4 +335,11 @@
       })
     })
   }
+
+  onMounted(() => {
+    if (appStore.hosts.length === 0) {
+      appStore.initHost()
+    }
+    hostsWrite(false)
+  })
 </script>

@@ -5,6 +5,7 @@ export default {
   projectGo: 'Go Project',
   projectPython: 'Python Project',
   projectHtml: 'HTML Project',
+  projectTomcat: 'Tomcat Project',
   projectType: 'Project Type',
   other: 'Other',
   jarPackage: 'JAR Package Path',
@@ -20,5 +21,10 @@ export default {
   reverseProxy: 'Reverse Proxy',
   projectName: 'Project Name',
   customJDKAndTomcat: 'Custom JDK&Tomcat',
-  useSSL: 'Use SSL'
+  useSSL: 'Use SSL',
+  projectAGroup: 'Global Service',
+  projectBGroup: 'Single Service',
+  nodeJSVersion: 'NodeJS Version',
+  startFile: 'Start File',
+  runDirectory: 'Run Directory'
 }

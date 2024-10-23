@@ -5,7 +5,7 @@ import { join } from 'path'
 import { compareVersions } from 'compare-versions'
 import { exec } from 'child-process-promise'
 import { existsSync } from 'fs'
-import { chmod, copyFile, unlink } from 'fs-extra'
+import { chmod, copyFile, unlink, readdir } from 'fs-extra'
 import { execPromiseRootWhenNeed } from '@shared/Exec'
 import { fixEnv } from '@shared/utils'
 
@@ -193,6 +193,64 @@ class Manager extends Base {
       } catch (e) {
         reject(e)
       }
+    })
+  }
+
+  allInstalled() {
+    return new ForkPromise(async (resolve) => {
+      const all: any[] = []
+      let fnmDir = ''
+      try {
+        fnmDir = (await execPromise(`echo $FNM_DIR`)).stdout.trim()
+      } catch (e) {}
+      if (fnmDir && existsSync(fnmDir)) {
+        fnmDir = join(fnmDir, 'node-versions')
+        if (existsSync(fnmDir)) {
+          let allFnm: any[] = []
+          try {
+            allFnm = await readdir(fnmDir)
+          } catch (e) {}
+          allFnm = allFnm
+            .filter(
+              (f) => f.startsWith('v') && existsSync(join(fnmDir, f, 'installation/bin/node'))
+            )
+            .map((f) => {
+              const version = f.replace('v', '')
+              const bin = join(fnmDir, f, 'installation/bin/node')
+              return {
+                version,
+                bin
+              }
+            })
+          all.push(...allFnm)
+        }
+      }
+
+      let nvmDir = ''
+      try {
+        nvmDir = (await execPromise(`echo $NVM_DIR`)).stdout.trim()
+      } catch (e) {}
+      if (nvmDir && existsSync(nvmDir)) {
+        nvmDir = join(nvmDir, 'versions/node')
+        if (existsSync(nvmDir)) {
+          let allNVM: any[] = []
+          try {
+            allNVM = await readdir(nvmDir)
+          } catch (e) {}
+          allNVM = allNVM
+            .filter((f) => f.startsWith('v') && existsSync(join(nvmDir, f, 'bin/node')))
+            .map((f) => {
+              const version = f.replace('v', '')
+              const bin = join(nvmDir, f, 'bin/node')
+              return {
+                version,
+                bin
+              }
+            })
+          all.push(...allNVM)
+        }
+      }
+      resolve(all)
     })
   }
 }

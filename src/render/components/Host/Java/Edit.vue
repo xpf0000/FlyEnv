@@ -171,34 +171,28 @@
 
           <div class="plant-title">{{ I18nT('host.customJDKAndTomcat') }}</div>
           <div class="main">
-            <div class="ssl-switch">
-              <span>{{ I18nT('host.customJDKAndTomcat') }}</span>
-              <el-switch v-model="item.customJDKAndTomcat"></el-switch>
+            <div class="port-set port-ssl mb-20">
+              <div class="port-type"> Tomcat </div>
+              <el-select v-model="item.tomcatDir" class="w-full">
+                <template v-for="(item, index) in tomcats" :key="index">
+                  <el-option
+                    :label="`tomcat${item.version}-${item.bin}`"
+                    :value="item.bin"
+                  ></el-option>
+                </template>
+              </el-select>
             </div>
-            <template v-if="item.customJDKAndTomcat">
-              <div class="port-set port-ssl mb-20 mt-5">
-                <div class="port-type"> Tomcat </div>
-                <el-select v-model="item.tomcatDir" class="w-full">
-                  <template v-for="(item, index) in tomcats" :key="index">
-                    <el-option
-                      :label="`tomcat${item.version}-${item.bin}`"
-                      :value="item.bin"
-                    ></el-option>
-                  </template>
-                </el-select>
-              </div>
-              <div class="port-set port-ssl">
-                <div class="port-type"> JDK </div>
-                <el-select v-model="item.jdkDir" class="w-full">
-                  <template v-for="(item, index) in jdks" :key="index">
-                    <el-option
-                      :label="`java${item.version}-${item.bin}`"
-                      :value="item.bin"
-                    ></el-option>
-                  </template>
-                </el-select>
-              </div>
-            </template>
+            <div class="port-set port-ssl">
+              <div class="port-type"> JDK </div>
+              <el-select v-model="item.jdkDir" class="w-full">
+                <template v-for="(item, index) in jdks" :key="index">
+                  <el-option
+                    :label="`java${item.version}-${item.bin}`"
+                    :value="item.bin"
+                  ></el-option>
+                </template>
+              </el-select>
+            </div>
           </div>
 
           <div class="plant-title">{{ I18nT('host.hostPort') }}</div>
@@ -296,7 +290,6 @@
   import installedVersions from '@/util/InstalledVersions'
 
   const { dialog } = require('@electron/remote')
-  const { dirname } = require('path')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -316,8 +309,6 @@
     name: '',
     alias: '',
     mark: '',
-    userReverseProxy: false,
-    customJDKAndTomcat: false,
     useSSL: false,
     autoSSL: false,
     ssl: {
@@ -485,10 +476,8 @@
         }
       }
 
-      if (item.value.customJDKAndTomcat) {
-        errs.value['jdkDir'] = item.value.jdkDir.length === 0
-        errs.value['tomcatDir'] = item.value.tomcatDir.length === 0
-      }
+      errs.value['jdkDir'] = item.value.jdkDir.length === 0
+      errs.value['tomcatDir'] = item.value.tomcatDir.length === 0
 
       if (!Number.isInteger(item.value.port.tomcat)) {
         errs.value['port_tomcat'] = true

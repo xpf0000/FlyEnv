@@ -1,8 +1,11 @@
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { join, resolve as pathResolve } from 'path'
-import { copyFile, existsSync, mkdirp, readFile, writeFile } from 'fs-extra'
-import { hostAlias } from '../../Fn'
+import { basename, dirname, join, resolve as pathResolve } from 'path'
+import { copyFile, existsSync, mkdirp, readFile, writeFile, realpathSync } from 'fs-extra'
+import { execPromise, hostAlias } from '../../Fn'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
+import { ServiceItem } from './ServiceItem'
+import { ForkPromise } from '@shared/ForkPromise'
+import { execPromiseRoot } from '@shared/Exec'
 
 export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostAll: AppHost[]) => {
   const parser = new XMLParser({
@@ -164,13 +167,17 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
     const allApp = serverXML.Server.Service.Connector.filter(
       (c: any) => c.appFlag === 'PhpWebStudy'
     )
+    const dels: any[] = []
     for (const c of allApp) {
       const port = Number(c.port)
       if (!allPort.has(port)) {
-        const index = serverXML.Server.Service.Connector.indexOf(c)
-        if (index >= 0) {
-          serverXML.Server.Service.Connector.splice(index, 1)
-        }
+        dels.push(c)
+      }
+    }
+    for (const c of dels) {
+      const index = serverXML.Server.Service.Connector.indexOf(c)
+      if (index >= 0) {
+        serverXML.Server.Service.Connector.splice(index, 1)
       }
     }
   }
@@ -180,13 +187,17 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
       const allHost = serverXML.Server.Service.Engine.Host.filter(
         (c: any) => c.appFlag === 'PhpWebStudy'
       )
+      const dels: any[] = []
       for (const c of allHost) {
         const name = c.name
         if (!allName.has(name)) {
-          const index = serverXML.Server.Service.Engine.Host.indexOf(c)
-          if (index >= 0) {
-            serverXML.Server.Service.Engine.Host.splice(index, 1)
-          }
+          dels.push(c)
+        }
+      }
+      for (const c of dels) {
+        const index = serverXML.Server.Service.Engine.Host.indexOf(c)
+        if (index >= 0) {
+          serverXML.Server.Service.Engine.Host.splice(index, 1)
         }
       }
     }
@@ -199,16 +210,21 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
         if (!SSLHostConfig || !Array.isArray(SSLHostConfig)) {
           continue
         }
+        const dels: any[] = []
         for (const c of SSLHostConfig) {
           if (c?.appFlag !== 'PhpWebStudy') {
             continue
           }
           const name = c.hostName
+          console.log('SSLHostConfig c: ', c, name, allName.has(name), SSLHostConfig.indexOf(c))
           if (!allName.has(name)) {
-            const index = SSLHostConfig.indexOf(c)
-            if (index >= 0) {
-              SSLHostConfig.splice(index, 1)
-            }
+            dels.push(c)
+          }
+        }
+        for (const c of dels) {
+          const index = SSLHostConfig.indexOf(c)
+          if (index >= 0) {
+            SSLHostConfig.splice(index, 1)
           }
         }
       }
@@ -246,12 +262,7 @@ export const makeGlobalTomcatServerXML = async (version: SoftInstalled) => {
       hostAll.push(...jsonArr)
     }
   } catch (e) {}
-  hostAll = hostAll.filter(
-    (h) => h.type === 'java' && h.subType == 'other' && !h?.customJDKAndTomcat
-  )
-  if (hostAll.length === 0) {
-    return
-  }
+  hostAll = hostAll.filter((h) => h.type === 'tomcat')
 
   const configFile = join(version.path, 'conf/server.xml')
   const serverContent = await readFile(configFile, 'utf-8')
@@ -312,4 +323,56 @@ export const makeCustomTomcatServerXML = async (host: AppHost) => {
 
   const content = makeTomcatServerXML(pathResolve(tomcatDir, '../../conf'), serverContent, hostAll)
   await writeFile(configFile, content)
+}
+
+export class ServiceItemJavaTomcat extends ServiceItem {
+  start(item: AppHost): ForkPromise<boolean> {
+    return new ForkPromise<boolean>(async (resolve, reject) => {
+      if (this.exit) {
+        reject(new Error('Exit'))
+        return
+      }
+      this.host = item
+      await this.stop()
+      await makeCustomTomcatServerXML(item)
+
+      const jdkDir = pathResolve(realpathSync(item.jdkDir!), '../../')
+      if (!existsSync(jdkDir)) {
+        reject(new Error(`JDK not exists: ${item.jdkDir}`))
+        return
+      }
+
+      const bin = item.tomcatDir!
+      if (!existsSync(bin)) {
+        reject(new Error(`Tomcat not exists: ${bin}`))
+        return
+      }
+
+      const env = {
+        JAVA_HOME: jdkDir,
+        CATALINA_BASE: join(global.Server.BaseDir!, `tomcat/${item.id}`)
+      }
+      const commands: string[] = [
+        '#!/bin/zsh',
+        `export JAVA_HOME=${env.JAVA_HOME}`,
+        `export CATALINA_BASE=${env.CATALINA_BASE}`,
+        `cd "${dirname(bin)}"`,
+        `${basename(bin)} --PWSAPPFLAG=${global.Server.BaseDir!} --PWSAPPID=${this.id}`
+      ]
+
+      this.command = commands.join('\n')
+      console.log('command: ', this.command)
+      const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
+      await writeFile(sh, this.command)
+      await execPromiseRoot([`chmod`, '777', sh])
+      try {
+        const res = await execPromise(`zsh ${sh}`, { env })
+        console.log('start res: ', res)
+        resolve(true)
+      } catch (e) {
+        console.log('start e: ', e)
+        reject(e)
+      }
+    })
+  }
 }

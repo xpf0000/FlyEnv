@@ -5,6 +5,7 @@ export default {
   projectGo: 'Go项目',
   projectPython: 'Python项目',
   projectHtml: 'HTML项目',
+  projectTomcat: 'Tomcat项目',
   projectType: '项目类型',
   other: '其他',
   jarPackage: 'jar包路径',
@@ -20,5 +21,10 @@ export default {
   reverseProxy: '反向代理',
   projectName: '项目名称',
   customJDKAndTomcat: '自定义JDK&Tomcat',
-  useSSL: '使用SSL'
+  useSSL: '使用SSL',
+  projectAGroup: '公共服务',
+  projectBGroup: '独立服务',
+  nodeJSVersion: 'NodeJS版本',
+  startFile: '启动文件',
+  runDirectory: '运行目录'
 }

@@ -20,14 +20,17 @@ export interface AppHost {
   type?: string
   isTop?: boolean
   isSorting?: boolean
-  userReverseProxy?: boolean
-  customJDKAndTomcat?: boolean
   projectName?: string
+  projectPort?: number
   startCommand?: string
   subType?: string
   envVarType?: string
   envVar?: string
+  jdkDir?: string
+  jarDir?: string
   tomcatDir?: string
+  nodeDir?: string
+  bin?: string
   envFile: string
   name: string
   alias: string

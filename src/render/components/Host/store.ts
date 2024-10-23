@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 import type { AppHost } from '@/store/app'
 import { AppStore } from '@/store/app'
 
@@ -7,7 +7,7 @@ const { writeFile } = require('fs-extra')
 
 export const RewriteAll: { [key: string]: any } = {}
 
-type HostProjectType = 'php' | 'java' | 'node' | 'go' | 'python' | 'html'
+export type HostProjectType = 'php' | 'java' | 'node' | 'go' | 'python' | 'html'
 
 type HostState = {
   running: boolean
@@ -61,3 +61,15 @@ export const HostStore: HostStoreType = reactive({
     store.hosts = reactive(arr)
   }
 } as HostStoreType)
+
+const tab: any = localStorage.getItem('PWS-HOST-TAB')
+if (tab) {
+  HostStore.tab = tab
+}
+
+watch(
+  () => HostStore.tab,
+  (v) => {
+    localStorage.setItem('PWS-HOST-TAB', v)
+  }
+)

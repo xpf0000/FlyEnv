@@ -47,6 +47,7 @@
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
   const props = defineProps<{
     item: any
+    file?: string
   }>()
   const config = ref('')
   const configpath = ref('')
@@ -103,7 +104,8 @@
   }
 
   const baseDir = global.Server.BaseDir
-  configpath.value = join(baseDir, 'vhost', props.item.flag, `${props.item.item.name}.conf`)
+  configpath.value =
+    props?.file ?? join(baseDir, 'vhost', props.item.flag, `${props.item.item.name}.conf`)
   getConfig()
 
   onMounted(() => {

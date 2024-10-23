@@ -39,6 +39,24 @@
   const hosts: Ref<Array<string>> = ref([])
 
   const getHosts = () => {
+    if (
+      ['node', 'go', 'python', 'tomcat'].includes(props.host.type!) ||
+      (props.host.type === 'java' && props.host.subType === 'springboot')
+    ) {
+      const url = `http://127.0.0.1:${props.host.projectPort}/`
+      hosts.value.push(url)
+      return
+    }
+    if (props.host.type === 'java' && props.host.subType === 'other') {
+      let port: any = props.host.port?.tomcat ?? 80
+      port = port === 80 ? '' : `:${port}`
+      hosts.value.push(`http://${props.host.name}${port}/`)
+
+      port = props.host.port?.tomcat_ssl ?? 443
+      port = port === 443 ? '' : `:${port}`
+      hosts.value.push(`https://${props.host.name}${port}/`)
+      return
+    }
     const alias = props.host.alias.split('\n').filter((n) => {
       return n && n.trim().length > 0
     })

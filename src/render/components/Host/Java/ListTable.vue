@@ -24,11 +24,20 @@
               :data-host-id="scope.row.id"
             ></div>
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
-              <el-input
-                v-model.trim="quickEdit.name"
-                :class="{ error: quickEditNameError }"
-                @change="docClick(undefined)"
-              ></el-input>
+              <template v-if="scope.row.subType === 'springboot'">
+                <el-input
+                  v-model="quickEdit.projectName"
+                  :class="{ error: quickEditProjectNameError }"
+                  @change="docClick(undefined)"
+                ></el-input>
+              </template>
+              <template v-else>
+                <el-input
+                  v-model.trim="quickEdit.name"
+                  :class="{ error: quickEditNameError }"
+                  @change="docClick(undefined)"
+                ></el-input>
+              </template>
             </template>
             <template v-else>
               <QrcodePopper :url="scope.row.name">
@@ -121,18 +130,10 @@
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ I18nT('base.link') }}</span>
                     </li>
-                    <template v-if="scope.row.userReverseProxy">
-                      <li @click.stop="showConfig({ flag: 'nginx', item: scope.row })">
+                    <template v-if="scope.row.subType === 'other'">
+                      <li @click.stop="showConfig(scope.row)">
                         <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                        <span class="ml-15">{{ I18nT('base.configFile') }} - Nginx</span>
-                      </li>
-                      <li @click.stop="showConfig({ flag: 'caddy', item: scope.row })">
-                        <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                        <span class="ml-15">{{ I18nT('base.configFile') }} - Caddy</span>
-                      </li>
-                      <li @click.stop="showConfig({ flag: 'apache', item: scope.row })">
-                        <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                        <span class="ml-15">{{ I18nT('base.configFile') }} - Apache</span>
+                        <span class="ml-15">{{ I18nT('base.configFile') }} - server.xml</span>
                       </li>
                     </template>
                     <li @click.stop="action(scope.row, scope.$index, 'log')">
@@ -188,13 +189,13 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { shell } = require('@electron/remote')
+  const { join } = require('path')
 
   //nohup {project_cmd}{nohup_log} & echo $! > {pid_file}
 
   const hostList = ref()
   const loading = ref(false)
   const appStore = AppStore()
-  const brewStore = BrewStore()
   const task_index = ref(0)
   const search = ref('')
 
@@ -262,18 +263,6 @@
     return arr
   })
 
-  const writeHosts = computed(() => {
-    return appStore.config.setup.hosts.write
-  })
-
-  const linkEnable = computed(() => {
-    const apacheRunning = brewStore.module('apache').installed.find((a) => a.run)
-    const nginxRunning = brewStore.module('nginx').installed.find((a) => a.run)
-    const caddyRunning = brewStore.module('caddy').installed.find((a) => a.run)
-    const tomcatRunning = brewStore.module('tomcat').installed.find((a) => a.run)
-    return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning || tomcatRunning)
-  })
-
   if (appStore.hosts.length === 0) {
     appStore.initHost()
   }
@@ -298,12 +287,6 @@
     )
   }
 
-  onMounted(() => {
-    IPC.send('app-fork:host', 'writeHosts', writeHosts.value).then((key: string) => {
-      IPC.off(key)
-    })
-  })
-
   const tableRowClassName = ({ row }: { row: AppHost }) => {
     if (row?.isSorting) {
       return 'is-sorting'
@@ -320,16 +303,10 @@
     }
     const host = item.name
     const brewStore = BrewStore()
-    const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
-    const apacheRunning = brewStore.module('apache').installed.find((i) => i.run)
-    const caddyRunning = brewStore.module('caddy').installed.find((i) => i.run)
+    const tomcatRun = brewStore.module('tomcat').installed.find((i) => i.run)
     let port = 80
-    if (nginxRunning) {
-      port = item.port.nginx
-    } else if (apacheRunning) {
-      port = item.port.apache
-    } else if (caddyRunning) {
-      port = item.port.caddy
+    if (tomcatRun) {
+      port = item.port?.tomcat ?? 80
     }
     const portStr = port === 80 ? '' : `:${port}`
     return `${host}${portStr}`
@@ -340,7 +317,7 @@
   }
 
   const openSite = (item: any) => {
-    if (item?.userReverseProxy === false) {
+    if (item?.subType === 'springboot') {
       const url = `http://127.0.0.1:${item.projectPort}/`
       shell.openExternal(url)
       return
@@ -382,10 +359,21 @@
         }).then()
         break
       case 'log':
+        let logFile = ''
+        if (item.subType === 'springboot') {
+          logFile = join(global.Server.BaseDir!, `java/${item.id}.log`)
+        } else {
+          logFile = join(global.Server.BaseDir!, `tomcat/${item.id}/logs/catalina.out`)
+        }
         AsyncComponentShow(LogVM, {
           id: `${item.id}`,
           name: item.name,
-          showSpring: true
+          showSpring: item.subType === 'springboot',
+          showTomcat: item.subType === 'other',
+          showNginx: false,
+          showApache: false,
+          showCaddy: false,
+          logFile
         }).then()
         break
       case 'del':
@@ -439,9 +427,10 @@
     }).then()
   }
 
-  const showConfig = (item: any) => {
+  const showConfig = (item: AppHost) => {
     AsyncComponentShow(ConfigVM, {
-      item
+      item,
+      file: join(global.Server.BaseDir!, `tomcat/${item.id}/conf/server.xml`)
     }).then()
   }
 
@@ -449,10 +438,30 @@
   const quickEdit: Ref<AppHost | undefined> = ref(undefined)
   const quickEditTr: Ref<HTMLElement | undefined> = ref(undefined)
 
-  const quickEditNameError = computed(() => {
+  const quickEditProjectNameError = computed(() => {
+    if (!quickEdit.value?.projectName) {
+      return true
+    }
     return (
       quickEdit?.value?.id &&
-      appStore.hosts.some((h) => h.name === quickEdit.value?.name && h.id !== quickEdit.value?.id)
+      HostStore.tabList('java').some(
+        (h) =>
+          h.projectName &&
+          h.projectName === quickEdit.value?.projectName &&
+          h.id !== quickEdit.value?.id
+      )
+    )
+  })
+
+  const quickEditNameError = computed(() => {
+    if (!quickEdit.value?.name) {
+      return true
+    }
+    return (
+      quickEdit?.value?.id &&
+      HostStore.tabList('java').some(
+        (h) => h.name && h.name === quickEdit.value?.name && h.id !== quickEdit.value?.id
+      )
     )
   })
 
@@ -478,6 +487,9 @@
     if (quickEdit?.value && !quickEditTr?.value?.contains(dom)) {
       if (!quickEdit?.value?.name?.trim() || quickEditNameError?.value) {
         quickEdit.value.name = quickEditBack?.name ?? ''
+      }
+      if (!quickEdit?.value?.projectName?.trim() || quickEditProjectNameError?.value) {
+        quickEdit.value.projectName = quickEditBack?.projectName ?? ''
       }
       if (!isEqual(quickEdit.value, quickEditBack)) {
         handleHost(JSON.parse(JSON.stringify(quickEdit.value)), 'edit', quickEditBack, false).then()

@@ -1,7 +1,50 @@
 import type { AppHost } from '@shared/app'
-import { watch, existsSync, FSWatcher } from 'fs-extra'
+import { watch, existsSync, FSWatcher, readFile } from 'fs-extra'
 import { execPromise, execPromiseRoot } from '@shared/Exec'
 import { ForkPromise } from '@shared/ForkPromise'
+
+export const getHostItemEnv = async (item: AppHost) => {
+  if (item?.envVarType === 'none') {
+    return undefined
+  }
+  const getEnv = (content: string) => {
+    const arr = content
+      ?.split('\n')
+      ?.filter((s) => !!s.trim())
+      ?.map((s) => {
+        const a = s.trim().split('=')
+        const k = a.shift()
+        const v = a.join('')
+        if (k && v) {
+          return {
+            k,
+            v
+          }
+        }
+        return undefined
+      })
+      ?.filter((o) => !!o)
+    return arr
+  }
+  let arr: any[] | undefined = undefined
+  if (item?.envVarType === 'specify') {
+    arr = getEnv(item?.envVar ?? '')
+  } else if (item?.envVarType === 'file') {
+    const file = item?.envFile ?? ''
+    if (file && existsSync(file)) {
+      const content = await readFile(file, 'utf-8')
+      arr = getEnv(content)
+    }
+  }
+  if (arr && arr.length > 0) {
+    const env: any = {}
+    arr.forEach((item) => {
+      env[item.k] = item.v
+    })
+    return { env }
+  }
+  return undefined
+}
 
 export class ServiceItem {
   host?: AppHost

@@ -139,10 +139,13 @@ export const NodejsStore = defineStore('nodejs', {
       })
     },
     chekTool() {
-      IPC.send('app-fork:node', 'nvmDir').then((key: string, res: any) => {
-        IPC.off(key)
-        this.tool = res?.data ?? ''
-        this.showInstall = !this.tool
+      return new Promise((resolve) => {
+        IPC.send('app-fork:node', 'nvmDir').then((key: string, res: any) => {
+          IPC.off(key)
+          this.tool = res?.data ?? ''
+          this.showInstall = !this.tool
+          resolve(this.tool)
+        })
       })
     }
   }

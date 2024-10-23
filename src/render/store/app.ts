@@ -19,7 +19,7 @@ export interface AppHost {
   alias: string
   useSSL: boolean
   autoSSL: boolean
-  userReverseProxy?: boolean
+  projectPort?: number
   subType?: string
   ssl: {
     cert: string
@@ -28,10 +28,12 @@ export interface AppHost {
   port: {
     nginx: number
     apache: number
+    tomcat: number
     nginx_ssl: number
     apache_ssl: number
     caddy: number
     caddy_ssl: number
+    tomcat_ssl: number
   }
   nginx: {
     rewrite: string
