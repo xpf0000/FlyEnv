@@ -10,6 +10,7 @@ export default {
   other: 'Other',
   jarPackage: 'JAR Package Path',
   jdkPath: 'JDK Path',
+  pythonPath: 'Python Path',
   tomcatPath: 'Tomcat Path',
   startCommand: 'Start Command',
   envVar: 'Environment Variable',

@@ -15,8 +15,14 @@ export interface SoftInstalled {
   flag?: string
 }
 
+export interface AppHostReverseProxyItem {
+  path: string
+  url: string
+}
+
 export interface AppHost {
   id: number
+  reverseProxy?: AppHostReverseProxyItem[]
   type?: string
   isTop?: boolean
   isSorting?: boolean
@@ -30,6 +36,7 @@ export interface AppHost {
   jarDir?: string
   tomcatDir?: string
   nodeDir?: string
+  pythonDir?: string
   bin?: string
   envFile: string
   name: string

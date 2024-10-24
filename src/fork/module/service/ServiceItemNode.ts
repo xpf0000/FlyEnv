@@ -1,13 +1,14 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join } from 'path'
-import { existsSync, mkdirp, writeFile, remove } from 'fs-extra'
+import { existsSync, mkdirp, writeFile, readFile } from 'fs-extra'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
+import { ProcessPidListByPid } from '@shared/Process'
 
 export class ServiceItemNode extends ServiceItem {
-  start(item: AppHost): ForkPromise<boolean> {
-    return new ForkPromise<boolean>(async (resolve, reject) => {
+  start(item: AppHost) {
+    return new ForkPromise(async (resolve, reject) => {
       if (this.exit) {
         reject(new Error('Exit'))
         return
@@ -36,7 +37,9 @@ export class ServiceItemNode extends ServiceItem {
       const pid = join(javaDir, `${item.id}.pid`)
       const log = join(javaDir, `${item.id}.log`)
       if (existsSync(pid)) {
-        await remove(pid)
+        try {
+          await execPromiseRoot([`rm`, '-rf', pid])
+        } catch (e) {}
       }
 
       const opt = await getHostItemEnv(item)
@@ -67,11 +70,28 @@ export class ServiceItemNode extends ServiceItem {
       try {
         const res = await execPromiseRootWhenNeed(`zsh`, [sh], opt)
         console.log('start res: ', res)
-        resolve(true)
+        const pid = await this.checkPid()
+        resolve({
+          'APP-Host-Service-Start-PID': pid
+        })
       } catch (e) {
         console.log('start e: ', e)
         reject(e)
       }
     })
+  }
+  async checkState() {
+    const id = this.host?.id
+    if (!id) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'nodejs')
+    const pidFile = join(baseDir, `${id}.pid`)
+    this.pidFile = pidFile
+    if (!existsSync(pidFile)) {
+      return []
+    }
+    const pid = (await readFile(pidFile, 'utf-8')).trim()
+    return await ProcessPidListByPid(pid)
   }
 }

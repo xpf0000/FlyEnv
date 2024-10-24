@@ -195,10 +195,10 @@ subjectAltName=@alt_names
 
       if (isMakeConf()) {
         hostList.forEach((h) => {
-          if (h.port.apache === host.port.apache) {
+          if (h?.port?.apache && h.port.apache === host.port.apache) {
             addApachePort = false
           }
-          if (h.port.apache_ssl === host.port.apache_ssl) {
+          if (h?.port?.apache_ssl && h.port.apache_ssl === host.port.apache_ssl) {
             addApachePortSSL = false
           }
         })
@@ -464,6 +464,32 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       }
     })
 
+    const handleReverseProxy = (content: string) => {
+      let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
+      if (x && x[0]) {
+        x = x[0]
+        content = content.replace(`\n${x}`, '').replace(`${x}`, '')
+      }
+      if (host?.reverseProxy && host?.reverseProxy?.length > 0) {
+        const arr = ['#PWS-REVERSE-PROXY-BEGIN#']
+        host.reverseProxy.forEach((item) => {
+          const path = item.path
+          const url = item.url
+          arr.push(`    reverse_proxy ${path} {
+        to ${url}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }`)
+        })
+        arr.push('#PWS-REVERSE-PROXY-END#')
+        arr.push('    file_server')
+        const replace = arr.join('\n')
+        content = content.replace('file_server', `\n${replace}`)
+      }
+      return content
+    }
+
     const contentList: string[] = []
 
     const hostName = host.name
@@ -472,10 +498,11 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
 
     const httpHostNameAll = httpNames.join(',\n')
-    const content = this.CaddyTmpl.replace('##HOST-ALL##', httpHostNameAll)
+    let content = this.CaddyTmpl.replace('##HOST-ALL##', httpHostNameAll)
       .replace('##LOG-PATH##', logFile)
       .replace('##ROOT##', root)
       .replace('##PHP-VERSION##', `${phpv}`)
+    content = handleReverseProxy(content)
     contentList.push(content)
 
     if (host.useSSL) {
@@ -484,13 +511,15 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         tls = `${host.ssl.cert} ${host.ssl.key}`
       }
       const httpHostNameAll = httpsNames.join(',\n')
-      const content = this.CaddySSLTmpl.replace('##HOST-ALL##', httpHostNameAll)
+      let content = this.CaddySSLTmpl.replace('##HOST-ALL##', httpHostNameAll)
         .replace('##LOG-PATH##', logFile)
         .replace('##SSL##', tls)
         .replace('##ROOT##', root)
         .replace('##PHP-VERSION##', `${phpv}`)
+      content = handleReverseProxy(content)
       contentList.push(content)
     }
+
     const confFile = join(caddyvpath, `${host.name}.conf`)
     await writeFile(confFile, contentList.join('\n'))
   }

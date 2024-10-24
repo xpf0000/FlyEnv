@@ -6,6 +6,7 @@ import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import { ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseRoot } from '@shared/Exec'
+import { ProcessPidListByPid } from '@shared/Process'
 
 export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostAll: AppHost[]) => {
   const parser = new XMLParser({
@@ -326,8 +327,8 @@ export const makeCustomTomcatServerXML = async (host: AppHost) => {
 }
 
 export class ServiceItemJavaTomcat extends ServiceItem {
-  start(item: AppHost): ForkPromise<boolean> {
-    return new ForkPromise<boolean>(async (resolve, reject) => {
+  start(item: AppHost) {
+    return new ForkPromise(async (resolve, reject) => {
       if (this.exit) {
         reject(new Error('Exit'))
         return
@@ -348,16 +349,27 @@ export class ServiceItemJavaTomcat extends ServiceItem {
         return
       }
 
+      const javaDir = join(global.Server.BaseDir!, 'tomcat')
+      await mkdirp(javaDir)
+      const pid = join(javaDir, `${item.id}.pid`)
+      if (existsSync(pid)) {
+        try {
+          await execPromiseRoot([`rm`, '-rf', pid])
+        } catch (e) {}
+      }
+
       const env = {
         JAVA_HOME: jdkDir,
-        CATALINA_BASE: join(global.Server.BaseDir!, `tomcat/${item.id}`)
+        CATALINA_BASE: join(global.Server.BaseDir!, `tomcat/${item.id}`),
+        CATALINA_PID: pid
       }
       const commands: string[] = [
         '#!/bin/zsh',
         `export JAVA_HOME=${env.JAVA_HOME}`,
         `export CATALINA_BASE=${env.CATALINA_BASE}`,
+        `export CATALINA_PID=${pid}`,
         `cd "${dirname(bin)}"`,
-        `${basename(bin)} --PWSAPPFLAG=${global.Server.BaseDir!} --PWSAPPID=${this.id}`
+        `./${basename(bin)}`
       ]
 
       this.command = commands.join('\n')
@@ -368,11 +380,28 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       try {
         const res = await execPromise(`zsh ${sh}`, { env })
         console.log('start res: ', res)
-        resolve(true)
+        const pid = await this.checkPid()
+        resolve({
+          'APP-Host-Service-Start-PID': pid
+        })
       } catch (e) {
         console.log('start e: ', e)
         reject(e)
       }
     })
+  }
+  async checkState() {
+    const id = this.host?.id
+    if (!id) {
+      return []
+    }
+    const baseDir = join(global.Server.BaseDir!, 'tomcat')
+    const pidFile = join(baseDir, `${id}.pid`)
+    this.pidFile = pidFile
+    if (!existsSync(pidFile)) {
+      return []
+    }
+    const pid = (await readFile(pidFile, 'utf-8')).trim()
+    return await ProcessPidListByPid(pid)
   }
 }

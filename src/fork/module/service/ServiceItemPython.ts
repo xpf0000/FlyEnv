@@ -1,32 +1,47 @@
 import type { AppHost } from '@shared/app'
-import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join } from 'path'
 import { existsSync, mkdirp, readFile, writeFile } from 'fs-extra'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
+import { ForkPromise } from '@shared/ForkPromise'
+import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
+import { realpathSync } from 'fs'
 import { ProcessPidListByPid } from '@shared/Process'
 
-export class ServiceItemJavaSpring extends ServiceItem {
+export class ServiceItemPython extends ServiceItem {
   start(item: AppHost) {
     return new ForkPromise(async (resolve, reject) => {
       if (this.exit) {
         reject(new Error('Exit'))
         return
       }
-
-      if (!item.jdkDir || !existsSync(item.jdkDir)) {
-        reject(new Error(`JDK not exists: ${item.jdkDir}`))
-        return
-      }
-
-      if (!item.jarDir || !existsSync(item.jarDir)) {
-        reject(new Error(`JAR File not exists: ${item.jarDir}`))
-        return
-      }
-
       this.host = item
       await this.stop()
-      const javaDir = join(global.Server.BaseDir!, 'java')
+
+      if (!item.bin || !existsSync(item.bin)) {
+        reject(new Error(`Run File not exists: ${item.bin}`))
+        return
+      }
+
+      if (!item.root || !existsSync(item.root)) {
+        reject(new Error(`Run Directory not exists: ${item.root}`))
+        return
+      }
+
+      if (!item.pythonDir || !existsSync(item.pythonDir)) {
+        reject(new Error(`Python not exists: ${item.pythonDir}`))
+        return
+      }
+
+      const python = realpathSync(item.pythonDir)
+      const py = join(python, 'python')
+      const py3 = join(python, 'python3')
+      if (existsSync(py3) && !existsSync(py)) {
+        try {
+          await execPromiseRoot(['ln', '-s', py3, py])
+        } catch (e) {}
+      }
+
+      const javaDir = join(global.Server.BaseDir!, 'python')
       await mkdirp(javaDir)
       const pid = join(javaDir, `${item.id}.pid`)
       const log = join(javaDir, `${item.id}.log`)
@@ -35,6 +50,7 @@ export class ServiceItemJavaSpring extends ServiceItem {
           await execPromiseRoot([`rm`, '-rf', pid])
         } catch (e) {}
       }
+
       const opt = await getHostItemEnv(item)
       const commands: string[] = ['#!/bin/zsh']
       if (opt && opt?.env) {
@@ -47,10 +63,11 @@ export class ServiceItemJavaSpring extends ServiceItem {
           }
         }
       }
-      commands.push(`export PATH="${dirname(item.jdkDir)}:$PATH"`)
-      const startCommand = item?.startCommand?.replace(item.jdkDir, 'java')
-      commands.push(`nohup ${startCommand} &>> ${log} &`)
+      commands.push(`export PATH="${dirname(item.pythonDir!)}:$PATH"`)
+      commands.push(`cd "${item.root}"`)
+      commands.push(`nohup ${item?.startCommand} &>> ${log} &`)
       commands.push(`echo $! > ${pid}`)
+
       this.command = commands.join('\n')
       console.log('command: ', this.command)
       const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
@@ -74,7 +91,7 @@ export class ServiceItemJavaSpring extends ServiceItem {
     if (!id) {
       return []
     }
-    const baseDir = join(global.Server.BaseDir!, 'java')
+    const baseDir = join(global.Server.BaseDir!, 'python')
     const pidFile = join(baseDir, `${id}.pid`)
     this.pidFile = pidFile
     if (!existsSync(pidFile)) {

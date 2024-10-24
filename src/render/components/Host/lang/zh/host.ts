@@ -10,6 +10,7 @@ export default {
   other: '其他',
   jarPackage: 'jar包路径',
   jdkPath: 'jdk路径',
+  pythonPath: 'Python路径',
   tomcatPath: 'Tomcat路径',
   startCommand: '启动命令',
   envVar: '环境变量',

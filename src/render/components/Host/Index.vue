@@ -76,6 +76,7 @@
     <ListJava v-show="HostStore.tab === 'java'"></ListJava>
     <ListNode v-show="HostStore.tab === 'node'"></ListNode>
     <ListGo v-show="HostStore.tab === 'go'"></ListGo>
+    <ListPython v-show="HostStore.tab === 'python'"></ListPython>
   </div>
 </template>
 
@@ -94,6 +95,7 @@
   import ListJava from './Java/ListTable.vue'
   import ListNode from './Node/ListTable.vue'
   import ListGo from './Go/ListTable.vue'
+  import ListPython from './Python/ListTable.vue'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
   const { dialog, clipboard, shell } = require('@electron/remote')
@@ -108,7 +110,6 @@
         value: 'a',
         sub: {
           php: I18nT('host.projectPhp'),
-          html: I18nT('host.projectHtml'),
           tomcat: I18nT('host.projectTomcat')
         }
       },
@@ -322,6 +323,10 @@
       })
     } else if (HostStore.tab === 'go') {
       import('./Go/Edit.vue').then((res) => {
+        AsyncComponentShow(res.default).then()
+      })
+    } else if (HostStore.tab === 'python') {
+      import('./Python/Edit.vue').then((res) => {
         AsyncComponentShow(res.default).then()
       })
     }

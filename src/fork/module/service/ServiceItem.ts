@@ -2,6 +2,7 @@ import type { AppHost } from '@shared/app'
 import { watch, existsSync, FSWatcher, readFile } from 'fs-extra'
 import { execPromise, execPromiseRoot } from '@shared/Exec'
 import { ForkPromise } from '@shared/ForkPromise'
+import { waitTime } from '../../Fn'
 
 export const getHostItemEnv = async (item: AppHost) => {
   if (item?.envVarType === 'none') {
@@ -55,6 +56,7 @@ export class ServiceItem {
   exit = false
   watcher?: FSWatcher
   timer: any
+  pidFile?: string
   constructor() {}
   async checkState() {
     const command = `ps aux | grep 'PWSAPPID=${this.id}'`
@@ -89,7 +91,7 @@ export class ServiceItem {
     }
     return arr
   }
-  start(item: AppHost): ForkPromise<boolean> {
+  start(item: AppHost): ForkPromise<any> {
     return new ForkPromise<boolean>((resolve) => resolve(!!item.id))
   }
   stop(exit = false) {
@@ -106,12 +108,32 @@ export class ServiceItem {
           await execPromiseRoot([`kill`, '-9', ...arr])
         } catch (e) {}
       }
-      resolve(true)
+      if (this.pidFile && existsSync(this.pidFile)) {
+        try {
+          await execPromiseRoot([`rm`, '-rf', this.pidFile])
+        } catch (e) {}
+      }
+      resolve({
+        'APP-Host-Service-Stop-PID': arr
+      })
     })
+  }
+  daemon() {
+    this.timer && clearInterval(this.timer)
+    this.timer = setInterval(() => {
+      this.checkState()
+        .then((res) => {
+          if (res.length === 0) {
+            return this.start(this.host!)
+          }
+          return Promise.resolve(true)
+        })
+        .then(() => {})
+        .catch()
+    }, this.checkTime)
   }
   watch() {
     this.watcher?.close()
-    this.timer && clearInterval(this.timer)
     if (this.watchDir && existsSync(this.watchDir)) {
       this.watcher = watch(
         this.watchDir,
@@ -127,16 +149,23 @@ export class ServiceItem {
         }
       )
     }
-    this.timer = setInterval(() => {
-      this.checkState()
-        .then((res) => {
-          if (res.length === 0) {
-            return this.start(this.host!)
+  }
+  checkPid() {
+    return new Promise((resolve, reject) => {
+      const doCheck = async (time: number) => {
+        if (this.pidFile && existsSync(this.pidFile)) {
+          const pid = (await readFile(this.pidFile, 'utf-8')).trim()
+          resolve(pid)
+        } else {
+          if (time < 20) {
+            await waitTime(1000)
+            await doCheck(time + 1)
+          } else {
+            reject(new Error('pid file not found'))
           }
-          return Promise.resolve(true)
-        })
-        .then(() => {})
-        .catch()
-    }, this.checkTime)
+        }
+      }
+      doCheck(0).then().catch(reject)
+    })
   }
 }

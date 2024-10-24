@@ -42,11 +42,10 @@
           />
           <div class="path-choose mt-20 mb-20">
             <input
+              v-model.trim="item.root"
               type="text"
               :class="'input' + (errs['root'] ? ' error' : '')"
               :placeholder="I18nT('host.placeholderRootPath')"
-              readonly=""
-              :value="item.root"
             />
             <div class="icon-block" @click="chooseRoot('root')">
               <yb-icon
@@ -127,16 +126,6 @@
               placeholder="default: 80"
             />
           </div>
-
-          <div class="port-set mb-20">
-            <div class="port-type"> Tomcat </div>
-            <input
-              v-model.number="item.port.tomcat"
-              type="number"
-              :class="'input' + (errs['port_tomcat'] ? ' error' : '')"
-              placeholder="default: 80"
-            />
-          </div>
         </div>
         <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
         <div class="main">
@@ -153,11 +142,10 @@
           <template v-if="item.useSSL && !item.autoSSL">
             <div class="path-choose mt-20">
               <input
+                v-model.trim="item.ssl.cert"
                 type="text"
                 :class="'input' + (errs['cert'] ? ' error' : '')"
                 placeholder="cert"
-                readonly=""
-                :value="item.ssl.cert"
               />
               <div class="icon-block" @click="chooseRoot('cert', true)">
                 <yb-icon
@@ -171,11 +159,10 @@
 
             <div class="path-choose mt-20 mb-20">
               <input
+                v-model.trim="item.ssl.key"
                 type="text"
                 :class="'input' + (errs['certkey'] ? ' error' : '')"
                 placeholder="cert key"
-                readonly=""
-                :value="item.ssl.key"
               />
               <div class="icon-block" @click="chooseRoot('certkey', true)">
                 <yb-icon
@@ -219,15 +206,6 @@
                 placeholder="default: 443"
               />
             </div>
-            <div class="port-set port-ssl mb-20">
-              <div class="port-type"> Tomcat </div>
-              <input
-                v-model.number="item.port.tomcat_ssl"
-                type="number"
-                :class="'input' + (errs['port_tomcat_ssl'] ? ' error' : '')"
-                placeholder="default: 443"
-              />
-            </div>
           </template>
         </div>
 
@@ -245,7 +223,6 @@
             <p>{{ I18nT('base.nginxRewriteTips') }}</p>
           </el-popover>
         </div>
-
         <div class="main">
           <el-select
             v-model="rewriteKey"
@@ -259,13 +236,33 @@
 
           <div ref="input" class="input-textarea nginx-rewrite"></div>
         </div>
+
+        <div class="plant-title flex items-center justify-between">
+          <span>{{ I18nT('host.reverseProxy') }}</span>
+          <el-button link :icon="Plus" @click.stop="addReverseProxy"></el-button>
+        </div>
+        <div class="main flex flex-col gap-3">
+          <template v-if="item.reverseProxy.length === 0">
+            <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+          </template>
+          <template v-else>
+            <template v-for="(proxy, index) in item.reverseProxy" :key="index">
+              <div class="flex items-center justify-between gap-2">
+                <el-button link :icon="Delete" @click.stop="delReverseProxy(index)"></el-button>
+                <el-input v-model="proxy.path" class="w-28 ml-2"></el-input>
+                <el-input v-model="proxy.url"></el-input>
+              </div>
+            </template>
+          </template>
+        </div>
+        <div class="py-5"></div>
       </div>
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, ref, watch, Ref, onMounted, onUnmounted } from 'vue'
+  import { computed, nextTick, ref, watch, Ref, onMounted, onUnmounted, reactive } from 'vue'
   import { getAllFileAsync, readFileAsync } from '@shared/file'
   import { passwordCheck } from '@/util/Brew'
   import { handleHost } from '@/util/Host'
@@ -281,6 +278,7 @@
   import { MessageError } from '@/util/Element'
   import { ElMessageBox } from 'element-plus'
   import { execPromiseRoot } from '@shared/Exec'
+  import { Plus, Minus, Delete } from '@element-plus/icons-vue'
 
   const { dialog } = require('@electron/remote')
   const { accessSync, constants } = require('fs')
@@ -322,7 +320,8 @@
     url: '',
     root: '',
     mark: '',
-    phpVersion: undefined
+    phpVersion: undefined,
+    reverseProxy: []
   })
   const errs = ref({
     name: false,
@@ -407,6 +406,20 @@
       }
     }
   })
+
+  const addReverseProxy = () => {
+    const d = reactive({
+      path: '/',
+      url: 'http://127.0.0.1:3000'
+    })
+    const arr: any[] = item.value.reverseProxy as any
+    arr.unshift(d)
+  }
+
+  const delReverseProxy = (index: number) => {
+    const arr: any[] = item.value.reverseProxy as any
+    arr.splice(index, 1)
+  }
 
   const onParkChange = () => {
     if (!park.value) {

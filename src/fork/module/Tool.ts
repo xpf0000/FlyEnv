@@ -207,7 +207,9 @@ class Manager extends Base {
         await execPromiseRoot(['rm', '-rf', flagDir])
       } catch (e) {}
       if (!all.includes(bin)) {
-        await execPromiseRoot(['ln', '-s', bin, flagDir])
+        try {
+          await execPromiseRoot(['ln', '-s', bin, flagDir])
+        } catch (e) {}
       }
 
       let allFile = await readdir(envDir)
@@ -255,6 +257,17 @@ class Manager extends Base {
               java_home = `\nexport JAVA_HOME="${java}"`
             } else {
               java_home = `\nset -gx JAVA_HOME "${java}"`
+            }
+          }
+          let python = allFile.find((f) => realpathSync(f).includes('Python.framework'))
+          if (python) {
+            python = realpathSync(python)
+            const py = join(python, 'python')
+            const py3 = join(python, 'python3')
+            if (existsSync(py3) && !existsSync(py)) {
+              try {
+                await execPromiseRoot(['ln', '-s', py3, py])
+              } catch (e) {}
             }
           }
           if (file.includes('.zshrc')) {

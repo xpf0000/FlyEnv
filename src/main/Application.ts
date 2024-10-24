@@ -21,6 +21,7 @@ import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseRoot } from '@shared/Exec'
 import { arch } from 'os'
+import { ProcessPidListByPid } from '@shared/Process'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
@@ -44,6 +45,7 @@ export default class Application extends EventEmitter {
   ptyLast?: PtyLast | null
   updateManager?: UpdateManager
   forkManager?: ForkManager
+  hostServicePID: Set<string> = new Set()
 
   constructor() {
     super()
@@ -449,10 +451,34 @@ export default class Application extends EventEmitter {
     }
   }
 
+  async stopHostService() {
+    if (this.hostServicePID.size === 0) {
+      return
+    }
+    const arr = Array.from(this.hostServicePID).map((pid) => {
+      return new Promise(async (resolve) => {
+        let pids: string[] = []
+        try {
+          pids = await ProcessPidListByPid(pid)
+        } catch (e) {}
+        if (pids.length > 0) {
+          try {
+            await execPromiseRoot([`kill`, '-9', ...pids])
+          } catch (e) {}
+        }
+        resolve(true)
+      })
+    })
+    try {
+      await Promise.all(arr)
+    } catch (e) {}
+  }
+
   async stopServer() {
     this.ptyLast = null
     this.exitNodePty()
     await this.stopServerByPid()
+    await this.stopHostService()
     try {
       let hosts = readFileSync('/private/etc/hosts', 'utf-8')
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
@@ -578,6 +604,13 @@ export default class Application extends EventEmitter {
     const callBack = (info: any) => {
       const win = this.mainWindow!
       this.windowManager.sendCommandTo(win, command, key, info)
+      console.log('callBack info: ', info)
+      if (info?.data?.['APP-Host-Service-Start-PID']) {
+        this.hostServicePID.add(info.data['APP-Host-Service-Start-PID'])
+      } else if (info?.data?.['APP-Host-Service-Stop-PID']) {
+        const arr: string[] = info.data['APP-Host-Service-Stop-PID'] as any
+        arr.forEach((s) => this.hostServicePID.delete(s))
+      }
       if (args && args?.[0] === 'installBrew' && info?.data?.BrewCellar) {
         global.Server = info?.data
       }

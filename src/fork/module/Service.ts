@@ -6,6 +6,7 @@ import { ServiceItemJavaSpring } from './service/ServiceItemJavaSpring'
 import { ServiceItemJavaTomcat } from './service/ServiceItemJavaTomcat'
 import { ServiceItemNode } from './service/ServiceItemNode'
 import { ServiceItemGo } from './service/ServiceItemGo'
+import { ServiceItemPython } from './service/ServiceItemPython'
 
 class Service extends Base {
   all: Record<string, ServiceItem> = {}
@@ -26,6 +27,8 @@ class Service extends Base {
         item = new ServiceItemNode()
       } else if (host.type === 'go') {
         item = new ServiceItemGo()
+      } else if (host.type === 'python') {
+        item = new ServiceItemPython()
       }
 
       item.id = `${host.id}`
