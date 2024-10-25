@@ -7,6 +7,36 @@ import { existsSync } from 'fs'
 import { execPromiseRoot } from '@shared/Exec'
 import { isEqual } from 'lodash'
 
+const handleReverseProxy = (host: AppHost, content: string) => {
+  let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
+  if (x && x[0]) {
+    x = x[0]
+    content = content.replace(`\n${x}`, '').replace(`${x}`, '')
+  }
+  if (host?.reverseProxy && host?.reverseProxy?.length > 0) {
+    const arr = ['#PWS-REVERSE-PROXY-BEGIN#']
+    host.reverseProxy.forEach((item) => {
+      const path = item.path
+      const url = item.url
+      arr.push(`<IfModule mod_proxy.c>
+    ProxyRequests Off
+    SSLProxyEngine on
+    ProxyPass ${path} ${url}
+    ProxyPassReverse ${path} ${url}
+    RequestHeader set Host "%{Host}e"
+    RequestHeader set X-Real-IP "%{REMOTE_ADDR}e"
+    RequestHeader set X-Forwarded-For "%{X-Forwarded-For}e"
+    RequestHeader setifempty X-Forwarded-For "%{REMOTE_ADDR}e"
+    </IfModule>`)
+    })
+    arr.push('#PWS-REVERSE-PROXY-END#')
+    arr.unshift('</FilesMatch>')
+    const replace = arr.join('\n')
+    content = content.replace('</FilesMatch>', `${replace}\n`)
+  }
+  return content
+}
+
 export const makeApacheConf = async (host: AppHost) => {
   const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
   const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
@@ -50,37 +80,7 @@ export const makeApacheConf = async (host: AppHost) => {
     )
   }
 
-  const handleReverseProxy = (content: string) => {
-    let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
-    if (x && x[0]) {
-      x = x[0]
-      content = content.replace(`\n${x}`, '').replace(`${x}`, '')
-    }
-    if (host?.reverseProxy && host?.reverseProxy?.length > 0) {
-      const arr = ['#PWS-REVERSE-PROXY-BEGIN#']
-      host.reverseProxy.forEach((item) => {
-        const path = item.path
-        const url = item.url
-        arr.push(`<IfModule mod_proxy.c>
-    ProxyRequests Off
-    SSLProxyEngine on
-    ProxyPass ${path} ${url}
-    ProxyPassReverse ${path} ${url}
-    RequestHeader set Host "%{Host}e"
-    RequestHeader set X-Real-IP "%{REMOTE_ADDR}e"
-    RequestHeader set X-Forwarded-For "%{X-Forwarded-For}e"
-    RequestHeader setifempty X-Forwarded-For "%{REMOTE_ADDR}e"
-    </IfModule>`)
-      })
-      arr.push('#PWS-REVERSE-PROXY-END#')
-      arr.unshift('</FilesMatch>')
-      const replace = arr.join('\n')
-      content = content.replace('</FilesMatch>', `${replace}\n`)
-    }
-    return content
-  }
-
-  atmpl = handleReverseProxy(atmpl)
+  atmpl = handleReverseProxy(host, atmpl)
 
   await writeFile(avhost, atmpl)
 }
@@ -207,10 +207,15 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
       replace.push(...['##Static Site Apache##'])
     }
   }
+  if (!isEqual(host?.reverseProxy, old?.reverseProxy)) {
+    hasChanged = true
+  }
   if (hasChanged) {
     find.forEach((s, i) => {
       contentApacheConf = contentApacheConf.replace(new RegExp(s, 'g'), replace[i])
+      contentApacheConf = contentApacheConf.replace(s, replace[i])
     })
+    contentApacheConf = handleReverseProxy(host, contentApacheConf)
     await writeFile(apacheConfPath, contentApacheConf)
   }
 }

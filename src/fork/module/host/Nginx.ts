@@ -7,6 +7,42 @@ import { existsSync } from 'fs'
 import { execPromiseRoot } from '@shared/Exec'
 import { isEqual } from 'lodash'
 
+const handleReverseProxy = (host: AppHost, content: string) => {
+  let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
+  if (x && x[0]) {
+    x = x[0]
+    content = content.replace(`\n${x}`, '').replace(`${x}`, '')
+  }
+  if (host?.reverseProxy && host?.reverseProxy?.length > 0) {
+    const arr = ['#PWS-REVERSE-PROXY-BEGIN#']
+    host.reverseProxy.forEach((item) => {
+      const path = item.path
+      const url = item.url
+      arr.push(`location ^~ ${path} {
+      proxy_pass ${url};
+      proxy_set_header Host $http_host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-Port $remote_port;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Forwarded-Port $server_port;
+      proxy_set_header REMOTE-HOST $remote_addr;
+      proxy_connect_timeout 60s;
+      proxy_send_timeout 600s;
+      proxy_read_timeout 600s;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+    }`)
+    })
+    arr.push('#PWS-REVERSE-PROXY-END#')
+    arr.unshift('#REWRITE-END')
+    const replace = arr.join('\n')
+    content = content.replace('#REWRITE-END', `${replace}\n`)
+  }
+  return content
+}
+
 export const autoFillNginxRewrite = (host: AppHost, chmod: boolean) => {
   if (host.nginx.rewrite && host.nginx.rewrite.trim()) {
     return
@@ -99,44 +135,7 @@ export const makeNginxConf = async (host: AppHost) => {
     ntmpl = ntmpl.replace(/include enable-php\.conf;/g, '##Static Site Nginx##')
   }
 
-  const handleReverseProxy = (content: string) => {
-    let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
-    if (x && x[0]) {
-      x = x[0]
-      content = content.replace(`\n${x}`, '').replace(`${x}`, '')
-    }
-    if (host?.reverseProxy && host?.reverseProxy?.length > 0) {
-      const arr = ['#PWS-REVERSE-PROXY-BEGIN#']
-      host.reverseProxy.forEach((item) => {
-        const path = item.path
-        const url = item.url
-        arr.push(`location ^~ ${path} {
-      proxy_pass ${url};
-      proxy_set_header Host $http_host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Real-Port $remote_port;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header X-Forwarded-Host $host;
-      proxy_set_header X-Forwarded-Port $server_port;
-      proxy_set_header REMOTE-HOST $remote_addr;
-      proxy_connect_timeout 60s;
-      proxy_send_timeout 600s;
-      proxy_read_timeout 600s;
-      proxy_http_version 1.1;
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection $connection_upgrade;
-    }`)
-      })
-      arr.push('#PWS-REVERSE-PROXY-END#')
-      arr.unshift('#REWRITE-END')
-      const replace = arr.join('\n')
-      content = content.replace('#REWRITE-END', `${replace}\n`)
-    }
-    return content
-  }
-
-  await writeFile(nvhost, handleReverseProxy(ntmpl))
+  await writeFile(nvhost, handleReverseProxy(host, ntmpl))
 
   const rewrite = host?.nginx?.rewrite?.trim() ?? ''
   await writeFile(join(rewritepath, `${hostname}.conf`), rewrite)
@@ -272,10 +271,15 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
       replace.push(...['##Static Site Nginx##'])
     }
   }
+  if (!isEqual(host?.reverseProxy, old?.reverseProxy)) {
+    hasChanged = true
+  }
   if (hasChanged) {
     find.forEach((s, i) => {
       contentNginxConf = contentNginxConf.replace(new RegExp(s, 'g'), replace[i])
+      contentNginxConf = contentNginxConf.replace(s, replace[i])
     })
+    contentNginxConf = handleReverseProxy(host, contentNginxConf)
     await writeFile(nginxConfPath, contentNginxConf)
   }
   if (host.nginx.rewrite.trim() !== old.nginx.rewrite.trim()) {

@@ -7,6 +7,32 @@ import { existsSync } from 'fs'
 import { execPromiseRoot } from '@shared/Exec'
 import { isEqual } from 'lodash'
 
+const handleReverseProxy = (host: AppHost, content: string) => {
+  let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
+  if (x && x[0]) {
+    x = x[0]
+    content = content.replace(`\n${x}`, '').replace(`${x}`, '')
+  }
+  if (host?.reverseProxy && host?.reverseProxy?.length > 0) {
+    const arr = ['#PWS-REVERSE-PROXY-BEGIN#']
+    host.reverseProxy.forEach((item) => {
+      const path = item.path
+      const url = item.url
+      arr.push(`    reverse_proxy ${path} {
+        to ${url}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }`)
+    })
+    arr.push('#PWS-REVERSE-PROXY-END#')
+    arr.push('    file_server')
+    const replace = arr.join('\n')
+    content = content.replace('file_server', `\n${replace}`)
+  }
+  return content
+}
+
 export const makeCaddyConf = async (host: AppHost) => {
   const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
   await mkdirp(caddyvpath)
@@ -23,32 +49,6 @@ export const makeCaddyConf = async (host: AppHost) => {
     }
   })
 
-  const handleReverseProxy = (content: string) => {
-    let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
-    if (x && x[0]) {
-      x = x[0]
-      content = content.replace(`\n${x}`, '').replace(`${x}`, '')
-    }
-    if (host?.reverseProxy && host?.reverseProxy?.length > 0) {
-      const arr = ['#PWS-REVERSE-PROXY-BEGIN#']
-      host.reverseProxy.forEach((item) => {
-        const path = item.path
-        const url = item.url
-        arr.push(`    reverse_proxy ${path} {
-        to ${url}
-        header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
-        header_up X-Forwarded-Proto {scheme}
-    }`)
-      })
-      arr.push('#PWS-REVERSE-PROXY-END#')
-      arr.push('    file_server')
-      const replace = arr.join('\n')
-      content = content.replace('file_server', `\n${replace}`)
-    }
-    return content
-  }
-
   const tmpl = await vhostTmpl()
 
   const contentList: string[] = []
@@ -64,7 +64,7 @@ export const makeCaddyConf = async (host: AppHost) => {
     .replace('##LOG-PATH##', logFile)
     .replace('##ROOT##', root)
     .replace('##PHP-VERSION##', `${phpv}`)
-  content = handleReverseProxy(content)
+  content = handleReverseProxy(host, content)
   contentList.push(content)
 
   if (host.useSSL) {
@@ -79,7 +79,7 @@ export const makeCaddyConf = async (host: AppHost) => {
       .replace('##SSL##', tls)
       .replace('##ROOT##', root)
       .replace('##PHP-VERSION##', `${phpv}`)
-    content = handleReverseProxy(content)
+    content = handleReverseProxy(host, content)
     contentList.push(content)
   }
 
@@ -193,10 +193,15 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
       replace.push(...['import enable-php-select undefined'])
     }
   }
+  if (!isEqual(host?.reverseProxy, old?.reverseProxy)) {
+    hasChanged = true
+  }
   if (hasChanged) {
     find.forEach((s, i) => {
       contentCaddyConf = contentCaddyConf.replace(new RegExp(s, 'g'), replace[i])
+      contentCaddyConf = contentCaddyConf.replace(s, replace[i])
     })
+    contentCaddyConf = handleReverseProxy(host, contentCaddyConf)
     await writeFile(caddyConfPath, contentCaddyConf)
   }
 }
