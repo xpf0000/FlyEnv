@@ -381,6 +381,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
         const res = await execPromise(`zsh ${sh}`, { env })
         console.log('start res: ', res)
         const pid = await this.checkPid()
+        this.daemon()
         resolve({
           'APP-Host-Service-Start-PID': pid
         })

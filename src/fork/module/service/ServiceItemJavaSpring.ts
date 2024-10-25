@@ -60,6 +60,7 @@ export class ServiceItemJavaSpring extends ServiceItem {
         const res = await execPromiseRootWhenNeed(`zsh`, [sh], opt)
         console.log('start res: ', res)
         const pid = await this.checkPid()
+        this.daemon()
         resolve({
           'APP-Host-Service-Start-PID': pid
         })

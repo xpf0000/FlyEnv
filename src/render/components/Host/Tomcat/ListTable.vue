@@ -24,26 +24,17 @@
               :data-host-id="scope.row.id"
             ></div>
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
-              <template v-if="scope.row.subType === 'springboot'">
-                <el-input
-                  v-model="quickEdit.projectName"
-                  :class="{ error: quickEditProjectNameError }"
-                  @change="docClick(undefined)"
-                ></el-input>
-              </template>
-              <template v-else>
-                <el-input
-                  v-model.trim="quickEdit.name"
-                  :class="{ error: quickEditNameError }"
-                  @change="docClick(undefined)"
-                ></el-input>
-              </template>
+              <el-input
+                v-model.trim="quickEdit.name"
+                :class="{ error: quickEditNameError }"
+                @change="docClick(undefined)"
+              ></el-input>
             </template>
             <template v-else>
               <QrcodePopper :url="scope.row.name">
                 <div class="link" @click.stop="openSite(scope.row)">
                   <yb-icon
-                    :class="{ active: checkSiteOn(scope.row) }"
+                    :class="{ active: linkEnable }"
                     :svg="import('@/svg/link.svg?raw')"
                     width="18"
                     height="18"
@@ -75,37 +66,6 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column
-          :label="I18nT('base.service')"
-          :prop="null"
-          width="110px"
-          class="app-service-table-cell"
-        >
-          <template #default="scope">
-            <template v-if="HostStore.state(scope.row.id).running">
-              <el-button :loading="true" link></el-button>
-            </template>
-            <template v-else>
-              <template v-if="HostStore.state(scope.row.id).isRun">
-                <el-button link class="status running" @click.stop="serviceDo('stop', scope.row)">
-                  <yb-icon :svg="import('@/svg/stop2.svg?raw')" />
-                </el-button>
-                <el-button link class="status refresh" @click.stop="serviceDo('start', scope.row)">
-                  <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" />
-                </el-button>
-              </template>
-              <template v-else>
-                <el-button
-                  link
-                  class="status start current"
-                  @click.stop="serviceDo('start', scope.row)"
-                >
-                  <yb-icon :svg="import('@/svg/play.svg?raw')" />
-                </el-button>
-              </template>
-            </template>
-          </template>
-        </el-table-column>
         <el-table-column align="center" :label="I18nT('host.setup')" width="100px">
           <template #default="scope">
             <template v-if="scope?.row?.deling || scope.row.id !== quickEdit?.id">
@@ -130,12 +90,6 @@
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ I18nT('base.link') }}</span>
                     </li>
-                    <template v-if="scope.row.subType === 'other'">
-                      <li @click.stop="showConfig(scope.row)">
-                        <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                        <span class="ml-15">{{ I18nT('base.configFile') }} - server.xml</span>
-                      </li>
-                    </template>
                     <li @click.stop="action(scope.row, scope.$index, 'log')">
                       <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
                       <span class="ml-15">{{ I18nT('base.log') }}</span>
@@ -176,7 +130,6 @@
 <script lang="ts" setup>
   import { ref, computed, onMounted, nextTick, onBeforeUnmount, type Ref } from 'vue'
   import { handleHost } from '@/util/Host'
-  import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import QrcodePopper from '../Qrcode/Index.vue'
@@ -186,16 +139,14 @@
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'
   import { HostStore } from '@/components/Host/store'
-  import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
 
-  //nohup {project_cmd}{nohup_log} & echo $! > {pid_file}
-
   const hostList = ref()
   const loading = ref(false)
   const appStore = AppStore()
+  const brewStore = BrewStore()
   const task_index = ref(0)
   const search = ref('')
 
@@ -203,21 +154,15 @@
     if (appStore.hosts.length === 0 || HostStore.index === 0) {
       return []
     }
-    let hosts: Array<any> = JSON.parse(JSON.stringify(HostStore.tabList('java')))
+    let hosts: Array<any> = JSON.parse(JSON.stringify(HostStore.tabList('tomcat')))
     if (search.value) {
       hosts = hosts.filter((h) => {
         const name = h?.name ?? ''
-        const pname = h?.projectName ?? ''
         const mark = h?.mark ?? ''
-        return (
-          pname.includes(search.value) ||
-          name.includes(search.value) ||
-          `${mark}`.includes(search.value)
-        )
+        return name.includes(search.value) || `${mark}`.includes(search.value)
       })
     }
     const allHost = hosts
-      .filter((h) => !h.projectName && h.name)
       .map((h) => {
         return {
           id: h.id,
@@ -259,33 +204,17 @@
         arr.push(h)
       }
     })
-    console.log('hosts arr: ', arr)
     return arr
   })
 
-  if (appStore.hosts.length === 0) {
-    appStore.initHost()
-  }
+  const writeHosts = computed(() => {
+    return appStore.config.setup.hosts.write
+  })
 
-  const serviceDo = (action: 'start' | 'stop', item: AppHost) => {
-    const state = HostStore.state(item.id)
-    if (state.running) {
-      return
-    }
-    state.running = true
-    IPC.send('app-fork:service', action, JSON.parse(JSON.stringify(item))).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        state.running = false
-        if (res?.code === 0) {
-          state.isRun = action === 'start'
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-      }
-    )
-  }
+  const linkEnable = computed(() => {
+    const tomcatRunning = brewStore.module('tomcat').installed.find((a) => a.run)
+    return writeHosts.value && tomcatRunning
+  })
 
   const tableRowClassName = ({ row }: { row: AppHost }) => {
     if (row?.isSorting) {
@@ -298,30 +227,18 @@
   }
 
   const siteName = (item: AppHost) => {
-    if (item?.projectName) {
-      return item.projectName
-    }
     const host = item.name
     const brewStore = BrewStore()
-    const tomcatRun = brewStore.module('tomcat').installed.find((i) => i.run)
+    const tomcatRunning = brewStore.module('tomcat').installed.find((i) => i.run)
     let port = 80
-    if (tomcatRun) {
+    if (tomcatRunning) {
       port = item.port?.tomcat ?? 80
     }
     const portStr = port === 80 ? '' : `:${port}`
     return `${host}${portStr}`
   }
 
-  const checkSiteOn = (item: AppHost) => {
-    return HostStore.state(`${item.id}`).isRun
-  }
-
   const openSite = (item: any) => {
-    if (item?.subType === 'springboot') {
-      const url = `http://127.0.0.1:${item.projectPort}/`
-      shell.openExternal(url)
-      return
-    }
     const name = siteName(item)
     const url = `http://${name}`
     shell.openExternal(url)
@@ -332,12 +249,8 @@
     EditVM = res.default
   })
   let LogVM: any
-  import('./Logs.vue').then((res) => {
+  import('../Java/Logs.vue').then((res) => {
     LogVM = res.default
-  })
-  let ConfigVM: any
-  import('../Vhost.vue').then((res) => {
-    ConfigVM = res.default
   })
   let LinkVM: any
   import('../Link.vue').then((res) => {
@@ -359,15 +272,8 @@
         }).then()
         break
       case 'log':
-        let logFile = ''
-        let customTitle = ''
-        if (item.subType === 'springboot') {
-          logFile = join(global.Server.BaseDir!, `java/${item.id}.log`)
-          customTitle = 'SpringBoot'
-        } else {
-          logFile = join(global.Server.BaseDir!, `tomcat/${item.id}/logs/catalina.out`)
-          customTitle = 'Tomcat'
-        }
+        const logFile = join(global.Server.BaseDir!, `vhost/logs/${item.name}-tomcat_access_log`)
+        const customTitle = item.name
         AsyncComponentShow(LogVM, {
           logFile,
           customTitle
@@ -410,41 +316,14 @@
     }).then()
   }
 
-  const showConfig = (item: AppHost) => {
-    AsyncComponentShow(ConfigVM, {
-      item,
-      file: join(global.Server.BaseDir!, `tomcat/${item.id}/conf/server.xml`)
-    }).then()
-  }
-
   let quickEditBack: AppHost | undefined = undefined
   const quickEdit: Ref<AppHost | undefined> = ref(undefined)
   const quickEditTr: Ref<HTMLElement | undefined> = ref(undefined)
 
-  const quickEditProjectNameError = computed(() => {
-    if (!quickEdit.value?.projectName) {
-      return true
-    }
-    return (
-      quickEdit?.value?.id &&
-      HostStore.tabList('java').some(
-        (h) =>
-          h.projectName &&
-          h.projectName === quickEdit.value?.projectName &&
-          h.id !== quickEdit.value?.id
-      )
-    )
-  })
-
   const quickEditNameError = computed(() => {
-    if (!quickEdit.value?.name) {
-      return true
-    }
     return (
       quickEdit?.value?.id &&
-      HostStore.tabList('java').some(
-        (h) => h.name && h.name === quickEdit.value?.name && h.id !== quickEdit.value?.id
-      )
+      appStore.hosts.some((h) => h.name === quickEdit.value?.name && h.id !== quickEdit.value?.id)
     )
   })
 
@@ -470,9 +349,6 @@
     if (quickEdit?.value && !quickEditTr?.value?.contains(dom)) {
       if (!quickEdit?.value?.name?.trim() || quickEditNameError?.value) {
         quickEdit.value.name = quickEditBack?.name ?? ''
-      }
-      if (!quickEdit?.value?.projectName?.trim() || quickEditProjectNameError?.value) {
-        quickEdit.value.projectName = quickEditBack?.projectName ?? ''
       }
       if (!isEqual(quickEdit.value, quickEditBack)) {
         handleHost(

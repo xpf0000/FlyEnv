@@ -167,7 +167,6 @@
 <script lang="ts" setup>
   import { ref, computed, onMounted, nextTick, onBeforeUnmount, type Ref } from 'vue'
   import { handleHost } from '@/util/Host'
-  import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import QrcodePopper from './Qrcode/Index.vue'
@@ -271,8 +270,7 @@
     const apacheRunning = brewStore.module('apache').installed.find((a) => a.run)
     const nginxRunning = brewStore.module('nginx').installed.find((a) => a.run)
     const caddyRunning = brewStore.module('caddy').installed.find((a) => a.run)
-    const tomcatRunning = brewStore.module('tomcat').installed.find((a) => a.run)
-    return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning || tomcatRunning)
+    return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning)
   })
 
   const tableRowClassName = ({ row }: { row: AppHost }) => {
@@ -444,7 +442,12 @@
         quickEdit.value.name = quickEditBack?.name ?? ''
       }
       if (!isEqual(quickEdit.value, quickEditBack)) {
-        handleHost(JSON.parse(JSON.stringify(quickEdit.value)), 'edit', quickEditBack, false).then()
+        handleHost(
+          JSON.parse(JSON.stringify(quickEdit.value)),
+          'edit',
+          quickEditBack as any,
+          false
+        ).then()
       }
       quickEdit.value = undefined
       quickEditTr.value = undefined

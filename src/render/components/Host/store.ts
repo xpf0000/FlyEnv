@@ -7,7 +7,7 @@ const { writeFile } = require('fs-extra')
 
 export const RewriteAll: { [key: string]: any } = {}
 
-export type HostProjectType = 'php' | 'java' | 'node' | 'go' | 'python' | 'html'
+export type HostProjectType = 'php' | 'java' | 'node' | 'go' | 'python' | 'html' | 'tomcat'
 
 type HostState = {
   running: boolean
