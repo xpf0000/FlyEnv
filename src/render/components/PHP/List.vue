@@ -301,6 +301,11 @@
     PhpFpmVM = res.default
   })
 
+  let ConfVM: any
+  import('./Config.vue').then((res) => {
+    ConfVM = res.default
+  })
+
   const action = (item: SoftInstalled, index: number, flag: string) => {
     switch (flag) {
       case 'groupstart':
@@ -310,13 +315,9 @@
         shell.openPath(item.path)
         break
       case 'conf':
-        import('./Config.vue').then((res) => {
-          res.default
-            .show({
-              version: item
-            })
-            .then()
-        })
+        AsyncComponentShow(ConfVM, {
+          version: item
+        }).then()
         break
       case 'fpm-conf':
         AsyncComponentShow(PhpFpmVM, {

@@ -51,6 +51,7 @@
     {
       name: 'Timeout',
       value: '60',
+      enable: true,
       tips() {
         return I18nT('apache.Timeout')
       }
@@ -58,6 +59,7 @@
     {
       name: 'KeepAlive',
       value: 'Off',
+      enable: true,
       options: [
         {
           value: 'Off',
@@ -75,6 +77,7 @@
     {
       name: 'KeepAliveTimeout',
       value: '15',
+      enable: true,
       tips() {
         return I18nT('apache.KeepAliveTimeout')
       }
@@ -82,8 +85,17 @@
     {
       name: 'MaxKeepAliveRequests',
       value: '1000',
+      enable: true,
       tips() {
         return I18nT('apache.MaxKeepAliveRequests')
+      }
+    },
+    {
+      name: 'LimitRequestBody',
+      value: '0',
+      enable: true,
+      tips() {
+        return I18nT('apache.LimitRequestBody')
       }
     }
   ]
@@ -94,9 +106,11 @@
     let config = editConfig
     const list = ['#PhpWebStudy-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`([\s\n#]?[^\n]*)${item.name}\s+(.*?)([^\n])(\n|$)`, 'g')
+      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
       config = config.replace(regex, `\n\n`)
-      list.push(`${item.name} ${item.value}`)
+      if (item.enable) {
+        list.push(`${item.name} ${item.value}`)
+      }
     })
     list.push('#PhpWebStudy-Conf-Common-END#')
     config = config
@@ -112,13 +126,27 @@
       watcher()
     }
     const arr = names.map((item) => {
-      const regex = new RegExp(`([\s\n#]?[^\n]*)${item.name}\s+(.*?)([^\n])(\n|$)`, 'g')
-      const find = editConfig.match(regex)?.shift()?.trim()
+      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
+      const matchs =
+        editConfig.match(regex)?.map((s) => {
+          const sarr = s
+            .trim()
+            .split(' ')
+            .filter((s) => !!s.trim())
+          const k = sarr.shift()
+          const v = sarr.join(' ')
+          return {
+            k,
+            v
+          }
+        }) ?? []
+      console.log('getCommonSetting: ', matchs, item.name)
+      const find = matchs?.find((m) => m.k === item.name)
       if (!find) {
+        item.enable = false
         return item
       }
-      const arr = find.split(' ').filter((s) => !!s.trim())
-      item.value = arr.pop() ?? item.value
+      item.value = find?.v ?? item.value
       return item
     })
     commonSetting.value = arr as any

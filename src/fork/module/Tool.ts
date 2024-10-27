@@ -281,7 +281,9 @@ class Manager extends Base {
         if (content !== contentBack) {
           const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
           await writeFile(cacheFile, content)
-          await execPromiseRoot(['cp', '-f', cacheFile, file])
+          try {
+            await execPromiseRoot(['cp', '-f', cacheFile, file])
+          } catch (e) {}
           await remove(cacheFile)
           if (file.includes('.zshrc')) {
             try {

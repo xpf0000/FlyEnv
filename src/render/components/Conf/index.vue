@@ -2,9 +2,9 @@
   <div class="module-config">
     <el-card>
       <div v-show="type === 'default'" ref="input" class="block"></div>
-      <div v-show="type === 'common'" class="p-4">
+      <el-scrollbar v-show="type === 'common'" class="p-4">
         <slot name="common"></slot>
-      </div>
+      </el-scrollbar>
       <template #footer>
         <div class="tool">
           <el-radio-group v-if="showCommond" v-model="type" class="mr-7" size="small">
@@ -26,7 +26,9 @@
           </el-tooltip>
           <el-tooltip :show-after="600" :content="I18nT('conf.save')" placement="top">
             <el-button :disabled="disabled" @click="saveConfig">
-              <yb-icon :svg="import('@/svg/save.svg?raw')" class="w-5 h-5 p-0.5" />
+              <el-badge is-dot :offset="[8, 1]" :hidden="!changed">
+                <yb-icon :svg="import('@/svg/save.svg?raw')" class="w-5 h-5 p-0.5" />
+              </el-badge>
             </el-button>
           </el-tooltip>
           <el-tooltip :show-after="600" :content="I18nT('conf.loadDefault')" placement="top">
@@ -61,7 +63,8 @@
 
   const props = defineProps<{
     file: string
-    defaultFile: string
+    defaultFile?: string
+    defaultConf?: string
     fileExt: string
     typeFlag: AllAppModule
     showCommond: boolean
@@ -73,12 +76,15 @@
     return {
       file: props.file,
       defaultFile: props.defaultFile,
+      defaultConf: props.defaultConf,
       fileExt: props.fileExt,
       typeFlag: props.typeFlag
     }
   })
 
   const {
+    changed,
+    update,
     config,
     input,
     type,
@@ -106,6 +112,7 @@
   )
 
   defineExpose({
-    setEditValue
+    setEditValue,
+    update
   })
 </script>

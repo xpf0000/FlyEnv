@@ -17,17 +17,21 @@ type CommonSetItemOption = {
 export type CommonSetItem = {
   name: string
   value: string
+  enable: boolean
+  show?: boolean
   options?: CommonSetItemOption[]
   tips: () => string
 }
 
 type ConfStoreType = {
   types: Record<AllAppModule, 'default' | 'common'>
+  phpIniFiles: Record<string, string>
   save: () => void
 }
 
-const ConfStore: ConfStoreType = reactive({
+export const ConfStore: ConfStoreType = reactive({
   types: {},
+  phpIniFiles: {},
   save() {
     localStorage.setItem('PWS-CONF-STORE', JSON.stringify(this))
   }
@@ -42,7 +46,8 @@ if (tab) {
 
 type ConfSetupProps = {
   file: string
-  defaultFile: string
+  defaultFile?: string
+  defaultConf?: string
   fileExt: string
   typeFlag: AllAppModule
 }
@@ -50,6 +55,8 @@ type ConfSetupProps = {
 export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   const config = ref('')
   const input = ref()
+  const index = ref(1)
+  const changed = ref(false)
   let monacoInstance: editor.IStandaloneCodeEditor | null
 
   const type = computed({
@@ -64,12 +71,21 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   })
 
   const disabled = computed(() => {
+    if (!index.value) {
+      return true
+    }
     console.log('disabled: ', props?.value?.file, existsSync(props.value.file))
     return !props?.value?.file || !existsSync(props.value.file)
   })
 
   const defaultDisabled = computed(() => {
-    return !props?.value?.defaultFile || !existsSync(props.value.defaultFile)
+    if (!index.value) {
+      return true
+    }
+    return (
+      (!props?.value?.defaultFile || !existsSync(props.value.defaultFile)) &&
+      !props?.value.defaultConf
+    )
   })
 
   const saveConfig = () => {
@@ -78,6 +94,8 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     }
     const content = monacoInstance?.getValue() ?? ''
     writeFile(props.value.file, content).then(() => {
+      config.value = content
+      changed.value = false
       MessageSuccess(I18nT('base.success'))
     })
   }
@@ -131,6 +149,13 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
           saveConfig()
         }
       })
+      monacoInstance.onDidChangeModelContent(() => {
+        if (!monacoInstance) {
+          return
+        }
+        const currentValue = monacoInstance?.getValue()
+        changed.value = currentValue !== config.value
+      })
     } else {
       monacoInstance.setValue(config.value)
       monacoInstance.updateOptions({
@@ -150,7 +175,6 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     console.log('getConfig: ', disabled.value)
     if (disabled.value) {
       config.value = I18nT('base.configNoFound')
-      MessageError(config.value)
       initEditor()
       return
     }
@@ -163,6 +187,11 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   const getDefault = () => {
     if (defaultDisabled.value) {
       MessageError(I18nT('base.needSelectVersion'))
+      return
+    }
+    if (props?.value?.defaultConf) {
+      config.value = props.value.defaultConf
+      initEditor()
       return
     }
     readFile(props.value.defaultFile, 'utf-8').then((conf: string) => {
@@ -216,7 +245,13 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     monacoInstance = null
   })
 
+  const update = () => {
+    index.value += 1
+  }
+
   return {
+    changed,
+    update,
     config,
     input,
     type,
