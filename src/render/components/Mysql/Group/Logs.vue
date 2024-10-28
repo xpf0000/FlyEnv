@@ -14,39 +14,22 @@
         </div>
       </div>
       <div class="main-wapper">
-        <div ref="input" class="block"></div>
+        <LogVM ref="log" :log-file="filepath" />
       </div>
-      <div class="tool">
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
-          I18nT('base.open')
-        }}</el-button>
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
-          I18nT('base.refresh')
-        }}</el-button>
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
-          I18nT('base.clean')
-        }}</el-button>
-      </div>
+      <ToolVM :log="log" />
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-  import { nextTick, ref, computed, watch, onMounted, onUnmounted } from 'vue'
-  import { writeFileAsync, readFileAsync } from '@shared/file'
-  import { EventBus } from '@/global'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import { ref, computed } from 'vue'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-  import { MessageError, MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
-  import { AppStore } from '@/store/app'
-  import { execPromiseRoot } from '@shared/Exec'
+  import LogVM from '@/components/Log/index.vue'
+  import ToolVM from '@/components/Log/tool.vue'
 
-  const { existsSync } = require('fs')
   const { join } = require('path')
-  const { shell } = require('@electron/remote')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -55,12 +38,7 @@
     flag: 'log' | 'slow-log'
   }>()
 
-  const log = ref('')
-  const appStore = AppStore()
-
-  const password = computed(() => {
-    return appStore.config.password
-  })
+  const log = ref()
 
   const title = computed(() => {
     if (props.flag === 'log') {
@@ -80,87 +58,6 @@
   const close = () => {
     show.value = false
   }
-
-  const input = ref()
-  let monacoInstance: editor.IStandaloneCodeEditor | null
-  const initEditor = () => {
-    if (!monacoInstance) {
-      const inputDom: HTMLElement = input.value as HTMLElement
-      if (!inputDom || !inputDom?.style) {
-        return
-      }
-      monacoInstance = EditorCreate(inputDom, EditorConfigMake(log.value, true, 'on'))
-    } else {
-      monacoInstance.setValue(log.value)
-    }
-  }
-
-  watch(log, () => {
-    nextTick().then(() => {
-      initEditor()
-    })
-  })
-
-  onMounted(() => {
-    nextTick().then(() => {
-      initEditor()
-    })
-  })
-
-  onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
-    monacoInstance = null
-  })
-
-  const getLog = () => {
-    if (existsSync(filepath.value)) {
-      const read = () => {
-        readFileAsync(filepath.value).then((str) => {
-          log.value = str
-        })
-      }
-      read()
-    } else {
-      log.value = I18nT('base.noLogs')
-    }
-  }
-
-  const logDo = (flag: string) => {
-    if (!existsSync(filepath.value)) {
-      MessageError(I18nT('base.noFoundLogFile'))
-      return
-    }
-    switch (flag) {
-      case 'open':
-        shell.showItemInFolder(filepath.value)
-        break
-      case 'refresh':
-        getLog()
-        break
-      case 'clean':
-        writeFileAsync(filepath.value, '')
-          .then(() => {
-            log.value = ''
-            MessageSuccess(I18nT('base.success'))
-          })
-          .catch(() => {
-            if (!password.value) {
-              EventBus.emit('vue:need-password')
-            } else {
-              execPromiseRoot(['chmod', '777', filepath.value])
-                .then(() => {
-                  logDo('clean')
-                })
-                .catch(() => {
-                  EventBus.emit('vue:need-password')
-                })
-            }
-          })
-        break
-    }
-  }
-
-  getLog()
 
   defineExpose({
     show,

@@ -1,199 +1,184 @@
 <template>
-  <div class="module-config">
-    <el-card>
-      <div ref="input" class="block"></div>
-      <template #footer>
-        <div class="tool">
-          <el-button :disabled="!version" @click="openConfig">{{ $t('base.open') }}</el-button>
-          <el-button :disabled="!version" @click="saveConfig">{{ $t('base.save') }}</el-button>
-          <el-button :disabled="!version" @click="getDefault">{{
-            $t('base.loadDefault')
-          }}</el-button>
-          <el-button-group style="margin-left: 12px">
-            <el-button :disabled="!version" @click="loadCustom">{{
-              $t('base.loadCustom')
-            }}</el-button>
-            <el-button :disabled="!version" @click="saveCustom">{{
-              $t('base.saveCustom')
-            }}</el-button>
-          </el-button-group>
-        </div>
-      </template>
-    </el-card>
-  </div>
+  <Conf
+    ref="conf"
+    :type-flag="'redis'"
+    :default-file="defaultFile"
+    :file="file"
+    :file-ext="'conf'"
+    :show-commond="true"
+    @on-type-change="onTypeChange"
+  >
+    <template #common>
+      <Common :setting="commonSetting" />
+    </template>
+  </Conf>
 </template>
 
-<script lang="ts">
-  import { defineComponent } from 'vue'
-  import { writeFileAsync, readFileAsync } from '@shared/file'
-  import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { nextTick } from 'vue'
+<script lang="ts" setup>
+  import { computed, ref, watch, Ref } from 'vue'
+  import Conf from '@/components/Conf/index.vue'
+  import Common from '@/components/Conf/common.vue'
+  import type { CommonSetItem } from '@/components/Conf/setup'
+  import { I18nT } from '@shared/lang'
+  import { debounce } from 'lodash'
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-  import { MessageError, MessageSuccess } from '@/util/Element'
 
-  const { dialog } = require('@electron/remote')
-  const { existsSync, statSync } = require('fs')
   const { join } = require('path')
-  const { shell } = require('@electron/remote')
+  const { existsSync } = require('fs-extra')
 
-  export default defineComponent({
-    name: 'MoRedisConfig',
-    components: {},
-    props: {},
-    data() {
-      return {
-        config: '',
-        realDir: '',
-        typeFlag: 'redis'
+  const appStore = AppStore()
+  const conf = ref()
+  const commonSetting: Ref<CommonSetItem[]> = ref([])
+
+  const currentVersion = computed(() => {
+    return appStore.config?.server?.redis?.current?.version
+  })
+
+  const vm = computed(() => {
+    return currentVersion?.value?.split('.')?.shift()
+  })
+
+  const file = computed(() => {
+    if (!vm.value) {
+      return ''
+    }
+    return join(global.Server.RedisDir, `redis-${vm.value}.conf`)
+  })
+
+  const defaultFile = computed(() => {
+    if (!vm.value) {
+      return ''
+    }
+    return join(global.Server.RedisDir, `redis-${vm.value}-default.conf`)
+  })
+
+  const names: CommonSetItem[] = [
+    {
+      name: 'port',
+      value: '6379',
+      enable: true,
+      tips() {
+        return I18nT('redis.port')
       }
     },
-    computed: {
-      version() {
-        return AppStore().config?.server?.redis?.current?.version
-      },
-      vNum() {
-        const version = this?.version ?? ''
-        return version.split('.')?.[0]
-      },
-      configPath() {
-        if (this.vNum) {
-          return join(global.Server.RedisDir, `redis-${this.vNum}.conf`)
-        }
-        return undefined
+    {
+      name: 'timeout',
+      value: '0',
+      enable: true,
+      tips() {
+        return I18nT('redis.timeout')
       }
     },
-    watch: {
-      configPath: {
-        handler(v) {
-          if (v) {
-            this.getConfig()
-          }
-        },
-        immediate: true
+    {
+      name: 'maxclients',
+      value: '10000',
+      enable: true,
+      tips() {
+        return I18nT('redis.maxclients')
       }
     },
-    created: function () {},
-    mounted() {
-      nextTick().then(() => {
-        this.initEditor()
-      })
+    {
+      name: 'databases',
+      value: '16',
+      enable: true,
+      tips() {
+        return I18nT('redis.databases')
+      }
     },
-    unmounted() {
-      this.monacoInstance && this.monacoInstance.dispose()
-      this.monacoInstance = null
+    {
+      name: 'requirepass',
+      value: '',
+      enable: true,
+      tips() {
+        return I18nT('redis.requirepass')
+      }
     },
-    methods: {
-      loadCustom() {
-        let opt = ['openFile', 'showHiddenFiles']
-        dialog
-          .showOpenDialog({
-            properties: opt
-          })
-          .then(({ canceled, filePaths }: any) => {
-            if (canceled || filePaths.length === 0) {
-              return
-            }
-            const file = filePaths[0]
-            const state = statSync(file)
-            if (state.size > 5 * 1024 * 1024) {
-              MessageError(this.$t('base.fileBigErr'))
-              return
-            }
-            readFileAsync(file).then((conf) => {
-              this.config = conf
-              this.initEditor()
-            })
-          })
-      },
-      saveCustom() {
-        let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-        const defaultPath = this.vNum ? `redis-${this.vNum}-custom.conf` : 'redis-custom.conf'
-        dialog
-          .showSaveDialog({
-            properties: opt,
-            defaultPath: defaultPath,
-            filters: [
-              {
-                extensions: ['conf']
-              }
-            ]
-          })
-          .then(({ canceled, filePath }: any) => {
-            if (canceled || !filePath) {
-              return
-            }
-            const content = this.monacoInstance.getValue()
-            writeFileAsync(filePath, content).then(() => {
-              MessageSuccess(this.$t('base.success'))
-            })
-          })
-      },
-      openConfig() {
-        shell.showItemInFolder(this.configPath)
-      },
-      saveConfig() {
-        if (!this.version) {
-          return
-        }
-        const content = this.monacoInstance.getValue()
-        writeFileAsync(this.configPath, content).then(() => {
-          MessageSuccess(this.$t('base.success'))
-        })
-      },
-      getConfig() {
-        const doRead = () => {
-          readFileAsync(this.configPath).then((conf) => {
-            this.config = conf
-            this.initEditor()
-          })
-        }
-        if (!existsSync(this.configPath)) {
-          IPC.send('app-fork:redis', 'initConf', {
-            version: this.version
-          }).then((key: string) => {
-            IPC.off(key)
-            doRead()
-          })
-          return
-        }
-        doRead()
-      },
-      getDefault() {
-        if (!this.vNum) {
-          MessageError(this.$t('base.defaultConFileNoFound'))
-          return
-        }
-        let configPath = join(global.Server.RedisDir, `redis-${this.vNum}-default.conf`)
-        if (!existsSync(configPath)) {
-          MessageError(this.$t('base.defaultConFileNoFound'))
-          return
-        }
-        readFileAsync(configPath).then((conf) => {
-          this.config = conf
-          this.initEditor()
-        })
-      },
-      initEditor() {
-        if (!this.monacoInstance) {
-          const input: HTMLElement = this?.$refs?.input as HTMLElement
-          if (!input || !input?.style) {
-            return
-          }
-          this.monacoInstance = EditorCreate(input, EditorConfigMake(this.config, false, 'off'))
-          this.monacoInstance.addAction({
-            id: 'save',
-            label: 'save',
-            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
-            run: () => {
-              this.saveConfig()
-            }
-          })
-        } else {
-          this.monacoInstance.setValue(this.config)
-        }
+    {
+      name: 'maxmemory',
+      value: '0',
+      enable: true,
+      tips() {
+        return I18nT('redis.maxmemory')
       }
     }
-  })
+  ]
+  let editConfig = ''
+  let watcher: any
+
+  const onSettingUpdate = () => {
+    let config = editConfig
+    const list = ['#PhpWebStudy-Conf-Common-Begin#']
+    commonSetting.value.forEach((item) => {
+      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
+      config = config.replace(regex, `\n\n`)
+      if (item.enable) {
+        list.push(`${item.name} ${item.value}`)
+      }
+    })
+    list.push('#PhpWebStudy-Conf-Common-END#')
+    config = config
+      .replace(
+        /([\s\n]?[^\n]*)#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g,
+        ''
+      )
+      .replace(/\n+/g, '\n\n')
+      .trim()
+    config = `${list.join('\n')}\n` + config
+    conf.value.setEditValue(config)
+  }
+
+  const getCommonSetting = () => {
+    if (watcher) {
+      watcher()
+    }
+    const arr = names
+      .map((item) => {
+        const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
+        const matchs =
+          editConfig.match(regex)?.map((s) => {
+            const sarr = s
+              .trim()
+              .split(' ')
+              .filter((s) => !!s.trim())
+              .map((s) => s.trim())
+            const k = sarr.shift()
+            const v = sarr.join(' ').replace(';', '').replace('=', '').trim()
+            return {
+              k,
+              v
+            }
+          }) ?? []
+        console.log('getCommonSetting: ', matchs, item.name)
+        const find = matchs?.find((m) => m.k === item.name)
+        if (!find) {
+          item.enable = false
+          return item
+        }
+        item.value = find?.v ?? item.value
+        return item
+      })
+      .filter((item) => item.show !== false)
+    commonSetting.value = arr as any
+    watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
+      deep: true
+    })
+  }
+
+  const onTypeChange = (type: 'default' | 'common', config: string) => {
+    console.log('onTypeChange: ', type, config)
+    if (editConfig !== config) {
+      editConfig = config
+      getCommonSetting()
+    }
+  }
+
+  if (file.value && !existsSync(file.value)) {
+    IPC.send('app-fork:redis', 'initConf', {
+      version: currentVersion.value
+    }).then((key: string) => {
+      IPC.off(key)
+      conf?.value?.update()
+    })
+  }
 </script>

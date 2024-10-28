@@ -306,6 +306,11 @@
     ConfVM = res.default
   })
 
+  let LogVM: any
+  import('./Logs.vue').then((res) => {
+    LogVM = res.default
+  })
+
   const action = (item: SoftInstalled, index: number, flag: string) => {
     switch (flag) {
       case 'groupstart':
@@ -325,24 +330,16 @@
         }).then()
         break
       case 'log-fpm':
-        import('./Logs.vue').then((res) => {
-          res.default
-            .show({
-              version: item,
-              type: 'php-fpm'
-            })
-            .then()
-        })
+        AsyncComponentShow(LogVM, {
+          version: item,
+          type: 'php-fpm'
+        }).then()
         break
       case 'log-slow':
-        import('./Logs.vue').then((res) => {
-          res.default
-            .show({
-              version: item,
-              type: 'php-fpm-slow'
-            })
-            .then()
-        })
+        AsyncComponentShow(LogVM, {
+          version: item,
+          type: 'php-fpm-slow'
+        }).then()
         break
       case 'extend':
         AsyncComponentShow(ExtensionsVM, {

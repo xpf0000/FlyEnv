@@ -4,7 +4,7 @@
     :type-flag="'mysql'"
     :default-conf="defaultConf"
     :file="file"
-    :file-ext="'conf'"
+    :file-ext="'cnf'"
     :show-commond="true"
     @on-type-change="onTypeChange"
   >
@@ -75,7 +75,7 @@ datadir=${dataDir}`
       name: 'query_cache_size',
       value: '32M',
       enable: true,
-      show: vm.value.startsWith('5.'),
+      show: vm?.value?.startsWith('5.'),
       tips() {
         return I18nT('mysql.query_cache_size')
       }

@@ -50,6 +50,7 @@ type ConfSetupProps = {
   defaultConf?: string
   fileExt: string
   typeFlag: AllAppModule
+  showCommond?: boolean
 }
 
 export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
@@ -61,6 +62,9 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
 
   const type = computed({
     get(): 'default' | 'common' {
+      if (props?.value?.showCommond === false) {
+        return 'default'
+      }
       const flag: AllAppModule = props.value.typeFlag as any
       return ConfStore.types?.[flag] ?? 'default'
     },

@@ -78,7 +78,8 @@
       defaultFile: props.defaultFile,
       defaultConf: props.defaultConf,
       fileExt: props.fileExt,
-      typeFlag: props.typeFlag
+      typeFlag: props.typeFlag,
+      showCommond: props.showCommond
     }
   })
 

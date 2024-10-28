@@ -1,7 +1,7 @@
 <template>
   <div class="main-wapper">
     <div v-show="type === 'default'" ref="input" class="block"></div>
-    <el-scrollbar v-show="type === 'common'" class="p-4">
+    <el-scrollbar v-show="type === 'common'" class="p-2">
       <slot name="common"></slot>
     </el-scrollbar>
   </div>
@@ -74,7 +74,8 @@
       defaultFile: props.defaultFile,
       defaultConf: props.defaultConf,
       fileExt: props.fileExt,
-      typeFlag: props.typeFlag
+      typeFlag: props.typeFlag,
+      showCommond: props.showCommond
     }
   })
 

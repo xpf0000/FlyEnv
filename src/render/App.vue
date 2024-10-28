@@ -35,8 +35,11 @@
 
   const allService = AppModules.filter((m) => m.isService).map((m) => m.typeFlag)
 
+  const needFetch: number[] = []
+
   const onShowItemChange = () => {
     if (!inited.value) {
+      needFetch.push(1)
       return
     }
     let k: AllAppModule
@@ -67,11 +70,19 @@
       if (flags.length === 0) {
         appStore.versionInited = true
         inited.value = true
+        if (needFetch.length > 0) {
+          needFetch.pop()
+          onShowItemChange()
+        }
         return
       }
       installedVersions.allInstalledVersions(flags).then(() => {
         appStore.versionInited = true
         inited.value = true
+        if (needFetch.length > 0) {
+          needFetch.pop()
+          onShowItemChange()
+        }
       })
       if (appStore.hosts.length === 0) {
         appStore.initHost().then()

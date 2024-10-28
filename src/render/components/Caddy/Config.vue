@@ -16,6 +16,7 @@
   import IPC from '@/util/IPC'
 
   const { join } = require('path')
+  const { existsSync } = require('fs-extra')
 
   const conf = ref()
   const file = computed(() => {
@@ -25,8 +26,10 @@
     return join(global.Server.BaseDir, 'caddy/Caddyfile.default')
   })
 
-  IPC.send('app-fork:caddy', 'initConfig').then((key: string) => {
-    IPC.off(key)
-    conf?.value?.update()
-  })
+  if (!existsSync(file.value)) {
+    IPC.send('app-fork:caddy', 'initConfig').then((key: string) => {
+      IPC.off(key)
+      conf?.value?.update()
+    })
+  }
 </script>
