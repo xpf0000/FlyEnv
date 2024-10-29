@@ -5,4 +5,19 @@ for EACH_PROFILE in ".profile" ".bashrc" ".bash_profile" ".zprofile" ".zshrc"
         source "${HOME}/${EACH_PROFILE}"
       fi
     done
-printenv
+if command -v printenv &> /dev/null; then
+    printenv
+    exit 0
+fi
+if command -v env &> /dev/null; then
+    env
+    exit 0
+fi
+if [ -f "/usr/bin/printenv" ]; then
+    /usr/bin/printenv
+    exit 0
+fi
+if [ -f "/usr/bin/env" ]; then
+    /usr/bin/env
+    exit 0
+fi

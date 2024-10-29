@@ -2,13 +2,23 @@
 
 <img src="https://raw.githubusercontent.com/xpf0000/PhpWebStudy/master/build/256x256.png" width="256" alt="App Icon" />
 
-## Powerful Web Server and PHP Environment
+## Powerful Web Server and Environment Manager
 
 ## Support macOS / Windows / Linux
 
 [![GitHub release](https://img.shields.io/github/release/xpf0000/PhpWebStudy.svg)](https://github.com/xpf0000/PhpWebStudy/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/PhpWebStudy/total.svg)](https://github.com/xpf0000/PhpWebStudy/releases)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R5R2OJXTM)
+
+## Need New Project Name
+
+Thank you to all those who have followed and used the project.
+
+In the early stages of the project, the main focus was on PHP related features. Up to now, a lot of new features and language support have been added. It's not just PHP anymore. So the project needs a new name.
+
+Please help me choose a new name based on your understanding of the project. Thank
+
+[Need New Project Name](https://www.macphpstudy.com/#need-new-project-name)
 
 ## Main Modules
 
@@ -56,15 +66,15 @@ brew install phpwebstudy
 
 ### Intel X86:
 
-[PhpWebStudy-4.4.0.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.4.0/PhpWebStudy-4.4.0.dmg)
+[PhpWebStudy-4.5.0.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.0/PhpWebStudy-4.5.0.dmg)
 
-[PhpWebStudy-4.4.0-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.4.0/PhpWebStudy-4.4.0-mac.zip)
+[PhpWebStudy-4.5.0-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.0/PhpWebStudy-4.5.0-mac.zip)
 
 ### Apple Silicon
 
-[PhpWebStudy-4.4.0-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.4.0/PhpWebStudy-4.4.0-arm64.dmg)
+[PhpWebStudy-4.5.0-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.0/PhpWebStudy-4.5.0-arm64.dmg)
 
-[PhpWebStudy-4.4.0-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.4.0/PhpWebStudy-4.4.0-arm64-mac.zip)
+[PhpWebStudy-4.5.0-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.0/PhpWebStudy-4.5.0-arm64-mac.zip)
 
 ## Windows
 
