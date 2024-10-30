@@ -1,17 +1,17 @@
-version: 4.5.0
+version: 4.5.1
 files:
-  - url: PhpWebStudy-4.5.0-mac.zip
-    sha512: KNb66xUnGBWFbsGe7yqWROiFSzJilxu+k/yH7bTYAZ0vnme7YYgpHI8G7OYMI1/LMKAIGL96ngiHoMaVEN3EkQ==
-    size: 116897909
-  - url: PhpWebStudy-4.5.0-arm64-mac.zip
-    sha512: EamaP76bd0EtwE+SPTxjAD74YMyKpCSNEArexqrLDmbwgrriQrnAZprIQg2JaYOPOAFECP6Iu7q8fDx2U26tRA==
-    size: 109870088
-  - url: PhpWebStudy-4.5.0.dmg
-    sha512: EclYZUPCQZ2s4v+pNtO9EHemSxvZQhLBn7gj20os+BP506R6HgzJRj9YarscgPW5vXETvdwYxg1v/UtzPlAe3A==
-    size: 122538808
-  - url: PhpWebStudy-4.5.0-arm64.dmg
-    sha512: d+PmW9NbKIAwGWH+Qly3uzLNZActNU/7WEmohh/u86/7HNJxFT17VVx8TN2X5EFfwk175j9KDUAGsY6y/uZG9A==
-    size: 115548729
-path: PhpWebStudy-4.5.0-mac.zip
-sha512: KNb66xUnGBWFbsGe7yqWROiFSzJilxu+k/yH7bTYAZ0vnme7YYgpHI8G7OYMI1/LMKAIGL96ngiHoMaVEN3EkQ==
-releaseDate: '2024-10-29T09:39:27.934Z'
+  - url: PhpWebStudy-4.5.1-mac.zip
+    sha512: 6efcfDAcfo+fgTzmaD57SaSJZDgYkGKwPaDCBDd4kvRXc2SUen7pwcMFT4u0dRM3MbDq1Z6ROGrt3HHqDJw3IA==
+    size: 116762517
+  - url: PhpWebStudy-4.5.1-arm64-mac.zip
+    sha512: LtPVnW2Xkq9srjewVURoKbNVvO6iaRAgH8wTDqRIEycP5ydQldAEdp1KVbcbDo9JxTcn+KbYyrL78bJiURNHYA==
+    size: 109734670
+  - url: PhpWebStudy-4.5.1.dmg
+    sha512: yGzGOWr0raL6o0miaLIo+bgULFlBFXAUe3LkrL4poGIfnT3jkPTDMRn3p4ecLsenUnifuz9/mQUf9Rr97yGnMQ==
+    size: 122459859
+  - url: PhpWebStudy-4.5.1-arm64.dmg
+    sha512: 3zrSR6A7vs6FcUFsL/dy6UAaIMerheE2DYobAIVNc/ia9KZtGlTRMozSt5gx9rdiSM1JUpJc40+/CYEG4Lc3wQ==
+    size: 115433182
+path: PhpWebStudy-4.5.1-mac.zip
+sha512: 6efcfDAcfo+fgTzmaD57SaSJZDgYkGKwPaDCBDd4kvRXc2SUen7pwcMFT4u0dRM3MbDq1Z6ROGrt3HHqDJw3IA==
+releaseDate: '2024-10-30T12:05:39.932Z'

@@ -11,6 +11,11 @@ const handleHostEnd = (arr: Array<AppHost>, isAdd?: boolean) => {
 
   reloadWebServer(isAdd ? arr : undefined)
 
+  arr.forEach((h) => {
+    if (!h.type) {
+      h.type = 'php'
+    }
+  })
   const hosts = appStore.hosts
   hosts.splice(0)
   hosts.push(...arr)

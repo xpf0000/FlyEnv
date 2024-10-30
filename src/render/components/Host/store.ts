@@ -46,7 +46,7 @@ export const HostStore: HostStoreType = reactive({
   tabList(tab: HostProjectType) {
     if (!this._list[tab]) {
       const store = AppStore()
-      const list = store.hosts.filter((h) => h.type === tab)
+      const list = store.hosts.filter((h) => h.type === tab || (!h.type && tab === 'php'))
       this._list[tab] = reactive(list)
     }
     return this._list[tab]
