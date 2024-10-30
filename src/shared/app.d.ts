@@ -16,8 +16,28 @@ export interface SoftInstalled {
   isLocal7Z?: boolean
 }
 
+export interface AppHostReverseProxyItem {
+  path: string
+  url: string
+}
+
 export interface AppHost {
   id: number
+  reverseProxy?: AppHostReverseProxyItem[]
+  type?: string
+  projectName?: string
+  projectPort?: number
+  startCommand?: string
+  subType?: string
+  envVarType?: string
+  envVar?: string
+  jdkDir?: string
+  jarDir?: string
+  tomcatDir?: string
+  nodeDir?: string
+  pythonDir?: string
+  bin?: string
+  envFile: string
   isTop?: boolean
   isSorting?: boolean
   name: string

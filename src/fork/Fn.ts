@@ -213,7 +213,7 @@ export function spawnPromiseMore(
 } {
   const stdout: Array<Buffer> = []
   const stderr: Array<Buffer> = []
-  let child
+  let child: ChildProcess
   try {
     child = spawn(
       cammand,
@@ -247,12 +247,12 @@ export function spawnPromiseMore(
         reject(new Error(Buffer.concat(stderr).toString().trim()))
       }
     }
-    child.stdout.on('data', (data) => {
+    child?.stdout?.on('data', (data) => {
       console.log('spawnPromiseMore stdout: ', data.toString())
       stdout.push(data)
       on(data.toString(), stdinFn)
     })
-    child.stderr.on('data', (err) => {
+    child?.stderr?.on('data', (err) => {
       console.log('spawnPromiseMore stderr: ', err.toString())
       stderr.push(err)
       on(err.toString(), stdinFn)
@@ -396,7 +396,7 @@ export function getSubDir(fp: string, fullpath = true) {
           }
         }
       })
-    } catch (e) { }
+    } catch (e) {}
   }
   return arr
 }
@@ -445,8 +445,8 @@ export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<
 export const hostAlias = (item: AppHost) => {
   const alias = item.alias
     ? item.alias.split('\n').filter((n) => {
-      return n && n.length > 0
-    })
+        return n && n.length > 0
+      })
     : []
   const arr = Array.from(new Set(alias)).sort()
   arr.unshift(item.name)
@@ -529,7 +529,7 @@ export const versionBinVersion = (
       try {
         version = reg?.exec(str)?.[2]?.trim()
         reg!.lastIndex = 0
-      } catch (e) { }
+      } catch (e) {}
       resolve({
         version
       })
@@ -563,16 +563,16 @@ export const versionLocalFetch = async (
     maxDepth = 2
   ): Promise<
     | {
-      bin: string
-      path: string
-    }
+        bin: string
+        path: string
+      }
     | false
   > => {
     let res:
       | {
-        bin: string
-        path: string
-      }
+          bin: string
+          path: string
+        }
       | false = false
     if (!existsSync(dir)) {
       return false

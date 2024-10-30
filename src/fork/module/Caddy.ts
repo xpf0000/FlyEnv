@@ -171,7 +171,7 @@ class Caddy extends Base {
         console.error(`改变工作目录失败: ${err}`)
       }
 
-      const command = `start /b ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
+      const command = `start /b ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch > null 2>&1 &`
       console.log('command: ', command)
 
       try {

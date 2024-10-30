@@ -1,13 +1,8 @@
-const axios = require('axios')
+let num = 1
+const echo = () => {
+  console.log('num: ', num)
+  num += 1
+  setTimeout(echo, 2000)
+}
 
-axios({
-  url: 'https://api.macphpstudy.com/api/version/fetch',
-  method: 'post',
-  data: {
-    app: 'apache',
-    os: 'win',
-    arch: 'x86'
-  }
-}).then((res) => {
-  console.log(res?.data)
-})
+echo()

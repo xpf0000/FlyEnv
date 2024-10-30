@@ -254,7 +254,7 @@ subjectAltName=@alt_names
       let res
       try {
         res = await execPromiseRoot(command)
-      } catch (e) { }
+      } catch (e) {}
       const lines = res?.stdout?.trim()?.split('\n') ?? []
       const list = lines
         .filter((s) => !s.includes(`findstr `))
@@ -292,7 +292,7 @@ subjectAltName=@alt_names
       let res: any
       try {
         res = await execPromiseRoot(command)
-      } catch (e) { }
+      } catch (e) {}
       const lines = res?.stdout?.trim()?.split('\n') ?? []
       const list = lines
         .filter((s: string) => !s.includes(`findstr `))

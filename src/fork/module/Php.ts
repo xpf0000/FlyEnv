@@ -111,7 +111,7 @@ class Php extends Base {
       let res: any = null
       try {
         res = await execPromiseRoot(command)
-      } catch (e) { }
+      } catch (e) {}
       const pids = res?.stdout?.trim()?.split('\n') ?? []
       const arr: Array<string> = []
       const fpm: Array<string> = []
@@ -138,7 +138,7 @@ class Php extends Base {
         const str = arr.map((s) => `/pid ${s}`).join(' ')
         try {
           await execPromiseRoot(`taskkill /f /t ${str}`)
-        } catch (e) { }
+        } catch (e) {}
       }
       resolve(true)
     })
@@ -301,7 +301,7 @@ class Php extends Base {
     extend: string,
     extendsDir: string
   ) {
-    return new ForkPromise(async (resolve, reject, on) => { })
+    return new ForkPromise(async (resolve, reject, on) => {})
   }
 
   doObfuscator(params: any) {
