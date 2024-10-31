@@ -3,9 +3,8 @@ import { dirname, join } from 'path'
 import { existsSync, mkdirp, readFile, writeFile } from 'fs-extra'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
-import { realpathSync } from 'fs'
-import { ProcessPidListByPid } from '@shared/Process'
+import { execPromiseRoot } from '../../Fn'
+import { ProcessPidListByPid } from '../../Process'
 
 export class ServiceItemPython extends ServiceItem {
   start(item: AppHost) {
@@ -32,54 +31,44 @@ export class ServiceItemPython extends ServiceItem {
         return
       }
 
-      const python = realpathSync(item.pythonDir)
-      const py = join(python, 'python')
-      const py3 = join(python, 'python3')
-      if (existsSync(py3) && !existsSync(py)) {
-        try {
-          await execPromiseRoot(['ln', '-s', py3, py])
-        } catch (e) {}
-      }
-
       const javaDir = join(global.Server.BaseDir!, 'python')
       await mkdirp(javaDir)
       const pid = join(javaDir, `${item.id}.pid`)
       const log = join(javaDir, `${item.id}.log`)
       if (existsSync(pid)) {
         try {
-          await execPromiseRoot([`rm`, '-rf', pid])
+          await execPromiseRoot(`del -Force ${pid}`)
         } catch (e) {}
       }
 
       const opt = await getHostItemEnv(item)
-      const commands: string[] = ['#!/bin/zsh']
+      const commands: string[] = []
       if (opt && opt?.env) {
         for (const k in opt.env) {
           const v = opt.env[k]
           if (v.includes(' ')) {
-            commands.push(`export ${k}="${v}"`)
+            commands.push(`set ${k}="${v}"`)
           } else {
-            commands.push(`export ${k}=${v}`)
+            commands.push(`set ${k}=${v}`)
           }
         }
       }
-      commands.push(`export PATH="${dirname(item.pythonDir!)}:$PATH"`)
-      commands.push(`cd "${item.root}"`)
-      commands.push(`nohup ${item?.startCommand} &>> ${log} &`)
-      commands.push(`echo $! > ${pid}`)
+      commands.push(`set PATH="${dirname(item.pythonDir!)};%PATH%"`)
+      commands.push(`start /B ${item.startCommand} > ${log} 2>&1 &`)
 
       this.command = commands.join('\n')
       console.log('command: ', this.command)
       const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
       await writeFile(sh, this.command)
-      await execPromiseRoot([`chmod`, '777', sh])
+      process.chdir(global.Server.Cache!)
       try {
-        const res = await execPromiseRootWhenNeed(`zsh`, [sh], opt)
-        console.log('start res: ', res)
-        const pid = await this.checkPid()
+        await execPromiseRoot(
+          `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > ${pid}`
+        )
+        const cpid = await this.checkPid()
         this.daemon()
         resolve({
-          'APP-Host-Service-Start-PID': pid
+          'APP-Host-Service-Start-PID': cpid
         })
       } catch (e) {
         console.log('start e: ', e)

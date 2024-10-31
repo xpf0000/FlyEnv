@@ -1,9 +1,9 @@
 import type { AppHost } from '@shared/app'
-import { dirname, join } from 'path'
+import { join } from 'path'
 import { existsSync, mkdirp, readFile, writeFile } from 'fs-extra'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '../../Fn'
+import { execPromiseRoot } from '../../Fn'
 import { ProcessPidListByPid } from '../../Process'
 
 export class ServiceItemGo extends ServiceItem {
@@ -37,7 +37,7 @@ export class ServiceItemGo extends ServiceItem {
       }
 
       const opt = await getHostItemEnv(item)
-      const commands: string[] = ['#!/bin/zsh']
+      const commands: string[] = []
       if (opt && opt?.env) {
         for (const k in opt.env) {
           const v = opt.env[k]

@@ -1,12 +1,12 @@
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { basename, dirname, join, resolve as pathResolve } from 'path'
+import { basename, join, resolve as pathResolve } from 'path'
 import { copyFile, existsSync, mkdirp, readFile, writeFile, realpathSync } from 'fs-extra'
-import { execPromise, hostAlias } from '../../Fn'
+import { hostAlias } from '../../Fn'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import { ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseRoot } from '@shared/Exec'
-import { ProcessPidListByPid } from '@shared/Process'
+import { execPromiseRoot } from '../../Fn'
+import { ProcessPidListByPid } from '../../Process'
 
 export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostAll: AppHost[]) => {
   const parser = new XMLParser({
@@ -354,7 +354,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       const pid = join(javaDir, `${item.id}.pid`)
       if (existsSync(pid)) {
         try {
-          await execPromiseRoot([`rm`, '-rf', pid])
+          await execPromiseRoot(`del -Force ${pid}`)
         } catch (e) {}
       }
 
@@ -365,25 +365,25 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       }
       const commands: string[] = [
         '#!/bin/zsh',
-        `export JAVA_HOME=${env.JAVA_HOME}`,
-        `export CATALINA_BASE=${env.CATALINA_BASE}`,
-        `export CATALINA_PID=${pid}`,
-        `cd "${dirname(bin)}"`,
-        `./${basename(bin)}`
+        `set JAVA_HOME=${env.JAVA_HOME}`,
+        `set CATALINA_BASE=${env.CATALINA_BASE}`,
+        `set CATALINA_PID=${pid}`,
+        `start /B ${basename(bin)} > null 2>&1 &`
       ]
 
       this.command = commands.join('\n')
       console.log('command: ', this.command)
       const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
       await writeFile(sh, this.command)
-      await execPromiseRoot([`chmod`, '777', sh])
+      process.chdir(global.Server.Cache!)
       try {
-        const res = await execPromise(`zsh ${sh}`, { env })
-        console.log('start res: ', res)
-        const pid = await this.checkPid()
+        await execPromiseRoot(
+          `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id"`
+        )
+        const cpid = await this.checkPid()
         this.daemon()
         resolve({
-          'APP-Host-Service-Start-PID': pid
+          'APP-Host-Service-Start-PID': cpid
         })
       } catch (e) {
         console.log('start e: ', e)
