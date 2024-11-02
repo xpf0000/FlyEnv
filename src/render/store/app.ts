@@ -5,7 +5,6 @@ import { I18nT } from '@shared/lang'
 import EditorBaseConfig, { EditorConfig } from '@/store/module/EditorConfig'
 import { MessageError } from '@/util/Element'
 import { AllAppModule } from '@/core/type'
-import { SoftInstalled } from '@shared/app'
 
 const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
@@ -15,6 +14,8 @@ export interface AppHost {
   id: number
   isTop?: boolean
   isSorting?: boolean
+  projectName?: string
+  type?: string
   name: string
   alias: string
   useSSL: boolean
@@ -149,7 +150,7 @@ const state: State = {
   httpServe: [],
   versionInited: false,
   httpServeService: {},
-  currentPage: ''
+  currentPage: '/hosts'
 }
 
 export const AppStore = defineStore('app', {
@@ -174,6 +175,9 @@ export const AppStore = defineStore('app', {
     UPDATE_HOSTS(hosts: Array<AppHost>) {
       this.hosts.splice(0)
       hosts.forEach((host) => {
+        if (!host?.type) {
+          host.type = 'php'
+        }
         this.hosts.push(reactive(host))
       })
       console.log('UPDATE_HOSTS: ', this.hosts)
@@ -190,15 +194,7 @@ export const AppStore = defineStore('app', {
     INIT_HTTP_SERVE(obj: any) {
       this.httpServe = reactive(obj)
     },
-    SET_CUSTOM_DIR({
-      typeFlag,
-      dir,
-      index
-    }: {
-      typeFlag: string
-      dir: string
-      index?: number
-    }) {
+    SET_CUSTOM_DIR({ typeFlag, dir, index }: { typeFlag: string; dir: string; index?: number }) {
       const setup: any = this.config.setup
       if (!setup?.[typeFlag]) {
         setup[typeFlag] = reactive({

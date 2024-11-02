@@ -72,6 +72,11 @@ class Host extends Base {
       let hostList: Array<AppHost> = []
 
       const writeHostFile = async () => {
+        hostList.forEach((h) => {
+          if (!h.type) {
+            h.type = 'php'
+          }
+        })
         await writeFile(hostfile, JSON.stringify(hostList))
         resolve({
           host: hostList

@@ -1,6 +1,23 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <ul class="top-tab">
+      <el-dropdown class="mr-3" @command="setTab">
+        <el-button class="outline-0 focus:outline-0">
+          {{ tab }} <el-icon class="el-icon--right"><arrow-down /></el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <template v-for="(item, index) in tabs" :key="index">
+              <el-dropdown-item :disabled="true">
+                <div class="text-sm" :class="{ 'mt-2': index > 0 }">{{ item.label }}</div>
+              </el-dropdown-item>
+              <template v-for="(label, value) in item.sub" :key="value">
+                <el-dropdown-item :command="value">{{ label }}</el-dropdown-item>
+              </template>
+            </template>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <el-button-group>
         <el-button style="padding-left: 30px; padding-right: 30px" @click="toAdd">{{
           $t('base.add')
@@ -25,7 +42,7 @@
               <el-dropdown-item divided command="hostsCopy">{{
                 $t('host.hostsCopy')
               }}</el-dropdown-item>
-              <el-dropdown-item command="hostsOpen">{{ $t('host.hostsOpen') }}</el-dropdown-item>        
+              <el-dropdown-item command="hostsOpen">{{ $t('host.hostsOpen') }}</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -45,7 +62,12 @@
         <el-button @click="openHosts">{{ $t('base.openHosts') }}</el-button>
       </li>
     </ul>
-    <List></List>
+    <List v-show="HostStore.tab === 'php'"></List>
+    <ListJava v-show="HostStore.tab === 'java'"></ListJava>
+    <ListNode v-show="HostStore.tab === 'node'"></ListNode>
+    <ListGo v-show="HostStore.tab === 'go'"></ListGo>
+    <ListPython v-show="HostStore.tab === 'python'"></ListPython>
+    <ListTomcat v-show="HostStore.tab === 'tomcat'"></ListTomcat>
   </div>
 </template>
 
@@ -57,15 +79,56 @@
   import { readFileAsync, writeFileAsync } from '@shared/file'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import { More } from '@element-plus/icons-vue'
+  import { More, ArrowDown } from '@element-plus/icons-vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import type { AppHost } from '@shared/app'
+  import { type HostProjectType, HostStore } from './store'
+  import ListJava from './Java/ListTable.vue'
+  import ListNode from './Node/ListTable.vue'
+  import ListGo from './Go/ListTable.vue'
+  import ListPython from './Python/ListTable.vue'
+  import ListTomcat from './Tomcat/ListTable.vue'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
   const { dialog, clipboard, shell } = require('@electron/remote')
   const { join, dirname } = require('path')
 
   const appStore = AppStore()
+
+  const tabs = computed(() => {
+    return [
+      {
+        label: I18nT('host.projectAGroup'),
+        value: 'a',
+        sub: {
+          php: I18nT('host.projectPhp'),
+          tomcat: I18nT('host.projectTomcat')
+        }
+      },
+      {
+        label: I18nT('host.projectBGroup'),
+        value: 'b',
+        sub: {
+          java: I18nT('host.projectJava'),
+          node: I18nT('host.projectNode'),
+          go: I18nT('host.projectGo'),
+          python: I18nT('host.projectPython')
+        }
+      }
+    ]
+  })
+
+  const tab = computed(() => {
+    const dict: any = {}
+    tabs.value.forEach((v) => {
+      Object.assign(dict, v.sub)
+    })
+    return dict[HostStore.tab]
+  })
+
+  const setTab = (tab: HostProjectType) => {
+    HostStore.tab = tab
+  }
 
   const hostsSet = computed(() => {
     return appStore.config.setup.hosts
@@ -116,7 +179,7 @@
       case 'hostsCopy':
         const host = []
         for (const item of hosts.value) {
-          const alias = hostAlias(item)
+          const alias = hostAlias(item as any)
           host.push(`127.0.0.1     ${alias}`)
         }
         clipboard.writeText(host.join('\n'))
@@ -236,9 +299,33 @@
   import('./Edit.vue').then((res) => {
     EditVM = res.default
   })
+
   const toAdd = () => {
-    AsyncComponentShow(EditVM).then()
+    if (HostStore.tab === 'php') {
+      AsyncComponentShow(EditVM).then()
+    } else if (HostStore.tab === 'java') {
+      import('./Java/Edit.vue').then((res) => {
+        AsyncComponentShow(res.default).then()
+      })
+    } else if (HostStore.tab === 'node') {
+      import('./Node/Edit.vue').then((res) => {
+        AsyncComponentShow(res.default).then()
+      })
+    } else if (HostStore.tab === 'go') {
+      import('./Go/Edit.vue').then((res) => {
+        AsyncComponentShow(res.default).then()
+      })
+    } else if (HostStore.tab === 'python') {
+      import('./Python/Edit.vue').then((res) => {
+        AsyncComponentShow(res.default).then()
+      })
+    } else if (HostStore.tab === 'tomcat') {
+      import('./Tomcat/Edit.vue').then((res) => {
+        AsyncComponentShow(res.default).then()
+      })
+    }
   }
+
   const openCreateProject = () => {
     import('./CreateProject/index.vue').then((res) => {
       AsyncComponentShow(res.default).then(({ dir, rewrite }: any) => {

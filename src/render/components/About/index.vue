@@ -8,8 +8,13 @@
         <span>Version {{ version }}</span>
       </div>
       <div class="app-icon"></div>
-      <a style="position: absolute; bottom: 0" target="_blank" href="javascript:" rel="noopener noreferrer"
-        @click="toHome($event)">
+      <a
+        style="position: absolute; bottom: 0"
+        target="_blank"
+        href="javascript:"
+        rel="noopener noreferrer"
+        @click="toHome($event)"
+      >
         PhpWebStudy - https://www.macphpstudy.com
       </a>
     </div>
@@ -24,15 +29,23 @@
         </el-col>
         <el-col style="margin-top: 12px">
           GitHub:
-          <a target="_blank" href="javascript:" rel="noopener noreferrer"
-            @click="openUrl($event, 'https://github.com/xpf0000/PhpWebStudy')">
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://github.com/xpf0000/PhpWebStudy')"
+          >
             https://github.com/xpf0000/PhpWebStudy
           </a>
         </el-col>
         <el-col style="margin-top: 12px">
           赞助:
-          <a target="_blank" href="javascript:" rel="noopener noreferrer"
-            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')">
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
+          >
             https://www.macphpstudy.com/sponsor.html
           </a>
         </el-col>
@@ -49,15 +62,23 @@
         </el-col>
         <el-col style="margin-top: 12px">
           GitHub:
-          <a target="_blank" href="javascript:" rel="noopener noreferrer"
-            @click="openUrl($event, 'https://github.com/xpf0000/PhpWebStudy')">
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://github.com/xpf0000/PhpWebStudy')"
+          >
             https://github.com/xpf0000/PhpWebStudy
           </a>
         </el-col>
         <el-col style="margin-top: 12px">
           Sponsor:
-          <a target="_blank" href="javascript:" rel="noopener noreferrer"
-            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')">
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
+          >
             https://www.macphpstudy.com/sponsor.html
           </a>
         </el-col>
@@ -73,38 +94,38 @@
 </template>
 
 <script>
-import { AppStore } from '@/store/app.ts'
-import { AsyncComponentShow } from '@/util/AsyncComponent.ts'
+  import { AppStore } from '@/store/app.ts'
+  import { AsyncComponentShow } from '@/util/AsyncComponent.ts'
 
-const { app, shell } = require('@electron/remote')
-const version = app.getVersion()
-export default {
-  props: {},
-  data() {
-    return {
-      version
-    }
-  },
-  computed: {
-    lang() {
-      const app = AppStore()
-      return app.config.setup.lang
-    }
-  },
-  methods: {
-    openUrl(e, u) {
-      e.preventDefault()
-      shell.openExternal(u)
+  const { app, shell } = require('@electron/remote')
+  const version = app.getVersion()
+  export default {
+    props: {},
+    data() {
+      return {
+        version
+      }
     },
-    toHome(e) {
-      e.preventDefault()
-      shell.openExternal('https://www.macphpstudy.com')
+    computed: {
+      lang() {
+        const app = AppStore()
+        return app.config.setup.lang
+      }
     },
-    toFeedback() {
-      import('@/components/Feedback/index.vue').then((res) => {
-        AsyncComponentShow(res.default).then()
-      })
+    methods: {
+      openUrl(e, u) {
+        e.preventDefault()
+        shell.openExternal(u)
+      },
+      toHome(e) {
+        e.preventDefault()
+        shell.openExternal('https://www.macphpstudy.com')
+      },
+      toFeedback() {
+        import('@/components/Feedback/index.vue').then((res) => {
+          AsyncComponentShow(res.default).then()
+        })
+      }
     }
   }
-}
 </script>

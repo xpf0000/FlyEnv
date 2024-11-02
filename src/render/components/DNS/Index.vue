@@ -28,7 +28,10 @@
                     <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="dnsStore.dnsStop" />
                   </div>
                   <div class="status refresh" :class="{ disabled: fetching }">
-                    <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="dnsStore.dnsRestart" />
+                    <yb-icon
+                      :svg="import('@/svg/icon_refresh.svg?raw')"
+                      @click.stop="dnsStore.dnsRestart"
+                    />
                   </div>
                 </template>
                 <div v-else class="status" :class="{ disabled: fetching }">
@@ -41,8 +44,15 @@
         </template>
         <el-auto-resizer>
           <template #default="{ height, width }">
-            <el-table-v2 :row-height="60" :header-height="60" :columns="columns" :data="links" :width="width"
-              :height="height" fixed>
+            <el-table-v2
+              :row-height="60"
+              :header-height="60"
+              :columns="columns"
+              :data="links"
+              :width="width"
+              :height="height"
+              fixed
+            >
             </el-table-v2>
           </template>
         </el-auto-resizer>
@@ -52,54 +62,54 @@
 </template>
 
 <script lang="tsx" setup>
-import { DnsStore } from './dns'
-import { computed } from 'vue'
-import type { Column } from 'element-plus'
+  import { DnsStore } from './dns'
+  import { computed } from 'vue'
+  import type { Column } from 'element-plus'
 
-const dnsStore = DnsStore()
-const ip = computed(() => {
-  return dnsStore.ip
-})
-const running = computed(() => {
-  return dnsStore.running
-})
-const fetching = computed(() => {
-  return dnsStore.fetching
-})
-const links = computed(() => {
-  return dnsStore.log
-})
-const columns: Column<any>[] = [
-  {
-    key: 'host',
-    title: 'host',
-    dataKey: 'host',
-    class: 'host-column',
-    headerClass: 'host-column',
-    width: 300,
-    headerCellRenderer: () => {
-      return (
-        <span style="padding-left: 24px;" class="flex items-center">
-          host
-        </span>
-      )
+  const dnsStore = DnsStore()
+  const ip = computed(() => {
+    return dnsStore.ip
+  })
+  const running = computed(() => {
+    return dnsStore.running
+  })
+  const fetching = computed(() => {
+    return dnsStore.fetching
+  })
+  const links = computed(() => {
+    return dnsStore.log
+  })
+  const columns: Column<any>[] = [
+    {
+      key: 'host',
+      title: 'host',
+      dataKey: 'host',
+      class: 'host-column',
+      headerClass: 'host-column',
+      width: 300,
+      headerCellRenderer: () => {
+        return (
+          <span style="padding-left: 24px;" class="flex items-center">
+            host
+          </span>
+        )
+      },
+      cellRenderer: ({ cellData: host }) => <span style="padding-left: 24px;">{host}</span>
     },
-    cellRenderer: ({ cellData: host }) => <span style="padding-left: 24px;">{host}</span>
-  },
-  {
-    key: 'ip',
-    title: 'ip',
-    dataKey: 'ip',
-    width: 240
-  },
-  {
-    key: 'ttl',
-    title: 'ttl',
-    dataKey: 'ttl',
-    width: 120
+    {
+      key: 'ip',
+      title: 'ip',
+      dataKey: 'ip',
+      width: 240
+    },
+    {
+      key: 'ttl',
+      title: 'ttl',
+      dataKey: 'ttl',
+      width: 120
+    }
+  ]
+  const cleanLog = () => {
+    links.value.splice(0)
   }
-]
-const cleanLog = () => {
-  links.value.splice(0)
-}
 </script>

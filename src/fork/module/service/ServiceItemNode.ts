@@ -5,6 +5,7 @@ import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseRoot } from '../../Fn'
 import { ProcessPidListByPid } from '../../Process'
+import { EOL } from 'os'
 
 export class ServiceItemNode extends ServiceItem {
   start(item: AppHost) {
@@ -43,7 +44,7 @@ export class ServiceItemNode extends ServiceItem {
       }
 
       const opt = await getHostItemEnv(item)
-      const commands: string[] = []
+      const commands: string[] = ['@echo off', 'chcp 65001>nul']
       if (opt && opt?.env) {
         for (const k in opt.env) {
           const v = opt.env[k]
@@ -55,20 +56,22 @@ export class ServiceItemNode extends ServiceItem {
         }
       }
       commands.push(`set PATH="${dirname(item.nodeDir!)};%PATH%"`)
-      commands.push(`start /B ${item.startCommand} > ${log} 2>&1 &`)
-      this.command = commands.join('\n')
+      commands.push(`cd /d "${dirname(item.nodeDir!)}"`)
+      commands.push(`start /B ${item.startCommand} > "${log}" 2>&1 &`)
+      this.command = commands.join(EOL)
       console.log('command: ', this.command)
-      const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
+      const sh = join(global.Server.Cache!, `service-${this.id}.cmd`)
       await writeFile(sh, this.command)
       process.chdir(global.Server.Cache!)
       try {
         await execPromiseRoot(
-          `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > ${pid}`
+          `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
         )
         const cpid = await this.checkPid()
+        console.log('cpid: ', cpid)
         this.daemon()
         resolve({
-          'APP-Host-Service-Start-PID': cpid
+          'APP-Service-Start-PID': cpid
         })
       } catch (e) {
         console.log('start e: ', e)
@@ -88,6 +91,9 @@ export class ServiceItemNode extends ServiceItem {
       return []
     }
     const pid = (await readFile(pidFile, 'utf-8')).trim()
-    return await ProcessPidListByPid(pid)
+    const pids = await ProcessPidListByPid(pid)
+    console.log('checkState pid: ', pid)
+    console.log('checkState pids: ', pids)
+    return pids
   }
 }

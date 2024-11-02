@@ -1,9 +1,9 @@
 <template>
-  <div class="host-edit tools-file-info">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('util.toolFileInfo') }}</span>
+  <div class="host-edit tools tools-file-info">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolFileInfo') }}</span>
+        <slot name="like"></slot>
       </div>
     </div>
 
@@ -148,35 +148,39 @@
             this.info.mtime_str = moment(stats.mtimeMs).format()
 
             if (stats.isFile()) {
-              getFileHashes(this.path, 'md5').then((res) => {
-          this.info.md5 = res
-        }).catch(() => {
-            this.info.md5 = ''
-          })
+              getFileHashes(this.path, 'md5')
+                .then((res) => {
+                  this.info.md5 = res
+                })
+                .catch(() => {
+                  this.info.md5 = ''
+                })
 
-          getFileHashes(this.path, 'sha1').then((res) => {
-          this.info.sha1 = res
-        }).catch(() => {
-            this.info.sha1 = ''
-          })
+              getFileHashes(this.path, 'sha1')
+                .then((res) => {
+                  this.info.sha1 = res
+                })
+                .catch(() => {
+                  this.info.sha1 = ''
+                })
 
-          getFileHashes(this.path, 'sha256').then((res) => {
-          this.info.sha256 = res
-        }).catch(() => {
-            this.info.sha256 = ''
-          })
+              getFileHashes(this.path, 'sha256')
+                .then((res) => {
+                  this.info.sha256 = res
+                })
+                .catch(() => {
+                  this.info.sha256 = ''
+                })
 
-          this.$nextTick(() => {
-          let container = this.$el.querySelector('.main-wapper')
-          if (container) {
-            this.scroll(container)
-          }
-        })
-
+              this.$nextTick(() => {
+                let container = this.$el.querySelector('.main-wapper')
+                if (container) {
+                  this.scroll(container)
+                }
+              })
             }
           }
         })
-
       },
       scroll(container) {
         this.timer = requestAnimationFrame(() => {

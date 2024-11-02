@@ -1,21 +1,30 @@
 <template>
-    <li v-if="showItem" :class="'non-draggable' + (currentPage === '/apache' ? ' active' : '')" @click="nav">
-        <div class="left">
-            <div class="icon-block" :class="{ run: serviceRunning }">
-                <yb-icon :svg="import('@/svg/apache.svg?raw')" width="30" height="30" />
-            </div>
-            <span class="title">Apache</span>
-        </div>
+  <li
+    v-if="showItem"
+    :class="'non-draggable' + (currentPage === '/apache' ? ' active' : '')"
+    @click="nav"
+  >
+    <div class="left">
+      <div class="icon-block" :class="{ run: serviceRunning }">
+        <yb-icon :svg="import('@/svg/apache.svg?raw')" width="30" height="30" />
+      </div>
+      <span class="title">Apache</span>
+    </div>
 
-        <el-switch v-model="serviceRunning" :disabled="serviceDisabled" @click.stop="stopNav" @change="switchChange">
-        </el-switch>
-    </li>
+    <el-switch
+      v-model="serviceRunning"
+      :disabled="serviceDisabled"
+      @click.stop="stopNav"
+      @change="switchChange"
+    >
+    </el-switch>
+  </li>
 </template>
 
 <script lang="ts" setup>
-import { AsideSetup, AppServiceModule } from '@/core/ASide'
+  import { AsideSetup, AppServiceModule } from '@/core/ASide'
 
-const {
+  const {
     showItem,
     serviceDisabled,
     serviceFetching,
@@ -25,14 +34,14 @@ const {
     switchChange,
     nav,
     stopNav
-} = AsideSetup('apache')
+  } = AsideSetup('apache')
 
-AppServiceModule.apache = {
+  AppServiceModule.apache = {
     groupDo,
     switchChange,
     serviceRunning,
     serviceFetching,
     serviceDisabled,
     showItem
-} as any
+  } as any
 </script>

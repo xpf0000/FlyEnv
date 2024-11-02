@@ -1,9 +1,9 @@
 <template>
-  <div class="host-edit">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('util.toolUTF8BomClean') }}</span>
+  <div class="host-edit tools">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolUTF8BomClean') }}</span>
+        <slot name="like"></slot>
       </div>
       <template v-if="data.end">
         <el-button type="primary" class="shrink0" @click="doEnd">{{ $t('util.ok') }}</el-button>
@@ -127,7 +127,7 @@
   import { I18nT } from '@shared/lang'
   const { extname } = require('path')
   const { dialog } = require('@electron/remote')
-  const emit = defineEmits(['doClose'])
+
   const data = computed(() => {
     return store.value
   })
@@ -170,9 +170,7 @@
     const progress = store.value.progress
     return Math.floor((progress.finish / progress.count) * 100.0)
   })
-  const doClose = () => {
-    emit('doClose')
-  }
+
   const chooseDir = () => {
     if (store.value.running && !store.value.end) {
       return

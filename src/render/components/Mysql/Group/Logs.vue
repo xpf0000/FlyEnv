@@ -1,5 +1,11 @@
 <template>
-  <el-drawer v-model="show" size="75%" :destroy-on-close="true" :with-header="false" @closed="closedFn">
+  <el-drawer
+    v-model="show"
+    size="75%"
+    :destroy-on-close="true"
+    :with-header="false"
+    @closed="closedFn"
+  >
     <div class="host-vhost">
       <div class="nav">
         <div class="left" @click="close">
@@ -8,137 +14,54 @@
         </div>
       </div>
       <div class="main-wapper">
-        <div ref="input" class="block"></div>
+        <LogVM ref="log" :log-file="filepath" />
       </div>
-      <div class="tool">
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
-          $t('base.open')
-        }}</el-button>
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
-          $t('base.refresh')
-        }}</el-button>
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
-          $t('base.clean')
-        }}</el-button>
-      </div>
+      <ToolVM :log="log" />
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-import { nextTick, ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { writeFileAsync, readFileAsync } from '@shared/file'
-import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-import { I18nT } from '@shared/lang'
-import { AsyncComponentSetup } from '@/util/AsyncComponent'
-import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-import { MessageError, MessageSuccess } from '@/util/Element'
-import type { MysqlGroupItem } from '@shared/app'
+  import { ref, computed } from 'vue'
+  import { I18nT } from '@shared/lang'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import type { MysqlGroupItem } from '@shared/app'
+  import LogVM from '@/components/Log/index.vue'
+  import ToolVM from '@/components/Log/tool.vue'
 
-const { existsSync } = require('fs')
-const { join } = require('path')
-const { shell } = require('@electron/remote')
+  const { join } = require('path')
 
-const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
-const props = defineProps<{
-  item: MysqlGroupItem
-  flag: 'log' | 'slow-log'
-}>()
+  const props = defineProps<{
+    item: MysqlGroupItem
+    flag: 'log' | 'slow-log'
+  }>()
 
-const log = ref('')
+  const log = ref()
 
-const title = computed(() => {
-  if (props.flag === 'log') {
-    return I18nT('base.log')
-  }
-  return I18nT('base.slowLog')
-})
-
-const filepath = computed(() => {
-  const id = props.item.id
-  if (props.flag === 'log') {
-    return join(global.Server.MysqlDir!, `group/my-group-${id}-error.log`)
-  }
-  return join(global.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
-})
-
-const close = () => {
-  show.value = false
-}
-
-const input = ref()
-let monacoInstance: editor.IStandaloneCodeEditor | null
-const initEditor = () => {
-  if (!monacoInstance) {
-    const inputDom: HTMLElement = input.value as HTMLElement
-    if (!inputDom || !inputDom?.style) {
-      return
+  const title = computed(() => {
+    if (props.flag === 'log') {
+      return I18nT('base.log')
     }
-    monacoInstance = EditorCreate(inputDom, EditorConfigMake(log.value, true, 'on'))
-  } else {
-    monacoInstance.setValue(log.value)
-  }
-}
-
-watch(log, () => {
-  nextTick().then(() => {
-    initEditor()
+    return I18nT('base.slowLog')
   })
-})
 
-onMounted(() => {
-  nextTick().then(() => {
-    initEditor()
-  })
-})
-
-onUnmounted(() => {
-  monacoInstance && monacoInstance.dispose()
-  monacoInstance = null
-})
-
-const getLog = () => {
-  if (existsSync(filepath.value)) {
-    const read = () => {
-      readFileAsync(filepath.value).then((str) => {
-        log.value = str
-      })
+  const filepath = computed(() => {
+    const id = props.item.id
+    if (props.flag === 'log') {
+      return join(global.Server.MysqlDir!, `group/my-group-${id}-error.log`)
     }
-    read()
-  } else {
-    log.value = I18nT('base.noLogs')
-  }
-}
+    return join(global.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
+  })
 
-const logDo = (flag: string) => {
-  if (!existsSync(filepath.value)) {
-    MessageError(I18nT('base.noFoundLogFile'))
-    return
+  const close = () => {
+    show.value = false
   }
-  switch (flag) {
-    case 'open':
-      shell.showItemInFolder(filepath.value)
-      break
-    case 'refresh':
-      getLog()
-      break
-    case 'clean':
-      writeFileAsync(filepath.value, '')
-        .then(() => {
-          log.value = ''
-          MessageSuccess(I18nT('base.success'))
-        })
-        .catch((e) => { MessageError(e.toString()) })
-      break
-  }
-}
 
-getLog()
-
-defineExpose({
-  show,
-  onSubmit,
-  onClosed
-})
+  defineExpose({
+    show,
+    onSubmit,
+    onClosed
+  })
 </script>

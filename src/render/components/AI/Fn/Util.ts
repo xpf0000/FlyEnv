@@ -82,7 +82,7 @@ export function killPort(this: BaseTask, ports: Array<string>) {
       const pidStr: string = Array.from(pids).join(' ')
       try {
         await execPromise(`echo '${global.Server.Password}' | sudo -S kill -9 ${pidStr}`)
-      } catch (e) { }
+      } catch (e) {}
     }
     resolve(true)
   })
@@ -93,7 +93,7 @@ export function killPid(this: BaseTask, pids: Array<string>) {
     const pidStr: string = pids.join(' ')
     try {
       await execPromise(`echo '${global.Server.Password}' | sudo -S kill -9 ${pidStr}`)
-    } catch (e) { }
+    } catch (e) {}
     resolve(true)
   })
 }

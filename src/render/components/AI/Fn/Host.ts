@@ -63,9 +63,9 @@ export function openSiteBaseService(this: BaseTask, item: { host: string; php: S
       (i) => i.path === current?.path && i.version === current?.version
     )
 
-    const php = brewStore?.module('php')?.installed?.find(
-      (i) => i.path === item?.php?.path && i.version === item?.php?.version
-    )
+    const php = brewStore
+      ?.module('php')
+      ?.installed?.find((i) => i.path === item?.php?.path && i.version === item?.php?.version)
     try {
       let url = ''
       if (nginx && (!apache || !apache?.run)) {

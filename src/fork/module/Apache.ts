@@ -17,6 +17,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import { EOL } from 'os'
 
 class Apache extends Base {
   constructor() {
@@ -162,7 +163,7 @@ IncludeOptional "${vhost}*.conf"`
     if (host.length === 0) {
       return
     }
-    const allNeedPort: Set<number> = new Set()
+    const allNeedPort: Set<number> = new Set([80])
     host.forEach((h) => {
       const apache = Number(h?.port?.apache)
       const apache_ssl = Number(h?.port?.apache_ssl)
@@ -215,7 +216,7 @@ IncludeOptional "${vhost}*.conf"`
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject) => {
       await this.initLocalApp(version, 'apache')
       await this.#resetConf(version)
       await this.#handleListenPort(version)
@@ -226,44 +227,64 @@ IncludeOptional "${vhost}*.conf"`
         return
       }
 
-      try {
-        process.chdir(dirname(bin))
-        console.log(`新的工作目录: ${process.cwd()}`)
-      } catch (err) {
-        console.error(`改变工作目录失败: ${err}`)
-      }
+      process.chdir(dirname(bin))
       let command = `${basename(bin)} -k uninstall`
       try {
         await execPromiseRoot(command)
       } catch (e) {}
 
-      try {
-        process.chdir(dirname(bin))
-        console.log(`新的工作目录: ${process.cwd()}`)
-      } catch (err) {
-        console.error(`改变工作目录失败: ${err}`)
-      }
+      process.chdir(dirname(bin))
       command = `${basename(bin)} -k install`
       try {
         await execPromiseRoot(command)
       } catch (e) {}
 
-      try {
-        process.chdir(dirname(bin))
-        console.log(`新的工作目录: ${process.cwd()}`)
-      } catch (err) {
-        console.error(`改变工作目录失败: ${err}`)
+      const pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
+      if (existsSync(pidPath)) {
+        try {
+          await execPromiseRoot(`del -Force ${pidPath}`)
+        } catch (e) {}
       }
-      command = `${basename(bin)} -f "${conf}" -k start`
-      console.log('_startServer: ', command)
+
+      const startLogFile = join(global.Server.ApacheDir!, `start.log`)
+      const commands: string[] = [
+        '@echo off',
+        'chcp 65001>nul',
+        `cd /d "${dirname(bin)}"`,
+        `start /B ${basename(bin)} -f "${conf}" -k start > "${startLogFile}" 2>&1 &`
+      ]
+
+      command = commands.join(EOL)
+      console.log('command: ', command)
+
+      const cmdName = `start.cmd`
+      const sh = join(global.Server.ApacheDir!, cmdName)
+      await writeFile(sh, command)
+      process.chdir(global.Server.ApacheDir!)
+      let pid = ''
       try {
-        const res = await execPromiseRoot(command)
-        on(res?.stdout)
-        resolve(0)
+        pid = (
+          await execPromiseRoot(
+            `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+          )
+        ).stdout
       } catch (e: any) {
         console.log('-k start err: ', e)
         reject(e)
+        return
       }
+      const res = await this.waitPidFile(pidPath)
+      if (res) {
+        resolve({
+          'APP-Service-Start-PID': pid
+        })
+        return
+      }
+      let msg = 'Start Fail'
+      if (existsSync(startLogFile)) {
+        msg = await readFile(startLogFile, 'utf-8')
+      }
+      reject(new Error(msg))
     })
   }
 

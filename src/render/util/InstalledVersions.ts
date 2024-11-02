@@ -14,32 +14,34 @@ class InstalledVersions {
     this.runningFlags = []
     this.taskRunning = false
   }
+  private callBack() {
+    this._cb.forEach((cb) => {
+      cb(true)
+    })
+    this._cb.splice(0)
+    this.runningFlags.splice(0)
+    this.taskRunning = false
+  }
   allInstalledVersions(flags: Array<AllAppModule>) {
     if (this.taskRunning && this.runningFlags.find((f) => isEqual(f, flags))) {
-      return this
+      return new Promise((resolve) => {
+        this._cb.push(resolve)
+      })
     }
     this.runningFlags.push(flags)
     this.taskRunning = true
 
-    const callBack = () => {
-      this._cb.forEach((cb) => {
-        if (typeof cb === 'function') {
-          cb(true)
-        }
-      })
-      this._cb.splice(0)
-      this.runningFlags.splice(0)
-      this.taskRunning = false
-    }
     const brewStore = BrewStore()
     const appStore = AppStore()
     const setup = JSON.parse(JSON.stringify(AppStore().config.setup))
     const arrs = flags.filter((f) => !brewStore.module(f).installedInited)
     if (arrs.length === 0) {
       setTimeout(() => {
-        callBack()
+        this.callBack()
       }, 30)
-      return this
+      return new Promise((resolve) => {
+        this._cb.push(resolve)
+      })
     }
     IPC.send('app-fork:version', 'allInstalledVersions', arrs, setup).then(
       (key: string, res: any) => {
@@ -49,9 +51,16 @@ class InstalledVersions {
         for (const f in versions) {
           const flag: AllAppModule = f as AllAppModule
           let installed = versions[flag].filter((v) => {
-            return !v?.isLocal7Z || (v?.isLocal7Z && !appStore.config.setup?.excludeLocalVersion?.includes(`${flag}-${v.version}`))
+            return (
+              !v?.isLocal7Z ||
+              (v?.isLocal7Z &&
+                !appStore.config.setup?.excludeLocalVersion?.includes(`${flag}-${v.version}`))
+            )
           })
-          console.log('appStore.config.setup.excludeLocalVersion', appStore.config.setup.excludeLocalVersion)
+          console.log(
+            'appStore.config.setup.excludeLocalVersion',
+            appStore.config.setup.excludeLocalVersion
+          )
           const data = brewStore.module(flag)
           const old = [...data.installed]
           installed = installed.map((item) => {
@@ -77,7 +86,9 @@ class InstalledVersions {
               )
             if (!findCurrent) {
               const exclude = appStore.config.setup?.excludeLocalVersion ?? []
-              const find = data.installed.find((d) => d.version && d.enable && !exclude.includes(d.bin))
+              const find = data.installed.find(
+                (d) => d.version && d.enable && !exclude.includes(d.bin)
+              )
               appStore.UPDATE_SERVER_CURRENT({
                 flag: flag,
                 data: JSON.parse(JSON.stringify(find ?? {}))
@@ -89,15 +100,14 @@ class InstalledVersions {
           }
         }
         if (needSaveConfig) {
-          appStore.saveConfig()
+          appStore.saveConfig().then().catch()
         }
-        callBack()
+        this.callBack()
       }
     )
-    return this
-  }
-  then(cb: Function) {
-    this._cb.push(cb)
+    return new Promise((resolve) => {
+      this._cb.push(resolve)
+    })
   }
 }
 

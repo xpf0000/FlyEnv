@@ -16,6 +16,7 @@ export interface SoftInstalled {
   phpize?: string
   flag?: string
   isLocal7Z?: boolean
+  pid?: string
 }
 
 export interface OnlineVersionItem {
@@ -67,7 +68,7 @@ export const BrewStore = defineStore('brew', {
   state: (): State => state,
   getters: {},
   actions: {
-    module(flag: AllAppModule) {
+    module(flag: AllAppModule): AppSoftInstalledItem {
       if (!this?.[flag]) {
         this[flag] = reactive({
           getListing: false,
@@ -76,7 +77,7 @@ export const BrewStore = defineStore('brew', {
           list: []
         })
       }
-      return this[flag]
+      return this[flag]!
     }
   }
 })

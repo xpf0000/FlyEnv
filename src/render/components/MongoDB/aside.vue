@@ -1,22 +1,36 @@
 <template>
-    <li v-if="showItem" class="non-draggable" :class="'non-draggable' + (currentPage === '/mongodb' ? ' active' : '')"
-        @click="nav">
-        <div class="left">
-            <div class="icon-block" :class="{ run: serviceRunning }">
-                <yb-icon style="padding: 5px" :svg="import('@/svg/MongoDB.svg?raw')" width="30" height="30" />
-            </div>
-            <span class="title">MongoDB</span>
-        </div>
+  <li
+    v-if="showItem"
+    class="non-draggable"
+    :class="'non-draggable' + (currentPage === '/mongodb' ? ' active' : '')"
+    @click="nav"
+  >
+    <div class="left">
+      <div class="icon-block" :class="{ run: serviceRunning }">
+        <yb-icon
+          style="padding: 5px"
+          :svg="import('@/svg/MongoDB.svg?raw')"
+          width="30"
+          height="30"
+        />
+      </div>
+      <span class="title">MongoDB</span>
+    </div>
 
-        <el-switch v-model="serviceRunning" :disabled="serviceDisabled" @click.stop="stopNav" @change="switchChange()">
-        </el-switch>
-    </li>
+    <el-switch
+      v-model="serviceRunning"
+      :disabled="serviceDisabled"
+      @click.stop="stopNav"
+      @change="switchChange()"
+    >
+    </el-switch>
+  </li>
 </template>
 
 <script lang="ts" setup>
-import { AsideSetup, AppServiceModule } from '@/core/ASide'
+  import { AsideSetup, AppServiceModule } from '@/core/ASide'
 
-const {
+  const {
     showItem,
     serviceDisabled,
     serviceFetching,
@@ -26,14 +40,14 @@ const {
     switchChange,
     nav,
     stopNav
-} = AsideSetup('mongodb')
+  } = AsideSetup('mongodb')
 
-AppServiceModule.mongodb = {
+  AppServiceModule.mongodb = {
     groupDo,
     switchChange,
     serviceRunning,
     serviceFetching,
     serviceDisabled,
     showItem
-} as any
+  } as any
 </script>

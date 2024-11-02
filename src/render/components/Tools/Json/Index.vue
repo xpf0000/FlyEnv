@@ -1,9 +1,9 @@
 <template>
-  <div class="json-parse host-edit">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('tools.jsonParseTitle') }}</span>
+  <div class="json-parse tools host-edit">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('tools.jsonParseTitle') }}</span>
+        <slot name="like"></slot>
       </div>
     </div>
 

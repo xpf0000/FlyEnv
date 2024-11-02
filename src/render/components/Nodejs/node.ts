@@ -12,7 +12,7 @@ export interface NodeJSItem {
 interface State {
   tool: 'fnm' | 'nvm' | 'all' | ''
   fetching: {
-    nvm: boolean,
+    nvm: boolean
     fnm: boolean
   }
   fnm: NodeJSItem

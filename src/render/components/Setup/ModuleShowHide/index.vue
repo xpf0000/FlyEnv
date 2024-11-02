@@ -1,34 +1,34 @@
 <template>
-    <el-form-item :label="title">
-        <el-switch v-model="showItem" />
-    </el-form-item>
+  <el-form-item :label="title">
+    <el-switch v-model="showItem" />
+  </el-form-item>
 </template>
 
 <script lang="ts" setup>
-import { AppStore } from '@/store/app'
-import { computed } from 'vue'
-import type { AllAppModule } from '@/core/type'
+  import { AppStore } from '@/store/app'
+  import { computed } from 'vue'
+  import type { AllAppModule } from '@/core/type'
 
-type StringFn = () => string
+  type StringFn = () => string
 
-const props = defineProps<{
+  const props = defineProps<{
     label: string | StringFn
     typeFlag: AllAppModule
-}>()
+  }>()
 
-const title = computed(() => {
+  const title = computed(() => {
     return typeof props.label === 'string' ? props.label : props.label()
-})
+  })
 
-const appStore = AppStore()
+  const appStore = AppStore()
 
-const showItem = computed({
+  const showItem = computed({
     get() {
-        return appStore.config.setup.common.showItem?.[props.typeFlag] !== false
+      return appStore.config.setup.common.showItem?.[props.typeFlag] !== false
     },
     set(v) {
-        appStore.config.setup.common.showItem[props.typeFlag] = v
-        appStore.saveConfig()
+      appStore.config.setup.common.showItem[props.typeFlag] = v
+      appStore.saveConfig()
     }
-})
+  })
 </script>

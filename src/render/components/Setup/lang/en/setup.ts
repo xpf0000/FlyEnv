@@ -1,3 +1,3 @@
 export default {
-    menuShowHide: 'Menu Show/Hide'
+  menuShowHide: 'Menu Show/Hide'
 }

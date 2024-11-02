@@ -15,6 +15,7 @@ import { ForkManager } from './core/ForkManager'
 import { execPromiseRoot } from '../fork/Fn'
 import is from 'electron-is'
 import UpdateManager from './core/UpdateManager'
+import { PItem, ProcessPidList, ProcessPidListByPid } from '../fork/Process'
 
 const { createFolder } = require('../shared/file')
 const { isAppleSilicon } = require('../shared/utils')
@@ -32,7 +33,7 @@ export default class Application extends EventEmitter {
   trayWindow?: BrowserWindow
   forkManager?: ForkManager
   updateManager?: UpdateManager
-
+  hostServicePID: Set<string> = new Set()
   constructor() {
     super()
     global.Server = {
@@ -97,18 +98,13 @@ export default class Application extends EventEmitter {
       this?.trayWindow?.setOpacity(1.0)
       this?.trayWindow?.show()
       this?.trayWindow?.moveTop()
-      this.windowManager.sendCommandTo(
-        this.trayWindow!,
-        'APP:Poper-Left',
-        'APP:Poper-Left',
-        poperX
-      )
+      this.windowManager.sendCommandTo(this.trayWindow!, 'APP:Poper-Left', 'APP:Poper-Left', poperX)
     })
   }
 
-  initNodePty() { }
+  initNodePty() {}
 
-  exitNodePty() { }
+  exitNodePty() {}
 
   initServerDir() {
     const runpath = resolve(app.getPath('exe'), '../../PhpWebStudy-Data').split('\\').join('/')
@@ -216,40 +212,55 @@ export default class Application extends EventEmitter {
     const arr: Array<string> = []
     const fpm: Array<string> = []
 
-    const keys: string[] = ['PhpWebStudy-Data', 'redis-server', 'php.phpwebstudy']
-    for (const key of keys) {
-      let command = `wmic process get commandline,ProcessId | findstr "${key}"`
-      console.log('_stopServer command: ', command)
-      let res: any = null
-      try {
-        res = await execPromiseRoot(command)
-      } catch (e) { }
-      const pids = res?.stdout?.trim()?.split('\n') ?? []
-      console.log('pids: ', pids)
-      for (const p of pids) {
-        if (
-          p.includes('findstr')
-        ) {
-          continue
-        }
-
-        if (p.includes('PhpWebStudy-Data') || p.includes('redis-server') || p.includes('php.phpwebstudy')) {
-          const pid = p.split(' ').filter((s: string) => {
-            return !!s.trim()
-          }).pop()
-          if (p.includes('php-cgi-spawner.exe')) {
-            fpm.push(pid.trim())
-          } else {
-            arr.push(pid.trim())
-          }
+    let all: PItem[] = []
+    try {
+      all = await ProcessPidList()
+    } catch (e) {}
+    for (const item of all) {
+      if (
+        item.commandline.includes('PhpWebStudy-Data') ||
+        item.commandline.includes('redis-server') ||
+        item.commandline.includes('php.phpwebstudy')
+      ) {
+        if (item.commandline.includes('php-cgi-spawner.exe')) {
+          fpm.push(item.ProcessId)
+        } else {
+          arr.push(item.ProcessId)
         }
       }
-      arr.unshift(...fpm)
     }
-
+    arr.unshift(...fpm)
     console.log('_stopServer arr: ', arr)
     if (arr.length > 0) {
       const str = arr.map((s) => `/pid ${s}`).join(' ')
+      try {
+        await execPromiseRoot(`taskkill /f /t ${str}`)
+      } catch (e) {
+        console.log('taskkill e: ', e)
+      }
+    }
+  }
+
+  async stopHostService() {
+    if (this.hostServicePID.size === 0) {
+      return
+    }
+    let all: string[] = []
+    try {
+      const allPid: Promise<string[]>[] = Array.from(this.hostServicePID).map((pid) => {
+        return new Promise(async (resolve) => {
+          let pids: string[] = []
+          try {
+            pids = await ProcessPidListByPid(pid)
+          } catch (e) {}
+          resolve(pids)
+        })
+      })
+      const alls = await Promise.all(allPid)
+      all = alls.flat()
+    } catch (e) {}
+    if (all.length > 0) {
+      const str = all.map((s) => `/pid ${s}`).join(' ')
       try {
         await execPromiseRoot(`taskkill /f /t ${str}`)
       } catch (e) {
@@ -263,6 +274,11 @@ export default class Application extends EventEmitter {
       await this.stopServerByPid()
     } catch (e) {
       console.log('stopServerByPid e: ', e)
+    }
+    try {
+      await this.stopHostService()
+    } catch (e) {
+      console.log('stopHostService e: ', e)
     }
     console.log('stopServer !!!')
     const hostsFile = join('c:/windows/system32/drivers/etc', 'hosts')
@@ -303,14 +319,16 @@ export default class Application extends EventEmitter {
   }
 
   relaunch() {
-    this.stop().then(() => {
-      app.relaunch()
-      app.exit()
-    }).catch((e) => {
-      console.log('relaunch e: ', e)
-      app.relaunch()
-      app.exit()
-    })
+    this.stop()
+      .then(() => {
+        app.relaunch()
+        app.exit()
+      })
+      .catch((e) => {
+        console.log('relaunch e: ', e)
+        app.relaunch()
+        app.exit()
+      })
   }
 
   initUpdaterManager() {
@@ -349,15 +367,17 @@ export default class Application extends EventEmitter {
     this.on('application:exit', () => {
       console.log('application:exit !!!!!!')
       this.windowManager.hideAllWindow()
-      this.stop().then(() => {
-        console.log('application real exit !!!!!!')
-        app.exit()
-        process.exit(0)
-      }).catch((e) => {
-        console.log('application:exit e: ', e)
-        app.exit()
-        process.exit(0)
-      })
+      this.stop()
+        .then(() => {
+          console.log('application real exit !!!!!!')
+          app.exit()
+          process.exit(0)
+        })
+        .catch((e) => {
+          console.log('application:exit e: ', e)
+          app.exit()
+          process.exit(0)
+        })
     })
 
     this.on('application:show', (page) => {
@@ -373,20 +393,20 @@ export default class Application extends EventEmitter {
       this.relaunch()
     })
 
-    this.on('application:change-menu-states', (visibleStates, enabledStates, checkedStates) => {
-    })
+    this.on('application:change-menu-states', () => {})
 
     this.on('application:window-size-change', (size) => {
       console.log('application:window-size-change: ', size)
-      this.windowManager?.getFocusedWindow()?.setSize(Math.round(size.width), Math.round(size.height), true)
+      this.windowManager
+        ?.getFocusedWindow()
+        ?.setSize(Math.round(size.width), Math.round(size.height), true)
     })
 
     this.on('application:window-open-new', (page) => {
       console.log('application:window-open-new: ', page)
     })
 
-    this.on('application:check-for-updates', () => {
-    })
+    this.on('application:check-for-updates', () => {})
   }
 
   setProxy() {
@@ -412,6 +432,12 @@ export default class Application extends EventEmitter {
     const callBack = (info: any) => {
       const win = this.mainWindow!
       this.windowManager.sendCommandTo(win, command, key, info)
+      if (info?.data?.['APP-Service-Start-PID']) {
+        this.hostServicePID.add(info.data['APP-Service-Start-PID'])
+      } else if (info?.data?.['APP-Service-Stop-PID']) {
+        const arr: string[] = info.data['APP-Service-Stop-PID'] as any
+        arr.forEach((s) => this.hostServicePID.delete(s))
+      }
     }
     if (command.startsWith('app-fork:')) {
       const module = command.replace('app-fork:', '')
@@ -437,7 +463,7 @@ export default class Application extends EventEmitter {
         }
         break
       case 'Application:tray-status-change':
-        console.log("Application:tray-status-change: ", args)
+        console.log('Application:tray-status-change: ', args)
         if (args && Array.isArray(args) && args.length > 0) {
           this.trayManager.iconChange(args[0])
         }

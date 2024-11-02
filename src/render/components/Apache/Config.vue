@@ -1,182 +1,162 @@
 <template>
-  <div class="module-config">
-    <el-card>
-      <div ref="input" class="block"></div>
-      <template #footer>
-        <div class="tool">
-          <el-button :disabled="disabled" @click="openConfig">{{ $t('base.open') }}</el-button>
-          <el-button :disabled="disabled" @click="saveConfig">{{ $t('base.save') }}</el-button>
-          <el-button :disabled="disabled" @click="getDefault">{{ $t('base.loadDefault') }}</el-button>
-          <el-button-group style="margin-left: 12px">
-            <el-button :disabled="disabled" @click="loadCustom">{{ $t('base.loadCustom') }}</el-button>
-            <el-button :disabled="disabled" @click="saveCustom">{{ $t('base.saveCustom') }}</el-button>
-          </el-button-group>
-        </div>
-      </template>
-    </el-card>
-  </div>
+  <Conf
+    ref="conf"
+    :type-flag="'apache'"
+    :default-file="defaultFile"
+    :file="file"
+    :file-ext="'conf'"
+    :show-commond="true"
+    @on-type-change="onTypeChange"
+  >
+    <template #common>
+      <Common :setting="commonSetting" />
+    </template>
+  </Conf>
 </template>
 
-<script lang="ts">
-import { writeFileAsync, readFileAsync } from '@shared/file'
-import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-import { nextTick, defineComponent } from 'vue'
-import { AppStore } from '@/store/app'
-import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-import { MessageError, MessageSuccess } from '@/util/Element'
+<script lang="ts" setup>
+  import { computed, ref, watch, Ref } from 'vue'
+  import { AppStore } from '@/store/app'
+  import Conf from '@/components/Conf/index.vue'
+  import Common from '@/components/Conf/common.vue'
+  import type { CommonSetItem } from '@/components/Conf/setup'
+  import { I18nT } from '@shared/lang'
+  import { debounce } from 'lodash'
 
-const { dialog } = require('@electron/remote')
-const { shell } = require('@electron/remote')
-const { join } = require('path')
-const { existsSync, statSync } = require('fs')
+  const { join } = require('path')
 
-export default defineComponent({
-  name: 'MoApacheConfig',
-  components: {},
-  props: {},
-  data() {
-    return {
-      config: '',
-      typeFlag: 'apache',
-      configpath: ''
+  const conf = ref()
+  const commonSetting: Ref<CommonSetItem[]> = ref([])
+  const appStore = AppStore()
+  const version = computed(() => {
+    return appStore.config.server?.apache?.current
+  })
+  const file = computed(() => {
+    if (!version?.value || !version?.value?.bin) {
+      return ''
     }
-  },
-  computed: {
-    version() {
-      return AppStore().config.server?.apache?.current
-    },
-    disabled(): boolean {
-      return !this.version?.version
+    return join(global.Server.ApacheDir, `${version.value.version}.conf`)
+  })
+  const defaultFile = computed(() => {
+    if (!version?.value || !version?.value?.bin) {
+      return ''
     }
-  },
-  watch: {},
-  created: function () { },
-  mounted() {
-    this.getConfig()
-    nextTick().then(() => {
-      this.initEditor()
-    })
-  },
-  unmounted() {
-    this.monacoInstance && this.monacoInstance.dispose()
-    this.monacoInstance = null
-  },
-  methods: {
-    loadCustom() {
-      let opt = ['openFile', 'showHiddenFiles']
-      dialog
-        .showOpenDialog({
-          properties: opt
-        })
-        .then(({ canceled, filePaths }: any) => {
-          if (canceled || filePaths.length === 0) {
-            return
-          }
-          const file = filePaths[0]
-          const state = statSync(file)
-          if (state.size > 5 * 1024 * 1024) {
-            MessageError(this.$t('base.fileBigErr'))
-            return
-          }
-          readFileAsync(file).then((conf) => {
-            this.config = conf
-            this.initEditor()
-          })
-        })
-    },
-    saveCustom() {
-      let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-      dialog
-        .showSaveDialog({
-          properties: opt,
-          defaultPath: 'apache-custom.conf',
-          filters: [
-            {
-              extensions: ['conf']
-            }
-          ]
-        })
-        .then(({ canceled, filePath }: any) => {
-          if (canceled || !filePath) {
-            return
-          }
-          const content = this.monacoInstance.getValue()
-          writeFileAsync(filePath, content).then(() => {
-            MessageSuccess(this.$t('base.success'))
-          })
-        })
-    },
-    openConfig() {
-      shell.showItemInFolder(this.configpath)
-    },
-    saveConfig() {
-      if (this.disabled) {
-        return
+    return join(global.Server.ApacheDir, `${version.value.version}.default.conf`)
+  })
+
+  const names: CommonSetItem[] = [
+    {
+      name: 'Timeout',
+      value: '60',
+      enable: true,
+      tips() {
+        return I18nT('apache.Timeout')
       }
-      const content = this.monacoInstance.getValue()
-      writeFileAsync(this.configpath, content).then(() => {
-        MessageSuccess(this.$t('base.success'))
-      })
     },
-    getConfig() {
-      if (!this?.version?.version) {
-        this.config = this.$t('base.needSelectVersion')
-        MessageError(this.config)
-        this.initEditor()
-        return
-      }
-      this.configpath = join(global.Server.ApacheDir, `${this.version.version}.conf`)
-      if (!existsSync(this.configpath)) {
-        this.config = this.$t('base.configNoFound')
-        MessageError(this.config)
-        this.initEditor()
-        return
-      }
-      readFileAsync(this.configpath).then((conf) => {
-        this.config = conf
-        this.initEditor()
-      })
-    },
-    getDefault() {
-      if (!this?.version?.version) {
-        MessageError(this.$t('base.needSelectVersion'))
-        return
-      }
-      const configpath = join(global.Server.ApacheDir, `${this.version.version}.default.conf`)
-      if (!existsSync(configpath)) {
-        MessageError(this.$t('base.defaultConFileNoFound'))
-        return
-      }
-      readFileAsync(configpath).then((conf) => {
-        this.config = conf
-        this.initEditor()
-      })
-    },
-    initEditor() {
-      if (!this.monacoInstance) {
-        const input: HTMLElement = this?.$refs?.input as HTMLElement
-        if (!input || !input?.style) {
-          return
+    {
+      name: 'KeepAlive',
+      value: 'Off',
+      enable: true,
+      options: [
+        {
+          value: 'Off',
+          label: 'Off'
+        },
+        {
+          value: 'On',
+          label: 'On'
         }
-        this.monacoInstance = EditorCreate(
-          input,
-          EditorConfigMake(this.config, this.disabled, 'off')
-        )
-        this.monacoInstance.addAction({
-          id: 'save',
-          label: 'save',
-          keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
-          run: () => {
-            this.saveConfig()
-          }
-        })
-      } else {
-        this.monacoInstance.setValue(this.config)
-        this.monacoInstance.updateOptions({
-          readOnly: this.disabled
-        })
+      ],
+      tips() {
+        return I18nT('apache.KeepAlive')
       }
+    },
+    {
+      name: 'KeepAliveTimeout',
+      value: '15',
+      enable: true,
+      tips() {
+        return I18nT('apache.KeepAliveTimeout')
+      }
+    },
+    {
+      name: 'MaxKeepAliveRequests',
+      value: '1000',
+      enable: true,
+      tips() {
+        return I18nT('apache.MaxKeepAliveRequests')
+      }
+    },
+    {
+      name: 'LimitRequestBody',
+      value: '0',
+      enable: true,
+      tips() {
+        return I18nT('apache.LimitRequestBody')
+      }
+    }
+  ]
+  let editConfig = ''
+  let watcher: any
+
+  const onSettingUpdate = () => {
+    let config = editConfig
+    const list = ['#PhpWebStudy-Conf-Common-Begin#']
+    commonSetting.value.forEach((item) => {
+      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
+      config = config.replace(regex, `\n\n`)
+      if (item.enable) {
+        list.push(`${item.name} ${item.value}`)
+      }
+    })
+    list.push('#PhpWebStudy-Conf-Common-END#')
+    config = config
+      .replace(/#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g, '')
+      .replace(/\n+/g, '\n')
+      .trim()
+    config = `${list.join('\n')}\n` + config
+    conf.value.setEditValue(config)
+  }
+
+  const getCommonSetting = () => {
+    if (watcher) {
+      watcher()
+    }
+    const arr = names.map((item) => {
+      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
+      const matchs =
+        editConfig.match(regex)?.map((s) => {
+          const sarr = s
+            .trim()
+            .split(' ')
+            .filter((s) => !!s.trim())
+          const k = sarr.shift()
+          const v = sarr.join(' ')
+          return {
+            k,
+            v
+          }
+        }) ?? []
+      console.log('getCommonSetting: ', matchs, item.name)
+      const find = matchs?.find((m) => m.k === item.name)
+      if (!find) {
+        item.enable = false
+        return item
+      }
+      item.value = find?.v ?? item.value
+      return item
+    })
+    commonSetting.value = arr as any
+    watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
+      deep: true
+    })
+  }
+
+  const onTypeChange = (type: 'default' | 'common', config: string) => {
+    console.log('onTypeChange: ', type, config)
+    if (editConfig !== config) {
+      editConfig = config
+      getCommonSetting()
     }
   }
-})
 </script>

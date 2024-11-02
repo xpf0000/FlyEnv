@@ -1,9 +1,9 @@
 <template>
-  <div class="host-edit">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('util.toolSSL') }}</span>
+  <div class="host-edit tools">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolSSL') }}</span>
+        <slot name="like"></slot>
       </div>
       <el-button type="primary" class="shrink0" :loading="running" @click="doSave">{{
         $t('base.generate')
@@ -139,17 +139,19 @@
           return
         }
         this.running = true
-        IPC.send('app-fork:tools', 'sslMake', JSON.parse(JSON.stringify(this.item))).then((key, res) => {
-          IPC.off(key)
-          this.running = false
-          if (res?.code === 0) {
-            MessageSuccess(I18nT('base.success'))
-            shell.openPath(this.item.savePath)
-            this.doClose()
-          } else {
-            MessageError(this.$t('base.fail'))
-          } 
-      })
+        IPC.send('app-fork:tools', 'sslMake', JSON.parse(JSON.stringify(this.item))).then(
+          (key, res) => {
+            IPC.off(key)
+            this.running = false
+            if (res?.code === 0) {
+              MessageSuccess(I18nT('base.success'))
+              shell.openPath(this.item.savePath)
+              this.doClose()
+            } else {
+              MessageError(this.$t('base.fail'))
+            }
+          }
+        )
       }
     }
   }

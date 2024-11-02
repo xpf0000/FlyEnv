@@ -1,9 +1,9 @@
 <template>
-  <div class="tool-timestamp host-edit">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('util.toolTimestamp') }}</span>
+  <div class="tool-timestamp tools host-edit">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolTimestamp') }}</span>
+        <slot name="like"></slot>
       </div>
     </div>
 

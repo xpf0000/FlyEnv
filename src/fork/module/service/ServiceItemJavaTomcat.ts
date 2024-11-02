@@ -1,5 +1,5 @@
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { basename, join, resolve as pathResolve } from 'path'
+import { basename, dirname, join, resolve as pathResolve } from 'path'
 import { copyFile, existsSync, mkdirp, readFile, writeFile, realpathSync } from 'fs-extra'
 import { hostAlias } from '../../Fn'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
@@ -7,6 +7,7 @@ import { ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseRoot } from '../../Fn'
 import { ProcessPidListByPid } from '../../Process'
+import { EOL } from 'os'
 
 export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostAll: AppHost[]) => {
   const parser = new XMLParser({
@@ -364,16 +365,18 @@ export class ServiceItemJavaTomcat extends ServiceItem {
         CATALINA_PID: pid
       }
       const commands: string[] = [
-        '#!/bin/zsh',
+        '@echo off',
+        'chcp 65001>nul',
         `set JAVA_HOME=${env.JAVA_HOME}`,
         `set CATALINA_BASE=${env.CATALINA_BASE}`,
         `set CATALINA_PID=${pid}`,
-        `start /B ${basename(bin)} > null 2>&1 &`
+        `cd /d "${dirname(bin)}"`,
+        `start /B ${basename(bin)} > NUL 2>&1 &`
       ]
 
-      this.command = commands.join('\n')
+      this.command = commands.join(EOL)
       console.log('command: ', this.command)
-      const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
+      const sh = join(global.Server.Cache!, `service-${this.id}.cmd`)
       await writeFile(sh, this.command)
       process.chdir(global.Server.Cache!)
       try {
@@ -383,7 +386,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
         const cpid = await this.checkPid()
         this.daemon()
         resolve({
-          'APP-Host-Service-Start-PID': cpid
+          'APP-Service-Start-PID': cpid
         })
       } catch (e) {
         console.log('start e: ', e)

@@ -57,16 +57,18 @@ export const FtpStore = defineStore('ftp', {
           return
         }
         this.fetching = true
-        IPC.send('app-fork:pure-ftpd', 'startService', { version: '1.0' }).then((key: string, res?: any) => {
-          IPC.off(key)
-          this.fetching = false
-          this.running = res?.data === true
-          if (res?.code === 0) {
-            resolve(true)
-          } else {
-            resolve(res?.msg ?? new Error('Ftp start fail!'))
+        IPC.send('app-fork:pure-ftpd', 'startService', { version: '1.0' }).then(
+          (key: string, res?: any) => {
+            IPC.off(key)
+            this.fetching = false
+            this.running = res?.data === true
+            if (res?.code === 0) {
+              resolve(true)
+            } else {
+              resolve(res?.msg ?? new Error('Ftp start fail!'))
+            }
           }
-        })
+        )
       })
     },
     stop(): Promise<string | boolean> {
@@ -76,16 +78,18 @@ export const FtpStore = defineStore('ftp', {
           return
         }
         this.fetching = true
-        IPC.send('app-fork:pure-ftpd', 'stopService', { version: '1.0' }).then((key: string, res?: any) => {
-          IPC.off(key)
-          this.fetching = false
-          this.running = false
-          if (res?.code === 0) {
-            resolve(true)
-          } else {
-            resolve(res?.msg ?? new Error('Ftp start fail!'))
+        IPC.send('app-fork:pure-ftpd', 'stopService', { version: '1.0' }).then(
+          (key: string, res?: any) => {
+            IPC.off(key)
+            this.fetching = false
+            this.running = false
+            if (res?.code === 0) {
+              resolve(true)
+            } else {
+              resolve(res?.msg ?? new Error('Ftp start fail!'))
+            }
           }
-        })
+        )
       })
     },
     reStart(): Promise<string | boolean> {

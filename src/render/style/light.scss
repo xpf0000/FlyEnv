@@ -351,7 +351,7 @@ html.light {
       }
     }
 
-    .host-edit {
+    .host-edit:not(.tools) {
       background: #fff;
 
       .nav {
@@ -444,7 +444,59 @@ html.light {
       }
     }
 
-    .tools-file-info {
+    .php-extensions {
+      .nav {
+        background: var(--main-bg-color);
+      }
+    }
+  }
+
+  .host-edit.tools {
+
+    .main-wapper {
+      .input,
+      .input-textarea {
+        color: #345;
+        &::-webkit-input-placeholder {
+          color: rgba(51, 68, 85, 0.7);
+        }
+      }
+      .input {
+        border-bottom: 1px solid rgba(51, 68, 85, 0.4);
+
+        &:hover {
+          border-bottom: 2px solid rgba(51, 68, 85, 0.4);
+        }
+        &:focus {
+          border-bottom: 2px solid #01cc74;
+        }
+        &.error {
+          border-bottom: 2px solid #cc5441;
+        }
+      }
+      .input-textarea {
+        border: 1px solid rgba(51, 68, 85, 0.4);
+
+        &:hover {
+          border: 2px solid rgba(51, 68, 85, 0.4);
+        }
+        &:focus {
+          border: 2px solid #01cc74;
+        }
+        &.error {
+          border: 2px solid #cc5441;
+        }
+      }
+      .el-select {
+        &.error {
+          .el-input__wrapper {
+            border: 1px solid #cc5441;
+          }
+        }
+      }
+    }
+
+    &.tools-file-info {
       .main-wapper {
         .select-dir-wapper {
           #selectDir {
@@ -452,12 +504,6 @@ html.light {
             color: #345;
           }
         }
-      }
-    }
-
-    .php-extensions {
-      .nav {
-        background: var(--main-bg-color);
       }
     }
   }
@@ -495,7 +541,7 @@ html.light {
           width: 45px;
 
           .top-tool {
-            padding: 20px 0 12px 0;
+            padding: 50px 0 12px 0;
             justify-content: center;
 
             >.el-tooltip__trigger {

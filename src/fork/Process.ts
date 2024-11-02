@@ -1,37 +1,47 @@
-import { execPromiseRoot } from './Fn'
+import { execPromiseRoot, uuid } from './Fn'
+import { join } from 'path'
+import { existsSync } from 'fs'
+import { readFile, remove } from 'fs-extra'
 
-type PItem = {
+export type PItem = {
   ProcessId: string
   ParentProcessId: string
   commandline: string
 }
 
-export const ProcessPidListByPid = async (pid: string): Promise<string[]> => {
-  const all: Set<string> = new Set()
-  let res = ''
+export const ProcessPidList = async (): Promise<PItem[]> => {
+  const tmpl = join(global.Server.Cache!, `${uuid()}`)
   try {
-    res = (
-      await execPromiseRoot('wmic process get ProcessId,ParentProcessId,commandline /format:list')
-    ).stdout
+    await execPromiseRoot(
+      `wmic process get ProcessId,ParentProcessId,commandline /format:list > "${tmpl}"`
+    )
   } catch (e) {}
-  if (!res) {
+  if (!existsSync(tmpl)) {
     return []
   }
-  const arr = res
+  const res = await readFile(tmpl, 'ucs-2')
+  await remove(tmpl)
+  return res
     .trim()
-    .split(`\r\r\n\r\r\n\r\r\n`)
+    .split(`\r\n\r\n\r\n`)
     .map((s) => {
       const obj: any = {}
-      s.split('\r\r\n')
+      s.split('\r\n')
         .filter((s) => !!s.trim())
         .forEach((f) => {
           const item = f.split('=')
-          const k = item.shift() ?? ''
-          const v = item.join('=')
+          const k = item?.shift()?.trim() ?? ''
+          const v = item?.join('=')?.trim() ?? ''
           obj[k] = v
         })
       return obj as PItem
     })
+}
+
+export const ProcessPidListByPid = async (pid: string): Promise<string[]> => {
+  const all: Set<string> = new Set()
+  const arr = await ProcessPidList()
+  console.log('arr: ', pid, arr)
   const find = (ppid: string) => {
     for (const item of arr) {
       if (item.ParentProcessId === ppid) {
@@ -45,35 +55,19 @@ export const ProcessPidListByPid = async (pid: string): Promise<string[]> => {
     all.add(pid)
     find(pid)
   }
+  const item = arr.find((a) => a.ParentProcessId === pid)
+  if (item) {
+    all.add(pid)
+    all.add(item.ProcessId)
+    find(pid)
+    find(item.ProcessId)
+  }
   return [...all]
 }
 
 export const ProcessListSearch = async (search: string, aA = true) => {
   const all: PItem[] = []
-  let res = ''
-  try {
-    res = (
-      await execPromiseRoot('wmic process get ProcessId,ParentProcessId,commandline /format:list')
-    ).stdout
-  } catch (e) {}
-  if (!res) {
-    return []
-  }
-  const arr = res
-    .trim()
-    .split(`\r\r\n\r\r\n\r\r\n`)
-    .map((s) => {
-      const obj: any = {}
-      s.split('\r\r\n')
-        .filter((s) => !!s.trim())
-        .forEach((f) => {
-          const item = f.split('=')
-          const k = item.shift() ?? ''
-          const v = item.join('=')
-          obj[k] = v
-        })
-      return obj as PItem
-    })
+  const arr = await ProcessPidList()
   const find = (ppid: string) => {
     for (const item of arr) {
       if (item.ParentProcessId === ppid) {

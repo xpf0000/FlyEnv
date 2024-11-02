@@ -1,21 +1,35 @@
 <template>
-    <li v-if="showItem" :class="'non-draggable' + (currentPage === '/postgresql' ? ' active' : '')" @click="nav">
-        <div class="left">
-            <div class="icon-block" :class="{ run: serviceRunning }">
-                <yb-icon style="padding: 7px" :svg="import('@/svg/postgresql.svg?raw')" width="30" height="30" />
-            </div>
-            <span class="title">PostgreSQL</span>
-        </div>
+  <li
+    v-if="showItem"
+    :class="'non-draggable' + (currentPage === '/postgresql' ? ' active' : '')"
+    @click="nav"
+  >
+    <div class="left">
+      <div class="icon-block" :class="{ run: serviceRunning }">
+        <yb-icon
+          style="padding: 7px"
+          :svg="import('@/svg/postgresql.svg?raw')"
+          width="30"
+          height="30"
+        />
+      </div>
+      <span class="title">PostgreSQL</span>
+    </div>
 
-        <el-switch v-model="serviceRunning" :disabled="serviceDisabled" @click.stop="stopNav" @change="switchChange">
-        </el-switch>
-    </li>
+    <el-switch
+      v-model="serviceRunning"
+      :disabled="serviceDisabled"
+      @click.stop="stopNav"
+      @change="switchChange"
+    >
+    </el-switch>
+  </li>
 </template>
 
 <script lang="ts" setup>
-import { AsideSetup, AppServiceModule } from '@/core/ASide'
+  import { AsideSetup, AppServiceModule } from '@/core/ASide'
 
-const {
+  const {
     showItem,
     serviceDisabled,
     serviceFetching,
@@ -25,14 +39,14 @@ const {
     switchChange,
     nav,
     stopNav
-} = AsideSetup('postgresql')
+  } = AsideSetup('postgresql')
 
-AppServiceModule.postgresql = {
+  AppServiceModule.postgresql = {
     groupDo,
     switchChange,
     serviceRunning,
     serviceFetching,
     serviceDisabled,
     showItem
-} as any
+  } as any
 </script>

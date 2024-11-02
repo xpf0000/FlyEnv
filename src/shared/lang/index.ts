@@ -20,17 +20,22 @@ import { merge } from 'lodash'
 const { basename, dirname } = require('path')
 
 const modules: any = import.meta.glob('@/components/*/lang/*/*', { eager: true })
-console.log('lang modules: ', modules)
+const modulesTool: any = import.meta.glob('@/components/Tools/*/lang/*/*', { eager: true })
+console.log('lang modules: ', modules, modulesTool)
 const dict: any = {}
-for (const k in modules) {
+for (const k in { ...modules, ...modulesTool }) {
   const name = basename(k).split('.').shift()!
   const lang = basename(dirname(k))
   if (!dict[lang]) {
     dict[lang] = {}
   }
-  dict[lang][name] = Object.assign({}, dict[lang][name], modules[k].default)
+  dict[lang][name] = Object.assign(
+    {},
+    dict[lang][name],
+    modules?.[k]?.default,
+    modulesTool?.[k]?.default
+  )
 }
-
 
 export const lang = merge(
   {

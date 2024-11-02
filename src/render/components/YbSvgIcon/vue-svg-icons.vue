@@ -5,7 +5,6 @@
     removeTags: true,
     removingTags: ['p-id', 'id', 'class', 'title', 'desc', 'defs', 'style'],
     removingTagAttrs: [
-      'fill',
       't',
       'version',
       'p-id',
@@ -15,8 +14,6 @@
       'desc',
       'defs',
       'style',
-      'width',
-      'height',
       'xmlns',
       'xmlns:xlink'
     ]
@@ -64,7 +61,7 @@
           let content = ''
           if (this.icon && this.icon.raw) {
             //eslint-disable-next-line
-            content += `${this.raw.replace(/"/g, "'")}`
+          content += `${this.raw.replace(/"/g, "'")}`
           }
           let code = {
             '%': '%25',
@@ -197,6 +194,7 @@
   }
 
   let cursor = 0xd4937
+
   function getId() {
     return `fa-${(cursor++).toString(16)}`
   }

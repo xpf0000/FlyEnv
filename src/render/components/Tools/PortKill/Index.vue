@@ -1,9 +1,9 @@
 <template>
-  <div class="port-kill host-edit">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('util.toolPortKill') }}</span>
+  <div class="port-kill tools host-edit">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolPortKill') }}</span>
+        <slot name="like"></slot>
       </div>
     </div>
 
@@ -86,16 +86,15 @@
           type: 'warning'
         })
           .then(() => {
-            const pids = this.select
-              .map((s: any) => {
-                return s.PID
-              })
+            const pids = this.select.map((s: any) => {
+              return s.PID
+            })
 
-              IPC.send('app-fork:tools', 'processKill', pids).then((key, res) => {
-                IPC.off(key)
-                MessageSuccess(this.$t('base.success'))
-                this.doSearch()
-              })
+            IPC.send('app-fork:tools', 'processKill', pids).then((key, res) => {
+              IPC.off(key)
+              MessageSuccess(this.$t('base.success'))
+              this.doSearch()
+            })
           })
           .catch(() => {})
       },
@@ -105,16 +104,15 @@
           type: 'warning'
         })
           .then(() => {
-            const pids = this.arrs
-              .map((s: any) => {
-                return s.PID
-              })
-              
-              IPC.send('app-fork:tools', 'processKill', pids).then((key, res) => {
-                IPC.off(key)
-                MessageSuccess(this.$t('base.success'))
-                this.doSearch()
-              })
+            const pids = this.arrs.map((s: any) => {
+              return s.PID
+            })
+
+            IPC.send('app-fork:tools', 'processKill', pids).then((key, res) => {
+              IPC.off(key)
+              MessageSuccess(this.$t('base.success'))
+              this.doSearch()
+            })
           })
           .catch(() => {})
       },

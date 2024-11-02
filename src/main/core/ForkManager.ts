@@ -114,9 +114,9 @@ class ForkItem {
 export class ForkManager {
   file: string
   forks: Array<ForkItem> = []
-  fenciFork?: ForkItem
   ftpFork?: ForkItem
   dnsFork?: ForkItem
+  serviceFork?: ForkItem
   _on: Function = () => {}
   constructor(file: string) {
     this.file = file
@@ -127,19 +127,19 @@ export class ForkManager {
   }
 
   send(...args: any) {
-    if (args.includes('tools') && args.includes('wordSplit')) {
-      if (!this.fenciFork) {
-        this.fenciFork = new ForkItem(this.file, true)
+    if (args?.[0] === 'service') {
+      if (!this.serviceFork) {
+        this.serviceFork = new ForkItem(this.file, false)
       }
-      return this.fenciFork!.send(...args)
+      return this.serviceFork!.send(...args)
     }
-    if (args.includes('pure-ftpd')) {
+    if (args?.[0] === 'pure-ftpd') {
       if (!this.ftpFork) {
         this.ftpFork = new ForkItem(this.file, false)
       }
       return this.ftpFork!.send(...args)
     }
-    if (args.includes('dns')) {
+    if (args?.[0] === 'dns') {
       if (!this.dnsFork) {
         this.dnsFork = new ForkItem(this.file, false)
       }
@@ -163,8 +163,9 @@ export class ForkManager {
   }
 
   destory() {
-    this.fenciFork && this.fenciFork.destory()
+    this.serviceFork && this.serviceFork.destory()
     this.ftpFork && this.ftpFork.destory()
+    this.dnsFork && this.dnsFork.destory()
     this.forks.forEach((fork) => {
       fork.destory()
     })

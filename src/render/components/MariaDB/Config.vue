@@ -1,182 +1,223 @@
 <template>
-  <div class="module-config">
-    <el-card>
-      <div ref="input" class="block"></div>
-      <template #footer>
-        <div class="tool">
-          <el-button :disabled="!currentVersion" @click="openConfig">{{ $t('base.open') }}</el-button>
-          <el-button :disabled="!currentVersion" @click="saveConfig">{{ $t('base.save') }}</el-button>
-          <el-button :disabled="!currentVersion" @click="getDefault">{{
-            $t('base.loadDefault')
-            }}</el-button>
-          <el-button-group style="margin-left: 12px">
-            <el-button :disabled="!currentVersion" @click="loadCustom">{{
-              $t('base.loadCustom')
-              }}</el-button>
-            <el-button :disabled="!currentVersion" @click="saveCustom">{{
-              $t('base.saveCustom')
-              }}</el-button>
-          </el-button-group>
-        </div>
-      </template>
-    </el-card>
-  </div>
+  <Conf
+    ref="conf"
+    :type-flag="'mariadb'"
+    :default-conf="defaultConf"
+    :file="file"
+    :file-ext="'cnf'"
+    :show-commond="true"
+    @on-type-change="onTypeChange"
+  >
+    <template #common>
+      <Common :setting="commonSetting" />
+    </template>
+  </Conf>
 </template>
 
-<script lang="ts">
-import { readFileAsync, writeFileAsync } from '@shared/file'
-import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-import { nextTick, defineComponent } from 'vue'
-import { AppStore } from '@/store/app'
-import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-import { MessageError, MessageSuccess } from '@/util/Element'
+<script lang="ts" setup>
+  import { computed, ref, watch, Ref } from 'vue'
+  import Conf from '@/components/Conf/index.vue'
+  import Common from '@/components/Conf/common.vue'
+  import type { CommonSetItem } from '@/components/Conf/setup'
+  import { I18nT } from '@shared/lang'
+  import { debounce } from 'lodash'
+  import { AppStore } from '@/store/app'
 
-const { dialog } = require('@electron/remote')
-const { existsSync, statSync } = require('fs')
-const { join } = require('path')
-const { shell } = require('@electron/remote')
+  const { join } = require('path')
 
-export default defineComponent({
-  components: {},
-  props: {},
-  data() {
-    return {
-      config: '',
-      realDir: '',
-      configPath: '',
-      typeFlag: 'mariadb'
+  const appStore = AppStore()
+  const conf = ref()
+  const commonSetting: Ref<CommonSetItem[]> = ref([])
+
+  const currentVersion = computed(() => {
+    return appStore.config?.server?.mariadb?.current?.version
+  })
+
+  const vm = computed(() => {
+    return currentVersion?.value?.split('.')?.slice(0, 2)?.join('.')
+  })
+
+  const file = computed(() => {
+    if (!vm.value) {
+      return ''
     }
-  },
-  computed: {
-    currentVersion() {
-      return AppStore().config?.server?.mariadb?.current?.version
+    return join(global.Server.MariaDBDir, `my-${vm.value}.cnf`)
+  })
+
+  const defaultConf = computed(() => {
+    if (!vm.value) {
+      return ''
     }
-  },
-  watch: {},
-  created: function () { },
-  mounted() {
-    if (!this.currentVersion) {
-      this.config = this.$t('base.needSelectVersion')
-      MessageError(this.config)
-    } else {
-      const v = this.currentVersion.split('.').slice(0, 2).join('.')
-      this.configPath = join(global.Server.MariaDBDir, `my-${v}.cnf`)
-      this.getConfig()
-    }
-    nextTick().then(() => {
-      this.initEditor()
-    })
-  },
-  unmounted() {
-    this.monacoInstance && this.monacoInstance.dispose()
-    this.monacoInstance = null
-  },
-  methods: {
-    loadCustom() {
-      let opt = ['openFile', 'showHiddenFiles']
-      dialog
-        .showOpenDialog({
-          properties: opt
-        })
-        .then(({ canceled, filePaths }: any) => {
-          if (canceled || filePaths.length === 0) {
-            return
-          }
-          const file = filePaths[0]
-          const state = statSync(file)
-          if (state.size > 5 * 1024 * 1024) {
-            MessageError(this.$t('base.fileBigErr'))
-            return
-          }
-          readFileAsync(file).then((conf) => {
-            this.config = conf
-            this.initEditor()
-          })
-        })
-    },
-    saveCustom() {
-      let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-      dialog
-        .showSaveDialog({
-          properties: opt,
-          defaultPath: 'mariadb-custom.cnf',
-          filters: [
-            {
-              extensions: ['cnf']
-            }
-          ]
-        })
-        .then(({ canceled, filePath }: any) => {
-          if (canceled || !filePath) {
-            return
-          }
-          const content = this.monacoInstance.getValue()
-          writeFileAsync(filePath, content).then(() => {
-            MessageSuccess(this.$t('base.success'))
-          })
-        })
-    },
-    openConfig() {
-      shell.showItemInFolder(this.configPath)
-    },
-    saveConfig() {
-      if (!this.currentVersion) {
-        return
-      }
-      const content = this.monacoInstance.getValue()
-      writeFileAsync(this.configPath, content).then(() => {
-        MessageSuccess(this.$t('base.success'))
-      })
-    },
-    getConfig() {
-      if (!existsSync(this.configPath)) {
-        this.config = this.$t('base.needSelectVersion')
-        const appStore = AppStore()
-        appStore.config.server.mariadb.current = {}
-        appStore.saveConfig()
-        return
-      }
-      readFileAsync(this.configPath).then((conf) => {
-        this.config = conf
-        this.initEditor()
-      })
-    },
-    getDefault() {
-      const v = this?.currentVersion?.split('.')?.slice(0, 2)?.join('.') ?? ''
-      const dataDir = join(global.Server.MariaDBDir, `data-${v}`)
-      this.config = `[mariadbd]
+    const dataDir = join(global.Server.MariaDBDir, `data-${vm.value}`)
+    return `[mariadbd]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-port = 3307
 datadir=${dataDir}`
-      this.initEditor()
+  })
+
+  const names: CommonSetItem[] = [
+    {
+      name: 'key_buffer_size',
+      value: '64M',
+      enable: true,
+      tips() {
+        return I18nT('mysql.key_buffer_size')
+      }
     },
-    initEditor() {
-      if (!this.monacoInstance) {
-        const input: HTMLElement = this?.$refs?.input as HTMLElement
-        if (!input || !input?.style) {
-          return
-        }
-        this.monacoInstance = EditorCreate(
-          input,
-          EditorConfigMake(this.config, !this.currentVersion, 'off')
-        )
-        this.monacoInstance.addAction({
-          id: 'save',
-          label: 'save',
-          keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
-          run: () => {
-            this.saveConfig()
-          }
-        })
-      } else {
-        this.monacoInstance.setValue(this.config)
-        this.monacoInstance.updateOptions({
-          readOnly: !this.currentVersion
-        })
+    {
+      name: 'query_cache_size',
+      value: '32M',
+      enable: true,
+      // show: vm?.value?.startsWith('5.'),
+      tips() {
+        return I18nT('mysql.query_cache_size')
+      }
+    },
+    {
+      name: 'tmp_table_size',
+      value: '64M',
+      enable: true,
+      tips() {
+        return I18nT('mysql.tmp_table_size')
+      }
+    },
+    {
+      name: 'innodb_buffer_pool_size',
+      value: '256M',
+      enable: true,
+      tips() {
+        return I18nT('mysql.innodb_buffer_pool_size')
+      }
+    },
+    {
+      name: 'innodb_log_buffer_size',
+      value: '32M',
+      enable: true,
+      tips() {
+        return I18nT('mysql.innodb_log_buffer_size')
+      }
+    },
+    {
+      name: 'sort_buffer_size',
+      value: '1M',
+      enable: true,
+      tips() {
+        return I18nT('mysql.sort_buffer_size')
+      }
+    },
+    {
+      name: 'read_buffer_size',
+      value: '1M',
+      enable: true,
+      tips() {
+        return I18nT('mysql.read_buffer_size')
+      }
+    },
+    {
+      name: 'read_rnd_buffer_size',
+      value: '256K',
+      enable: true,
+      tips() {
+        return I18nT('mysql.read_rnd_buffer_size')
+      }
+    },
+    {
+      name: 'thread_cache_size',
+      value: '32',
+      enable: true,
+      tips() {
+        return I18nT('mysql.thread_cache_size')
+      }
+    },
+    {
+      name: 'table_open_cache',
+      value: '256',
+      enable: true,
+      tips() {
+        return I18nT('mysql.table_open_cache')
+      }
+    },
+    {
+      name: 'max_connections',
+      value: '500',
+      enable: true,
+      tips() {
+        return I18nT('mysql.max_connections')
       }
     }
+  ]
+  let editConfig = ''
+  let watcher: any
+
+  const onSettingUpdate = () => {
+    let config = editConfig
+    const list = ['#PhpWebStudy-Conf-Common-Begin#']
+    commonSetting.value.forEach((item) => {
+      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
+      config = config.replace(regex, `\n\n`)
+      if (item.enable) {
+        list.push(`${item.name} = ${item.value}`)
+      }
+    })
+    list.push('#PhpWebStudy-Conf-Common-END#')
+    config = config
+      .replace(
+        /([\s\n]?[^\n]*)#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g,
+        ''
+      )
+      .replace(/\n+/g, '\n\n')
+      .trim()
+    if (config.includes('[mariadbd]')) {
+      config = config.replace(/\[mariadbd](.*?)\n/g, `[mariadbd]\n${list.join('\n')}\n`)
+    } else {
+      config = `[mariadbd]\n${list.join('\n')}\n` + config
+    }
+    conf.value.setEditValue(config)
   }
-})
+
+  const getCommonSetting = () => {
+    if (watcher) {
+      watcher()
+    }
+    const arr = names
+      .map((item) => {
+        const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
+        const matchs =
+          editConfig.match(regex)?.map((s) => {
+            const sarr = s
+              .trim()
+              .split('=')
+              .filter((s) => !!s.trim())
+              .map((s) => s.trim())
+            const k = sarr.shift()
+            const v = sarr.join(' ').replace(';', '').replace('=', '').trim()
+            return {
+              k,
+              v
+            }
+          }) ?? []
+        console.log('getCommonSetting: ', matchs, item.name)
+        const find = matchs?.find((m) => m.k === item.name)
+        if (!find) {
+          item.enable = false
+          return item
+        }
+        item.value = find?.v ?? item.value
+        return item
+      })
+      .filter((item) => item.show !== false)
+    commonSetting.value = arr as any
+    watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
+      deep: true
+    })
+  }
+
+  const onTypeChange = (type: 'default' | 'common', config: string) => {
+    console.log('onTypeChange: ', type, config)
+    if (editConfig !== config) {
+      editConfig = config
+      getCommonSetting()
+    }
+  }
 </script>

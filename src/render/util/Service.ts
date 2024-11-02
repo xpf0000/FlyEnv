@@ -11,7 +11,7 @@ const exec = (
   typeFlag: AllAppModule,
   fn: string,
   version: SoftInstalled,
-  lastVersion?: SoftInstalled,
+  lastVersion?: SoftInstalled
 ): Promise<string | boolean> => {
   return new Promise((resolve) => {
     if (version.running) {
@@ -26,24 +26,29 @@ const exec = (
     const args = JSON.parse(JSON.stringify(version))
     const appStore = AppStore()
     const taskStore = TaskStore()
-    const task = taskStore.module(typeFlag)
+    const task = taskStore.module(typeFlag)!
     task.log!.splice(0)
     IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion).then((key: string, res: any) => {
       if (res.code === 0) {
         console.log('### key: ', key)
         IPC.off(key)
+        const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
         const brewStore = BrewStore()
 
-        const findV = brewStore.module(typeFlag).installed?.find(
-          (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
-        )
+        const findV = brewStore
+          .module(typeFlag)
+          .installed?.find(
+            (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
+          )
         console.log('findV: ', findV === version)
 
         version.run = fn !== 'stopService'
         version.running = false
+        version.pid = pid
         if (findV) {
           findV.run = version.run
           findV.running = false
+          findV.pid = pid
         }
         if (typeFlag === 'php' && fn === 'startService') {
           const hosts = appStore.hosts
@@ -68,46 +73,12 @@ export const stopService = (typeFlag: AllAppModule, version: SoftInstalled) => {
   return exec(typeFlag, 'stopService', version)
 }
 
-export const startService = (typeFlag: AllAppModule, version: SoftInstalled, lastVersion?: SoftInstalled) => {
+export const startService = (
+  typeFlag: AllAppModule,
+  version: SoftInstalled,
+  lastVersion?: SoftInstalled
+) => {
   return exec(typeFlag, 'startService', version, lastVersion)
-}
-
-export const reloadService = (typeFlag: AllAppModule, version: SoftInstalled) => {
-  return exec(typeFlag, 'reloadService', version)
-}
-
-export const dnsStart = (): Promise<boolean | string> => {
-  return new Promise((resolve) => {
-    const store = DnsStore()
-    if (store.running) {
-      resolve(true)
-      return
-    }
-    store.fetching = true
-    IPC.send('app-fork:dns', 'startService').then((key: string, res: any) => {
-      IPC.off(key)
-      store.fetching = false
-      store.running = res?.data === true
-      resolve(res)
-    })
-  })
-}
-
-export const dnsStop = (): Promise<boolean> => {
-  return new Promise((resolve) => {
-    const store = DnsStore()
-    if (!store.running) {
-      resolve(true)
-      return
-    }
-    store.fetching = true
-    IPC.send('app-fork:dns', 'stopService').then((key: string, res: boolean) => {
-      IPC.off(key)
-      store.fetching = false
-      store.running = false
-      resolve(res)
-    })
-  })
 }
 
 export const reloadWebServer = (hosts?: Array<AppHost>) => {

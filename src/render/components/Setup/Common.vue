@@ -33,8 +33,7 @@
         <div class="col">
           <Tool />
         </div>
-        <div class="col">
-        </div>
+        <div class="col"> </div>
       </div>
       <ProxySet />
       <div class="row-2">
@@ -52,24 +51,23 @@
 </template>
 
 <script lang="ts" setup>
-import ProxySet from './ProxySet/index.vue'
-import LangSet from './LangSet/index.vue'
-import ForceStart from './ForceStart/index.vue'
-import ThemeSet from './Theme/index.vue'
-import Base from '@/core/Base'
-import { I18nT } from '@shared/lang'
-import Tool from './Tool/index.vue'
-import AI from './AI/index.vue'
-import { AppModules } from '@/core/App'
-import ModuleShowHide from './ModuleShowHide/index.vue'
+  import ProxySet from './ProxySet/index.vue'
+  import LangSet from './LangSet/index.vue'
+  import ForceStart from './ForceStart/index.vue'
+  import ThemeSet from './Theme/index.vue'
+  import Base from '@/core/Base'
+  import { I18nT } from '@shared/lang'
+  import Tool from './Tool/index.vue'
+  import AI from './AI/index.vue'
+  import { AppModules } from '@/core/App'
+  import ModuleShowHide from './ModuleShowHide/index.vue'
 
-const showAbout = () => {
-  Base.Dialog(import('@/components/About/index.vue'))
-    .className('about-dialog')
-    .title(I18nT('base.about'))
-    .width('665px')
-    .noFooter()
-    .show()
-}
-
+  const showAbout = () => {
+    Base.Dialog(import('@/components/About/index.vue'))
+      .className('about-dialog')
+      .title(I18nT('base.about'))
+      .width('665px')
+      .noFooter()
+      .show()
+  }
 </script>

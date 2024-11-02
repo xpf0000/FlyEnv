@@ -9,7 +9,12 @@
               <span>{{ $t('base.customVersionDir') }}</span>
             </template>
             <template #reference>
-              <el-button class="custom-folder-add-btn" :icon="FolderAdd" link @click.stop="showCustomDir"></el-button>
+              <el-button
+                class="custom-folder-add-btn"
+                :icon="FolderAdd"
+                link
+                @click.stop="showCustomDir"
+              ></el-button>
             </template>
           </el-popover>
           <el-popover :show-after="600" placement="top" width="auto">
@@ -19,27 +24,31 @@
             <template #reference>
               <template v-if="isShowHide">
                 <el-button link style="padding: 0" @click.stop="isShowHide = false">
-                  <yb-icon :svg="import('@/svg/show.svg?raw')"
-                    style="width: 24px; height: 24px; color: #409eff"></yb-icon>
+                  <yb-icon
+                    :svg="import('@/svg/show.svg?raw')"
+                    style="width: 24px; height: 24px; color: #409eff"
+                  ></yb-icon>
                 </el-button>
               </template>
               <template v-else>
                 <el-button link style="padding: 0" @click.stop="isShowHide = true">
-                  <yb-icon :svg="import('@/svg/hide.svg?raw')" style="width: 23px; height: 23px"></yb-icon>
+                  <yb-icon
+                    :svg="import('@/svg/hide.svg?raw')"
+                    style="width: 23px; height: 23px"
+                  ></yb-icon>
                 </el-button>
               </template>
             </template>
           </el-popover>
-          <el-button link @click="openUrl('https://getcomposer.org/')">
-            Composer
-          </el-button>
-          <el-button link @click="openUrl('http://pecl.php.net/')">
-            Pecl
-          </el-button>
+          <el-button link @click="openUrl('https://getcomposer.org/')"> Composer </el-button>
+          <el-button link @click="openUrl('http://pecl.php.net/')"> Pecl </el-button>
         </div>
         <el-button class="button" :disabled="service?.fetching" link @click="resetData">
-          <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" class="refresh-icon"
-            :class="{ 'fa-spin': service?.fetching }"></yb-icon>
+          <yb-icon
+            :svg="import('@/svg/icon_refresh.svg?raw')"
+            class="refresh-icon"
+            :class="{ 'fa-spin': service?.fetching }"
+          ></yb-icon>
         </el-button>
       </div>
     </template>
@@ -73,9 +82,16 @@
       </el-table-column>
       <el-table-column :label="$t('php.quickStart')" :prop="null" width="100px" align="center">
         <template #default="scope">
-          <el-button link class="status group-off" :class="{ off: appStore?.phpGroupStart?.[scope.row.bin] === false }"
-            @click.stop="groupTrunOn(scope.row)">
-            <yb-icon style="width: 30px; height: 30px" :svg="import('@/svg/nogroupstart.svg?raw')" />
+          <el-button
+            link
+            class="status group-off"
+            :class="{ off: appStore?.phpGroupStart?.[scope.row.bin] === false }"
+            @click.stop="groupTrunOn(scope.row)"
+          >
+            <yb-icon
+              style="width: 30px; height: 30px"
+              :svg="import('@/svg/nogroupstart.svg?raw')"
+            />
           </el-button>
         </template>
       </el-table-column>
@@ -83,8 +99,11 @@
         <template #default="scope">
           <template v-if="excludeLocalVersion.includes(scope.row.bin)">
             <el-button link @click.stop="doShow(scope.row)">
-              <yb-icon :svg="import('@/svg/hide.svg?raw')" style="width: 24px; height: 24px"
-                :class="{ 'fa-spin': service?.fetching }"></yb-icon>
+              <yb-icon
+                :svg="import('@/svg/hide.svg?raw')"
+                style="width: 24px; height: 24px"
+                :class="{ 'fa-spin': service?.fetching }"
+              ></yb-icon>
             </el-button>
           </template>
           <template v-else>
@@ -97,7 +116,10 @@
                   <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="doStop(scope.row)" />
                 </el-button>
                 <el-button link class="status refresh">
-                  <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="doRun(scope.row)" />
+                  <yb-icon
+                    :svg="import('@/svg/icon_refresh.svg?raw')"
+                    @click.stop="doRun(scope.row)"
+                  />
                 </el-button>
               </template>
               <template v-else>
@@ -111,8 +133,14 @@
       </el-table-column>
       <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
-          <el-popover @show="onPoperShow" effect="dark" popper-class="host-list-poper" placement="bottom-end"
-            :show-arrow="false" width="auto">
+          <el-popover
+            effect="dark"
+            popper-class="host-list-poper"
+            placement="bottom-end"
+            :show-arrow="false"
+            width="auto"
+            @show="onPoperShow"
+          >
             <ul v-poper-fix class="host-list-menu">
               <li @click.stop="action(scope.row, scope.$index, 'open')">
                 <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
@@ -127,7 +155,12 @@
                 <span class="ml-15">{{ $t('php.extension') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'groupstart')">
-                <yb-icon style="padding: 0" :svg="import('@/svg/nogroupstart.svg?raw')" width="18" height="18" />
+                <yb-icon
+                  style="padding: 0"
+                  :svg="import('@/svg/nogroupstart.svg?raw')"
+                  width="18"
+                  height="18"
+                />
                 <template v-if="appStore?.phpGroupStart?.[scope.row.bin] === false">
                   <span class="ml-10">{{ $t('php.groupStartOn') }}</span>
                 </template>
@@ -135,9 +168,18 @@
                   <span class="ml-10">{{ $t('php.groupStartOff') }}</span>
                 </template>
               </li>
-              <li v-loading="pathLoading(scope.row)" class="path-set" :class="pathState(scope.row)"
-                @click.stop="pathChange(scope.row)">
-                <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              <li
+                v-loading="pathLoading(scope.row)"
+                class="path-set"
+                :class="pathState(scope.row)"
+                @click.stop="pathChange(scope.row)"
+              >
+                <yb-icon
+                  class="current"
+                  :svg="import('@/svg/select.svg?raw')"
+                  width="17"
+                  height="17"
+                />
                 <span class="ml-15">{{ $t('base.addToPath') }}</span>
               </li>
               <template v-if="isVersionHide(scope.row)">
@@ -166,217 +208,217 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, reactive } from 'vue'
-import { startService, stopService } from '@/util/Service'
-import installedVersions from '@/util/InstalledVersions'
-import { BrewStore, SoftInstalled } from '@/store/brew'
-import { I18nT } from '@shared/lang'
-import { AsyncComponentShow } from '@/util/AsyncComponent'
-import { AppStore } from '@/store/app'
-import { MessageError, MessageSuccess } from '@/util/Element'
-import { Service } from '@/components/ServiceManager/service'
-import { FolderAdd } from '@element-plus/icons-vue'
-import { ServiceActionStore } from '../ServiceManager/EXT/store'
+  import { ref, computed, reactive } from 'vue'
+  import { startService, stopService } from '@/util/Service'
+  import installedVersions from '@/util/InstalledVersions'
+  import { BrewStore, SoftInstalled } from '@/store/brew'
+  import { I18nT } from '@shared/lang'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AppStore } from '@/store/app'
+  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { Service } from '@/components/ServiceManager/service'
+  import { FolderAdd } from '@element-plus/icons-vue'
+  import { ServiceActionStore } from '../ServiceManager/EXT/store'
 
-const { shell } = require('@electron/remote')
-const { join, dirname } = require('path')
+  const { shell } = require('@electron/remote')
+  const { join, dirname } = require('path')
 
-if (!Service.php) {
-  Service.php = {
-    fetching: false
+  if (!Service.php) {
+    Service.php = {
+      fetching: false
+    }
   }
-}
 
-const initing = ref(false)
-const brewStore = BrewStore()
-const appStore = AppStore()
+  const initing = ref(false)
+  const brewStore = BrewStore()
+  const appStore = AppStore()
 
-const service = computed(() => {
-  return Service.php
-})
-
-const php = computed(() => {
-  return brewStore.module('php')
-})
-const versions = computed(() => {
-  if (!isShowHide?.value) {
-    return brewStore?.module('php')?.installed?.filter(
-      (i) => !excludeLocalVersion.value.includes(i.bin)
-    )
-  }
-  return brewStore.module('php')?.installed ?? []
-})
-
-const init = () => {
-  if (initing.value) {
-    return
-  }
-  initing.value = true
-  installedVersions.allInstalledVersions(['php']).then(() => {
-    initing.value = false
+  const service = computed(() => {
+    return Service.php
   })
-}
 
-const onPoperShow = () => {
-  ServiceActionStore.fetchPath()
-}
+  const php = computed(() => {
+    return brewStore.module('php')
+  })
+  const versions = computed(() => {
+    if (!isShowHide?.value) {
+      return brewStore
+        ?.module('php')
+        ?.installed?.filter((i) => !excludeLocalVersion.value.includes(i.bin))
+    }
+    return brewStore.module('php')?.installed ?? []
+  })
 
-const pathLoading = (item: SoftInstalled) => {
-  return ServiceActionStore.pathSeting?.[item.bin] ?? false
-}
-
-const excludeLocalVersion = computed(() => {
-  return appStore.config.setup.excludeLocalVersion ?? []
-})
-
-
-const isVersionHide = (item: SoftInstalled) => {
-  return excludeLocalVersion?.value?.includes(item.bin)
-}
-
-const doShow = (item: SoftInstalled) => {
-  appStore.serviceShow(item.bin)
-}
-
-const doHide = (item: SoftInstalled) => {
-  appStore.serviceHide(item.bin)
-  if (item?.run) {
-    stopService('php', item)
-  }
-}
-
-const pathState = (item: SoftInstalled) => {
-  if (ServiceActionStore.allPath.length === 0) {
-    return ''
+  const init = () => {
+    if (initing.value) {
+      return
+    }
+    initing.value = true
+    installedVersions.allInstalledVersions(['php']).then(() => {
+      initing.value = false
+    })
   }
 
-  return ServiceActionStore.allPath.includes(dirname(item.bin)) ? 'seted' : 'noset'
-}
-
-const isShowHide = computed({
-  get() {
-    return appStore?.config?.setup?.serviceShowHide?.php ?? false
-  },
-  set(v) {
-    appStore.serviceShowHide('php', v)
+  const onPoperShow = () => {
+    ServiceActionStore.fetchPath()
   }
-})
 
-const pathChange = (item: SoftInstalled) => {
-  ServiceActionStore.updatePath(item, 'php')
-}
+  const pathLoading = (item: SoftInstalled) => {
+    return ServiceActionStore.pathSeting?.[item.bin] ?? false
+  }
 
-const reinit = () => {
-  const data = php.value
-  data.installedInited = false
+  const excludeLocalVersion = computed(() => {
+    return appStore.config.setup.excludeLocalVersion ?? []
+  })
+
+  const isVersionHide = (item: SoftInstalled) => {
+    return excludeLocalVersion?.value?.includes(item.bin)
+  }
+
+  const doShow = (item: SoftInstalled) => {
+    appStore.serviceShow(item.bin)
+  }
+
+  const doHide = (item: SoftInstalled) => {
+    appStore.serviceHide(item.bin)
+    if (item?.run) {
+      stopService('php', item)
+    }
+  }
+
+  const pathState = (item: SoftInstalled) => {
+    if (ServiceActionStore.allPath.length === 0) {
+      return ''
+    }
+
+    return ServiceActionStore.allPath.includes(dirname(item.bin)) ? 'seted' : 'noset'
+  }
+
+  const isShowHide = computed({
+    get() {
+      return appStore?.config?.setup?.serviceShowHide?.php ?? false
+    },
+    set(v) {
+      appStore.serviceShowHide('php', v)
+    }
+  })
+
+  const pathChange = (item: SoftInstalled) => {
+    ServiceActionStore.updatePath(item, 'php')
+  }
+
+  const reinit = () => {
+    const data = php.value
+    data.installedInited = false
+    init()
+  }
+
+  const doRun = (item: SoftInstalled) => {
+    if (!item?.version) {
+      return
+    }
+    startService('php', item).then((res) => {
+      if (typeof res === 'string') {
+        MessageError(res)
+      } else {
+        MessageSuccess(I18nT('base.success'))
+      }
+    })
+  }
+
+  const doStop = (item: SoftInstalled) => {
+    if (!item?.version) {
+      return
+    }
+    stopService('php', item).then((res) => {
+      if (typeof res === 'string') {
+        MessageError(res)
+      } else {
+        MessageSuccess(I18nT('base.success'))
+      }
+    })
+  }
+
+  const groupTrunOn = (item: SoftInstalled) => {
+    const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
+    const key = item.bin
+    if (dict?.[key] === false) {
+      dict[key] = true
+      delete dict?.[key]
+    } else {
+      dict[key] = false
+    }
+    appStore.config.setup.phpGroupStart = reactive(dict)
+    appStore.saveConfig()
+  }
+
+  let ConfVM: any
+  import('./Config.vue').then((res) => {
+    ConfVM = res.default
+  })
+
+  const action = (item: SoftInstalled, index: number, flag: string) => {
+    switch (flag) {
+      case 'groupstart':
+        groupTrunOn(item)
+        break
+      case 'open':
+        shell.openPath(item.path)
+        break
+      case 'conf':
+        AsyncComponentShow(ConfVM, {
+          version: item
+        }).then()
+        break
+      case 'extend':
+        const dir = join(item.path, 'ext')
+        shell.openPath(dir)
+        shell.openExternal('http://pecl.php.net/')
+        break
+      case 'brewLink':
+        break
+    }
+  }
+
+  const openUrl = (url: string) => {
+    shell.openExternal(url)
+  }
+
+  const resetData = () => {
+    if (service?.value?.fetching) {
+      return
+    }
+    service.value.fetching = true
+    const data = brewStore.module('php')
+    data.installedInited = false
+    installedVersions.allInstalledVersions(['php']).then(() => {
+      service.value.fetching = false
+    })
+  }
+
+  const openDir = (dir: string) => {
+    shell.openPath(dir)
+  }
+
   init()
-}
 
-const doRun = (item: SoftInstalled) => {
-  if (!item?.version) {
-    return
-  }
-  startService('php', item).then((res) => {
-    if (typeof res === 'string') {
-      MessageError(res)
-    } else {
-      MessageSuccess(I18nT('base.success'))
-    }
+  let CustomPathVM: any
+  import('@/components/ServiceManager/customPath.vue').then((res) => {
+    CustomPathVM = res.default
   })
-}
 
-const doStop = (item: SoftInstalled) => {
-  if (!item?.version) {
-    return
+  const showCustomDir = () => {
+    AsyncComponentShow(CustomPathVM, {
+      flag: 'php'
+    }).then((res) => {
+      if (res) {
+        console.log('showCustomDir chagned !!!')
+        resetData()
+      }
+    })
   }
-  stopService('php', item).then((res) => {
-    if (typeof res === 'string') {
-      MessageError(res)
-    } else {
-      MessageSuccess(I18nT('base.success'))
-    }
+
+  defineExpose({
+    reinit
   })
-}
-
-const groupTrunOn = (item: SoftInstalled) => {
-  const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
-  const key = item.bin
-  if (dict?.[key] === false) {
-    dict[key] = true
-    delete dict?.[key]
-  } else {
-    dict[key] = false
-  }
-  appStore.config.setup.phpGroupStart = reactive(dict)
-  appStore.saveConfig()
-}
-
-const action = (item: SoftInstalled, index: number, flag: string) => {
-  switch (flag) {
-    case 'groupstart':
-      groupTrunOn(item)
-      break
-    case 'open':
-      shell.openPath(item.path)
-      break
-    case 'conf':
-      import('./Config.vue').then((res) => {
-        res.default
-          .show({
-            version: item
-          })
-          .then()
-      })
-      break
-    case 'extend':
-      const dir = join(item.path, 'ext')
-      shell.openPath(dir)
-      shell.openExternal('http://pecl.php.net/')
-      break
-    case 'brewLink':
-      break
-  }
-}
-
-const openUrl = (url: string) => {
-  shell.openExternal(url)
-}
-
-const resetData = () => {
-  if (service?.value?.fetching) {
-    return
-  }
-  service.value.fetching = true
-  const data = brewStore.module('php')
-  data.installedInited = false
-  installedVersions.allInstalledVersions(['php']).then(() => {
-    service.value.fetching = false
-  })
-}
-
-const openDir = (dir: string) => {
-  shell.openPath(dir)
-}
-
-init()
-
-let CustomPathVM: any
-import('@/components/ServiceManager/customPath.vue').then((res) => {
-  CustomPathVM = res.default
-})
-
-const showCustomDir = () => {
-  AsyncComponentShow(CustomPathVM, {
-    flag: 'php'
-  }).then((res) => {
-    if (res) {
-      console.log('showCustomDir chagned !!!')
-      resetData()
-    }
-  })
-}
-
-defineExpose({
-  reinit
-})
 </script>

@@ -5,6 +5,7 @@ import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseRoot } from '../../Fn'
 import { ProcessPidListByPid } from '../../Process'
+import { EOL } from 'os'
 
 export class ServiceItemGo extends ServiceItem {
   start(item: AppHost) {
@@ -37,7 +38,7 @@ export class ServiceItemGo extends ServiceItem {
       }
 
       const opt = await getHostItemEnv(item)
-      const commands: string[] = []
+      const commands: string[] = ['@echo off', 'chcp 65001>nul']
       if (opt && opt?.env) {
         for (const k in opt.env) {
           const v = opt.env[k]
@@ -48,21 +49,21 @@ export class ServiceItemGo extends ServiceItem {
           }
         }
       }
-      commands.push(`start /B ${item.startCommand} > ${log} 2>&1 &`)
+      commands.push(`start /B ${item.startCommand} > "${log}" 2>&1 &`)
 
-      this.command = commands.join('\n')
+      this.command = commands.join(EOL)
       console.log('command: ', this.command)
       const sh = join(global.Server.Cache!, `service-${this.id}.cmd`)
       await writeFile(sh, this.command)
       process.chdir(global.Server.Cache!)
       try {
         await execPromiseRoot(
-          `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > ${pid}`
+          `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
         )
         const cpid = await this.checkPid()
         this.daemon()
         resolve({
-          'APP-Host-Service-Start-PID': cpid
+          'APP-Service-Start-PID': cpid
         })
       } catch (e) {
         console.log('start e: ', e)
@@ -70,7 +71,7 @@ export class ServiceItemGo extends ServiceItem {
       }
     })
   }
-  async checkState() {
+  async checkState(): Promise<string[]> {
     const id = this.host?.id
     if (!id) {
       return []

@@ -5,7 +5,7 @@ import { dirname, join } from 'path'
 import { compareVersions } from 'compare-versions'
 import { exec } from 'child_process'
 import { existsSync } from 'fs'
-import { mkdirp, readFile, writeFile, appendFile } from 'fs-extra'
+import { mkdirp, readFile, writeFile, appendFile, readdir } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 
@@ -254,6 +254,96 @@ class Manager extends Base {
 
       resolve([...bin].pop() ?? '')
       // resolve('')
+    })
+  }
+
+  allInstalled() {
+    return new ForkPromise(async (resolve) => {
+      const all: any[] = []
+      let fnmDir = ''
+      try {
+        fnmDir = (
+          await execPromise(`echo %FNM_DIR%`, {
+            shell: 'cmd.exe'
+          })
+        ).stdout.trim()
+        if (fnmDir === '%FNM_DIR%') {
+          fnmDir = ''
+        }
+      } catch (e) {}
+      if (!fnmDir) {
+        try {
+          fnmDir = (
+            await execPromise(`$env:FNM_DIR`, {
+              shell: 'powershell.exe'
+            })
+          ).stdout.trim()
+        } catch (e) {}
+      }
+      if (fnmDir && existsSync(fnmDir)) {
+        fnmDir = join(fnmDir, 'node-versions')
+        if (existsSync(fnmDir)) {
+          let allFnm: any[] = []
+          try {
+            allFnm = await readdir(fnmDir)
+          } catch (e) {}
+          allFnm = allFnm
+            .filter(
+              (f) => f.startsWith('v') && existsSync(join(fnmDir, f, 'installation/node.exe'))
+            )
+            .map((f) => {
+              const version = f.replace('v', '')
+              const bin = join(fnmDir, f, 'installation/node.exe')
+              return {
+                version,
+                bin
+              }
+            })
+          all.push(...allFnm)
+        }
+      }
+
+      let nvmDir = ''
+      try {
+        nvmDir = (
+          await execPromise(`nvm root`, {
+            shell: 'cmd.exe'
+          })
+        ).stdout
+          .trim()
+          .replace('Current Root: ', '')
+      } catch (e) {}
+      if (!nvmDir) {
+        try {
+          nvmDir = (
+            await execPromise(`nvm root`, {
+              shell: 'powershell.exe'
+            })
+          ).stdout
+            .trim()
+            .replace('Current Root: ', '')
+        } catch (e) {}
+      }
+      if (nvmDir && existsSync(nvmDir)) {
+        if (existsSync(nvmDir)) {
+          let allNVM: any[] = []
+          try {
+            allNVM = await readdir(nvmDir)
+          } catch (e) {}
+          allNVM = allNVM
+            .filter((f) => f.startsWith('v') && existsSync(join(nvmDir, f, 'node.exe')))
+            .map((f) => {
+              const version = f.replace('v', '')
+              const bin = join(nvmDir, f, 'node.exe')
+              return {
+                version,
+                bin
+              }
+            })
+          all.push(...allNVM)
+        }
+      }
+      resolve(all)
     })
   }
 }

@@ -13,7 +13,6 @@ class BaseManager {
   Postgresql: any
   PureFtpd: any
   Node: any
-  Brew: any
   Version: any
   Project: any
   Tool: any
@@ -24,10 +23,15 @@ class BaseManager {
   Tomcat: any
   App: any
   DNS: any
+  GoLang: any
+  RabbitMQ: any
+  Python: any
+  Maven: any
+  Service: any
 
-  constructor() { }
+  constructor() {}
 
-  init() { }
+  init() {}
 
   async exec(commands: Array<any>) {
     const ipcCommandKey = commands.shift()
@@ -125,12 +129,6 @@ class BaseManager {
         this.Node = res.default
       }
       doRun(this.Node)
-    } else if (module === 'brew') {
-      if (!this.Brew) {
-        const res = await import('./module/Brew')
-        this.Brew = res.default
-      }
-      doRun(this.Brew)
     } else if (module === 'version') {
       if (!this.Version) {
         const res = await import('./module/Version')
@@ -191,9 +189,39 @@ class BaseManager {
         this.DNS = res.default
       }
       doRun(this.DNS)
+    } else if (module === 'golang') {
+      if (!this.GoLang) {
+        const res = await import('./module/GoLang')
+        this.GoLang = res.default
+      }
+      doRun(this.GoLang)
+    } else if (module === 'rabbitmq') {
+      if (!this.RabbitMQ) {
+        const res = await import('./module/RabbitMQ')
+        this.RabbitMQ = res.default
+      }
+      doRun(this.RabbitMQ)
+    } else if (module === 'python') {
+      if (!this.Python) {
+        const res = await import('./module/Python')
+        this.Python = res.default
+      }
+      doRun(this.Python)
+    } else if (module === 'maven') {
+      if (!this.Maven) {
+        const res = await import('./module/Maven')
+        this.Maven = res.default
+      }
+      doRun(this.Maven)
+    } else if (module === 'service') {
+      if (!this.Service) {
+        const res = await import('./module/Service')
+        this.Service = res.default
+      }
+      doRun(this.Service)
     }
   }
 
-  async destory() { }
+  async destory() {}
 }
 export default BaseManager

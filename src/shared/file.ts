@@ -159,14 +159,20 @@ export function zipUnPack(fp: string, dist: string) {
       static: global.Server.Static,
       isIncludes: fp.includes(global.Server.Static!)
     }
-    await appendFile(path.join(global.Server.BaseDir!, 'debug.log'), `[zipUnPack][info]: ${JSON.stringify(info, undefined, 4)}\n`)      
+    await appendFile(
+      path.join(global.Server.BaseDir!, 'debug.log'),
+      `[zipUnPack][info]: ${JSON.stringify(info, undefined, 4)}\n`
+    )
     if (fp.includes(global.Server.Static!)) {
       const cacheFP = path.join(global.Server.Cache!, path.basename(fp))
       if (!fs.existsSync(cacheFP)) {
         try {
           await copyFile(fp, cacheFP)
-        } catch(e) {
-          await appendFile(path.join(global.Server.BaseDir!, 'debug.log'), `[zipUnPack][copyFile][error]: ${e}\n`)      
+        } catch (e) {
+          await appendFile(
+            path.join(global.Server.BaseDir!, 'debug.log'),
+            `[zipUnPack][copyFile][error]: ${e}\n`
+          )
         }
       }
       fp = cacheFP
@@ -175,7 +181,10 @@ export function zipUnPack(fp: string, dist: string) {
     compressing.unpack(fp, dist, async (err: any, res: any) => {
       console.log('zipUnPack end: ', err, res)
       if (err) {
-        await appendFile(path.join(global.Server.BaseDir!, 'debug.log'), `[zipUnPack][unpack][error]: ${err}\n`)      
+        await appendFile(
+          path.join(global.Server.BaseDir!, 'debug.log'),
+          `[zipUnPack][unpack][error]: ${err}\n`
+        )
         reject(err)
         return
       }
@@ -187,20 +196,20 @@ export function zipUnPack(fp: string, dist: string) {
 // 读取文件并计算其MD5和SHA256
 export function getFileHashes(filePath: string, algorithm: 'sha1' | 'sha256' | 'md5' = 'sha256') {
   return new Promise((resolve, reject) => {
-    const hash = crypto.createHash(algorithm);
-    const stream = fs.createReadStream(filePath);
- 
+    const hash = crypto.createHash(algorithm)
+    const stream = fs.createReadStream(filePath)
+
     stream.on('error', (err: any) => {
-      reject(err);
-    });
- 
+      reject(err)
+    })
+
     stream.on('data', (chunk: any) => {
-      hash.update(chunk);
-    });
- 
+      hash.update(chunk)
+    })
+
     stream.on('end', () => {
-      const md5 = hash.digest('hex');
-      resolve(md5);
-    });
-  });
+      const md5 = hash.digest('hex')
+      resolve(md5)
+    })
+  })
 }

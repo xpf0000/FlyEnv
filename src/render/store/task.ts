@@ -2,29 +2,28 @@ import { reactive } from 'vue'
 import { AllAppModule } from '@/core/type'
 import { defineStore } from 'pinia'
 
-
 type StateBase = Partial<
   Record<
     AllAppModule,
     | {
-      log?: Array<string>
-      extendRunning?: boolean
-      currentExtend?: string
-      extendAction?: string
-      extendRefreshing?: boolean
+        log?: Array<string>
+        extendRunning?: boolean
+        currentExtend?: string
+        extendAction?: string
+        extendRefreshing?: boolean
 
-      isRunning?: boolean
-      getVersioning?: boolean
-      btnTxt?: string
-      versions?: Array<string>
-      NVM_DIR?: string
-      tool?: 'fnm' | 'nvm' | 'all'
-    }
+        isRunning?: boolean
+        getVersioning?: boolean
+        btnTxt?: string
+        versions?: Array<string>
+        NVM_DIR?: string
+        tool?: 'fnm' | 'nvm' | 'all'
+      }
     | undefined
   >
 >
 
-interface State extends StateBase { }
+interface State extends StateBase {}
 
 const state: State = {
   node: { NVM_DIR: '', btnTxt: '', getVersioning: false, isRunning: false, versions: [] },

@@ -1,7 +1,7 @@
 import type { AppHost } from '@shared/app'
 import { watch, existsSync, FSWatcher, readFile } from 'fs-extra'
 import { ForkPromise } from '@shared/ForkPromise'
-import { waitTime, execPromise, execPromiseRoot } from '../../Fn'
+import { waitTime, execPromiseRoot } from '../../Fn'
 
 export const getHostItemEnv = async (item: AppHost) => {
   if (item?.envVarType === 'none') {
@@ -57,38 +57,8 @@ export class ServiceItem {
   timer: any
   pidFile?: string
   constructor() {}
-  async checkState() {
-    const command = `ps aux | grep 'PWSAPPID=${this.id}'`
-    let res: any = null
-    try {
-      res = await execPromise(command)
-    } catch (e) {}
-    console.log('checkState: ', res?.stdout?.trim())
-    const pids =
-      res?.stdout
-        ?.trim()
-        ?.split('\n')
-        ?.filter((v: string) => {
-          return (
-            !v.includes(` ps aux | grep `) &&
-            !v.includes(` grep 'PWSAPPID=`) &&
-            !v.includes(` grep "PWSAPPID=`) &&
-            !v.includes(` grep PWSAPPID=`)
-          )
-        }) ?? []
-    const arr: Array<string> = []
-    for (const p of pids) {
-      const parr = p.split(' ').filter((s: string) => {
-        return s.trim().length > 0
-      })
-      parr.shift()
-      const pid = parr.shift()
-      const runstr = parr.slice(8).join(' ')
-      console.log('pid: ', pid)
-      console.log('runstr: ', runstr)
-      arr.push(pid)
-    }
-    return arr
+  async checkState(): Promise<string[]> {
+    return []
   }
   start(item: AppHost): ForkPromise<any> {
     return new ForkPromise<boolean>((resolve) => resolve(!!item.id))
@@ -114,7 +84,7 @@ export class ServiceItem {
         } catch (e) {}
       }
       resolve({
-        'APP-Host-Service-Stop-PID': arr
+        'APP-Service-Stop-PID': arr
       })
     })
   }

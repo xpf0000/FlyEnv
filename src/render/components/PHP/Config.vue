@@ -5,249 +5,291 @@
     :destroy-on-close="true"
     :with-header="false"
     :close-on-click-modal="false"
-    @closed="onDrawerClosed"
+    @closed="closedFn"
   >
     <div class="host-vhost">
       <div class="nav">
-        <div class="left" @click="close">
+        <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
           <span class="ml-15 title">{{ version.version }} - {{ version.path }} - php.ini</span>
         </div>
       </div>
 
-      <div class="main-wapper">
-        <div ref="input" class="block"></div>
-      </div>
-
-      <div class="tool">
-        <el-button :disabled="!configpath" @click="openConfig">{{ $t('base.open') }}</el-button>
-        <el-button :disabled="!configpath" @click="saveConfig">{{ $t('base.save') }}</el-button>
-        <el-button :disabled="!configpath" @click="getDefault">{{
-          $t('base.loadDefault')
-        }}</el-button>
-        <el-button-group style="margin-left: 12px">
-          <el-button :disabled="!configpath" @click="loadCustom">{{
-            $t('base.loadCustom')
-          }}</el-button>
-          <el-button :disabled="!configpath" @click="saveCustom">{{
-            $t('base.saveCustom')
-          }}</el-button>
-        </el-button-group>
-      </div>
+      <Conf
+        ref="conf"
+        :type-flag="'php'"
+        :default-file="defaultFile"
+        :file="file"
+        :file-ext="'ini'"
+        :show-commond="true"
+        @on-type-change="onTypeChange"
+      >
+        <template #common>
+          <Common :setting="commonSetting" />
+        </template>
+      </Conf>
     </div>
   </el-drawer>
 </template>
-
-<script lang="ts">
-  import { readFileAsync, writeFileAsync } from '@shared/file'
-  import { reloadService } from '@/util/Service'
-  import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
+<script lang="ts" setup>
+  import { computed, ref, watch, Ref } from 'vue'
+  import Conf from '@/components/Conf/drawer.vue'
+  import Common from '@/components/Conf/common.vue'
+  import { type CommonSetItem, ConfStore } from '@/components/Conf/setup'
+  import { I18nT } from '@shared/lang'
+  import { debounce } from 'lodash'
+  import { SoftInstalled } from '@/store/brew'
   import IPC from '@/util/IPC'
-  import { nextTick, defineComponent } from 'vue'
-  import { VueExtend } from '@/core/VueExtend'
-  import type { SoftInstalled } from '@/store/brew'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
 
-  const { existsSync, statSync } = require('fs')
-  const { shell } = require('@electron/remote')
-  const { dialog } = require('@electron/remote')
-  const IniFiles: { [key: string]: any } = {}
+  const props = defineProps<{
+    version: SoftInstalled
+  }>()
 
-  export default defineComponent({
-    show(data: any) {
-      return new Promise(() => {
-        let dom: HTMLElement | null = document.createElement('div')
-        document.body.appendChild(dom)
-        let vm = VueExtend(this, data)
-        const intance = vm.mount(dom)
-        intance.onClosed = () => {
-          dom && dom.remove()
-          dom = null
-          console.log('intance.onClosed !!!!!!')
-        }
-      })
-    },
-    components: {},
-    props: {
-      version: {
-        type: Object,
-        default() {
-          return {}
-        }
-      }
-    },
-    data() {
-      return {
-        show: true,
-        config: '',
-        configpath: ''
-      }
-    },
-    computed: {
-      phpRunning() {
-        return this?.version?.run
-      },
-      versionDir() {
-        return this.version?.path ?? ''
-      }
-    },
-    watch: {
-      versionDir: {
-        handler(val) {
-          if (val) {
-            this.getConfig()
-          }
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+
+  const flag = computed(() => {
+    return props?.version?.phpBin ?? props?.version?.path
+  })
+
+  const conf = ref()
+  const commonSetting: Ref<CommonSetItem[]> = ref([])
+  const file = computed(() => {
+    return ConfStore.phpIniFiles?.[flag?.value] ?? ''
+  })
+  const defaultFile = computed(() => {
+    if (!file.value) {
+      return ''
+    }
+    return `${file.value}.default`
+  })
+
+  const names: CommonSetItem[] = [
+    {
+      name: 'display_errors',
+      value: 'On',
+      enable: true,
+      options: [
+        {
+          value: 'Off',
+          label: 'Off'
         },
-        immediate: true
+        {
+          value: 'On',
+          label: 'On'
+        }
+      ],
+      tips() {
+        return I18nT('php.display_errors')
       }
     },
-    created: function () {},
-    mounted() {
-      nextTick().then(() => {
-        this.initEditor()
-      })
+    {
+      name: 'short_open_tag',
+      value: 'On',
+      enable: true,
+      options: [
+        {
+          value: 'Off',
+          label: 'Off'
+        },
+        {
+          value: 'On',
+          label: 'On'
+        }
+      ],
+      tips() {
+        return I18nT('php.short_open_tag')
+      }
     },
-    unmounted() {
-      this.monacoInstance && this.monacoInstance.dispose()
-      this.monacoInstance = null
+    {
+      name: 'file_uploads',
+      value: 'On',
+      enable: true,
+      options: [
+        {
+          value: 'Off',
+          label: 'Off'
+        },
+        {
+          value: 'On',
+          label: 'On'
+        }
+      ],
+      tips() {
+        return I18nT('php.file_uploads')
+      }
     },
-    methods: {
-      loadCustom() {
-        let opt = ['openFile', 'showHiddenFiles']
-        dialog
-          .showOpenDialog({
-            properties: opt
-          })
-          .then(({ canceled, filePaths }: any) => {
-            if (canceled || filePaths.length === 0) {
-              return
-            }
-            const file = filePaths[0]
-            const state = statSync(file)
-            if (state.size > 5 * 1024 * 1024) {
-              MessageError(this.$t('base.fileBigErr'))
-              return
-            }
-            readFileAsync(file).then((conf) => {
-              this.config = conf
-              this.initEditor()
-            })
-          })
-      },
-      saveCustom() {
-        let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-        dialog
-          .showSaveDialog({
-            properties: opt,
-            defaultPath: 'php-custom.ini',
-            filters: [
-              {
-                extensions: ['ini']
-              }
-            ]
-          })
-          .then(({ canceled, filePath }: any) => {
-            if (canceled || !filePath) {
-              return
-            }
-            const content = this.monacoInstance.getValue()
-            writeFileAsync(filePath, content).then(() => {
-              MessageSuccess(this.$t('base.success'))
-            })
-          })
-      },
-      close() {
-        this.show = false
-        this.$destroy()
-        this.onClosed()
-      },
-      onDrawerClosed() {
-        this.onClosed()
-      },
-      openConfig() {
-        if (this.configpath) {
-          shell.showItemInFolder(this.configpath)
+    {
+      name: 'cgi.fix_pathinfo',
+      value: '1',
+      enable: true,
+      options: [
+        {
+          value: '0',
+          label: '0'
+        },
+        {
+          value: '1',
+          label: '1'
         }
-      },
-      saveConfig() {
-        if (!this.configpath) {
-          return
-        }
-        const content = this.monacoInstance.getValue()
-        writeFileAsync(this.configpath, content).then(() => {
-          MessageSuccess(this.$t('base.success'))
-          if (this.phpRunning) {
-            reloadService('php', this.version as SoftInstalled)
-          }
-        })
-      },
-      getConfig() {
-        if (!this.versionDir) {
-          this.config = this.$t('base.selectPhpVersion')
-          return
-        }
-        const readConfig = () => {
-          const flag = this.version?.phpBin ?? this.versionDir
-          this.configpath = IniFiles[flag]
-          readFileAsync(this.configpath).then((conf) => {
-            this.config = conf
-            this.initEditor()
-          })
-        }
-        const flag = this.version?.phpBin ?? this.versionDir
-        if (!IniFiles[flag]) {
-          IPC.send('app-fork:php', 'getIniPath', JSON.parse(JSON.stringify(this.version))).then(
-            (key: string, res: any) => {
-              console.log(res)
-              IPC.off(key)
-              if (res.code === 0) {
-                IniFiles[flag] = res.data
-                readConfig()
-              } else {
-                const err = this.$t('php.phpiniNoFound')
-                MessageError(err)
-                this.config = err
-              }
-            }
-          )
-        } else {
-          readConfig()
-        }
-      },
-      getDefault() {
-        if (!this.configpath) {
-          return
-        }
-        let configpath = `${this.configpath}.default`
-        if (!existsSync(configpath)) {
-          MessageError(this.$t('base.defaultConFileNoFound'))
-          return
-        }
-        readFileAsync(configpath).then((conf) => {
-          this.config = conf
-          this.initEditor()
-        })
-      },
-      initEditor() {
-        if (!this.monacoInstance) {
-          const input: HTMLElement = this?.$refs?.input as HTMLElement
-          if (!input || !input?.style) {
-            return
-          }
-          this.monacoInstance = EditorCreate(input, EditorConfigMake(this.config, false, 'off'))
-          this.monacoInstance.addAction({
-            id: 'save',
-            label: 'save',
-            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
-            run: () => {
-              this.saveConfig()
-            }
-          })
-        } else {
-          this.monacoInstance.setValue(this.config)
-        }
+      ],
+      tips() {
+        return I18nT('php.fix_pathinfo')
+      }
+    },
+    {
+      name: 'max_execution_time',
+      value: '300',
+      enable: true,
+      tips() {
+        return I18nT('php.max_execution_time')
+      }
+    },
+    {
+      name: 'max_input_time',
+      value: '60',
+      enable: true,
+      tips() {
+        return I18nT('php.max_input_time')
+      }
+    },
+    {
+      name: 'memory_limit',
+      value: '128M',
+      enable: true,
+      tips() {
+        return I18nT('php.memory_limit')
+      }
+    },
+    {
+      name: 'post_max_size',
+      value: '20M',
+      enable: true,
+      tips() {
+        return I18nT('php.post_max_size')
+      }
+    },
+    {
+      name: 'upload_max_filesize',
+      value: '20M',
+      enable: true,
+      tips() {
+        return I18nT('php.upload_max_filesize')
+      }
+    },
+    {
+      name: 'max_file_uploads',
+      value: '20',
+      enable: true,
+      tips() {
+        return I18nT('php.max_file_uploads')
+      }
+    },
+    {
+      name: 'default_socket_timeout',
+      value: '60',
+      enable: true,
+      tips() {
+        return I18nT('php.default_socket_timeout')
+      }
+    },
+    {
+      name: 'error_reporting',
+      value: 'E_ALL & ~E_NOTICE',
+      enable: true,
+      tips() {
+        return I18nT('php.error_reporting')
+      }
+    },
+    {
+      name: 'date.timezone',
+      value: 'PRC',
+      enable: true,
+      tips() {
+        return I18nT('php.timezone')
       }
     }
-  })
+  ]
+  let editConfig = ''
+  let watcher: any
+
+  const onSettingUpdate = () => {
+    let config = editConfig
+    const list = ['#PhpWebStudy-Conf-Common-Begin#']
+    commonSetting.value.forEach((item) => {
+      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
+      config = config.replace(regex, `\n\n`)
+      if (item.enable) {
+        list.push(`${item.name} = ${item.value}`)
+      }
+    })
+    list.push('#PhpWebStudy-Conf-Common-END#')
+    config = config
+      .replace(
+        /([\s\n]?[^\n]*)#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g,
+        ''
+      )
+      .replace(/\n+/g, '\n\n')
+      .trim()
+    config = `${list.join('\n')}\n` + config
+    conf.value.setEditValue(config)
+  }
+
+  const getCommonSetting = () => {
+    if (watcher) {
+      watcher()
+    }
+    const arr = names.map((item) => {
+      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
+      const matchs =
+        editConfig.match(regex)?.map((s) => {
+          const sarr = s
+            .trim()
+            .split('=')
+            .filter((s) => !!s.trim())
+            .map((s) => s.trim())
+          const k = sarr.shift()
+          const v = sarr.join(' ').replace(';', '').replace('=', '').trim()
+          return {
+            k,
+            v
+          }
+        }) ?? []
+      console.log('getCommonSetting: ', matchs, item.name)
+      const find = matchs?.find((m) => m.k === item.name)
+      if (!find) {
+        item.enable = false
+        return item
+      }
+      item.value = find?.v ?? item.value
+      return item
+    })
+    commonSetting.value = arr as any
+    watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
+      deep: true
+    })
+  }
+
+  const onTypeChange = (type: 'default' | 'common', config: string) => {
+    console.log('onTypeChange: ', type, config)
+    if (editConfig !== config) {
+      editConfig = config
+      getCommonSetting()
+    }
+  }
+
+  if (flag.value && !file.value) {
+    IPC.send('app-fork:php', 'getIniPath', JSON.parse(JSON.stringify(props.version))).then(
+      (key: string, res: any) => {
+        console.log(res)
+        IPC.off(key)
+        if (res.code === 0) {
+          ConfStore.phpIniFiles[flag.value] = res.data
+          ConfStore.save()
+        }
+      }
+    )
+  }
+
+  defineExpose({ show, onClosed, onSubmit, closedFn })
 </script>

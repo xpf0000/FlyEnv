@@ -1,35 +1,41 @@
 <template>
-    <el-drawer v-model="show" :size="size" :destroy-on-close="destroyOnClose" :with-header="false" :class="drawerClass"
-        @closed="closedFn">
-        <component :is="component" @do-close="hide"></component>
-    </el-drawer>
+  <el-drawer
+    v-model="show"
+    :size="size"
+    :destroy-on-close="destroyOnClose"
+    :with-header="false"
+    :class="drawerClass"
+    @closed="closedFn"
+  >
+    <component :is="component" @do-close="hide"></component>
+  </el-drawer>
 </template>
 
 <script lang="ts" setup>
-import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
 
-withDefaults(
+  withDefaults(
     defineProps<{
-        component?: any
-        destroyOnClose?: boolean
-        size?: string
-        drawerClass?: string
+      component?: any
+      destroyOnClose?: boolean
+      size?: string
+      drawerClass?: string
     }>(),
     {
-        destroyOnClose: true,
-        size: '75%'
+      destroyOnClose: true,
+      size: '75%'
     }
-)
+  )
 
-const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
-const hide = () => {
+  const hide = () => {
     show.value = false
-}
+  }
 
-defineExpose({
+  defineExpose({
     show,
     onSubmit,
     onClosed
-})
+  })
 </script>
