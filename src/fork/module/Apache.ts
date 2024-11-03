@@ -242,7 +242,7 @@ IncludeOptional "${vhost}*.conf"`
       const pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
       if (existsSync(pidPath)) {
         try {
-          await execPromiseRoot(`del -Force ${pidPath}`)
+          await execPromiseRoot(`del -Force "${pidPath}"`)
         } catch (e) {}
       }
 
@@ -260,14 +260,20 @@ IncludeOptional "${vhost}*.conf"`
       const cmdName = `start.cmd`
       const sh = join(global.Server.ApacheDir!, cmdName)
       await writeFile(sh, command)
+
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      await mkdirp(dirname(appPidFile))
+      if (existsSync(pidPath)) {
+        try {
+          await execPromiseRoot(`del -Force "${appPidFile}"`)
+        } catch (e) {}
+      }
+
       process.chdir(global.Server.ApacheDir!)
-      let pid = ''
       try {
-        pid = (
-          await execPromiseRoot(
-            `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
-          )
-        ).stdout
+        await execPromiseRoot(
+          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        )      
       } catch (e: any) {
         console.log('-k start err: ', e)
         reject(e)
@@ -275,8 +281,9 @@ IncludeOptional "${vhost}*.conf"`
       }
       const res = await this.waitPidFile(pidPath)
       if (res) {
+        await writeFile(appPidFile, res)
         resolve({
-          'APP-Service-Start-PID': pid
+          'APP-Service-Start-PID': res
         })
         return
       }

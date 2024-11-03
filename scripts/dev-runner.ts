@@ -35,7 +35,7 @@ function execRoot(cammand: string) {
 }
 
 async function killAllElectron() {
-  const command = `wmic process get commandline,ProcessId | findstr "electron.exe"`
+  const command = `wmic process get CommandLine,ProcessId | findstr "electron.exe"`
   console.log('_stopServer command: ', command)
   let res: any = null
   try {

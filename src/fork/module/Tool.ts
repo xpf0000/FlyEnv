@@ -250,7 +250,7 @@ subjectAltName=@alt_names
 
   processFind(name: string) {
     return new ForkPromise(async (resolve) => {
-      const command = `wmic process get commandline,ProcessId | findstr "${name}"`
+      const command = `wmic process get CommandLine,ProcessId | findstr "${name}"`
       let res
       try {
         res = await execPromiseRoot(command)
@@ -317,7 +317,7 @@ subjectAltName=@alt_names
       console.log('pids: ', pids)
 
       for (const pid of pids) {
-        const command = `wmic process get commandline,ProcessId | findstr "${pid}"`
+        const command = `wmic process get CommandLine,ProcessId | findstr "${pid}"`
         const res = await execPromiseRoot(command)
         const lines = res?.stdout?.trim()?.split('\n') ?? []
         lines

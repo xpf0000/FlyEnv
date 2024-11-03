@@ -166,7 +166,7 @@ datadir="${dataDir}"`
         'PhpWebStudy-Data' +
         join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
       const serverName = 'mysqld'
-      const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
+      const command = `wmic process get CommandLine,ProcessId | findstr "${serverName}"`
       console.log('_stopServer command: ', command)
       let res: any = null
       try {

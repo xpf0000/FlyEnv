@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import type { FtpItem, SoftInstalled } from '@shared/app'
+import type { FtpItem } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import FtpServer from 'ftp-srv'
@@ -31,7 +31,7 @@ class Manager extends Base {
   }
 
   _startServer() {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve) => {
       const port = 21
       this.server = new FtpServer({
         url: 'ftp://0.0.0.0:' + port,

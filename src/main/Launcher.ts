@@ -5,7 +5,7 @@ import logger from './core/Logger'
 import Application from './Application'
 import { splitArgv } from './utils'
 
-app.commandLine.appendSwitch('no-sandbox')
+app.CommandLine.appendSwitch('no-sandbox')
 
 export default class Launcher extends EventEmitter {
   exceptionHandler?: ExceptionHandler

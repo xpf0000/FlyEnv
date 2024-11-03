@@ -153,3 +153,20 @@ export async function componentParse(component: any) {
   }
   return view
 }
+
+export function fileSelect(accept = '', multiple = false) {
+  return new Promise((resolve) => {
+    let input: HTMLInputElement | null = document.createElement('input')
+    input.setAttribute('type', 'file')
+    input.setAttribute('accept', accept)
+    if (multiple) {
+      input.setAttribute('multiple', 'multiple')
+    }
+    input.onchange = () => {
+      resolve(input!.files)
+      input?.remove()
+      input = null
+    }
+    input.click()
+  })
+}

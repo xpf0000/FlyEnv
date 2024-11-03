@@ -1,5 +1,4 @@
 import type { Configuration } from 'electron-builder'
-import PublishCnf from './publish'
 
 const conf: Configuration = {
   productName: 'PhpWebStudy',
@@ -33,7 +32,7 @@ const conf: Configuration = {
     oneClick: false,
     allowToChangeInstallationDirectory: true
   },
-  publish: [PublishCnf]
+  publish: []
 }
 
 export default conf

@@ -7,6 +7,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { copyFile, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
+import { ProcessListSearch, ProcessPidListByPid } from '../Process'
 
 export class Base {
   type: string
@@ -63,8 +64,8 @@ export class Base {
       }
       try {
         await this._stopServer(version)
-        await this._startServer(version).on(on)
-        resolve(true)
+        const res = await this._startServer(version).on(on)
+        resolve(res)
       } catch (e) {
         reject(e)
       }
@@ -74,6 +75,51 @@ export class Base {
   _stopServer(version: SoftInstalled) {
     console.log(version)
     return new ForkPromise(async (resolve) => {
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      if (existsSync(appPidFile)) {
+        const pid = (await readFile(appPidFile, 'utf-8')).trim()
+        const pids = await ProcessPidListByPid(pid)
+        console.log('_stopServer 0 pid: ', pid, pids)
+        if (pids.length > 0) {
+          const str = pids.map((s) => `/pid ${s}`).join(' ')
+          try {
+            await execPromiseRoot(`taskkill /f /t ${str}`)
+          } catch (e) {}
+        }
+        try {
+          await execPromiseRoot(`del -Force "${appPidFile}"`)
+        } catch (e) {}
+        if (this.type === 'apache') {
+          const command = `${version.bin} -k uninstall`
+          try {
+            await execPromiseRoot(command)
+          } catch (e) {}
+        }
+        resolve({
+          'APP-Service-Stop-PID': pids
+        })
+        return
+      }
+      if (version?.pid) {
+        const pids = await ProcessPidListByPid(version.pid.trim())
+        console.log('_stopServer 1 pid: ', version.pid, pids)
+        if (pids.length > 0) {
+          const str = pids.map((s) => `/pid ${s}`).join(' ')
+          try {
+            await execPromiseRoot(`taskkill /f /t ${str}`)
+          } catch (e) {}
+        }
+        if (this.type === 'apache') {
+          const command = `${version.bin} -k uninstall`
+          try {
+            await execPromiseRoot(command)
+          } catch (e) {}
+        }
+        resolve({
+          'APP-Service-Stop-PID': pids
+        })
+        return
+      }
       const dis: { [k: string]: string } = {
         caddy: 'caddy',
         nginx: 'nginx',
@@ -88,46 +134,13 @@ export class Base {
         tomcat: 'org.apache.catalina.startup.Bootstrap'
       }
       const serverName = dis[this.type]
-      const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
-      console.log('_stopServer command: ', command)
-      let res: any = null
-      try {
-        res = await execPromiseRoot(command)
-      } catch (e) {}
-      const pids = res?.stdout?.trim()?.split('\n') ?? []
-      console.log('pids: ', pids)
-      const arr: Array<string> = []
-      for (const p of pids) {
-        if (this.type === 'redis' || global.Server.ForceStart === true) {
-          if (p.includes('findstr')) {
-            continue
-          }
-          const pid = p
-            .split(' ')
-            .filter((s: string) => {
-              return !!s.trim()
-            })
-            .pop()
-          arr.push(pid)
-        } else if (p.includes('PhpWebStudy-Data')) {
-          const pid = p
-            .split(' ')
-            .filter((s: string) => {
-              return !!s.trim()
-            })
-            .pop()
-          arr.push(pid)
-        }
-      }
-      console.log('_stopServer arr: ', arr)
-      if (arr.length > 0) {
-        const str = arr.map((s) => `/pid ${s}`).join(' ')
-        await execPromiseRoot(`taskkill /f /t ${str}`)
-        // for (const pid of arr) {
-        //   try {
-        //     await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-        //   } catch (e) { }
-        // }
+      const pids = await ProcessListSearch(serverName, false)
+      console.log('_stopServer 2 pid: ', serverName, pids)
+      if (pids.length > 0) {
+        const str = pids.map((s) => `/pid ${s.ProcessId}`).join(' ')
+        try {
+          await execPromiseRoot(`taskkill /f /t ${str}`)
+        } catch (e) {}
       }
       if (this.type === 'apache') {
         const command = `${version.bin} -k uninstall`
@@ -135,15 +148,16 @@ export class Base {
           await execPromiseRoot(command)
         } catch (e) {}
       }
-      await waitTime(300)
-      resolve(true)
+      resolve({
+        'APP-Service-Stop-PID': pids.map((s) => s.ProcessId)
+      })
     })
   }
 
-  async waitPidFile(file: string, time = 0): Promise<boolean> {
-    let res = false
+  async waitPidFile(file: string, time = 0): Promise<string | false> {
+    let res: string | false = false
     if (existsSync(file)) {
-      res = true
+      res = (await readFile(file, 'utf-8')).trim()
     } else {
       if (time < 20) {
         await waitTime(500)

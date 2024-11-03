@@ -106,7 +106,7 @@ class Php extends Base {
   _stopServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
       const serverName = 'php-cgi'
-      const command = `wmic process get commandline,ProcessId | findstr "${serverName}"`
+      const command = `wmic process get CommandLine,ProcessId | findstr "${serverName}"`
       console.log('_stopServer command: ', command)
       let res: any = null
       try {

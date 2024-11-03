@@ -6,14 +6,14 @@ import { readFile, remove } from 'fs-extra'
 export type PItem = {
   ProcessId: string
   ParentProcessId: string
-  commandline: string
+  CommandLine: string
 }
 
 export const ProcessPidList = async (): Promise<PItem[]> => {
   const tmpl = join(global.Server.Cache!, `${uuid()}`)
   try {
     await execPromiseRoot(
-      `wmic process get ProcessId,ParentProcessId,commandline /format:list > "${tmpl}"`
+      `wmic process get ProcessId,ParentProcessId,CommandLine /format:list > "${tmpl}"`
     )
   } catch (e) {}
   if (!existsSync(tmpl)) {
@@ -79,16 +79,19 @@ export const ProcessListSearch = async (search: string, aA = true) => {
     }
   }
   for (const item of arr) {
+    if (!item?.CommandLine) {
+      console.log('!item?.CommandLine: ', item)
+    }
     if (!aA) {
       search = search.toLowerCase()
-      if (item.commandline.toLowerCase().includes(search)) {
+      if (item?.CommandLine && item.CommandLine.toLowerCase().includes(search)) {
         if (!all.find((f) => f.ProcessId === item.ProcessId)) {
           all.push(item)
           find(item.ProcessId!)
         }
       }
     } else {
-      if (item.commandline.includes(search)) {
+      if (item?.CommandLine && item.CommandLine.includes(search)) {
         if (!all.find((f) => f.ProcessId === item.ProcessId)) {
           all.push(item)
           find(item.ProcessId!)

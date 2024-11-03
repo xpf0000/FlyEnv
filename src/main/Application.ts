@@ -217,12 +217,15 @@ export default class Application extends EventEmitter {
       all = await ProcessPidList()
     } catch (e) {}
     for (const item of all) {
+      if (!item.CommandLine || typeof item.CommandLine !== 'string') {
+        continue
+      }
       if (
-        item.commandline.includes('PhpWebStudy-Data') ||
-        item.commandline.includes('redis-server') ||
-        item.commandline.includes('php.phpwebstudy')
+        item.CommandLine.includes('PhpWebStudy-Data') ||
+        item.CommandLine.includes('redis-server') ||
+        item.CommandLine.includes('php.phpwebstudy')
       ) {
-        if (item.commandline.includes('php-cgi-spawner.exe')) {
+        if (item.CommandLine.includes('php-cgi-spawner.exe')) {
           fpm.push(item.ProcessId)
         } else {
           arr.push(item.ProcessId)
