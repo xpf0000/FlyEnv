@@ -15,8 +15,10 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
+import { mkdirp, writeFile, chmod, remove, readFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import { EOL } from 'os'
+import { PItem, ProcessListSearch } from '../Process'
 
 class Mysql extends Base {
   constructor() {
@@ -69,19 +71,7 @@ datadir="${dataDir}"`
       const p = join(global.Server.MysqlDir!, 'mysql.pid')
       const s = join(global.Server.MysqlDir!, 'slow.log')
       const e = join(global.Server.MysqlDir!, 'error.log')
-      const params = [
-        `--defaults-file="${m}"`,
-        `--pid-file="${p}"`,
-        '--user=mysql',
-        `--slow-query-log-file="${s}"`,
-        `--log-error="${e}"`
-      ]
-
-      try {
-        if (existsSync(p)) {
-          await unlink(p)
-        }
-      } catch (e) {}
+      let command = ''
 
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
@@ -92,27 +82,97 @@ datadir="${dataDir}"`
         }
       }
 
-      const waitPid = async (time = 0): Promise<boolean> => {
-        let res = false
-        if (existsSync(p)) {
-          res = true
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            res = res || (await waitPid(time + 1))
-          } else {
-            res = false
+      const doStart = () => {
+        return new Promise(async (resolve, reject) => {
+          if (existsSync(p)) {
+            try {
+              await execPromiseRoot(`del -Force "${p}"`)
+            } catch (e) {}
           }
-        }
-        console.log('waitPid: ', time, res)
-        return res
+
+          const startLogFile = join(global.Server.MysqlDir!, `start.log`)
+          const startErrLogFile = join(global.Server.MysqlDir!, `start.error.log`)
+          if (existsSync(startErrLogFile)) {
+            try {
+              await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+            } catch (e) {}
+          }
+
+          const params = [
+            `--defaults-file="${m}"`,
+            `--pid-file="${p}"`,
+            '--user=mysql',
+            '--slow-query-log=ON',
+            `--slow-query-log-file="${s}"`,
+            `--log-error="${e}"`,
+            '--standalone'
+          ]
+
+          const commands: string[] = [
+            '@echo off',
+            'chcp 65001>nul',
+            `cd /d "${dirname(bin)}"`,
+            `start /B ./${basename(bin)} ${params.join(' ')} > "${startLogFile}" 2>"${startErrLogFile}"`
+          ]
+
+          command = commands.join(EOL)
+          console.log('command: ', command)
+
+          const cmdName = `start.cmd`
+          const sh = join(global.Server.MysqlDir!, cmdName)
+          await writeFile(sh, command)
+
+          const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+          await mkdirp(dirname(appPidFile))
+          if (existsSync(appPidFile)) {
+            try {
+              await execPromiseRoot(`del -Force "${appPidFile}"`)
+            } catch (e) {}
+          }
+
+          process.chdir(global.Server.MysqlDir!)
+          try {
+            await execPromiseRoot(
+              `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+            )
+          } catch (e: any) {
+            console.log('-k start err: ', e)
+            reject(e)
+            return
+          }
+          const res = await this.waitPidFile(p, startErrLogFile)
+          if (res) {
+            if (res?.pid) {
+              await writeFile(appPidFile, res.pid)
+              resolve({
+                'APP-Service-Start-PID': res.pid
+              })
+              return
+            }
+            reject(new Error(res?.error ?? 'Start Fail'))
+            return
+          }
+          let msg = 'Start Fail'
+          if (existsSync(startLogFile)) {
+            msg = await readFile(startLogFile, 'utf-8')
+          }
+          reject(new Error(msg))
+        })
       }
 
-      let command = ''
       if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        params.push('--initialize-insecure')
+
+        const params = [
+          `--defaults-file="${m}"`,
+          `--pid-file="${p}"`,
+          '--user=mysql',
+          '--slow-query-log=ON',
+          `--slow-query-log-file="${s}"`,
+          `--log-error="${e}"`,
+          '--initialize-insecure'
+        ]
 
         process.chdir(dirname(bin))
         command = `${basename(bin)} ${params.join(' ')}`
@@ -127,78 +187,44 @@ datadir="${dataDir}"`
         }
         await waitTime(500)
         try {
-          await this._startServer(version).on(on)
+          const res = await doStart()
           await waitTime(500)
           await this._initPassword(version)
           on(I18nT('fork.postgresqlInit', { dir: dataDir }))
-          resolve(true)
+          resolve(res)
         } catch (e) {
           await unlinkDirOnFail()
           reject(e)
         }
       } else {
-        params.push('--standalone')
-        process.chdir(dirname(bin))
-        command = `start /b ./${basename(bin)} ${params.join(' ')}`
-        console.log('command: ', command)
-        try {
-          const res = await execPromiseRoot(command)
-          console.log('start res: ', res)
-          on(res.stdout)
-          const check = await waitPid()
-          if (check) {
-            resolve(0)
-          } else {
-            reject(new Error('Start failed'))
-          }
-        } catch (e: any) {
-          reject(e)
-        }
+        doStart().then(resolve).catch(reject)
       }
     })
   }
 
   stopGroupService(version: MysqlGroupItem) {
     console.log(version)
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve) => {
       const id = version?.id ?? ''
       const conf =
         'PhpWebStudy-Data' +
         join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
-      const serverName = 'mysqld'
-      const command = `wmic process get CommandLine,ProcessId | findstr "${serverName}"`
-      console.log('_stopServer command: ', command)
-      let res: any = null
-      try {
-        res = await execPromiseRoot(command)
-      } catch (e) {}
-      const pids = res?.stdout?.trim()?.split('\n') ?? []
       const arr: Array<string> = []
-      for (const p of pids) {
-        if (p.includes(conf)) {
-          const pid = p
-            .split(' ')
-            .filter((s: string) => {
-              return !!s.trim()
-            })
-            .pop()
-          if (pid) {
-            arr.push(pid)
-          }
-        }
-      }
+      let all: PItem[] = []
+      try {
+        all = await ProcessListSearch(conf, false)
+      } catch (e) {}
+
+      all.forEach((item) => arr.push(item.ProcessId))
+
       if (arr.length > 0) {
         const str = arr.map((s) => `/pid ${s}`).join(' ')
         await execPromiseRoot(`taskkill /f /t ${str}`)
-
-        // for (const pid of arr) {
-        //   try {
-        //     await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-        //   } catch (e) { }
-        // }
       }
       await waitTime(500)
-      resolve(true)
+      resolve({
+        'APP-Service-Stop-PID': arr
+      })
     })
   }
 
@@ -209,6 +235,7 @@ datadir="${dataDir}"`
       const bin = version.version.bin
       const id = version?.id ?? ''
       const m = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
+      await mkdirp(dirname(m))
       const dataDir = version.dataDir
       if (!existsSync(m)) {
         const conf = `[mysqld]
@@ -222,22 +249,6 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       const s = join(global.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
       const e = join(global.Server.MysqlDir!, `group/my-group-${id}-error.log`)
       const sock = join(global.Server.MysqlDir!, `group/my-group-${id}.sock`)
-      const params = [
-        `--defaults-file="${m}"`,
-        `--datadir="${dataDir}"`,
-        `--port="${version.port}"`,
-        `--pid-file="${p}"`,
-        '--user=mysql',
-        `--slow-query-log-file="${s}"`,
-        `--log-error="${e}"`,
-        `--socket="${sock}"`
-      ]
-
-      try {
-        if (existsSync(p)) {
-          await unlink(p)
-        }
-      } catch (e) {}
 
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
@@ -248,20 +259,73 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         }
       }
 
-      const waitPid = async (time = 0): Promise<boolean> => {
-        let res = false
-        if (existsSync(p)) {
-          res = true
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            res = res || (await waitPid(time + 1))
-          } else {
-            res = false
+      const doStart = () => {
+        return new Promise(async (resolve, reject) => {
+          if (existsSync(p)) {
+            try {
+              await execPromiseRoot(`del -Force "${p}"`)
+            } catch (e) {}
           }
-        }
-        console.log('waitPid: ', time, res)
-        return res
+
+          const startLogFile = join(global.Server.MysqlDir!, `group/start.${id}.log`)
+          const startErrLogFile = join(global.Server.MysqlDir!, `start.error.${id}.log`)
+          if (existsSync(startErrLogFile)) {
+            try {
+              await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+            } catch (e) {}
+          }
+          const params = [
+            `--defaults-file="${m}"`,
+            `--datadir="${dataDir}"`,
+            `--port="${version.port}"`,
+            `--pid-file="${p}"`,
+            '--user=mysql',
+            '--slow-query-log=ON',
+            `--slow-query-log-file="${s}"`,
+            `--log-error="${e}"`,
+            `--socket="${sock}"`,
+            '--standalone'
+          ]
+
+          const commands: string[] = [
+            '@echo off',
+            'chcp 65001>nul',
+            `cd /d "${dirname(bin!)}"`,
+            `start /B ./${basename(bin!)} ${params.join(' ')} > "${startLogFile}" 2>"${startErrLogFile}"`
+          ]
+
+          command = commands.join(EOL)
+          console.log('command: ', command)
+
+          const cmdName = `start.cmd`
+          const sh = join(global.Server.MysqlDir!, cmdName)
+          await writeFile(sh, command)
+
+          process.chdir(global.Server.MysqlDir!)
+          try {
+            await execPromiseRoot(
+              `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+            )
+          } catch (e: any) {
+            console.log('-k start err: ', e)
+            reject(e)
+            return
+          }
+          const res = await this.waitPidFile(p, startErrLogFile)
+          if (res) {
+            if (res?.pid) {
+              resolve(true)
+              return
+            }
+            reject(new Error(res?.error ?? 'Start Fail'))
+            return
+          }
+          let msg = 'Start Fail'
+          if (existsSync(startLogFile)) {
+            msg = await readFile(startLogFile, 'utf-8')
+          }
+          reject(new Error(msg))
+        })
       }
 
       const initPassword = () => {
@@ -285,7 +349,18 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        params.push('--initialize-insecure')
+        const params = [
+          `--defaults-file="${m}"`,
+          `--datadir="${dataDir}"`,
+          `--port="${version.port}"`,
+          `--pid-file="${p}"`,
+          '--user=mysql',
+          '--slow-query-log=ON',
+          `--slow-query-log-file="${s}"`,
+          `--log-error="${e}"`,
+          `--socket="${sock}"`,
+          '--initialize-insecure'
+        ]
         process.chdir(dirname(bin!))
         command = `${basename(bin!)} ${params.join(' ')}`
         console.log('command: ', command)
@@ -299,7 +374,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         }
         await waitTime(500)
         try {
-          await this.startGroupServer(version).on(on)
+          await doStart()
           await waitTime(500)
           await initPassword()
           on(I18nT('fork.postgresqlInit', { dir: dataDir }))
@@ -309,23 +384,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           reject(e)
         }
       } else {
-        params.push('--standalone')
-        process.chdir(dirname(bin!))
-        command = `start /b ./${basename(bin!)} ${params.join(' ')}`
-        console.log('command: ', command)
-        try {
-          const res = await execPromiseRoot(command)
-          console.log('start res: ', res)
-          on(res.stdout)
-          const check = await waitPid()
-          if (check) {
-            resolve(0)
-          } else {
-            reject(new Error('Start failed'))
-          }
-        } catch (e: any) {
-          reject(e)
-        }
+        doStart().then(resolve).catch(reject)
       }
     })
   }

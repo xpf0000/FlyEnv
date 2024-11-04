@@ -93,5 +93,5 @@ export default {
     '<a href="javascript:void();" onclick="openUrl(\'https://www.macphpstudy.com/zh/help-4-2.html\')">https://www.macphpstudy.com/zh/help-4-2.html</a>\n' +
     'Follow the documentation to install.',
 
-    showToolBtn: 'Display Tool Floating Button'
+  showToolBtn: 'Display Tool Floating Button'
 }

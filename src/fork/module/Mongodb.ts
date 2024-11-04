@@ -8,12 +8,12 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort,
-  waitTime
+  versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
+import { readFile, writeFile, mkdirp, chmod } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import { EOL } from 'os'
 
 class Manager extends Base {
   constructor() {
@@ -26,7 +26,7 @@ class Manager extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject) => {
       const bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MongoDBDir!, `mongodb-${v}.conf`)
@@ -38,51 +38,75 @@ class Manager extends Base {
       if (!existsSync(m)) {
         const tmpl = join(global.Server.Static!, 'tmpl/mongodb.conf')
         let conf = await readFile(tmpl, 'utf-8')
-        conf = conf.replace('##DB-PATH##', dataDir)
+        conf = conf.replace('##DB-PATH##', `"${dataDir.split('\\').join('/')}"`)
         await writeFile(m, conf)
       }
       const logPath = join(global.Server.MongoDBDir!, `mongodb-${v}.log`)
 
-      try {
-        if (existsSync(this.pidPath)) {
-          await unlink(this.pidPath)
-        }
-      } catch (e) {}
-
-      const waitPid = async (time = 0): Promise<boolean> => {
-        let res = false
-        if (existsSync(this.pidPath)) {
-          res = true
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            res = res || (await waitPid(time + 1))
-          } else {
-            res = false
-          }
-        }
-        console.log('waitPid: ', time, res)
-        return res
+      const pidPath = join(global.Server.MongoDBDir!, 'mongodb.pid')
+      if (existsSync(pidPath)) {
+        try {
+          await execPromiseRoot(`del -Force "${pidPath}"`)
+        } catch (e) {}
       }
 
-      process.chdir(dirname(bin))
-      const command = `start /b ./${basename(bin)} --config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}"`
+      const startLogFile = join(global.Server.MongoDBDir!, `start.log`)
+      const startErrLogFile = join(global.Server.MongoDBDir!, `start.error.log`)
+      if (existsSync(startErrLogFile)) {
+        try {
+          await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+        } catch (e) {}
+      }
 
+      const commands: string[] = [
+        '@echo off',
+        'chcp 65001>nul',
+        `cd /d "${dirname(bin)}"`,
+        `start /B ./${basename(bin)} --config "${m}" --logpath "${logPath}" --pidfilepath "${pidPath}" > "${startLogFile}" 2>"${startErrLogFile}"`
+      ]
+
+      const command = commands.join(EOL)
       console.log('command: ', command)
 
-      try {
-        const res = await execPromiseRoot(command)
-        console.log('start res: ', res)
-        on(res.stdout)
-        const check = await waitPid()
-        if (check) {
-          resolve(0)
-        } else {
-          reject(new Error('Start failed'))
-        }
-      } catch (e: any) {
-        reject(e)
+      const cmdName = `start.cmd`
+      const sh = join(global.Server.MongoDBDir!, cmdName)
+      await writeFile(sh, command)
+
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      await mkdirp(dirname(appPidFile))
+      if (existsSync(appPidFile)) {
+        try {
+          await execPromiseRoot(`del -Force "${appPidFile}"`)
+        } catch (e) {}
       }
+
+      process.chdir(global.Server.MongoDBDir!)
+      try {
+        await execPromiseRoot(
+          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        )
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
+      }
+      const res = await this.waitPidFile(pidPath, startErrLogFile)
+      if (res) {
+        if (res?.pid) {
+          await writeFile(appPidFile, res.pid)
+          resolve({
+            'APP-Service-Start-PID': res.pid
+          })
+          return
+        }
+        reject(new Error(res?.error ?? 'Start Fail'))
+        return
+      }
+      let msg = 'Start Fail'
+      if (existsSync(startLogFile)) {
+        msg = await readFile(startLogFile, 'utf-8')
+      }
+      reject(new Error(msg || 'Start Fail'))
     })
   }
 

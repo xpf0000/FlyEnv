@@ -16,6 +16,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, mkdirp, unlink } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import { EOL } from 'os'
 class RabbitMQ extends Base {
   baseDir: string = ''
 
@@ -91,12 +92,14 @@ PLUGINS_DIR="${pluginsDir}"`
         }
       } catch (e) {}
       const commands: string[] = [
+        '@echo off',
+        'chcp 65001>nul',
         `set RABBITMQ_CONF_ENV_FILE=${confFile}`,
         `cd /d "${dirname(version.bin)}"`,
         `./${basename(version.bin)} -detached --PWSAPPFLAG=${global.Server.BaseDir!}`
       ]
       const sh = join(global.Server.Cache!, `${uuid()}.cmd`)
-      await writeFile(sh, commands.join('\n'))
+      await writeFile(sh, commands.join(EOL))
       process.chdir(global.Server.Cache!)
       try {
         await execPromiseRoot(`start /B ./${basename(sh)} > null 2>&1 &`)

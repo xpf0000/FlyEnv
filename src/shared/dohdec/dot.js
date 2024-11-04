@@ -1,10 +1,10 @@
 import * as crypto from 'crypto'
 import * as packet from 'dns-packet'
 import * as tls from 'tls'
-import {Buffer} from 'buffer'
-import {default as DNSutils} from './dnsUtils.js'
-import {default as NoFilter} from 'nofilter'
-import {Writable} from 'stream'
+import { Buffer } from 'buffer'
+import { default as DNSutils } from './dnsUtils.js'
+import { default as NoFilter } from 'nofilter'
+import { Writable } from 'stream'
 import util from 'util'
 
 const randomBytes = util.promisify(crypto.randomBytes)
@@ -70,20 +70,16 @@ export class DNSoverTLS extends DNSutils {
    *   verbose output.
    */
   constructor(opts = {}) {
-    const {
-      verbose,
-      verboseStream,
-      ...rest
-    } = opts
+    const { verbose, verboseStream, ...rest } = opts
 
-    super({verbose, verboseStream})
+    super({ verbose, verboseStream })
     this.opts = {
       host: DNSoverTLS.server,
       port: 853,
       hashAlg: 'sha256',
       rejectUnauthorized: true,
       checkServerIdentity: this._checkServerIdentity.bind(this),
-      ...rest,
+      ...rest
     }
     this.verbose(1, 'DNSoverTLS options:', this.opts)
     this._reset()
@@ -154,7 +150,7 @@ export class DNSoverTLS extends DNSutils {
     this.verbose(2, 'CERTIFICATE:', () => DNSutils.buffersToB64(cert))
     const err = tls.checkServerIdentity(host, cert)
     if (!err) {
-      if (this.opts.hash && (this.opts.hash !== hash)) {
+      if (this.opts.hash && this.opts.hash !== hash) {
         return new Error(`Invalid cert hash for ${this.opts.host}:${this.opts.port}.
 Expected: "${this.opts.hash}"
 Received: "${hash}"`)
@@ -171,7 +167,7 @@ Received: "${hash}"`)
    * @private
    */
   _disconnected() {
-    for (const {reject, opts} of Object.values(this.pending)) {
+    for (const { reject, opts } of Object.values(this.pending)) {
       reject(new Error(`Timeout looking up "${opts.name}":${opts.rrtype}`))
     }
     this._reset()
@@ -280,7 +276,7 @@ Received: "${hash}"`)
       rrtype: 'A',
       dnsssec: false,
       decode: true,
-      stream: true,
+      stream: true
     })
     this.verbose(1, 'DNSoverTLS.lookup options:', nopts)
 
@@ -302,7 +298,7 @@ Received: "${hash}"`)
         () => packet.decode(pkt, 2) // Skip length
       )
 
-      this.pending[nopts.id] = {resolve, reject, opts: nopts}
+      this.pending[nopts.id] = { resolve, reject, opts: nopts }
 
       this.socket.write(pkt)
 

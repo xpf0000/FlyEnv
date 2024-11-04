@@ -9,12 +9,13 @@ import {
   versionFixed,
   versionInitedApp,
   versionLocalFetch,
-  versionSort,
-  waitTime
+  versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, unlink, copyFile } from 'fs-extra'
+import { readFile, writeFile, mkdirp, chmod, copyFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import { EOL } from 'os'
+import { ProcessListSearch } from '../Process'
 
 class Redis extends Base {
   constructor() {
@@ -56,56 +57,107 @@ class Redis extends Base {
     })
   }
 
+  _stopServer(version: SoftInstalled) {
+    return new ForkPromise(async (resolve) => {
+      const all = await ProcessListSearch(`phpwebstudy.90${version.num}`, false)
+      const arr: Array<string> = []
+      const fpm: Array<string> = []
+      all.forEach((item) => {
+        if (item?.CommandLine?.includes('php-cgi-spawner.exe')) {
+          fpm.push(item.ProcessId)
+        } else {
+          arr.push(item.ProcessId)
+        }
+      })
+      arr.unshift(...fpm)
+      console.log('php arr: ', arr)
+      if (arr.length > 0) {
+        const str = arr.map((s) => `/pid ${s}`).join(' ')
+        try {
+          await execPromiseRoot(`taskkill /f /t ${str}`)
+        } catch (e) {}
+      }
+      resolve({
+        'APP-Service-Stop-PID': arr
+      })
+    })
+  }
+
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject) => {
       await this.initLocalApp(version, 'redis')
       await this._initConf(version)
 
       const v = version?.version?.split('.')?.[0] ?? ''
       const bin = version.bin
 
-      try {
-        if (existsSync(this.pidPath)) {
-          await unlink(this.pidPath)
-        }
-      } catch (e) {}
-
-      const waitPid = async (time = 0): Promise<boolean> => {
-        let res = false
-        if (existsSync(this.pidPath)) {
-          res = true
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            res = res || (await waitPid(time + 1))
-          } else {
-            res = false
-          }
-        }
-        console.log('waitPid: ', time, res)
-        return res
-      }
-
       const confName = `redis-${v}.conf`
       const conf = join(global.Server.RedisDir!, confName)
       await copyFile(conf, join(dirname(bin), confName))
-      process.chdir(dirname(bin))
-      const command = `start /b ./${basename(bin)} ${confName}`
+
+      if (existsSync(this.pidPath)) {
+        try {
+          await execPromiseRoot(`del -Force "${this.pidPath}"`)
+        } catch (e) {}
+      }
+
+      const startLogFile = join(global.Server.RedisDir!, `start.log`)
+      const startErrLogFile = join(global.Server.RedisDir!, `start.error.log`)
+      if (existsSync(startErrLogFile)) {
+        try {
+          await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+        } catch (e) {}
+      }
+
+      const commands: string[] = [
+        '@echo off',
+        'chcp 65001>nul',
+        `cd /d "${dirname(bin)}"`,
+        `start /B ./${basename(bin)} ${confName} > "${startLogFile}" 2>"${startErrLogFile}"`
+      ]
+
+      const command = commands.join(EOL)
       console.log('command: ', command)
 
-      try {
-        const res = await execPromiseRoot(command)
-        console.log('start res: ', res)
-        on(res.stdout)
-        const check = await waitPid()
-        if (check) {
-          resolve(0)
-        } else {
-          reject(new Error('Start failed'))
-        }
-      } catch (e: any) {
-        reject(e)
+      const cmdName = `start.cmd`
+      const sh = join(global.Server.RedisDir!, cmdName)
+      await writeFile(sh, command)
+
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      await mkdirp(dirname(appPidFile))
+      if (existsSync(appPidFile)) {
+        try {
+          await execPromiseRoot(`del -Force "${appPidFile}"`)
+        } catch (e) {}
       }
+
+      process.chdir(global.Server.RedisDir!)
+      try {
+        await execPromiseRoot(
+          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        )
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
+      }
+      const res = await this.waitPidFile(this.pidPath, startErrLogFile)
+      if (res) {
+        if (res?.pid) {
+          await writeFile(appPidFile, res.pid)
+          resolve({
+            'APP-Service-Start-PID': res.pid
+          })
+          return
+        }
+        reject(new Error(res?.error ?? 'Start Fail'))
+        return
+      }
+      let msg = 'Start Fail'
+      if (existsSync(startLogFile)) {
+        msg = await readFile(startLogFile, 'utf-8')
+      }
+      reject(new Error(msg))
     })
   }
 

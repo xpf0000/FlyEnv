@@ -17,6 +17,8 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, readFile, remove, mkdirp, copyFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
+import { ProcessListSearch } from '../Process'
+import { EOL } from 'os'
 
 class Php extends Base {
   constructor() {
@@ -35,7 +37,6 @@ class Php extends Base {
         resolve(ini)
         return
       }
-
       const initIniFile = async (file: string) => {
         let content = await readFile(file, 'utf-8')
         content = content.replace(';extension_dir = "ext"', 'extension_dir = "ext"')
@@ -91,47 +92,18 @@ class Php extends Base {
     })
   }
 
-  installExtends(args: any) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      resolve(true)
-    })
-  }
-
-  unInstallExtends(soPath: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      resolve(true)
-    })
-  }
-
   _stopServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
-      const serverName = 'php-cgi'
-      const command = `wmic process get CommandLine,ProcessId | findstr "${serverName}"`
-      console.log('_stopServer command: ', command)
-      let res: any = null
-      try {
-        res = await execPromiseRoot(command)
-      } catch (e) {}
-      const pids = res?.stdout?.trim()?.split('\n') ?? []
+      const all = await ProcessListSearch(`phpwebstudy.90${version.num}`, false)
       const arr: Array<string> = []
       const fpm: Array<string> = []
-      for (const p of pids) {
-        if (p.includes(`phpwebstudy.90${version.num}`)) {
-          const pid = p
-            .split(' ')
-            .filter((s: string) => {
-              return !!s.trim()
-            })
-            .pop()
-          if (pid) {
-            if (p.includes('php-cgi-spawner.exe')) {
-              fpm.push(pid.trim())
-            } else {
-              arr.push(pid.trim())
-            }
-          }
+      all.forEach((item) => {
+        if (item?.CommandLine?.includes('php-cgi-spawner.exe')) {
+          fpm.push(item.ProcessId)
+        } else {
+          arr.push(item.ProcessId)
         }
-      }
+      })
       arr.unshift(...fpm)
       console.log('php arr: ', arr)
       if (arr.length > 0) {
@@ -140,7 +112,9 @@ class Php extends Base {
           await execPromiseRoot(`taskkill /f /t ${str}`)
         } catch (e) {}
       }
-      resolve(true)
+      resolve({
+        'APP-Service-Stop-PID': arr
+      })
     })
   }
 
@@ -170,10 +144,10 @@ class Php extends Base {
       }
       try {
         await this._stopServer(version)
-        await this._startServer(version).on(on)
+        const res = await this._startServer(version).on(on)
         await this._resetEnablePhpConf(version)
         await this._updateVhostPhpVersion(version)
-        resolve(true)
+        resolve(res)
       } catch (e) {
         reject(e)
       }
@@ -258,7 +232,7 @@ class Php extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject) => {
       await this.#initFPM()
       await this.getIniPath(version)
       if (!existsSync(join(version.path, 'php-cgi-spawner.exe'))) {
@@ -275,33 +249,35 @@ class Php extends Base {
       }
       await copyFile(ini, runIni)
 
-      process.chdir(dirname(version.bin))
+      const commands: string[] = [
+        '@echo off',
+        'chcp 65001>nul',
+        `cd /d "${dirname(version.bin)}"`,
+        `start /B ./php-cgi-spawner.exe "php-cgi.exe -c php.phpwebstudy.90${version.num}.ini" 90${version.num} 4 > NUL 2>&1 &`
+      ]
 
-      const command = `start /b ./php-cgi-spawner.exe "php-cgi.exe -c php.phpwebstudy.90${version.num}.ini" 90${version.num} 4`
-      console.log('_startServer command: ', command)
+      const command = commands.join(EOL)
+      console.log('command: ', command)
 
+      const cmdName = `start.cmd`
+      const sh = join(global.Server.PhpDir!, cmdName)
+      await writeFile(sh, command)
+
+      process.chdir(global.Server.PhpDir!)
       try {
-        const res = await execPromiseRoot(command)
-        console.log('start res: ', res)
-        if (res.stderr) {
-          reject(new Error(res.stderr))
-          return
-        }
-        on(res.stdout)
-        resolve(true)
+        const res = await execPromiseRoot(
+          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        )
+        console.log('php start res: ', res.stdout)
+        resolve({
+          'APP-Service-Start-PID': res.stdout.trim()
+        })
       } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
+        return
       }
     })
-  }
-
-  _doInstallExtends(
-    version: SoftInstalled,
-    versionNumber: number,
-    extend: string,
-    extendsDir: string
-  ) {
-    return new ForkPromise(async (resolve, reject, on) => {})
   }
 
   doObfuscator(params: any) {

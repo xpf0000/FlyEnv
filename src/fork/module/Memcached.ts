@@ -8,12 +8,12 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort,
-  waitTime
+  versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { unlink } from 'fs-extra'
+import { readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import { EOL } from 'os'
 
 class Memcached extends Base {
   constructor() {
@@ -26,50 +26,56 @@ class Memcached extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject) => {
       const bin = version.bin
       const pid = join(global.Server.MemcachedDir!, 'memcached.pid')
       const log = join(global.Server.MemcachedDir!, 'memcached.log')
 
-      try {
-        if (existsSync(pid)) {
-          await unlink(pid)
-        }
-      } catch (e) {}
-
-      const waitPid = async (time = 0): Promise<boolean> => {
-        let res = false
-        if (existsSync(pid)) {
-          res = true
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            res = res || (await waitPid(time + 1))
-          } else {
-            res = false
-          }
-        }
-        console.log('waitPid: ', time, res)
-        return res
+      if (existsSync(pid)) {
+        try {
+          await execPromiseRoot(`del -Force "${pid}"`)
+        } catch (e) {}
       }
 
-      process.chdir(dirname(bin))
+      const commands: string[] = [
+        '@echo off',
+        'chcp 65001>nul',
+        `cd /d "${dirname(bin)}"`,
+        `start /B ./${basename(bin)} -d -P "${pid}" -vv >> "${log}" 2>&1 &`
+      ]
 
-      const command = `start /b ./${basename(bin)} -d -P "${pid}" -vv >> "${log}" 2>&1`
+      const command = commands.join(EOL)
+      console.log('command: ', command)
 
+      const cmdName = `start.cmd`
+      const sh = join(global.Server.MemcachedDir!, cmdName)
+      await writeFile(sh, command)
+
+      process.chdir(global.Server.MemcachedDir!)
       try {
-        const res = await execPromiseRoot(command)
-        console.log('start res: ', res)
-        on(res.stdout)
-        const check = await waitPid()
-        if (check) {
-          resolve(0)
-        } else {
-          reject(new Error('Start failed'))
-        }
+        const res = await execPromiseRoot(
+          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        )
+        console.log('pid res.stdout: ', res.stdout)
       } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
+        return
       }
+      const res = await this.waitPidFile(pid)
+      if (res) {
+        if (res?.pid) {
+          resolve(true)
+          return
+        }
+        reject(new Error(res?.error ?? 'Start Fail'))
+        return
+      }
+      let msg = 'Start Fail'
+      if (existsSync(log)) {
+        msg = await readFile(log, 'utf-8')
+      }
+      reject(new Error(msg))
     })
   }
 

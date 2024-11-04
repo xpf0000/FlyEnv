@@ -10,12 +10,12 @@ import {
   versionFixed,
   versionInitedApp,
   versionLocalFetch,
-  versionSort,
-  waitTime
+  versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
+import { readFile, writeFile, mkdirp, chmod } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import { EOL } from 'os'
 
 class Caddy extends Base {
   constructor() {
@@ -136,57 +136,69 @@ class Caddy extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject) => {
       await this.initLocalApp(version, 'caddy')
       const bin = version.bin
       await this.#fixVHost()
       const iniFile = await this.initConfig()
 
-      try {
-        if (existsSync(this.pidPath)) {
-          await unlink(this.pidPath)
-        }
-      } catch (e) {}
-
-      const waitPid = async (time = 0): Promise<boolean> => {
-        let res = false
-        if (existsSync(this.pidPath)) {
-          res = true
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            res = res || (await waitPid(time + 1))
-          } else {
-            res = false
-          }
-        }
-        console.log('waitPid: ', time, res)
-        return res
+      if (existsSync(this.pidPath)) {
+        try {
+          await execPromiseRoot(`del -Force "${this.pidPath}"`)
+        } catch (e) {}
       }
 
-      try {
-        process.chdir(dirname(bin))
-        console.log(`新的工作目录: ${process.cwd()}`)
-      } catch (err) {
-        console.error(`改变工作目录失败: ${err}`)
-      }
+      const startLogFile = join(global.Server.BaseDir!, `caddy/start.log`)
 
-      const command = `start /b ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch > null 2>&1 &`
+      const commands: string[] = [
+        '@echo off',
+        'chcp 65001>nul',
+        `cd /d "${dirname(bin)}"`,
+        `start /B ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch > "${startLogFile}" 2>&1 &`
+      ]
+
+      const command = commands.join(EOL)
       console.log('command: ', command)
 
-      try {
-        const res = await execPromiseRoot(command)
-        console.log('start res: ', res)
-        on(res.stdout)
-        const check = await waitPid()
-        if (check) {
-          resolve(0)
-        } else {
-          reject(new Error('Start failed'))
-        }
-      } catch (e: any) {
-        reject(e)
+      const cmdName = `start.cmd`
+      const sh = join(global.Server.BaseDir!, `caddy/${cmdName}`)
+      await writeFile(sh, command)
+
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      await mkdirp(dirname(appPidFile))
+      if (existsSync(appPidFile)) {
+        try {
+          await execPromiseRoot(`del -Force "${appPidFile}"`)
+        } catch (e) {}
       }
+
+      process.chdir(join(global.Server.BaseDir!, `caddy`))
+      try {
+        await execPromiseRoot(
+          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        )
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
+      }
+      const res = await this.waitPidFile(this.pidPath)
+      if (res) {
+        if (res?.pid) {
+          await writeFile(appPidFile, res.pid)
+          resolve({
+            'APP-Service-Start-PID': res.pid
+          })
+          return
+        }
+        reject(new Error(res?.error ?? 'Start Fail'))
+        return
+      }
+      let msg = 'Start Fail'
+      if (existsSync(startLogFile)) {
+        msg = await readFile(startLogFile, 'utf-8')
+      }
+      reject(new Error(msg))
     })
   }
 

@@ -1,8 +1,8 @@
 import * as packet from 'dns-packet'
 import * as rcodes from 'dns-packet/rcodes.js'
-import {Buffer} from 'buffer'
-import {EventEmitter} from 'events'
-import {Writable} from 'stream'
+import { Buffer } from 'buffer'
+import { EventEmitter } from 'events'
+import { Writable } from 'stream'
 import ip from 'ip'
 import net from 'net'
 import url from 'url'
@@ -29,9 +29,7 @@ function printableString(stream, buf) {
   // else is replaced with '.'
 
   for (const x of buf) {
-    if ((x < 0x20) ||
-        ((x > 0x7e) && (x < 0xa1)) ||
-        (x === 0xad)) {
+    if (x < 0x20 || (x > 0x7e && x < 0xa1) || x === 0xad) {
       stream.write('.')
     } else {
       styleStream(stream, String.fromCharCode(x), 'string')
@@ -51,7 +49,7 @@ export class DNSutils extends EventEmitter {
    */
   constructor(opts = {}) {
     super()
-    if (opts.verbose && (typeof opts.verbose !== 'number')) {
+    if (opts.verbose && typeof opts.verbose !== 'number') {
       throw new Error('Bad verbose level')
     }
 
@@ -69,15 +67,20 @@ export class DNSutils extends EventEmitter {
   verbose(level, ...args) {
     if (this._verbose >= level) {
       // Defer expensive processing
-      args = args.map(a => ((typeof a === 'function') ? a() : a))
-      this.verboseStream.write(util.formatWithOptions({
-        // Really, process.stderr is a tty.WriteStream, but this will work
-        // fine in practice since isTTY will be undefined on other streams.
-        // @ts-ignore TS2339
-        colors: this.verboseStream.isTTY,
-        depth: Infinity,
-        sorted: true,
-      }, ...args))
+      args = args.map((a) => (typeof a === 'function' ? a() : a))
+      this.verboseStream.write(
+        util.formatWithOptions(
+          {
+            // Really, process.stderr is a tty.WriteStream, but this will work
+            // fine in practice since isTTY will be undefined on other streams.
+            // @ts-ignore TS2339
+            colors: this.verboseStream.isTTY,
+            depth: Infinity,
+            sorted: true
+          },
+          ...args
+        )
+      )
       this.verboseStream.write('\n')
       return true
     }
@@ -100,10 +103,10 @@ export class DNSutils extends EventEmitter {
       let offset = 0
       for (const byte of buf.slice(0, buf.length)) {
         // eslint-disable-next-line multiline-comment-style, indent
-/*
+        /*
 00000000  7b 0a 20 20 22 6e 61 6d  65 22 3a 20 22 64 6f 68  |{.  "name": "doh|
 */
-        if ((offset % 16) === 0) {
+        if (offset % 16 === 0) {
           if (offset !== 0) {
             this.verboseStream.write('  |')
             printableString(this.verboseStream, buf.slice(offset - 16, offset))
@@ -111,7 +114,7 @@ export class DNSutils extends EventEmitter {
           }
           styleStream(this.verboseStream, offset.toString(16).padStart(8, '0'), 'undefined')
         }
-        if ((offset % 8) === 0) {
+        if (offset % 8 === 0) {
           this.verboseStream.write(' ')
         }
         this.verboseStream.write(' ')
@@ -160,19 +163,23 @@ export class DNSutils extends EventEmitter {
       type: 'query',
       id: opts.id || 0,
       flags: packet.RECURSION_DESIRED,
-      questions: [{
-        type: opts.rrtype || 'A',
-        class: 'IN',
-        name: opts.name,
-      }],
-      additionals: [{
-        name: '.',
-        type: 'OPT',
-        // @ts-ignore TS2339: types not up to date
-        udpPayloadSize: 4096,
-        flags: 0,
-        options: [],
-      }],
+      questions: [
+        {
+          type: opts.rrtype || 'A',
+          class: 'IN',
+          name: opts.name
+        }
+      ],
+      additionals: [
+        {
+          name: '.',
+          type: 'OPT',
+          // @ts-ignore TS2339: types not up to date
+          udpPayloadSize: 4096,
+          flags: 0,
+          options: []
+        }
+      ]
     }
     if (opts.dnssec) {
       dns.flags |= packet.AUTHENTIC_DATA
@@ -181,12 +188,12 @@ export class DNSutils extends EventEmitter {
     }
     if (opts.ecs != null || net.isIP(opts.ecsSubnet) !== 0) {
       // https://tools.ietf.org/html/rfc7871#section-11.1
-      const prefix = (opts.ecsSubnet && net.isIPv4(opts.ecsSubnet)) ? 24 : 56
+      const prefix = opts.ecsSubnet && net.isIPv4(opts.ecsSubnet) ? 24 : 56
       // @ts-ignore TS2339: types not up to date
       dns.additionals[0].options.push({
         code: 'CLIENT_SUBNET',
         ip: opts.ecsSubnet || '0.0.0.0',
-        sourcePrefixLength: (opts.ecs == null) ? prefix : opts.ecs,
+        sourcePrefixLength: opts.ecs == null ? prefix : opts.ecs
       })
     }
     const unpadded = packet.encodingLength(dns)
@@ -195,7 +202,7 @@ export class DNSutils extends EventEmitter {
       code: 'PADDING',
       // Next pad size, minus what we already have, minus another 4 bytes for
       // the option header
-      length: (Math.ceil(unpadded / PAD_SIZE) * PAD_SIZE) - unpadded - 4,
+      length: Math.ceil(unpadded / PAD_SIZE) * PAD_SIZE - unpadded - 4
     })
     if (opts.stream) {
       // @ts-ignore TS2339: types not up to date
@@ -245,10 +252,10 @@ export class DNSutils extends EventEmitter {
     if (opts != null) {
       switch (typeof opts) {
         case 'object':
-          nopts = {...opts, ...nopts}
+          nopts = { ...opts, ...nopts }
           break
         case 'string':
-          nopts = {...nopts, rrtype: opts}
+          nopts = { ...nopts, rrtype: opts }
           break
         default:
           throw new Error('Invalid type for opts')
@@ -259,7 +266,7 @@ export class DNSutils extends EventEmitter {
       ...defaults,
       ...nopts,
       name: url.domainToASCII(nopts.name),
-      rrtype: (nopts.rrtype || 'A').toUpperCase(),
+      rrtype: (nopts.rrtype || 'A').toUpperCase()
     }
   }
 
@@ -271,11 +278,15 @@ export class DNSutils extends EventEmitter {
    */
   static base64urlEncode(buf) {
     const s = buf.toString('base64')
-    return s.replace(/[=+/]/g, c => ({
-      '=': '',
-      '+': '-',
-      '/': '_',
-    })[c])
+    return s.replace(
+      /[=+/]/g,
+      (c) =>
+        ({
+          '=': '',
+          '+': '-',
+          '/': '_'
+        })[c]
+    )
   }
 
   /**
@@ -291,7 +302,7 @@ export class DNSutils extends EventEmitter {
     if (!circular) {
       circular = new WeakSet()
     }
-    if (o && (typeof o === 'object')) {
+    if (o && typeof o === 'object') {
       if (circular.has(o)) {
         return '[Circular reference]'
       }
@@ -299,7 +310,7 @@ export class DNSutils extends EventEmitter {
       if (Buffer.isBuffer(o)) {
         return o.toString('base64')
       } else if (Array.isArray(o)) {
-        return o.map(v => this.buffersToB64(v, circular))
+        return o.map((v) => this.buffersToB64(v, circular))
       }
       return Object.entries(o).reduce((prev, [k, v]) => {
         prev[k] = this.buffersToB64(v, circular)
@@ -325,10 +336,9 @@ export class DNSutils extends EventEmitter {
       return `${Array.from(buf).join('.')}.in-addr.arpa`
     }
     // IPv6
-    const bytes = Array.from(
-      buf,
-      b => `${(b & 0xf).toString(16)}.${(b >> 4).toString(16)}`
-    ).join('.')
+    const bytes = Array.from(buf, (b) => `${(b & 0xf).toString(16)}.${(b >> 4).toString(16)}`).join(
+      '.'
+    )
     return `${bytes}.ip6.arpa`
   }
 }

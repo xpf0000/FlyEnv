@@ -13,8 +13,9 @@ import {
   waitTime
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, unlink, readFile, writeFile } from 'fs-extra'
+import { copyFile, readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import { EOL } from 'os'
 
 class Manager extends Base {
   constructor() {
@@ -33,39 +34,77 @@ class Manager extends Base {
       const pidFile = join(dbPath, 'postmaster.pid')
       const logFile = join(dbPath, 'pg.log')
       let sendUserPass = false
-      try {
-        if (existsSync(pidFile)) {
-          await unlink(pidFile)
-        }
-      } catch (e) {}
 
-      const checkpid = async (time = 0) => {
-        if (existsSync(pidFile)) {
-          if (sendUserPass) {
-            on(I18nT('fork.postgresqlInit', { dir: dbPath }))
-          }
-          resolve(true)
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            await checkpid(time + 1)
-          } else {
-            reject(new Error('Start Failed'))
-          }
-        }
-      }
       const doRun = async () => {
-        process.chdir(dirname(bin))
-        const command = `start /b ./${basename(bin)} -D "${dbPath}" -l "${logFile}" start`
+        if (existsSync(pidFile)) {
+          try {
+            await execPromiseRoot(`del -Force "${pidFile}"`)
+          } catch (e) {}
+        }
+
+        const startLogFile = join(global.Server.PostgreSqlDir!, `start.log`)
+        const startErrLogFile = join(global.Server.PostgreSqlDir!, `start.error.log`)
+        if (existsSync(startErrLogFile)) {
+          try {
+            await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+          } catch (e) {}
+        }
+
+        const commands: string[] = [
+          '@echo off',
+          'chcp 65001>nul',
+          `cd /d "${dirname(bin)}"`,
+          `start /B ./${basename(bin)} -D "${dbPath}" -l "${logFile}" start > "${startLogFile}" 2>"${startErrLogFile}"`
+        ]
+
+        const command = commands.join(EOL)
+        console.log('command: ', command)
+
+        const cmdName = `start.cmd`
+        const sh = join(global.Server.PostgreSqlDir!, cmdName)
+        await writeFile(sh, command)
+
+        const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+        await mkdirp(dirname(appPidFile))
+        if (existsSync(appPidFile)) {
+          try {
+            await execPromiseRoot(`del -Force "${appPidFile}"`)
+          } catch (e) {}
+        }
+
+        process.chdir(global.Server.PostgreSqlDir!)
         try {
-          await execPromiseRoot(command)
-        } catch (e) {
+          await execPromiseRoot(
+            `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+          )
+        } catch (e: any) {
+          console.log('-k start err: ', e)
           reject(e)
           return
         }
-        await waitTime(1000)
-        await checkpid()
+        const res = await this.waitPidFile(pidFile, startErrLogFile)
+        if (res) {
+          if (res?.pid) {
+            if (sendUserPass) {
+              on(I18nT('fork.postgresqlInit', { dir: dbPath }))
+            }
+            const pid = res.pid.trim().split('\n').shift()!.trim()
+            await writeFile(appPidFile, pid)
+            resolve({
+              'APP-Service-Start-PID': pid
+            })
+            return
+          }
+          reject(new Error(res?.error ?? 'Start Fail'))
+          return
+        }
+        let msg = 'Start Fail'
+        if (existsSync(startLogFile)) {
+          msg = await readFile(startLogFile, 'utf-8')
+        }
+        reject(new Error(msg))
       }
+
       if (existsSync(confFile)) {
         await doRun()
       } else if (!existsSync(dbPath)) {
@@ -77,7 +116,7 @@ class Manager extends Base {
         const binDir = dirname(bin)
         const initDB = join(binDir, 'initdb.exe')
         process.chdir(dirname(initDB))
-        const command = `start /b ./${basename(initDB)} -D "${dbPath}" -U root`
+        const command = `start /B ./${basename(initDB)} -D "${dbPath}" -U root > NUL 2>&1 &`
         try {
           await execPromiseRoot(command)
         } catch (e) {
@@ -104,7 +143,6 @@ class Manager extends Base {
         const defaultConfFile = join(dbPath, 'postgresql.conf.default')
         await copyFile(confFile, defaultConfFile)
         sendUserPass = true
-        await this._stopServer(version)
         await doRun()
       } else {
         reject(new Error(`Data Dir ${dbPath} has exists, but conf file not found in dir`))

@@ -127,7 +127,6 @@ export class Base {
         mysql: 'mysqld',
         mariadb: 'mariadbd',
         memcached: 'memcached',
-        redis: 'redis-server',
         mongodb: 'mongod',
         postgresql: 'postgres',
         'pure-ftpd': 'pure-ftpd',
@@ -136,8 +135,9 @@ export class Base {
       const serverName = dis[this.type]
       const pids = await ProcessListSearch(serverName, false)
       console.log('_stopServer 2 pid: ', serverName, pids)
-      if (pids.length > 0) {
-        const str = pids.map((s) => `/pid ${s.ProcessId}`).join(' ')
+      const all = pids.filter((item) => item.CommandLine.includes('PhpWebStudy-Data'))
+      if (all.length > 0) {
+        const str = all.map((s) => `/pid ${s.ProcessId}`).join(' ')
         try {
           await execPromiseRoot(`taskkill /f /t ${str}`)
         } catch (e) {}
@@ -154,14 +154,40 @@ export class Base {
     })
   }
 
-  async waitPidFile(file: string, time = 0): Promise<string | false> {
-    let res: string | false = false
-    if (existsSync(file)) {
-      res = (await readFile(file, 'utf-8')).trim()
+  async waitPidFile(
+    pidFile: string,
+    errLog?: string,
+    time = 0
+  ): Promise<
+    | {
+        pid?: string
+        error?: string
+      }
+    | false
+  > {
+    let res:
+      | {
+          pid?: string
+          error?: string
+        }
+      | false = false
+    if (errLog && existsSync(errLog)) {
+      const error = await readFile(errLog, 'utf-8')
+      if (error.length > 0) {
+        return {
+          error
+        }
+      }
+    }
+    if (existsSync(pidFile)) {
+      const pid = (await readFile(pidFile, 'utf-8')).trim()
+      return {
+        pid
+      }
     } else {
       if (time < 20) {
         await waitTime(500)
-        res = res || (await this.waitPidFile(file, time + 1))
+        res = res || (await this.waitPidFile(pidFile, errLog, time + 1))
       } else {
         res = false
       }

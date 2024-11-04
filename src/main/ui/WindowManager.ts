@@ -161,7 +161,7 @@ export default class WindowManager extends EventEmitter {
   destroyWindow(page: string) {
     const win = this.getWindow(page)
     this.removeWindow(page)
-    if(win) {
+    if (win) {
       win.removeAllListeners('closed')
       win.removeAllListeners('move')
       win.removeAllListeners('resize')

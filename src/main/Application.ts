@@ -15,7 +15,7 @@ import { ForkManager } from './core/ForkManager'
 import { execPromiseRoot } from '../fork/Fn'
 import is from 'electron-is'
 import UpdateManager from './core/UpdateManager'
-import { PItem, ProcessPidList, ProcessPidListByPid } from '../fork/Process'
+import { PItem, ProcessPidList, ProcessPidListByPids } from '../fork/Process'
 
 const { createFolder } = require('../shared/file')
 const { isAppleSilicon } = require('../shared/utils')
@@ -235,6 +235,9 @@ export default class Application extends EventEmitter {
     arr.unshift(...fpm)
     console.log('_stopServer arr: ', arr)
     if (arr.length > 0) {
+      arr.forEach((pid) => {
+        this.hostServicePID.delete(pid)
+      })
       const str = arr.map((s) => `/pid ${s}`).join(' ')
       try {
         await execPromiseRoot(`taskkill /f /t ${str}`)
@@ -248,20 +251,7 @@ export default class Application extends EventEmitter {
     if (this.hostServicePID.size === 0) {
       return
     }
-    let all: string[] = []
-    try {
-      const allPid: Promise<string[]>[] = Array.from(this.hostServicePID).map((pid) => {
-        return new Promise(async (resolve) => {
-          let pids: string[] = []
-          try {
-            pids = await ProcessPidListByPid(pid)
-          } catch (e) {}
-          resolve(pids)
-        })
-      })
-      const alls = await Promise.all(allPid)
-      all = alls.flat()
-    } catch (e) {}
+    const all: string[] = await ProcessPidListByPids(Array.from(this.hostServicePID))
     if (all.length > 0) {
       const str = all.map((s) => `/pid ${s}`).join(' ')
       try {

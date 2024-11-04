@@ -44,5 +44,5 @@ export default {
 
   hostsWriteTips: '开启或关闭全部站点',
 
-   sort: '排序'
+  sort: '排序'
 }

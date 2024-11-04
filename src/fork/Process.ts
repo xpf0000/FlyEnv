@@ -38,6 +38,36 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
     })
 }
 
+export const ProcessPidListByPids = async (pids: string[]): Promise<string[]> => {
+  const all: Set<string> = new Set()
+  const arr = await ProcessPidList()
+  console.log('arr: ', pids, arr)
+  const find = (ppid: string) => {
+    for (const item of arr) {
+      if (item.ParentProcessId === ppid) {
+        console.log('find: ', ppid, item)
+        all.add(item.ProcessId!)
+        find(item.ProcessId!)
+      }
+    }
+  }
+
+  for (const pid of pids) {
+    if (arr.find((a) => a.ProcessId === pid)) {
+      all.add(pid)
+      find(pid)
+    }
+    const item = arr.find((a) => a.ParentProcessId === pid)
+    if (item) {
+      all.add(pid)
+      all.add(item.ProcessId)
+      find(pid)
+      find(item.ProcessId)
+    }
+  }
+  return [...all]
+}
+
 export const ProcessPidListByPid = async (pid: string): Promise<string[]> => {
   const all: Set<string> = new Set()
   const arr = await ProcessPidList()

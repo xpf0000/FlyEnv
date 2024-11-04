@@ -247,11 +247,18 @@ IncludeOptional "${vhost}*.conf"`
       }
 
       const startLogFile = join(global.Server.ApacheDir!, `start.log`)
+      const startErrLogFile = join(global.Server.ApacheDir!, `start.error.log`)
+      if (existsSync(startErrLogFile)) {
+        try {
+          await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+        } catch (e) {}
+      }
+
       const commands: string[] = [
         '@echo off',
         'chcp 65001>nul',
         `cd /d "${dirname(bin)}"`,
-        `start /B ${basename(bin)} -f "${conf}" -k start > "${startLogFile}" 2>&1 &`
+        `start /B ./${basename(bin)} -f "${conf}" -k start > "${startLogFile}" 2>"${startErrLogFile}"`
       ]
 
       command = commands.join(EOL)
@@ -263,7 +270,7 @@ IncludeOptional "${vhost}*.conf"`
 
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       await mkdirp(dirname(appPidFile))
-      if (existsSync(pidPath)) {
+      if (existsSync(appPidFile)) {
         try {
           await execPromiseRoot(`del -Force "${appPidFile}"`)
         } catch (e) {}
@@ -273,18 +280,22 @@ IncludeOptional "${vhost}*.conf"`
       try {
         await execPromiseRoot(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
-        )      
+        )
       } catch (e: any) {
         console.log('-k start err: ', e)
         reject(e)
         return
       }
-      const res = await this.waitPidFile(pidPath)
+      const res = await this.waitPidFile(pidPath, startErrLogFile)
       if (res) {
-        await writeFile(appPidFile, res)
-        resolve({
-          'APP-Service-Start-PID': res
-        })
+        if (res?.pid) {
+          await writeFile(appPidFile, res.pid)
+          resolve({
+            'APP-Service-Start-PID': res.pid
+          })
+          return
+        }
+        reject(new Error(res?.error ?? 'Start Fail'))
         return
       }
       let msg = 'Start Fail'

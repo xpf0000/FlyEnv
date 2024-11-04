@@ -1,14 +1,14 @@
 import * as packet from 'dns-packet'
 import * as tls from 'tls'
 import DNSutils from './dnsUtils.js'
-import {Writable} from 'stream'
+import { Writable } from 'stream'
 import cryptoRandomString from 'crypto-random-string'
 import fs from 'fs'
 import got from 'got'
 
 const pkg = {
-  "name": "dohdec",
-  "version": "5.0.3",
+  name: 'dohdec',
+  version: '5.0.3'
 }
 
 const PAD_SIZE = 128
@@ -59,29 +59,28 @@ export class DNSoverHTTPS extends DNSutils {
    * @param {boolean} [opts.http2=false] Use http/2 if it is available.
    */
   constructor(opts = {}) {
-    const {
-      verbose,
-      verboseStream,
-      ...rest
-    } = opts
-    super({verbose, verboseStream})
+    const { verbose, verboseStream, ...rest } = opts
+    super({ verbose, verboseStream })
     this.opts = {
       userAgent: DNSoverHTTPS.userAgent,
       url: DNSoverHTTPS.defaultURL,
       preferPost: true,
       contentType: WF_DNS,
       http2: false,
-      ...rest,
+      ...rest
     }
 
-    this.hooks = (this._verbose > 0) ?
-      {
-        beforeRequest: [options => {
-          this.verbose(1, `HTTP ${options.method} headers:`, options.headers)
-          this.verbose(1, `HTTP ${options.method} URL: ${options.url.toString()}`)
-        }],
-      } :
-      undefined
+    this.hooks =
+      this._verbose > 0
+        ? {
+            beforeRequest: [
+              (options) => {
+                this.verbose(1, `HTTP ${options.method} headers:`, options.headers)
+                this.verbose(1, `HTTP ${options.method} URL: ${options.url.toString()}`)
+              }
+            ]
+          }
+        : undefined
 
     this.verbose(1, 'DNSoverHTTPS options:', this.opts)
   }
@@ -96,7 +95,7 @@ export class DNSoverHTTPS extends DNSutils {
       checkServerIdentity: (host, cert) => {
         this.verbose(3, 'CERTIFICATE:', () => DNSutils.buffersToB64(cert))
         return tls.checkServerIdentity(host, cert)
-      },
+      }
     }
   }
 
@@ -125,15 +124,15 @@ export class DNSoverHTTPS extends DNSutils {
       headers: {
         'Content-Type': this.opts.contentType,
         'User-Agent': this.opts.userAgent,
-        Accept: this.opts.contentType,
+        Accept: this.opts.contentType
       },
       body,
       https: this._checkServerIdentity(),
       http2: this.opts.http2,
       hooks: this.hooks,
       retry: {
-        limit: 0,
-      },
+        limit: 0
+      }
     }).buffer()
     this.hexDump(2, response)
     this.verbose(1, 'RESPONSE:', () => packet.decode(response))
@@ -161,29 +160,25 @@ export class DNSoverHTTPS extends DNSutils {
     }
     req += '&random_padding='
     req += cryptoRandomString({
-      length: (Math.ceil(req.length / PAD_SIZE) * PAD_SIZE) - req.length,
-      type: 'url-safe',
+      length: Math.ceil(req.length / PAD_SIZE) * PAD_SIZE - req.length,
+      type: 'url-safe'
     })
     this.verbose(1, 'REQUEST:', req)
 
-    const r = got(
-      req, {
-        headers: {
-          'User-Agent': this.opts.userAgent,
-          Accept: WF_JSON,
-        },
-        https: this._checkServerIdentity(),
-        http2: this.opts.http2,
-        hooks: this.hooks,
-        retry: {
-          limit: 0,
-        },
+    const r = got(req, {
+      headers: {
+        'User-Agent': this.opts.userAgent,
+        Accept: WF_JSON
+      },
+      https: this._checkServerIdentity(),
+      http2: this.opts.http2,
+      hooks: this.hooks,
+      retry: {
+        limit: 0
       }
-    )
+    })
 
-    const decode = Object.prototype.hasOwnProperty.call(opts, 'decode') ?
-      opts.decode :
-      true
+    const decode = Object.prototype.hasOwnProperty.call(opts, 'decode') ? opts.decode : true
     return decode ? r.json() : r.text()
   }
 
@@ -201,7 +196,7 @@ export class DNSoverHTTPS extends DNSutils {
       rrtype: 'A',
       json: true,
       decode: true,
-      dnssec: false,
+      dnssec: false
     })
     this.verbose(1, 'DNSoverHTTPS.lookup options:', nopts)
 
