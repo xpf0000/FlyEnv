@@ -94,7 +94,7 @@ PLUGINS_DIR="${pluginsDir}"`
       const commands: string[] = [
         '@echo off',
         'chcp 65001>nul',
-        `set RABBITMQ_CONF_ENV_FILE=${confFile}`,
+        `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`,
         `cd /d "${dirname(version.bin)}"`,
         `./${basename(version.bin)} -detached --PWSAPPFLAG=${global.Server.BaseDir!}`
       ]

@@ -42,14 +42,14 @@ export class ServiceItemJavaSpring extends ServiceItem {
         for (const k in opt.env) {
           const v = opt.env[k]
           if (v.includes(' ')) {
-            commands.push(`set ${k}="${v}"`)
+            commands.push(`set "${k}=${v}"`)
           } else {
             commands.push(`set ${k}=${v}`)
           }
         }
       }
-      commands.push(`set PATH=${dirname(item.jdkDir)};%PATH%`)
-      commands.push(`set JAVA_HOME=${dirname(dirname(item.jdkDir))}`)
+      commands.push(`set "PATH=${dirname(item.jdkDir)};%PATH%"`)
+      commands.push(`set "JAVA_HOME=${dirname(dirname(item.jdkDir))}"`)
       commands.push(`cd /d "${dirname(item.jdkDir!)}"`)
       commands.push(`start /B ${item.startCommand} > "${log}" 2>&1 &`)
 

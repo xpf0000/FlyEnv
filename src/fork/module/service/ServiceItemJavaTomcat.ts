@@ -1,12 +1,12 @@
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { basename, dirname, join, resolve as pathResolve } from 'path'
 import { copyFile, existsSync, mkdirp, readFile, writeFile, realpathSync } from 'fs-extra'
-import { hostAlias } from '../../Fn'
+import { hostAlias, waitTime } from '../../Fn'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import { ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseRoot } from '../../Fn'
-import { ProcessPidListByPid } from '../../Process'
+import { ProcessListSearch } from '../../Process'
 import { EOL } from 'os'
 
 export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostAll: AppHost[]) => {
@@ -367,9 +367,9 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       const commands: string[] = [
         '@echo off',
         'chcp 65001>nul',
-        `set JAVA_HOME=${env.JAVA_HOME}`,
-        `set CATALINA_BASE=${env.CATALINA_BASE}`,
-        `set CATALINA_PID=${pid}`,
+        `set "JAVA_HOME=${env.JAVA_HOME}"`,
+        `set "CATALINA_BASE=${env.CATALINA_BASE}"`,
+        `set "CATALINA_PID=${pid}"`,
         `cd /d "${dirname(bin)}"`,
         `start /B ${basename(bin)} > NUL 2>&1 &`
       ]
@@ -394,18 +394,35 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       }
     })
   }
+  checkPid() {
+    return new Promise((resolve, reject) => {
+      const doCheck = async (time: number) => {
+        const pids = await this.checkState()
+        if (pids.length > 0) {
+          const pid = pids.pop()
+          resolve(pid)
+        } else {
+          if (time < 20) {
+            await waitTime(1000)
+            await doCheck(time + 1)
+          } else {
+            reject(new Error('pid file not found'))
+          }
+        }
+      }
+      doCheck(0).then().catch(reject)
+    })
+  }
   async checkState() {
     const id = this.host?.id
     if (!id) {
       return []
     }
-    const baseDir = join(global.Server.BaseDir!, 'tomcat')
-    const pidFile = join(baseDir, `${id}.pid`)
-    this.pidFile = pidFile
-    if (!existsSync(pidFile)) {
-      return []
-    }
-    const pid = (await readFile(pidFile, 'utf-8')).trim()
-    return await ProcessPidListByPid(pid)
+    const key = join(global.Server.BaseDir!, `tomcat/${id}`)
+    let all: any[] = []
+    try {
+      all = await ProcessListSearch(key, false)
+    } catch (e) {}
+    return all.map((item) => item.ProcessId)
   }
 }

@@ -258,7 +258,7 @@ IncludeOptional "${vhost}*.conf"`
         '@echo off',
         'chcp 65001>nul',
         `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} -f "${conf}" -k start > "${startLogFile}" 2>"${startErrLogFile}"`
+        `start /B ./${basename(bin)} -f "${conf}" -k start > "${startLogFile}" 2>"${startErrLogFile}" &`
       ]
 
       command = commands.join(EOL)

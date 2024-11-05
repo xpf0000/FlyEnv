@@ -43,7 +43,7 @@ export class ServiceItemGo extends ServiceItem {
         for (const k in opt.env) {
           const v = opt.env[k]
           if (v.includes(' ')) {
-            commands.push(`set ${k}="${v}"`)
+            commands.push(`set "${k}=${v}"`)
           } else {
             commands.push(`set ${k}=${v}`)
           }

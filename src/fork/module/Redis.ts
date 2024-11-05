@@ -59,17 +59,13 @@ class Redis extends Base {
 
   _stopServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
-      const all = await ProcessListSearch(`phpwebstudy.90${version.num}`, false)
+      const v = version?.version?.split('.')?.[0] ?? ''
+      const appConfName = `pws-app-redis-${v}.conf`
+      const all = await ProcessListSearch(appConfName, false)
       const arr: Array<string> = []
-      const fpm: Array<string> = []
       all.forEach((item) => {
-        if (item?.CommandLine?.includes('php-cgi-spawner.exe')) {
-          fpm.push(item.ProcessId)
-        } else {
-          arr.push(item.ProcessId)
-        }
+        arr.push(item.ProcessId)
       })
-      arr.unshift(...fpm)
       console.log('php arr: ', arr)
       if (arr.length > 0) {
         const str = arr.map((s) => `/pid ${s}`).join(' ')
@@ -93,7 +89,8 @@ class Redis extends Base {
 
       const confName = `redis-${v}.conf`
       const conf = join(global.Server.RedisDir!, confName)
-      await copyFile(conf, join(dirname(bin), confName))
+      const appConfName = `pws-app-redis-${v}.conf`
+      await copyFile(conf, join(dirname(bin), appConfName))
 
       if (existsSync(this.pidPath)) {
         try {
@@ -101,19 +98,11 @@ class Redis extends Base {
         } catch (e) {}
       }
 
-      const startLogFile = join(global.Server.RedisDir!, `start.log`)
-      const startErrLogFile = join(global.Server.RedisDir!, `start.error.log`)
-      if (existsSync(startErrLogFile)) {
-        try {
-          await execPromiseRoot(`del -Force "${startErrLogFile}"`)
-        } catch (e) {}
-      }
-
       const commands: string[] = [
         '@echo off',
         'chcp 65001>nul',
         `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} ${confName} > "${startLogFile}" 2>"${startErrLogFile}"`
+        `start /B ./${basename(bin)} ${appConfName} > NUL 2>&1 &`
       ]
 
       const command = commands.join(EOL)
@@ -122,14 +111,6 @@ class Redis extends Base {
       const cmdName = `start.cmd`
       const sh = join(global.Server.RedisDir!, cmdName)
       await writeFile(sh, command)
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await execPromiseRoot(`del -Force "${appPidFile}"`)
-        } catch (e) {}
-      }
 
       process.chdir(global.Server.RedisDir!)
       try {
@@ -141,23 +122,12 @@ class Redis extends Base {
         reject(e)
         return
       }
-      const res = await this.waitPidFile(this.pidPath, startErrLogFile)
-      if (res) {
-        if (res?.pid) {
-          await writeFile(appPidFile, res.pid)
-          resolve({
-            'APP-Service-Start-PID': res.pid
-          })
-          return
-        }
-        reject(new Error(res?.error ?? 'Start Fail'))
+      const res = await this.waitPidFile(this.pidPath)
+      if (res && res?.pid) {
+        resolve(true)
         return
       }
-      let msg = 'Start Fail'
-      if (existsSync(startLogFile)) {
-        msg = await readFile(startLogFile, 'utf-8')
-      }
-      reject(new Error(msg))
+      reject(new Error('Start Fail'))
     })
   }
 

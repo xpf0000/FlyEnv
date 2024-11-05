@@ -222,7 +222,7 @@ export default class Application extends EventEmitter {
       }
       if (
         item.CommandLine.includes('PhpWebStudy-Data') ||
-        item.CommandLine.includes('redis-server') ||
+        item.CommandLine.includes('pws-app-') ||
         item.CommandLine.includes('php.phpwebstudy')
       ) {
         if (item.CommandLine.includes('php-cgi-spawner.exe')) {

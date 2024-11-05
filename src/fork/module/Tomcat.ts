@@ -11,9 +11,11 @@ import {
   versionLocalFetch,
   versionSort
 } from '../Fn'
-import { readFile, writeFile } from 'fs-extra'
+import { copyFile, mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { makeGlobalTomcatServerXML } from './service/ServiceItemJavaTomcat'
+import { EOL } from 'os'
+import { ProcessListSearch } from '../Process'
 
 class Tomcat extends Base {
   constructor() {
@@ -55,23 +57,102 @@ class Tomcat extends Base {
     }
   }
 
+  async _initDefaultDir(version: SoftInstalled) {
+    const v = version?.version?.split('.')?.shift() ?? ''
+    const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+    if (existsSync(dir) && existsSync(join(dir, 'conf/server.xml'))) {
+      return dir
+    }
+    const files = [
+      'catalina.properties',
+      'context.xml',
+      'jaspic-providers.xml',
+      'jaspic-providers.xsd',
+      'tomcat-users.xml',
+      'tomcat-users.xsd',
+      'logging.properties',
+      'web.xml',
+      'server.xml'
+    ]
+    const fromConfDir = join(dirname(dirname(version.bin)), 'conf')
+    const toConfDir = join(dir, 'conf')
+    await mkdirp(toConfDir)
+    for (const file of files) {
+      const src = join(fromConfDir, file)
+      if (existsSync(src)) {
+        await copyFile(src, join(toConfDir, file))
+      }
+    }
+    return dir
+  }
+
+  _stopServer(version: SoftInstalled) {
+    return new ForkPromise(async (resolve) => {
+      const v = version?.version?.split('.')?.shift() ?? ''
+      const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+      const all = await ProcessListSearch(dir, false)
+      const arr: Array<string> = []
+      all.forEach((item) => {
+        arr.push(item.ProcessId)
+      })
+      console.log('tomcat _stopServer arr: ', arr)
+      if (arr.length > 0) {
+        const str = arr.map((s) => `/pid ${s}`).join(' ')
+        try {
+          await execPromiseRoot(`taskkill /f /t ${str}`)
+        } catch (e) {}
+      }
+      resolve({
+        'APP-Service-Stop-PID': arr
+      })
+    })
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
       const bin = version.bin
-      await makeGlobalTomcatServerXML(version)
       await this._fixStartBat(version)
+      const baseDir = await this._initDefaultDir(version)
+      await makeGlobalTomcatServerXML({
+        path: baseDir
+      } as any)
 
-      process.chdir(dirname(bin))
+      const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
 
-      const command = `start /b ${basename(bin)} --APPFLAG="${global.Server.BaseDir!}"`
+      const commands: string[] = [
+        '@echo off',
+        'chcp 65001>nul',
+        `set "CATALINA_BASE=${baseDir}"`,
+        `cd /d "${dirname(bin)}"`,
+        `start /B ${basename(bin)} > NUL 2>&1 &`
+      ]
+
+      const command = commands.join(EOL)
       console.log('command: ', command)
 
+      const cmdName = `start.cmd`
+      const sh = join(tomcatDir, cmdName)
+      await writeFile(sh, command)
+
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      await mkdirp(dirname(appPidFile))
+      if (existsSync(appPidFile)) {
+        try {
+          await execPromiseRoot(`del -Force "${appPidFile}"`)
+        } catch (e) {}
+      }
+
+      process.chdir(tomcatDir)
       try {
-        const res = await execPromiseRoot(command)
-        console.log('start res: ', res)
-        resolve(0)
+        const res = await execPromiseRoot(
+          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        )
+        console.log('tomcat start res: ', res.stdout)
+        resolve(true)
       } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
+        return
       }
     })
   }
