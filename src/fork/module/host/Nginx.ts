@@ -114,14 +114,15 @@ export const makeNginxConf = async (host: AppHost) => {
   const hostname = host.name
   const nvhost = join(nginxvpath, `${hostname}.conf`)
   const hostalias = hostAlias(host).join(' ')
+  const rewriteFile = join(rewritepath, `${hostname}.conf`)
   ntmpl = ntmpl
     .replace(/#Server_Alias#/g, hostalias)
-    .replace(/#Server_Root#/g, host.root)
-    .replace(/#Rewrite_Path#/g, rewritepath)
+    .replace(/#Server_Root#/g, host.root.split('\\').join('/'))
+    .replace(/#Rewrite_Path#/g, rewriteFile.split('\\').join('/'))
     .replace(/#Server_Name#/g, hostname)
-    .replace(/#Log_Path#/g, logpath)
-    .replace(/#Server_Cert#/g, host.ssl.cert)
-    .replace(/#Server_CertKey#/g, host.ssl.key)
+    .replace(/#Log_Path#/g, logpath.split('\\').join('/'))
+    .replace(/#Server_Cert#/g, host.ssl.cert.split('\\').join('/'))
+    .replace(/#Server_CertKey#/g, host.ssl.key.split('\\').join('/'))
     .replace(/#Port_Nginx#/g, `${host.port.nginx}`)
     .replace(/#Port_Nginx_SSL#/g, `${host.port.nginx_ssl}`)
 
@@ -158,9 +159,9 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   if (host?.phpVersion) {
     await handlePhpEnableConf(host?.phpVersion)
   }
-  const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
-  const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
-  const logpath = join(global.Server.BaseDir!, 'vhost/logs')
+  const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx').split('\\').join('/')
+  const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite').split('\\').join('/')
+  const logpath = join(global.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
 
   await mkdirp(nginxvpath)
   await mkdirp(rewritepath)
@@ -199,6 +200,7 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
 
   if (!existsSync(nginxConfPath)) {
     await makeNginxConf(host)
+    return
   }
 
   let contentNginxConf = await readFile(nginxConfPath, 'utf-8')
@@ -234,13 +236,13 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
-    find.push(...[old.ssl.cert])
-    replace.push(...[host.ssl.cert])
+    find.push(...[old.ssl.cert.split('\\').join('/')])
+    replace.push(...[host.ssl.cert.split('\\').join('/')])
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
-    find.push(...[old.ssl.key])
-    replace.push(...[host.ssl.key])
+    find.push(...[old.ssl.key.split('\\').join('/')])
+    replace.push(...[host.ssl.key.split('\\').join('/')])
   }
   if (host.port.nginx !== old.port.nginx) {
     hasChanged = true
@@ -254,8 +256,8 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   }
   if (host.root !== old.root) {
     hasChanged = true
-    find.push(...[old.root])
-    replace.push(...[host.root])
+    find.push(...[old.root.split('\\').join('/')])
+    replace.push(...[host.root.split('\\').join('/')])
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true

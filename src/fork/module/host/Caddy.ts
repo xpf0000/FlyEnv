@@ -60,8 +60,8 @@ export const makeCaddyConf = async (host: AppHost) => {
   const httpHostNameAll = httpNames.join(',\n')
   let content = tmpl.caddy
     .replace('##HOST-ALL##', httpHostNameAll)
-    .replace('##LOG-PATH##', logFile)
-    .replace('##ROOT##', root)
+    .replace('##LOG-PATH##', logFile.split('\\').join('/'))
+    .replace('##ROOT##', root.split('\\').join('/'))
     .replace('##PHP-VERSION##', `${phpv}`)
   content = handleReverseProxy(host, content)
   contentList.push(content)
@@ -69,14 +69,14 @@ export const makeCaddyConf = async (host: AppHost) => {
   if (host.useSSL) {
     let tls = 'internal'
     if (host.ssl.cert && host.ssl.key) {
-      tls = `${host.ssl.cert} ${host.ssl.key}`
+      tls = `${host.ssl.cert.split('\\').join('/')} ${host.ssl.key.split('\\').join('/')}`
     }
     const httpHostNameAll = httpsNames.join(',\n')
     let content = tmpl.caddySSL
       .replace('##HOST-ALL##', httpHostNameAll)
-      .replace('##LOG-PATH##', logFile)
+      .replace('##LOG-PATH##', logFile.split('\\').join('/'))
       .replace('##SSL##', tls)
-      .replace('##ROOT##', root)
+      .replace('##ROOT##', root.split('\\').join('/'))
       .replace('##PHP-VERSION##', `${phpv}`)
     content = handleReverseProxy(host, content)
     contentList.push(content)
@@ -87,8 +87,8 @@ export const makeCaddyConf = async (host: AppHost) => {
 }
 
 export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
-  const logpath = join(global.Server.BaseDir!, 'vhost/logs')
-  const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
+  const logpath = join(global.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
+  const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy').split('\\').join('/')
   await mkdirp(caddyvpath)
   await mkdirp(logpath)
 
@@ -113,6 +113,7 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
 
   if (!existsSync(caddyConfPath)) {
     await makeCaddyConf(host)
+    return
   }
 
   let contentCaddyConf = await readFile(caddyConfPath, 'utf-8')
@@ -166,18 +167,18 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
-    find.push(...[old.ssl.cert])
-    replace.push(...[host.ssl.cert])
+    find.push(...[old.ssl.cert.split('\\').join('/')])
+    replace.push(...[host.ssl.cert.split('\\').join('/')])
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
-    find.push(...[old.ssl.key])
-    replace.push(...[host.ssl.key])
+    find.push(...[old.ssl.key.split('\\').join('/')])
+    replace.push(...[host.ssl.key.split('\\').join('/')])
   }
   if (host.root !== old.root) {
     hasChanged = true
-    find.push(...[old.root])
-    replace.push(...[host.root])
+    find.push(...[old.root.split('\\').join('/')])
+    replace.push(...[host.root.split('\\').join('/')])
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true

@@ -22,6 +22,7 @@ class Manager extends Base {
   RabbitMQ: any
   Python: any
   Maven: any
+  ERLang: any
 
   constructor() {
     super()
@@ -136,6 +137,12 @@ class Manager extends Base {
             this.Maven = res.default
           }
           versions.maven = this.Maven.allInstalledVersions(setup)
+        } else if (type === 'erlang') {
+          if (!this.ERLang) {
+            const res = await import('./ERLang')
+            this.ERLang = res.default
+          }
+          versions.erlang = this.ERLang.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

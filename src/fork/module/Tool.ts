@@ -1,14 +1,24 @@
-import { createReadStream, readFileSync } from 'fs'
+import { createReadStream, readFileSync, statSync } from 'fs'
 import { Base } from './Base'
-import { getAllFileAsync, execPromise, uuid, systemProxyGet, execPromiseRoot } from '../Fn'
+import { execPromise, execPromiseRoot, getAllFileAsync, systemProxyGet, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { existsSync, writeFile, copyFile, readFile, remove } from 'fs-extra'
-import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
-import { join, basename, dirname } from 'path'
+import {
+  copyFile,
+  existsSync,
+  mkdirp,
+  readdir,
+  readFile,
+  realpathSync,
+  remove,
+  writeFile
+} from 'fs-extra'
+import { TaskItem, TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
+import { basename, dirname, join } from 'path'
 import { I18nT } from '../lang'
 import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
+import { PItem, ProcessListSearch } from '../Process'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -250,38 +260,43 @@ subjectAltName=@alt_names
 
   processFind(name: string) {
     return new ForkPromise(async (resolve) => {
-      const command = `wmic process get CommandLine,ProcessId | findstr "${name}"`
-      let res
+      let list: PItem[] = []
       try {
-        res = await execPromiseRoot(command)
+        list = await ProcessListSearch(name, false)
       } catch (e) {}
-      const lines = res?.stdout?.trim()?.split('\n') ?? []
-      const list = lines
-        .filter((s) => !s.includes(`findstr `))
-        .map((i) => {
-          const all = i.split(' ').filter((s: string) => {
-            return !!s.trim()
-          })
-          const PID = all.pop()
-          const COMMAND = all.join(' ')
-          return {
-            PID,
-            COMMAND
+
+      const arrs: PItem[] = []
+
+      const findSub = (item: PItem) => {
+        const sub: PItem[] = []
+        for (const s of list) {
+          if (s.ParentProcessId === item.ProcessId) {
+            sub.push(s)
           }
-        })
-      resolve(list)
+        }
+        if (sub.length > 0) {
+          item.children = sub
+        }
+      }
+
+      for (const item of list) {
+        findSub(item)
+        const p = list.find((s: PItem) => s.ProcessId === item.ParentProcessId)
+        if (!p) {
+          arrs.push(item)
+        }
+      }
+
+      resolve(arrs)
     })
   }
 
   processKill(pids: string[]) {
     return new ForkPromise(async (resolve) => {
       const str = pids.map((s) => `/pid ${s}`).join(' ')
-      await execPromiseRoot(`taskkill /f /t ${str}`)
-      // for (const pid of pids) {
-      //   try {
-      //     await execPromiseRoot(`wmic process where processid="${pid}" delete`)
-      //   } catch (e) { }
-      // }
+      try {
+        await execPromiseRoot(`taskkill /f /t ${str}`)
+      } catch (e) {}
       resolve(true)
     })
   }
@@ -342,8 +357,8 @@ subjectAltName=@alt_names
     })
   }
 
-  fetchPATH() {
-    return new ForkPromise(async (resolve, reject, on) => {
+  fetchPATH(): ForkPromise<string[]> {
+    return new ForkPromise(async (resolve, reject) => {
       const sh = join(global.Server.Static!, 'sh/path.cmd')
       const copySh = join(global.Server.Cache!, 'path.cmd')
       if (existsSync(copySh)) {
@@ -358,7 +373,37 @@ subjectAltName=@alt_names
         const oldPath = Array.from(new Set(str.split(';') ?? []))
           .filter((s) => !!s.trim())
           .map((s) => s.trim())
+          .map((s) => {
+            if (existsSync(s)) {
+              return realpathSync(s)
+            }
+            return s
+          })
         console.log('fetchPATH path: ', str, oldPath)
+        resolve(oldPath)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  _fetchRawPATH(): ForkPromise<string[]> {
+    return new ForkPromise(async (resolve, reject) => {
+      const sh = join(global.Server.Static!, 'sh/path.cmd')
+      const copySh = join(global.Server.Cache!, 'path.cmd')
+      if (existsSync(copySh)) {
+        await remove(copySh)
+      }
+      await copyFile(sh, copySh)
+      process.chdir(global.Server.Cache!)
+      try {
+        const res = await execPromiseRoot('path.cmd')
+        let str = res?.stdout ?? ''
+        str = str.replace(new RegExp(`\n`, 'g'), '')
+        const oldPath = Array.from(new Set(str.split(';') ?? []))
+          .filter((s) => !!s.trim())
+          .map((s) => s.trim())
+        console.log('_fetchRawPATH: ', str, oldPath)
         resolve(oldPath)
       } catch (e) {
         reject(e)
@@ -368,55 +413,101 @@ subjectAltName=@alt_names
 
   updatePATH(item: SoftInstalled, typeFlag: string) {
     return new ForkPromise(async (resolve, reject) => {
-      let sh = join(global.Server.Static!, 'sh/path.cmd')
-      let copySh = join(global.Server.Cache!, 'path.cmd')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      await copyFile(sh, copySh)
-      process.chdir(global.Server.Cache!)
       let oldPath: string[] = []
+      let rawOldPath: string[] = []
       try {
-        const res = await execPromiseRoot('path.cmd')
-        let str = res?.stdout ?? ''
-        str = str.replace(new RegExp(`\n`, 'g'), '')
-        oldPath = Array.from(new Set(str.split(';') ?? []))
-          .filter((s) => !!s.trim())
-          .map((s) => s.trim())
-        console.log('updatePATH path: ', str, oldPath)
-      } catch (e) {
-        reject(e)
-        return
-      }
+        oldPath = await this._fetchRawPATH()
+        rawOldPath = oldPath.map((s) => {
+          if (existsSync(s)) {
+            return realpathSync(s)
+          }
+          return s
+        })
+      } catch (e) {}
       if (oldPath.length === 0) {
         reject(new Error('Fail'))
         return
       }
-
       const binDir = dirname(item.bin)
+      /**
+       * 初始化env文件夾
+       * 删除标识文件夹
+       * 如果原来没有 重新创建链接文件夹
+       */
+      const envDir = join(dirname(global.Server.AppDir!), 'env')
+      if (!existsSync(envDir)) {
+        await mkdirp(envDir)
+      }
+      const flagDir = join(envDir, typeFlag)
+      console.log('flagDir: ', flagDir)
+      try {
+        await execPromiseRoot(`rmdir /S /Q ${flagDir}`)
+      } catch (e) {
+        console.log('rmdir err: ', e)
+      }
+      if (!rawOldPath.includes(binDir)) {
+        try {
+          await execPromiseRoot(`mklink /J "${flagDir}" "${item.path}"`)
+        } catch (e) {
+          console.log('updatePATH mklink err: ', e)
+        }
+      }
+
+      /**
+       * 已存在的 删除
+       */
       const index = oldPath.indexOf(binDir)
       if (index >= 0) {
         oldPath.splice(index, 1)
-      } else {
-        const findOtherVersion = oldPath.filter((o) =>
-          o.includes(join(global.Server.AppDir!, `${typeFlag}-`))
-        )
-        for (const v of findOtherVersion) {
-          const index = oldPath.findIndex((o) => o === v)
-          if (index >= 0) {
-            oldPath.splice(index, 1)
+      }
+
+      /**
+       * 获取env文件夹下所有子文件夹
+       */
+      let allFile = await readdir(envDir)
+      allFile = allFile
+        .filter((f) => existsSync(join(envDir, f)))
+        .map((f) => join(envDir, f))
+        .filter((f) => {
+          let check = false
+          try {
+            const rf = realpathSync(f)
+            check = existsSync(rf) && statSync(rf).isDirectory()
+          } catch (e) {
+            check = false
+          }
+          return check
+        })
+
+      console.log('allFile: ', allFile)
+      /**
+       * 从原有PATH删除全部env文件夹
+       */
+      oldPath = oldPath.filter((o) => {
+        if (o.includes(envDir)) {
+          if (!allFile.find((a) => o.includes(a))) {
+            return false
           }
         }
-        oldPath.push(binDir)
+        return true
+      })
+
+      if (existsSync(flagDir)) {
+        const index = oldPath.findIndex((o) => o.includes(flagDir))
+        if (index >= 0) {
+          oldPath.splice(index, 1)
+        }
+        oldPath.unshift(dirname(item.bin.replace(item.path, flagDir)))
       }
 
       oldPath = oldPath.map((p) => {
         if (p.includes('%')) {
-          const np = p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
-          return np
+          return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
         }
         return p
       })
+
+      console.log('oldPath: ', oldPath)
 
       if (typeFlag === 'composer') {
         const bat = join(binDir, 'composer.bat')
@@ -429,8 +520,8 @@ php "%~dp0composer.phar" %*`
         }
       }
 
-      sh = join(global.Server.Static!, 'sh/path-set.cmd')
-      copySh = join(global.Server.Cache!, 'path-set.cmd')
+      const sh = join(global.Server.Static!, 'sh/path-set.cmd')
+      const copySh = join(global.Server.Cache!, 'path-set.cmd')
       if (existsSync(copySh)) {
         await remove(copySh)
       }
@@ -438,11 +529,30 @@ php "%~dp0composer.phar" %*`
       content = content.replace('##NEW_PATH##', oldPath.join(';'))
       if (typeFlag === 'java') {
         content = content.replace('##OTHER##', `setx /M JAVA_HOME "${item.path}"`)
+      } else if (typeFlag === 'erlang') {
+        content = content.replace('##OTHER##', `setx /M ERLANG_HOME "${item.path}"`)
+        const f = join(global.Server.Cache!, `${uuid()}.ps1`)
+        await writeFile(
+          f,
+          `New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force`
+        )
+        process.chdir(global.Server.Cache!)
+        try {
+          const res = await execPromiseRoot(`powershell.exe "${f}"`)
+          console.log('erlang path fix: ', res)
+        } catch (e) {}
+        await remove(f)
       } else {
         content = content.replace('##OTHER##', ``)
       }
       console.log('updatePATH: ', content)
       await writeFile(copySh, content)
+      oldPath = oldPath.map((o) => {
+        if (existsSync(o)) {
+          return realpathSync(o)
+        }
+        return o
+      })
       process.chdir(global.Server.Cache!)
       try {
         await execPromiseRoot('path-set.cmd')

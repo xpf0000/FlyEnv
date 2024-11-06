@@ -5,6 +5,7 @@ function env($name,$global,$val='__get') {
 }
 
 #DARK# -nologo -x "#TMPL#" "#EXE#"
+Start-Sleep -Seconds 1
 @('path.msi', 'pip.msi') | ForEach-Object {
   Remove-Item "#TMPL#\AttachedContainer\$_"
 }
@@ -12,6 +13,6 @@ function env($name,$global,$val='__get') {
   if($((Get-Item $_).Basename) -eq 'appendpath') { return }
   msiexec.exe /a $_ /qn TARGETDIR="#APPDIR#"
 }
-Remove-Item "#TMPL#" -Force -Recurse
+Start-Sleep -Seconds 1
 $pathext = (env 'PATHEXT' $true) -replace ';.PYW?', ''
 env 'PATHEXT' $true "$pathext;.PY;.PYW"

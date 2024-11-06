@@ -28,7 +28,7 @@ class BaseManager {
   Python: any
   Maven: any
   Service: any
-
+  ERLang: any
   constructor() {}
 
   init() {}
@@ -219,6 +219,12 @@ class BaseManager {
         this.Service = res.default
       }
       doRun(this.Service)
+    } else if (module === 'erlang') {
+      if (!this.ERLang) {
+        const res = await import('./module/ERLang')
+        this.ERLang = res.default
+      }
+      doRun(this.ERLang)
     }
   }
 

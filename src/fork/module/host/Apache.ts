@@ -38,11 +38,9 @@ const handleReverseProxy = (host: AppHost, content: string) => {
 
 export const makeApacheConf = async (host: AppHost) => {
   const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
-  const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
   const logpath = join(global.Server.BaseDir!, 'vhost/logs')
 
   await mkdirp(apachevpath)
-  await mkdirp(rewritepath)
   await mkdirp(logpath)
 
   const tmpl = await vhostTmpl()
@@ -59,12 +57,11 @@ export const makeApacheConf = async (host: AppHost) => {
 
   atmpl = atmpl
     .replace(/#Server_Alias#/g, hostalias)
-    .replace(/#Server_Root#/g, host.root)
-    .replace(/#Rewrite_Path#/g, rewritepath)
+    .replace(/#Server_Root#/g, host.root.split('\\').join('/'))
     .replace(/#Server_Name#/g, hostname)
-    .replace(/#Log_Path#/g, logpath)
-    .replace(/#Server_Cert#/g, host.ssl.cert)
-    .replace(/#Server_CertKey#/g, host.ssl.key)
+    .replace(/#Log_Path#/g, logpath.split('\\').join('/'))
+    .replace(/#Server_Cert#/g, host.ssl.cert.split('\\').join('/'))
+    .replace(/#Server_CertKey#/g, host.ssl.key.split('\\').join('/'))
     .replace(/#Port_Apache#/g, `${host.port.apache}`)
     .replace(/#Port_Apache_SSL#/g, `${host.port.apache_ssl}`)
 
@@ -86,8 +83,8 @@ export const makeApacheConf = async (host: AppHost) => {
 }
 
 export const updateApacheConf = async (host: AppHost, old: AppHost) => {
-  const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
-  const logpath = join(global.Server.BaseDir!, 'vhost/logs')
+  const apachevpath = join(global.Server.BaseDir!, 'vhost/apache').split('\\').join('/')
+  const logpath = join(global.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
 
   await mkdirp(apachevpath)
   await mkdirp(logpath)
@@ -121,6 +118,7 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
 
   if (!existsSync(apacheConfPath)) {
     await makeApacheConf(host)
+    return
   }
 
   let contentApacheConf = await readFile(apacheConfPath, 'utf-8')
@@ -158,13 +156,13 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
-    find.push(...[old.ssl.cert])
-    replace.push(...[host.ssl.cert])
+    find.push(...[old.ssl.cert.split('\\').join('/')])
+    replace.push(...[host.ssl.cert.split('\\').join('/')])
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
-    find.push(...[old.ssl.key])
-    replace.push(...[host.ssl.key])
+    find.push(...[old.ssl.key.split('\\').join('/')])
+    replace.push(...[host.ssl.key.split('\\').join('/')])
   }
 
   if (host.port.apache !== old.port.apache) {
@@ -183,8 +181,8 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   }
   if (host.root !== old.root) {
     hasChanged = true
-    find.push(...[old.root])
-    replace.push(...[host.root])
+    find.push(...[old.root.split('\\').join('/')])
+    replace.push(...[host.root.split('\\').join('/')])
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true

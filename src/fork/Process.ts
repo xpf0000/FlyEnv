@@ -7,6 +7,7 @@ export type PItem = {
   ProcessId: string
   ParentProcessId: string
   CommandLine: string
+  children?: PItem[]
 }
 
 export const ProcessPidList = async (): Promise<PItem[]> => {
@@ -97,6 +98,9 @@ export const ProcessPidListByPid = async (pid: string): Promise<string[]> => {
 
 export const ProcessListSearch = async (search: string, aA = true) => {
   const all: PItem[] = []
+  if (!search) {
+    return all
+  }
   const arr = await ProcessPidList()
   const find = (ppid: string) => {
     for (const item of arr) {

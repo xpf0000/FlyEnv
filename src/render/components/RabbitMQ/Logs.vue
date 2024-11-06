@@ -40,7 +40,7 @@
       filepath.value = ''
       return
     }
-    const confFile = join(global.Server.BaseDir, 'rabbitmq', `rabbitmq-${v}.conf`)
+    const confFile = join(global.Server.BaseDir, 'rabbitmq', `rabbitmq-${v}.bat`)
     if (!existsSync(confFile)) {
       filepath.value = ''
       return
@@ -53,6 +53,7 @@
         .find((s: string) => s.includes('NODENAME'))
         ?.split('=')
         ?.pop()
+        ?.replace('"', '')
         ?.trim() ?? 'rabbit@localhost'
     filepath.value = join(logDir, `${name}.log`)
   }

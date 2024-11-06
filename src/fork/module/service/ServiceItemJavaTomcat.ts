@@ -27,6 +27,9 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
   const serverXML = parser.parse(serverContent)
 
   const handlePort = (host: AppHost) => {
+    const sslCert = host?.ssl?.cert?.split('\\')?.join('/') ?? ''
+    const sslKey = host?.ssl?.key?.split('\\')?.join('/') ?? ''
+
     const port = host?.port?.tomcat ?? 80
     if (!serverXML.Server.Service.Connector) {
       const xml = `<Connector appFlag="PhpWebStudy" port="${port}" protocol="HTTP/1.1" connectionTimeout="60000"/>`
@@ -55,15 +58,15 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
           `<Connector appFlag="PhpWebStudy" port="${port}" protocol="org.apache.coyote.http11.Http11NioProtocol"
                    maxThreads="150" SSLEnabled="true" scheme="https">`,
           `<SSLHostConfig sslProtocol="TLS" certificateVerification="false">
-                <Certificate certificateFile="${host.ssl.cert}"
-                             certificateKeyFile="${host.ssl.key}"
+                <Certificate certificateFile="${sslCert}"
+                             certificateKeyFile="${sslKey}"
                              type="RSA"/>
             </SSLHostConfig>`
         ]
         hostAlias(host).forEach((h) => {
           arr.push(`<SSLHostConfig appFlag="PhpWebStudy" hostName="${h}" sslProtocol="TLS" certificateVerification="false">
-                <Certificate certificateFile="${host.ssl.cert}"
-                             certificateKeyFile="${host.ssl.key}"
+                <Certificate certificateFile="${sslCert}"
+                             certificateKeyFile="${sslKey}"
                              type="RSA"/>
             </SSLHostConfig>`)
         })
@@ -77,15 +80,15 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
             `<Connector appFlag="PhpWebStudy" port="${port}" protocol="org.apache.coyote.http11.Http11NioProtocol"
                    maxThreads="150" SSLEnabled="true" scheme="https">`,
             `<SSLHostConfig sslProtocol="TLS" certificateVerification="false">
-                <Certificate certificateFile="${host.ssl.cert}"
-                             certificateKeyFile="${host.ssl.key}"
+                <Certificate certificateFile="${sslCert}"
+                             certificateKeyFile="${sslKey}"
                              type="RSA"/>
             </SSLHostConfig>`
           ]
           hostAlias(host).forEach((h) => {
             arr.push(`<SSLHostConfig appFlag="PhpWebStudy" hostName="${h}" sslProtocol="TLS" certificateVerification="false">
-                <Certificate certificateFile="${host.ssl.cert}"
-                             certificateKeyFile="${host.ssl.key}"
+                <Certificate certificateFile="${sslCert}"
+                             certificateKeyFile="${sslKey}"
                              type="RSA"/>
             </SSLHostConfig>`)
           })
@@ -97,8 +100,8 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
             const findHost = hostConfig.find((c: any) => c.hostName === h)
             if (!findHost) {
               const str = `<SSLHostConfig appFlag="PhpWebStudy" hostName="${h}" sslProtocol="TLS" certificateVerification="false">
-                <Certificate certificateFile="${host.ssl.cert}"
-                             certificateKeyFile="${host.ssl.key}"
+                <Certificate certificateFile="${sslCert}"
+                             certificateKeyFile="${sslKey}"
                              type="RSA"/>
             </SSLHostConfig>`
               const xml = parser.parse(str)
@@ -110,8 +113,8 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
             const cert = defaultConf.Certificate.certificateFile
             const key = defaultConf.Certificate.certificateKeyFile
             if (!existsSync(pathResolve(cnfDir, cert)) || !existsSync(pathResolve(cnfDir, key))) {
-              defaultConf.Certificate.certificateFile = host.ssl.cert
-              defaultConf.Certificate.certificateKeyFile = host.ssl.key
+              defaultConf.Certificate.certificateFile = sslCert
+              defaultConf.Certificate.certificateKeyFile = sslKey
             }
           }
         }
@@ -120,12 +123,13 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
   }
 
   const handleVhost = (host: AppHost) => {
-    const logDir = join(global.Server.BaseDir!, 'vhost/logs')
+    const hostRoot = host.root.split('\\').join('/')
+    const logDir = join(global.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
     let hosts = serverXML.Server.Service.Engine.Host
     if (!hosts) {
       const arr: string[] = []
       hostAlias(host).forEach((h) => {
-        arr.push(`<Host name="${h}" appBase="${host.root}" appFlag="PhpWebStudy"
+        arr.push(`<Host name="${h}" appBase="${hostRoot}" appFlag="PhpWebStudy"
                   unpackWARs="true" autoDeploy="true">
                 <Context path="" docBase=""></Context>
                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logDir}"
@@ -143,9 +147,9 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
       hostAlias(host).forEach((h) => {
         const findHost = hosts.find((s: any) => s.name === h)
         if (findHost) {
-          findHost.appBase = host.root
+          findHost.appBase = hostRoot
         } else {
-          const str = `<Host name="${h}" appBase="${host.root}" appFlag="PhpWebStudy"
+          const str = `<Host name="${h}" appBase="${hostRoot}" appFlag="PhpWebStudy"
                   unpackWARs="true" autoDeploy="true">
                   <Context path="" docBase=""></Context>
                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="${logDir}"

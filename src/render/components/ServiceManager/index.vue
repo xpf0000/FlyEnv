@@ -69,6 +69,7 @@
               </template>
             </el-popover>
           </template>
+          <slot name="tool-left"></slot>
         </div>
         <el-button class="button" :disabled="service?.fetching" link @click="resetData">
           <yb-icon
@@ -199,7 +200,7 @@
       </el-table-column>
       <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
-          <ExtSet :item="scope.row" :type="typeFlag" />
+          <ExtSet :item="scope.row" :type="typeFlag" :show-hide-show="true" />
         </template>
       </el-table-column>
     </el-table>

@@ -13,17 +13,19 @@
         <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
         <span class="ml-15">{{ $t('base.addToPath') }}</span>
       </li>
-      <template v-if="isVersionHide">
-        <li @click.stop="doShow">
-          <yb-icon :svg="import('@/svg/show.svg?raw')" width="17" height="17" />
-          <span class="ml-15">{{ $t('base.noHide') }}</span>
-        </li>
-      </template>
-      <template v-else>
-        <li @click.stop="doHide">
-          <yb-icon :svg="import('@/svg/hide.svg?raw')" width="17" height="17" />
-          <span class="ml-15">{{ $t('base.hide') }}</span>
-        </li>
+      <template v-if="showHideShow">
+        <template v-if="isVersionHide">
+          <li @click.stop="doShow">
+            <yb-icon :svg="import('@/svg/show.svg?raw')" width="17" height="17" />
+            <span class="ml-15">{{ $t('base.noHide') }}</span>
+          </li>
+        </template>
+        <template v-else>
+          <li @click.stop="doHide">
+            <yb-icon :svg="import('@/svg/hide.svg?raw')" width="17" height="17" />
+            <span class="ml-15">{{ $t('base.hide') }}</span>
+          </li>
+        </template>
       </template>
     </ul>
     <template #reference>
@@ -46,6 +48,7 @@
   const props = defineProps<{
     item: SoftInstalled
     type: AllAppModule
+    showHideShow: boolean
   }>()
 
   const store = AppStore()

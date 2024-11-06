@@ -541,6 +541,7 @@ export const versionBinVersion = (
       console.log('versionBinVersion: ', command, reg, res)
       handleThen(res)
     } catch (e) {
+      console.log('versionBinVersion err: ', e)
       handleCatch(e)
     }
   })
@@ -578,7 +579,6 @@ export const versionLocalFetch = async (
       return false
     }
     dir = realpathSync(dir)
-    console.log('findInstalled dir: ', dir)
     let binPath = versionCheckBin(join(dir, `${binName}`))
     if (binPath) {
       return {
@@ -607,7 +607,6 @@ export const versionLocalFetch = async (
     if (!versionDirCache?.[dir]) {
       versionDirCache[dir] = sub
     }
-    console.log('sub: ', sub)
     for (const s of sub) {
       const sres: any = await findInstalled(s, depth + 1, maxDepth)
       res = res || sres

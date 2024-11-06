@@ -26,5 +26,6 @@ export default {
   toolFileNotExist: 'File does not exist',
   downFileFail: 'Download file failed!',
   noPowerShell:
-    'PowerShell not found in environment variables, please configure PowerShell in environment variables first and restart PWS to retry'
+    'PowerShell not found in environment variables, please configure PowerShell in environment variables first and restart PWS to retry',
+  noEPMD: 'The epmd process was not found. Please reset the Erlang environment variables'
 }

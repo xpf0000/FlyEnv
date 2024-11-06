@@ -5,7 +5,6 @@ import { I18nT } from '../lang'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromiseRoot,
-  uuid,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -14,9 +13,11 @@ import {
   waitTime
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, mkdirp, unlink } from 'fs-extra'
+import { mkdirp, readdir, readFile, unlink, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
+import { ProcessListSearch } from '../Process'
+
 class RabbitMQ extends Base {
   baseDir: string = ''
 
@@ -43,20 +44,30 @@ class RabbitMQ extends Base {
       this._initConf(version).then(resolve)
     })
   }
+
+  async _initPlugin(version: SoftInstalled) {
+    process.chdir(dirname(version.bin))
+    try {
+      const res = await execPromiseRoot(`rabbitmq-plugins.bat enable rabbitmq_management`)
+      console.log('rabbitmq _initPlugin: ', res)
+    } catch (e: any) {}
+  }
+
   _initConf(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
       const v = version?.version?.split('.')?.[0] ?? ''
-      const confFile = join(this.baseDir, `rabbitmq-${v}.conf`)
+      const confFile = join(this.baseDir, `rabbitmq-${v}.bat`)
       const logDir = join(this.baseDir, `log-${v}`)
       await mkdirp(logDir)
       if (!existsSync(confFile)) {
+        await this._initPlugin(version)
         const pluginsDir = join(version.path, 'plugins')
         const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)
-        const content = `NODE_IP_ADDRESS=127.0.0.1
-NODENAME=rabbit@localhost
-RABBITMQ_LOG_BASE=${logDir}
-MNESIA_BASE=${mnesiaBaseDir}
-PLUGINS_DIR="${pluginsDir}"`
+        const content = `set "NODE_IP_ADDRESS=127.0.0.1"
+set "NODENAME=rabbit@localhost"
+set "RABBITMQ_LOG_BASE=${logDir}"
+set "MNESIA_BASE=${mnesiaBaseDir}"
+set "PLUGINS_DIR=${pluginsDir}"`
         await writeFile(confFile, content)
         const defaultFile = join(this.baseDir, `rabbitmq-${v}-default.conf`)
         await writeFile(defaultFile, content)
@@ -71,16 +82,25 @@ PLUGINS_DIR="${pluginsDir}"`
       const v = version?.version?.split('.')?.[0] ?? ''
       const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)
       await mkdirp(mnesiaBaseDir)
+
+      const startLogFile = join(this.baseDir, `start.log`)
+      const startErrorLogFile = join(this.baseDir, `start.error.log`)
+
       const checkpid = async (time = 0) => {
         const all = readdirSync(mnesiaBaseDir)
-        if (all.some((p) => p.endsWith('.pid'))) {
-          resolve(0)
+        const pidFile = all.some((p) => p.endsWith('.pid'))
+        if (pidFile) {
+          resolve(true)
         } else {
           if (time < 20) {
             await waitTime(500)
             await checkpid(time + 1)
           } else {
-            reject(new Error(I18nT('fork.startFail')))
+            let msg = I18nT('fork.startFail')
+            if (existsSync(startErrorLogFile)) {
+              msg = await readFile(startErrorLogFile)
+            }
+            reject(new Error(msg))
           }
         }
       }
@@ -91,22 +111,48 @@ PLUGINS_DIR="${pluginsDir}"`
           await unlink(join(mnesiaBaseDir, pid))
         }
       } catch (e) {}
+
+      if (existsSync(startErrorLogFile)) {
+        try {
+          await execPromiseRoot(`del -Force "${startErrorLogFile}"`)
+        } catch (e) {}
+      }
+
       const commands: string[] = [
         '@echo off',
         'chcp 65001>nul',
         `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`,
         `cd /d "${dirname(version.bin)}"`,
-        `./${basename(version.bin)} -detached --PWSAPPFLAG=${global.Server.BaseDir!}`
+        `start /B ${basename(version.bin)} -detached --PWSAPPFLAG=${global.Server.BaseDir!} > "${startLogFile}" 2>"${startErrorLogFile}" &`
       ]
-      const sh = join(global.Server.Cache!, `${uuid()}.cmd`)
-      await writeFile(sh, commands.join(EOL))
-      process.chdir(global.Server.Cache!)
-      try {
-        await execPromiseRoot(`start /B ./${basename(sh)} > null 2>&1 &`)
-        await checkpid()
-      } catch (e) {
-        reject(e)
+
+      const command = commands.join(EOL)
+      console.log('command: ', command)
+
+      const cmdName = `start.cmd`
+      const sh = join(this.baseDir, cmdName)
+      await writeFile(sh, command)
+
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      await mkdirp(dirname(appPidFile))
+      if (existsSync(appPidFile)) {
+        try {
+          await execPromiseRoot(`del -Force "${appPidFile}"`)
+        } catch (e) {}
       }
+
+      process.chdir(this.baseDir)
+      try {
+        const res = await execPromiseRoot(
+          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        )
+        console.log('rabbitmq start res: ', res.stdout)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
+        reject(e)
+        return
+      }
+      await checkpid()
     })
   }
 
@@ -134,17 +180,50 @@ PLUGINS_DIR="${pluginsDir}"`
     })
   }
 
+  async _initEPMD() {
+    const pids = await ProcessListSearch('epmd.exe', false)
+    if (pids.length > 0) {
+      return
+    }
+    let str = ''
+    try {
+      str = (await execPromiseRoot('set ERLANG_HOME')).stdout.trim().replace('ERLANG_HOME=', '')
+    } catch (e: any) {}
+    if (!str || !existsSync(str)) {
+      return
+    }
+    const dirs = await readdir(str)
+    for (const dir of dirs) {
+      const bin = join(str, dir, 'bin/epmd.exe')
+      if (existsSync(bin)) {
+        process.chdir(dirname(bin))
+        try {
+          await execPromiseRoot('start /B ./epmd.exe > NUL 2>&1 &')
+        } catch (e: any) {}
+        break
+      }
+    }
+  }
+
   allInstalledVersions(setup: any) {
-    return new ForkPromise((resolve) => {
+    return new ForkPromise(async (resolve) => {
+      await this._initEPMD()
       let versions: SoftInstalled[] = []
       Promise.all([versionLocalFetch(setup?.rabbitmq?.dirs ?? [], 'rabbitmq-server.bat')])
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
+          const pids = await ProcessListSearch('epmd.exe', false)
           const all = versions.map((item) => {
-            const command = `${join(dirname(item.bin), 'rabbitmqctl')} version`
+            if (pids.length === 0) {
+              return Promise.resolve({
+                error: I18nT('fork.noEPMD'),
+                version: undefined
+              })
+            }
+            const command = `${join(dirname(item.bin), 'rabbitmqctl.bat')} version`
             const reg = /(.*?)(\d+(\.\d+){1,4})(.*?)/g
-            return TaskQueue.run(versionBinVersion, command, reg)
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
           return Promise.all(all)
         })

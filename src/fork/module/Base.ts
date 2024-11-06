@@ -130,7 +130,8 @@ export class Base {
         mongodb: 'mongod',
         postgresql: 'postgres',
         'pure-ftpd': 'pure-ftpd',
-        tomcat: 'org.apache.catalina.startup.Bootstrap'
+        tomcat: 'org.apache.catalina.startup.Bootstrap',
+        rabbitmq: 'rabbit'
       }
       const serverName = dis[this.type]
       const pids = await ProcessListSearch(serverName, false)
@@ -263,18 +264,38 @@ export class Base {
           .replace(new RegExp(`#EXE#`, 'g'), EXE)
           .replace(new RegExp(`#APPDIR#`, 'g'), APPDIR)
 
-        let sh = join(global.Server.Cache!, `${uuid()}.ps1`)
+        let sh = join(global.Server.Cache!, `python-install-${uuid()}.ps1`)
         await writeFile(sh, content)
 
         process.chdir(global.Server.Cache!)
         await execPromiseRoot(`powershell.exe ${sh}`)
         await remove(sh)
 
-        sh = join(global.Server.Cache!, `${uuid()}.ps1`)
+        sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
         await copyFile(join(global.Server.Static!, 'sh/pip.ps1'), sh)
         process.chdir(row.appDir)
         await execPromiseRoot(`powershell.exe ${sh}`)
         await remove(sh)
+
+        const checkState = async (time = 0): Promise<boolean> => {
+          let res = false
+          const bin = row.bin
+          if (existsSync(bin)) {
+            res = true
+          } else {
+            if (time < 20) {
+              await waitTime(500)
+              res = res || (await checkState(time + 1))
+            }
+          }
+          return res
+        }
+        const res = await checkState()
+        if (res) {
+          await remove(tmpDir)
+          return
+        }
+        throw new Error('Python Install Fail')
       }
 
       const handleMemcached = async () => {
@@ -351,6 +372,8 @@ php "%~dp0composer.phar" %*`
             await handleTwoLevDir('golang')
           } else if (row.type === 'maven') {
             await handleTwoLevDir('maven')
+          } else if (row.type === 'rabbitmq') {
+            await handleTwoLevDir('rabbitmq')
           } else if (row.type === 'python') {
             await handlePython()
           } else {
@@ -417,6 +440,8 @@ php "%~dp0composer.phar" %*`
                   await handleTwoLevDir('golang')
                 } else if (row.type === 'maven') {
                   await handleTwoLevDir('maven')
+                } else if (row.type === 'rabbitmq') {
+                  await handleTwoLevDir('rabbitmq')
                 } else if (row.type === 'python') {
                   await handlePython()
                 } else {

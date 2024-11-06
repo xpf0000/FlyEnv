@@ -83,6 +83,7 @@ type StateBase = SetupBase & {
   }
   hosts: {
     write: boolean
+    ipv6?: boolean
   }
   proxy: {
     on: boolean

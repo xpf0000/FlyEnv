@@ -19,7 +19,7 @@ server
     #PHP-INFO-END
 
     #REWRITE-START URL重写规则引用,修改后将导致面板设置的伪静态规则失效
-    include "#Rewrite_Path#/#Server_Name#.conf";
+    include "#Rewrite_Path#";
     #REWRITE-END
 
     #禁止访问的文件或目录

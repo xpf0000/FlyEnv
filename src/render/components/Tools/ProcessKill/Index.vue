@@ -34,12 +34,14 @@
               height="100%"
               :data="arrs"
               size="default"
+              default-expand-all
+              row-key="ProcessId"
               style="width: 100%"
               @selection-change="handleSelectionChange"
             >
               <el-table-column type="selection" width="55" />
-              <el-table-column prop="PID" label="PID" width="90"> </el-table-column>
-              <el-table-column prop="COMMAND" label="COMMAND"> </el-table-column>
+              <el-table-column prop="ProcessId" label="ProcessId" width="90"> </el-table-column>
+              <el-table-column prop="CommandLine" label="CommandLine"> </el-table-column>
             </el-table>
           </el-card>
         </div>
@@ -51,10 +53,8 @@
 <script>
   import { markRaw } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element.ts'
+  import { MessageSuccess, MessageWarning } from '@/util/Element.ts'
   import IPC from '@/util/IPC'
-
-  const { execSync } = require('child_process')
 
   export default {
     components: {},
@@ -80,7 +80,7 @@
         })
           .then(() => {
             const pids = this.select.map((s) => {
-              return s.PID
+              return s.ProcessId
             })
 
             IPC.send('app-fork:tools', 'processKill', pids).then((key, res) => {
@@ -98,7 +98,7 @@
         })
           .then(() => {
             const pids = this.arrs.map((s) => {
-              return s.PID
+              return s.ProcessId
             })
 
             IPC.send('app-fork:tools', 'processKill', pids).then((key, res) => {
