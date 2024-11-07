@@ -239,7 +239,7 @@
   watch(
     () => item.value.bin,
     () => {
-      item.value.startCommand = `python ./${basename(item.value.bin)}`
+      item.value.startCommand = `${item.value.pythonDir} ./${basename(item.value.bin)}`
     }
   )
 

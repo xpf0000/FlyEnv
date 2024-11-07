@@ -18,7 +18,8 @@ const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   webPreferences: {
     nodeIntegration: true,
     contextIsolation: false,
-    webSecurity: false
+    webSecurity: false,
+    webviewTag: true
   }
 }
 const trayBrowserOptions: BrowserWindowConstructorOptions = {

@@ -8,7 +8,7 @@ import { I18nT } from '../../lang'
 import { downFile } from '../../Fn'
 import { zipUnPack } from '@shared/file'
 
-export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
+export function TaskAddRandaSite(this: any, version?: SoftInstalled, write = true, ipv6 = true) {
   return new ForkPromise(async (resolve, reject) => {
     const baseName = join(global.Server.BaseDir!, 'www')
     let host = `www.test.com`
@@ -48,7 +48,7 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
     }
     try {
       await this.handleHost(hostItem, 'add')
-      await this.writeHosts()
+      await this.writeHosts(write, ipv6)
       if (version?.num) {
         const file = join(dir, 'index.php')
         await writeFile(
@@ -88,7 +88,7 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
   })
 }
 
-export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
+export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = true, ipv6 = true) {
   return new ForkPromise(async (resolve, reject, on) => {
     const zipFile = join(global.Server.Cache!, 'phpMyAdmin.zip')
     const wwwDir = join(global.Server.BaseDir!, 'www')
@@ -124,6 +124,16 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
         if (readdirSync(siteDir).length === 0) {
           reject(new Error(I18nT('fork.downFileFail')))
           return
+        }
+        const ini = join(wwwDir, 'phpMyAdmin-5.2.1-all-languages/config.sample.inc.php')
+        if (existsSync(ini)) {
+          let content = await readFile(ini, 'utf-8')
+          content = content.replace(
+            `$cfg['Servers'][$i]['host'] = 'localhost';`,
+            `$cfg['Servers'][$i]['host'] = '127.0.0.1';`
+          )
+          const cpFile = join(wwwDir, 'phpMyAdmin-5.2.1-all-languages/config.inc.php')
+          await writeFile(cpFile, content)
         }
       }
 
@@ -166,7 +176,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
       }
       try {
         await this.handleHost(hostItem, 'add')
-        await this.writeHosts()
+        await this.writeHosts(write, ipv6)
         await setDirRole(siteDir)
         resolve(true)
       } catch (e) {

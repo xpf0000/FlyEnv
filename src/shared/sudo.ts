@@ -19,6 +19,8 @@ export interface Sudo {
   pathStatus?: string
 }
 
+const { remove } = require('fs-extra')
+
 const Node = {
   child: require('child_process'),
   crypto: require('crypto'),
@@ -193,7 +195,10 @@ function Windows(instance: Sudo, callback: Function) {
           callback(undefined, stdout, stderr)
           return
         }
-        Remove(instance.path!, function (errorRemove: any) {
+        Remove(instance.path!, async function (errorRemove: any) {
+          try {
+            await remove(instance.path!)
+          } catch (e) {}
           if (error) return callback(error)
           if (errorRemove) return callback(errorRemove)
           callback(undefined, stdout, stderr)

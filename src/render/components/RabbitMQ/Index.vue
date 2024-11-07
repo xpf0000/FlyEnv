@@ -20,7 +20,7 @@
           </el-button>
         </template>
       </Service>
-      <Manager v-else-if="tab === 1" type-flag="rabbitmq"></Manager>
+      <Manager v-else-if="tab === 1" type-flag="rabbitmq" title="RabbitMQ"></Manager>
       <ERLnag
         v-else-if="tab === 2"
         type-flag="erlang"

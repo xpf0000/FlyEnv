@@ -33,7 +33,12 @@ const config: UserConfig = {
       'aws-sdk',
       'nock',
       '7zip-min-electron',
-      'tangerine'
+      'tangerine',
+      'os',
+      'child_process',
+      'child-process-promise',
+      'fs-extra',
+      'node-forge'
     ]
   },
   root: renderPath,

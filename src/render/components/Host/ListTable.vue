@@ -274,8 +274,12 @@
     appStore.initHost()
   }
 
+  const ipv6 = computed(() => {
+    return appStore.config.setup?.hosts?.ipv6 ?? true
+  })
+
   onMounted(() => {
-    IPC.send('app-fork:host', 'writeHosts', writeHosts.value).then((key: string) => {
+    IPC.send('app-fork:host', 'writeHosts', writeHosts.value, ipv6.value).then((key: string) => {
       IPC.off(key)
     })
   })

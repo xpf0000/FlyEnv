@@ -497,7 +497,14 @@ subjectAltName=@alt_names
         if (index >= 0) {
           oldPath.splice(index, 1)
         }
-        oldPath.unshift(dirname(item.bin.replace(item.path, flagDir)))
+        const dir = dirname(item.bin.replace(item.path, flagDir))
+        oldPath.unshift(dir)
+        if (typeFlag === 'python') {
+          const pip = join(dir, 'Scripts/pip.exe')
+          if (existsSync(pip)) {
+            oldPath.unshift(dirname(pip))
+          }
+        }
       }
 
       oldPath = oldPath.map((p) => {

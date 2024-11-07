@@ -138,7 +138,7 @@ class Nginx extends Base {
         reject(e)
         return
       }
-      const res = await this.waitPidFile(pid, startErrLogFile)
+      const res = await this.waitPidFile(pid)
       if (res) {
         if (res?.pid) {
           await writeFile(appPidFile, res.pid)

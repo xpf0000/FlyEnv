@@ -385,12 +385,12 @@ class Host extends Base {
     })
   }
 
-  addRandaSite(version?: SoftInstalled) {
-    return TaskAddRandaSite.call(this, version)
+  addRandaSite(version?: SoftInstalled, write = true, ipv6 = true) {
+    return TaskAddRandaSite.call(this, version, write, ipv6)
   }
 
-  addPhpMyAdminSite(phpVersion?: number) {
-    return TaskAddPhpMyAdminSite.call(this, phpVersion)
+  addPhpMyAdminSite(phpVersion?: number, write = true, ipv6 = true) {
+    return TaskAddPhpMyAdminSite.call(this, phpVersion, write, ipv6)
   }
 }
 export default new Host()

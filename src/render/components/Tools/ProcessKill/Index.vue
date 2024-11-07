@@ -40,7 +40,7 @@
               @selection-change="handleSelectionChange"
             >
               <el-table-column type="selection" width="55" />
-              <el-table-column prop="ProcessId" label="ProcessId" width="90"> </el-table-column>
+              <el-table-column prop="ProcessId" label="ProcessId" width="200"> </el-table-column>
               <el-table-column prop="CommandLine" label="CommandLine"> </el-table-column>
             </el-table>
           </el-card>

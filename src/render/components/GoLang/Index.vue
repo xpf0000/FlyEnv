@@ -7,7 +7,7 @@
     </ul>
     <div class="main-block">
       <Service v-if="tab === 0"></Service>
-      <Manager v-else-if="tab === 1" type-flag="golang" :has-static="true"></Manager>
+      <Manager v-else-if="tab === 1" type-flag="golang" title="Go" :has-static="true"></Manager>
     </div>
   </div>
 </template>

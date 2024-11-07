@@ -82,7 +82,7 @@ class Manager extends Base {
           reject(e)
           return
         }
-        const res = await this.waitPidFile(pidFile, startErrLogFile)
+        const res = await this.waitPidFile(pidFile)
         if (res) {
           if (res?.pid) {
             if (sendUserPass) {

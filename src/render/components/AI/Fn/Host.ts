@@ -18,7 +18,9 @@ export function addRandaSite(this: BaseTask) {
     const appStore = AppStore()
     const brewStore = BrewStore()
     const php = brewStore.module('php').installed.find((p) => p.version) ?? {}
-    IPC.send(`app-fork:host`, 'addRandaSite', JSON.parse(JSON.stringify(php))).then(
+    const write = appStore.config.setup?.hosts?.write ?? true
+    const ipv6 = appStore.config.setup?.hosts?.ipv6 ?? true
+    IPC.send(`app-fork:host`, 'addRandaSite', JSON.parse(JSON.stringify(php)), write, ipv6).then(
       (key: string, res: any) => {
         IPC.off(key)
         if (res.code === 0) {

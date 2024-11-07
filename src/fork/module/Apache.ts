@@ -286,7 +286,7 @@ IncludeOptional "${vhost}*.conf"`
         reject(e)
         return
       }
-      const res = await this.waitPidFile(pidPath, startErrLogFile)
+      const res = await this.waitPidFile(pidPath)
       if (res) {
         if (res?.pid) {
           await writeFile(appPidFile, res.pid)

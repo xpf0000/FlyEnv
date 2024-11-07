@@ -4,10 +4,10 @@ import { dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromiseRoot, getAllFileAsync, uuid, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
+import { appendFile, copyFile, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
-import { ProcessListSearch, ProcessPidListByPid } from '../Process'
+import { ProcessListSearch, ProcessPidList, ProcessPidListByPid } from '../Process'
 
 export class Base {
   type: string
@@ -271,20 +271,19 @@ export class Base {
         await execPromiseRoot(`powershell.exe ${sh}`)
         await remove(sh)
 
-        sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
-        await copyFile(join(global.Server.Static!, 'sh/pip.ps1'), sh)
-        process.chdir(row.appDir)
-        await execPromiseRoot(`powershell.exe ${sh}`)
-        await remove(sh)
-
         const checkState = async (time = 0): Promise<boolean> => {
           let res = false
+          const allProcess = await ProcessPidList()
+          const find = allProcess.find(
+            (p) => p.CommandLine.includes('msiexec.exe') && p.CommandLine.includes(APPDIR)
+          )
+          console.log('python checkState find: ', find)
           const bin = row.bin
-          if (existsSync(bin)) {
+          if (existsSync(bin) && !find) {
             res = true
           } else {
             if (time < 20) {
-              await waitTime(500)
+              await waitTime(1000)
               res = res || (await checkState(time + 1))
             }
           }
@@ -292,8 +291,28 @@ export class Base {
         }
         const res = await checkState()
         if (res) {
+          await waitTime(500)
           await remove(tmpDir)
+          await waitTime(500)
+          sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
+          await copyFile(join(global.Server.Static!, 'sh/pip.ps1'), sh)
+          process.chdir(APPDIR)
+          try {
+            await execPromiseRoot(`powershell.exe ${sh}`)
+          } catch (e) {
+            await appendFile(
+              join(global.Server.BaseDir!, 'debug.log'),
+              `[python][pip-install][error]: ${e}\n`
+            )
+          }
+          await remove(sh)
           return
+        } else {
+          try {
+            await waitTime(500)
+            await remove(APPDIR)
+            await remove(tmpDir)
+          } catch (e) {}
         }
         throw new Error('Python Install Fail')
       }

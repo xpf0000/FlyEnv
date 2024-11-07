@@ -7,7 +7,7 @@
     </ul>
     <div class="main-block">
       <Service v-if="tab === 0"></Service>
-      <Manager v-else-if="tab === 1" type-flag="python"></Manager>
+      <Manager v-else-if="tab === 1" type-flag="python" title="Python"></Manager>
     </div>
   </div>
 </template>

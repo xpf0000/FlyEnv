@@ -237,7 +237,7 @@
     (v) => {
       const dict: any = scripts?.value
       if (dict?.[v]) {
-        item.value.startCommand === `node ${dict[v]}`
+        item.value.startCommand === `${item.value.nodeDir} ${dict[v]}`
       }
     }
   )

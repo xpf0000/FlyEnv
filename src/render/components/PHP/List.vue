@@ -40,7 +40,6 @@
               </template>
             </template>
           </el-popover>
-          <el-button link @click="openUrl('https://getcomposer.org/')"> Composer </el-button>
           <el-button link @click="openUrl('http://pecl.php.net/')"> Pecl </el-button>
         </div>
         <el-button class="button" :disabled="service?.fetching" link @click="resetData">

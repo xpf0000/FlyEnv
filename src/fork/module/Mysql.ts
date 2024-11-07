@@ -140,7 +140,7 @@ datadir="${dataDir}"`
             reject(e)
             return
           }
-          const res = await this.waitPidFile(p, startErrLogFile)
+          const res = await this.waitPidFile(p)
           if (res) {
             if (res?.pid) {
               await writeFile(appPidFile, res.pid)
@@ -311,7 +311,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
             reject(e)
             return
           }
-          const res = await this.waitPidFile(p, startErrLogFile)
+          const res = await this.waitPidFile(p)
           if (res) {
             if (res?.pid) {
               resolve(true)

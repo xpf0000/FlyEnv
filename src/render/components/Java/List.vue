@@ -3,7 +3,7 @@
     <template #header>
       <div class="card-header">
         <div class="left">
-          <span> JAVA </span>
+          <span> Java </span>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
               <span>{{ $t('base.customVersionDir') }}</span>
