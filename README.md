@@ -38,17 +38,21 @@ Please help me choose a new name based on your understanding of the project. Tha
 
 ### Language Env
 
-- [x] PHP
-- [x] Java
+- [x] PHP(Composer)
+- [x] Java(Maven)
 - [x] NodeJS
-- [ ] Python
-- [ ] Go
+- [x] Python
+- [x] Go
 
 ### Data Queue & Data Cache
 
 - [x] Redis
 - [x] Memcached
-- [ ] RabbitMQ
+- [x] RabbitMQ(ERLang)
+
+### Search Engine
+
+- [ ] Elasticsearch
 
 ### Other
 
@@ -66,19 +70,19 @@ brew install phpwebstudy
 
 ### Intel X86:
 
-[PhpWebStudy-4.5.0.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.0/PhpWebStudy-4.5.0.dmg)
+[PhpWebStudy-4.5.1.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/PhpWebStudy-4.5.1.dmg)
 
-[PhpWebStudy-4.5.0-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.0/PhpWebStudy-4.5.0-mac.zip)
+[PhpWebStudy-4.5.1-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/PhpWebStudy-4.5.1-mac.zip)
 
 ### Apple Silicon
 
-[PhpWebStudy-4.5.0-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.0/PhpWebStudy-4.5.0-arm64.dmg)
+[PhpWebStudy-4.5.1-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/PhpWebStudy-4.5.1-arm64.dmg)
 
-[PhpWebStudy-4.5.0-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.0/PhpWebStudy-4.5.0-arm64-mac.zip)
+[PhpWebStudy-4.5.1-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/PhpWebStudy-4.5.1-arm64-mac.zip)
 
 ## Windows
 
-[PhpWebStudy.Setup.4.3.5.exe](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.3.5/PhpWebStudy.Setup.4.3.5.exe)
+[PhpWebStudy.Setup.4.5.1.exe](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/PhpWebStudy.Setup.4.5.1.exe)
 
 ## Linux
 
