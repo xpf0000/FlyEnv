@@ -59,6 +59,7 @@ Please help me choose a new name based on your understanding of the project. Tha
 - [x] DNS Server
 - [x] FTP Server
 - [x] Static Http Server
+- [ ] EMail Server
 
 ## macOS:
 
