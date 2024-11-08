@@ -393,6 +393,8 @@ php "%~dp0composer.phar" %*`
             await handleTwoLevDir('maven')
           } else if (row.type === 'rabbitmq') {
             await handleTwoLevDir('rabbitmq')
+          } else if (row.type === 'mariadb') {
+            await handleTwoLevDir('mariadb')
           } else if (row.type === 'python') {
             await handlePython()
           } else {
@@ -461,6 +463,8 @@ php "%~dp0composer.phar" %*`
                   await handleTwoLevDir('maven')
                 } else if (row.type === 'rabbitmq') {
                   await handleTwoLevDir('rabbitmq')
+                } else if (row.type === 'mariadb') {
+                  await handleTwoLevDir('mariadb')
                 } else if (row.type === 'python') {
                   await handlePython()
                 } else {

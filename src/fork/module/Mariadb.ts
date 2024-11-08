@@ -50,7 +50,7 @@ class Manager extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      let bin = version.bin
+      const bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
       const dataDir = join(global.Server.MariaDBDir!, `data-${v}`).split('\\').join('/')
@@ -159,12 +159,12 @@ datadir="${dataDir}"`
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
 
-        bin = join(version.path, 'bin/mariadb-install-db.exe')
+        const binInstallDB = join(version.path, 'bin/mariadb-install-db.exe')
 
         const params = [`--datadir="${dataDir}"`, `--config="${m}"`]
 
-        process.chdir(dirname(bin))
-        command = `${basename(bin)} ${params.join(' ')}`
+        process.chdir(dirname(binInstallDB))
+        command = `${basename(binInstallDB)} ${params.join(' ')}`
         console.log('command: ', command)
 
         try {
@@ -197,18 +197,19 @@ datadir="${dataDir}"`
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mariadb')
         all.forEach((a: any) => {
-          const dir = join(
-            global.Server.AppDir!,
-            `mariadb-${a.version}`,
-            `mariadb-${a.version}-winx64`,
-            'bin/mariadbd.exe'
-          )
+          const dir = join(global.Server.AppDir!, `mariadb-${a.version}`, 'bin/mariadbd.exe')
           const zip = join(global.Server.Cache!, `mariadb-${a.version}.zip`)
           a.appDir = join(global.Server.AppDir!, `mariadb-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
-          a.installed = existsSync(dir)
+          const oldDir = join(
+            global.Server.AppDir!,
+            `mariadb-${a.version}`,
+            `mariadb-${a.version}-winx64`,
+            'bin/mariadbd.exe'
+          )
+          a.installed = existsSync(dir) || existsSync(oldDir)
         })
         resolve(all)
       } catch (e) {

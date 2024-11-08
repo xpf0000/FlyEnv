@@ -5,6 +5,7 @@ import { reactive } from 'vue'
 import { AllAppModule } from '@/core/type'
 
 const { existsSync } = require('fs')
+const { join } = require('path')
 
 export const fetchVerion = (typeFlag: AllAppModule): Promise<boolean> => {
   return new Promise((resolve) => {
@@ -24,7 +25,18 @@ export const fetchVerion = (typeFlag: AllAppModule): Promise<boolean> => {
         const list: OnlineVersionItem[] = [...saved.data]
         list.forEach((item) => {
           item.downloaded = existsSync(item.zip)
-          item.installed = existsSync(item.bin)
+          if (typeFlag === 'mariadb') {
+            item.bin = join(global.Server.AppDir!, `mariadb-${item.version}`, 'bin/mariadbd.exe')
+            const oldBin = join(
+              global.Server.AppDir!,
+              `mariadb-${item.version}`,
+              `mariadb-${item.version}-winx64`,
+              'bin/mariadbd.exe'
+            )
+            item.installed = existsSync(item.bin) || existsSync(oldBin)
+          } else {
+            item.installed = existsSync(item.bin)
+          }
         })
         currentType.list.splice(0)
         currentType.list = reactive(list)
