@@ -27,9 +27,6 @@
   import { AsideSetup, AppServiceModule } from '@web/core/ASide'
   import { DnsStore } from './dns'
   import { computed } from 'vue'
-  import { passwordCheck } from '@/util/Brew'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-  import { I18nT } from '@shared/lang'
 
   const { showItem, serviceDisabled, currentPage, nav, stopNav } = AsideSetup('dns')
 
@@ -58,12 +55,10 @@
   }
 
   const switchChange = () => {
-    passwordCheck().then(() => {
-      let fn = null
-      if (serviceFetching?.value) return
-      fn = serviceRunning?.value ? dnsStore.dnsStop : dnsStore.dnsStart
-      fn().then()
-    })
+    let fn = null
+    if (serviceFetching?.value) return
+    fn = serviceRunning?.value ? dnsStore.dnsStop : dnsStore.dnsStart
+    fn().then()
   }
 
   const doNav = () => {

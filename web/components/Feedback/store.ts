@@ -1,10 +1,7 @@
 import { reactive } from 'vue'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
-import IPC from '@/util/IPC'
-
-const { app } = require('@electron/remote')
-const version = app.getVersion()
+import { waitTime } from '@web/fn'
 
 export const FeedbackStore = reactive({
   email: '',
@@ -25,21 +22,9 @@ export const FeedbackStore = reactive({
     }
     timer = setInterval(doRun, 1000)
   },
-  init() {
-    const cache = localStorage.getItem('App-Feedback')
-    if (cache) {
-      const obj = JSON.parse(cache)
-      Object.assign(this, obj)
-      const time = Math.round(new Date().getTime() / 1000)
-      const diffTime = time - obj.sendTime
-      if (diffTime < 30) {
-        this.time = 30 - diffTime
-        this.run(this.time)
-      }
-    }
-  },
+  init() {},
   send() {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (this.time > 0 || this.loading) {
         reject(new Error('Wait'))
         return
@@ -50,33 +35,10 @@ export const FeedbackStore = reactive({
         return
       }
       this.loading = true
-      const data = {
-        email: this.email,
-        country: this.country,
-        message: this.message,
-        version
-      }
-      IPC.send('app-fork:app', 'feedback', data).then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          localStorage.setItem(
-            'App-Feedback',
-            JSON.stringify({
-              email: data.email,
-              country: data.country,
-              sendTime: Math.round(new Date().getTime() / 1000)
-            })
-          )
-          MessageSuccess(I18nT('base.success'))
-          this.run()
-          resolve(true)
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-          reject(new Error('Fail'))
-        }
-        this.loading = false
-      })
+      await waitTime()
+      MessageSuccess(I18nT('base.success'))
+      this.run()
+      resolve(true)
     })
   }
 })
-FeedbackStore.init()

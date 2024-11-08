@@ -181,7 +181,7 @@
   import { BrewStore, SoftInstalled } from '@web/store/brew'
   import { ElLoading } from 'element-plus'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
   import { AppStore } from '@web/store/app'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { Service } from '@web/components/ServiceManager/service'

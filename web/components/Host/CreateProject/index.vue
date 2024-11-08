@@ -78,15 +78,12 @@
 </template>
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup, join, waitTime } from '@web/fn'
   import Versions from './version'
-  import IPC from '@/util/IPC'
   import { I18nT } from '@shared/lang'
-  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { MessageSuccess } from '@/util/Element'
   import { BrewStore } from '@web/store/brew'
 
-  const { join } = require('path')
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const form = ref({
@@ -118,53 +115,14 @@
     })
   })
 
-  const chooseRoot = () => {
-    if (loading.value || created.value) {
-      return
-    }
-    dialog
-      .showOpenDialog({
-        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
-      })
-      .then(({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const [path] = filePaths
-        form.value.dir = path
-      })
-  }
-  let msg: Array<string> = []
+  const chooseRoot = () => {}
   const doCreateProject = () => {
     console.log('doCreateProject: ', form.value)
     loading.value = true
-    const frameworks = form.value.framework.split('-')
-    IPC.send(
-      'app-fork:project',
-      'createProject',
-      form.value.dir,
-      form.value.php,
-      frameworks[0],
-      frameworks[1]
-    ).then((key: string, res: any) => {
-      if (res?.code === 0) {
-        IPC.off(key)
-        MessageSuccess(I18nT('base.success'))
-        loading.value = false
-        created.value = true
-      } else if (res?.code === 1) {
-        IPC.off(key)
-        if (msg.length > 0) {
-          MessageError(msg.join('\n'))
-        } else {
-          MessageError(I18nT('base.fail'))
-        }
-        loading.value = false
-      } else {
-        if (res?.msg) {
-          msg.push(res?.msg)
-        }
-      }
+    waitTime().then(() => {
+      MessageSuccess(I18nT('base.success'))
+      loading.value = false
+      created.value = true
     })
   }
   const doCreateHost = () => {

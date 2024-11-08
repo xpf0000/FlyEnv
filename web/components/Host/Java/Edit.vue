@@ -280,16 +280,11 @@
 
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
-  import { passwordCheck } from '@/util/Brew'
-  import { handleHost } from '@/util/Host'
-  import { AppHost, AppStore } from '@web/store/app'
+  import { AppStore } from '@web/store/app'
   import { BrewStore } from '@web/store/brew'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { merge } from 'lodash'
-  import installedVersions from '@/util/InstalledVersions'
-
-  const { dialog } = require('@electron/remote')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -298,7 +293,6 @@
     edit: any
   }>()
   const running = ref(false)
-  const park = ref(false)
   const item = ref({
     id: new Date().getTime(),
     type: 'java',
@@ -409,42 +403,18 @@
     }
   )
 
-  const chooseRoot = (flag: 'jarDir' | 'envFile' | 'cert' | 'certkey' | 'root') => {
-    const options: any = {}
-    let opt = ['openFile', 'showHiddenFiles']
-    if (flag === 'root') {
-      opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
+  const chooseRoot = (flag: 'jarDir' | 'envFile' | 'root') => {
+    switch (flag) {
+      case 'root':
+        item.value.root = '/Users/XXX/Desktop/WWW/xxxx'
+        break
+      case 'jarDir':
+        item.value.jarDir = '/Users/XXX/Desktop/WWW/jar'
+        break
+      case 'envFile':
+        item.value.envFile = '/Users/XXX/Desktop/WWW/env'
+        break
     }
-    options.properties = opt
-    if (flag === 'jarDir') {
-      if (item?.value?.jarDir) {
-        options.defaultPath = item.value.jarDir
-      }
-      options.filters = [
-        {
-          extensions: ['jar']
-        }
-      ]
-    } else if (flag === 'envFile' && item?.value?.envFile) {
-      options.defaultPath = item.value.envFile
-    }
-    dialog.showOpenDialog(options).then(({ canceled, filePaths }: any) => {
-      if (canceled || filePaths.length === 0) {
-        return
-      }
-      const [path] = filePaths
-      switch (flag) {
-        case 'jarDir':
-          item.value.jarDir = path
-          break
-        case 'envFile':
-          item.value.envFile = path
-          break
-        case 'root':
-          item.value.root = path
-          break
-      }
-    })
   }
 
   const checkItem = () => {
@@ -506,42 +476,25 @@
     if (!checkItem()) {
       return
     }
-    const saveFn = () => {
-      running.value = true
-      passwordCheck().then(() => {
-        const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-        const data = JSON.parse(JSON.stringify(item.value))
-        handleHost(data, flag, props.edit as AppHost, park.value).then(() => {
-          running.value = false
-          show.value = false
-        })
-      })
+    running.value = true
+    if (props.isEdit) {
+      const find = appStore.hosts.findIndex((h) => h.id === props.edit.id)
+      if (find >= 0) {
+        appStore.hosts.splice(find, 1, JSON.parse(JSON.stringify(item.value)))
+      }
+    } else {
+      appStore.hosts.unshift(JSON.parse(JSON.stringify(item.value)))
     }
-    saveFn()
+    running.value = false
+    show.value = false
   }
 
-  if (jdks.value.length === 0) {
-    brewStore.module('java').installedInited = false
-    installedVersions.allInstalledVersions(['java']).then(() => {
-      if (!item.value.jdkDir && jdks.value.length > 0) {
-        const jdk = jdks.value[0]
-        item.value.jdkDir = jdk.bin
-      }
-    })
-  } else if (!item.value.jdkDir) {
+  if (!item.value.jdkDir) {
     const jdk = jdks.value[0]
     item.value.jdkDir = jdk.bin
   }
 
-  if (tomcats.value.length === 0) {
-    brewStore.module('tomcat').installedInited = false
-    installedVersions.allInstalledVersions(['tomcat']).then(() => {
-      if (!item.value.tomcatDir && tomcats.value.length > 0) {
-        const tomcat = tomcats.value[0]
-        item.value.tomcatDir = tomcat.bin
-      }
-    })
-  } else if (!item.value.tomcatDir) {
+  if (!item.value.tomcatDir) {
     const tomcat = tomcats.value[0]
     item.value.tomcatDir = tomcat.bin
   }

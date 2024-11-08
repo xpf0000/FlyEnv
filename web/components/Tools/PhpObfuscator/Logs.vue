@@ -25,7 +25,7 @@
 <script lang="ts">
   import { VueExtend } from '@web/core/VueExtend'
   import { nextTick, defineComponent } from 'vue'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@web/fn'
 
   export default defineComponent({
     show(data: any) {

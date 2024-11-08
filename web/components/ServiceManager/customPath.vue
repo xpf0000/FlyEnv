@@ -47,7 +47,7 @@
 
 <script lang="ts" setup>
   import { reactive, ref, watch, onBeforeUnmount, nextTick } from 'vue'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { AppStore } from '@web/store/app'
   import { BrewStore } from '@web/store/brew'
   import type { AllAppModule } from '@web/core/type'

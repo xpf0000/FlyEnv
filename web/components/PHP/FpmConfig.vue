@@ -29,7 +29,7 @@
 
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { SoftInstalled } from '@web/store/brew'
   import Conf from '@web/components/Conf/drawer.vue'
 

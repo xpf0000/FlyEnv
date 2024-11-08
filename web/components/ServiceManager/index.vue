@@ -186,7 +186,7 @@
   import { Service } from '@web/components/ServiceManager/service'
   import installedVersions from '@/util/InstalledVersions'
   import { FolderAdd } from '@element-plus/icons-vue'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
   import EXT from './EXT/index.vue'
   import type { AllAppModule } from '@web/core/type'
 

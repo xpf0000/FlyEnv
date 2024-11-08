@@ -38,7 +38,7 @@
 
 <script lang="ts" setup>
   import { computed, nextTick, ref } from 'vue'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { BrewStore } from '@web/store/brew'
   import { PhpMyAdminTask } from '@web/components/ServiceManager/service'
   import IPC from '@/util/IPC'

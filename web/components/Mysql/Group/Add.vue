@@ -64,7 +64,7 @@
 </template>
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { I18nT } from '@shared/lang'
   import { uuid } from '@shared/utils'
   import { BrewStore } from '@web/store/brew'

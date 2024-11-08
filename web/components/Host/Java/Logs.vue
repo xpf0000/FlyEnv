@@ -18,7 +18,7 @@
 
 <script lang="ts" setup>
   import { ref } from 'vue'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import LogVM from '@web/components/Log/index.vue'
   import ToolVM from '@web/components/Log/tool.vue'
 

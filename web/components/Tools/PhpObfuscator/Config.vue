@@ -25,7 +25,7 @@
 <script lang="ts">
   import { defineComponent, nextTick } from 'vue'
   import { readFileAsync, writeFileAsync } from '@shared/file'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@web/fn'
   import { MessageError, MessageSuccess } from '@/util/Element'
 
   const { join } = require('path')

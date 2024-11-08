@@ -144,15 +144,10 @@
 
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
-  import { passwordCheck } from '@/util/Brew'
-  import { handleHost } from '@/util/Host'
-  import { AppHost, AppStore } from '@web/store/app'
+  import { AppStore } from '@web/store/app'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup, basename } from '@web/fn'
   import { merge } from 'lodash'
-
-  const { dialog } = require('@electron/remote')
-  const { dirname, basename } = require('path')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -161,7 +156,6 @@
     edit: any
   }>()
   const running = ref(false)
-  const park = ref(false)
   const item = ref({
     id: new Date().getTime(),
     type: 'go',
@@ -227,33 +221,17 @@
   )
 
   const chooseRoot = (flag: 'bin' | 'envFile' | 'root') => {
-    const options: any = {}
-    let opt = ['openFile', 'showHiddenFiles']
-    if (flag === 'root') {
-      opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
+    switch (flag) {
+      case 'root':
+        item.value.root = '/Users/XXX/Desktop/WWW/xxxx'
+        break
+      case 'bin':
+        item.value.bin = '/Users/XXX/Desktop/WWW/bin'
+        break
+      case 'envFile':
+        item.value.envFile = '/Users/XXX/Desktop/WWW/env'
+        break
     }
-    options.properties = opt
-    if (flag === 'envFile' && item?.value?.envFile) {
-      options.defaultPath = item.value.envFile
-    }
-    dialog.showOpenDialog(options).then(({ canceled, filePaths }: any) => {
-      if (canceled || filePaths.length === 0) {
-        return
-      }
-      const [path] = filePaths
-      switch (flag) {
-        case 'bin':
-          item.value.bin = path
-          item.value.root = dirname(path)
-          break
-        case 'envFile':
-          item.value.envFile = path
-          break
-        case 'root':
-          item.value.root = path
-          break
-      }
-    })
   }
 
   const checkItem = () => {
@@ -283,18 +261,17 @@
     if (!checkItem()) {
       return
     }
-    const saveFn = () => {
-      running.value = true
-      passwordCheck().then(() => {
-        const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-        const data = JSON.parse(JSON.stringify(item.value))
-        handleHost(data, flag, props.edit as AppHost, park.value).then(() => {
-          running.value = false
-          show.value = false
-        })
-      })
+    running.value = true
+    if (props.isEdit) {
+      const find = appStore.hosts.findIndex((h) => h.id === props.edit.id)
+      if (find >= 0) {
+        appStore.hosts.splice(find, 1, JSON.parse(JSON.stringify(item.value)))
+      }
+    } else {
+      appStore.hosts.unshift(JSON.parse(JSON.stringify(item.value)))
     }
-    saveFn()
+    running.value = false
+    show.value = false
   }
 
   defineExpose({

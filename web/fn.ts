@@ -162,3 +162,25 @@ export const EditorConfigMake = (value: string, readOnly: boolean, wordWrap: 'of
 export const EditorCreate = (input: HTMLElement, config: any) => {
   return editor.create(input, config)
 }
+
+export const basename = (dir: string) => {
+  return dir.split('/').pop()!
+}
+export const dirname = (dir: string) => {
+  const arr = dir.split('/')
+  arr.pop()
+  return arr.join('/')
+}
+
+export const join = (...dirs: string[]) => {
+  const all: string[] = []
+  for (const dir of dirs) {
+    const arr = dir.split('/').filter((s) => !!s.trim())
+    all.push(...arr)
+  }
+  let str = all.join('/')
+  if (dirs?.[0]?.startsWith('/')) {
+    str = '/' + str
+  }
+  return str
+}

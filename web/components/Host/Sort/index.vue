@@ -39,7 +39,7 @@
 <script lang="ts" setup>
   import { computed, nextTick, type Ref, ref } from 'vue'
   import { type AppHost } from '@web/store/app'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { ClickOutside as vClickOutside } from 'element-plus'
   import { HostStore } from '@web/components/Host/store'
 

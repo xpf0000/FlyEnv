@@ -36,7 +36,7 @@
 
 <script lang="ts" setup>
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
   import Base from '@web/core/Base'

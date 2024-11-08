@@ -75,7 +75,7 @@
   import { MessageSuccess } from '@/util/Element'
   import { I18nT } from '@shared/lang'
   import { Document } from '@element-plus/icons-vue'
-  import { EditorCreate } from '@/util/Editor'
+  import { EditorCreate } from '@web/fn'
 
   const { dialog, shell } = require('@electron/remote')
   const { nativeTheme } = require('@electron/remote')

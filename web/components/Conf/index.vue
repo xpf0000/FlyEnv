@@ -62,9 +62,7 @@
   import { I18nT } from '@shared/lang'
 
   const props = defineProps<{
-    file: string
-    defaultFile?: string
-    defaultConf?: string
+    conf: string
     fileExt: string
     typeFlag: AllAppModule
     showCommond: boolean
@@ -74,9 +72,7 @@
 
   const p = computed(() => {
     return {
-      file: props.file,
-      defaultFile: props.defaultFile,
-      defaultConf: props.defaultConf,
+      conf: props.conf,
       fileExt: props.fileExt,
       typeFlag: props.typeFlag,
       showCommond: props.showCommond

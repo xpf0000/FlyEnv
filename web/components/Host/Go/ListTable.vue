@@ -169,23 +169,16 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, onMounted, nextTick, onBeforeUnmount, type Ref } from 'vue'
-  import { handleHost } from '@/util/Host'
-  import IPC from '@/util/IPC'
+  import { ref, computed, onMounted, nextTick, onBeforeUnmount, type Ref, reactive } from 'vue'
   import { AppStore } from '@web/store/app'
   import QrcodePopper from '../Qrcode/Index.vue'
-  import Base from '@web/core/Base'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow, waitTime } from '@web/fn'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'
   import { HostStore } from '@web/components/Host/store'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
-
-  //nohup {project_cmd}{nohup_log} & echo $! > {pid_file}
+  import { MessageSuccess } from '@/util/Element'
+  import { ElMessageBox } from 'element-plus'
 
   const hostList = ref()
   const loading = ref(false)
@@ -263,18 +256,11 @@
       return
     }
     state.running = true
-    IPC.send('app-fork:service', action, JSON.parse(JSON.stringify(item))).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        state.running = false
-        if (res?.code === 0) {
-          state.isRun = action === 'start'
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-      }
-    )
+    waitTime().then(() => {
+      state.running = false
+      state.isRun = action === 'start'
+      MessageSuccess(I18nT('base.success'))
+    })
   }
 
   const tableRowClassName = ({ row }: { row: AppHost }) => {
@@ -295,10 +281,7 @@
     return HostStore.state(`${item.id}`).isRun
   }
 
-  const openSite = (item: any) => {
-    const url = `http://127.0.0.1:${item.projectPort}/`
-    shell.openExternal(url)
-  }
+  const openSite = (item: any) => {}
 
   let EditVM: any
   import('./Edit.vue').then((res) => {
@@ -319,7 +302,6 @@
     task_index.value = index
     switch (flag) {
       case 'open':
-        shell.showItemInFolder(item.root)
         break
       case 'edit':
         AsyncComponentShow(EditVM, {
@@ -328,7 +310,7 @@
         }).then()
         break
       case 'log':
-        const logFile = join(global.Server.BaseDir!, `go/${item.id}.log`)
+        const logFile = 'Log'
         const customTitle = item.projectName
         AsyncComponentShow(LogVM, {
           logFile,
@@ -336,15 +318,18 @@
         }).then()
         break
       case 'del':
-        Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+        ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+          confirmButtonText: I18nT('base.confirm'),
+          cancelButtonText: I18nT('base.cancel'),
+          closeOnClickModal: false,
           customClass: 'confirm-del',
           type: 'warning'
+        }).then(() => {
+          const index = appStore.hosts.findIndex((h) => h.id === item.id)
+          if (index >= 0) {
+            appStore.hosts.splice(index, 1)
+          }
         })
-          .then(() => {
-            item.deling = true
-            handleHost(item, 'del')
-          })
-          .catch(() => {})
         break
       case 'link':
         console.log('item: ', item)
@@ -415,12 +400,10 @@
         quickEdit.value.projectName = quickEditBack?.projectName ?? ''
       }
       if (!isEqual(quickEdit.value, quickEditBack)) {
-        handleHost(
-          JSON.parse(JSON.stringify(quickEdit.value)),
-          'edit',
-          quickEditBack as any,
-          false
-        ).then()
+        const index = appStore.hosts.findIndex((h) => h.id === quickEdit?.value?.id)
+        if (index >= 0) {
+          appStore.hosts.splice(index, 1, reactive(JSON.parse(JSON.stringify(quickEdit.value))))
+        }
       }
       quickEdit.value = undefined
       quickEditTr.value = undefined

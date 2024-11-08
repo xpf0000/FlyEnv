@@ -174,24 +174,17 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, onMounted, nextTick, onBeforeUnmount, type Ref } from 'vue'
-  import { handleHost } from '@/util/Host'
-  import IPC from '@/util/IPC'
+  import { ref, computed, onMounted, nextTick, onBeforeUnmount, type Ref, reactive } from 'vue'
   import { AppStore } from '@web/store/app'
   import { BrewStore } from '@web/store/brew'
   import QrcodePopper from '../Qrcode/Index.vue'
-  import Base from '@web/core/Base'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow, waitTime } from '@web/fn'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'
   import { HostStore } from '@web/components/Host/store'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
-
-  //nohup {project_cmd}{nohup_log} & echo $! > {pid_file}
+  import { MessageSuccess } from '@/util/Element'
+  import { ElMessageBox } from 'element-plus'
 
   const hostList = ref()
   const loading = ref(false)
@@ -263,28 +256,17 @@
     return arr
   })
 
-  if (appStore.hosts.length === 0) {
-    appStore.initHost()
-  }
-
   const serviceDo = (action: 'start' | 'stop', item: AppHost) => {
     const state = HostStore.state(item.id)
     if (state.running) {
       return
     }
     state.running = true
-    IPC.send('app-fork:service', action, JSON.parse(JSON.stringify(item))).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        state.running = false
-        if (res?.code === 0) {
-          state.isRun = action === 'start'
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-      }
-    )
+    waitTime().then(() => {
+      state.running = false
+      state.isRun = action === 'start'
+      MessageSuccess(I18nT('base.success'))
+    })
   }
 
   const tableRowClassName = ({ row }: { row: AppHost }) => {
@@ -316,16 +298,7 @@
     return HostStore.state(`${item.id}`).isRun
   }
 
-  const openSite = (item: any) => {
-    if (item?.subType === 'springboot') {
-      const url = `http://127.0.0.1:${item.projectPort}/`
-      shell.openExternal(url)
-      return
-    }
-    const name = siteName(item)
-    const url = `http://${name}`
-    shell.openExternal(url)
-  }
+  const openSite = (item: any) => {}
 
   let EditVM: any
   import('./Edit.vue').then((res) => {
@@ -350,7 +323,6 @@
     task_index.value = index
     switch (flag) {
       case 'open':
-        shell.showItemInFolder(item.root)
         break
       case 'edit':
         AsyncComponentShow(EditVM, {
@@ -359,13 +331,11 @@
         }).then()
         break
       case 'log':
-        let logFile = ''
+        let logFile = 'Log'
         let customTitle = ''
         if (item.subType === 'springboot') {
-          logFile = join(global.Server.BaseDir!, `java/${item.id}.log`)
           customTitle = 'SpringBoot'
         } else {
-          logFile = join(global.Server.BaseDir!, `tomcat/${item.id}/logs/catalina.out`)
           customTitle = 'Tomcat'
         }
         AsyncComponentShow(LogVM, {
@@ -374,15 +344,18 @@
         }).then()
         break
       case 'del':
-        Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+        ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+          confirmButtonText: I18nT('base.confirm'),
+          cancelButtonText: I18nT('base.cancel'),
+          closeOnClickModal: false,
           customClass: 'confirm-del',
           type: 'warning'
+        }).then(() => {
+          const index = appStore.hosts.findIndex((h) => h.id === item.id)
+          if (index >= 0) {
+            appStore.hosts.splice(index, 1)
+          }
         })
-          .then(() => {
-            item.deling = true
-            handleHost(item, 'del')
-          })
-          .catch(() => {})
         break
       case 'link':
         console.log('item: ', item)
@@ -411,10 +384,12 @@
   }
 
   const showConfig = (item: AppHost) => {
-    AsyncComponentShow(ConfigVM, {
-      item,
-      file: join(global.Server.BaseDir!, `tomcat/${item.id}/conf/server.xml`)
-    }).then()
+    import('@web/config/tomcat.server.conf.txt?raw').then((res) => {
+      AsyncComponentShow(ConfigVM, {
+        item,
+        file: res.default
+      }).then()
+    })
   }
 
   let quickEditBack: AppHost | undefined = undefined
@@ -475,12 +450,10 @@
         quickEdit.value.projectName = quickEditBack?.projectName ?? ''
       }
       if (!isEqual(quickEdit.value, quickEditBack)) {
-        handleHost(
-          JSON.parse(JSON.stringify(quickEdit.value)),
-          'edit',
-          quickEditBack as any,
-          false
-        ).then()
+        const index = appStore.hosts.findIndex((h) => h.id === quickEdit?.value?.id)
+        if (index >= 0) {
+          appStore.hosts.splice(index, 1, reactive(JSON.parse(JSON.stringify(quickEdit.value))))
+        }
       }
       quickEdit.value = undefined
       quickEditTr.value = undefined

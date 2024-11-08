@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
 
   withDefaults(
     defineProps<{

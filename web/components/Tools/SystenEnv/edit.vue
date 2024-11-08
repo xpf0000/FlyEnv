@@ -32,12 +32,12 @@
 </template>
 <script lang="ts" setup>
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { I18nT } from '@shared/lang'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate } from '@web/fn'
   import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import Base from '@web/core/Base'

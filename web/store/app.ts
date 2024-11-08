@@ -8,9 +8,14 @@ export interface AppHost {
   id: number
   isTop?: boolean
   isSorting?: boolean
+  projectName?: string
+  type?: string
   name: string
   alias: string
   useSSL: boolean
+  autoSSL: boolean
+  projectPort?: number
+  subType?: string
   ssl: {
     cert: string
     key: string
@@ -18,8 +23,12 @@ export interface AppHost {
   port: {
     nginx: number
     apache: number
+    tomcat: number
     nginx_ssl: number
     apache_ssl: number
+    caddy: number
+    caddy_ssl: number
+    tomcat_ssl: number
   }
   nginx: {
     rewrite: string
@@ -27,7 +36,7 @@ export interface AppHost {
   url: string
   root: string
   phpVersion?: number
-  currentPage: string
+  mark?: string
 }
 
 export interface AppServerCurrent {

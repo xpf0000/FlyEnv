@@ -119,7 +119,7 @@
 </template>
 <script lang="ts" setup>
   import { ref } from 'vue'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { SiteSuckerStore } from '@web/components/Tools/SiteSucker/store'
 
   const { dialog } = require('@electron/remote')

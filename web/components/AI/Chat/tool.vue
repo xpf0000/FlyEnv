@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref, onBeforeUnmount, computed, nextTick } from 'vue'
+  import { onMounted, ref, onBeforeUnmount, computed } from 'vue'
   import { ChatLineRound } from '@element-plus/icons-vue'
   import { AIStore } from '@web/components/AI/store'
   import { CreateSiteTest } from '@web/components/AI/Task/CreateSiteTest'

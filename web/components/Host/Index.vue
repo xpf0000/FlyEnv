@@ -88,7 +88,7 @@
   import { AppStore } from '@web/store/app'
   import { readFileAsync, writeFileAsync } from '@shared/file'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
   import { More, ArrowDown } from '@element-plus/icons-vue'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import type { AppHost } from '@shared/app'

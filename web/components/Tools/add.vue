@@ -43,7 +43,7 @@
 </template>
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { I18nT } from '@shared/lang'
   import { AppToolStore } from './store'
   import type { AppToolModuleItem } from '@web/core/type'

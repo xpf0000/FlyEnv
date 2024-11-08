@@ -1,0 +1,4 @@
+[Thu Oct 24 21:59:24.320056 2024] [ssl:warn] [pid 3643] AH01873: Init: Session Cache is not configured [hint: SSLSessionCache]
+[Thu Oct 24 21:59:24.321721 2024] [mpm_prefork:notice] [pid 3643] AH00163: Apache/2.4.62 (Unix) OpenSSL/3.3.2 configured -- resuming normal operations
+[Thu Oct 24 21:59:24.321793 2024] [core:notice] [pid 3643] AH00094: Command line: '/opt/homebrew/opt/httpd/bin/httpd -f /Users/x/Library/PhpWebStudy/server/apache/common/conf/dce0f3d1634ddcd9bfc9d85d473e983e.conf'
+[Thu Oct 24 23:02:57.844189 2024] [mpm_prefork:notice] [pid 3643] AH00169: caught SIGTERM, shutting down

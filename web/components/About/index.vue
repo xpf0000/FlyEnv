@@ -95,16 +95,14 @@
 
 <script>
   import { AppStore } from '@web/store/app.ts'
-  import { AsyncComponentShow } from '@/util/AsyncComponent.ts'
+  import { AsyncComponentShow } from '@web/fn'
 
-  const { app, shell } = require('@electron/remote')
-  const version = app.getVersion()
   export default {
     name: 'MoTitleBar',
     props: {},
     data() {
       return {
-        version
+        version: '4.5.1'
       }
     },
     computed: {
@@ -117,13 +115,11 @@
       console.log('about unmounted !!!')
     },
     methods: {
-      openUrl(e, u) {
+      openUrl(e) {
         e.preventDefault()
-        shell.openExternal(u)
       },
       toHome(e) {
         e.preventDefault()
-        shell.openExternal('https://www.macphpstudy.com')
       },
       toFeedback() {
         import('@web/components/Feedback/index.vue').then((res) => {

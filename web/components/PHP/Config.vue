@@ -40,7 +40,7 @@
   import { debounce } from 'lodash'
   import { SoftInstalled } from '@web/store/brew'
   import IPC from '@/util/IPC'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
 
   const props = defineProps<{
     version: SoftInstalled

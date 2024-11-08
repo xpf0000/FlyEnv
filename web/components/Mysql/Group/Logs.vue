@@ -24,7 +24,7 @@
 <script lang="ts" setup>
   import { ref, computed } from 'vue'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import type { MysqlGroupItem } from '@shared/app'
   import LogVM from '@web/components/Log/index.vue'
   import ToolVM from '@web/components/Log/tool.vue'

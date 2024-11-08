@@ -112,7 +112,7 @@
   import { ref, computed } from 'vue'
   import installedVersions from '@/util/InstalledVersions'
   import { BrewStore, SoftInstalled } from '@web/store/brew'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
   import { Service } from '@web/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '@web/components/ServiceManager/EXT/store'

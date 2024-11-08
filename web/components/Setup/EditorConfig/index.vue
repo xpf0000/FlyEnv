@@ -28,7 +28,7 @@
   import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { EditorConfigMap } from '@web/components/Setup/EditorConfig/store'
-  import { EditorCreate } from '@/util/Editor'
+  import { EditorCreate } from '@web/fn'
 
   const { readFile } = require('fs-extra')
   const { join } = require('path')

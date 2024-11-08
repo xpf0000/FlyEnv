@@ -74,7 +74,7 @@
   import { Loading, Check, Warning } from '@element-plus/icons-vue'
   import { ElIcon } from 'element-plus'
   import type { Column } from 'element-plus'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
   import { ElInput } from 'element-plus'
 
   const { shell } = require('@electron/remote')

@@ -139,7 +139,7 @@
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@web/store/app'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { merge } from 'lodash'
 
   const { dialog } = require('@electron/remote')

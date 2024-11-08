@@ -35,7 +35,7 @@
   import { computed, Ref, ref, watch } from 'vue'
   import { I18nT } from '@shared/lang'
   import type { MysqlGroupItem } from '@shared/app'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import Conf from '@web/components/Conf/drawer.vue'
   import Common from '@web/components/Conf/common.vue'
   import type { CommonSetItem } from '@web/components/Conf/setup'

@@ -135,7 +135,7 @@
   import QrcodePopper from '../Qrcode/Index.vue'
   import Base from '@web/core/Base'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'
   import { HostStore } from '@web/components/Host/store'

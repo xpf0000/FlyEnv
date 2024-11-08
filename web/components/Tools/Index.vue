@@ -234,7 +234,7 @@
     EditPen,
     Delete
   } from '@element-plus/icons-vue'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
   import Base from '@web/core/Base'
   import LikeBtn from './like.vue'
 

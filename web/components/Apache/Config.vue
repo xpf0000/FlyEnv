@@ -2,8 +2,7 @@
   <Conf
     ref="conf"
     :type-flag="'apache'"
-    :default-file="defaultFile"
-    :file="file"
+    :conf="content"
     :file-ext="'conf'"
     :show-commond="true"
     @on-type-change="onTypeChange"
@@ -15,36 +14,19 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch, Ref } from 'vue'
-  import { md5 } from '@/util/Index'
-  import { AppStore } from '@web/store/app'
+  import { ref, watch, Ref } from 'vue'
   import Conf from '@web/components/Conf/index.vue'
   import Common from '@web/components/Conf/common.vue'
   import type { CommonSetItem } from '@web/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
 
-  const { join } = require('path')
-
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
-  const appStore = AppStore()
-  const version = computed(() => {
-    return appStore.config.server?.apache?.current
-  })
-  const file = computed(() => {
-    if (!version?.value || !version?.value?.bin) {
-      return ''
-    }
-    const name = md5(version.value.bin!)
-    return join(global.Server.ApacheDir, `common/conf/${name}.conf`)
-  })
-  const defaultFile = computed(() => {
-    if (!version?.value || !version?.value?.bin) {
-      return ''
-    }
-    const name = md5(version.value.bin!)
-    return join(global.Server.ApacheDir, `common/conf/${name}.default.conf`)
+  const content = ref('')
+
+  import('@web/config/apache.conf.txt?raw').then((res) => {
+    content.value = res.default
   })
 
   const names: CommonSetItem[] = [

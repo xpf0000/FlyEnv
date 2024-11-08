@@ -73,19 +73,15 @@
 
 <script lang="tsx" setup>
   import { computed, ref } from 'vue'
-  import type { Column } from 'element-plus'
+  import { type Column, ElMessageBox } from 'element-plus'
   import { FtpStore } from './ftp'
   import { AppStore } from '@web/store/app'
   import { BrewStore } from '@web/store/brew'
   import { startService, stopService } from '@web/fn'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
   import { Edit, Delete } from '@element-plus/icons-vue'
-  import Base from '@web/core/Base'
-  import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
-
-  const { shell, clipboard } = require('@electron/remote')
 
   const loading = ref(false)
   const ftpStore = FtpStore()
@@ -134,7 +130,6 @@
           flag: 'pure-ftpd',
           data: JSON.parse(JSON.stringify(find))
         })
-        appStore.saveConfig()
         if (isRun) {
           serviceDo('restart')
         }
@@ -186,43 +181,22 @@
   }
 
   const copyPass = (str: string): void => {
-    clipboard.writeText(str)
     MessageSuccess(I18nT('base.copySuccess'))
   }
-  const openDir = (dir: string): void => {
-    shell.openPath(dir)
-  }
+  const openDir = (dir: string): void => {}
   const doEdit = (data: any): void => {
     console.log('doEdit: ', data)
     doAdd(data)
   }
   const doDel = (data: any): void => {
     console.log('doEdit: ', data)
-    Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+    ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      closeOnClickModal: false,
       customClass: 'confirm-del',
       type: 'warning'
-    })
-      .then(() => {
-        loading.value = true
-        IPC.send(
-          'app-fork:pure-ftpd',
-          'delFtp',
-          JSON.parse(JSON.stringify(data)),
-          JSON.parse(JSON.stringify(ftpVersion.value))
-        ).then((key: string, res: any) => {
-          IPC.off(key)
-          if (res?.code === 0) {
-            ftpStore.getAllFtp().then(() => {
-              MessageSuccess(I18nT('base.success'))
-              loading.value = false
-            })
-          } else if (res?.code === 1) {
-            MessageError(res?.msg ?? I18nT('base.fail'))
-            loading.value = false
-          }
-        })
-      })
-      .catch(() => {})
+    }).then(() => {})
   }
 
   const allFtp = computed(() => {

@@ -1,0 +1,7 @@
+{"level":"info","ts":1730290021.813011,"logger":"tls.cache.maintenance","msg":"started background certificate maintenance","cache":"0x140005e3680"}
+{"level":"warn","ts":1730290021.813223,"logger":"http.auto_https","msg":"server is listening only on the HTTP port, so no automatic HTTPS will be applied to this server","server_name":"srv0","http_port":80}
+{"level":"info","ts":1730290021.819762,"logger":"http.log","msg":"server running","name":"srv0","protocols":["h1","h2","h3"]}
+{"level":"info","ts":1730290021.8199182,"logger":"pki.ca.local","msg":"root certificate trust store installation disabled; unconfigured clients may show warnings","path":"storage:pki/authorities/local/root.crt"}
+{"level":"info","ts":1730290021.827602,"logger":"tls","msg":"cleaning storage unit","storage":"FileStorage:/Users/x/Library/PhpWebStudy/server/caddy/ssl"}
+{"level":"info","ts":1730290021.827924,"logger":"tls","msg":"finished cleaning storage units"}
+{"level":"info","ts":1730290022.682666,"logger":"http","msg":"servers shutting down with eternal grace period"}

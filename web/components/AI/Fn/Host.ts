@@ -6,23 +6,18 @@ import { AIStore } from '@web/components/AI/store'
 import { startNginx } from '@web/components/AI/Fn/Nginx'
 import { startApache } from '@web/components/AI/Fn/Apache'
 import { startPhp } from '@web/components/AI/Fn/Php'
-import { nextTick } from 'vue'
 import type { SoftInstalled } from '@shared/app'
 import { fetchInstalled } from '@web/components/AI/Fn/Util'
 import { I18nT } from '@shared/lang'
 
-const { shell } = require('@electron/remote')
-
 export function addRandaSite(this: BaseTask) {
   return new Promise(async (resolve, reject) => {
-    const appStore = AppStore()
     const brewStore = BrewStore()
     const php = brewStore.module('php').installed.find((p) => p.version) ?? {}
     IPC.send(`app-fork:host`, 'addRandaSite', JSON.parse(JSON.stringify(php))).then(
       (key: string, res: any) => {
         IPC.off(key)
         if (res.code === 0) {
-          appStore.initHost()
           const item = res.data
           const aiStore = AIStore()
           aiStore.chatList.push({
@@ -90,13 +85,6 @@ export function openSiteBaseService(this: BaseTask, item: { host: string; php: S
         user: 'ai',
         content: arr.join('\n')
       })
-      if (url) {
-        nextTick().then(() => {
-          setTimeout(() => {
-            shell.openExternal(url)
-          }, 1000)
-        })
-      }
       resolve(true)
     } catch (e: any) {
       const aiStore = AIStore()

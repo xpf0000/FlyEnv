@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
   import { ref, Ref } from 'vue'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import type { AppHost } from '@web/store/app'
   import { I18nT } from '@shared/lang'
   import { MessageSuccess } from '@/util/Element'

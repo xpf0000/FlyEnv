@@ -25,7 +25,7 @@
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
 
   const { shell } = require('@electron/remote')
   const { existsSync } = require('fs-extra')

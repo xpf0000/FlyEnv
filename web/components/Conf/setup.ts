@@ -1,13 +1,9 @@
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch, ComputedRef } from 'vue'
 import { editor, KeyMod, KeyCode } from 'monaco-editor/esm/vs/editor/editor.api.js'
-import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+import { EditorConfigMake, EditorCreate } from '@web/fn'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
 import type { AllAppModule } from '@web/core/type'
-
-const { dialog } = require('@electron/remote')
-const { shell } = require('@electron/remote')
-const { existsSync, writeFile, readFile, statSync } = require('fs-extra')
 
 type CommonSetItemOption = {
   label: string
@@ -45,9 +41,7 @@ if (tab) {
 }
 
 type ConfSetupProps = {
-  file: string
-  defaultFile?: string
-  defaultConf?: string
+  conf: string
   fileExt: string
   typeFlag: AllAppModule
   showCommond?: boolean
@@ -78,18 +72,14 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     if (!index.value) {
       return true
     }
-    console.log('disabled: ', props?.value?.file, existsSync(props.value.file))
-    return !props?.value?.file || !existsSync(props.value.file)
+    return !props.value.conf
   })
 
   const defaultDisabled = computed(() => {
     if (!index.value) {
       return true
     }
-    return (
-      (!props?.value?.defaultFile || !existsSync(props.value.defaultFile)) &&
-      !props?.value.defaultConf
-    )
+    return !props.value.conf
   })
 
   const saveConfig = () => {
@@ -97,11 +87,9 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       return
     }
     const content = monacoInstance?.getValue() ?? ''
-    writeFile(props.value.file, content).then(() => {
-      config.value = content
-      changed.value = false
-      MessageSuccess(I18nT('base.success'))
-    })
+    config.value = content
+    changed.value = false
+    MessageSuccess(I18nT('base.success'))
   }
 
   const getEditValue = () => {
@@ -115,28 +103,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     monacoInstance?.setValue(v)
   }
 
-  const saveCustom = () => {
-    const opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-    dialog
-      .showSaveDialog({
-        properties: opt,
-        defaultPath: 'apache-custom.conf',
-        filters: [
-          {
-            extensions: [props?.value?.fileExt ?? 'conf']
-          }
-        ]
-      })
-      .then(({ canceled, filePath }: any) => {
-        if (canceled || !filePath) {
-          return
-        }
-        const content = monacoInstance?.getValue() ?? ''
-        writeFile(filePath, content).then(() => {
-          MessageSuccess(I18nT('base.success'))
-        })
-      })
-  }
+  const saveCustom = () => {}
 
   const initEditor = () => {
     if (!monacoInstance) {
@@ -172,7 +139,6 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     if (disabled?.value) {
       return
     }
-    shell.showItemInFolder(props.value.file)
   }
 
   const getConfig = () => {
@@ -182,10 +148,8 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       initEditor()
       return
     }
-    readFile(props.value.file, 'utf-8').then((conf: string) => {
-      config.value = conf
-      initEditor()
-    })
+    config.value = props.value.conf
+    initEditor()
   }
 
   const getDefault = () => {
@@ -193,39 +157,11 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       MessageError(I18nT('base.needSelectVersion'))
       return
     }
-    if (props?.value?.defaultConf) {
-      config.value = props.value.defaultConf
-      initEditor()
-      return
-    }
-    readFile(props.value.defaultFile, 'utf-8').then((conf: string) => {
-      config.value = conf
-      initEditor()
-    })
+    config.value = props.value.conf
+    initEditor()
   }
 
-  const loadCustom = () => {
-    const opt = ['openFile', 'showHiddenFiles']
-    dialog
-      .showOpenDialog({
-        properties: opt
-      })
-      .then(({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const file = filePaths[0]
-        const state = statSync(file)
-        if (state.size > 5 * 1024 * 1024) {
-          MessageError(I18nT('base.fileBigErr'))
-          return
-        }
-        readFile(file, 'utf-8').then((conf: string) => {
-          config.value = conf
-          initEditor()
-        })
-      })
-  }
+  const loadCustom = () => {}
 
   watch(disabled, (v) => {
     nextTick().then(() => {

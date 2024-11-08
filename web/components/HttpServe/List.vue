@@ -45,11 +45,11 @@
 
 <script lang="ts">
   import { defineComponent, reactive } from 'vue'
-  import IPC from '@/util/IPC'
   import { AppStore } from '@web/store/app'
   import { MessageError } from '@/util/Element'
-  const { dialog, shell } = require('@electron/remote')
-  const { pathExistsSync, statSync } = require('fs-extra')
+  import { waitTime } from '@web/fn'
+  import { ElMessageBox } from 'element-plus'
+  import { I18nT } from '@shared/lang'
   export default defineComponent({
     components: {},
     props: {},
@@ -98,20 +98,7 @@
     },
     unmounted() {},
     methods: {
-      choosePath() {
-        let opt = ['openDirectory']
-        dialog
-          .showOpenDialog({
-            properties: opt
-          })
-          .then(({ canceled, filePaths }: any) => {
-            if (canceled || filePaths.length === 0) {
-              return
-            }
-            const path = filePaths[0]
-            this.addPath(path)
-          })
-      },
+      choosePath() {},
       initDroper() {
         let selecter: HTMLElement = this.$refs.fileDroper as HTMLElement
         selecter.addEventListener('drop', (e: any) => {
@@ -149,17 +136,10 @@
         )
       },
       addPath(path: string) {
-        if (!pathExistsSync(path)) return
-        const stat = statSync(path)
-        if (!stat.isDirectory()) {
-          MessageError(this.$t('base.needSelectDir'))
-          return
-        }
         if (this.httpServe.includes(path)) {
           return
         }
         this.httpServe.push(path)
-        AppStore().saveConfig()
         this.$nextTick().then(() => {
           let item = this.service[path]
           if (!item) {
@@ -175,50 +155,36 @@
         })
       },
       doRun(path: string, item: any) {
-        IPC.send('app-http-serve-run', path).then((key: string, info: any) => {
-          IPC.off(key)
-          console.log(info)
-          if (info?.path && info.path === path) {
-            item.run = true
-            item.host = info.host
-            item.port = info.port
-          }
+        waitTime().then(() => {
+          item.run = true
+          item.host = 'http://127.0.0.1:45896'
+          item.port = 45896
         })
       },
       doStop(path: string, item: any) {
-        IPC.send('app-http-serve-stop', path).then((key: string, info: any) => {
-          IPC.off(key)
-          if (info?.path && info.path === path) {
-            item.run = false
-            item.host = ''
-            item.port = 0
-          }
+        waitTime().then(() => {
+          item.run = false
+          item.host = ''
+          item.port = 0
         })
       },
       doDel(path: string) {
-        this.$baseConfirm(this.$t('base.delAlertContent'), undefined, {
+        ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+          confirmButtonText: I18nT('base.confirm'),
+          cancelButtonText: I18nT('base.cancel'),
+          closeOnClickModal: false,
           customClass: 'confirm-del',
           type: 'warning'
+        }).then(() => {
+          const store = AppStore()
+          const index = this.httpServe.indexOf(path)
+          if (index >= 0) {
+            store.httpServe.splice(this.httpServe.indexOf(path), 1)
+          }
         })
-          .then(() => {
-            const store = AppStore()
-            IPC.send('app-http-serve-stop', path).then((key: string) => {
-              IPC.off(key)
-            })
-            const index = this.httpServe.indexOf(path)
-            if (index >= 0) {
-              store.httpServe.splice(this.httpServe.indexOf(path), 1)
-              store.saveConfig()
-            }
-          })
-          .catch(() => {})
       },
-      doJump(host: string) {
-        shell.openExternal(host)
-      },
-      openDir(dir: string) {
-        shell.openPath(dir)
-      }
+      doJump(host: string) {},
+      openDir(dir: string) {}
     }
   })
 </script>

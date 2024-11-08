@@ -181,7 +181,7 @@
   import { BrewStore, SoftInstalled } from '@web/store/brew'
   import { TaskStore } from '@web/store/task'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup } from '@web/fn'
   import { ExtensionHomeBrew, ExtensionMacPorts } from '@web/components/PHP/store'
   import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
   import { Document, Download, Link, Delete } from '@element-plus/icons-vue'

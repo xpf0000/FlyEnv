@@ -42,7 +42,7 @@
   import { I18nT } from '@shared/lang'
   import YbIcon from '@web/components/YbSvgIcon/vue-svg-icons.vue'
   import type { MysqlGroupItem } from '@shared/app'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AsyncComponentShow } from '@web/fn'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import Popper from './SetupPopper.vue'
 
