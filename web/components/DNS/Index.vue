@@ -3,30 +3,41 @@
     <div class="top-tab" :class="{ running: running }">
       <span class="title">DNS IP: </span>
       <span class="ip"> {{ ip }}</span>
-      <el-tooltip
-        popper-class="dns-tips-popper"
-        :show-after="800"
-        :content="$t('host.dnsInfo', { ip: `@${ip}` })"
-      >
-        <yb-icon :svg="import('@/svg/question.svg?raw')" width="17" height="17" />
-      </el-tooltip>
+      <el-popover popper-class="dns-tips-popper" :show-after="800" width="auto">
+        <template #default>
+          <div>
+            {{ $t('host.dnsInfo', { ip: `@${ip}` }) }}
+          </div>
+        </template>
+        <template #reference>
+          <yb-icon :svg="import('@/svg/question.svg?raw')" width="17" height="17" />
+        </template>
+      </el-popover>
     </div>
     <div class="main-block">
       <el-card>
         <template #header>
           <div class="table-header">
             <div class="left">
-              <template v-if="running">
-                <div class="status running" :class="{ disabled: fetching }">
-                  <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="dnsStop" />
-                </div>
-                <div class="status refresh" :class="{ disabled: fetching }">
-                  <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" @click.stop="dnsStart" />
+              <template v-if="fetching">
+                <el-button :loading="true" link></el-button>
+              </template>
+              <template v-else>
+                <template v-if="running">
+                  <div class="status running" :class="{ disabled: fetching }">
+                    <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="dnsStore.dnsStop" />
+                  </div>
+                  <div class="status refresh" :class="{ disabled: fetching }">
+                    <yb-icon
+                      :svg="import('@/svg/icon_refresh.svg?raw')"
+                      @click.stop="dnsStore.dnsRestart"
+                    />
+                  </div>
+                </template>
+                <div v-else class="status" :class="{ disabled: fetching }">
+                  <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStore.dnsStart" />
                 </div>
               </template>
-              <div v-else class="status" :class="{ disabled: fetching }">
-                <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="dnsStart" />
-              </div>
             </div>
             <el-button @click.stop="cleanLog">{{ $t('base.clean') }}</el-button>
           </div>
@@ -51,11 +62,13 @@
 </template>
 
 <script lang="tsx" setup>
-  import { DnsStore } from '@web/store/dns'
-  import { computed } from 'vue'
+  import { DnsStore } from './dns'
+  import { computed, onUnmounted } from 'vue'
   import type { Column } from 'element-plus'
-  import { dnsStart, dnsStop } from '@web/fn'
+
   const dnsStore = DnsStore()
+  dnsStore.init()
+
   const ip = computed(() => {
     return dnsStore.ip
   })
@@ -101,4 +114,8 @@
   const cleanLog = () => {
     links.value.splice(0)
   }
+
+  onUnmounted(() => {
+    dnsStore.deinit()
+  })
 </script>

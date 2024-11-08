@@ -13,10 +13,10 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ isEdit ? $t('base.edit') : $t('base.add') }}</span>
+          <span class="ml-15">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
-          $t('base.save')
+          I18nT('base.save')
         }}</el-button>
       </div>
 
@@ -26,27 +26,26 @@
             v-model.trim="item.name"
             type="text"
             :class="'input' + (errs['name'] ? ' error' : '')"
-            placeholder="name eg: www.xxx.com"
+            :placeholder="I18nT('host.placeholderName')"
           />
           <textarea
             v-model.trim="item.alias"
             type="text"
             class="input-textarea"
-            placeholder="alias eg: www.xxx.com"
+            :placeholder="I18nT('host.placeholderAlias')"
           ></textarea>
           <input
             v-model.trim="item.mark"
             style="margin: 15px 0 10px"
             class="input"
-            placeholder="mark"
+            :placeholder="I18nT('host.placeholderRemarks')"
           />
           <div class="path-choose mt-20 mb-20">
             <input
+              v-model.trim="item.root"
               type="text"
               :class="'input' + (errs['root'] ? ' error' : '')"
-              placeholder="root path"
-              readonly=""
-              :value="item.root"
+              :placeholder="I18nT('host.placeholderRootPath')"
             />
             <div class="icon-block" @click="chooseRoot('root')">
               <yb-icon
@@ -59,8 +58,8 @@
           </div>
           <div class="park">
             <div class="title">
-              <span>{{ $t('base.parkTitle') }}</span>
-              <el-popover placement="top" trigger="hover" :width="300">
+              <span>{{ I18nT('base.parkTitle') }}</span>
+              <el-popover placement="top" trigger="hover" width="auto">
                 <template #reference>
                   <yb-icon
                     :svg="import('@/svg/question.svg?raw')"
@@ -71,7 +70,7 @@
                 </template>
                 <template #default>
                   <p>
-                    {{ $t('base.parkTips') }}
+                    {{ I18nT('base.parkTips') }}
                   </p>
                 </template>
               </el-popover>
@@ -80,15 +79,15 @@
           </div>
         </div>
 
-        <div class="plant-title">{{ $t('base.phpVersion') }}</div>
+        <div class="plant-title">{{ I18nT('base.phpVersion') }}</div>
         <div class="main">
           <div class="port-set">
             <el-select
               v-model="item.phpVersion"
               class="w-p100"
-              :placeholder="$t('base.selectPhpVersion')"
+              :placeholder="I18nT('base.selectPhpVersion')"
             >
-              <el-option :value="undefined" :label="$t('host.staticSite')"></el-option>
+              <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
               <template v-for="(v, i) in phpVersions" :key="i">
                 <el-option :value="v.num" :label="v.num"></el-option>
               </template>
@@ -96,7 +95,7 @@
           </div>
         </div>
 
-        <div class="plant-title">Port</div>
+        <div class="plant-title">{{ I18nT('host.hostPort') }}</div>
         <div class="main">
           <div class="port-set mb-20">
             <div class="port-type"> Nginx </div>
@@ -119,9 +118,7 @@
           </div>
 
           <div class="port-set mb-20">
-            <div class="port-type">
-              <span>Apache</span>
-            </div>
+            <div class="port-type"> Apache </div>
             <input
               v-model.number="item.port.apache"
               type="number"
@@ -129,22 +126,8 @@
               placeholder="default: 80"
             />
           </div>
-
-          <div class="port-set mb-20">
-            <div class="port-type">
-              <span>Tomcat</span>
-            </div>
-            <input
-              v-model.number="item.port.tomcat"
-              type="number"
-              :class="'input' + (errs['port_tomcat'] ? ' error' : '')"
-              placeholder="default: 80"
-            />
-          </div>
         </div>
-
-        <div class="plant-title">SSL</div>
-
+        <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
         <div class="main">
           <div class="ssl-switch">
             <span>SSL</span>
@@ -152,20 +135,19 @@
           </div>
 
           <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
-            <span>{{ $t('host.autoSSL') }}</span>
+            <span>{{ I18nT('host.autoSSL') }}</span>
             <el-switch v-model="item.autoSSL"></el-switch>
           </div>
 
           <template v-if="item.useSSL && !item.autoSSL">
             <div class="path-choose mt-20">
               <input
+                v-model.trim="item.ssl.cert"
                 type="text"
                 :class="'input' + (errs['cert'] ? ' error' : '')"
                 placeholder="cert"
-                readonly=""
-                :value="item.ssl.cert"
               />
-              <div class="icon-block" @click="chooseRoot('cert')">
+              <div class="icon-block" @click="chooseRoot('cert', true)">
                 <yb-icon
                   :svg="import('@/svg/folder.svg?raw')"
                   class="choose"
@@ -177,13 +159,12 @@
 
             <div class="path-choose mt-20 mb-20">
               <input
+                v-model.trim="item.ssl.key"
                 type="text"
                 :class="'input' + (errs['certkey'] ? ' error' : '')"
                 placeholder="cert key"
-                readonly=""
-                :value="item.ssl.key"
               />
-              <div class="icon-block" @click="chooseRoot('certkey')">
+              <div class="icon-block" @click="chooseRoot('certkey', true)">
                 <yb-icon
                   :svg="import('@/svg/folder.svg?raw')"
                   class="choose"
@@ -225,27 +206,12 @@
                 placeholder="default: 443"
               />
             </div>
-
-            <div class="port-set port-ssl mb-20">
-              <div class="port-type"> Tomcat </div>
-              <input
-                v-model.number="item.port.tomcat_ssl"
-                type="number"
-                :class="'input' + (errs['port_tomcat_ssl'] ? ' error' : '')"
-                placeholder="default: 443"
-              />
-            </div>
           </template>
         </div>
 
         <div class="plant-title">
           <span>Nginx Url Rewrite</span>
-          <el-popover
-            placement="top-start"
-            :title="$t('base.attention')"
-            :width="300"
-            trigger="hover"
-          >
+          <el-popover placement="top" :title="I18nT('base.attention')" width="auto" trigger="hover">
             <template #reference>
               <yb-icon
                 :svg="import('@/svg/question.svg?raw')"
@@ -254,15 +220,15 @@
                 style="margin-left: 5px"
               ></yb-icon>
             </template>
-            <p>{{ $t('base.nginxRewriteTips') }}</p>
+            <p>{{ I18nT('base.nginxRewriteTips') }}</p>
           </el-popover>
         </div>
-
         <div class="main">
           <el-select
             v-model="rewriteKey"
             filterable
-            :placeholder="$t('base.commonTemplates')"
+            :placeholder="I18nT('base.commonTemplates')"
+            class="w-p100"
             @change="rewriteChange"
           >
             <el-option v-for="key in rewrites" :key="key" :label="key" :value="key"> </el-option>
@@ -270,33 +236,66 @@
 
           <div ref="input" class="input-textarea nginx-rewrite"></div>
         </div>
+
+        <div class="plant-title flex items-center justify-between">
+          <span>{{ I18nT('host.reverseProxy') }}</span>
+          <el-button link :icon="Plus" @click.stop="addReverseProxy"></el-button>
+        </div>
+        <div class="main flex flex-col gap-3">
+          <template v-if="item.reverseProxy.length === 0">
+            <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+          </template>
+          <template v-else>
+            <template v-for="(proxy, index) in item.reverseProxy" :key="index">
+              <div class="flex items-center justify-between gap-2">
+                <el-button link :icon="Delete" @click.stop="delReverseProxy(index)"></el-button>
+                <el-input v-model="proxy.path" class="w-28 ml-2"></el-input>
+                <el-input v-model="proxy.url"></el-input>
+              </div>
+            </template>
+          </template>
+        </div>
+        <div class="py-5"></div>
       </div>
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, ref, watch, Ref, onMounted, onUnmounted } from 'vue'
-  import { AppStore } from '../../store/app'
-  import { BrewStore } from '../../store/brew'
+  import { computed, nextTick, ref, watch, Ref, onMounted, onUnmounted, reactive } from 'vue'
+  import { getAllFileAsync, readFileAsync } from '@shared/file'
+  import { passwordCheck } from '@/util/Brew'
+  import { handleHost } from '@/util/Host'
+  import { AppHost, AppStore } from '@web/store/app'
+  import { BrewStore } from '@web/store/brew'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { ElMessageBox } from 'element-plus'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup, EditorConfigMake, EditorCreate } from '../../fn'
+  import Base from '@web/core/Base'
+  import { RewriteAll } from '@web/components/Host/store'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
-  import { RewriteAll } from './store'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+  import { MessageError } from '@/util/Element'
+  import { ElMessageBox } from 'element-plus'
+  import { execPromiseRoot } from '@shared/Exec'
+  import { Plus, Minus, Delete } from '@element-plus/icons-vue'
+
+  const { dialog } = require('@electron/remote')
+  const { accessSync, constants } = require('fs')
+  const { join } = require('path')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
-    isEdit?: boolean
-    edit?: any
+    isEdit: boolean
+    edit: any
   }>()
   const input = ref()
   const running = ref(false)
   const park = ref(false)
   const item = ref({
     id: new Date().getTime(),
+    type: 'php',
     name: '',
     alias: '',
     useSSL: false,
@@ -315,13 +314,14 @@
       tomcat: 80,
       tomcat_ssl: 443
     },
-    mark: '',
     nginx: {
       rewrite: ''
     },
     url: '',
     root: '',
-    phpVersion: undefined
+    mark: '',
+    phpVersion: undefined,
+    reverseProxy: []
   })
   const errs = ref({
     name: false,
@@ -329,10 +329,10 @@
     cert: false,
     certkey: false,
     port_nginx: false,
-    port_nginx_ssl: false,
-    port_apache: false,
-    port_apache_ssl: false,
     port_caddy: false,
+    port_apache: false,
+    port_nginx_ssl: false,
+    port_apache_ssl: false,
     port_caddy_ssl: false,
     port_tomcat: false,
     port_tomcat_ssl: false
@@ -340,13 +340,14 @@
   merge(item.value, props.edit)
   const rewrites: Ref<Array<string>> = ref([])
   const rewriteKey = ref('')
+  const rewritePath = ref('')
   const appStore = AppStore()
   const brewStore = BrewStore()
   const hosts = computed(() => {
     return appStore.hosts
   })
   const php = computed(() => {
-    return brewStore.php
+    return brewStore.module('php')
   })
   const phpVersions = computed(() => {
     const set: Set<number> = new Set()
@@ -406,12 +407,23 @@
     }
   })
 
+  const addReverseProxy = () => {
+    const d = reactive({
+      path: '/',
+      url: 'http://127.0.0.1:3000'
+    })
+    const arr: any[] = item.value.reverseProxy as any
+    arr.unshift(d)
+  }
+
+  const delReverseProxy = (index: number) => {
+    const arr: any[] = item.value.reverseProxy as any
+    arr.splice(index, 1)
+  }
+
   const onParkChange = () => {
     if (!park.value) {
-      return ElMessageBox.confirm(I18nT('base.parkConfim'), undefined, {
-        confirmButtonText: I18nT('base.confirm'),
-        cancelButtonText: I18nT('base.cancel'),
-        closeOnClickModal: false,
+      return Base._Confirm(I18nT('base.parkConfim'), undefined, {
         customClass: 'confirm-del',
         type: 'warning'
       })
@@ -444,27 +456,67 @@
   }
 
   const rewriteChange = (flag: any) => {
-    item.value.nginx.rewrite = RewriteAll[flag]
-    monacoInstance?.setValue(item.value.nginx.rewrite)
+    if (!RewriteAll[flag]) {
+      let file = join(rewritePath.value, `${flag}.conf`)
+      readFileAsync(file).then((content) => {
+        RewriteAll[flag] = content
+        item.value.nginx.rewrite = content
+        monacoInstance?.setValue(item.value.nginx.rewrite)
+      })
+    } else {
+      item.value.nginx.rewrite = RewriteAll[flag]
+      monacoInstance?.setValue(item.value.nginx.rewrite)
+    }
   }
 
   const loadRewrite = () => {
     rewrites.value.splice(0)
-    rewrites.value.push(...Object.keys(RewriteAll))
+    rewritePath.value = join(global.Server.Static, 'rewrite')
+    if (Object.keys(RewriteAll).length === 0) {
+      getAllFileAsync(rewritePath.value, false).then((files) => {
+        files = files.sort()
+        for (let file of files) {
+          let k = file.replace('.conf', '')
+          RewriteAll[k] = ''
+          rewrites.value.push(k)
+        }
+      })
+    } else {
+      rewrites.value.push(...Object.keys(RewriteAll))
+    }
   }
 
-  const chooseRoot = (flag: string) => {
-    switch (flag) {
-      case 'root':
-        item.value.root = '/Users/XXX/Desktop/WWW/xxxx'
-        break
-      case 'cert':
-        item.value.ssl.cert = '/Users/XXX/Desktop/WWW/xxxx.cert'
-        break
-      case 'certkey':
-        item.value.ssl.key = '/Users/XXX/Desktop/WWW/xxxx.key'
-        break
+  const chooseRoot = (flag: 'root' | 'certkey' | 'cert', choosefile = false) => {
+    const options: any = {}
+    let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
+    if (choosefile) {
+      opt.push('openFile')
     }
+    options.properties = opt
+    if (flag === 'root' && item?.value?.root) {
+      options.defaultPath = item.value.root
+    } else if (flag === 'cert' && item?.value?.ssl?.cert) {
+      options.defaultPath = item.value.ssl.cert
+    } else if (flag === 'certkey' && item?.value?.ssl?.key) {
+      options.defaultPath = item.value.ssl.key
+    }
+    dialog.showOpenDialog(options).then(({ canceled, filePaths }: any) => {
+      if (canceled || filePaths.length === 0) {
+        return
+      }
+      const [path] = filePaths
+      switch (flag) {
+        case 'root':
+          item.value.root = path
+          break
+        case 'cert':
+          item.value.ssl.cert = path
+          break
+        case 'certkey':
+          item.value.ssl.key = path
+          break
+      }
+    })
   }
 
   const checkItem = () => {
@@ -498,7 +550,7 @@
 
     errs.value['name'] = item.value.name.length === 0
     errs.value['root'] = item.value.root.length === 0
-    if (item.value.useSSL) {
+    if (item.value.useSSL && !item.value.autoSSL) {
       errs.value['cert'] = item.value.ssl.cert.length === 0
       errs.value['certkey'] = item.value.ssl.key.length === 0
     }
@@ -521,18 +573,53 @@
     if (!checkItem()) {
       return
     }
-    running.value = true
-    item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
-    if (props.isEdit) {
-      const find = appStore.hosts.findIndex((h) => h.id === props.edit.id)
-      if (find >= 0) {
-        appStore.hosts.splice(find, 1, JSON.parse(JSON.stringify(item.value)))
+    const saveFn = () => {
+      running.value = true
+      let flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
+      let access = false
+      try {
+        accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
+        access = true
+        console.log('可以读写')
+      } catch (err) {
+        console.error('无权访问')
       }
-    } else {
-      appStore.hosts.unshift(JSON.parse(JSON.stringify(item.value)))
+      passwordCheck().then(() => {
+        item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
+        if (!access) {
+          execPromiseRoot(`chmod 777 /private/etc`.split(' '))
+            .then(() => {
+              return execPromiseRoot(`chmod 777 /private/etc/hosts`.split(' '))
+            })
+            .then(() => {
+              handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
+                running.value = false
+                show.value = false
+              })
+            })
+            .catch(() => {
+              MessageError(I18nT('base.hostNoRole'))
+              running.value = false
+            })
+        } else {
+          handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
+            running.value = false
+            show.value = false
+          })
+        }
+      })
     }
-    running.value = false
-    show.value = false
+    if (!item.value.phpVersion && !props.isEdit) {
+      ElMessageBox.confirm(I18nT('host.noPhpWarning'), I18nT('host.warning'), {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
+        type: 'warning'
+      }).then(() => {
+        saveFn()
+      })
+    } else {
+      saveFn()
+    }
   }
 
   loadRewrite()

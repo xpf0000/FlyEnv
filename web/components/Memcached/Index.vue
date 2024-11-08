@@ -4,49 +4,27 @@
       <li
         v-for="(item, index) in tabs"
         :key="index"
-        :class="current_tab === index ? 'active' : ''"
-        @click="current_tab = index"
+        :class="tab === index ? 'active' : ''"
+        @click="tab = index"
         >{{ item }}</li
       >
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="memcached" title="Memcached"></Service>
-      <Manager v-else-if="current_tab === 1" type-flag="memcached"></Manager>
-      <Logs v-if="current_tab === 2"></Logs>
+      <Service v-if="tab === 0" type-flag="memcached" title="Memcached"></Service>
+      <Manager v-else-if="tab === 1" type-flag="memcached"></Manager>
+      <Logs v-if="tab === 2"></Logs>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-  import { defineComponent, ref } from 'vue'
+<script lang="ts" setup>
   import Service from '../ServiceManager/index.vue'
-  import Logs from '../Base/Logs.vue'
+  import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
-  import { AppStore } from '../../store/app'
-  const current_tab = ref(0)
+  import { AppModuleSetup } from '@web/core/Module'
+  import { I18nT } from '@shared/lang'
 
-  export default defineComponent({
-    components: {
-      Service,
-      Logs,
-      Manager
-    },
-    props: {},
-    data() {
-      return {
-        current_tab
-      }
-    },
-    computed: {
-      tabs() {
-        return [this.$t('base.service'), this.$t('base.versionManager'), this.$t('base.log')]
-      },
-      version() {
-        return AppStore().config.server?.memcached?.current?.version
-      }
-    },
-    watch: {},
-    created: function () {},
-    methods: {}
-  })
+  const { tab, checkVersion } = AppModuleSetup('memcached')
+  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('base.log')]
+  checkVersion()
 </script>

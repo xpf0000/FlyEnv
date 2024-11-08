@@ -16,7 +16,14 @@ import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 import { merge } from 'lodash'
 
-const { basename, dirname } = require('path')
+const basename = (dir: string) => {
+  return dir.split('/').pop()!
+}
+const dirname = (dir: string) => {
+  const arr = dir.split('/')
+  arr.pop()
+  return arr.join('/')
+}
 
 const modules: any = import.meta.glob('@/components/*/lang/*/*', { eager: true })
 const modulesTool: any = import.meta.glob('@/components/Tools/*/lang/*/*', { eager: true })
@@ -28,7 +35,12 @@ for (const k in { ...modules, ...modulesTool }) {
   if (!dict[lang]) {
     dict[lang] = {}
   }
-  dict[lang][name] = Object.assign({}, dict[lang][name], modules?.[k]?.default, modulesTool?.[k]?.default)
+  dict[lang][name] = Object.assign(
+    {},
+    dict[lang][name],
+    modules?.[k]?.default,
+    modulesTool?.[k]?.default
+  )
 }
 
 export const lang = merge(

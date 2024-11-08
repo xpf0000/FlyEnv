@@ -26,18 +26,19 @@
           <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-30">
             <template v-for="(item, index) in versions" :key="index">
               <template v-if="!item?.version">
-                <el-tooltip
-                  :raw-content="true"
-                  :content="item?.error ?? $t('base.versionErrorTips')"
-                  popper-class="version-error-tips"
-                >
-                  <el-option
-                    :disabled="true"
-                    :label="$t('base.versionError') + ' - ' + item.path"
-                    :value="$t('base.versionError') + ' - ' + item.path"
-                  >
-                  </el-option>
-                </el-tooltip>
+                <el-popover popper-class="version-error-tips" width="auto" placement="top">
+                  <template #default>
+                    <span>{{ item?.error ?? $t('base.versionErrorTips') }}</span>
+                  </template>
+                  <template #reference>
+                    <el-option
+                      :disabled="true"
+                      :label="$t('base.versionError') + ' - ' + item.path"
+                      :value="$t('base.versionError') + ' - ' + item.path"
+                    >
+                    </el-option>
+                  </template>
+                </el-popover>
               </template>
               <template v-else>
                 <el-option
@@ -73,13 +74,18 @@
 <script lang="tsx" setup>
   import { computed, ref } from 'vue'
   import type { Column } from 'element-plus'
-  import { FtpStore } from '../../store/ftp'
-  import { AppStore } from '../../store/app'
-  import { BrewStore } from '../../store/brew'
-  import { startService, stopService, AsyncComponentShow, waitTime } from '../../fn'
-  import { ElMessage, ElMessageBox } from 'element-plus'
+  import { FtpStore } from './ftp'
+  import { AppStore } from '@web/store/app'
+  import { BrewStore } from '@web/store/brew'
+  import { startService, stopService } from '@web/fn'
   import { I18nT } from '@shared/lang'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { Edit, Delete } from '@element-plus/icons-vue'
+  import Base from '@web/core/Base'
+  import IPC from '@/util/IPC'
+  import { MessageError, MessageSuccess } from '@/util/Element'
+
+  const { shell, clipboard } = require('@electron/remote')
 
   const loading = ref(false)
   const ftpStore = FtpStore()
@@ -87,7 +93,7 @@
   const brewStore = BrewStore()
 
   const versions = computed(() => {
-    return brewStore?.['pure-ftpd']?.installed
+    return brewStore.module('pure-ftpd').installed
   })
 
   const linkLocal = computed(() => {
@@ -98,8 +104,7 @@
   })
 
   const ftpFetching = computed(() => {
-    const installed = brewStore?.['pure-ftpd']?.installed
-    return installed?.some((i) => i.running)
+    return versions.value?.some((i) => i.running)
   })
 
   const ftpVersion = computed(() => {
@@ -107,8 +112,7 @@
     if (!current) {
       return undefined
     }
-    const installed = brewStore?.['pure-ftpd']?.installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+    return versions.value.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
   const currentVersion = computed({
@@ -130,6 +134,7 @@
           flag: 'pure-ftpd',
           data: JSON.parse(JSON.stringify(find))
         })
+        appStore.saveConfig()
         if (isRun) {
           serviceDo('restart')
         }
@@ -144,7 +149,7 @@
   const ftpDisabled = computed(() => {
     return (
       !ftpVersion?.value?.version ||
-      brewStore?.['pure-ftpd']?.installed?.some((v) => v.running) ||
+      versions.value.some((v) => v.running) ||
       !appStore.versionInited
     )
   })
@@ -165,13 +170,9 @@
     }
     action.then((res: any) => {
       if (typeof res === 'string') {
-        ElMessage({
-          type: 'error',
-          message: res,
-          customClass: 'cli-to-html'
-        })
+        MessageError(res)
       } else {
-        ElMessage.success(I18nT('base.success'))
+        MessageSuccess(I18nT('base.success'))
       }
     })
   }
@@ -184,28 +185,41 @@
     })
   }
 
-  const copyPass = (): void => {
-    ElMessage.success(I18nT('base.copySuccess'))
+  const copyPass = (str: string): void => {
+    clipboard.writeText(str)
+    MessageSuccess(I18nT('base.copySuccess'))
   }
-  const openDir = (): void => {}
+  const openDir = (dir: string): void => {
+    shell.openPath(dir)
+  }
   const doEdit = (data: any): void => {
     console.log('doEdit: ', data)
     doAdd(data)
   }
-  const doDel = (index: number): void => {
-    ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
-      confirmButtonText: I18nT('base.confirm'),
-      cancelButtonText: I18nT('base.cancel'),
-      closeOnClickModal: false,
+  const doDel = (data: any): void => {
+    console.log('doEdit: ', data)
+    Base._Confirm(I18nT('base.delAlertContent'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })
       .then(() => {
         loading.value = true
-        waitTime().then(() => {
-          ftpStore.allFtp.splice(index, 1)
-          ElMessage.success(I18nT('base.success'))
-          loading.value = false
+        IPC.send(
+          'app-fork:pure-ftpd',
+          'delFtp',
+          JSON.parse(JSON.stringify(data)),
+          JSON.parse(JSON.stringify(ftpVersion.value))
+        ).then((key: string, res: any) => {
+          IPC.off(key)
+          if (res?.code === 0) {
+            ftpStore.getAllFtp().then(() => {
+              MessageSuccess(I18nT('base.success'))
+              loading.value = false
+            })
+          } else if (res?.code === 1) {
+            MessageError(res?.msg ?? I18nT('base.fail'))
+            loading.value = false
+          }
         })
       })
       .catch(() => {})
@@ -228,7 +242,7 @@
         )
       },
       cellRenderer: ({ cellData: user }) => (
-        <span style="padding-left: 24px;" class="user" onClick={() => copyPass()}>
+        <span style="padding-left: 24px;" class="user" onClick={() => copyPass(user)}>
           {user}
         </span>
       )
@@ -242,7 +256,7 @@
         return <span class="flex items-center">{I18nT('util.ftpTableHeadPass')}</span>
       },
       cellRenderer: ({ cellData: pass }) => (
-        <span class="pass" onClick={() => copyPass()}>
+        <span class="pass" onClick={() => copyPass(pass)}>
           {pass}
         </span>
       )
@@ -258,7 +272,7 @@
         return <span class="flex items-center">{I18nT('util.ftpTableHeadDir')}</span>
       },
       cellRenderer: ({ cellData: dir }) => (
-        <span class="dir" onClick={() => openDir()}>
+        <span class="dir" onClick={() => openDir(dir)}>
           {dir}
         </span>
       )
@@ -272,7 +286,7 @@
       headerCellRenderer: () => {
         return <span class="flex items-center">{I18nT('util.ftpTableHeadSetup')}</span>
       },
-      cellRenderer: ({ rowData: data }) => (
+      cellRenderer: ({ rowData: data }): any => (
         <div class="setup">
           <Edit class="setup-icon" onClick={() => doEdit(data)}>
             编辑

@@ -22,108 +22,57 @@
           >Apache-Error</li
         >
       </ul>
-      <div ref="input" class="block"></div>
-      <div class="tool">
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
-          $t('base.open')
-        }}</el-button>
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
-          $t('base.refresh')
-        }}</el-button>
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
-          $t('base.clean')
-        }}</el-button>
-      </div>
+      <LogVM ref="log" :log-file="filepath" />
+      <ToolVM :log="log" />
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-  import { nextTick, ref, watch, onMounted, onUnmounted } from 'vue'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup, EditorConfigMake, EditorCreate } from '@web/fn'
-  import { ElMessage } from 'element-plus'
+  import { ref } from 'vue'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import LogVM from '@web/components/Log/index.vue'
+  import ToolVM from '@web/components/Log/tool.vue'
+
+  const { join } = require('path')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
-  defineProps<{
+  const props = defineProps<{
     name: string
   }>()
 
   const type = ref('')
   const filepath = ref('')
-  const log = ref('')
   const logfile = ref({})
-
-  const input = ref()
-  let monacoInstance: editor.IStandaloneCodeEditor | null
-  const initEditor = () => {
-    if (!monacoInstance) {
-      const inputDom: HTMLElement = input.value as HTMLElement
-      if (!inputDom || !inputDom?.style) {
-        return
-      }
-      monacoInstance = EditorCreate(inputDom, EditorConfigMake(log.value, true, 'on'))
-    } else {
-      monacoInstance.setValue(log.value)
-    }
-  }
-
-  watch(log, () => {
-    nextTick().then(() => {
-      initEditor()
-    })
-  })
-
-  onMounted(() => {
-    nextTick().then(() => {
-      initEditor()
-    })
-  })
-
-  onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
-    monacoInstance = null
-  })
+  const log = ref()
 
   const init = () => {
+    let logpath = join(global.Server.BaseDir, 'vhost/logs')
+    let accesslogng = join(logpath, `${props.name}.log`)
+    let errorlogng = join(logpath, `${props.name}.error.log`)
+    let accesslogap = join(logpath, `${props.name}-access_log`)
+    let errorlogap = join(logpath, `${props.name}-error_log`)
+    let caddyLog = join(logpath, `${props.name}.caddy.log`)
     logfile.value = {
-      caddy: 'caddy',
-      'nginx-access': 'accesslogng',
-      'nginx-error': 'errorlogng',
-      'apache-access': 'accesslogap',
-      'apache-error': 'errorlogap'
+      'nginx-access': accesslogng,
+      'nginx-error': errorlogng,
+      'apache-access': accesslogap,
+      'apache-error': errorlogap,
+      caddy: caddyLog
     }
-  }
-
-  const getLog = () => {
-    log.value = ''
   }
 
   const initType = (t: string) => {
     type.value = t
     const logFile: { [key: string]: string } = logfile.value
-    filepath.value = logFile[t]
-    getLog()
-  }
-
-  const logDo = (flag: string) => {
-    switch (flag) {
-      case 'open':
-        break
-      case 'refresh':
-        getLog()
-        break
-      case 'clean':
-        log.value = ''
-        ElMessage.success(I18nT('base.success'))
-        break
-    }
+    filepath.value = logFile[t] ?? ''
+    localStorage.setItem('PhpWebStudy-Host-Log-Type', t)
   }
 
   init()
-  initType('nginx-access')
+  const saveType = localStorage.getItem('PhpWebStudy-Host-Log-Type') ?? 'nginx-access'
+  initType(saveType)
 
   defineExpose({
     show,

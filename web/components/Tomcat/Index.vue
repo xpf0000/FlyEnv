@@ -1,63 +1,40 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <ul class="top-tab">
-      <li
-        v-for="(item, index) in tabs"
-        :key="index"
-        :class="current_tab === index ? 'active' : ''"
-        @click="current_tab = index"
-        >{{ item }}</li
-      >
+      <template v-for="(item, index) in tabs" :key="index">
+        <li :class="tab === index ? 'active' : ''" @click="tab = index">{{ item }}</li>
+      </template>
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="tomcat" title="Tomcat"></Service>
-      <Manager v-else-if="current_tab === 1" type-flag="tomcat"></Manager>
-      <Config v-if="current_tab === 2" :config="ConfServer"></Config>
-      <Config v-if="current_tab === 3" :config="ConfWeb"></Config>
-      <Logs v-if="current_tab === 4" type="access"></Logs>
+      <Service v-if="tab === 0" type-flag="tomcat" title="Tomcat"></Service>
+      <Manager
+        v-else-if="tab === 1"
+        type-flag="tomcat"
+        :has-static="true"
+        :show-port-lib="false"
+      ></Manager>
+      <Config v-else-if="tab === 2" :file-name="'server.xml'"></Config>
+      <Config v-else-if="tab === 3" :file-name="'web.xml'"></Config>
+      <Logs v-else-if="tab === 4" type="access_log"></Logs>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-  import { defineComponent, ref } from 'vue'
+<script lang="ts" setup>
   import Service from '../ServiceManager/index.vue'
-  import Config from '../Base/Config.vue'
-  import Logs from '../Base/Logs.vue'
+  import Config from './Config.vue'
+  import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
-  import ConfServer from '../../config/tomcat.server.conf.txt?raw'
-  import ConfWeb from '../../config/tomcat.web.conf.txt?raw'
+  import { AppModuleSetup } from '@web/core/Module'
+  import { I18nT } from '@shared/lang'
 
-  const current_tab = ref(0)
-
-  export default defineComponent({
-    components: {
-      Config,
-      Service,
-      Logs,
-      Manager
-    },
-    props: {},
-    data() {
-      return {
-        ConfServer,
-        ConfWeb,
-        current_tab
-      }
-    },
-    computed: {
-      tabs() {
-        return [
-          this.$t('base.service'),
-          this.$t('base.versionManager'),
-          'server.xml',
-          'web.xml',
-          this.$t('base.log')
-        ]
-      }
-    },
-    watch: {},
-    created: function () {},
-    methods: {}
-  })
+  const { tab, checkVersion } = AppModuleSetup('nginx')
+  const tabs = [
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    'server.xml',
+    'web.xml',
+    I18nT('base.log')
+  ]
+  checkVersion()
 </script>

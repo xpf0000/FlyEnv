@@ -23,9 +23,9 @@
 </template>
 
 <script lang="ts">
-  import { VueExtend } from '../../../VueExtend'
+  import { VueExtend } from '@web/core/VueExtend'
   import { nextTick, defineComponent } from 'vue'
-  import { EditorConfigMake, EditorCreate } from '../../../fn'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
 
   export default defineComponent({
     show(data: any) {
@@ -35,7 +35,6 @@
         let vm = VueExtend(this, data)
         const intance = vm.mount(dom)
         intance.onClosed = () => {
-          vm.unmount()
           dom && dom.remove()
           dom = null
         }
@@ -62,6 +61,7 @@
     methods: {
       close() {
         this.show = false
+        this.$destroy()
         this.onClosed()
       },
       onDrawerClosed() {

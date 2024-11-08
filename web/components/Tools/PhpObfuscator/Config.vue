@@ -24,10 +24,14 @@
 
 <script lang="ts">
   import { defineComponent, nextTick } from 'vue'
-  import Conf from '../../../config/yakpro-po.conf.txt?raw'
-  import { EditorConfigMake, EditorCreate } from '../../../fn'
+  import { readFileAsync, writeFileAsync } from '@shared/file'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
-  let config = Conf
+  const { join } = require('path')
+  const { dialog } = require('@electron/remote')
+  const { statSync, readFileSync } = require('fs')
+  let config = ''
   export default defineComponent({
     components: {},
     props: {
@@ -46,6 +50,10 @@
     watch: {},
     created: function () {},
     mounted() {
+      if (!config) {
+        const file = join(global.Server.Static, 'tmpl/yakpro-po.default.cnf')
+        config = readFileSync(file, 'utf-8')
+      }
       this.config = this.customConfig || config
       nextTick().then(() => {
         this.initEditor()
@@ -66,8 +74,50 @@
             break
         }
       },
-      loadCustom() {},
-      saveCustom() {},
+      loadCustom() {
+        let opt = ['openFile', 'showHiddenFiles']
+        dialog
+          .showOpenDialog({
+            properties: opt
+          })
+          .then(({ canceled, filePaths }: any) => {
+            if (canceled || filePaths.length === 0) {
+              return
+            }
+            const file = filePaths[0]
+            const state = statSync(file)
+            if (state.size > 5 * 1024 * 1024) {
+              MessageError(this.$t('base.fileBigErr'))
+              return
+            }
+            readFileAsync(file).then((conf) => {
+              this.config = conf
+              this.initEditor()
+            })
+          })
+      },
+      saveCustom() {
+        let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
+        dialog
+          .showSaveDialog({
+            properties: opt,
+            defaultPath: 'php-obfuscator.cnf',
+            filters: [
+              {
+                extensions: ['cnf']
+              }
+            ]
+          })
+          .then(({ canceled, filePath }: any) => {
+            if (canceled || !filePath) {
+              return
+            }
+            const content = this.monacoInstance.getValue()
+            writeFileAsync(filePath, content).then(() => {
+              MessageSuccess(this.$t('base.success'))
+            })
+          })
+      },
       doSave() {
         const content = this.monacoInstance.getValue().trim()
         this.$emit('doClose', content !== config ? content : undefined)

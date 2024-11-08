@@ -15,8 +15,10 @@
 <script lang="ts" setup>
   import { ref, computed } from 'vue'
   import { I18nT } from '@shared/lang/index'
+  import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
-  import { waitTime } from '@web/fn'
+
+  const { readFile, existsSync } = require('fs-extra')
 
   const srcs = computed(() => {
     return [
@@ -107,15 +109,27 @@
     ]
   })
 
+  const sourcesConf = '/opt/local/etc/macports/sources.conf'
+
   const currentSrc = ref('')
   const running = ref(false)
 
   const checkMacPorts = () => {
-    return true
+    return !!global.Server.MacPorts
   }
 
   const getCurrentSrc = async () => {
-    return ''
+    if (!existsSync(sourcesConf)) {
+      return ''
+    }
+    const content = await readFile(sourcesConf, 'utf-8')
+    const regex = /^(?:\s*rsync:\/\/.*\[default\])$/gm
+    const all: Array<string> = content.match(regex)?.map((s: string) => s.trim())
+    let find = all?.find((a) => a.includes('[default]'))
+    if (!find) {
+      find = all.pop()
+    }
+    return find
   }
 
   getCurrentSrc().then((res) => {
@@ -134,8 +148,17 @@
     const find = srcs.value.find((f) => f.url === currentSrc.value)
     if (find) {
       running.value = true
-      await waitTime()
-      MessageSuccess(I18nT('base.success'))
+      IPC.send('app-fork:macports', 'changSrc', JSON.parse(JSON.stringify(find))).then(
+        (key: string, info: any) => {
+          IPC.off(key)
+          if (info?.code === 0) {
+            MessageSuccess(I18nT('base.success'))
+          } else {
+            MessageError(I18nT('base.fail'))
+          }
+          running.value = false
+        }
+      )
     } else {
       MessageError(I18nT('base.fail'))
     }

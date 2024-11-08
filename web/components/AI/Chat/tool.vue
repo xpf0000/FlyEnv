@@ -7,13 +7,14 @@
       :clearable="true"
       popper-class="app-ai-tool-suggest-popper"
       :fetch-suggestions="querySearch"
+      resize="none"
     ></el-autocomplete>
     <el-button round :icon="ChatLineRound" @click.stop="submit"></el-button>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref, onBeforeUnmount, computed } from 'vue'
+  import { onMounted, ref, onBeforeUnmount, computed, nextTick } from 'vue'
   import { ChatLineRound } from '@element-plus/icons-vue'
   import { AIStore } from '@web/components/AI/store'
   import { CreateSiteTest } from '@web/components/AI/Task/CreateSiteTest'
@@ -55,6 +56,7 @@
   const FenciDict: { [k: string]: Array<string> } = {}
 
   const querySearch = (queryString: string, cb: any) => {
+    console.log('querySearch: ', queryString)
     const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys : AIKeysEN
     const find = ALLKeys.find((a) => a.txt === queryString.trim())
     if (find) {
@@ -233,7 +235,9 @@
   })
 
   const onShow = () => {
+    console.log('onShow !!!')
     el?.value?.focus()
+    content.value = ' '
   }
 
   defineExpose({

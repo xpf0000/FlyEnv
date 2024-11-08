@@ -1,37 +1,48 @@
 import type BaseTask from '@web/components/AI/Task/BaseTask'
 import { AppStore } from '@web/store/app'
 import { BrewStore } from '@web/store/brew'
+import IPC from '@/util/IPC'
 import { AIStore } from '@web/components/AI/store'
 import { startNginx } from '@web/components/AI/Fn/Nginx'
 import { startApache } from '@web/components/AI/Fn/Apache'
 import { startPhp } from '@web/components/AI/Fn/Php'
+import { nextTick } from 'vue'
 import type { SoftInstalled } from '@shared/app'
 import { fetchInstalled } from '@web/components/AI/Fn/Util'
 import { I18nT } from '@shared/lang'
-import { waitTime } from '@web/fn'
+
+const { shell } = require('@electron/remote')
 
 export function addRandaSite(this: BaseTask) {
-  return new Promise(async (resolve) => {
-    await waitTime()
-    const item = {
-      host: 'http://www.xxxx.com',
-      dir: '/Users/XXX/Desktop/Web/xxxx',
-      version: '8.2.12'
-    }
-    const aiStore = AIStore()
-    aiStore.chatList.push({
-      user: 'ai',
-      content: `${I18nT('ai.成功创建站点')}
+  return new Promise(async (resolve, reject) => {
+    const appStore = AppStore()
+    const brewStore = BrewStore()
+    const php = brewStore.module('php').installed.find((p) => p.version) ?? {}
+    IPC.send(`app-fork:host`, 'addRandaSite', JSON.parse(JSON.stringify(php))).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        if (res.code === 0) {
+          appStore.initHost()
+          const item = res.data
+          const aiStore = AIStore()
+          aiStore.chatList.push({
+            user: 'ai',
+            content: `${I18nT('ai.成功创建站点')}
 ${I18nT('ai.站点域名')}: ${item.host}
 ${I18nT('ai.站点目录')}: <a href="javascript:void();" onclick="openDir('${item.dir}')">${
-        item.dir
-      }</a>
+              item.dir
+            }</a>
 ${I18nT('ai.尝试开启服务')}`
-    })
-    resolve({
-      host: item.host,
-      php: item.version
-    })
+          })
+          resolve({
+            host: item.host,
+            php: item.version
+          })
+        } else if (res.code === 1) {
+          reject(res.msg)
+        }
+      }
+    )
   })
 }
 
@@ -43,18 +54,18 @@ export function openSiteBaseService(this: BaseTask, item: { host: string; php: S
     const appStore = AppStore()
     const brewStore = BrewStore()
     let current = appStore.config.server?.nginx?.current
-    let installed = brewStore?.nginx?.installed
+    let installed = brewStore.module('nginx').installed
     const nginx = installed?.find((i) => i.path === current?.path && i.version === current?.version)
 
     current = appStore.config.server?.apache?.current
-    installed = brewStore?.apache?.installed
+    installed = brewStore.module('apache').installed
     const apache = installed?.find(
       (i) => i.path === current?.path && i.version === current?.version
     )
 
-    const php = brewStore?.php?.installed?.find(
-      (i) => i.path === item?.php?.path && i.version === item?.php?.version
-    )
+    const php = brewStore
+      .module('php')
+      .installed.find((i) => i.path === item?.php?.path && i.version === item?.php?.version)
     try {
       let url = ''
       if (nginx && (!apache || !apache?.run)) {
@@ -79,6 +90,13 @@ export function openSiteBaseService(this: BaseTask, item: { host: string; php: S
         user: 'ai',
         content: arr.join('\n')
       })
+      if (url) {
+        nextTick().then(() => {
+          setTimeout(() => {
+            shell.openExternal(url)
+          }, 1000)
+        })
+      }
       resolve(true)
     } catch (e: any) {
       const aiStore = AIStore()

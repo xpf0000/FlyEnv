@@ -1,8 +1,6 @@
 import { onMounted, ref } from 'vue'
 import type { SoftInstalled } from './store/brew'
-import { DnsStore } from './store/dns'
 import { I18nT } from '@shared/lang'
-import type { AllAppSofts } from './store/app'
 import { VueExtend } from './VueExtend'
 import { AppStore } from './store/app'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
@@ -21,40 +19,7 @@ import 'monaco-editor/esm/vs/basic-languages/rust/rust.contribution.js'
 import 'monaco-editor/esm/vs/basic-languages/mysql/mysql.contribution.js'
 import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
 import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js'
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
-import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
-import jsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-
-const workerJSON = new jsonWorker()
-const workerCss = new cssWorker()
-const workerHTML = new htmlWorker()
-const workerJS = new jsWorker()
-const workerDefault = new editorWorker()
-
-window.MonacoEnvironment = {
-  getWorker: function (workerId: any, label: string) {
-    console.log('getWorker: ', workerId, label)
-    switch (label) {
-      case 'json':
-        return workerJSON
-      case 'css':
-      case 'scss':
-      case 'less':
-        return workerCss
-      case 'html':
-      case 'handlebars':
-      case 'razor':
-        return workerHTML
-      case 'typescript':
-      case 'javascript':
-        return workerJS
-      default:
-        return workerDefault
-    }
-  }
-}
+import type { AllAppModule } from '@web/core/type'
 
 export function random(m: number, n: number) {
   return Math.floor(Math.random() * (m - n) + n)
@@ -72,7 +37,7 @@ export const waitTime = () => {
 }
 
 const exec = (
-  typeFlag: AllAppSofts,
+  typeFlag: AllAppModule,
   version: SoftInstalled,
   fn: string
 ): Promise<string | boolean> => {
@@ -94,48 +59,16 @@ const exec = (
   })
 }
 
-export const stopService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
+export const stopService = (typeFlag: AllAppModule, version: SoftInstalled) => {
   return exec(typeFlag, version, 'stopService')
 }
 
-export const startService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
+export const startService = (typeFlag: AllAppModule, version: SoftInstalled) => {
   return exec(typeFlag, version, 'startService')
 }
 
-export const reloadService = (typeFlag: AllAppSofts, version: SoftInstalled) => {
+export const reloadService = (typeFlag: AllAppModule, version: SoftInstalled) => {
   return exec(typeFlag, version, 'reloadService')
-}
-
-export const dnsStart = (): Promise<boolean | string> => {
-  return new Promise((resolve) => {
-    const store = DnsStore()
-    if (store.running) {
-      resolve(true)
-      return
-    }
-    store.fetching = true
-    waitTime().then(() => {
-      store.fetching = false
-      store.running = true
-      resolve(true)
-    })
-  })
-}
-
-export const dnsStop = (): Promise<boolean> => {
-  return new Promise((resolve) => {
-    const store = DnsStore()
-    if (!store.running) {
-      resolve(true)
-      return
-    }
-    store.fetching = true
-    waitTime().then(() => {
-      store.fetching = false
-      store.running = false
-      resolve(true)
-    })
-  })
 }
 
 export const AsyncComponentShow = (compontent: any, data?: any) => {

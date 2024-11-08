@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="item?.dataDir ? $t('base.edit') : $t('base.add')"
+    :title="item?.dataDir ? I18nT('base.edit') : I18nT('base.add')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
@@ -54,9 +54,9 @@
     </template>
     <template #footer>
       <div class="dialog-footer">
-        <el-button :disabled="running" @click="show = false">{{ $t('base.cancel') }}</el-button>
+        <el-button :disabled="running" @click="show = false">{{ I18nT('base.cancel') }}</el-button>
         <el-button :loading="running" :disabled="running" type="primary" @click="doSave">{{
-          $t('base.confirm')
+          I18nT('base.confirm')
         }}</el-button>
       </div>
     </template>
@@ -64,14 +64,16 @@
 </template>
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
-  import { AsyncComponentSetup } from '@web/fn'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { I18nT } from '@shared/lang'
-  import { uuid } from '@web/fn'
+  import { uuid } from '@shared/utils'
   import { BrewStore } from '@web/store/brew'
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
-  import { MysqlStore } from '@web/store/mysql'
+  import { MysqlStore } from '../mysql'
 
+  const { join } = require('path')
+  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -91,7 +93,7 @@
   Object.assign(form.value, props.item)
   form.value.path = props?.item?.version?.path ?? ''
   if (!form.value.dataDir) {
-    form.value.dataDir = `/Users/XXX/PhpWebStudy/group/mysql-group-${form.value.id}`
+    form.value.dataDir = join(global.Server.MysqlDir, `group/mysql-group-${form.value.id}`)
   }
 
   const errs = ref({
@@ -101,7 +103,7 @@
   })
 
   const mysqlVersion = computed(() => {
-    return brewStore?.['mysql']?.installed ?? []
+    return brewStore.module('mysql').installed
   })
 
   watch(
@@ -136,7 +138,17 @@
     if (running?.value) {
       return
     }
-    form.value.dataDir = '/Users/XXX/Desktop/Web/xxxx'
+    dialog
+      .showOpenDialog({
+        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        form.value.dataDir = path
+      })
   }
 
   const doSave = () => {

@@ -14,6 +14,8 @@
   import { AppStore } from '@web/store/app'
   import { I18nT } from '@shared/lang'
 
+  const { nativeTheme } = require('@electron/remote')
+
   const store = AppStore()
   const themes = computed(() => {
     return {
@@ -27,12 +29,13 @@
     get() {
       const t = store?.config?.setup?.theme
       if (!t) {
-        return 'dark'
+        return nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
       }
       return t
     },
     set(v) {
       store.config.setup.theme = v
+      store.saveConfig()
     }
   })
 </script>

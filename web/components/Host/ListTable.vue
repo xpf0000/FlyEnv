@@ -8,11 +8,11 @@
         default-expand-all
         :row-class-name="tableRowClassName"
       >
-        <el-table-column :label="$t('host.name')">
+        <el-table-column :label="I18nT('host.name')">
           <template #header>
             <div class="w-p100 name-cell">
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
-                $t('host.name')
+                I18nT('host.name')
               }}</span>
               <el-input v-model.trim="search" placeholder="search" clearable></el-input>
             </div>
@@ -23,7 +23,7 @@
               style="display: none"
               :data-host-id="scope.row.id"
             ></div>
-            <template v-if="quickEdit?.id && scope.row.id === quickEdit?.id">
+            <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-input
                 v-model.trim="quickEdit.name"
                 :class="{ error: quickEditNameError }"
@@ -32,7 +32,7 @@
             </template>
             <template v-else>
               <QrcodePopper :url="scope.row.name">
-                <div class="link" @click.stop="openSite()">
+                <div class="link" @click.stop="openSite(scope.row)">
                   <yb-icon
                     :class="{ active: linkEnable }"
                     :svg="import('@/svg/link.svg?raw')"
@@ -47,15 +47,15 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column align="center" width="120px" :label="$t('host.phpVersion')">
+        <el-table-column align="center" width="120px" :label="I18nT('host.phpVersion')">
           <template #default="scope">
-            <template v-if="quickEdit?.id && scope.row.id === quickEdit?.id">
+            <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-select
                 v-model="quickEdit.phpVersion"
                 class="w-p100"
-                :placeholder="$t('base.selectPhpVersion')"
+                :placeholder="I18nT('base.selectPhpVersion')"
               >
-                <el-option :value="undefined" :label="$t('host.staticSite')"></el-option>
+                <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
                 <template v-for="(v, i) in phpVersions" :key="i">
                   <el-option :value="v.num" :label="v.num"></el-option>
                 </template>
@@ -68,79 +68,89 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('host.mark')">
+        <el-table-column :label="I18nT('host.mark')">
           <template #default="scope">
-            <template v-if="quickEdit?.id && scope.row.id === quickEdit?.id">
+            <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>
             </template>
             <template v-else>
-              <el-tooltip :content="`${scope.row.mark}`" :show-after="800">
-                <span style="display: inline-block; max-width: 100%">
-                  {{ scope.row.mark }}
-                </span>
-              </el-tooltip>
+              <el-popover width="auto" :show-after="800" placement="top">
+                <template #default>
+                  <span>{{ scope.row.mark }}</span>
+                </template>
+                <template #reference>
+                  <span style="display: inline-block; max-width: 100%">
+                    {{ scope.row.mark }}
+                  </span>
+                </template>
+              </el-popover>
             </template>
           </template>
         </el-table-column>
-        <el-table-column align="center" :label="$t('host.setup')" width="100px">
+        <el-table-column align="center" :label="I18nT('host.setup')" width="100px">
           <template #default="scope">
-            <template v-if="scope.row.id !== quickEdit?.id">
-              <el-popover
-                effect="dark"
-                popper-class="host-list-poper"
-                placement="left-start"
-                width="auto"
-                :show-arrow="false"
-              >
-                <ul class="host-list-menu">
-                  <li @click.stop="action(scope.row, scope.$index, 'open')">
-                    <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.open') }}</span>
-                  </li>
-                  <li @click.stop="action(scope.row, scope.$index, 'edit')">
-                    <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.edit') }}</span>
-                  </li>
-                  <li @click.stop="action(scope.row, scope.$index, 'park')">
-                    <yb-icon :svg="import('@/svg/shengcheng.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('host.park') }}</span>
-                  </li>
-                  <li @click.stop="action(scope.row, scope.$index, 'link')">
-                    <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.link') }}</span>
-                  </li>
-                  <li @click.stop="showConfig({ flag: 'nginx', item: scope.row })">
-                    <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.configFile') }} - Nginx</span>
-                  </li>
-                  <li @click.stop="showConfig({ flag: 'caddy', item: scope.row })">
-                    <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.configFile') }} - Caddy</span>
-                  </li>
-                  <li @click.stop="showConfig({ flag: 'apache', item: scope.row })">
-                    <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.configFile') }} - Apache</span>
-                  </li>
-                  <li @click.stop="action(scope.row, scope.$index, 'log')">
-                    <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.log') }}</span>
-                  </li>
-                  <li @click.stop="showSort($event, scope.row.id)">
-                    <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('host.sort') }}</span>
-                  </li>
-                  <li @click.stop="action(scope.row, scope.$index, 'del')">
-                    <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                    <span class="ml-15">{{ $t('base.del') }}</span>
-                  </li>
-                </ul>
+            <template v-if="scope?.row?.deling || scope.row.id !== quickEdit?.id">
+              <template v-if="!scope?.row?.deling">
+                <el-popover
+                  effect="dark"
+                  popper-class="host-list-poper"
+                  placement="left-start"
+                  width="auto"
+                  :show-arrow="false"
+                >
+                  <ul v-poper-fix class="host-list-menu">
+                    <li @click.stop="action(scope.row, scope.$index, 'open')">
+                      <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ I18nT('base.open') }}</span>
+                    </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'edit')">
+                      <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ I18nT('base.edit') }}</span>
+                    </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'park')">
+                      <yb-icon :svg="import('@/svg/shengcheng.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ I18nT('host.park') }}</span>
+                    </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'link')">
+                      <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ I18nT('base.link') }}</span>
+                    </li>
+                    <li @click.stop="showConfig({ flag: 'nginx', item: scope.row })">
+                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ I18nT('base.configFile') }} - Nginx</span>
+                    </li>
+                    <li @click.stop="showConfig({ flag: 'caddy', item: scope.row })">
+                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ I18nT('base.configFile') }} - Caddy</span>
+                    </li>
+                    <li @click.stop="showConfig({ flag: 'apache', item: scope.row })">
+                      <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ I18nT('base.configFile') }} - Apache</span>
+                    </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'log')">
+                      <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ I18nT('base.log') }}</span>
+                    </li>
+                    <li @click.stop="showSort($event, scope.row.id)">
+                      <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ I18nT('host.sort') }}</span>
+                    </li>
+                    <li @click.stop="action(scope.row, scope.$index, 'del')">
+                      <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
+                      <span class="ml-15">{{ I18nT('base.del') }}</span>
+                    </li>
+                  </ul>
 
-                <template #reference>
-                  <div class="right">
-                    <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
-                  </div>
-                </template>
-              </el-popover>
+                  <template #reference>
+                    <div class="right">
+                      <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+                    </div>
+                  </template>
+                </el-popover>
+              </template>
+              <template v-else>
+                <el-button :loading="true" link></el-button>
+              </template>
             </template>
             <template v-else>
               <div class="right" style="opacity: 0; padding: 19px">
@@ -155,16 +165,21 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, type Ref, onMounted, nextTick, onBeforeUnmount, reactive } from 'vue'
-  import { AppStore } from '../../store/app'
+  import { ref, computed, onMounted, nextTick, onBeforeUnmount, type Ref } from 'vue'
+  import { handleHost } from '@/util/Host'
+  import { AppStore } from '@web/store/app'
+  import { BrewStore } from '@web/store/brew'
   import QrcodePopper from './Qrcode/Index.vue'
+  import Base from '@web/core/Base'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow, waitTime } from '../../fn'
-  import { ElMessageBox } from 'element-plus'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'
-  import { BrewStore } from '@web/store/brew'
+  import { HostStore } from '@web/components/Host/store'
 
+  const { shell } = require('@electron/remote')
+
+  const hostList = ref()
   const loading = ref(false)
   const appStore = AppStore()
   const brewStore = BrewStore()
@@ -172,7 +187,7 @@
   const search = ref('')
 
   const php = computed(() => {
-    return brewStore.php
+    return brewStore.module('php')
   })
   const phpVersions = computed(() => {
     const set: Set<number> = new Set()
@@ -191,7 +206,10 @@
   })
 
   const hosts = computed(() => {
-    let hosts: Array<any> = JSON.parse(JSON.stringify(appStore.hosts))
+    if (appStore.hosts.length === 0 || HostStore.index === 0) {
+      return []
+    }
+    let hosts: Array<any> = JSON.parse(JSON.stringify(HostStore.tabList('php')))
     if (search.value) {
       hosts = hosts.filter((h) => {
         const name = h?.name ?? ''
@@ -249,9 +267,9 @@
   })
 
   const linkEnable = computed(() => {
-    const apacheRunning = brewStore.apache.installed.find((a) => a.run)
-    const nginxRunning = brewStore.nginx.installed.find((a) => a.run)
-    const caddyRunning = brewStore.caddy.installed.find((a) => a.run)
+    const apacheRunning = brewStore.module('apache').installed.find((a) => a.run)
+    const nginxRunning = brewStore.module('nginx').installed.find((a) => a.run)
+    const caddyRunning = brewStore.module('caddy').installed.find((a) => a.run)
     return writeHosts.value && (apacheRunning || nginxRunning || caddyRunning)
   })
 
@@ -275,19 +293,26 @@
   const siteName = (item: AppHost) => {
     const host = item.name
     const brewStore = BrewStore()
-    const nginxRunning = brewStore.nginx.installed.find((i) => i.run)
-    const apacheRunning = brewStore.apache.installed.find((i) => i.run)
+    const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
+    const apacheRunning = brewStore.module('apache').installed.find((i) => i.run)
+    const caddyRunning = brewStore.module('caddy').installed.find((i) => i.run)
     let port = 80
     if (nginxRunning) {
       port = item.port.nginx
     } else if (apacheRunning) {
       port = item.port.apache
+    } else if (caddyRunning) {
+      port = item.port.caddy
     }
     const portStr = port === 80 ? '' : `:${port}`
     return `${host}${portStr}`
   }
 
-  const openSite = () => {}
+  const openSite = (item: any) => {
+    const name = siteName(item)
+    const url = `http://${name}`
+    shell.openExternal(url)
+  }
 
   let EditVM: any
   import('./Edit.vue').then((res) => {
@@ -312,6 +337,7 @@
     task_index.value = index
     switch (flag) {
       case 'open':
+        shell.showItemInFolder(item.root)
         break
       case 'edit':
         AsyncComponentShow(EditVM, {
@@ -325,15 +351,15 @@
         }).then()
         break
       case 'del':
-        ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
-          confirmButtonText: I18nT('base.confirm'),
-          cancelButtonText: I18nT('base.cancel'),
-          closeOnClickModal: false,
+        Base._Confirm(I18nT('base.delAlertContent'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
-        }).then(() => {
-          appStore.hosts.splice(index, 1)
         })
+          .then(() => {
+            item.deling = true
+            handleHost(item, 'del')
+          })
+          .catch(() => {})
         break
       case 'link':
         console.log('item: ', item)
@@ -343,16 +369,13 @@
         break
       case 'park':
         console.log('item: ', item)
-        ElMessageBox.confirm(I18nT('host.parkConfim'), undefined, {
-          confirmButtonText: I18nT('base.confirm'),
-          cancelButtonText: I18nT('base.cancel'),
-          closeOnClickModal: false,
+        Base._Confirm(I18nT('host.parkConfim'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
           .then(() => {
             loading.value = true
-            waitTime().then(() => {
+            handleHost(item, 'edit', item, true).then(() => {
               loading.value = false
             })
           })
@@ -384,7 +407,6 @@
     }).then()
   }
 
-  const hostList = ref()
   let quickEditBack: AppHost | undefined = undefined
   const quickEdit: Ref<AppHost | undefined> = ref(undefined)
   const quickEditTr: Ref<HTMLElement | undefined> = ref(undefined)
@@ -404,9 +426,9 @@
     }
     console.log('tr: ', node)
     const idDom: HTMLElement = node.querySelector('.host-list-table-cell-id') as any
-    const id = Number(idDom.getAttribute('data-host-id') ?? 0)
+    const id = idDom.getAttribute('data-host-id') ?? ''
     console.log('id: ', id)
-    const host = appStore.hosts.find((h) => h.id === id)
+    const host = appStore.hosts.find((h) => `${h.id}` === `${id}`)
     console.log('host: ', host)
     quickEdit.value = JSON.parse(JSON.stringify(host))
     quickEditTr.value = node as any
@@ -420,10 +442,12 @@
         quickEdit.value.name = quickEditBack?.name ?? ''
       }
       if (!isEqual(quickEdit.value, quickEditBack)) {
-        const index = appStore.hosts.findIndex((h) => h.id === quickEdit?.value?.id)
-        if (index >= 0) {
-          appStore.hosts.splice(index, 1, reactive(JSON.parse(JSON.stringify(quickEdit.value))))
-        }
+        handleHost(
+          JSON.parse(JSON.stringify(quickEdit.value)),
+          'edit',
+          quickEditBack as any,
+          false
+        ).then()
       }
       quickEdit.value = undefined
       quickEditTr.value = undefined

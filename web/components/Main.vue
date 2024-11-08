@@ -6,9 +6,10 @@
 </template>
 
 <script>
-  import Aside from './Aside/Index.vue'
+  import Aside from '@web/components/Aside/Index.vue'
 
   export default {
+    name: 'MoMain',
     components: {
       Aside
     },

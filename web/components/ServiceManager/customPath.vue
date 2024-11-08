@@ -47,25 +47,30 @@
 
 <script lang="ts" setup>
   import { reactive, ref, watch, onBeforeUnmount, nextTick } from 'vue'
-  import { AsyncComponentSetup } from '@web/fn'
-  import { AppSofts, AppStore } from '@web/store/app'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AppStore } from '@web/store/app'
+  import { BrewStore } from '@web/store/brew'
+  import type { AllAppModule } from '@web/core/type'
 
+  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const props = defineProps<{
-    flag: string
+    flag: AllAppModule
   }>()
 
   const appStore = AppStore()
+  const brewStore = BrewStore()
 
-  const flag: keyof typeof AppSofts = props.flag as any
-  if (!appStore?.config?.setup?.[flag]) {
-    appStore.config.setup[flag] = reactive({
+  const flag = props.flag
+  const setupItem: any = appStore.config.setup
+  if (!setupItem?.[flag]) {
+    setupItem[flag] = reactive({
       dirs: []
     })
   }
 
-  const dirs = ref(appStore.config.setup[flag].dirs)
+  const dirs = ref(setupItem?.[flag]?.dirs ?? [])
 
   const changed = ref(false)
 
@@ -74,7 +79,14 @@
     (v: any) => {
       changed.value = true
       nextTick().then(() => {
-        appStore.config.setup[flag].dirs = reactive(v)
+        if (!setupItem?.[flag]) {
+          setupItem[flag] = reactive({
+            dirs: []
+          })
+        }
+        setupItem[flag].dirs = reactive(v)
+        appStore.saveConfig()
+        brewStore.module(flag).installedInited = false
       })
     },
     {
@@ -82,7 +94,23 @@
     }
   )
 
-  const addDir = (index?: number) => {}
+  const addDir = (index?: number) => {
+    dialog
+      .showOpenDialog({
+        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        if (index !== undefined) {
+          dirs.value[index] = path
+        } else {
+          dirs.value.push(path)
+        }
+      })
+  }
   const chooseDir = (index: number) => {
     addDir(index)
   }

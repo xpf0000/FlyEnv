@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Normalize.css
+-------------------------- */
+@import 'normalize.css/normalize.css';
+
+/* Theme Light (default)
+-------------------------- */
+@import './Default.scss';
+
+/* Theme Dark
+-------------------------- */
+@import './Dark.scss';

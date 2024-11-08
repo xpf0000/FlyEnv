@@ -56,6 +56,7 @@
   import { defineComponent } from 'vue'
   import { AppStore } from '@web/store/app'
   import { MessageSuccess } from '@/util/Element'
+  const { clipboard } = require('@electron/remote')
   export default defineComponent({
     components: {},
     props: {},
@@ -74,7 +75,9 @@
     },
     watch: {
       'proxy.on': {
-        handler() {}
+        handler() {
+          AppStore().saveConfig()
+        }
       }
     },
     methods: {
@@ -86,8 +89,10 @@
         this.proxy.fastProxy = this.fastProxy
         this.proxy.proxy = `export https_proxy=http://${this.fastProxy} http_proxy=http://${this.fastProxy} all_proxy=socks5://${this.fastProxy} HTTPS_PROXY=http://${this.fastProxy} HTTP_PROXY=http://${this.fastProxy} ALL_PROXY=socks5://${this.fastProxy}`
         this.fastEdit = false
+        AppStore().saveConfig()
       },
       copyProxy() {
+        clipboard.writeText(this?.proxy?.proxy ?? '')
         MessageSuccess(this.$t('base.copySuccess'))
       },
       editProxy() {
@@ -97,6 +102,7 @@
       proxySubmit() {
         this.proxy.proxy = this.proxyStr
         this.proxyEdit = false
+        AppStore().saveConfig()
       }
     }
   })

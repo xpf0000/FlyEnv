@@ -1,3 +1,4 @@
+import { reactive } from 'vue'
 import { defineStore } from 'pinia'
 import { Installed } from '../config/installed'
 import { Ftp } from '../config/ftp'
@@ -11,9 +12,9 @@ import { Redis } from '../config/redis'
 import { Mongodb } from '../config/mongodb'
 import { Postgresql } from '../config/postgresql'
 import { Caddy } from '../config/caddy'
-import type { OnlineVersionItem } from '@/store/brew'
 import { Tomcat } from '@web/config/tomcat'
 import { Java } from '@web/config/java'
+import type { AllAppModule } from '@web/core/type'
 
 export interface SoftInstalled {
   version: string | null
@@ -30,6 +31,18 @@ export interface SoftInstalled {
   flag?: string
 }
 
+export interface OnlineVersionItem {
+  appDir: string
+  zip: string
+  bin: string
+  downloaded: boolean
+  installed: boolean
+  url: string
+  version: string
+  mVersion: string
+  downing?: boolean
+}
+
 export interface AppSoftInstalledItem {
   getListing: boolean
   installedInited: boolean
@@ -41,20 +54,9 @@ export interface AppSoftInstalledItem {
   }
 }
 
-interface State {
-  tomcat: AppSoftInstalledItem
-  java: AppSoftInstalledItem
-  postgresql: AppSoftInstalledItem
-  nginx: AppSoftInstalledItem
-  caddy: AppSoftInstalledItem
-  apache: AppSoftInstalledItem
-  memcached: AppSoftInstalledItem
-  mysql: AppSoftInstalledItem
-  mariadb: AppSoftInstalledItem
-  redis: AppSoftInstalledItem
-  php: AppSoftInstalledItem
-  mongodb: AppSoftInstalledItem
-  'pure-ftpd': AppSoftInstalledItem
+type StateBase = Partial<Record<AllAppModule, AppSoftInstalledItem | undefined>>
+
+interface State extends StateBase {
   cardHeadTitle: string
   brewRunning: boolean
   showInstallLog: boolean
@@ -153,5 +155,21 @@ const state: State = {
 export const BrewStore = defineStore('brew', {
   state: (): State => state,
   getters: {},
-  actions: {}
+  actions: {
+    module(flag: AllAppModule) {
+      if (!this?.[flag]) {
+        this[flag] = reactive({
+          getListing: false,
+          installedInited: false,
+          installed: [],
+          list: {
+            brew: {},
+            port: {},
+            static: {}
+          }
+        }) as any
+      }
+      return this[flag]!
+    }
+  }
 })

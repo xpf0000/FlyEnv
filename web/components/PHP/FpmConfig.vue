@@ -10,35 +10,31 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">php-fpm.conf</span>
+          <span class="ml-15 title">{{ item.version }} - {{ item.path }} - php-fpm.conf</span>
         </div>
       </div>
 
-      <div class="main-wapper">
-        <div ref="input" class="block"></div>
-      </div>
-      <div class="tool">
-        <el-button :disabled="disabled" @click="openConfig">{{ $t('base.open') }}</el-button>
-        <el-button :disabled="disabled" @click="saveConfig">{{ $t('base.save') }}</el-button>
-        <el-button-group style="margin-left: 12px">
-          <el-button :disabled="disabled" @click="loadCustom">{{
-            $t('base.loadCustom')
-          }}</el-button>
-          <el-button :disabled="disabled" @click="saveCustom">{{
-            $t('base.saveCustom')
-          }}</el-button>
-        </el-button-group>
-      </div>
+      <Conf
+        ref="conf"
+        :type-flag="'php'"
+        :default-conf="defaultConf"
+        :file="file"
+        :file-ext="'ini'"
+        :show-commond="false"
+      >
+      </Conf>
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-  import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { EditorConfigMake, EditorCreate } from '@web/fn'
-  import { AsyncComponentSetup } from '@web/fn'
+  import { computed, ref } from 'vue'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { SoftInstalled } from '@web/store/brew'
+  import Conf from '@web/components/Conf/drawer.vue'
+
+  const { existsSync, mkdirp, writeFile } = require('fs-extra')
+  const { join, dirname } = require('path')
 
   const props = defineProps<{
     item: SoftInstalled
@@ -46,47 +42,18 @@
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
-  const config = ref('')
-  const disabled = ref(true)
-  const input = ref()
-  let monacoInstance: editor.IStandaloneCodeEditor | null = null
+  const file = computed(() => {
+    const num = props.item?.num ?? 0
+    return join(global.Server.PhpDir!, `${num}/conf/php-fpm.conf`)
+  })
 
-  const saveCustom = () => {}
-
-  const saveConfig = () => {}
-
-  const initEditor = () => {
-    if (!monacoInstance) {
-      const dom: HTMLElement = input?.value as any
-      if (!dom || !dom?.style) {
-        return
-      }
-      monacoInstance = EditorCreate(dom, EditorConfigMake(config.value, false, 'off'))
-      monacoInstance.addAction({
-        id: 'save',
-        label: 'save',
-        keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
-        run: () => {
-          saveConfig()
-        }
-      })
-    } else {
-      monacoInstance.setValue(config.value)
-    }
-  }
-
-  const loadCustom = () => {}
-
-  const openConfig = () => {}
-
-  const getConfig = async () => {
-    const num = props.item.num
-    config.value = `[global]
+  const defaultConf = computed(() => {
+    return `[global]
 pid = run/php-fpm.pid
 error_log = log/php-fpm.log
 log_level = notice
 [www]
-listen = /tmp/phpwebstudy-php-cgi-${num}.sock
+listen = /tmp/phpwebstudy-php-cgi-${props.item.num}.sock
 listen.allowed_clients = 127.0.0.1
 pm = dynamic
 pm.max_children = 20
@@ -96,21 +63,21 @@ pm.max_spare_servers = 10
 request_slowlog_timeout = 30
 slowlog = log/php-fpm-slow.log
 `
-    initEditor()
-    disabled.value = false
+  })
+
+  const conf = ref()
+
+  const init = async () => {
+    if (!existsSync(file.value)) {
+      const str = defaultConf.value
+      await mkdirp(dirname(file.value))
+      await writeFile(file.value, str)
+      conf?.value?.update()
+      return
+    }
   }
 
-  getConfig().then()
-  onMounted(() => {
-    nextTick().then(() => {
-      initEditor()
-    })
-  })
-
-  onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
-    monacoInstance = null
-  })
+  init().then().catch()
 
   defineExpose({
     show,

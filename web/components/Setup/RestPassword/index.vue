@@ -16,7 +16,7 @@
       readonly
     />
     <el-button-group>
-      <el-button @click="show = !show">
+      <el-button @click="doShow">
         <yb-icon v-if="show" :svg="import('@/svg/eye.svg?raw')" :width="15" :height="15"></yb-icon>
         <yb-icon v-else :svg="import('@/svg/eye-slash.svg?raw')" :width="15" :height="15"></yb-icon>
       </el-button>
@@ -29,6 +29,7 @@
 
 <script lang="ts">
   import { defineComponent } from 'vue'
+  import IPC from '@/util/IPC'
   import { ElMessageBox } from 'element-plus'
   import { AppStore } from '@web/store/app'
   import { MessageSuccess } from '@/util/Element'
@@ -42,10 +43,51 @@
     },
     computed: {
       password() {
-        return AppStore()?.config?.password ?? ''
+        return AppStore().config.password
       }
     },
     methods: {
+      doShow() {
+        if (!this.show) {
+          ElMessageBox.prompt(this.$t('base.inputPassword'), {
+            confirmButtonText: this.$t('base.confirm'),
+            cancelButtonText: this.$t('base.cancel'),
+            inputType: 'password',
+            customClass: 'password-prompt',
+            beforeClose: (action, instance, done) => {
+              if (action === 'confirm') {
+                // 去除trim, 有些电脑的密码是空格...
+                if (instance.inputValue) {
+                  IPC.send('app:password-check', instance.inputValue).then(
+                    (key: string, res: any) => {
+                      IPC.off(key)
+                      if (res === false) {
+                        instance.editorErrorMessage = this.$t('base.passwordError')
+                      } else {
+                        global.Server.Password = res
+                        AppStore()
+                          .initConfig()
+                          .then(() => {
+                            done && done()
+                            this.show = true
+                          })
+                      }
+                    }
+                  )
+                }
+              } else {
+                done()
+              }
+            }
+          })
+            .then(() => {})
+            .catch((err) => {
+              console.log('err: ', err)
+            })
+        } else {
+          this.show = false
+        }
+      },
       resetPassword() {
         ElMessageBox.prompt(this.$t('base.inputPassword'), {
           confirmButtonText: this.$t('base.confirm'),
@@ -56,9 +98,22 @@
             if (action === 'confirm') {
               // 去除trim, 有些电脑的密码是空格...
               if (instance.inputValue) {
-                global.Server.Password = instance.inputValue
-                done && done()
-                MessageSuccess(this.$t('base.success'))
+                IPC.send('app:password-check', instance.inputValue).then(
+                  (key: string, res: any) => {
+                    IPC.off(key)
+                    if (res === false) {
+                      instance.editorErrorMessage = this.$t('base.passwordError')
+                    } else {
+                      global.Server.Password = res
+                      AppStore()
+                        .initConfig()
+                        .then(() => {
+                          done && done()
+                          MessageSuccess(this.$t('base.success'))
+                        })
+                    }
+                  }
+                )
               }
             } else {
               done()

@@ -32,8 +32,13 @@
   import ChooseSiteRoot from './Plant/chooseSiteRoot.vue'
   import SiteAccessIssues from './Plant/siteAccessIssues.vue'
 
-  const openDir = () => {}
-  const openUrl = () => {}
+  const { shell } = require('@electron/remote')
+  const openDir = (dir: string) => {
+    shell.openPath(dir)
+  }
+  const openUrl = (url: string) => {
+    shell.openExternal(url)
+  }
 
   window.openDir = openDir
   window.openUrl = openUrl

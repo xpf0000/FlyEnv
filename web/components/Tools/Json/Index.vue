@@ -1,9 +1,9 @@
 <template>
-  <div class="json-parse host-edit">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ $t('tools.jsonParseTitle') }}</span>
+  <div class="json-parse tools host-edit">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('tools.jsonParseTitle') }}</span>
+        <slot name="like"></slot>
       </div>
     </div>
 
@@ -14,7 +14,7 @@
           </el-tab-pane>
         </template>
       </el-tabs>
-      <div ref="mainRef" class="main">
+      <div ref="mainRef" class="main pb-0">
         <div class="left" :style="leftStyle">
           <div class="top">
             <span>{{ currentType }}</span>
@@ -70,10 +70,16 @@
 
   import TomlRules from '@shared/transform/TomlRules'
   import { AppStore } from '@web/store/app'
-  import JSONStore, { JSONStoreTab } from '@/components/Tools/Json/store'
+  import JSONStore, { JSONStoreTab } from '@web/components/Tools/Json/store'
   import type { TabPaneName } from 'element-plus'
+  import { MessageSuccess } from '@/util/Element'
+  import { I18nT } from '@shared/lang'
   import { Document } from '@element-plus/icons-vue'
-  import { EditorCreate } from '@web/fn'
+  import { EditorCreate } from '@/util/Editor'
+
+  const { dialog, shell } = require('@electron/remote')
+  const { nativeTheme } = require('@electron/remote')
+  const { readFile, writeFile } = require('fs-extra')
 
   // 注册自定义语言
   languages.register({ id: 'toml' })
@@ -162,6 +168,18 @@
   const EditorConfigMake = (value: string): editor.IStandaloneEditorConstructionOptions => {
     const appStore = AppStore()
     const editorConfig = appStore.editorConfig
+    let theme = editorConfig.theme
+    if (theme === 'auto') {
+      let appTheme = appStore?.config?.setup?.theme ?? ''
+      if (!appTheme || appTheme === 'system') {
+        appTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+      }
+      if (appTheme === 'light') {
+        theme = 'vs-light'
+      } else {
+        theme = 'vs-dark'
+      }
+    }
     return {
       value,
       language: 'javascript',
@@ -169,7 +187,7 @@
       overviewRulerBorder: true,
       automaticLayout: true,
       wordWrap: 'on',
-      theme: editorConfig.theme,
+      theme: theme,
       fontSize: editorConfig.fontSize,
       lineHeight: editorConfig.lineHeight,
       lineNumbersMinChars: 2,
@@ -254,9 +272,59 @@
     document.addEventListener('mouseup', mouseUp)
   }
 
-  const openFile = () => {}
+  const openFile = () => {
+    let opt = ['openFile']
+    let filters = [
+      {
+        name: 'Parse File',
+        extensions: [
+          'txt',
+          'json',
+          'js',
+          'xml',
+          'plist',
+          'yml',
+          'yaml',
+          'php',
+          'ts',
+          'mjs',
+          'ini',
+          'conf',
+          'cnf'
+        ]
+      }
+    ]
+    dialog
+      .showOpenDialog({
+        properties: opt,
+        filters: filters
+      })
+      .then(async ({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        currentValue.value = await readFile(path, 'utf-8')
+        fromEditor?.setValue(currentValue.value)
+      })
+  }
 
-  const saveToLocal = () => {}
+  const saveToLocal = () => {
+    let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
+    dialog
+      .showSaveDialog({
+        properties: opt
+      })
+      .then(async ({ canceled, filePath }: any) => {
+        if (canceled || !filePath) {
+          return
+        }
+        const content = toEditor?.getValue() ?? ''
+        await writeFile(filePath, content)
+        MessageSuccess(I18nT('base.success'))
+        shell.showItemInFolder(filePath)
+      })
+  }
 
   onMounted(() => {
     initFromEditor()
@@ -281,6 +349,7 @@
     () => JSONStore.currentTab,
     () => {
       tabChanging = true
+      currentTab.value.editor = () => toEditor!
       fromEditor?.setValue(currentValue.value)
       toEditor?.setValue(currentToValue.value)
       const model = toEditor!.getModel()!

@@ -8,7 +8,8 @@
 </template>
 
 <script>
-  import { MessageSuccess } from '@/util/Element'
+  import IPC from '@/util/IPC.ts'
+  import { MessageError, MessageSuccess } from '@/util/Element'
   export default {
     components: {},
     props: {},
@@ -18,10 +19,17 @@
       }
     },
     methods: {
-      async doFix() {
+      doFix() {
         this.running = true
-        await waitTime()
-        MessageSuccess(this.$t('base.success'))
+        IPC.send('app-fork:host', 'githubFix').then((key, info) => {
+          IPC.off(key)
+          if (info.code === 0) {
+            MessageSuccess(this.$t('base.success'))
+          } else {
+            MessageError(this.$t('base.fail'))
+          }
+          this.running = false
+        })
       }
     }
   }

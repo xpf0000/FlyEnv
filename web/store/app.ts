@@ -2,8 +2,8 @@ import { defineStore } from 'pinia'
 import { reactive } from 'vue'
 import { Hosts } from '../config/host'
 import { User } from '../config/user'
+import type { AllAppModule } from '@web/core/type'
 
-export type AllAppSofts = keyof typeof AppSofts | 'pure-ftpd'
 export interface AppHost {
   id: number
   isTop?: boolean
@@ -27,6 +27,7 @@ export interface AppHost {
   url: string
   root: string
   phpVersion?: number
+  currentPage: string
 }
 
 export interface AppServerCurrent {
@@ -41,102 +42,58 @@ interface EditorConfig {
   lineHeight: number
 }
 
-export enum AppSofts {
-  nginx = 'nginx',
-  caddy = 'caddy',
-  php = 'php',
-  mysql = 'mysql',
-  mariadb = 'mariadb',
-  apache = 'apache',
-  memcached = 'memcached',
-  redis = 'redis',
-  mongodb = 'mongodb',
-  postgresql = 'postgresql',
-  tomcat = 'tomcat'
+type AppShowItem = Partial<Record<AllAppModule, boolean>>
+
+type ServerBase = Partial<
+  Record<
+    AllAppModule,
+    {
+      current: AppServerCurrent
+    }
+  >
+>
+
+type SetupBase = Partial<
+  Record<
+    AllAppModule,
+    {
+      dirs?: Array<string>
+      write?: boolean
+    }
+  >
+>
+
+type StateBase = SetupBase & {
+  common: {
+    showItem: AppShowItem
+  }
+  hosts: {
+    write: boolean
+  }
+  proxy: {
+    on: boolean
+    fastProxy: string
+    proxy: string
+  }
+  lang: string
+  theme?: string
+  autoCheck: boolean
+  forceStart: boolean
+  showAIRobot: boolean
+  showTool?: boolean
+  phpBrewInited: boolean
+  mongodbBrewInited: boolean
+  currentNodeTool: 'fnm' | 'nvm' | ''
+  editorConfig: EditorConfig
+  phpGroupStart: { [k: string]: boolean }
 }
 
 interface State {
   hosts: Array<AppHost>
   config: {
+    server: ServerBase
     password: string
-    server: {
-      [key in AppSofts | 'pure-ftpd']: {
-        current: AppServerCurrent
-      }
-    }
-    setup: {
-      currentNodeTool: 'fnm' | 'nvm' | ''
-      theme: string
-      forceStart: boolean
-      showAIRobot: boolean
-      common: {
-        showItem: {
-          Hosts: boolean
-          Nginx: boolean
-          Caddy: boolean
-          Apache: boolean
-          Mysql: boolean
-          mariadb: boolean
-          Php: boolean
-          Memcached: boolean
-          Redis: boolean
-          MongoDB: boolean
-          NodeJS: boolean
-          Tools: boolean
-          DNS: boolean
-          FTP: boolean
-          PostgreSql: boolean
-          HttpServe: boolean
-          java?: boolean
-          tomcat?: boolean
-        }
-      }
-      hosts: {
-        write: boolean
-      }
-      proxy: {
-        on: boolean
-        fastProxy: string
-        proxy: string
-      }
-      lang: string
-      postgresql: {
-        dirs: Array<string>
-      }
-      caddy: {
-        dirs: Array<string>
-      }
-      nginx: {
-        dirs: Array<string>
-      }
-      php: {
-        dirs: Array<string>
-      }
-      mysql: {
-        dirs: Array<string>
-      }
-      mariadb: {
-        dirs: Array<string>
-      }
-      apache: {
-        dirs: Array<string>
-      }
-      memcached: {
-        dirs: Array<string>
-      }
-      redis: {
-        dirs: Array<string>
-      }
-      mongodb: {
-        dirs: Array<string>
-      }
-      tomcat: {
-        dirs: Array<string>
-      }
-      autoCheck: boolean
-      editorConfig: EditorConfig
-      phpGroupStart: { [k: string]: boolean }
-    }
+    setup: StateBase
   }
   httpServe: Array<string>
   versionInited: boolean
@@ -147,10 +104,11 @@ interface State {
       host: Array<string>
     }
   }
+  currentPage: string
 }
 
 const state: State = {
-  hosts: Hosts,
+  hosts: Hosts as any,
   config: {
     password: '',
     server: User.server,
@@ -158,7 +116,8 @@ const state: State = {
   },
   httpServe: User.httpServe,
   versionInited: true,
-  httpServeService: {}
+  httpServeService: {},
+  currentPage: '/hosts'
 }
 
 export const AppStore = defineStore('app', {
@@ -172,7 +131,7 @@ export const AppStore = defineStore('app', {
     }
   },
   actions: {
-    UPDATE_SERVER_CURRENT({ flag, data }: { flag: AllAppSofts; data: AppServerCurrent }) {
+    UPDATE_SERVER_CURRENT({ flag, data }: { flag: AllAppModule; data: AppServerCurrent }) {
       const server = JSON.parse(JSON.stringify(this.config.server))
       server[flag].current = reactive(data)
       this.config.server = reactive(server)
@@ -189,16 +148,14 @@ export const AppStore = defineStore('app', {
     INIT_HTTP_SERVE(obj: any) {
       this.httpServe = reactive(obj)
     },
-    SET_CUSTOM_DIR({
-      typeFlag,
-      dir,
-      index
-    }: {
-      typeFlag: keyof typeof AppSofts
-      dir: string
-      index: number
-    }) {
-      const common = this.config.setup[typeFlag]
+    SET_CUSTOM_DIR({ typeFlag, dir, index }: { typeFlag: string; dir: string; index?: number }) {
+      const setup: any = this.config.setup
+      if (!setup?.[typeFlag]) {
+        setup[typeFlag] = reactive({
+          dirs: []
+        })
+      }
+      const common = setup[typeFlag]!
       const dirs = JSON.parse(JSON.stringify(common.dirs))
       if (index !== undefined) {
         dirs[index] = dir
@@ -207,8 +164,12 @@ export const AppStore = defineStore('app', {
       }
       common.dirs = reactive(dirs)
     },
-    DEL_CUSTOM_DIR({ typeFlag, index }: { typeFlag: keyof typeof AppSofts; index: number }) {
-      const common = this.config.setup[typeFlag]
+    DEL_CUSTOM_DIR({ typeFlag, index }: { typeFlag: string; index: number }) {
+      const setup: any = this.config.setup
+      const common = setup[typeFlag]
+      if (!common) {
+        return
+      }
       const dirs = JSON.parse(JSON.stringify(common.dirs))
       dirs.splice(index, 1)
       common.dirs = reactive(dirs)

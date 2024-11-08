@@ -1,10 +1,10 @@
 import type BaseTask from '@web/components/AI/Task/BaseTask'
 import { AppStore } from '@web/store/app'
 import { BrewStore } from '@web/store/brew'
+import { startService } from '@web/fn'
 import { AIStore } from '@web/components/AI/store'
 import { fetchInstalled } from '@web/components/AI/Fn/Util'
 import { I18nT } from '@shared/lang'
-import { startService } from '@web/fn'
 
 export function startMemcached(this: BaseTask) {
   return new Promise(async (resolve, reject) => {
@@ -12,7 +12,7 @@ export function startMemcached(this: BaseTask) {
     const appStore = AppStore()
     const brewStore = BrewStore()
     const current = appStore.config.server?.memcached?.current
-    const installed = brewStore?.memcached?.installed
+    const installed = brewStore.module('memcached').installed
     let memcached = installed?.find(
       (i) => i.path === current?.path && i.version === current?.version
     )

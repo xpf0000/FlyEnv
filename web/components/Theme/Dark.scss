@@ -1,0 +1,48 @@
+.dark {
+  .app-info {
+    .app-version span {
+      color: $--dk-app-version-color;
+    }
+    .engine-info {
+      h4 {
+        color: $--dk-app-engine-title-color;
+      }
+      ul {
+        color: $--dk-app-engine-info-color;
+      }
+    }
+  }
+
+  .copyright a {
+    color: $--dk-app-copyright-color;
+  }
+
+  .aside {
+    background-color: $--dk-aside-background;
+    color: $--dk-aside-text-color;
+  }
+  .aside-inner{
+    .top-tool{
+      border-bottom: 1px solid #242737;
+    }
+  }
+
+  /* Element UI
+  -------------------------- */
+  .el-card {
+    color: $--dk-table-text-color;
+    border-color: $--dk-table-border-color;
+
+    .el-card__header {
+      border-color: $--dk-table-border-color;
+    }
+  }
+}
+
+.main-right-panel{
+  background: #1d2033;
+  color: rgba(255,255,255,0.7);
+  flex: 1;
+  font-size: 14px;
+  height: 100vh;
+}

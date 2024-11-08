@@ -36,7 +36,7 @@ export class MemcachedStartFail extends BaseTask {
                 }
               }
               if (port.size > 0) {
-                await killPort.call(this)
+                await killPort.call(this, Array.from(port))
               }
               startMemcached
                 .call(this)

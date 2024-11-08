@@ -1,9 +1,9 @@
 <template>
-  <div class="host-edit">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">UTF8-Bom Clean</span>
+  <div class="host-edit tools">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolUTF8BomClean') }}</span>
+        <slot name="like"></slot>
       </div>
       <template v-if="data.end">
         <el-button type="primary" class="shrink0" @click="doEnd">{{ $t('util.ok') }}</el-button>
@@ -122,14 +122,31 @@
 <script lang="ts" setup>
   import { computed, reactive, watch } from 'vue'
   import store, { Ext } from './store'
-  import { waitTime } from '../../../fn'
-
+  import IPC from '@/util/IPC'
+  import { MessageError } from '@/util/Element'
+  import { I18nT } from '@shared/lang'
+  const { extname } = require('path')
+  const { dialog } = require('@electron/remote')
   const emit = defineEmits(['doClose'])
   const data = computed(() => {
     return store.value
   })
   const allExt = computed(() => {
+    const exclude = store.value.exclude.split('\n').filter((e) => e.trim().length > 0)
+    const allFile = store.value.files.filter((f) => {
+      return exclude.length === 0 || exclude.every((e) => !f.includes(e))
+    })
     const exts: { [key: string]: number } = {}
+    allFile.forEach((f) => {
+      const name = extname(f)
+      if (name) {
+        if (!exts[name]) {
+          exts[name] = 1
+        } else {
+          exts[name] += 1
+        }
+      }
+    })
     const arr: Array<Ext> = []
     for (const ext in exts) {
       arr.push({
@@ -141,8 +158,12 @@
   })
   const files = computed(() => {
     const exclude = store.value.exclude.split('\n').filter((e) => e.trim().length > 0)
+    const allowExt = store.value.allowExt
     return store.value.files.filter((f) => {
-      return exclude.length === 0 || exclude.every((e) => !f.includes(e))
+      return (
+        (exclude.length === 0 || exclude.every((e) => !f.includes(e))) &&
+        allowExt.includes(extname(f))
+      )
     })
   })
   const currentProgress = computed(() => {
@@ -152,12 +173,50 @@
   const doClose = () => {
     emit('doClose')
   }
-  const chooseDir = () => {}
+  const chooseDir = () => {
+    if (store.value.running && !store.value.end) {
+      return
+    }
+    doEnd()
+    dialog
+      .showOpenDialog({
+        properties: ['openDirectory', 'openFile']
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        store.value.path = path
+        getAllFile()
+      })
+  }
+  const getAllFile = () => {
+    store.value.loading = true
+    IPC.send('app-fork:tools', 'getAllFile', store.value.path).then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0) {
+        const files: Array<string> = res?.data ?? []
+        store.value.files = reactive(files)
+      } else {
+        MessageError(res?.msg ?? I18nT('util.toolFileTooMore'))
+      }
+      store.value.loading = false
+    })
+  }
   const doClean = () => {
     store.value.running = true
-    waitTime().then(() => {
-      store.value.end = true
-    })
+    IPC.send('app-fork:tools', 'cleanBom', JSON.parse(JSON.stringify(files.value))).then(
+      (key: string, res: any) => {
+        if (res?.code === 200) {
+          const progress = res?.msg ?? {}
+          Object.assign(store.value.progress, reactive(progress))
+        } else {
+          IPC.off(key)
+          store.value.end = true
+        }
+      }
+    )
   }
   const doEnd = () => {
     store.value.path = ''

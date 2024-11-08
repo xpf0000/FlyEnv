@@ -1,8 +1,11 @@
 import BaseTask from '@web/components/AI/Task/BaseTask'
 import { BrewStore } from '@web/store/brew'
 import { AIStore } from '@web/components/AI/store'
+import { handleHost } from '@/util/Host'
 import { openSiteBaseService } from '@web/components/AI/Fn/Host'
 import { I18nT } from '@shared/lang'
+
+const { existsSync } = require('fs-extra')
 
 export class CreateSite extends BaseTask {
   host: any = {
@@ -42,8 +45,13 @@ export class CreateSite extends BaseTask {
         },
         needInput: true,
         run: (dir: string) => {
-          return new Promise(async (resolve) => {
-            this.host.root = dir
+          return new Promise(async (resolve, reject) => {
+            if (!existsSync(dir)) {
+              reject(new Error(I18nT('ai.站点目录无效')))
+              return
+            } else {
+              this.host.root = dir
+            }
             resolve(true)
           })
         }
@@ -79,25 +87,31 @@ export class CreateSite extends BaseTask {
           })
         },
         run: () => {
-          return new Promise<any>((resolve) => {
+          return new Promise<any>((resolve, reject) => {
             const brewStore = BrewStore()
-            const php = brewStore?.php?.installed?.find((i) => !!i.path && !!i.version)
+            const php = brewStore.module('php').installed.find((i) => !!i.path && !!i.version)
             if (php?.num) {
               this.host.phpVersion = php.num
             }
-            const aiStore = AIStore()
-            aiStore.chatList.push({
-              user: 'ai',
-              content: `${I18nT('ai.成功创建站点')}
+            handleHost(this.host, 'add', undefined, false).then((res: true | string) => {
+              if (res === true) {
+                const aiStore = AIStore()
+                aiStore.chatList.push({
+                  user: 'ai',
+                  content: `${I18nT('ai.成功创建站点')}
 ${I18nT('ai.站点域名')}: ${this.host.name}
 ${I18nT('ai.站点目录')}: <a href="javascript:void();" onclick="openDir('${this.host.root}')">${
-                this.host.root
-              }</a>
+                    this.host.root
+                  }</a>
 ${I18nT('ai.尝试开启服务')}`
-            })
-            resolve({
-              host: this.host.name,
-              php
+                })
+                resolve({
+                  host: this.host.name,
+                  php
+                })
+              } else {
+                reject(new Error(res))
+              }
             })
           })
         }

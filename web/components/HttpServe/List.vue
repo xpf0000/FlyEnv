@@ -3,13 +3,13 @@
     <template v-if="httpServe.length === 0">
       <li class="empty" @click.stop="choosePath">
         <div class="wapper" :class="{ ondrop: ondrop }">
-          <yb-icon :svg="import('@/svg/upload.svg?raw')" class="icon" />
+          <yb-icon :svg="import('../../svg/upload.svg?raw')" class="icon" />
           <span>{{ $t('base.httpServerTips') }}</span>
         </div>
       </li>
     </template>
     <template v-else>
-      <li v-for="(item, key) in serves" :key="key" class="http-serve-item">
+      <li v-for="(item, key) in service" :key="key" class="http-serve-item">
         <div class="left">
           <div class="top">
             <span class="name"> {{ $t('base.path') }}:</span>
@@ -35,7 +35,7 @@
             <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="doRun(key, item)" />
           </div>
           <div class="del">
-            <yb-icon :svg="import('@/svg/delete.svg?raw')" @click.stop="doDel(key, item)" />
+            <yb-icon :svg="import('@/svg/delete.svg?raw')" @click.stop="doDel(key)" />
           </div>
         </div>
       </li>
@@ -44,11 +44,12 @@
 </template>
 
 <script lang="ts">
-  import { reactive, defineComponent } from 'vue'
-  import { AppStore } from '../../store/app'
-  import { ElMessageBox } from 'element-plus'
-  import { I18nT } from '@shared/lang'
-  const Serves: { [key: string]: any } = reactive({})
+  import { defineComponent, reactive } from 'vue'
+  import IPC from '@/util/IPC'
+  import { AppStore } from '@web/store/app'
+  import { MessageError } from '@/util/Element'
+  const { dialog, shell } = require('@electron/remote')
+  const { pathExistsSync, statSync } = require('fs-extra')
   export default defineComponent({
     components: {},
     props: {},
@@ -58,28 +59,39 @@
       }
     },
     computed: {
+      service() {
+        return AppStore().httpServeService
+      },
       httpServe() {
         return AppStore().httpServe
-      },
-      serves() {
-        for (const serve of this.httpServe) {
-          if (!Serves[serve]) {
-            Serves[serve] = {
-              run: false,
-              port: 0,
-              host: ''
-            }
-          }
-        }
-        for (const key in Serves) {
-          if (!this.httpServe.includes(key)) {
-            delete Serves[key]
-          }
-        }
-        return Serves
       }
     },
-    watch: {},
+    watch: {
+      httpServe: {
+        handler(arr: Array<string>) {
+          for (const a of arr) {
+            if (!this.service[a]) {
+              this.service[a] = reactive({
+                run: false,
+                port: 0,
+                host: []
+              })
+            }
+          }
+          console.log('this.service: ', this.service)
+          const keys = Object.keys(this.service)
+          for (const k of keys) {
+            if (!arr.includes(k)) {
+              const item = this.service[k]
+              this.doStop(k, item)
+              delete this.service[k]
+            }
+          }
+        },
+        immediate: true,
+        deep: true
+      }
+    },
     created: function () {},
     mounted() {
       this.initDroper()
@@ -87,7 +99,18 @@
     unmounted() {},
     methods: {
       choosePath() {
-        this.addPath('/Users/XXX/Desktop/www/xxxx')
+        let opt = ['openDirectory']
+        dialog
+          .showOpenDialog({
+            properties: opt
+          })
+          .then(({ canceled, filePaths }: any) => {
+            if (canceled || filePaths.length === 0) {
+              return
+            }
+            const path = filePaths[0]
+            this.addPath(path)
+          })
       },
       initDroper() {
         let selecter: HTMLElement = this.$refs.fileDroper as HTMLElement
@@ -126,38 +149,76 @@
         )
       },
       addPath(path: string) {
+        if (!pathExistsSync(path)) return
+        const stat = statSync(path)
+        if (!stat.isDirectory()) {
+          MessageError(this.$t('base.needSelectDir'))
+          return
+        }
         if (this.httpServe.includes(path)) {
           return
         }
         this.httpServe.push(path)
-        const item = Serves[path]
-        this.doRun(path, item)
-      },
-      doRun(path: string, item: any) {
-        if (!item) {
-          return
-        }
-        item.run = true
-        item.host = ['http://localhost:56487', 'http://0.0.0.0:56487']
-      },
-      doStop(path: string, item: any) {
-        item.run = false
-        item.host = ''
-        item.port = 0
-      },
-      doDel(path: string) {
-        ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
-          confirmButtonText: I18nT('base.confirm'),
-          cancelButtonText: I18nT('base.cancel'),
-          closeOnClickModal: false,
-          customClass: 'confirm-del',
-          type: 'warning'
-        }).then(() => {
-          this.httpServe.splice(this.httpServe.indexOf(path), 1)
+        AppStore().saveConfig()
+        this.$nextTick().then(() => {
+          let item = this.service[path]
+          if (!item) {
+            item = reactive({
+              run: false,
+              port: 0,
+              host: []
+            })
+            this.service[path] = item
+          }
+          console.log(item)
+          this.doRun(path, item)
         })
       },
-      doJump() {},
-      openDir() {}
+      doRun(path: string, item: any) {
+        IPC.send('app-http-serve-run', path).then((key: string, info: any) => {
+          IPC.off(key)
+          console.log(info)
+          if (info?.path && info.path === path) {
+            item.run = true
+            item.host = info.host
+            item.port = info.port
+          }
+        })
+      },
+      doStop(path: string, item: any) {
+        IPC.send('app-http-serve-stop', path).then((key: string, info: any) => {
+          IPC.off(key)
+          if (info?.path && info.path === path) {
+            item.run = false
+            item.host = ''
+            item.port = 0
+          }
+        })
+      },
+      doDel(path: string) {
+        this.$baseConfirm(this.$t('base.delAlertContent'), undefined, {
+          customClass: 'confirm-del',
+          type: 'warning'
+        })
+          .then(() => {
+            const store = AppStore()
+            IPC.send('app-http-serve-stop', path).then((key: string) => {
+              IPC.off(key)
+            })
+            const index = this.httpServe.indexOf(path)
+            if (index >= 0) {
+              store.httpServe.splice(this.httpServe.indexOf(path), 1)
+              store.saveConfig()
+            }
+          })
+          .catch(() => {})
+      },
+      doJump(host: string) {
+        shell.openExternal(host)
+      },
+      openDir(dir: string) {
+        shell.openPath(dir)
+      }
     }
   })
 </script>

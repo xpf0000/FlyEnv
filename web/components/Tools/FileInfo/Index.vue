@@ -1,9 +1,9 @@
 <template>
-  <div class="host-edit tools-file-info">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">File Info</span>
+  <div class="host-edit tools tools-file-info">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolFileInfo') }}</span>
+        <slot name="like"></slot>
       </div>
     </div>
 
@@ -58,7 +58,15 @@
 </template>
 
 <script>
+  import { formatBytes } from '@shared/utils.ts'
+  import moment from 'moment'
+
+  const { exec } = require('child-process-promise')
+  const { stat } = require('fs')
+  const { dialog } = require('@electron/remote')
+
   export default {
+    name: 'MoToolsFileInfo',
     components: {},
     props: {},
     data() {
@@ -108,8 +116,82 @@
       doClose() {
         this.$emit('doClose')
       },
-      choosePath() {},
-      getInfo() {}
+      choosePath() {
+        let opt = ['openFile']
+        dialog
+          .showOpenDialog({
+            properties: opt
+          })
+          .then(({ canceled, filePaths }) => {
+            if (canceled || filePaths.length === 0) {
+              return
+            }
+            const [path] = filePaths
+            this.path = path
+          })
+      },
+      getInfo() {
+        stat(this.path, (err, stats) => {
+          console.log(err)
+          console.log(stats)
+          if (!err) {
+            this.info.size = stats.size
+            this.info.size_str = formatBytes(stats.size)
+            this.info.atime = stats.atimeMs
+            this.info.atime_str = moment(stats.atimeMs).format()
+            this.info.btime = stats.birthtimeMs
+            this.info.btime_str = moment(stats.birthtimeMs).format()
+            this.info.ctime = stats.ctimeMs
+            this.info.ctime_str = moment(stats.ctimeMs).format()
+            this.info.mtime = stats.mtimeMs
+            this.info.mtime_str = moment(stats.mtimeMs).format()
+          }
+        })
+        exec(`md5 ${this.path}`)
+          .then((res) => {
+            console.log(res)
+            this.info.md5 = res.stdout.split(' = ')[1]
+            console.log(this.info.md5)
+          })
+          .catch(() => {
+            this.info.md5 = ''
+          })
+        exec(`shasum -a 1 ${this.path}`)
+          .then((res) => {
+            console.log(res)
+            this.info.sha1 = res.stdout.split(' ')[0]
+            console.log(this.info.sha1)
+          })
+          .catch(() => {
+            this.info.sha1 = ''
+          })
+        exec(`shasum -a 256 ${this.path}`)
+          .then((res) => {
+            console.log(res)
+            this.info.sha256 = res.stdout.split(' ')[0]
+            console.log(this.info.sha256)
+          })
+          .catch(() => {
+            this.info.sha256 = ''
+          })
+        this.$nextTick(() => {
+          let container = this.$el.querySelector('.main-wapper')
+          if (container) {
+            this.scroll(container)
+          }
+        })
+      },
+      scroll(container) {
+        this.timer = requestAnimationFrame(() => {
+          if (container.scrollHeight - container.scrollTop === container.clientHeight) {
+            cancelAnimationFrame(this.timer)
+            return
+          }
+          container.scrollTop += 60
+          cancelAnimationFrame(this.timer)
+          this.scroll(container)
+        })
+      }
     }
   }
 </script>

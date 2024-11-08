@@ -4,61 +4,36 @@
       <li
         v-for="(item, index) in tabs"
         :key="index"
-        :class="current_tab === index ? 'active' : ''"
-        @click="current_tab = index"
+        :class="tab === index ? 'active' : ''"
+        @click="tab = index"
         >{{ item }}</li
       >
     </ul>
     <div class="main-block">
-      <Service v-if="current_tab === 0" type-flag="mariadb" title="MariaDB"></Service>
-      <Manager v-else-if="current_tab === 1" type-flag="mariadb"></Manager>
-      <Config v-if="current_tab === 2" :config="conf"></Config>
-      <Logs v-if="current_tab === 3" type="error"></Logs>
-      <Logs v-if="current_tab === 4" type="slow"></Logs>
+      <Service v-if="tab === 0" type-flag="mariadb" title="MariaDB"></Service>
+      <Manager v-else-if="tab === 1" type-flag="mariadb"></Manager>
+      <Config v-if="tab === 2"></Config>
+      <Logs v-if="tab === 3" type="error"></Logs>
+      <Logs v-if="tab === 4" type="slow"></Logs>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-  import { defineComponent, ref } from 'vue'
+<script lang="ts" setup>
   import Service from '../ServiceManager/index.vue'
-  import Config from '../Base/Config.vue'
-  import Logs from '../Base/Logs.vue'
+  import Config from './Config.vue'
+  import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
-  import { AppStore } from '../../store/app'
-  import Conf from '../../config/mariadb.conf.txt?raw'
+  import { AppModuleSetup } from '@web/core/Module'
+  import { I18nT } from '@shared/lang'
 
-  const current_tab = ref(0)
-
-  export default defineComponent({
-    components: {
-      Config,
-      Service,
-      Logs,
-      Manager
-    },
-    props: {},
-    data() {
-      return {
-        conf: Conf,
-        current_tab
-      }
-    },
-    computed: {
-      tabs() {
-        return [
-          this.$t('base.service'),
-          this.$t('base.versionManager'),
-          this.$t('base.configFile'),
-          this.$t('base.log'),
-          this.$t('base.slowLog')
-        ]
-      },
-      version() {
-        return AppStore().config.server?.mariadb?.current?.version
-      }
-    },
-    watch: {},
-    created: function () {}
-  })
+  const { tab, checkVersion } = AppModuleSetup('mariadb')
+  const tabs = [
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    I18nT('base.configFile'),
+    I18nT('base.log'),
+    I18nT('base.slowLog')
+  ]
+  checkVersion()
 </script>

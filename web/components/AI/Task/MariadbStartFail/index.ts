@@ -36,7 +36,7 @@ export class MariadbStartFail extends BaseTask {
                 }
               }
               if (port.size > 0) {
-                await killPort.call(this)
+                await killPort.call(this, Array.from(port))
               }
               startMariaDB
                 .call(this)

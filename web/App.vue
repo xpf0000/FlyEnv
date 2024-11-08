@@ -1,11 +1,6 @@
 <template>
   <router-view />
-  <AI v-if="showAI" />
-  <div class="app-btns">
-    <div class="a"></div>
-    <div class="b"></div>
-    <div class="c"></div>
-  </div>
+  <FloatButton />
 </template>
 
 <script lang="ts" setup>
@@ -13,15 +8,11 @@
   import { AppStore } from './store/app'
   import { BrewStore } from './store/brew'
   import { I18nT } from '@shared/lang'
-  import AI from '@web/components/AI/index.vue'
+  import FloatButton from '@web/components/FloatBtn/index.vue'
 
   const appStore = AppStore()
   const lang = computed(() => {
     return appStore.config.setup.lang
-  })
-
-  const showAI = computed(() => {
-    return appStore?.config?.setup?.showAIRobot ?? true
   })
 
   watch(

@@ -4,14 +4,19 @@
       <div class="card-header">
         <div class="left">
           <span> PHP </span>
-          <el-tooltip :content="$t('base.customVersionDir')" :show-after="600">
-            <el-button
-              class="custom-folder-add-btn"
-              :icon="FolderAdd"
-              link
-              @click.stop="showCustomDir"
-            ></el-button>
-          </el-tooltip>
+          <el-popover :show-after="600" placement="top" width="auto">
+            <template #default>
+              <span>{{ I18nT('base.customVersionDir') }}</span>
+            </template>
+            <template #reference>
+              <el-button
+                class="custom-folder-add-btn"
+                :icon="FolderAdd"
+                link
+                @click.stop="showCustomDir"
+              ></el-button>
+            </template>
+          </el-popover>
         </div>
         <el-button class="button" :disabled="service?.fetching" link @click="resetData">
           <yb-icon
@@ -25,31 +30,34 @@
     <el-table v-loading="service?.fetching" class="service-table" :data="versions">
       <el-table-column prop="version" width="140px">
         <template #header>
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ $t('base.version') }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{
+            I18nT('base.version')
+          }}</span>
         </template>
         <template #default="scope">
           <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.version }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.path')" :prop="null">
+      <el-table-column :label="I18nT('base.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
-            <el-tooltip
-              :raw-content="true"
-              :content="scope.row?.error ?? $t('base.versionErrorTips')"
-              popper-class="version-error-tips"
-            >
-              <span class="path error" @click.stop="openDir(scope.row.path)">{{
-                scope.row.path
-              }}</span>
-            </el-tooltip>
+            <el-popover popper-class="version-error-tips" width="auto" placement="top">
+              <template #reference>
+                <span class="path error" @click.stop="openDir(scope.row.path)">{{
+                  scope.row.path
+                }}</span>
+              </template>
+              <template #default>
+                <span>{{ scope.row?.error ?? I18nT('base.versionErrorTips') }}</span>
+              </template>
+            </el-popover>
           </template>
           <template v-else>
             <span class="path" @click.stop="openDir(scope.row.path)">{{ scope.row.path }}</span>
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('php.quickStart')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <el-button
             link
@@ -64,7 +72,7 @@
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.service')" :prop="null" width="100px">
+      <el-table-column :label="I18nT('base.service')" :prop="null" width="100px">
         <template #default="scope">
           <template v-if="scope.row.running">
             <el-button :loading="true" link></el-button>
@@ -89,19 +97,20 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <el-popover
             effect="dark"
             popper-class="host-list-poper"
-            placement="bottom-end"
+            placement="left-start"
             :show-arrow="false"
             width="auto"
+            @before-enter="onPoperShow"
           >
             <ul v-poper-fix class="host-list-menu">
               <li @click.stop="action(scope.row, scope.$index, 'open')">
                 <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('base.open') }}</span>
+                <span class="ml-15">{{ I18nT('base.open') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'conf')">
                 <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
@@ -113,15 +122,15 @@
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'log-fpm')">
                 <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('php.fpmLog') }}</span>
+                <span class="ml-15">{{ I18nT('php.fpmLog') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'log-slow')">
                 <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('base.slowLog') }}</span>
+                <span class="ml-15">{{ I18nT('base.slowLog') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'extend')">
                 <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('php.extension') }}</span>
+                <span class="ml-15">{{ I18nT('php.extension') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'groupstart')">
                 <yb-icon
@@ -131,20 +140,25 @@
                   height="18"
                 />
                 <template v-if="appStore?.phpGroupStart?.[scope.row.bin] === false">
-                  <span class="ml-10">{{ $t('php.groupStartOn') }}</span>
+                  <span class="ml-10">{{ I18nT('php.groupStartOn') }}</span>
                 </template>
                 <template v-else>
-                  <span class="ml-10">{{ $t('php.groupStartOff') }}</span>
+                  <span class="ml-10">{{ I18nT('php.groupStartOff') }}</span>
                 </template>
               </li>
-              <li class="path-set noset">
+              <li
+                v-loading="pathLoading(scope.row)"
+                class="path-set"
+                :class="pathState(scope.row)"
+                @click.stop="pathChange(scope.row)"
+              >
                 <yb-icon
                   class="current"
                   :svg="import('@/svg/select.svg?raw')"
                   width="17"
                   height="17"
                 />
-                <span class="ml-15">{{ $t('base.addToPath') }}</span>
+                <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
               </li>
             </ul>
             <template #reference>
@@ -161,15 +175,21 @@
 
 <script lang="ts" setup>
   import { ref, computed, reactive } from 'vue'
-  import { startService, stopService, waitTime } from '@web/fn'
+  import { startService, stopService } from '@web/fn'
+  import installedVersions from '@/util/InstalledVersions'
+  import IPC from '@/util/IPC'
   import { BrewStore, SoftInstalled } from '@web/store/brew'
   import { ElLoading } from 'element-plus'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow } from '@web/fn'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { AppStore } from '@web/store/app'
   import { MessageError, MessageSuccess } from '@/util/Element'
-  import { Service } from '@/components/ServiceManager/service'
+  import { Service } from '@web/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
+  import { ServiceActionStore } from '@web/components/ServiceManager/EXT/store'
+
+  const { shell } = require('@electron/remote')
+  const { dirname, join } = require('path')
 
   if (!Service.php) {
     Service.php = {
@@ -181,15 +201,35 @@
   const brewStore = BrewStore()
   const appStore = AppStore()
 
+  const onPoperShow = () => {
+    ServiceActionStore.fetchPath()
+  }
+
+  const pathLoading = (item: SoftInstalled) => {
+    return ServiceActionStore.pathSeting?.[item.bin] ?? false
+  }
+
+  const pathState = (item: SoftInstalled) => {
+    if (ServiceActionStore.allPath.length === 0) {
+      return ''
+    }
+    const bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
+    return ServiceActionStore.allPath.includes(bin) ? 'seted' : 'noset'
+  }
+
+  const pathChange = (item: SoftInstalled) => {
+    ServiceActionStore.updatePath(item, 'php')
+  }
+
   const service = computed(() => {
     return Service.php
   })
 
   const php = computed(() => {
-    return brewStore.php
+    return brewStore.module('php')
   })
   const versions = computed(() => {
-    return brewStore?.php?.installed ?? []
+    return brewStore.module('php').installed
   })
 
   const init = () => {
@@ -197,7 +237,7 @@
       return
     }
     initing.value = true
-    waitTime().then(() => {
+    installedVersions.allInstalledVersions(['php']).then(() => {
       initing.value = false
     })
   }
@@ -248,6 +288,7 @@
       dict[key] = false
     }
     appStore.config.setup.phpGroupStart = reactive(dict)
+    appStore.saveConfig()
   }
 
   let ExtensionsVM: any
@@ -260,21 +301,28 @@
     PhpFpmVM = res.default
   })
 
+  let ConfVM: any
+  import('./Config.vue').then((res) => {
+    ConfVM = res.default
+  })
+
+  let LogVM: any
+  import('./Logs.vue').then((res) => {
+    LogVM = res.default
+  })
+
   const action = (item: SoftInstalled, index: number, flag: string) => {
     switch (flag) {
       case 'groupstart':
         groupTrunOn(item)
         break
       case 'open':
+        shell.openPath(item.path)
         break
       case 'conf':
-        import('./Config.vue').then((res) => {
-          res.default
-            .show({
-              version: item
-            })
-            .then()
-        })
+        AsyncComponentShow(ConfVM, {
+          version: item
+        }).then()
         break
       case 'fpm-conf':
         AsyncComponentShow(PhpFpmVM, {
@@ -282,24 +330,16 @@
         }).then()
         break
       case 'log-fpm':
-        import('./Logs.vue').then((res) => {
-          res.default
-            .show({
-              version: item,
-              type: 'php-fpm'
-            })
-            .then()
-        })
+        AsyncComponentShow(LogVM, {
+          version: item,
+          type: 'php-fpm'
+        }).then()
         break
       case 'log-slow':
-        import('./Logs.vue').then((res) => {
-          res.default
-            .show({
-              version: item,
-              type: 'php-fpm-slow'
-            })
-            .then()
-        })
+        AsyncComponentShow(LogVM, {
+          version: item,
+          type: 'php-fpm-slow'
+        }).then()
         break
       case 'extend':
         AsyncComponentShow(ExtensionsVM, {
@@ -314,10 +354,17 @@
         const loading = ElLoading.service({
           target: dom
         })
-        waitTime().then(() => {
-          loading.close()
-          MessageSuccess(I18nT('base.success'))
-        })
+        IPC.send('app-fork:php', 'doLinkVersion', JSON.parse(JSON.stringify(item))).then(
+          (key: string, res: any) => {
+            IPC.off(key)
+            loading.close()
+            if (res?.code === 0) {
+              MessageSuccess(I18nT('base.success'))
+            } else {
+              MessageError(res.msg)
+            }
+          }
+        )
         break
     }
   }
@@ -327,12 +374,16 @@
       return
     }
     service.value.fetching = true
-    waitTime().then(() => {
+    const data = brewStore.module('php')
+    data.installedInited = false
+    installedVersions.allInstalledVersions(['php']).then(() => {
       service.value.fetching = false
     })
   }
 
-  const openDir = (dir: string) => {}
+  const openDir = (dir: string) => {
+    shell.openPath(dir)
+  }
 
   init()
 

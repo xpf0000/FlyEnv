@@ -1,14 +1,14 @@
 <template>
-  <div class="host-edit port-kill">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">Process Kill</span>
+  <div class="port-kill tools host-edit">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolProcessKill') }}</span>
+        <slot name="like"></slot>
       </div>
     </div>
 
-    <div class="main-wapper">
-      <div class="main">
+    <div class="main-wapper pb-0">
+      <div class="main p-0">
         <el-input
           v-model="searchKey"
           placeholder="Please input search key"
@@ -52,8 +52,9 @@
 <script>
   import { markRaw } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { ElMessageBox } from 'element-plus'
-  import { I18nT } from '@shared/lang/index.ts'
+  import { passwordCheck } from '@/util/Brew.ts'
+  import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element.ts'
+  import { execPromiseRoot } from '@shared/Exec.ts'
 
   export default {
     components: {},
@@ -69,34 +70,46 @@
     computed: {},
     watch: {},
     created: function () {},
-    mounted() {},
+    mounted() {
+      passwordCheck().then(() => {})
+    },
     unmounted() {},
     methods: {
       cleanSelect() {
-        ElMessageBox.confirm(I18nT('base.killProcessConfim'), undefined, {
-          confirmButtonText: I18nT('base.confirm'),
-          cancelButtonText: I18nT('base.cancel'),
-          closeOnClickModal: false,
+        this.$baseConfirm(this.$t('base.killProcessConfim'), null, {
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(() => {
-            this.$message.success(this.$t('base.success'))
-            this.doSearch()
+          .then(async () => {
+            const pids = this.select.map((s) => {
+              return s.PID
+            })
+            try {
+              await execPromiseRoot(['kill', '-9', ...pids])
+              MessageSuccess(this.$t('base.success'))
+              this.doSearch().then()
+            } catch (e) {
+              MessageError(this.$t('base.fail'))
+            }
           })
           .catch(() => {})
       },
       cleanAll() {
-        ElMessageBox.confirm(I18nT('base.killAllProcessConfim'), undefined, {
-          confirmButtonText: I18nT('base.confirm'),
-          cancelButtonText: I18nT('base.cancel'),
-          closeOnClickModal: false,
+        this.$baseConfirm(this.$t('base.killAllProcessConfim'), null, {
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(() => {
-            this.$message.success(this.$t('base.success'))
-            this.doSearch()
+          .then(async () => {
+            const pids = this.arrs.map((s) => {
+              return s.PID
+            })
+            try {
+              await execPromiseRoot(['kill', '-9', ...pids])
+              MessageSuccess(this.$t('base.success'))
+              this.doSearch().then()
+            } catch (e) {
+              MessageError(this.$t('base.fail'))
+            }
           })
           .catch(() => {})
       },
@@ -108,8 +121,40 @@
       doClose() {
         this.$emit('doClose')
       },
-      doSearch() {
+      async doSearch() {
         this.arrs.splice(0)
+        const res = await execPromiseRoot(`ps aux | grep '${this.searchKey}'`)
+        const arr = res.stdout
+          .toString()
+          .trim()
+          .split('\n')
+          .filter((v) => {
+            return !v.includes(`grep ${this.searchKey}`) && !v.includes(`grep '${this.searchKey}'`)
+          })
+          .map((a) => {
+            const list = a.split(' ').filter((s) => {
+              return s.trim().length > 0
+            })
+            const USER = list.shift()
+            const PID = list.shift()
+            Array(8)
+              .fill(0)
+              .forEach(() => {
+                list.shift()
+              })
+            const COMMAND = list.join(' ')
+            return {
+              USER,
+              PID,
+              COMMAND
+            }
+          })
+        if (arr.length === 0) {
+          MessageWarning(this.$t('base.processNoFound'))
+          return
+        }
+        this.arrs.splice(0)
+        this.arrs.push(...arr)
       }
     }
   }

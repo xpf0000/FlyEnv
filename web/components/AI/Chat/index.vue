@@ -63,7 +63,7 @@
   const onAnimoEnd = (e: Event) => {
     e?.stopPropagation && e?.stopPropagation()
     e?.preventDefault && e?.preventDefault()
-    if (e.target !== chat.value) {
+    if (e.target !== chat.value || !action.value) {
       return
     }
     if (action.value === 'hide') {

@@ -37,14 +37,16 @@
 
 <script lang="tsx" setup>
   import { computed } from 'vue'
-  import { MysqlStore } from '@web/store/mysql'
+  import { MysqlStore } from '../mysql'
   import type { Column } from 'element-plus'
   import { I18nT } from '@shared/lang'
-  import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
+  import YbIcon from '@web/components/YbSvgIcon/vue-svg-icons.vue'
   import type { MysqlGroupItem } from '@shared/app'
-  import { AsyncComponentShow } from '@web/fn'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import Popper from './SetupPopper.vue'
+
+  const { shell } = require('@electron/remote')
 
   const mysqlStore = MysqlStore()
 
@@ -89,7 +91,9 @@
     mysqlStore.stop(data).then(handleRes)
   }
 
-  const showItem = () => {}
+  const showItem = (dir: string) => {
+    shell.showItemInFolder(dir)
+  }
 
   const columns: Column<any>[] = [
     {
@@ -136,7 +140,7 @@
         return <span class="flex items-center">{I18nT('util.mysqlDataDir')}</span>
       },
       cellRenderer: ({ cellData: dataDir }) => (
-        <span class="pass" onClick={() => showItem()}>
+        <span class="pass" onClick={() => showItem(dataDir)}>
           {dataDir}
         </span>
       )

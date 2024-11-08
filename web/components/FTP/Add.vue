@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="item?.user ? $t('base.edit') : $t('base.add')"
+    :title="item?.user ? I18nT('base.edit') : I18nT('base.add')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
@@ -44,7 +44,7 @@
               class="input"
               :class="{ error: errs?.dir }"
               placeholder="root path"
-              readonly=""
+              readonly="true"
               :value="form.dir"
             />
             <div class="icon-block" @click="chooseRoot()">
@@ -61,28 +61,36 @@
     </template>
     <template #footer>
       <div class="dialog-footer">
-        <el-button :disabled="running" @click="show = false">{{ $t('base.cancel') }}</el-button>
+        <el-button :disabled="running" @click="show = false">{{ I18nT('base.cancel') }}</el-button>
         <el-button :loading="running" :disabled="running" type="primary" @click="doSave">{{
-          $t('base.confirm')
+          I18nT('base.confirm')
         }}</el-button>
       </div>
     </template>
   </el-dialog>
 </template>
 <script lang="ts" setup>
-  import { reactive, ref, watch } from 'vue'
-  import { ElMessage } from 'element-plus'
+  import { computed, ref, watch } from 'vue'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import IPC from '@/util/IPC'
   import { I18nT } from '@shared/lang'
-  import type { FtpItem } from '../../store/ftp'
-  import { FtpStore } from '../../store/ftp'
-  import { waitTime, AsyncComponentSetup, uuid } from '../../fn'
+  import type { FtpItem } from './ftp'
+  import { FtpStore } from './ftp'
+  import { uuid } from '@shared/utils'
+  import { AppStore } from '@web/store/app'
+  import { BrewStore } from '@web/store/brew'
+  import { MessageError, MessageSuccess } from '@/util/Element'
 
+  const { existsSync } = require('fs')
+  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
     item: FtpItem
   }>()
 
+  const appStore = AppStore()
+  const brewStore = BrewStore()
   const ftpStore = FtpStore()
   const running = ref(false)
   const form = ref({
@@ -97,6 +105,15 @@
     user: false,
     pass: false,
     dir: false
+  })
+
+  const ftpVersion = computed(() => {
+    const current = appStore.config.server?.['pure-ftpd']?.current
+    if (!current) {
+      return undefined
+    }
+    const installed = brewStore.module('pure-ftpd').installed
+    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
   const makePass = () => {
@@ -166,24 +183,47 @@
     if (running?.value) {
       return
     }
-    form.value.dir = '/Users/XXX/Desktop/FTP/xxxx'
+    dialog
+      .showOpenDialog({
+        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
+      })
+      .then(({ canceled, filePaths }: any) => {
+        if (canceled || filePaths.length === 0) {
+          return
+        }
+        const [path] = filePaths
+        form.value.dir = path
+      })
   }
 
   const doSave = () => {
     if (!checkItem() || running?.value) {
       return
     }
-    if (!form.value.dir) {
-      ElMessage.error(I18nT('base.ftpDirNotExists'))
+    if (form.value.dir && !existsSync(form.value.dir)) {
+      MessageError(I18nT('base.ftpDirNotExists'))
       errs.value.dir = true
       return
     }
     running.value = true
-    waitTime().then(() => {
-      ftpStore.allFtp.unshift(reactive(JSON.parse(JSON.stringify(form.value))))
-      ElMessage.success(I18nT('base.success'))
-      running.value = false
-      show.value = false
+    IPC.send(
+      'app-fork:pure-ftpd',
+      'addFtp',
+      JSON.parse(JSON.stringify(form.value)),
+      JSON.parse(JSON.stringify(ftpVersion.value))
+    ).then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0) {
+        ftpStore.getPort()
+        ftpStore.getAllFtp().then(() => {
+          MessageSuccess(I18nT('base.success'))
+          running.value = false
+          show.value = false
+        })
+      } else if (res?.code === 1) {
+        MessageError(res?.msg ?? I18nT('base.fail'))
+        running.value = false
+      }
     })
   }
 

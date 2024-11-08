@@ -14,31 +14,22 @@
         </div>
       </div>
       <div class="main-wapper">
-        <div ref="input" class="block"></div>
+        <LogVM ref="log" :log-file="filepath" />
       </div>
-      <div class="tool">
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('open')">{{
-          $t('base.open')
-        }}</el-button>
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('refresh')">{{
-          $t('base.refresh')
-        }}</el-button>
-        <el-button class="shrink0" :disabled="!filepath" @click="logDo('clean')">{{
-          $t('base.clean')
-        }}</el-button>
-      </div>
+      <ToolVM :log="log" />
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-  import { nextTick, ref, computed, watch, onMounted, onUnmounted } from 'vue'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import { ref, computed } from 'vue'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup, EditorCreate } from '@web/fn'
-  import { EditorConfigMake } from '@web/fn'
-  import { MessageSuccess } from '@/util/Element'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import type { MysqlGroupItem } from '@shared/app'
+  import LogVM from '@web/components/Log/index.vue'
+  import ToolVM from '@web/components/Log/tool.vue'
+
+  const { join } = require('path')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -47,7 +38,7 @@
     flag: 'log' | 'slow-log'
   }>()
 
-  const log = ref('')
+  const log = ref()
 
   const title = computed(() => {
     if (props.flag === 'log') {
@@ -57,63 +48,16 @@
   })
 
   const filepath = computed(() => {
-    return ''
+    const id = props.item.id
+    if (props.flag === 'log') {
+      return join(global.Server.MysqlDir!, `group/my-group-${id}-error.log`)
+    }
+    return join(global.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
   })
 
   const close = () => {
     show.value = false
   }
-
-  const input = ref()
-  let monacoInstance: editor.IStandaloneCodeEditor | null
-  const initEditor = () => {
-    if (!monacoInstance) {
-      const inputDom: HTMLElement = input.value as HTMLElement
-      if (!inputDom || !inputDom?.style) {
-        return
-      }
-      monacoInstance = EditorCreate(inputDom, EditorConfigMake(log.value, true, 'on'))
-    } else {
-      monacoInstance.setValue(log.value)
-    }
-  }
-
-  watch(log, () => {
-    nextTick().then(() => {
-      initEditor()
-    })
-  })
-
-  onMounted(() => {
-    nextTick().then(() => {
-      initEditor()
-    })
-  })
-
-  onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
-    monacoInstance = null
-  })
-
-  const getLog = () => {
-    log.value = ''
-  }
-
-  const logDo = (flag: string) => {
-    switch (flag) {
-      case 'open':
-        break
-      case 'refresh':
-        getLog()
-        break
-      case 'clean':
-        log.value = ''
-        MessageSuccess(I18nT('base.success'))
-        break
-    }
-  }
-
-  getLog()
 
   defineExpose({
     show,

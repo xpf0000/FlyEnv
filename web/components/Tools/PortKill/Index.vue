@@ -1,14 +1,14 @@
 <template>
-  <div class="host-edit port-kill">
-    <div class="nav">
-      <div class="left" @click="doClose">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">Port Kill</span>
+  <div class="port-kill tools host-edit">
+    <div class="nav p-0">
+      <div class="left">
+        <span class="text-xl">{{ $t('util.toolPortKill') }}</span>
+        <slot name="like"></slot>
       </div>
     </div>
 
-    <div class="main-wapper">
-      <div class="main">
+    <div class="main-wapper pb-0">
+      <div class="main p-0">
         <el-input
           v-model.number="port"
           placeholder="Please input port"
@@ -51,58 +51,72 @@
 <script lang="ts">
   import { markRaw, defineComponent } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { ElMessageBox } from 'element-plus'
-  import { I18nT } from '@shared/lang'
+  import { passwordCheck } from '@/util/Brew'
+  import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
+  import { execPromiseRoot } from '@shared/Exec'
 
   const SearchIcon = markRaw(Search)
   export default defineComponent({
+    name: 'MoPortKill',
     components: {},
     props: {},
     emits: ['doClose'],
-    data() {
+    data(): {
+      Search: any
+      port: string
+      arrs: Array<any>
+      select: Array<any>
+    } {
       return {
         Search: SearchIcon,
         port: '',
         arrs: [],
         select: []
-      } as {
-        Search: any
-        port: string
-        arrs: Array<any>
-        select: Array<any>
       }
     },
     computed: {},
     watch: {},
     created: function () {},
-    mounted() {},
+    mounted() {
+      passwordCheck().then(() => {})
+    },
     unmounted() {},
     methods: {
       cleanSelect() {
-        ElMessageBox.confirm(I18nT('base.killProcessConfim'), undefined, {
-          confirmButtonText: I18nT('base.confirm'),
-          cancelButtonText: I18nT('base.cancel'),
-          closeOnClickModal: false,
+        this.$baseConfirm(this.$t('base.killProcessConfim'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(() => {
-            this.$message.success(this.$t('base.success'))
-            this.doSearch()
+          .then(async () => {
+            const pids = this.select.map((s: any) => {
+              return s.PID
+            })
+            try {
+              await execPromiseRoot(['kill', '-9', ...pids])
+              MessageSuccess(this.$t('base.success'))
+              this.doSearch().then()
+            } catch (e) {
+              MessageError(this.$t('base.fail'))
+            }
           })
           .catch(() => {})
       },
       cleanAll() {
-        ElMessageBox.confirm(I18nT('base.killAllProcessConfim'), undefined, {
-          confirmButtonText: I18nT('base.confirm'),
-          cancelButtonText: I18nT('base.cancel'),
-          closeOnClickModal: false,
+        this.$baseConfirm(this.$t('base.killAllProcessConfim'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(() => {
-            this.$message.success(this.$t('base.success'))
-            this.doSearch()
+          .then(async () => {
+            const pids = this.arrs.map((s: any) => {
+              return s.PID
+            })
+            try {
+              await execPromiseRoot(['kill', '-9', ...pids])
+              MessageSuccess(this.$t('base.success'))
+              this.doSearch().then()
+            } catch (e) {
+              MessageError(this.$t('base.fail'))
+            }
           })
           .catch(() => {})
       },
@@ -114,8 +128,35 @@
       doClose() {
         this.$emit('doClose')
       },
-      doSearch() {
+      async doSearch() {
         this.arrs.splice(0)
+        const res = await execPromiseRoot(`lsof -nP -i:${this.port} | awk '{print $1,$2,$3}'`)
+        const arr = res.stdout
+          .toString()
+          .trim()
+          .split('\n')
+          .filter((v: any, i: number) => {
+            return i > 0
+          })
+          .map((a: any) => {
+            const list = a.split(' ').filter((s: string) => {
+              return s.trim().length > 0
+            })
+            const USER = list.pop()
+            const PID = list.pop()
+            const COMMAND = list.join(' ')
+            return {
+              USER,
+              PID,
+              COMMAND
+            }
+          })
+        if (arr.length === 0) {
+          MessageWarning(this.$t('base.portNotUse'))
+          return
+        }
+        this.arrs.splice(0)
+        this.arrs.push(...arr)
       }
     }
   })

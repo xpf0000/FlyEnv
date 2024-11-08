@@ -1,10 +1,10 @@
 import type BaseTask from '@web/components/AI/Task/BaseTask'
 import { AppStore } from '@web/store/app'
 import { BrewStore } from '@web/store/brew'
+import { startService } from '@web/fn'
 import { AIStore } from '@web/components/AI/store'
 import { fetchInstalled, killPort } from './Util'
 import { I18nT } from '@shared/lang'
-import { startService } from '@web/fn'
 
 export function startNginx(this: BaseTask) {
   return new Promise(async (resolve, reject) => {
@@ -12,7 +12,7 @@ export function startNginx(this: BaseTask) {
     const appStore = AppStore()
     const brewStore = BrewStore()
     const current = appStore.config.server?.nginx?.current
-    const installed = brewStore?.nginx?.installed
+    const installed = brewStore.module('nginx').installed
     let nginx = installed?.find((i) => i.path === current?.path && i.version === current?.version)
     if (!nginx || !nginx?.version) {
       nginx = installed?.find((i) => !!i.path && !!i.version)

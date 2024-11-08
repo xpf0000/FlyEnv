@@ -36,7 +36,7 @@ export class MysqlStartFail extends BaseTask {
                 }
               }
               if (port.size > 0) {
-                await killPid.call(this)
+                await killPid.call(this, Array.from(port))
               }
               startMysql
                 .call(this)
@@ -65,7 +65,7 @@ export class MysqlStartFail extends BaseTask {
                 }
               }
               if (port.size > 0) {
-                await killPort.call(this)
+                await killPort.call(this, Array.from(port))
               }
               startMysql
                 .call(this)
