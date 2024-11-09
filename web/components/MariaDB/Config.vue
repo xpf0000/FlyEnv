@@ -2,8 +2,7 @@
   <Conf
     ref="conf"
     :type-flag="'mariadb'"
-    :default-conf="defaultConf"
-    :file="file"
+    :conf="content"
     :file-ext="'cnf'"
     :show-commond="true"
     @on-type-change="onTypeChange"
@@ -15,45 +14,20 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch, Ref } from 'vue'
+  import { ref, watch, Ref } from 'vue'
   import Conf from '@web/components/Conf/index.vue'
   import Common from '@web/components/Conf/common.vue'
   import type { CommonSetItem } from '@web/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
-  import { AppStore } from '@web/store/app'
 
-  const { join } = require('path')
-
-  const appStore = AppStore()
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
 
-  const currentVersion = computed(() => {
-    return appStore.config?.server?.mariadb?.current?.version
-  })
+  const content = ref('')
 
-  const vm = computed(() => {
-    return currentVersion?.value?.split('.')?.slice(0, 2)?.join('.')
-  })
-
-  const file = computed(() => {
-    if (!vm.value) {
-      return ''
-    }
-    return join(global.Server.MariaDBDir, `my-${vm.value}.cnf`)
-  })
-
-  const defaultConf = computed(() => {
-    if (!vm.value) {
-      return ''
-    }
-    const dataDir = join(global.Server.MariaDBDir, `data-${vm.value}`)
-    return `[mariadbd]
-# Only allow connections from localhost
-bind-address = 127.0.0.1
-sql-mode=NO_ENGINE_SUBSTITUTION
-datadir=${dataDir}`
+  import('@web/config/mariadb.conf.txt?raw').then((res) => {
+    content.value = res.default
   })
 
   const names: CommonSetItem[] = [

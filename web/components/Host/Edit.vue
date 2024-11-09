@@ -263,26 +263,16 @@
 
 <script lang="ts" setup>
   import { computed, nextTick, ref, watch, Ref, onMounted, onUnmounted, reactive } from 'vue'
-  import { getAllFileAsync, readFileAsync } from '@shared/file'
-  import { passwordCheck } from '@/util/Brew'
-  import { handleHost } from '@/util/Host'
-  import { AppHost, AppStore } from '@web/store/app'
+  import { AppStore } from '@web/store/app'
   import { BrewStore } from '@web/store/brew'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { I18nT } from '@shared/lang'
-  import Base from '@web/core/Base'
   import { RewriteAll } from '@web/components/Host/store'
   import { AsyncComponentSetup } from '@web/fn'
   import { merge } from 'lodash'
   import { EditorConfigMake, EditorCreate } from '@web/fn'
-  import { MessageError } from '@/util/Element'
   import { ElMessageBox } from 'element-plus'
-  import { execPromiseRoot } from '@shared/Exec'
-  import { Plus, Minus, Delete } from '@element-plus/icons-vue'
-
-  const { dialog } = require('@electron/remote')
-  const { accessSync, constants } = require('fs')
-  const { join } = require('path')
+  import { Plus, Delete } from '@element-plus/icons-vue'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -340,7 +330,6 @@
   merge(item.value, props.edit)
   const rewrites: Ref<Array<string>> = ref([])
   const rewriteKey = ref('')
-  const rewritePath = ref('')
   const appStore = AppStore()
   const brewStore = BrewStore()
   const hosts = computed(() => {
@@ -423,7 +412,10 @@
 
   const onParkChange = () => {
     if (!park.value) {
-      return Base._Confirm(I18nT('base.parkConfim'), undefined, {
+      return ElMessageBox.confirm(I18nT('base.parkConfim'), undefined, {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
+        closeOnClickModal: false,
         customClass: 'confirm-del',
         type: 'warning'
       })
@@ -456,67 +448,27 @@
   }
 
   const rewriteChange = (flag: any) => {
-    if (!RewriteAll[flag]) {
-      let file = join(rewritePath.value, `${flag}.conf`)
-      readFileAsync(file).then((content) => {
-        RewriteAll[flag] = content
-        item.value.nginx.rewrite = content
-        monacoInstance?.setValue(item.value.nginx.rewrite)
-      })
-    } else {
-      item.value.nginx.rewrite = RewriteAll[flag]
-      monacoInstance?.setValue(item.value.nginx.rewrite)
-    }
+    item.value.nginx.rewrite = RewriteAll[flag]
+    monacoInstance?.setValue(item.value.nginx.rewrite)
   }
 
   const loadRewrite = () => {
     rewrites.value.splice(0)
-    rewritePath.value = join(global.Server.Static, 'rewrite')
-    if (Object.keys(RewriteAll).length === 0) {
-      getAllFileAsync(rewritePath.value, false).then((files) => {
-        files = files.sort()
-        for (let file of files) {
-          let k = file.replace('.conf', '')
-          RewriteAll[k] = ''
-          rewrites.value.push(k)
-        }
-      })
-    } else {
-      rewrites.value.push(...Object.keys(RewriteAll))
-    }
+    rewrites.value.push(...Object.keys(RewriteAll))
   }
 
-  const chooseRoot = (flag: 'root' | 'certkey' | 'cert', choosefile = false) => {
-    const options: any = {}
-    let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
-    if (choosefile) {
-      opt.push('openFile')
+  const chooseRoot = (flag: string) => {
+    switch (flag) {
+      case 'root':
+        item.value.root = '/Users/XXX/Desktop/WWW/xxxx'
+        break
+      case 'cert':
+        item.value.ssl.cert = '/Users/XXX/Desktop/WWW/xxxx.cert'
+        break
+      case 'certkey':
+        item.value.ssl.key = '/Users/XXX/Desktop/WWW/xxxx.key'
+        break
     }
-    options.properties = opt
-    if (flag === 'root' && item?.value?.root) {
-      options.defaultPath = item.value.root
-    } else if (flag === 'cert' && item?.value?.ssl?.cert) {
-      options.defaultPath = item.value.ssl.cert
-    } else if (flag === 'certkey' && item?.value?.ssl?.key) {
-      options.defaultPath = item.value.ssl.key
-    }
-    dialog.showOpenDialog(options).then(({ canceled, filePaths }: any) => {
-      if (canceled || filePaths.length === 0) {
-        return
-      }
-      const [path] = filePaths
-      switch (flag) {
-        case 'root':
-          item.value.root = path
-          break
-        case 'cert':
-          item.value.ssl.cert = path
-          break
-        case 'certkey':
-          item.value.ssl.key = path
-          break
-      }
-    })
   }
 
   const checkItem = () => {
@@ -573,53 +525,18 @@
     if (!checkItem()) {
       return
     }
-    const saveFn = () => {
-      running.value = true
-      let flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-      let access = false
-      try {
-        accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
-        access = true
-        console.log('可以读写')
-      } catch (err) {
-        console.error('无权访问')
+    running.value = true
+    item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
+    if (props.isEdit) {
+      const find = appStore.hosts.findIndex((h) => h.id === props.edit.id)
+      if (find >= 0) {
+        appStore.hosts.splice(find, 1, JSON.parse(JSON.stringify(item.value)))
       }
-      passwordCheck().then(() => {
-        item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
-        if (!access) {
-          execPromiseRoot(`chmod 777 /private/etc`.split(' '))
-            .then(() => {
-              return execPromiseRoot(`chmod 777 /private/etc/hosts`.split(' '))
-            })
-            .then(() => {
-              handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
-                running.value = false
-                show.value = false
-              })
-            })
-            .catch(() => {
-              MessageError(I18nT('base.hostNoRole'))
-              running.value = false
-            })
-        } else {
-          handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
-            running.value = false
-            show.value = false
-          })
-        }
-      })
-    }
-    if (!item.value.phpVersion && !props.isEdit) {
-      ElMessageBox.confirm(I18nT('host.noPhpWarning'), I18nT('host.warning'), {
-        confirmButtonText: I18nT('base.confirm'),
-        cancelButtonText: I18nT('base.cancel'),
-        type: 'warning'
-      }).then(() => {
-        saveFn()
-      })
     } else {
-      saveFn()
+      appStore.hosts.unshift(JSON.parse(JSON.stringify(item.value)))
     }
+    running.value = false
+    show.value = false
   }
 
   loadRewrite()

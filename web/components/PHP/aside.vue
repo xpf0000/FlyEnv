@@ -19,7 +19,6 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { startService, stopService } from '@web/fn'
-  import { passwordCheck } from '@/util/Brew'
   import { AppStore } from '@web/store/app'
   import { BrewStore } from '@web/store/brew'
   import { I18nT } from '@shared/lang'
@@ -40,29 +39,27 @@
       return phpVersions?.value?.length > 0 && phpVersions?.value?.some((v) => v.run)
     },
     set(v: boolean) {
-      passwordCheck().then(() => {
-        const all: Array<Promise<any>> = []
-        if (v) {
-          phpVersions?.value?.forEach((v) => {
-            if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
-              all.push(startService('php', v))
-            }
-          })
-        } else {
-          phpVersions?.value?.forEach((v) => {
-            if (v?.version && v?.run) {
-              all.push(stopService('php', v))
-            }
-          })
-        }
-        Promise.all(all).then((res) => {
-          let find = res.find((s) => typeof s === 'string')
-          if (find) {
-            MessageError(find)
-          } else {
-            MessageSuccess(I18nT('base.success'))
+      const all: Array<Promise<any>> = []
+      if (v) {
+        phpVersions?.value?.forEach((v) => {
+          if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
+            all.push(startService('php', v))
           }
         })
+      } else {
+        phpVersions?.value?.forEach((v) => {
+          if (v?.version && v?.run) {
+            all.push(stopService('php', v))
+          }
+        })
+      }
+      Promise.all(all).then((res) => {
+        let find = res.find((s) => typeof s === 'string')
+        if (find) {
+          MessageError(find)
+        } else {
+          MessageSuccess(I18nT('base.success'))
+        }
       })
     }
   })

@@ -110,16 +110,12 @@
 
 <script lang="ts" setup>
   import { ref, computed } from 'vue'
-  import installedVersions from '@/util/InstalledVersions'
   import { BrewStore, SoftInstalled } from '@web/store/brew'
-  import { AsyncComponentShow } from '@web/fn'
+  import { AsyncComponentShow, dirname, waitTime } from '@web/fn'
   import { Service } from '@web/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '@web/components/ServiceManager/EXT/store'
   import { I18nT } from '@shared/lang'
-
-  const { shell } = require('@electron/remote')
-  const { dirname } = require('path')
 
   if (!Service.java) {
     Service.java = {
@@ -171,7 +167,7 @@
     }
     initing.value = true
     service.value.fetching = true
-    installedVersions.allInstalledVersions(['java']).then(() => {
+    waitTime().then(() => {
       initing.value = false
       service.value.fetching = false
     })
@@ -190,14 +186,12 @@
     service.value.fetching = true
     const data = brewStore.module('java')
     data.installedInited = false
-    installedVersions.allInstalledVersions(['java']).then(() => {
+    waitTime().then(() => {
       service.value.fetching = false
     })
   }
 
-  const openDir = (dir: string) => {
-    shell.openPath(dir)
-  }
+  const openDir = (dir: string) => {}
 
   init()
   ServiceActionStore.fetchPath()

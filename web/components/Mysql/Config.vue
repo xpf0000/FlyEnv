@@ -2,8 +2,7 @@
   <Conf
     ref="conf"
     :type-flag="'mysql'"
-    :default-conf="defaultConf"
-    :file="file"
+    :conf="content"
     :file-ext="'cnf'"
     :show-commond="true"
     @on-type-change="onTypeChange"
@@ -15,51 +14,19 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch, Ref } from 'vue'
+  import { ref, watch, Ref } from 'vue'
   import Conf from '@web/components/Conf/index.vue'
   import Common from '@web/components/Conf/common.vue'
   import type { CommonSetItem } from '@web/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
-  import { AppStore } from '@web/store/app'
 
-  const { join } = require('path')
-
-  const appStore = AppStore()
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
+  const content = ref('')
 
-  const currentVersion = computed(() => {
-    return appStore.config?.server?.mysql?.current?.version
-  })
-
-  const vm = computed(() => {
-    return currentVersion?.value?.split('.')?.slice(0, 2)?.join('.')
-  })
-
-  const file = computed(() => {
-    if (!vm.value) {
-      return ''
-    }
-    return join(global.Server.MysqlDir, `my-${vm.value}.cnf`)
-  })
-
-  const defaultConf = computed(() => {
-    if (!vm.value) {
-      return ''
-    }
-    const oldm = join(global.Server.MysqlDir, 'my.cnf')
-    const dataDir = join(global.Server.MysqlDir, `data-${vm.value}`)
-    return `[mysqld]
-# Only allow connections from localhost
-bind-address = 127.0.0.1
-sql-mode=NO_ENGINE_SUBSTITUTION
-
-#设置数据目录
-#brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
-#如果配置文件已更改, 原配置文件在: ${oldm}
-#可以复制原配置文件的内容, 使用原来的配置
-datadir=${dataDir}`
+  import('@web/config/mysql.conf.txt?raw').then((res) => {
+    content.value = res.default
   })
 
   const names: CommonSetItem[] = [
@@ -75,7 +42,6 @@ datadir=${dataDir}`
       name: 'query_cache_size',
       value: '32M',
       enable: true,
-      show: vm?.value?.startsWith('5.'),
       tips() {
         return I18nT('mysql.query_cache_size')
       }

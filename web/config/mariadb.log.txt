@@ -1,0 +1,19 @@
+231019 16:58:41 mysqld_safe Starting mariadbd daemon with databases from /Users/x/Library/PhpWebStudy/server/mariadb/data-10.10
+2023-10-19 16:58:42 0 [Note] Starting MariaDB 10.10.6-MariaDB-log source revision cce155cc901a573d68ccda856bbf53e90edef15d as process 31290
+2023-10-19 16:58:42 0 [Warning] Setting lower_case_table_names=2 because file system for /Users/x/Library/PhpWebStudy/server/mariadb/data-10.10/ is case insensitive
+2023-10-19 16:58:42 0 [Note] InnoDB: Compressed tables use zlib 1.2.11
+2023-10-19 16:58:42 0 [Note] InnoDB: Number of transaction pools: 1
+2023-10-19 16:58:42 0 [Note] InnoDB: Using crc32 + pclmulqdq instructions
+2023-10-19 16:58:42 0 [Note] InnoDB: Initializing buffer pool, total size = 128.000MiB, chunk size = 2.000MiB
+2023-10-19 16:58:42 0 [Note] InnoDB: Completed initialization of buffer pool
+2023-10-19 16:58:42 0 [Note] InnoDB: End of log at LSN=46438
+2023-10-19 16:58:42 0 [Note] InnoDB: 128 rollback segments are active.
+2023-10-19 16:58:42 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2023-10-19 16:58:42 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2023-10-19 16:58:42 0 [Note] InnoDB: log sequence number 46438; transaction id 14
+2023-10-19 16:58:42 0 [Note] InnoDB: Loading buffer pool(s) from /Users/x/Library/PhpWebStudy/server/mariadb/data-10.10/ib_buffer_pool
+2023-10-19 16:58:42 0 [Note] Plugin 'FEEDBACK' is disabled.
+2023-10-19 16:58:42 0 [Note] InnoDB: Buffer pool(s) load completed at 231019 16:58:42
+2023-10-19 16:58:42 0 [Note] Server socket created on IP: '127.0.0.1'.
+2023-10-19 16:58:42 0 [Note] /usr/local/Cellar/mariadb@10.10/10.10.6/bin/mariadbd: ready for connections.
+Version: '10.10.6-MariaDB-log'  socket: '/Users/x/Library/PhpWebStudy/server/mysql/mariadb.sock'  port: 3307  Homebrew

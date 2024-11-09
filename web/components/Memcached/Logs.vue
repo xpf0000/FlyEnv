@@ -15,8 +15,9 @@
   import LogVM from '@web/components/Log/index.vue'
   import ToolVM from '@web/components/Log/tool.vue'
 
-  const { join } = require('path')
-
   const log = ref()
-  const filepath = ref(join(global.Server.MemcachedDir, 'logs/memcached.log'))
+  const filepath = ref('')
+  import('@web/config/memcached.log.txt?raw').then((res) => {
+    filepath.value = res.default
+  })
 </script>

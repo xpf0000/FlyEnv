@@ -46,7 +46,6 @@
 <script lang="ts">
   import { defineComponent, reactive } from 'vue'
   import { AppStore } from '@web/store/app'
-  import { MessageError } from '@/util/Element'
   import { waitTime } from '@web/fn'
   import { ElMessageBox } from 'element-plus'
   import { I18nT } from '@shared/lang'

@@ -29,8 +29,6 @@
   import ToolVM from '@web/components/Log/tool.vue'
   import type { SoftInstalled } from '@web/store/brew'
 
-  const { join } = require('path')
-
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -44,9 +42,7 @@
     return props.type === 'php-fpm-slow' ? I18nT('base.slowLog') : I18nT('php.fpmLog')
   })
 
-  const filepath = computed(() => {
-    return join(global.Server.PhpDir, `${props.version.num}`, `var/log/${props.type}.log`)
-  })
+  const filepath = ref('Log')
 
   const close = () => {
     show.value = false

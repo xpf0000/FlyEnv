@@ -1,0 +1,11 @@
+2024-11-09T02:57:02.6NZ mysqld_safe Logging to '/Users/x/Library/PhpWebStudy/server/mysql/error.log'.
+2024-11-09T02:57:02.6NZ mysqld_safe Starting mysqld daemon with databases from /Users/x/Library/PhpWebStudy/server/mysql/data-8.3
+2024-11-09T02:57:04.278543Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+2024-11-09T02:57:04.858832Z 0 [System] [MY-010116] [Server] /usr/local/Cellar/mysql/8.3.0_1/bin/mysqld (mysqld 8.3.0) starting as process 9770
+2024-11-09T02:57:04.947501Z 0 [Warning] [MY-010159] [Server] Setting lower_case_table_names=2 because file system for /Users/x/Library/PhpWebStudy/server/mysql/data-8.3/ is case insensitive
+2024-11-09T02:57:05.035134Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2024-11-09T02:57:06.213923Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2024-11-09T02:57:06.850356Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2024-11-09T02:57:06.850442Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2024-11-09T02:57:06.924497Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /tmp/mysqlx.sock
+2024-11-09T02:57:06.924668Z 0 [System] [MY-010931] [Server] /usr/local/Cellar/mysql/8.3.0_1/bin/mysqld: ready for connections. Version: '8.3.0'  socket: '/tmp/mysql.sock'  port: 3306  Homebrew.

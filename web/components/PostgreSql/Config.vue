@@ -2,8 +2,7 @@
   <Conf
     ref="conf"
     :type-flag="'postgresql'"
-    :default-file="defaultFile"
-    :file="file"
+    :conf="content"
     :file-ext="'conf'"
     :show-commond="false"
   >
@@ -11,33 +10,13 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
+  import { ref } from 'vue'
   import Conf from '@web/components/Conf/index.vue'
-  import { AppStore } from '@web/store/app'
-
-  const { join, dirname } = require('path')
-
-  const appStore = AppStore()
-
-  const currentVersion = computed(() => {
-    return appStore.config?.server?.postgresql?.current?.version
-  })
 
   const conf = ref()
-  const file = computed(() => {
-    if (!currentVersion.value) {
-      return ''
-    }
-    const version = currentVersion?.value ?? ''
-    const versionTop = version.split('.').shift()
-    const dbPath = join(global.Server.PostgreSqlDir, `postgresql${versionTop}`)
-    return join(dbPath, 'postgresql.conf')
-  })
+  const content = ref('')
 
-  const defaultFile = computed(() => {
-    if (!file.value) {
-      return ''
-    }
-    return join(dirname(file.value), `postgresql.conf.default`)
+  import('@web/config/postgresql.conf.txt?raw').then((res) => {
+    content.value = res.default
   })
 </script>

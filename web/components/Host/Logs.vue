@@ -34,45 +34,19 @@
   import LogVM from '@web/components/Log/index.vue'
   import ToolVM from '@web/components/Log/tool.vue'
 
-  const { join } = require('path')
-
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
-  const props = defineProps<{
+  defineProps<{
     name: string
   }>()
 
-  const type = ref('')
-  const filepath = ref('')
-  const logfile = ref({})
+  const type = ref('caddy')
+  const filepath = ref('Log')
   const log = ref()
-
-  const init = () => {
-    let logpath = join(global.Server.BaseDir, 'vhost/logs')
-    let accesslogng = join(logpath, `${props.name}.log`)
-    let errorlogng = join(logpath, `${props.name}.error.log`)
-    let accesslogap = join(logpath, `${props.name}-access_log`)
-    let errorlogap = join(logpath, `${props.name}-error_log`)
-    let caddyLog = join(logpath, `${props.name}.caddy.log`)
-    logfile.value = {
-      'nginx-access': accesslogng,
-      'nginx-error': errorlogng,
-      'apache-access': accesslogap,
-      'apache-error': errorlogap,
-      caddy: caddyLog
-    }
-  }
 
   const initType = (t: string) => {
     type.value = t
-    const logFile: { [key: string]: string } = logfile.value
-    filepath.value = logFile[t] ?? ''
-    localStorage.setItem('PhpWebStudy-Host-Log-Type', t)
   }
-
-  init()
-  const saveType = localStorage.getItem('PhpWebStudy-Host-Log-Type') ?? 'nginx-access'
-  initType(saveType)
 
   defineExpose({
     show,

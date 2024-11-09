@@ -14,12 +14,13 @@
   import LogVM from '@web/components/Log/index.vue'
   import ToolVM from '@web/components/Log/tool.vue'
 
-  const { join } = require('path')
-
-  const props = defineProps<{
+  defineProps<{
     type: string
   }>()
 
   const log = ref()
-  const filepath = ref(join(global.Server.MysqlDir, `${props.type}.log`))
+  const filepath = ref('')
+  import('@web/config/mysql.log.txt?raw').then((res) => {
+    filepath.value = res.default
+  })
 </script>

@@ -47,12 +47,9 @@
     return I18nT('base.slowLog')
   })
 
-  const filepath = computed(() => {
-    const id = props.item.id
-    if (props.flag === 'log') {
-      return join(global.Server.MysqlDir!, `group/my-group-${id}-error.log`)
-    }
-    return join(global.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
+  const filepath = ref('')
+  import('@web/config/mysql.log.txt?raw').then((res) => {
+    filepath.value = res.default
   })
 
   const close = () => {

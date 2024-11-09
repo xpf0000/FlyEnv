@@ -46,8 +46,6 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
   import Popper from './SetupPopper.vue'
 
-  const { shell } = require('@electron/remote')
-
   const mysqlStore = MysqlStore()
 
   mysqlStore.init().then()
@@ -91,9 +89,7 @@
     mysqlStore.stop(data).then(handleRes)
   }
 
-  const showItem = (dir: string) => {
-    shell.showItemInFolder(dir)
-  }
+  const showItem = (dir: string) => {}
 
   const columns: Column<any>[] = [
     {

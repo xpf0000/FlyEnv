@@ -2,8 +2,7 @@
   <Conf
     ref="conf"
     :type-flag="'nginx'"
-    :default-file="defaultFile"
-    :file="file"
+    :conf="content"
     :file-ext="'conf'"
     :show-commond="true"
     @on-type-change="onTypeChange"
@@ -15,22 +14,19 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch, Ref } from 'vue'
+  import { ref, watch, Ref } from 'vue'
   import Conf from '@web/components/Conf/index.vue'
   import Common from '@web/components/Conf/common.vue'
   import type { CommonSetItem } from '@web/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
 
-  const { join } = require('path')
-
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
-  const file = computed(() => {
-    return join(global.Server.NginxDir, 'common/conf/nginx.conf')
-  })
-  const defaultFile = computed(() => {
-    return join(global.Server.NginxDir, 'common/conf/nginx.conf.default')
+  const content = ref('')
+
+  import('@web/config/nginx.conf.txt?raw').then((res) => {
+    content.value = res.default
   })
 
   const names: CommonSetItem[] = [

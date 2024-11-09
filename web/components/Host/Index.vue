@@ -82,15 +82,13 @@
 </template>
 
 <script lang="ts" setup>
-  import { reactive, computed, watch, onMounted } from 'vue'
+  import { computed, watch, onMounted } from 'vue'
   import List from './ListTable.vue'
-  import IPC from '@/util/IPC'
   import { AppStore } from '@web/store/app'
-  import { readFileAsync, writeFileAsync } from '@shared/file'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@web/fn'
   import { More, ArrowDown } from '@element-plus/icons-vue'
-  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { MessageSuccess } from '@/util/Element'
   import type { AppHost } from '@shared/app'
   import { type HostProjectType, HostStore } from './store'
   import ListJava from './Java/ListTable.vue'
@@ -98,10 +96,6 @@
   import ListGo from './Go/ListTable.vue'
   import ListPython from './Python/ListTable.vue'
   import ListTomcat from './Tomcat/ListTable.vue'
-
-  const { statSync, existsSync, copyFileSync } = require('fs')
-  const { dialog, clipboard, shell } = require('@electron/remote')
-  const { join, dirname } = require('path')
 
   const appStore = AppStore()
 
@@ -155,14 +149,10 @@
 
   watch(hostWrite, () => {
     hostsWrite()
-    appStore.saveConfig()
   })
 
   const hostsWrite = (showTips = true) => {
-    IPC.send('app-fork:host', 'writeHosts', hostWrite.value).then((key: string) => {
-      IPC.off(key)
-      showTips && MessageSuccess(I18nT('base.success'))
-    })
+    showTips && MessageSuccess(I18nT('base.success'))
   }
   const hostAlias = (item: AppHost) => {
     const alias = item.alias
@@ -195,118 +185,21 @@
           const alias = hostAlias(item as any)
           host.push(`127.0.0.1     ${alias}`)
         }
-        clipboard.writeText(host.join('\n'))
         MessageSuccess(I18nT('base.copySuccess'))
         break
       case 'hostsOpen':
-        const file = join(global.Server.BaseDir, 'app.hosts.txt')
-        shell.showItemInFolder(file)
         break
     }
   }
-  const doExport = () => {
-    let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-    dialog
-      .showSaveDialog({
-        properties: opt,
-        defaultPath: 'hosts-custom.json',
-        filters: [
-          {
-            extensions: ['json']
-          }
-        ]
-      })
-      .then(({ canceled, filePath }: any) => {
-        if (canceled || !filePath) {
-          return
-        }
-        const nginxVPath = join(global.Server.BaseDir, 'vhost/nginx')
-        const apacheVPath = join(global.Server.BaseDir, 'vhost/apache')
-        const rewriteVPath = join(global.Server.BaseDir, 'vhost/rewrite')
-        writeFileAsync(filePath, JSON.stringify(hosts.value)).then(() => {
-          const saveDir = dirname(filePath)
-          hosts.value.forEach((h) => {
-            const name = `${h.name}.conf`
-            const dict: { [key: string]: string } = {}
-            dict[join(apacheVPath, name)] = join(saveDir, `${h.name}.apache.conf`)
-            dict[join(nginxVPath, name)] = join(saveDir, `${h.name}.nginx.conf`)
-            dict[join(rewriteVPath, name)] = join(saveDir, `${h.name}.rewrite.conf`)
-            for (const old in dict) {
-              if (existsSync(old)) {
-                copyFileSync(old, dict[old])
-              }
-            }
-          })
-          MessageSuccess(I18nT('base.success'))
-        })
-      })
-  }
-  const doImport = () => {
-    let opt = ['openFile', 'showHiddenFiles']
-    dialog
-      .showOpenDialog({
-        properties: opt,
-        filters: [
-          {
-            extensions: ['json']
-          }
-        ]
-      })
-      .then(({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const file = filePaths[0]
-        const state = statSync(file)
-        if (state.size > 5 * 1024 * 1024) {
-          MessageError(I18nT('base.fileBigErr'))
-          return
-        }
-        readFileAsync(file).then((conf) => {
-          let arr = []
-          try {
-            arr = JSON.parse(conf)
-          } catch (e) {
-            MessageError(I18nT('base.fail'))
-            return
-          }
-          const keys = ['id', 'name', 'alias', 'useSSL', 'ssl', 'port', 'nginx', 'root']
-          const check = arr.every((a: any) => {
-            const aKeys = Object.keys(a)
-            return keys.every((k) => aKeys.includes(k))
-          })
-          if (!check) {
-            MessageError(I18nT('base.fail'))
-            return
-          }
-          arr = arr.map((a: any) => reactive(a))
-          hosts.value.splice(0)
-          hosts.value.push(...arr)
-          writeFileAsync(join(global.Server.BaseDir, 'host.json'), conf)
-          const baseDir = dirname(file)
-          const nginxVPath = join(global.Server.BaseDir, 'vhost/nginx')
-          const apacheVPath = join(global.Server.BaseDir, 'vhost/apache')
-          const rewriteVPath = join(global.Server.BaseDir, 'vhost/rewrite')
-          arr.forEach((h: any) => {
-            const name = `${h.name}.conf`
-            const dict: { [key: string]: string } = {}
-            dict[join(baseDir, `${h.name}.apache.conf`)] = join(apacheVPath, name)
-            dict[join(baseDir, `${h.name}.nginx.conf`)] = join(nginxVPath, name)
-            dict[join(baseDir, `${h.name}.rewrite.conf`)] = join(rewriteVPath, name)
-            for (const old in dict) {
-              if (existsSync(old)) {
-                copyFileSync(old, dict[old])
-              }
-            }
-          })
-          hostsWrite()
-        })
-      })
-  }
+  const doExport = () => {}
+  const doImport = () => {}
+
+  let HostsVM: any
+  import('./Hosts.vue').then((res) => {
+    HostsVM = res.default
+  })
   const openHosts = () => {
-    import('./Hosts.vue').then((res) => {
-      res.default.show().then()
-    })
+    AsyncComponentShow(HostsVM).then()
   }
   let EditVM: any
   import('./Edit.vue').then((res) => {
@@ -354,9 +247,6 @@
   }
 
   onMounted(() => {
-    if (appStore.hosts.length === 0) {
-      appStore.initHost()
-    }
     hostsWrite(false)
   })
 </script>

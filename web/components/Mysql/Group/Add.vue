@@ -64,16 +64,13 @@
 </template>
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
-  import { AsyncComponentSetup } from '@web/fn'
+  import { AsyncComponentSetup, uuid } from '@web/fn'
   import { I18nT } from '@shared/lang'
-  import { uuid } from '@shared/utils'
   import { BrewStore } from '@web/store/brew'
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
   import { MysqlStore } from '../mysql'
 
-  const { join } = require('path')
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -93,7 +90,7 @@
   Object.assign(form.value, props.item)
   form.value.path = props?.item?.version?.path ?? ''
   if (!form.value.dataDir) {
-    form.value.dataDir = join(global.Server.MysqlDir, `group/mysql-group-${form.value.id}`)
+    form.value.dataDir = `/Users/XXX/PhpWebStudy/group/mysql-group-${form.value.id}`
   }
 
   const errs = ref({
@@ -138,17 +135,7 @@
     if (running?.value) {
       return
     }
-    dialog
-      .showOpenDialog({
-        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
-      })
-      .then(({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const [path] = filePaths
-        form.value.dataDir = path
-      })
+    form.value.dataDir = '/Users/XXX/Desktop/Web/xxxx'
   }
 
   const doSave = () => {

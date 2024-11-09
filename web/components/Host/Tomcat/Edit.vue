@@ -135,14 +135,10 @@
 
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
-  import { passwordCheck } from '@/util/Brew'
-  import { handleHost } from '@/util/Host'
-  import { AppHost, AppStore } from '@web/store/app'
+  import { AppStore } from '@web/store/app'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@web/fn'
   import { merge } from 'lodash'
-
-  const { dialog } = require('@electron/remote')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -211,37 +207,18 @@
     }
   })
 
-  const chooseRoot = (flag: 'root' | 'certkey' | 'cert', choosefile = false) => {
-    const options: any = {}
-    let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
-    if (choosefile) {
-      opt.push('openFile')
+  const chooseRoot = (flag: 'root' | 'certkey' | 'cert') => {
+    switch (flag) {
+      case 'root':
+        item.value.root = '/Users/XXX/Desktop/WWW/xxxx'
+        break
+      case 'certkey':
+        item.value.ssl.key = '/Users/XXX/Desktop/WWW/ssl.key'
+        break
+      case 'cert':
+        item.value.ssl.cert = '/Users/XXX/Desktop/WWW/ssl.cert'
+        break
     }
-    options.properties = opt
-    if (flag === 'root' && item?.value?.root) {
-      options.defaultPath = item.value.root
-    } else if (flag === 'cert' && item?.value?.ssl?.cert) {
-      options.defaultPath = item.value.ssl.cert
-    } else if (flag === 'certkey' && item?.value?.ssl?.key) {
-      options.defaultPath = item.value.ssl.key
-    }
-    dialog.showOpenDialog(options).then(({ canceled, filePaths }: any) => {
-      if (canceled || filePaths.length === 0) {
-        return
-      }
-      const [path] = filePaths
-      switch (flag) {
-        case 'root':
-          item.value.root = path
-          break
-        case 'cert':
-          item.value.ssl.cert = path
-          break
-        case 'certkey':
-          item.value.ssl.key = path
-          break
-      }
-    })
   }
 
   const checkItem = () => {
@@ -280,18 +257,17 @@
     if (!checkItem()) {
       return
     }
-    const saveFn = () => {
-      running.value = true
-      passwordCheck().then(() => {
-        const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-        const data = JSON.parse(JSON.stringify(item.value))
-        handleHost(data, flag, props.edit as AppHost, false).then(() => {
-          running.value = false
-          show.value = false
-        })
-      })
+    running.value = true
+    if (props.isEdit) {
+      const find = appStore.hosts.findIndex((h) => h.id === props.edit.id)
+      if (find >= 0) {
+        appStore.hosts.splice(find, 1, JSON.parse(JSON.stringify(item.value)))
+      }
+    } else {
+      appStore.hosts.unshift(JSON.parse(JSON.stringify(item.value)))
     }
-    saveFn()
+    running.value = false
+    show.value = false
   }
 
   defineExpose({

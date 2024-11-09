@@ -2,9 +2,6 @@ import { reactive, watch } from 'vue'
 import type { AppHost } from '@web/store/app'
 import { AppStore } from '@web/store/app'
 
-const { join } = require('path')
-const { writeFile } = require('fs-extra')
-
 export const RewriteAll: { [key: string]: any } = {}
 
 export type HostProjectType = 'php' | 'java' | 'node' | 'go' | 'python' | 'html' | 'tomcat'
@@ -53,11 +50,9 @@ export const HostStore: HostStoreType = reactive({
   },
   save() {
     const store = AppStore()
-    const hostfile = join(global.Server.BaseDir!, 'host.json')
     const list = Object.values(this._list).flat()
     const arr = store.hosts.filter((h) => !list.find((f) => f.id === h.id))
     arr.push(...list)
-    writeFile(hostfile, JSON.stringify(arr)).then()
     store.hosts = reactive(arr)
   }
 } as HostStoreType)

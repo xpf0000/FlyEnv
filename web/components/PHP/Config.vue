@@ -18,8 +18,7 @@
       <Conf
         ref="conf"
         :type-flag="'php'"
-        :default-file="defaultFile"
-        :file="file"
+        :conf="content"
         :file-ext="'ini'"
         :show-commond="true"
         @on-type-change="onTypeChange"
@@ -32,36 +31,27 @@
   </el-drawer>
 </template>
 <script lang="ts" setup>
-  import { computed, ref, watch, Ref } from 'vue'
+  import { ref, watch, Ref } from 'vue'
   import Conf from '@web/components/Conf/drawer.vue'
   import Common from '@web/components/Conf/common.vue'
-  import { type CommonSetItem, ConfStore } from '@web/components/Conf/setup'
+  import { type CommonSetItem } from '@web/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
   import { SoftInstalled } from '@web/store/brew'
-  import IPC from '@/util/IPC'
   import { AsyncComponentSetup } from '@web/fn'
 
-  const props = defineProps<{
+  defineProps<{
     version: SoftInstalled
   }>()
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
-  const flag = computed(() => {
-    return props?.version?.phpBin ?? props?.version?.path
-  })
-
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
-  const file = computed(() => {
-    return ConfStore.phpIniFiles?.[flag?.value] ?? ''
-  })
-  const defaultFile = computed(() => {
-    if (!file.value) {
-      return ''
-    }
-    return `${file.value}.default`
+  const content = ref('')
+
+  import('@web/config/php.conf.txt?raw').then((res) => {
+    content.value = res.default
   })
 
   const names: CommonSetItem[] = [
@@ -276,19 +266,6 @@
       editConfig = config
       getCommonSetting()
     }
-  }
-
-  if (flag.value && !file.value) {
-    IPC.send('app-fork:php', 'getIniPath', JSON.parse(JSON.stringify(props.version))).then(
-      (key: string, res: any) => {
-        console.log(res)
-        IPC.off(key)
-        if (res.code === 0) {
-          ConfStore.phpIniFiles[flag.value] = res.data
-          ConfStore.save()
-        }
-      }
-    )
   }
 
   defineExpose({ show, onClosed, onSubmit, closedFn })

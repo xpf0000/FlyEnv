@@ -29,8 +29,6 @@
   import { I18nT } from '@shared/lang'
   import { MessageSuccess } from '@/util/Element'
 
-  const { shell, clipboard } = require('@electron/remote')
-
   const props = defineProps<{
     host: AppHost
   }>()
@@ -78,13 +76,10 @@
   }
 
   const copy = (url: string) => {
-    clipboard.writeText(url)
     MessageSuccess(I18nT('base.linkCopySuccess'))
   }
 
-  const open = (url: string) => {
-    shell.openExternal(url)
-  }
+  const open = (url: string) => {}
 
   getHosts()
 

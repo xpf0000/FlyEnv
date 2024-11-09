@@ -165,19 +165,16 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, onMounted, nextTick, onBeforeUnmount, type Ref } from 'vue'
-  import { handleHost } from '@/util/Host'
+  import { ref, computed, onMounted, nextTick, onBeforeUnmount, type Ref, reactive } from 'vue'
   import { AppStore } from '@web/store/app'
   import { BrewStore } from '@web/store/brew'
   import QrcodePopper from './Qrcode/Index.vue'
-  import Base from '@web/core/Base'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentShow } from '@web/fn'
+  import { AsyncComponentShow, waitTime } from '@web/fn'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'
   import { HostStore } from '@web/components/Host/store'
-
-  const { shell } = require('@electron/remote')
+  import { ElMessageBox } from 'element-plus'
 
   const hostList = ref()
   const loading = ref(false)
@@ -308,11 +305,7 @@
     return `${host}${portStr}`
   }
 
-  const openSite = (item: any) => {
-    const name = siteName(item)
-    const url = `http://${name}`
-    shell.openExternal(url)
-  }
+  const openSite = (item: any) => {}
 
   let EditVM: any
   import('./Edit.vue').then((res) => {
@@ -337,7 +330,6 @@
     task_index.value = index
     switch (flag) {
       case 'open':
-        shell.showItemInFolder(item.root)
         break
       case 'edit':
         AsyncComponentShow(EditVM, {
@@ -351,15 +343,18 @@
         }).then()
         break
       case 'del':
-        Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+        ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+          confirmButtonText: I18nT('base.confirm'),
+          cancelButtonText: I18nT('base.cancel'),
+          closeOnClickModal: false,
           customClass: 'confirm-del',
           type: 'warning'
+        }).then(() => {
+          const index = appStore.hosts.findIndex((h) => h.id === item.id)
+          if (index >= 0) {
+            appStore.hosts.splice(index, 1)
+          }
         })
-          .then(() => {
-            item.deling = true
-            handleHost(item, 'del')
-          })
-          .catch(() => {})
         break
       case 'link':
         console.log('item: ', item)
@@ -369,13 +364,16 @@
         break
       case 'park':
         console.log('item: ', item)
-        Base._Confirm(I18nT('host.parkConfim'), undefined, {
+        ElMessageBox.confirm(I18nT('host.parkConfim'), undefined, {
+          confirmButtonText: I18nT('base.confirm'),
+          cancelButtonText: I18nT('base.cancel'),
+          closeOnClickModal: false,
           customClass: 'confirm-del',
           type: 'warning'
         })
           .then(() => {
             loading.value = true
-            handleHost(item, 'edit', item, true).then(() => {
+            waitTime().then(() => {
               loading.value = false
             })
           })
@@ -442,12 +440,10 @@
         quickEdit.value.name = quickEditBack?.name ?? ''
       }
       if (!isEqual(quickEdit.value, quickEditBack)) {
-        handleHost(
-          JSON.parse(JSON.stringify(quickEdit.value)),
-          'edit',
-          quickEditBack as any,
-          false
-        ).then()
+        const index = appStore.hosts.findIndex((h) => h.id === quickEdit?.value?.id)
+        if (index >= 0) {
+          appStore.hosts.splice(index, 1, reactive(JSON.parse(JSON.stringify(quickEdit.value))))
+        }
       }
       quickEdit.value = undefined
       quickEditTr.value = undefined

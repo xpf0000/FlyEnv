@@ -175,11 +175,8 @@
 
 <script lang="ts" setup>
   import { ref, computed, reactive } from 'vue'
-  import { startService, stopService } from '@web/fn'
-  import installedVersions from '@/util/InstalledVersions'
-  import IPC from '@/util/IPC'
+  import { dirname, join, startService, stopService, waitTime } from '@web/fn'
   import { BrewStore, SoftInstalled } from '@web/store/brew'
-  import { ElLoading } from 'element-plus'
   import { I18nT } from '@shared/lang'
   import { AsyncComponentShow } from '@web/fn'
   import { AppStore } from '@web/store/app'
@@ -187,9 +184,6 @@
   import { Service } from '@web/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '@web/components/ServiceManager/EXT/store'
-
-  const { shell } = require('@electron/remote')
-  const { dirname, join } = require('path')
 
   if (!Service.php) {
     Service.php = {
@@ -237,7 +231,7 @@
       return
     }
     initing.value = true
-    installedVersions.allInstalledVersions(['php']).then(() => {
+    waitTime().then(() => {
       initing.value = false
     })
   }
@@ -246,10 +240,6 @@
     const data = php.value
     data.installedInited = false
     init()
-  }
-
-  const checkBrew = (item: SoftInstalled) => {
-    return !!global.Server.BrewCellar && item?.bin?.includes('/Cellar/')
   }
 
   const doRun = (item: SoftInstalled) => {
@@ -288,7 +278,6 @@
       dict[key] = false
     }
     appStore.config.setup.phpGroupStart = reactive(dict)
-    appStore.saveConfig()
   }
 
   let ExtensionsVM: any
@@ -317,7 +306,6 @@
         groupTrunOn(item)
         break
       case 'open':
-        shell.openPath(item.path)
         break
       case 'conf':
         AsyncComponentShow(ConfVM, {
@@ -346,26 +334,6 @@
           version: item
         }).then()
         break
-      case 'brewLink':
-        if (!checkBrew(item)) {
-          return
-        }
-        const dom: HTMLElement = document.querySelector(`li[data-item-index="${index}"]`)!
-        const loading = ElLoading.service({
-          target: dom
-        })
-        IPC.send('app-fork:php', 'doLinkVersion', JSON.parse(JSON.stringify(item))).then(
-          (key: string, res: any) => {
-            IPC.off(key)
-            loading.close()
-            if (res?.code === 0) {
-              MessageSuccess(I18nT('base.success'))
-            } else {
-              MessageError(res.msg)
-            }
-          }
-        )
-        break
     }
   }
 
@@ -376,14 +344,12 @@
     service.value.fetching = true
     const data = brewStore.module('php')
     data.installedInited = false
-    installedVersions.allInstalledVersions(['php']).then(() => {
+    waitTime().then(() => {
       service.value.fetching = false
     })
   }
 
-  const openDir = (dir: string) => {
-    shell.openPath(dir)
-  }
+  const openDir = (dir: string) => {}
 
   init()
 

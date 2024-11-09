@@ -17,8 +17,7 @@
       <Conf
         ref="conf"
         :type-flag="'mysql'"
-        :default-conf="defaultConf"
-        :file="file"
+        :conf="content"
         :file-ext="'cnf'"
         :show-commond="true"
         @on-type-change="onTypeChange"
@@ -32,7 +31,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, Ref, ref, watch } from 'vue'
+  import { Ref, ref, watch } from 'vue'
   import { I18nT } from '@shared/lang'
   import type { MysqlGroupItem } from '@shared/app'
   import { AsyncComponentSetup } from '@web/fn'
@@ -41,10 +40,7 @@
   import type { CommonSetItem } from '@web/components/Conf/setup'
   import { debounce } from 'lodash'
 
-  const { existsSync, writeFile } = require('fs-extra')
-  const { join } = require('path')
-
-  const props = defineProps<{
+  defineProps<{
     item: MysqlGroupItem
   }>()
 
@@ -52,30 +48,10 @@
 
   const conf = ref()
 
-  const file = computed(() => {
-    const id = props.item.id
-    return join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
-  })
+  const content = ref('')
 
-  const defaultConf = computed(() => {
-    return `[mysqld]
-# Only allow connections from localhost
-bind-address = 127.0.0.1
-sql-mode=NO_ENGINE_SUBSTITUTION`
-  })
-
-  if (!existsSync(file.value)) {
-    const str = `[mysqld]
-# Only allow connections from localhost
-bind-address = 127.0.0.1
-sql-mode=NO_ENGINE_SUBSTITUTION`
-    writeFile(file.value, str).then(() => {
-      conf?.value?.update()
-    })
-  }
-
-  const vm = computed(() => {
-    return props?.item?.version?.version?.split('.')?.slice(0, 2)?.join('.')
+  import('@web/config/mysql.conf.txt?raw').then((res) => {
+    content.value = res.default
   })
 
   const commonSetting: Ref<CommonSetItem[]> = ref([])
@@ -92,7 +68,6 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       name: 'query_cache_size',
       value: '32M',
       enable: true,
-      show: vm?.value?.startsWith('5.'),
       tips() {
         return I18nT('mysql.query_cache_size')
       }
