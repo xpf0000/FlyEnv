@@ -74,7 +74,7 @@ class BaseDialog {
    * @returns {Dialog}
    */
   show() {
-    const document = window?.parent?.document ?? window.document
+    const document = window.document
     let dom: HTMLElement | null = document.createElement('div')
     dom.style.position = 'relative'
     dom.style.zIndex = '2000'

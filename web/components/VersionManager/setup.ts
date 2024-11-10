@@ -83,13 +83,6 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
   }
 
   const reGetData = () => {
-    if (!libSrc?.value) {
-      return
-    }
-    const list = brewStore.module(typeFlag).list?.[libSrc.value]
-    for (const k in list) {
-      delete list[k]
-    }
     getData()
   }
 
@@ -129,7 +122,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
       staticVersionDel(row.appDir)
     }
   }
-  const handleBrewPortVersion = (index: number, row: any) => {
+  const handleBrewPortVersion = (row: any) => {
     if (brewRunning?.value) {
       return
     }
