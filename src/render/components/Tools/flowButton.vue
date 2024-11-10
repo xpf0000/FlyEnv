@@ -9,7 +9,7 @@
     :with-header="false"
     append-to="#container"
   >
-    <ToolIndex @on-tool-show="onToolShow" />
+    <ToolIndex />
   </el-drawer>
 </template>
 
@@ -20,8 +20,5 @@
   const toolShow = ref(false)
   const show = () => {
     toolShow.value = true
-  }
-  const onToolShow = () => {
-    toolShow.value = false
   }
 </script>

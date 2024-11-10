@@ -78,11 +78,11 @@
   import ShowAI from './AI/index.vue'
   import MacPortsSrc from './MacPortsSrc/index.vue'
   import ThemeSet from './Theme/index.vue'
-  import Base from '@web/core/Base'
   import { I18nT } from '@shared/lang'
   import Tool from './Tool/index.vue'
   import { AppModules } from '@web/core/App'
   import ModuleShowHide from './ModuleShowHide/index.vue'
+  import BaseDialog from '@web/components/YbBaseDialog/dialog'
 
   const appStore = AppStore()
 
@@ -90,18 +90,12 @@
     return appStore.config.setup.common.showItem
   })
 
-  watch(
-    showItem,
-    () => {
-      appStore.saveConfig()
-    },
-    {
-      deep: true
-    }
-  )
+  watch(showItem, () => {}, {
+    deep: true
+  })
 
   const showAbout = () => {
-    Base.Dialog(import('@web/components/About/index.vue'))
+    new BaseDialog(import('@web/components/About/index.vue'))
       .className('about-dialog')
       .title(I18nT('base.about'))
       .width('665px')

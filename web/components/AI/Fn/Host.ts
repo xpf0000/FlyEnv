@@ -1,7 +1,6 @@
 import type BaseTask from '@web/components/AI/Task/BaseTask'
 import { AppStore } from '@web/store/app'
 import { BrewStore } from '@web/store/brew'
-import IPC from '@/util/IPC'
 import { AIStore } from '@web/components/AI/store'
 import { startNginx } from '@web/components/AI/Fn/Nginx'
 import { startApache } from '@web/components/AI/Fn/Apache'
@@ -9,35 +8,24 @@ import { startPhp } from '@web/components/AI/Fn/Php'
 import type { SoftInstalled } from '@shared/app'
 import { fetchInstalled } from '@web/components/AI/Fn/Util'
 import { I18nT } from '@shared/lang'
+import { waitTime } from '@web/fn'
 
 export function addRandaSite(this: BaseTask) {
-  return new Promise(async (resolve, reject) => {
-    const brewStore = BrewStore()
-    const php = brewStore.module('php').installed.find((p) => p.version) ?? {}
-    IPC.send(`app-fork:host`, 'addRandaSite', JSON.parse(JSON.stringify(php))).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res.code === 0) {
-          const item = res.data
-          const aiStore = AIStore()
-          aiStore.chatList.push({
-            user: 'ai',
-            content: `${I18nT('ai.成功创建站点')}
-${I18nT('ai.站点域名')}: ${item.host}
-${I18nT('ai.站点目录')}: <a href="javascript:void();" onclick="openDir('${item.dir}')">${
-              item.dir
-            }</a>
+  return new Promise(async (resolve) => {
+    waitTime().then(() => {
+      const aiStore = AIStore()
+      aiStore.chatList.push({
+        user: 'ai',
+        content: `${I18nT('ai.成功创建站点')}
+${I18nT('ai.站点域名')}: www.test.com
+${I18nT('ai.站点目录')}: <a href="javascript:void();" onclick="openDir('xxxx')">xxxx</a>
 ${I18nT('ai.尝试开启服务')}`
-          })
-          resolve({
-            host: item.host,
-            php: item.version
-          })
-        } else if (res.code === 1) {
-          reject(res.msg)
-        }
-      }
-    )
+      })
+      resolve({
+        host: 'www.test.com',
+        php: '8.3.0'
+      })
+    })
   })
 }
 

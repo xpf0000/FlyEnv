@@ -54,6 +54,7 @@ export const DnsStore = defineStore('dns', {
         }
         this.fetching = true
         await waitTime()
+        this.fetching = false
         this.running = true
         MessageSuccess(I18nT('base.success'))
         resolve(true)

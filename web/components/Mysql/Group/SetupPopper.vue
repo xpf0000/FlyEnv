@@ -39,7 +39,7 @@
   import { AsyncComponentShow } from '@web/fn'
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
-  import { MysqlStore } from '@web/store/mysql'
+  import { MysqlStore } from '../mysql'
   import { ElMessageBox } from 'element-plus'
 
   const props = defineProps<{

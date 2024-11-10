@@ -22,9 +22,9 @@
 
 <script lang="ts">
   import { defineComponent } from 'vue'
-  import IPC from '@/util/IPC'
   import { BrewStore } from '@web/store/brew'
-  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { MessageSuccess } from '@/util/Element'
+  import { waitTime } from '@web/fn'
   export default defineComponent({
     components: {},
     props: {},
@@ -54,37 +54,23 @@
       const brewStore = BrewStore()
       this.running = true
       brewStore.brewSrc = ''
-      IPC.send('app-fork:brew', 'currentSrc').then((key: string, info: any) => {
-        IPC.off(key)
-        console.log('info: ', info)
-        if (info.data) {
-          this.currentBrewSrc = info.data
-          brewStore.brewSrc = info.data
-        }
+      waitTime().then(() => {
+        this.currentBrewSrc = 'default'
+        brewStore.brewSrc = 'default'
         this.running = false
       })
     },
     methods: {
       checkBrew() {
-        return !!global.Server.BrewCellar
+        return true
       },
       changeBrewSrc() {
         const brewStore = BrewStore()
         brewStore.brewRunning = true
-        IPC.send('app-fork:brew', 'changeSrc', this.currentBrewSrc).then(
-          (key: string, info: any) => {
-            IPC.off(key)
-            console.log('info: ', info)
-            if (info.code === 0) {
-              brewStore.brewSrc = this.currentBrewSrc
-              MessageSuccess(this.$t('base.success'))
-            } else {
-              this.currentBrewSrc = this.brewStoreSrc
-              MessageError(this.$t('base.fail'))
-            }
-            brewStore.brewRunning = false
-          }
-        )
+        waitTime().then(() => {
+          brewStore.brewSrc = this.currentBrewSrc
+          MessageSuccess(this.$t('base.success'))
+        })
       }
     }
   })

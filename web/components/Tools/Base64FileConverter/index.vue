@@ -3,12 +3,7 @@
   import { useBase64 } from '@vueuse/core'
   import { I18nT } from '@shared/lang'
   import { isValidBase64 } from '@shared/base64'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-  import { fileSelect } from '@/util/Index'
-
-  const { dialog, shell } = require('@electron/remote')
-  const { writeFile } = require('fs')
-  const { clipboard } = require('@electron/remote')
+  import { MessageSuccess } from '@/util/Element'
 
   const textError = ref(false)
   const base64Text = ref('')
@@ -19,44 +14,14 @@
     imgShow.value = false
   })
 
-  const saveFile = () => {
-    dialog
-      .showSaveDialog({
-        properties: ['createDirectory', 'showOverwriteConfirmation']
-      })
-      .then(({ canceled, filePath }: any) => {
-        if (canceled || !filePath) {
-          return
-        }
-        const base64 = base64Text.value.replace(/^data:(.*?)\/\w+;base64,/, '')
-        const dataBuffer = new Buffer(base64, 'base64')
-        writeFile(filePath, dataBuffer, function (err: Error | null) {
-          if (err) {
-            MessageError(err.message)
-            return
-          }
-          shell.showItemInFolder(filePath)
-        })
-      })
-  }
+  const saveFile = () => {}
 
   const file: Ref<File> = ref() as any
   const fileBase64 = ref('')
 
-  const choosePath = () => {
-    fileSelect().then((files: FileList) => {
-      console.log('choosePath files: ', files)
-      files.length > 0 && (file.value = files[0])
-      useBase64(file.value)
-        .execute()
-        .then((res) => {
-          fileBase64.value = res
-        })
-    })
-  }
+  const choosePath = () => {}
 
   const copyFileBase64 = () => {
-    clipboard.writeText(fileBase64.value)
     MessageSuccess(I18nT('base.success'))
   }
 

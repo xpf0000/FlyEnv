@@ -1,13 +1,13 @@
 export const Memcached = {
-  homebrew: {
+  brew: {
     memcached: {
-      version: '1.6.22',
+      version: '1.6.31',
       installed: true,
       name: 'memcached',
       flag: 'brew'
     }
   },
-  macports: {
+  port: {
     memcached: {
       name: 'memcached',
       version: '1.5.22',

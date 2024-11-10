@@ -3,17 +3,10 @@
     <Aside />
     <router-view />
   </el-container>
+  <FloatButton />
 </template>
 
-<script>
+<script lang="ts" setup>
   import Aside from '@web/components/Aside/Index.vue'
-
-  export default {
-    name: 'MoMain',
-    components: {
-      Aside
-    },
-    computed: {},
-    methods: {}
-  }
+  import FloatButton from '@web/components/FloatBtn/index.vue'
 </script>

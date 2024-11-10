@@ -5,8 +5,6 @@
   import { I18nT } from '@shared/lang'
   import { MessageSuccess } from '@/util/Element'
 
-  const { clipboard } = require('@electron/remote')
-
   const event = ref<KeyboardEvent>()
 
   useEventListener(document, 'keydown', (e) => {
@@ -56,7 +54,6 @@
   })
 
   const copy = (v: string) => {
-    clipboard.writeText(v)
     MessageSuccess(I18nT('base.success'))
   }
 </script>

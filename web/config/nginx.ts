@@ -1,16 +1,16 @@
 export const Nginx = {
-  homebrew: {
+  brew: {
     nginx: {
-      version: '1.25.3',
+      version: '1.27.2',
       installed: true,
       name: 'nginx',
       flag: 'brew'
     }
   },
-  macports: {
+  port: {
     nginx: {
       name: 'nginx',
-      version: '1.24.0',
+      version: '1.26.2',
       installed: true,
       flag: 'port'
     }

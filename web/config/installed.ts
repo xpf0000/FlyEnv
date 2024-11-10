@@ -1,7 +1,16 @@
 export const Installed = {
   php: [
     {
-      version: '8.4.0-dev',
+      version: '8.5.0',
+      bin: '/usr/local/Cellar/php@8.5/8.5.0/sbin/php-fpm',
+      path: '/usr/local/Cellar/php@8.5/8.5.0/',
+      num: 85,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '8.4.0',
       bin: '/usr/local/Cellar/php@8.4/8.4.0/sbin/php-fpm',
       path: '/usr/local/Cellar/php@8.4/8.4.0/',
       num: 84,
@@ -10,9 +19,9 @@ export const Installed = {
       running: false
     },
     {
-      version: '8.3.0-dev',
-      bin: '/usr/local/Cellar/php@8.3/8.3.0/sbin/php-fpm',
-      path: '/usr/local/Cellar/php@8.3/8.3.0/',
+      version: '8.3.12',
+      bin: '/usr/local/Cellar/php@8.3/8.3.12/sbin/php-fpm',
+      path: '/usr/local/Cellar/php@8.3/8.3.12/',
       num: 83,
       enable: true,
       run: false,
@@ -136,16 +145,16 @@ export const Installed = {
   ],
   nginx: [
     {
-      version: '1.25.3',
-      bin: '/usr/local/Cellar/nginx/1.25.3/bin/nginx',
-      path: '/usr/local/Cellar/nginx/1.25.3/',
+      version: '1.27.2',
+      bin: '/usr/local/Cellar/nginx/1.27.2/bin/nginx',
+      path: '/usr/local/Cellar/nginx/1.27.2/',
       num: 125,
       enable: true,
       run: false,
       running: false
     },
     {
-      version: '1.24.0',
+      version: '1.26.2',
       bin: '/opt/local/sbin/nginx',
       path: '/opt/local/',
       num: 124,
@@ -165,10 +174,19 @@ export const Installed = {
   ],
   mysql: [
     {
-      version: '8.1.0',
-      bin: '/usr/local/Cellar/mysql/8.1.0/bin/mysqld_safe',
-      path: '/usr/local/Cellar/mysql/8.1.0/',
-      num: 81,
+      version: '9.0.1',
+      bin: '/usr/local/Cellar/mysql/9.0.1/bin/mysqld_safe',
+      path: '/usr/local/Cellar/mysql/9.0.1/',
+      num: 90,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '8.4.2',
+      bin: '/usr/local/Cellar/mysql/8.4.2/bin/mysqld_safe',
+      path: '/usr/local/Cellar/mysql/8.4.2/',
+      num: 84,
       enable: true,
       run: false,
       running: false
@@ -184,9 +202,9 @@ export const Installed = {
       flag: 'macports'
     },
     {
-      version: '8.0.34',
-      bin: '/usr/local/Cellar/mysql@8.0/8.0.34/bin/mysqld_safe',
-      path: '/usr/local/Cellar/mysql@8.0/8.0.34/',
+      version: '8.0.39',
+      bin: '/usr/local/Cellar/mysql@8.0/8.0.39/bin/mysqld_safe',
+      path: '/usr/local/Cellar/mysql@8.0/8.0.39/',
       num: 80,
       enable: true,
       run: false,
@@ -221,6 +239,15 @@ export const Installed = {
     }
   ],
   mariadb: [
+    {
+      version: '11.5.2',
+      bin: '/usr/local/Cellar/mariadb@11.5/11.5.2/bin/mariadbd-safe',
+      path: '/usr/local/Cellar/mariadb@11.5/11.5.2/',
+      num: 1010,
+      enable: true,
+      run: false,
+      running: false
+    },
     {
       version: '10.11.1',
       bin: '/opt/local/lib/mariadb-10.11/bin/mariadbd-safe',
@@ -261,9 +288,9 @@ export const Installed = {
       running: false
     },
     {
-      version: '2.4.58',
-      bin: '/usr/local/Cellar/httpd/2.4.58/bin/apachectl',
-      path: '/usr/local/Cellar/httpd/2.4.58/',
+      version: '2.4.62',
+      bin: '/usr/local/Cellar/httpd/2.4.62/bin/apachectl',
+      path: '/usr/local/Cellar/httpd/2.4.62/',
       num: 24,
       enable: true,
       run: false,
@@ -281,9 +308,9 @@ export const Installed = {
   ],
   memcached: [
     {
-      version: '1.6.22',
-      bin: '/usr/local/Cellar/memcached/1.6.22/bin/memcached',
-      path: '/usr/local/Cellar/memcached/1.6.22/',
+      version: '1.6.31',
+      bin: '/usr/local/Cellar/memcached/1.6.31/bin/memcached',
+      path: '/usr/local/Cellar/memcached/1.6.31/',
       num: 16,
       enable: true,
       run: false,
@@ -301,18 +328,18 @@ export const Installed = {
   ],
   redis: [
     {
-      version: '7.2.0',
+      version: '7.4.0',
       bin: '/opt/local/bin/redis-server',
       path: '/opt/local/',
-      num: 72,
+      num: 74,
       enable: true,
       run: false,
       running: false
     },
     {
-      version: '7.2.3',
-      bin: '/usr/local/Cellar/redis/7.2.3/bin/redis-server',
-      path: '/usr/local/Cellar/redis/7.2.3/',
+      version: '7.2.6',
+      bin: '/usr/local/Cellar/redis/7.2.6/bin/redis-server',
+      path: '/usr/local/Cellar/redis/7.2.6/',
       num: 72,
       enable: true,
       run: false,
@@ -338,6 +365,15 @@ export const Installed = {
     }
   ],
   mongodb: [
+    {
+      version: '8.0.1',
+      bin: '/usr/local/Cellar/mongodb-community/8.0.1/bin/mongod',
+      path: '/usr/local/Cellar/mongodb-community/8.0.1/',
+      num: 80,
+      enable: true,
+      run: false,
+      running: false
+    },
     {
       version: '7.0.2',
       bin: '/usr/local/Cellar/mongodb-community/7.0.2/bin/mongod',
@@ -397,7 +433,16 @@ export const Installed = {
   ],
   postgresql: [
     {
-      version: '16.0',
+      version: '17.0',
+      bin: '/usr/local/Cellar/postgresql@17/17.0/bin/pg_ctl',
+      path: '/usr/local/Cellar/postgresql@17/17.0',
+      num: 17,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '16.4',
       bin: '/opt/local/lib/postgresql16/bin/pg_ctl',
       path: '/opt/local/lib/postgresql16',
       num: 16,
@@ -407,9 +452,9 @@ export const Installed = {
       flag: 'macports'
     },
     {
-      version: '15.5',
-      bin: '/usr/local/Cellar/postgresql@15/15.5_1/bin/pg_ctl',
-      path: '/usr/local/Cellar/postgresql@15/15.5_1',
+      version: '15.8',
+      bin: '/usr/local/Cellar/postgresql@15/15.8/bin/pg_ctl',
+      path: '/usr/local/Cellar/postgresql@15/15.8',
       num: 15,
       enable: true,
       run: false,
@@ -447,7 +492,7 @@ export const Installed = {
     },
     {
       version: '2.8.4',
-      bin: '/usr/local/Cellar/caddy/2.8.4/bin/caddy',
+      bin: '/Users/xxx/Library/PhpWebStudy/app/static-caddy-2.8.4/caddy',
       path: '/Users/xxx/Library/PhpWebStudy/app/static-caddy-2.8.4/',
       num: 28,
       enable: true,
@@ -466,18 +511,18 @@ export const Installed = {
   ],
   tomcat: [
     {
-      version: '10.1.28',
-      bin: '/opt/homebrew/Cellar/tomcat/10.1.28/libexec/bin/startup.sh',
-      path: '/opt/homebrew/Cellar/tomcat/10.1.28/libexec/',
+      version: '10.1.31',
+      bin: '/opt/homebrew/Cellar/tomcat/10.1.31/libexec/bin/startup.sh',
+      path: '/opt/homebrew/Cellar/tomcat/10.1.31/libexec/',
       num: 101,
       enable: true,
       run: false,
       running: false
     },
     {
-      version: '9.0.93',
-      bin: '/opt/homebrew/Cellar/tomcat@9/9.0.93/libexec/bin/startup.sh',
-      path: '/opt/homebrew/Cellar/tomcat@9/9.0.93/libexec/',
+      version: '9.0.96',
+      bin: '/opt/homebrew/Cellar/tomcat@9/9.0.96/libexec/bin/startup.sh',
+      path: '/opt/homebrew/Cellar/tomcat@9/9.0.96/libexec/',
       num: 90,
       enable: true,
       run: false,
@@ -495,6 +540,15 @@ export const Installed = {
   ],
   java: [
     {
+      version: '23',
+      bin: '/opt/homebrew/Cellar/openjdk/23/libexec/openjdk.jdk/Contents/Home/bin/java',
+      path: '/opt/homebrew/Cellar/openjdk/23/libexec/openjdk.jdk/Contents/Home/',
+      num: 23,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
       version: '22.0.2',
       bin: '/opt/homebrew/Cellar/openjdk/22.0.2/libexec/openjdk.jdk/Contents/Home/bin/java',
       path: '/opt/homebrew/Cellar/openjdk/22.0.2/libexec/openjdk.jdk/Contents/Home/',
@@ -511,6 +565,142 @@ export const Installed = {
       enable: true,
       run: false,
       running: false
+    }
+  ],
+  rabbitmq: [
+    {
+      version: '4.0.2',
+      bin: '/opt/homebrew/Cellar/rabbitmq/4.0.2/sbin/rabbitmq-server',
+      path: '/opt/homebrew/Cellar/rabbitmq/4.0.2/',
+      num: 40,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '3.11.15',
+      bin: '/opt/local/bin/rabbitmq-server',
+      path: '/opt/local/',
+      num: 311,
+      enable: true,
+      run: false,
+      running: false
+    }
+  ],
+  go: [
+    {
+      version: '1.23.2',
+      bin: '/opt/homebrew/Cellar/go/1.23.2/libexec/bin/go',
+      path: '/opt/homebrew/Cellar/go/1.23.2/libexec/',
+      num: 123,
+      enable: true,
+      run: false,
+      running: false
+    }
+  ],
+  maven: [
+    {
+      version: '3.9.9',
+      bin: '/opt/local/share/java/maven3/bin/mvn',
+      path: '/opt/local/share/java/maven3/',
+      num: 39,
+      enable: true,
+      run: false,
+      running: false
+    },
+    {
+      version: '3.8.8',
+      bin: '/Users/x/Library/PhpWebStudy/app/maven-3.8.8/bin/mvn',
+      path: '/Users/x/Library/PhpWebStudy/app/maven-3.8.8/',
+      num: 38,
+      enable: true,
+      run: false,
+      running: false
+    }
+  ],
+  python: [
+    {
+      bin: '/opt/homebrew/Cellar/python@3.13/3.13.0_1/Frameworks/Python.framework/Versions/3.13/bin/python3.13',
+      path: '/opt/homebrew/Cellar/python@3.13/3.13.0_1/Frameworks/Python.framework/Versions/3.13/',
+      run: false,
+      running: false,
+      version: '3.13.0',
+      num: 313,
+      enable: true
+    },
+    {
+      bin: '/opt/homebrew/Cellar/python@3.12/3.12.7_1/Frameworks/Python.framework/Versions/3.12/bin/python3.12',
+      path: '/opt/homebrew/Cellar/python@3.12/3.12.7_1/Frameworks/Python.framework/Versions/3.12/',
+      run: false,
+      running: false,
+      version: '3.12.7',
+      num: 312,
+      enable: true
+    },
+    {
+      bin: '/opt/local/Library/Frameworks/Python.framework/Versions/3.12/bin/python3.12',
+      path: '/opt/local/Library/Frameworks/Python.framework/Versions/3.12/',
+      run: false,
+      running: false,
+      version: '3.12.2',
+      num: 312,
+      enable: true
+    },
+    {
+      bin: '/opt/homebrew/Cellar/python@3.11/3.11.10/Frameworks/Python.framework/Versions/3.11/bin/python3.11',
+      path: '/opt/homebrew/Cellar/python@3.11/3.11.10/Frameworks/Python.framework/Versions/3.11/',
+      run: false,
+      running: false,
+      version: '3.11.10',
+      num: 311,
+      enable: true
+    },
+    {
+      bin: '/opt/local/Library/Frameworks/Python.framework/Versions/3.11/bin/python3.11',
+      path: '/opt/local/Library/Frameworks/Python.framework/Versions/3.11/',
+      run: false,
+      running: false,
+      version: '3.11.8',
+      num: 311,
+      enable: true
+    },
+    {
+      bin: '/usr/bin/python3',
+      path: '/usr/',
+      run: false,
+      running: false,
+      version: '3.9.6',
+      num: 39,
+      enable: true
+    },
+    {
+      bin: '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin/python2.7',
+      path: '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/',
+      run: false,
+      running: false,
+      version: '2.7.18',
+      num: 27,
+      enable: true
+    }
+  ],
+  composer: [
+    {
+      bin: '/Users/x/Library/Electron/app/composer-2.8.1/composer',
+      path: '/Users/x/Library/Electron/app/composer-2.8.1/',
+      run: false,
+      running: false,
+      version: '2.8.1',
+      num: 28,
+      enable: true
+    },
+    {
+      bin: '/opt/homebrew/Cellar/composer/2.7.9/bin/composer',
+      path: '/opt/homebrew/Cellar/composer/2.7.9/',
+      run: false,
+      running: false,
+      version: '2.7.9',
+      num: 27,
+      enable: true
     }
   ]
 }

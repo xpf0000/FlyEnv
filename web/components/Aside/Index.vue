@@ -49,10 +49,11 @@
   import { computed } from 'vue'
   import { AppStore } from '@web/store/app'
   import { I18nT } from '@shared/lang'
-  import Router from '@/router/index'
+  import Router from '@web/router/index'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { AppModules } from '@web/core/App'
   import { AppServiceModule } from '@web/core/ASide'
+  import BaseDialog from '@web/components/YbBaseDialog/dialog'
 
   const appStore = AppStore()
 
@@ -80,7 +81,14 @@
     }
   })
 
-  const toDoc = () => {}
+  const toDoc = () => {
+    new BaseDialog(import('@web/components/About/index.vue'))
+      .className('about-dialog')
+      .title(I18nT('base.about'))
+      .width('665px')
+      .noFooter()
+      .show()
+  }
 
   const groupDo = () => {
     if (groupDisabled.value) {

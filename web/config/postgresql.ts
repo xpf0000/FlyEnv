@@ -1,31 +1,37 @@
 export const Postgresql = {
-  homebrew: {
+  brew: {
+    'postgresql@17': {
+      version: '17.0',
+      installed: false,
+      name: 'postgresql@17',
+      flag: 'brew'
+    },
     'postgresql@16': {
-      version: '16.1',
+      version: '16.4',
       installed: false,
       name: 'postgresql@16',
       flag: 'brew'
     },
     'postgresql@15': {
-      version: '15.5',
+      version: '15.8',
       installed: true,
       name: 'postgresql@15',
       flag: 'brew'
     },
     'postgresql@14': {
-      version: '14.10',
+      version: '14.13',
       installed: false,
       name: 'postgresql@14',
       flag: 'brew'
     },
     'postgresql@13': {
-      version: '13.13',
+      version: '13.16',
       installed: false,
       name: 'postgresql@13',
       flag: 'brew'
     },
     'postgresql@12': {
-      version: '12.17',
+      version: '12.20',
       installed: true,
       name: 'postgresql@12',
       flag: 'brew'
@@ -43,34 +49,34 @@ export const Postgresql = {
       flag: 'brew'
     }
   },
-  macports: {
+  port: {
     postgresql16: {
       name: 'postgresql16',
-      version: '16.0',
+      version: '16.4',
       installed: true,
       flag: 'port'
     },
     postgresql15: {
       name: 'postgresql15',
-      version: '15.4',
+      version: '15.8',
       installed: false,
       flag: 'port'
     },
     postgresql14: {
       name: 'postgresql14',
-      version: '14.9',
+      version: '14.13',
       installed: false,
       flag: 'port'
     },
     postgresql13: {
       name: 'postgresql13',
-      version: '13.12',
+      version: '13.16',
       installed: false,
       flag: 'port'
     },
     postgresql12: {
       name: 'postgresql12',
-      version: '12.16',
+      version: '12.20',
       installed: true,
       flag: 'port'
     },

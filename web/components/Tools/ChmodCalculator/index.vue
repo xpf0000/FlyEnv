@@ -9,8 +9,6 @@
   import { CopyDocument } from '@element-plus/icons-vue'
   import { MessageSuccess } from '@/util/Element'
 
-  const { clipboard } = require('@electron/remote')
-
   const scopes: { scope: Scope; title: string }[] = [
     { scope: 'read', title: 'Read (4)' },
     { scope: 'write', title: 'Write (2)' },
@@ -29,7 +27,6 @@
   )
 
   const copy = (v: string) => {
-    clipboard.writeText(v)
     MessageSuccess(I18nT('base.success'))
   }
 </script>

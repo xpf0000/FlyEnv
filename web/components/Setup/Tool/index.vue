@@ -17,7 +17,6 @@
     },
     set(v) {
       store.config.setup.showTool = v
-      store.saveConfig()
     }
   })
 </script>

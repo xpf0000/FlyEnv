@@ -35,12 +35,9 @@
   import { Check } from '@element-plus/icons-vue'
   import type { SoftInstalled } from '@web/store/brew'
   import { Store } from './store'
-  import IPC from '@/util/IPC'
-  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { MessageSuccess } from '@/util/Element'
   import { I18nT } from '@shared/lang'
-
-  const { existsSync } = require('fs')
-  const { join } = require('path')
+  import { waitTime } from '@web/fn'
 
   const props = defineProps<{
     item: SoftInstalled
@@ -54,49 +51,12 @@
     return store.state?.[itemKey]?.pgvector
   })
 
-  let lastedTag = 'v0.7.4'
-
-  const fetchLastedTag = () => {
-    let saved: any = localStorage.getItem(`pgvector-lasted-tag`)
-    if (saved) {
-      saved = JSON.parse(saved)
-      const time = Math.round(new Date().getTime() / 1000)
-      if (time < saved.expire) {
-        lastedTag = saved.data
-        return
-      }
-    }
-    IPC.send('app-fork:postgresql', 'fetchLastedTag').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        lastedTag = res.data
-        localStorage.setItem(
-          `pgvector-lasted-tag`,
-          JSON.stringify({
-            expire: Math.round(new Date().getTime() / 1000) + 24 * 60 * 60,
-            data: lastedTag
-          })
-        )
-      }
-    })
-  }
+  const fetchLastedTag = () => {}
 
   const onShow = () => {
     console.log('onShow !!!')
     if (!store.state[itemKey]) {
       let state: 'noinstalled' | 'installed' | 'installing' = 'noinstalled'
-      const num = props.item.version?.split('.').shift()
-      const arr = [
-        join(props.item.path, 'share/postgresql/extension/vector.control'),
-        join(props.item.path, `share/postgresql@${num}/extension/vector.control`),
-        join(props.item.path, `vector.dylib`),
-        join(props.item.path, `vector.so`)
-      ]
-      console.log('arr: ', arr)
-      const installed = arr.some((p) => existsSync(p))
-      if (installed) {
-        state = 'installed'
-      }
       store.state[itemKey] = reactive({
         pgvector: state
       })
@@ -109,19 +69,9 @@
       return
     }
     store.state[itemKey].pgvector = 'installing'
-    IPC.send(
-      'app-fork:postgresql',
-      'installPgvector',
-      JSON.parse(JSON.stringify(props.item)),
-      lastedTag
-    ).then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        store.state[itemKey].pgvector = 'installed'
-        MessageSuccess(I18nT('base.success'))
-        return
-      }
-      MessageError(res?.msg ?? 'Install Failed')
+    waitTime().then(() => {
+      store.state[itemKey].pgvector = 'installed'
+      MessageSuccess(I18nT('base.success'))
     })
   }
 </script>

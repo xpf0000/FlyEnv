@@ -2,11 +2,11 @@ export const Mariadb = {
   /**
    * homebrew
    */
-  homebrew: {
+  brew: {
     //mariadb
     //mariadb
     mariadb: {
-      version: '11.1.2',
+      version: '11.5.2',
       installed: true,
       name: 'mariadb',
       flag: 'brew'
@@ -76,9 +76,27 @@ export const Mariadb = {
       installed: false,
       name: 'mariadb@11.0',
       flag: 'brew'
+    },
+    'mariadb@11.1': {
+      version: '11.1.6',
+      installed: false,
+      name: 'mariadb@11.0',
+      flag: 'brew'
+    },
+    'mariadb@11.2': {
+      version: '11.2.5',
+      installed: false,
+      name: 'mariadb@11.0',
+      flag: 'brew'
+    },
+    'mariadb@11.4': {
+      version: '11.4.3',
+      installed: false,
+      name: 'mariadb@11.0',
+      flag: 'brew'
     }
   },
-  macports: {
+  port: {
     'mariadb-10.0': {
       name: 'mariadb-10.0',
       version: '10.0.38',
@@ -141,13 +159,13 @@ export const Mariadb = {
     },
     'mariadb-10.10': {
       name: 'mariadb-10.10',
-      version: '10.10.2-release',
+      version: '10.10.7',
       installed: false,
       flag: 'port'
     },
     'mariadb-10.11': {
       name: 'mariadb-10.11',
-      version: '10.11.1',
+      version: '10.11.9',
       installed: true,
       flag: 'port'
     }

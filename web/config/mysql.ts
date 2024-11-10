@@ -1,15 +1,9 @@
 export const Mysql = {
-  homebrew: {
+  brew: {
     mysql: {
-      version: '8.1.0',
+      version: '9.0.1',
       installed: true,
       name: 'mysql',
-      flag: 'brew'
-    },
-    'mysql@5.6': {
-      version: '5.6.51',
-      installed: true,
-      name: 'mysql@5.6',
       flag: 'brew'
     },
     'mysql@5.7': {
@@ -23,9 +17,15 @@ export const Mysql = {
       installed: true,
       name: 'mysql@8.0',
       flag: 'brew'
+    },
+    'mysql@8.4': {
+      version: '8.4.2',
+      installed: true,
+      name: 'mysql@8.4',
+      flag: 'brew'
     }
   },
-  macports: {
+  port: {
     mysql5: {
       name: 'mysql5',
       version: '5.1.72',
@@ -34,7 +34,7 @@ export const Mysql = {
     },
     mysql8: {
       name: 'mysql8',
-      version: '8.0.34',
+      version: '8.4.2',
       installed: false,
       flag: 'port'
     },
@@ -58,14 +58,8 @@ export const Mysql = {
     },
     mysql57: {
       name: 'mysql57',
-      version: '5.7.43',
+      version: '5.7.44',
       installed: false,
-      flag: 'port'
-    },
-    mysql81: {
-      name: 'mysql81',
-      version: '8.1.0',
-      installed: true,
       flag: 'port'
     }
   }

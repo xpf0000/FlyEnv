@@ -2,8 +2,7 @@
   <Conf
     ref="conf"
     :type-flag="'redis'"
-    :default-file="defaultFile"
-    :file="file"
+    :conf="content"
     :file-ext="'conf'"
     :show-commond="true"
     @on-type-change="onTypeChange"
@@ -15,42 +14,19 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch, Ref } from 'vue'
+  import { ref, watch, Ref } from 'vue'
   import Conf from '@web/components/Conf/index.vue'
   import Common from '@web/components/Conf/common.vue'
   import type { CommonSetItem } from '@web/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
-  import { AppStore } from '@web/store/app'
-  import IPC from '@/util/IPC'
 
-  const { join } = require('path')
-  const { existsSync } = require('fs-extra')
-
-  const appStore = AppStore()
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
+  const content = ref('')
 
-  const currentVersion = computed(() => {
-    return appStore.config?.server?.redis?.current?.version
-  })
-
-  const vm = computed(() => {
-    return currentVersion?.value?.split('.')?.shift()
-  })
-
-  const file = computed(() => {
-    if (!vm.value) {
-      return ''
-    }
-    return join(global.Server.RedisDir, `redis-${vm.value}.conf`)
-  })
-
-  const defaultFile = computed(() => {
-    if (!vm.value) {
-      return ''
-    }
-    return join(global.Server.RedisDir, `redis-${vm.value}-default.conf`)
+  import('@web/config/redis.conf.txt?raw').then((res) => {
+    content.value = res.default
   })
 
   const names: CommonSetItem[] = [
@@ -171,14 +147,5 @@
       editConfig = config
       getCommonSetting()
     }
-  }
-
-  if (file.value && !existsSync(file.value)) {
-    IPC.send('app-fork:redis', 'initConf', {
-      version: currentVersion.value
-    }).then((key: string) => {
-      IPC.off(key)
-      conf?.value?.update()
-    })
   }
 </script>

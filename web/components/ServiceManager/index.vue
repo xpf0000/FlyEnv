@@ -177,20 +177,17 @@
 
 <script lang="ts" setup>
   import { computed, type ComputedRef, reactive } from 'vue'
-  import { reloadService, startService, stopService } from '@web/fn'
-  import { type AppHost, AppStore } from '@web/store/app'
+  import { reloadService, startService, stopService, waitTime } from '@web/fn'
+  import { AppStore } from '@web/store/app'
   import { BrewStore, type SoftInstalled } from '@web/store/brew'
   import { I18nT } from '@shared/lang'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { MysqlStore } from '@web/components/Mysql/mysql'
   import { Service } from '@web/components/ServiceManager/service'
-  import installedVersions from '@/util/InstalledVersions'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { AsyncComponentShow } from '@web/fn'
   import EXT from './EXT/index.vue'
   import type { AllAppModule } from '@web/core/type'
-
-  const { shell } = require('@electron/remote')
 
   const props = defineProps<{
     typeFlag: AllAppModule
@@ -244,7 +241,6 @@
       dict[key] = false
     }
     appStore.config.setup.phpGroupStart = reactive(dict)
-    appStore.saveConfig()
   }
 
   const resetData = () => {
@@ -254,14 +250,12 @@
     service.value.fetching = true
     const data = brewStore.module(props.typeFlag)
     data.installedInited = false
-    installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
+    waitTime().then(() => {
       service.value.fetching = false
     })
   }
 
-  const openDir = (dir: string) => {
-    shell.openPath(dir)
-  }
+  const openDir = (dir: string) => {}
 
   const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: SoftInstalled) => {
     if (!item?.version || !item?.path) {
@@ -311,7 +305,6 @@
               flag: props.typeFlag,
               data: JSON.parse(JSON.stringify(item))
             })
-            appStore.saveConfig()
           }
         }
         MessageSuccess(I18nT('base.success'))
@@ -339,50 +332,6 @@
     PhpMyAdminVM = res.default
   })
   const toPhpMyAdmin = () => {
-    const toOpenHost = (item: AppHost) => {
-      const host = item.name
-      const brewStore = BrewStore()
-      const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
-      const apacheRunning = brewStore.module('apache').installed.find((i) => i.run)
-      const caddyRunning = brewStore.module('caddy').installed.find((i) => i.run)
-      let http = 'http://'
-      let port = 80
-      if (item.useSSL) {
-        http = 'https://'
-        port = 443
-        if (nginxRunning) {
-          port = item.port.nginx_ssl
-        } else if (apacheRunning) {
-          port = item.port.apache_ssl
-        } else if (caddyRunning) {
-          port = item.port.caddy_ssl
-        }
-      } else {
-        if (nginxRunning) {
-          port = item.port.nginx
-        } else if (apacheRunning) {
-          port = item.port.apache
-        } else if (caddyRunning) {
-          port = item.port.caddy
-        }
-      }
-
-      const portStr = port === 80 || port === 443 ? '' : `:${port}`
-      const url = `${http}${host}${portStr}`
-      shell.openExternal(url)
-    }
-    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
-    if (find) {
-      toOpenHost(find)
-      return
-    }
-
-    AsyncComponentShow(PhpMyAdminVM).then(async (res) => {
-      if (res) {
-        await appStore.initHost()
-        const url = 'http://phpmyadmin.phpwebstudy.test'
-        shell.openExternal(url)
-      }
-    })
+    AsyncComponentShow(PhpMyAdminVM).then()
   }
 </script>

@@ -4,9 +4,6 @@
   import { I18nT } from '@shared/lang'
   import { MessageError } from '@/util/Element'
 
-  const { dialog, shell } = require('@electron/remote')
-  const { writeFile } = require('fs')
-
   const foreground = ref('#000000ff')
   const background = ref('#ffffffff')
 
@@ -33,27 +30,7 @@
     options: { width: 1024 }
   })
 
-  const download = () => {
-    dialog
-      .showSaveDialog({
-        properties: ['createDirectory', 'showOverwriteConfirmation'],
-        defaultPath: `qr-code.png`
-      })
-      .then(({ canceled, filePath }: any) => {
-        if (canceled || !filePath) {
-          return
-        }
-        const base64 = qrcode.value.replace(/^data:image\/\w+;base64,/, '')
-        const dataBuffer = new Buffer(base64, 'base64')
-        writeFile(filePath, dataBuffer, function (err: Error | null) {
-          if (err) {
-            MessageError(err.message)
-            return
-          }
-          shell.showItemInFolder(filePath)
-        })
-      })
-  }
+  const download = () => {}
 
   const methods = [
     {

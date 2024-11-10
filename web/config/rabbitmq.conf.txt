@@ -1,0 +1,5 @@
+NODE_IP_ADDRESS=127.0.0.1
+NODENAME=rabbit@localhost
+RABBITMQ_LOG_BASE=/Users/x/Library/PhpWebStudy/server/rabbitmq/log-4
+MNESIA_BASE=/Users/x/Library/PhpWebStudy/server/rabbitmq/mnesia-4
+PLUGINS_DIR="/opt/homebrew/Cellar/rabbitmq/4.0.2/plugins"

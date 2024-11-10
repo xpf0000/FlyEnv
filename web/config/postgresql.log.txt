@@ -1,0 +1,6 @@
+2024-11-10 18:24:38.860 CST [2101] LOG:  starting PostgreSQL 15.6 on aarch64-apple-darwin22.6.0, compiled by Apple clang version 14.0.3 (clang-1403.0.22.14.1), 64-bit
+2024-11-10 18:24:38.861 CST [2101] LOG:  listening on IPv6 address "::1", port 5432
+2024-11-10 18:24:38.861 CST [2101] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2024-11-10 18:24:38.861 CST [2101] LOG:  listening on Unix socket "/tmp/.s.PGSQL.5432"
+2024-11-10 18:24:38.863 CST [2104] LOG:  database system was shut down at 2024-11-10 18:24:37 CST
+2024-11-10 18:24:38.865 CST [2101] LOG:  database system is ready to accept connections

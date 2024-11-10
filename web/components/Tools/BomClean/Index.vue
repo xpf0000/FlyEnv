@@ -120,104 +120,21 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, reactive, watch } from 'vue'
-  import store, { Ext } from './store'
-  import IPC from '@/util/IPC'
-  import { MessageError } from '@/util/Element'
-  import { I18nT } from '@shared/lang'
-  const { extname } = require('path')
-  const { dialog } = require('@electron/remote')
-  const emit = defineEmits(['doClose'])
+  import { computed, reactive } from 'vue'
+  import store from './store'
+
   const data = computed(() => {
     return store.value
   })
-  const allExt = computed(() => {
-    const exclude = store.value.exclude.split('\n').filter((e) => e.trim().length > 0)
-    const allFile = store.value.files.filter((f) => {
-      return exclude.length === 0 || exclude.every((e) => !f.includes(e))
-    })
-    const exts: { [key: string]: number } = {}
-    allFile.forEach((f) => {
-      const name = extname(f)
-      if (name) {
-        if (!exts[name]) {
-          exts[name] = 1
-        } else {
-          exts[name] += 1
-        }
-      }
-    })
-    const arr: Array<Ext> = []
-    for (const ext in exts) {
-      arr.push({
-        ext,
-        count: exts[ext]
-      })
-    }
-    return arr
-  })
   const files = computed(() => {
-    const exclude = store.value.exclude.split('\n').filter((e) => e.trim().length > 0)
-    const allowExt = store.value.allowExt
-    return store.value.files.filter((f) => {
-      return (
-        (exclude.length === 0 || exclude.every((e) => !f.includes(e))) &&
-        allowExt.includes(extname(f))
-      )
-    })
+    return []
   })
   const currentProgress = computed(() => {
     const progress = store.value.progress
     return Math.floor((progress.finish / progress.count) * 100.0)
   })
-  const doClose = () => {
-    emit('doClose')
-  }
-  const chooseDir = () => {
-    if (store.value.running && !store.value.end) {
-      return
-    }
-    doEnd()
-    dialog
-      .showOpenDialog({
-        properties: ['openDirectory', 'openFile']
-      })
-      .then(({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const [path] = filePaths
-        store.value.path = path
-        getAllFile()
-      })
-  }
-  const getAllFile = () => {
-    store.value.loading = true
-    IPC.send('app-fork:tools', 'getAllFile', store.value.path).then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        const files: Array<string> = res?.data ?? []
-        store.value.files = reactive(files)
-      } else {
-        MessageError(res?.msg ?? I18nT('util.toolFileTooMore'))
-      }
-      store.value.loading = false
-    })
-  }
-  const doClean = () => {
-    store.value.running = true
-    IPC.send('app-fork:tools', 'cleanBom', JSON.parse(JSON.stringify(files.value))).then(
-      (key: string, res: any) => {
-        if (res?.code === 200) {
-          const progress = res?.msg ?? {}
-          Object.assign(store.value.progress, reactive(progress))
-        } else {
-          IPC.off(key)
-          store.value.end = true
-        }
-      }
-    )
-  }
+  const chooseDir = () => {}
+  const doClean = () => {}
   const doEnd = () => {
     store.value.path = ''
     store.value.files.splice(0)
@@ -239,12 +156,4 @@ node_modules`
     store.value.running = false
     store.value.end = false
   }
-  watch(allExt, (v) => {
-    store.value.allExt = v
-    store.value.allowExt = reactive(
-      v.map((e) => {
-        return e.ext
-      })
-    )
-  })
 </script>

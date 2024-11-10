@@ -30,7 +30,6 @@
     },
     set(v) {
       store.config.setup.forceStart = v
-      store.saveConfig()
     }
   })
 </script>

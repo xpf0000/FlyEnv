@@ -1,5 +1,5 @@
 export const Redis = {
-  homebrew: {
+  brew: {
     redis: {
       version: '7.2.3',
       installed: true,
@@ -13,16 +13,16 @@ export const Redis = {
       flag: 'brew'
     },
     'redis@6.2': {
-      version: '6.2.14',
+      version: '6.2.16',
       installed: false,
       name: 'redis@6.2',
       flag: 'brew'
     }
   },
-  macports: {
+  port: {
     redis: {
       name: 'redis',
-      version: '7.2.1',
+      version: '7.4.0',
       installed: true,
       flag: 'port'
     }

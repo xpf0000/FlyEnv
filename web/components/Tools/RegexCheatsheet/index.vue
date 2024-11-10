@@ -3,19 +3,12 @@
   import Memo from './regex-memo.content.md?raw'
   import markdownit from 'markdown-it'
 
-  const { shell } = require('@electron/remote')
   const md = markdownit()
   const result = md.render(Memo)
 
   const onClick = (e: MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    console.log(e.target)
-    const dom: HTMLElement = e.target as any
-    if (dom.tagName.toUpperCase() === 'A') {
-      const url = dom.getAttribute('href')
-      shell.openExternal(url)
-    }
   }
 </script>
 <template>

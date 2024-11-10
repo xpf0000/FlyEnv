@@ -6,6 +6,6 @@ const module: AppModuleItem = {
   label: 'Python',
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 18
+  asideIndex: 17
 }
 export default module

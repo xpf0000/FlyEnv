@@ -1,0 +1,10 @@
+2024-10-30 19:36:25.273743+08:00 [notice] <0.215.0> Logging: configured log handlers are now ACTIVE
+2024-10-30 19:36:25.276367+08:00 [info] <0.215.0> ra: starting system quorum_queues
+2024-10-30 19:36:25.276418+08:00 [info] <0.215.0> starting Ra system: quorum_queues in directory: /Users/x/Library/PhpWebStudy/server/rabbitmq/mnesia-4/rabbit@localhost/quorum/rabbit@localhost
+2024-10-30 19:36:25.296984+08:00 [info] <0.229.0> ra system 'quorum_queues' running pre init for 0 registered servers
+2024-10-30 19:36:25.300054+08:00 [info] <0.230.0> ra: meta data store initialised for system quorum_queues. 0 record(s) recovered
+2024-10-30 19:36:25.304816+08:00 [notice] <0.235.0> WAL: ra_log_wal init, open tbls: ra_log_open_mem_tables, closed tbls: ra_log_closed_mem_tables
+2024-10-30 19:36:25.314514+08:00 [info] <0.237.0> ra_system_recover: ra system 'quorum_queues' server recovery strategy rabbit_quorum_queue:system_recover
+2024-10-30 19:36:25.314567+08:00 [info] <0.237.0> [rabbit_quorum_queue:system_recover/1] rabbit not booted, skipping queue recovery
+2024-10-30 19:36:25.314622+08:00 [info] <0.215.0> ra: starting system coordination
+2024-10-30 19:36:25.314639+08:00 [info] <0.215.0> starting Ra system: coordination in directory: /Users/x/Library/PhpWebStudy/server/rabbitmq/mnesia-4/rabbit@localhost/coordination/rabbit@localhost

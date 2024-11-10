@@ -110,16 +110,12 @@
 
 <script lang="ts" setup>
   import { ref, computed } from 'vue'
-  import installedVersions from '@/util/InstalledVersions'
   import { BrewStore, SoftInstalled } from '@web/store/brew'
-  import { AsyncComponentShow } from '@web/fn'
+  import { AsyncComponentShow, dirname, waitTime } from '@web/fn'
   import { Service } from '@web/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '@web/components/ServiceManager/EXT/store'
   import { I18nT } from '@shared/lang'
-
-  const { shell } = require('@electron/remote')
-  const { dirname } = require('path')
 
   if (!Service.python) {
     Service.python = {
@@ -165,17 +161,7 @@
     return brewStore.module('python').installed
   })
 
-  const init = () => {
-    if (initing.value) {
-      return
-    }
-    initing.value = true
-    service.value.fetching = true
-    installedVersions.allInstalledVersions(['python']).then(() => {
-      initing.value = false
-      service.value.fetching = false
-    })
-  }
+  const init = () => {}
 
   const reinit = () => {
     const data = python.value
@@ -190,14 +176,12 @@
     service.value.fetching = true
     const data = brewStore.module('python')
     data.installedInited = false
-    installedVersions.allInstalledVersions(['python']).then(() => {
+    waitTime().then(() => {
       service.value.fetching = false
     })
   }
 
-  const openDir = (dir: string) => {
-    shell.openPath(dir)
-  }
+  const openDir = (dir: string) => {}
 
   init()
   ServiceActionStore.fetchPath()

@@ -29,10 +29,9 @@
 
 <script lang="ts">
   import { defineComponent } from 'vue'
-  import IPC from '@/util/IPC'
   import { ElMessageBox } from 'element-plus'
   import { AppStore } from '@web/store/app'
-  import { MessageSuccess } from '@/util/Element'
+  import { waitTime } from '@web/fn'
   export default defineComponent({
     components: {},
     props: {},
@@ -58,22 +57,10 @@
               if (action === 'confirm') {
                 // 去除trim, 有些电脑的密码是空格...
                 if (instance.inputValue) {
-                  IPC.send('app:password-check', instance.inputValue).then(
-                    (key: string, res: any) => {
-                      IPC.off(key)
-                      if (res === false) {
-                        instance.editorErrorMessage = this.$t('base.passwordError')
-                      } else {
-                        global.Server.Password = res
-                        AppStore()
-                          .initConfig()
-                          .then(() => {
-                            done && done()
-                            this.show = true
-                          })
-                      }
-                    }
-                  )
+                  waitTime().then(() => {
+                    done && done()
+                    this.show = true
+                  })
                 }
               } else {
                 done()
@@ -98,22 +85,10 @@
             if (action === 'confirm') {
               // 去除trim, 有些电脑的密码是空格...
               if (instance.inputValue) {
-                IPC.send('app:password-check', instance.inputValue).then(
-                  (key: string, res: any) => {
-                    IPC.off(key)
-                    if (res === false) {
-                      instance.editorErrorMessage = this.$t('base.passwordError')
-                    } else {
-                      global.Server.Password = res
-                      AppStore()
-                        .initConfig()
-                        .then(() => {
-                          done && done()
-                          MessageSuccess(this.$t('base.success'))
-                        })
-                    }
-                  }
-                )
+                waitTime().then(() => {
+                  done && done()
+                  this.show = true
+                })
               }
             } else {
               done()

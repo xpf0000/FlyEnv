@@ -1,6 +1,6 @@
 import { computed } from 'vue'
 import { reactive } from 'vue'
-import Router from '@/router/index'
+import Router from '@web/router/index'
 import { BrewStore } from '@web/store/brew'
 import { startService, stopService } from '@web/fn'
 import { MessageError, MessageSuccess } from '@/util/Element'

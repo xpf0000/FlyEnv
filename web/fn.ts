@@ -20,6 +20,7 @@ import 'monaco-editor/esm/vs/basic-languages/mysql/mysql.contribution.js'
 import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
 import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js'
 import type { AllAppModule } from '@web/core/type'
+import { ElMessageBox } from 'element-plus'
 
 export function random(m: number, n: number) {
   return Math.floor(Math.random() * (m - n) + n)
@@ -183,4 +184,14 @@ export const join = (...dirs: string[]) => {
     str = '/' + str
   }
   return str
+}
+
+export const staticVersionDel = (dir: string) => {
+  ElMessageBox.confirm(I18nT('base.staticDelAlert'), undefined, {
+    confirmButtonText: I18nT('base.confirm'),
+    cancelButtonText: I18nT('base.cancel'),
+    closeOnClickModal: false,
+    customClass: 'confirm-del',
+    type: 'warning'
+  }).then(() => {})
 }

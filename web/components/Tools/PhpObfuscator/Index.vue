@@ -77,15 +77,10 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent, nextTick, ref } from 'vue'
+  import { defineComponent, ref } from 'vue'
   import { BrewStore } from '@web/store/brew'
   import Config from './Config.vue'
-  import IPC from '@/util/IPC'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-
-  const { dialog, shell } = require('@electron/remote')
-  const { statSync } = require('fs')
-  const { join } = require('path')
+  import { waitTime } from '@web/fn'
 
   let running = ref(false)
 
@@ -116,9 +111,7 @@
         return running.value
       },
       phpVersions() {
-        return BrewStore()
-          .module('php')
-          .installed.filter((p) => p.enable && p.num && p?.num > 56)
+        return BrewStore().php!.installed.filter((p) => p.enable && p.num && p?.num > 56)
       }
     },
     watch: {
@@ -148,30 +141,8 @@
           return
         }
         running.value = true
-        const php = this.phpVersions.find((p) => `${p.path}-${p.version}` === this.item.phpversion)
-        const bin = join(php!.path, 'bin/php')
-        const params = JSON.parse(
-          JSON.stringify({
-            ...this.item,
-            bin
-          })
-        )
-        IPC.send('app-fork:php', 'doObfuscator', params).then((key: string, res: any) => {
-          IPC.off(key)
-          if (res?.code === 0) {
-            MessageSuccess(this.$t('base.success'))
-            shell.showItemInFolder(this.item.desc)
-          } else {
-            const msg = res.msg
-            import('./Logs.vue').then((res) => {
-              res.default.show({
-                content: msg
-              })
-              nextTick().then(() => {
-                MessageError(this.$t('base.fail'))
-              })
-            })
-          }
+        waitTime().then(() => {
+          this.$message.success(this.$t('base.success'))
           running.value = false
         })
       },
@@ -190,70 +161,8 @@
         }
         return true
       },
-      chooseSrc() {
-        let opt = ['openDirectory', 'openFile', 'showHiddenFiles']
-        dialog
-          .showOpenDialog({
-            properties: opt,
-            filters: [
-              {
-                extensions: ['php']
-              }
-            ]
-          })
-          .then(({ canceled, filePaths }: any) => {
-            if (canceled || filePaths.length === 0) {
-              return
-            }
-            const [path] = filePaths
-            const state = statSync(path)
-            if (state.isDirectory()) {
-              this.descType = 'dir'
-            } else if (state.isFile()) {
-              this.descType = 'file'
-            } else {
-              this.descType = ''
-              return
-            }
-            this.item.src = path
-            this.item.desc = ''
-          })
-      },
-      chooseDesc() {
-        if (!this.descType) {
-          return
-        }
-        if (this.descType === 'dir') {
-          dialog
-            .showOpenDialog({
-              properties: ['openDirectory', 'showHiddenFiles', 'createDirectory']
-            })
-            .then(({ canceled, filePaths }: any) => {
-              if (canceled || filePaths.length === 0) {
-                return
-              }
-              const [path] = filePaths
-              this.item.desc = path
-            })
-        } else {
-          let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
-          dialog
-            .showSaveDialog({
-              properties: opt,
-              filters: [
-                {
-                  extensions: ['php']
-                }
-              ]
-            })
-            .then(({ canceled, filePath }: any) => {
-              if (canceled || !filePath) {
-                return
-              }
-              this.item.desc = filePath
-            })
-        }
-      },
+      chooseSrc() {},
+      chooseDesc() {},
       doClose() {
         this.$emit('doClose')
       }

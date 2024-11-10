@@ -2,7 +2,7 @@
   <div class="setup-common editor-config">
     <div class="main proxy-set">
       <el-form label-width="130px" label-position="left" @submit.prevent>
-        <el-form-item :label="$t('util.theme')">
+        <el-form-item :label="$t(' util.theme')">
           <el-radio-group v-model="editorConfig.theme">
             <el-radio-button label="vs-dark" />
             <el-radio-button label="vs-light" />
@@ -25,14 +25,11 @@
 
 <script lang="ts" setup>
   import { AppStore } from '@web/store/app'
-  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+  import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { EditorConfigMap } from '@web/components/Setup/EditorConfig/store'
+  import { EditorConfigMap } from './store'
+  import Conf from '@web/config/apache.conf.txt?raw'
   import { EditorCreate } from '@web/fn'
-
-  const { readFile } = require('fs-extra')
-  const { join } = require('path')
-  const { nativeTheme } = require('@electron/remote')
 
   const wapper = ref()
   const appStore = AppStore()
@@ -44,27 +41,6 @@
   })
   let monacoInstance: editor.IStandaloneCodeEditor | null = null
 
-  const index = ref(1)
-
-  const currentTheme = computed(() => {
-    if (index.value < 0) {
-      return 'vs-light'
-    }
-    let theme = editorConfig.value.theme
-    if (theme === 'auto') {
-      let appTheme = appStore?.config?.setup?.theme
-      if (!appTheme || appTheme === 'system') {
-        appTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
-      }
-      if (appTheme === 'light') {
-        theme = 'vs-light'
-      } else {
-        theme = 'vs-dark'
-      }
-    }
-    return theme
-  })
-
   const initEditor = () => {
     monacoInstance = EditorCreate(wapper.value, {
       value: EditorConfigMap.text,
@@ -72,7 +48,7 @@
       scrollBeyondLastLine: false,
       overviewRulerBorder: true,
       automaticLayout: true,
-      theme: currentTheme.value,
+      theme: editorConfig.value.theme,
       fontSize: editorConfig.value.fontSize,
       lineHeight: editorConfig.value.lineHeight
     })
@@ -80,10 +56,8 @@
 
   onMounted(() => {
     if (!EditorConfigMap.text) {
-      readFile(join(global.Server.Static, 'tmpl/httpd.conf'), 'utf-8').then((text: string) => {
-        EditorConfigMap.text = text
-        initEditor()
-      })
+      EditorConfigMap.text = Conf
+      initEditor()
     } else {
       initEditor()
     }
@@ -98,32 +72,13 @@
     editorConfig,
     () => {
       monacoInstance?.updateOptions({
-        theme: currentTheme.value,
+        theme: editorConfig.value.theme,
         fontSize: editorConfig.value.fontSize,
         lineHeight: editorConfig.value.lineHeight
       })
-      appStore.saveConfig()
     },
     {
       deep: true
     }
   )
-
-  const onNativeThemeUpdate = () => {
-    index.value += 1
-    nextTick().then(() => {
-      monacoInstance?.updateOptions({
-        theme: currentTheme.value,
-        fontSize: editorConfig.value.fontSize,
-        lineHeight: editorConfig.value.lineHeight
-      })
-    })
-  }
-
-  nativeTheme.on('updated', onNativeThemeUpdate)
-
-  onUnmounted(() => {
-    console.log('EditorConfig onUnmounted !!!')
-    nativeTheme.removeListener('updated', onNativeThemeUpdate)
-  })
 </script>

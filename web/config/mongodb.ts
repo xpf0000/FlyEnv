@@ -1,7 +1,7 @@
 export const Mongodb = {
-  homebrew: {
+  brew: {
     'mongodb/brew/mongodb-community': {
-      version: '7.0.2',
+      version: '8.0.1',
       installed: true,
       name: 'mongodb/brew/mongodb-community',
       flag: 'brew'
@@ -25,7 +25,7 @@ export const Mongodb = {
       flag: 'brew'
     },
     'mongodb/brew/mongodb-enterprise': {
-      version: '7.0.2',
+      version: '8.0.1',
       installed: false,
       name: 'mongodb/brew/mongodb-enterprise',
       flag: 'brew'
@@ -47,12 +47,24 @@ export const Mongodb = {
       installed: false,
       name: 'mongodb/brew/mongodb-enterprise@6.0',
       flag: 'brew'
+    },
+    'mongodb/brew/mongodb-community@7.0': {
+      version: '7.0.14',
+      installed: false,
+      name: 'mongodb/brew/mongodb-enterprise@7.0',
+      flag: 'brew'
+    },
+    'mongodb/brew/mongodb-enterprise@7.0': {
+      version: '7.0.14',
+      installed: false,
+      name: 'mongodb/brew/mongodb-enterprise@7.0',
+      flag: 'brew'
     }
   },
-  macports: {
+  port: {
     mongodb: {
       name: 'mongodb',
-      version: '6.0.5',
+      version: '6.0.7',
       installed: false,
       flag: 'port'
     }

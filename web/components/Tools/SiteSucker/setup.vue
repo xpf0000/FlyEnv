@@ -40,16 +40,6 @@
                   </div>
                 </div>
               </el-form-item>
-              <el-form-item :label="$t('tools.windowCount')">
-                <div class="path-choose w-p100">
-                  <el-slider
-                    v-model.number="form.windowCount"
-                    :min="1"
-                    :max="CPU_Count"
-                    show-input
-                  ></el-slider>
-                </div>
-              </el-form-item>
               <el-form-item :label="$t('util.proxy')">
                 <div class="path-choose w-p100">
                   <input
@@ -58,38 +48,6 @@
                     class="input"
                     placeholder="eg: http://127.0.0.1:1087"
                   />
-                </div>
-              </el-form-item>
-              <el-form-item :label="$t('util.timeout')">
-                <div class="path-choose w-p100">
-                  <input
-                    v-model.number="form.timeout"
-                    type="number"
-                    class="input"
-                    :placeholder="$t('util.timeoutTips')"
-                  />
-                </div>
-              </el-form-item>
-              <el-form-item :label="$t('util.maxImgSize')">
-                <div class="path-choose w-p100">
-                  <input
-                    v-model.number="form.maxImgSize"
-                    type="number"
-                    class="input"
-                    :placeholder="$t('util.maxImgSize')"
-                  />
-                  <div class="util-m">M</div>
-                </div>
-              </el-form-item>
-              <el-form-item :label="$t('util.maxVideoSize')">
-                <div class="path-choose w-p100">
-                  <input
-                    v-model.number="form.maxVideoSize"
-                    type="number"
-                    class="input"
-                    :placeholder="$t('util.maxVideoSize')"
-                  />
-                  <div class="util-m">M</div>
                 </div>
               </el-form-item>
               <el-form-item :label="$t('util.pageLimit')">
@@ -119,23 +77,16 @@
 </template>
 <script lang="ts" setup>
   import { ref } from 'vue'
-  import { AsyncComponentSetup } from '@web/fn'
-  import { SiteSuckerStore } from '@web/components/Tools/SiteSucker/store'
+  import { AsyncComponentSetup } from '../../../fn'
+  import { SiteSuckerStore } from './store'
 
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
-  const os = require('os')
-  const CPU_Count = os.cpus().length
 
   const form = ref({
     dir: '',
     proxy: '',
     excludeLink: '',
-    pageLimit: '',
-    timeout: undefined,
-    maxImgSize: undefined,
-    maxVideoSize: undefined,
-    windowCount: 1
+    pageLimit: ''
   })
 
   const store = SiteSuckerStore()
@@ -151,19 +102,7 @@
     show.value = false
   }
 
-  const chooseRoot = () => {
-    dialog
-      .showOpenDialog({
-        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
-      })
-      .then(({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const [path] = filePaths
-        form.value.dir = path
-      })
-  }
+  const chooseRoot = () => {}
 
   defineExpose({
     show,

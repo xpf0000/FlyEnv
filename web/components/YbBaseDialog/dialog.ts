@@ -1,6 +1,7 @@
-import DialogView from './index.vue'
-import { VueExtend } from '@web/core/VueExtend'
 import { markRaw, toRaw } from 'vue'
+import DialogView from './index.vue'
+import { VueExtend } from '@web/VueExtend'
+
 class BaseDialog {
   private _component: any
   private _resolve: Function | undefined

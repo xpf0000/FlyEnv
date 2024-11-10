@@ -1,5 +1,5 @@
 export const Php = {
-  homebrew: {
+  brew: {
     php: {
       version: '8.2.12',
       installed: true,
@@ -73,7 +73,7 @@ export const Php = {
       flag: 'brew'
     },
     'shivammathur/php/php': {
-      version: '8.3.0',
+      version: '8.3.12',
       installed: true,
       name: 'shivammathur/php/php',
       flag: 'brew'
@@ -83,9 +83,15 @@ export const Php = {
       installed: true,
       name: 'shivammathur/php/php@8.4',
       flag: 'brew'
+    },
+    'shivammathur/php/php@8.5': {
+      version: '8.5.0',
+      installed: true,
+      name: 'shivammathur/php/php@8.5',
+      flag: 'brew'
     }
   },
-  macports: {
+  port: {
     php: {
       name: 'php',
       version: '8.2',
@@ -172,29 +178,35 @@ export const Php = {
     },
     php83: {
       name: 'php83',
-      version: '8.3.0RC1',
+      version: '8.3.12',
+      installed: false,
+      flag: 'port'
+    },
+    php84: {
+      name: 'php84',
+      version: '8.4.0RC1',
       installed: false,
       flag: 'port'
     }
   },
   static: {
-    'php-8.3.10': {
-      url: 'https://dl.static-php.dev/static-php-cli/bulk/php-8.3.10-fpm-macos-aarch64.tar.gz',
-      version: '8.3.10',
+    'php-8.3.13': {
+      url: 'https://dl.static-php.dev/static-php-cli/bulk/php-8.3.13-fpm-macos-aarch64.tar.gz',
+      version: '8.3.13',
       mVersion: '8.3',
-      appDir: '/Users/x/Library/PhpWebStudy/app/static-php-8.3.10',
-      zip: '/Users/x/Library/PhpWebStudy/server/cache/static-php-8.3.10.tar.gz',
-      bin: '/Users/x/Library/PhpWebStudy/app/static-php-8.3.10/sbin/php-fpm',
+      appDir: '/Users/x/Library/PhpWebStudy/app/static-php-8.3.13',
+      zip: '/Users/x/Library/PhpWebStudy/server/cache/static-php-8.3.13.tar.gz',
+      bin: '/Users/x/Library/PhpWebStudy/app/static-php-8.3.13/sbin/php-fpm',
       downloaded: false,
       installed: false
     },
-    'php-8.2.22': {
-      url: 'https://dl.static-php.dev/static-php-cli/bulk/php-8.2.22-fpm-macos-aarch64.tar.gz',
-      version: '8.2.22',
+    'php-8.2.25': {
+      url: 'https://dl.static-php.dev/static-php-cli/bulk/php-8.2.25-fpm-macos-aarch64.tar.gz',
+      version: '8.2.25',
       mVersion: '8.2',
-      appDir: '/Users/x/Library/PhpWebStudy/app/static-php-8.2.22',
-      zip: '/Users/x/Library/PhpWebStudy/server/cache/static-php-8.2.22.tar.gz',
-      bin: '/Users/x/Library/PhpWebStudy/app/static-php-8.2.22/sbin/php-fpm',
+      appDir: '/Users/x/Library/PhpWebStudy/app/static-php-8.2.25',
+      zip: '/Users/x/Library/PhpWebStudy/server/cache/static-php-8.2.25.tar.gz',
+      bin: '/Users/x/Library/PhpWebStudy/app/static-php-8.2.25/sbin/php-fpm',
       downloaded: false,
       installed: false
     },

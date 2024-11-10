@@ -15,7 +15,6 @@
     },
     set(v) {
       store.config.setup.autoCheck = v
-      store.saveConfig()
     }
   })
 </script>

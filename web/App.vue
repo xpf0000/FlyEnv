@@ -1,6 +1,5 @@
 <template>
   <router-view />
-  <FloatButton />
 </template>
 
 <script lang="ts" setup>
@@ -8,7 +7,6 @@
   import { AppStore } from './store/app'
   import { BrewStore } from './store/brew'
   import { I18nT } from '@shared/lang'
-  import FloatButton from '@web/components/FloatBtn/index.vue'
 
   const appStore = AppStore()
   const lang = computed(() => {

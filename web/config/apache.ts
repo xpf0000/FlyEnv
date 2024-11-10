@@ -1,13 +1,13 @@
 export const Apache = {
-  homebrew: {
+  brew: {
     httpd: {
-      version: '2.4.58',
+      version: '2.4.62',
       installed: true,
       name: 'httpd',
       flag: 'brew'
     }
   },
-  macports: {
+  port: {
     apache2: {
       name: 'apache2',
       version: '2.4.57',

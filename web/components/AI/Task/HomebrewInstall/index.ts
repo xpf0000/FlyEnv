@@ -11,9 +11,7 @@ export class HomebrewInstall extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: global.Server.BrewCellar
-              ? I18nT('ai.brewHasInstall')
-              : I18nT('ai.brewNotInstall')
+            content: I18nT('ai.brewHasInstall')
           })
         },
         run: () => {

@@ -7,9 +7,10 @@
     size="90%"
     :destroy-on-close="false"
     :with-header="false"
+    :append-to-body="false"
     append-to="#container"
   >
-    <ToolIndex @on-tool-show="onToolShow" />
+    <ToolIndex />
   </el-drawer>
 </template>
 
@@ -20,8 +21,6 @@
   const toolShow = ref(false)
   const show = () => {
     toolShow.value = true
-  }
-  const onToolShow = () => {
-    toolShow.value = false
+    console.log('toolShow.value: ', toolShow.value)
   }
 </script>

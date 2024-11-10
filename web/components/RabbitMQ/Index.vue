@@ -38,8 +38,6 @@
   import { AppStore } from '@web/store/app'
   import { BrewStore } from '@web/store/brew'
 
-  const { shell } = require('@electron/remote')
-
   const appStore = AppStore()
   const brewStore = BrewStore()
 
@@ -53,9 +51,7 @@
     return currentVersion?.value?.run
   })
 
-  const openURL = () => {
-    shell.openExternal('http://localhost:15672/')
-  }
+  const openURL = () => {}
 
   const { tab, checkVersion } = AppModuleSetup('rabbitmq')
   const tabs = [

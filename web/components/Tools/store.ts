@@ -1,30 +1,16 @@
 import type { AppToolModuleItem } from '@web/core/type'
 import { reactive } from 'vue'
-import { uuid } from '@/util/Index'
-
-const { existsSync, readFile, writeFile } = require('fs-extra')
-const { join } = require('path')
-const { shell } = require('@electron/remote')
+import { uuid } from '@web/fn'
 
 const getToolData = async () => {
-  let obj = {
+  const obj = {
     like: [],
     custom: []
-  }
-  const file = join(global.Server.BaseDir!, 'app.tools.json')
-  if (existsSync(file)) {
-    const json = await readFile(file, 'utf-8')
-    try {
-      obj = JSON.parse(json)
-    } catch (e) {}
   }
   return obj
 }
 
-const setToolData = async (data: any) => {
-  const file = join(global.Server.BaseDir!, 'app.tools.json')
-  await writeFile(file, JSON.stringify(data))
-}
+const setToolData = async (data: any) => {}
 
 export type AppToolStoreType = {
   id: string
@@ -48,9 +34,7 @@ export const AppToolStore = reactive({
   custom: [],
   like: [],
   adding: false,
-  openUrl(url: string) {
-    shell.openExternal(url)
-  },
+  openUrl(url: string) {},
   init() {
     getToolData()
       .then((res) => {

@@ -17,7 +17,6 @@
     },
     set(v) {
       store.config.setup.showAIRobot = v
-      store.saveConfig()
     }
   })
 </script>

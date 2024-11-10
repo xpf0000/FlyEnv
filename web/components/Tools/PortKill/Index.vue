@@ -51,9 +51,6 @@
 <script lang="ts">
   import { markRaw, defineComponent } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { passwordCheck } from '@/util/Brew'
-  import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
-  import { execPromiseRoot } from '@shared/Exec'
 
   const SearchIcon = markRaw(Search)
   export default defineComponent({
@@ -77,49 +74,11 @@
     computed: {},
     watch: {},
     created: function () {},
-    mounted() {
-      passwordCheck().then(() => {})
-    },
+    mounted() {},
     unmounted() {},
     methods: {
-      cleanSelect() {
-        this.$baseConfirm(this.$t('base.killProcessConfim'), undefined, {
-          customClass: 'confirm-del',
-          type: 'warning'
-        })
-          .then(async () => {
-            const pids = this.select.map((s: any) => {
-              return s.PID
-            })
-            try {
-              await execPromiseRoot(['kill', '-9', ...pids])
-              MessageSuccess(this.$t('base.success'))
-              this.doSearch().then()
-            } catch (e) {
-              MessageError(this.$t('base.fail'))
-            }
-          })
-          .catch(() => {})
-      },
-      cleanAll() {
-        this.$baseConfirm(this.$t('base.killAllProcessConfim'), undefined, {
-          customClass: 'confirm-del',
-          type: 'warning'
-        })
-          .then(async () => {
-            const pids = this.arrs.map((s: any) => {
-              return s.PID
-            })
-            try {
-              await execPromiseRoot(['kill', '-9', ...pids])
-              MessageSuccess(this.$t('base.success'))
-              this.doSearch().then()
-            } catch (e) {
-              MessageError(this.$t('base.fail'))
-            }
-          })
-          .catch(() => {})
-      },
+      cleanSelect() {},
+      cleanAll() {},
       handleSelectionChange(select: Array<any>) {
         console.log(...arguments)
         this.select.splice(0)
@@ -128,36 +87,7 @@
       doClose() {
         this.$emit('doClose')
       },
-      async doSearch() {
-        this.arrs.splice(0)
-        const res = await execPromiseRoot(`lsof -nP -i:${this.port} | awk '{print $1,$2,$3}'`)
-        const arr = res.stdout
-          .toString()
-          .trim()
-          .split('\n')
-          .filter((v: any, i: number) => {
-            return i > 0
-          })
-          .map((a: any) => {
-            const list = a.split(' ').filter((s: string) => {
-              return s.trim().length > 0
-            })
-            const USER = list.pop()
-            const PID = list.pop()
-            const COMMAND = list.join(' ')
-            return {
-              USER,
-              PID,
-              COMMAND
-            }
-          })
-        if (arr.length === 0) {
-          MessageWarning(this.$t('base.portNotUse'))
-          return
-        }
-        this.arrs.splice(0)
-        this.arrs.push(...arr)
-      }
+      async doSearch() {}
     }
   })
 </script>

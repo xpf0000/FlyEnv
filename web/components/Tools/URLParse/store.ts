@@ -2,8 +2,6 @@ import { reactive } from 'vue'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
 
-const { clipboard } = require('@electron/remote')
-
 const store = reactive({
   url: 'https://me:pwd@www.macphpstudy.com:3000/sponsor.html?key1=value&key2=value2#thanks',
   urlDict: {},
@@ -20,7 +18,6 @@ const store = reactive({
     this.urlDict = new URL(this.url)
   },
   copy(text: string) {
-    clipboard.writeText(text)
     MessageSuccess(I18nT('base.success'))
   }
 })

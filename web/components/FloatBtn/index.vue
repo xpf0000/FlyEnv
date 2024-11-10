@@ -1,6 +1,8 @@
 <template>
   <div class="app-float-btn-wapper">
-    <ToolFlowButton v-if="showTool" />
+    <template v-if="showTool">
+      <ToolFlowButton />
+    </template>
     <AI v-if="showAI" />
   </div>
 </template>

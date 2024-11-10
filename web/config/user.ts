@@ -2,9 +2,9 @@ export const User = {
   server: {
     tomcat: {
       current: {
-        version: '10.1.28',
-        bin: '/opt/homebrew/Cellar/tomcat/10.1.28/libexec/bin/startup.sh',
-        path: '/opt/homebrew/Cellar/tomcat/10.1.28/libexec/',
+        version: '10.1.31',
+        bin: '/opt/homebrew/Cellar/tomcat/10.1.31/libexec/bin/startup.sh',
+        path: '/opt/homebrew/Cellar/tomcat/10.1.31/libexec/',
         num: 101,
         enable: true,
         run: true,
@@ -13,10 +13,10 @@ export const User = {
     },
     caddy: {
       current: {
-        version: '2.7.6',
-        bin: '/usr/local/Cellar/caddy/2.7.6/bin/caddy',
-        path: '/usr/local/Cellar/caddy/2.7.6/',
-        num: 27,
+        version: '2.8.4',
+        bin: '/usr/local/Cellar/caddy/2.8.4/bin/caddy',
+        path: '/usr/local/Cellar/caddy/2.8.4/',
+        num: 28,
         enable: true,
         run: true,
         running: false
@@ -24,10 +24,10 @@ export const User = {
     },
     postgresql: {
       current: {
-        version: '16.0',
-        bin: '/opt/local/lib/postgresql16/bin/pg_ctl',
-        path: '/opt/local/lib/postgresql16',
-        num: 160,
+        version: '17.0',
+        bin: '/usr/local/Cellar/postgresql@17/17.0/bin/pg_ctl',
+        path: '/usr/local/Cellar/postgresql@17/17.0',
+        num: 170,
         enable: true,
         run: false,
         running: false
@@ -35,9 +35,9 @@ export const User = {
     },
     nginx: {
       current: {
-        version: '1.25.3',
-        bin: '/usr/local/Cellar/nginx/1.25.3/bin/nginx',
-        path: '/usr/local/Cellar/nginx/1.25.3/',
+        version: '1.27.2',
+        bin: '/usr/local/Cellar/nginx/1.27.2/bin/nginx',
+        path: '/usr/local/Cellar/nginx/1.27.2/',
         num: 125,
         enable: true,
         run: false,
@@ -86,10 +86,21 @@ export const User = {
     },
     redis: {
       current: {
-        version: '7.2.3',
-        bin: '/usr/local/Cellar/redis/7.2.3/bin/redis-server',
-        path: '/usr/local/Cellar/redis/7.2.3/',
+        version: '7.2.6',
+        bin: '/usr/local/Cellar/redis/7.2.6/bin/redis-server',
+        path: '/usr/local/Cellar/redis/7.2.6/',
         num: 72,
+        enable: true,
+        run: false,
+        running: false
+      }
+    },
+    rabbitmq: {
+      current: {
+        version: '4.0.2',
+        bin: '/opt/homebrew/Cellar/rabbitmq/4.0.2/sbin/rabbitmq-server',
+        path: '/opt/homebrew/Cellar/rabbitmq/4.0.2/',
+        num: 40,
         enable: true,
         run: false,
         running: false

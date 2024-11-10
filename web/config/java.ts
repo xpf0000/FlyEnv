@@ -1,7 +1,7 @@
 export const Java = {
-  homebrew: {
+  brew: {
     openjdk: {
-      version: '22.0.2',
+      version: '23',
       installed: true,
       name: 'openjdk',
       flag: 'brew'
@@ -31,7 +31,19 @@ export const Java = {
       flag: 'brew'
     }
   },
-  macports: {
+  port: {
+    openjdk23: {
+      version: '23.0.1',
+      installed: false,
+      name: 'openjdk23',
+      flag: 'port'
+    },
+    jdk23: {
+      version: '23.0.1',
+      installed: false,
+      name: 'jdk23',
+      flag: 'port'
+    },
     jdk22: {
       version: '22',
       installed: false,

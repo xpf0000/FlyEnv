@@ -1,5 +1,5 @@
 export const Ftp = {
-  homebrew: {
+  brew: {
     'pure-ftpd': {
       version: '1.0.51',
       installed: true,
@@ -7,7 +7,7 @@ export const Ftp = {
       flag: 'brew'
     }
   },
-  macports: {
+  port: {
     'pure-ftpd': {
       name: 'pure-ftpd',
       version: '1.0.51',

@@ -52,9 +52,7 @@
 <script>
   import { markRaw } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { passwordCheck } from '@/util/Brew.ts'
   import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element.ts'
-  import { execPromiseRoot } from '@shared/Exec.ts'
 
   export default {
     components: {},
@@ -70,49 +68,11 @@
     computed: {},
     watch: {},
     created: function () {},
-    mounted() {
-      passwordCheck().then(() => {})
-    },
+    mounted() {},
     unmounted() {},
     methods: {
-      cleanSelect() {
-        this.$baseConfirm(this.$t('base.killProcessConfim'), null, {
-          customClass: 'confirm-del',
-          type: 'warning'
-        })
-          .then(async () => {
-            const pids = this.select.map((s) => {
-              return s.PID
-            })
-            try {
-              await execPromiseRoot(['kill', '-9', ...pids])
-              MessageSuccess(this.$t('base.success'))
-              this.doSearch().then()
-            } catch (e) {
-              MessageError(this.$t('base.fail'))
-            }
-          })
-          .catch(() => {})
-      },
-      cleanAll() {
-        this.$baseConfirm(this.$t('base.killAllProcessConfim'), null, {
-          customClass: 'confirm-del',
-          type: 'warning'
-        })
-          .then(async () => {
-            const pids = this.arrs.map((s) => {
-              return s.PID
-            })
-            try {
-              await execPromiseRoot(['kill', '-9', ...pids])
-              MessageSuccess(this.$t('base.success'))
-              this.doSearch().then()
-            } catch (e) {
-              MessageError(this.$t('base.fail'))
-            }
-          })
-          .catch(() => {})
-      },
+      cleanSelect() {},
+      cleanAll() {},
       handleSelectionChange(select) {
         console.log(...arguments)
         this.select.splice(0)
@@ -121,41 +81,7 @@
       doClose() {
         this.$emit('doClose')
       },
-      async doSearch() {
-        this.arrs.splice(0)
-        const res = await execPromiseRoot(`ps aux | grep '${this.searchKey}'`)
-        const arr = res.stdout
-          .toString()
-          .trim()
-          .split('\n')
-          .filter((v) => {
-            return !v.includes(`grep ${this.searchKey}`) && !v.includes(`grep '${this.searchKey}'`)
-          })
-          .map((a) => {
-            const list = a.split(' ').filter((s) => {
-              return s.trim().length > 0
-            })
-            const USER = list.shift()
-            const PID = list.shift()
-            Array(8)
-              .fill(0)
-              .forEach(() => {
-                list.shift()
-              })
-            const COMMAND = list.join(' ')
-            return {
-              USER,
-              PID,
-              COMMAND
-            }
-          })
-        if (arr.length === 0) {
-          MessageWarning(this.$t('base.processNoFound'))
-          return
-        }
-        this.arrs.splice(0)
-        this.arrs.push(...arr)
-      }
+      async doSearch() {}
     }
   }
 </script>

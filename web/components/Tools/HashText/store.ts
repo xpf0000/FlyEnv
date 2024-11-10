@@ -4,8 +4,6 @@ import { I18nT } from '@shared/lang'
 import type { lib } from 'crypto-js'
 import { MD5, RIPEMD160, SHA1, SHA224, SHA256, SHA3, SHA384, SHA512, enc } from 'crypto-js'
 
-const { clipboard } = require('@electron/remote')
-
 const convertHexToBin = (hex: string) => {
   return hex
     .trim()
@@ -52,11 +50,10 @@ const store = reactive({
     if (this.digest === 'Bin') {
       return convertHexToBin(value.toString(enc.Hex))
     }
-    return value.toString(enc[this.digest])
+    const e: any = enc
+    return value.toString(e[this.digest])
   },
   copy(algo: string) {
-    const value = this.hashText(algo)
-    clipboard.writeText(value)
     MessageSuccess(I18nT('base.success'))
   }
 })

@@ -1,0 +1,10 @@
+2946:C 23 Oct 2024 20:17:38.667 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2946:C 23 Oct 2024 20:17:38.667 * Redis version=7.2.5, bits=64, commit=00000000, modified=0, pid=2946, just started
+2946:C 23 Oct 2024 20:17:38.667 * Configuration loaded
+2946:M 23 Oct 2024 20:17:38.668 * monotonic clock: POSIX clock_gettime
+2946:M 23 Oct 2024 20:17:38.669 * Running mode=standalone, port=6379.
+2946:M 23 Oct 2024 20:17:38.669 # WARNING: The TCP backlog setting of 511 cannot be enforced because kern.ipc.somaxconn is set to the lower value of 128.
+2946:M 23 Oct 2024 20:17:38.669 * Server initialized
+2946:M 23 Oct 2024 20:17:38.669 . The AOF directory appendonlydir doesn't exist
+2946:M 23 Oct 2024 20:17:38.669 * Ready to accept connections tcp
+2946:M 23 Oct 2024 20:17:38.669 . 0 clients connected (0 replicas), 1099344 bytes in use

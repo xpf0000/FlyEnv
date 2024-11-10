@@ -37,60 +37,34 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, ref } from 'vue'
+  import { nextTick, ref } from 'vue'
   import { AsyncComponentSetup } from '@web/fn'
-  import { BrewStore } from '@web/store/brew'
   import { PhpMyAdminTask } from '@web/components/ServiceManager/service'
-  import IPC from '@/util/IPC'
-  import { MessageError } from '@/util/Element'
   import { I18nT } from '@shared/lang'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const phpMyAdminStore = PhpMyAdminTask
 
-  const brewStore = BrewStore()
-
-  const phpVersions = computed(() => {
-    const set: Set<number> = new Set()
-    return (
-      brewStore.module('php').installed.filter((p) => {
-        if (p.version && p.num) {
-          if (!set.has(p.num)) {
-            set.add(p.num)
-            return true
-          }
-          return false
-        }
-        return false
-      }) ?? []
-    )
-  })
-
   const state = ref('')
 
   const doRun = () => {
+    if (PhpMyAdminTask.fetching) {
+      return
+    }
     PhpMyAdminTask.fetching = true
-    const php = [...phpVersions.value]
-      ?.sort((a, b) => {
-        const anum = a?.num ?? 0
-        const bnum = b?.num ?? 0
-        return anum - bnum
-      })
-      ?.pop()?.num
-    IPC.send('app-fork:host', 'addPhpMyAdminSite', php).then((key: string, res: any) => {
-      if (res?.code === 200) {
-        PhpMyAdminTask.percent = res.msg
-      } else if (res?.code === 0) {
+    let p = 0
+    const run = () => {
+      p += 1
+      PhpMyAdminTask.percent = p
+      if (p === 100) {
         PhpMyAdminTask.percent = 100
         state.value = 'success'
-        IPC.off(key)
-      } else if (res?.code === 1) {
-        state.value = 'error'
-        IPC.off(key)
-        MessageError(res?.msg)
+        return
       }
-    })
+      requestAnimationFrame(run)
+    }
+    requestAnimationFrame(run)
   }
 
   const doSubmit = () => {

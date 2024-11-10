@@ -1,32 +1,17 @@
-import { computed, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
-import { AppStore } from '@web/store/app'
+import { computed, ref } from 'vue'
 import { BrewStore, SoftInstalled } from '@web/store/brew'
-import XTerm from '@/util/XTerm'
 import { I18nT } from '@shared/lang'
-import IPC from '@/util/IPC'
-import { staticVersionDel } from '@/util/Version'
 import type { AllAppModule } from '@web/core/type'
-import installedVersions from '@/util/InstalledVersions'
-import { brewInfo, fetchVerion, portInfo } from '@/util/Brew'
-import { chmod } from '@shared/file'
 import { VersionManagerStore } from '@web/components/VersionManager/store'
 import { ServiceActionStore } from '@web/components/ServiceManager/EXT/store'
-
-const { shell } = require('@electron/remote')
-const { join, dirname } = require('path')
-const { existsSync, unlinkSync, copyFileSync, readFileSync, writeFileSync } = require('fs')
+import { dirname, staticVersionDel, waitTime } from '@web/fn'
 
 export const SetupAll = (typeFlag: AllAppModule) => {
-  const appStore = AppStore()
   const brewStore = BrewStore()
 
   const showNextBtn = ref(false)
   const logs = ref()
-  let xterm: XTerm | null = null
 
-  const proxy = computed(() => {
-    return appStore.config.setup.proxy
-  })
   const cardHeadTitle = computed(() => {
     return brewStore.cardHeadTitle
   })
@@ -35,18 +20,6 @@ export const SetupAll = (typeFlag: AllAppModule) => {
   })
   const showInstallLog = computed(() => {
     return brewStore.showInstallLog
-  })
-  const log = computed(() => {
-    return brewStore.log
-  })
-  const proxyStr = computed(() => {
-    if (!proxy?.value.on) {
-      return undefined
-    }
-    return proxy?.value?.proxy
-  })
-  const logLength = computed(() => {
-    return log?.value?.length
   })
   const showLog = computed(() => {
     return showInstallLog?.value || showNextBtn?.value
@@ -61,37 +34,33 @@ export const SetupAll = (typeFlag: AllAppModule) => {
   }
 
   const checkBrew = () => {
-    return !!global.Server.BrewCellar
+    return true
   }
   const checkPort = () => {
-    return !!global.Server.MacPorts
+    return true
   }
 
   const handleOnlineVersion = (row: any) => {
-    console.log('row: ', row)
     if (!row.installed) {
       if (row.downing) {
         return
       }
       row.downing = true
       row.type = typeFlag
-      IPC.send(`app-fork:${typeFlag}`, 'installSoft', JSON.parse(JSON.stringify(row))).then(
-        (key: string, res: any) => {
-          const all = Object.values(brewStore.module(typeFlag).list.static ?? {})
-          const find = all.find((r) => r.bin === row.bin && r.zip === row.zip)
-          console.log('res: ', res)
-          if (res?.code === 200) {
-            find && Object.assign(find, res.msg)
-          } else if (res?.code === 0) {
-            IPC.off(key)
-            if (res?.data) {
-              fetchInstalled().then()
-              fetchOnline().then()
-            }
-            find && (find.downing = false)
-          }
+
+      let p = 0
+      const run = () => {
+        p += 1
+        row.progress = p
+        if (p === 100) {
+          row.downState = 'success'
+          row.installed = true
+          row.downing = false
+          return
         }
-      )
+        requestAnimationFrame(run)
+      }
+      requestAnimationFrame(run)
     } else {
       staticVersionDel(row.appDir)
     }
@@ -104,58 +73,16 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     brewStore.log.splice(0)
     brewStore.showInstallLog = true
     brewStore.brewRunning = true
-    let fn = ''
     if (row.installed) {
-      fn = 'uninstall'
       brewStore.cardHeadTitle = `${I18nT('base.uninstall')} ${row.name}`
     } else {
-      fn = 'install'
       brewStore.cardHeadTitle = `${I18nT('base.install')} ${row.name}`
     }
 
-    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-    const name = row.name
-    let params = []
-    if (row.flag === 'brew') {
-      const sh = join(global.Server.Static!, 'sh/brew-cmd.sh')
-      const copyfile = join(global.Server.Cache!, 'brew-cmd.sh')
-      if (existsSync(copyfile)) {
-        unlinkSync(copyfile)
-      }
-      copyFileSync(sh, copyfile)
-      chmod(copyfile, '0777')
-      params = [`${copyfile} ${arch} ${fn} ${name}; exit 0`]
-      if (proxyStr?.value) {
-        params.unshift(proxyStr?.value)
-      }
-    } else {
-      const names = [name]
-      const sh = join(global.Server.Static!, 'sh/port-cmd.sh')
-      const copyfile = join(global.Server.Cache!, 'port-cmd.sh')
-      if (existsSync(copyfile)) {
-        unlinkSync(copyfile)
-      }
-      if (fn === 'uninstall') {
-        fn = 'uninstall --follow-dependents'
-      }
-      let content = readFileSync(sh, 'utf-8')
-      content = content
-        .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password!)
-        .replace(new RegExp('##ARCH##', 'g'), arch)
-        .replace(new RegExp('##ACTION##', 'g'), fn)
-        .replace(new RegExp('##NAME##', 'g'), names.join(' '))
-      writeFileSync(copyfile, content)
-      chmod(copyfile, '0777')
-      params = [`sudo -S ${copyfile}; exit 0`]
-      params.push(global.Server.Password!)
-      if (proxyStr?.value) {
-        params.unshift(proxyStr?.value)
-      }
-    }
-
-    XTerm.send(params, true).then((key: string) => {
-      IPC.off(key)
+    waitTime().then(() => {
+      brewStore.brewRunning = false
       showNextBtn.value = true
+      brewStore.showInstallLog = false
       fetchInstalled().then()
       if (row.flag === 'brew') {
         fetchBrew().then()
@@ -194,24 +121,12 @@ export const SetupAll = (typeFlag: AllAppModule) => {
   const fetchInstalled = () => {
     const data = brewStore.module(typeFlag)
     data.installedInited = false
-    return installedVersions.allInstalledVersions([typeFlag])
+    return waitTime()
   }
 
   const fetchOnline = () => {
     return new Promise((resolve) => {
-      fetchVerion(typeFlag)
-        .then((online) => {
-          const list = brewStore.module(typeFlag).list.static!
-          for (const k in list) {
-            delete list?.[k]
-          }
-          for (const name in online) {
-            list[name] = reactive(online[name])
-          }
-        })
-        .finally(() => {
-          resolve(true)
-        })
+      waitTime().then(resolve)
     })
   }
 
@@ -221,19 +136,7 @@ export const SetupAll = (typeFlag: AllAppModule) => {
         resolve(true)
         return
       }
-      brewInfo(typeFlag)
-        .then((online) => {
-          const list = brewStore.module(typeFlag).list.brew!
-          for (const k in list) {
-            delete list?.[k]
-          }
-          for (const name in online) {
-            list[name] = reactive(online[name])
-          }
-        })
-        .finally(() => {
-          resolve(true)
-        })
+      waitTime().then(resolve)
     })
   }
 
@@ -243,16 +146,7 @@ export const SetupAll = (typeFlag: AllAppModule) => {
         resolve(true)
         return
       }
-      portInfo(typeFlag).then((online) => {
-        const list = brewStore.module(typeFlag).list.port!
-        for (const k in list) {
-          delete list?.[k]
-        }
-        for (const name in online) {
-          list[name] = reactive(online[name])
-        }
-        resolve(true)
-      })
+      waitTime().then(resolve)
     })
   }
 
@@ -293,9 +187,7 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     getData()
   }
 
-  const openURL = (url: string) => {
-    shell.openExternal(url)
-  }
+  const openURL = (url: string) => {}
 
   const checkEnvPath = (item: SoftInstalled) => {
     if (!item.bin) {
@@ -304,9 +196,7 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     return ServiceActionStore.allPath.includes(dirname(item.bin))
   }
 
-  const openDir = (dir: string) => {
-    shell.openPath(dir)
-  }
+  const openDir = (dir: string) => {}
 
   const handleEdit = (row: any) => {
     if (['Homebrew', 'MacPorts'].includes(row.source)) {
@@ -316,45 +206,10 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     }
   }
 
-  watch(
-    showLog,
-    (val) => {
-      nextTick().then(() => {
-        if (val) {
-          const dom = logs?.value
-          xterm = new XTerm()
-          xterm.mount(dom)
-        } else {
-          xterm && xterm.destory()
-          xterm = null
-        }
-      })
-    },
-    {
-      immediate: true
-    }
-  )
-
-  watch(logLength, () => {
-    if (showInstallLog?.value) {
-      nextTick().then(() => {
-        const container: HTMLElement = logs?.value as any
-        if (container) {
-          container.scrollTop = container.scrollHeight
-        }
-      })
-    }
-  })
-
   getData()
   if (!brewRunning?.value) {
     brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
   }
-
-  onUnmounted(() => {
-    xterm && xterm.destory()
-    xterm = null
-  })
 
   return {
     showNextBtn,

@@ -453,6 +453,7 @@
         const index = appStore.hosts.findIndex((h) => h.id === quickEdit?.value?.id)
         if (index >= 0) {
           appStore.hosts.splice(index, 1, reactive(JSON.parse(JSON.stringify(quickEdit.value))))
+          HostStore.updateCurrentList()
         }
       }
       quickEdit.value = undefined

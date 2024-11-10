@@ -1,13 +1,15 @@
 import { reactive } from 'vue'
-import IPC from '@/util/IPC'
 import type { SoftInstalled } from '@web/store/brew'
 import { I18nT } from '@shared/lang'
-import { MessageError, MessageSuccess } from '@/util/Element'
+import { MessageSuccess } from '@/util/Element'
+import { dirname } from '@web/fn'
+import type { AllAppModule } from '@web/core/type'
 
 export const ServiceActionStore: {
   versionDeling: Record<string, boolean>
   pathSeting: Record<string, boolean>
   allPath: string[]
+  pathDict: Record<AllAppModule, string>
   fetchPathing: boolean
   fetchPath: () => void
   updatePath: (item: SoftInstalled, typeFlag: string) => void
@@ -15,38 +17,27 @@ export const ServiceActionStore: {
   versionDeling: {},
   pathSeting: {},
   allPath: [],
+  pathDict: {},
   fetchPathing: false,
-  fetchPath() {
-    if (ServiceActionStore.fetchPathing) {
-      return
-    }
-    ServiceActionStore.fetchPathing = true
-    IPC.send('app-fork:tools', 'fetchPATH').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0 && res?.data?.length > 0) {
-        ServiceActionStore.allPath = reactive([...res.data])
-        setTimeout(() => {
-          ServiceActionStore.fetchPathing = false
-        }, 60000)
+  fetchPath() {},
+  updatePath(item: SoftInstalled, typeFlag: AllAppModule) {
+    const old = this.pathDict?.[typeFlag]
+    const bin: string = dirname(item.bin)
+    console.log('updatePath: ', bin, old, this.allPath)
+    if (old === bin) {
+      const index = this.allPath.indexOf(bin)
+      if (index >= 0) {
+        this.allPath.splice(index, 1)
       }
-    })
-  },
-  updatePath(item: SoftInstalled, typeFlag: string) {
-    if (ServiceActionStore.pathSeting?.[item.bin]) {
-      return
-    }
-    ServiceActionStore.pathSeting[item.bin] = true
-    IPC.send('app-fork:tools', 'updatePATH', JSON.parse(JSON.stringify(item)), typeFlag).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0 && res?.data?.length > 0) {
-          ServiceActionStore.allPath = reactive([...res.data])
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-        delete ServiceActionStore.pathSeting?.[item.bin]
+      delete this.pathDict?.[typeFlag]
+    } else {
+      const index = this.allPath.indexOf(old)
+      if (index >= 0) {
+        this.allPath.splice(index, 1)
       }
-    )
+      this.pathDict[typeFlag] = bin
+      this.allPath.unshift(bin)
+    }
+    MessageSuccess(I18nT('base.success'))
   }
-})
+} as any)

@@ -54,8 +54,8 @@
     installBy: ''
   })
 
-  const hasBrew = !!global.Server.BrewCellar
-  const hasPort = !!global.Server.MacPorts
+  const hasBrew = true
+  const hasPort = true
   if (hasPort) {
     form.value.installBy = 'port'
   } else if (hasBrew) {

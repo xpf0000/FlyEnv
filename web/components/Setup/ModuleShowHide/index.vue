@@ -28,7 +28,6 @@
     },
     set(v) {
       appStore.config.setup.common.showItem[props.typeFlag] = v
-      appStore.saveConfig()
     }
   })
 </script>

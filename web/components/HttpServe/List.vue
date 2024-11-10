@@ -3,7 +3,7 @@
     <template v-if="httpServe.length === 0">
       <li class="empty" @click.stop="choosePath">
         <div class="wapper" :class="{ ondrop: ondrop }">
-          <yb-icon :svg="import('../../svg/upload.svg?raw')" class="icon" />
+          <yb-icon :svg="import('@/svg/upload.svg?raw')" class="icon" />
           <span>{{ $t('base.httpServerTips') }}</span>
         </div>
       </li>

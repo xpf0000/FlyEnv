@@ -3,8 +3,6 @@ import { shuffleString } from '@shared/random'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
 
-const { clipboard } = require('@electron/remote')
-
 type StoreType = {
   withUppercase?: boolean
   withLowercase?: boolean
@@ -22,7 +20,6 @@ const store = reactive({
   withSymbols: false,
   token: '',
   copy() {
-    clipboard.writeText(this.token)
     MessageSuccess(I18nT('base.success'))
   },
   refreshToken() {

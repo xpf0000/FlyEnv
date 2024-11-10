@@ -1,5 +1,5 @@
 export const Caddy = {
-  homebrew: {
+  brew: {
     caddy: {
       version: '2.8.4',
       installed: true,
@@ -7,7 +7,7 @@ export const Caddy = {
       flag: 'brew'
     }
   },
-  macports: {
+  port: {
     caddy: {
       name: 'caddy',
       version: '2.8.4',

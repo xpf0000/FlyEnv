@@ -30,8 +30,7 @@
   import { ServiceActionStore } from './store'
   import Extension from '@web/components/ServiceManager/Pgsql/extension.vue'
   import { I18nT } from '@shared/lang'
-
-  const { dirname, join } = require('path')
+  import { dirname, join } from '@web/fn'
 
   const props = defineProps<{
     item: SoftInstalled

@@ -161,17 +161,7 @@
     return brewStore.module('golang').installed
   })
 
-  const init = () => {
-    if (initing.value) {
-      return
-    }
-    initing.value = true
-    service.value.fetching = true
-    waitTime().then(() => {
-      initing.value = false
-      service.value.fetching = false
-    })
-  }
+  const init = () => {}
 
   const reinit = () => {
     const data = golang.value

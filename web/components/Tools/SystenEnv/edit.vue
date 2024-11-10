@@ -32,20 +32,16 @@
 </template>
 <script lang="ts" setup>
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-  import { AsyncComponentSetup } from '@web/fn'
+  import { AsyncComponentSetup, EditorCreate, waitTime } from '@web/fn'
   import { I18nT } from '@shared/lang'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
-  import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { EditorConfigMake, EditorCreate } from '@web/fn'
-  import IPC from '@/util/IPC'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-  import Base from '@web/core/Base'
+  import { EditorConfigMake } from '@web/fn'
+  import { MessageSuccess } from '@/util/Element'
+  import { ElMessageBox } from 'element-plus'
 
-  const { readFile, existsSync } = require('fs-extra')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
-  const props = defineProps<{
+  defineProps<{
     file: string
   }>()
 
@@ -75,12 +71,19 @@
   }
 
   const fetchContent = async () => {
-    if (!existsSync(props.file)) {
-      content.value = I18nT('util.toolFileNotExist')
-      disabled.value = true
-      return
-    }
-    content.value = await readFile(props.file, 'utf-8')
+    content.value = `source ~/.bash_profile
+export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
+export HOMEBREW_API_DOMAIN=https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api
+export HOMEBREW_PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple/
+
+# fnm
+export PATH="/Users/x/Library/Application Support/fnm:$PATH"
+eval "\`fnm env\`"
+
+#export NVM_DIR="$HOME/.nvm"
+#[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"  # This loads nvm
+#[ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+`
     initEditor()
   }
 
@@ -90,20 +93,16 @@
     if (disabled.value || saving.value) {
       return
     }
-    Base.ConfirmWarning(I18nT('util.toolSaveConfim')).then(() => {
+    ElMessageBox.confirm(I18nT('util.toolSaveConfim'), undefined, {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      closeOnClickModal: false,
+      customClass: 'confirm-del',
+      type: 'warning'
+    }).then(() => {
       saving.value = true
-      IPC.send(
-        'app-fork:tools',
-        'systemEnvSave',
-        props.file,
-        monacoInstance?.getValue() ?? ''
-      ).then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
+      waitTime().then(() => {
+        MessageSuccess(I18nT('base.success'))
         saving.value = false
       })
     })

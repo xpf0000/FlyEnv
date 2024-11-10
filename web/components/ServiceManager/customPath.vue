@@ -52,7 +52,6 @@
   import { BrewStore } from '@web/store/brew'
   import type { AllAppModule } from '@web/core/type'
 
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -85,7 +84,6 @@
           })
         }
         setupItem[flag].dirs = reactive(v)
-        appStore.saveConfig()
         brewStore.module(flag).installedInited = false
       })
     },
@@ -94,23 +92,7 @@
     }
   )
 
-  const addDir = (index?: number) => {
-    dialog
-      .showOpenDialog({
-        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
-      })
-      .then(({ canceled, filePaths }: any) => {
-        if (canceled || filePaths.length === 0) {
-          return
-        }
-        const [path] = filePaths
-        if (index !== undefined) {
-          dirs.value[index] = path
-        } else {
-          dirs.value.push(path)
-        }
-      })
-  }
+  const addDir = (index?: number) => {}
   const chooseDir = (index: number) => {
     addDir(index)
   }

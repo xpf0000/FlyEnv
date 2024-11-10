@@ -201,7 +201,7 @@
                     <yb-icon :svg="import('@/svg/http.svg?raw')" class="w-6 h-6" />
                   </el-button>
                 </div>
-                <webview :src="toolComponent.component" class="flex-1 border-0 outline-0"></webview>
+                <iframe :src="toolComponent.component" class="flex-1 border-0 outline-0"></iframe>
               </div>
             </template>
             <template v-else>
@@ -235,8 +235,8 @@
     Delete
   } from '@element-plus/icons-vue'
   import { AsyncComponentShow } from '@web/fn'
-  import Base from '@web/core/Base'
   import LikeBtn from './like.vue'
+  import { ElMessageBox } from 'element-plus'
 
   type AsideTreeDataType = {
     isTop: boolean
@@ -407,7 +407,10 @@
         item: command.item
       }).then()
     } else {
-      Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+      ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
+        closeOnClickModal: false,
         customClass: 'confirm-del',
         type: 'warning'
       }).then(() => {

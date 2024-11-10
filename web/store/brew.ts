@@ -14,6 +14,11 @@ import { Postgresql } from '../config/postgresql'
 import { Caddy } from '../config/caddy'
 import { Tomcat } from '@web/config/tomcat'
 import { Java } from '@web/config/java'
+import { Rabbitmq } from '@web/config/rabbitmq'
+import { Go } from '@web/config/go'
+import { Maven } from '@web/config/maven'
+import { Python } from '@web/config/python'
+import { Composer } from '@web/config/composer'
 import type { AllAppModule } from '@web/core/type'
 
 export interface SoftInstalled {
@@ -48,8 +53,8 @@ export interface AppSoftInstalledItem {
   installedInited: boolean
   installed: Array<SoftInstalled>
   list: {
-    homebrew: { [key: string]: any }
-    macports: { [key: string]: any }
+    brew: { [key: string]: any }
+    port: { [key: string]: any }
     static?: { [key: string]: OnlineVersionItem }
   }
 }
@@ -72,6 +77,36 @@ const state: State = {
   brewSrc: '',
   log: [],
   LibUse: {},
+  composer: {
+    getListing: false,
+    installedInited: true,
+    installed: Installed.composer,
+    list: Composer
+  },
+  python: {
+    getListing: false,
+    installedInited: true,
+    installed: Installed.python,
+    list: Python
+  },
+  maven: {
+    getListing: false,
+    installedInited: true,
+    installed: Installed.maven,
+    list: Maven
+  },
+  golang: {
+    getListing: false,
+    installedInited: true,
+    installed: Installed.go,
+    list: Go
+  },
+  rabbitmq: {
+    getListing: false,
+    installedInited: true,
+    installed: Installed.rabbitmq,
+    list: Rabbitmq
+  },
   tomcat: {
     getListing: false,
     installedInited: true,
@@ -156,7 +191,7 @@ export const BrewStore = defineStore('brew', {
   state: (): State => state,
   getters: {},
   actions: {
-    module(flag: AllAppModule) {
+    module(flag: AllAppModule): AppSoftInstalledItem {
       if (!this?.[flag]) {
         this[flag] = reactive({
           getListing: false,

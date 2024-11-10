@@ -39,7 +39,6 @@
           this.running = true
           AppStore().config.setup.lang = v
           AppI18n(v)
-          AppStore().saveConfig()
           nextTick().then(() => {
             this.running = false
           })
