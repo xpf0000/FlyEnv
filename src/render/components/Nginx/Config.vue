@@ -27,10 +27,10 @@
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const file = computed(() => {
-    return join(global.Server.NginxDir, 'common/conf/nginx.conf')
+    return join(global.Server.NginxDir, 'conf/nginx.conf')
   })
   const defaultFile = computed(() => {
-    return join(global.Server.NginxDir, 'common/conf/nginx.conf.default')
+    return join(global.Server.NginxDir, 'conf/nginx.conf.default')
   })
 
   const names: CommonSetItem[] = [

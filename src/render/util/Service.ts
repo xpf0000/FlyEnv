@@ -32,8 +32,24 @@ const exec = (
       if (res.code === 0) {
         console.log('### key: ', key)
         IPC.off(key)
-        const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
+
         const brewStore = BrewStore()
+        if (lastVersion && lastVersion?.path) {
+          const find = brewStore
+            .module(typeFlag)
+            .installed?.find(
+              (i) =>
+                i.path === lastVersion.path &&
+                i.version === lastVersion.version &&
+                i.bin === lastVersion.bin
+            )
+          lastVersion.pid = undefined
+          if (find) {
+            find.pid = undefined
+          }
+        }
+
+        const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
 
         const findV = brewStore
           .module(typeFlag)

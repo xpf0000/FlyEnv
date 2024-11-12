@@ -268,7 +268,14 @@ export class Base {
         await writeFile(sh, content)
 
         process.chdir(global.Server.Cache!)
-        await execPromiseRoot(`powershell.exe ${sh}`)
+        try {
+          await execPromiseRoot(`powershell.exe ${sh}`)
+        } catch (e) {
+          await appendFile(
+            join(global.Server.BaseDir!, 'debug.log'),
+            `[python][python-install][error]: ${e}\n`
+          )
+        }
         await remove(sh)
 
         const checkState = async (time = 0): Promise<boolean> => {
