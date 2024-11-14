@@ -374,6 +374,12 @@ export class Base {
           }
         } catch (e) {
           await fail()
+          return
+        }
+        if (this.type === 'mailpit') {
+          try {
+            await execPromiseRoot(['xattr', '-dr', 'com.apple.quarantine', row.bin])
+          } catch (e) {}
         }
       }
 

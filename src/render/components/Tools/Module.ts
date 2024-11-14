@@ -7,6 +7,6 @@ const module: AppModuleItem = {
   label: () => I18nT('base.leftTools'),
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 17
+  asideIndex: 21
 }
 export default module

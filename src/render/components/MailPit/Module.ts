@@ -2,12 +2,13 @@ import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@/core/type'
 
 const module: AppModuleItem = {
-  typeFlag: 'dns',
-  label: 'DNS Server',
-  icon: import('@/svg/dns2.svg?raw'),
+  typeFlag: 'mailpit',
+  label: 'Mailpit',
+  icon: import('@/svg/mailpit.svg?raw'),
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 15,
+  asideIndex: 13,
+  isService: true,
   isTray: true
 }
 export default module

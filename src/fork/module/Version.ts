@@ -22,6 +22,7 @@ class Manager extends Base {
   RabbitMQ: any
   Python: any
   Maven: any
+  MailPit: any
 
   constructor() {
     super()
@@ -142,6 +143,12 @@ class Manager extends Base {
             this.Maven = res.default
           }
           versions.maven = this.Maven.allInstalledVersions(setup)
+        } else if (type === 'mailpit') {
+          if (!this.MailPit) {
+            const res = await import('./MailPit')
+            this.MailPit = res.default
+          }
+          versions.mailpit = this.MailPit.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

@@ -31,6 +31,7 @@ class BaseManager {
   Python: any
   Maven: any
   Service: any
+  MailPit: any
 
   constructor() {}
 
@@ -235,6 +236,12 @@ class BaseManager {
         this.Service = res.default
       }
       doRun(this.Service)
+    } else if (module === 'mailpit') {
+      if (!this.MailPit) {
+        const res = await import('./module/MailPit')
+        this.MailPit = res.default
+      }
+      doRun(this.MailPit)
     }
   }
 
