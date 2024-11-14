@@ -1,8 +1,8 @@
 version: 4.5.1
 files:
   - url: PhpWebStudy-Setup-4.5.1.exe
-    sha512: +FqdbThUWfVJYu9+TonnhE64wdVBlcrGmgM6v2KqPFRc4orf0TpaNcX/3PZfcQoWc74UGR1zcZHr5RnFKToWyw==
-    size: 171763163
+    sha512: MAeq5d2BTeYWTgUVg0MzteriLKziXczwBscylL2q4LkVmxHux+Aei95n9tobHzWutLHzBflthsGo0zQXhBbVYQ==
+    size: 171762464
 path: PhpWebStudy-Setup-4.5.1.exe
-sha512: +FqdbThUWfVJYu9+TonnhE64wdVBlcrGmgM6v2KqPFRc4orf0TpaNcX/3PZfcQoWc74UGR1zcZHr5RnFKToWyw==
-releaseDate: '2024-11-12T01:52:36.607Z'
+sha512: MAeq5d2BTeYWTgUVg0MzteriLKziXczwBscylL2q4LkVmxHux+Aei95n9tobHzWutLHzBflthsGo0zQXhBbVYQ==
+releaseDate: '2024-11-14T03:02:03.573Z'
