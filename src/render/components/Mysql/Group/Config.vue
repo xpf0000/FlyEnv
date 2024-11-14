@@ -226,6 +226,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           item.enable = false
           return item
         }
+        item.enable = true
         item.value = find?.v ?? item.value
         return item
       })

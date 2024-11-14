@@ -6,8 +6,8 @@
         <slot name="common"></slot>
       </el-scrollbar>
       <template #footer>
-        <div class="tool">
-          <el-radio-group v-if="showCommond" v-model="type" class="mr-7" size="small">
+        <div class="tool gap-3">
+          <el-radio-group v-if="showCommond" v-model="type" size="small">
             <el-tooltip :show-after="600" :content="I18nT('conf.rawFile')" placement="top">
               <el-radio-button value="default">
                 <Document class="w-5 h-5 p-0.5" />
@@ -19,24 +19,26 @@
               </el-radio-button>
             </el-tooltip>
           </el-radio-group>
-          <el-tooltip :show-after="600" :content="I18nT('conf.open')" placement="top">
-            <el-button :disabled="disabled" @click="openConfig">
-              <FolderOpened class="w-5 h-5 p-0.5" />
-            </el-button>
-          </el-tooltip>
-          <el-tooltip :show-after="600" :content="I18nT('conf.save')" placement="top">
-            <el-button :disabled="disabled" @click="saveConfig">
-              <el-badge is-dot :offset="[8, 1]" :hidden="!changed">
-                <yb-icon :svg="import('@/svg/save.svg?raw')" class="w-5 h-5 p-0.5" />
-              </el-badge>
-            </el-button>
-          </el-tooltip>
-          <el-tooltip :show-after="600" :content="I18nT('conf.loadDefault')" placement="top">
-            <el-button :disabled="disabled || defaultDisabled" @click="getDefault">
-              <yb-icon :svg="import('@/svg/load-default.svg?raw')" class="w-5 h-5" />
-            </el-button>
-          </el-tooltip>
-          <el-button-group style="margin-left: 12px">
+          <el-button-group>
+            <el-tooltip :show-after="600" :content="I18nT('conf.open')" placement="top">
+              <el-button :disabled="disabled" @click="openConfig">
+                <FolderOpened class="w-5 h-5 p-0.5" />
+              </el-button>
+            </el-tooltip>
+            <el-tooltip :show-after="600" :content="I18nT('conf.save')" placement="top">
+              <el-button :disabled="disabled" @click="saveConfig">
+                <el-badge is-dot :offset="[8, 1]" :hidden="!changed">
+                  <yb-icon :svg="import('@/svg/save.svg?raw')" class="w-5 h-5 p-0.5" />
+                </el-badge>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip :show-after="600" :content="I18nT('conf.loadDefault')" placement="top">
+              <el-button :disabled="disabled || defaultDisabled" @click="getDefault">
+                <yb-icon :svg="import('@/svg/load-default.svg?raw')" class="w-5 h-5" />
+              </el-button>
+            </el-tooltip>
+          </el-button-group>
+          <el-button-group>
             <el-tooltip :show-after="600" :content="I18nT('conf.loadCustom')" placement="top">
               <el-button :disabled="disabled" @click="loadCustom">
                 <yb-icon :svg="import('@/svg/custom.svg?raw')" class="w-5 h-5 p-0.5" />

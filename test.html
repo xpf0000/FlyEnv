@@ -1,7 +1,553 @@
-1. 服务端渲染
-https://cn.vuejs.org/guide/scaling-up/ssr.html#server-side-rendering-ssr
-
-本质上都是在服务端生成HTML代码. 和PHP没有什么不同.
-
-2. 列表数据加载问题
-方案: 列表设置上加个选项. 让用户可以选择是使用服务端方式加载分页. 还是使用 js ajax方式加载分页
+<html lang="en" class="h-100" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Runtime options - Mailpit
+  </title>
+  <meta name="description" content="Mailpit runtime flags &amp; environment variables">
+</head>
+<body class="d-flex flex-column h-100">
+<div id="App" data-v-app="">
+  <nav class="navbar navbar-expand navbar-dark bg-secondary fixed-top">
+    <div class="container-fluid"><a class="navbar-brand me-0 me-md-2" href="/"><img src="/images/mailpit.svg" width="40"
+                                                                                    alt="Mailpit" class="me-2"><span
+      class="d-none d-md-inline">Mailpit </span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+              aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation"><span
+        class="navbar-toggler-icon"></span></button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="/about/">About</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/docs/">Documentation</a></li>
+        </ul>
+        <div class="d-flex">
+          <button class="btn btn-dark pe-0 pe-md-5" aria-label="Open search"><i class="bi bi-search me-3"></i><span
+            class="d-none d-md-inline">Search docs...</span></button>
+          <div class="d-none d-lg-inline"><a href="https://github.com/axllent/mailpit" class="btn text-light"
+                                             target="_blank"><i class="bi bi-github"></i> GitHub </a><a
+            href="https://hub.docker.com/r/axllent/mailpit" class="btn text-light" target="_blank"><img
+            src="/images/docker.svg" alt="Docker logo" style="width: 19px; margin-bottom: 3px;"> Docker </a>
+            <button class="btn text-light" aria-label="Switch to the dark theme" title="Switch to the dark theme"><i
+              class="bi bi-moon-stars-fill"></i></button><!----></div>
+          <div class="dropdown d-lg-none">
+            <button class="btn btn-secondary dropdown-toggle ms-1" type="button" data-bs-toggle="dropdown"
+                    aria-expanded="false"><i class="bi bi-list"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a href="https://github.com/axllent/mailpit" class="dropdown-item" target="_blank"><i
+                class="bi bi-github me-2"></i> GitHub</a></li>
+              <li><a href="https://hub.docker.com/r/axllent/mailpit" class="dropdown-item" target="_blank"><img
+                src="/images/docker.svg" class="me-2" alt="Docker logo" style="width: 19px; margin-bottom: 3px;"> Docker</a>
+              </li>
+              <li>
+                <button class="dropdown-item" aria-label="Switch to the dark theme"><i
+                  class="bi bi-moon-stars-fill me-2"></i> Dark theme
+                </button><!----></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="flex-shrink-0">
+    <main class="container-fluid">
+      <div class="row">
+        <div class="col-xl-2 col-md-3 offcanvas-md offcanvas-start" id="SideNav">
+          <aside class="side-nav">
+            <div class="offcanvas-header d-md-none px-0"><h5 class="offcanvas-title mt-0" id="offcanvasResponsiveLabel">
+              Documentation</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#SideNav"
+                      aria-label="Close"></button>
+            </div>
+            <ul class="navbar-nav">
+              <li class="nav-item my-1"><a href="https://mailpit.axllent.org/docs/" class="nav-link p-0">Mailpit
+                features</a>
+                <ul class="list-unstyled">
+                  <li class="nav-item my-1"><a href="https://mailpit.axllent.org/docs/install/" class="nav-link p-0">Installation</a>
+                  </li>
+                  <li class="nav-item my-1"><a href="https://mailpit.axllent.org/docs/configuration/"
+                                               class="nav-link p-0">Configuration</a>
+                    <ul class="list-unstyled">
+                      <li class="nav-item my-1"><a class="nav-link p-0 active"
+                                                   href="https://mailpit.axllent.org/docs/configuration/runtime-options/">Runtime
+                        options</a></li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/http/">Web UI
+                        &amp; API server</a></li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/smtp/">SMTP
+                        server</a></li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/pop3/">POP3
+                        server</a></li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/spamassassin/">SpamAssassin</a>
+                      </li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/certificates/">TLS
+                        certificates</a></li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/passwords/">Password
+                        files</a></li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/smtp-relay/">SMTP
+                        relaying</a></li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/proxy/">HTTP
+                        proxy</a></li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/email-storage/">Email
+                        storage</a></li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/troubleshooting/">Troubleshooting</a>
+                      </li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/ui-security-policies/">UI
+                        security policies</a></li>
+                      <li class="nav-item my-1"><a class="nav-link p-0"
+                                                   href="https://mailpit.axllent.org/docs/configuration/unix-domain-sockets/">Unix
+                        domain sockets</a></li>
+                    </ul>
+                  </li>
+                  <li class="nav-item my-1"><a href="https://mailpit.axllent.org/docs/usage/"
+                                               class="nav-link p-0">Usage</a></li>
+                  <li class="nav-item my-1"><a href="https://mailpit.axllent.org/docs/integration/"
+                                               class="nav-link p-0">Integration testing</a></li>
+                  <li class="nav-item my-1"><a href="https://mailpit.axllent.org/docs/api-v1/" class="nav-link p-0">API
+                    (v1)</a></li>
+                </ul>
+              </li>
+            </ul>
+          </aside>
+        </div>
+        <div class="col-xl-8 col-md-9">
+          <button class="btn d-md-none mb-3 ps-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#SideNav"
+                  aria-controls="offcanvasResponsive"><i class="bi bi-list me-2"></i> Documentation navigation
+          </button>
+          <h1>Runtime options</h1>
+          <p>Mailpit’s runtime options are listed below. Please note that these are always current with the latest
+            release and may differ from older releases.</p>
+          <h2 id="general">General</h2>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--database</span><span
+              class="badge badge-env" title="Environment variable">MP_DATABASE</span><span class="badge badge-added"
+                                                                                           title="This flag was added in version v1.16.0">v1.16.0</span>
+            </p>
+              <p class="option-text">Specify the local database filename to store persistent data. The default is a
+                local temporary file which is auto-deleted when Mailpit exits. You can optionally use a remote rqlite
+                database by specifying a “http address” (<a href="../email-storage/">see docs</a>).</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--label</span><span
+              class="badge badge-env" title="Environment variable">MP_LABEL</span><span class="badge badge-added"
+                                                                                        title="This flag was added in version  v1.18.7">v1.18.7</span>
+            </p>
+              <p class="option-text">Set an optional label to identify this Mailpit instance. This adds the label to the
+                web UI, SMTP and POP3 servers.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--tenant-id</span><span
+              class="badge badge-env" title="Environment variable">MP_TENANT_ID</span></p>
+              <p class="option-text">Set a tenant ID (table prefix). This is used to isolate the data from other Mailpit
+                instances sharing the same data file (<a href="../email-storage/">see docs</a>).</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli"
+                                                                        title="CLI option">--max</span><span
+              class="badge badge-env" title="Environment variable">MP_MAX_MESSAGES</span><span
+              class="badge badge-default" title="Default value">500</span></p>
+              <p class="option-text">Maximum number of messages to store. Mailpit will periodically delete the oldest
+                messages if greater than this. Set to <code>0</code> to disable auto-deletion (<a
+                  href="../email-storage/#automated-message-pruning">see docs</a>).</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--max-age</span><span
+              class="badge badge-env" title="Environment variable">MP_MAX_AGE</span></p>
+              <p class="option-text">Maximum age of messages to store in either (h)ours or (d)ays. Mailpit will
+                periodically delete the oldest messages if greater than this. The value must be either in hours (eg:
+                <code>--max-age 36h</code>) or days (eg: <code>--max-age 14d</code>) (<a
+                  href="../email-storage/#automated-message-pruning">see docs</a>).</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--use-message-dates</span><span
+              class="badge badge-env" title="Environment variable">MP_USE_MESSAGE_DATES</span><span
+              class="badge badge-default" title="Default value">false</span></p>
+              <p class="option-text">Use message header date as the Mailpit received date &amp; time instead of the
+                SMTP-received date &amp; time.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--ignore-duplicate-ids</span><span
+              class="badge badge-env" title="Environment variable">MP_IGNORE_DUPLICATE_IDS</span><span
+              class="badge badge-default" title="Default value">false</span></p>
+              <p class="option-text">Ignore duplicate messages based on Message-Ids.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--log-file</span><span
+              class="badge badge-env" title="Environment variable">MP_LOG_FILE</span><span class="badge badge-added"
+                                                                                           title="This flag was added in version v1.13.2">v1.13.2</span>
+            </p>
+              <p class="option-text">Log Mailpit output to file instead of stdout. eg: <code>--log-file
+                /path/to/logfile.log</code></p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--quiet</span><span
+              class="badge badge-env" title="Environment variable">MP_QUIET</span><span class="badge badge-default"
+                                                                                        title="Default value">false</span>
+            </p>
+              <p class="option-text">Quiet logging (errors only)</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--verbose</span><span
+              class="badge badge-env" title="Environment variable">MP_VERBOSE</span><span class="badge badge-default"
+                                                                                          title="Default value">false</span>
+            </p>
+              <p class="option-text">Verbose logging (debug)</p></div>
+          </div>
+          <h2 id="web-ui--api">Web UI &amp; API</h2>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--listen</span><span
+              class="badge badge-env" title="Environment variable">MP_UI_BIND_ADDR</span><span
+              class="badge badge-default" title="Default value">0.0.0.0:8025</span></p>
+              <p class="option-text">HTTP bind interface and port for UI.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--webroot</span><span
+              class="badge badge-env" title="Environment variable">MP_WEBROOT</span><span class="badge badge-default"
+                                                                                          title="Default value">/</span>
+            </p>
+              <p class="option-text">Set the webroot for web UI &amp; API, for example <code>mail</code> would result in
+                <code>http://0.0.0.0:8025/mail/</code>.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--ui-auth-file</span><span
+              class="badge badge-env" title="Environment variable">MP_UI_AUTH_FILE</span></p>
+              <p class="option-text">Specify a password file for web UI &amp; API basic authentication (<a
+                href="../http/">see docs</a>).</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--ui-tls-cert</span><span
+              class="badge badge-env" title="Environment variable">MP_UI_TLS_CERT</span></p>
+              <p class="option-text">TLS certificate for web UI &amp; API (ie: <a href="../http/">HTTPS</a>). This
+                option requires the <code>--ui-tls-key</code> argument or <code>MP_UI_TLS_KEY</code> environment
+                variable to be set.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--ui-tls-key</span><span
+              class="badge badge-env" title="Environment variable">MP_UI_TLS_KEY</span></p>
+              <p class="option-text">TLS key for web UI &amp; API (ie: <a href="../http/">HTTPS</a>). This option
+                requires the <code>--ui-tls-cert</code> argument or <code>MP_UI_TLS_CERT</code> environment variable to
+                be set.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--api-cors</span><span
+              class="badge badge-env" title="Environment variable">MP_API_CORS</span></p>
+              <p class="option-text">Set API CORS Access-Control-Allow-Origin header if you require cross-domain browser
+                requests.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--block-remote-css-and-fonts</span><span
+              class="badge badge-env" title="Environment variable">MP_BLOCK_REMOTE_CSS_AND_FONTS</span><span
+              class="badge badge-default" title="Default value">false</span></p>
+              <p class="option-text">Block all browser access to remote CSS and fonts imported via message stylesheets.
+                Mailpit uses the HTTP Content Security Policy (CSP) method to block these. This does not block remote
+                images or clicking on external link.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--enable-spamassassin</span><span
+              class="badge badge-env" title="Environment variable">MP_ENABLE_SPAMASSASSIN</span><span
+              class="badge badge-added" title="This flag was added in version v1.13.0">v1.13.0</span></p>
+              <p class="option-text">Enable SpamAssassin integration for message spamminess score (<a
+                href="../spamassassin/">see docs</a>).</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--allow-untrusted-tls</span><span
+              class="badge badge-env" title="Environment variable">MP_ALLOW_UNTRUSTED_TLS</span><span
+              class="badge badge-default" title="Default value">false</span></p>
+              <p class="option-text">Do not verify HTTPS certificates for either link checker &amp; screenshot
+                generation.</p></div>
+          </div>
+          <h2 id="smtp-server">SMTP server</h2>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_BIND_ADDR</span><span
+              class="badge badge-default" title="Default value">0.0.0.0:1025</span></p>
+              <p class="option-text">SMTP bind interface and port.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-auth-file</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_AUTH_FILE</span></p>
+              <p class="option-text">Specify a password file for SMTP authentication (<a href="../smtp/">see docs</a>).
+              </p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-auth-accept-any</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_AUTH_ACCEPT_ANY</span><span
+              class="badge badge-default" title="Default value">false</span></p>
+              <p class="option-text">Accept any SMTP username and password, including none. Use this to basically allow
+                anything.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-tls-cert</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_TLS_CERT</span></p>
+              <p class="option-text">TLS certificate for SMTP STARTTLS. This option requires the
+                <code>--smtp-tls-key</code> argument or <code>MP_SMTP_TLS_KEY</code> environment variable to be set.</p>
+            </div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-tls-key</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_TLS_KEY</span></p>
+              <p class="option-text">TLS key for SMTP STARTTLS. This option requires the <code>--smtp-tls-cert</code>
+                argument or <code>MP_SMTP_TLS_CERT</code> environment variable to be set.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-require-starttls</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_REQUIRE_STARTTLS</span><span
+              class="badge badge-default" title="Default value">false</span><span class="badge badge-added"
+                                                                                  title="This flag was added in version v1.13.1">v1.13.1</span>
+            </p>
+              <p class="option-text">Require all SMTP clients to use STARTTLS encryption. If set to true, the only
+                allowed commands are NOOP, EHLO, STARTTLS and QUIT (as specified in RFC 4954) until the connection is
+                upgraded to STARTTLS.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-require-tls</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_REQUIRE_TLS</span><span
+              class="badge badge-default" title="Default value">false</span><span class="badge badge-added"
+                                                                                  title="This flag was added in version v1.15.0">v1.15.0</span>
+            </p>
+              <p class="option-text">Require all SMTP clients to use SSL/TLS encryption. If set to true, all connections
+                to the SMTP server must be handled over TLS. This is different to STARTTLS which requires the initial
+                connection to be unencrypted. Note that this option disables STARTTLS and may reduce client
+                compatibility.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-auth-allow-insecure</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_AUTH_ALLOW_INSECURE</span><span
+              class="badge badge-default" title="Default value">false</span></p>
+              <p class="option-text">Typically either STARTTLS or TLS is enforced for all SMTP authentication. This
+                option allows insecure PLAIN &amp; LOGIN SMTP authentication when using STARTTLS.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-strict-rfc-headers</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_STRICT_RFC_HEADERS</span><span
+              class="badge badge-default" title="Default value">false</span></p>
+              <p class="option-text">Force Mailpit to return an SMTP error if message headers contain <code>\n</code>
+                instead to <code>\r\n</code> line breaks. By default Mailpit will silently fix incorrect line breaks
+                generated by some broken sendmail clients (see related <a
+                  href="https://github.com/axllent/mailpit/issues/87" target="_blank" rel="noopener">Github issue</a>).
+              </p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-max-recipients</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_MAX_RECIPIENTS</span><span
+              class="badge badge-default" title="Default value">100</span></p>
+              <p class="option-text">Maximum number of SMTP recipients allowed per message.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-allowed-recipients</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_ALLOWED_RECIPIENTS</span></p>
+              <p class="option-text">Only allow SMTP recipients matching a regular expression. Use this to restrict
+                incoming mail to only those sent to a pre-defined list. An example would be <code>--smtp-allowed-recipients
+                  '@example.com$'</code> to only allow emails sent to recipients ending in <code>@example.com</code>.
+              </p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-disable-rdns</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_DISABLE_RDNS</span><span
+              class="badge badge-default" title="Default value">false</span></p>
+              <p class="option-text">Disable SMTP reverse DNS lookups. SMTP will by default try resolve the hostname of
+                the IP address of the connecting client, however in test networks this can sometimes be problematic
+                causing delays for every message delivered.</p></div>
+          </div>
+          <h2 id="smtp-relay">SMTP relay</h2>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-relay-config</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_RELAY_CONFIG</span></p>
+              <p class="option-text">SMTP configuration file to enable message relay/release (<a href="../smtp-relay/">see
+                docs</a>). Alternatively the entire configuration can be passed via <a
+                href="../smtp-relay/#setting-via-environment">environment variables</a>.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-relay-all</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_RELAY_ALL</span><span
+              class="badge badge-default" title="Default value">false</span></p>
+              <p class="option-text"><strong>Automatically</strong> relay <strong>all</strong> incoming messages via
+                external SMTP server (<a href="../smtp-relay/#automatically-relay-all-messages">see docs</a>). Use with
+                extreme caution!</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--smtp-relay-matching</span><span
+              class="badge badge-env" title="Environment variable">MP_SMTP_RELAY_MATCHING</span></p>
+              <p class="option-text"></p>
+              <p><strong>Automatically</strong> relay some incoming messages to <strong>matching</strong> recipients via
+                external SMTP server (<a href="../smtp-relay/#automatically-relay-some-messages">see docs</a>).</p>
+              <p>This will only relay to recipients matching a regular expression, and cannot be used in conjunction
+                with <code>--smtp-relay-all</code>. An example would be <code>--smtp-relay-matching
+                  '(user1@host1\.com|user2@host2\.com|@host3\.com)$'</code>.</p>
+              <p></p></div>
+          </div>
+          <h2 id="pop3-server">POP3 server</h2>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--pop3</span><span
+              class="badge badge-env" title="Environment variable">MP_POP3_BIND_ADDR</span><span
+              class="badge badge-default" title="Default value">0.0.0.0:1110</span><span class="badge badge-added"
+                                                                                         title="This flag was added in version v1.14.0">v1.14.0</span>
+            </p>
+              <p class="option-text">POP3 server bind interface and port.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--pop3-auth-file</span><span
+              class="badge badge-env" title="Environment variable">MP_POP3_AUTH_FILE</span><span
+              class="badge badge-added" title="This flag was added in version v1.14.0">v1.14.0</span></p>
+              <p class="option-text"></p>
+              <p>Specify a password file for POP3 authentication (<a href="../pop3/">see docs</a>).</p>
+              <p><strong>Note</strong>: this option is required to enable the POP3 server, or alternatively credentials
+                can be specified via an <a href="../pop3/">environment variable</a>.</p>
+              <p></p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--pop3-tls-cert</span><span
+              class="badge badge-env" title="Environment variable">MP_POP3_TLS_CERT</span><span
+              class="badge badge-added" title="This flag was added in version v1.14.0">v1.14.0</span></p>
+              <p class="option-text">TLS certificate for POP3 SSL/TLS. This option requires the
+                <code>--pop3-tls-key</code> argument or <code>MP_POP3_TLS_KEY</code> environment variable to be set.</p>
+            </div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--pop3-tls-key</span><span
+              class="badge badge-env" title="Environment variable">MP_POP3_TLS_KEY</span><span class="badge badge-added"
+                                                                                               title="This flag was added in version v1.14.0">v1.14.0</span>
+            </p>
+              <p class="option-text">TLS key for POP3 SSL/TLS. This option requires the <code>--pop3-tls-cert</code>
+                argument or <code>MP_POP3_TLS_CERT</code> environment variable to be set.</p></div>
+          </div>
+          <h2 id="tagging">Tagging</h2>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli"
+                                                                        title="CLI option">--tag</span><span
+              class="badge badge-env" title="Environment variable">MP_TAG</span></p>
+              <p class="option-text">Auto-tag new messages matching filters (<a
+                href="../../usage/tagging/#set-filters-using---tag">see docs</a>).</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--tags-config</span><span
+              class="badge badge-env" title="Environment variable">MP_TAGS_CONFIG</span></p>
+              <p class="option-text">Load tags filters from yaml configuration file (<a
+                href="../../usage/tagging/#set-filters-using-a-config">see docs</a>).</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--tags-title-case</span><span
+              class="badge badge-env" title="Environment variable">MP_TAGS_TITLE_CASE</span><span
+              class="badge badge-default" title="Default value">false</span><span class="badge badge-added"
+                                                                                  title="This flag was added in version v1.14.1">v1.14.1</span>
+            </p>
+              <p class="option-text">Enforces TitleCasing for all newly-created tags (<a
+                href="../../usage/tagging/#enforcing-titlecase">see docs</a>).</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--tags-disable</span><span
+              class="badge badge-env" title="Environment variable">MP_TAGS_DISABLE</span><span class="badge badge-added"
+                                                                                               title="This flag was added in version v1.19.0">v1.19.0</span>
+            </p>
+              <p class="option-text">Disable specific auto-tagging. This option takes a comma-separated list of options
+                (<a href="../../usage/tagging/#disable-auto-tagging">see docs</a>).</p></div>
+          </div>
+          <h2 id="webhook">Webhook</h2>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--webhook-url</span><span
+              class="badge badge-env" title="Environment variable">MP_WEBHOOK_URL</span></p>
+              <p class="option-text">Call a webhook when new messages are received (<a
+                href="../../integration/webhook/">see docs</a>), eg: <code>--webhook-url
+                https://example.com/webhook.php</code>.</p></div>
+          </div>
+          <div class="option my-3 ms-md-4">
+            <div class="option-body"><p class="option-title mb-0"><span class="badge badge-cli" title="CLI option">--webhook-limit</span><span
+              class="badge badge-env" title="Environment variable">MP_WEBHOOK_LIMIT</span><span
+              class="badge badge-default" title="Default value">1</span></p>
+              <p class="option-text">Rate limited webhook requests per second. To prevent potentially overloading the
+                webhook server, this is rate limited by default to a maximum of 1 request per second (<a
+                  href="../../integration/webhook/">see docs</a>).</p></div>
+          </div>
+          <p class="mt-5 text-end small"><i class="bi bi-pen-fill me-2"></i><a
+            href="https://github.com/axllent/mailpit-website/edit/develop/content/docs/configuration/runtime-options.md"
+            target="_blank" rel="noopener">Edit this page</a></p></div>
+        <div class="col-xl-2 d-none d-xl-block on-this-page small"><b class="d-block mb-2">On this page</b>
+          <nav id="TableOfContents">
+            <ul>
+              <li><a href="#general">General</a></li>
+              <li><a href="#web-ui--api">Web UI &amp; API</a></li>
+              <li><a href="#smtp-server">SMTP server</a></li>
+              <li><a href="#smtp-relay">SMTP relay</a></li>
+              <li><a href="#pop3-server">POP3 server</a></li>
+              <li><a href="#tagging">Tagging</a></li>
+              <li><a href="#webhook">Webhook</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div class="modal modal-lg" id="searchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header border-0"><input type="text" class="form-control" placeholder="loading..." disabled=""
+                                                  aria-label="Search" id="Search">
+          <button type="button" class="btn-close d-sm-none" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div><!----></div>
+    </div>
+  </div>
+</div>
+<footer class="footer mt-auto py-2 bg-body-tertiary">
+  <div class="text-center"><a href="https://github.com/axllent/mailpit" title="Github stars"
+                              class="mx-sm-2 my-1 d-inline-block" target="_blank" rel="noopener"><span
+    class="visually-hidden">Github stars</span><img
+    src="https://img.shields.io/github/stars/axllent/mailpit.svg?style=flat-square&amp;color=%2301956e&amp;logoColor=%23fff&amp;labelColor=%23343a40&amp;label=Github%20stars&amp;logo=github"
+    alt="Github stars"></a>
+    <a href="https://github.com/axllent/mailpit/releases/latest" title="Latest release"
+       class="mx-sm-2 my-1 d-inline-block" target="_blank" rel="noopener"><span
+      class="visually-hidden">Latest release</span><img
+      src="https://img.shields.io/github/v/release/axllent/mailpit.svg?style=flat-square&amp;color=%2301956e&amp;logoColor=%23fff&amp;labelColor=%23343a40&amp;label=Latest%20release&amp;logo=github"
+      alt="Latest release"></a>
+    <a href="https://hub.docker.com/r/axllent/mailpit" title="Docker pulls" class="mx-sm-2 my-1 d-inline-block"
+       target="_blank" rel="noopener"><span class="visually-hidden">Docker pulls</span><img
+      src="https://img.shields.io/docker/pulls/axllent/mailpit.svg?style=flat-square&amp;color=%2301956e&amp;logoColor=%23fff&amp;labelColor=%23343a40&amp;label=Docker%20pulls&amp;logo=docker"
+      alt="Docker pulls"></a>
+    <a href="https://github.com/sponsors/axllent" title="Sponsors" class="mx-sm-2 my-1 d-inline-block" target="_blank"
+       rel="noopener"><span class="visually-hidden">Sponsors</span><img
+      src="https://img.shields.io/github/sponsors/axllent.svg?style=flat-square&amp;color=%2301956e&amp;logoColor=%23fff&amp;labelColor=%23343a40&amp;label=Sponsors&amp;logo=githubsponsors"
+      alt="Sponsors"></a></div>
+</footer>
+<script>
+  const list = document.querySelectorAll('div.option')
+  console.log(list)
+  const all = []
+  const dict = {}
+  const conf = []
+  list.forEach((item) => {
+    const name = item.querySelector('.badge-env').innerHTML.trim()
+    const value = item.querySelector('.badge-default')?.innerHTML?.trim() ?? ''
+    const desc = item.querySelector('.option-text').innerText
+    console.log(name, value, desc)
+    all.push({
+      name,
+      value,
+      enable: !!value,
+      options: value === 'false' ? [{
+        value: 'false',
+        label: 'false'
+      },
+        {
+          value: 'true',
+          label: 'true'
+        }] : undefined
+    })
+    dict[name] = desc
+    if (value) {
+      conf.push(`${name}=${value}`)
+    }
+  })
+  console.log(JSON.stringify(all))
+  console.log(JSON.stringify(dict))
+  console.log(conf.join(`\n`))
+</script>
+</body>
+</html>

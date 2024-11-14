@@ -167,6 +167,7 @@
         item.enable = false
         return item
       }
+      item.enable = true
       item.value = find?.v ?? item.value
       return item
     })

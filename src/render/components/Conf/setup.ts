@@ -19,6 +19,9 @@ export type CommonSetItem = {
   value: string
   enable: boolean
   show?: boolean
+  type?: string
+  isFile?: boolean
+  isDir?: boolean
   options?: CommonSetItemOption[]
   tips: () => string
 }

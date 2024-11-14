@@ -33,33 +33,20 @@ class MailPit extends Base {
   initConfig(): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
       const baseDir = join(global.Server.BaseDir!, 'mailpit')
-      const iniFile = join(baseDir, 'Caddyfile')
+      if (!existsSync(baseDir)) {
+        await mkdirp(baseDir)
+      }
+      const iniFile = join(baseDir, 'mailpit.conf')
       if (!existsSync(iniFile)) {
-        const tmplFile = join(global.Server.Static!, 'tmpl/Caddyfile')
+        const tmplFile = join(global.Server.Static!, 'tmpl/mailpit.conf')
         let content = await readFile(tmplFile, 'utf-8')
-        const sslDir = join(baseDir, 'ssl')
-        await mkdirp(sslDir)
         const logFile = join(baseDir, 'mailpit.log')
-        const vhostDir = join(global.Server.BaseDir!, 'vhost/mailpit')
-        await mkdirp(sslDir)
-        content = content
-          .replace('##SSL_ROOT##', sslDir)
-          .replace('##LOG_FILE##', logFile)
-          .replace('##VHOST-DIR##', vhostDir)
+        content = content.replace('##LOG_FILE##', logFile)
         await writeFile(iniFile, content)
-        const defaultIniFile = join(baseDir, 'Caddyfile.default')
+        const defaultIniFile = join(baseDir, 'mailpit.conf.default')
         await writeFile(defaultIniFile, content)
       }
       resolve(iniFile)
-    })
-  }
-
-  fixLogPermit() {
-    return new ForkPromise(async (resolve) => {
-      const baseDir = join(global.Server.BaseDir!, 'mailpit')
-      const logFile = join(baseDir, 'mailpit.log')
-      await execPromiseRoot([`chmod`, `644`, logFile])
-      resolve(true)
     })
   }
 
