@@ -176,6 +176,7 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'
+  import { HostStore } from '@/components/Host/store'
 
   const { shell } = require('@electron/remote')
 
@@ -206,7 +207,10 @@
   })
 
   const hosts = computed(() => {
-    let hosts: Array<any> = JSON.parse(JSON.stringify(appStore.hosts))
+    if (appStore.hosts.length === 0 || HostStore.index === 0) {
+      return []
+    }
+    let hosts: Array<any> = JSON.parse(JSON.stringify(HostStore.tabList('php')))
     if (search.value) {
       hosts = hosts.filter((h) => {
         const name = h?.name ?? ''

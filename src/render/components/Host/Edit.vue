@@ -211,19 +211,21 @@
           </template>
         </div>
 
-        <div class="plant-title">
-          <span>Nginx Url Rewrite</span>
-          <el-popover placement="top" :title="$t('base.attention')" width="auto" trigger="hover">
-            <template #reference>
-              <yb-icon
-                :svg="import('@/svg/question.svg?raw')"
-                width="12"
-                height="12"
-                style="margin-left: 5px"
-              ></yb-icon>
-            </template>
-            <p>{{ $t('base.nginxRewriteTips') }}</p>
-          </el-popover>
+        <div class="plant-title flex justify-between items-center">
+          <div class="flex items-center">
+            <span>Nginx Url Rewrite</span>
+            <el-popover placement="top" :title="$t('base.attention')" width="auto" trigger="hover">
+              <template #reference>
+                <yb-icon
+                  :svg="import('@/svg/question.svg?raw')"
+                  width="12"
+                  height="12"
+                  style="margin-left: 5px"
+                ></yb-icon>
+              </template>
+              <p>{{ $t('base.nginxRewriteTips') }}</p>
+            </el-popover>
+          </div>
         </div>
 
         <div class="main">
@@ -259,9 +261,11 @@
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { ElMessageBox } from 'element-plus'
   import IPC from '@/util/IPC'
+  import { Plus } from '@element-plus/icons-vue'
 
-  const { dialog } = require('@electron/remote')
+  const { dialog, shell } = require('@electron/remote')
   const { join } = require('path')
+  const { existsSync, mkdirp } = require('fs-extra')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 

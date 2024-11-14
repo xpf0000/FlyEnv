@@ -306,9 +306,11 @@ class Host extends Base {
         })
       }
       allHost.forEach((a) => {
-        host.push(`127.0.0.1     ${a}`)
-        if (ipv6) {
-          host.push(`::1     ${a}`)
+        if (a && a.trim().length > 0) {
+          host.push(`127.0.0.1     ${a}`)
+          if (ipv6) {
+            host.push(`::1     ${a}`)
+          }
         }
       })
       await writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
@@ -372,7 +374,9 @@ class Host extends Base {
       }
       console.log('writeHosts: ', write)
       if (write) {
-        this._initHost(appHost, true, ipv6).then(resolve)
+        try {
+          this._initHost(appHost, true, ipv6)
+        } catch (e) {}
       } else {
         let hosts = await readFile(this.hostsFile, 'utf-8')
         const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
@@ -380,8 +384,14 @@ class Host extends Base {
           hosts = hosts.replace(x[0], '')
           await writeFile(this.hostsFile, hosts.trim())
         }
-        this._initHost(appHost, false, ipv6).then(resolve)
+        try {
+          this._initHost(appHost, false, ipv6)
+        } catch (e) {}
       }
+      try {
+        await execPromiseRoot(`ipconfig /flushdns`)
+      } catch (e) {}
+      resolve(true)
     })
   }
 
