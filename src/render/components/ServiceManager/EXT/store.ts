@@ -39,8 +39,9 @@ export const ServiceActionStore: {
     IPC.send('app-fork:tools', 'updatePATH', JSON.parse(JSON.stringify(item)), typeFlag).then(
       (key: string, res: any) => {
         IPC.off(key)
-        if (res?.code === 0 && res?.data?.length > 0) {
-          ServiceActionStore.allPath = reactive([...res.data])
+        if (res?.code === 0) {
+          const all = res?.data ?? []
+          ServiceActionStore.allPath = reactive([...all])
           MessageSuccess(I18nT('base.success'))
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))

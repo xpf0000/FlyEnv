@@ -31,7 +31,7 @@
             <div class="title">
               <span>{{ I18nT('base.phpVersion') }}</span>
             </div>
-            <el-select v-model="form.php" filterable :disabled="loading || created">
+            <el-select v-model="form.php" class="w-52" filterable :disabled="loading || created">
               <template v-for="(v, k) in phpVersions" :key="k">
                 <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
               </template>
@@ -41,7 +41,12 @@
             <div class="title">
               <span>{{ I18nT('host.frameWork') }}</span>
             </div>
-            <el-select v-model="form.framework" filterable :disabled="loading || created">
+            <el-select
+              v-model="form.framework"
+              class="w-52"
+              filterable
+              :disabled="loading || created"
+            >
               <template v-for="(v, k) in Versions" :key="k">
                 <el-option-group :label="k">
                   <template v-for="(item, i) in v" :key="i">

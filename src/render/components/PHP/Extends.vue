@@ -31,7 +31,7 @@
                   <el-select
                     v-model="lib"
                     :disabled="brewRunning || !version?.version"
-                    class="lib-select"
+                    class="lib-select w-52"
                   >
                     <template v-if="isHomeBrew">
                       <el-option value="homebrew" label="Homebrew"></el-option>

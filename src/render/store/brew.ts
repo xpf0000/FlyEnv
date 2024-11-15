@@ -66,7 +66,7 @@ export const BrewStore = defineStore('brew', {
   state: (): State => state,
   getters: {},
   actions: {
-    module(flag: AllAppModule) {
+    module(flag: AllAppModule): AppSoftInstalledItem {
       if (!this?.[flag]) {
         this[flag] = reactive({
           getListing: false,

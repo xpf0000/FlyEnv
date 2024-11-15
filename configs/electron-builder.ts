@@ -55,7 +55,8 @@ const conf: Configuration = {
     icon: 'build/Icon.icns',
     target: {
       target: 'default',
-      arch: ['x64']
+      arch: ['x64', 'arm64']
+      // arch: ['arm64']
     },
     asarUnpack: ['**/*.node'],
     extendInfo: {

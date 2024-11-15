@@ -42,7 +42,7 @@ export default {
   isInstalled: '是否安装',
   install: '安装',
   uninstall: '卸载',
-  currentVersionLib: '当前版本库',
+  currentVersionLib: '版本库',
   slowLog: '慢日志',
   extend: '扩展',
   httpServerTips: '点击上传文件 or 拖拽到空白处上传文件',

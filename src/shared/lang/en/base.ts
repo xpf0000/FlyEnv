@@ -45,7 +45,7 @@ export default {
   isInstalled: 'IsInstalled',
   install: 'Install',
   uninstall: 'Uninstall',
-  currentVersionLib: 'Current version library',
+  currentVersionLib: 'Version Library',
   slowLog: 'Slow Log',
   extend: 'Extend',
   httpServerTips: 'Click to upload files or drag to the blank space to upload files',
