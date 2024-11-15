@@ -48,7 +48,6 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
     }
     try {
       await this.handleHost(hostItem, 'add')
-      await this.writeHosts()
       if (version?.num) {
         const file = join(dir, 'index.php')
         await writeFile(
@@ -166,7 +165,6 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
       }
       try {
         await this.handleHost(hostItem, 'add')
-        await this.writeHosts()
         await setDirRole(siteDir)
         resolve(true)
       } catch (e) {

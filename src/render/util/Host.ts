@@ -21,13 +21,20 @@ const handleHostEnd = (arr: Array<AppHost>, isAdd?: boolean) => {
   hosts.push(...arr)
 
   HostStore.updateCurrentList()
-
-  const writeHosts = appStore.config.setup.hosts.write
-  IPC.send('app-fork:host', 'writeHosts', writeHosts).then((key: string) => {
-    IPC.off(key)
-  })
-
+  handleWriteHosts().then().catch()
   MessageSuccess(I18nT('base.success'))
+}
+
+export const handleWriteHosts = () => {
+  return new Promise((resolve) => {
+    const appStore = AppStore()
+    const writeHosts = appStore.config.setup.hosts.write
+    const ipv6 = appStore.config.setup?.hosts?.ipv6 ?? true
+    IPC.send('app-fork:host', 'writeHosts', writeHosts, ipv6).then((key: string) => {
+      IPC.off(key)
+      resolve(true)
+    })
+  })
 }
 
 export const handleHost = (

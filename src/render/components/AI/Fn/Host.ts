@@ -10,6 +10,7 @@ import { nextTick } from 'vue'
 import type { SoftInstalled } from '@shared/app'
 import { fetchInstalled } from '@/components/AI/Fn/Util'
 import { I18nT } from '@shared/lang'
+import { handleWriteHosts } from '@/util/Host'
 
 const { shell } = require('@electron/remote')
 
@@ -23,6 +24,7 @@ export function addRandaSite(this: BaseTask) {
         IPC.off(key)
         if (res.code === 0) {
           appStore.initHost()
+          handleWriteHosts().then().catch()
           const item = res.data
           const aiStore = AIStore()
           aiStore.chatList.push({

@@ -13,6 +13,7 @@ export interface SoftInstalled {
   phpConfig?: string
   phpize?: string
   flag?: string
+  pid?: string
 }
 
 export interface AppHostReverseProxyItem {

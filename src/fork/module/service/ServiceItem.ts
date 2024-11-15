@@ -114,7 +114,7 @@ export class ServiceItem {
         } catch (e) {}
       }
       resolve({
-        'APP-Host-Service-Stop-PID': arr
+        'APP-Service-Stop-PID': arr
       })
     })
   }

@@ -69,7 +69,10 @@ class Redis extends Base {
       const confFile = await this._initConf(version)
       const checkpid = async (time = 0) => {
         if (existsSync(this.pidPath)) {
-          resolve(0)
+          const pid = await readFile(this.pidPath, 'utf-8')
+          resolve({
+            'APP-Service-Start-PID': pid.trim()
+          })
         } else {
           if (time < 20) {
             await waitTime(500)

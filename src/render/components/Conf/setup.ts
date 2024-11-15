@@ -230,6 +230,10 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       })
   }
 
+  const openURL = (url: string) => {
+    shell.openExternal(url)
+  }
+
   watch(disabled, (v) => {
     nextTick().then(() => {
       console.log('watch(disabled !!!', v)
@@ -271,6 +275,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     loadCustom,
     getConfig,
     getEditValue,
-    setEditValue
+    setEditValue,
+    openURL
   }
 }

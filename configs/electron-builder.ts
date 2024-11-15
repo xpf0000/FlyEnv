@@ -12,8 +12,9 @@ import PublishConfig from './publish'
  * One Environ
  */
 const conf: Configuration = {
-  productName: 'PhpWebStudy',
-  buildVersion: '4.5.1',
+  productName: 'PerfectEnv',
+  executableName: 'PerfectEnv',
+  buildVersion: '4.5.5',
   electronVersion: '30.4.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -54,11 +55,13 @@ const conf: Configuration = {
     icon: 'build/Icon.icns',
     target: {
       target: 'default',
-      arch: ['x64', 'arm64']
+      arch: ['x64']
     },
     asarUnpack: ['**/*.node'],
     extendInfo: {
-      'Icon file': 'icon.icns'
+      'Icon file': 'icon.icns',
+      CFBundleDisplayName: 'PerfectEnv',
+      CFBundleExecutable: 'PhpWebStudy'
     },
     type: 'distribution',
     darkModeSupport: true,

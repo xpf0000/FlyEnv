@@ -5,8 +5,8 @@
       <slot name="common"></slot>
     </el-scrollbar>
   </div>
-  <div class="tool">
-    <el-radio-group v-if="showCommond" v-model="type" class="mr-7" size="small">
+  <div class="tool gap-3">
+    <el-radio-group v-if="showCommond" v-model="type" size="small">
       <el-tooltip :show-after="600" :content="I18nT('conf.rawFile')" placement="top">
         <el-radio-button value="default">
           <Document class="w-5 h-5 p-0.5" />
@@ -35,7 +35,7 @@
         <yb-icon :svg="import('@/svg/load-default.svg?raw')" class="w-5 h-5" />
       </el-button>
     </el-tooltip>
-    <el-button-group style="margin-left: 12px">
+    <el-button-group>
       <el-tooltip :show-after="600" :content="I18nT('conf.loadCustom')" placement="top">
         <el-button :disabled="disabled" @click="loadCustom">
           <yb-icon :svg="import('@/svg/custom.svg?raw')" class="w-5 h-5 p-0.5" />
@@ -47,6 +47,13 @@
         </el-button>
       </el-tooltip>
     </el-button-group>
+    <template v-if="!!url">
+      <el-tooltip :content="url" :show-after="600" placement="top">
+        <el-button @click="openURL(url)">
+          <yb-icon :svg="import('@/svg/http.svg?raw')" class="w-5 h-5 p-0.5" />
+        </el-button>
+      </el-tooltip>
+    </template>
   </div>
 </template>
 
@@ -64,6 +71,7 @@
     fileExt: string
     typeFlag: AllAppModule
     showCommond: boolean
+    url?: string
   }>()
 
   const emit = defineEmits(['onTypeChange'])
@@ -93,7 +101,8 @@
     openConfig,
     loadCustom,
     getEditValue,
-    setEditValue
+    setEditValue,
+    openURL
   } = ConfSetup(p)
 
   watch(

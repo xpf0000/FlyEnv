@@ -50,6 +50,13 @@
               </el-button>
             </el-tooltip>
           </el-button-group>
+          <template v-if="!!url">
+            <el-tooltip :content="url" :show-after="600" placement="top">
+              <el-button @click="openURL(url)">
+                <yb-icon :svg="import('@/svg/http.svg?raw')" class="w-5 h-5" />
+              </el-button>
+            </el-tooltip>
+          </template>
         </div>
       </template>
     </el-card>
@@ -70,6 +77,7 @@
     fileExt: string
     typeFlag: AllAppModule
     showCommond: boolean
+    url?: string
   }>()
 
   const emit = defineEmits(['onTypeChange'])
@@ -99,7 +107,8 @@
     openConfig,
     loadCustom,
     getEditValue,
-    setEditValue
+    setEditValue,
+    openURL
   } = ConfSetup(p)
 
   watch(

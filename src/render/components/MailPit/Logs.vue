@@ -13,9 +13,13 @@
   import { ref } from 'vue'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
-
-  const { join } = require('path')
+  import IPC from '@/util/IPC'
 
   const log = ref()
-  const filepath = ref(join(global.Server.BaseDir, `caddy/caddy.log`))
+  const filepath = ref('')
+
+  IPC.send('app-fork:mailpit', 'fetchLogPath').then((key: string, res: any) => {
+    IPC.off(key)
+    filepath.value = res?.data ?? ''
+  })
 </script>

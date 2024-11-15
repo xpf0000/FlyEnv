@@ -57,9 +57,12 @@
           </template>
         </el-dropdown>
       </el-button-group>
+      <li class="no-hover" style="width: auto; padding: 0 15px; margin-right: 10px">
+        <el-button @click="openHosts">{{ I18nT('base.openHosts') }}</el-button>
+      </li>
       <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
         <template #reference>
-          <li style="width: auto; padding: 0 15px; margin-left: 20px; margin-right: 10px">
+          <li style="width: auto; padding: 0 15px; margin-left: 0; margin-right: 0">
             <span style="margin-right: 10px">{{ I18nT('host.enable') }}: </span>
             <el-switch v-model="hostsSet.write"></el-switch>
           </li>
@@ -68,9 +71,12 @@
           <p>{{ I18nT('host.hostsWriteTips') }}</p>
         </template>
       </el-popover>
-      <li class="no-hover" style="width: auto; padding: 0 15px; margin-right: 10px">
-        <el-button @click="openHosts">{{ I18nT('base.openHosts') }}</el-button>
-      </li>
+      <template v-if="hostsSet.write">
+        <li class="no-hover" style="width: auto; padding: 0 15px">
+          <span style="margin-right: 10px">IPV6: </span>
+          <el-switch v-model="ipv6"></el-switch>
+        </li>
+      </template>
     </ul>
     <List v-show="HostStore.tab === 'php'"></List>
     <ListJava v-show="HostStore.tab === 'java'"></ListJava>
@@ -153,13 +159,28 @@
     return hostsSet.value.write
   })
 
-  watch(hostWrite, () => {
-    hostsWrite()
-    appStore.saveConfig()
+  const ipv6 = computed({
+    get() {
+      return hostsSet?.value?.ipv6 !== false
+    },
+    set(v) {
+      appStore.config.setup.hosts.ipv6 = v
+    }
   })
 
+  watch(
+    hostsSet,
+    () => {
+      hostsWrite()
+      appStore.saveConfig()
+    },
+    {
+      deep: true
+    }
+  )
+
   const hostsWrite = (showTips = true) => {
-    IPC.send('app-fork:host', 'writeHosts', hostWrite.value).then((key: string) => {
+    IPC.send('app-fork:host', 'writeHosts', hostWrite.value, ipv6.value).then((key: string) => {
       IPC.off(key)
       showTips && MessageSuccess(I18nT('base.success'))
     })

@@ -1,23 +1,18 @@
-import { join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
-  execPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort,
-  waitTime
+  versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
-import { I18nT } from '../lang'
-import { execPromiseRoot } from '@shared/Exec'
-import { type ChildProcess, spawn } from 'child_process'
-import { fixEnv } from '@shared/utils'
+import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
 
 class MailPit extends Base {
@@ -50,89 +45,86 @@ class MailPit extends Base {
     })
   }
 
+  fetchLogPath() {
+    return new ForkPromise(async (resolve) => {
+      const baseDir = join(global.Server.BaseDir!, 'mailpit')
+      const iniFile = join(baseDir, 'mailpit.conf')
+      if (!existsSync(iniFile)) {
+        resolve('')
+        return
+      }
+      const content = await readFile(iniFile, 'utf-8')
+      const logStr = content.split('\n').find((s) => s.includes('MP_LOG_FILE'))
+      if (!logStr) {
+        resolve('')
+        return
+      }
+      const file = logStr.trim().split('=').pop()
+      resolve(file ?? '')
+    })
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
       const bin = version.bin
       const iniFile = await this.initConfig()
       if (existsSync(this.pidPath)) {
-        await execPromiseRoot(['rm', '-rf', this.pidPath])
-      }
-      const env = await fixEnv()
-      let child: ChildProcess
-      if (global.Server.isAppleSilicon) {
-        const sslDir = join(global.Server.BaseDir!, 'mailpit/ssl')
-        if (existsSync(sslDir)) {
-          const res = await execPromise(`ls -al "${sslDir}"`)
-          if (res.stdout.includes(' root ')) {
-            await execPromiseRoot(['rm', '-rf', sslDir])
-          }
-        }
-        child = spawn(
-          bin,
-          ['start', '--config', iniFile, '--pidfile', this.pidPath, '--watch', '&'],
-          {
-            detached: true,
-            stdio: 'ignore',
-            env
-          }
-        )
-      } else {
-        child = spawn(
-          'sudo',
-          ['-S', bin, 'start', '--config', iniFile, '--pidfile', this.pidPath, '--watch', '&'],
-          {
-            detached: true,
-            env
-          }
-        )
+        try {
+          await execPromiseRoot(['rm', '-rf', this.pidPath])
+        } catch (e) {}
       }
 
-      let checking = false
-      const checkPid = async (time = 0) => {
-        if (existsSync(this.pidPath)) {
-          try {
-            await execPromiseRoot(['kill', '-9', `${child.pid}`])
-          } catch (e) {}
-          resolve(true)
+      const getConfEnv = async () => {
+        const content = await readFile(iniFile, 'utf-8')
+        const arr = content
+          .split('\n')
+          .filter((s) => {
+            const str = s.trim()
+            return !!str && str.startsWith('MP_')
+          })
+          .map((s) => s.trim())
+        const dict: Record<string, string> = {}
+        arr.forEach((a) => {
+          const item = a.split('=')
+          const k = item.shift()
+          const v = item.join('=')
+          if (k) {
+            dict[k] = v
+          }
+        })
+        return dict
+      }
+
+      const opt = await getConfEnv()
+      const commands: string[] = ['#!/bin/zsh']
+      for (const k in opt) {
+        const v = opt[k]
+        if (v.includes(' ')) {
+          commands.push(`export ${k}="${v}"`)
         } else {
-          if (time < 40) {
-            await waitTime(500)
-            await checkPid(time + 1)
-          } else {
-            try {
-              await execPromiseRoot(['kill', '-9', `${child.pid}`])
-            } catch (e) {}
-            reject(new Error(I18nT('fork.startFail')))
-          }
+          commands.push(`export ${k}=${v}`)
         }
       }
+      commands.push(`cd "${dirname(bin)}"`)
+      commands.push(`nohup ./${basename(bin)} > /dev/null 2>&1 &`)
+      commands.push(`echo $! > ${this.pidPath}`)
 
-      const onPassword = (data: Buffer) => {
-        const str = data.toString()
-        if (str.startsWith('Password:')) {
-          child?.stdin?.write(global.Server.Password!)
-          child?.stdin?.write(`\n`)
-          return
-        }
-        if (!checking) {
-          checking = true
-          checkPid()
-        }
+      const command = commands.join('\n')
+      console.log('command: ', command)
+      const sh = join(global.Server.BaseDir!, `mailpit/start.sh`)
+      await writeFile(sh, command)
+      await execPromiseRoot([`chmod`, '777', sh])
+      try {
+        const res = await execPromiseRootWhenNeed(`zsh`, [sh], opt)
+        console.log('start res: ', res)
+        const pid = await readFile(this.pidPath, 'utf-8')
+        resolve({
+          'APP-Service-Start-PID': pid
+        })
+      } catch (e) {
+        console.log('start e: ', e)
+        reject(e)
       }
-      child?.stdout?.on('data', (data: Buffer) => {
-        onPassword(data)
-      })
-      child?.stderr?.on('data', (err: Buffer) => {
-        onPassword(err)
-      })
-      child.on('exit', (err) => {
-        console.log('exit: ', err)
-        onPassword(Buffer.from(''))
-      })
-      child.on('close', (code) => {
-        console.log('close: ', code)
-        onPassword(Buffer.from(''))
-      })
     })
   }
 

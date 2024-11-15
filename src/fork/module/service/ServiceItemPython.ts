@@ -79,7 +79,7 @@ export class ServiceItemPython extends ServiceItem {
         const pid = await this.checkPid()
         this.daemon()
         resolve({
-          'APP-Host-Service-Start-PID': pid
+          'APP-Service-Start-PID': pid
         })
       } catch (e) {
         console.log('start e: ', e)

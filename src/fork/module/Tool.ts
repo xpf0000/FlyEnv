@@ -232,10 +232,35 @@ class Manager extends Base {
 
       const handleFile = async (file: string) => {
         file = file.replace('~', home.stdout.trim())
+        if (file.includes('.zshrc') && !existsSync(file)) {
+          try {
+            await writeFile(file, '')
+          } catch (e) {}
+        }
         if (!existsSync(file)) {
           return
         }
-        let content = await readFile(file, 'utf-8')
+        let content = ''
+        let hasErr = false
+        try {
+          content = await readFile(file, 'utf-8')
+        } catch (e) {
+          hasErr = true
+        }
+        if (hasErr) {
+          const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
+          try {
+            await execPromiseRoot(['cp', '-f', file, cacheFile])
+            content = await readFile(cacheFile, 'utf-8')
+            await execPromiseRoot(['rm', '-rf', cacheFile])
+            hasErr = false
+          } catch (e) {
+            hasErr = true
+          }
+        }
+        if (hasErr) {
+          return
+        }
         const contentBack = content
         let x: any = content.match(
           /(#PHPWEBSTUDY-PATH-SET-BEGIN#)([\s\S]*?)(#PHPWEBSTUDY-PATH-SET-END#)/g
@@ -284,7 +309,9 @@ class Manager extends Base {
           try {
             await execPromiseRoot(['cp', '-f', cacheFile, file])
           } catch (e) {}
-          await remove(cacheFile)
+          try {
+            await execPromiseRoot(['rm', '-rf', cacheFile])
+          } catch (e) {}
           if (file.includes('.zshrc')) {
             try {
               await execPromiseRoot(['source', file])

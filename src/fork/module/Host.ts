@@ -317,7 +317,7 @@ export class Host extends Base {
     })
   }
 
-  _initHost(list: Array<AppHost>, writeToSystem = true) {
+  _initHost(list: Array<AppHost>, writeToSystem = true, ipv6: boolean) {
     return new ForkPromise(async (resolve, reject) => {
       const allHost: Set<string> = new Set<string>()
       const host: Array<string> = []
@@ -328,11 +328,19 @@ export class Host extends Base {
         })
       }
       allHost.forEach((a) => {
-        host.push(`127.0.0.1     ${a}`)
-        host.push(`::1     ${a}`)
+        if (a && a.trim().length > 0) {
+          host.push(`127.0.0.1     ${a}`)
+          if (ipv6) {
+            host.push(`::1     ${a}`)
+          }
+        }
       })
       await writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
       if (!writeToSystem) {
+        try {
+          await execPromiseRoot(['dscacheutil', '-flushcache'])
+          await execPromiseRoot(['killall', '-HUP', 'mDNSResponder'])
+        } catch (e) {}
         resolve(true)
         return
       }
@@ -355,6 +363,10 @@ export class Host extends Base {
       content = content.trim()
       content += `\n${x}`
       await writeFile(filePath, content.trim())
+      try {
+        await execPromiseRoot(['dscacheutil', '-flushcache'])
+        await execPromiseRoot(['killall', '-HUP', 'mDNSResponder'])
+      } catch (e) {}
       resolve(true)
     })
   }
@@ -383,7 +395,7 @@ export class Host extends Base {
     })
   }
 
-  writeHosts(write = true) {
+  writeHosts(write = true, ipv6 = true) {
     return new ForkPromise(async (resolve) => {
       await this._fixHostsRole()
       const hostfile = join(global.Server.BaseDir!, 'host.json')
@@ -397,7 +409,7 @@ export class Host extends Base {
       }
       console.log('writeHosts: ', write)
       if (write) {
-        this._initHost(appHost).then(resolve)
+        this._initHost(appHost, true, ipv6).then(resolve)
       } else {
         let hosts = await readFile('/private/etc/hosts', 'utf-8')
         const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
@@ -405,7 +417,7 @@ export class Host extends Base {
           hosts = hosts.replace(x[0], '')
           await writeFile('/private/etc/hosts', hosts.trim())
         }
-        this._initHost(appHost, false).then(resolve)
+        this._initHost(appHost, false, ipv6).then(resolve)
       }
     })
   }

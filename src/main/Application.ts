@@ -8,7 +8,6 @@ import MenuManager from './ui/MenuManager'
 import UpdateManager from './core/UpdateManager'
 import { join, resolve } from 'path'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { execSync } from 'child_process'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
 import { AppI18n } from './lang'
@@ -21,7 +20,7 @@ import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseRoot } from '@shared/Exec'
 import { arch } from 'os'
-import { ProcessPidListByPid } from '@shared/Process'
+import { ProcessPidList, ProcessPidListByPid } from '@shared/Process'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
@@ -378,64 +377,35 @@ export default class Application extends EventEmitter {
   async stopServerByPid() {
     const TERM: Array<string> = []
     const INT: Array<string> = []
-    let command = `ps aux | grep '${global.Server.BaseDir}'`
-    let res: any = null
-    try {
-      res = execSync(command)?.toString()?.trim() ?? ''
-    } catch (e) {}
-    let pids =
-      res?.split('\n')?.filter((v: string) => {
-        return !v.includes(`ps aux | grep `)
-      }) ?? []
-    for (const p of pids) {
-      if (p.includes(global.Server.BaseDir!)) {
-        const parr = p.split(' ').filter((s: string) => {
-          return s.trim().length > 0
-        })
-        parr.shift()
-        const pid = parr.shift()
-        const runstr = parr.slice(8).join(' ')
-        if (
-          runstr.includes('mysqld') ||
-          runstr.includes('mariadbd') ||
-          runstr.includes('mongod') ||
-          runstr.includes('org.apache.catalina')
-        ) {
-          TERM.push(pid)
-        } else {
-          INT.push(pid)
-        }
-      }
+    const all = await ProcessPidList()
+    const find = all.filter((p) => {
+      return (
+        (p.COMMAND.includes(global.Server.BaseDir!) || p.COMMAND.includes('redis-server')) &&
+        !p.COMMAND.includes(' grep ') &&
+        !p.COMMAND.includes(' /bin/sh -c') &&
+        !p.COMMAND.includes('/Contents/MacOS/') &&
+        !p.COMMAND.startsWith('/bin/bash ') &&
+        !p.COMMAND.includes('brew.rb ') &&
+        !p.COMMAND.includes(' install ') &&
+        !p.COMMAND.includes(' uninstall ') &&
+        !p.COMMAND.includes(' link ') &&
+        !p.COMMAND.includes(' unlink ')
+      )
+    })
+    if (find.length === 0) {
+      return
     }
-    command = `ps aux | grep 'redis-server'`
-    try {
-      res = execSync(command)?.toString()?.trim() ?? ''
-    } catch (e) {}
-    pids =
-      res?.split('\n')?.filter((v: string) => {
-        return !v.includes(`ps aux | grep `)
-      }) ?? []
-    for (const p of pids) {
-      const parr = p.split(' ').filter((s: string) => {
-        return s.trim().length > 0
-      })
-      parr.shift()
-      const pid = parr.shift()
-      const runstr = parr.slice(8).join(' ')
+    for (const item of find) {
       if (
-        runstr.includes(' grep ') ||
-        runstr.includes(' /bin/sh -c') ||
-        runstr.includes('/Contents/MacOS/') ||
-        runstr.startsWith('/bin/bash ') ||
-        runstr.includes('brew.rb ') ||
-        runstr.includes(' install ') ||
-        runstr.includes(' uninstall ') ||
-        runstr.includes(' link ') ||
-        runstr.includes(' unlink ')
+        item.COMMAND.includes('mysqld') ||
+        item.COMMAND.includes('mariadbd') ||
+        item.COMMAND.includes('mongod') ||
+        item.COMMAND.includes('org.apache.catalina')
       ) {
-        continue
+        TERM.push(item.PID)
+      } else {
+        INT.push(item.PID)
       }
-      INT.push(pid)
     }
     if (TERM.length > 0) {
       const sig = '-TERM'
@@ -605,10 +575,10 @@ export default class Application extends EventEmitter {
       const win = this.mainWindow!
       this.windowManager.sendCommandTo(win, command, key, info)
       console.log('callBack info: ', info)
-      if (info?.data?.['APP-Host-Service-Start-PID']) {
-        this.hostServicePID.add(info.data['APP-Host-Service-Start-PID'])
-      } else if (info?.data?.['APP-Host-Service-Stop-PID']) {
-        const arr: string[] = info.data['APP-Host-Service-Stop-PID'] as any
+      if (info?.data?.['APP-Service-Start-PID']) {
+        this.hostServicePID.add(info.data['APP-Service-Start-PID'])
+      } else if (info?.data?.['APP-Service-Stop-PID']) {
+        const arr: string[] = info.data['APP-Service-Stop-PID'] as any
         arr.forEach((s) => this.hostServicePID.delete(s))
       }
       if (args && args?.[0] === 'installBrew' && info?.data?.BrewCellar) {

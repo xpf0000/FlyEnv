@@ -1,6 +1,6 @@
 import { I18nT } from '../lang'
 import { createWriteStream, existsSync } from 'fs'
-import { join } from 'path'
+import { dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { execPromise, spawnPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -9,6 +9,7 @@ import { execPromiseRoot } from '@shared/Exec'
 import axios from 'axios'
 import * as http from 'http'
 import * as https from 'https'
+import { ProcessListSearch, ProcessPidListByPid } from '@shared/Process'
 
 export class Base {
   type: string
@@ -125,8 +126,14 @@ export class Base {
       } catch (e) {}
       try {
         await this._stopServer(version)
-        await this._startServer(version).on(on)
-        resolve(true)
+        const res = await this._startServer(version).on(on)
+        if (res?.['APP-Service-Start-PID']) {
+          const pid = res['APP-Service-Start-PID']
+          const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+          await mkdirp(dirname(appPidFile))
+          await writeFile(appPidFile, pid.trim())
+        }
+        resolve(res)
       } catch (e) {
         reject(e)
       }
@@ -136,64 +143,53 @@ export class Base {
   _stopServer(version: SoftInstalled) {
     console.log(version)
     return new ForkPromise(async (resolve) => {
-      const dis: { [k: string]: string } = {
-        caddy: 'caddy',
-        nginx: 'nginx',
-        apache: 'httpd',
-        mysql: 'mysqld',
-        mariadb: 'mariadbd',
-        memcached: 'memcached',
-        redis: 'redis-server',
-        mongodb: 'mongod',
-        postgresql: 'postgres',
-        'pure-ftpd': 'pure-ftpd',
-        tomcat: 'org.apache.catalina.startup.Bootstrap',
-        rabbitmq: 'rabbit'
-      }
-      const serverName = dis[this.type]
-      const command = `ps aux | grep '${serverName}'`
-      console.log('_stopServer command: ', command)
-      let res: any = null
-      try {
-        res = await execPromise(command)
-      } catch (e) {}
-      const pids =
-        res?.stdout
-          ?.trim()
-          ?.split('\n')
-          ?.filter((v: string) => {
-            return !v.includes(`ps aux | grep `)
-          }) ?? []
-      const arr: Array<string> = []
-      for (const p of pids) {
-        const parr = p.split(' ').filter((s: string) => {
-          return s.trim().length > 0
-        })
-        parr.shift()
-        const pid = parr.shift()
-        const runstr = parr.slice(8).join(' ')
-        console.log('pid: ', pid)
-        console.log('runstr: ', runstr)
-        if (this.type === 'redis' || global.Server.ForceStart === true) {
-          if (
-            runstr.includes(' grep ') ||
-            runstr.includes(' /bin/sh -c') ||
-            runstr.includes('/Contents/MacOS/') ||
-            runstr.startsWith('/bin/bash ') ||
-            runstr.includes('brew.rb ') ||
-            runstr.includes(' install ') ||
-            runstr.includes(' uninstall ') ||
-            runstr.includes(' link ') ||
-            runstr.includes(' unlink ')
-          ) {
-            continue
-          }
-          arr.push(pid)
-        } else if (runstr.includes(global.Server.BaseDir!)) {
-          arr.push(pid)
+      const allPid: string[] = []
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      if (existsSync(appPidFile)) {
+        const pid = (await readFile(appPidFile, 'utf-8')).trim()
+        const pids = await ProcessPidListByPid(pid)
+        allPid.push(...pids)
+      } else if (version?.pid) {
+        const pids = await ProcessPidListByPid(version.pid.trim())
+        allPid.push(...pids)
+      } else {
+        const dis: { [k: string]: string } = {
+          caddy: 'caddy',
+          nginx: 'nginx',
+          apache: 'httpd',
+          mysql: 'mysqld',
+          mariadb: 'mariadbd',
+          memcached: 'memcached',
+          redis: 'redis-server',
+          mongodb: 'mongod',
+          postgresql: 'postgres',
+          'pure-ftpd': 'pure-ftpd',
+          tomcat: 'org.apache.catalina.startup.Bootstrap',
+          rabbitmq: 'rabbit'
+        }
+        const serverName = dis?.[this.type]
+        if (serverName) {
+          const pids = (await ProcessListSearch(serverName, false))
+            .filter((p) => {
+              return (
+                p.COMMAND.includes(global.Server.BaseDir!) &&
+                !p.COMMAND.includes(' grep ') &&
+                !p.COMMAND.includes(' /bin/sh -c') &&
+                !p.COMMAND.includes('/Contents/MacOS/') &&
+                !p.COMMAND.startsWith('/bin/bash ') &&
+                !p.COMMAND.includes('brew.rb ') &&
+                !p.COMMAND.includes(' install ') &&
+                !p.COMMAND.includes(' uninstall ') &&
+                !p.COMMAND.includes(' link ') &&
+                !p.COMMAND.includes(' unlink ')
+              )
+            })
+            .map((p) => p.PID)
+          allPid.push(...pids)
         }
       }
-      console.log('_stopServer arr: ', arr)
+
+      const arr: string[] = Array.from(new Set(allPid))
       if (arr.length > 0) {
         let sig = ''
         switch (this.type) {
@@ -216,7 +212,12 @@ export class Base {
       if (this.type === 'tomcat' && arr.length > 0) {
         await waitTime(5000)
       }
-      resolve(true)
+      if (existsSync(appPidFile)) {
+        await remove(appPidFile)
+      }
+      resolve({
+        'APP-Service-Stop-PID': arr
+      })
     })
   }
 

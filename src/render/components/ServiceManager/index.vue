@@ -189,6 +189,7 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import EXT from './EXT/index.vue'
   import type { AllAppModule } from '@/core/type'
+  import { handleWriteHosts } from '@/util/Host'
 
   const { shell } = require('@electron/remote')
 
@@ -380,6 +381,7 @@
     AsyncComponentShow(PhpMyAdminVM).then(async (res) => {
       if (res) {
         await appStore.initHost()
+        handleWriteHosts().then().catch()
         const url = 'http://phpmyadmin.phpwebstudy.test'
         shell.openExternal(url)
       }

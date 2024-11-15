@@ -35,11 +35,13 @@
               :data="arrs"
               size="default"
               style="width: 100%"
+              default-expand-all
+              row-key="PID"
               @selection-change="handleSelectionChange"
             >
               <el-table-column type="selection" width="55" />
+              <el-table-column prop="PID" label="PID" width="240"> </el-table-column>
               <el-table-column prop="USER" label="USER" width="110"> </el-table-column>
-              <el-table-column prop="PID" label="PID" width="90"> </el-table-column>
               <el-table-column prop="COMMAND" label="COMMAND"> </el-table-column>
             </el-table>
           </el-card>
@@ -55,6 +57,7 @@
   import { passwordCheck } from '@/util/Brew.ts'
   import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element.ts'
   import { execPromiseRoot } from '@shared/Exec.ts'
+  import { ProcessListSearch } from '@shared/Process.ts'
 
   export default {
     components: {},
@@ -123,38 +126,32 @@
       },
       async doSearch() {
         this.arrs.splice(0)
-        const res = await execPromiseRoot(`ps aux | grep '${this.searchKey}'`)
-        const arr = res.stdout
-          .toString()
-          .trim()
-          .split('\n')
-          .filter((v) => {
-            return !v.includes(`grep ${this.searchKey}`) && !v.includes(`grep '${this.searchKey}'`)
-          })
-          .map((a) => {
-            const list = a.split(' ').filter((s) => {
-              return s.trim().length > 0
-            })
-            const USER = list.shift()
-            const PID = list.shift()
-            Array(8)
-              .fill(0)
-              .forEach(() => {
-                list.shift()
-              })
-            const COMMAND = list.join(' ')
-            return {
-              USER,
-              PID,
-              COMMAND
-            }
-          })
+        const arr = await ProcessListSearch(this.searchKey, false)
         if (arr.length === 0) {
           MessageWarning(this.$t('base.processNoFound'))
           return
         }
+        const arrs = []
+        const findSub = (item) => {
+          const sub = []
+          for (const s of arr) {
+            if (s.PPID === item.PID) {
+              sub.push(s)
+            }
+          }
+          if (sub.length > 0) {
+            item.children = sub
+          }
+        }
+        for (const item of arr) {
+          findSub(item)
+          const p = arr.find((s) => s.PID === item.PPID)
+          if (!p) {
+            arrs.push(item)
+          }
+        }
         this.arrs.splice(0)
-        this.arrs.push(...arr)
+        this.arrs.push(...arrs)
       }
     }
   }

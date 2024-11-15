@@ -6,6 +6,7 @@
     :file="file"
     :file-ext="'conf'"
     :show-commond="true"
+    url="https://mailpit.axllent.org/docs/configuration/runtime-options/"
     @on-type-change="onTypeChange"
   >
     <template #common>

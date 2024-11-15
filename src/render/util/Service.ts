@@ -25,6 +25,7 @@ const exec = (
     const args = JSON.parse(JSON.stringify(version))
     const appStore = AppStore()
     const taskStore = TaskStore()
+    const brewStore = BrewStore()
     const task = taskStore.module(typeFlag)
     task?.log?.splice(0)
     IPC.send(`app-fork:${typeFlag}`, fn, args).then((key: string, res: any) => {
@@ -37,6 +38,16 @@ const exec = (
           if (hosts && hosts?.[0] && !hosts?.[0]?.phpVersion) {
             appStore.initHost().then()
           }
+        }
+        const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
+        if (pid) {
+          brewStore.module(typeFlag).installed.forEach((i) => {
+            i.pid = pid
+          })
+        } else {
+          brewStore.module(typeFlag).installed.forEach((i) => {
+            delete i?.pid
+          })
         }
         resolve(true)
       } else if (res.code === 1) {
