@@ -1,10 +1,9 @@
-import { join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
-  execPromise,
   hostAlias,
   portSearch,
   versionBinVersion,
@@ -17,9 +16,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '../lang'
-import { execPromiseRoot } from '@shared/Exec'
-import { type ChildProcess, spawn } from 'child_process'
-import { fixEnv } from '@shared/utils'
+import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
 
 class Caddy extends Base {
@@ -148,82 +145,51 @@ class Caddy extends Base {
       if (existsSync(this.pidPath)) {
         await execPromiseRoot(['rm', '-rf', this.pidPath])
       }
-      const env = await fixEnv()
-      let child: ChildProcess
-      if (global.Server.isAppleSilicon) {
-        const sslDir = join(global.Server.BaseDir!, 'caddy/ssl')
-        if (existsSync(sslDir)) {
-          const res = await execPromise(`ls -al "${sslDir}"`)
+
+      const sslDir = join(global.Server.BaseDir!, 'caddy/ssl')
+      if (existsSync(sslDir)) {
+        try {
+          const res = await execPromiseRoot(['ls', '-al', sslDir])
           if (res.stdout.includes(' root ')) {
             await execPromiseRoot(['rm', '-rf', sslDir])
           }
-        }
-        child = spawn(
-          bin,
-          ['start', '--config', iniFile, '--pidfile', this.pidPath, '--watch', '&'],
-          {
-            detached: true,
-            stdio: 'ignore',
-            env
-          }
-        )
-      } else {
-        child = spawn(
-          'sudo',
-          ['-S', bin, 'start', '--config', iniFile, '--pidfile', this.pidPath, '--watch', '&'],
-          {
-            detached: true,
-            env
-          }
-        )
+        } catch (e) {}
       }
 
-      let checking = false
       const checkPid = async (time = 0) => {
         if (existsSync(this.pidPath)) {
-          try {
-            await execPromiseRoot(['kill', '-9', `${child.pid}`])
-          } catch (e) {}
-          resolve(true)
+          const pid = await readFile(this.pidPath, 'utf-8')
+          resolve({
+            'APP-Service-Start-PID': pid.trim()
+          })
         } else {
           if (time < 40) {
             await waitTime(500)
             await checkPid(time + 1)
           } else {
-            try {
-              await execPromiseRoot(['kill', '-9', `${child.pid}`])
-            } catch (e) {}
             reject(new Error(I18nT('fork.startFail')))
           }
         }
       }
 
-      const onPassword = (data: Buffer) => {
-        const str = data.toString()
-        if (str.startsWith('Password:')) {
-          child?.stdin?.write(global.Server.Password!)
-          child?.stdin?.write(`\n`)
-          return
-        }
-        if (!checking) {
-          checking = true
-          checkPid()
-        }
+      const commands: string[] = ['#!/bin/zsh']
+      commands.push(`cd "${dirname(bin)}"`)
+      commands.push(
+        `nohup ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch > /dev/null 2>&1 &`
+      )
+      const command = commands.join('\n')
+      console.log('command: ', command)
+      const sh = join(global.Server.BaseDir!, `caddy/start.sh`)
+      await writeFile(sh, command)
+      await execPromiseRoot([`chmod`, '777', sh])
+      try {
+        const res = await execPromiseRootWhenNeed(`zsh`, [sh])
+        console.log('start res: ', res)
+        await checkPid()
+      } catch (e) {
+        console.log('start e: ', e)
+        reject(e)
       }
-      child?.stdout?.on('data', (data: Buffer) => {
-        onPassword(data)
-      })
-      child?.stderr?.on('data', (err: Buffer) => {
-        onPassword(err)
-      })
-      child.on('exit', (err) => {
-        console.log('exit: ', err)
-        onPassword(Buffer.from(''))
-      })
-      child.on('close', (code) => {
-        console.log('close: ', code)
-        onPassword(Buffer.from(''))
-      })
     })
   }
 

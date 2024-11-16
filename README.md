@@ -1,4 +1,4 @@
-# PhpWebStudy
+# FlyEnv(PhpWebStudy)
 
 <img src="https://raw.githubusercontent.com/xpf0000/PhpWebStudy/master/build/256x256.png" width="256" alt="App Icon" />
 
@@ -9,16 +9,6 @@
 [![GitHub release](https://img.shields.io/github/release/xpf0000/PhpWebStudy.svg)](https://github.com/xpf0000/PhpWebStudy/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/PhpWebStudy/total.svg)](https://github.com/xpf0000/PhpWebStudy/releases)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R5R2OJXTM)
-
-## Need New Project Name
-
-Thank you to all those who have followed and used the project.
-
-In the early stages of the project, the main focus was on PHP related features. Up to now, a lot of new features and language support have been added. It's not just PHP anymore. So the project needs a new name.
-
-Please help me choose a new name based on your understanding of the project. Thank
-
-[Need New Project Name](https://www.macphpstudy.com/#need-new-project-name)
 
 ## Main Modules
 
@@ -35,6 +25,10 @@ Please help me choose a new name based on your understanding of the project. Tha
 - [x] MariaDB
 - [x] PostgreSQL
 - [x] MongoDB
+
+### Email Server
+
+- [x] Mailpit
 
 ### Language Env
 
@@ -59,7 +53,6 @@ Please help me choose a new name based on your understanding of the project. Tha
 - [x] DNS Server
 - [x] FTP Server
 - [x] Static Http Server
-- [ ] EMail Server
 
 ## macOS:
 
@@ -71,19 +64,19 @@ brew install phpwebstudy
 
 ### Intel X86:
 
-[PhpWebStudy-4.5.1.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/PhpWebStudy-4.5.1.dmg)
+[FlyEnv-4.5.5.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/FlyEnv-4.5.5.dmg)
 
-[PhpWebStudy-4.5.1-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/PhpWebStudy-4.5.1-mac.zip)
+[FlyEnv-4.5.5-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/FlyEnv-4.5.5-mac.zip)
 
 ### Apple Silicon
 
-[PhpWebStudy-4.5.1-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/PhpWebStudy-4.5.1-arm64.dmg)
+[FlyEnv-4.5.5-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/FlyEnv-4.5.5-arm64.dmg)
 
-[PhpWebStudy-4.5.1-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/PhpWebStudy-4.5.1-arm64-mac.zip)
+[FlyEnv-4.5.5-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/FlyEnv-4.5.5-arm64-mac.zip)
 
 ## Windows
 
-[PhpWebStudy.Setup.4.5.1.exe](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/PhpWebStudy.Setup.4.5.1.exe)
+[FlyEnv.Setup.4.5.1.exe](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/FlyEnv.Setup.4.5.1.exe)
 
 ## Linux
 
@@ -107,17 +100,18 @@ brew install phpwebstudy
 
 [PhpWebStudy-4.0.0.aarch64.rpm](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy-4.0.0.aarch64.rpm)
 
-PhpWebStudy is an all-in-one software designed to revolutionize the way you develop and test websites locally. With its advanced features and sleek design, PhpWebStudy allows you to effortlessly create a local web server and access your websites using domain names. Say goodbye to tedious configurations and hello to streamlined web development.
+FlyEnv is an all-in-one software designed to revolutionize the way you develop and test websites locally. With its advanced features and sleek design,
+FlyEnv allows you to effortlessly create a local web server and access your websites using domain names. Say goodbye to tedious configurations and hello to streamlined web development.
 
 Key Features:
 
-1. Local Web Server: PhpWebStudy sets up a powerful local web server, enabling you to work on your websites without an internet connection. It acts as a standalone environment, providing an efficient and secure platform for your web development projects.
+1. Local Web Server: FlyEnv sets up a powerful local web server, enabling you to work on your websites without an internet connection. It acts as a standalone environment, providing an efficient and secure platform for your web development projects.
 
 2. Domain Name Integration: Access your local websites using domain names, making it easier than ever to migrate your projects from development to production. No more convoluted URLs or IP addresses – simply assign unique domain names to ensure a seamless transition.
 
-3. Support for Major Technologies: PhpWebStudy supports a wide range of technologies essential for web development. It includes PHP, MySQL, NGINX, Apache, MariaDB, MongoDB, PostgreSQL, Memcached, Redis, and Pure-FTP, ensuring compatibility with most web applications and frameworks.
+3. Support for Major Technologies: FlyEnv supports a wide range of technologies essential for web development. It includes PHP, MySQL, NGINX, Apache, MariaDB, MongoDB, PostgreSQL, Memcached, Redis, and Pure-FTP, ensuring compatibility with most web applications and frameworks.
 
-4. Beautiful Interface: PhpWebStudy boasts a visually stunning and intuitive user interface, offering an exceptional user experience
+4. Beautiful Interface: FlyEnv boasts a visually stunning and intuitive user interface, offering an exceptional user experience
 
 Visit the website for detailed descriptions and tutorials on how to use it:
 

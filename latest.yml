@@ -1,8 +1,8 @@
-version: 4.5.1
+version: 4.5.5
 files:
-  - url: PhpWebStudy-Setup-4.5.1.exe
-    sha512: MAeq5d2BTeYWTgUVg0MzteriLKziXczwBscylL2q4LkVmxHux+Aei95n9tobHzWutLHzBflthsGo0zQXhBbVYQ==
-    size: 171762464
-path: PhpWebStudy-Setup-4.5.1.exe
-sha512: MAeq5d2BTeYWTgUVg0MzteriLKziXczwBscylL2q4LkVmxHux+Aei95n9tobHzWutLHzBflthsGo0zQXhBbVYQ==
-releaseDate: '2024-11-14T03:02:03.573Z'
+  - url: FlyEnv-Setup-4.5.5.exe
+    sha512: JsLr50ZBNYHylNRv74ZZAh5BfhP3nt1VYUw585+P1b8JXs/HA0rajfr5JruBKChaJUij+fQami8Pmr8oceTk4Q==
+    size: 171769358
+path: FlyEnv-Setup-4.5.5.exe
+sha512: JsLr50ZBNYHylNRv74ZZAh5BfhP3nt1VYUw585+P1b8JXs/HA0rajfr5JruBKChaJUij+fQami8Pmr8oceTk4Q==
+releaseDate: '2024-11-16T06:19:32.740Z'

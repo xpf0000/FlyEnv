@@ -12,8 +12,8 @@ import PublishConfig from './publish'
  * One Environ
  */
 const conf: Configuration = {
-  productName: 'PerfectEnv',
-  executableName: 'PerfectEnv',
+  productName: 'FlyEnv',
+  executableName: 'FlyEnv',
   buildVersion: '4.5.5',
   electronVersion: '30.4.0',
   appId: 'phpstudy.xpfme.com',
@@ -56,12 +56,11 @@ const conf: Configuration = {
     target: {
       target: 'default',
       arch: ['x64', 'arm64']
-      // arch: ['arm64']
     },
     asarUnpack: ['**/*.node'],
     extendInfo: {
       'Icon file': 'icon.icns',
-      CFBundleDisplayName: 'PerfectEnv',
+      CFBundleDisplayName: 'FlyEnv',
       CFBundleExecutable: 'PhpWebStudy'
     },
     type: 'distribution',

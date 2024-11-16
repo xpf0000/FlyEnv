@@ -3,10 +3,7 @@
   <div class="main brew-src">
     <el-select v-model="currentBrewSrc" :disabled="!checkBrew()">
       <template v-for="(label, value) in brewSrc" :key="value">
-        <el-option
-          :label="value === 'default' ? $t(`base.${value}`) : label"
-          :value="value"
-        ></el-option>
+        <el-option :label="$t(`setup.${value}`)" :value="value"></el-option>
       </template>
     </el-select>
     <el-button

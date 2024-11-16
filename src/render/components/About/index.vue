@@ -2,7 +2,7 @@
   <div class="about-panel">
     <div class="app-info">
       <div class="app-version">
-        <span>PhpWebStudy</span>
+        <span>FlyEnv</span>
       </div>
       <div class="engine-info">
         <span>Version {{ version }}</span>
@@ -15,17 +15,16 @@
         rel="noopener noreferrer"
         @click="toHome($event)"
       >
-        PhpWebStudy - https://www.macphpstudy.com
+        FlyEnv - https://www.macphpstudy.com
       </a>
     </div>
     <template v-if="lang === 'zh'">
       <el-row style="padding: 0 20px; margin-top: 30px">
         <el-col>
-          感谢使用PhpWebStudy. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub
-          Issues
+          感谢使用FlyEnv. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub Issues
         </el-col>
         <el-col style="margin-top: 12px">
-          如果PhpWebStudy有帮助到你. 为了项目更好的发展, 烦请star和赞助. 感谢
+          如果FlyEnv有帮助到你. 为了项目更好的发展, 烦请star和赞助. 感谢
         </el-col>
         <el-col style="margin-top: 12px">
           GitHub:
@@ -33,9 +32,9 @@
             target="_blank"
             href="javascript:"
             rel="noopener noreferrer"
-            @click="openUrl($event, 'https://github.com/xpf0000/PhpWebStudy')"
+            @click="openUrl($event, 'https://github.com/xpf0000/FlyEnv')"
           >
-            https://github.com/xpf0000/PhpWebStudy
+            https://github.com/xpf0000/FlyEnv
           </a>
         </el-col>
         <el-col style="margin-top: 12px">
@@ -54,11 +53,11 @@
     <template v-else>
       <el-row style="padding: 0 20px; margin-top: 30px">
         <el-col>
-          Thanks for using PhpWebStudy. If you have any questions or suggestions, you can join the
+          Thanks for using FlyEnv. If you have any questions or suggestions, you can join the
           community for discussion. You can also submit GitHub Issues
         </el-col>
         <el-col style="margin-top: 12px">
-          If PhpWebStudy is helpful to you, please star and sponsor for the project. Thanks
+          If FlyEnv is helpful to you, please star and sponsor for the project. Thanks
         </el-col>
         <el-col style="margin-top: 12px">
           GitHub:
@@ -66,9 +65,9 @@
             target="_blank"
             href="javascript:"
             rel="noopener noreferrer"
-            @click="openUrl($event, 'https://github.com/xpf0000/PhpWebStudy')"
+            @click="openUrl($event, 'https://github.com/xpf0000/FlyEnv')"
           >
-            https://github.com/xpf0000/PhpWebStudy
+            https://github.com/xpf0000/FlyEnv
           </a>
         </el-col>
         <el-col style="margin-top: 12px">

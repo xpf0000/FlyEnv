@@ -1,17 +1,17 @@
-version: 4.5.1
+version: 4.5.5
 files:
-  - url: PhpWebStudy-4.5.1-mac.zip
-    sha512: 6efcfDAcfo+fgTzmaD57SaSJZDgYkGKwPaDCBDd4kvRXc2SUen7pwcMFT4u0dRM3MbDq1Z6ROGrt3HHqDJw3IA==
-    size: 116762517
-  - url: PhpWebStudy-4.5.1-arm64-mac.zip
-    sha512: LtPVnW2Xkq9srjewVURoKbNVvO6iaRAgH8wTDqRIEycP5ydQldAEdp1KVbcbDo9JxTcn+KbYyrL78bJiURNHYA==
-    size: 109734670
-  - url: PhpWebStudy-4.5.1.dmg
-    sha512: yGzGOWr0raL6o0miaLIo+bgULFlBFXAUe3LkrL4poGIfnT3jkPTDMRn3p4ecLsenUnifuz9/mQUf9Rr97yGnMQ==
-    size: 122459859
-  - url: PhpWebStudy-4.5.1-arm64.dmg
-    sha512: 3zrSR6A7vs6FcUFsL/dy6UAaIMerheE2DYobAIVNc/ia9KZtGlTRMozSt5gx9rdiSM1JUpJc40+/CYEG4Lc3wQ==
-    size: 115433182
-path: PhpWebStudy-4.5.1-mac.zip
-sha512: 6efcfDAcfo+fgTzmaD57SaSJZDgYkGKwPaDCBDd4kvRXc2SUen7pwcMFT4u0dRM3MbDq1Z6ROGrt3HHqDJw3IA==
-releaseDate: '2024-10-30T12:05:39.932Z'
+  - url: FlyEnv-4.5.5-mac.zip
+    sha512: 20X3kmSQY9+NMVxFP/+bwcy8IIeeDATvF8M7JzjunHmk0zjDrQA/O8/3QxF3l2KufNHaDjUeUTZr6qnAolbfZg==
+    size: 116907782
+  - url: FlyEnv-4.5.5-arm64-mac.zip
+    sha512: L+mFgVtb3CYKHsWYra9A7Ud3aVNdyxHVwtwtB5b7+db5dij1zPWY+0m+WxwJ831zW1OqjNNs/AhYKioPRm6fZQ==
+    size: 109879944
+  - url: FlyEnv-4.5.5.dmg
+    sha512: 91/0+HUWLNWwlSb8bWbhIWxiYc/0Oc0a05OYyqLbQFGUxsj5eu/E0ROqAThMI0Ija19sN2hs+nP8Qa25R0X/bg==
+    size: 122550081
+  - url: FlyEnv-4.5.5-arm64.dmg
+    sha512: k4rwutQN6fYQgrxXb30c/5EJkhlhn78RCPzn1cdA7dviBVZ8ggjKO5ig1vSuKkqKeMdyEx+2kkdGdtS7h60FHQ==
+    size: 115547449
+path: FlyEnv-4.5.5-mac.zip
+sha512: 20X3kmSQY9+NMVxFP/+bwcy8IIeeDATvF8M7JzjunHmk0zjDrQA/O8/3QxF3l2KufNHaDjUeUTZr6qnAolbfZg==
+releaseDate: '2024-11-16T06:45:23.390Z'
