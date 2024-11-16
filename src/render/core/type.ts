@@ -22,7 +22,8 @@ export enum AppModuleEnum {
   rabbitmq = 'rabbitmq',
   python = 'python',
   maven = 'maven',
-  erlang = 'erlang'
+  erlang = 'erlang',
+  mailpit = 'mailpit'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

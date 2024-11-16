@@ -6,6 +6,6 @@ const module: AppModuleItem = {
   label: 'Java',
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 16
+  asideIndex: 18
 }
 export default module

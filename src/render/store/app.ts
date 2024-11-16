@@ -5,6 +5,7 @@ import { I18nT } from '@shared/lang'
 import EditorBaseConfig, { EditorConfig } from '@/store/module/EditorConfig'
 import { MessageError } from '@/util/Element'
 import { AllAppModule } from '@/core/type'
+import { HostStore } from '@/components/Host/store'
 
 const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
@@ -232,6 +233,7 @@ export const AppStore = defineStore('app', {
             } else if (res?.data?.host) {
               this.UPDATE_HOSTS(res?.data?.host)
             }
+            HostStore.updateCurrentList()
           }
           resolve(true)
         })

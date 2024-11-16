@@ -29,6 +29,8 @@ class BaseManager {
   Maven: any
   Service: any
   ERLang: any
+  MailPit: any
+
   constructor() {}
 
   init() {}
@@ -225,6 +227,12 @@ class BaseManager {
         this.ERLang = res.default
       }
       doRun(this.ERLang)
+    } else if (module === 'mailpit') {
+      if (!this.MailPit) {
+        const res = await import('./module/MailPit')
+        this.MailPit = res.default
+      }
+      doRun(this.MailPit)
     }
   }
 

@@ -1,44 +1,51 @@
 <template>
-  <div class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-    <template v-for="(item, index) in setting" :key="index">
-      <el-card v-if="item.show !== false" :header="item.name">
-        <template #header>
-          <div class="flex items-center justify-between gap-2 overflow-hidden">
-            <div class="flex-1 overflow-hidden flex items-center gap-0.5">
-              <el-checkbox v-model="item.enable"></el-checkbox>
-              <span class="truncate flex-1 select-text">{{ item.name }}</span>
-            </div>
-            <el-tooltip :content="item.tips()" placement="top">
-              <yb-icon
-                class="flex-shrink-0"
-                style="opacity: 0.7"
-                :svg="import('@/svg/question.svg?raw')"
-                width="15"
-                height="15"
-              />
-            </el-tooltip>
+  <template v-if="allTypes.length > 0">
+    <el-collapse v-model="activeNames">
+      <template v-for="type in allTypes" :key="type">
+        <el-collapse-item :title="type" :name="type">
+          <div
+            class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+          >
+            <template v-for="(item, index) in setting.filter((s) => s.type === type)" :key="index">
+              <CommonItem :item="item" />
+            </template>
           </div>
-        </template>
-        <template #default>
-          <template v-if="item.options">
-            <el-select v-model="item.value" :disabled="!item.enable" class="w-full">
-              <template v-for="(option, j) in item.options" :key="j">
-                <el-option :label="option.label" :value="option.value"></el-option>
-              </template>
-            </el-select>
-          </template>
-          <template v-else>
-            <el-input v-model.trim="item.value" :disabled="!item.enable"></el-input>
-          </template>
-        </template>
-      </el-card>
-    </template>
-  </div>
+        </el-collapse-item>
+      </template>
+    </el-collapse>
+  </template>
+  <template v-else>
+    <div
+      class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+    >
+      <template v-for="(item, index) in setting" :key="index">
+        <CommonItem :item="item" />
+      </template>
+    </div>
+  </template>
 </template>
 <script lang="ts" setup>
+  import { computed, ref, watch } from 'vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
+  import CommonItem from './commonItem.vue'
 
-  defineProps<{
+  const props = defineProps<{
     setting: CommonSetItem[]
   }>()
+
+  const allTypes = computed(() => {
+    const set: Set<string> = new Set<string>()
+    props?.setting?.forEach((s) => {
+      if (s.type) {
+        set.add(s.type)
+      }
+    })
+    return Array.from(set)
+  })
+
+  const activeNames = ref([...allTypes.value])
+
+  watch(allTypes, (v) => {
+    activeNames.value = [...v]
+  })
 </script>

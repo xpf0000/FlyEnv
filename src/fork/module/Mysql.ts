@@ -4,7 +4,6 @@ import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { MysqlGroupItem, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
-  execPromise,
   waitTime,
   execPromiseRoot,
   versionLocalFetch,
@@ -31,19 +30,19 @@ class Mysql extends Base {
   }
 
   _initPassword(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise(async (resolve, reject) => {
       const bin = join(dirname(version.bin), 'mysqladmin.exe')
-      execPromise(`mysqladmin.exe -uroot password "root"`, {
-        cwd: dirname(bin)
-      })
-        .then((res) => {
-          console.log('_initPassword res: ', res)
-          resolve(true)
-        })
-        .catch((err) => {
-          console.log('_initPassword err: ', err)
-          reject(err)
-        })
+      if (existsSync(bin)) {
+        process.chdir(dirname(bin))
+        try {
+          await execPromiseRoot(`mysqladmin.exe -uroot password "root"`)
+        } catch (e) {
+          console.log('_initPassword err: ', e)
+          reject(e)
+          return
+        }
+      }
+      resolve(true)
     })
   }
 
@@ -162,7 +161,9 @@ datadir="${dataDir}"`
 
       if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
         await mkdirp(dataDir)
-        await chmod(dataDir, '0777')
+        try {
+          await chmod(dataDir, '0777')
+        } catch (e) {}
 
         const params = [
           `--defaults-file="${m}"`,
@@ -329,19 +330,21 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       }
 
       const initPassword = () => {
-        return new ForkPromise((resolve, reject) => {
+        return new ForkPromise(async (resolve, reject) => {
           const bin = join(dirname(version.version.bin!), 'mysqladmin.exe')
-          execPromise(`${basename(bin)} -P${version.port} -S"${sock}" -uroot password "root"`, {
-            cwd: dirname(bin)
-          })
-            .then((res) => {
-              console.log('_initPassword res: ', res)
-              resolve(true)
-            })
-            .catch((err) => {
-              console.log('_initPassword err: ', err)
-              reject(err)
-            })
+          if (existsSync(bin)) {
+            process.chdir(dirname(bin))
+            try {
+              await execPromiseRoot(
+                `${basename(bin)} -P${version.port} -S"${sock}" -uroot password "root"`
+              )
+            } catch (e) {
+              console.log('_initPassword err: ', e)
+              reject(e)
+              return
+            }
+          }
+          resolve(true)
         })
       }
 

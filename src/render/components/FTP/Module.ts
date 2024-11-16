@@ -7,7 +7,7 @@ const module: AppModuleItem = {
   icon: import('@/svg/ftp.svg?raw'),
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 13,
+  asideIndex: 15,
   isService: true,
   isTray: true
 }

@@ -23,7 +23,7 @@ class Manager extends Base {
   Python: any
   Maven: any
   ERLang: any
-
+  MailPit: any
   constructor() {
     super()
   }
@@ -143,6 +143,12 @@ class Manager extends Base {
             this.ERLang = res.default
           }
           versions.erlang = this.ERLang.allInstalledVersions(setup)
+        } else if (type === 'mailpit') {
+          if (!this.MailPit) {
+            const res = await import('./MailPit')
+            this.MailPit = res.default
+          }
+          versions.mailpit = this.MailPit.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

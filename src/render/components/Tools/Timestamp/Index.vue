@@ -21,7 +21,7 @@
         <div class="path-choose mt-20 mb-20">
           <div class="left">
             <el-input v-model="timestamp0" placeholder="Unix Timestamp"></el-input>
-            <el-select v-model="flag0">
+            <el-select class="w-32" v-model="flag0">
               <el-option :value="0" :label="$t('base.second')"></el-option>
               <el-option :value="1" :label="$t('base.millisecond')"></el-option>
             </el-select>
@@ -54,7 +54,7 @@
           />
           <div class="right">
             <el-input v-model="timestamp1str" readonly placeholder="Unix Timestamp"></el-input>
-            <el-select v-model="flag1">
+            <el-select class="w-32" v-model="flag1">
               <el-option :value="0" :label="$t('base.second')"></el-option>
               <el-option :value="1" :label="$t('base.millisecond')"></el-option>
             </el-select>
