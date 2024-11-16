@@ -247,6 +247,7 @@ export default class Application extends EventEmitter {
     console.log('userData: ', app.getPath('userData'))
     const runpath = app.getPath('userData').replace('Application Support/', '')
     this.setProxy()
+    global.Server.UserHome = app.getPath('home')
     global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
     global.Server.AppDir = join(runpath, 'app')

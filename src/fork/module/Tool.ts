@@ -1,8 +1,8 @@
 import { createReadStream, readFileSync, realpathSync, statSync } from 'fs'
 import { Base } from './Base'
-import { getAllFileAsync, execPromise, uuid, systemProxyGet } from '../Fn'
+import { getAllFileAsync, uuid, systemProxyGet } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { existsSync, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
+import { appendFile, existsSync, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
 import { join, dirname } from 'path'
 import { I18nT } from '../lang'
@@ -101,22 +101,18 @@ class Manager extends Base {
   systemEnvFiles() {
     return new ForkPromise(async (resolve, reject) => {
       const envFiles = [
-        '~/.config/fish/config.fish',
-        '~/.bashrc',
-        '~/.profile',
-        '~/.bash_login',
-        '~/.zprofile',
-        '~/.zshrc',
-        '~/.bash_profile',
+        join(global.Server.UserHome!, '.config/fish/config.fish'),
+        join(global.Server.UserHome!, '.bashrc'),
+        join(global.Server.UserHome!, '.profile'),
+        join(global.Server.UserHome!, '.bash_login'),
+        join(global.Server.UserHome!, '.zprofile'),
+        join(global.Server.UserHome!, '.zshrc'),
+        join(global.Server.UserHome!, '.bash_profile'),
         '/etc/paths',
         '/etc/profile'
       ]
       try {
-        const home = await execPromise(`echo $HOME`)
-        console.log('home: ', home)
-        const files = envFiles
-          .map((e) => e.replace('~', home.stdout.trim()))
-          .filter((e) => existsSync(e))
+        const files = envFiles.filter((e) => existsSync(e))
         resolve(files)
       } catch (e) {
         reject(e)
@@ -154,16 +150,13 @@ class Manager extends Base {
   }
 
   fetchPATH(): ForkPromise<string[]> {
-    return new ForkPromise(async (resolve, reject) => {
-      let file = '~/.zshrc'
+    return new ForkPromise(async (resolve) => {
+      const file = join(global.Server.UserHome!, '.zshrc')
+      if (!existsSync(file)) {
+        resolve([])
+        return
+      }
       try {
-        const home = await execPromise(`echo $HOME`)
-        console.log('home: ', home)
-        file = file.replace('~', home.stdout.trim())
-        if (!existsSync(file)) {
-          reject(new Error('~/.zshrc not found'))
-          return
-        }
         const content = await readFile(file, 'utf-8')
         const x: any = content.match(
           /(#PHPWEBSTUDY-PATH-SET-BEGIN#)([\s\S]*?)(#PHPWEBSTUDY-PATH-SET-END#)/g
@@ -184,20 +177,18 @@ class Manager extends Base {
           .filter((f) => existsSync(f) && statSync(f).isDirectory())
         resolve(allFile)
       } catch (e) {
-        reject(e)
+        resolve([])
       }
     })
   }
 
   updatePATH(item: SoftInstalled, flag: string) {
     return new ForkPromise(async (resolve) => {
-      console.log('updatePATH: ', item, flag)
       const all = await this.fetchPATH()
       let bin = dirname(item.bin)
       if (flag === 'php') {
         bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
       }
-      console.log('updatePATH: ', item, flag, bin)
       const envDir = join(dirname(global.Server.AppDir!), 'env')
       if (!existsSync(envDir)) {
         await mkdirp(envDir)
@@ -211,7 +202,6 @@ class Manager extends Base {
           await execPromiseRoot(['ln', '-s', bin, flagDir])
         } catch (e) {}
       }
-
       let allFile = await readdir(envDir)
       allFile = allFile
         .filter((f) => existsSync(join(envDir, f)))
@@ -227,11 +217,11 @@ class Manager extends Base {
           return check
         })
 
-      const files = ['~/.zshrc', '~/.config/fish/config.fish']
-      const home = await execPromise(`echo $HOME`)
-
+      const files = [
+        join(global.Server.UserHome!, '.zshrc'),
+        join(global.Server.UserHome!, '.config/fish/config.fish')
+      ]
       const handleFile = async (file: string) => {
-        file = file.replace('~', home.stdout.trim())
         if (file.includes('.zshrc') && !existsSync(file)) {
           try {
             await writeFile(file, '')
@@ -319,8 +309,12 @@ class Manager extends Base {
           }
         }
       }
-
-      await Promise.all(files.map((f) => handleFile(f)))
+      try {
+        await Promise.all(files.map((f) => handleFile(f)))
+      } catch (e) {
+        const debugFile = join(global.Server.BaseDir!, 'debug.log')
+        await appendFile(debugFile, `[updatePATH][error]: ${e} !!!\n`)
+      }
       resolve(allFile.map((f) => realpathSync(f)))
     })
   }
