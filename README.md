@@ -1,12 +1,12 @@
 # FlyEnv(PhpWebStudy)
 
-<img src="https://raw.githubusercontent.com/xpf0000/PhpWebStudy/master/build/256x256.png" width="256" alt="App Icon" />
+<img src="https://raw.githubusercontent.com/xpf0000/FlyEnv/master/build/256x256.png" width="256" alt="App Icon" />
 
 ## Powerful Web Server and Environment Manager
 
 ## Support macOS / Windows / Linux
 
-[![GitHub release](https://img.shields.io/github/release/xpf0000/PhpWebStudy.svg)](https://github.com/xpf0000/PhpWebStudy/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/PhpWebStudy/total.svg)](https://github.com/xpf0000/PhpWebStudy/releases)
+[![GitHub release](https://img.shields.io/github/release/xpf0000/FlyEnv.svg)](https://github.com/xpf0000/FlyEnv/releases)  [![Total Downloads](https://img.shields.io/github/downloads/xpf0000/FlyEnv/total.svg)](https://github.com/xpf0000/FlyEnv/releases)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R5R2OJXTM)
 
@@ -64,19 +64,19 @@ brew install phpwebstudy
 
 ### Intel X86:
 
-[FlyEnv-4.5.5.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/FlyEnv-4.5.5.dmg)
+[FlyEnv-4.5.5.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.1/FlyEnv-4.5.5.dmg)
 
-[FlyEnv-4.5.5-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/FlyEnv-4.5.5-mac.zip)
+[FlyEnv-4.5.5-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.1/FlyEnv-4.5.5-mac.zip)
 
 ### Apple Silicon
 
-[FlyEnv-4.5.5-arm64.dmg](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/FlyEnv-4.5.5-arm64.dmg)
+[FlyEnv-4.5.5-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.1/FlyEnv-4.5.5-arm64.dmg)
 
-[FlyEnv-4.5.5-arm64-mac.zip](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/FlyEnv-4.5.5-arm64-mac.zip)
+[FlyEnv-4.5.5-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.1/FlyEnv-4.5.5-arm64-mac.zip)
 
 ## Windows
 
-[FlyEnv.Setup.4.5.1.exe](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.5.1/FlyEnv.Setup.4.5.1.exe)
+[FlyEnv.Setup.4.5.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.1/FlyEnv.Setup.4.5.1.exe)
 
 ## Linux
 
@@ -84,21 +84,21 @@ brew install phpwebstudy
 
 #### X86_64
 
-[PhpWebStudy_4.0.0_amd64.deb](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy_4.0.0_amd64.deb)
+[PhpWebStudy_4.0.0_amd64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.0.0/PhpWebStudy_4.0.0_amd64.deb)
 
 #### arm64
 
-[PhpWebStudy_4.0.0_arm64.deb](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy_4.0.0_arm64.deb)
+[PhpWebStudy_4.0.0_arm64.deb](https://github.com/xpf0000/FlyEnv/releases/download/v4.0.0/PhpWebStudy_4.0.0_arm64.deb)
 
 ### Red Hat / Fedora / SUSE / CentOS
 
 #### X86_64
 
-[PhpWebStudy-4.0.0.x86_64.rpm](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy-4.0.0.x86_64.rpm)
+[PhpWebStudy-4.0.0.x86_64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.0.0/PhpWebStudy-4.0.0.x86_64.rpm)
 
 #### arm64
 
-[PhpWebStudy-4.0.0.aarch64.rpm](https://github.com/xpf0000/PhpWebStudy/releases/download/v4.0.0/PhpWebStudy-4.0.0.aarch64.rpm)
+[PhpWebStudy-4.0.0.aarch64.rpm](https://github.com/xpf0000/FlyEnv/releases/download/v4.0.0/PhpWebStudy-4.0.0.aarch64.rpm)
 
 FlyEnv is an all-in-one software designed to revolutionize the way you develop and test websites locally. With its advanced features and sleek design,
 FlyEnv allows you to effortlessly create a local web server and access your websites using domain names. Say goodbye to tedious configurations and hello to streamlined web development.
@@ -143,7 +143,7 @@ Visit the website for detailed descriptions and tutorials on how to use it:
 ### Cloning Code
 
 ```bash
-git clone git@github.com:xpf0000/PhpWebStudy.git
+git clone git@github.com:xpf0000/FlyEnv.git
 ```
 
 ### Install dependencies
@@ -205,4 +205,4 @@ Mention the Issues, or scan the code to add QQ group.
 
 ## 📜 License
 
-[BSD 3-Clause License](https://github.com/xpf0000/PhpWebStudy/blob/master/LICENSE)
+[BSD 3-Clause License](https://github.com/xpf0000/FlyEnv/blob/master/LICENSE)
