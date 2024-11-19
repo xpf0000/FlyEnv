@@ -27,5 +27,12 @@ export default {
   projectBGroup: '独立服务',
   nodeJSVersion: 'NodeJS版本',
   startFile: '启动文件',
-  runDirectory: '运行目录'
+  runDirectory: '运行目录',
+  vhostEdit: '编辑Vhost模板',
+  vhostApacheEdit: '编辑Apache Vhost模板',
+  vhostApacheSSLEdit: '编辑Apache SSL Vhost模板',
+  vhostNginxEdit: '编辑Nginx Vhost模板',
+  vhostNginxSSLEdit: '编辑Nginx SSL Vhost模板',
+  vhostCaddyEdit: '编辑Caddy Vhost模板',
+  vhostCaddySSLEdit: '编辑Caddy SSL Vhost模板'
 }

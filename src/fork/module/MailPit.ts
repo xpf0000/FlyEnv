@@ -178,7 +178,7 @@ class MailPit extends Base {
             TaskQueue.run(
               versionBinVersion,
               item.bin,
-              `${item.bin} version`,
+              `${basename(item.bin)} version`,
               /(v)(\d+(\.\d+){1,4})( )/g
             )
           )

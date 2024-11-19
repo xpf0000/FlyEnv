@@ -78,6 +78,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
+      await this._initEPMD()
       const confFile = await this._initConf(version)
       const v = version?.version?.split('.')?.[0] ?? ''
       const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)

@@ -43,6 +43,9 @@
                 $t('host.hostsCopy')
               }}</el-dropdown-item>
               <el-dropdown-item command="hostsOpen">{{ $t('host.hostsOpen') }}</el-dropdown-item>
+              <el-dropdown-item divided>
+                <VhostTmpl />
+              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -97,6 +100,7 @@
   import ListGo from './Go/ListTable.vue'
   import ListPython from './Python/ListTable.vue'
   import ListTomcat from './Tomcat/ListTable.vue'
+  import VhostTmpl from './VhostTmpl/index.vue'
 
   const { statSync, existsSync, copyFileSync } = require('fs')
   const { dialog, clipboard, shell } = require('@electron/remote')
