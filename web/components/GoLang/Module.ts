@@ -6,6 +6,6 @@ const module: AppModuleItem = {
   label: 'Go',
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 17
+  asideIndex: 19
 }
 export default module

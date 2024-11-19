@@ -1,5 +1,16 @@
 export const User = {
   server: {
+    mailpit: {
+      current: {
+        version: '1.21.4',
+        bin: '/Users/x/Library/PhpWebStudy/app/static-mailpit-1.21.4/mailpit',
+        path: '/Users/x/Library/PhpWebStudy/app/static-mailpit-1.21.4/',
+        num: 121,
+        enable: true,
+        run: true,
+        running: false
+      }
+    },
     tomcat: {
       current: {
         version: '10.1.31',

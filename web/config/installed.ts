@@ -702,5 +702,16 @@ export const Installed = {
       num: 27,
       enable: true
     }
+  ],
+  mailpit: [
+    {
+      bin: '/Users/x/Library/PhpWebStudy/app/static-mailpit-1.21.4/mailpit',
+      path: '/Users/x/Library/PhpWebStudy/app/static-mailpit-1.21.4/',
+      run: false,
+      running: false,
+      version: '1.21.4',
+      num: 121,
+      enable: true
+    }
   ]
 }

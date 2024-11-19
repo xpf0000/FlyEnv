@@ -1,0 +1,51 @@
+server
+{
+    listen #Port_Nginx#;
+    listen #Port_Nginx_SSL# ssl http2;
+    server_name #Server_Alias#;
+    index index.php index.html index.htm default.php default.htm default.html;
+    root "#Server_Root#";
+
+    ssl_certificate    "#Server_Cert#";
+    ssl_certificate_key    "#Server_CertKey#";
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    #PHP-INFO-START
+    include enable-php.conf;
+    #PHP-INFO-END
+
+    #REWRITE-START URL重写规则引用,修改后将导致面板设置的伪静态规则失效
+    include #Rewrite_Path#/#Server_Name#.conf;
+    #REWRITE-END
+
+    #禁止访问的文件或目录
+    location ~ ^/(\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)
+    {
+        return 404;
+    }
+
+    #一键申请SSL证书验证目录相关设置
+    location ~ \.well-known{
+        allow all;
+    }
+
+    location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$
+    {
+        expires      30d;
+        error_log off;
+        access_log /dev/null;
+    }
+
+    location ~ .*\.(js|css)?$
+    {
+        expires      12h;
+        error_log off;
+        access_log /dev/null;
+    }
+    access_log  #Log_Path#/#Server_Name#.log;
+    error_log  #Log_Path#/#Server_Name#.error.log;
+}

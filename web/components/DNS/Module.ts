@@ -7,7 +7,7 @@ const module: AppModuleItem = {
   icon: import('@/svg/dns2.svg?raw'),
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 14,
+  asideIndex: 15,
   isTray: true
 }
 export default module

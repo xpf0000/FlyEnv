@@ -15,6 +15,9 @@ export type CommonSetItem = {
   value: string
   enable: boolean
   show?: boolean
+  type?: string
+  isFile?: boolean
+  isDir?: boolean
   options?: CommonSetItemOption[]
   tips: () => string
 }
@@ -104,6 +107,8 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   }
 
   const saveCustom = () => {}
+
+  const openURL = () => {}
 
   const initEditor = () => {
     if (!monacoInstance) {
@@ -204,6 +209,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     loadCustom,
     getConfig,
     getEditValue,
-    setEditValue
+    setEditValue,
+    openURL
   }
 }

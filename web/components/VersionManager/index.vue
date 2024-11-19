@@ -5,7 +5,7 @@
         <div class="left">
           <span> {{ cardHeadTitle }} </span>
           <template v-if="!brewRunning && !showNextBtn">
-            <el-select v-model="libSrc" style="margin-left: 8px">
+            <el-select class="w-52" v-model="libSrc" style="margin-left: 8px">
               <el-option
                 v-if="showBrewLib !== false"
                 :disabled="!checkBrew()"

@@ -18,6 +18,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, mkdirp, unlink } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import { execPromiseRoot } from '@shared/Exec'
 class RabbitMQ extends Base {
   baseDir: string = ''
 
@@ -66,8 +67,20 @@ PLUGINS_DIR="${pluginsDir}"`
     })
   }
 
+  async _initPlugin(version: SoftInstalled) {
+    try {
+      const res = await execPromiseRoot(`./rabbitmq-plugins enable rabbitmq_management`, {
+        cwd: dirname(version.bin)
+      })
+      console.log('_initPlugin res: ', res)
+    } catch (e: any) {
+      console.log('_initPlugin err: ', e)
+    }
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      await this._initPlugin(version)
       const confFile = await this._initConf(version)
       const v = version?.version?.split('.')?.[0] ?? ''
       const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)

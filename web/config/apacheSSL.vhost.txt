@@ -1,0 +1,66 @@
+<VirtualHost *:#Port_Apache#>
+    ServerAdmin webmaster@example.com
+    DocumentRoot "#Server_Root#"
+    ServerName #Server_Name#
+    ServerAlias #Server_Alias#
+    ErrorLog "#Log_Path#/#Server_Name#-error_log"
+    CustomLog "#Log_Path#/#Server_Name#-access_log" combined
+
+    #DENY FILES
+     <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
+       Order allow,deny
+       Deny from all
+    </Files>
+
+    #PHP
+    <FilesMatch \.php$>
+        SetHandler "proxy:fcgi://127.0.0.1:9000"
+    </FilesMatch>
+
+    #PATH
+    <Directory "#Server_Root#">
+        SetOutputFilter DEFLATE
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+        DirectoryIndex index.php index.html index.htm default.php default.html default.htm
+    </Directory>
+</VirtualHost>
+
+<VirtualHost *:#Port_Apache_SSL#>
+    ServerAdmin webmasterexample.com
+    DocumentRoot "#Server_Root#"
+    ServerName SSL.#Server_Name#
+    ServerAlias #Server_Alias#
+    ErrorLog "#Log_Path#/#Server_Name#-error_log"
+    CustomLog "#Log_Path#/#Server_Name#-access_log" combined
+
+    #SSL
+    SSLEngine On
+    SSLCertificateFile "#Server_Cert#"
+    SSLCertificateKeyFile "#Server_CertKey#"
+    SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+    SSLProtocol All -SSLv2 -SSLv3
+    SSLHonorCipherOrder On
+
+    #PHP
+    <FilesMatch \.php$>
+            SetHandler "proxy:fcgi://127.0.0.1:9000"
+    </FilesMatch>
+
+
+    #DENY FILES
+     <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
+       Order allow,deny
+       Deny from all
+    </Files>
+
+    #PATH
+    <Directory "#Server_Root#">
+        SetOutputFilter DEFLATE
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+        DirectoryIndex index.php index.html index.htm default.php default.html default.htm
+    </Directory>
+</VirtualHost>

@@ -21,14 +21,41 @@ export const vhostTmpl = async () => {
   if (_tmpl) {
     return _tmpl
   }
-  const nginxtmpl = join(global.Server.Static!, 'tmpl/nginx.vhost')
-  const nginxSSLtmpl = join(global.Server.Static!, 'tmpl/nginxSSL.vhost')
+  let nginxtmpl = join(global.Server.Static!, 'tmpl/nginx.vhost')
+  let custom = join(global.Server.BaseDir!, 'VhostTemplate/nginx.vhost')
+  if (existsSync(custom)) {
+    nginxtmpl = custom
+  }
 
-  const apachetmpl = join(global.Server.Static!, 'tmpl/apache.vhost')
-  const apacheSSLtmpl = join(global.Server.Static!, 'tmpl/apacheSSL.vhost')
+  let nginxSSLtmpl = join(global.Server.Static!, 'tmpl/nginxSSL.vhost')
+  custom = join(global.Server.BaseDir!, 'VhostTemplate/nginxSSL.vhost')
+  if (existsSync(custom)) {
+    nginxSSLtmpl = custom
+  }
 
-  const caddytmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhost')
-  const caddySSLtmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhostSSL')
+  let apachetmpl = join(global.Server.Static!, 'tmpl/apache.vhost')
+  custom = join(global.Server.BaseDir!, 'VhostTemplate/apache.vhost')
+  if (existsSync(custom)) {
+    apachetmpl = custom
+  }
+
+  let apacheSSLtmpl = join(global.Server.Static!, 'tmpl/apacheSSL.vhost')
+  custom = join(global.Server.BaseDir!, 'VhostTemplate/apacheSSL.vhost')
+  if (existsSync(custom)) {
+    apacheSSLtmpl = custom
+  }
+
+  let caddytmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhost')
+  custom = join(global.Server.BaseDir!, 'VhostTemplate/caddy.vhost')
+  if (existsSync(custom)) {
+    caddytmpl = custom
+  }
+
+  let caddySSLtmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhostSSL')
+  custom = join(global.Server.BaseDir!, 'VhostTemplate/caddySSL.vhost')
+  if (existsSync(custom)) {
+    caddySSLtmpl = custom
+  }
 
   const nginx = await readFile(nginxtmpl, 'utf-8')
   const apache = await readFile(apachetmpl, 'utf-8')

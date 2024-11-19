@@ -6,6 +6,6 @@ const module: AppModuleItem = {
   label: 'Http Serve',
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
-  asideIndex: 14
+  asideIndex: 16
 }
 export default module

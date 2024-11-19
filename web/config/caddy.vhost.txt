@@ -1,0 +1,21 @@
+##HOST-ALL## {
+    encode zstd gzip
+    import set-log ##LOG-PATH##
+
+    @canonicalPath {
+        file {
+            try_files {path}/index.php
+        }
+        not path */
+    }
+
+    redir @canonicalPath {path}/ 308
+
+    root * ##ROOT##
+
+    route {
+        import enable-php-select ##PHP-VERSION##
+    }
+
+    file_server
+}

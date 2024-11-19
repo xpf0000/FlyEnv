@@ -19,6 +19,7 @@ import { Go } from '@web/config/go'
 import { Maven } from '@web/config/maven'
 import { Python } from '@web/config/python'
 import { Composer } from '@web/config/composer'
+import { Mailpit } from '@web/config/mailpit'
 import type { AllAppModule } from '@web/core/type'
 
 export interface SoftInstalled {
@@ -77,6 +78,12 @@ const state: State = {
   brewSrc: '',
   log: [],
   LibUse: {},
+  mailpit: {
+    getListing: false,
+    installedInited: true,
+    installed: Installed.mailpit,
+    list: Mailpit
+  },
   composer: {
     getListing: false,
     installedInited: true,

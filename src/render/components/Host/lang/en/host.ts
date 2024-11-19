@@ -27,5 +27,12 @@ export default {
   projectBGroup: 'Single Service',
   nodeJSVersion: 'NodeJS Version',
   startFile: 'Start File',
-  runDirectory: 'Run Directory'
+  runDirectory: 'Run Directory',
+  vhostEdit: 'Edit Vhost Template',
+  vhostApacheEdit: 'Edit Apache Vhost Template',
+  vhostApacheSSLEdit: 'Edit Apache SSL Vhost Template',
+  vhostNginxEdit: 'Edit Nginx Vhost Template',
+  vhostNginxSSLEdit: 'Edit Nginx SSL Vhost Template',
+  vhostCaddyEdit: 'Edit Caddy Vhost Template',
+  vhostCaddySSLEdit: 'Edit Caddy SSL Vhost Template'
 }

@@ -4,7 +4,7 @@
       <div class="card-header">
         <div class="left">
           <span> {{ $t('base.currentVersionLib') }} </span>
-          <el-select v-model="currentTool" style="margin-left: 8px">
+          <el-select class="w-52" v-model="currentTool" style="margin-left: 8px">
             <el-option value="fnm" label="fnm" :disabled="!tool || tool === 'nvm'"></el-option>
             <el-option value="nvm" label="nvm" :disabled="!tool || tool === 'fnm'"></el-option>
           </el-select>

@@ -1,0 +1,3 @@
+time="2024/11/15 23:01:30" level=info msg="[smtpd] starting on 0.0.0.0:1025 (no encryption)"
+time="2024/11/15 23:01:30" level=info msg="[http] starting on 0.0.0.0:8025"
+time="2024/11/15 23:01:30" level=info msg="[http] accessible via http://0.0.0.0:8025/"
