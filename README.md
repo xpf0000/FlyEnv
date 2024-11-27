@@ -64,19 +64,19 @@ brew install phpwebstudy
 
 ### Intel X86:
 
-[FlyEnv-4.5.5.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.1/FlyEnv-4.5.5.dmg)
+[FlyEnv-4.5.6.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.6/FlyEnv-4.5.6.dmg)
 
-[FlyEnv-4.5.5-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.1/FlyEnv-4.5.5-mac.zip)
+[FlyEnv-4.5.6-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.6/FlyEnv-4.5.6-mac.zip)
 
 ### Apple Silicon
 
-[FlyEnv-4.5.5-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.1/FlyEnv-4.5.5-arm64.dmg)
+[FlyEnv-4.5.6-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.6/FlyEnv-4.5.6-arm64.dmg)
 
-[FlyEnv-4.5.5-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.1/FlyEnv-4.5.5-arm64-mac.zip)
+[FlyEnv-4.5.6-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.6/FlyEnv-4.5.6-arm64-mac.zip)
 
 ## Windows
 
-[FlyEnv.Setup.4.5.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.1/FlyEnv.Setup.4.5.1.exe)
+[FlyEnv.Setup.4.5.6.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.6/FlyEnv.Setup.4.5.6.exe)
 
 ## Linux
 
@@ -115,7 +115,7 @@ Key Features:
 
 Visit the website for detailed descriptions and tutorials on how to use it:
 
-[https://www.macphpstudy.com](https://www.macphpstudy.com)
+[https://www.flyenv.com](https://www.flyenv.com)
 
 [Discord Community:](https://discord.gg/u5SuMGxjPE) https://discord.gg/u5SuMGxjPE
 
@@ -201,7 +201,7 @@ Thank you to all the people who already contributed to PhpWebStudy!
 
 Mention the Issues, or scan the code to add QQ group.
 
-![QQqun.png](https://www.macphpstudy.com/image/index/qrcode0@2x.png)
+![QQqun.png](https://www.flyenv.com/image/index/qrcode0@2x.png)
 
 ## 📜 License
 
