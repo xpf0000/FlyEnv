@@ -1,5 +1,5 @@
 import type { AppHost } from '@shared/app'
-import { dirname, join } from 'path'
+import { dirname, join, basename } from 'path'
 import { mkdirp, readFile, writeFile } from 'fs-extra'
 import { hostAlias } from '../../Fn'
 import { vhostTmpl } from './Host'
@@ -65,7 +65,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     host.nginx.rewrite = `location / {
 \ttry_files $uri $uri/ /index.php$is_args$query_string;
 }`
-    if (!chmod) {
+    if (!chmod && basename(host.root) !== 'public') {
       host.root = join(host.root, 'public')
     }
     return
@@ -74,7 +74,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     host.nginx.rewrite = `location / {
     try_files $uri $uri/ /index.php?$args;
   }`
-    if (!chmod) {
+    if (!chmod && basename(host.root) !== 'web') {
       host.root = join(host.root, 'web')
     }
     return
@@ -85,7 +85,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
 \t\trewrite  ^(.*)$  /index.php?s=$1  last;   break;
 \t}
 }`
-    if (!chmod) {
+    if (!chmod && basename(host.root) !== 'public') {
       host.root = join(host.root, 'public')
     }
     return

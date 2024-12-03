@@ -5,5 +5,6 @@ export default {
   bfsu: 'Beijing Foreign Studies University download source',
   tencent: 'Tencent download source',
   aliyun: 'Alibaba download source',
-  ustc: 'University of Science and Technology of China download source'
+  ustc: 'University of Science and Technology of China download source',
+  Licenses: 'Licenses'
 }
