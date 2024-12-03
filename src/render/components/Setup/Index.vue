@@ -12,6 +12,7 @@
     <div class="main-block">
       <Common v-if="store.tab === 'base'"></Common>
       <EditorConfig v-if="store.tab === 'editor'"></EditorConfig>
+      <Licenses v-if="store.tab === 'licenses'" />
     </div>
   </div>
 </template>
@@ -22,6 +23,7 @@
   import EditorConfig from './EditorConfig/index.vue'
   import { I18nT } from '@shared/lang'
   import { SetupStore } from '@/components/Setup/store'
+  import Licenses from './Licenses/index.vue'
 
   const store = SetupStore()
 

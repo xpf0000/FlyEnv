@@ -6,5 +6,8 @@ export default {
   tencent: 'Tencent download source',
   aliyun: 'Alibaba download source',
   ustc: 'University of Science and Technology of China download source',
-  Licenses: 'Licenses'
+  Licenses: 'License',
+  requestedTips:
+    'The license request has been sent, please be patient and wait If you need to modify the information, you can resend it',
+  licenseActivated: 'License Activated'
 }

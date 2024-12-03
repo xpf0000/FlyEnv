@@ -27,6 +27,7 @@ export interface ServerType {
   MacPorts?: string
   ForceStart?: boolean
   UserHome?: string
+  Licenses?: string
 }
 
 declare global {
