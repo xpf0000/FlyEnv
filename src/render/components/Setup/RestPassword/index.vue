@@ -48,7 +48,7 @@
     methods: {
       doShow() {
         if (!this.show) {
-          showPassPrompt()
+          showPassPrompt(false)
             .then(() => {
               this.show = true
             })
@@ -58,7 +58,7 @@
         }
       },
       resetPassword() {
-        showPassPrompt()
+        showPassPrompt(false)
           .then(() => {
             MessageSuccess(this.$t('base.success'))
           })

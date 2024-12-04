@@ -15,45 +15,49 @@ const { join } = require('path')
 const { existsSync, unlinkSync, copyFileSync } = require('fs')
 
 let passPromptShow = false
-export const showPassPrompt = () => {
+export const showPassPrompt = (showDesc = true) => {
   return new Promise((resolve, reject) => {
     if (passPromptShow) {
       reject(new Error('prompt had show'))
       return
     }
     passPromptShow = true
-    ElMessageBox.prompt(I18nT('base.inputPasswordDesc'), I18nT('base.inputPassword'), {
-      confirmButtonText: I18nT('base.confirm'),
-      cancelButtonText: I18nT('base.cancel'),
-      inputType: 'password',
-      customClass: 'password-prompt',
-      beforeClose: (action, instance, done) => {
-        if (action === 'confirm') {
-          if (instance.inputValue) {
-            const pass = instance.inputValue
-            IPC.send('app:password-check', pass).then((key: string, res: any) => {
-              IPC.off(key)
-              if (res?.code === 0) {
-                global.Server.Password = res?.data ?? pass
-                AppStore()
-                  .initConfig()
-                  .then(() => {
-                    done && done()
-                    passPromptShow = false
-                    resolve(true)
-                  })
-              } else {
-                instance.editorErrorMessage = res?.msg ?? I18nT('base.passwordError')
-              }
-            })
+    ElMessageBox.prompt(
+      showDesc ? I18nT('base.inputPasswordDesc') : null,
+      I18nT('base.inputPassword'),
+      {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('base.cancel'),
+        inputType: 'password',
+        customClass: 'password-prompt',
+        beforeClose: (action, instance, done) => {
+          if (action === 'confirm') {
+            if (instance.inputValue) {
+              const pass = instance.inputValue
+              IPC.send('app:password-check', pass).then((key: string, res: any) => {
+                IPC.off(key)
+                if (res?.code === 0) {
+                  global.Server.Password = res?.data ?? pass
+                  AppStore()
+                    .initConfig()
+                    .then(() => {
+                      done && done()
+                      passPromptShow = false
+                      resolve(true)
+                    })
+                } else {
+                  instance.editorErrorMessage = res?.msg ?? I18nT('base.passwordError')
+                }
+              })
+            }
+          } else {
+            done()
+            passPromptShow = false
+            reject(new Error('user cancel'))
           }
-        } else {
-          done()
-          passPromptShow = false
-          reject(new Error('user cancel'))
         }
       }
-    })
+    )
       .then(() => {})
       .catch((err) => {
         console.log('err: ', err)

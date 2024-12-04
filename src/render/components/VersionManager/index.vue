@@ -3,9 +3,9 @@
     <template #header>
       <div class="card-header">
         <div class="left">
-          <span> {{ cardHeadTitle }} </span>
+          <span class="flex-shrink-0"> {{ cardHeadTitle }} </span>
           <template v-if="!brewRunning && !showNextBtn">
-            <el-select v-model="libSrc" style="margin-left: 8px" class="w-52">
+            <el-select v-model="libSrc" style="margin-left: 8px" class="w-52 min-w-52">
               <el-option
                 v-if="showBrewLib !== false"
                 :disabled="!checkBrew()"

@@ -26,12 +26,12 @@
           <template #header>
             <div class="card-header">
               <div class="left">
-                <span> {{ headerTitle }} </span>
+                <span class="flex-shrink-0"> {{ headerTitle }} </span>
                 <template v-if="!extendRunning">
                   <el-select
                     v-model="lib"
                     :disabled="brewRunning || !version?.version"
-                    class="lib-select w-52"
+                    class="lib-select w-52 min-w-52"
                   >
                     <template v-if="isHomeBrew">
                       <el-option value="homebrew" label="Homebrew"></el-option>
