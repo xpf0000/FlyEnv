@@ -183,7 +183,7 @@ class Manager extends Base {
   }
 
   updatePATH(item: SoftInstalled, flag: string) {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject) => {
       const all = await this.fetchPATH()
       let bin = dirname(item.bin)
       if (flag === 'php') {
@@ -314,6 +314,8 @@ class Manager extends Base {
       } catch (e) {
         const debugFile = join(global.Server.BaseDir!, 'debug.log')
         await appendFile(debugFile, `[updatePATH][error]: ${e} !!!\n`)
+        reject(e)
+        return
       }
       resolve(allFile.map((f) => realpathSync(f)))
     })

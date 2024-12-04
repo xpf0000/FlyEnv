@@ -18,6 +18,7 @@ import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '../lang'
 import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
+import { fetchHostList } from './host/HostFile'
 
 class Caddy extends Base {
   constructor() {
@@ -63,18 +64,12 @@ class Caddy extends Base {
   }
 
   async #fixVHost() {
-    const hostAll: Array<AppHost> = []
-    const hostfile = join(global.Server.BaseDir!, 'host.json')
+    let hostAll: Array<AppHost> = []
     const vhostDir = join(global.Server.BaseDir!, 'vhost/caddy')
     try {
-      await mkdirp(vhostDir)
-      if (existsSync(hostfile)) {
-        const json = await readFile(hostfile, 'utf-8')
-        const jsonArr = JSON.parse(json)
-        hostAll.push(...jsonArr)
-      }
+      hostAll = await fetchHostList()
     } catch (e) {}
-
+    await mkdirp(vhostDir)
     let tmplContent = ''
     let tmplSSLContent = ''
     for (const host of hostAll) {

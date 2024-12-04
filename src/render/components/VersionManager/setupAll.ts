@@ -11,6 +11,7 @@ import { brewInfo, fetchVerion, portInfo } from '@/util/Brew'
 import { chmod } from '@shared/file'
 import { VersionManagerStore } from '@/components/VersionManager/store'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
 
 const { shell } = require('@electron/remote')
 const { join, dirname } = require('path')
@@ -165,8 +166,20 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     })
   }
 
+  const tableTab = computed({
+    get() {
+      return VersionManagerStore.uniServicePanelTab?.[typeFlag] ?? 'local'
+    },
+    set(v: 'local' | 'lib') {
+      VersionManagerStore.uniServicePanelTab[typeFlag] = v
+    }
+  })
+
   const tableData = computed(() => {
     const localList = brewStore.module(typeFlag).installed
+    if (tableTab.value === 'local') {
+      return [...localList]
+    }
     const onLineList = Object.values(currentModule?.value?.list?.static ?? {}).map((item) => {
       const obj: any = {
         ...item
@@ -188,7 +201,7 @@ export const SetupAll = (typeFlag: AllAppModule) => {
       obj.source = 'MacPorts'
       return obj
     })
-    return [...localList, ...onLineList, ...brewList, ...portList]
+    return [...onLineList, ...brewList, ...portList]
   })
 
   const fetchInstalled = () => {
@@ -243,16 +256,19 @@ export const SetupAll = (typeFlag: AllAppModule) => {
         resolve(true)
         return
       }
-      portInfo(typeFlag).then((online) => {
-        const list = brewStore.module(typeFlag).list.port!
-        for (const k in list) {
-          delete list?.[k]
-        }
-        for (const name in online) {
-          list[name] = reactive(online[name])
-        }
-        resolve(true)
-      })
+      portInfo(typeFlag)
+        .then((online) => {
+          const list = brewStore.module(typeFlag).list.port!
+          for (const k in list) {
+            delete list?.[k]
+          }
+          for (const name in online) {
+            list[name] = reactive(online[name])
+          }
+        })
+        .finally(() => {
+          resolve(true)
+        })
     })
   }
 
@@ -316,6 +332,24 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     }
   }
 
+  let CustomPathVM: any
+  import('@/components/ServiceManager/customPath.vue').then((res) => {
+    CustomPathVM = res.default
+  })
+  const showCustomDir = () => {
+    AsyncComponentShow(CustomPathVM, {
+      flag: typeFlag
+    }).then((res) => {
+      if (res) {
+        console.log('showCustomDir chagned !!!')
+        VersionManagerStore.fetching[typeFlag] = true
+        fetchInstalled().then(() => {
+          VersionManagerStore.fetching[typeFlag] = false
+        })
+      }
+    })
+  }
+
   watch(
     showLog,
     (val) => {
@@ -374,6 +408,8 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     checkEnvPath,
     openDir,
     handleEdit,
-    logs
+    logs,
+    showCustomDir,
+    tableTab
   }
 }

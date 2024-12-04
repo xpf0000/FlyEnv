@@ -14,6 +14,54 @@ const { getGlobal } = require('@electron/remote')
 const { join } = require('path')
 const { existsSync, unlinkSync, copyFileSync } = require('fs')
 
+let passPromptShow = false
+export const showPassPrompt = () => {
+  return new Promise((resolve, reject) => {
+    if (passPromptShow) {
+      reject(new Error('prompt had show'))
+      return
+    }
+    passPromptShow = true
+    ElMessageBox.prompt(I18nT('base.inputPasswordDesc'), I18nT('base.inputPassword'), {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      inputType: 'password',
+      customClass: 'password-prompt',
+      beforeClose: (action, instance, done) => {
+        if (action === 'confirm') {
+          if (instance.inputValue) {
+            const pass = instance.inputValue
+            IPC.send('app:password-check', pass).then((key: string, res: any) => {
+              IPC.off(key)
+              if (res?.code === 0) {
+                global.Server.Password = res?.data ?? pass
+                AppStore()
+                  .initConfig()
+                  .then(() => {
+                    done && done()
+                    passPromptShow = false
+                    resolve(true)
+                  })
+              } else {
+                instance.editorErrorMessage = res?.msg ?? I18nT('base.passwordError')
+              }
+            })
+          }
+        } else {
+          done()
+          passPromptShow = false
+          reject(new Error('user cancel'))
+        }
+      }
+    })
+      .then(() => {})
+      .catch((err) => {
+        console.log('err: ', err)
+        reject(err)
+      })
+  })
+}
+
 /**
  * 电脑密码检测, 很多操作需要电脑密码
  * @returns {Promise<unknown>}
@@ -22,40 +70,7 @@ export const passwordCheck = () => {
   return new Promise((resolve, reject) => {
     global.Server = getGlobal('Server')
     if (!global.Server.Password) {
-      ElMessageBox.prompt(I18nT('base.inputPasswordDesc'), I18nT('base.inputPassword'), {
-        confirmButtonText: I18nT('base.confirm'),
-        cancelButtonText: I18nT('base.cancel'),
-        inputType: 'password',
-        customClass: 'password-prompt',
-        beforeClose: (action, instance, done) => {
-          if (action === 'confirm') {
-            // 去除trim, 有些电脑的密码是空格...
-            if (instance.inputValue) {
-              IPC.send('app:password-check', instance.inputValue).then((key: string, res: any) => {
-                IPC.off(key)
-                if (res === false) {
-                  instance.editorErrorMessage = I18nT('base.passwordError')
-                } else {
-                  global.Server.Password = res
-                  AppStore()
-                    .initConfig()
-                    .then(() => {
-                      done && done()
-                      resolve(true)
-                    })
-                }
-              })
-            }
-          } else {
-            done()
-          }
-        }
-      })
-        .then(() => {})
-        .catch((err) => {
-          console.log('err: ', err)
-          reject(err)
-        })
+      showPassPrompt().then(resolve).catch(reject)
     } else {
       resolve(true)
     }

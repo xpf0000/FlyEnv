@@ -24,5 +24,6 @@ export default {
   postgresqlInit:
     'Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root',
   toolFileNotExist: 'File does not exist',
-  downFileFail: 'Download file failed!'
+  downFileFail: 'Download file failed!',
+  licenseTips: 'Without obtaining a license, only three sites can be created'
 }

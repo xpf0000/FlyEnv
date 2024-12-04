@@ -2,11 +2,12 @@ import type { AppHost, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { existsSync, readdirSync } from 'fs'
-import { copy, mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { copy, mkdirp, remove, writeFile } from 'fs-extra'
 import { setDirRole } from './Host'
 import { I18nT } from '../../lang'
 import compressing from 'compressing'
 import { downFile } from '../../Fn'
+import { fetchHostList } from './HostFile'
 
 export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
   return new ForkPromise(async (resolve, reject) => {
@@ -92,12 +93,11 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
     const zipFile = join(global.Server.Cache!, 'phpMyAdmin.zip')
     const wwwDir = join(global.Server.BaseDir!, 'www')
     const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin-5.2.1-all-languages')
-    const hostfile = join(global.Server.BaseDir!, 'host.json')
     let hostList: Array<AppHost> = []
-    const content = await readFile(hostfile, 'utf-8')
     try {
-      hostList = JSON.parse(content)
+      hostList = await fetchHostList()
     } catch (e) {}
+
     const find = hostList.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
     if (find) {
       resolve(true)

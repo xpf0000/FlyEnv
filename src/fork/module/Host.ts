@@ -3,15 +3,19 @@ import { existsSync, accessSync, constants } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { getSubDir, hostAlias, uuid } from '../Fn'
+import { getSubDir, hostAlias, md5, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, copyFile } from 'fs-extra'
+import { readFile, writeFile } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
 import { makeCaddyConf, updateCaddyConf } from './host/Caddy'
 import { makeApacheConf, updateApacheConf } from './host/Apache'
 import { autoFillNginxRewrite, makeNginxConf, updateNginxConf } from './host/Nginx'
 import { setDirRole, updateAutoSSL, updateRootRule } from './host/Host'
 import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
+import { getMac } from '@lzwme/get-physical-address'
+import { cpus } from 'os'
+import { publicDecrypt } from 'crypto'
+import { fetchHostList, saveHostList } from './host/HostFile'
 
 export class Host extends Base {
   constructor() {
@@ -20,74 +24,31 @@ export class Host extends Base {
 
   hostList() {
     return new ForkPromise(async (resolve) => {
+      let host: AppHost[] = []
       try {
-        const hostfile = join(global.Server.BaseDir!, 'host.json')
-        if (!existsSync(hostfile)) {
-          await writeFile(hostfile, JSON.stringify([]))
-          resolve({
-            host: []
-          })
-          return
-        }
-        const json = await readFile(hostfile, 'utf-8')
-        let host = []
-        let parseErr = false
-        const hostBackFile = join(global.Server.BaseDir!, 'host.back.json')
-        try {
-          host = JSON.parse(json)
-        } catch (e) {
-          if (json.trim().length > 0) {
-            await copyFile(hostfile, hostBackFile)
-            parseErr = true
-          }
-        }
-        if (parseErr) {
-          resolve({
-            hostBackFile
-          })
-        } else {
-          resolve({
-            host
-          })
-        }
-      } catch (e) {
-        resolve({
-          host: []
-        })
-      }
+        host = await fetchHostList()
+      } catch (e) {}
+      resolve({
+        host
+      })
     })
   }
 
   handleHost(host: AppHost, flag: string, old?: AppHost, park?: boolean) {
-    return new ForkPromise(async (resolve) => {
-      const hostfile = join(global.Server.BaseDir!, 'host.json')
+    return new ForkPromise(async (resolve, reject) => {
       let hostList: Array<AppHost> = []
+      try {
+        hostList = await fetchHostList()
+      } catch (e) {
+        reject(e)
+        return
+      }
+
       const writeHostFile = async () => {
-        hostList.forEach((h) => {
-          if (!h.type) {
-            h.type = 'php'
-          }
-        })
-        await writeFile(hostfile, JSON.stringify(hostList))
+        await saveHostList(hostList)
         resolve({
           host: hostList
         })
-      }
-      if (existsSync(hostfile)) {
-        const content = await readFile(hostfile, 'utf-8')
-        try {
-          hostList = JSON.parse(content)
-        } catch (e) {
-          console.log(e)
-          if (content.length > 0) {
-            const hostBackFile = join(global.Server.BaseDir!, 'host.back.json')
-            await copyFile(hostfile, hostBackFile)
-            resolve({
-              hostBackFile
-            })
-            return
-          }
-        }
       }
 
       const isMakeConf = () => {
@@ -153,6 +114,47 @@ export class Host extends Base {
               resolve(0)
             })
         })
+      }
+
+      let isLock = false
+      if (!global.Server.Licenses) {
+        isLock = hostList.length > 2
+      } else {
+        const getUUID = async () => {
+          const mac = await getMac()
+          const cpu = cpus()?.pop()?.model ?? ''
+          return md5(`${mac}-${cpu}`)
+        }
+        const getRSAKey = () => {
+          const a = '0+u/eiBrB/DAskp9HnoIgq1MDwwbQRv6rNxiBK/qYvvdXJHKBmAtbe0+SW8clzne'
+          const b = 'Kq1BrqQFebPxLEMzQ19yrUyei1nByQwzlX8r3DHbFqE6kV9IcwNh9yeW3umUw05F'
+          const c = 'zwIDAQAB'
+          const d = 'n7Yl8hRd195GT9h48GsW+ekLj2ZyL/O4rmYRlrNDtEAcDNkI0UG0NlG+Bbn2yN1t'
+          const e = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzVJ3axtKGl3lPaUFN82B'
+          const f = 'XZW4pCiCvUTSMIU86DkBT/CmDw5n2fCY/FKMQue+WNkQn0mrRphtLH2x0NzIhg+l'
+          const g = 'Zkm1wi9pNWLJ8ZvugKZnHq+l9ZmOES/xglWjiv3C7/i0nUtp0sTVNaVYWRapFsTL'
+          const arr: string[] = [e, g, b, a, f, d, c]
+
+          const a1 = '-----'
+          const a2 = ' PUBLIC KEY'
+          const a3 = 'BEGIN'
+          const a4 = 'END'
+
+          arr.unshift([a1, a3, a2, a1].join(''))
+          arr.push([a1, a4, a2, a1].join(''))
+
+          return arr.join('\n')
+        }
+        const uuid = await getUUID()
+        const uid = publicDecrypt(
+          getRSAKey(),
+          Buffer.from(global.Server.Licenses!, 'base64') as any
+        ).toString('utf-8')
+        isLock = uid !== uuid
+      }
+      if (flag === 'add' && isLock) {
+        reject(new Error(I18nT('fork.licenseTips')))
+        return
       }
 
       let index: number
@@ -396,16 +398,14 @@ export class Host extends Base {
   }
 
   writeHosts(write = true, ipv6 = true) {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject) => {
       await this._fixHostsRole()
-      const hostfile = join(global.Server.BaseDir!, 'host.json')
-      const appHost: Array<AppHost> = []
-      if (existsSync(hostfile)) {
-        let json: any = await readFile(hostfile, 'utf-8')
-        try {
-          json = JSON.parse(json)
-          appHost.push(...json)
-        } catch (e) {}
+      let appHost: AppHost[] = []
+      try {
+        appHost = await fetchHostList()
+      } catch (e) {
+        reject(e)
+        return
       }
       console.log('writeHosts: ', write)
       if (write) {

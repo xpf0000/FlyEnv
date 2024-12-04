@@ -8,7 +8,7 @@
   import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
   import TitleBar from './components/Native/TitleBar.vue'
   import { EventBus } from './global'
-  import { passwordCheck } from '@/util/Brew'
+  import { passwordCheck, showPassPrompt } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import installedVersions from '@/util/InstalledVersions'
   import { AppStore } from '@/store/app'
@@ -17,7 +17,6 @@
   import Base from '@/core/Base'
   import { MessageSuccess } from '@/util/Element'
   import FloatButton from '@/components/FloatBtn/index.vue'
-  import { ElMessageBox } from 'element-plus'
   import { type AllAppModule, AppModuleEnum } from '@/core/type'
   import { AppModules } from '@/core/App'
 
@@ -151,34 +150,13 @@
       return
     }
     passChecking = true
-    ElMessageBox.prompt(I18nT('base.inputPasswordDesc'), I18nT('base.inputPassword'), {
-      confirmButtonText: I18nT('base.confirm'),
-      cancelButtonText: I18nT('base.cancel'),
-      inputType: 'password',
-      customClass: 'password-prompt',
-      beforeClose: (action, instance, done) => {
-        if (action === 'confirm') {
-          // 去除trim, 有些电脑的密码是空格...
-          if (instance.inputValue) {
-            IPC.send('app:password-check', instance.inputValue).then((key: string, res: any) => {
-              IPC.off(key)
-              if (res === false) {
-                instance.editorErrorMessage = I18nT('base.passwordError')
-              } else {
-                global.Server.Password = res
-                AppStore().initConfig().then()
-                checkPassword()
-                done && done()
-              }
-              passChecking = false
-            })
-          }
-        } else {
-          passChecking = false
-          done()
-        }
-      }
-    })
+    showPassPrompt()
+      .then(() => {
+        checkPassword()
+      })
+      .finally(() => {
+        passChecking = false
+      })
   })
 
   onMounted(() => {

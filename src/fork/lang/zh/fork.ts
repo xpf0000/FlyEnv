@@ -23,5 +23,6 @@ export default {
   versionNoFound: '未获取到软件版本,操作失败',
   postgresqlInit: '服务启动成功\n数据文件夹位于 {dir}\n初始用户root, 密码root',
   toolFileNotExist: '文件不存在',
-  downFileFail: '文件下载失败'
+  downFileFail: '文件下载失败',
+  licenseTips: '未获得许可证, 只可以创建三个站点'
 }

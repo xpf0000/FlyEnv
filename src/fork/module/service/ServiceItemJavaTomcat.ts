@@ -7,6 +7,7 @@ import { ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseRoot } from '@shared/Exec'
 import { ProcessPidListByPid } from '@shared/Process'
+import { fetchHostList } from '../host/HostFile'
 
 export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostAll: AppHost[]) => {
   const parser = new XMLParser({
@@ -253,17 +254,13 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
 
 export const makeGlobalTomcatServerXML = async (version: SoftInstalled) => {
   let hostAll: Array<AppHost> = []
-  const hostfile = join(global.Server.BaseDir!, 'host.json')
-  const vhostDir = join(global.Server.BaseDir!, 'vhost/tomcat')
   try {
-    await mkdirp(vhostDir)
-    if (existsSync(hostfile)) {
-      const json = await readFile(hostfile, 'utf-8')
-      const jsonArr = JSON.parse(json)
-      hostAll.push(...jsonArr)
-    }
+    hostAll = await fetchHostList()
   } catch (e) {}
   hostAll = hostAll.filter((h) => h.type === 'tomcat')
+
+  const vhostDir = join(global.Server.BaseDir!, 'vhost/tomcat')
+  await mkdirp(vhostDir)
 
   const configFile = join(version.path, 'conf/server.xml')
   const serverContent = await readFile(configFile, 'utf-8')

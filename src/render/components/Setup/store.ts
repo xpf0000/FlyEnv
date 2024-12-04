@@ -13,7 +13,7 @@ interface State {
 }
 
 const state: State = {
-  tab: '',
+  tab: 'base',
   uuid: '',
   activeCode: '',
   isActive: false,

@@ -609,11 +609,17 @@ export default class Application extends EventEmitter {
           .then(() => {
             this.configManager.setConfig('password', pass)
             global.Server.Password = pass
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, pass)
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              code: 0,
+              data: pass
+            })
           })
           .catch((err: Error) => {
             console.log('err: ', err)
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, false)
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              code: 1,
+              msg: err
+            })
           })
         return
       case 'app:brew-install':

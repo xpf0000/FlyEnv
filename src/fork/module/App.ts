@@ -104,7 +104,7 @@ class App extends Base {
         data.activeCode = global.Server.Licenses
         const uid = publicDecrypt(
           this.getRSAKey(),
-          Buffer.from(data.activeCode, 'base64')
+          Buffer.from(data.activeCode, 'base64') as any
         ).toString('utf-8')
         data.isActive = uid === uuid
       }
@@ -142,7 +142,7 @@ class App extends Base {
           if (obj.activeCode) {
             const uid = publicDecrypt(
               this.getRSAKey(),
-              Buffer.from(obj.activeCode, 'base64')
+              Buffer.from(obj.activeCode, 'base64') as any
             ).toString('utf-8')
             obj.isActive = uid === uuid
 

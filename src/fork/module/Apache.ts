@@ -19,6 +19,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
+import { fetchHostList } from './host/HostFile'
 
 class Apache extends Base {
   constructor() {
@@ -105,11 +106,9 @@ IncludeOptional "${vhost}*.conf"`
     const user = lsal[2]
     const group = lsal[3]
 
-    const hostfile = join(global.Server.BaseDir!, 'host.json')
-    const json = await readFile(hostfile, 'utf-8')
     let host: Array<AppHost> = []
     try {
-      host = JSON.parse(json)
+      host = await fetchHostList()
     } catch (e) {}
     if (host.length === 0) {
       return
