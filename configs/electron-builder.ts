@@ -3,7 +3,7 @@ import type { Configuration } from 'electron-builder'
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'PhpWebStudy',
-  buildVersion: '4.5.6',
+  buildVersion: '4.6.0',
   electronVersion: '30.2.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,

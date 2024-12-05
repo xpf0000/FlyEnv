@@ -27,5 +27,6 @@ export default {
   downFileFail: 'Download file failed!',
   noPowerShell:
     'PowerShell not found in environment variables, please configure PowerShell in environment variables first and restart PWS to retry',
-  noEPMD: 'The epmd process was not found. Please reset the Erlang environment variables'
+  noEPMD: 'The epmd process was not found. Please reset the Erlang environment variables',
+  licenseTips: 'Without obtaining a license, only three sites can be created'
 }

@@ -11,6 +11,7 @@ import './style/dark.scss'
 import './style/light.scss'
 import { ThemeInit } from '@/util/Theme'
 import { AppToolStore } from '@/components/Tools/store'
+import { SetupStore } from '@/components/Setup/store'
 
 const { getGlobal } = require('@electron/remote')
 global.Server = getGlobal('Server')
@@ -37,6 +38,7 @@ IPC.on('APP-Ready-To-Show').then(() => {
     SiteSuckerStore().init()
     DnsStore().init()
     AppToolStore.init()
+    SetupStore().init()
   } else {
     console.log('has inited !!!!')
   }

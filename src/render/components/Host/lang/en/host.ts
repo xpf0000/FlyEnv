@@ -34,5 +34,6 @@ export default {
   vhostNginxEdit: 'Edit Nginx Vhost Template',
   vhostNginxSSLEdit: 'Edit Nginx SSL Vhost Template',
   vhostCaddyEdit: 'Edit Caddy Vhost Template',
-  vhostCaddySSLEdit: 'Edit Caddy SSL Vhost Template'
+  vhostCaddySSLEdit: 'Edit Caddy SSL Vhost Template',
+  licenseTips: 'Without obtaining a license, only three sites can be created'
 }

@@ -1,7 +1,7 @@
 import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
+import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromiseRoot,
   versionBinVersion,
@@ -16,6 +16,7 @@ import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
+import { fetchHostList } from './host/HostFile'
 
 class Nginx extends Base {
   constructor() {
@@ -28,14 +29,10 @@ class Nginx extends Base {
   }
 
   async #handlePhpEnableConf() {
-    const hostfile = join(global.Server.BaseDir!, 'host.json')
-    let host = []
-    if (existsSync(hostfile)) {
-      try {
-        const content = await readFile(hostfile, 'utf-8')
-        host = JSON.parse(content)
-      } catch (e) {}
-    }
+    let host: AppHost[] = []
+    try {
+      host = await fetchHostList()
+    } catch (e) {}
     const all = new Set(host.map((h: any) => h.phpVersion).filter((h: number | undefined) => !!h))
     const tmplFile = join(global.Server.Static!, 'tmpl/enable-php.conf')
     let tmplContent = ''

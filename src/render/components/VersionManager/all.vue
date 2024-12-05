@@ -4,12 +4,37 @@
       <div class="card-header">
         <div class="left">
           <span> {{ title }} </span>
+          <el-popover :show-after="600" placement="top" width="auto">
+            <template #default>
+              <span>{{ I18nT('base.customVersionDirTips') }}</span>
+            </template>
+            <template #reference>
+              <el-button
+                class="custom-folder-add-btn"
+                :icon="FolderAdd"
+                link
+                @click.stop="showCustomDir"
+              ></el-button>
+            </template>
+          </el-popover>
           <el-button class="button" link @click="openURL(url)">
             <yb-icon
-              style="width: 20px; height: 20px; margin-left: 10px"
+              style="width: 20px; height: 20px"
               :svg="import('@/svg/http.svg?raw')"
             ></yb-icon>
           </el-button>
+          <el-radio-group v-model="tableTab" size="small" class="ml-6">
+            <el-radio-button
+              class="flex-1"
+              :label="I18nT('versionmanager.Local')"
+              value="local"
+            ></el-radio-button>
+            <el-radio-button
+              class="flex-1"
+              :label="I18nT('versionmanager.Library')"
+              value="lib"
+            ></el-radio-button>
+          </el-radio-group>
         </div>
         <el-button class="button" link :disabled="fetching" @click="reGetData">
           <yb-icon
@@ -51,7 +76,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.path')">
+      <el-table-column :label="tableTab === 'local' ? I18nT('base.path') : null">
         <template #default="scope">
           <template v-if="scope.row?.path">
             <span
@@ -70,11 +95,13 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.source')" width="120">
-        <template #default="scope">
-          <span>{{ scope.row.source }}</span>
-        </template>
-      </el-table-column>
+      <template v-if="tableTab === 'lib'">
+        <el-table-column :label="I18nT('base.source')" width="120">
+          <template #default="scope">
+            <span>{{ scope.row.source }}</span>
+          </template>
+        </el-table-column>
+      </template>
       <el-table-column align="center" :label="I18nT('base.isInstalled')" width="150">
         <template #default="scope">
           <div class="cell-status">
@@ -114,6 +141,7 @@
   import { ServiceActionStore } from '../ServiceManager/EXT/store'
   import { SetupAll } from '@/components/VersionManager/setupAll'
   import type { AllAppModule } from '@/core/type'
+  import { FolderAdd } from '@element-plus/icons-vue'
 
   const props = defineProps<{
     typeFlag: AllAppModule
@@ -121,8 +149,16 @@
     url: string
   }>()
 
-  const { openURL, reGetData, fetching, tableData, checkEnvPath, openDir, handleEdit } = SetupAll(
-    props.typeFlag
-  )
+  const {
+    openURL,
+    reGetData,
+    fetching,
+    tableData,
+    checkEnvPath,
+    openDir,
+    handleEdit,
+    showCustomDir,
+    tableTab
+  } = SetupAll(props.typeFlag)
   ServiceActionStore.fetchPath()
 </script>

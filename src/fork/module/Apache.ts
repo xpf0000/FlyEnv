@@ -18,6 +18,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
+import { fetchHostList } from './host/HostFile'
 
 class Apache extends Base {
   constructor() {
@@ -154,11 +155,9 @@ IncludeOptional "${vhost}*.conf"`
   }
 
   async #handleListenPort(version: SoftInstalled) {
-    const hostfile = join(global.Server.BaseDir!, 'host.json')
-    const json = await readFile(hostfile, 'utf-8')
     let host: Array<AppHost> = []
     try {
-      host = JSON.parse(json)
+      host = await fetchHostList()
     } catch (e) {}
     if (host.length === 0) {
       return

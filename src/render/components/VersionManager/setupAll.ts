@@ -48,10 +48,22 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     }
   }
 
+  const tableTab = computed({
+    get() {
+      return VersionManagerStore.uniServicePanelTab?.[typeFlag] ?? 'local'
+    },
+    set(v: 'local' | 'lib') {
+      VersionManagerStore.uniServicePanelTab[typeFlag] = v
+    }
+  })
+
   const tableData = computed(() => {
     const localList = brewStore.module(typeFlag).installed
+    if (tableTab.value === 'local') {
+      return [...localList]
+    }
     const onLineList = brewStore.module(typeFlag).list
-    return [...localList, ...onLineList]
+    return [...onLineList]
   })
 
   const fetchInstalled = () => {
@@ -121,6 +133,24 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     handleOnlineVersion(row)
   }
 
+  let CustomPathVM: any
+  import('@/components/ServiceManager/customPath.vue').then((res) => {
+    CustomPathVM = res.default
+  })
+  const showCustomDir = () => {
+    AsyncComponentShow(CustomPathVM, {
+      flag: typeFlag
+    }).then((res) => {
+      if (res) {
+        console.log('showCustomDir chagned !!!')
+        VersionManagerStore.fetching[typeFlag] = true
+        fetchInstalled().then(() => {
+          VersionManagerStore.fetching[typeFlag] = false
+        })
+      }
+    })
+  }
+
   getData()
 
   return {
@@ -132,6 +162,8 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     fetching,
     checkEnvPath,
     openDir,
-    handleEdit
+    handleEdit,
+    showCustomDir,
+    tableTab
   }
 }

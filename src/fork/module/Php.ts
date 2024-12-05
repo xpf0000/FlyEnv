@@ -2,7 +2,7 @@ import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
-import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromise,
   execPromiseRoot,
@@ -146,7 +146,6 @@ class Php extends Base {
         await this._stopServer(version)
         const res = await this._startServer(version).on(on)
         await this._resetEnablePhpConf(version)
-        await this._updateVhostPhpVersion(version)
         resolve(res)
       } catch (e) {
         reject(e)
@@ -164,68 +163,6 @@ class Php extends Base {
         let content = await readFile(tmplPath, 'utf-8')
         content = content.replace('##VERSION##', v)
         await writeFile(confPath, content)
-      }
-      resolve(true)
-    })
-  }
-
-  _updateVhostPhpVersion(version: SoftInstalled) {
-    return new ForkPromise(async (resolve) => {
-      const hostFile = join(global.Server.BaseDir!, 'host.json')
-      let hostList: Array<AppHost> = []
-      let hasError = false
-      if (existsSync(hostFile)) {
-        try {
-          const txt = await readFile(hostFile, 'utf-8')
-          hostList = JSON.parse(txt)
-        } catch (e) {
-          hasError = true
-          console.log(e)
-        }
-      }
-      if (hasError) {
-        resolve(true)
-        return
-      }
-      const setPhpVersion = async (host: AppHost) => {
-        const name = host.name
-        const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
-        const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
-
-        const nvhost = join(nginxvpath, `${name}.conf`)
-        const avhost = join(apachevpath, `${name}.conf`)
-
-        const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
-
-        if (existsSync(nvhost)) {
-          let content = await readFile(nvhost, 'utf-8')
-          const find = content.match(/include enable-php(.*?)\.conf;/g)
-          const replace = `include enable-php-${v}.conf;`
-          content = content.replace(find?.[0] ?? '###@@@&&&', replace)
-          await writeFile(nvhost, content)
-        }
-
-        if (existsSync(avhost)) {
-          let content = await readFile(avhost, 'utf-8')
-          const find = content.match(/SetHandler "proxy:(.*?)"/g)
-          const replace = `SetHandler "proxy:fcgi:127.0.0.1:90${v}"`
-          content = content.replace(find?.[0] ?? '###@@@&&&', replace)
-          await writeFile(avhost, content)
-        }
-
-        host.phpVersion = Number(v)
-      }
-      if (hostList.length > 0) {
-        let needWrite = false
-        for (const h of hostList) {
-          if (!h?.phpVersion) {
-            await setPhpVersion(h)
-            needWrite = true
-          }
-        }
-        if (needWrite) {
-          await writeFile(hostFile, JSON.stringify(hostList))
-        }
       }
       resolve(true)
     })

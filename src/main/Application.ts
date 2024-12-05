@@ -430,6 +430,10 @@ export default class Application extends EventEmitter {
       } else if (info?.data?.['APP-Service-Stop-PID']) {
         const arr: string[] = info.data['APP-Service-Stop-PID'] as any
         arr.forEach((s) => this.hostServicePID.delete(s))
+      } else if (info?.msg?.['APP-Licenses-Code']) {
+        console.log('APP-Licenses-Code !!!')
+        const code: string = info.msg['APP-Licenses-Code'] as any
+        this.configManager?.setConfig('setup.license', code)
       }
     }
     if (command.startsWith('app-fork:')) {
@@ -437,6 +441,7 @@ export default class Application extends EventEmitter {
       this.setProxy()
       global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
       global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
+      global.Server.Licenses = this.configManager?.getConfig('setup.license')
       this.forkManager
         ?.send(module, ...args)
         .on(callBack)
