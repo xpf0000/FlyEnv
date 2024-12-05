@@ -1,8 +1,8 @@
-version: 4.5.6
+version: 4.6.0
 files:
-  - url: FlyEnv-Setup-4.5.6.exe
-    sha512: zoN3G9rQYHT4sL1GsDLE14G3cBnqvpjSQbRhWqIdh+Y+f+DltbZZZz+2ypY3ZbNsH/goiatO5du7wRAjChxcWg==
-    size: 171768385
-path: FlyEnv-Setup-4.5.6.exe
-sha512: zoN3G9rQYHT4sL1GsDLE14G3cBnqvpjSQbRhWqIdh+Y+f+DltbZZZz+2ypY3ZbNsH/goiatO5du7wRAjChxcWg==
-releaseDate: '2024-11-19T09:53:25.100Z'
+  - url: FlyEnv-Setup-4.6.0.exe
+    sha512: h9Wf/tZQr4O3KjKlltM7dkmtpnbjDeerv/tRv4bp3JgZq+bSlt7Yw6JaALBGsaIfFH0KA8N2I7GORssuxWimzQ==
+    size: 171802849
+path: FlyEnv-Setup-4.6.0.exe
+sha512: h9Wf/tZQr4O3KjKlltM7dkmtpnbjDeerv/tRv4bp3JgZq+bSlt7Yw6JaALBGsaIfFH0KA8N2I7GORssuxWimzQ==
+releaseDate: '2024-12-05T09:35:05.272Z'

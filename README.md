@@ -76,7 +76,7 @@ brew install phpwebstudy
 
 ## Windows
 
-[FlyEnv.Setup.4.5.6.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.5.6/FlyEnv.Setup.4.5.6.exe)
+[FlyEnv.Setup.4.6.0.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.0/FlyEnv.Setup.4.6.0.exe)
 
 ## Linux
 
