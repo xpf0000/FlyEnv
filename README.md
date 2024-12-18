@@ -59,7 +59,7 @@
 ### Homebrew
 
 ```
-brew install phpwebstudy
+brew install flyenv
 ```
 
 ### Intel X86:
