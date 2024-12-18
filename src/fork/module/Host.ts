@@ -3,7 +3,7 @@ import { existsSync, accessSync, constants } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { getSubDir, hostAlias, md5, uuid } from '../Fn'
+import { getSubDir, hostAlias, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
@@ -12,10 +12,9 @@ import { makeApacheConf, updateApacheConf } from './host/Apache'
 import { autoFillNginxRewrite, makeNginxConf, updateNginxConf } from './host/Nginx'
 import { setDirRole, updateAutoSSL, updateRootRule } from './host/Host'
 import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
-import { getMac } from '@lzwme/get-physical-address'
-import { cpus } from 'os'
 import { publicDecrypt } from 'crypto'
 import { fetchHostList, saveHostList } from './host/HostFile'
+import { machineId } from 'node-machine-id'
 
 export class Host extends Base {
   constructor() {
@@ -120,11 +119,6 @@ export class Host extends Base {
       if (!global.Server.Licenses) {
         isLock = hostList.length > 2
       } else {
-        const getUUID = async () => {
-          const mac = await getMac()
-          const cpu = cpus()?.pop()?.model ?? ''
-          return md5(`${mac}-${cpu}`)
-        }
         const getRSAKey = () => {
           const a = '0+u/eiBrB/DAskp9HnoIgq1MDwwbQRv6rNxiBK/qYvvdXJHKBmAtbe0+SW8clzne'
           const b = 'Kq1BrqQFebPxLEMzQ19yrUyei1nByQwzlX8r3DHbFqE6kV9IcwNh9yeW3umUw05F'
@@ -145,7 +139,7 @@ export class Host extends Base {
 
           return arr.join('\n')
         }
-        const uuid = await getUUID()
+        const uuid = await machineId()
         const uid = publicDecrypt(
           getRSAKey(),
           Buffer.from(global.Server.Licenses!, 'base64') as any

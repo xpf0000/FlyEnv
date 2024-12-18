@@ -1,5 +1,6 @@
 import { Base } from './Base'
 import { getMac } from '@lzwme/get-physical-address'
+import { machineId } from 'node-machine-id'
 import { ForkPromise } from '@shared/ForkPromise'
 import { cpus, arch } from 'os'
 import { md5 } from '../Fn'
@@ -40,23 +41,33 @@ class App extends Base {
 
   start(version: string) {
     return new ForkPromise(async (resolve) => {
+      const uuid_new = await machineId()
       const uuid = await this.getUUID()
       const os = `macOS ${arch()}`
 
       const data = {
         uuid,
+        uuid_new,
         os,
         version
       }
 
       console.log('data: ', data)
 
-      await axios({
+      const res = await axios({
         url: 'https://api.one-env.com/api/app/start',
         method: 'post',
         data,
         proxy: this.getAxiosProxy()
       })
+
+      if (res?.data?.data?.license) {
+        const license = res?.data?.data?.license
+        resolve({
+          'APP-Licenses-Code': license
+        })
+        return
+      }
 
       resolve(true)
     })
@@ -64,7 +75,7 @@ class App extends Base {
 
   feedback(info: any) {
     return new ForkPromise(async (resolve, reject) => {
-      const uuid = await this.getUUID()
+      const uuid = await machineId()
 
       const data = {
         uuid,
@@ -90,7 +101,7 @@ class App extends Base {
 
   licensesInit() {
     return new ForkPromise(async (resolve, reject, on) => {
-      const uuid = await this.getUUID()
+      const uuid = await machineId()
       const data = {
         uuid,
         activeCode: '',
@@ -119,7 +130,7 @@ class App extends Base {
 
   licensesState() {
     return new ForkPromise(async (resolve, reject, on) => {
-      const uuid = await this.getUUID()
+      const uuid = await machineId()
       const obj = {
         uuid,
         activeCode: '',
@@ -159,8 +170,7 @@ class App extends Base {
 
   licensesRequest(message: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const uuid = await this.getUUID()
-
+      const uuid = await machineId()
       axios({
         url: 'https://api.one-env.com/api/app/active_code_request',
         method: 'post',
