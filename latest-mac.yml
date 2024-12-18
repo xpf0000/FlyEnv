@@ -1,17 +1,17 @@
-version: 4.6.0
+version: 4.6.1
 files:
-  - url: FlyEnv-4.6.0-mac.zip
-    sha512: huge3X2aIlpY5CLyM77WiCF8CPvJkCdEiu44X9xnbJx5Zf0vaE31BBETuIgeBHgNRZBGEo4k73eK0W191OXEOw==
-    size: 116824389
-  - url: FlyEnv-4.6.0-arm64-mac.zip
-    sha512: T6AF1lHuwZktAtZoKF9V54MHGKyPRF7S2vZHHrreG8RqdVf6F6mBEWJFtX0HVH2ETfkeA561atP8k73m9vQ2XA==
-    size: 109797193
-  - url: FlyEnv-4.6.0.dmg
-    sha512: OloVQejshtsXz/4NMIIOkHzmS9MXaAByansh6A7M/ft8Bip97oZYknGilWuTIzwqFDtVq1Kd+W4XCiwCnQNLNg==
-    size: 122545822
-  - url: FlyEnv-4.6.0-arm64.dmg
-    sha512: 03SLnmkjf85bfw+MgW2L7A1L4tMjvQLLpnidelaY5DR7+ALJxWwZWsvMfvJsTEjqLWz5/6ih4lONKDxchmKYVQ==
-    size: 115500525
-path: FlyEnv-4.6.0-mac.zip
-sha512: huge3X2aIlpY5CLyM77WiCF8CPvJkCdEiu44X9xnbJx5Zf0vaE31BBETuIgeBHgNRZBGEo4k73eK0W191OXEOw==
-releaseDate: '2024-12-04T15:23:54.959Z'
+  - url: FlyEnv-4.6.1-mac.zip
+    sha512: Pl15zWPRAt329GwKC1bu9FS7pDiJ3xx2uE7EEO78u1FmuM+k1WqLzSSxswgDmxZ4Fhs893h6JuZ+IoMAwmp2tQ==
+    size: 116978029
+  - url: FlyEnv-4.6.1-arm64-mac.zip
+    sha512: rnWlWc0sqaVkPueOR+0VJYetzbm5AJpfUYoV/R7qj3lSwIv/q5HqXXWmuQ4uDORqjwJfARjA8s7UcrPLpBslog==
+    size: 109950252
+  - url: FlyEnv-4.6.1.dmg
+    sha512: jC11X82xPnHmbLcwtP6Kp/099J4XeQNp613xDusx+cKPiEWAw/TKH05sW4Q8junHYrr4tcXQgGek7p2/6pPzuQ==
+    size: 122636650
+  - url: FlyEnv-4.6.1-arm64.dmg
+    sha512: bn/0K5hKT181FWFIBRTtk/NbmfkjfGfKtArUrFbk5cO7POxcFCl6ba9kpLAdpV9kQCE+O8zfkshGnU7M10yeOg==
+    size: 115638656
+path: FlyEnv-4.6.1-mac.zip
+sha512: Pl15zWPRAt329GwKC1bu9FS7pDiJ3xx2uE7EEO78u1FmuM+k1WqLzSSxswgDmxZ4Fhs893h6JuZ+IoMAwmp2tQ==
+releaseDate: '2024-12-18T10:20:52.817Z'

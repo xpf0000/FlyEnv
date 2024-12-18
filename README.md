@@ -64,19 +64,19 @@ brew install phpwebstudy
 
 ### Intel X86:
 
-[FlyEnv-4.6.0.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.0/FlyEnv-4.6.0.dmg)
+[FlyEnv-4.6.1.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.1/FlyEnv-4.6.1.dmg)
 
-[FlyEnv-4.6.0-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.0/FlyEnv-4.6.0-mac.zip)
+[FlyEnv-4.6.1-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.1/FlyEnv-4.6.1-mac.zip)
 
 ### Apple Silicon
 
-[FlyEnv-4.6.0-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.0/FlyEnv-4.6.0-arm64.dmg)
+[FlyEnv-4.6.1-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.1/FlyEnv-4.6.1-arm64.dmg)
 
-[FlyEnv-4.6.0-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.0/FlyEnv-4.6.0-arm64-mac.zip)
+[FlyEnv-4.6.1-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.1/FlyEnv-4.6.1-arm64-mac.zip)
 
 ## Windows
 
-[FlyEnv.Setup.4.6.0.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.0/FlyEnv.Setup.4.6.0.exe)
+[FlyEnv.Setup.4.6.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.1/FlyEnv.Setup.4.6.1.exe)
 
 ## Linux
 
