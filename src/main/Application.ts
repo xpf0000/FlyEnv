@@ -430,6 +430,15 @@ export default class Application extends EventEmitter {
       } else if (info?.data?.['APP-Service-Stop-PID']) {
         const arr: string[] = info.data['APP-Service-Stop-PID'] as any
         arr.forEach((s) => this.hostServicePID.delete(s))
+      } else if (info?.data?.['APP-Licenses-Code']) {
+        const code: string = info.data['APP-Licenses-Code'] as any
+        this.configManager?.setConfig('setup.license', code)
+        this.windowManager.sendCommandTo(
+          this.mainWindow!,
+          'APP-License-Need-Update',
+          'APP-License-Need-Update',
+          true
+        )
       } else if (info?.msg?.['APP-Licenses-Code']) {
         console.log('APP-Licenses-Code !!!')
         const code: string = info.msg['APP-Licenses-Code'] as any

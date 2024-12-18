@@ -7,6 +7,7 @@ import installedVersions from '@/util/InstalledVersions'
 import { fetchVerion } from '@/util/Brew'
 import { VersionManagerStore } from '@/components/VersionManager/store'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
 
 const { shell } = require('@electron/remote')
 const { dirname } = require('path')

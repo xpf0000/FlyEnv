@@ -43,3 +43,7 @@ IPC.on('APP-Ready-To-Show').then(() => {
     console.log('has inited !!!!')
   }
 })
+
+IPC.on('APP-License-Need-Update').then(() => {
+  SetupStore().init()
+})
