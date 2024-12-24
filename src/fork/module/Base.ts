@@ -283,7 +283,7 @@ export class Base {
           let res = false
           const allProcess = await ProcessPidList()
           const find = allProcess.find(
-            (p) => p.CommandLine.includes('msiexec.exe') && p.CommandLine.includes(APPDIR)
+            (p) => p?.CommandLine?.includes('msiexec.exe') && p?.CommandLine?.includes(APPDIR)
           )
           console.log('python checkState find: ', find)
           const bin = row.bin
