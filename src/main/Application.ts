@@ -108,7 +108,7 @@ export default class Application extends EventEmitter {
 
   initServerDir() {
     let runpath = resolve(app.getPath('exe'), '../../PhpWebStudy-Data').split('\\').join('/')
-    if (!is.dev()) {
+    if (is.dev()) {
       runpath = resolve(__static, '../../../data')
     }
     console.log('userData: ', runpath)
