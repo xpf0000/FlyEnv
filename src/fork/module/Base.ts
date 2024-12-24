@@ -271,6 +271,7 @@ export class Base {
         try {
           await execPromiseRoot(`powershell.exe ${sh}`)
         } catch (e) {
+          console.log('[python-install][error]: ', e)
           await appendFile(
             join(global.Server.BaseDir!, 'debug.log'),
             `[python][python-install][error]: ${e}\n`
@@ -298,9 +299,7 @@ export class Base {
         }
         const res = await checkState()
         if (res) {
-          await waitTime(500)
-          await remove(tmpDir)
-          await waitTime(500)
+          await waitTime(1000)
           sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
           await copyFile(join(global.Server.Static!, 'sh/pip.ps1'), sh)
           process.chdir(APPDIR)
@@ -313,6 +312,8 @@ export class Base {
             )
           }
           await remove(sh)
+          await waitTime(1000)
+          await remove(tmpDir)
           return
         } else {
           try {

@@ -19,3 +19,4 @@ latest-mac.yml
 /static/brew
 yarn-error.log
 /test
+/data
