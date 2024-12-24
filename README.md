@@ -74,6 +74,8 @@ brew install flyenv
 
 [FlyEnv-4.6.1-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.1/FlyEnv-4.6.1-arm64-mac.zip)
 
+If you only need a simple PHP service and web service, you can also take a look at FlyEnv's derivative products: [FlyPHPServer](https://flyenv.com/flyphpserver.html),  Already listed on [Mac App Store](https://apps.apple.com/us/app/flyphpserver/id1506384441), available for direct download and use
+
 ## Windows
 
 [FlyEnv.Setup.4.6.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.6.1/FlyEnv.Setup.4.6.1.exe)
