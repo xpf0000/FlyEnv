@@ -21,6 +21,7 @@
     props: {},
     data() {
       return {
+        tab: 0,
         current_tab: 0,
         tabs: ['NodeJS']
       }
