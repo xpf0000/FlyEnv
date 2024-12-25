@@ -58,10 +58,10 @@ body {
       .top-menu {
         padding: 0 12px;
       }
+    }
 
-      >.main-right-panel {
-        padding: 0 14px;
-      }
+    >.main-right-panel {
+      padding: 0 14px;
     }
   }
 }
@@ -2259,7 +2259,7 @@ body {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 12px;
       &:hover {
         background-color: #3e4257;
       }
