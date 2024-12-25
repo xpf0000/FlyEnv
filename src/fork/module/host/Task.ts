@@ -32,9 +32,11 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled, write = tru
       },
       port: {
         nginx: 80,
-        apache: 8080,
+        apache: 80,
         nginx_ssl: 443,
-        apache_ssl: 8443
+        apache_ssl: 443,
+        caddy: 80,
+        caddy_ssl: 443
       },
       nginx: {
         rewrite: ''

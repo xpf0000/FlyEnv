@@ -34,7 +34,7 @@
 <VirtualHost *:#Port_Apache_SSL#>
     ServerAdmin webmasterexample.com
     DocumentRoot "#Server_Root#"
-    ServerName SSL.#Server_Name#
+    ServerName #Server_Name#
     ServerAlias #Server_Alias#
     ErrorLog "#Log_Path#/#Server_Name#-error_log"
     CustomLog "#Log_Path#/#Server_Name#-access_log" combined
