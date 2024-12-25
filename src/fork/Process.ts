@@ -12,10 +12,9 @@ export type PItem = {
 
 export const ProcessPidList = async (): Promise<PItem[]> => {
   const tmpl = join(global.Server.Cache!, `${uuid()}`)
+  const command = `Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId | ConvertTo-Json`
   try {
-    await execPromiseRoot(
-      `wmic process get ProcessId,ParentProcessId,CommandLine /format:list > "${tmpl}"`
-    )
+    await execPromiseRoot(command)
   } catch (e) {
     console.log('ProcessPidList err0: ', e)
   }
