@@ -1,3 +1,31 @@
+export enum AppModuleTypeEnum {
+  site = 'site',
+  webServer = 'webServer',
+  dataBaseServer = 'dataBaseServer',
+  emailServer = 'emailServer',
+  language = 'language',
+  dataQueue = 'dataQueue',
+  searchEngine = 'searchEngine',
+  dnsServer = 'dnsServer',
+  ftpServer = 'ftpServer',
+  other = 'other'
+}
+
+export type AllAppModuleType = keyof typeof AppModuleTypeEnum
+
+export const AppModuleTypeList: AllAppModuleType[] = [
+  'site',
+  'webServer',
+  'language',
+  'dataBaseServer',
+  'dataQueue',
+  'emailServer',
+  'dnsServer',
+  'ftpServer',
+  'searchEngine',
+  'other'
+]
+
 export enum AppModuleEnum {
   caddy = 'caddy',
   nginx = 'nginx',
@@ -34,6 +62,7 @@ type LabelFn = () => string
  * App Module Config
  */
 export type AppModuleItem = {
+  moduleType?: AllAppModuleType
   typeFlag: AllAppModule
   /**
    * Module label. display in Setup -> Menu Show/Hide & Tray Window

@@ -78,7 +78,7 @@ body {
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    padding: 20px 18px 0 18px;
+    padding: 0 18px 0 0;
     > li {
       user-select: none;
       cursor: pointer;
@@ -110,7 +110,7 @@ body {
     flex: 1;
     width: 100%;
     overflow: hidden;
-    padding: 20px 18px;
+    padding: 20px 18px 20px 0;
 
     .el-card__header {
       padding: 14px 12px;
@@ -664,7 +664,7 @@ body {
   flex-direction: column;
   flex: 1;
   overflow: hidden;
-  padding: 20px 18px;
+  padding: 20px 18px 20px 0;
 
   .el-card {
     height: 100%;
@@ -2220,7 +2220,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 50px 20px 12px 20px;
+    padding: 4px 15px 12px 15px;
     list-style: none;
     flex-shrink: 0;
 
@@ -2818,13 +2818,16 @@ body {
     }
   }
 }
+
 @media (max-width: 1100px) {
   html {
     #app {
       #container {
-        .main-right-panel {
-          > .top-tab {
-            padding-left: 30px;
+        .aside {
+          .menu {
+            .module-type {
+              display: none;
+            }
           }
         }
       }

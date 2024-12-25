@@ -1,7 +1,7 @@
 <template>
   <el-aside width="280px" class="aside">
     <div class="aside-inner">
-      <ul class="top-tool">
+      <ul class="top-tool mt-3 pt-2">
         <el-popover :show-after="800">
           <template #default>
             <span>{{ I18nT('base.about') }}</span>
@@ -23,8 +23,11 @@
       </ul>
       <el-scrollbar>
         <ul class="menu top-menu">
-          <template v-for="(item, index) in AppModules" :key="index">
-            <component :is="item.aside"></component>
+          <template v-for="(item, index) in allList" :key="index">
+            <div class="module-type text-sm mb-3 mt-5 text-zinc-600 dark:text-gray-300 dark:px-4">{{ item.label }}</div>
+            <template v-for="(i, j) in item.sub" :key="j">
+              <component :is="i.aside"></component>
+            </template>
           </template>
         </ul>
       </el-scrollbar>
@@ -55,7 +58,7 @@
   import Base from '@/core/Base'
   import { AppModules } from '@/core/App'
   import { AppServiceModule, type AppServiceModuleItem } from '@/core/ASide'
-  import type { AllAppModule } from '@/core/type'
+  import { AllAppModule, AppModuleTypeList } from '@/core/type'
 
   let lastTray = ''
 
@@ -63,6 +66,18 @@
 
   const currentPage = computed(() => {
     return appStore.currentPage
+  })
+
+  const allList = computed(() => {
+    return AppModuleTypeList.map((m) => {
+      const sub = AppModules.filter(
+        (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
+      ).filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
+      return {
+        label: I18nT(`aside.${m}`),
+        sub
+      }
+    }).filter((s) => s.sub.length > 0)
   })
 
   const index = ref(1)

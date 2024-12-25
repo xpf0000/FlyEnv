@@ -6,6 +6,8 @@ import type { AllAppModule } from '@/core/type'
 import installedVersions from '@/util/InstalledVersions'
 import { fetchVerion } from '@/util/Brew'
 import { VersionManagerStore } from '@/components/VersionManager/store'
+import { MessageError } from '@/util/Element'
+import { I18nT } from '@shared/lang'
 
 const { shell } = require('@electron/remote')
 
@@ -58,9 +60,11 @@ export const Setup = (typeFlag: AllAppModule) => {
   const handleOnlineVersion = (row: any, installed: boolean) => {
     console.log('row: ', row, installed)
     if (!installed) {
-      if (row.downing) {
+      const findInstalling = brewStore.module(typeFlag).installing?.[row.bin]
+      if (row.downing || findInstalling) {
         return
       }
+      brewStore.module(typeFlag).installing[row.bin] = row
       row.downing = true
       row.type = typeFlag
       IPC.send(`app-fork:${typeFlag}`, 'installSoft', JSON.parse(JSON.stringify(row))).then(
@@ -68,14 +72,20 @@ export const Setup = (typeFlag: AllAppModule) => {
           console.log('res: ', res)
           const all = brewStore.module(typeFlag).list
           const find = all.find((r) => r.bin === row.bin && r.zip === row.zip)
+          const findInstalling = brewStore.module(typeFlag).installing[row.bin]
           if (res?.code === 200) {
             find && Object.assign(find, res.msg)
+            findInstalling && Object.assign(findInstalling, res.msg)
           } else if (res?.code === 0) {
             IPC.off(key)
-            if (res?.data) {
-              regetInstalled()
-            }
             find && (find.downing = false)
+            findInstalling && (findInstalling.downing = false)
+            delete brewStore.module(typeFlag).installing[row.bin]
+            if (res?.data === true) {
+              regetInstalled()
+            } else {
+              MessageError(I18nT('versionmanager.installFail'))
+            }
           }
         }
       )

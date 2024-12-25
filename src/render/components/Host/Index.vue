@@ -1,6 +1,6 @@
 <template>
   <div class="soft-index-panel main-right-panel">
-    <ul class="top-tab">
+    <ul class="top-tab mt-3">
       <el-dropdown class="mr-3" @command="setTab">
         <el-button class="outline-0 focus:outline-0">
           {{ tab }} <el-icon class="el-icon--right"><arrow-down /></el-icon>

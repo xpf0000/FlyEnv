@@ -2,6 +2,7 @@ import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@/core/type'
 
 const module: AppModuleItem = {
+  moduleType: 'dataBaseServer',
   typeFlag: 'postgresql',
   label: 'PostgreSQL',
   icon: import('@/svg/postgresql.svg?raw'),
