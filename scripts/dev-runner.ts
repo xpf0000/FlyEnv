@@ -37,7 +37,10 @@ async function killAllElectron() {
   let res: any = null
   try {
     res = await execRoot(command)
-  } catch (e) {}
+  } catch (e) {
+    console.log('killAllElectron err: ', e)
+  }
+  console.log('killAllElectron res: ', res)
   const all = JSON.parse(res?.stdout?.trim() ?? '[]')
   console.log('all: ', all)
   const arr: Array<string> = []
