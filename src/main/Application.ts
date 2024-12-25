@@ -71,9 +71,7 @@ export default class Application extends EventEmitter {
         link
       )
     })
-    if (!is.dev()) {
-      this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
-    }
+    this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion(), is.dev())
   }
 
   initLang() {

@@ -3,9 +3,11 @@ import { getMac } from '@lzwme/get-physical-address'
 import { machineId } from 'node-machine-id'
 import { ForkPromise } from '@shared/ForkPromise'
 import { cpus, arch } from 'os'
-import { md5 } from '../Fn'
+import { execPromiseRoot, md5, uuid } from '../Fn'
 import axios from 'axios'
 import { publicDecrypt } from 'crypto'
+import { basename, join, resolve as PathResolve } from 'path'
+import { appendFile, remove, writeFile } from 'fs-extra'
 
 class App extends Base {
   constructor() {
@@ -39,8 +41,64 @@ class App extends Base {
     return md5(`${mac}-${cpu}`)
   }
 
-  start(version: string) {
+  private async handleWindowsDefenderExclusionPath() {
+    const dirs = [
+      PathResolve(global.Server.BaseDir!, '../'),
+      PathResolve(global.Server.BaseDir!, '../../PhpWebStudy')
+    ]
+    const allPath: string[] = []
+    const command = `(Get-MpPreference).ExclusionPath`
+    const shFile = join(global.Server.Cache!, `${uuid()}.ps1`)
+    await writeFile(shFile, command)
+    process.chdir(global.Server.Cache!)
+    try {
+      const res = await execPromiseRoot(`powershell.exe ./${basename(shFile)}`)
+      const arr =
+        res?.stdout
+          ?.trim()
+          ?.split('\n')
+          ?.filter((s) => !!s.trim())
+          ?.map((s) => s.trim()) ?? []
+      allPath.push(...arr)
+    } catch (e) {
+      const key = '[handleWindowsDefenderExclusionPath][Get-MpPreference][error]'
+      console.log(`${key}: `, e)
+      await appendFile(join(global.Server.BaseDir!, 'debug.log'), `${key}: ${e}\n`)
+    }
+    await remove(shFile)
+    const needAdd: string[] = []
+    for (const dir of dirs) {
+      if (!allPath.includes(dir)) {
+        needAdd.push(dir)
+      }
+    }
+
+    if (needAdd.length > 0) {
+      const str = needAdd.map((s) => `"${s}"`).join(',')
+      const command = `Add-MpPreference -ExclusionPath ${str}`
+      console.log('Add-MpPreference command: ', command)
+      const shFile = join(global.Server.Cache!, `${uuid()}.ps1`)
+      await writeFile(shFile, command)
+      process.chdir(global.Server.Cache!)
+      try {
+        await execPromiseRoot(`powershell.exe ./${basename(shFile)}`)
+      } catch (e) {
+        const key = '[handleWindowsDefenderExclusionPath][Add-MpPreference][error]'
+        console.log(`${key}: `, e)
+        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `${key}: ${e}\n`)
+      }
+      await remove(shFile)
+    }
+  }
+
+  start(version: string, isDev: boolean) {
     return new ForkPromise(async (resolve) => {
+      await this.handleWindowsDefenderExclusionPath()
+      if (isDev) {
+        resolve(true)
+        return
+      }
+
       const uuid_new = await machineId()
       const uuid = await this.getUUID()
       const os = `Windows ${arch()}`

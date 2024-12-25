@@ -1,8 +1,8 @@
 <template>
   <div class="soft-index-panel main-right-panel">
-    <ul class="top-tab">
-      <li class="active" @click="doAdd">{{ $t('base.add') }}</li>
-    </ul>
+    <el-radio-group v-model="tab" class="mt-3">
+      <el-radio-button :label="$t('base.add')" :value="0"></el-radio-button>
+    </el-radio-group>
     <List ref="list"></List>
   </div>
 </template>
@@ -11,6 +11,11 @@
   import List from './List.vue'
   export default {
     components: { List },
+    data() {
+      return {
+        tab: 0
+      }
+    },
     methods: {
       doAdd() {
         this.$refs.list.choosePath()

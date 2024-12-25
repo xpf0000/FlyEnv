@@ -37,6 +37,7 @@ export const fetchVerion = (typeFlag: AllAppModule): Promise<boolean> => {
           } else {
             item.installed = existsSync(item.bin)
           }
+          Object.assign(item, currentType.installing?.[item.bin])
         })
         currentType.list.splice(0)
         currentType.list = reactive(list)
@@ -57,7 +58,7 @@ export const fetchVerion = (typeFlag: AllAppModule): Promise<boolean> => {
           localStorage.setItem(
             saveKey,
             JSON.stringify({
-              expire: Math.round(new Date().getTime() / 1000) + 24 * 60 * 60,
+              expire: Math.round(new Date().getTime() / 1000) + 60 * 60,
               data: list
             })
           )

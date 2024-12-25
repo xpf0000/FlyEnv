@@ -28,7 +28,7 @@ export default {
   cancel: '取消',
   service: '服务',
   versionSwitch: '版本切换',
-  versionManager: '版本管理',
+  versionManager: '版本',
   error: '错误',
   running: '运行',
   errorLog: '错误日志',

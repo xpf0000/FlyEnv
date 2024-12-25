@@ -105,7 +105,7 @@
       <el-table-column align="center" :label="I18nT('base.isInstalled')" width="150">
         <template #default="scope">
           <div class="cell-status">
-            <template v-if="scope.row.installed || scope.row?.path">
+            <template v-if="!scope.row.downing && (scope.row.installed || scope.row?.path)">
               <yb-icon :svg="import('@/svg/ok.svg?raw')" class="installed"></yb-icon>
             </template>
           </div>
@@ -125,7 +125,9 @@
               :disabled="scope.row.downing"
               @click="handleEdit(scope.row)"
               >{{
-                scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install')
+                !scope.row.downing && scope.row.installed
+                  ? I18nT('base.uninstall')
+                  : I18nT('base.install')
               }}</el-button
             >
           </template>

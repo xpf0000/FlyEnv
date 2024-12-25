@@ -1,4 +1,5 @@
 export default {
   Local: 'Local',
-  Library: 'Library'
+  Library: 'Library',
+  installFail: 'Install Failed'
 }

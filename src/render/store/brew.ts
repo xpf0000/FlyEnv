@@ -36,6 +36,7 @@ export interface AppSoftInstalledItem {
   installedInited: boolean
   installed: Array<SoftInstalled>
   list: OnlineVersionItem[]
+  installing: Record<string, OnlineVersionItem>
 }
 
 type StateBase = Partial<Record<AllAppModule, AppSoftInstalledItem | undefined>>
@@ -55,13 +56,7 @@ const state: State = {
   showInstallLog: false,
   brewSrc: '',
   log: [],
-  LibUse: {},
-  redis: {
-    getListing: false,
-    installedInited: false,
-    installed: [],
-    list: []
-  }
+  LibUse: {}
 }
 
 export const BrewStore = defineStore('brew', {
@@ -74,7 +69,8 @@ export const BrewStore = defineStore('brew', {
           getListing: false,
           installedInited: false,
           installed: [],
-          list: []
+          list: [],
+          installing: {}
         })
       }
       return this[flag]!

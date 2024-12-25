@@ -50,7 +50,7 @@
         <template #default="scope">
           <div class="cell-status">
             <yb-icon
-              v-if="scope.row.installed"
+              v-if="!scope.row.downing && scope.row.installed"
               :svg="import('@/svg/ok.svg?raw')"
               class="installed"
             ></yb-icon>
@@ -66,7 +66,9 @@
             :loading="scope.row.downing"
             :disabled="scope.row.downing"
             @click="handleOnlineVersion(scope.row, scope.row.installed)"
-            >{{ scope.row.installed ? $t('base.uninstall') : $t('base.install') }}</el-button
+            >{{
+              !scope.row.downing && scope.row.installed ? $t('base.uninstall') : $t('base.install')
+            }}</el-button
           >
         </template>
       </el-table-column>
