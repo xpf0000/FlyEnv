@@ -2,7 +2,7 @@
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="store.tab" class="mt-3">
       <template v-for="(item, index) in tabs" :key="index">
-        <el-radio-button :label="item" :value="item.value"></el-radio-button>
+        <el-radio-button :label="item.label" :value="item.value"></el-radio-button>
       </template>
     </el-radio-group>
     <div class="main-block">

@@ -15,7 +15,7 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, readFile, writeFile } from 'fs-extra'
+import { mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
 import { fetchHostList } from './host/HostFile'
@@ -241,7 +241,7 @@ IncludeOptional "${vhost}*.conf"`
       const pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
       if (existsSync(pidPath)) {
         try {
-          await execPromiseRoot(`del -Force "${pidPath}"`)
+          await remove(pidPath)
         } catch (e) {}
       }
 
@@ -249,7 +249,7 @@ IncludeOptional "${vhost}*.conf"`
       const startErrLogFile = join(global.Server.ApacheDir!, `start.error.log`)
       if (existsSync(startErrLogFile)) {
         try {
-          await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+          await remove(startErrLogFile)
         } catch (e) {}
       }
 
@@ -271,7 +271,7 @@ IncludeOptional "${vhost}*.conf"`
       await mkdirp(dirname(appPidFile))
       if (existsSync(appPidFile)) {
         try {
-          await execPromiseRoot(`del -Force "${appPidFile}"`)
+          await remove(startErrLogFile)
         } catch (e) {}
       }
 
