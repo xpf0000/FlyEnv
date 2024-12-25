@@ -215,7 +215,7 @@ IncludeOptional "${vhost}*.conf"`
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       await this.initLocalApp(version, 'apache')
       await this.#resetConf(version)
       await this.#handleListenPort(version)
@@ -225,6 +225,18 @@ IncludeOptional "${vhost}*.conf"`
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
+
+      process.chdir(dirname(bin))
+      let command = `${basename(bin)} -k uninstall`
+      try {
+        await execPromiseRoot(command)
+      } catch (e) {}
+
+      process.chdir(dirname(bin))
+      command = `${basename(bin)} -k install`
+      try {
+        await execPromiseRoot(command)
+      } catch (e) {}
 
       const pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
       if (existsSync(pidPath)) {
@@ -245,12 +257,10 @@ IncludeOptional "${vhost}*.conf"`
         '@echo off',
         'chcp 65001>nul',
         `cd /d "${dirname(bin)}"`,
-        `./${basename(bin)} -k uninstall`,
-        `./${basename(bin)} -k install`,
         `start /B ./${basename(bin)} -f "${conf}" -k start > "${startLogFile}" 2>"${startErrLogFile}" &`
       ]
 
-      const command = commands.join(EOL)
+      command = commands.join(EOL)
       console.log('command: ', command)
 
       const cmdName = `start.cmd`
@@ -275,6 +285,9 @@ IncludeOptional "${vhost}*.conf"`
         reject(e)
         return
       }
+      on({
+        'APP-Service-Start-Success': true
+      })
       const res = await this.waitPidFile(pidPath)
       if (res) {
         if (res?.pid) {
