@@ -28,10 +28,9 @@ const exec = (
     const taskStore = TaskStore()
     const task = taskStore.module(typeFlag)!
     task.log!.splice(0)
-    console.time('service exec')
+    console.log('exec time: ', new Date().getTime())
     IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion).then((key: string, res: any) => {
       if (res.code === 0) {
-        console.timeEnd('service exec')
         console.log('### key: ', key)
         IPC.off(key)
 
@@ -84,7 +83,6 @@ const exec = (
         if (typeof res?.msg === 'string') {
           task.log!.push(res.msg)
         } else if (res?.msg?.['APP-Service-Start-Success'] === true) {
-          console.timeLog('service exec')
           const brewStore = BrewStore()
           const findV = brewStore
             .module(typeFlag)

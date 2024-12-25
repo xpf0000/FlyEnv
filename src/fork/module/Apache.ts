@@ -216,6 +216,7 @@ IncludeOptional "${vhost}*.conf"`
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      console.log('app _startServer time: ', new Date().getTime())
       await this.initLocalApp(version, 'apache')
       await this.#resetConf(version)
       await this.#handleListenPort(version)
