@@ -32,7 +32,8 @@ function execRoot(cammand: string) {
 }
 
 async function killAllElectron() {
-  const command = `Get-CimInstance Win32_Process -Filter "Name like 'electron.exe'" | Select-Object CommandLine,ProcessId,ParentProcessId | ConvertTo-Json`
+  const sh = _path.resolve(__dirname, '../scripts/electron-kill.ps1')
+  const command = `powershell.exe "${sh}"`
   console.log('_stopServer command: ', command)
   let res: any = null
   try {
