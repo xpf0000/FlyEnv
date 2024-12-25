@@ -24,7 +24,10 @@
       <el-scrollbar>
         <ul class="menu top-menu">
           <template v-for="(item, index) in allList" :key="index">
-            <div class="module-type text-sm mb-3 mt-5 text-zinc-600 dark:text-gray-300 dark:px-4">{{ item.label }}</div>
+            <div
+              class="module-type text-sm mb-3 mt-5 text-zinc-600 dark:text-gray-300 dark:px-4 border-b border-zinc-200"
+              >{{ item.label }}</div
+            >
             <template v-for="(i, j) in item.sub" :key="j">
               <component :is="i.aside"></component>
             </template>
