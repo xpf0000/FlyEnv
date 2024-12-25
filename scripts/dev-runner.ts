@@ -15,19 +15,16 @@ let electronProcess: ChildProcess | null
 function execRoot(cammand: string) {
   return new Promise((resolve, reject) => {
     try {
-      exec(
-        cammand,
-        (error, stdout, stderr) => {
-          if (!error) {
-            resolve({
-              stdout: stdout?.toString() ?? '',
-              stderr: stderr?.toString() ?? ''
-            })
-          } else {
-            reject(error)
-          }
+      exec(cammand, (error, stdout, stderr) => {
+        if (!error) {
+          resolve({
+            stdout: stdout?.toString() ?? '',
+            stderr: stderr?.toString() ?? ''
+          })
+        } else {
+          reject(error)
         }
-      )
+      })
     } catch (e) {
       reject(e)
     }
@@ -35,20 +32,17 @@ function execRoot(cammand: string) {
 }
 
 async function killAllElectron() {
-  const command = `wmic process get CommandLine,ProcessId | findstr "electron.exe"`
+  const command = `Get-CimInstance Win32_Process -Filter "Name like 'electron.exe'" | Select-Object CommandLine,ProcessId,ParentProcessId | ConvertTo-Json`
   console.log('_stopServer command: ', command)
   let res: any = null
   try {
     res = await execRoot(command)
-  } catch (e) { }
-  const pids = res?.stdout?.trim()?.split('\n') ?? []
-  console.log('pids: ', pids)
+  } catch (e) {}
+  const all = JSON.parse(res?.stdout?.trim() ?? '[]')
+  console.log('all: ', all)
   const arr: Array<string> = []
-  for (const p of pids) {
-    const pid = p.split(' ').filter((s: string) => {
-      return !!s.trim()
-    }).pop()
-    arr.push(pid)
+  for (const item of all) {
+    arr.push(item.ProcessId)
   }
   console.log('_stopServer arr: ', arr)
   if (arr.length > 0) {
@@ -148,7 +142,7 @@ let fsWait = false
 const next = (base: string, file?: string | null) => {
   if (file) {
     if (fsWait) return
-    const currentMd5 = _md5(_fs.readFileSync(_path.join(base, file)))
+    const currentMd5 = _md5(_fs.readFileSync(_path.join(base, file))) as string
     if (currentMd5 == preveMd5) {
       return
     }
@@ -198,7 +192,7 @@ _fs.watch(
     if (filename) {
       if (fsWait) return
       const from = _path.join(staticPath, filename)
-      const currentMd5 = _md5(_fs.readFileSync(from))
+      const currentMd5 = _md5(_fs.readFileSync(from)) as string
       if (currentMd5 == preveMd5) {
         return
       }
