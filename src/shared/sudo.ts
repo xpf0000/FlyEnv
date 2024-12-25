@@ -1,3 +1,5 @@
+import { uuid } from '@shared/utils'
+
 export interface SudoConfig {
   name?: string
   icns?: string
@@ -23,7 +25,6 @@ const { remove } = require('fs-extra')
 
 const Node = {
   child: require('child_process'),
-  crypto: require('crypto'),
   fs: require('fs'),
   os: require('os'),
   path: require('path'),
@@ -39,28 +40,28 @@ function Exec(...args: any) {
   if (arguments.length < 1 || arguments.length > 3) {
     throw new Error('Wrong number of arguments.')
   }
-  const command = arguments[0]
+  const command = args[0]
   let options: SudoConfig = {}
   let end: Function = function () {}
   if (typeof command !== 'string') {
     throw new Error('Command should be a string.')
   }
   if (arguments.length === 2) {
-    if (Node.util.isObject(arguments[1])) {
-      options = arguments[1]
-    } else if (Node.util.isFunction(arguments[1])) {
-      end = arguments[1]
+    if (Node.util.isObject(args[1])) {
+      options = args[1]
+    } else if (Node.util.isFunction(args[1])) {
+      end = args[1]
     } else {
       throw new Error('Expected options or callback.')
     }
   } else if (arguments.length === 3) {
-    if (Node.util.isObject(arguments[1])) {
-      options = arguments[1]
+    if (Node.util.isObject(args[1])) {
+      options = args[1]
     } else {
       throw new Error('Expected options to be an object.')
     }
-    if (Node.util.isFunction(arguments[2])) {
-      end = arguments[2]
+    if (Node.util.isFunction(args[2])) {
+      end = args[2]
     } else {
       throw new Error('Expected callback to be a function.')
     }
@@ -131,36 +132,6 @@ function Exec(...args: any) {
   Attempt(instance, end)
 }
 
-function Remove(path: string, end: Function) {
-  if (typeof path !== 'string' || !path.trim()) {
-    return end(new Error('Argument path not defined.'))
-  }
-  let command: any = []
-  if (/"/.test(path)) {
-    return end(new Error('Argument path cannot contain double-quotes.'))
-  }
-  command.push('rmdir /s /q "' + path + '"')
-  command = command.join(' ')
-  Node.child.exec(command, { encoding: 'utf-8' }, end)
-}
-
-function UUID(instance: Sudo, end: Function) {
-  Node.crypto.randomBytes(256, function (error: any, random: any) {
-    if (error) random = Date.now() + '' + Math.random()
-    const hash = Node.crypto.createHash('SHA256')
-    hash.update('sudo-prompt-3')
-    hash.update(instance.options.name)
-    hash.update(instance.command)
-    hash.update(random)
-    const uuid = hash.digest('hex').slice(-32)
-    if (!uuid || typeof uuid !== 'string' || uuid.length !== 32) {
-      // This is critical to ensure we don't remove the wrong temp directory.
-      return end(new Error('Expected a valid UUID.'))
-    }
-    end(undefined, uuid)
-  })
-}
-
 function ValidName(str: string) {
   // We use 70 characters as a limit to side-step any issues with Unicode
   // normalization form causing a 255 character string to exceed the fs limit.
@@ -173,47 +144,39 @@ function ValidName(str: string) {
 function Windows(instance: Sudo, callback: Function) {
   const temp = instance?.options?.dir ?? Node.os.tmpdir()
   if (!temp) return callback(new Error('os.tmpdir() not defined.'))
-  UUID(instance, function (error: any, uuid: string) {
+  instance.uuid = uuid()
+  instance.path = Node.path.join(temp, instance.uuid)
+  if (/"/.test(instance.path!)) {
+    // We expect double quotes to be reserved on Windows.
+    // Even so, we test for this and abort if they are present.
+    return callback(new Error('instance.path cannot contain double-quotes.'))
+  }
+  instance.pathElevate = Node.path.join(instance.path, 'elevate.vbs')
+  instance.pathExecute = Node.path.join(instance.path, 'execute.bat')
+  instance.pathCommand = Node.path.join(instance.path, 'command.bat')
+  instance.pathStdout = Node.path.join(instance.path, 'stdout')
+  instance.pathStderr = Node.path.join(instance.path, 'stderr')
+  instance.pathStatus = Node.path.join(instance.path, 'status')
+  Node.fs.mkdir(instance.path, function (error: any) {
     if (error) return callback(error)
-    instance.uuid = uuid
-    instance.path = Node.path.join(temp, instance.uuid)
-    if (/"/.test(instance.path!)) {
-      // We expect double quotes to be reserved on Windows.
-      // Even so, we test for this and abort if they are present.
-      return callback(new Error('instance.path cannot contain double-quotes.'))
-    }
-    instance.pathElevate = Node.path.join(instance.path, 'elevate.vbs')
-    instance.pathExecute = Node.path.join(instance.path, 'execute.bat')
-    instance.pathCommand = Node.path.join(instance.path, 'command.bat')
-    instance.pathStdout = Node.path.join(instance.path, 'stdout')
-    instance.pathStderr = Node.path.join(instance.path, 'stderr')
-    instance.pathStatus = Node.path.join(instance.path, 'status')
-    Node.fs.mkdir(instance.path, function (error: any) {
-      if (error) return callback(error)
-      function end(error: any, stdout?: string, stderr?: string) {
-        if (instance?.options?.debug === true) {
-          callback(undefined, stdout, stderr)
-          return
-        }
-        Remove(instance.path!, async function (errorRemove: any) {
-          try {
-            await remove(instance.path!)
-          } catch (e) {}
-          if (error) return callback(error)
-          if (errorRemove) return callback(errorRemove)
-          callback(undefined, stdout, stderr)
-        })
+    function end(error: any, stdout?: string, stderr?: string) {
+      if (instance?.options?.debug === true) {
+        callback(undefined, stdout, stderr)
+        return
       }
-      WindowsWriteExecuteScript(instance, function (error: any) {
+      remove(instance.path!).then().catch()
+      if (error) return callback(error)
+      callback(undefined, stdout, stderr)
+    }
+    WindowsWriteExecuteScript(instance, function (error: any) {
+      if (error) return end(error)
+      WindowsWriteCommandScript(instance, function (error: any) {
         if (error) return end(error)
-        WindowsWriteCommandScript(instance, function (error: any) {
-          if (error) return end(error)
-          WindowsElevate(instance, function (error: any, stdout: string, stderr: string) {
-            if (error) return end(error, stdout, stderr)
-            WindowsWaitForStatus(instance, function (error: any) {
-              if (error) return end(error)
-              WindowsResult(instance, end)
-            })
+        WindowsElevate(instance, function (error: any, stdout: string, stderr: string) {
+          if (error) return end(error, stdout, stderr)
+          WindowsWaitForStatus(instance, function (error: any) {
+            if (error) return end(error)
+            WindowsResult(instance, end)
           })
         })
       })
