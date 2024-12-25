@@ -9,7 +9,7 @@ export type PItem = {
 
 export const ProcessPidList = async (): Promise<PItem[]> => {
   const all: PItem[] = []
-  const command = `Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId | ConvertTo-Json`
+  const command = `powershell.exe -command "Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId | ConvertTo-Json"`
   try {
     const res = await execPromiseRoot(command)
     const list = JSON.parse(res?.stdout ?? '[]')
