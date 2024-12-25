@@ -447,6 +447,7 @@ export default class Application extends EventEmitter {
       }
     }
     if (command.startsWith('app-fork:')) {
+      console.log('app main time: ', new Date().getTime())
       const module = command.replace('app-fork:', '')
       this.setProxy()
       global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'

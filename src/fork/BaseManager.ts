@@ -36,6 +36,7 @@ class BaseManager {
   init() {}
 
   async exec(commands: Array<any>) {
+    console.log('app fork exec time: ', new Date().getTime())
     const ipcCommandKey = commands.shift()
     const then = (res: any) => {
       ProcessSendSuccess(ipcCommandKey, res)
