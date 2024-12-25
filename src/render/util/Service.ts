@@ -28,8 +28,10 @@ const exec = (
     const taskStore = TaskStore()
     const task = taskStore.module(typeFlag)!
     task.log!.splice(0)
+    console.time('service exec')
     IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion).then((key: string, res: any) => {
       if (res.code === 0) {
+        console.timeEnd('service exec')
         console.log('### key: ', key)
         IPC.off(key)
 
@@ -79,7 +81,25 @@ const exec = (
         version.running = false
         resolve(task.log!.join('\n'))
       } else if (res.code === 200) {
-        task.log!.push(res.msg)
+        if (typeof res?.msg === 'string') {
+          task.log!.push(res.msg)
+        } else if (res?.msg?.['APP-Service-Start-Success'] === true) {
+          console.timeLog('service exec')
+          const brewStore = BrewStore()
+          const findV = brewStore
+            .module(typeFlag)
+            .installed?.find(
+              (i) =>
+                i.path === version.path && i.version === version.version && i.bin === version.bin
+            )
+          console.log('findV: ', findV === version)
+          version.run = true
+          version.running = false
+          if (findV) {
+            findV.run = version.run
+            findV.running = false
+          }
+        }
       }
     })
   })

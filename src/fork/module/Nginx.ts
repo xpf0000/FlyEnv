@@ -12,7 +12,7 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
+import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
@@ -80,7 +80,7 @@ class Nginx extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       await this.initLocalApp(version, 'nginx')
       await this.#initConfig()
       await this.#handlePhpEnableConf()
@@ -91,7 +91,7 @@ class Nginx extends Base {
       const pid = join(global.Server.NginxDir!, 'logs/nginx.pid')
       if (existsSync(pid)) {
         try {
-          await execPromiseRoot(`del -Force "${pid}"`)
+          await remove(pid)
         } catch (e) {}
       }
 
@@ -99,7 +99,7 @@ class Nginx extends Base {
       const startErrLogFile = join(global.Server.NginxDir!, `start.error.log`)
       if (existsSync(startErrLogFile)) {
         try {
-          await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+          await remove(startErrLogFile)
         } catch (e) {}
       }
 
@@ -121,7 +121,7 @@ class Nginx extends Base {
       await mkdirp(dirname(appPidFile))
       if (existsSync(appPidFile)) {
         try {
-          await execPromiseRoot(`del -Force "${appPidFile}"`)
+          await remove(appPidFile)
         } catch (e) {}
       }
 
@@ -135,6 +135,9 @@ class Nginx extends Base {
         reject(e)
         return
       }
+      on({
+        'APP-Service-Start-Success': true
+      })
       const res = await this.waitPidFile(pid)
       if (res) {
         if (res?.pid) {
