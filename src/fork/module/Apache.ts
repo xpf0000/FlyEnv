@@ -226,18 +226,6 @@ IncludeOptional "${vhost}*.conf"`
         return
       }
 
-      process.chdir(dirname(bin))
-      let command = `${basename(bin)} -k uninstall`
-      try {
-        await execPromiseRoot(command)
-      } catch (e) {}
-
-      process.chdir(dirname(bin))
-      command = `${basename(bin)} -k install`
-      try {
-        await execPromiseRoot(command)
-      } catch (e) {}
-
       const pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
       if (existsSync(pidPath)) {
         try {
@@ -257,10 +245,12 @@ IncludeOptional "${vhost}*.conf"`
         '@echo off',
         'chcp 65001>nul',
         `cd /d "${dirname(bin)}"`,
+        `./${basename(bin)} -k uninstall`,
+        `./${basename(bin)} -k install`,
         `start /B ./${basename(bin)} -f "${conf}" -k start > "${startLogFile}" 2>"${startErrLogFile}" &`
       ]
 
-      command = commands.join(EOL)
+      const command = commands.join(EOL)
       console.log('command: ', command)
 
       const cmdName = `start.cmd`
