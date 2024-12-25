@@ -1,7 +1,4 @@
-import { execPromiseRoot, uuid } from './Fn'
-import { join } from 'path'
-import { existsSync } from 'fs'
-import { readFile, remove } from 'fs-extra'
+import { execPromiseRoot } from './Fn'
 
 export type PItem = {
   ProcessId: string
@@ -11,37 +8,16 @@ export type PItem = {
 }
 
 export const ProcessPidList = async (): Promise<PItem[]> => {
-  const tmpl = join(global.Server.Cache!, `${uuid()}`)
+  const all: PItem[] = []
   const command = `Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId | ConvertTo-Json`
   try {
-    await execPromiseRoot(command)
+    const res = await execPromiseRoot(command)
+    const list = JSON.parse(res?.stdout ?? '[]')
+    all.push(...list)
   } catch (e) {
     console.log('ProcessPidList err0: ', e)
   }
-  if (!existsSync(tmpl)) {
-    console.log('ProcessPidList !existsSync(tmpl) !!!')
-    return []
-  }
-  const res = await readFile(tmpl, 'ucs-2')
-  console.log('ProcessPidList res: ', {
-    res
-  })
-  await remove(tmpl)
-  return res
-    .trim()
-    .split(`\r\n\r\n\r\n`)
-    .map((s) => {
-      const obj: any = {}
-      s.split('\r\n')
-        .filter((s) => !!s.trim())
-        .forEach((f) => {
-          const item = f.split('=')
-          const k = item?.shift()?.trim() ?? ''
-          const v = item?.join('=')?.trim() ?? ''
-          obj[k] = v
-        })
-      return obj as PItem
-    })
+  return all
 }
 
 export const ProcessPidListByPids = async (pids: string[]): Promise<string[]> => {
