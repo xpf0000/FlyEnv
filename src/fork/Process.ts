@@ -16,11 +16,17 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
     await execPromiseRoot(
       `wmic process get ProcessId,ParentProcessId,CommandLine /format:list > "${tmpl}"`
     )
-  } catch (e) {}
+  } catch (e) {
+    console.log('ProcessPidList err0: ', e)
+  }
   if (!existsSync(tmpl)) {
+    console.log('ProcessPidList !existsSync(tmpl) !!!')
     return []
   }
   const res = await readFile(tmpl, 'ucs-2')
+  console.log('ProcessPidList res: ', {
+    res
+  })
   await remove(tmpl)
   return res
     .trim()
