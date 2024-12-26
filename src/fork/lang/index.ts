@@ -1,14 +1,18 @@
 import ENFork from './en/fork'
 import ZHFork from './zh/fork'
+import ENAppLog from './en/appLog'
+import ZHAppLog from './zh/appLog'
 import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 
 const lang = {
   en: {
-    fork: ENFork
+    fork: ENFork,
+    appLog: ENAppLog
   },
   zh: {
-    fork: ZHFork
+    fork: ZHFork,
+    appLog: ZHAppLog
   }
 }
 

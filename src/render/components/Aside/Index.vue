@@ -2,13 +2,18 @@
   <el-aside width="280px" class="aside">
     <div class="aside-inner">
       <ul class="top-tool mt-3 pt-2">
-        <el-popover :show-after="800">
+        <el-popover
+          width="auto"
+          :show-after="800"
+          placement="right"
+          popper-class="app-popover-min-w-auto"
+        >
           <template #default>
             <span>{{ I18nT('aside.appLog') }}</span>
           </template>
           <template #reference>
             <li @click.stop="showLog()">
-              <yb-icon :svg="import('@/svg/log.svg?raw')" width="18" height="18" />
+              <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
             </li>
           </template>
         </el-popover>
