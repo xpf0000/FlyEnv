@@ -79,6 +79,13 @@
       const sub = AppModules.filter(
         (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
       ).filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
+      sub.sort((a, b) => {
+        let lowerA = a.typeFlag.toLowerCase()
+        let lowerB = b.typeFlag.toLowerCase()
+        if (lowerA < lowerB) return -1
+        if (lowerA > lowerB) return 1
+        return 0
+      })
       return {
         label: I18nT(`aside.${m}`),
         sub

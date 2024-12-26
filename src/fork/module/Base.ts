@@ -74,7 +74,7 @@ export class Base {
 
   _stopServer(version: SoftInstalled) {
     console.log(version)
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       if (existsSync(appPidFile)) {
         const pid = (await readFile(appPidFile, 'utf-8')).trim()
@@ -86,8 +86,11 @@ export class Base {
             await execPromiseRoot(`taskkill /f /t ${str}`)
           } catch (e) {}
         }
+        on({
+          'APP-Service-Stop-Success': true
+        })
         try {
-          await execPromiseRoot(`del -Force "${appPidFile}"`)
+          await remove(appPidFile)
         } catch (e) {}
         if (this.type === 'apache') {
           const command = `${version.bin} -k uninstall`
@@ -109,6 +112,9 @@ export class Base {
             await execPromiseRoot(`taskkill /f /t ${str}`)
           } catch (e) {}
         }
+        on({
+          'APP-Service-Stop-Success': true
+        })
         if (this.type === 'apache') {
           const command = `${version.bin} -k uninstall`
           try {

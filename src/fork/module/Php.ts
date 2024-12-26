@@ -95,8 +95,8 @@ class Php extends Base {
   _stopServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
       const all = await ProcessListSearch(`phpwebstudy.90${version.num}`, false)
-      const arr: Array<string> = []
-      const fpm: Array<string> = []
+      const arr: Array<number> = []
+      const fpm: Array<number> = []
       all.forEach((item) => {
         if (item?.CommandLine?.includes('php-cgi-spawner.exe')) {
           fpm.push(item.ProcessId)

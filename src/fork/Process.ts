@@ -1,8 +1,8 @@
 import { execPromiseRoot } from './Fn'
 
 export type PItem = {
-  ProcessId: string
-  ParentProcessId: string
+  ProcessId: number
+  ParentProcessId: number
   CommandLine: string
   children?: PItem[]
 }
@@ -20,11 +20,12 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
   return all
 }
 
-export const ProcessPidListByPids = async (pids: string[]): Promise<string[]> => {
-  const all: Set<string> = new Set()
+export const ProcessPidListByPids = async (pids: (string | number)[]): Promise<number[]> => {
+  const all: Set<number> = new Set()
   const arr = await ProcessPidList()
   console.log('arr: ', pids, arr)
-  const find = (ppid: string) => {
+  const find = (ppid: string | number) => {
+    ppid = Number(ppid)
     for (const item of arr) {
       if (item.ParentProcessId === ppid) {
         console.log('find: ', ppid, item)
@@ -35,26 +36,29 @@ export const ProcessPidListByPids = async (pids: string[]): Promise<string[]> =>
   }
 
   for (const pid of pids) {
-    if (arr.find((a) => a.ProcessId === pid)) {
-      all.add(pid)
-      find(pid)
+    const pidNum = Number(pid)
+    if (arr.find((a) => a.ProcessId === pidNum)) {
+      all.add(pidNum)
+      find(pidNum)
     }
-    const item = arr.find((a) => a.ParentProcessId === pid)
+    const item = arr.find((a) => a.ParentProcessId === pidNum)
     if (item) {
-      all.add(pid)
+      all.add(pidNum)
       all.add(item.ProcessId)
-      find(pid)
+      find(pidNum)
       find(item.ProcessId)
     }
   }
   return [...all]
 }
 
-export const ProcessPidListByPid = async (pid: string): Promise<string[]> => {
-  const all: Set<string> = new Set()
+export const ProcessPidListByPid = async (pid: string | number): Promise<number[]> => {
+  pid = Number(pid)
+  const all: Set<number> = new Set()
   const arr = await ProcessPidList()
   console.log('arr: ', pid, arr)
-  const find = (ppid: string) => {
+  const find = (ppid: string | number) => {
+    ppid = Number(ppid)
     for (const item of arr) {
       if (item.ParentProcessId === ppid) {
         console.log('find: ', ppid, item)
@@ -83,7 +87,8 @@ export const ProcessListSearch = async (search: string, aA = true) => {
     return all
   }
   const arr = await ProcessPidList()
-  const find = (ppid: string) => {
+  const find = (ppid: string | number) => {
+    ppid = Number(ppid)
     for (const item of arr) {
       if (item.ParentProcessId === ppid) {
         if (!all.find((f) => f.ProcessId === item.ProcessId)) {
