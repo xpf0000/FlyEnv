@@ -4,11 +4,11 @@
       <ul class="top-tool mt-3 pt-2">
         <el-popover :show-after="800">
           <template #default>
-            <span>{{ I18nT('base.appLog') }}</span>
+            <span>{{ I18nT('aside.appLog') }}</span>
           </template>
           <template #reference>
             <li @click.stop="showLog()">
-              <yb-icon :svg="import('@/svg/log1.svg?raw')" width="19" height="19" />
+              <yb-icon :svg="import('@/svg/log.svg?raw')" width="18" height="18" />
             </li>
           </template>
         </el-popover>
