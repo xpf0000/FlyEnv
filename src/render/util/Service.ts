@@ -24,79 +24,60 @@ const exec = (
     }
     version.running = true
     const args = JSON.parse(JSON.stringify(version))
-    const appStore = AppStore()
     const taskStore = TaskStore()
     const task = taskStore.module(typeFlag)!
     task.log!.splice(0)
     console.log('exec time: ', new Date().getTime())
+    const brewStore = BrewStore()
+    const handleResult = (run: boolean, pid?: string) => {
+      if (lastVersion && lastVersion?.path) {
+        const find = brewStore
+          .module(typeFlag)
+          .installed?.find(
+            (i) =>
+              i.path === lastVersion.path &&
+              i.version === lastVersion.version &&
+              i.bin === lastVersion.bin
+          )
+        lastVersion.pid = undefined
+        if (find) {
+          find.pid = undefined
+        }
+      }
+
+      const findV = brewStore
+        .module(typeFlag)
+        .installed?.find(
+          (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
+        )
+      version.run = run
+      version.running = false
+      version.pid = pid
+      if (findV) {
+        findV.run = version.run
+        findV.running = false
+        findV.pid = pid
+      }
+    }
     IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion).then((key: string, res: any) => {
       if (res.code === 0) {
         console.log('### key: ', key)
         IPC.off(key)
-
-        const brewStore = BrewStore()
-        if (lastVersion && lastVersion?.path) {
-          const find = brewStore
-            .module(typeFlag)
-            .installed?.find(
-              (i) =>
-                i.path === lastVersion.path &&
-                i.version === lastVersion.version &&
-                i.bin === lastVersion.bin
-            )
-          lastVersion.pid = undefined
-          if (find) {
-            find.pid = undefined
-          }
-        }
-
         const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
-
-        const findV = brewStore
-          .module(typeFlag)
-          .installed?.find(
-            (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
-          )
-        console.log('findV: ', findV === version)
-
-        version.run = fn !== 'stopService'
-        version.running = false
-        version.pid = pid
-        if (findV) {
-          findV.run = version.run
-          findV.running = false
-          findV.pid = pid
-        }
-        if (typeFlag === 'php' && fn === 'startService') {
-          const hosts = appStore.hosts
-          if (hosts && hosts?.[0] && !hosts?.[0]?.phpVersion) {
-            appStore.initHost().then()
-          }
-        }
+        handleResult(fn !== 'stopService', pid)
         resolve(true)
       } else if (res.code === 1) {
         IPC.off(key)
         task.log!.push(res.msg)
-        version.running = false
+        handleResult(false)
         resolve(task.log!.join('\n'))
       } else if (res.code === 200) {
         if (typeof res?.msg === 'string') {
           task.log!.push(res.msg)
         } else if (res?.msg?.['APP-Service-Start-Success'] === true) {
-          const brewStore = BrewStore()
-          const findV = brewStore
-            .module(typeFlag)
-            .installed?.find(
-              (i) =>
-                i.path === version.path && i.version === version.version && i.bin === version.bin
-            )
-          console.log('findV: ', findV === version)
-          version.run = true
-          version.running = false
-          if (findV) {
-            findV.run = version.run
-            findV.running = false
-          }
+          handleResult(true)
+        } else if (res?.msg?.['APP-Service-Stop-Success'] === true) {
+          handleResult(false)
         }
       }
     })

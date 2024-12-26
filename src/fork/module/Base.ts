@@ -24,7 +24,7 @@ export class Base {
   }
 
   initLocalApp(version: SoftInstalled, flag: string) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise((resolve, reject, on) => {
       console.log('initLocalApp: ', version.bin, global.Server.AppDir)
       if (
         !existsSync(version.bin) &&
@@ -32,12 +32,31 @@ export class Base {
       ) {
         const local7ZFile = join(global.Server.Static!, `zip/${flag}-${version.version}.7z`)
         if (existsSync(local7ZFile)) {
+          on({
+            'APP-On-Log': AppLog(
+              'info',
+              I18nT('appLog.serviceUseBundle', { service: `${flag}-${version.version}` })
+            )
+          })
           zipUnPack(
             join(global.Server.Static!, `zip/${flag}-${version.version}.7z`),
             global.Server.AppDir!
           )
-            .then(resolve)
-            .catch(reject)
+            .then(() => {
+              on({
+                'APP-On-Log': AppLog(
+                  'info',
+                  I18nT('appLog.bundleUnzipSuccess', { appDir: version.path })
+                )
+              })
+              resolve(true)
+            })
+            .catch((e) => {
+              on({
+                'APP-On-Log': AppLog('error', I18nT('appLog.bundleUnzipFail', { error: e }))
+              })
+              reject(e)
+            })
           return
         }
       }
@@ -63,7 +82,7 @@ export class Base {
         return
       }
       try {
-        await this._stopServer(version)
+        await this._stopServer(version).on(on)
         const res = await this._startServer(version).on(on)
         resolve(res)
       } catch (e) {
@@ -75,6 +94,9 @@ export class Base {
   _stopServer(version: SoftInstalled) {
     console.log(version)
     return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
+      })
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       if (existsSync(appPidFile)) {
         const pid = (await readFile(appPidFile, 'utf-8')).trim()
@@ -98,6 +120,9 @@ export class Base {
             await execPromiseRoot(command)
           } catch (e) {}
         }
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+        })
         resolve({
           'APP-Service-Stop-PID': pids
         })
@@ -121,6 +146,9 @@ export class Base {
             await execPromiseRoot(command)
           } catch (e) {}
         }
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+        })
         resolve({
           'APP-Service-Stop-PID': pids
         })
@@ -155,6 +183,9 @@ export class Base {
           await execPromiseRoot(command)
         } catch (e) {}
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+      })
       resolve({
         'APP-Service-Stop-PID': pids.map((s) => s.ProcessId)
       })
