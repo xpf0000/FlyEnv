@@ -1,8 +1,8 @@
 import { I18nT } from '../lang'
 import { createWriteStream, existsSync, unlinkSync } from 'fs'
-import { dirname, join } from 'path'
+import { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromiseRoot, getAllFileAsync, uuid, waitTime } from '../Fn'
+import { AppLog, execPromiseRoot, getAllFileAsync, uuid, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { appendFile, copyFile, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
@@ -242,6 +242,10 @@ export class Base {
 
   installSoft(row: any) {
     return new ForkPromise(async (resolve, reject, on) => {
+      const service = basename(row.appDir)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.startInstall', { service }))
+      })
       const refresh = () => {
         row.downloaded = existsSync(row.zip)
         row.installed = existsSync(row.bin)
@@ -391,6 +395,9 @@ php "%~dp0composer.phar" %*`
       }
 
       if (existsSync(row.zip)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.installFromZip', { service }))
+        })
         let success = false
         try {
           if (row.type === 'memcached') {
@@ -415,19 +422,39 @@ php "%~dp0composer.phar" %*`
             await zipUnPack(row.zip, row.appDir)
           }
           success = true
+          refresh()
         } catch (e) {
+          refresh()
           console.log('ERROR: ', e)
+          on({
+            'APP-On-Log': AppLog('error', I18nT('appLog.installFromZipFail', { error: e }))
+          })
         }
         if (success) {
-          refresh()
           row.downState = 'success'
           row.progress = 100
           on(row)
+          if (row.installed) {
+            on({
+              'APP-On-Log': AppLog(
+                'info',
+                I18nT('appLog.installSuccess', { service, appDir: row.appDir })
+              )
+            })
+          } else {
+            on({
+              'APP-On-Log': AppLog('error', I18nT('appLog.installFail', { service, error: 'null' }))
+            })
+          }
           resolve(true)
           return
         }
         unlinkSync(row.zip)
       }
+
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.startDown', { service, url: row.url }))
+      })
 
       axios({
         method: 'get',
@@ -446,6 +473,9 @@ php "%~dp0composer.phar" %*`
           const stream = createWriteStream(row.zip)
           response.data.pipe(stream)
           stream.on('error', (err: any) => {
+            on({
+              'APP-On-Log': AppLog('error', I18nT('appLog.downFail', { service, error: err }))
+            })
             console.log('stream error: ', err)
             row.downState = 'exception'
             try {
@@ -460,6 +490,9 @@ php "%~dp0composer.phar" %*`
             }, 1500)
           })
           stream.on('finish', async () => {
+            on({
+              'APP-On-Log': AppLog('info', I18nT('appLog.downSuccess', { service }))
+            })
             row.downState = 'success'
             try {
               if (existsSync(row.zip)) {
@@ -485,13 +518,36 @@ php "%~dp0composer.phar" %*`
                   await zipUnPack(row.zip, row.appDir)
                 }
               }
-            } catch (e) {}
-            refresh()
+              refresh()
+            } catch (e) {
+              refresh()
+              on({
+                'APP-On-Log': AppLog('info', I18nT('appLog.installFail', { service, error: e }))
+              })
+            }
             on(row)
+            if (row.installed) {
+              on({
+                'APP-On-Log': AppLog(
+                  'info',
+                  I18nT('appLog.installSuccess', { service, appDir: row.appDir })
+                )
+              })
+            } else {
+              on({
+                'APP-On-Log': AppLog(
+                  'error',
+                  I18nT('appLog.installFail', { service, error: 'null' })
+                )
+              })
+            }
             resolve(true)
           })
         })
         .catch((err) => {
+          on({
+            'APP-On-Log': AppLog('error', I18nT('appLog.downFail', { service, error: err }))
+          })
           console.log('down error: ', err)
           row.downState = 'exception'
           try {

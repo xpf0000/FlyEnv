@@ -679,3 +679,8 @@ export const versionInitedApp = async (type: string, bin: string) => {
   })
   return versions
 }
+
+export const AppLog = (type: 'info' | 'error', msg: string) => {
+  const time = new Date().getTime()
+  return `[${type}]${time}:${msg}`
+}
