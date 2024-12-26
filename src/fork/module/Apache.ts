@@ -232,7 +232,12 @@ IncludeOptional "${vhost}*.conf"`
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      console.log('app _startServer time: ', new Date().getTime())
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `apache-${version.version}` })
+        )
+      })
       await this.initLocalApp(version, 'apache').on(on)
       await this.#resetConf(version).on(on)
       on({
