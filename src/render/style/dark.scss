@@ -453,10 +453,7 @@ html.dark {
           .top-tool {
             padding: 4px 0 12px 0;
             justify-content: center;
-
-            >.el-tooltip__trigger {
-              display: none;
-            }
+            flex-direction: column;
           }
 
           .menu {

@@ -8,5 +8,6 @@ export default {
   searchEngine: 'Search Engine',
   dnsServer: 'DNS Server',
   ftpServer: 'FTP Server',
-  other: 'Other'
+  other: 'Other',
+  appLog: 'App Log'
 }
