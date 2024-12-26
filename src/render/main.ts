@@ -12,6 +12,7 @@ import './style/light.scss'
 import { ThemeInit } from '@/util/Theme'
 import { AppToolStore } from '@/components/Tools/store'
 import { SetupStore } from '@/components/Setup/store'
+import { AppLogStore } from '@/components/AppLog/store'
 
 const { getGlobal } = require('@electron/remote')
 global.Server = getGlobal('Server')
@@ -39,6 +40,7 @@ IPC.on('APP-Ready-To-Show').then(() => {
     DnsStore().init()
     AppToolStore.init()
     SetupStore().init()
+    AppLogStore.init().then().catch()
   } else {
     console.log('has inited !!!!')
   }
