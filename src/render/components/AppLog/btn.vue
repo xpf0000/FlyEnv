@@ -1,7 +1,7 @@
 <template>
-  <div class="inline-flex items-center justify-center p-1" @click.stop="showLog()">
+  <el-button class="mr-2" link @click.stop="showLog()">
     <yb-icon :svg="import('@/svg/log1.svg?raw')" width="17" height="17" />
-  </div>
+  </el-button>
 </template>
 <script lang="ts" setup>
   import { AsyncComponentShow } from '@/util/AsyncComponent'
