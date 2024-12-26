@@ -1,13 +1,10 @@
 <template>
   <div class="soft-index-panel main-right-panel">
-    <div class="flex items-center justify-between mt-3">
-      <el-radio-group v-model="tab">
-        <template v-for="(item, index) in tabs" :key="index">
-          <el-radio-button :label="item" :value="index"></el-radio-button>
-        </template>
-      </el-radio-group>
-      <AppLogBtn />
-    </div>
+    <el-radio-group v-model="tab">
+      <template v-for="(item, index) in tabs" :key="index">
+        <el-radio-button :label="item" :value="index"></el-radio-button>
+      </template>
+    </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="nginx" title="Nginx"></Service>
       <Manager
@@ -30,7 +27,6 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@shared/lang'
-  import AppLogBtn from '@/components/AppLog/btn.vue'
 
   const { tab, checkVersion } = AppModuleSetup('nginx')
   const tabs = [
