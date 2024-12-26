@@ -210,7 +210,7 @@ datadir="${dataDir}"`
       const conf =
         'PhpWebStudy-Data' +
         join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
-      const arr: Array<string> = []
+      const arr: Array<number> = []
       let all: PItem[] = []
       try {
         all = await ProcessListSearch(conf, false)

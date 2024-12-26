@@ -91,7 +91,7 @@ class Tomcat extends Base {
       const v = version?.version?.split('.')?.shift() ?? ''
       const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
       const all = await ProcessListSearch(dir, false)
-      const arr: Array<string> = []
+      const arr: Array<number> = []
       all.forEach((item) => {
         arr.push(item.ProcessId)
       })

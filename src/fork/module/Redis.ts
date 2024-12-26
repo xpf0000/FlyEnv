@@ -62,7 +62,7 @@ class Redis extends Base {
       const v = version?.version?.split('.')?.[0] ?? ''
       const appConfName = `pws-app-redis-${v}.conf`
       const all = await ProcessListSearch(appConfName, false)
-      const arr: Array<string> = []
+      const arr: Array<number> = []
       all.forEach((item) => {
         arr.push(item.ProcessId)
       })

@@ -33,7 +33,7 @@ export default class Application extends EventEmitter {
   trayWindow?: BrowserWindow
   forkManager?: ForkManager
   updateManager?: UpdateManager
-  hostServicePID: Set<string> = new Set()
+  hostServicePID: Set<number | string> = new Set()
   constructor() {
     super()
     global.Server = {
@@ -210,8 +210,8 @@ export default class Application extends EventEmitter {
   }
 
   async stopServerByPid() {
-    const arr: Array<string> = []
-    const fpm: Array<string> = []
+    const arr: Array<number> = []
+    const fpm: Array<number> = []
 
     let all: PItem[] = []
     try {
@@ -252,7 +252,7 @@ export default class Application extends EventEmitter {
     if (this.hostServicePID.size === 0) {
       return
     }
-    const all: string[] = await ProcessPidListByPids(Array.from(this.hostServicePID))
+    const all: number[] = await ProcessPidListByPids(Array.from(this.hostServicePID))
     if (all.length > 0) {
       const str = all.map((s) => `/pid ${s}`).join(' ')
       try {
