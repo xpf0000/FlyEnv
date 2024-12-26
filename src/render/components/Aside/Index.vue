@@ -4,16 +4,11 @@
       <ul class="top-tool mt-3 pt-2">
         <el-popover :show-after="800">
           <template #default>
-            <span>{{ I18nT('base.about') }}</span>
+            <span>{{ I18nT('base.appLog') }}</span>
           </template>
           <template #reference>
-            <li @click="toDoc">
-              <yb-icon
-                style="opacity: 0.7"
-                :svg="import('@/svg/question.svg?raw')"
-                width="17"
-                height="17"
-              />
+            <li @click.stop="showLog()">
+              <yb-icon :svg="import('@/svg/log1.svg?raw')" width="19" height="19" />
             </li>
           </template>
         </el-popover>
@@ -55,16 +50,16 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onMounted, ref, watch } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@shared/lang'
   import Router from '@/router/index'
   import { MessageError, MessageSuccess } from '@/util/Element'
-  import Base from '@/core/Base'
   import { AppModules } from '@/core/App'
   import { AppServiceModule, type AppServiceModuleItem } from '@/core/ASide'
   import { AllAppModule, AppModuleTypeList } from '@/core/type'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   let lastTray = ''
 
@@ -141,15 +136,6 @@
     }
   })
 
-  const toDoc = () => {
-    Base.Dialog(import('@/components/About/index.vue'))
-      .className('about-dialog')
-      .title(I18nT('base.about'))
-      .width('665px')
-      .noFooter()
-      .show()
-  }
-
   const groupDo = () => {
     if (groupDisabled.value) {
       return
@@ -204,6 +190,14 @@
         .catch()
       appStore.currentPage = page
     })
+  }
+
+  let LogVM: any
+  import('@/components/AppLog/log.vue').then((res) => {
+    LogVM = res.default
+  })
+  const showLog = () => {
+    AsyncComponentShow(LogVM).then()
   }
 
   IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
