@@ -4,6 +4,7 @@ import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   execPromise,
   execPromiseRoot,
   getAllFileAsync,
@@ -31,7 +32,7 @@ class Apache extends Base {
   }
 
   #resetConf(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       const defaultFile = join(global.Server.ApacheDir!, `${version.version}.conf`)
       const defaultFileBack = join(global.Server.ApacheDir!, `${version.version}.default.conf`)
       const bin = version.bin
@@ -56,6 +57,9 @@ class Apache extends Base {
         resolve(true)
         return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+      })
       // 获取httpd的默认配置文件路径
       let str = ''
       try {
@@ -64,6 +68,9 @@ class Apache extends Base {
         })
         str = res?.stdout?.toString() ?? ''
       } catch (e: any) {
+        on({
+          'APP-On-Log': AppLog('error', I18nT('appLog.confInitFail', { error: e }))
+        })
         reject(new Error(I18nT('fork.apacheLogPathErr')))
         return
       }
@@ -80,6 +87,12 @@ class Apache extends Base {
       console.log('file: ', file)
 
       if (!file || !existsSync(file)) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.confInitFail', { error: I18nT('appLog.confInitFail') })
+          )
+        })
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
@@ -150,6 +163,9 @@ class Apache extends Base {
 IncludeOptional "${vhost}*.conf"`
       await writeFile(defaultFile, content)
       await writeFile(defaultFileBack, content)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: defaultFile }))
+      })
       resolve(true)
     })
   }
@@ -217,12 +233,28 @@ IncludeOptional "${vhost}*.conf"`
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       console.log('app _startServer time: ', new Date().getTime())
-      await this.initLocalApp(version, 'apache')
-      await this.#resetConf(version)
+      await this.initLocalApp(version, 'apache').on(on)
+      await this.#resetConf(version).on(on)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.apachePortHandleBegin'))
+      })
       await this.#handleListenPort(version)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.apachePortHandleEnd'))
+      })
       const bin = version.bin
+      if (!existsSync(bin)) {
+        on({
+          'APP-On-Log': AppLog('error', I18nT('fork.binNoFound'))
+        })
+        reject(new Error(I18nT('fork.binNoFound')))
+        return
+      }
       const conf = join(global.Server.ApacheDir!, `${version.version}.conf`)
       if (!existsSync(conf)) {
+        on({
+          'APP-On-Log': AppLog('error', I18nT('fork.confNoFound'))
+        })
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
@@ -276,6 +308,9 @@ IncludeOptional "${vhost}*.conf"`
         } catch (e) {}
       }
 
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       process.chdir(global.Server.ApacheDir!)
       try {
         await execPromiseRoot(
@@ -283,9 +318,18 @@ IncludeOptional "${vhost}*.conf"`
         )
       } catch (e: any) {
         console.log('-k start err: ', e)
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', { error: e, service: `apache-${version.version}` })
+          )
+        })
         reject(e)
         return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
       on({
         'APP-Service-Start-Success': true
       })
@@ -293,11 +337,23 @@ IncludeOptional "${vhost}*.conf"`
       if (res) {
         if (res?.pid) {
           await writeFile(appPidFile, res.pid)
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+          })
           resolve({
             'APP-Service-Start-PID': res.pid
           })
           return
         }
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.startServiceFail', {
+              error: res?.error ?? 'Start Fail',
+              service: `apache-${version.version}`
+            })
+          )
+        })
         reject(new Error(res?.error ?? 'Start Fail'))
         return
       }
@@ -305,6 +361,12 @@ IncludeOptional "${vhost}*.conf"`
       if (existsSync(startLogFile)) {
         msg = await readFile(startLogFile, 'utf-8')
       }
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.startServiceFail', { error: msg, service: `apache-${version.version}` })
+        )
+      })
       reject(new Error(msg))
     })
   }

@@ -67,6 +67,7 @@
         return
       }
       monacoInstance = EditorCreate(inputDom, EditorConfigMake(logs.value, true, 'on'))
+      monacoInstance.setScrollTop(99999999)
       monacoInstance.onDidScrollChange(() => {
         const scrollTop = monacoInstance!.getScrollTop()
         const contentHeight = monacoInstance!.getContentHeight()
