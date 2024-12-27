@@ -216,11 +216,11 @@ class Manager extends Base {
           tool
         })
       }
+      console.log('localVersion: ', dir, existsSync(dir))
       let res: any
+      process.chdir(dir)
       try {
-        res = await exec(`./${tool}.exe ls`, {
-          cwd: dir
-        })
+        res = await execPromiseRoot(`${tool}.exe ls`)
         console.log('localVersion: ', res)
       } catch (e) {
         console.log('localVersion err: ', e)
