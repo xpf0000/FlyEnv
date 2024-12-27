@@ -8,11 +8,11 @@
             <el-radio-button value="fnm">fnm</el-radio-button>
           </el-radio-group>
         </div>
-        <el-button class="button" :disabled="!tool || !currentTool" link @click="resetData">
+        <el-button class="button" :disabled="btnDisable" link @click="resetData">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="refresh-icon"
-            :class="{ 'fa-spin': loading }"
+            :class="{ 'fa-spin': loading || nodejsStore.toolInstalling[currentTool] }"
           ></yb-icon>
         </el-button>
       </div>
@@ -112,7 +112,7 @@
           </el-table-column>
         </el-table>
       </template>
-      <template v-else-if="!!tool">
+      <template v-else>
         <ToolInstall :tool="currentTool" />
       </template>
     </template>
@@ -151,6 +151,10 @@
   const loading = computed(() => {
     const flag = currentTool.value
     return nodejsStore.fetching[flag]
+  })
+
+  const btnDisable = computed(() => {
+    return loading.value || nodejsStore.toolInstalling[currentTool.value]
   })
 
   const currentItem: ComputedRef<NodeJSItem | undefined> = computed(() => {
