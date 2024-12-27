@@ -3,6 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   execPromiseRoot,
   hostAlias,
   versionBinVersion,
@@ -13,10 +14,11 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod } from 'fs-extra'
+import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
 import { fetchHostList } from './host/HostFile'
+import { I18nT } from '../lang'
 
 class Caddy extends Base {
   constructor() {
@@ -29,10 +31,13 @@ class Caddy extends Base {
   }
 
   initConfig() {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       const baseDir = join(global.Server.BaseDir!, 'caddy')
       const iniFile = join(baseDir, 'Caddyfile')
       if (!existsSync(iniFile)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         const tmplFile = join(global.Server.Static!, 'tmpl/Caddyfile')
         let content = await readFile(tmplFile, 'utf-8')
         const sslDir = join(baseDir, 'ssl')
@@ -47,17 +52,11 @@ class Caddy extends Base {
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'Caddyfile.default')
         await writeFile(defaultIniFile, content)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: iniFile }))
+        })
       }
       resolve(iniFile)
-    })
-  }
-
-  fixLogPermit() {
-    return new ForkPromise(async (resolve) => {
-      const baseDir = join(global.Server.BaseDir!, 'caddy')
-      const logFile = join(baseDir, 'caddy.log')
-      await chmod(logFile, 0o644)
-      resolve(true)
     })
   }
 
@@ -131,20 +130,30 @@ class Caddy extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
-      await this.initLocalApp(version, 'caddy')
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `caddy-${version.version}` })
+        )
+      })
+      await this.initLocalApp(version, 'caddy').on(on)
       const bin = version.bin
       await this.#fixVHost()
-      const iniFile = await this.initConfig()
+      const iniFile = await this.initConfig().on(on)
 
       if (existsSync(this.pidPath)) {
         try {
-          await execPromiseRoot(`del -Force "${this.pidPath}"`)
+          await remove(this.pidPath)
         } catch (e) {}
       }
 
       const startLogFile = join(global.Server.BaseDir!, `caddy/start.log`)
-
+      if (existsSync(startLogFile)) {
+        try {
+          await remove(startLogFile)
+        } catch (e) {}
+      }
       const commands: string[] = [
         '@echo off',
         'chcp 65001>nul',
@@ -163,29 +172,56 @@ class Caddy extends Base {
       await mkdirp(dirname(appPidFile))
       if (existsSync(appPidFile)) {
         try {
-          await execPromiseRoot(`del -Force "${appPidFile}"`)
+          await remove(appPidFile)
         } catch (e) {}
       }
 
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       process.chdir(join(global.Server.BaseDir!, `caddy`))
       try {
         await execPromiseRoot(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
       } catch (e: any) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', { error: e, service: `caddy-${version.version}` })
+          )
+        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
+      on({
+        'APP-Service-Start-Success': true
+      })
       const res = await this.waitPidFile(this.pidPath)
       if (res) {
         if (res?.pid) {
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+          })
           await writeFile(appPidFile, res.pid)
           resolve({
             'APP-Service-Start-PID': res.pid
           })
           return
         }
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.startServiceFail', {
+              error: res?.error ?? 'Start Fail',
+              service: `caddy-${version.version}`
+            })
+          )
+        })
         reject(new Error(res?.error ?? 'Start Fail'))
         return
       }
@@ -193,6 +229,12 @@ class Caddy extends Base {
       if (existsSync(startLogFile)) {
         msg = await readFile(startLogFile, 'utf-8')
       }
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.startServiceFail', { error: msg, service: `caddy-${version.version}` })
+        )
+      })
       reject(new Error(msg))
     })
   }

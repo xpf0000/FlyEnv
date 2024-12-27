@@ -50,7 +50,6 @@ class Manager extends Base {
   start() {
     return new ForkPromise((resolve) => {
       const LOCAL_IP = ip.address()
-      const IS_IPV6 = ip.isV6Format(LOCAL_IP)
       const server = dns2.createServer({
         udp: true,
         handle: (request: any, send: any) => {
@@ -126,14 +125,13 @@ class Manager extends Base {
           // Optionally specify port, address and/or the family of socket() for udp server:
           udp: {
             port: 53,
-            address: LOCAL_IP,
-            type: IS_IPV6 ? 'udp6' : 'udp4' // IPv4 or IPv6 (Must be either "udp4" or "udp6")
+            address: '0.0.0.0'
           },
 
           // Optionally specify port and/or address for tcp server:
           tcp: {
             port: 53,
-            address: LOCAL_IP
+            address: '0.0.0.0'
           }
         })
         .then()

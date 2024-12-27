@@ -3,6 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   execPromiseRoot,
   versionBinVersion,
   versionFilterSame,
@@ -17,6 +18,7 @@ import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
 import { fetchHostList } from './host/HostFile'
+import { I18nT } from '../lang'
 
 class Nginx extends Base {
   constructor() {
@@ -51,9 +53,12 @@ class Nginx extends Base {
   }
 
   #initConfig() {
-    return new Promise((resolve) => {
+    return new ForkPromise((resolve, reject, on) => {
       const conf = join(global.Server.NginxDir!, 'conf/nginx.conf')
       if (!existsSync(conf)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         zipUnPack(join(global.Server.Static!, 'zip/nginx.zip'), global.Server.NginxDir!)
           .then(() => {
             return readFile(conf, 'utf-8')
@@ -68,8 +73,16 @@ class Nginx extends Base {
             const defaultConf = join(global.Server.NginxDir!, 'conf/nginx.conf.default')
             return Promise.all([writeFile(conf, content), writeFile(defaultConf, content)])
           })
-          .then(resolve)
+          .then(() => {
+            on({
+              'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: conf }))
+            })
+            resolve(true)
+          })
           .catch((err: any) => {
+            on({
+              'APP-On-Log': AppLog('error', I18nT('appLog.confInitFail', { error: err }))
+            })
             console.log('initConfig err: ', err)
             resolve(true)
           })
@@ -81,8 +94,14 @@ class Nginx extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.initLocalApp(version, 'nginx')
-      await this.#initConfig()
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `nginx-${version.version}` })
+        )
+      })
+      await this.initLocalApp(version, 'nginx').on(on)
+      await this.#initConfig().on(on)
       await this.#handlePhpEnableConf()
       console.log('_startServer: ', version)
       const bin = version.bin
@@ -125,28 +144,52 @@ class Nginx extends Base {
         } catch (e) {}
       }
 
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       process.chdir(global.Server.NginxDir!)
       try {
         await execPromiseRoot(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
       } catch (e: any) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', { error: e, service: `nginx-${version.version}` })
+          )
+        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
       on({
         'APP-Service-Start-Success': true
       })
       const res = await this.waitPidFile(pid)
       if (res) {
         if (res?.pid) {
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+          })
           await writeFile(appPidFile, res.pid)
           resolve({
             'APP-Service-Start-PID': res.pid
           })
           return
         }
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.startServiceFail', {
+              error: res?.error ?? 'Start Fail',
+              service: `nginx-${version.version}`
+            })
+          )
+        })
         reject(new Error(res?.error ?? 'Start Fail'))
         return
       }
@@ -154,6 +197,12 @@ class Nginx extends Base {
       if (existsSync(startLogFile)) {
         msg = await readFile(startLogFile, 'utf-8')
       }
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.startServiceFail', { error: msg, service: `nginx-${version.version}` })
+        )
+      })
       reject(new Error(msg))
     })
   }

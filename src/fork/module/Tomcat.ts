@@ -4,6 +4,7 @@ import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   execPromiseRoot,
   versionBinVersion,
   versionFilterSame,
@@ -11,11 +12,12 @@ import {
   versionLocalFetch,
   versionSort
 } from '../Fn'
-import { copyFile, mkdirp, readFile, writeFile } from 'fs-extra'
+import { copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { makeGlobalTomcatServerXML } from './service/ServiceItemJavaTomcat'
 import { EOL } from 'os'
 import { ProcessListSearch } from '../Process'
+import { I18nT } from '../lang'
 
 class Tomcat extends Base {
   constructor() {
@@ -57,37 +59,51 @@ class Tomcat extends Base {
     }
   }
 
-  async _initDefaultDir(version: SoftInstalled) {
-    const v = version?.version?.split('.')?.shift() ?? ''
-    const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
-    if (existsSync(dir) && existsSync(join(dir, 'conf/server.xml'))) {
-      return dir
-    }
-    const files = [
-      'catalina.properties',
-      'context.xml',
-      'jaspic-providers.xml',
-      'jaspic-providers.xsd',
-      'tomcat-users.xml',
-      'tomcat-users.xsd',
-      'logging.properties',
-      'web.xml',
-      'server.xml'
-    ]
-    const fromConfDir = join(dirname(dirname(version.bin)), 'conf')
-    const toConfDir = join(dir, 'conf')
-    await mkdirp(toConfDir)
-    for (const file of files) {
-      const src = join(fromConfDir, file)
-      if (existsSync(src)) {
-        await copyFile(src, join(toConfDir, file))
+  _initDefaultDir(version: SoftInstalled) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      const v = version?.version?.split('.')?.shift() ?? ''
+      const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+      if (existsSync(dir) && existsSync(join(dir, 'conf/server.xml'))) {
+        resolve(dir)
       }
-    }
-    return dir
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+      })
+      const files = [
+        'catalina.properties',
+        'context.xml',
+        'jaspic-providers.xml',
+        'jaspic-providers.xsd',
+        'tomcat-users.xml',
+        'tomcat-users.xsd',
+        'logging.properties',
+        'web.xml',
+        'server.xml'
+      ]
+      const fromConfDir = join(dirname(dirname(version.bin)), 'conf')
+      const toConfDir = join(dir, 'conf')
+      await mkdirp(toConfDir)
+      for (const file of files) {
+        const src = join(fromConfDir, file)
+        if (existsSync(src)) {
+          await copyFile(src, join(toConfDir, file))
+        }
+      }
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.confInitSuccess', { file: join(dir, 'conf/server.xml') })
+        )
+      })
+      resolve(dir)
+    })
   }
 
   _stopServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
+      })
       const v = version?.version?.split('.')?.shift() ?? ''
       const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
       const all = await ProcessListSearch(dir, false)
@@ -102,6 +118,9 @@ class Tomcat extends Base {
           await execPromiseRoot(`taskkill /f /t ${str}`)
         } catch (e) {}
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+      })
       resolve({
         'APP-Service-Stop-PID': arr
       })
@@ -109,10 +128,16 @@ class Tomcat extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
       const bin = version.bin
       await this._fixStartBat(version)
-      const baseDir = await this._initDefaultDir(version)
+      const baseDir = await this._initDefaultDir(version).on(on)
       await makeGlobalTomcatServerXML({
         path: baseDir
       } as any)
@@ -138,18 +163,33 @@ class Tomcat extends Base {
       await mkdirp(dirname(appPidFile))
       if (existsSync(appPidFile)) {
         try {
-          await execPromiseRoot(`del -Force "${appPidFile}"`)
+          await remove(appPidFile)
         } catch (e) {}
       }
 
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       process.chdir(tomcatDir)
       try {
         const res = await execPromiseRoot(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.stdout }))
+        })
         console.log('tomcat start res: ', res.stdout)
         resolve(true)
       } catch (e: any) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', {
+              error: e,
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
         console.log('-k start err: ', e)
         reject(e)
         return

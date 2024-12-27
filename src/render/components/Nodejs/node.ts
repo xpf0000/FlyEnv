@@ -22,9 +22,13 @@ interface State {
   toolInstalling: boolean
   toolInstallEnd: boolean
   logs: string[]
+  NVM_HOME: string
+  FNM_HOME: string
 }
 
 const state: State = {
+  NVM_HOME: '',
+  FNM_HOME: '',
   tool: '',
   fetching: {
     nvm: false,
@@ -51,19 +55,20 @@ export const NodejsStore = defineStore('nodejs', {
   state: (): State => state,
   getters: {},
   actions: {
-    doInstallTool(form: { tool: 'fnm' | 'nvm'; installBy: 'shell' | 'brew' | 'port' }) {
+    doInstallTool(tool: 'fnm' | 'nvm') {
       if (this.toolInstalling) {
         return undefined
       }
       this.toolInstalling = true
       this.logs.splice(0)
-      const flag = form.tool
       return new Promise((resolve, reject) => {
-        IPC.send('app-fork:node', 'installNvm', flag).then((key: string, res: any) => {
+        IPC.send('app-fork:node', 'installNvm', tool).then((key: string, res: any) => {
           if (res?.code === 0) {
             IPC.off(key)
             MessageSuccess(I18nT('base.success'))
-            this.fetchData(form.tool, true)
+            this.chekTool()
+            this.fetchData(tool, true)
+            this.toolInstalling = false
             this.toolInstallEnd = true
             resolve(true)
           } else if (res?.code === 1) {
@@ -79,7 +84,8 @@ export const NodejsStore = defineStore('nodejs', {
     },
     installOrUninstall(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', item: any) {
       item.installing = true
-      IPC.send('app-fork:node', 'installOrUninstall', tool, action, item.version).then(
+      const dir = tool === 'fnm' ? this.FNM_HOME : this.NVM_HOME
+      IPC.send('app-fork:node', 'installOrUninstall', tool, action, item.version, dir).then(
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
@@ -97,7 +103,8 @@ export const NodejsStore = defineStore('nodejs', {
     versionChange(tool: 'fnm' | 'nvm', item: any) {
       this.switching = true
       item.switching = true
-      IPC.send('app-fork:node', 'versionChange', tool, item.version).then(
+      const dir = tool === 'fnm' ? this.FNM_HOME : this.NVM_HOME
+      IPC.send('app-fork:node', 'versionChange', tool, item.version, dir).then(
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
@@ -119,8 +126,8 @@ export const NodejsStore = defineStore('nodejs', {
       this.fetching[tool] = true
       let allFetch = false
       let localFetch = false
-
-      IPC.send('app-fork:node', 'allVersion', tool).then((key: string, res: any) => {
+      const dir = tool === 'fnm' ? this.FNM_HOME : this.NVM_HOME
+      IPC.send('app-fork:node', 'allVersion', tool, dir).then((key: string, res: any) => {
         IPC.off(key)
         const item: NodeJSItem = this?.[tool]
         item.all.splice(0)
@@ -131,7 +138,7 @@ export const NodejsStore = defineStore('nodejs', {
         }
       })
 
-      IPC.send('app-fork:node', 'localVersion', tool).then((key: string, res: any) => {
+      IPC.send('app-fork:node', 'localVersion', tool, dir).then((key: string, res: any) => {
         IPC.off(key)
         const item: NodeJSItem = this?.[tool]
         item.local.splice(0)
@@ -147,8 +154,9 @@ export const NodejsStore = defineStore('nodejs', {
     chekTool() {
       IPC.send('app-fork:node', 'nvmDir').then((key: string, res: any) => {
         IPC.off(key)
-        this.tool = res?.data ?? ''
-        this.showInstall = !this.tool
+        this.tool = res?.data?.tool ?? ''
+        this.NVM_HOME = res?.data?.NVM_HOME ?? ''
+        this.FNM_HOME = res?.data?.FNM_HOME ?? ''
       })
     }
   }

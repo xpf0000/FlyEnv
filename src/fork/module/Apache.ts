@@ -125,6 +125,7 @@ class Apache extends Base {
         .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')
         .replace('#LoadModule ssl_module', 'LoadModule ssl_module')
         .replace('#LoadModule access_compat_module', 'LoadModule access_compat_module')
+        .replace('#LoadModule rewrite_module modules', 'LoadModule rewrite_module modules')
         .replace('#ServerName www.', 'ServerName www.')
 
       if (logPath) {
@@ -264,18 +265,6 @@ IncludeOptional "${vhost}*.conf"`
         return
       }
 
-      process.chdir(dirname(bin))
-      let command = `${basename(bin)} -k uninstall`
-      try {
-        await execPromiseRoot(command)
-      } catch (e) {}
-
-      process.chdir(dirname(bin))
-      command = `${basename(bin)} -k install`
-      try {
-        await execPromiseRoot(command)
-      } catch (e) {}
-
       const pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
       if (existsSync(pidPath)) {
         try {
@@ -295,10 +284,10 @@ IncludeOptional "${vhost}*.conf"`
         '@echo off',
         'chcp 65001>nul',
         `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} -f "${conf}" -k start > "${startLogFile}" 2>"${startErrLogFile}" &`
+        `start /B ./${basename(bin)} -f "${conf}" > "${startLogFile}" 2>"${startErrLogFile}" &`
       ]
 
-      command = commands.join(EOL)
+      const command = commands.join(EOL)
       console.log('command: ', command)
 
       const cmdName = `start.cmd`

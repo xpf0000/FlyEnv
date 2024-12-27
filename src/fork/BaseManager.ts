@@ -16,7 +16,6 @@ class BaseManager {
   Version: any
   Project: any
   Tool: any
-  MacPorts: any
   Caddy: any
   Composer: any
   Java: any
@@ -150,12 +149,6 @@ class BaseManager {
         this.Tool = res.default
       }
       doRun(this.Tool)
-    } else if (module === 'macports') {
-      if (!this.MacPorts) {
-        const res = await import('./module/MacPorts')
-        this.MacPorts = res.default
-      }
-      doRun(this.MacPorts)
     } else if (module === 'caddy') {
       if (!this.Caddy) {
         const res = await import('./module/Caddy')

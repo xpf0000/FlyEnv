@@ -37,23 +37,6 @@ export default {
 
   mysqlPopperSocket: '复制socket路径',
 
-  macPortsSrcSwitch: 'MacPorts镜像切换',
-
-  macPortsSrcDefault: '默认',
-  macPortsSrcAustraliBrisbane: '澳大利亚，布里斯班',
-  macPortsSrcCanadaManitoba: '加拿大，马尼托巴',
-  macPortsSrcCanadaWaterloo: '加拿大，沃特卢',
-  macPortsSrcChinaBeijing: '中国, 北京',
-  macPortsSrcDenmarkCopenhagen: '丹麦, 哥本哈根',
-  macPortsSrcGermanyErlangen: '德国，埃尔兰根',
-  macPortsSrcGermanyLimburg: '德国, 林堡',
-  macPortsSrcIndonesiaYogyakarta: '印度尼西亚, 日惹',
-  macPortsSrcJapanNomiIshikawa: '日本, 野见, 石川县',
-  macPortsSrcSouthAfricaJohannesburg: '南非，约翰内斯堡',
-  macPortsSrcSouthKoreaDaejeon: '韩国，大田',
-  macPortsSrcUnitedKingdomCanterbury: '英国，坎特伯雷',
-  macPortsSrcUnitedStatesGeorgia: '美国，佐治亚州',
-
   nodeToolInstall: '安装NodeJS版本管理工具',
   nodeToolChoose: '工具选择',
   nodeToolInstallBy: '安装方式',

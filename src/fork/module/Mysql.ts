@@ -11,7 +11,8 @@ import {
   versionBinVersion,
   versionFixed,
   versionInitedApp,
-  versionSort
+  versionSort,
+  AppLog
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, remove, readFile } from 'fs-extra'
@@ -30,17 +31,36 @@ class Mysql extends Base {
   }
 
   _initPassword(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.initDBPass'))
+      })
       const bin = join(dirname(version.bin), 'mysqladmin.exe')
       if (existsSync(bin)) {
         process.chdir(dirname(bin))
         try {
           await execPromiseRoot(`mysqladmin.exe -uroot password "root"`)
         } catch (e) {
+          on({
+            'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: e }))
+          })
           console.log('_initPassword err: ', e)
           reject(e)
           return
         }
+        on({
+          'APP-On-Log': AppLog(
+            'info',
+            I18nT('appLog.initDBPassSuccess', { user: 'root', pass: 'root' })
+          )
+        })
+      } else {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.initDBPassFail', { error: 'mysqladmin.exe not found' })
+          )
+        })
       }
       resolve(true)
     })
@@ -48,23 +68,30 @@ class Mysql extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.initLocalApp(version, 'mysql')
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
+      await this.initLocalApp(version, 'mysql').on(on)
       const bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
-      const oldm = join(global.Server.MysqlDir!, 'my.cnf')
       const dataDir = join(global.Server.MysqlDir!, `data-${v}`).split('\\').join('/')
       if (!existsSync(m)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         const conf = `[mysqld]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-#设置数据目录
-#brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
-#如果配置文件已更改, 原配置文件在: ${oldm}
-#可以复制原配置文件的内容, 使用原来的配置
 datadir="${dataDir}"`
         await writeFile(m, conf)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: m }))
+        })
       }
 
       const p = join(global.Server.MysqlDir!, 'mysql.pid')
@@ -85,7 +112,7 @@ datadir="${dataDir}"`
         return new Promise(async (resolve, reject) => {
           if (existsSync(p)) {
             try {
-              await execPromiseRoot(`del -Force "${p}"`)
+              await remove(p)
             } catch (e) {}
           }
 
@@ -93,7 +120,7 @@ datadir="${dataDir}"`
           const startErrLogFile = join(global.Server.MysqlDir!, `start.error.log`)
           if (existsSync(startErrLogFile)) {
             try {
-              await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+              await remove(startErrLogFile)
             } catch (e) {}
           }
 
@@ -125,41 +152,83 @@ datadir="${dataDir}"`
           await mkdirp(dirname(appPidFile))
           if (existsSync(appPidFile)) {
             try {
-              await execPromiseRoot(`del -Force "${appPidFile}"`)
+              await remove(appPidFile)
             } catch (e) {}
           }
 
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+          })
           process.chdir(global.Server.MysqlDir!)
           try {
             await execPromiseRoot(
               `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
             )
           } catch (e: any) {
+            on({
+              'APP-On-Log': AppLog(
+                'error',
+                I18nT('appLog.execStartCommandFail', {
+                  error: e,
+                  service: `${this.type}-${version.version}`
+                })
+              )
+            })
             console.log('-k start err: ', e)
             reject(e)
             return
           }
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+          })
+          on({
+            'APP-Service-Start-Success': true
+          })
           const res = await this.waitPidFile(p)
           if (res) {
             if (res?.pid) {
+              on({
+                'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+              })
               await writeFile(appPidFile, res.pid)
               resolve({
                 'APP-Service-Start-PID': res.pid
               })
               return
             }
+            on({
+              'APP-On-Log': AppLog(
+                'error',
+                I18nT('appLog.startServiceFail', {
+                  error: res?.error ?? 'Start Fail',
+                  service: `${this.type}-${version.version}`
+                })
+              )
+            })
             reject(new Error(res?.error ?? 'Start Fail'))
             return
           }
           let msg = 'Start Fail'
-          if (existsSync(startLogFile)) {
-            msg = await readFile(startLogFile, 'utf-8')
+          if (existsSync(startErrLogFile)) {
+            msg = await readFile(startErrLogFile, 'utf-8')
           }
+          on({
+            'APP-On-Log': AppLog(
+              'error',
+              I18nT('appLog.startServiceFail', {
+                error: msg,
+                service: `${this.type}-${version.version}`
+              })
+            )
+          })
           reject(new Error(msg))
         })
       }
 
       if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDir'))
+        })
         await mkdirp(dataDir)
         try {
           await chmod(dataDir, '0777')
@@ -183,14 +252,20 @@ datadir="${dataDir}"`
           console.log('init res: ', res)
           on(res.stdout)
         } catch (e: any) {
+          on({
+            'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
+          })
           reject(e)
           return
         }
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDirSuccess', { dir: dataDir }))
+        })
         await waitTime(500)
         try {
           const res = await doStart()
           await waitTime(500)
-          await this._initPassword(version)
+          await this._initPassword(version).on(on)
           on(I18nT('fork.postgresqlInit', { dir: dataDir }))
           resolve(res)
         } catch (e) {
@@ -264,7 +339,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         return new Promise(async (resolve, reject) => {
           if (existsSync(p)) {
             try {
-              await execPromiseRoot(`del -Force "${p}"`)
+              await remove(p)
             } catch (e) {}
           }
 
@@ -272,7 +347,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           const startErrLogFile = join(global.Server.MysqlDir!, `start.error.${id}.log`)
           if (existsSync(startErrLogFile)) {
             try {
-              await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+              await remove(startErrLogFile)
             } catch (e) {}
           }
           const params = [

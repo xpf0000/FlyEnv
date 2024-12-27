@@ -8,6 +8,7 @@ import { appendFile, copyFile, mkdirp, readdir, readFile, remove, writeFile } fr
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { ProcessListSearch, ProcessPidList, ProcessPidListByPid } from '../Process'
+import TaskQueue from '../TaskQueue'
 
 export class Base {
   type: string
@@ -111,15 +112,7 @@ export class Base {
         on({
           'APP-Service-Stop-Success': true
         })
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-        if (this.type === 'apache') {
-          const command = `${version.bin} -k uninstall`
-          try {
-            await execPromiseRoot(command)
-          } catch (e) {}
-        }
+        TaskQueue.run(remove, appPidFile).then().catch()
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
         })
@@ -140,12 +133,6 @@ export class Base {
         on({
           'APP-Service-Stop-Success': true
         })
-        if (this.type === 'apache') {
-          const command = `${version.bin} -k uninstall`
-          try {
-            await execPromiseRoot(command)
-          } catch (e) {}
-        }
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
         })
@@ -175,12 +162,6 @@ export class Base {
         const str = all.map((s) => `/pid ${s.ProcessId}`).join(' ')
         try {
           await execPromiseRoot(`taskkill /f /t ${str}`)
-        } catch (e) {}
-      }
-      if (this.type === 'apache') {
-        const command = `${version.bin} -k uninstall`
-        try {
-          await execPromiseRoot(command)
         } catch (e) {}
       }
       on({

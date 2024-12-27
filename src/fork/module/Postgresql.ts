@@ -4,6 +4,7 @@ import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   execPromiseRoot,
   versionBinVersion,
   versionFilterSame,
@@ -13,7 +14,7 @@ import {
   waitTime
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, readFile, writeFile, mkdirp } from 'fs-extra'
+import { copyFile, readFile, writeFile, mkdirp, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
 
@@ -27,6 +28,12 @@ class Manager extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
@@ -38,7 +45,7 @@ class Manager extends Base {
       const doRun = async () => {
         if (existsSync(pidFile)) {
           try {
-            await execPromiseRoot(`del -Force "${pidFile}"`)
+            await remove(pidFile)
           } catch (e) {}
         }
 
@@ -46,7 +53,7 @@ class Manager extends Base {
         const startErrLogFile = join(global.Server.PostgreSqlDir!, `start.error.log`)
         if (existsSync(startErrLogFile)) {
           try {
-            await execPromiseRoot(`del -Force "${startErrLogFile}"`)
+            await remove(startErrLogFile)
           } catch (e) {}
         }
 
@@ -68,20 +75,38 @@ class Manager extends Base {
         await mkdirp(dirname(appPidFile))
         if (existsSync(appPidFile)) {
           try {
-            await execPromiseRoot(`del -Force "${appPidFile}"`)
+            await remove(appPidFile)
           } catch (e) {}
         }
 
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+        })
         process.chdir(global.Server.PostgreSqlDir!)
         try {
           await execPromiseRoot(
             `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
           )
         } catch (e: any) {
+          on({
+            'APP-On-Log': AppLog(
+              'error',
+              I18nT('appLog.execStartCommandFail', {
+                error: e,
+                service: `${this.type}-${version.version}`
+              })
+            )
+          })
           console.log('-k start err: ', e)
           reject(e)
           return
         }
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+        })
+        on({
+          'APP-Service-Start-Success': true
+        })
         const res = await this.waitPidFile(pidFile)
         if (res) {
           if (res?.pid) {
@@ -90,24 +115,48 @@ class Manager extends Base {
             }
             const pid = res.pid.trim().split('\n').shift()!.trim()
             await writeFile(appPidFile, pid)
+            on({
+              'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+            })
             resolve({
               'APP-Service-Start-PID': pid
             })
             return
           }
+          on({
+            'APP-On-Log': AppLog(
+              'error',
+              I18nT('appLog.startServiceFail', {
+                error: res?.error ?? 'Start Fail',
+                service: `${this.type}-${version.version}`
+              })
+            )
+          })
           reject(new Error(res?.error ?? 'Start Fail'))
           return
         }
         let msg = 'Start Fail'
-        if (existsSync(startLogFile)) {
-          msg = await readFile(startLogFile, 'utf-8')
+        if (existsSync(startErrLogFile)) {
+          msg = await readFile(startErrLogFile, 'utf-8')
         }
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.startServiceFail', {
+              error: msg,
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
         reject(new Error(msg))
       }
 
       if (existsSync(confFile)) {
         await doRun()
       } else if (!existsSync(dbPath)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDir'))
+        })
         process.env.LC_ALL = global.Server.Local!
         process.env.LANG = global.Server.Local!
 
@@ -120,14 +169,26 @@ class Manager extends Base {
         try {
           await execPromiseRoot(command)
         } catch (e) {
+          on({
+            'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
+          })
           reject(e)
           return
         }
         await waitTime(1000)
         if (!existsSync(confFile)) {
+          on({
+            'APP-On-Log': AppLog(
+              'error',
+              I18nT('appLog.initDBDataDirFail', { error: `Data Dir ${dbPath} create faild` })
+            )
+          })
           reject(new Error(`Data Dir ${dbPath} create faild`))
           return
         }
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDirSuccess', { dir: dbPath }))
+        })
         let conf = await readFile(confFile, 'utf-8')
         let find = conf.match(/lc_messages = '(.*?)'/g)
         conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_messages = '${global.Server.Local}'`)

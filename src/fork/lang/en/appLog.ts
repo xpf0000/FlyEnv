@@ -28,5 +28,19 @@ export default {
   startServiceFail: '{service} service failed to start, reason: {error}',
 
   stopServiceBegin: 'Start stopping {service} service',
-  stopServiceEnd: '{service} service stopped successfully'
+  stopServiceEnd: '{service} service stopped successfully',
+
+  initDBPass: 'Start initializing database password',
+  initDBPassSuccess: 'Initialize database password successfully, account password: {user} {pass}',
+  initDBPassFail: 'Failed to initialize database password, reason: {error}',
+  initDBDataDir: 'Data folder not found, start initializing data folder',
+  initDBDataDirSuccess: 'Initialization of data folder successful, data folder path: {dir}',
+  initDBDataDirFail: 'Initialization of data folder failed, reason: {error}',
+
+  initPlugin: 'Start initializing the plugin and execute the command: {command}',
+  initPluginSuccess: 'Initialization plugin successful',
+  initPluginFail: 'Initialization plugin failed, reason: {error}',
+
+  erlangEnvInit: 'Attempt to initialize the Erlang runtime environment',
+  erlangEnvInitEnd: 'Initialization of Erlang runtime environment completed'
 }
