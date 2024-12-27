@@ -21,6 +21,7 @@ interface State {
   nvm: NodeJSItem
   showInstall: boolean
   switching: boolean
+  allFetching: boolean
 }
 
 const state: State = {
@@ -41,7 +42,8 @@ const state: State = {
     current: ''
   },
   showInstall: false,
-  switching: false
+  switching: false,
+  allFetching: false
 }
 
 export const NodejsStore = defineStore('nodejs', {
@@ -89,7 +91,8 @@ export const NodejsStore = defineStore('nodejs', {
       }
       this.fetching[tool] = true
       const time = Math.round(new Date().getTime() / 1000)
-      if (time > this.allVersion.expire) {
+      if (time > this.allVersion.expire && !this.allFetching) {
+        this.allFetching = true
         IPC.send('app-fork:node', 'allVersion', tool).then((key: string, res: any) => {
           IPC.off(key)
           const list = res?.data?.all ?? []
@@ -98,6 +101,7 @@ export const NodejsStore = defineStore('nodejs', {
             this.allVersion.list.push(...list)
             this.allVersion.expire = Math.round(new Date().getTime() / 1000) + 2 * 60 * 60
           }
+          this.allFetching = false
         })
       }
 

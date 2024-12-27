@@ -1,5 +1,6 @@
 import { Base } from './Base'
-import { execPromise, execPromiseRoot } from '../Fn'
+import { execPromiseRoot } from '../Fn'
+import { exec } from 'child-process-promise'
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join } from 'path'
 import { compareVersions } from 'compare-versions'
@@ -149,7 +150,7 @@ class Manager extends Base {
         const nvmDir = join(global.Server.AppDir!, 'fnm')
         let content = await readFile(installcmd, 'utf-8')
         content = content.replace('##FNM_PATH##', nvmDir)
-        let profile: any = await execPromise('$profile', { shell: 'powershell.exe' })
+        let profile: any = await exec('$profile', { shell: 'powershell.exe' })
         profile = profile.stdout.trim()
         const profile_root = profile.replace('WindowsPowerShell', 'PowerShell')
         await mkdirp(dirname(profile))
@@ -217,7 +218,7 @@ class Manager extends Base {
       }
       let res: any
       try {
-        res = await execPromise(`${tool}.exe ls`, {
+        res = await exec(`${tool}.exe ls`, {
           cwd: dir
         })
         console.log('localVersion: ', res)
@@ -290,7 +291,7 @@ class Manager extends Base {
         command = `nvm.exe use ${select}`
       }
       try {
-        await execPromise(command, {
+        await exec(command, {
           cwd: dir
         })
         const { current }: any = await this.localVersion(tool)
@@ -326,7 +327,7 @@ class Manager extends Base {
         command = `nvm.exe ${action} ${version}`
       }
       try {
-        await execPromise(command, {
+        await exec(command, {
           cwd: dir
         })
         const { versions, current }: { versions: Array<string>; current: string } =
@@ -354,7 +355,7 @@ class Manager extends Base {
       let fnmDir = ''
       try {
         fnmDir = (
-          await execPromise(`echo %FNM_DIR%`, {
+          await exec(`echo %FNM_DIR%`, {
             shell: 'cmd.exe'
           })
         ).stdout.trim()
@@ -365,7 +366,7 @@ class Manager extends Base {
       if (!fnmDir) {
         try {
           fnmDir = (
-            await execPromise(`$env:FNM_DIR`, {
+            await exec(`$env:FNM_DIR`, {
               shell: 'powershell.exe'
             })
           ).stdout.trim()
@@ -397,7 +398,7 @@ class Manager extends Base {
       let nvmDir = ''
       try {
         nvmDir = (
-          await execPromise(`nvm root`, {
+          await exec(`nvm root`, {
             shell: 'cmd.exe'
           })
         ).stdout
@@ -407,7 +408,7 @@ class Manager extends Base {
       if (!nvmDir) {
         try {
           nvmDir = (
-            await execPromise(`nvm root`, {
+            await exec(`nvm root`, {
               shell: 'powershell.exe'
             })
           ).stdout
