@@ -290,10 +290,9 @@ class Manager extends Base {
       } else {
         command = `nvm.exe use ${select}`
       }
+      process.chdir(dir)
       try {
-        await exec(command, {
-          cwd: dir
-        })
+        await execPromiseRoot(command)
         const { current }: any = await this.localVersion(tool)
         if (current === select) {
           resolve(true)
@@ -326,10 +325,9 @@ class Manager extends Base {
       } else {
         command = `nvm.exe ${action} ${version}`
       }
+      process.chdir(dir)
       try {
-        await exec(command, {
-          cwd: dir
-        })
+        await execPromiseRoot(command)
         const { versions, current }: { versions: Array<string>; current: string } =
           (await this.localVersion(tool)) as any
         if (
