@@ -8,75 +8,59 @@
             <el-radio-button value="fnm">fnm</el-radio-button>
           </el-radio-group>
         </div>
-        <el-button class="button" :disabled="btnDisable" link @click="resetData">
+        <el-button class="button" :disabled="loading" link @click="resetData">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="refresh-icon"
-            :class="{ 'fa-spin': loading || nodejsStore.toolInstalling[currentTool] }"
+            :class="{ 'fa-spin': loading }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
     <template #default>
-      <template v-if="tool === currentTool || tool === 'all'">
-        <el-table v-loading="loading" class="nodejs-table" :data="tableData">
-          <el-table-column :label="$t('base.version')" prop="version">
-            <template #header>
-              <div class="w-p100 name-cell">
-                <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
-                  $t('base.version')
-                }}</span>
-                <el-input v-model.trim="search" placeholder="search" clearable></el-input>
-              </div>
+      <el-table v-loading="loading" class="nodejs-table" :data="tableData">
+        <el-table-column :label="$t('base.version')" prop="version">
+          <template #header>
+            <div class="w-p100 name-cell">
+              <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
+                I18nT('base.version' as any)
+              }}</span>
+              <el-input v-model.trim="search" placeholder="search" clearable></el-input>
+            </div>
+          </template>
+          <template #default="scope">
+            <span
+              style="display: inline-flex; align-items: center; padding: 2px 12px 2px 50px"
+              :class="{ current: currentItem?.current === scope.row.version }"
+              >{{ scope.row.version }}</span
+            >
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('util.nodeListCellCurrent')" :prop="null" align="center">
+          <template #default="scope">
+            <template v-if="currentItem?.current === scope.row.version">
+              <el-button link>
+                <yb-icon
+                  class="current"
+                  :svg="import('@/svg/select.svg?raw')"
+                  width="17"
+                  height="17"
+                />
+              </el-button>
             </template>
-            <template #default="scope">
-              <span
-                style="display: inline-flex; align-items: center; padding: 2px 12px 2px 50px"
-                :class="{ current: currentItem?.current === scope.row.version }"
-                >{{ scope.row.version }}</span
-              >
-            </template>
-          </el-table-column>
-          <el-table-column :label="$t('util.nodeListCellCurrent')" :prop="null" align="center">
-            <template #default="scope">
-              <template v-if="currentItem?.current === scope.row.version">
-                <el-button link>
-                  <yb-icon
-                    class="current"
-                    :svg="import('@/svg/select.svg?raw')"
-                    width="17"
-                    height="17"
-                  />
-                </el-button>
+            <template v-else-if="scope.row.installed">
+              <template v-if="scope.row.switching">
+                <el-button :loading="true" link></el-button>
               </template>
-              <template v-else-if="scope.row.installed">
-                <template v-if="scope.row.switching">
-                  <el-button :loading="true" link></el-button>
-                </template>
-                <template v-else>
-                  <el-button
-                    v-if="!switching"
-                    link
-                    class="current-set"
-                    @click.stop="doUse(scope.row)"
-                  >
-                    <yb-icon
-                      class="current-not"
-                      :svg="import('@/svg/select.svg?raw')"
-                      width="20"
-                      height="20"
-                    />
-                  </el-button>
-                </template>
-              </template>
-            </template>
-          </el-table-column>
-          <el-table-column :label="$t('util.nodeListCellInstalled')" :prop="null" align="center">
-            <template #default="scope">
-              <template v-if="scope.row.installed">
-                <el-button link>
+              <template v-else>
+                <el-button
+                  v-if="!switching"
+                  link
+                  class="current-set"
+                  @click.stop="doUse(scope.row)"
+                >
                   <yb-icon
-                    class="installed"
+                    class="current-not"
                     :svg="import('@/svg/select.svg?raw')"
                     width="20"
                     height="20"
@@ -84,37 +68,48 @@
                 </el-button>
               </template>
             </template>
-          </el-table-column>
-          <el-table-column :label="$t('base.operation')" width="140px" :prop="null" align="center">
-            <template #default="scope">
-              <template v-if="scope.row.installing">
-                <el-button :loading="true" link></el-button>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('util.nodeListCellInstalled')" :prop="null" align="center">
+          <template #default="scope">
+            <template v-if="scope.row.installed">
+              <el-button link>
+                <yb-icon
+                  class="installed"
+                  :svg="import('@/svg/select.svg?raw')"
+                  width="20"
+                  height="20"
+                />
+              </el-button>
+            </template>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('base.operation')" width="140px" :prop="null" align="center">
+          <template #default="scope">
+            <template v-if="scope.row.installing">
+              <el-button :loading="true" link></el-button>
+            </template>
+            <template v-else>
+              <template v-if="scope.row.installed">
+                <el-button
+                  type="primary"
+                  link
+                  @click.stop="doInstallOrUninstall('uninstall', scope.row)"
+                  >{{ I18nT('base.uninstall') }}</el-button
+                >
               </template>
               <template v-else>
-                <template v-if="scope.row.installed">
-                  <el-button
-                    type="primary"
-                    link
-                    @click.stop="doInstallOrUninstall('uninstall', scope.row)"
-                    >{{ $t('base.uninstall') }}</el-button
-                  >
-                </template>
-                <template v-else>
-                  <el-button
-                    type="primary"
-                    link
-                    @click.stop="doInstallOrUninstall('install', scope.row)"
-                    >{{ $t('base.install') }}</el-button
-                  >
-                </template>
+                <el-button
+                  type="primary"
+                  link
+                  @click.stop="doInstallOrUninstall('install', scope.row)"
+                  >{{ I18nT('base.install') }}</el-button
+                >
               </template>
             </template>
-          </el-table-column>
-        </el-table>
-      </template>
-      <template v-else>
-        <ToolInstall :tool="currentTool" />
-      </template>
+          </template>
+        </el-table-column>
+      </el-table>
     </template>
   </el-card>
 </template>
@@ -123,20 +118,12 @@
   import { ref, computed, watch, type ComputedRef } from 'vue'
   import { AppStore } from '@/store/app'
   import { type NodeJSItem, NodejsStore } from '@/components/Nodejs/node'
-  import ToolInstall from '@/components/Nodejs/ToolInstall.vue'
+  import { I18nT } from '@shared/lang'
 
   const search = ref('')
   const nodejsStore = NodejsStore()
   const appStore = AppStore()
 
-  const tool = computed({
-    get() {
-      return nodejsStore.tool
-    },
-    set(v) {
-      nodejsStore.tool = v
-    }
-  })
   const currentTool = computed({
     get(): 'nvm' | 'fnm' {
       return appStore.config.setup.currentNodeTool
@@ -151,10 +138,6 @@
   const loading = computed(() => {
     const flag = currentTool.value
     return nodejsStore.fetching[flag]
-  })
-
-  const btnDisable = computed(() => {
-    return loading.value || nodejsStore.toolInstalling[currentTool.value]
   })
 
   const currentItem: ComputedRef<NodeJSItem | undefined> = computed(() => {
@@ -176,7 +159,7 @@
         }
       }) ?? []
     const remotas =
-      currentItem?.value?.all
+      nodejsStore.allVersion.list
         .filter((a) => !currentItem?.value?.local?.includes(a))
         .map((v) => {
           return {
@@ -196,14 +179,10 @@
   })
 
   const resetData = () => {
-    if (!currentTool.value) {
+    if (loading.value) {
       return
     }
-    if (tool.value !== currentTool.value && tool.value !== 'all') {
-      nodejsStore.chekTool()
-      return
-    }
-    nodejsStore.fetchData(currentTool.value, true)
+    nodejsStore.fetchData(currentTool.value)
   }
 
   const doUse = (item: any) => {
@@ -235,24 +214,4 @@
       immediate: true
     }
   )
-
-  watch(
-    tool,
-    (v) => {
-      if (v === 'nvm') {
-        if (currentTool.value !== 'nvm') {
-          currentTool.value = 'nvm'
-        }
-      } else if (v === 'fnm' || v === 'all') {
-        if (currentTool.value !== 'fnm') {
-          currentTool.value = 'fnm'
-        }
-      }
-    },
-    {
-      immediate: true
-    }
-  )
-
-  nodejsStore.chekTool()
 </script>
