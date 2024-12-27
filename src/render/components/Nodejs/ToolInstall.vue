@@ -28,7 +28,7 @@
   const logRef = ref()
 
   const toolInstalling = computed(() => {
-    return nodejsStore.toolInstalling
+    return nodejsStore.toolInstalling[props.tool]
   })
 
   const logs = computed(() => {
@@ -58,7 +58,7 @@
 
   onMounted(() => {
     logScroll()
-    if (nodejsStore.toolInstallEnd) {
+    if (!toolInstalling.value) {
       nodejsStore.chekTool()
     }
   })
