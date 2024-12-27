@@ -4,6 +4,7 @@ import { I18nT } from '@shared/lang'
 import { MessageError, MessageSuccess } from '@/util/Element'
 
 export interface NodeJSItem {
+  fetched: boolean
   local: Array<string>
   current: string
 }
@@ -34,10 +35,12 @@ const state: State = {
     fnm: false
   },
   fnm: {
+    fetched: false,
     local: [],
     current: ''
   },
   nvm: {
+    fetched: false,
     local: [],
     current: ''
   },
@@ -85,8 +88,8 @@ export const NodejsStore = defineStore('nodejs', {
         }
       )
     },
-    fetchData(tool: 'fnm' | 'nvm') {
-      if (!tool || this.fetching[tool]) {
+    fetchData(tool: 'fnm' | 'nvm', reget?: boolean) {
+      if (!tool || this.fetching[tool] || (this?.[tool]?.fetched && !reget)) {
         return
       }
       this.fetching[tool] = true
@@ -112,6 +115,7 @@ export const NodejsStore = defineStore('nodejs', {
         item.current = ''
         item.local = res?.data?.versions ?? []
         item.current = res?.data?.current ?? ''
+        item.fetched = true
         this.fetching[tool] = false
       })
     }

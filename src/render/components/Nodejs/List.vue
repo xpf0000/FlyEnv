@@ -182,7 +182,7 @@
     if (loading.value) {
       return
     }
-    nodejsStore.fetchData(currentTool.value)
+    nodejsStore.fetchData(currentTool.value, true)
   }
 
   const doUse = (item: any) => {
