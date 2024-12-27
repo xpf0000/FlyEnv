@@ -19,8 +19,10 @@ interface State {
   nvm: NodeJSItem
   showInstall: boolean
   switching: boolean
-  toolInstalling: boolean
-  toolInstallEnd: boolean
+  toolInstalling: {
+    nvm: boolean
+    fnm: boolean
+  }
   logs: string[]
   NVM_HOME: string
   FNM_HOME: string
@@ -46,8 +48,10 @@ const state: State = {
   },
   showInstall: false,
   switching: false,
-  toolInstalling: false,
-  toolInstallEnd: false,
+  toolInstalling: {
+    nvm: false,
+    fnm: false
+  },
   logs: []
 }
 
@@ -56,10 +60,10 @@ export const NodejsStore = defineStore('nodejs', {
   getters: {},
   actions: {
     doInstallTool(tool: 'fnm' | 'nvm') {
-      if (this.toolInstalling) {
+      if (this.toolInstalling[tool]) {
         return undefined
       }
-      this.toolInstalling = true
+      this.toolInstalling[tool] = true
       this.logs.splice(0)
       return new Promise((resolve, reject) => {
         IPC.send('app-fork:node', 'installNvm', tool).then((key: string, res: any) => {
@@ -68,12 +72,11 @@ export const NodejsStore = defineStore('nodejs', {
             MessageSuccess(I18nT('base.success'))
             this.chekTool()
             this.fetchData(tool, true)
-            this.toolInstalling = false
-            this.toolInstallEnd = true
+            this.toolInstalling[tool] = false
             resolve(true)
           } else if (res?.code === 1) {
             IPC.off(key)
-            this.toolInstalling = false
+            this.toolInstalling[tool] = false
             MessageError(I18nT('base.fail'))
             reject(new Error('fail'))
           } else if (res?.code === 200) {

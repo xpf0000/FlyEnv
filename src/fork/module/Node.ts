@@ -15,7 +15,7 @@ class Manager extends Base {
   }
 
   allVersion(tool: 'fnm' | 'nvm') {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve) => {
       const url = 'https://nodejs.org/dist/'
       const res = await axios({
         method: 'get',
@@ -99,7 +99,7 @@ class Manager extends Base {
     })
   }
 
-  versionChange(tool: 'fnm' | 'nvm', select: string) {
+  versionChange(tool: 'fnm' | 'nvm', select: string, dir: string) {
     return new ForkPromise((resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
@@ -114,7 +114,7 @@ class Manager extends Base {
             env: fixEnv()
           },
           async () => {
-            const { current }: any = await this.localVersion(tool)
+            const { current }: any = await this.localVersion(tool, dir)
             if (current === select) {
               resolve(true)
             } else {
@@ -130,7 +130,7 @@ class Manager extends Base {
   }
 
   installNvm(flag: string) {
-    return new ForkPromise(async (resolve, reject, on) => {
+    return new ForkPromise(async (resolve, reject) => {
       try {
         if (flag === 'nvm') {
           const bin = join(global.Server.AppDir!, 'nvm/nvm.exe')
@@ -177,7 +177,12 @@ class Manager extends Base {
     })
   }
 
-  installOrUninstall(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', version: string) {
+  installOrUninstall(
+    tool: 'fnm' | 'nvm',
+    action: 'install' | 'uninstall',
+    version: string,
+    dir: string
+  ) {
     return new ForkPromise((resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
@@ -193,7 +198,7 @@ class Manager extends Base {
           },
           async () => {
             const { versions, current }: { versions: Array<string>; current: string } =
-              (await this.localVersion(tool)) as any
+              (await this.localVersion(tool, dir)) as any
             if (
               (action === 'install' && versions.includes(version)) ||
               (action === 'uninstall' && !versions.includes(version))
