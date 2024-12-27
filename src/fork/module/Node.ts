@@ -1,19 +1,176 @@
 import { Base } from './Base'
-import { execPromise, execPromiseRoot, fixEnv, spawnPromise } from '../Fn'
+import { execPromise, execPromiseRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join } from 'path'
 import { compareVersions } from 'compare-versions'
-import { exec } from 'child_process'
 import { existsSync } from 'fs'
 import { mkdirp, readFile, writeFile, readdir } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
+import Tool from './Tool'
 
 class Manager extends Base {
   constructor() {
     super()
   }
 
+  _initNVM(): Promise<string> {
+    return new Promise(async (resolve) => {
+      const fixPath = async () => {
+        let allPath: string[] = []
+        try {
+          allPath = await Tool.fetchPATH()
+        } catch (e) {
+          return
+        }
+        if (allPath.includes('%NVM_HOME%')) {
+          return
+        }
+        allPath.push('%NVM_HOME%')
+        const savePath = allPath
+          .map((p) => {
+            if (p.includes('%')) {
+              return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
+            }
+            return p
+          })
+          .join(';')
+        try {
+          await execPromiseRoot(`setx /M PATH "${savePath}"`)
+        } catch (e) {}
+      }
+
+      let NVM_HOME = ''
+      try {
+        const command = `set NVM_HOME`
+        const res = await execPromiseRoot(command)
+        NVM_HOME = res?.stdout?.trim()?.replace('NVM_HOME=', '').trim()
+      } catch (e) {}
+      if (NVM_HOME) {
+        console.log('NVM_HOME 0: ', NVM_HOME)
+        await fixPath()
+        resolve(NVM_HOME)
+        return
+      }
+
+      try {
+        const command = `powershell.exe -command "$env:NVM_HOME"`
+        const res = await execPromiseRoot(command)
+        NVM_HOME = res?.stdout?.trim()?.replace('NVM_HOME=', '').trim()
+      } catch (e) {}
+      if (NVM_HOME) {
+        console.log('NVM_HOME 1: ', NVM_HOME)
+        await fixPath()
+        resolve(NVM_HOME)
+        return
+      }
+
+      const local = join(global.Server.AppDir!, 'nvm/nvm.exe')
+      if (!existsSync(local)) {
+        await zipUnPack(join(global.Server.Static!, `zip/nvm.7z`), global.Server.AppDir!)
+        const installcmd = join(global.Server.AppDir!, 'nvm/install.cmd')
+        const nvmDir = join(global.Server.AppDir!, 'nvm')
+        const linkDir = join(global.Server.AppDir!, 'nvm/nodejs-link')
+        let content = await readFile(installcmd, 'utf-8')
+        content = content.replace('##NVM_PATH##', nvmDir).replace('##NVM_SYMLINK##', linkDir)
+        await writeFile(installcmd, content)
+        process.chdir(nvmDir)
+        try {
+          const res = await execPromiseRoot('install.cmd')
+          console.log('installNvm res: ', res)
+        } catch (e) {}
+      }
+      NVM_HOME = dirname(local)
+      const NVM_SYMLINK = join(NVM_HOME, 'nodejs-link')
+      try {
+        await execPromiseRoot(`setx /M NVM_HOME "${NVM_HOME}"`)
+        await execPromiseRoot(`setx /M NVM_SYMLINK "${NVM_SYMLINK}"`)
+      } catch (e) {}
+      await fixPath()
+      resolve(NVM_HOME)
+    })
+  }
+
+  _initFNM(): Promise<string> {
+    return new Promise(async (resolve) => {
+      const fixPath = async () => {
+        let allPath: string[] = []
+        try {
+          allPath = await Tool.fetchPATH()
+        } catch (e) {
+          return
+        }
+        if (allPath.includes('%FNM_HOME%')) {
+          return
+        }
+        allPath.push('%FNM_HOME%')
+        const savePath = allPath
+          .map((p) => {
+            if (p.includes('%')) {
+              return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
+            }
+            return p
+          })
+          .join(';')
+        try {
+          await execPromiseRoot(`setx /M PATH "${savePath}"`)
+        } catch (e) {}
+      }
+
+      let FNM_HOME = ''
+      try {
+        const command = `set FNM_HOME`
+        const res = await execPromiseRoot(command)
+        FNM_HOME = res?.stdout?.trim()?.replace('FNM_HOME=', '').trim()
+      } catch (e) {}
+      if (FNM_HOME) {
+        console.log('FNM_HOME 0: ', FNM_HOME)
+        await fixPath()
+        resolve(FNM_HOME)
+        return
+      }
+
+      try {
+        const command = `powershell.exe -command "$env:FNM_HOME"`
+        const res = await execPromiseRoot(command)
+        FNM_HOME = res?.stdout?.trim()?.replace('FNM_HOME=', '').trim()
+      } catch (e) {}
+      if (FNM_HOME) {
+        console.log('FNM_HOME 1: ', FNM_HOME)
+        await fixPath()
+        resolve(FNM_HOME)
+        return
+      }
+
+      const local = join(global.Server.AppDir!, 'fnm/fnm.exe')
+      if (!existsSync(local)) {
+        await zipUnPack(join(global.Server.Static!, `zip/fnm.7z`), global.Server.AppDir!)
+        const installcmd = join(global.Server.AppDir!, 'fnm/install.cmd')
+        const nvmDir = join(global.Server.AppDir!, 'fnm')
+        let content = await readFile(installcmd, 'utf-8')
+        content = content.replace('##FNM_PATH##', nvmDir)
+        let profile: any = await execPromise('$profile', { shell: 'powershell.exe' })
+        profile = profile.stdout.trim()
+        const profile_root = profile.replace('WindowsPowerShell', 'PowerShell')
+        await mkdirp(dirname(profile))
+        await mkdirp(dirname(profile_root))
+        content = content.replace('##PROFILE_ROOT##', profile_root.trim())
+        content = content.replace('##PROFILE##', profile.trim())
+        await writeFile(installcmd, content)
+        process.chdir(nvmDir)
+        try {
+          const res = await execPromiseRoot('install.cmd')
+          console.log('installNvm res: ', res)
+        } catch (e) {}
+      }
+      FNM_HOME = dirname(local)
+      try {
+        await execPromiseRoot(`setx /M FNM_HOME "${FNM_HOME}"`)
+      } catch (e) {}
+      await fixPath()
+      resolve(FNM_HOME)
+    })
+  }
   allVersion(tool: 'fnm' | 'nvm') {
     return new ForkPromise(async (resolve) => {
       const url = 'https://nodejs.org/dist/'
@@ -43,85 +200,105 @@ class Manager extends Base {
     })
   }
 
-  localVersion(tool: 'fnm' | 'nvm', dir: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      let command = ''
+  localVersion(tool: 'fnm' | 'nvm') {
+    return new ForkPromise(async (resolve) => {
+      let dir = ''
       if (tool === 'fnm') {
-        command = 'fnm ls'
+        dir = await this._initFNM()
       } else {
-        command = 'nvm ls'
+        dir = await this._initNVM()
       }
-      console.log('localVersion dir:', dir)
-      let res: any
-      try {
-        if (dir && existsSync(dir)) {
-          res = await execPromise(`${tool}.exe ls`, {
-            cwd: dir
-          })
-        } else {
-          res = await execPromise(command)
-        }
-        console.log('localVersion: ', res)
-        const stdout = res.stdout
-        let localVersions: Array<string> = []
-        let current = ''
-        if (tool === 'fnm') {
-          localVersions = stdout.match(/\d+(\.\d+){1,4}/g) ?? []
-          const regex = /(\d+(\.\d+){1,4}) default/g
-          const arr = regex.exec(stdout)
-          if (arr && arr.length > 1) {
-            current = arr[1]
-          }
-        } else {
-          const str = stdout
-          const ls = str.split(' (Currently using')[0]
-          localVersions = ls.match(/\d+(\.\d+){1,4}/g) ?? []
-          const reg = /(\d+(\.\d+){1,4}) \(Currently using/g
-          const currentArr: any = reg.exec(str)
-          if (currentArr?.length > 1) {
-            current = currentArr[1]
-          } else {
-            current = ''
-          }
-        }
-        localVersions?.sort((a, b) => {
-          return compareVersions(b, a)
-        })
+      if (!dir) {
         resolve({
-          versions: localVersions,
-          current: current,
+          versions: [],
+          current: '',
           tool
         })
+      }
+      let res: any
+      try {
+        res = await execPromise(`${tool}.exe ls`, {
+          cwd: dir
+        })
+        console.log('localVersion: ', res)
       } catch (e) {
         console.log('localVersion err: ', e)
-        reject(e)
+        resolve({
+          versions: [],
+          current: '',
+          tool
+        })
+        return
       }
+      const stdout = res?.stdout?.trim() ?? ''
+      if (!stdout) {
+        resolve({
+          versions: [],
+          current: '',
+          tool
+        })
+        return
+      }
+      let localVersions: Array<string> = []
+      let current = ''
+      if (tool === 'fnm') {
+        localVersions = stdout.match(/\d+(\.\d+){1,4}/g) ?? []
+        const regex = /(\d+(\.\d+){1,4}) default/g
+        const arr = regex.exec(stdout)
+        if (arr && arr.length > 1) {
+          current = arr[1]
+        }
+      } else {
+        const str = stdout
+        const ls = str.split(' (Currently using')[0]
+        localVersions = ls.match(/\d+(\.\d+){1,4}/g) ?? []
+        const reg = /(\d+(\.\d+){1,4}) \(Currently using/g
+        const currentArr: any = reg.exec(str)
+        if (currentArr?.length > 1) {
+          current = currentArr[1]
+        } else {
+          current = ''
+        }
+      }
+      localVersions?.sort((a, b) => {
+        return compareVersions(b, a)
+      })
+      resolve({
+        versions: localVersions,
+        current: current,
+        tool
+      })
     })
   }
 
-  versionChange(tool: 'fnm' | 'nvm', select: string, dir: string) {
-    return new ForkPromise((resolve, reject) => {
+  versionChange(tool: 'fnm' | 'nvm', select: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      let dir = ''
+      if (tool === 'fnm') {
+        dir = await this._initFNM()
+      } else {
+        dir = await this._initNVM()
+      }
+      if (!dir) {
+        reject(new Error(`${tool} not found`))
+        return
+      }
       let command = ''
       if (tool === 'fnm') {
-        command = `fnm default ${select}`
+        command = `fnm.exe default ${select}`
       } else {
-        command = `nvm use ${select}`
+        command = `nvm.exe use ${select}`
       }
       try {
-        exec(
-          command,
-          {
-            env: fixEnv()
-          },
-          async () => {
-            const { current }: any = await this.localVersion(tool, dir)
-            if (current === select) {
-              resolve(true)
-            } else {
-              reject(new Error('Fail'))
-            }
-          }
-        )
+        await execPromise(command, {
+          cwd: dir
+        })
+        const { current }: any = await this.localVersion(tool)
+        if (current === select) {
+          resolve(true)
+        } else {
+          reject(new Error('Fail'))
+        }
       } catch (e) {
         console.log('versionChange error: ', e)
         reject(e)
@@ -129,152 +306,45 @@ class Manager extends Base {
     })
   }
 
-  installNvm(flag: string) {
+  installOrUninstall(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', version: string) {
     return new ForkPromise(async (resolve, reject) => {
-      try {
-        if (flag === 'nvm') {
-          const bin = join(global.Server.AppDir!, 'nvm/nvm.exe')
-          if (!existsSync(bin)) {
-            await zipUnPack(join(global.Server.Static!, `zip/nvm.7z`), global.Server.AppDir!)
-            const installcmd = join(global.Server.AppDir!, 'nvm/install.cmd')
-            const nvmDir = join(global.Server.AppDir!, 'nvm')
-            const linkDir = join(global.Server.AppDir!, 'nvm/nodejs-link')
-            let content = await readFile(installcmd, 'utf-8')
-            content = content.replace('##NVM_PATH##', nvmDir).replace('##NVM_SYMLINK##', linkDir)
-            await writeFile(installcmd, content)
-            process.chdir(nvmDir)
-            const res = await execPromiseRoot('install.cmd')
-            console.log('installNvm res: ', res)
-          }
-        } else if (flag === 'fnm') {
-          const bin = join(global.Server.AppDir!, 'fnm/fnm.exe')
-          if (!existsSync(bin)) {
-            await zipUnPack(join(global.Server.Static!, `zip/fnm.7z`), global.Server.AppDir!)
-            const installcmd = join(global.Server.AppDir!, 'fnm/install.cmd')
-            const nvmDir = join(global.Server.AppDir!, 'fnm')
-            let content = await readFile(installcmd, 'utf-8')
-            content = content.replace('##FNM_PATH##', nvmDir)
-            let profile: any = await execPromise('$profile', { shell: 'powershell.exe' })
-            profile = profile.stdout.trim()
-            const profile_root = profile.replace('WindowsPowerShell', 'PowerShell')
-            await mkdirp(dirname(profile))
-            await mkdirp(dirname(profile_root))
-            content = content.replace('##PROFILE_ROOT##', profile_root.trim())
-            content = content.replace('##PROFILE##', profile.trim())
-            await writeFile(installcmd, content)
-            process.chdir(nvmDir)
-            const res = await execPromiseRoot('install.cmd')
-            console.log('installNvm res: ', res)
-          }
-        }
-      } catch (e) {
-        reject(e)
+      let dir = ''
+      if (tool === 'fnm') {
+        dir = await this._initFNM()
+      } else {
+        dir = await this._initNVM()
+      }
+      if (!dir) {
+        reject(new Error(`${tool} not found`))
         return
       }
-      setTimeout(() => {
-        resolve(true)
-      }, 5000)
-    })
-  }
 
-  installOrUninstall(
-    tool: 'fnm' | 'nvm',
-    action: 'install' | 'uninstall',
-    version: string,
-    dir: string
-  ) {
-    return new ForkPromise((resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
-        command = `fnm ${action} ${version}`
+        command = `fnm.exe ${action} ${version}`
       } else {
-        command = `nvm ${action} ${version}`
+        command = `nvm.exe ${action} ${version}`
       }
       try {
-        exec(
-          command,
-          {
-            env: fixEnv()
-          },
-          async () => {
-            const { versions, current }: { versions: Array<string>; current: string } =
-              (await this.localVersion(tool, dir)) as any
-            if (
-              (action === 'install' && versions.includes(version)) ||
-              (action === 'uninstall' && !versions.includes(version))
-            ) {
-              resolve({
-                versions,
-                current
-              })
-            } else {
-              reject(new Error('Fail'))
-            }
-          }
-        )
+        await execPromise(command, {
+          cwd: dir
+        })
+        const { versions, current }: { versions: Array<string>; current: string } =
+          (await this.localVersion(tool)) as any
+        if (
+          (action === 'install' && versions.includes(version)) ||
+          (action === 'uninstall' && !versions.includes(version))
+        ) {
+          resolve({
+            versions,
+            current
+          })
+        } else {
+          reject(new Error('Fail'))
+        }
       } catch (e) {
         reject(e)
       }
-    })
-  }
-
-  nvmDir() {
-    return new ForkPromise(async (resolve) => {
-      const bin: Set<string> = new Set()
-      let NVM_HOME = ''
-      let FNM_HOME = ''
-      try {
-        await spawnPromise('cmd.exe', ['/c', 'nvm.exe', '-v'], { shell: 'cmd.exe' })
-        bin.add('nvm')
-      } catch (e) {}
-
-      try {
-        await execPromise('nvm -v', { shell: 'powershell.exe' })
-        bin.add('nvm')
-      } catch (e) {}
-
-      try {
-        const res = await execPromise('set NVM_HOME', { shell: 'cmd.exe' })
-        const dir = res?.stdout?.trim()?.replace('NVM_HOME=', '')?.trim()
-        if (dir && existsSync(dir) && existsSync(join(dir, 'nvm.exe'))) {
-          NVM_HOME = dir
-          bin.add('nvm')
-        }
-      } catch (e) {}
-
-      try {
-        await spawnPromise('cmd.exe', ['/c', 'fnm.exe', '-V'], { shell: 'cmd.exe' })
-        bin.add('fnm')
-      } catch (e) {}
-
-      try {
-        await execPromise('fnm -V', { shell: 'powershell.exe' })
-        bin.add('fnm')
-      } catch (e) {}
-
-      try {
-        const res = await execPromise('set FNM_HOME', { shell: 'cmd.exe' })
-        const dir = res?.stdout?.trim()?.replace('FNM_HOME=', '')?.trim()
-        if (dir && existsSync(dir) && existsSync(join(dir, 'fnm.exe'))) {
-          FNM_HOME = dir
-          bin.add('fnm')
-        }
-      } catch (e) {}
-
-      if (bin.size === 2) {
-        resolve({
-          tool: 'all',
-          NVM_HOME,
-          FNM_HOME
-        })
-        return
-      }
-
-      resolve({
-        tool: [...bin].pop() ?? '',
-        NVM_HOME,
-        FNM_HOME
-      })
     })
   }
 

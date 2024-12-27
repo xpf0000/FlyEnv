@@ -4,13 +4,15 @@ import { I18nT } from '@shared/lang'
 import { MessageError, MessageSuccess } from '@/util/Element'
 
 export interface NodeJSItem {
-  all: Array<string>
   local: Array<string>
   current: string
 }
 
 interface State {
-  tool: 'fnm' | 'nvm' | 'all' | ''
+  allVersion: {
+    list: string[]
+    expire: number
+  }
   fetching: {
     nvm: boolean
     fnm: boolean
@@ -19,76 +21,36 @@ interface State {
   nvm: NodeJSItem
   showInstall: boolean
   switching: boolean
-  toolInstalling: {
-    nvm: boolean
-    fnm: boolean
-  }
-  logs: string[]
-  NVM_HOME: string
-  FNM_HOME: string
 }
 
 const state: State = {
-  NVM_HOME: '',
-  FNM_HOME: '',
-  tool: '',
+  allVersion: {
+    list: [],
+    expire: 0
+  },
   fetching: {
     nvm: false,
     fnm: false
   },
   fnm: {
-    all: [],
     local: [],
     current: ''
   },
   nvm: {
-    all: [],
     local: [],
     current: ''
   },
   showInstall: false,
-  switching: false,
-  toolInstalling: {
-    nvm: false,
-    fnm: false
-  },
-  logs: []
+  switching: false
 }
 
 export const NodejsStore = defineStore('nodejs', {
   state: (): State => state,
   getters: {},
   actions: {
-    doInstallTool(tool: 'fnm' | 'nvm') {
-      if (this.toolInstalling[tool]) {
-        return undefined
-      }
-      this.toolInstalling[tool] = true
-      this.logs.splice(0)
-      return new Promise((resolve, reject) => {
-        IPC.send('app-fork:node', 'installNvm', tool).then((key: string, res: any) => {
-          if (res?.code === 0) {
-            IPC.off(key)
-            MessageSuccess(I18nT('base.success'))
-            this.chekTool()
-            this.fetchData(tool, true)
-            this.toolInstalling[tool] = false
-            resolve(true)
-          } else if (res?.code === 1) {
-            IPC.off(key)
-            this.toolInstalling[tool] = false
-            MessageError(I18nT('base.fail'))
-            reject(new Error('fail'))
-          } else if (res?.code === 200) {
-            this.logs.push(res?.msg ?? '')
-          }
-        })
-      })
-    },
     installOrUninstall(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', item: any) {
       item.installing = true
-      const dir = tool === 'fnm' ? this.FNM_HOME : this.NVM_HOME
-      IPC.send('app-fork:node', 'installOrUninstall', tool, action, item.version, dir).then(
+      IPC.send('app-fork:node', 'installOrUninstall', tool, action, item.version).then(
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
@@ -106,8 +68,7 @@ export const NodejsStore = defineStore('nodejs', {
     versionChange(tool: 'fnm' | 'nvm', item: any) {
       this.switching = true
       item.switching = true
-      const dir = tool === 'fnm' ? this.FNM_HOME : this.NVM_HOME
-      IPC.send('app-fork:node', 'versionChange', tool, item.version, dir).then(
+      IPC.send('app-fork:node', 'versionChange', tool, item.version).then(
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0) {
@@ -122,44 +83,32 @@ export const NodejsStore = defineStore('nodejs', {
         }
       )
     },
-    fetchData(tool: 'fnm' | 'nvm', reset = false) {
-      if (!tool || this.fetching[tool] || (!reset && this?.[tool]?.all.length > 0)) {
+    fetchData(tool: 'fnm' | 'nvm') {
+      if (!tool || this.fetching[tool]) {
         return
       }
       this.fetching[tool] = true
-      let allFetch = false
-      let localFetch = false
-      const dir = tool === 'fnm' ? this.FNM_HOME : this.NVM_HOME
-      IPC.send('app-fork:node', 'allVersion', tool, dir).then((key: string, res: any) => {
-        IPC.off(key)
-        const item: NodeJSItem = this?.[tool]
-        item.all.splice(0)
-        item.all = res?.data?.all ?? []
-        allFetch = true
-        if (allFetch && localFetch) {
-          this.fetching[tool] = false
-        }
-      })
+      const time = Math.round(new Date().getTime() / 1000)
+      if (time > this.allVersion.expire) {
+        IPC.send('app-fork:node', 'allVersion', tool).then((key: string, res: any) => {
+          IPC.off(key)
+          const list = res?.data?.all ?? []
+          if (list.length > 0) {
+            this.allVersion.list.splice(0)
+            this.allVersion.list.push(...list)
+            this.allVersion.expire = Math.round(new Date().getTime() / 1000) + 2 * 60 * 60
+          }
+        })
+      }
 
-      IPC.send('app-fork:node', 'localVersion', tool, dir).then((key: string, res: any) => {
+      IPC.send('app-fork:node', 'localVersion', tool).then((key: string, res: any) => {
         IPC.off(key)
         const item: NodeJSItem = this?.[tool]
         item.local.splice(0)
         item.current = ''
         item.local = res?.data?.versions ?? []
         item.current = res?.data?.current ?? ''
-        localFetch = true
-        if (allFetch && localFetch) {
-          this.fetching[tool] = false
-        }
-      })
-    },
-    chekTool() {
-      IPC.send('app-fork:node', 'nvmDir').then((key: string, res: any) => {
-        IPC.off(key)
-        this.tool = res?.data?.tool ?? ''
-        this.NVM_HOME = res?.data?.NVM_HOME ?? ''
-        this.FNM_HOME = res?.data?.FNM_HOME ?? ''
+        this.fetching[tool] = false
       })
     }
   }

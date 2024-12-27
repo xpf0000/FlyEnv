@@ -77,7 +77,7 @@ export const AppI18n = (l?: string): I18n => {
   return i18n
 }
 
-export const I18nT = (...args: any) => {
+export const I18nT = (key: string, ...args: any) => {
   // @ts-ignore
-  return i18n.global.t(...args)
+  return i18n.global.t(key, ...args)
 }
