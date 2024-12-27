@@ -16,13 +16,6 @@ import { publicDecrypt } from 'crypto'
 import { machineId } from 'node-machine-id'
 
 class Host extends Base {
-  NginxTmpl = ''
-  NginxSSLTmpl = ''
-  ApacheTmpl = ''
-  ApacheSSLTmpl = ''
-  CaddyTmpl = ''
-  CaddySSLTmpl = ''
-
   hostsFile = join('c:/windows/system32/drivers/etc', 'hosts')
 
   constructor() {

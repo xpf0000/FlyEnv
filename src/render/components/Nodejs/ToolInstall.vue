@@ -1,54 +1,34 @@
 <template>
-  <el-card class="version-manager" :header="$t('util.nodeToolInstall')">
-    <template #header>
-      <div class="card-header">
-        <div class="left">
-          <span> {{ $t('util.nodeToolInstall') }} </span>
-        </div>
-        <el-button v-if="toolInstallEnd" type="primary" @click.stop="endInstall">
-          {{ $t('base.confirm') }}
-        </el-button>
-      </div>
-    </template>
-    <template v-if="toolInstalling">
-      <div ref="logRef" class="logs cli-to-html" style="padding: 20px">
-        {{ logs?.join('') ?? '' }}
-      </div>
-    </template>
-    <template v-else>
-      <el-form style="margin-top: 15px; padding: 20px" label-position="left" label-width="150px">
-        <el-form-item :label="$t('util.nodeToolChoose')">
-          <el-radio-group v-model="form.tool">
-            <el-radio-button key="nvm" label="nvm">nvm</el-radio-button>
-            <el-radio-button key="fnm" label="fnm">fnm</el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-        <el-button type="primary" @click.stop="doInstallTool">{{
-          $t('util.nodeToolInstallBtn')
-        }}</el-button>
-      </el-form>
-    </template>
-  </el-card>
+  <template v-if="toolInstalling">
+    <div ref="logRef" class="logs cli-to-html" style="padding: 20px">
+      {{ logs?.join('') ?? '' }}
+    </div>
+  </template>
+  <template v-else>
+    <el-form style="margin-top: 15px; padding: 20px" label-position="left" label-width="150px">
+      <div class="mb-4">{{ I18nT('nodejs.noInstallTips', { app: tool }) }}</div>
+      <el-button type="primary" @click.stop="doInstallTool">{{
+        $t('util.nodeToolInstallBtn')
+      }}</el-button>
+    </el-form>
+  </template>
 </template>
 
 <script lang="ts" setup>
   import { ref, computed, watch, nextTick, onMounted } from 'vue'
   import { NodejsStore } from '@/components/Nodejs/node'
+  import { I18nT } from '@shared/lang'
+
+  const props = defineProps<{
+    tool: 'fnm' | 'nvm'
+  }>()
 
   const nodejsStore = NodejsStore()
 
   const logRef = ref()
-  const form = ref({
-    tool: 'nvm',
-    installBy: ''
-  })
 
   const toolInstalling = computed(() => {
     return nodejsStore.toolInstalling
-  })
-
-  const toolInstallEnd = computed(() => {
-    return nodejsStore.toolInstallEnd
   })
 
   const logs = computed(() => {
@@ -72,13 +52,8 @@
     logScroll()
   })
 
-  const endInstall = () => {
-    nodejsStore.toolInstalling = false
-    nodejsStore.chekTool()
-  }
-
   const doInstallTool = () => {
-    nodejsStore.doInstallTool(form.value as any)?.then()
+    nodejsStore.doInstallTool(props.tool)?.then()
   }
 
   onMounted(() => {

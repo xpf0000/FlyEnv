@@ -3,6 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   execPromiseRoot,
   versionBinVersion,
   versionFilterSame,
@@ -11,9 +12,10 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
+import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
+import { I18nT } from '../lang'
 
 class MailPit extends Base {
   constructor() {
@@ -26,13 +28,16 @@ class MailPit extends Base {
   }
 
   initConfig(): ForkPromise<string> {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       const baseDir = join(global.Server.BaseDir!, 'mailpit')
       if (!existsSync(baseDir)) {
         await mkdirp(baseDir)
       }
       const iniFile = join(baseDir, 'mailpit.conf')
       if (!existsSync(iniFile)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         const tmplFile = join(global.Server.Static!, 'tmpl/mailpit.conf')
         let content = await readFile(tmplFile, 'utf-8')
         const logFile = join(baseDir, 'mailpit.log')
@@ -40,6 +45,9 @@ class MailPit extends Base {
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'mailpit.conf.default')
         await writeFile(defaultIniFile, content)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: iniFile }))
+        })
       }
       resolve(iniFile)
     })
@@ -65,16 +73,27 @@ class MailPit extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `mailpit-${version.version}` })
+        )
+      })
       const bin = version.bin
-      const iniFile = await this.initConfig()
+      const iniFile = await this.initConfig().on(on)
       if (existsSync(this.pidPath)) {
         try {
-          await execPromiseRoot(`del -Force ${this.pidPath}`)
+          await remove(this.pidPath)
         } catch (e) {}
       }
 
       const startLogFile = join(global.Server.BaseDir!, `mailpit/start.log`)
+      if (existsSync(startLogFile)) {
+        try {
+          await remove(startLogFile)
+        } catch (e) {}
+      }
 
       const getConfEnv = async () => {
         const content = await readFile(iniFile, 'utf-8')
@@ -121,10 +140,13 @@ class MailPit extends Base {
       await mkdirp(dirname(appPidFile))
       if (existsSync(appPidFile)) {
         try {
-          await execPromiseRoot(`del -Force "${appPidFile}"`)
+          await remove(appPidFile)
         } catch (e) {}
       }
 
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       process.chdir(join(global.Server.BaseDir!, `mailpit`))
       try {
         const res = await execPromiseRoot(
@@ -133,13 +155,34 @@ class MailPit extends Base {
         if (res?.stdout) {
           const pid = res.stdout.trim()
           await writeFile(appPidFile, pid)
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+          })
           resolve({
             'APP-Service-Start-PID': pid
           })
         } else {
+          on({
+            'APP-On-Log': AppLog(
+              'error',
+              I18nT('appLog.startServiceFail', {
+                error: res?.stderr ?? 'Start Fail',
+                service: `mailpit-${version.version}`
+              })
+            )
+          })
           reject(new Error(res?.stderr || 'Start Fail'))
         }
       } catch (e: any) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.startServiceFail', {
+              error: e,
+              service: `mailpit-${version.version}`
+            })
+          )
+        })
         console.log('-k start err: ', e)
         reject(e)
         return

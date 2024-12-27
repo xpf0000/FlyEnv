@@ -5,7 +5,7 @@ import { dirname, join } from 'path'
 import { compareVersions } from 'compare-versions'
 import { exec } from 'child_process'
 import { existsSync } from 'fs'
-import { mkdirp, readFile, writeFile, appendFile, readdir } from 'fs-extra'
+import { mkdirp, readFile, writeFile, readdir } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 
@@ -31,7 +31,7 @@ class Manager extends Base {
       }
       console.log('links: ', links)
       links = links
-        .filter((s) => Number(s.split('.')[0]) > 5)
+        .filter((s) => Number(s.split('.')[0]) > 7)
         .sort((a, b) => {
           return compareVersions(b, a)
         })
@@ -43,7 +43,7 @@ class Manager extends Base {
     })
   }
 
-  localVersion(tool: 'fnm' | 'nvm') {
+  localVersion(tool: 'fnm' | 'nvm', dir: string) {
     return new ForkPromise(async (resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
@@ -51,8 +51,16 @@ class Manager extends Base {
       } else {
         command = 'nvm ls'
       }
+      console.log('localVersion dir:', dir)
+      let res: any
       try {
-        const res = await execPromise(command)
+        if (dir && existsSync(dir)) {
+          res = await execPromise(`${tool}.exe ls`, {
+            cwd: dir
+          })
+        } else {
+          res = await execPromise(command)
+        }
         console.log('localVersion: ', res)
         const stdout = res.stdout
         let localVersions: Array<string> = []
@@ -130,8 +138,9 @@ class Manager extends Base {
             await zipUnPack(join(global.Server.Static!, `zip/nvm.7z`), global.Server.AppDir!)
             const installcmd = join(global.Server.AppDir!, 'nvm/install.cmd')
             const nvmDir = join(global.Server.AppDir!, 'nvm')
+            const linkDir = join(global.Server.AppDir!, 'nvm/nodejs-link')
             let content = await readFile(installcmd, 'utf-8')
-            content = content.replace('##NVM_PATH##', nvmDir)
+            content = content.replace('##NVM_PATH##', nvmDir).replace('##NVM_SYMLINK##', linkDir)
             await writeFile(installcmd, content)
             process.chdir(nvmDir)
             const res = await execPromiseRoot('install.cmd')
@@ -207,53 +216,60 @@ class Manager extends Base {
   nvmDir() {
     return new ForkPromise(async (resolve) => {
       const bin: Set<string> = new Set()
+      let NVM_HOME = ''
+      let FNM_HOME = ''
       try {
         await spawnPromise('cmd.exe', ['/c', 'nvm.exe', '-v'], { shell: 'cmd.exe' })
         bin.add('nvm')
-      } catch (e) {
-        await appendFile(
-          join(global.Server.BaseDir!, 'debug.log'),
-          `[node][nvmDir-cmd-nvm][error]: ${e}\n`
-        )
-      }
+      } catch (e) {}
 
       try {
         await execPromise('nvm -v', { shell: 'powershell.exe' })
         bin.add('nvm')
-      } catch (e) {
-        await appendFile(
-          join(global.Server.BaseDir!, 'debug.log'),
-          `[node][nvmDir-ps-nvm][error]: ${e}\n`
-        )
-      }
+      } catch (e) {}
+
+      try {
+        const res = await execPromise('set NVM_HOME', { shell: 'cmd.exe' })
+        const dir = res?.stdout?.trim()?.replace('NVM_HOME=', '')?.trim()
+        if (dir && existsSync(dir) && existsSync(join(dir, 'nvm.exe'))) {
+          NVM_HOME = dir
+          bin.add('nvm')
+        }
+      } catch (e) {}
 
       try {
         await spawnPromise('cmd.exe', ['/c', 'fnm.exe', '-V'], { shell: 'cmd.exe' })
         bin.add('fnm')
-      } catch (e) {
-        await appendFile(
-          join(global.Server.BaseDir!, 'debug.log'),
-          `[node][nvmDir-cmd-fnm][error]: ${e}\n`
-        )
-      }
+      } catch (e) {}
 
       try {
         await execPromise('fnm -V', { shell: 'powershell.exe' })
         bin.add('fnm')
-      } catch (e) {
-        await appendFile(
-          join(global.Server.BaseDir!, 'debug.log'),
-          `[node][nvmDir-ps-fnm][error]: ${e}\n`
-        )
-      }
+      } catch (e) {}
+
+      try {
+        const res = await execPromise('set FNM_HOME', { shell: 'cmd.exe' })
+        const dir = res?.stdout?.trim()?.replace('FNM_HOME=', '')?.trim()
+        if (dir && existsSync(dir) && existsSync(join(dir, 'fnm.exe'))) {
+          FNM_HOME = dir
+          bin.add('fnm')
+        }
+      } catch (e) {}
 
       if (bin.size === 2) {
-        resolve('all')
+        resolve({
+          tool: 'all',
+          NVM_HOME,
+          FNM_HOME
+        })
         return
       }
 
-      resolve([...bin].pop() ?? '')
-      // resolve('')
+      resolve({
+        tool: [...bin].pop() ?? '',
+        NVM_HOME,
+        FNM_HOME
+      })
     })
   }
 

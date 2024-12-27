@@ -3,6 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   execPromiseRoot,
   versionBinVersion,
   versionFilterSame,
@@ -12,10 +13,11 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, copyFile } from 'fs-extra'
+import { readFile, writeFile, mkdirp, chmod, copyFile, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
 import { ProcessListSearch } from '../Process'
+import { I18nT } from '../lang'
 
 class Redis extends Base {
   constructor() {
@@ -33,10 +35,13 @@ class Redis extends Base {
     })
   }
   _initConf(version: SoftInstalled): ForkPromise<string> {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       const v = version?.version?.split('.')?.[0] ?? ''
       const confFile = join(global.Server.RedisDir!, `redis-${v}.conf`)
       if (!existsSync(confFile)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         const tmplFile = join(global.Server.Static!, 'tmpl/redis.conf')
         const dbDir = join(global.Server.RedisDir!, `db-${v}`)
         await mkdirp(dbDir)
@@ -52,13 +57,19 @@ class Redis extends Base {
         await writeFile(confFile, content)
         const defaultFile = join(global.Server.RedisDir!, `redis-${v}-default.conf`)
         await writeFile(defaultFile, content)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: confFile }))
+        })
       }
       resolve(confFile)
     })
   }
 
   _stopServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
+      })
       const v = version?.version?.split('.')?.[0] ?? ''
       const appConfName = `pws-app-redis-${v}.conf`
       const all = await ProcessListSearch(appConfName, false)
@@ -73,6 +84,9 @@ class Redis extends Base {
           await execPromiseRoot(`taskkill /f /t ${str}`)
         } catch (e) {}
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+      })
       resolve({
         'APP-Service-Stop-PID': arr
       })
@@ -80,9 +94,15 @@ class Redis extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
-      await this.initLocalApp(version, 'redis')
-      await this._initConf(version)
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
+      await this.initLocalApp(version, 'redis').on(on)
+      await this._initConf(version).on(on)
 
       const v = version?.version?.split('.')?.[0] ?? ''
       const bin = version.bin
@@ -94,7 +114,15 @@ class Redis extends Base {
 
       if (existsSync(this.pidPath)) {
         try {
-          await execPromiseRoot(`del -Force "${this.pidPath}"`)
+          await remove(this.pidPath)
+        } catch (e) {}
+      }
+
+      const startLogFile = join(global.Server.RedisDir!, `start.log`)
+      const startErrorLogFile = join(global.Server.RedisDir!, `start.error.log`)
+      if (existsSync(startErrorLogFile)) {
+        try {
+          await remove(startErrorLogFile)
         } catch (e) {}
       }
 
@@ -102,7 +130,7 @@ class Redis extends Base {
         '@echo off',
         'chcp 65001>nul',
         `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} ${appConfName} > NUL 2>&1 &`
+        `start /B ./${basename(bin)} ${appConfName} > "${startLogFile}" 2>"${startErrorLogFile}" &`
       ]
 
       const command = commands.join(EOL)
@@ -112,22 +140,56 @@ class Redis extends Base {
       const sh = join(global.Server.RedisDir!, cmdName)
       await writeFile(sh, command)
 
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       process.chdir(global.Server.RedisDir!)
       try {
         await execPromiseRoot(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
       } catch (e: any) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', {
+              error: e,
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
+      on({
+        'APP-Service-Start-Success': true
+      })
       const res = await this.waitPidFile(this.pidPath)
       if (res && res?.pid) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+        })
         resolve(true)
         return
       }
-      reject(new Error('Start Fail'))
+      let msg = 'Start Fail'
+      if (existsSync(startLogFile)) {
+        msg = await readFile(startLogFile, 'utf-8')
+      }
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.startServiceFail', {
+            error: msg,
+            service: `${this.type}-${version.version}`
+          })
+        )
+      })
+      reject(new Error(msg))
     })
   }
 

@@ -4,6 +4,7 @@ import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   execPromise,
   execPromiseRoot,
   versionBinVersion,
@@ -93,7 +94,10 @@ class Php extends Base {
   }
 
   _stopServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
+      })
       const all = await ProcessListSearch(`phpwebstudy.90${version.num}`, false)
       const arr: Array<number> = []
       const fpm: Array<number> = []
@@ -112,6 +116,9 @@ class Php extends Base {
           await execPromiseRoot(`taskkill /f /t ${str}`)
         } catch (e) {}
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+      })
       resolve({
         'APP-Service-Stop-PID': arr
       })
@@ -169,7 +176,13 @@ class Php extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
       await this.#initFPM()
       await this.getIniPath(version)
       if (!existsSync(join(version.path, 'php-cgi-spawner.exe'))) {
@@ -200,16 +213,32 @@ class Php extends Base {
       const sh = join(global.Server.PhpDir!, cmdName)
       await writeFile(sh, command)
 
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       process.chdir(global.Server.PhpDir!)
       try {
         const res = await execPromiseRoot(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
         console.log('php start res: ', res.stdout)
+        const pid = res.stdout.trim()
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+        })
         resolve({
-          'APP-Service-Start-PID': res.stdout.trim()
+          'APP-Service-Start-PID': pid
         })
       } catch (e: any) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.startServiceFail', {
+              error: e,
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
         console.log('-k start err: ', e)
         reject(e)
         return

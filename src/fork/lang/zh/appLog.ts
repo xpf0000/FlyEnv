@@ -24,5 +24,19 @@ export default {
   startServiceFail: '{service}服务启动失败, 原因: {error}',
 
   stopServiceBegin: '开始停止{service}服务',
-  stopServiceEnd: '{service}服务停止成功'
+  stopServiceEnd: '{service}服务停止成功',
+
+  initDBPass: '开始初始化数据库密码',
+  initDBPassSuccess: '初始化数据库密码成功，账号密码: {user} {pass}',
+  initDBPassFail: '初始化数据库密码失败, 原因: {error}',
+  initDBDataDir: '未找到数据文件夹, 开始初始化数据文件夹',
+  initDBDataDirSuccess: '初始化数据文件夹成功, 数据文件夹路径: {dir}',
+  initDBDataDirFail: '初始化数据文件夹失败, 原因: {error}',
+
+  initPlugin: '开始初始化插件， 执行命令: {command}',
+  initPluginSuccess: '初始化插件成功',
+  initPluginFail: '初始化插件失败, 原因: {error}',
+
+  erlangEnvInit: '尝试初始化Erlang运行环境',
+  erlangEnvInitEnd: '初始化Erlang运行环境完毕'
 }

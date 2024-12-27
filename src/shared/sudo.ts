@@ -1,4 +1,5 @@
 import { uuid } from '@shared/utils'
+import TaskQueue from '../fork/TaskQueue'
 
 export interface SudoConfig {
   name?: string
@@ -164,9 +165,9 @@ function Windows(instance: Sudo, callback: Function) {
         callback(undefined, stdout, stderr)
         return
       }
-      remove(instance.path!).then().catch()
       if (error) return callback(error)
       callback(undefined, stdout, stderr)
+      TaskQueue.run(remove, instance.path!).then().catch()
     }
     WindowsWriteExecuteScript(instance, function (error: any) {
       if (error) return end(error)
