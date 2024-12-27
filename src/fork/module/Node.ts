@@ -218,7 +218,7 @@ class Manager extends Base {
       }
       let res: any
       try {
-        res = await exec(`${tool}.exe ls`, {
+        res = await exec(`./${tool}.exe ls`, {
           cwd: dir
         })
         console.log('localVersion: ', res)
