@@ -49,7 +49,7 @@
               </el-button>
             </template>
             <template v-else-if="scope.row.installed">
-              <template v-if="scope.row.switching">
+              <template v-if="currentItem?.switching === scope.row.version">
                 <el-button :loading="true" link></el-button>
               </template>
               <template v-else>
@@ -86,7 +86,7 @@
         </el-table-column>
         <el-table-column :label="$t('base.operation')" width="140px" :prop="null" align="center">
           <template #default="scope">
-            <template v-if="scope.row.installing">
+            <template v-if="currentItem?.installing?.[scope.row.version]">
               <el-button :loading="true" link></el-button>
             </template>
             <template v-else>

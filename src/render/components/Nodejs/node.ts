@@ -7,6 +7,8 @@ export interface NodeJSItem {
   fetched: boolean
   local: Array<string>
   current: string
+  installing: Record<string, boolean>
+  switching: string
 }
 
 interface State {
@@ -37,12 +39,16 @@ const state: State = {
   fnm: {
     fetched: false,
     local: [],
-    current: ''
+    current: '',
+    installing: {},
+    switching: ''
   },
   nvm: {
     fetched: false,
     local: [],
-    current: ''
+    current: '',
+    installing: {},
+    switching: ''
   },
   showInstall: false,
   switching: false,
@@ -54,7 +60,10 @@ export const NodejsStore = defineStore('nodejs', {
   getters: {},
   actions: {
     installOrUninstall(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', item: any) {
-      item.installing = true
+      if (this[tool].installing[item.version]) {
+        return
+      }
+      this[tool].installing[item.version] = true
       IPC.send('app-fork:node', 'installOrUninstall', tool, action, item.version).then(
         (key: string, res: any) => {
           IPC.off(key)
@@ -66,11 +75,15 @@ export const NodejsStore = defineStore('nodejs', {
           } else {
             MessageError(I18nT('base.fail'))
           }
-          item.installing = false
+          delete this[tool].installing[item.version]
         }
       )
     },
     versionChange(tool: 'fnm' | 'nvm', item: any) {
+      if (this[tool].switching) {
+        return
+      }
+      this[tool].switching = item.version
       this.switching = true
       item.switching = true
       IPC.send('app-fork:node', 'versionChange', tool, item.version).then(
@@ -85,6 +98,7 @@ export const NodejsStore = defineStore('nodejs', {
           }
           item.switching = false
           this.switching = false
+          this[tool].switching = ''
         }
       )
     },
