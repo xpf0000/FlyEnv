@@ -175,7 +175,6 @@
               v-model="scope.row.alias"
               v-click-outside="ServiceActionStore.onAliasEnd"
               :autofocus="true"
-              clearable
               class="app-alisa-edit"
               @change="ServiceActionStore.onAliasEnd"
             ></el-input>
