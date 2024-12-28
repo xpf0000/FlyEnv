@@ -170,7 +170,7 @@
           </el-tooltip>
         </template>
         <template #default="scope">
-          <template v-if="scope.row?.alisaEditing">
+          <template v-if="scope.row?.aliasEditing">
             <el-input
               v-model="scope.row.alias"
               v-click-outside="ServiceActionStore.onAliasEnd"

@@ -17,8 +17,8 @@ export interface SoftInstalled {
   flag?: string
   isLocal7Z?: boolean
   pid?: string
-  alisaEditing?: boolean
-  alisa?: string
+  aliasEditing?: boolean
+  alias?: string
 }
 
 export interface OnlineVersionItem {
