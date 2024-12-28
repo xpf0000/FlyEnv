@@ -13,7 +13,7 @@ import path, { join, dirname } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import { readdir } from 'fs-extra'
+import { copyFile, readdir, remove } from 'fs-extra'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import sudoPrompt from '@shared/sudo'
 import { compareVersions } from 'compare-versions'
@@ -683,4 +683,62 @@ export const versionInitedApp = async (type: string, bin: string) => {
 export const AppLog = (type: 'info' | 'error', msg: string) => {
   const time = new Date().getTime()
   return `[${type}]${time}:${msg}`
+}
+
+export const fetchPATH = (): ForkPromise<string[]> => {
+  return new ForkPromise(async (resolve, reject) => {
+    const sh = join(global.Server.Static!, 'sh/path.cmd')
+    const copySh = join(global.Server.Cache!, 'path.cmd')
+    if (existsSync(copySh)) {
+      await remove(copySh)
+    }
+    await copyFile(sh, copySh)
+    process.chdir(global.Server.Cache!)
+    try {
+      const res = await execPromiseRoot('path.cmd')
+      let str = res?.stdout ?? ''
+      str = str.replace(new RegExp(`\n`, 'g'), '')
+      const oldPath = Array.from(new Set(str.split(';') ?? []))
+        .filter((s) => !!s.trim())
+        .map((s) => s.trim())
+        .map((s) => {
+          if (existsSync(s)) {
+            return realpathSync(s)
+          }
+          return s
+        })
+      console.log('fetchPATH path: ', str, oldPath)
+      resolve(oldPath)
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+export const addPath = async (dir: string) => {
+  let allPath: string[] = []
+  try {
+    allPath = await fetchPATH()
+  } catch (e) {
+    return
+  }
+  const index = allPath.indexOf(dir)
+  if (index === 0) {
+    return
+  }
+  if (index > 0) {
+    allPath.splice(index, 1)
+  }
+  allPath.unshift(dir)
+  const savePath = allPath
+    .map((p) => {
+      if (p.includes('%')) {
+        return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
+      }
+      return p
+    })
+    .join(';')
+  try {
+    await execPromiseRoot(`setx /M PATH "${savePath}"`)
+  } catch (e) {}
 }

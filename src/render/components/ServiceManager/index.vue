@@ -172,7 +172,7 @@
         <template #default="scope">
           <template v-if="scope.row?.aliasEditing">
             <el-input
-              v-model="scope.row.alias"
+              v-model.trim="scope.row.alias"
               v-click-outside="ServiceActionStore.onAliasEnd"
               :autofocus="true"
               class="app-alisa-edit"

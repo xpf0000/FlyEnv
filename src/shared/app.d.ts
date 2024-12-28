@@ -15,6 +15,7 @@ export interface SoftInstalled {
   flag?: string
   isLocal7Z?: boolean
   pid?: string
+  typeFlag: string
 }
 
 export interface AppHostReverseProxyItem {
