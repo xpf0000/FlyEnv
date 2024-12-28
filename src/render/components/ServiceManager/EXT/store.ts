@@ -58,11 +58,12 @@ export const ServiceActionStore: ServiceActionType = reactive({
       return
     }
     this.aliasSeting[item.bin] = true
-    IPC.send('app-fork:tools', 'setAlias', JSON.parse(JSON.stringify(item)), name).then(
+    const store = AppStore()
+    const oldName = store.config.setup?.alias?.[item.bin] ?? ''
+    IPC.send('app-fork:tools', 'setAlias', JSON.parse(JSON.stringify(item)), name, oldName).then(
       (key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          const store = AppStore()
           if (name) {
             if (!store.config.setup.alias) {
               store.config.setup.alias = reactive({})

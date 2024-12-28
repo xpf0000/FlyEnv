@@ -11,7 +11,7 @@
     <ul v-poper-fix class="host-list-menu">
       <li class="path-set" :class="state" @click.stop="doChange">
         <template v-if="loading">
-          <el-button text :loading="true"></el-button>
+          <el-button style="width: auto; height: auto" text :loading="true"></el-button>
         </template>
         <template v-else>
           <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />

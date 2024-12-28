@@ -21,7 +21,7 @@ export class Base {
   exec(fnName: string, ...args: any) {
     // @ts-ignore
     const fn: (...args: any) => ForkPromise<any> = this?.[fnName] as any
-    return fn.call(this, ...args)
+    return fn ? fn.call(this, ...args) : Promise.reject(new Error('No Method'))
   }
 
   initLocalApp(version: SoftInstalled, flag: string) {

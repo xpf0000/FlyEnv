@@ -159,7 +159,11 @@ class Manager extends Base {
       }
       const list = await Promise.all(tasks)
       list.forEach((arr, i) => {
-        versions[keys[i]] = arr
+        const typeFlag = keys[i]
+        arr.forEach((item) => {
+          item.typeFlag = typeFlag
+        })
+        versions[typeFlag] = arr
       })
       resolve(versions)
     })

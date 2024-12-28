@@ -1,6 +1,14 @@
 import { createReadStream, readFileSync, statSync } from 'fs'
 import { Base } from './Base'
-import { execPromise, execPromiseRoot, getAllFileAsync, systemProxyGet, uuid } from '../Fn'
+import {
+  addPath,
+  execPromise,
+  execPromiseRoot,
+  fetchPATH,
+  getAllFileAsync,
+  systemProxyGet,
+  uuid
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import {
   copyFile,
@@ -13,7 +21,7 @@ import {
   writeFile
 } from 'fs-extra'
 import { TaskItem, TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
-import { basename, dirname, join } from 'path'
+import { basename, dirname, join, resolve as PathResolve } from 'path'
 import { I18nT } from '../lang'
 import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
@@ -358,33 +366,7 @@ subjectAltName=@alt_names
   }
 
   fetchPATH(): ForkPromise<string[]> {
-    return new ForkPromise(async (resolve, reject) => {
-      const sh = join(global.Server.Static!, 'sh/path.cmd')
-      const copySh = join(global.Server.Cache!, 'path.cmd')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      await copyFile(sh, copySh)
-      process.chdir(global.Server.Cache!)
-      try {
-        const res = await execPromiseRoot('path.cmd')
-        let str = res?.stdout ?? ''
-        str = str.replace(new RegExp(`\n`, 'g'), '')
-        const oldPath = Array.from(new Set(str.split(';') ?? []))
-          .filter((s) => !!s.trim())
-          .map((s) => s.trim())
-          .map((s) => {
-            if (existsSync(s)) {
-              return realpathSync(s)
-            }
-            return s
-          })
-        console.log('fetchPATH path: ', str, oldPath)
-        resolve(oldPath)
-      } catch (e) {
-        reject(e)
-      }
-    })
+    return fetchPATH()
   }
 
   _fetchRawPATH(): ForkPromise<string[]> {
@@ -618,6 +600,33 @@ php "%~dp0composer.phar" %*`
       } catch (e) {
         reject(e)
       }
+    })
+  }
+
+  setAlias(item: SoftInstalled, newName: string, oldName: string) {
+    return new ForkPromise(async (resolve) => {
+      await this.initLocalApp(item, item.typeFlag)
+      const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
+      await mkdirp(aliasDir)
+      const oldFile = join(aliasDir, `${oldName}.bat`)
+      if (existsSync(oldFile)) {
+        await remove(oldFile)
+      }
+      if (newName) {
+        const file = join(aliasDir, `${newName}.bat`)
+        const content = `@echo off
+chcp 65001>nul
+"${item.bin}" %*`
+        await writeFile(file, content)
+      }
+
+      try {
+        await execPromiseRoot(`setx /M FLYENV_ALIAS "${aliasDir}"`)
+      } catch (e) {}
+
+      await addPath('%FLYENV_ALIAS%')
+
+      resolve(true)
     })
   }
 }
