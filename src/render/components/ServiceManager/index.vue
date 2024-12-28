@@ -166,7 +166,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('service.alias')" :prop="null" width="120px" align="center">
+      <el-table-column :label="I18nT('service.alias')" :prop="null" width="120px" align="left">
         <template #header>
           <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
             <span>{{ I18nT('service.alias') }}</span>
