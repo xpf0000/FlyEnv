@@ -33,9 +33,9 @@ export const ServiceActionStore: ServiceActionType = reactive({
   allPath: [],
   fetchPathing: false,
   onAliasEnd() {
-    delete this.editAliasItem?.alisaEditing
+    delete this.editAliasItem?.aliasEditing
     const store = AppStore()
-    const newAlisa = this.editAliasItem?.alisa ?? ''
+    const newAlisa = this.editAliasItem?.alias ?? ''
     const oldAlisa = store.config.setup?.alias?.[this.editAliasItem!.bin] ?? ''
     console.log('newAlisa: ', newAlisa, oldAlisa)
     if (newAlisa === oldAlisa) {
@@ -48,8 +48,8 @@ export const ServiceActionStore: ServiceActionType = reactive({
       return
     }
     const store = AppStore()
-    item.alisa = store.config.setup?.alias?.[item.bin] ?? ''
-    item.alisaEditing = true
+    item.alias = store.config.setup?.alias?.[item.bin] ?? ''
+    item.aliasEditing = true
     this.editAliasItem = item
   },
   setAlias(item: SoftInstalled, name: string) {
@@ -76,7 +76,7 @@ export const ServiceActionStore: ServiceActionType = reactive({
           MessageError(res?.msg ?? I18nT('base.fail'))
         }
         delete this.aliasSeting[item.bin]
-        delete item?.alisaEditing
+        delete item?.aliasEditing
         delete this.editAliasItem
       }
     )
