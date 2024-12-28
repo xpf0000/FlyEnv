@@ -187,7 +187,7 @@
           </template>
           <template v-else>
             <div
-              class="flex items-center h-full"
+              class="flex items-center h-full min-h-9"
               @dblclick.stop="ServiceActionStore.showAlias(scope.row)"
               >{{ appStore.config.setup.alias?.[scope.row.bin] }}</div
             >
