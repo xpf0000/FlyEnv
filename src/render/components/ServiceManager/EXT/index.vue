@@ -1,5 +1,6 @@
 <template>
   <el-popover
+    ref="popper"
     effect="dark"
     popper-class="host-list-poper"
     placement="left-start"
@@ -20,7 +21,7 @@
       </li>
       <li @click.stop="doSetAlias">
         <template v-if="aliaseloading">
-          <el-button text :loading="true"></el-button>
+          <el-button style="width: auto; height: auto" text :loading="true"></el-button>
         </template>
         <template v-else>
           <yb-icon class="current" :svg="import('@/svg/aliase.svg?raw')" width="17" height="17" />
@@ -50,7 +51,7 @@
   </el-popover>
 </template>
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, ref } from 'vue'
   import { BrewStore, SoftInstalled } from '@/store/brew'
   import { ServiceActionStore } from './store'
   import { AppStore } from '@/store/app'
@@ -66,6 +67,7 @@
     showHideShow: boolean
   }>()
 
+  const popper = ref()
   const store = AppStore()
   const brewStore = BrewStore()
 
@@ -109,6 +111,7 @@
   }
 
   const doSetAlias = () => {
+    popper.value.hide()
     const item: SoftInstalled = props.item
     ServiceActionStore.showAlias(item)
   }
