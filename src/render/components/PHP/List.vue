@@ -6,7 +6,7 @@
           <span> PHP </span>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
-              <span>{{ $t('base.customVersionDir') }}</span>
+              <span>{{ I18nT('base.customVersionDir') }}</span>
             </template>
             <template #reference>
               <el-button
@@ -19,7 +19,7 @@
           </el-popover>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
-              <span>{{ $t('base.showHideTips') }}</span>
+              <span>{{ I18nT('base.showHideTips') }}</span>
             </template>
             <template #reference>
               <template v-if="isShowHide">
@@ -54,13 +54,15 @@
     <el-table v-loading="service?.fetching" class="service-table" :data="versions">
       <el-table-column prop="version" width="140px">
         <template #header>
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ $t('base.version') }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{
+            I18nT('base.version')
+          }}</span>
         </template>
         <template #default="scope">
           <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.version }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.path')" :prop="null">
+      <el-table-column :label="I18nT('base.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
             <el-popover popper-class="version-error-tips" width="auto" placement="top">
@@ -70,7 +72,7 @@
                 }}</span>
               </template>
               <template #default>
-                <span>{{ scope.row?.error ?? $t('base.versionErrorTips') }}</span>
+                <span>{{ scope.row?.error ?? I18nT('base.versionErrorTips') }}</span>
               </template>
             </el-popover>
           </template>
@@ -79,7 +81,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('php.quickStart')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <el-button
             link
@@ -94,7 +96,52 @@
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.service')" :prop="null" width="100px">
+      <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
+        <template #header>
+          <el-tooltip :content="I18nT('service.envTips')" placement="top" show-after="600">
+            <span>{{ I18nT('service.env') }}</span>
+          </el-tooltip>
+        </template>
+        <template #default="scope">
+          <template v-if="isInEnv(scope.row)">
+            <el-button link type="primary">
+              <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+            </el-button>
+          </template>
+          <template v-else-if="ServiceActionStore.pathSeting[scope.row.bin]">
+            <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+          </template>
+        </template>
+      </el-table-column>
+      <el-table-column :label="I18nT('service.alias')" :prop="null" width="120px" align="left">
+        <template #header>
+          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
+            <span>{{ I18nT('service.alias') }}</span>
+          </el-tooltip>
+        </template>
+        <template #default="scope">
+          <template v-if="scope.row?.aliasEditing">
+            <el-input
+              v-model.trim="scope.row.alias"
+              v-click-outside="ServiceActionStore.onAliasEnd"
+              :autofocus="true"
+              class="app-alisa-edit"
+              @change="ServiceActionStore.onAliasEnd"
+            ></el-input>
+          </template>
+          <template v-else-if="ServiceActionStore.aliasSeting[scope.row.bin]">
+            <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+          </template>
+          <template v-else>
+            <div
+              class="flex items-center"
+              @dblclick.stop="ServiceActionStore.showAlias(scope.row)"
+              >{{ appStore.config.setup.alias?.[scope.row.bin] }}</div
+            >
+          </template>
+        </template>
+      </el-table-column>
+      <el-table-column :label="I18nT('base.service')" :prop="null" width="100px">
         <template #default="scope">
           <template v-if="excludeLocalVersion.includes(scope.row.bin)">
             <el-button link @click.stop="doShow(scope.row)">
@@ -130,7 +177,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <el-popover
             effect="dark"
@@ -143,7 +190,7 @@
             <ul v-poper-fix class="host-list-menu">
               <li @click.stop="action(scope.row, scope.$index, 'open')">
                 <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('base.open') }}</span>
+                <span class="ml-15">{{ I18nT('base.open') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'conf')">
                 <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
@@ -151,7 +198,7 @@
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'extend')">
                 <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ $t('php.extension') }}</span>
+                <span class="ml-15">{{ I18nT('php.extension') }}</span>
               </li>
               <li @click.stop="action(scope.row, scope.$index, 'groupstart')">
                 <yb-icon
@@ -161,36 +208,54 @@
                   height="18"
                 />
                 <template v-if="appStore?.phpGroupStart?.[scope.row.bin] === false">
-                  <span class="ml-10">{{ $t('php.groupStartOn') }}</span>
+                  <span class="ml-10">{{ I18nT('php.groupStartOn') }}</span>
                 </template>
                 <template v-else>
-                  <span class="ml-10">{{ $t('php.groupStartOff') }}</span>
+                  <span class="ml-10">{{ I18nT('php.groupStartOff') }}</span>
                 </template>
               </li>
               <li
-                v-loading="pathLoading(scope.row)"
                 class="path-set"
                 :class="pathState(scope.row)"
                 @click.stop="pathChange(scope.row)"
               >
-                <yb-icon
-                  class="current"
-                  :svg="import('@/svg/select.svg?raw')"
-                  width="17"
-                  height="17"
-                />
-                <span class="ml-15">{{ $t('base.addToPath') }}</span>
+                <template v-if="pathLoading(scope.row)">
+                  <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+                </template>
+                <template v-else>
+                  <yb-icon
+                    class="current"
+                    :svg="import('@/svg/select.svg?raw')"
+                    width="17"
+                    height="17"
+                  />
+                </template>
+                <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
+              </li>
+              <li @click.stop="ServiceActionStore.showAlias(scope.row)">
+                <template v-if="ServiceActionStore.aliasSeting[scope.row.bin]">
+                  <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+                </template>
+                <template v-else>
+                  <yb-icon
+                    class="current"
+                    :svg="import('@/svg/aliase.svg?raw')"
+                    width="17"
+                    height="17"
+                  />
+                </template>
+                <span class="ml-15">{{ I18nT('service.setaliase') }}</span>
               </li>
               <template v-if="isVersionHide(scope.row)">
                 <li @click.stop="doShow(scope.row)">
                   <yb-icon :svg="import('@/svg/show.svg?raw')" width="17" height="17" />
-                  <span class="ml-15">{{ $t('base.noHide') }}</span>
+                  <span class="ml-15">{{ I18nT('base.noHide') }}</span>
                 </li>
               </template>
               <template v-else>
                 <li @click.stop="doHide(scope.row)">
                   <yb-icon :svg="import('@/svg/hide.svg?raw')" width="17" height="17" />
-                  <span class="ml-15">{{ $t('base.hide') }}</span>
+                  <span class="ml-15">{{ I18nT('base.hide') }}</span>
                 </li>
               </template>
             </ul>
@@ -218,6 +283,7 @@
   import { Service } from '@/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '../ServiceManager/EXT/store'
+  import { ClickOutside as vClickOutside } from 'element-plus'
 
   const { shell } = require('@electron/remote')
   const { join, dirname } = require('path')
@@ -276,6 +342,10 @@
 
   const doShow = (item: SoftInstalled) => {
     appStore.serviceShow(item.bin)
+  }
+
+  const isInEnv = (item: SoftInstalled) => {
+    return ServiceActionStore.allPath.includes(dirname(item.bin))
   }
 
   const doHide = (item: SoftInstalled) => {

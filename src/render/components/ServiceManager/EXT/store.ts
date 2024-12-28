@@ -72,6 +72,7 @@ export const ServiceActionStore: ServiceActionType = reactive({
           } else {
             delete store.config.setup?.alias?.[item.bin]
           }
+          item.alias = name
           store.saveConfig().then().catch()
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
