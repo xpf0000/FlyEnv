@@ -64,14 +64,16 @@ export const ServiceActionStore: ServiceActionType = reactive({
       (key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
+          const setup = JSON.parse(JSON.stringify(store.config.setup))
           if (name) {
-            if (!store.config.setup.alias) {
-              store.config.setup.alias = reactive({})
+            if (!setup.alias) {
+              setup.alias = {}
             }
-            store.config.setup.alias[item.bin] = name
+            setup.alias[item.bin] = name
           } else {
-            delete store.config.setup?.alias?.[item.bin]
+            delete setup?.alias?.[item.bin]
           }
+          store.config.setup = reactive(setup)
           item.alias = name
           store.saveConfig().then().catch()
         } else {
