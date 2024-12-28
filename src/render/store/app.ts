@@ -79,6 +79,7 @@ type SetupBase = Partial<
 >
 
 type StateBase = SetupBase & {
+  alias?: Record<string, string>
   common: {
     showItem: AppShowItem
   }

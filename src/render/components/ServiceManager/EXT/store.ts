@@ -11,19 +11,78 @@ import { AppStore } from '@/store/app'
 const { join } = require('path')
 const { remove, existsSync } = require('fs-extra')
 
-export const ServiceActionStore: {
+type ServiceActionType = {
   versionDeling: Record<string, boolean>
   pathSeting: Record<string, boolean>
+  aliasSeting: Record<string, boolean>
   allPath: string[]
   fetchPathing: boolean
   fetchPath: () => void
+  editAliasItem?: SoftInstalled
+  onAliasEnd: (e?: MouseEvent) => void
+  showAlias: (item: SoftInstalled) => void
+  setAlias: (item: SoftInstalled, name: string) => void
   updatePath: (item: SoftInstalled, typeFlag: string) => void
   delVersion: (item: SoftInstalled, typeFlag: string) => void
-} = reactive({
+}
+
+export const ServiceActionStore: ServiceActionType = reactive({
   versionDeling: {},
   pathSeting: {},
+  aliasSeting: {},
   allPath: [],
   fetchPathing: false,
+  onAliasEnd(e?: MouseEvent) {
+    e?.stopPropagation && e?.stopPropagation()
+    e?.preventDefault && e?.preventDefault()
+    document.removeEventListener('click', this.onAliasEnd)
+    delete this.editAliasItem?.alisaEditing
+    const store = AppStore()
+    const newAlisa = this.editAliasItem?.alisa ?? ''
+    const oldAlisa = store.config.setup?.alias?.[this.editAliasItem!.bin] ?? ''
+    if (newAlisa === oldAlisa) {
+      return
+    }
+    this.setAlias(this.editAliasItem!, newAlisa)
+  },
+  showAlias(item: SoftInstalled) {
+    if (this.aliasSeting[item.bin]) {
+      return
+    }
+    const store = AppStore()
+    item.alisa = store.config.setup?.alias?.[item.bin] ?? ''
+    item.alisaEditing = true
+    this.editAliasItem = item
+    document.addEventListener('click', this.onAliasEnd)
+  },
+  setAlias(item: SoftInstalled, name: string) {
+    if (this.aliasSeting[item.bin]) {
+      return
+    }
+    this.aliasSeting[item.bin] = true
+    IPC.send('app-fork:tools', 'setAlias', JSON.parse(JSON.stringify(item)), name).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          const store = AppStore()
+          if (name) {
+            if (!store.config.setup.alias) {
+              store.config.setup.alias = reactive({})
+            }
+            store.config.setup.alias[item.bin] = name
+          } else {
+            delete store.config.setup?.alias?.[item.bin]
+          }
+          store.saveConfig().then().catch()
+        } else {
+          MessageError(res?.msg ?? I18nT('base.fail'))
+        }
+        delete this.aliasSeting[item.bin]
+        delete item?.alisaEditing
+        delete this.editAliasItem
+      }
+    )
+  },
   fetchPath() {
     if (ServiceActionStore.fetchPathing) {
       return
@@ -106,4 +165,6 @@ export const ServiceActionStore: {
         delete ServiceActionStore.versionDeling[item.bin]
       })
   }
-})
+} as ServiceActionType)
+
+ServiceActionStore.onAliasEnd = ServiceActionStore.onAliasEnd.bind(ServiceActionStore)

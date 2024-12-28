@@ -24,10 +24,14 @@ class Manager extends Base {
         } catch (e) {
           return
         }
-        if (allPath.includes('%NVM_HOME%')) {
+        const index = allPath.indexOf('%NVM_HOME%')
+        if (index === 0) {
           return
         }
-        allPath.push('%NVM_HOME%')
+        if (index > 0) {
+          allPath.splice(index, 1)
+        }
+        allPath.unshift('%NVM_HOME%')
         const savePath = allPath
           .map((p) => {
             if (p.includes('%')) {
@@ -101,10 +105,14 @@ class Manager extends Base {
         } catch (e) {
           return
         }
-        if (allPath.includes('%FNM_HOME%')) {
+        const index = allPath.indexOf('%FNM_HOME%')
+        if (index === 0) {
           return
         }
-        allPath.push('%FNM_HOME%')
+        if (index > 0) {
+          allPath.splice(index, 1)
+        }
+        allPath.unshift('%FNM_HOME%')
         const savePath = allPath
           .map((p) => {
             if (p.includes('%')) {

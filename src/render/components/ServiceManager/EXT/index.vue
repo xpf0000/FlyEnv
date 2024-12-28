@@ -9,21 +9,35 @@
     @show="onShow"
   >
     <ul v-poper-fix class="host-list-menu">
-      <li v-loading="loading" class="path-set" :class="state" @click.stop="doChange">
-        <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
-        <span class="ml-15">{{ $t('base.addToPath') }}</span>
+      <li class="path-set" :class="state" @click.stop="doChange">
+        <template v-if="loading">
+          <el-button text :loading="true"></el-button>
+        </template>
+        <template v-else>
+          <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+        </template>
+        <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
+      </li>
+      <li @click.stop="doSetAlias">
+        <template v-if="aliaseloading">
+          <el-button text :loading="true"></el-button>
+        </template>
+        <template v-else>
+          <yb-icon class="current" :svg="import('@/svg/aliase.svg?raw')" width="17" height="17" />
+        </template>
+        <span class="ml-15">{{ I18nT('service.setaliase') }}</span>
       </li>
       <template v-if="showHideShow">
         <template v-if="isVersionHide">
           <li @click.stop="doShow">
             <yb-icon :svg="import('@/svg/show.svg?raw')" width="17" height="17" />
-            <span class="ml-15">{{ $t('base.noHide') }}</span>
+            <span class="ml-15">{{ I18nT('base.noHide') }}</span>
           </li>
         </template>
         <template v-else>
           <li @click.stop="doHide">
             <yb-icon :svg="import('@/svg/hide.svg?raw')" width="17" height="17" />
-            <span class="ml-15">{{ $t('base.hide') }}</span>
+            <span class="ml-15">{{ I18nT('base.hide') }}</span>
           </li>
         </template>
       </template>
@@ -42,6 +56,7 @@
   import { AppStore } from '@/store/app'
   import { AllAppModule } from '@/core/type'
   import { stopService } from '@/util/Service'
+  import { I18nT } from '@shared/lang'
 
   const { dirname } = require('path')
 
@@ -66,6 +81,10 @@
     return ServiceActionStore.pathSeting?.[props.item.bin] ?? false
   })
 
+  const aliaseloading = computed(() => {
+    return ServiceActionStore.aliasSeting?.[props.item.bin] ?? false
+  })
+
   const state = computed(() => {
     if (ServiceActionStore.allPath.length === 0) {
       return ''
@@ -87,6 +106,11 @@
 
   const doChange = () => {
     ServiceActionStore.updatePath(props.item, props.type)
+  }
+
+  const doSetAlias = () => {
+    const item: SoftInstalled = props.item
+    ServiceActionStore.showAlias(item)
   }
 
   const doShow = () => {
