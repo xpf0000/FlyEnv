@@ -111,6 +111,53 @@
           </div>
         </template>
       </el-table-column>
+      <template v-if="tableTab === 'local'">
+        <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
+          <template #header>
+            <el-tooltip :content="I18nT('service.envTips')" placement="top" show-after="600">
+              <span>{{ I18nT('service.env') }}</span>
+            </el-tooltip>
+          </template>
+          <template #default="scope">
+            <template v-if="isInEnv(scope.row)">
+              <el-button link type="primary">
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </template>
+            <template v-else-if="ServiceActionStore.pathSeting[scope.row.bin]">
+              <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+            </template>
+          </template>
+        </el-table-column>
+        <el-table-column :label="I18nT('service.alias')" :prop="null" width="120px" align="left">
+          <template #header>
+            <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
+              <span>{{ I18nT('service.alias') }}</span>
+            </el-tooltip>
+          </template>
+          <template #default="scope">
+            <template v-if="scope.row?.aliasEditing">
+              <el-input
+                v-model.trim="scope.row.alias"
+                v-click-outside="ServiceActionStore.onAliasEnd"
+                :autofocus="true"
+                class="app-alisa-edit"
+                @change="ServiceActionStore.onAliasEnd"
+              ></el-input>
+            </template>
+            <template v-else-if="ServiceActionStore.aliasSeting[scope.row.bin]">
+              <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+            </template>
+            <template v-else>
+              <div
+                class="flex items-center h-full"
+                @dblclick.stop="ServiceActionStore.showAlias(scope.row)"
+                >{{ appStore.config.setup.alias?.[scope.row.bin] }}</div
+              >
+            </template>
+          </template>
+        </el-table-column>
+      </template>
       <el-table-column align="center" :label="I18nT('base.operation')" width="150">
         <template #default="scope">
           <template v-if="scope.row?.path">
@@ -144,12 +191,21 @@
   import { SetupAll } from '@/components/VersionManager/setupAll'
   import type { AllAppModule } from '@/core/type'
   import { FolderAdd } from '@element-plus/icons-vue'
+  import { AppStore } from '@/store/app'
+  import type { SoftInstalled } from '@/store/brew'
+  import { dirname } from 'path'
 
   const props = defineProps<{
     typeFlag: AllAppModule
     title: string
     url: string
   }>()
+
+  const appStore = AppStore()
+
+  const isInEnv = (item: SoftInstalled) => {
+    return ServiceActionStore.allPath.includes(dirname(item.bin))
+  }
 
   const {
     openURL,
