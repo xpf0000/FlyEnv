@@ -32,10 +32,9 @@ export const ServiceActionStore: ServiceActionType = reactive({
   aliasSeting: {},
   allPath: [],
   fetchPathing: false,
-  onAliasEnd(e?: MouseEvent) {
-    e?.stopPropagation && e?.stopPropagation()
-    e?.preventDefault && e?.preventDefault()
-    document.removeEventListener('click', this.onAliasEnd)
+  onAliasEnd(e?: MouseEvent | HTMLElement) {
+    console.log('onAliasEnd: ', ...arguments)
+    // document.removeEventListener('click', this.onAliasEnd)
     delete this.editAliasItem?.alisaEditing
     const store = AppStore()
     const newAlisa = this.editAliasItem?.alisa ?? ''
@@ -53,7 +52,7 @@ export const ServiceActionStore: ServiceActionType = reactive({
     item.alisa = store.config.setup?.alias?.[item.bin] ?? ''
     item.alisaEditing = true
     this.editAliasItem = item
-    document.addEventListener('click', this.onAliasEnd)
+    // document.addEventListener('click', this.onAliasEnd)
   },
   setAlias(item: SoftInstalled, name: string) {
     if (this.aliasSeting[item.bin]) {
