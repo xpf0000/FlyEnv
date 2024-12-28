@@ -6,7 +6,7 @@
           <span> {{ title }} </span>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
-              <span>{{ $t('base.customVersionDirTips') }}</span>
+              <span>{{ I18nT('base.customVersionDirTips') }}</span>
             </template>
             <template #reference>
               <el-button
@@ -19,7 +19,7 @@
           </el-popover>
           <el-popover :show-after="600" placement="top" width="auto">
             <template #default>
-              <span>{{ $t('base.showHideTips') }}</span>
+              <span>{{ I18nT('base.showHideTips') }}</span>
             </template>
             <template #reference>
               <template v-if="isShowHide">
@@ -83,7 +83,9 @@
     <el-table v-loading="service?.fetching" class="service-table" :data="versions">
       <el-table-column prop="version" width="140px">
         <template #header>
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ $t('base.version') }}</span>
+          <span style="padding: 2px 12px 2px 24px; display: block">{{
+            I18nT('base.version')
+          }}</span>
         </template>
         <template #default="scope">
           <span
@@ -97,7 +99,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.path')" :prop="null">
+      <el-table-column :label="I18nT('base.path')" :prop="null">
         <template #default="scope">
           <template v-if="!scope.row.version">
             <el-popover popper-class="version-error-tips" width="auto" placement="top">
@@ -107,7 +109,7 @@
                 }}</span>
               </template>
               <template #default>
-                <span>{{ scope.row?.error ?? $t('base.versionErrorTips') }}</span>
+                <span>{{ scope.row?.error ?? I18nT('base.versionErrorTips') }}</span>
               </template>
             </el-popover>
           </template>
@@ -125,7 +127,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('php.quickStart')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <template
             v-if="
@@ -147,7 +149,42 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.service')" :prop="null" width="110px">
+      <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
+        <template #header>
+          <el-tooltip :content="I18nT('service.envTips')" placement="top" show-after="600">
+            <span>{{ I18nT('service.env') }}</span>
+          </el-tooltip>
+        </template>
+        <template #default="scope">
+          <template v-if="isInEnv(scope.row)">
+            <el-button link type="primary">
+              <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+            </el-button>
+          </template>
+        </template>
+      </el-table-column>
+      <el-table-column :label="I18nT('service.alias')" :prop="null" width="120px" align="center">
+        <template #header>
+          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
+            <span>{{ I18nT('service.alias') }}</span>
+          </el-tooltip>
+        </template>
+        <template #default="scope">
+          <template v-if="scope.row?.alisaEditing">
+            <el-input
+              v-model="scope.row.alias"
+              v-click-outside="ServiceActionStore.onAliasEnd"
+              clearable
+              class="app-alisa-edit"
+              @change="ServiceActionStore.onAliasEnd"
+            ></el-input>
+          </template>
+          <template v-else>
+            <span>{{ appStore.config.setup.alias?.[scope.row.bin] }}</span>
+          </template>
+        </template>
+      </el-table-column>
+      <el-table-column :label="I18nT('base.service')" :prop="null" width="110px">
         <template #default="scope">
           <template v-if="excludeLocalVersion.includes(scope.row.bin)">
             <el-button link @click.stop="doShow(scope.row)">
@@ -198,7 +235,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('base.operation')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <ExtSet :item="scope.row" :type="typeFlag" :show-hide-show="true" />
         </template>
@@ -221,9 +258,12 @@
   import ExtSet from './EXT/index.vue'
   import IPC from '@/util/IPC'
   import type { AllAppModule } from '@/core/type'
+  import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+  import { ClickOutside as vClickOutside } from 'element-plus'
 
   const { shell } = require('@electron/remote')
   const { existsSync } = require('fs')
+  const { dirname } = require('path')
 
   const props = defineProps<{
     typeFlag: AllAppModule
@@ -284,6 +324,10 @@
     const flag = props.typeFlag
     return brewStore.module(flag)?.installed?.some((f) => f.running)
   })
+
+  const isInEnv = (item: SoftInstalled) => {
+    return ServiceActionStore.allPath.includes(dirname(item.bin))
+  }
 
   const groupTrunOn = (item: SoftInstalled) => {
     const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
@@ -457,4 +501,6 @@
       }
     })
   }
+
+  ServiceActionStore.fetchPath()
 </script>
