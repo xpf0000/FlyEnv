@@ -37,6 +37,7 @@ export const ServiceActionStore: ServiceActionType = reactive({
     const store = AppStore()
     const newAlisa = this.editAliasItem?.alisa ?? ''
     const oldAlisa = store.config.setup?.alias?.[this.editAliasItem!.bin] ?? ''
+    console.log('newAlisa: ', newAlisa, oldAlisa)
     if (newAlisa === oldAlisa) {
       return
     }
@@ -52,6 +53,7 @@ export const ServiceActionStore: ServiceActionType = reactive({
     this.editAliasItem = item
   },
   setAlias(item: SoftInstalled, name: string) {
+    console.log('setAlias: ', item, name)
     if (this.aliasSeting[item.bin]) {
       return
     }
