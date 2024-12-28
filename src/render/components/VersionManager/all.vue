@@ -193,7 +193,9 @@
   import { FolderAdd } from '@element-plus/icons-vue'
   import { AppStore } from '@/store/app'
   import type { SoftInstalled } from '@/store/brew'
-  import { dirname } from 'path'
+  import { ClickOutside as vClickOutside } from 'element-plus'
+
+  const { dirname } = require('path')
 
   const props = defineProps<{
     typeFlag: AllAppModule
