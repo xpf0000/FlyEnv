@@ -161,6 +161,9 @@
               <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
             </el-button>
           </template>
+          <template v-else-if="ServiceActionStore.pathSeting[scope.row.bin]">
+            <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+          </template>
         </template>
       </el-table-column>
       <el-table-column :label="I18nT('service.alias')" :prop="null" width="120px" align="center">
@@ -179,8 +182,15 @@
               @change="ServiceActionStore.onAliasEnd"
             ></el-input>
           </template>
+          <template v-else-if="ServiceActionStore.aliasSeting[scope.row.bin]">
+            <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+          </template>
           <template v-else>
-            <span>{{ appStore.config.setup.alias?.[scope.row.bin] }}</span>
+            <div
+              class="flex items-center"
+              @dblclick.stop="ServiceActionStore.showAlias(scope.row)"
+              >{{ appStore.config.setup.alias?.[scope.row.bin] }}</div
+            >
           </template>
         </template>
       </el-table-column>
