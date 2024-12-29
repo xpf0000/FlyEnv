@@ -166,32 +166,24 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('service.alias')" :prop="null" width="120px" align="left">
+      <el-table-column
+        :show-overflow-tooltip="true"
+        :label="I18nT('service.alias')"
+        :prop="null"
+        width="120px"
+        align="left"
+      >
         <template #header>
           <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
             <span>{{ I18nT('service.alias') }}</span>
           </el-tooltip>
         </template>
         <template #default="scope">
-          <template v-if="scope.row?.aliasEditing">
-            <el-input
-              v-model.trim="scope.row.alias"
-              v-click-outside="ServiceActionStore.onAliasEnd"
-              :autofocus="true"
-              class="app-alisa-edit"
-              @change="ServiceActionStore.onAliasEnd"
-            ></el-input>
-          </template>
-          <template v-else-if="ServiceActionStore.aliasSeting[scope.row.bin]">
-            <el-button style="width: auto; height: auto" text :loading="true"></el-button>
-          </template>
-          <template v-else>
-            <div
-              class="flex items-center h-full min-h-9"
-              @dblclick.stop="ServiceActionStore.showAlias(scope.row)"
-              >{{ appStore.config.setup.alias?.[scope.row.bin] }}</div
-            >
-          </template>
+          <div class="flex items-center h-full min-h-9"
+            ><span class="truncate">{{
+              appStore.config.setup.alias?.[scope.row.bin]?.map((a) => a.name)?.join(',')
+            }}</span></div
+          >
         </template>
       </el-table-column>
       <el-table-column :label="I18nT('base.service')" :prop="null" width="110px">

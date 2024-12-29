@@ -69,7 +69,6 @@
   const running = ref(false)
   const form = ref<AppServiceAliasItem>({
     name: '',
-    command: '',
     id: ''
   })
 

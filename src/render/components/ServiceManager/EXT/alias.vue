@@ -9,12 +9,13 @@
   >
     <div class="">
       <el-button
-        class="mb-4"
+        class="mb-2"
         type="primary"
+        size="small"
         :icon="Plus"
         @click.stop="doEdit(undefined)"
       ></el-button>
-      <el-table :data="alias" style="width: 100%">
+      <el-table :data="alias" style="width: 100%" :border="true">
         <el-table-column width="120px" align="left" :label="I18nT('service.alias')">
           <template #default="scope">
             <el-button link @click.stop="copy(scope.row.name)">{{ scope.row.name }}</el-button>
@@ -34,7 +35,7 @@
         <el-table-column align="left" :label="I18nT('base.path')">
           <template #default="scope">
             <el-button
-              class="overflow-hidden"
+              class="overflow-hidden truncate"
               link
               type="primary"
               @click.stop="open(scope.row.path)"
