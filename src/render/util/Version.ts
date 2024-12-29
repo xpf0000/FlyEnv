@@ -5,7 +5,7 @@ const { shell } = require('@electron/remote')
 const { existsSync } = require('fs')
 
 export const staticVersionDel = (dir: string) => {
-  Base._Confirm(I18nT('base.staticDelAlert'), undefined, {
+  Base._Confirm(I18nT('service.staticDelAlert'), undefined, {
     customClass: 'confirm-del',
     type: 'warning'
   })
