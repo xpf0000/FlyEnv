@@ -128,16 +128,16 @@ export const ServiceActionStore: ServiceActionType = reactive({
         type: 'warning'
       })
         .then(async () => {
-          stopService(type, item).then().catch()
+          if (item.run) {
+            stopService(type, item).then().catch()
+          }
           const setup = JSON.parse(JSON.stringify(store.config.setup))
           if (!setup.excludeLocalVersion) {
             setup.excludeLocalVersion = []
           }
-          const arr: string[] = Array.from(
-            new Set(JSON.parse(JSON.stringify(store.config.setup.excludeLocalVersion)))
-          )
-          arr.push(`${type}-${item.version}`)
-          setup.excludeLocalVersion = arr
+          const arr: Set<string> = new Set(setup.excludeLocalVersion)
+          arr.add(`${type}-${item.version}`)
+          setup.excludeLocalVersion = [...arr]
           store.config.setup = reactive(setup)
           await store.saveConfig()
           await reGetInstalled(type as any)
@@ -152,7 +152,9 @@ export const ServiceActionStore: ServiceActionType = reactive({
         type: 'warning'
       })
         .then(async () => {
-          stopService(type, item).then().catch()
+          if (item.run) {
+            stopService(type, item).then().catch()
+          }
           const setup = JSON.parse(JSON.stringify(store.config.setup))
           const index = setup?.[type]?.dirs?.findIndex((d: string) => item.bin.includes(d))
           if (index >= 0) {
