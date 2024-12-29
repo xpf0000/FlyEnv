@@ -64,7 +64,7 @@ export const ServiceActionStore: ServiceActionType = reactive({
       JSON.parse(JSON.stringify(item)),
       name,
       oldName,
-      store.config.setup?.alias ?? {}
+      JSON.parse(JSON.stringify(store.config.setup?.alias ?? {}))
     ).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
