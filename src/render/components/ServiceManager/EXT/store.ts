@@ -58,30 +58,28 @@ export const ServiceActionStore: ServiceActionType = reactive({
     this.aliasSeting[item.bin] = true
     const store = AppStore()
     const oldName = store.config.setup?.alias?.[item.bin] ?? ''
-    IPC.send('app-fork:tools', 'setAlias', JSON.parse(JSON.stringify(item)), name, oldName).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          const setup = JSON.parse(JSON.stringify(store.config.setup))
-          if (name) {
-            if (!setup.alias) {
-              setup.alias = {}
-            }
-            setup.alias[item.bin] = name
-          } else {
-            delete setup?.alias?.[item.bin]
-          }
-          store.config.setup = reactive(setup)
-          item.alias = name
-          store.saveConfig().then().catch()
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-        delete this.aliasSeting[item.bin]
-        delete item?.aliasEditing
-        delete this.editAliasItem
+    IPC.send(
+      'app-fork:tools',
+      'setAlias',
+      JSON.parse(JSON.stringify(item)),
+      name,
+      oldName,
+      store.config.setup?.alias ?? {}
+    ).then((key: string, res: any) => {
+      IPC.off(key)
+      if (res?.code === 0) {
+        const setup = JSON.parse(JSON.stringify(store.config.setup))
+        setup.alias = res.data
+        store.config.setup = reactive(setup)
+        item.alias = name
+        store.saveConfig().then().catch()
+      } else {
+        MessageError(res?.msg ?? I18nT('base.fail'))
       }
-    )
+      delete this.aliasSeting[item.bin]
+      delete item?.aliasEditing
+      delete this.editAliasItem
+    })
   },
   fetchPath() {
     if (ServiceActionStore.fetchPathing) {
