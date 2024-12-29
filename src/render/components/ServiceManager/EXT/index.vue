@@ -20,12 +20,7 @@
         <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
       </li>
       <li @click.stop="doSetAlias">
-        <template v-if="aliaseloading">
-          <el-button style="width: auto; height: auto" text :loading="true"></el-button>
-        </template>
-        <template v-else>
-          <yb-icon class="current" :svg="import('@/svg/aliase.svg?raw')" width="17" height="17" />
-        </template>
+        <yb-icon class="current" :svg="import('@/svg/aliase.svg?raw')" width="17" height="17" />
         <span class="ml-15">{{ I18nT('service.setaliase') }}</span>
       </li>
       <template v-if="showHideShow">
@@ -43,7 +38,7 @@
         </template>
       </template>
       <li @click.stop="ServiceActionStore.delVersion(item, type)">
-        <yb-icon :svg="import('@/svg/trash.svg?raw')" width="17" height="17" />
+        <yb-icon :svg="import('@/svg/trash.svg?raw')" width="15" height="15" />
         <span class="ml-15">{{ I18nT('base.del') }}</span>
       </li>
     </ul>
@@ -85,10 +80,6 @@
 
   const loading = computed(() => {
     return ServiceActionStore.pathSeting?.[props.item.bin] ?? false
-  })
-
-  const aliaseloading = computed(() => {
-    return ServiceActionStore.aliasSeting?.[props.item.bin] ?? false
   })
 
   const state = computed(() => {

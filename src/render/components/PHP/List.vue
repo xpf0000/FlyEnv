@@ -120,25 +120,11 @@
           </el-tooltip>
         </template>
         <template #default="scope">
-          <template v-if="scope.row?.aliasEditing">
-            <el-input
-              v-model.trim="scope.row.alias"
-              v-click-outside="ServiceActionStore.onAliasEnd"
-              :autofocus="true"
-              class="app-alisa-edit"
-              @change="ServiceActionStore.onAliasEnd"
-            ></el-input>
-          </template>
-          <template v-else-if="ServiceActionStore.aliasSeting[scope.row.bin]">
-            <el-button style="width: auto; height: auto" text :loading="true"></el-button>
-          </template>
-          <template v-else>
-            <div
-              class="flex items-center h-full min-h-9"
-              @dblclick.stop="ServiceActionStore.showAlias(scope.row)"
-              >{{ appStore.config.setup.alias?.[scope.row.bin] }}</div
-            >
-          </template>
+          <div
+            class="flex items-center h-full min-h-9"
+            @dblclick.stop="ServiceActionStore.showAlias(scope.row)"
+            >{{ appStore.config.setup.alias?.[scope.row.bin]?.map((a) => a.name)?.join(',') }}</div
+          >
         </template>
       </el-table-column>
       <el-table-column :label="I18nT('base.service')" :prop="null" width="100px">
@@ -233,17 +219,12 @@
                 <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
               </li>
               <li @click.stop="ServiceActionStore.showAlias(scope.row)">
-                <template v-if="ServiceActionStore.aliasSeting[scope.row.bin]">
-                  <el-button style="width: auto; height: auto" text :loading="true"></el-button>
-                </template>
-                <template v-else>
-                  <yb-icon
-                    class="current"
-                    :svg="import('@/svg/aliase.svg?raw')"
-                    width="17"
-                    height="17"
-                  />
-                </template>
+                <yb-icon
+                  class="current"
+                  :svg="import('@/svg/aliase.svg?raw')"
+                  width="17"
+                  height="17"
+                />
                 <span class="ml-15">{{ I18nT('service.setaliase') }}</span>
               </li>
               <template v-if="isVersionHide(scope.row)">
@@ -287,7 +268,6 @@
   import { Service } from '@/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '../ServiceManager/EXT/store'
-  import { ClickOutside as vClickOutside } from 'element-plus'
 
   const { shell } = require('@electron/remote')
   const { join, dirname } = require('path')

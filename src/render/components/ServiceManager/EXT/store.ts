@@ -8,18 +8,22 @@ import { reGetInstalled, stopService } from '@/util/Service'
 import { AppStore } from '@/store/app'
 import { AllAppModule } from '@/core/type'
 import { staticVersionDel } from '@/util/Version'
+import { AppServiceAliasItem } from '@shared/app'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
 
 type ServiceActionType = {
   versionDeling: Record<string, boolean>
   pathSeting: Record<string, boolean>
-  aliasSeting: Record<string, boolean>
   allPath: string[]
   fetchPathing: boolean
   fetchPath: () => void
-  editAliasItem?: SoftInstalled
-  onAliasEnd: (e?: MouseEvent) => void
+  cleanAlias: () => void
   showAlias: (item: SoftInstalled) => void
-  setAlias: (item: SoftInstalled, name: string) => void
+  setAlias: (
+    service: SoftInstalled,
+    item?: AppServiceAliasItem,
+    old?: AppServiceAliasItem
+  ) => Promise<boolean>
   updatePath: (item: SoftInstalled, typeFlag: string) => void
   delVersion: (item: SoftInstalled, typeFlag: string) => void
 }
@@ -27,43 +31,45 @@ type ServiceActionType = {
 export const ServiceActionStore: ServiceActionType = reactive({
   versionDeling: {},
   pathSeting: {},
-  aliasSeting: {},
   allPath: [],
   fetchPathing: false,
-  onAliasEnd() {
-    delete this.editAliasItem?.aliasEditing
-    const store = AppStore()
-    const newAlisa = this.editAliasItem?.alias ?? ''
-    const oldAlisa = store.config.setup?.alias?.[this.editAliasItem!.bin] ?? ''
-    console.log('newAlisa: ', newAlisa, oldAlisa)
-    if (newAlisa === oldAlisa) {
-      return
-    }
-    this.setAlias(this.editAliasItem!, newAlisa)
-  },
   showAlias(item: SoftInstalled) {
-    if (this.aliasSeting[item.bin]) {
-      return
-    }
-    const store = AppStore()
-    item.alias = store.config.setup?.alias?.[item.bin] ?? ''
-    item.aliasEditing = true
-    this.editAliasItem = item
+    import('./alias.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        item
+      }).then()
+    })
   },
-  setAlias(item: SoftInstalled, name: string) {
-    console.log('setAlias: ', item, name)
-    if (this.aliasSeting[item.bin]) {
-      return
-    }
-    this.aliasSeting[item.bin] = true
+  setAlias(service: SoftInstalled, item?: AppServiceAliasItem, old?: AppServiceAliasItem) {
+    return new Promise((resolve, reject) => {
+      const store = AppStore()
+      IPC.send(
+        'app-fork:tools',
+        'setAlias',
+        JSON.parse(JSON.stringify(service)),
+        item ? JSON.parse(JSON.stringify(item)) : undefined,
+        old ? JSON.parse(JSON.stringify(old)) : undefined,
+        JSON.parse(JSON.stringify(store.config.setup?.alias ?? {}))
+      ).then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          const setup = JSON.parse(JSON.stringify(store.config.setup))
+          setup.alias = res.data
+          store.config.setup = reactive(setup)
+          store.saveConfig().then().catch()
+          resolve(true)
+        } else {
+          MessageError(res?.msg ?? I18nT('base.fail'))
+          reject(new Error('fail'))
+        }
+      })
+    })
+  },
+  cleanAlias() {
     const store = AppStore()
-    const oldName = store.config.setup?.alias?.[item.bin] ?? ''
     IPC.send(
       'app-fork:tools',
-      'setAlias',
-      JSON.parse(JSON.stringify(item)),
-      name,
-      oldName,
+      'cleanAlias',
       JSON.parse(JSON.stringify(store.config.setup?.alias ?? {}))
     ).then((key: string, res: any) => {
       IPC.off(key)
@@ -71,14 +77,8 @@ export const ServiceActionStore: ServiceActionType = reactive({
         const setup = JSON.parse(JSON.stringify(store.config.setup))
         setup.alias = res.data
         store.config.setup = reactive(setup)
-        item.alias = name
         store.saveConfig().then().catch()
-      } else {
-        MessageError(res?.msg ?? I18nT('base.fail'))
       }
-      delete this.aliasSeting[item.bin]
-      delete item?.aliasEditing
-      delete this.editAliasItem
     })
   },
   fetchPath() {
@@ -171,5 +171,3 @@ export const ServiceActionStore: ServiceActionType = reactive({
     }
   }
 } as ServiceActionType)
-
-ServiceActionStore.onAliasEnd = ServiceActionStore.onAliasEnd.bind(ServiceActionStore)

@@ -1,4 +1,5 @@
 import type { AppServerCurrent } from '@/store/app'
+import { AllAppModule } from '@/core/type'
 
 export interface SoftInstalled {
   version: string | null
@@ -15,7 +16,7 @@ export interface SoftInstalled {
   flag?: string
   isLocal7Z?: boolean
   pid?: string
-  typeFlag: string
+  typeFlag: AllAppModule
 }
 
 export interface AppHostReverseProxyItem {
@@ -95,4 +96,13 @@ export interface OnlineVersionItem {
   url: string
   version: string
   mVersion: string
+}
+
+export type AppServiceAliasItem = {
+  id: string
+  php?: {
+    bin: string
+    version: string
+  }
+  name: string
 }

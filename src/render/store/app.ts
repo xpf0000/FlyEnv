@@ -6,6 +6,7 @@ import EditorBaseConfig, { EditorConfig } from '@/store/module/EditorConfig'
 import { MessageError } from '@/util/Element'
 import { AllAppModule } from '@/core/type'
 import { HostStore } from '@/components/Host/store'
+import { AppServiceAliasItem } from '@shared/app'
 
 const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
@@ -79,7 +80,7 @@ type SetupBase = Partial<
 >
 
 type StateBase = SetupBase & {
-  alias?: Record<string, string>
+  alias?: Record<string, AppServiceAliasItem[]>
   common: {
     showItem: AppShowItem
   }
