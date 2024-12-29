@@ -5,11 +5,9 @@ import { I18nT } from '@shared/lang'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import Base from '@/core/Base'
 import { reGetInstalled, stopService } from '@/util/Service'
-import { fetchVerion } from '@/util/Brew'
 import { AppStore } from '@/store/app'
-
-const { join } = require('path')
-const { remove, existsSync } = require('fs-extra')
+import { AllAppModule } from '@/core/type'
+import { staticVersionDel } from '@/util/Version'
 
 type ServiceActionType = {
   versionDeling: Record<string, boolean>
@@ -118,54 +116,59 @@ export const ServiceActionStore: ServiceActionType = reactive({
       }
     )
   },
-  delVersion(item: SoftInstalled, type: string) {
+  delVersion(item: SoftInstalled, type: AllAppModule) {
     if (ServiceActionStore.versionDeling?.[item.bin]) {
       return
     }
     ServiceActionStore.versionDeling[item.bin] = true
-
-    Base._Confirm(I18nT('base.delAlertContent'), undefined, {
-      customClass: 'confirm-del',
-      type: 'warning'
-    })
-      .then(async () => {
-        if (item?.run) {
-          try {
-            await stopService(type as any, item)
-          } catch (e) {}
-        }
-        if (existsSync(item.path)) {
-          try {
-            await remove(item.path)
-          } catch (e) {}
-        }
-
-        let local7ZFile = join(global.Server.Static!, `zip/${type}-${item.version}.7z`)
-        if (existsSync(local7ZFile)) {
-          const store = AppStore()
-          if (!store.config.setup.excludeLocalVersion) {
-            store.config.setup.excludeLocalVersion = []
+    const store = AppStore()
+    if (item.isLocal7Z) {
+      Base._Confirm(I18nT('service.bundleinVersionDelTips'), undefined, {
+        customClass: 'confirm-del',
+        type: 'warning'
+      })
+        .then(async () => {
+          stopService(type, item).then().catch()
+          const setup = JSON.parse(JSON.stringify(store.config.setup))
+          if (!setup.excludeLocalVersion) {
+            setup.excludeLocalVersion = []
           }
           const arr: string[] = Array.from(
             new Set(JSON.parse(JSON.stringify(store.config.setup.excludeLocalVersion)))
           )
           arr.push(`${type}-${item.version}`)
-          store.config.setup.excludeLocalVersion = arr
+          setup.excludeLocalVersion = arr
+          store.config.setup = reactive(setup)
           await store.saveConfig()
-        }
-        local7ZFile = join(global.Server.Static!, `cache/${type}-${item.version}.7z`)
-        if (existsSync(local7ZFile)) {
-          try {
-            await remove(local7ZFile)
-          } catch (e) {}
-        }
-        await reGetInstalled(type as any)
-        fetchVerion(type as any).then()
-        delete ServiceActionStore.versionDeling[item.bin]
+          await reGetInstalled(type as any)
+        })
+        .catch()
+        .finally(() => {
+          delete ServiceActionStore.versionDeling[item.bin]
+        })
+    } else if (store.config.setup?.[type]?.dirs?.some((d) => item.bin.includes(d))) {
+      Base._Confirm(I18nT('service.customDirVersionDelTips'), undefined, {
+        customClass: 'confirm-del',
+        type: 'warning'
       })
-      .catch(() => {
-        delete ServiceActionStore.versionDeling[item.bin]
-      })
+        .then(async () => {
+          stopService(type, item).then().catch()
+          const setup = JSON.parse(JSON.stringify(store.config.setup))
+          const index = setup?.[type]?.dirs?.findIndex((d: string) => item.bin.includes(d))
+          if (index >= 0) {
+            setup?.[type]?.dirs?.splice(index, 1)
+          }
+          store.config.setup = reactive(setup)
+          await store.saveConfig()
+          await reGetInstalled(type as any)
+        })
+        .catch()
+        .finally(() => {
+          delete ServiceActionStore.versionDeling[item.bin]
+        })
+    } else {
+      staticVersionDel(item.path)
+    }
   }
 } as ServiceActionType)
 
