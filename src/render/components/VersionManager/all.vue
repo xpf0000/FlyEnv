@@ -129,19 +129,23 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('service.alias')" :prop="null" width="120px" align="left">
+        <el-table-column
+          :show-overflow-tooltip="true"
+          :label="I18nT('service.alias')"
+          :prop="null"
+          width="120px"
+          align="left"
+        >
           <template #header>
             <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
               <span>{{ I18nT('service.alias') }}</span>
             </el-tooltip>
           </template>
           <template #default="scope">
-            <div
-              class="flex items-center h-full min-h-9"
-              @dblclick.stop="ServiceActionStore.showAlias(scope.row)"
-              >{{
+            <div class="flex items-center h-full min-h-9"
+              ><span class="truncate">{{
                 appStore.config.setup.alias?.[scope.row.bin]?.map((a) => a.name)?.join(',')
-              }}</div
+              }}</span></div
             >
           </template>
         </el-table-column>
