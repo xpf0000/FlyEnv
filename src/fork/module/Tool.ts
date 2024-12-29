@@ -27,6 +27,7 @@ import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
 import { PItem, ProcessListSearch } from '../Process'
+import { AppServiceAliasItem } from '@shared/app'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -603,21 +604,48 @@ php "%~dp0composer.phar" %*`
     })
   }
 
-  setAlias(item: SoftInstalled, newName: string, oldName: string, alias: Record<string, string>) {
+  setAlias(
+    service: SoftInstalled,
+    item: AppServiceAliasItem | undefined,
+    old: AppServiceAliasItem | undefined,
+    alias: Record<string, AppServiceAliasItem[]>
+  ) {
     return new ForkPromise(async (resolve) => {
-      await this.initLocalApp(item, item.typeFlag)
+      await this.initLocalApp(service, service.typeFlag)
       const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
       await mkdirp(aliasDir)
-      const oldFile = join(aliasDir, `${oldName}.bat`)
-      if (existsSync(oldFile)) {
-        await remove(oldFile)
+      if (old?.id) {
+        const oldFile = join(aliasDir, `${old.name}.bat`)
+        if (existsSync(oldFile)) {
+          await remove(oldFile)
+        }
       }
-      if (newName) {
-        const file = join(aliasDir, `${newName}.bat`)
-        const content = `@echo off
+
+      if (item) {
+        const file = join(aliasDir, `${item.name}.bat`)
+        if (item?.php?.bin) {
+          const content = `@echo off
 chcp 65001>nul
-"${item.bin}" %*`
-        await writeFile(file, content)
+"${item?.php?.bin}" ${service.bin}" %*`
+          await writeFile(file, content)
+        } else {
+          const content = `@echo off
+chcp 65001>nul
+${service.bin}" %*`
+          await writeFile(file, content)
+        }
+        if (!item.id) {
+          item.id = uuid(8)
+          if (!alias[service.bin]) {
+            alias[service.bin] = []
+          }
+          alias[service.bin].unshift(item)
+        } else {
+          const index = alias?.[service.bin]?.findIndex((a) => a.id === item.id)
+          if (index >= 0) {
+            alias[service.bin].splice(index, 1, item)
+          }
+        }
       }
 
       try {
@@ -626,24 +654,38 @@ chcp 65001>nul
 
       await addPath('%FLYENV_ALIAS%')
 
-      alias[item.bin] = newName
       const res = await this.cleanAlias(alias)
 
       resolve(res)
     })
   }
 
-  cleanAlias(alias: Record<string, string>) {
+  cleanAlias(alias: Record<string, AppServiceAliasItem[]>) {
     return new ForkPromise(async (resolve) => {
       const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
       for (const bin in alias) {
-        const name = alias[bin]
+        const item = alias[bin]
         if (!existsSync(bin)) {
-          const file = join(aliasDir, `${name}.bat`)
-          if (existsSync(file)) {
-            await remove(file)
-            delete alias[bin]
+          for (const i of item) {
+            const file = join(aliasDir, `${i.name}.bat`)
+            if (existsSync(file)) {
+              await remove(file)
+            }
           }
+          delete alias[bin]
+        } else {
+          const arr: AppServiceAliasItem[] = []
+          for (const i of item) {
+            if (i?.php?.bin && !existsSync(i?.php?.bin)) {
+              const file = join(aliasDir, `${i.name}.bat`)
+              if (existsSync(file)) {
+                await remove(file)
+              }
+              continue
+            }
+            arr.push(i)
+          }
+          alias[bin] = arr
         }
       }
       resolve(alias)

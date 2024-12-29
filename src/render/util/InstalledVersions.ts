@@ -4,6 +4,7 @@ import { AppStore } from '@/store/app'
 import { reactive } from 'vue'
 import { isEqual } from 'lodash'
 import { AllAppModule, AppModuleEnum } from '@/core/type'
+import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 
 class InstalledVersions {
   _cb: Array<Function>
@@ -102,6 +103,7 @@ class InstalledVersions {
         if (needSaveConfig) {
           appStore.saveConfig().then().catch()
         }
+        ServiceActionStore.cleanAlias()
         this.callBack()
       }
     )

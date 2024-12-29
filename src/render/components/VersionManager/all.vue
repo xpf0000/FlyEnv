@@ -136,25 +136,13 @@
             </el-tooltip>
           </template>
           <template #default="scope">
-            <template v-if="scope.row?.aliasEditing">
-              <el-input
-                v-model.trim="scope.row.alias"
-                v-click-outside="ServiceActionStore.onAliasEnd"
-                :autofocus="true"
-                class="app-alisa-edit"
-                @change="ServiceActionStore.onAliasEnd"
-              ></el-input>
-            </template>
-            <template v-else-if="ServiceActionStore.aliasSeting[scope.row.bin]">
-              <el-button style="width: auto; height: auto" text :loading="true"></el-button>
-            </template>
-            <template v-else>
-              <div
-                class="flex items-center h-full min-h-9"
-                @dblclick.stop="ServiceActionStore.showAlias(scope.row)"
-                >{{ appStore.config.setup.alias?.[scope.row.bin] }}</div
-              >
-            </template>
+            <div
+              class="flex items-center h-full min-h-9"
+              @dblclick.stop="ServiceActionStore.showAlias(scope.row)"
+              >{{
+                appStore.config.setup.alias?.[scope.row.bin]?.map((a) => a.name)?.join(',')
+              }}</div
+            >
           </template>
         </el-table-column>
       </template>
@@ -193,7 +181,6 @@
   import { FolderAdd } from '@element-plus/icons-vue'
   import { AppStore } from '@/store/app'
   import type { SoftInstalled } from '@/store/brew'
-  import { ClickOutside as vClickOutside } from 'element-plus'
 
   const { dirname } = require('path')
 
