@@ -619,6 +619,10 @@ php "%~dp0composer.phar" %*`
         if (existsSync(oldFile)) {
           await remove(oldFile)
         }
+        const index = alias?.[service.bin]?.findIndex((a) => a.id === old.id)
+        if (index >= 0) {
+          alias[service.bin].splice(index, 1)
+        }
       }
 
       if (item) {
@@ -644,6 +648,8 @@ ${service.bin}" %*`
           const index = alias?.[service.bin]?.findIndex((a) => a.id === item.id)
           if (index >= 0) {
             alias[service.bin].splice(index, 1, item)
+          } else {
+            alias[service.bin].unshift(item)
           }
         }
       }

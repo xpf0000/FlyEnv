@@ -35,7 +35,7 @@
         <el-table-column align="left" :label="I18nT('base.path')">
           <template #default="scope">
             <el-button
-              class="overflow-hidden truncate"
+              class="overflow-hidden truncate max-w-full justify-start"
               link
               type="primary"
               @click.stop="open(scope.row.path)"
@@ -46,12 +46,14 @@
         <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
           <template #default="scope">
             <el-button link type="primary" :icon="Edit" @click.stop="doEdit(scope.row)"></el-button>
-            <el-button
-              link
-              type="danger"
-              :icon="Delete"
-              @click.stop="ServiceActionStore.setAlias(item, undefined, scope.row)"
-            ></el-button>
+            <el-popconfirm
+              :title="I18nT('base.delAlertContent')"
+              @confirm="ServiceActionStore.setAlias(item, undefined, scope.row)"
+            >
+              <template #reference>
+                <el-button link type="danger" :icon="Delete"></el-button>
+              </template>
+            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>
