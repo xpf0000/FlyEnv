@@ -258,6 +258,10 @@
                   <span class="ml-15">{{ I18nT('base.hide') }}</span>
                 </li>
               </template>
+              <li @click.stop="ServiceActionStore.delVersion(scope.row, 'php')">
+                <yb-icon :svg="import('@/svg/trash.svg?raw')" width="17" height="17" />
+                <span class="ml-15">{{ I18nT('base.del') }}</span>
+              </li>
             </ul>
             <template #reference>
               <el-button link class="status">
