@@ -603,7 +603,7 @@ php "%~dp0composer.phar" %*`
     })
   }
 
-  setAlias(item: SoftInstalled, newName: string, oldName: string) {
+  setAlias(item: SoftInstalled, newName: string, oldName: string, alias: Record<string, string>) {
     return new ForkPromise(async (resolve) => {
       await this.initLocalApp(item, item.typeFlag)
       const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
@@ -626,7 +626,27 @@ chcp 65001>nul
 
       await addPath('%FLYENV_ALIAS%')
 
-      resolve(true)
+      alias[item.bin] = newName
+      const res = await this.cleanAlias(alias)
+
+      resolve(res)
+    })
+  }
+
+  cleanAlias(alias: Record<string, string>) {
+    return new ForkPromise(async (resolve) => {
+      const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
+      for (const bin in alias) {
+        const name = alias[bin]
+        if (!existsSync(bin)) {
+          const file = join(aliasDir, `${name}.bat`)
+          if (existsSync(file)) {
+            await remove(file)
+            delete alias[bin]
+          }
+        }
+      }
+      resolve(alias)
     })
   }
 }
