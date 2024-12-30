@@ -1,10 +1,11 @@
 import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import { md5, spawnPromise, uuid } from '../Fn'
+import { AppLog, md5, spawnPromise, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { chmod, copyFile, unlink, writeFile } from 'fs-extra'
 import PHPManager from './Php'
+import { I18nT } from '../lang'
 class Manager extends Base {
   constructor() {
     super()
@@ -41,6 +42,14 @@ class Manager extends Base {
         } else {
           command.push(`php composer update`)
         }
+
+        on({
+          'APP-On-Log': AppLog(
+            'info',
+            I18nT('appLog.newProjectBegin', { command: `\n${command.join('\n')}` })
+          )
+        })
+
         const copyfile = join(global.Server.Cache!, `${uuid()}.cmd`)
         console.log('createProject copyfile: ', copyfile)
         await writeFile(copyfile, command.join('\n'))
@@ -50,8 +59,18 @@ class Manager extends Base {
           cwd: global.Server.Cache!
         })
           .on(on)
-          .then(resolve)
-          .catch(reject)
+          .then(() => {
+            on({
+              'APP-On-Log': AppLog('info', I18nT('appLog.newProjectSuccess', { dir }))
+            })
+            resolve(true)
+          })
+          .catch((e) => {
+            on({
+              'APP-On-Log': AppLog('error', I18nT('appLog.newProjectFail'))
+            })
+            reject(e)
+          })
       } else {
         const names: { [k: string]: string } = {
           laravel: 'laravel/laravel',

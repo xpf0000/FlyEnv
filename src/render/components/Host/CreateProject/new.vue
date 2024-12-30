@@ -4,6 +4,7 @@
     :title="$t('host.newProject')"
     width="600px"
     :destroy-on-close="true"
+    :close-on-click-modal="false"
     class="host-edit new-project"
     style="width: 600px"
     @closed="closedFn"

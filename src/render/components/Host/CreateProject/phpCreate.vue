@@ -4,15 +4,19 @@
     :title="type"
     width="600px"
     :destroy-on-close="true"
+    :close-on-click-modal="false"
     class="host-edit new-project"
     @closed="closedFn"
   >
     <template #default>
       <div class="main-wapper">
         <template v-if="loading">
-          <div class="h-full overflow-hidden">
+          <div class="h-[263px] overflow-hidden">
             <el-scrollbar>
-              <pre class="w-full">{{ msg.join('\n') }}</pre>
+              <pre class="w-full break-words whitespace-pre-wrap">
+                {{ msg.join('\n') }}
+                <div ref="bottom"></div>
+              </pre>
             </el-scrollbar>
           </div>
         </template>
@@ -98,7 +102,7 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
+  import { computed, nextTick, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import IPC from '@/util/IPC'
   import { I18nT } from '@shared/lang'
@@ -114,6 +118,8 @@
   const props = defineProps<{
     type: keyof typeof AppVersions
   }>()
+
+  const bottom = ref<HTMLElement>()
 
   const app = computed(() => {
     return AppVersions[props.type]
@@ -198,6 +204,19 @@
       }
     })
   }
+
+  watch(
+    msg,
+    () => {
+      nextTick().then(() => {
+        bottom?.value?.scrollIntoView(true)
+      })
+    },
+    {
+      deep: true
+    }
+  )
+
   const doCreateHost = () => {
     const framework = props.type.toLowerCase()
     let dir = form.value.dir

@@ -38,5 +38,9 @@ export default {
   initPluginFail: '初始化插件失败, 原因: {error}',
 
   erlangEnvInit: '尝试初始化Erlang运行环境',
-  erlangEnvInitEnd: '初始化Erlang运行环境完毕'
+  erlangEnvInitEnd: '初始化Erlang运行环境完毕',
+
+  newProjectBegin: '开始新建项目, 执行命令: {command}',
+  newProjectSuccess: '新建项目成功, 项目路径: {dir}',
+  newProjectFail: '新建项目失败, 请查看日志查找失败原因'
 }
