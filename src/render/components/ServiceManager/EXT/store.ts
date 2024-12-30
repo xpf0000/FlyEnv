@@ -10,6 +10,7 @@ import { AllAppModule } from '@/core/type'
 import { staticVersionDel } from '@/util/Version'
 import { AppServiceAliasItem } from '@shared/app'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
+import { isEqual } from 'lodash'
 
 type ServiceActionType = {
   versionDeling: Record<string, boolean>
@@ -27,6 +28,8 @@ type ServiceActionType = {
   updatePath: (item: SoftInstalled, typeFlag: string) => void
   delVersion: (item: SoftInstalled, typeFlag: string) => void
 }
+
+let time = 0
 
 export const ServiceActionStore: ServiceActionType = reactive({
   versionDeling: {},
@@ -66,6 +69,11 @@ export const ServiceActionStore: ServiceActionType = reactive({
     })
   },
   cleanAlias() {
+    console.trace('cleanAlias !!!')
+    if (time > 5) {
+      return
+    }
+    time += 1
     const store = AppStore()
     IPC.send(
       'app-fork:tools',
@@ -74,10 +82,12 @@ export const ServiceActionStore: ServiceActionType = reactive({
     ).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
-        const setup = JSON.parse(JSON.stringify(store.config.setup))
-        setup.alias = res.data
-        store.config.setup = reactive(setup)
-        store.saveConfig().then().catch()
+        if (!isEqual(res.data, store.config.setup?.alias)) {
+          const setup = JSON.parse(JSON.stringify(store.config.setup))
+          setup.alias = res.data
+          store.config.setup = reactive(setup)
+          store.saveConfig().then().catch()
+        }
       }
     })
   },

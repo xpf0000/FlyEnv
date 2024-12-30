@@ -23,6 +23,9 @@ class Java extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('java')
         all.forEach((a: any) => {
+          if (!a.type) {
+            a.type = 'openjdk'
+          }
           const dir = join(global.Server.AppDir!, `${a.type}-${a.version}`, 'bin/java.exe')
           const zip = join(global.Server.Cache!, `${a.type}-${a.version}.zip`)
           a.appDir = join(global.Server.AppDir!, `${a.type}-${a.version}`)

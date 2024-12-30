@@ -24,6 +24,7 @@ class InstalledVersions {
     this.taskRunning = false
   }
   allInstalledVersions(flags: Array<AllAppModule>) {
+    console.trace('allInstalledVersions: !!!')
     if (this.taskRunning && this.runningFlags.find((f) => isEqual(f, flags))) {
       return new Promise((resolve) => {
         this._cb.push(resolve)
@@ -58,10 +59,6 @@ class InstalledVersions {
                 !appStore.config.setup?.excludeLocalVersion?.includes(`${flag}-${v.version}`))
             )
           })
-          console.log(
-            'appStore.config.setup.excludeLocalVersion',
-            appStore.config.setup.excludeLocalVersion
-          )
           const data = brewStore.module(flag)
           const old = [...data.installed]
           installed = installed.map((item) => {
@@ -69,7 +66,6 @@ class InstalledVersions {
             Object.assign(item, find)
             return reactive(item)
           })
-          console.log('allInstalledVersions installed: ', installed)
           data.installed.splice(0)
           data.installed.push(...installed)
           data.installedInited = true
@@ -101,9 +97,15 @@ class InstalledVersions {
           }
         }
         if (needSaveConfig) {
-          appStore.saveConfig().then().catch()
+          appStore
+            .saveConfig()
+            .then(() => {
+              ServiceActionStore.cleanAlias()
+            })
+            .catch()
+        } else {
+          ServiceActionStore.cleanAlias()
         }
-        ServiceActionStore.cleanAlias()
         this.callBack()
       }
     )

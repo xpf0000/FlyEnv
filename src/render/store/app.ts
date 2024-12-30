@@ -272,6 +272,7 @@ export const AppStore = defineStore('app', {
       })
     },
     saveConfig() {
+      console.trace('saveConfig !!!')
       return new Promise((resolve) => {
         const args = JSON.parse(
           JSON.stringify({

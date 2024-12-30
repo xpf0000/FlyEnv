@@ -128,7 +128,7 @@
         <template #default="scope">
           <div class="flex items-center h-full min-h-9"
             ><span class="truncate">{{
-              appStore.config.setup.alias?.[scope.row.bin]?.map((a) => a.name)?.join(',')
+              appStore.config.setup.alias?.[scope.row.bin]?.map((a: any) => a.name)?.join(',')
             }}</span></div
           >
         </template>
