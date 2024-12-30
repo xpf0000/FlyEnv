@@ -42,5 +42,10 @@ export default {
   initPluginFail: 'Initialization plugin failed, reason: {error}',
 
   erlangEnvInit: 'Attempt to initialize the Erlang runtime environment',
-  erlangEnvInitEnd: 'Initialization of Erlang runtime environment completed'
+  erlangEnvInitEnd: 'Initialization of Erlang runtime environment completed',
+
+  newProjectBegin: 'Start a new project and execute the command: {command}',
+  newProjectSuccess: 'The new project was successfully created, project path: {dir}',
+  newProjectFail:
+    'Failed to create new project, please check the logs to find the reason for the failure'
 }
