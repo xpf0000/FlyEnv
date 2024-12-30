@@ -21,6 +21,7 @@
                 <template v-for="(p, i) in item.list" :key="i">
                   <div
                     class="p-3 flex flex-col bg-slate-100 rounded-md hover:shadow-lg relative dark:bg-gray-700 dark:hover:shadow-slate-600 group"
+                    @click.stop="toCreate(item)"
                   >
                     <div
                       class="h-[80px] flex justify-center items-center text-xl overflow-hidden cursor-pointer"
@@ -48,7 +49,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, reactive } from 'vue'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import Projects from './version'
   import { Search } from '@element-plus/icons-vue'
@@ -71,14 +72,17 @@
       names.sort()
       return {
         key: k,
-        list: names.map((n) => ({ name: n, ...Projects[n] }))
+        list: names.map((n: keyof typeof Projects) => {
+          const arr: any = Projects[n]
+          return { name: n, ...arr }
+        })
       }
     })
   })
 
   if (!ProjectSetup.collapse['PHP']) {
     const keys = list.value.map((l) => l.key)
-    ProjectSetup.collapse['PHP'] = [...keys]
+    ProjectSetup.collapse['PHP'] = reactive([...keys])
   }
 
   const querySearch = (queryString: string, cb: any) => {
@@ -103,5 +107,9 @@
 
   const openURL = (url: string) => {
     shell.openExternal(url)
+  }
+
+  const toCreate = (item: any) => {
+    console.log('toCreate: ', item)
   }
 </script>

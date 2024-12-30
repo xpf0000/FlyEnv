@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="$t('host.newProject')"
+    :title="type"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
@@ -11,13 +11,7 @@
       <div class="main-wapper">
         <div class="main">
           <div class="path-choose mt-20 mb-20">
-            <input
-              type="text"
-              class="input"
-              placeholder="root path"
-              readonly=""
-              :value="form.dir"
-            />
+            <input type="text" class="input" placeholder="root path" :value="form.dir" />
             <div class="icon-block" @click="chooseRoot()">
               <yb-icon
                 :svg="import('@/svg/folder.svg?raw')"
@@ -29,9 +23,10 @@
           </div>
           <div class="park">
             <div class="title">
-              <span>{{ $t('base.phpVersion') }}</span>
+              <span>{{ I18nT('base.phpVersion') }}</span>
             </div>
-            <el-select class="w-32" v-model="form.php" filterable :disabled="loading || created">
+            <el-select v-model="form.php" class="w-32" filterable :disabled="loading || created">
+              <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
               <template v-for="(v, k) in phpVersions" :key="k">
                 <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
               </template>
@@ -39,15 +34,32 @@
           </div>
           <div class="park">
             <div class="title">
-              <span>{{ $t('host.frameWork') }}</span>
+              <span>{{ I18nT('base.composerVersion') }}</span>
             </div>
-            <el-select class="w-32" v-model="form.framework" filterable :disabled="loading || created">
-              <template v-for="(v, k) in Versions" :key="k">
-                <el-option-group :label="k">
-                  <template v-for="(item, i) in v" :key="i">
-                    <el-option :value="`${k}-${item.version}`" :label="item.name"></el-option>
-                  </template>
-                </el-option-group>
+            <el-select
+              v-model="form.composer"
+              class="w-32"
+              filterable
+              :disabled="loading || created"
+            >
+              <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
+              <template v-for="(v, k) in composerVersions" :key="k">
+                <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
+              </template>
+            </el-select>
+          </div>
+          <div class="park">
+            <div class="title">
+              <span>{{ I18nT('host.frameWork') }}</span>
+            </div>
+            <el-select
+              v-model="form.version"
+              class="w-32"
+              filterable
+              :disabled="loading || created"
+            >
+              <template v-for="(v, k) in app.list" :key="k">
+                <el-option :value="v.version" :label="v.name"></el-option>
               </template>
             </el-select>
           </div>
@@ -57,18 +69,20 @@
     <template #footer>
       <div class="dialog-footer">
         <template v-if="!created">
-          <el-button @click="show = false">{{ $t('base.cancel') }}</el-button>
+          <el-button @click="show = false">{{ I18nT('base.cancel') }}</el-button>
           <el-button
             :loading="loading"
             :disabled="!createAble"
             type="primary"
             @click="doCreateProject"
-            >{{ $t('base.confirm') }}</el-button
+            >{{ I18nT('base.confirm') }}</el-button
           >
         </template>
         <template v-else>
-          <el-button @click="show = false">{{ $t('base.confirm') }}</el-button>
-          <el-button type="primary" @click="doCreateHost">{{ $t('host.toCreateHost') }}</el-button>
+          <el-button @click="show = false">{{ I18nT('base.confirm') }}</el-button>
+          <el-button type="primary" @click="doCreateHost">{{
+            I18nT('host.toCreateHost')
+          }}</el-button>
         </template>
       </div>
     </template>
@@ -77,44 +91,44 @@
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import Versions from './version'
   import IPC from '@/util/IPC'
   import { I18nT } from '@shared/lang'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { BrewStore } from '@/store/brew'
+  import AppVersions from './version'
 
   const { join } = require('path')
   const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
+  const props = defineProps<{
+    type: keyof typeof AppVersions
+  }>()
+
+  const app = computed(() => {
+    return AppVersions[props.type]
+  })
+
   const form = ref({
     dir: '',
     php: '',
-    framework: 'wordpress-*'
+    composer: '',
+    version: undefined
   })
 
   const brewStore = BrewStore()
   const created = ref(false)
   const loading = ref(false)
   const createAble = computed(() => {
-    return !!form.value.dir && !!form.value.framework
+    return !!form.value.dir && !!form.value.version
   })
 
   const phpVersions = computed(() => {
-    console.log('phpVersions: ', brewStore.module('php')?.installed)
-    const all = brewStore.module('php')?.installed ?? []
-    return all.map((a) => {
-      const v: any = {
-        num: a.num,
-        version: a.version
-      }
-      if (a?.phpBin) {
-        v.bin = a.phpBin
-      } else {
-        v.bin = join(a.path, 'bin/php')
-      }
-      return v
-    })
+    return brewStore.module('php').installed
+  })
+
+  const composerVersions = computed(() => {
+    return brewStore.module('composer').installed
   })
 
   const chooseRoot = () => {
@@ -137,14 +151,13 @@
   const doCreateProject = () => {
     console.log('doCreateProject: ', form.value)
     loading.value = true
-    const frameworks = form.value.framework.split('-')
     IPC.send(
       'app-fork:project',
       'createProject',
       form.value.dir,
       form.value.php,
-      frameworks[0],
-      frameworks[1]
+      props.type.toLowerCase(),
+      form.value.version
     ).then((key: string, res: any) => {
       if (res?.code === 0) {
         IPC.off(key)
@@ -167,7 +180,7 @@
     })
   }
   const doCreateHost = () => {
-    const framework = form.value.framework
+    const framework = props.type.toLowerCase()
     let dir = form.value.dir
     let nginxRewrite = ''
     if (framework.includes('wordpress')) {

@@ -35,5 +35,8 @@ export default {
   vhostNginxSSLEdit: 'Edit Nginx SSL Vhost Template',
   vhostCaddyEdit: 'Edit Caddy Vhost Template',
   vhostCaddySSLEdit: 'Edit Caddy SSL Vhost Template',
-  licenseTips: 'Without obtaining a license, only three sites can be created'
+  licenseTips: 'Without obtaining a license, only three sites can be created',
+
+  composerVersion: 'Composer Version',
+  useSysVersion: 'Versions set using environment variables'
 }

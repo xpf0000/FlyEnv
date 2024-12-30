@@ -675,7 +675,7 @@ export const versionInitedApp = async (type: string, bin: string) => {
       run: false,
       running: false,
       isLocal7Z: true,
-      typeFlag: type
+      typeFlag: type as any
     })
   })
   return versions
