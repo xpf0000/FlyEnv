@@ -9,61 +9,70 @@
   >
     <template #default>
       <div class="main-wapper">
-        <div class="main">
-          <div class="path-choose mt-20 mb-20">
-            <input type="text" class="input" placeholder="root path" :value="form.dir" />
-            <div class="icon-block" @click="chooseRoot()">
-              <yb-icon
-                :svg="import('@/svg/folder.svg?raw')"
-                class="choose"
-                width="18"
-                height="18"
-              />
+        <template v-if="loading">
+          <div class="h-full overflow-hidden">
+            <el-scrollbar>
+              <pre class="w-full">{{ msg.join('\n') }}</pre>
+            </el-scrollbar>
+          </div>
+        </template>
+        <template v-else>
+          <div class="main">
+            <div class="path-choose mt-20 mb-20">
+              <input type="text" class="input" placeholder="root path" :value="form.dir" />
+              <div class="icon-block" @click="chooseRoot()">
+                <yb-icon
+                  :svg="import('@/svg/folder.svg?raw')"
+                  class="choose"
+                  width="18"
+                  height="18"
+                />
+              </div>
+            </div>
+            <div class="park">
+              <div class="title">
+                <span>{{ I18nT('base.phpVersion') }}</span>
+              </div>
+              <el-select v-model="form.php" class="w-32" filterable :disabled="loading || created">
+                <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
+                <template v-for="(v, k) in phpVersions" :key="k">
+                  <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
+                </template>
+              </el-select>
+            </div>
+            <div class="park">
+              <div class="title">
+                <span>{{ I18nT('base.composerVersion') }}</span>
+              </div>
+              <el-select
+                v-model="form.composer"
+                class="w-32"
+                filterable
+                :disabled="loading || created"
+              >
+                <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
+                <template v-for="(v, k) in composerVersions" :key="k">
+                  <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
+                </template>
+              </el-select>
+            </div>
+            <div class="park">
+              <div class="title">
+                <span>{{ I18nT('host.frameWork') }}</span>
+              </div>
+              <el-select
+                v-model="form.version"
+                class="w-32"
+                filterable
+                :disabled="loading || created"
+              >
+                <template v-for="(v, k) in app.list" :key="k">
+                  <el-option :value="v.version" :label="v.name"></el-option>
+                </template>
+              </el-select>
             </div>
           </div>
-          <div class="park">
-            <div class="title">
-              <span>{{ I18nT('base.phpVersion') }}</span>
-            </div>
-            <el-select v-model="form.php" class="w-32" filterable :disabled="loading || created">
-              <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
-              <template v-for="(v, k) in phpVersions" :key="k">
-                <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
-              </template>
-            </el-select>
-          </div>
-          <div class="park">
-            <div class="title">
-              <span>{{ I18nT('base.composerVersion') }}</span>
-            </div>
-            <el-select
-              v-model="form.composer"
-              class="w-32"
-              filterable
-              :disabled="loading || created"
-            >
-              <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
-              <template v-for="(v, k) in composerVersions" :key="k">
-                <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
-              </template>
-            </el-select>
-          </div>
-          <div class="park">
-            <div class="title">
-              <span>{{ I18nT('host.frameWork') }}</span>
-            </div>
-            <el-select
-              v-model="form.version"
-              class="w-32"
-              filterable
-              :disabled="loading || created"
-            >
-              <template v-for="(v, k) in app.list" :key="k">
-                <el-option :value="v.version" :label="v.name"></el-option>
-              </template>
-            </el-select>
-          </div>
-        </div>
+        </template>
       </div>
     </template>
     <template #footer>
@@ -155,10 +164,11 @@
         form.value.dir = path
       })
   }
-  let msg: Array<string> = []
+  const msg = ref<string[]>([])
   const doCreateProject = () => {
     console.log('doCreateProject: ', form.value)
     loading.value = true
+    msg.value.splice(0)
     IPC.send(
       'app-fork:project',
       'createProject',
@@ -175,15 +185,15 @@
         created.value = true
       } else if (res?.code === 1) {
         IPC.off(key)
-        if (msg.length > 0) {
-          MessageError(msg.join('\n'))
+        if (msg.value.length > 0) {
+          MessageError(msg.value.join('\n'))
         } else {
           MessageError(I18nT('base.fail'))
         }
         loading.value = false
       } else {
         if (res?.msg) {
-          msg.push(res?.msg)
+          msg.value.push(res?.msg)
         }
       }
     })

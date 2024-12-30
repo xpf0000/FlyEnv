@@ -4,7 +4,7 @@ import { Base } from './Base'
 import { md5, spawnPromise, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { chmod, copyFile, unlink, writeFile } from 'fs-extra'
-
+import PHPManager from './Php'
 class Manager extends Base {
   constructor() {
     super()
@@ -15,6 +15,7 @@ class Manager extends Base {
       const cacheDir = global.Server.Cache
       if (php) {
         php = join(dirname(php), 'php.exe')
+        await PHPManager.getIniPath({ path: dirname(php) } as any)
       }
       if (framework === 'wordpress') {
         const tmpl = `{
