@@ -21,7 +21,7 @@
                 <template v-for="(p, i) in item.list" :key="i">
                   <div
                     class="p-3 flex flex-col bg-slate-100 rounded-md hover:shadow-lg relative dark:bg-gray-700 dark:hover:shadow-slate-600 group"
-                    @click.stop="toCreate(item)"
+                    @click.stop="toCreate(p)"
                   >
                     <div
                       class="h-[80px] flex justify-center items-center text-xl overflow-hidden cursor-pointer"
