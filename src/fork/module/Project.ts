@@ -13,6 +13,9 @@ class Manager extends Base {
   createProject(dir: string, php: string, composer: string, framework: string, version: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       const cacheDir = global.Server.Cache
+      if (php) {
+        php = join(dirname(php), 'php.exe')
+      }
       if (framework === 'wordpress') {
         const tmpl = `{
   "require": {
