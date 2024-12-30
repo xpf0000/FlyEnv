@@ -14,7 +14,7 @@
     </el-autocomplete>
     <div class="flex-1 overflow-hidden">
       <el-scrollbar>
-        <el-collapse v-model="ProjectSetup.collapse">
+        <el-collapse v-model="ProjectSetup.collapse.PHP">
           <template v-for="(item, index) in list" :key="index">
             <el-collapse-item :title="item.key" :name="item.key">
               <div class="p-2 grid grid-cols-2 gap-4">
@@ -53,6 +53,7 @@
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import Projects from './version'
   import { Search } from '@element-plus/icons-vue'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   const { shell } = require('@electron/remote')
 
@@ -109,7 +110,15 @@
     shell.openExternal(url)
   }
 
+  let CreateVM: any
+  import('./phpCreate.vue').then((res) => {
+    CreateVM = res.default
+  })
+
   const toCreate = (item: any) => {
     console.log('toCreate: ', item)
+    AsyncComponentShow(CreateVM, {
+      type: item.name
+    }).then(() => {})
   }
 </script>
