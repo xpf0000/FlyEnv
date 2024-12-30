@@ -102,7 +102,7 @@
           >
         </template>
         <template v-else>
-          <el-button @click="show = false">{{ I18nT('base.confirm') }}</el-button>
+          <el-button @click="doCancel">{{ I18nT('base.confirm') }}</el-button>
           <el-button type="primary" @click="doCreateHost">{{
             I18nT('host.toCreateHost')
           }}</el-button>
@@ -137,15 +137,24 @@
   })
 
   const brewStore = BrewStore()
-  const created = ref(false)
   const loading = computed({
     get() {
-      return ProjectSetup.running?.PHP ?? false
+      return ProjectSetup.form.PHP.running
     },
     set(v) {
-      ProjectSetup.running.PHP = v
+      ProjectSetup.form.PHP.running = v
     }
   })
+
+  const created = computed({
+    get() {
+      return ProjectSetup.form.PHP.created
+    },
+    set(v) {
+      ProjectSetup.form.PHP.created = v
+    }
+  })
+
   const createAble = computed(() => {
     return !!ProjectSetup.form.PHP.dir && !!ProjectSetup.form.PHP.version
   })
@@ -183,7 +192,11 @@
   }
 
   const doCreateProject = () => {
+    if (loading.value) {
+      return
+    }
     loading.value = true
+    ProjectSetup.form.PHP.frameWork = props.type.toLowerCase()
     if (!ProjectSetup.log?.PHP) {
       ProjectSetup.log.PHP = reactive([])
     }
@@ -209,6 +222,7 @@
         } else {
           MessageError(I18nT('base.fail'))
         }
+        ProjectSetup.phpFormInit()
         loading.value = false
       } else {
         if (typeof res?.msg === 'string') {
@@ -236,8 +250,12 @@
     })
   })
 
+  const doCancel = () => {
+    show.value = false
+    ProjectSetup.phpFormInit()
+  }
   const doCreateHost = () => {
-    const framework = props.type.toLowerCase()
+    const framework = ProjectSetup.form.PHP.frameWork
     let dir = ProjectSetup.form.PHP.dir
     let nginxRewrite = ''
     if (framework.includes('wordpress')) {
@@ -291,6 +309,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       rewrite: nginxRewrite
     })
     show.value = false
+    ProjectSetup.phpFormInit()
   }
 
   defineExpose({
