@@ -31,12 +31,15 @@
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import PHP from './php.vue'
   import { I18nT } from '@shared/lang'
+  import { nextTick } from 'vue'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const onMakeHost = (res: any) => {
     show.value = false
-    callback(res)
+    nextTick().then(() => {
+      callback(res)
+    })
   }
 
   defineExpose({

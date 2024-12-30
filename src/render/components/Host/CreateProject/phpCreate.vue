@@ -304,12 +304,14 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
         try_files $uri $uri/ /index.php$is_args$args;
 }`
     }
-    callback({
-      dir,
-      rewrite: nginxRewrite
-    })
     show.value = false
     ProjectSetup.phpFormInit()
+    nextTick().then(() => {
+      callback({
+        dir,
+        rewrite: nginxRewrite
+      })
+    })
   }
 
   defineExpose({
