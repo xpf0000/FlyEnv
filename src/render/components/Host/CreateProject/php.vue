@@ -57,6 +57,8 @@
 
   const { shell } = require('@electron/remote')
 
+  const emit = defineEmits(['onMakeHost'])
+
   const list = computed(() => {
     let allName = Object.keys(Projects)
     if (ProjectSetup.search.PHP) {
@@ -119,6 +121,8 @@
     console.log('toCreate: ', item)
     AsyncComponentShow(CreateVM, {
       type: item.name
-    }).then(() => {})
+    }).then((res) => {
+      emit('onMakeHost', res)
+    })
   }
 </script>

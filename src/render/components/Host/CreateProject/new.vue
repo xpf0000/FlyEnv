@@ -21,7 +21,7 @@
     </template>
     <template #default>
       <div class="flex flex-col gap-4 h-[500px] overflow-hidden">
-        <PHP v-if="ProjectSetup.tab === 'PHP'" />
+        <PHP v-if="ProjectSetup.tab === 'PHP'" @on-make-host="onMakeHost" />
       </div>
     </template>
   </el-dialog>
@@ -33,6 +33,11 @@
   import { I18nT } from '@shared/lang'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
+
+  const onMakeHost = (res: any) => {
+    show.value = false
+    callback(res)
+  }
 
   defineExpose({
     show,

@@ -23,7 +23,12 @@
         <template v-else>
           <div class="main">
             <div class="path-choose mt-20 mb-20">
-              <input type="text" class="input" placeholder="root path" :value="form.dir" />
+              <input
+                type="text"
+                class="input"
+                placeholder="root path"
+                :value="ProjectSetup.form.PHP.dir"
+              />
               <div class="icon-block" @click="chooseRoot()">
                 <yb-icon
                   :svg="import('@/svg/folder.svg?raw')"
@@ -37,7 +42,12 @@
               <div class="title">
                 <span>{{ I18nT('base.phpVersion') }}</span>
               </div>
-              <el-select v-model="form.php" class="w-32" filterable :disabled="loading || created">
+              <el-select
+                v-model="ProjectSetup.form.PHP.php"
+                class="w-32"
+                filterable
+                :disabled="loading || created"
+              >
                 <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
                 <template v-for="(v, k) in phpVersions" :key="k">
                   <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
@@ -49,7 +59,7 @@
                 <span>{{ I18nT('base.composerVersion') }}</span>
               </div>
               <el-select
-                v-model="form.composer"
+                v-model="ProjectSetup.form.PHP.composer"
                 class="w-32"
                 filterable
                 :disabled="loading || created"
@@ -65,7 +75,7 @@
                 <span>{{ I18nT('host.frameWork') }}</span>
               </div>
               <el-select
-                v-model="form.version"
+                v-model="ProjectSetup.form.PHP.version"
                 class="w-32"
                 filterable
                 :disabled="loading || created"
@@ -126,13 +136,6 @@
     return AppVersions[props.type]
   })
 
-  const form = ref({
-    dir: '',
-    php: '',
-    composer: '',
-    version: undefined
-  })
-
   const brewStore = BrewStore()
   const created = ref(false)
   const loading = computed({
@@ -144,7 +147,7 @@
     }
   })
   const createAble = computed(() => {
-    return !!form.value.dir && !!form.value.version
+    return !!ProjectSetup.form.PHP.dir && !!ProjectSetup.form.PHP.version
   })
 
   const phpVersions = computed(() => {
@@ -175,12 +178,11 @@
           return
         }
         const [path] = filePaths
-        form.value.dir = path
+        ProjectSetup.form.PHP.dir = path
       })
   }
 
   const doCreateProject = () => {
-    console.log('doCreateProject: ', form.value)
     loading.value = true
     if (!ProjectSetup.log?.PHP) {
       ProjectSetup.log.PHP = reactive([])
@@ -189,11 +191,11 @@
     IPC.send(
       'app-fork:project',
       'createProject',
-      form.value.dir,
-      form.value.php,
-      form.value.composer,
+      ProjectSetup.form.PHP.dir,
+      ProjectSetup.form.PHP.php,
+      ProjectSetup.form.PHP.composer,
       props.type.toLowerCase(),
-      form.value.version
+      ProjectSetup.form.PHP.version
     ).then((key: string, res: any) => {
       if (res?.code === 0) {
         IPC.off(key)
@@ -236,10 +238,10 @@
 
   const doCreateHost = () => {
     const framework = props.type.toLowerCase()
-    let dir = form.value.dir
+    let dir = ProjectSetup.form.PHP.dir
     let nginxRewrite = ''
     if (framework.includes('wordpress')) {
-      dir = join(form.value.dir, 'wordpress')
+      dir = join(ProjectSetup.form.PHP.dir, 'wordpress')
       nginxRewrite = `location /
 {
 \t try_files $uri $uri/ /index.php?$args;
@@ -247,39 +249,39 @@
 
 rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
     } else if (framework.includes('laravel')) {
-      dir = join(form.value.dir, 'public')
+      dir = join(ProjectSetup.form.PHP.dir, 'public')
       nginxRewrite = `location / {
 \ttry_files $uri $uri/ /index.php$is_args$query_string;
 }`
     } else if (framework.includes('yii2')) {
-      dir = join(form.value.dir, 'web')
+      dir = join(ProjectSetup.form.PHP.dir, 'web')
       nginxRewrite = `location / {
     try_files $uri $uri/ /index.php?$args;
 }`
     } else if (framework.includes('thinkphp')) {
-      dir = join(form.value.dir, 'public')
+      dir = join(ProjectSetup.form.PHP.dir, 'public')
       nginxRewrite = `location / {
 \tif (!-e $request_filename){
 \t\trewrite  ^(.*)$  /index.php?s=$1  last;   break;
 \t}
 }`
     } else if (framework.includes('symfony')) {
-      dir = join(form.value.dir, 'public')
+      dir = join(ProjectSetup.form.PHP.dir, 'public')
       nginxRewrite = `location / {
         try_files $uri /index.php$is_args$args;
 }`
     } else if (framework.includes('cakephp')) {
-      dir = join(form.value.dir, 'webroot')
+      dir = join(ProjectSetup.form.PHP.dir, 'webroot')
       nginxRewrite = `location / {
     try_files $uri $uri/ /index.php?$args;
 }`
     } else if (framework.includes('slim')) {
-      dir = join(form.value.dir, 'public')
+      dir = join(ProjectSetup.form.PHP.dir, 'public')
       nginxRewrite = `location / {
         try_files $uri /index.php$is_args$args;
 }`
     } else if (framework.includes('codeIgniter')) {
-      dir = join(form.value.dir, 'public')
+      dir = join(ProjectSetup.form.PHP.dir, 'public')
       nginxRewrite = `location / {
         try_files $uri $uri/ /index.php$is_args$args;
 }`
@@ -288,6 +290,7 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       dir,
       rewrite: nginxRewrite
     })
+    show.value = false
   }
 
   defineExpose({
