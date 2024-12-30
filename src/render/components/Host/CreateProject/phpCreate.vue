@@ -96,6 +96,7 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { BrewStore } from '@/store/brew'
   import AppVersions from './version'
+  import installedVersions from '@/util/InstalledVersions'
 
   const { join } = require('path')
   const { dialog } = require('@electron/remote')
@@ -131,6 +132,13 @@
     return brewStore.module('composer').installed
   })
 
+  if (!brewStore.module('php').installedInited) {
+    installedVersions.allInstalledVersions(['php']).then().catch()
+  }
+  if (!brewStore.module('composer').installedInited) {
+    installedVersions.allInstalledVersions(['composer']).then().catch()
+  }
+
   const chooseRoot = () => {
     if (loading.value || created.value) {
       return
@@ -156,6 +164,7 @@
       'createProject',
       form.value.dir,
       form.value.php,
+      form.value.composer,
       props.type.toLowerCase(),
       form.value.version
     ).then((key: string, res: any) => {

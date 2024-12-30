@@ -1,10 +1,9 @@
 import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import type { SoftInstalled } from '@shared/app'
-import { execPromise, md5, spawnPromise, uuid } from '../Fn'
+import { md5, spawnPromise, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { chmod, copyFile, mkdirp, remove, unlink, writeFile } from 'fs-extra'
+import { chmod, copyFile, unlink, writeFile } from 'fs-extra'
 
 class Manager extends Base {
   constructor() {
