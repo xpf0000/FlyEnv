@@ -42,5 +42,5 @@ export default {
 
   newProjectBegin: '开始新建项目, 执行命令: {command}',
   newProjectSuccess: '新建项目成功, 项目路径: {dir}',
-  newProjectFail: '新建项目失败, 请查看日志查找失败原因'
+  newProjectFail: '新建项目失败'
 }

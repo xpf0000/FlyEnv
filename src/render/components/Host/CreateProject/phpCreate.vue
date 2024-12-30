@@ -14,7 +14,7 @@
           <div class="h-[263px] overflow-hidden">
             <el-scrollbar>
               <pre class="w-full break-words whitespace-pre-wrap">
-                {{ msg.join('\n') }}
+                {{ ProjectSetup.log?.PHP?.join('\n') }}
                 <div ref="bottom"></div>
               </pre>
             </el-scrollbar>
@@ -102,7 +102,7 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
-  import { computed, nextTick, ref, watch } from 'vue'
+  import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import IPC from '@/util/IPC'
   import { I18nT } from '@shared/lang'
@@ -110,6 +110,7 @@
   import { BrewStore } from '@/store/brew'
   import AppVersions from './version'
   import installedVersions from '@/util/InstalledVersions'
+  import { ProjectSetup } from '@/components/Host/CreateProject/project'
 
   const { join } = require('path')
   const { dialog } = require('@electron/remote')
@@ -134,7 +135,14 @@
 
   const brewStore = BrewStore()
   const created = ref(false)
-  const loading = ref(false)
+  const loading = computed({
+    get() {
+      return ProjectSetup.running?.PHP ?? false
+    },
+    set(v) {
+      ProjectSetup.running.PHP = v
+    }
+  })
   const createAble = computed(() => {
     return !!form.value.dir && !!form.value.version
   })
@@ -170,11 +178,14 @@
         form.value.dir = path
       })
   }
-  const msg = ref<string[]>([])
+
   const doCreateProject = () => {
     console.log('doCreateProject: ', form.value)
     loading.value = true
-    msg.value.splice(0)
+    if (!ProjectSetup.log?.PHP) {
+      ProjectSetup.log.PHP = reactive([])
+    }
+    ProjectSetup.log.PHP.splice(0)
     IPC.send(
       'app-fork:project',
       'createProject',
@@ -191,22 +202,22 @@
         created.value = true
       } else if (res?.code === 1) {
         IPC.off(key)
-        if (msg.value.length > 0) {
-          MessageError(msg.value.join('\n'))
+        if (ProjectSetup.log?.PHP && ProjectSetup.log?.PHP?.length > 0) {
+          MessageError(ProjectSetup.log?.PHP.join('\n'))
         } else {
           MessageError(I18nT('base.fail'))
         }
         loading.value = false
       } else {
-        if (res?.msg) {
-          msg.value.push(res?.msg)
+        if (typeof res?.msg === 'string') {
+          ProjectSetup.log?.PHP?.push(res?.msg)
         }
       }
     })
   }
 
   watch(
-    msg,
+    () => ProjectSetup.log?.PHP,
     () => {
       nextTick().then(() => {
         bottom?.value?.scrollIntoView(true)
@@ -216,6 +227,12 @@
       deep: true
     }
   )
+
+  onMounted(() => {
+    nextTick().then(() => {
+      bottom?.value?.scrollIntoView(true)
+    })
+  })
 
   const doCreateHost = () => {
     const framework = props.type.toLowerCase()

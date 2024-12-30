@@ -46,6 +46,5 @@ export default {
 
   newProjectBegin: 'Start a new project and execute the command: {command}',
   newProjectSuccess: 'The new project was successfully created, project path: {dir}',
-  newProjectFail:
-    'Failed to create new project, please check the logs to find the reason for the failure'
+  newProjectFail: 'Failed to create new project'
 }
