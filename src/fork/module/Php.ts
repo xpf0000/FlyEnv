@@ -61,6 +61,18 @@ class Php extends Base {
         if (existsSync(dll)) {
           content = content + `\nextension=php_pdo_sqlsrv.dll`
         }
+        dll = join(version.path, 'ext/php_openssl.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_openssl.dll`
+        }
+        dll = join(version.path, 'ext/php_curl.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_curl.dll`
+        }
+        dll = join(version.path, 'ext/php_gd.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_gd.dll`
+        }
 
         content = content + `\nextension=php_mysqli.dll`
         content = content + `\nextension=php_pdo_mysql.dll`
