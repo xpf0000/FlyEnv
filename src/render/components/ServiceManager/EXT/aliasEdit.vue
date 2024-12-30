@@ -30,7 +30,7 @@
               class="input"
               :readonly="running"
               :class="{ error: errs?.name }"
-              placeholder="username"
+              :placeholder="I18nT('service.alias')"
             />
           </div>
         </div>

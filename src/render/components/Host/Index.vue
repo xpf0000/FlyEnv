@@ -58,6 +58,16 @@
               <el-dropdown-item divided>
                 <VhostTmpl />
               </el-dropdown-item>
+              <el-dropdown-item divided command="newProject">
+                <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
+                  <template #reference>
+                    <span>{{ I18nT('host.newProject') }}</span>
+                  </template>
+                  <template #default>
+                    <p>{{ I18nT('host.newProjectTips') }}</p>
+                  </template>
+                </el-popover>
+              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -185,13 +195,10 @@
   })
 
   watch(
-    hostsSet,
+    () => JSON.stringify(hostsSet.value),
     () => {
       hostsWrite()
       appStore.saveConfig()
-    },
-    {
-      deep: true
     }
   )
 
@@ -384,7 +391,7 @@
   }
 
   const openCreateProject = () => {
-    import('./CreateProject/index.vue').then((res) => {
+    import('./CreateProject/new.vue').then((res) => {
       AsyncComponentShow(res.default).then(({ dir, rewrite }: any) => {
         console.log('openCreateProject dir: ', dir)
         AsyncComponentShow(EditVM, {
