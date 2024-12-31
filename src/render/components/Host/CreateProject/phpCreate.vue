@@ -27,6 +27,7 @@
                 type="text"
                 class="input"
                 placeholder="root path"
+                :readonly="loading || created ? true : null"
                 :value="ProjectSetup.form.PHP.dir"
               />
               <div class="icon-block" @click="chooseRoot()">
@@ -56,7 +57,7 @@
             </div>
             <div class="park">
               <div class="title">
-                <span>{{ I18nT('base.composerVersion') }}</span>
+                <span>{{ I18nT('host.composerVersion') }}</span>
               </div>
               <el-select
                 v-model="ProjectSetup.form.PHP.composer"
@@ -222,7 +223,6 @@
         } else {
           MessageError(I18nT('base.fail'))
         }
-        ProjectSetup.phpFormInit()
         loading.value = false
       } else {
         if (typeof res?.msg === 'string') {

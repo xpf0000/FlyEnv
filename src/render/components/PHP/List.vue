@@ -416,6 +416,11 @@
     ConfVM = res.default
   })
 
+  let ExtensionVM: any
+  import('./Extends.vue').then((res) => {
+    ExtensionVM = res.default
+  })
+
   const action = (item: SoftInstalled, index: number, flag: string) => {
     switch (flag) {
       case 'groupstart':
@@ -430,9 +435,12 @@
         }).then()
         break
       case 'extend':
-        const dir = join(item.path, 'ext')
-        shell.openPath(dir)
-        shell.openExternal('http://pecl.php.net/')
+        AsyncComponentShow(ExtensionVM, {
+          version: item
+        }).then()
+        // const dir = join(item.path, 'ext')
+        // shell.openPath(dir)
+        // shell.openExternal('http://pecl.php.net/')
         break
       case 'brewLink':
         break

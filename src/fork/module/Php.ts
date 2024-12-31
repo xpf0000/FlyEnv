@@ -1,4 +1,4 @@
-import { join, dirname, basename } from 'path'
+import { join, dirname, basename, isAbsolute } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
@@ -15,7 +15,7 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, readFile, remove, mkdirp, copyFile } from 'fs-extra'
+import { writeFile, readFile, remove, mkdirp, copyFile, readdir } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
 import { ProcessListSearch } from '../Process'
@@ -31,7 +31,7 @@ class Php extends Base {
     this.pidPath = join(global.Server.PhpDir!, 'php.pid')
   }
 
-  getIniPath(version: SoftInstalled) {
+  getIniPath(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject) => {
       const ini = join(version.path, 'php.ini')
       if (existsSync(ini)) {
@@ -72,6 +72,10 @@ class Php extends Base {
         dll = join(version.path, 'ext/php_gd.dll')
         if (existsSync(dll)) {
           content = content + `\nextension=php_gd.dll`
+        }
+        dll = join(version.path, 'ext/php_fileinfo.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_fileinfo.dll`
         }
 
         content = content + `\nextension=php_mysqli.dll`
@@ -339,6 +343,77 @@ class Php extends Base {
         .catch(() => {
           resolve([])
         })
+    })
+  }
+
+  fetchExtensionDir(version: SoftInstalled) {
+    return new ForkPromise(async (resolve) => {
+      const ini = await this.getIniPath(version)
+      const content: string = await readFile(ini, 'utf-8')
+      const matchs = content.match(/^[\s]*?extension_dir = "(.*?)"/g)
+      let dir = matchs?.[1]
+      if (!dir) {
+        dir = join(dirname(version.bin), 'ext')
+      } else if (!isAbsolute(dir)) {
+        dir = join(dirname(version.bin), dir)
+      }
+      if (existsSync(dir)) {
+        resolve(dir)
+      }
+      resolve('')
+    })
+  }
+
+  fetchLocalExtend(version: SoftInstalled) {
+    return new ForkPromise(async (resolve) => {
+      const ini = await this.getIniPath(version)
+      const content: string = await readFile(ini, 'utf-8')
+      const matchs = content.match(/^[\s]*?extension_dir = "(.*?)"/g)
+      let dir = matchs?.[1]
+      if (!dir) {
+        dir = join(dirname(version.bin), 'ext')
+      } else if (!isAbsolute(dir)) {
+        dir = join(dirname(version.bin), dir)
+      }
+      const local: any[] = []
+      const used: any = []
+
+      let regex: RegExp = /^(\s*)extension(\s*)=(\s*)(.*?)([\s\n]*?)$/g
+      let m: any
+      while ((m = regex.exec(content)) !== null) {
+        if (m && m.length > 4) {
+          const name = m[4].split('.').shift()
+          const iniStr = m[0]
+          used.push({
+            name,
+            iniStr
+          })
+        }
+      }
+
+      regex.lastIndex = 0
+      regex = /^(\s*)zend_extension(\s*)=(\s*)(.*?)([\s\n]*?)$/g
+      while ((m = regex.exec(content)) !== null) {
+        if (m && m.length > 4) {
+          const name = m[4].split('.').shift()
+          const iniStr = m[0]
+          used.push({
+            name,
+            iniStr
+          })
+        }
+      }
+
+      if (!existsSync(dir)) {
+        let all = await readdir(dir)
+        all = all.map((a) => a.split('.').shift()!)
+        local.push(...all)
+      }
+
+      resolve({
+        local,
+        used
+      })
     })
   }
 }
