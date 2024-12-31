@@ -13,7 +13,7 @@ import path, { join, dirname } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import { copyFile, readdir, remove } from 'fs-extra'
+import { copyFile, mkdirp, readdir, remove, rename } from 'fs-extra'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import sudoPrompt from '@shared/sudo'
 import { compareVersions } from 'compare-versions'
@@ -742,4 +742,28 @@ export const addPath = async (dir: string) => {
   try {
     await execPromiseRoot(`setx /M PATH "${savePath}"`)
   } catch (e) {}
+}
+
+/**
+ * move dir's file and sub dir to other dir
+ * @param src
+ * @param dest
+ */
+export async function moveDirToDir(src: string, dest: string) {
+  // 读取源目录
+  const entries = await readdir(src, { withFileTypes: true })
+
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name)
+    const destPath = path.join(dest, entry.name)
+
+    if (entry.isDirectory()) {
+      await mkdirp(destPath)
+      // 递归移动子文件夹
+      await moveDirToDir(srcPath, destPath)
+    } else {
+      // 移动文件
+      await rename(srcPath, destPath)
+    }
+  }
 }
