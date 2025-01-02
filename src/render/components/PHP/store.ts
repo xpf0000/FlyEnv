@@ -30,10 +30,12 @@ export const PHPSetup = reactive<{
   libFetching: {},
   fetchExtensionDir(item: SoftInstalled) {
     return new Promise((resolve) => {
-      IPC.send('app-fork:php', 'fetchLocalExtend').then((key: string, res: any) => {
-        IPC.off(key)
-        resolve(res?.data ?? '')
-      })
+      IPC.send('app-fork:php', 'fetchExtensionDir', JSON.parse(JSON.stringify(item))).then(
+        (key: string, res: any) => {
+          IPC.off(key)
+          resolve(res?.data ?? '')
+        }
+      )
     })
   },
   fetchLocal(item: SoftInstalled) {
@@ -41,15 +43,17 @@ export const PHPSetup = reactive<{
       return
     }
     this.localFetching[item.bin] = true
-    IPC.send('app-fork:php', 'fetchLocalExtend').then((key: string, res: any) => {
-      IPC.off(key)
-      this.localUsed[item.bin] = reactive(res?.data?.used ?? [])
-      this.localExtend[item.bin] = reactive(res?.data?.local ?? [])
-      if (res?.code === 1) {
-        MessageError(res?.msg)
-        delete this.localFetching[item.bin]
+    IPC.send('app-fork:php', 'fetchLocalExtend', JSON.parse(JSON.stringify(item))).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        this.localUsed[item.bin] = reactive(res?.data?.used ?? [])
+        this.localExtend[item.bin] = reactive(res?.data?.local ?? [])
+        if (res?.code === 1) {
+          MessageError(res?.msg)
+          delete this.localFetching[item.bin]
+        }
       }
-    })
+    )
   },
   fetchLib(item: SoftInstalled) {
     if (this.libFetching[item.bin]) {
