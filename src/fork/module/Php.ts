@@ -394,6 +394,8 @@ class Php extends Base {
         dir = join(dirname(version.bin), dir)
       }
 
+      console.log('fetchLocalExtend dir: ', dir)
+
       const local: any[] = []
       const used: any = []
 
@@ -422,7 +424,7 @@ class Php extends Base {
         }
       }
 
-      if (!existsSync(dir)) {
+      if (existsSync(dir)) {
         let all = await readdir(dir)
         all = all.map((a) => a.split('.').shift()!)
         local.push(...all)
@@ -430,7 +432,8 @@ class Php extends Base {
 
       resolve({
         local,
-        used
+        used,
+        dir
       })
     })
   }
