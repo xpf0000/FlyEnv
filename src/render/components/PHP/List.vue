@@ -435,6 +435,7 @@
         }).then()
         break
       case 'extend':
+        console.log('extend: ', item, index)
         AsyncComponentShow(ExtensionVM, {
           version: item
         }).then()
