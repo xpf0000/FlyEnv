@@ -378,12 +378,12 @@ class Php extends Base {
       const local: any[] = []
       const used: any = []
 
-      let regex: RegExp = /^(\s*)extension(\s*)=(\s*)(.*?)([\s\n]*?)$/g
+      let regex: RegExp = /^(?!\s*;)\s*extension\s*=\s*"?([^"\s]+)"?/gm
       let m: any
       while ((m = regex.exec(content)) !== null) {
-        if (m && m.length > 4) {
-          const name = m[4].split('.').shift()
-          const iniStr = m[0]
+        if (m && m.length > 0) {
+          const name = m[1].split('.').shift().trim()
+          const iniStr = m[0].trim()
           used.push({
             name,
             iniStr
@@ -392,11 +392,11 @@ class Php extends Base {
       }
 
       regex.lastIndex = 0
-      regex = /^(\s*)zend_extension(\s*)=(\s*)(.*?)([\s\n]*?)$/g
+      regex = /^(?!\s*;)\s*zend_extension\s*=\s*"?([^"\s]+)"?/gm
       while ((m = regex.exec(content)) !== null) {
-        if (m && m.length > 4) {
-          const name = m[4].split('.').shift()
-          const iniStr = m[0]
+        if (m && m.length > 0) {
+          const name = m[1].split('.').shift().trim()
+          const iniStr = m[0].trim()
           used.push({
             name,
             iniStr
