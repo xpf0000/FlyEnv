@@ -184,6 +184,8 @@
     }
   })
 
+  console.log('extend version: ', props.version)
+
   PHPSetup.fetchExtensionDir(props.version as any).then((res) => {
     installExtensionDir.value = res
   })
