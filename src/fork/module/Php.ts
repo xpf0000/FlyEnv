@@ -350,8 +350,17 @@ class Php extends Base {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
       const content: string = await readFile(ini, 'utf-8')
-      const matchs = content.match(/^[\s]*?extension_dir = "(.*?)"/g)
-      let dir = matchs?.[1]
+
+      let dir: string = ''
+      const regex: RegExp = /^(?!\s*;)\s*extension_dir\s*=\s*"?([^"\s]+)"?/gm
+      let m: any
+      while ((m = regex.exec(content)) !== null) {
+        console.log(m)
+        if (m && m.length > 0) {
+          dir = m[1].trim()
+        }
+      }
+
       if (!dir) {
         dir = join(dirname(version.bin), 'ext')
       } else if (!isAbsolute(dir)) {
@@ -368,18 +377,27 @@ class Php extends Base {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
       const content: string = await readFile(ini, 'utf-8')
-      const matchs = content.match(/^[\s]*?extension_dir = "(.*?)"/g)
-      let dir = matchs?.[1]
+
+      let dir: string = ''
+      let regex: RegExp = /^(?!\s*;)\s*extension_dir\s*=\s*"?([^"\s]+)"?/gm
+      let m: any
+      while ((m = regex.exec(content)) !== null) {
+        console.log(m)
+        if (m && m.length > 0) {
+          dir = m[1].trim()
+        }
+      }
+
       if (!dir) {
         dir = join(dirname(version.bin), 'ext')
       } else if (!isAbsolute(dir)) {
         dir = join(dirname(version.bin), dir)
       }
+
       const local: any[] = []
       const used: any = []
 
-      let regex: RegExp = /^(?!\s*;)\s*extension\s*=\s*"?([^"\s]+)"?/gm
-      let m: any
+      regex = /^(?!\s*;)\s*extension\s*=\s*"?([^"\s]+)"?/gm
       while ((m = regex.exec(content)) !== null) {
         if (m && m.length > 0) {
           const name = m[1].split('.').shift().trim()
