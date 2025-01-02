@@ -396,7 +396,7 @@ class Php extends Base {
 
       console.log('fetchLocalExtend dir: ', dir)
 
-      const local: any[] = []
+      const local: any = []
       const used: any = []
 
       regex = /^(?!\s*;)\s*extension\s*=\s*"?([^"\s]+)"?/gm
@@ -424,9 +424,18 @@ class Php extends Base {
         }
       }
 
+      const zend = ['php_opcache', 'php_xdebug']
+
       if (existsSync(dir)) {
-        let all = await readdir(dir)
-        all = all.map((a) => a.split('.').shift()!)
+        let all: any = await readdir(dir)
+        all = all
+          .map((a: string) => a.split('.').shift()!)
+          .map((a: string) => {
+            return {
+              name: a,
+              iniStr: zend.includes(a.toLowerCase()) ? `zend_extension=${a}` : `extension=${a}`
+            }
+          })
         local.push(...all)
       }
 
