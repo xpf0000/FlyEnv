@@ -15,19 +15,42 @@ export type PHPExtendLib = {
 
 export const PHPSetup = reactive<{
   localExtend: Partial<Record<string, PHPExtendLocal[]>>
-  localUsed: Partial<Record<string, string[]>>
+  localUsed: Partial<Record<string, PHPExtendLocal[]>>
   libExtend: Partial<Record<string, PHPExtendLib[]>>
   localFetching: Partial<Record<string, boolean>>
   libFetching: Partial<Record<string, boolean>>
+  localExecing: Partial<Record<string, boolean>>
   fetchLocal: (item: SoftInstalled) => void
   fetchLib: (item: SoftInstalled) => void
   fetchExtensionDir: (item: SoftInstalled) => Promise<string>
+  localExec: (item: PHPExtendLocal, version: SoftInstalled) => void
 }>({
   localExtend: {},
   localUsed: {},
   libExtend: {},
   localFetching: {},
+  localExecing: {},
   libFetching: {},
+  localExec(item: PHPExtendLocal, version: SoftInstalled) {
+    if (this.localExecing[item.name]) {
+      return
+    }
+    this.localExecing[item.name] = true
+    IPC.send(
+      'app-fork:php',
+      'localExec',
+      JSON.parse(JSON.stringify(item)),
+      JSON.parse(JSON.stringify(version))
+    ).then((key: string, res: any) => {
+      IPC.off(key)
+      this.localUsed[version.bin] = reactive(res?.data?.used ?? [])
+      this.localExtend[version.bin] = reactive(res?.data?.local ?? [])
+      if (res?.code === 1) {
+        MessageError(res?.msg)
+      }
+      delete this.localExecing[item.name]
+    })
+  },
   fetchExtensionDir(item: SoftInstalled) {
     return new Promise((resolve) => {
       IPC.send('app-fork:php', 'fetchExtensionDir', JSON.parse(JSON.stringify(item))).then(
@@ -50,8 +73,8 @@ export const PHPSetup = reactive<{
         this.localExtend[item.bin] = reactive(res?.data?.local ?? [])
         if (res?.code === 1) {
           MessageError(res?.msg)
-          delete this.localFetching[item.bin]
         }
+        delete this.localFetching[item.bin]
       }
     )
   },
@@ -87,8 +110,8 @@ export const PHPSetup = reactive<{
       }
       if (res?.code === 1) {
         MessageError(res?.msg)
-        delete this.libFetching[item.bin]
       }
+      delete this.libFetching[item.bin]
     })
   }
 })
