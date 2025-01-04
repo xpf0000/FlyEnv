@@ -127,7 +127,7 @@
               </el-table-column>
               <el-table-column align="center" :label="I18nT('base.status')">
                 <template #default="scope">
-                  <template v-if="PHPSetup.localExecing[scope.row.name]">
+                  <template v-if="PHPSetup.libExecing[scope.row.name]">
                     <el-button :loading="true" link></el-button>
                   </template>
                   <template v-else-if="scope.row.installed">
@@ -231,7 +231,7 @@
     }
   }
   const sortName = (a: any, b: any) => {
-    return a.name - b.name
+    return a.name.toLowerCase() - b.name.toLowerCase()
   }
   const sortStatus = (a: any, b: any) => {
     if (a.installed === b.installed) {

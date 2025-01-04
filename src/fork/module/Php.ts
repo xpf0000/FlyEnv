@@ -1,5 +1,5 @@
 import { join, dirname, basename, isAbsolute } from 'path'
-import { existsSync } from 'fs'
+import { createWriteStream, existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -347,7 +347,7 @@ class Php extends Base {
     })
   }
 
-  fetchExtensionDir(version: SoftInstalled) {
+  fetchExtensionDir(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
       const content: string = await readFile(ini, 'utf-8')
@@ -480,6 +480,115 @@ class Php extends Base {
         list = res?.data?.data ?? []
       } catch (e) {}
       resolve(list)
+    })
+  }
+
+  libExec(item: any, version: SoftInstalled) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      const ini = await this.getIniPath(version)
+      let content: string = await readFile(ini, 'utf-8')
+      content = content.trim()
+
+      const name = `php_${item.name.toLowerCase()}`
+      const zend = ['php_opcache', 'php_xdebug']
+      const type = zend.includes(name) ? 'zend_extension' : 'extension'
+      if (item.installed) {
+        const regex: RegExp = new RegExp(`^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${name})"?`, 'gm')
+        content = content.replace(regex, ``).trim()
+      } else {
+        const dir: string = await this.fetchExtensionDir(version)
+        const file = join(dir, `${name}.dll`)
+        if (!existsSync(file)) {
+          const install = () => {
+            return new Promise(async (resolve, reject) => {
+              const phpVersion = version.version!.split('.').slice(0, 2).join('.')
+              const zipFile = join(global.Server.Cache!, `${name}-php${phpVersion}.zip`)
+              const cacheDir = join(global.Server.Cache!, `${name}-php${phpVersion}-cache`)
+              const dll = join(cacheDir, `${name}.dll`)
+
+              if (existsSync(zipFile)) {
+                try {
+                  await zipUnPack(zipFile, cacheDir)
+                } catch (e) {}
+                if (existsSync(dll)) {
+                  await copyFile(dll, file)
+                  if (existsSync(file)) {
+                    resolve(true)
+                    return
+                  } else {
+                    reject(new Error(`${name}.dll no found`))
+                    return
+                  }
+                }
+                await remove(cacheDir)
+                await remove(zipFile)
+              }
+              const url = item.versions[phpVersion][0]
+              axios({
+                method: 'get',
+                url,
+                proxy: this.getAxiosProxy(),
+                responseType: 'stream',
+                onDownloadProgress: (progress) => {
+                  if (progress.total) {
+                    const percent = Math.round((progress.loaded * 100.0) / progress.total)
+                    on({
+                      percent,
+                      state: 'downing'
+                    })
+                  }
+                }
+              })
+                .then(function (response) {
+                  const stream = createWriteStream(zipFile)
+                  response.data.pipe(stream)
+                  stream.on('error', async (e: any) => {
+                    try {
+                      if (existsSync(zipFile)) {
+                        await remove(zipFile)
+                      }
+                    } catch (e) {}
+                    reject(e)
+                  })
+                  stream.on('finish', async () => {
+                    on({
+                      percent: 100,
+                      state: 'downing'
+                    })
+                    try {
+                      if (existsSync(zipFile)) {
+                        await zipUnPack(zipFile, cacheDir)
+                      }
+                    } catch (e) {
+                      reject(e)
+                      return
+                    }
+                    if (existsSync(dll)) {
+                      await copyFile(dll, file)
+                      if (existsSync(file)) {
+                        resolve(true)
+                        return
+                      }
+                    }
+                    reject(new Error(`${name}.dll no found`))
+                  })
+                })
+                .catch(reject)
+            })
+          }
+          try {
+            await install()
+          } catch (e) {
+            reject(e)
+            return
+          }
+        }
+        content += `\n${type}=${name}`
+      }
+
+      content = content.trim()
+      await writeFile(ini, content)
+      this.fetchLocalExtend(version).then(resolve).catch(reject)
     })
   }
 }
