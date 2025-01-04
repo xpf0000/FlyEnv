@@ -80,10 +80,10 @@
                       @click.stop="PHPSetup.localExec(scope.row, version)"
                     >
                       <yb-icon
-                        style="padding: 4px"
+                        style="padding: 6px"
                         :svg="import('@/svg/select.svg?raw')"
-                        width="25"
-                        height="25"
+                        width="29"
+                        height="29"
                       />
                     </el-button>
                   </template>
@@ -94,10 +94,10 @@
                       @click.stop="PHPSetup.localExec(scope.row, version)"
                     >
                       <yb-icon
-                        style="padding: 4px"
+                        style="padding: 6px"
                         :svg="import('@/svg/select.svg?raw')"
-                        width="25"
-                        height="25"
+                        width="29"
+                        height="29"
                       />
                     </el-button>
                   </template>
@@ -134,13 +134,13 @@
                     <el-button
                       link
                       type="primary"
-                      @click.stop="PHPSetup.localExec(scope.row, version)"
+                      @click.stop="PHPSetup.libExec(scope.row, version)"
                     >
                       <yb-icon
-                        style="padding: 4px"
+                        style="padding: 6px"
                         :svg="import('@/svg/select.svg?raw')"
-                        width="25"
-                        height="25"
+                        width="29"
+                        height="29"
                       />
                     </el-button>
                   </template>
@@ -148,13 +148,13 @@
                     <el-button
                       link
                       class="php-extension-nouse-btn"
-                      @click.stop="PHPSetup.localExec(scope.row, version)"
+                      @click.stop="PHPSetup.libExec(scope.row, version)"
                     >
                       <yb-icon
-                        style="padding: 4px"
+                        style="padding: 6px"
                         :svg="import('@/svg/select.svg?raw')"
-                        width="25"
-                        height="25"
+                        width="29"
+                        height="29"
                       />
                     </el-button>
                   </template>
