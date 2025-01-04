@@ -45,13 +45,16 @@ export const PHPSetup = reactive<{
       JSON.parse(JSON.stringify(item)),
       JSON.parse(JSON.stringify(version))
     ).then((key: string, res: any) => {
-      IPC.off(key)
-      this.localUsed[version.bin] = reactive(res?.data?.used ?? [])
-      this.localExtend[version.bin] = reactive(res?.data?.local ?? [])
-      if (res?.code === 1) {
+      if (res?.code === 0) {
+        IPC.off(key)
+        this.localUsed[version.bin] = reactive(res?.data?.used ?? [])
+        this.localExtend[version.bin] = reactive(res?.data?.local ?? [])
+        delete this.localExecing[item.name]
+      } else if (res?.code === 1) {
+        IPC.off(key)
         MessageError(res?.msg)
+        delete this.localExecing[item.name]
       }
-      delete this.localExecing[item.name]
     })
   },
   fetchExtensionDir(item: SoftInstalled) {
@@ -71,13 +74,16 @@ export const PHPSetup = reactive<{
     this.localFetching[item.bin] = true
     IPC.send('app-fork:php', 'fetchLocalExtend', JSON.parse(JSON.stringify(item))).then(
       (key: string, res: any) => {
-        IPC.off(key)
-        this.localUsed[item.bin] = reactive(res?.data?.used ?? [])
-        this.localExtend[item.bin] = reactive(res?.data?.local ?? [])
-        if (res?.code === 1) {
+        if (res?.code === 0) {
+          IPC.off(key)
+          this.localUsed[item.bin] = reactive(res?.data?.used ?? [])
+          this.localExtend[item.bin] = reactive(res?.data?.local ?? [])
+          delete this.localFetching[item.bin]
+        } else if (res?.code === 1) {
+          IPC.off(key)
           MessageError(res?.msg)
+          delete this.localFetching[item.bin]
         }
-        delete this.localFetching[item.bin]
       }
     )
   },
@@ -128,13 +134,16 @@ export const PHPSetup = reactive<{
       JSON.parse(JSON.stringify(item)),
       JSON.parse(JSON.stringify(version))
     ).then((key: string, res: any) => {
-      IPC.off(key)
-      this.localUsed[version.bin] = reactive(res?.data?.used ?? [])
-      this.localExtend[version.bin] = reactive(res?.data?.local ?? [])
-      if (res?.code === 1) {
+      if (res?.code === 0) {
+        IPC.off(key)
+        this.localUsed[version.bin] = reactive(res?.data?.used ?? [])
+        this.localExtend[version.bin] = reactive(res?.data?.local ?? [])
+        delete this.libExecing[item.name]
+      } else if (res?.code === 1) {
+        IPC.off(key)
         MessageError(res?.msg)
+        delete this.libExecing[item.name]
       }
-      delete this.libExecing[item.name]
     })
   }
 })

@@ -383,8 +383,28 @@ class Php extends Base {
         const type = item.iniStr.includes('zend_') ? 'zend_extension' : 'extension'
         const regex: RegExp = new RegExp(`^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${item.name})"?`, 'gm')
         content = content.replace(regex, ``).trim()
+        if (item.name === 'php_xdebug') {
+          content = content
+            .replace(/;\[FlyEnv-xdebug-ini-begin\]([\s\S]*?);\[FlyEnv-xdebug-ini-end\]/g, ``)
+            .trim()
+        }
       } else {
         content += `\n${item.iniStr}`
+        if (item.name === 'php_xdebug') {
+          const output_dir = join(global.Server.PhpDir!, 'xdebug')
+          await mkdirp(output_dir)
+          content += `\n;[FlyEnv-xdebug-ini-begin]
+xdebug.idekey = "PHPSTORM"
+xdebug.client_host = localhost
+xdebug.client_port = 9003
+xdebug.mode = debug
+xdebug.profiler_append = 0
+xdebug.profiler_output_name = cachegrind.out.%p
+xdebug.start_with_request = yes
+xdebug.trigger_value=StartProfileForMe
+xdebug.output_dir = "${output_dir}"
+;[FlyEnv-xdebug-ini-end]`
+        }
       }
 
       content = content.trim()
@@ -493,6 +513,11 @@ class Php extends Base {
       if (item.installed) {
         const regex: RegExp = new RegExp(`^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${name})"?`, 'gm')
         content = content.replace(regex, ``).trim()
+        if (name === 'php_xdebug') {
+          content = content
+            .replace(/;\[FlyEnv-xdebug-ini-begin\]([\s\S]*?);\[FlyEnv-xdebug-ini-end\]/g, ``)
+            .trim()
+        }
       } else {
         const dir: string = await this.fetchExtensionDir(version)
         const file = join(dir, `${name}.dll`)
@@ -582,6 +607,21 @@ class Php extends Base {
           }
         }
         content += `\n${type}=${name}`
+        if (name === 'php_xdebug') {
+          const output_dir = join(global.Server.PhpDir!, 'xdebug')
+          await mkdirp(output_dir)
+          content += `\n;[FlyEnv-xdebug-ini-begin]
+xdebug.idekey = "PHPSTORM"
+xdebug.client_host = localhost
+xdebug.client_port = 9003
+xdebug.mode = debug
+xdebug.profiler_append = 0
+xdebug.profiler_output_name = cachegrind.out.%p
+xdebug.start_with_request = yes
+xdebug.trigger_value=StartProfileForMe
+xdebug.output_dir = "${output_dir}"
+;[FlyEnv-xdebug-ini-end]`
+        }
       }
 
       content = content.trim()
