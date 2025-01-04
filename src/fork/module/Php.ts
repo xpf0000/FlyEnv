@@ -373,6 +373,26 @@ class Php extends Base {
     })
   }
 
+  localExec(item: any, version: SoftInstalled) {
+    return new ForkPromise(async (resolve, reject) => {
+      const ini = await this.getIniPath(version)
+      let content: string = await readFile(ini, 'utf-8')
+      content = content.trim()
+
+      if (item.installed) {
+        const type = item.iniStr.includes('zend_') ? 'zend_extension' : 'extension'
+        const regex: RegExp = new RegExp(`^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${item.name})"?`, 'gm')
+        content = content.replace(regex, ``).trim()
+      } else {
+        content += `\n${item.iniStr}`
+      }
+
+      content = content.trim()
+      await writeFile(ini, content)
+      this.fetchLocalExtend(version).then(resolve).catch(reject)
+    })
+  }
+
   fetchLocalExtend(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)

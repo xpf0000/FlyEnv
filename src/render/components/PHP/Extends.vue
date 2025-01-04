@@ -48,104 +48,53 @@
               </el-button>
             </div>
           </template>
-          <el-table
-            v-loading="fetching"
-            height="100%"
-            :data="showTableDataFilter"
-            style="width: 100%"
-          >
-            <el-table-column prop="name" class-name="name-cell-td" :label="I18nT('base.name')">
-              <template #header>
-                <div class="w-p100 name-cell">
-                  <span style="display: inline-flex; padding: 2px 0">{{ I18nT('base.name') }}</span>
-                  <el-input v-model.trim="search" placeholder="search" clearable></el-input>
-                </div>
-              </template>
-              <template #default="scope">
-                <div style="padding: 2px 0 2px 24px">{{ scope.row.name }}</div>
-              </template>
-            </el-table-column>
-            <el-table-column align="center" :label="I18nT('base.status')">
-              <template #default="scope">
-                <div class="cell-status">
-                  <yb-icon
-                    v-if="scope.row.status"
-                    :svg="import('@/svg/ok.svg?raw')"
-                    class="installed"
-                  ></yb-icon>
-                </div>
-              </template>
-            </el-table-column>
-
-            <el-table-column
-              width="150px"
-              align="left"
-              :label="I18nT('base.operation')"
-              class-name="operation"
+          <template v-if="tab === 'local'">
+            <el-table
+              v-loading="fetching"
+              height="100%"
+              :data="showTableDataFilter"
+              style="width: 100%"
             >
-              <template v-if="version?.version" #default="scope">
-                <template v-if="scope.row.status">
-                  <el-popover :show-after="600" placement="top" width="auto">
-                    <template #default>
-                      <span>{{ I18nT('base.copyLink') }}</span>
-                    </template>
-                    <template #reference>
-                      <el-button
-                        type="primary"
-                        link
-                        :icon="Link"
-                        @click="copyLink(scope.$index, scope.row)"
-                      ></el-button>
-                    </template>
-                  </el-popover>
-                  <template v-if="scope.row.name === 'xdebug'">
-                    <el-popover :show-after="600" placement="top" width="auto">
-                      <template #default>
-                        <span>{{ I18nT('php.copyConfTemplate') }}</span>
-                      </template>
-                      <template #reference>
-                        <el-button
-                          type="primary"
-                          link
-                          :icon="Document"
-                          @click="copyXDebugTmpl(scope.$index, scope.row)"
-                        ></el-button>
-                      </template>
-                    </el-popover>
+              <el-table-column prop="name" class-name="name-cell-td" :label="I18nT('base.name')">
+                <template #header>
+                  <div class="w-p100 name-cell">
+                    <span style="display: inline-flex; padding: 2px 0">{{
+                      I18nT('base.name')
+                    }}</span>
+                    <el-input v-model.trim="search" placeholder="search" clearable></el-input>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <div style="padding: 2px 0 2px 24px">{{ scope.row.name }}</div>
+                </template>
+              </el-table-column>
+              <el-table-column align="center" :label="I18nT('base.status')">
+                <template #default="scope">
+                  <template v-if="PHPSetup.localExecing[scope.row.name]">
+                    <el-button :loading="true" link></el-button>
                   </template>
-                  <el-popover :show-after="600" placement="top" width="auto">
-                    <template #default>
-                      <span>{{ I18nT('base.del') }}</span>
-                    </template>
-                    <template #reference>
-                      <el-button
-                        type="primary"
-                        link
-                        :icon="Delete"
-                        @click="doDel(scope.$index, scope.row)"
-                      ></el-button>
-                    </template>
-                  </el-popover>
+                  <template v-else-if="scope.row.installed">
+                    <el-button
+                      link
+                      type="primary"
+                      @click.stop="PHPSetup.localExec(scope.row, version)"
+                    >
+                      <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+                    </el-button>
+                  </template>
+                  <template v-else>
+                    <el-button
+                      link
+                      class="php-extension-nouse-btn"
+                      @click.stop="PHPSetup.localExec(scope.row, version)"
+                    >
+                      <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+                    </el-button>
+                  </template>
                 </template>
-                <template v-else>
-                  <el-popover :show-after="600" placement="top" width="auto">
-                    <template #default>
-                      <span>{{ I18nT('base.install') }}</span>
-                    </template>
-                    <template #reference>
-                      <el-button
-                        :disabled="brewRunning || !version?.version"
-                        type="primary"
-                        link
-                        :icon="Download"
-                        @click="handleEdit(scope.$index, scope.row)"
-                      ></el-button>
-                    </template>
-                  </el-popover>
-                </template>
-              </template>
-            </el-table-column>
-          </el-table>
+              </el-table-column>
+            </el-table>
+          </template>
         </el-card>
       </div>
     </div>
@@ -221,13 +170,13 @@
       return a.name - b.name
     }
     const sortStatus = (a: any, b: any) => {
-      if (a.status === b.status) {
+      if (a.installed === b.installed) {
         return 0
       }
-      if (a.status) {
+      if (a.installed) {
         return -1
       }
-      if (b.status) {
+      if (b.installed) {
         return 1
       }
       return 0
@@ -292,3 +241,20 @@ xdebug.output_dir = /tmp`
     onClosed
   })
 </script>
+<style lang="scss">
+  .php-extensions {
+    .el-table {
+      tr {
+        .php-extension-nouse-btn {
+          display: none;
+        }
+
+        &:hover {
+          .php-extension-nouse-btn {
+            display: inline-flex;
+          }
+        }
+      }
+    }
+  }
+</style>
