@@ -268,7 +268,7 @@
     let lib = PHPSetup.libExtend?.[props.version.bin] ?? []
     const phpVersion = props.version.version!.split('.').slice(0, 2).join('.')
     lib = lib.filter((l: any) => {
-      return !!l.versions?.[phpVersion]
+      return l.versions?.[phpVersion]?.length > 0
     })
     lib.forEach((l: any) => {
       if (used.some((u: any) => u.name === `php_${l.name}`.toLowerCase())) {
