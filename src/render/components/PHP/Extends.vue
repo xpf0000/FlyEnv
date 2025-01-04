@@ -79,7 +79,12 @@
                       type="primary"
                       @click.stop="PHPSetup.localExec(scope.row, version)"
                     >
-                      <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+                      <yb-icon
+                        style="padding: 4px"
+                        :svg="import('@/svg/select.svg?raw')"
+                        width="25"
+                        height="25"
+                      />
                     </el-button>
                   </template>
                   <template v-else>
@@ -88,7 +93,69 @@
                       class="php-extension-nouse-btn"
                       @click.stop="PHPSetup.localExec(scope.row, version)"
                     >
-                      <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+                      <yb-icon
+                        style="padding: 4px"
+                        :svg="import('@/svg/select.svg?raw')"
+                        width="25"
+                        height="25"
+                      />
+                    </el-button>
+                  </template>
+                </template>
+              </el-table-column>
+            </el-table>
+          </template>
+          <template v-else>
+            <el-table
+              v-loading="fetching"
+              height="100%"
+              :data="showTableLibFilter"
+              style="width: 100%"
+            >
+              <el-table-column prop="name" class-name="name-cell-td" :label="I18nT('base.name')">
+                <template #header>
+                  <div class="w-p100 name-cell">
+                    <span style="display: inline-flex; padding: 2px 0">{{
+                      I18nT('base.name')
+                    }}</span>
+                    <el-input v-model.trim="search" placeholder="search" clearable></el-input>
+                  </div>
+                </template>
+                <template #default="scope">
+                  <div style="padding: 2px 0 2px 24px">{{ scope.row.name }}</div>
+                </template>
+              </el-table-column>
+              <el-table-column align="center" :label="I18nT('base.status')">
+                <template #default="scope">
+                  <template v-if="PHPSetup.localExecing[scope.row.name]">
+                    <el-button :loading="true" link></el-button>
+                  </template>
+                  <template v-else-if="scope.row.installed">
+                    <el-button
+                      link
+                      type="primary"
+                      @click.stop="PHPSetup.localExec(scope.row, version)"
+                    >
+                      <yb-icon
+                        style="padding: 4px"
+                        :svg="import('@/svg/select.svg?raw')"
+                        width="25"
+                        height="25"
+                      />
+                    </el-button>
+                  </template>
+                  <template v-else>
+                    <el-button
+                      link
+                      class="php-extension-nouse-btn"
+                      @click.stop="PHPSetup.localExec(scope.row, version)"
+                    >
+                      <yb-icon
+                        style="padding: 4px"
+                        :svg="import('@/svg/select.svg?raw')"
+                        width="25"
+                        height="25"
+                      />
                     </el-button>
                   </template>
                 </template>
@@ -108,7 +175,6 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { PHPSetup } from '@/components/PHP/store'
   import { MessageSuccess, MessageWarning } from '@/util/Element'
-  import { Document, Download, Link, Delete } from '@element-plus/icons-vue'
 
   const { clipboard } = require('@electron/remote')
   const { shell } = require('@electron/remote')
@@ -164,36 +230,55 @@
       PHPSetup.fetchLib(props.version as any)
     }
   }
-
-  const showTableDataFilter = computed(() => {
-    const sortName = (a: any, b: any) => {
-      return a.name - b.name
-    }
-    const sortStatus = (a: any, b: any) => {
-      if (a.installed === b.installed) {
-        return 0
-      }
-      if (a.installed) {
-        return -1
-      }
-      if (b.installed) {
-        return 1
-      }
+  const sortName = (a: any, b: any) => {
+    return a.name - b.name
+  }
+  const sortStatus = (a: any, b: any) => {
+    if (a.installed === b.installed) {
       return 0
     }
+    if (a.installed) {
+      return -1
+    }
+    if (b.installed) {
+      return 1
+    }
+    return 0
+  }
+
+  const showTableDataFilter = computed(() => {
     const used = PHPSetup.localUsed?.[props.version.bin] ?? []
     const local = PHPSetup.localExtend?.[props.version.bin] ?? []
-
     local.forEach((l: any) => {
       if (used.some((u: any) => u.name === l.name)) {
         l.installed = true
       }
     })
-
     if (!search.value) {
       return local.sort(sortName).sort(sortStatus)
     }
     return local
+      .filter((d: any) => d.name.toLowerCase().includes(search.value.toLowerCase()))
+      .sort(sortName)
+      .sort(sortStatus)
+  })
+
+  const showTableLibFilter = computed(() => {
+    const used = PHPSetup.localUsed?.[props.version.bin] ?? []
+    let lib = PHPSetup.libExtend?.[props.version.bin] ?? []
+    const phpVersion = props.version.version!.split('.').slice(0, 2).join('.')
+    lib = lib.filter((l: any) => {
+      return !!l.versions?.[phpVersion]
+    })
+    lib.forEach((l: any) => {
+      if (used.some((u: any) => u.name === `php_${l.name}`.toLowerCase())) {
+        l.installed = true
+      }
+    })
+    if (!search.value) {
+      return lib.sort(sortName).sort(sortStatus)
+    }
+    return lib
       .filter((d: any) => d.name.toLowerCase().includes(search.value.toLowerCase()))
       .sort(sortName)
       .sort(sortStatus)
