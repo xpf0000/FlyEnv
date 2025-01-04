@@ -535,6 +535,7 @@ xdebug.output_dir = "${output_dir}"
                 } catch (e) {}
                 if (existsSync(dll)) {
                   await copyFile(dll, file)
+                  await remove(cacheDir)
                   if (existsSync(file)) {
                     resolve(true)
                     return
@@ -588,6 +589,7 @@ xdebug.output_dir = "${output_dir}"
                     }
                     if (existsSync(dll)) {
                       await copyFile(dll, file)
+                      await remove(cacheDir)
                       if (existsSync(file)) {
                         resolve(true)
                         return
