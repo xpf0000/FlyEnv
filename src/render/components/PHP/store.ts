@@ -20,16 +20,19 @@ export const PHPSetup = reactive<{
   localFetching: Partial<Record<string, boolean>>
   libFetching: Partial<Record<string, boolean>>
   localExecing: Partial<Record<string, boolean>>
+  libExecing: Partial<Record<string, boolean>>
   fetchLocal: (item: SoftInstalled) => void
   fetchLib: (item: SoftInstalled) => void
   fetchExtensionDir: (item: SoftInstalled) => Promise<string>
   localExec: (item: PHPExtendLocal, version: SoftInstalled) => void
+  libExec: (item: PHPExtendLocal, version: SoftInstalled) => void
 }>({
   localExtend: {},
   localUsed: {},
   libExtend: {},
   localFetching: {},
   localExecing: {},
+  libExecing: {},
   libFetching: {},
   localExec(item: PHPExtendLocal, version: SoftInstalled) {
     if (this.localExecing[item.name]) {
@@ -112,6 +115,26 @@ export const PHPSetup = reactive<{
         MessageError(res?.msg)
       }
       delete this.libFetching[item.bin]
+    })
+  },
+  libExec(item: PHPExtendLocal, version: SoftInstalled) {
+    if (this.libExecing[item.name]) {
+      return
+    }
+    this.libExecing[item.name] = true
+    IPC.send(
+      'app-fork:php',
+      'libExec',
+      JSON.parse(JSON.stringify(item)),
+      JSON.parse(JSON.stringify(version))
+    ).then((key: string, res: any) => {
+      IPC.off(key)
+      this.localUsed[version.bin] = reactive(res?.data?.used ?? [])
+      this.localExtend[version.bin] = reactive(res?.data?.local ?? [])
+      if (res?.code === 1) {
+        MessageError(res?.msg)
+      }
+      delete this.libExecing[item.name]
     })
   }
 })
