@@ -521,15 +521,7 @@ class Php extends Base {
                 await remove(cacheDir)
                 await remove(zipFile)
               }
-              console.log(
-                'phpVersion: ',
-                phpVersion,
-                item,
-                item.versions,
-                item.versions[phpVersion],
-                item.versions[phpVersion][0]
-              )
-              const url = item.versions[phpVersion][0]
+              const url = item.versions[phpVersion][0].url
               axios({
                 method: 'get',
                 url,
