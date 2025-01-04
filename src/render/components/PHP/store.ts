@@ -103,7 +103,7 @@ export const PHPSetup = reactive<{
         localStorage.setItem(
           saveKey,
           JSON.stringify({
-            expire: Math.round(new Date().getTime() / 1000) + 12 * 60 * 60,
+            expire: Math.round(new Date().getTime() / 1000) + 24 * 60 * 60,
             data: this.libExtend[item.bin]
           })
         )

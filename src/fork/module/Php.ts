@@ -20,6 +20,7 @@ import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
 import { ProcessListSearch } from '../Process'
 import { EOL } from 'os'
+import axios from 'axios'
 
 class Php extends Base {
   constructor() {
@@ -464,6 +465,21 @@ class Php extends Base {
         used,
         dir
       })
+    })
+  }
+
+  fetchLibExtend() {
+    return new ForkPromise(async (resolve) => {
+      let list: any = []
+      try {
+        const res = await axios({
+          url: 'https://api.macphpstudy.com/api/version/php_extension',
+          method: 'post',
+          proxy: this.getAxiosProxy()
+        })
+        list = res?.data?.data ?? []
+      } catch (e) {}
+      resolve(list)
     })
   }
 }
