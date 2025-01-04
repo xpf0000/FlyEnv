@@ -1,7 +1,8 @@
 import { reactive } from 'vue'
 import { SoftInstalled } from '@shared/app'
 import IPC from '@/util/IPC'
-import { MessageError } from '@/util/Element'
+import { MessageError, MessageSuccess } from '@/util/Element'
+import { I18nT } from '@shared/lang'
 
 export type PHPExtendLocal = {
   name: string
@@ -50,6 +51,7 @@ export const PHPSetup = reactive<{
         this.localUsed[version.bin] = reactive(res?.data?.used ?? [])
         this.localExtend[version.bin] = reactive(res?.data?.local ?? [])
         delete this.localExecing[item.name]
+        MessageSuccess(I18nT('base.success'))
       } else if (res?.code === 1) {
         IPC.off(key)
         MessageError(res?.msg)
@@ -139,6 +141,7 @@ export const PHPSetup = reactive<{
         this.localUsed[version.bin] = reactive(res?.data?.used ?? [])
         this.localExtend[version.bin] = reactive(res?.data?.local ?? [])
         delete this.libExecing[item.name]
+        MessageSuccess(I18nT('base.success'))
       } else if (res?.code === 1) {
         IPC.off(key)
         MessageError(res?.msg)

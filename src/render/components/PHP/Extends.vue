@@ -250,9 +250,7 @@
     const used = PHPSetup.localUsed?.[props.version.bin] ?? []
     const local = PHPSetup.localExtend?.[props.version.bin] ?? []
     local.forEach((l: any) => {
-      if (used.some((u: any) => u.name === l.name)) {
-        l.installed = true
-      }
+      l.installed = used.some((u: any) => u.name === l.name)
     })
     if (!search.value) {
       return local.sort(sortName).sort(sortStatus)
@@ -271,9 +269,7 @@
       return l.versions?.[phpVersion]?.length > 0
     })
     lib.forEach((l: any) => {
-      if (used.some((u: any) => u.name === `php_${l.name}`.toLowerCase())) {
-        l.installed = true
-      }
+      l.installed = used.some((u: any) => u.name === `php_${l.name}`.toLowerCase())
     })
     if (!search.value) {
       return lib.sort(sortName).sort(sortStatus)
@@ -293,31 +289,6 @@
     } else {
       MessageWarning(I18nT('php.noExtensionsDir'))
     }
-  }
-
-  const handleEdit = (index: number, row: any) => {}
-
-  const copyLink = (index: number, row: any) => {
-    const pre = row?.extendPre ?? 'extension='
-    const txt = `${pre}${row.soPath}`
-    clipboard.writeText(txt)
-    MessageSuccess(I18nT('php.extensionCopySuccess'))
-  }
-
-  const copyXDebugTmpl = (index: number, row: any) => {
-    const txt = `[xdebug]
-zend_extension = "${row.soPath}"
-xdebug.idekey = "PHPSTORM"
-xdebug.client_host = localhost
-xdebug.client_port = 9003
-xdebug.mode = debug
-xdebug.profiler_append = 0
-xdebug.profiler_output_name = cachegrind.out.%p
-xdebug.start_with_request = yes
-xdebug.trigger_value=StartProfileForMe
-xdebug.output_dir = /tmp`
-    clipboard.writeText(txt)
-    MessageSuccess(I18nT('php.xdebugConfCopySuccess'))
   }
 
   defineExpose({
