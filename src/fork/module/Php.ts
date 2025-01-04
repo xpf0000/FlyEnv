@@ -356,7 +356,6 @@ class Php extends Base {
       const regex: RegExp = /^(?!\s*;)\s*extension_dir\s*=\s*"?([^"\s]+)"?/gm
       let m: any
       while ((m = regex.exec(content)) !== null) {
-        console.log(m)
         if (m && m.length > 0) {
           dir = m[1].trim()
         }
@@ -403,7 +402,6 @@ class Php extends Base {
       let regex: RegExp = /^(?!\s*;)\s*extension_dir\s*=\s*"?([^"\s]+)"?/gm
       let m: any
       while ((m = regex.exec(content)) !== null) {
-        console.log(m)
         if (m && m.length > 0) {
           dir = m[1].trim()
         }
@@ -523,6 +521,14 @@ class Php extends Base {
                 await remove(cacheDir)
                 await remove(zipFile)
               }
+              console.log(
+                'phpVersion: ',
+                phpVersion,
+                item,
+                item.versions,
+                item.versions[phpVersion],
+                item.versions[phpVersion][0]
+              )
               const url = item.versions[phpVersion][0]
               axios({
                 method: 'get',
