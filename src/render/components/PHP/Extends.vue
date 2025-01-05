@@ -13,13 +13,18 @@
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
           <span class="ml-15">{{ I18nT('php.phpExtension') }}</span>
         </div>
-        <el-button
-          type="primary"
-          class="shrink0"
-          :disabled="!installExtensionDir"
-          @click="openDir"
-          >{{ I18nT('base.open') }}</el-button
-        >
+        <el-button-group class="flex-shrink-0">
+          <el-tooltip content="php.ini" :show-after="600">
+            <el-button :icon="Memo" @click.stop="showIni"></el-button>
+          </el-tooltip>
+          <el-tooltip :content="I18nT('base.open')" :show-after="600">
+            <el-button
+              :icon="Folder"
+              :disabled="!installExtensionDir"
+              @click.stop="openDir"
+            ></el-button>
+          </el-tooltip>
+        </el-button-group>
       </div>
       <div class="main-wapper">
         <el-card>
@@ -188,9 +193,10 @@
   import { ref, computed, watch } from 'vue'
   import { SoftInstalled } from '@/store/brew'
   import { I18nT } from '@shared/lang'
-  import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { AsyncComponentSetup, AsyncComponentShow } from '@/util/AsyncComponent'
   import { PHPSetup } from '@/components/PHP/store'
   import { MessageSuccess, MessageWarning } from '@/util/Element'
+  import { Memo, Folder } from '@element-plus/icons-vue'
 
   const { shell } = require('@electron/remote')
   const { existsSync } = require('fs-extra')
@@ -305,6 +311,17 @@
     } else {
       MessageWarning(I18nT('php.noExtensionsDir'))
     }
+  }
+
+  let ConfVM: any
+  import('./Config.vue').then((res) => {
+    ConfVM = res.default
+  })
+
+  const showIni = () => {
+    AsyncComponentShow(ConfVM, {
+      version: props.version
+    }).then()
   }
 
   const toURL = (item: any) => {
