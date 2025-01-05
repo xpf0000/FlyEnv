@@ -1,7 +1,7 @@
 import type { PtyItem } from '../type'
 import { uuid } from '../utils'
 import type { IPty } from 'node-pty'
-import Pty from 'node-pty'
+import { spawn } from 'node-pty'
 
 class NodePTY {
   pty: Partial<Record<string, PtyItem>> = {}
@@ -13,7 +13,7 @@ class NodePTY {
   async initNodePty() {
     return new Promise((resolve) => {
       const key = uuid()
-      const pty: IPty = Pty.spawn('powershell.exe', [], {
+      const pty: IPty = spawn('powershell.exe', [], {
         name: 'xterm-color',
         cols: 80,
         rows: 34,
