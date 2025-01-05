@@ -178,6 +178,12 @@
     if (form.node) {
       command.unshift(`$Env:PATH = "${dirname(form.node)};" + $Env:PATH`)
     }
+    if (global.Server.Proxy) {
+      for (const k in global.Server.Proxy) {
+        const v = global.Server.Proxy[k]
+        command.unshift(`$Env:${k}="${v}"`)
+      }
+    }
     nextTick().then(() => {
       execXTerm.mount(xterm.value!).then(() => {
         command.push(`echo "Task-${execXTerm.ptyKey}-End"`)
