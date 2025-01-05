@@ -79,7 +79,7 @@ export default class Application extends EventEmitter {
     this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion(), is.dev())
   }
 
-  async initNodePty(command: string, commandKey: string) {
+  async initNodePty() {
     return new Promise((resolve) => {
       const key = uuid()
       const pty: IPty = Pty.spawn('powershell.exe', [], {
@@ -101,8 +101,11 @@ export default class Application extends EventEmitter {
         if (item) {
           item.data += data
           if (item?.data?.includes(`Task-${key}-End`)) {
-            const { command, key } = item
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+            const task = item?.task ?? []
+            for (const t of task) {
+              const { command, key } = t
+              this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+            }
             this.exitPtyByKey(key)
           }
         }
@@ -112,8 +115,7 @@ export default class Application extends EventEmitter {
         this.exitPtyByKey(key)
       })
       this.pty[key] = {
-        command,
-        key: commandKey,
+        task: [],
         pty,
         data: ''
       }
@@ -619,7 +621,7 @@ export default class Application extends EventEmitter {
         }
         break
       case 'NodePty:init':
-        this.initNodePty(command, key).then((res) => {
+        this.initNodePty().then((res) => {
           this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0, data: res })
         })
         break
@@ -629,6 +631,11 @@ export default class Application extends EventEmitter {
         const pty = this.pty?.[ptyKey]?.pty
         arr.forEach((s) => {
           pty?.write(`${s}\r`)
+        })
+        const task = this.pty?.[ptyKey]
+        task?.task?.push({
+          command,
+          key
         })
         break
       case 'NodePty:clear':

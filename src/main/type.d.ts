@@ -14,6 +14,8 @@ export interface PtyLast {
 export interface PtyItem {
   pty: IPty
   data: string
-  command: string
-  key: string
+  task: {
+    command: string
+    key: string
+  }[]
 }
