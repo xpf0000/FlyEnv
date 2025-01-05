@@ -80,17 +80,14 @@
           >
         </template>
         <template v-else>
-          <el-button @click="doCancel">{{ I18nT('base.confirm') }}</el-button>
-          <el-button type="primary" @click="doCreateHost">{{
-            I18nT('host.toCreateHost')
-          }}</el-button>
+          <el-button type="primary" @click="doCancel">{{ I18nT('base.confirm') }}</el-button>
         </template>
       </div>
     </template>
   </el-dialog>
 </template>
 <script lang="ts" setup>
-  import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, markRaw } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import IPC from '@/util/IPC'
   import { I18nT } from '@shared/lang'
@@ -98,9 +95,9 @@
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
 
-  const { join, dirname } = require('path')
+  const { dirname } = require('path')
   const { dialog } = require('@electron/remote')
-  const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
     type: keyof typeof AppVersions
@@ -183,24 +180,34 @@
     }
     nextTick().then(() => {
       execXTerm.mount(xterm.value!).then(() => {
-        execXTerm.send(command).then(() => {})
+        command.push(`echo "Task-${execXTerm.ptyKey}-End"`)
+        execXTerm?.send(command)?.then(() => {
+          created.value = true
+        })
       })
     })
+    ProjectSetup.execing.NodeJS = markRaw(execXTerm)
   }
 
   onMounted(() => {
-    nextTick().then(() => {
-      const execXTerm = ProjectSetup.execing.NodeJS
-      if (execXTerm && xterm.value) {
-        execXTerm.mount(xterm.value)
-      }
-    })
+    if (loading.value) {
+      nextTick().then(() => {
+        const execXTerm = ProjectSetup.execing.NodeJS
+        if (execXTerm && xterm.value) {
+          execXTerm.mount(xterm.value)
+        }
+      })
+    }
   })
 
   onBeforeUnmount(() => {
     const execXTerm = ProjectSetup.execing.NodeJS
-    if (execXTerm) {
-      execXTerm.destory()
+    execXTerm?.destory()
+    if (created.value) {
+      execXTerm?.cleanLog()
+      created.value = false
+      loading.value = false
+      delete ProjectSetup.execing.NodeJS
     }
   })
 
