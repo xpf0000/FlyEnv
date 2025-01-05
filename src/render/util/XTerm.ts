@@ -71,9 +71,9 @@ class XTerm implements XTermType {
   }
 
   mount(dom: HTMLElement) {
+    this.dom = dom
     return new Promise((resolve) => {
       const doMount = () => {
-        this.dom = dom
         const { cols, rows } = this.getSize()
         const appStore = AppStore()
         const theme: { [k: string]: string } = {}
