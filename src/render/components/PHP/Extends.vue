@@ -66,11 +66,14 @@
                 </template>
                 <template #default="scope">
                   <div
-                    style="padding: 2px 0 2px 24px"
-                    class="hover:text-yellow-500"
+                    style="padding: 0 0 0 24px"
+                    class="flex items-center"
                     @click.stop="showDLL(scope.row)"
-                    >{{ scope.row.name }}</div
                   >
+                    <span class="hover:text-yellow-500 px-2 py-1 cursor-pointer">{{
+                      scope.row.name
+                    }}</span>
+                  </div>
                 </template>
               </el-table-column>
               <el-table-column align="center" :label="I18nT('base.status')">
@@ -128,11 +131,14 @@
                 </template>
                 <template #default="scope">
                   <div
-                    style="padding: 2px 0 2px 24px"
-                    class="hover:text-yellow-500"
+                    style="padding: 0 0 0 24px"
+                    class="flex items-center"
                     @click.stop="toURL(scope.row)"
-                    >{{ scope.row.name }}</div
                   >
+                    <span class="hover:text-yellow-500 px-2 py-1 cursor-pointer">{{
+                      scope.row.name
+                    }}</span>
+                  </div>
                 </template>
               </el-table-column>
               <el-table-column align="center" :label="I18nT('base.status')">
