@@ -1,7 +1,7 @@
 import type { AppHost } from '@shared/app'
 import { join } from 'path'
-import { mkdirp, readFile, writeFile } from 'fs-extra'
-import { hostAlias, execPromiseRoot } from '../../Fn'
+import { copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { hostAlias } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash'
@@ -105,11 +105,8 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
     const arr = [avhost, accesslogap, errorlogap]
     for (const f of arr) {
       if (existsSync(f.oldFile)) {
-        await execPromiseRoot(`copy -Force ${f.oldFile} ${f.newFile}`)
-        await execPromiseRoot(`del -Force ${f.oldFile}`)
-      }
-      if (existsSync(f.newFile)) {
-        await execPromiseRoot(`icacls ${f.newFile} /grant Everyone:F`)
+        await copyFile(f.oldFile, f.newFile)
+        await remove(f.oldFile)
       }
     }
   }
