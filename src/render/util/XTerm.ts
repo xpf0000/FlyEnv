@@ -267,7 +267,6 @@ class XTerm implements XTermType {
           this.addHistory()
           const cammand = this.cammand.join('')
           IPC.send('NodePty:write', this.ptyKey, [cammand]).then((key: string) => {
-            console.log('cammand finished: ', cammand)
             IPC.off(key)
           })
           this.cammand.splice(0)
