@@ -6,29 +6,6 @@ import { AppStore } from '@/store/app'
 
 const { nativeTheme } = require('@electron/remote')
 
-const exclude = [
-  'Help',
-  'Home',
-  'PageUp',
-  'Delete',
-  'End',
-  'PageDown',
-  'Escape',
-  'F1',
-  'F2',
-  'F3',
-  'F4',
-  'F5',
-  'F6',
-  'F7',
-  'F8',
-  'F9',
-  'F10',
-  'F11',
-  'F12',
-  'Tab'
-]
-
 interface HistoryType {
   cammand: string
   cammands: Array<string>
@@ -222,137 +199,11 @@ class XTerm implements XTermType {
   }
 
   initEvent() {
-    /**
-     * 处理组合键操作
-     * 粘贴
-     * ctrl+c 中断
-     * alt + k 清屏
-     */
-    this.xterm!.attachCustomKeyEventHandler((e) => {
-      if (e.key === 'v' && e.metaKey) {
-        navigator.clipboard.readText().then((text) => {
-          // 清空当前内容
-          this.cleanInput()
-          const arr = text.split('')
-          // 在光标处插入内容
-          this.cammand.splice(this.index, 0, ...arr)
-          this.xterm!.write(this.cammand.join(''))
-          this.index += arr.length
-          // 从上一个光标存储位置恢复
-          this.resetCursorFromStore()
-          const n = arr.length
-          // 光标前进插入内容长度
-          this.cursorMoveGo(n)
-          // 存储改变后的光标位置
-          this.storeCurrentCursor()
-        })
-      } else if (e.key === 'c' && e.ctrlKey) {
-        IPC.send('NodePty:stop', this.ptyKey).then((key: string) => IPC.off(key))
-      } else if (e.key === 'k' && e.metaKey) {
-        IPC.send('NodePty:clear', this.ptyKey).then((key: string) => IPC.off(key))
-      }
-      return true
+    this.xterm!.onData((data) => {
+      IPC.send('NodePty:write', this.ptyKey, data).then((key: string) => {
+        IPC.off(key)
+      })
     })
-
-    /**
-     * 处理键盘输入事件
-     */
-    this.xterm!.onKey((e) => {
-      const ev = e.domEvent
-      const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey
-      console.log(e)
-      if (ev.key === 'Enter') {
-        this.xterm!.write('\r\n')
-        if (this.cammand.length > 0) {
-          this.addHistory()
-          const cammand = this.cammand.join('')
-          IPC.send('NodePty:write', this.ptyKey, [cammand]).then((key: string) => {
-            IPC.off(key)
-          })
-          this.cammand.splice(0)
-          this.index = 0
-        }
-      } else if (ev.key === 'Backspace') {
-        ev.stopPropagation()
-        ev.preventDefault()
-        if (this.cammand.length > 0 && this.index > 0) {
-          this.cleanInput()
-          this.cammand.splice(this.index - 1, 1)
-          this.xterm!.write(this.cammand.join(''))
-          this.index -= 1
-          // 从上个存储光标位置恢复
-          this.resetCursorFromStore()
-          // 光标后退一位
-          this.cursorMoveBack(1)
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        }
-      } else if (exclude.includes(ev.key)) {
-        ev.stopPropagation()
-        ev.preventDefault()
-        return
-      } else if (ev.key === 'ArrowLeft') {
-        if (this.index > 0) {
-          this.index -= 1
-          // 光标后退一位
-          this.xterm!.write(e.key)
-          IPC.send('NodePty:write', this.ptyKey, [e.key]).then((key: string) => {
-            IPC.off(key)
-          })
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        }
-      } else if (ev.key === 'ArrowRight') {
-        if (this.index < this.cammand.length) {
-          this.index += 1
-          // 光标前进一位
-          this.xterm!.write(e.key)
-          IPC.send('NodePty:write', this.ptyKey, [e.key]).then((key: string) => {
-            IPC.off(key)
-          })
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        }
-      } else if (ev.key === 'ArrowUp') {
-        if (this.historyIndex > 0) {
-          this.historyIndex -= 1
-          this.resetFromHistory()
-        }
-      } else if (ev.key === 'ArrowDown') {
-        if (this.historyIndex < this.history.length - 1) {
-          this.historyIndex += 1
-          this.resetFromHistory()
-        } else {
-          this.historyIndex = history.length
-          this.cleanInput()
-          this.cammand.splice(0)
-          this.index = 0
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        }
-      } else if (printable) {
-        this.cleanInput()
-        this.cammand.splice(this.index, 0, e.key)
-        this.xterm!.write(this.cammand.join(''))
-        this.index += 1
-        if (this.index !== this.cammand.length) {
-          // 从上个存储光标位置恢复
-          this.resetCursorFromStore()
-          // 光标前进一位
-          this.cursorMoveGo(1)
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        } else {
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        }
-      } else {
-        IPC.send('NodePty:write', this.ptyKey, [e.key]).then((key: string) => {
-          IPC.off(key)
-        })
-      }
-    })
-
     /**
      * 重置界面大小
      */
