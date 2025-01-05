@@ -181,9 +181,10 @@
     if (form.node) {
       command.unshift(`$Env:PATH = "${dirname(form.node)};" + $Env:PATH`)
     }
-
-    execXTerm.mount(xterm.value!).then(() => {
-      execXTerm.send(command).then(() => {})
+    nextTick().then(() => {
+      execXTerm.mount(xterm.value!).then(() => {
+        execXTerm.send(command).then(() => {})
+      })
     })
   }
 
@@ -206,65 +207,6 @@
   const doCancel = () => {
     show.value = false
     ProjectSetup.phpFormInit()
-  }
-  const doCreateHost = () => {
-    const framework = ProjectSetup.form.NodeJS.frameWork
-    let dir = ProjectSetup.form.NodeJS.dir
-    let nginxRewrite = ''
-    if (framework.includes('wordpress')) {
-      dir = join(ProjectSetup.form.NodeJS.dir, 'wordpress')
-      nginxRewrite = `location /
-{
-\t try_files $uri $uri/ /index.php?$args;
-}
-
-rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
-    } else if (framework.includes('laravel')) {
-      dir = join(ProjectSetup.form.NodeJS.dir, 'public')
-      nginxRewrite = `location / {
-\ttry_files $uri $uri/ /index.php$is_args$query_string;
-}`
-    } else if (framework.includes('yii2')) {
-      dir = join(ProjectSetup.form.NodeJS.dir, 'web')
-      nginxRewrite = `location / {
-    try_files $uri $uri/ /index.php?$args;
-}`
-    } else if (framework.includes('thinkphp')) {
-      dir = join(ProjectSetup.form.NodeJS.dir, 'public')
-      nginxRewrite = `location / {
-\tif (!-e $request_filename){
-\t\trewrite  ^(.*)$  /index.php?s=$1  last;   break;
-\t}
-}`
-    } else if (framework.includes('symfony')) {
-      dir = join(ProjectSetup.form.NodeJS.dir, 'public')
-      nginxRewrite = `location / {
-        try_files $uri /index.php$is_args$args;
-}`
-    } else if (framework.includes('cakephp')) {
-      dir = join(ProjectSetup.form.NodeJS.dir, 'webroot')
-      nginxRewrite = `location / {
-    try_files $uri $uri/ /index.php?$args;
-}`
-    } else if (framework.includes('slim')) {
-      dir = join(ProjectSetup.form.NodeJS.dir, 'public')
-      nginxRewrite = `location / {
-        try_files $uri /index.php$is_args$args;
-}`
-    } else if (framework.includes('codeIgniter')) {
-      dir = join(ProjectSetup.form.NodeJS.dir, 'public')
-      nginxRewrite = `location / {
-        try_files $uri $uri/ /index.php$is_args$args;
-}`
-    }
-    show.value = false
-    ProjectSetup.phpFormInit()
-    nextTick().then(() => {
-      callback({
-        dir,
-        rewrite: nginxRewrite
-      })
-    })
   }
 
   defineExpose({
