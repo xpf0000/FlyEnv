@@ -65,7 +65,12 @@
                   </div>
                 </template>
                 <template #default="scope">
-                  <div style="padding: 2px 0 2px 24px">{{ scope.row.name }}</div>
+                  <div
+                    style="padding: 2px 0 2px 24px"
+                    class="hover:text-yellow-500"
+                    @click.stop="showDLL(scope.row)"
+                    >{{ scope.row.name }}</div
+                  >
                 </template>
               </el-table-column>
               <el-table-column align="center" :label="I18nT('base.status')">
@@ -122,7 +127,12 @@
                   </div>
                 </template>
                 <template #default="scope">
-                  <div style="padding: 2px 0 2px 24px">{{ scope.row.name }}</div>
+                  <div
+                    style="padding: 2px 0 2px 24px"
+                    class="hover:text-yellow-500"
+                    @click.stop="toURL(scope.row)"
+                    >{{ scope.row.name }}</div
+                  >
                 </template>
               </el-table-column>
               <el-table-column align="center" :label="I18nT('base.status')">
@@ -176,9 +186,9 @@
   import { PHPSetup } from '@/components/PHP/store'
   import { MessageSuccess, MessageWarning } from '@/util/Element'
 
-  const { clipboard } = require('@electron/remote')
   const { shell } = require('@electron/remote')
   const { existsSync } = require('fs-extra')
+  const { join } = require('path')
 
   const props = defineProps<{
     version: SoftInstalled
@@ -288,6 +298,20 @@
       shell.openPath(installExtensionDir?.value)
     } else {
       MessageWarning(I18nT('php.noExtensionsDir'))
+    }
+  }
+
+  const toURL = (item: any) => {
+    shell.openExternal(item.url)
+  }
+
+  const showDLL = (item: any) => {
+    if (!installExtensionDir?.value) {
+      return
+    }
+    const dll = join(installExtensionDir?.value, `${item.name}.dll`)
+    if (existsSync(dll)) {
+      shell.showItemInFolder(dll)
     }
   }
 
