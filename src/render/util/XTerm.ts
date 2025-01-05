@@ -270,7 +270,7 @@ class XTerm implements XTermType {
       return
     }
     return new Promise((resolve) => {
-      IPC.send('NodePty:write', this.ptyKey, JSON.parse(JSON.stringify(cammand))).then(
+      IPC.send('NodePty:exec', this.ptyKey, JSON.parse(JSON.stringify(cammand))).then(
         (key: string) => {
           console.log('static cammand finished: ', cammand)
           IPC.off(key)
