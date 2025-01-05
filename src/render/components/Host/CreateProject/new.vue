@@ -22,6 +22,7 @@
     <template #default>
       <div class="flex flex-col gap-4 h-[500px] overflow-hidden">
         <PHP v-if="ProjectSetup.tab === 'PHP'" @on-make-host="onMakeHost" />
+        <NodeJS v-if="ProjectSetup.tab === 'NodeJS'" />
       </div>
     </template>
   </el-dialog>
@@ -32,6 +33,7 @@
   import PHP from './php.vue'
   import { I18nT } from '@shared/lang'
   import { nextTick } from 'vue'
+  import NodeJS from './nodejs.vue'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
