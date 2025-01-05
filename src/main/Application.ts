@@ -75,6 +75,9 @@ export default class Application extends EventEmitter {
         link
       )
     })
+    NodePTY.onSendCommand((command: string, ...args: any) => {
+      this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
+    })
     this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion(), is.dev())
   }
 
