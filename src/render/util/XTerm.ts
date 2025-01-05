@@ -54,6 +54,7 @@ class XTerm implements XTermType {
   _callBack: Function | undefined
   logs: Array<string> = []
   ptyKey: string = ''
+  end = false
 
   constructor() {
     this.cammand = []
@@ -396,12 +397,15 @@ class XTerm implements XTermType {
 
   send(cammand: string[]) {
     console.log('XTerm send:', cammand)
+    if (this.end) {
+      return
+    }
     return new Promise((resolve) => {
       IPC.send('NodePty:write', this.ptyKey, JSON.parse(JSON.stringify(cammand))).then(
         (key: string) => {
           console.log('static cammand finished: ', cammand)
           IPC.off(key)
-          this.logs.splice(0)
+          this.end = true
           resolve(true)
         }
       )

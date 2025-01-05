@@ -99,10 +99,11 @@ export default class Application extends EventEmitter {
         )
         const item = this.pty[key]
         if (item) {
-          if (data.includes('\r')) {
-            item.data = data
-          } else {
-            item.data += data
+          item.data += data
+          if (item?.data?.includes(`Task-${key}-End`)) {
+            const { command, key } = item
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+            this.exitPtyByKey(key)
           }
         }
       })
@@ -128,10 +129,6 @@ export default class Application extends EventEmitter {
       }
       item?.pty?.kill()
     } catch (e) {}
-    if (item?.data) {
-      const { command, key } = item
-      this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-    }
     delete this.pty[key]
   }
 
