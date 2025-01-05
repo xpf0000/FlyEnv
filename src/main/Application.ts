@@ -112,7 +112,15 @@ export default class Application extends EventEmitter {
       })
       pty.onExit((e) => {
         console.log('this.pty.onExit !!!!!!', e)
-        this.exitPtyByKey(key)
+        const item = this.pty[key]
+        if (item) {
+          const task = item?.task ?? []
+          for (const t of task) {
+            const { command, key } = t
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+          }
+          this.exitPtyByKey(key)
+        }
       })
       this.pty[key] = {
         task: [],

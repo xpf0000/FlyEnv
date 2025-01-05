@@ -70,7 +70,7 @@
     <template #footer>
       <div class="dialog-footer">
         <template v-if="!created">
-          <el-button @click="show = false">{{ I18nT('base.cancel') }}</el-button>
+          <el-button @click="doStop">{{ I18nT('base.cancel') }}</el-button>
           <el-button
             :loading="loading"
             :disabled="!createAble"
@@ -211,9 +211,23 @@
     }
   })
 
+  const doStop = () => {
+    if (!loading.value) {
+      show.value = false
+      return
+    }
+    const execXTerm = ProjectSetup.execing.NodeJS
+    execXTerm?.stop()?.then(() => {
+      execXTerm?.destory()
+      execXTerm?.cleanLog()
+      created.value = false
+      loading.value = false
+      delete ProjectSetup.execing.NodeJS
+    })
+  }
+
   const doCancel = () => {
     show.value = false
-    ProjectSetup.phpFormInit()
   }
 
   defineExpose({

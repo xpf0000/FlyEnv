@@ -296,6 +296,9 @@ class XTerm implements XTermType {
           this.index -= 1
           // 光标后退一位
           this.xterm!.write(e.key)
+          IPC.send('NodePty:write', this.ptyKey, [e.key]).then((key: string) => {
+            IPC.off(key)
+          })
           // 存储新光标位置
           this.storeCurrentCursor()
         }
@@ -304,6 +307,9 @@ class XTerm implements XTermType {
           this.index += 1
           // 光标前进一位
           this.xterm!.write(e.key)
+          IPC.send('NodePty:write', this.ptyKey, [e.key]).then((key: string) => {
+            IPC.off(key)
+          })
           // 存储新光标位置
           this.storeCurrentCursor()
         }
@@ -340,6 +346,10 @@ class XTerm implements XTermType {
           // 存储新光标位置
           this.storeCurrentCursor()
         }
+      } else {
+        IPC.send('NodePty:write', this.ptyKey, [e.key]).then((key: string) => {
+          IPC.off(key)
+        })
       }
     })
 
@@ -392,6 +402,15 @@ class XTerm implements XTermType {
     this.history = []
     this.index = 0
     this.historyIndex = 0
+  }
+
+  stop() {
+    return new Promise((resolve) => {
+      IPC.send('NodePty:stop', this.ptyKey).then((key: string) => {
+        IPC.off(key)
+        resolve(true)
+      })
+    })
   }
 
   send(cammand: string[]) {
