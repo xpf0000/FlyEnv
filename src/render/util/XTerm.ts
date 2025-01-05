@@ -222,6 +222,14 @@ class XTerm implements XTermType {
   write(data: string) {
     this.xterm?.write(data)
     this.storeCurrentCursor()
+    if (
+      data.endsWith(`\u001b[K`) ||
+      data.endsWith(`\x1B[K`) ||
+      data.endsWith(`\\u001b[K`) ||
+      data.endsWith(`\\x1B[K`)
+    ) {
+      this.logs.pop()
+    }
     this.logs.push(data)
     this.cammand.splice(0)
     this.index = 0
