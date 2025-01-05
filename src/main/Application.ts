@@ -6,7 +6,7 @@ import WindowManager from './ui/WindowManager'
 import { join, resolve } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
-import { getLanguage, uuid } from './utils'
+import { getLanguage } from './utils'
 import { AppI18n } from './lang'
 import type { StaticHttpServe, PtyItem } from './type'
 import type { ServerResponse } from 'http'
@@ -16,14 +16,13 @@ import { execPromiseRoot } from '../fork/Fn'
 import is from 'electron-is'
 import UpdateManager from './core/UpdateManager'
 import { PItem, ProcessPidList, ProcessPidListByPids } from '../fork/Process'
-import type { IPty } from 'node-pty'
+import NodePTY from './core/NodePTY'
 
 const { createFolder } = require('../shared/file')
 const { isAppleSilicon } = require('../shared/utils')
 const ServeHandler = require('serve-handler')
 const Http = require('http')
 const IP = require('ip')
-const Pty = require('node-pty')
 
 export default class Application extends EventEmitter {
   isReady: boolean
@@ -77,75 +76,6 @@ export default class Application extends EventEmitter {
       )
     })
     this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion(), is.dev())
-  }
-
-  async initNodePty() {
-    return new Promise((resolve) => {
-      const key = uuid()
-      const pty: IPty = Pty.spawn('powershell.exe', [], {
-        name: 'xterm-color',
-        cols: 80,
-        rows: 34,
-        cwd: process.cwd(),
-        encoding: 'utf8'
-      })
-      pty.onData((data: string) => {
-        console.log('pty.onData: ', data)
-        this.windowManager.sendCommandTo(
-          this.mainWindow!,
-          `NodePty:data:${key}`,
-          `NodePty:data:${key}`,
-          data
-        )
-        const item = this.pty[key]
-        if (item) {
-          item.data += data
-          if (item?.data?.includes(`Task-${key}-End`)) {
-            const task = item?.task ?? []
-            for (const t of task) {
-              const { command, key } = t
-              this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-            }
-            this.exitPtyByKey(key)
-          }
-        }
-      })
-      pty.onExit((e) => {
-        console.log('this.pty.onExit !!!!!!', e)
-        const item = this.pty[key]
-        if (item) {
-          const task = item?.task ?? []
-          for (const t of task) {
-            const { command, key } = t
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-          }
-          this.exitPtyByKey(key)
-        }
-      })
-      this.pty[key] = {
-        task: [],
-        pty,
-        data: ''
-      }
-      resolve(key)
-    })
-  }
-
-  exitPtyByKey(key: string) {
-    const item = this.pty[key]
-    try {
-      if (item?.pty?.pid) {
-        process.kill(item?.pty?.pid)
-      }
-      item?.pty?.kill()
-    } catch (e) {}
-    delete this.pty[key]
-  }
-
-  exitAllPty() {
-    for (const key in this.pty) {
-      this.exitPtyByKey(key)
-    }
   }
 
   initLang() {
@@ -334,7 +264,7 @@ export default class Application extends EventEmitter {
   }
 
   async stopServer() {
-    this.exitAllPty()
+    NodePTY.exitAllPty()
     try {
       await this.stopServerByPid()
     } catch (e) {
@@ -629,39 +559,26 @@ export default class Application extends EventEmitter {
         }
         break
       case 'NodePty:init':
-        this.initNodePty().then((res) => {
+        NodePTY.initNodePty().then((res) => {
           this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0, data: res })
         })
         break
+      case 'NodePty:exec':
+        NodePTY.exec(args[0], args[1], command, key)
+        break
       case 'NodePty:write':
-        const ptyKey = args[0]
-        const arr: string[] = args[1]
-        const pty = this.pty?.[ptyKey]?.pty
-        arr.forEach((s) => {
-          pty?.write(`${s}\r`)
-        })
-        const task = this.pty?.[ptyKey]
-        task?.task?.push({
-          command,
-          key
-        })
+        NodePTY.write(args[0], args[1])
         break
       case 'NodePty:clear':
-        const ptyKey1 = args[0]
-        const pty1 = this.pty?.[ptyKey1]?.pty
-        pty1?.write('clear\r')
+        NodePTY.clean(args[0])
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0 })
         break
       case 'NodePty:resize':
-        const ptyKey2 = args[0]
-        const pty2 = this.pty?.[ptyKey2]?.pty
-        const { cols, rows } = args[1]
-        pty2?.resize(cols, rows)
+        NodePTY.resize(args[0], args[1])
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0 })
         break
       case 'NodePty:stop':
-        const ptyKey3 = args[0]
-        this.exitPtyByKey(ptyKey3)
+        NodePTY.stop(args[0])
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0 })
         break
       case 'app-sitesucker-run':
