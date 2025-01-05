@@ -15,7 +15,7 @@
         :icon="Plus"
         @click.stop="doEdit(undefined)"
       ></el-button>
-      <el-table :data="alias" style="width: 100%" :border="true">
+      <el-table :data="alias" style="width: 100%" :border="true" :show-overflow-tooltip="true">
         <el-table-column width="120px" align="left" :label="I18nT('service.alias')">
           <template #default="scope">
             <el-button link @click.stop="copy(scope.row.name)">{{ scope.row.name }}</el-button>

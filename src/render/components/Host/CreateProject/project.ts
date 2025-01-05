@@ -1,4 +1,5 @@
 import { reactive } from 'vue'
+import XTerm from '@/util/XTerm'
 
 export type ProjectTypes = 'PHP' | 'NodeJS'
 
@@ -12,6 +13,15 @@ export type ProjectPHPForm = {
   created: boolean
 }
 
+export type ProjectNodeJSForm = {
+  dir: string
+  node: string
+  version: string | undefined
+  frameWork: string
+  running: boolean
+  created: boolean
+}
+
 export const ProjectSetup = reactive<{
   tab: ProjectTypes
   collapse: Partial<Record<ProjectTypes, string[]>>
@@ -19,18 +29,29 @@ export const ProjectSetup = reactive<{
   log: Partial<Record<ProjectTypes, string[]>>
   form: {
     PHP: ProjectPHPForm
+    NodeJS: ProjectNodeJSForm
   }
+  execing: Partial<Record<ProjectTypes, XTerm>>
   phpFormInit: () => void
 }>({
   tab: 'PHP',
   collapse: {},
   search: {},
   log: {},
+  execing: {},
   form: {
     PHP: {
       dir: '',
       php: '',
       composer: '',
+      version: undefined,
+      frameWork: '',
+      running: false,
+      created: false
+    },
+    NodeJS: {
+      dir: '',
+      node: '',
       version: undefined,
       frameWork: '',
       running: false,
