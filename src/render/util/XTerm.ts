@@ -200,6 +200,9 @@ class XTerm implements XTermType {
 
   initEvent() {
     this.xterm!.onData((data) => {
+      if (this.end) {
+        return
+      }
       IPC.send('NodePty:write', this.ptyKey, data).then((key: string) => {
         IPC.off(key)
       })
@@ -226,8 +229,13 @@ class XTerm implements XTermType {
       data.endsWith(`\u001b[K`) ||
       data.endsWith(`\x1B[K`) ||
       data.endsWith(`\\u001b[K`) ||
-      data.endsWith(`\\x1B[K`)
+      data.endsWith(`\\x1B[K`) ||
+      data.endsWith(`\x1B[K\x1B[13C`) ||
+      data.endsWith(`\u001b[K\u001b[13C`) ||
+      data.endsWith(`\\x1B[K\\x1B[13C`) ||
+      data.endsWith(`\\u001b[K\\u001b[13C`)
     ) {
+      console.log('logs pop !!!!!!!!!!!!!!@@@@@@@@@@@@@@')
       this.logs.pop()
     }
     this.logs.push(data)

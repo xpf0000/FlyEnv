@@ -114,6 +114,8 @@ export default class Application extends EventEmitter {
     }
     console.log('userData: ', runpath)
     this.setProxy()
+    global.Server.UserHome = app.getPath('home')
+    console.log('global.Server.UserHome: ', global.Server.UserHome)
     global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
     global.Server.AppDir = join(runpath, 'app')
@@ -589,6 +591,9 @@ export default class Application extends EventEmitter {
           const url = args[0]
           SiteSuckerManager.show(url)
         }
+        break
+      case 'APP:Auto-Hide':
+        this?.mainWindow?.hide()
         break
       case 'app-sitesucker-setup':
         const setup = this.configManager.getConfig('tools.siteSucker')
