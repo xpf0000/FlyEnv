@@ -70,7 +70,13 @@ class Caddy extends Base {
     let tmplContent = ''
     let tmplSSLContent = ''
     for (const host of hostAll) {
+      if (host.type && host.type !== 'php') {
+        continue
+      }
       const name = host.name
+      if (!name) {
+        continue
+      }
       const confFile = join(vhostDir, `${name}.conf`)
       if (existsSync(confFile)) {
         continue

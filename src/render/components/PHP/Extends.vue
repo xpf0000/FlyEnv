@@ -31,7 +31,7 @@
           <template #header>
             <div class="card-header">
               <div class="left">
-                <el-radio-group v-model="tab" size="small" class="ml-6">
+                <el-radio-group v-model="tab" size="small" class="ml-1">
                   <el-radio-button
                     class="flex-1"
                     :label="I18nT('versionmanager.Local')"
