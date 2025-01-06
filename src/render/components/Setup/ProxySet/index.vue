@@ -78,9 +78,31 @@
         handler() {
           AppStore().saveConfig()
         }
+      },
+      proxy: {
+        handler() {
+          this.setProxy()
+        },
+        deep: true
       }
     },
     methods: {
+      setProxy() {
+        const proxy = this.proxy
+        if (proxy.on && proxy.proxy) {
+          const proxyDict: { [k: string]: string } = {}
+          proxy.proxy
+            .split(' ')
+            .filter((s: string) => s.indexOf('=') > 0)
+            .forEach((s: string) => {
+              const dict = s.split('=')
+              proxyDict[dict[0]] = dict[1]
+            })
+          global.Server.Proxy = proxyDict
+        } else {
+          delete global.Server.Proxy
+        }
+      },
       fastSet() {
         this.fastProxy = this.proxy.fastProxy
         this.fastEdit = true

@@ -80,7 +80,7 @@
           >
         </template>
         <template v-else>
-          <el-button type="primary" @click="doCancel">{{ I18nT('base.confirm') }}</el-button>
+          <el-button type="primary" @click="doEnd">{{ I18nT('base.confirm') }}</el-button>
         </template>
       </div>
     </template>
@@ -95,8 +95,8 @@
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
 
-  const { dirname } = require('path')
-  const { dialog } = require('@electron/remote')
+  const { dirname, join } = require('path')
+  const { dialog, shell } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -173,17 +173,31 @@
     const form = ProjectSetup.form.NodeJS
     const execXTerm = new XTerm()
     const item = app.value.list.find((f) => f.version === form.version)
-    const arr = item?.command?.split(';') ?? []
-    const command = [`cd "${form.dir}"`, ...arr]
-    if (form.node) {
-      command.unshift(`$Env:PATH = "${dirname(form.node)};" + $Env:PATH`)
-    }
+    const command: string[] = []
     if (global.Server.Proxy) {
       for (const k in global.Server.Proxy) {
         const v = global.Server.Proxy[k]
-        command.unshift(`$Env:${k}="${v}"`)
+        command.push(`$Env:${k}="${v}"`)
       }
     }
+    if (form.node) {
+      command.push(`$Env:PATH = "${dirname(form.node)};" + $Env:PATH`)
+      command.push(`$Env:npm_config_prefix="${dirname(form.node)}"`)
+      command.push(
+        `$Env:npm_config_cache="${join(global.Server.UserHome!, 'AppData/Local/npm-cache')}"`
+      )
+      command.push(
+        `$Env:npm_config_cache="${join(global.Server.UserHome!, 'AppData/Local/npm-cache')}"`
+      )
+      command.push(`npm config ls -s`)
+      command.push(`$Env:PATH`)
+      command.push(`$Env:PATHEXT`)
+      command.push(`where.exe node`)
+    }
+    command.push(`cd "${form.dir}"`)
+    const arr = item?.command?.split(';') ?? []
+    command.push(...arr)
+
     nextTick().then(() => {
       execXTerm.mount(xterm.value!).then(() => {
         command.push(`echo "Task-${execXTerm.ptyKey}-End"`)
@@ -232,7 +246,8 @@
     })
   }
 
-  const doCancel = () => {
+  const doEnd = () => {
+    shell.openPath(ProjectSetup.form.NodeJS.dir)
     show.value = false
   }
 

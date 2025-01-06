@@ -41,6 +41,7 @@ IPC.on('APP-Ready-To-Show').then(() => {
     AppToolStore.init()
     SetupStore().init()
     AppLogStore.init().then().catch()
+    store.chechAutoHide()
   } else {
     console.log('has inited !!!!')
   }

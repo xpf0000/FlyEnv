@@ -104,6 +104,9 @@ type StateBase = SetupBase & {
   phpGroupStart: { [k: string]: boolean }
   serviceShowHide: Record<string, boolean>
   excludeLocalVersion: string[]
+  autoStartService?: boolean
+  autoHide?: boolean
+  autoLunach?: boolean
 }
 
 interface State {
@@ -317,6 +320,14 @@ export const AppStore = defineStore('app', {
       setup.serviceShowHide[flag] = v
       this.config.setup = reactive(setup)
       this.saveConfig().then()
+    },
+    chechAutoHide() {
+      const auto = this.config.setup?.autoHide
+      if (auto === true) {
+        IPC.send('APP:Auto-Hide').then((key: string) => {
+          IPC.off(key)
+        })
+      }
     }
   }
 })

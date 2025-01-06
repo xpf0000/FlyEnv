@@ -35,7 +35,7 @@ const version = {
       {
         name: 'latest',
         version: '*',
-        command: 'npx create-expo-app'
+        command: 'npm exec create-expo-app'
       }
     ]
   },
@@ -65,7 +65,7 @@ const version = {
       {
         name: 'latest',
         version: '*',
-        command: 'npm i -g @nestjs/cli;nest new'
+        command: 'npm i -g @nestjs/cli;Start-Sleep -Seconds 1.5;nest new'
       }
     ]
   }

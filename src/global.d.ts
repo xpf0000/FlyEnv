@@ -26,6 +26,7 @@ export interface ServerType {
   ForceStart?: boolean
   AppDir?: string
   Licenses?: string
+  UserHome?: string
 }
 
 declare global {

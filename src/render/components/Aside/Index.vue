@@ -236,4 +236,23 @@
       deep: true
     }
   )
+
+  let autoStarted = false
+  watch(
+    groupDisabled,
+    (v) => {
+      if (!v) {
+        if (autoStarted) {
+          return
+        }
+        if (appStore.config.setup?.autoStartService === true) {
+          autoStarted = true
+          groupDo()
+        }
+      }
+    },
+    {
+      immediate: true
+    }
+  )
 </script>
