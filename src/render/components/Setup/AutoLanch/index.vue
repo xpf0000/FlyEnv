@@ -35,4 +35,14 @@
       store.saveConfig()
     }
   })
+
+  const sysnAutoLunach = () => {
+    const setting = app.getLoginItemSettings()
+    console.log('setting: ', setting)
+    if (store.config.setup?.autoLunach !== setting.openAtLogin) {
+      store.config.setup.autoLunach = setting.openAtLogin
+    }
+  }
+
+  sysnAutoLunach()
 </script>
