@@ -628,14 +628,16 @@ php "%~dp0composer.phar" %*`
       if (item) {
         const file = join(aliasDir, `${item.name}.bat`)
         if (item?.php?.bin) {
+          const bin = item?.php?.bin?.replace('php-cgi.exe', 'php.exe')
           const content = `@echo off
 chcp 65001>nul
-"${item?.php?.bin}" ${service.bin}" %*`
+"${bin}" "${service.bin}" %*`
           await writeFile(file, content)
         } else {
+          const bin = service.bin.replace('php-cgi.exe', 'php.exe')
           const content = `@echo off
 chcp 65001>nul
-${service.bin}" %*`
+"${bin}" %*`
           await writeFile(file, content)
         }
         if (!item.id) {
