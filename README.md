@@ -78,7 +78,7 @@ If you only need a simple PHP service and web service, you can also take a look 
 
 ## Windows
 
-[FlyEnv.Setup.4.7.0.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.7.0/FlyEnv.Setup.4.7.0.exe)
+[FlyEnv.Setup.4.7.1.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.7.1/FlyEnv.Setup.4.7.1.exe)
 
 ## Linux
 
