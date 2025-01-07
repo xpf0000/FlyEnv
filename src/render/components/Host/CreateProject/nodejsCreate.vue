@@ -189,10 +189,6 @@
       command.push(
         `$Env:npm_config_cache="${join(global.Server.UserHome!, 'AppData/Local/npm-cache')}"`
       )
-      command.push(`npm config ls -s`)
-      command.push(`$Env:PATH`)
-      command.push(`$Env:PATHEXT`)
-      command.push(`where.exe node`)
     }
     command.push(`cd "${form.dir}"`)
     const arr = item?.command?.split(';') ?? []

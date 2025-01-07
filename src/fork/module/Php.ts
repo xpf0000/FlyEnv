@@ -350,7 +350,7 @@ class Php extends Base {
   fetchExtensionDir(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
-      const content: string = await readFile(ini, 'utf-8')
+      let content: string = await readFile(ini, 'utf-8')
 
       let dir: string = ''
       const regex: RegExp = /^(?!\s*;)\s*extension_dir\s*=\s*"?([^"\s]+)"?/gm
@@ -362,6 +362,8 @@ class Php extends Base {
       }
 
       if (!dir) {
+        content = content.trim() + `\nextension_dir = "ext"`
+        await writeFile(ini, content)
         dir = join(dirname(version.bin), 'ext')
       } else if (!isAbsolute(dir)) {
         dir = join(dirname(version.bin), dir)
@@ -416,7 +418,7 @@ xdebug.output_dir = "${output_dir}"
   fetchLocalExtend(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
-      const content: string = await readFile(ini, 'utf-8')
+      let content: string = await readFile(ini, 'utf-8')
 
       let dir: string = ''
       let regex: RegExp = /^(?!\s*;)\s*extension_dir\s*=\s*"?([^"\s]+)"?/gm
@@ -428,6 +430,8 @@ xdebug.output_dir = "${output_dir}"
       }
 
       if (!dir) {
+        content = content.trim() + `\nextension_dir = "ext"`
+        await writeFile(ini, content)
         dir = join(dirname(version.bin), 'ext')
       } else if (!isAbsolute(dir)) {
         dir = join(dirname(version.bin), dir)
@@ -522,6 +526,15 @@ xdebug.output_dir = "${output_dir}"
         const dir: string = await this.fetchExtensionDir(version)
         const file = join(dir, `${name}.dll`)
         if (!existsSync(file)) {
+          const handleImagick = async (cacheDir: string) => {
+            if (name !== 'php_imagick') {
+              return
+            }
+            const allFile = await readdir(cacheDir)
+            const allDLL = allFile.filter((a) => a.toLowerCase().endsWith('.dll'))
+            const destDir = version.path
+            await Promise.all(allDLL.map((a) => copyFile(join(cacheDir, a), join(destDir, a))))
+          }
           const install = () => {
             return new Promise(async (resolve, reject) => {
               const phpVersion = version.version!.split('.').slice(0, 2).join('.')
@@ -535,6 +548,7 @@ xdebug.output_dir = "${output_dir}"
                 } catch (e) {}
                 if (existsSync(dll)) {
                   await copyFile(dll, file)
+                  await handleImagick(cacheDir)
                   await remove(cacheDir)
                   if (existsSync(file)) {
                     resolve(true)
@@ -589,6 +603,7 @@ xdebug.output_dir = "${output_dir}"
                     }
                     if (existsSync(dll)) {
                       await copyFile(dll, file)
+                      await handleImagick(cacheDir)
                       await remove(cacheDir)
                       if (existsSync(file)) {
                         resolve(true)
