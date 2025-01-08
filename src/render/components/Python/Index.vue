@@ -1,10 +1,10 @@
 <template>
   <div class="soft-index-panel main-right-panel">
-    <ul class="top-tab">
+    <el-radio-group v-model="tab" class="mt-3">
       <template v-for="(item, index) in tabs" :key="index">
-        <li :class="tab === index ? 'active' : ''" @click="tab = index">{{ item }}</li>
+        <el-radio-button :label="item" :value="index"></el-radio-button>
       </template>
-    </ul>
+    </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0"></Service>
       <Manager v-else-if="tab === 1" type-flag="python"></Manager>

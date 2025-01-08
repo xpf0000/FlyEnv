@@ -1,7 +1,7 @@
 <template>
   <div class="soft-index-panel main-right-panel">
-    <ul class="top-tab">
-      <el-dropdown class="mr-3" @command="setTab">
+    <ul class="top-tab mt-3 flex items-center gap-2.5">
+      <el-dropdown @command="setTab">
         <el-button class="outline-0 focus:outline-0">
           {{ tab }} <el-icon class="el-icon--right"><arrow-down /></el-icon>
         </el-button>
@@ -72,25 +72,23 @@
           </template>
         </el-dropdown>
       </el-button-group>
-      <li class="no-hover" style="width: auto; padding: 0 15px; margin-right: 10px">
-        <el-button @click="openHosts">{{ I18nT('base.openHosts') }}</el-button>
-      </li>
+      <el-button @click="openHosts">{{ I18nT('base.openHosts') }}</el-button>
       <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
         <template #reference>
-          <li style="width: auto; padding: 0 15px; margin-left: 0; margin-right: 0">
-            <span style="margin-right: 10px">{{ I18nT('host.enable') }}: </span>
+          <div class="inline-flex items-center gap-3 ml-2">
+            <span>{{ I18nT('host.enable') }}: </span>
             <el-switch v-model="hostsSet.write"></el-switch>
-          </li>
+          </div>
         </template>
         <template #default>
           <p>{{ I18nT('host.hostsWriteTips') }}</p>
         </template>
       </el-popover>
       <template v-if="hostsSet.write">
-        <li class="no-hover" style="width: auto; padding: 0 15px">
-          <span style="margin-right: 10px">IPV6: </span>
+        <div class="inline-flex items-center gap-3">
+          <span>IPV6: </span>
           <el-switch v-model="ipv6"></el-switch>
-        </li>
+        </div>
       </template>
     </ul>
     <List v-show="HostStore.tab === 'php'"></List>
