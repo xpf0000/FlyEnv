@@ -2,6 +2,7 @@ import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@/core/type'
 
 const module: AppModuleItem = {
+  moduleType: 'ftpServer',
   typeFlag: 'pure-ftpd',
   label: 'FTP',
   icon: import('@/svg/ftp.svg?raw'),

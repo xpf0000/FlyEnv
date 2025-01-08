@@ -443,49 +443,43 @@ html.dark {
   }
 }
 
+html.dark {
+  #app {
+    #container {
+      .aside {
+        .aside-inner {
+          .menu {
+            li {
+              svg {
+                color: rgba(255,255,255,0.5);
+              }
+
+              &.active {
+                svg {
+                  color: rgba(255,255,255,1);
+                }
+              }
+            }
+          }
+        }
+
+        .setup-menu {
+          border: none;
+          padding: 0 12px 8px 12px;
+        }
+      }
+    }
+  }
+}
+
 @media (max-width: 1100px) {
   html.dark {
     #app {
       #container {
         .aside {
-          width: 45px;
-
-          .top-tool {
-            padding: 50px 0 12px 0;
-            justify-content: center;
-
-            >.el-tooltip__trigger {
-              display: none;
-            }
-          }
-
-          .menu {
+          .setup-menu {
+            border: none;
             padding: 0;
-
-            &::-webkit-scrollbar {
-              display: none;
-            }
-
-            >li {
-              padding: 0;
-
-              >.left {
-                justify-content: space-between;
-
-                .icon-block {
-                  width: 45px;
-                  justify-content: center;
-                }
-
-                >.title {
-                  display: none;
-                }
-              }
-
-              >.el-switch {
-                display: none;
-              }
-            }
           }
         }
       }

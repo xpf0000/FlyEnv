@@ -23,8 +23,6 @@ html.light {
         }
 
         .top-menu {
-          padding: 0 12px;
-
           > li {
             padding: 0 15px;
             border-radius: 6px;
@@ -55,7 +53,7 @@ html.light {
 
         .setup-menu {
           border: none;
-          padding: 0 19px 8px 12px;
+          padding: 0 12px 8px 12px;
 
           >li {
             padding: 0 15px;
@@ -538,44 +536,12 @@ html.light {
     #app {
       #container {
         .aside {
-          width: 45px;
-
-          .top-tool {
-            padding: 50px 0 12px 0;
-            justify-content: center;
-
-            >.el-tooltip__trigger {
-              display: none;
-            }
-          }
-
           .menu {
             padding: 0;
-
-            &::-webkit-scrollbar {
-              display: none;
-            }
 
             >li {
               padding: 0;
               border-radius: 0;
-
-              >.left {
-                justify-content: space-between;
-
-                .icon-block {
-                  width: 45px;
-                  justify-content: center;
-                }
-
-                >.title {
-                  display: none;
-                }
-              }
-
-              >.el-switch {
-                display: none;
-              }
             }
           }
         }

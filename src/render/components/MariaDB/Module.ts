@@ -2,6 +2,7 @@ import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@/core/type'
 
 const module: AppModuleItem = {
+  moduleType: 'dataBaseServer',
   typeFlag: 'mariadb',
   label: 'MariaDB',
   icon: import('@/svg/mariaDB.svg?raw'),
