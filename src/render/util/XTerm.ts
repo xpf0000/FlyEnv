@@ -1,36 +1,10 @@
 import '@xterm/xterm/css/xterm.css'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
-// @ts-ignore
-import IPC from './IPC.js'
+import IPC from './IPC'
 import { AppStore } from '@/store/app'
 
 const { nativeTheme } = require('@electron/remote')
-
-const exclude = [
-  'Help',
-  'Home',
-  'PageUp',
-  'Delete',
-  'End',
-  'PageDown',
-  'Escape',
-  'F1',
-  'F2',
-  'F3',
-  'F4',
-  'F5',
-  'F6',
-  'F7',
-  'F8',
-  'F9',
-  'F10',
-  'F11',
-  'F12',
-  'Tab'
-]
-
-const logs: Array<string> = []
 
 interface HistoryType {
   cammand: string
@@ -55,6 +29,9 @@ class XTerm implements XTermType {
   index: number
   fitaddon: FitAddon | undefined
   _callBack: Function | undefined
+  logs: Array<string> = []
+  ptyKey: string = ''
+  end = false
 
   constructor() {
     this.cammand = []
@@ -67,52 +44,74 @@ class XTerm implements XTermType {
     const domRect = this.dom!.getBoundingClientRect()
     const cols = Math.floor(domRect.width / 9.1)
     const rows = Math.floor(domRect.height / 18)
-    IPC.send('NodePty:resize', { cols, rows })
+    IPC.send('NodePty:resize', this.ptyKey, { cols, rows }).then((key: string) => IPC.off(key))
     return { cols, rows }
   }
 
   mount(dom: HTMLElement) {
     this.dom = dom
-    const { cols, rows } = this.getSize()
-    const appStore = AppStore()
-    const theme: { [k: string]: string } = {}
-    let appTheme = ''
-    if (!appStore?.config?.setup?.theme || appStore?.config?.setup?.theme === 'system') {
-      appTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
-    } else {
-      appTheme = appStore?.config?.setup?.theme
-    }
-    if (appTheme === 'light') {
-      theme.background = '#ffffff'
-      theme.foreground = '#334455'
-      theme.selectionBackground = '#a0cfff'
-    } else {
-      theme.background = '#282b3d'
-      theme.foreground = '#cfd3dc'
-      theme.selectionBackground = '#606266'
-    }
-    this.xterm = new Terminal({
-      cols: cols,
-      rows: rows,
-      cursorBlink: true,
-      allowProposedApi: true,
-      cursorWidth: 5,
-      cursorStyle: 'bar',
-      logLevel: 'off',
-      theme: theme
+    return new Promise((resolve) => {
+      const doMount = () => {
+        const { cols, rows } = this.getSize()
+        const appStore = AppStore()
+        const theme: { [k: string]: string } = {}
+        let appTheme = ''
+        if (!appStore?.config?.setup?.theme || appStore?.config?.setup?.theme === 'system') {
+          appTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+        } else {
+          appTheme = appStore?.config?.setup?.theme
+        }
+        if (appTheme === 'light') {
+          theme.background = '#ffffff'
+          theme.foreground = '#334455'
+          theme.selectionBackground = '#a0cfff'
+        } else {
+          theme.background = '#282b3d'
+          theme.foreground = '#cfd3dc'
+          theme.selectionBackground = '#606266'
+        }
+        this.xterm = new Terminal({
+          cols: cols,
+          rows: rows,
+          cursorBlink: true,
+          allowProposedApi: true,
+          cursorWidth: 5,
+          cursorStyle: 'bar',
+          logLevel: 'off',
+          theme: theme
+        })
+        const fitaddon = new FitAddon()
+        this.xterm.loadAddon(fitaddon)
+        this.xterm.open(dom)
+        fitaddon.fit()
+        this.fitaddon = fitaddon
+        this.initEvent()
+        this.xterm.focus()
+        this.logs.forEach((s) => {
+          this.xterm?.write(s)
+        })
+        this.storeCurrentCursor()
+        this.initLog()
+        resolve(true)
+      }
+
+      if (!this.ptyKey) {
+        IPC.send('NodePty:init').then((key: string, res: any) => {
+          IPC.off(key)
+          this.ptyKey = res?.data ?? ''
+          /**
+           * 接收node-pty数据
+           */
+          IPC.on(`NodePty:data:${this.ptyKey}`).then((key: string, data: string) => {
+            this.write(data)
+          })
+
+          doMount()
+        })
+      } else {
+        doMount()
+      }
     })
-    const fitaddon = new FitAddon()
-    this.xterm.loadAddon(fitaddon)
-    this.xterm.open(dom)
-    fitaddon.fit()
-    this.fitaddon = fitaddon
-    this.initEvent()
-    this.xterm.focus()
-    console.log('logs: ', JSON.parse(JSON.stringify(logs)))
-    logs.forEach((s) => {
-      this.xterm?.write(s)
-    })
-    this.storeCurrentCursor()
   }
 
   cleanInput() {
@@ -200,159 +199,46 @@ class XTerm implements XTermType {
   }
 
   initEvent() {
-    /**
-     * 处理组合键操作
-     * 粘贴
-     * ctrl+c 中断
-     * alt + k 清屏
-     */
-    this.xterm!.attachCustomKeyEventHandler((e) => {
-      if (e.key === 'v' && e.metaKey) {
-        navigator.clipboard.readText().then((text) => {
-          // 清空当前内容
-          this.cleanInput()
-          const arr = text.split('')
-          // 在光标处插入内容
-          this.cammand.splice(this.index, 0, ...arr)
-          this.xterm!.write(this.cammand.join(''))
-          this.index += arr.length
-          // 从上一个光标存储位置恢复
-          this.resetCursorFromStore()
-          const n = arr.length
-          // 光标前进插入内容长度
-          this.cursorMoveGo(n)
-          // 存储改变后的光标位置
-          this.storeCurrentCursor()
-        })
-      } else if (e.key === 'c' && e.ctrlKey) {
-        IPC.send('NodePty:stop')
-      } else if (e.key === 'k' && e.metaKey) {
-        IPC.send('NodePty:clear')
-      }
-      return true
-    })
-
-    /**
-     * 处理键盘输入事件
-     */
-    this.xterm!.onKey((e) => {
-      const ev = e.domEvent
-      const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey
-      console.log(e)
-      if (ev.key === 'Enter') {
-        this.xterm!.write('\r\n')
-        if (this.cammand.length > 0) {
-          this.addHistory()
-          const cammand = this.cammand.join('')
-          IPC.send('NodePty:write', [cammand]).then((key: string) => {
-            console.log('cammand finished: ', cammand)
-            IPC.off(key)
-            this._callBack && this._callBack()
-            logs.splice(0)
-          })
-          this.cammand.splice(0)
-          this.index = 0
-        }
-      } else if (ev.key === 'Backspace') {
-        ev.stopPropagation()
-        ev.preventDefault()
-        if (this.cammand.length > 0 && this.index > 0) {
-          this.cleanInput()
-          this.cammand.splice(this.index - 1, 1)
-          this.xterm!.write(this.cammand.join(''))
-          this.index -= 1
-          // 从上个存储光标位置恢复
-          this.resetCursorFromStore()
-          // 光标后退一位
-          this.cursorMoveBack(1)
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        }
-      } else if (exclude.includes(ev.key)) {
-        ev.stopPropagation()
-        ev.preventDefault()
+    this.xterm!.onData((data) => {
+      if (this.end) {
         return
-      } else if (ev.key === 'ArrowLeft') {
-        if (this.index > 0) {
-          this.index -= 1
-          // 光标后退一位
-          this.xterm!.write(e.key)
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        }
-      } else if (ev.key === 'ArrowRight') {
-        if (this.index < this.cammand.length) {
-          this.index += 1
-          // 光标前进一位
-          this.xterm!.write(e.key)
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        }
-      } else if (ev.key === 'ArrowUp') {
-        if (this.historyIndex > 0) {
-          this.historyIndex -= 1
-          this.resetFromHistory()
-        }
-      } else if (ev.key === 'ArrowDown') {
-        if (this.historyIndex < this.history.length - 1) {
-          this.historyIndex += 1
-          this.resetFromHistory()
-        } else {
-          this.historyIndex = history.length
-          this.cleanInput()
-          this.cammand.splice(0)
-          this.index = 0
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        }
-      } else if (printable) {
-        this.cleanInput()
-        this.cammand.splice(this.index, 0, e.key)
-        this.xterm!.write(this.cammand.join(''))
-        this.index += 1
-        if (this.index !== this.cammand.length) {
-          // 从上个存储光标位置恢复
-          this.resetCursorFromStore()
-          // 光标前进一位
-          this.cursorMoveGo(1)
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        } else {
-          // 存储新光标位置
-          this.storeCurrentCursor()
-        }
       }
+      IPC.send('NodePty:write', this.ptyKey, data).then((key: string) => {
+        IPC.off(key)
+      })
     })
-
     /**
      * 重置界面大小
      */
     this.onWindowResit = this.onWindowResit.bind(this)
     window.addEventListener('resize', this.onWindowResit)
-
-    /**
-     * 接收node-pty数据
-     */
-    IPC.on('NodePty:data').then((key: string, data: string) => {
-      this.write(data)
-    })
   }
 
-  initLog(log?: string[]) {
-    logs.splice(0)
-    if (log) {
-      logs.push(...log)
+  initLog() {
+    if (this.logs.length > 0) {
+      for (const log of this.logs) {
+        this.xterm?.write(log)
+      }
     }
   }
 
   write(data: string) {
     this.xterm?.write(data)
     this.storeCurrentCursor()
-    const max = 300
-    if (logs.length === max) {
-      logs.shift()
+    if (
+      data.endsWith(`\u001b[K`) ||
+      data.endsWith(`\x1B[K`) ||
+      data.endsWith(`\\u001b[K`) ||
+      data.endsWith(`\\x1B[K`) ||
+      data.endsWith(`\x1B[K\x1B[13C`) ||
+      data.endsWith(`\u001b[K\u001b[13C`) ||
+      data.endsWith(`\\x1B[K\\x1B[13C`) ||
+      data.endsWith(`\\u001b[K\\u001b[13C`)
+    ) {
+      console.log('logs pop !!!!!!!!!!!!!!@@@@@@@@@@@@@@')
+      this.logs.pop()
     }
-    logs.push(data)
+    this.logs.push(data)
     this.cammand.splice(0)
     this.index = 0
   }
@@ -367,8 +253,14 @@ class XTerm implements XTermType {
     this._callBack = fn
   }
 
+  cleanLog() {
+    this.logs.splice(0)
+  }
   destory() {
     window.removeEventListener('resize', this.onWindowResit)
+    if (this.ptyKey) {
+      IPC.off(`NodePty:data:${this.ptyKey}`)
+    }
     this._callBack = undefined
     this.xterm?.dispose()
     this.xterm = undefined
@@ -379,15 +271,29 @@ class XTerm implements XTermType {
     this.historyIndex = 0
   }
 
-  static send(cammand: string[], exit = false) {
-    console.log('XTerm send:', cammand)
+  stop() {
     return new Promise((resolve) => {
-      IPC.send('NodePty:write', JSON.parse(JSON.stringify(cammand)), exit).then((key: string) => {
-        console.log('static cammand finished: ', cammand)
+      IPC.send('NodePty:stop', this.ptyKey).then((key: string) => {
         IPC.off(key)
-        logs.splice(0)
         resolve(true)
       })
+    })
+  }
+
+  send(cammand: string[]) {
+    console.log('XTerm send:', cammand)
+    if (this.end) {
+      return
+    }
+    return new Promise((resolve) => {
+      IPC.send('NodePty:exec', this.ptyKey, JSON.parse(JSON.stringify(cammand))).then(
+        (key: string) => {
+          console.log('static cammand finished: ', cammand)
+          IPC.off(key)
+          this.end = true
+          resolve(true)
+        }
+      )
     })
   }
 }
