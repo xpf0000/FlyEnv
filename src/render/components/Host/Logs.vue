@@ -6,24 +6,10 @@
     :with-header="false"
     @closed="closedFn"
   >
-    <div class="host-logs">
-      <ul class="top-tab">
-        <li :class="type === 'caddy' ? 'active' : ''" @click="initType('caddy')">Caddy</li>
-        <li :class="type === 'nginx-access' ? 'active' : ''" @click="initType('nginx-access')"
-          >Nginx-Access</li
-        >
-        <li :class="type === 'nginx-error' ? 'active' : ''" @click="initType('nginx-error')"
-          >Nginx-Error</li
-        >
-        <li :class="type === 'apache-access' ? 'active' : ''" @click="initType('apache-access')"
-          >Apache-Access</li
-        >
-        <li :class="type === 'apache-error' ? 'active' : ''" @click="initType('apache-error')"
-          >Apache-Error</li
-        >
-      </ul>
-      <LogVM ref="log" :log-file="filepath" />
-      <ToolVM :log="log" />
+    <div class="flex flex-col overflow-hidden py-3 px-6 h-screen gap-4">
+      <XRadioGroup v-model="type" class="mt-2" :data="types" @button-click="initType" />
+      <LogVM ref="log" :log-file="filepath" class="flex-1 overflow-hidden" />
+      <ToolVM :log="log" class="flex-shrink-0" />
     </div>
   </el-drawer>
 </template>
@@ -33,6 +19,7 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
+  import XRadioGroup from '@/components/XRadioGroup/index.vue'
 
   const { join } = require('path')
 
@@ -46,6 +33,29 @@
   const filepath = ref('')
   const logfile = ref({})
   const log = ref()
+
+  const types = ref([
+    {
+      value: 'caddy',
+      label: 'Caddy'
+    },
+    {
+      value: 'nginx-access',
+      label: 'Nginx-Access'
+    },
+    {
+      value: 'nginx-error',
+      label: 'Nginx-Error'
+    },
+    {
+      value: 'apache-access',
+      label: 'Apache-Access'
+    },
+    {
+      value: 'apache-error',
+      label: 'Apache-Error'
+    }
+  ])
 
   const init = () => {
     let logpath = join(global.Server.BaseDir, 'vhost/logs')
