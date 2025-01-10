@@ -105,6 +105,7 @@ type StateBase = SetupBase & {
 }
 
 interface State {
+  envIndex: number
   hosts: Array<AppHost>
   config: {
     server: ServerBase
@@ -124,6 +125,7 @@ interface State {
 }
 
 const state: State = {
+  envIndex: 1,
   hosts: [],
   config: {
     server: {},
