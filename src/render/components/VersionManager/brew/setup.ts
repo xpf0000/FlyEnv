@@ -1,22 +1,36 @@
-import { computed, nextTick, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import XTerm from '@/util/XTerm'
-import { I18nT } from '@shared/lang'
 import IPC from '@/util/IPC'
 import type { AllAppModule } from '@/core/type'
 import installedVersions from '@/util/InstalledVersions'
-import { brewCheck, brewInfo } from '@/util/Brew'
+import { brewInfo } from '@/util/Brew'
 import { chmod } from '@shared/file'
-import { VersionManagerStore } from '@/components/VersionManager/store'
 
-const { join } = require('path')
+const { join, basename, dirname } = require('path')
 const { existsSync, unlinkSync, copyFileSync } = require('fs')
 
-export const BrewSetup = reactive({
+export const BrewSetup = reactive<{
+  installEnd: boolean
+  installing: boolean
+  fetching: Partial<Record<AllAppModule, boolean>>
+  xterm: XTerm | undefined
+  checkBrew: () => void
+  reFetch: () => void
+}>({
   installEnd: false,
   installing: false,
-  xterm: undefined
+  fetching: {},
+  xterm: undefined,
+  reFetch: () => 0,
+  checkBrew() {
+    if (!global.Server.BrewCellar) {
+      IPC.send('app-check-brewport').then((key: string) => {
+        IPC.off(key)
+      })
+    }
+  }
 })
 
 export const Setup = (typeFlag: AllAppModule) => {
@@ -25,7 +39,6 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const showNextBtn = ref(false)
   const logs = ref<HTMLElement>()
-  let xterm: XTerm | null = null
 
   const proxy = computed(() => {
     return appStore.config.setup.proxy
@@ -54,21 +67,22 @@ export const Setup = (typeFlag: AllAppModule) => {
   }
 
   const checkBrew = computed(() => {
-    if (!appStore.envIndex) {
-      return false
-    }
-    return !!global.Server.BrewCellar
+    return false
+    // if (!appStore.envIndex) {
+    //   return false
+    // }
+    // return !!global.Server.BrewCellar
   })
 
   const fetching = computed(() => {
-    return VersionManagerStore.sourceFetching(typeFlag)['brew']
+    return BrewSetup.fetching?.[typeFlag] ?? false
   })
 
   const fetchData = (src: 'brew') => {
-    if (VersionManagerStore.sourceFetching(typeFlag)?.[src]) {
+    if (fetching.value) {
       return
     }
-    VersionManagerStore.sourceFetching(typeFlag)[src] = true
+    BrewSetup.fetching[typeFlag] = true
     const currentItem = brewStore.module(typeFlag)
     const list = currentItem.list?.[src] ?? {}
     brewInfo(typeFlag)
@@ -79,53 +93,47 @@ export const Setup = (typeFlag: AllAppModule) => {
         for (const name in res) {
           list[name] = reactive(res[name])
         }
-        VersionManagerStore.sourceFetching(typeFlag)[src] = false
+        BrewSetup.fetching[typeFlag] = false
       })
       .catch(() => {
-        VersionManagerStore.sourceFetching(typeFlag)[src] = false
+        BrewSetup.fetching[typeFlag] = false
       })
   }
   const getData = () => {
-    const currentItem = brewStore.module(typeFlag)
-    const src = 'brew'
-    if (!src || VersionManagerStore.sourceFetching(typeFlag)[src]) {
+    if (!checkBrew.value || fetching.value) {
       return
     }
+    const currentItem = brewStore.module(typeFlag)
+    const src = 'brew'
     const list = currentItem.list?.[src]
     if (list && Object.keys(list).length === 0) {
-      brewCheck()
-        .then(() => {
-          if (typeFlag === 'php') {
-            if (src === 'brew' && !appStore?.config?.setup?.phpBrewInited) {
-              /**
-               * 先获取已安装的 php, 同时安装shivammathur/php库, 安装成功后, 再刷新数据
-               * 避免国内用户添加库非常慢, 导致已安装数据也无法获取
-               */
-              IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then(
-                (key: string, res: any) => {
-                  IPC.off(key)
-                  appStore.config.setup.phpBrewInited = true
-                  appStore.saveConfig()
-                  if (res?.data === 2) {
-                    fetchData('brew')
-                  }
-                }
-              )
+      if (typeFlag === 'php') {
+        if (src === 'brew' && !appStore?.config?.setup?.phpBrewInited) {
+          /**
+           * 先获取已安装的 php, 同时安装shivammathur/php库, 安装成功后, 再刷新数据
+           * 避免国内用户添加库非常慢, 导致已安装数据也无法获取
+           */
+          IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string, res: any) => {
+            IPC.off(key)
+            appStore.config.setup.phpBrewInited = true
+            appStore.saveConfig()
+            if (res?.data === 2) {
+              fetchData('brew')
             }
-          } else if (typeFlag === 'mongodb' && !appStore?.config?.setup?.mongodbBrewInited) {
-            if (src === 'brew') {
-              IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string, res: any) => {
-                IPC.off(key)
-                appStore.config.setup.mongodbBrewInited = true
-                appStore.saveConfig()
-                if (res?.data === 2) {
-                  fetchData('brew')
-                }
-              })
+          })
+        }
+      } else if (typeFlag === 'mongodb' && !appStore?.config?.setup?.mongodbBrewInited) {
+        if (src === 'brew') {
+          IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string, res: any) => {
+            IPC.off(key)
+            appStore.config.setup.mongodbBrewInited = true
+            appStore.saveConfig()
+            if (res?.data === 2) {
+              fetchData('brew')
             }
-          }
-        })
-        .catch()
+          })
+        }
+      }
       fetchData(src)
     }
   }
@@ -138,28 +146,26 @@ export const Setup = (typeFlag: AllAppModule) => {
     getData()
   }
 
+  BrewSetup.reFetch = reGetData
+
   const regetInstalled = () => {
     reGetData()
-    brewStore.showInstallLog = false
-    brewStore.brewRunning = false
     brewStore.module(typeFlag).installedInited = false
     installedVersions.allInstalledVersions([typeFlag]).then()
   }
 
-  const handleBrewVersion = (row: any) => {
-    if (brewRunning?.value) {
+  const handleBrewVersion = async (row: any) => {
+    if (BrewSetup.installing) {
       return
     }
-    brewStore.log.splice(0)
-    brewStore.showInstallLog = true
-    brewStore.brewRunning = true
+    BrewSetup.installing = true
+    BrewSetup.installEnd = false
     let fn = ''
     if (row.installed) {
       fn = 'uninstall'
     } else {
       fn = 'install'
     }
-
     const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
     const name = row.name
     let params = []
@@ -170,15 +176,18 @@ export const Setup = (typeFlag: AllAppModule) => {
     }
     copyFileSync(sh, copyfile)
     chmod(copyfile, '0777')
-    params = [`${copyfile} ${arch} ${fn} ${name}; exit 0`]
+    params = [`${copyfile} ${arch} ${fn} ${name};`]
     if (proxyStr?.value) {
       params.unshift(proxyStr?.value)
     }
-    XTerm.send(params, true).then((key: string) => {
-      IPC.off(key)
-      showNextBtn.value = true
-      regetInstalled()
-    })
+    await nextTick()
+    const execXTerm = new XTerm()
+    BrewSetup.xterm = execXTerm
+    await execXTerm.mount(xtermDom.value!)
+    params.push(`exit 0`)
+    await execXTerm.send(params)
+    BrewSetup.installEnd = true
+    regetInstalled()
   }
 
   const tableData = computed(() => {
@@ -215,36 +224,53 @@ export const Setup = (typeFlag: AllAppModule) => {
     return arr
   })
 
-  watch(
-    showLog,
-    (val) => {
-      nextTick().then(() => {
-        if (val) {
-          const dom = logs.value!
-          xterm = new XTerm()
-          xterm.mount(dom)
-        } else {
-          xterm && xterm.destory()
-          xterm = null
-        }
-      })
-    },
-    {
-      immediate: true
-    }
-  )
+  const xtermDom = ref<HTMLElement>()
 
-  getData()
-  if (!brewRunning?.value) {
-    brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
+  const installBrew = async () => {
+    if (BrewSetup.installing) {
+      return
+    }
+    BrewSetup.installEnd = false
+    BrewSetup.installing = true
+    await nextTick()
+    const file =
+      appStore.config.setup.lang === 'zh'
+        ? join(global.Server.Static!, 'sh/brew-install.sh')
+        : join(global.Server.Static!, 'sh/brew-install-en.sh')
+    const copyFile = join(global.Server.Cache!, basename(file))
+    copyFileSync(file, copyFile)
+    const execXTerm = new XTerm()
+    BrewSetup.xterm = execXTerm
+    console.log('xtermDom.value: ', xtermDom.value)
+    await execXTerm.mount(xtermDom.value!)
+    const command: string[] = [`cd "${dirname(copyFile)}"`, `./${basename(file)}`, `exit 0`]
+    await execXTerm.send(command)
+    BrewSetup.installEnd = true
   }
 
-  onUnmounted(() => {
-    xterm && xterm.destory()
-    xterm = null
+  getData()
+
+  watch(checkBrew, (v, ov) => {
+    if (!ov && v) {
+      getData()
+    }
   })
 
+  onMounted(() => {
+    if (BrewSetup.installing) {
+      nextTick().then(() => {
+        const execXTerm: XTerm = BrewSetup.xterm as any
+        if (execXTerm && xtermDom.value) {
+          execXTerm.mount(xtermDom.value).then().catch()
+        }
+      })
+    }
+  })
+
+  onUnmounted(() => {})
+
   return {
+    installBrew,
     showNextBtn,
     toNext,
     handleBrewVersion,
@@ -255,6 +281,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     reGetData,
     showLog,
     fetching,
-    logs
+    logs,
+    xtermDom
   }
 }

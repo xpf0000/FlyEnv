@@ -1,19 +1,23 @@
 <template>
-  <template v-if="!checkBrew">
-
+  <template v-if="BrewSetup.installing">
+    <div ref="xtermDom" class="w-full h-full overflow-hidden p-5"></div>
+  </template>
+  <template v-else-if="!checkBrew">
+    <div class="p-5">
+      <pre class="app-html-block" v-html="I18nT('versionmanager.noBrewFound')"></pre>
+      <el-button
+        type="primary"
+        class="mt-5"
+        :disabled="BrewSetup.installing"
+        @click.stop="installBrew"
+        >{{ I18nT('base.install') }}</el-button
+      >
+    </div>
   </template>
   <template v-else>
-    <template v-if="showLog">
-      <div class="log-wapper">
-        <div ref="logs" class="logs"></div>
-      </div>
-    </template>
-    <el-table v-else height="100%" :data="tableData" :border="false" style="width: 100%">
+    <el-table height="100%" :data="tableData" :border="false" style="width: 100%">
       <template #empty>
-        <template v-if="!checkBrew() && !checkPort() && !['php', 'caddy'].includes(typeFlag)">
-          <div class="no-lib-found" v-html="I18nT('util.noLibFound')"></div>
-        </template>
-        <template v-else-if="currentModule.getListing">
+        <template v-if="currentModule.getListing">
           {{ I18nT('base.gettingVersion') }}
         </template>
         <template v-else>
@@ -22,7 +26,7 @@
       </template>
       <el-table-column prop="name">
         <template #header>
-        <span style="padding: 2px 12px 2px 24px; display: block">{{
+          <span style="padding: 2px 12px 2px 24px; display: block">{{
             I18nT('base.brewLibrary')
           }}</span>
         </template>
@@ -42,42 +46,18 @@
           </div>
         </template>
       </el-table-column>
-      <template v-if="libSrc === 'static'">
-        <el-table-column :label="null">
-          <template #default="scope">
-            <div class="cell-progress">
-              <el-progress v-if="scope.row.downing" :percentage="scope.row.progress"></el-progress>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" :label="I18nT('base.operation')" width="150">
-          <template #default="scope">
-            <el-button
-              type="primary"
-              link
-              :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
-              :loading="scope.row.downing"
-              :disabled="scope.row.downing"
-              @click="handleOnlineVersion(scope.row, scope.row.installed)"
+      <el-table-column align="center" :label="I18nT('base.operation')" width="120">
+        <template #default="scope">
+          <el-button
+            type="primary"
+            link
+            :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
+            :disabled="brewRunning"
+            @click="handleBrewVersion(scope.row)"
             >{{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}</el-button
-            >
-          </template>
-        </el-table-column>
-      </template>
-      <template v-else>
-        <el-table-column align="center" :label="I18nT('base.operation')" width="120">
-          <template #default="scope">
-            <el-button
-              type="primary"
-              link
-              :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
-              :disabled="brewRunning"
-              @click="handleBrewPortVersion(scope.row)"
-            >{{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}</el-button
-            >
-          </template>
-        </el-table-column>
-      </template>
+          >
+        </template>
+      </el-table-column>
     </el-table>
   </template>
 </template>
@@ -85,7 +65,7 @@
 <script lang="ts" setup>
   import { I18nT } from '@shared/lang'
   import type { AllAppModule } from '@/core/type'
-  import { Setup } from './setup'
+  import { BrewSetup, Setup } from './setup'
 
   const props = withDefaults(
     defineProps<{
@@ -102,15 +82,19 @@
   )
 
   const {
-    showNextBtn,
+    xtermDom,
     brewRunning,
     checkBrew,
-    toNext,
     currentModule,
-    reGetData,
-    showLog,
     tableData,
-    fetching,
-    logs
+    handleBrewVersion,
+    installBrew
   } = Setup(props.typeFlag)
 </script>
+<style lang="scss">
+  .app-html-block {
+    a {
+      color: #4096ff;
+    }
+  }
+</style>
