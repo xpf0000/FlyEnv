@@ -12,39 +12,32 @@ import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
 import { AppI18n } from './lang'
 import DnsServerManager from './core/DnsServerManager'
-import type { PtyLast, StaticHttpServe } from './type'
-import type { IPty } from 'node-pty'
-import type { ServerResponse } from 'http'
-import { fixEnv } from '@shared/utils'
+import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseRoot } from '@shared/Exec'
 import { arch } from 'os'
 import { ProcessPidList, ProcessPidListByPid } from '@shared/Process'
+import NodePTY from './core/NodePTY'
+import HttpServer from './core/HttpServer'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
 const compressing = require('compressing')
-const ServeHandler = require('serve-handler')
-const Http = require('http')
-const Pty = require('node-pty')
-const IP = require('ip')
 
 export default class Application extends EventEmitter {
   isReady: boolean
-  httpServes: { [k: string]: StaticHttpServe }
   configManager: ConfigManager
   menuManager: MenuManager
   trayManager: TrayManager
   windowManager: WindowManager
   mainWindow?: BrowserWindow
   trayWindow?: BrowserWindow
-  pty?: IPty | null
-  ptyLastData = ''
-  ptyLast?: PtyLast | null
   updateManager?: UpdateManager
   forkManager?: ForkManager
   hostServicePID: Set<string> = new Set()
+
+  pty: Partial<Record<string, PtyItem>> = {}
 
   constructor() {
     super()
@@ -52,7 +45,6 @@ export default class Application extends EventEmitter {
       Local: `${app.getLocale()}.UTF-8`
     }
     this.isReady = false
-    this.httpServes = {}
     this.configManager = new ConfigManager()
     this.initLang()
     this.menuManager = new MenuManager()
@@ -92,6 +84,9 @@ export default class Application extends EventEmitter {
     if (!is.dev()) {
       this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
     }
+    NodePTY.onSendCommand((command: string, ...args: any) => {
+      this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
+    })
     console.log('Application inited !!!')
   }
 
@@ -128,49 +123,6 @@ export default class Application extends EventEmitter {
         this?.trayWindow?.hide()
       }
     })
-  }
-
-  async initNodePty() {
-    if (!!this.pty) {
-      return
-    }
-    const env = await fixEnv()
-    this.pty = Pty.spawn(process.env['SHELL'], [], {
-      name: 'xterm-color',
-      cols: 80,
-      rows: 34,
-      cwd: process.cwd(),
-      env,
-      encoding: 'utf8'
-    })
-    this.pty!.onData((data) => {
-      console.log('pty.onData: ', data)
-      this.windowManager.sendCommandTo(this.mainWindow!, 'NodePty:data', 'NodePty:data', data)
-      if (data.includes('\r')) {
-        this.ptyLastData = data
-      } else {
-        this.ptyLastData += data
-      }
-    })
-    this.pty!.onExit((e) => {
-      console.log('this.pty.onExit !!!!!!', e)
-      this.exitNodePty()
-    })
-  }
-
-  exitNodePty() {
-    try {
-      if (this?.pty?.pid) {
-        process.kill(this.pty.pid)
-      }
-      this?.pty?.kill()
-    } catch (e) {}
-    if (this.ptyLast) {
-      const { command, key } = this.ptyLast
-      this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-      this.ptyLast = null
-    }
-    this.pty = null
   }
 
   checkBrewOrPort() {
@@ -446,8 +398,7 @@ export default class Application extends EventEmitter {
   }
 
   async stopServer() {
-    this.ptyLast = null
-    this.exitNodePty()
+    NodePTY.exitAllPty()
     await this.stopServerByPid()
     await this.stopHostService()
     try {
@@ -666,80 +617,44 @@ export default class Application extends EventEmitter {
       case 'application:about':
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)
         break
+      case 'app-check-brewport':
+        this.checkBrewOrPort()
+        this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+        break
       case 'app-http-serve-run':
-        const path = args[0]
-        const httpServe = this.httpServes[path]
-        if (httpServe) {
-          httpServe.server.close()
-          delete this.httpServes[path]
-        }
-        const server = Http.createServer((request: Request, response: ServerResponse) => {
-          response.setHeader('Access-Control-Allow-Origin', '*')
-          response.setHeader('Access-Control-Allow-Headers', '*')
-          response.setHeader('Access-Control-Allow-Methods', '*')
-          return ServeHandler(request, response, {
-            public: path
-          })
-        })
-        server.listen(0, () => {
-          console.log('server.address(): ', server.address())
-          const port = server.address().port
-          const host = [`http://localhost:${port}/`]
-          const ip = IP.address()
-          if (ip && typeof ip === 'string' && ip.includes('.')) {
-            host.push(`http://${ip}:${port}/`)
-          }
-          this.httpServes[path] = {
-            server,
-            port,
-            host
-          }
-          this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-            path,
-            port,
-            host
-          })
+        HttpServer.start(args[0]).then((res) => {
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, res)
         })
         break
       case 'app-http-serve-stop':
-        const path1 = args[0]
-        const httpServe1 = this.httpServes[path1]
-        console.log('httpServe1: ', httpServe1)
-        if (httpServe1) {
-          httpServe1.server.close()
-          delete this.httpServes[path1]
-        }
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-          path: path1
-        })
-        break
-      case 'NodePty:write':
-        this.initNodePty().then(() => {
-          if (!this.ptyLast) {
-            this.ptyLast = {
-              command,
-              key
-            }
-          }
-          const arr: string[] = args[0]
-          arr.forEach((s) => {
-            this?.pty?.write(`${s}\r`)
+        HttpServer.stop(args[0]).then((res) => {
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+            path: res
           })
         })
         break
-      case 'NodePty:clear':
-        this.initNodePty().then(() => {
-          this?.pty?.write('clear\r')
+      case 'NodePty:init':
+        NodePTY.initNodePty().then((res) => {
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0, data: res })
         })
+        break
+      case 'NodePty:exec':
+        NodePTY.exec(args[0], args[1], command, key)
+        break
+      case 'NodePty:write':
+        NodePTY.write(args[0], args[1])
+        break
+      case 'NodePty:clear':
+        NodePTY.clean(args[0])
+        this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0 })
         break
       case 'NodePty:resize':
-        this.initNodePty().then(() => {
-          const { cols, rows } = args[0]
-          this?.pty?.resize(cols, rows)
-        })
+        NodePTY.resize(args[0], args[1])
+        this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0 })
         break
       case 'NodePty:stop':
-        this.exitNodePty()
+        NodePTY.stop(args[0])
+        this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0 })
         break
       case 'DNS:start':
         DnsServerManager.start()
