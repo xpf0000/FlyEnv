@@ -43,6 +43,8 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
 IPC.on('APP-Update-Global-Server').then((key: string, res: any) => {
   console.log('APP-Update-Global-Server: ', key, res)
   Object.assign(global.Server, res)
+  const store = AppStore()
+  store.envIndex += 1
 })
 IPC.on('APP-License-Need-Update').then(() => {
   SetupStore().init()

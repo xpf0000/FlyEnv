@@ -13,6 +13,12 @@ import { VersionManagerStore } from '@/components/VersionManager/store'
 const { join } = require('path')
 const { existsSync, unlinkSync, copyFileSync } = require('fs')
 
+export const BrewSetup = reactive({
+  installEnd: false,
+  installing: false,
+  xterm: undefined
+})
+
 export const Setup = (typeFlag: AllAppModule) => {
   const appStore = AppStore()
   const brewStore = BrewStore()
@@ -47,9 +53,12 @@ export const Setup = (typeFlag: AllAppModule) => {
     showNextBtn.value = false
   }
 
-  const checkBrew = () => {
+  const checkBrew = computed(() => {
+    if (!appStore.envIndex) {
+      return false
+    }
     return !!global.Server.BrewCellar
-  }
+  })
 
   const fetching = computed(() => {
     return VersionManagerStore.sourceFetching(typeFlag)['brew']
