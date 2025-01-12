@@ -18,4 +18,5 @@ export interface PtyItem {
     command: string
     key: string
   }[]
+  execFile?: string
 }

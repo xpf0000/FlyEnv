@@ -28,10 +28,10 @@ class XTerm implements XTermType {
   historyIndex: number
   index: number
   fitaddon: FitAddon | undefined
-  _callBack: Function | undefined
   logs: Array<string> = []
   ptyKey: string = ''
   end = false
+  private resolve: Function | undefined = undefined
 
   constructor() {
     this.cammand = []
@@ -226,6 +226,7 @@ class XTerm implements XTermType {
     this.xterm?.write(data)
     this.storeCurrentCursor()
     if (
+      data.startsWith(`\r`) ||
       data.endsWith(`\u001b[K`) ||
       data.endsWith(`\x1B[K`) ||
       data.endsWith(`\\u001b[K`) ||
@@ -238,6 +239,9 @@ class XTerm implements XTermType {
       console.log('logs pop !!!!!!!!!!!!!!@@@@@@@@@@@@@@')
       this.logs.pop()
     }
+    if (this.logs.length > 100) {
+      this.logs.shift()
+    }
     this.logs.push(data)
     this.cammand.splice(0)
     this.index = 0
@@ -249,10 +253,6 @@ class XTerm implements XTermType {
     this.fitaddon?.fit()
   }
 
-  onCallBack(fn: Function) {
-    this._callBack = fn
-  }
-
   cleanLog() {
     this.logs.splice(0)
   }
@@ -261,7 +261,6 @@ class XTerm implements XTermType {
     if (this.ptyKey) {
       IPC.off(`NodePty:data:${this.ptyKey}`)
     }
-    this._callBack = undefined
     this.xterm?.dispose()
     this.xterm = undefined
     this.dom = undefined
@@ -275,6 +274,8 @@ class XTerm implements XTermType {
     return new Promise((resolve) => {
       IPC.send('NodePty:stop', this.ptyKey).then((key: string) => {
         IPC.off(key)
+        this.resolve && this.resolve(true)
+        this.resolve = undefined
         resolve(true)
       })
     })
@@ -286,14 +287,17 @@ class XTerm implements XTermType {
       return
     }
     return new Promise((resolve) => {
-      IPC.send('NodePty:exec', this.ptyKey, JSON.parse(JSON.stringify(cammand))).then(
-        (key: string) => {
-          console.log('static cammand finished: ', cammand)
-          IPC.off(key)
-          this.end = true
-          resolve(true)
-        }
-      )
+      this.resolve = resolve
+      const param = [...cammand]
+      param.push(`wait;`)
+      param.push(`echo "Task-${this.ptyKey}-END" && exit 0;`)
+      IPC.send('NodePty:exec', this.ptyKey, param).then((key: string) => {
+        console.log('static cammand finished: ', cammand)
+        IPC.off(key)
+        this.end = true
+        this.resolve = undefined
+        resolve(true)
+      })
     })
   }
 }

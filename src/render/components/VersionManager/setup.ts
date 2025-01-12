@@ -3,25 +3,24 @@ import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
 import { BrewSetup } from '@/components/VersionManager/brew/setup'
+import { MacPortsSetup } from '@/components/VersionManager/port/setup'
 
 export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
   const appStore = AppStore()
   const brewStore = BrewStore()
 
   const checkBrew = computed(() => {
-    return false
-    // if (!appStore.envIndex) {
-    //   return false
-    // }
-    // return !!global.Server.BrewCellar
+    if (!appStore.envIndex) {
+      return false
+    }
+    return !!global.Server.BrewCellar
   })
 
   const checkPort = computed(() => {
-    return false
-    // if (!appStore.envIndex) {
-    //   return false
-    // }
-    // return !!global.Server.MacPorts
+    if (!appStore.envIndex) {
+      return false
+    }
+    return !!global.Server.MacPorts
   })
 
   const libSrc = computed({
@@ -43,6 +42,9 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'brew') {
       return BrewSetup.installing
     }
+    if (libSrc.value === 'port') {
+      return MacPortsSetup.installing
+    }
     return false
   })
 
@@ -50,19 +52,33 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'brew') {
       return BrewSetup.installEnd
     }
+    if (libSrc.value === 'port') {
+      return MacPortsSetup.installEnd
+    }
     return false
   })
 
   const taskConfirm = () => {
+    console.log('taskConfirm: ', libSrc.value)
     if (libSrc.value === 'brew') {
       BrewSetup.installing = false
       BrewSetup.installEnd = false
       delete BrewSetup.xterm
       BrewSetup.checkBrew()
+      return
+    }
+
+    if (libSrc.value === 'port') {
+      MacPortsSetup.installing = false
+      MacPortsSetup.installEnd = false
+      delete MacPortsSetup.xterm
+      MacPortsSetup.checkMacPorts()
+      return
     }
   }
 
   const taskCancel = () => {
+    console.log('taskCancel: ', libSrc.value)
     if (libSrc.value === 'brew') {
       BrewSetup.installing = false
       BrewSetup.installEnd = false
@@ -71,6 +87,18 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
         BrewSetup.xterm?.cleanLog()
         delete BrewSetup.xterm
       })
+      return
+    }
+
+    if (libSrc.value === 'port') {
+      MacPortsSetup.installing = false
+      MacPortsSetup.installEnd = false
+      MacPortsSetup.xterm?.stop()?.then(() => {
+        MacPortsSetup.xterm?.destory()
+        MacPortsSetup.xterm?.cleanLog()
+        delete MacPortsSetup.xterm
+      })
+      return
     }
   }
 
@@ -78,12 +106,20 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'brew') {
       return BrewSetup.fetching[typeFlag] || BrewSetup.installing
     }
+    if (libSrc.value === 'port') {
+      return MacPortsSetup.fetching[typeFlag] || MacPortsSetup.installing
+    }
     return false
   })
 
   const reFetch = () => {
     if (libSrc.value === 'brew') {
+      console.log('reFetch brew !!!')
       BrewSetup.reFetch()
+    }
+    if (libSrc.value === 'port') {
+      console.log('reFetch port !!!')
+      MacPortsSetup.reFetch()
     }
   }
 
