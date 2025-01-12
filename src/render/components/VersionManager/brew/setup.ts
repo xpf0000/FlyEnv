@@ -7,7 +7,10 @@ import type { AllAppModule } from '@/core/type'
 import installedVersions from '@/util/InstalledVersions'
 import { brewInfo } from '@/util/Brew'
 import { chmod } from '@shared/file'
+import { MessageSuccess } from '@/util/Element'
+import { I18nT } from '@shared/lang'
 
+const { clipboard } = require('@electron/remote')
 const { join, basename, dirname } = require('path')
 const { existsSync, unlinkSync, copyFileSync } = require('fs')
 
@@ -37,17 +40,8 @@ export const Setup = (typeFlag: AllAppModule) => {
   const appStore = AppStore()
   const brewStore = BrewStore()
 
-  const showNextBtn = ref(false)
-  const logs = ref<HTMLElement>()
-
   const proxy = computed(() => {
     return appStore.config.setup.proxy
-  })
-  const brewRunning = computed(() => {
-    return brewStore.brewRunning
-  })
-  const showInstallLog = computed(() => {
-    return brewStore.showInstallLog
   })
   const proxyStr = computed(() => {
     if (!proxy?.value.on) {
@@ -55,23 +49,12 @@ export const Setup = (typeFlag: AllAppModule) => {
     }
     return proxy?.value?.proxy
   })
-  const showLog = computed(() => {
-    return showInstallLog?.value || showNextBtn?.value
-  })
-  const currentModule = computed(() => {
-    return brewStore.module(typeFlag)
-  })
-
-  const toNext = () => {
-    showNextBtn.value = false
-  }
 
   const checkBrew = computed(() => {
-    return false
-    // if (!appStore.envIndex) {
-    //   return false
-    // }
-    // return !!global.Server.BrewCellar
+    if (!appStore.envIndex) {
+      return false
+    }
+    return !!global.Server.BrewCellar
   })
 
   const fetching = computed(() => {
@@ -101,6 +84,7 @@ export const Setup = (typeFlag: AllAppModule) => {
   }
   const getData = () => {
     if (!checkBrew.value || fetching.value) {
+      console.log('getData exit: ', checkBrew.value, fetching.value)
       return
     }
     const currentItem = brewStore.module(typeFlag)
@@ -139,6 +123,7 @@ export const Setup = (typeFlag: AllAppModule) => {
   }
 
   const reGetData = () => {
+    console.log('reGetData !!!')
     const list = brewStore.module(typeFlag).list?.['brew']
     for (const k in list) {
       delete list[k]
@@ -152,6 +137,22 @@ export const Setup = (typeFlag: AllAppModule) => {
     reGetData()
     brewStore.module(typeFlag).installedInited = false
     installedVersions.allInstalledVersions([typeFlag]).then()
+  }
+
+  const fetchCommand = (row: any) => {
+    let fn = ''
+    if (row.installed) {
+      fn = 'uninstall'
+    } else {
+      fn = 'install'
+    }
+    return `brew ${fn} ${row.name}`
+  }
+
+  const copyCommand = (row: any) => {
+    const command = fetchCommand(row)
+    clipboard.writeText(command)
+    MessageSuccess(I18nT('base.copySuccess'))
   }
 
   const handleBrewVersion = async (row: any) => {
@@ -184,7 +185,6 @@ export const Setup = (typeFlag: AllAppModule) => {
     const execXTerm = new XTerm()
     BrewSetup.xterm = execXTerm
     await execXTerm.mount(xtermDom.value!)
-    params.push(`exit 0`)
     await execXTerm.send(params)
     BrewSetup.installEnd = true
     regetInstalled()
@@ -243,7 +243,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     BrewSetup.xterm = execXTerm
     console.log('xtermDom.value: ', xtermDom.value)
     await execXTerm.mount(xtermDom.value!)
-    const command: string[] = [`cd "${dirname(copyFile)}"`, `./${basename(file)}`, `exit 0`]
+    const command: string[] = [`cd "${dirname(copyFile)}"`, `./${basename(file)}`]
     await execXTerm.send(command)
     BrewSetup.installEnd = true
   }
@@ -271,17 +271,13 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   return {
     installBrew,
-    showNextBtn,
-    toNext,
     handleBrewVersion,
     tableData,
-    brewRunning,
     checkBrew,
-    currentModule,
     reGetData,
-    showLog,
     fetching,
-    logs,
-    xtermDom
+    xtermDom,
+    fetchCommand,
+    copyCommand
   }
 }

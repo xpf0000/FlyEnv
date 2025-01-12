@@ -18,7 +18,13 @@
         </el-button>
       </div>
     </template>
-    <BrewVM />
+    <template v-if="libSrc === 'brew'">
+      <BrewVM :type-flag="typeFlag" />
+    </template>
+    <template v-else-if="libSrc === 'port'">
+      <PortVM :type-flag="typeFlag" />
+    </template>
+
     <template v-if="showFooter" #footer>
       <template v-if="taskEnd">
         <el-button type="primary" @click.stop="taskConfirm">{{ I18nT('base.confirm') }}</el-button>
@@ -35,6 +41,7 @@
   import type { AllAppModule } from '@/core/type'
   import { Setup } from '@/components/VersionManager/setup'
   import BrewVM from './brew/index.vue'
+  import PortVM from './port/index.vue'
 
   const props = withDefaults(
     defineProps<{

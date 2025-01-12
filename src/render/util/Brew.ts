@@ -1,8 +1,5 @@
 import IPC from './IPC'
-import Base from '@/core/Base'
 import { ElMessageBox } from 'element-plus'
-import { chmod } from '@shared/file'
-import XTerm from '@/util/XTerm'
 import { AppStore } from '@/store/app'
 import { BrewStore, type OnlineVersionItem } from '@/store/brew'
 import { I18nT } from '@shared/lang'
@@ -11,8 +8,7 @@ import type { AllAppModule } from '@/core/type'
 import { reactive } from 'vue'
 
 const { getGlobal } = require('@electron/remote')
-const { join } = require('path')
-const { existsSync, unlinkSync, copyFileSync } = require('fs')
+const { existsSync } = require('fs')
 
 let passPromptShow = false
 export const showPassPrompt = (showDesc = true) => {
@@ -75,79 +71,6 @@ export const passwordCheck = () => {
     } else {
       resolve(true)
     }
-  })
-}
-
-/**
- * 检测brew是否安装
- * @returns {Promise<unknown>}
- */
-export const brewCheck = () => {
-  return new Promise((resolve, reject) => {
-    passwordCheck()
-      .then(() => {
-        if (!global.Server.BrewCellar && !global.Server.MacPorts) {
-          const brewStore = BrewStore()
-          const appStore = AppStore()
-          if (!brewStore.brewRunning) {
-            Base.ConfirmInfo(I18nT('util.noBrewTips'))
-              .then(() => {
-                brewStore.brewRunning = true
-                const log = brewStore.log
-                log.splice(0)
-                brewStore.showInstallLog = true
-
-                const sh = join(
-                  global.Server.Static,
-                  `sh/brew-install${I18nT('base.brewInstallLang')}.sh`
-                )
-                const copyfile = join(global.Server.Cache, 'brew-install.sh')
-                if (existsSync(copyfile)) {
-                  unlinkSync(copyfile)
-                }
-                copyFileSync(sh, copyfile)
-                chmod(copyfile, '0777')
-                const params = [`sudo -S ${copyfile}; exit 0`, global.Server.Password!]
-
-                const proxy = appStore.config.setup.proxy
-                if (proxy?.on) {
-                  const proxyStr = proxy?.proxy
-                  if (proxyStr) {
-                    params.unshift(proxyStr)
-                  }
-                }
-
-                XTerm.send(params).then((key: string) => {
-                  IPC.off(key)
-                  IPC.send('app-fork:brew', 'installBrew').then((key: string, info: any) => {
-                    console.log('key: ', key, 'info: ', info)
-                    if (info.code === 0) {
-                      IPC.off(key)
-                      brewStore.showInstallLog = false
-                      brewStore.brewRunning = false
-                      global.Server = info.data
-                      resolve(true)
-                    } else if (info.code === 1) {
-                      IPC.off(key)
-                      brewStore.showInstallLog = false
-                      brewStore.brewRunning = false
-                      MessageError(I18nT('util.brewInstallFail'))
-                      reject(new Error(I18nT('util.brewInstallFail')))
-                    }
-                  })
-                })
-              })
-              .catch(() => {
-                reject(new Error(I18nT('util.userNoInstall')))
-              })
-          }
-        } else {
-          resolve(true)
-        }
-      })
-      .catch((e) => {
-        reject(e)
-      })
   })
 }
 

@@ -1,6 +1,8 @@
 <template>
   <template v-if="BrewSetup.installing">
-    <div ref="xtermDom" class="w-full h-full overflow-hidden p-5"></div>
+    <div class="w-full h-full overflow-hidden p-5">
+      <div ref="xtermDom" class="w-full h-full overflow-hidden"></div>
+    </div>
   </template>
   <template v-else-if="!checkBrew">
     <div class="p-5">
@@ -17,7 +19,7 @@
   <template v-else>
     <el-table height="100%" :data="tableData" :border="false" style="width: 100%">
       <template #empty>
-        <template v-if="currentModule.getListing">
+        <template v-if="fetching">
           {{ I18nT('base.gettingVersion') }}
         </template>
         <template v-else>
@@ -31,7 +33,14 @@
           }}</span>
         </template>
         <template #default="scope">
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.name }}</span>
+          <el-tooltip :content="fetchCommand(scope.row)" :show-after="600" placement="top">
+            <span
+              class="hover:text-yellow-500 cursor-pointer truncate"
+              style="padding: 2px 12px 2px 24px"
+              @click.stop="copyCommand(scope.row)"
+              >{{ scope.row.name }}</span
+            >
+          </el-tooltip>
         </template>
       </el-table-column>
       <el-table-column prop="version" :label="I18nT('base.version')" width="150"> </el-table-column>
@@ -52,7 +61,7 @@
             type="primary"
             link
             :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
-            :disabled="brewRunning"
+            :disabled="BrewSetup.installing"
             @click="handleBrewVersion(scope.row)"
             >{{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}</el-button
           >
@@ -67,28 +76,19 @@
   import type { AllAppModule } from '@/core/type'
   import { BrewSetup, Setup } from './setup'
 
-  const props = withDefaults(
-    defineProps<{
-      typeFlag: AllAppModule
-      hasStatic: boolean
-      showBrewLib: boolean
-      showPortLib: boolean
-    }>(),
-    {
-      hasStatic: false,
-      showBrewLib: true,
-      showPortLib: true
-    }
-  )
+  const props = defineProps<{
+    typeFlag: AllAppModule
+  }>()
 
   const {
     xtermDom,
-    brewRunning,
     checkBrew,
-    currentModule,
+    fetching,
     tableData,
     handleBrewVersion,
-    installBrew
+    installBrew,
+    fetchCommand,
+    copyCommand
   } = Setup(props.typeFlag)
 </script>
 <style lang="scss">
