@@ -294,7 +294,9 @@ export const Setup = (typeFlag: AllAppModule) => {
     }
   })
 
-  onUnmounted(() => {})
+  onUnmounted(() => {
+    MacPortsSetup.xterm && MacPortsSetup.xterm.unmounted()
+  })
 
   return {
     handleVersion,

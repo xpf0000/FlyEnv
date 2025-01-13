@@ -4,9 +4,15 @@
       <div class="card-header">
         <div class="left">
           <el-radio-group v-model="libSrc" size="small">
-            <el-radio-button value="static">Static</el-radio-button>
-            <el-radio-button value="brew">Homebrew</el-radio-button>
-            <el-radio-button value="port">MacPorts</el-radio-button>
+            <template v-if="hasStatic">
+              <el-radio-button value="static">Static</el-radio-button>
+            </template>
+            <template v-if="showBrewLib !== false">
+              <el-radio-button value="brew">Homebrew</el-radio-button>
+            </template>
+            <template v-if="showPortLib !== false">
+              <el-radio-button value="port">MacPorts</el-radio-button>
+            </template>
           </el-radio-group>
         </div>
         <el-button class="button" :disabled="loading" link @click="reFetch">
@@ -23,6 +29,9 @@
     </template>
     <template v-else-if="libSrc === 'port'">
       <PortVM :type-flag="typeFlag" />
+    </template>
+    <template v-else-if="libSrc === 'static'">
+      <StaticVM :type-flag="typeFlag" />
     </template>
 
     <template v-if="showFooter" #footer>
@@ -42,6 +51,7 @@
   import { Setup } from '@/components/VersionManager/setup'
   import BrewVM from './brew/index.vue'
   import PortVM from './port/index.vue'
+  import StaticVM from './static/index.vue'
 
   const props = withDefaults(
     defineProps<{

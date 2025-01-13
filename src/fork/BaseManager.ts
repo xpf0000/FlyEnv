@@ -40,7 +40,7 @@ class BaseManager {
   async exec(commands: Array<any>) {
     const ipcCommandKey = commands.shift()
     try {
-      await execPromiseRoot([`echo`, `PhpWebStudy`])
+      await execPromiseRoot([`true`])
     } catch (e) {
       ProcessSendError(ipcCommandKey, I18nT('fork.needPassWord'))
       ProcessSendError('application:need-password', false, true)
