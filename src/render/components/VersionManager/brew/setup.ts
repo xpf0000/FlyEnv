@@ -267,7 +267,9 @@ export const Setup = (typeFlag: AllAppModule) => {
     }
   })
 
-  onUnmounted(() => {})
+  onUnmounted(() => {
+    BrewSetup.xterm && BrewSetup.xterm.unmounted()
+  })
 
   return {
     installBrew,

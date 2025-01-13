@@ -21,6 +21,7 @@ export function execPromise(
         cammand,
         merge(
           {
+            shell: '/bin/zsh',
             env
           },
           opt
@@ -62,6 +63,7 @@ export function execPromiseRoot(
       args,
       merge(
         {
+          shell: '/bin/zsh',
           env
         },
         opt
@@ -124,6 +126,7 @@ export function execPromiseRootWhenNeed(
       params,
       merge(
         {
+          shell: '/bin/zsh',
           env
         },
         opt

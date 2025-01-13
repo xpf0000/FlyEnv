@@ -6,39 +6,21 @@ import { AppStore } from '@/store/app'
 
 const { nativeTheme } = require('@electron/remote')
 
-interface HistoryType {
-  cammand: string
-  cammands: Array<string>
-}
-
 interface XTermType {
   xterm: Terminal | undefined
   dom: HTMLElement | undefined
-  index: number
-  historyIndex: number
-  history: Array<HistoryType>
-  cammand: Array<string>
 }
 
 class XTerm implements XTermType {
   xterm: Terminal | undefined
   dom: HTMLElement | undefined
-  cammand: Array<string>
-  history: Array<HistoryType>
-  historyIndex: number
-  index: number
   fitaddon: FitAddon | undefined
   logs: Array<string> = []
   ptyKey: string = ''
   end = false
   private resolve: Function | undefined = undefined
 
-  constructor() {
-    this.cammand = []
-    this.history = []
-    this.historyIndex = 0
-    this.index = 0
-  }
+  constructor() {}
 
   getSize(): { cols: number; rows: number } {
     const domRect = this.dom!.getBoundingClientRect()
@@ -52,6 +34,7 @@ class XTerm implements XTermType {
     this.dom = dom
     return new Promise((resolve) => {
       const doMount = () => {
+        console.log('doMount: ', dom)
         const { cols, rows } = this.getSize()
         const appStore = AppStore()
         const theme: { [k: string]: string } = {}
@@ -87,10 +70,6 @@ class XTerm implements XTermType {
         this.fitaddon = fitaddon
         this.initEvent()
         this.xterm.focus()
-        this.logs.forEach((s) => {
-          this.xterm?.write(s)
-        })
-        this.storeCurrentCursor()
         this.initLog()
         resolve(true)
       }
@@ -114,90 +93,6 @@ class XTerm implements XTermType {
     })
   }
 
-  cleanInput() {
-    // 光标移动到当前输入行最后
-    const n = this.cammand.length - this.index
-    const arr = []
-    for (let i = 0; i < n; i += 1) {
-      arr.push('\x1B[C')
-    }
-    if (arr.length > 0) {
-      this.xterm!.write(arr.join(''))
-    }
-    // 传递退格指令
-    this.xterm!.write(
-      this.cammand
-        .map(() => {
-          return '\b \b'
-        })
-        .join('')
-    )
-  }
-
-  /**
-   * 从上个保存位置恢复光标
-   */
-  resetCursorFromStore() {
-    this.xterm?.write('\x1B8')
-  }
-
-  /**
-   * 保存当前光标位置
-   */
-  storeCurrentCursor() {
-    this.xterm?.write('\x1B7')
-  }
-
-  cursorMove(n: number, code: string) {
-    const step = []
-    for (let i = 0; i < n; i += 1) {
-      step.push(code)
-    }
-    if (step.length > 0) {
-      this.xterm!.write(step.join(''))
-    }
-  }
-
-  /**
-   * 光标前进
-   * @param n
-   */
-  cursorMoveGo(n: number) {
-    this.cursorMove(n, '\x1B[C')
-  }
-
-  /**
-   * 光标后退
-   * @param n
-   */
-  cursorMoveBack(n: number) {
-    this.cursorMove(n, '\x1B[D')
-  }
-
-  addHistory() {
-    const c = this.cammand.join('')
-    const last = [...this.history].pop()
-    if (last?.cammand !== c) {
-      this.history.push({
-        cammand: c,
-        cammands: [...this.cammand]
-      })
-    }
-    this.historyIndex = this.history.length
-  }
-
-  resetFromHistory() {
-    const c = this.history[this.historyIndex]
-    if (c) {
-      this.cleanInput()
-      this.cammand = [...c.cammands]
-      this.xterm!.write(c.cammand)
-      this.index = this.cammand.length
-      // 存储新光标位置
-      this.storeCurrentCursor()
-    }
-  }
-
   initEvent() {
     this.xterm!.onData((data) => {
       if (this.end) {
@@ -215,6 +110,7 @@ class XTerm implements XTermType {
   }
 
   initLog() {
+    console.log('initLog: ', this.logs)
     if (this.logs.length > 0) {
       for (const log of this.logs) {
         this.xterm?.write(log)
@@ -223,8 +119,10 @@ class XTerm implements XTermType {
   }
 
   write(data: string) {
+    if (!this.xterm) {
+      console.log('not xterm !!!!!!')
+    }
     this.xterm?.write(data)
-    this.storeCurrentCursor()
     if (
       data.startsWith(`\r`) ||
       data.endsWith(`\u001b[K`) ||
@@ -243,8 +141,6 @@ class XTerm implements XTermType {
       this.logs.shift()
     }
     this.logs.push(data)
-    this.cammand.splice(0)
-    this.index = 0
   }
 
   onWindowResit() {
@@ -256,18 +152,24 @@ class XTerm implements XTermType {
   cleanLog() {
     this.logs.splice(0)
   }
+
   destory() {
-    window.removeEventListener('resize', this.onWindowResit)
     if (this.ptyKey) {
       IPC.off(`NodePty:data:${this.ptyKey}`)
     }
-    this.xterm?.dispose()
+    this.unmounted()
+    this.cleanLog()
+  }
+
+  unmounted() {
+    window.removeEventListener('resize', this.onWindowResit)
+    try {
+      this.fitaddon?.dispose()
+      this.xterm?.dispose()
+    } catch (e) {}
     this.xterm = undefined
+    this.fitaddon = undefined
     this.dom = undefined
-    this.cammand = []
-    this.history = []
-    this.index = 0
-    this.historyIndex = 0
   }
 
   stop() {

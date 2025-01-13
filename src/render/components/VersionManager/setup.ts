@@ -4,6 +4,7 @@ import { BrewStore } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
 import { BrewSetup } from '@/components/VersionManager/brew/setup'
 import { MacPortsSetup } from '@/components/VersionManager/port/setup'
+import { StaticSetup } from '@/components/VersionManager/static/setup'
 
 export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
   const appStore = AppStore()
@@ -63,6 +64,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'brew') {
       BrewSetup.installing = false
       BrewSetup.installEnd = false
+      BrewSetup.xterm?.destory()
       delete BrewSetup.xterm
       BrewSetup.checkBrew()
       return
@@ -71,6 +73,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'port') {
       MacPortsSetup.installing = false
       MacPortsSetup.installEnd = false
+      MacPortsSetup.xterm?.destory()
       delete MacPortsSetup.xterm
       MacPortsSetup.checkMacPorts()
       return
@@ -84,7 +87,6 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
       BrewSetup.installEnd = false
       BrewSetup.xterm?.stop()?.then(() => {
         BrewSetup.xterm?.destory()
-        BrewSetup.xterm?.cleanLog()
         delete BrewSetup.xterm
       })
       return
@@ -95,7 +97,6 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
       MacPortsSetup.installEnd = false
       MacPortsSetup.xterm?.stop()?.then(() => {
         MacPortsSetup.xterm?.destory()
-        MacPortsSetup.xterm?.cleanLog()
         delete MacPortsSetup.xterm
       })
       return
@@ -109,6 +110,9 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'port') {
       return MacPortsSetup.fetching[typeFlag] || MacPortsSetup.installing
     }
+    if (libSrc.value === 'static') {
+      return StaticSetup.fetching[typeFlag]
+    }
     return false
   })
 
@@ -120,6 +124,10 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'port') {
       console.log('reFetch port !!!')
       MacPortsSetup.reFetch()
+    }
+    if (libSrc.value === 'static') {
+      console.log('reFetch port !!!')
+      StaticSetup.reFetch()
     }
   }
 
