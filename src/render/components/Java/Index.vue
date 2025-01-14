@@ -13,6 +13,9 @@
         type-flag="maven"
         title="Maven"
         url="https://maven.apache.org/"
+        :show-brew-lib="true"
+        :has-static="true"
+        :show-port-lib="true"
       />
     </div>
   </div>

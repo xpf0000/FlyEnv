@@ -13,6 +13,9 @@
         type-flag="composer"
         title="Composer"
         url="https://getcomposer.org/download/"
+        :show-port-lib="false"
+        :show-brew-lib="true"
+        :has-static="true"
       >
       </Composer>
     </div>
