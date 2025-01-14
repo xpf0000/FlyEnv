@@ -126,6 +126,43 @@
           </template>
         </template>
       </el-table-column>
+      <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
+        <template #header>
+          <el-tooltip :content="I18nT('service.envTips')" placement="top" show-after="600">
+            <span>{{ I18nT('service.env') }}</span>
+          </el-tooltip>
+        </template>
+        <template #default="scope">
+          <template v-if="isInEnv(scope.row)">
+            <el-button link type="primary">
+              <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+            </el-button>
+          </template>
+          <template v-else-if="ServiceActionStore.pathSeting[scope.row.bin]">
+            <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+          </template>
+        </template>
+      </el-table-column>
+      <el-table-column
+        :show-overflow-tooltip="true"
+        :label="I18nT('service.alias')"
+        :prop="null"
+        width="120px"
+        align="left"
+      >
+        <template #header>
+          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
+            <span>{{ I18nT('service.alias') }}</span>
+          </el-tooltip>
+        </template>
+        <template #default="scope">
+          <div class="flex items-center h-full min-h-9"
+            ><span class="truncate">{{
+              appStore.config.setup.alias?.[scope.row.bin]?.map((a) => a.name)?.join(',')
+            }}</span></div
+          >
+        </template>
+      </el-table-column>
       <el-table-column :label="I18nT('base.service')" :prop="null" width="110px">
         <template #default="scope">
           <template v-if="scope.row.running">
@@ -190,8 +227,10 @@
   import EXT from './EXT/index.vue'
   import type { AllAppModule } from '@/core/type'
   import { handleWriteHosts } from '@/util/Host'
+  import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 
   const { shell } = require('@electron/remote')
+  const { dirname } = require('path')
 
   const props = defineProps<{
     typeFlag: AllAppModule
@@ -234,6 +273,10 @@
     const flag = props.typeFlag
     return brewStore.module(flag)?.installed?.some((f) => f.running)
   })
+
+  const isInEnv = (item: SoftInstalled) => {
+    return ServiceActionStore.allPath.includes(dirname(item.bin))
+  }
 
   const groupTrunOn = (item: SoftInstalled) => {
     const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
@@ -387,4 +430,6 @@
       }
     })
   }
+
+  ServiceActionStore.fetchPath()
 </script>

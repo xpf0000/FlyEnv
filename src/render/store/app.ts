@@ -6,6 +6,7 @@ import EditorBaseConfig, { EditorConfig } from '@/store/module/EditorConfig'
 import { MessageError } from '@/util/Element'
 import type { AllAppModule } from '@/core/type'
 import { HostStore } from '@/components/Host/store'
+import type { AppServiceAliasItem } from '@shared/app'
 const { shell } = require('@electron/remote')
 const { getGlobal } = require('@electron/remote')
 const application = getGlobal('application')
@@ -79,6 +80,7 @@ type SetupBase = Partial<
 >
 
 type StateBase = SetupBase & {
+  alias?: Record<string, AppServiceAliasItem[]>
   common: {
     showItem: AppShowItem
   }
@@ -286,16 +288,19 @@ export const AppStore = defineStore('app', {
       })
     },
     saveConfig() {
-      const args = JSON.parse(
-        JSON.stringify({
-          server: this.config.server,
-          password: this.config.password,
-          setup: this.config.setup,
-          httpServe: this.httpServe
+      return new Promise((resolve) => {
+        const args = JSON.parse(
+          JSON.stringify({
+            server: this.config.server,
+            password: this.config.password,
+            setup: this.config.setup,
+            httpServe: this.httpServe
+          })
+        )
+        IPC.send('application:save-preference', args).then((key: string) => {
+          IPC.off(key)
+          resolve(true)
         })
-      )
-      IPC.send('application:save-preference', args).then((key: string) => {
-        IPC.off(key)
       })
     }
   }
