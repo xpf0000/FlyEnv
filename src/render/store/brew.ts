@@ -49,7 +49,7 @@ interface State extends StateBase {
   showInstallLog: boolean
   brewSrc: string
   log: Array<string>
-  LibUse: { [k: string]: 'brew' | 'port' | 'static' }
+  LibUse: { [k: string]: 'brew' | 'port' | 'static' | 'local' }
 }
 
 const state: State = {
