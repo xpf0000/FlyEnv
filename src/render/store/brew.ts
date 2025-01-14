@@ -16,6 +16,7 @@ export interface SoftInstalled {
   phpize?: string
   flag?: string
   pid?: string
+  typeFlag: AllAppModule
 }
 
 export interface OnlineVersionItem {

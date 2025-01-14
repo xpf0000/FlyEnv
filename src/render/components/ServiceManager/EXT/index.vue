@@ -1,5 +1,6 @@
 <template>
   <el-popover
+    ref="popper"
     effect="dark"
     popper-class="host-list-poper"
     placement="left-start"
@@ -9,9 +10,18 @@
     @show="onShow"
   >
     <ul v-poper-fix class="host-list-menu">
-      <li v-loading="loading" class="path-set" :class="state" @click.stop="doChange">
-        <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+      <li class="path-set" :class="state" @click.stop="doChange">
+        <template v-if="loading">
+          <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+        </template>
+        <template v-else>
+          <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+        </template>
         <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
+      </li>
+      <li @click.stop="doSetAlias">
+        <yb-icon class="current" :svg="import('@/svg/aliase.svg?raw')" width="17" height="17" />
+        <span class="ml-15">{{ I18nT('service.setaliase') }}</span>
       </li>
       <template v-if="type === 'postgresql'">
         <Extension :item="item" />
@@ -25,7 +35,7 @@
   </el-popover>
 </template>
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, ref } from 'vue'
   import type { SoftInstalled } from '@/store/brew'
   import { ServiceActionStore } from './store'
   import Extension from '@/components/ServiceManager/Pgsql/extension.vue'
@@ -37,6 +47,8 @@
     item: SoftInstalled
     type: string
   }>()
+
+  const popper = ref()
 
   const loading = computed(() => {
     return ServiceActionStore.pathSeting?.[props.item.bin] ?? false
@@ -64,6 +76,12 @@
 
   const onShow = () => {
     console.log('onShow !!!')
+  }
+
+  const doSetAlias = () => {
+    popper.value.hide()
+    const item: SoftInstalled = props.item
+    ServiceActionStore.showAlias(item)
   }
 
   const doChange = () => {
