@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import { AppStore } from '@/store/app'
 import { FNMSetup } from '@/components/Nodejs/fnm/setup'
 import { NodejsStore } from '@/components/Nodejs/node'
+import { NVMSetup } from '@/components/Nodejs/nvm/setup'
 
 export const Setup = () => {
   const appStore = AppStore()
@@ -23,12 +24,18 @@ export const Setup = () => {
     if (currentTool.value === 'fnm') {
       return FNMSetup.installing
     }
+    if (currentTool.value === 'nvm') {
+      return NVMSetup.installing
+    }
     return false
   })
 
   const taskEnd = computed(() => {
     if (currentTool.value === 'fnm') {
       return FNMSetup.installEnd
+    }
+    if (currentTool.value === 'nvm') {
+      return NVMSetup.installEnd
     }
     return false
   })
@@ -41,10 +48,17 @@ export const Setup = () => {
       delete FNMSetup.xterm
       return
     }
+    if (currentTool.value === 'nvm') {
+      NVMSetup.installing = false
+      NVMSetup.installEnd = false
+      NVMSetup.xterm?.destory()
+      delete NVMSetup.xterm
+      return
+    }
   }
 
   const taskCancel = () => {
-    store.chekTool().then().catch()
+    store.chekTool()?.then()?.catch()
     if (currentTool.value === 'fnm') {
       FNMSetup.installing = false
       FNMSetup.installEnd = false
@@ -54,11 +68,23 @@ export const Setup = () => {
       })
       return
     }
+    if (currentTool.value === 'nvm') {
+      NVMSetup.installing = false
+      NVMSetup.installEnd = false
+      NVMSetup.xterm?.stop()?.then(() => {
+        NVMSetup.xterm?.destory()
+        delete NVMSetup.xterm
+      })
+      return
+    }
   }
 
   const loading = computed(() => {
     if (currentTool.value === 'fnm') {
       return FNMSetup.fetching || FNMSetup.installing
+    }
+    if (currentTool.value === 'nvm') {
+      return NVMSetup.fetching || NVMSetup.installing
     }
     return false
   })
@@ -66,6 +92,9 @@ export const Setup = () => {
   const reFetch = () => {
     if (currentTool.value === 'fnm') {
       FNMSetup.reFetch()
+    }
+    if (currentTool.value === 'nvm') {
+      NVMSetup.reFetch()
     }
   }
 

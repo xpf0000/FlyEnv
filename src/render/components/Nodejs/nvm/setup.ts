@@ -9,7 +9,7 @@ import { AppStore } from '@/store/app'
 const { dirname, join } = require('path')
 const { writeFile, chmod, remove } = require('fs-extra')
 
-export const FNMSetup = reactive<{
+export const NVMSetup = reactive<{
   installed: boolean
   installEnd: boolean
   installing: boolean
@@ -45,63 +45,63 @@ export const Setup = () => {
   const hasPort = !!global.Server.MacPorts
 
   const fetchLocal = () => {
-    if (FNMSetup.local.length > 0 || FNMSetup.fetching) {
+    if (NVMSetup.local.length > 0 || NVMSetup.fetching) {
       return
     }
-    FNMSetup.fetching = true
-    IPC.send('app-fork:node', 'localVersion', 'fnm').then((key: string, res: any) => {
+    NVMSetup.fetching = true
+    IPC.send('app-fork:node', 'localVersion', 'nvm').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
-        FNMSetup.local.splice(0)
+        NVMSetup.local.splice(0)
         const list = res?.data?.versions ?? []
-        FNMSetup.local.push(...list)
-        FNMSetup.current = res?.data?.current ?? ''
+        NVMSetup.local.push(...list)
+        NVMSetup.current = res?.data?.current ?? ''
       }
-      FNMSetup.fetching = false
+      NVMSetup.fetching = false
     })
   }
 
   const reFetch = () => {
-    FNMSetup.fetching = false
-    FNMSetup.local.splice(0)
-    FNMSetup.current = ''
+    NVMSetup.fetching = false
+    NVMSetup.local.splice(0)
+    NVMSetup.current = ''
     fetchLocal()
     store.chekTool()?.then()?.catch()
   }
 
-  FNMSetup.reFetch = reFetch
+  NVMSetup.reFetch = reFetch
 
   const versionChange = (item: any) => {
-    if (FNMSetup.switching) {
+    if (NVMSetup.switching) {
       return
     }
-    FNMSetup.switching = true
+    NVMSetup.switching = true
     item.switching = true
-    IPC.send('app-fork:node', 'versionChange', 'fnm', item.version).then(
+    IPC.send('app-fork:node', 'versionChange', 'nvm', item.version).then(
       (key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          FNMSetup.current = item.version
+          NVMSetup.current = item.version
           MessageSuccess(I18nT('base.success'))
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
         }
         item.switching = false
-        FNMSetup.switching = false
+        NVMSetup.switching = false
       }
     )
   }
 
   const installOrUninstall = (action: 'install' | 'uninstall', item: any) => {
     item.installing = true
-    IPC.send('app-fork:node', 'installOrUninstall', 'fnm', action, item.version).then(
+    IPC.send('app-fork:node', 'installOrUninstall', 'nvm', action, item.version).then(
       (key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          FNMSetup.current = res?.data?.current ?? ''
+          NVMSetup.current = res?.data?.current ?? ''
           const list = res?.data?.versions ?? []
-          FNMSetup.local.splice(0)
-          FNMSetup.local.push(...list)
+          NVMSetup.local.splice(0)
+          NVMSetup.local.push(...list)
           MessageSuccess(I18nT('base.success'))
         } else {
           MessageError(I18nT('base.fail'))
@@ -116,7 +116,7 @@ export const Setup = () => {
       return []
     }
     const locals =
-      FNMSetup.local.map((v) => {
+      NVMSetup.local.map((v) => {
         return {
           version: v,
           installed: true
@@ -124,7 +124,7 @@ export const Setup = () => {
       }) ?? []
     const remotas =
       store.all
-        .filter((a) => !FNMSetup.local.includes(a))
+        .filter((a) => !NVMSetup.local.includes(a))
         .map((v) => {
           return {
             version: v,
@@ -132,16 +132,16 @@ export const Setup = () => {
           }
         }) ?? []
     const list = [...locals, ...remotas]
-    if (!FNMSetup.search) {
+    if (!NVMSetup.search) {
       return list
     }
     return list.filter(
-      (v) => v.version.includes(FNMSetup.search) || FNMSetup.search.includes(v.version)
+      (v) => v.version.includes(NVMSetup.search) || NVMSetup.search.includes(v.version)
     )
   })
 
   const showInstall = computed(() => {
-    return !store.checking && (!store.tool || store.tool === 'nvm')
+    return !store.checking && (!store.tool || store.tool === 'fnm')
   })
 
   const proxy = computed(() => {
@@ -154,12 +154,12 @@ export const Setup = () => {
     return proxy?.value?.proxy
   })
 
-  const installFNM = async () => {
-    if (FNMSetup.installing) {
+  const installNVM = async () => {
+    if (NVMSetup.installing) {
       return
     }
-    FNMSetup.installEnd = false
-    FNMSetup.installing = true
+    NVMSetup.installEnd = false
+    NVMSetup.installing = true
     await nextTick()
     const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
     const params = []
@@ -167,14 +167,15 @@ export const Setup = () => {
       params.unshift(proxyStr?.value)
     }
 
-    if (FNMSetup.installLib === 'shell') {
-      params.push('curl -fsSL https://fnm.vercel.app/install | bash')
-    } else if (FNMSetup.installLib === 'brew') {
-      params.push(`arch ${arch} brew install --verbose fnm`)
+    if (NVMSetup.installLib === 'shell') {
+      params.push(`curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash`)
+      params.push(`command brew --prefix && chmod -R go-w "$(brew --prefix)/share"`)
+    } else if (NVMSetup.installLib === 'brew') {
+      params.push(`arch ${arch} brew install --verbose nvm`)
     } else {
       params.push(`arch ${arch} sudo -S port -f deactivate libuuid`)
-      params.push(`arch ${arch} sudo -S port clean -v fnm`)
-      params.push(`arch ${arch} sudo -S port install -v fnm`)
+      params.push(`arch ${arch} sudo -S port clean -v nvm`)
+      params.push(`arch ${arch} sudo -S port install -v nvm`)
     }
 
     const content = `#!/bin/zsh
@@ -188,23 +189,23 @@ ${params.join('\n')}`
 
     console.log('content: ', content)
 
-    const file = join(global.Server.Cache!, `fnm-install.sh`)
+    const file = join(global.Server.Cache!, `nvm-install.sh`)
     await writeFile(file, content)
     await chmod(file, '0777')
     await nextTick()
     const execXTerm = new XTerm()
-    FNMSetup.xterm = execXTerm
+    NVMSetup.xterm = execXTerm
     await execXTerm.mount(xtermDom.value!)
-    await execXTerm.send([`cd "${dirname(file)}"`, `./fnm-install.sh`])
-    FNMSetup.installEnd = true
+    await execXTerm.send([`cd "${dirname(file)}"`, `./nvm-install.sh`])
+    NVMSetup.installEnd = true
     await remove(file)
     store.chekTool()?.then()?.catch()
   }
 
   onMounted(() => {
-    if (FNMSetup.installing) {
+    if (NVMSetup.installing) {
       nextTick().then(() => {
-        const execXTerm: XTerm = FNMSetup.xterm as any
+        const execXTerm: XTerm = NVMSetup.xterm as any
         if (execXTerm && xtermDom.value) {
           execXTerm.mount(xtermDom.value).then().catch()
         }
@@ -213,7 +214,7 @@ ${params.join('\n')}`
   })
 
   onUnmounted(() => {
-    FNMSetup.xterm && FNMSetup.xterm.unmounted()
+    NVMSetup.xterm && NVMSetup.xterm.unmounted()
   })
 
   fetchLocal()
@@ -226,7 +227,7 @@ ${params.join('\n')}`
     xtermDom,
     hasBrew,
     hasPort,
-    installFNM,
+    installNVM,
     tableData
   }
 }

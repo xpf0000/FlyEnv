@@ -20,9 +20,11 @@ interface State {
   toolInstallEnd: boolean
   logs: string[]
   all: string[]
+  checking: boolean
 }
 
 const state: State = {
+  checking: false,
   tool: '',
   fetching: false,
   all: [],
@@ -114,11 +116,15 @@ export const NodejsStore = defineStore('nodejs', {
       })
     },
     chekTool() {
+      if (this.checking) {
+        return
+      }
+      this.checking = true
       return new Promise((resolve) => {
         IPC.send('app-fork:node', 'nvmDir').then((key: string, res: any) => {
           IPC.off(key)
           this.tool = res?.data ?? ''
-          this.showInstall = !this.tool
+          this.checking = false
           resolve(this.tool)
         })
       })

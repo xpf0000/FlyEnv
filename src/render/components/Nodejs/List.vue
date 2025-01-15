@@ -3,7 +3,7 @@
     <template #header>
       <div class="card-header">
         <div class="left">
-          <el-radio-group v-model="currentTool" size="small" class="ml-6">
+          <el-radio-group v-model="currentTool" size="small">
             <el-radio-button value="fnm">fnm</el-radio-button>
             <el-radio-button value="nvm">nvm</el-radio-button>
           </el-radio-group>
@@ -19,6 +19,9 @@
     </template>
     <template v-if="currentTool === 'fnm'">
       <FnmVM />
+    </template>
+    <template v-else-if="currentTool === 'nvm'">
+      <NVMVM />
     </template>
     <template v-if="showFooter" #footer>
       <template v-if="taskEnd">
@@ -36,6 +39,7 @@
   import { I18nT } from '@shared/lang'
   import { Setup } from '@/components/Nodejs/setup'
   import FnmVM from './fnm/index.vue'
+  import NVMVM from './nvm/index.vue'
 
   const nodejsStore = NodejsStore()
 

@@ -6,7 +6,6 @@ import { compareVersions } from 'compare-versions'
 import { exec } from 'child-process-promise'
 import { existsSync } from 'fs'
 import { chmod, copyFile, unlink, readdir } from 'fs-extra'
-import { execPromiseRootWhenNeed } from '@shared/Exec'
 import { fixEnv } from '@shared/utils'
 import axios from 'axios'
 
@@ -47,9 +46,9 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
-        command = 'fnm ls'
+        command = 'unset PREFIX;fnm ls'
       } else {
-        command = '[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ls'
+        command = 'unset PREFIX;[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ls'
       }
       try {
         const env = await fixEnv()
@@ -96,9 +95,9 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
-        command = `fnm default ${select}`
+        command = `unset PREFIX;fnm default ${select}`
       } else {
-        command = `export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm alias default ${select}`
+        command = `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm alias default ${select}`
       }
       try {
         const env = await fixEnv()
@@ -117,39 +116,13 @@ class Manager extends Base {
     })
   }
 
-  installNvm(flag: string) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      try {
-        const sh = join(global.Server.Static!, 'sh/node.sh')
-        const copyfile = join(global.Server.Cache!, 'node.sh')
-        if (existsSync(copyfile)) {
-          await unlink(copyfile)
-        }
-        await copyFile(sh, copyfile)
-        await chmod(copyfile, '0777')
-        const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-        const params = ['node.sh', flag, arch]
-        execPromiseRootWhenNeed('zsh', params, {
-          cwd: global.Server.Cache
-        })
-          .on(on)
-          .then(() => {
-            resolve(true)
-          })
-          .catch(reject)
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
-
   installOrUninstall(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', version: string) {
     return new ForkPromise(async (resolve, reject) => {
       let command = ''
       if (tool === 'fnm') {
-        command = `fnm ${action} ${version}`
+        command = `unset PREFIX;fnm ${action} ${version}`
       } else {
-        command = `export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ${action} ${version}`
+        command = `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ${action} ${version}`
       }
       try {
         const env = await fixEnv()
@@ -177,23 +150,6 @@ class Manager extends Base {
 
   nvmDir() {
     return new ForkPromise(async (resolve, reject) => {
-      const arr: Set<string> = new Set()
-      try {
-        const env = await fixEnv()
-        await exec(`fnm -V`, {
-          env
-        })
-        arr.add('fnm')
-      } catch (e) {}
-
-      try {
-        const env = await fixEnv()
-        await exec('[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm -v', {
-          env
-        })
-        arr.add('nvm')
-      } catch (e) {}
-
       try {
         const sh = join(global.Server.Static!, 'sh/node.sh')
         const copyfile = join(global.Server.Cache!, 'node.sh')

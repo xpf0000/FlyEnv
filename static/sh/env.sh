@@ -1,10 +1,13 @@
 #!/bin/zsh
-for EACH_PROFILE in ".profile" ".bashrc" ".bash_profile" ".zprofile" ".zshrc"
-    do
-      if [ -f "${HOME}/${EACH_PROFILE}" ]; then
-        source "${HOME}/${EACH_PROFILE}"
-      fi
-    done
+initenv() {
+  for EACH_PROFILE in ".profile" ".bashrc" ".bash_profile" ".zprofile" ".zshrc"
+      do
+        if [ -f "${HOME}/${EACH_PROFILE}" ]; then
+          source "${HOME}/${EACH_PROFILE}" || true
+        fi
+      done
+}
+initenv > /dev/null 2>&1
 if command -v printenv &> /dev/null; then
     printenv
     exit 0

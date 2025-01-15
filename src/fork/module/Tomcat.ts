@@ -72,7 +72,7 @@ class Tomcat extends Base {
           for (const item of versions) {
             const bin = join(dirname(item.bin), 'version.sh')
             await execPromiseRoot(['chmod', '777', bin])
-            const command = `zsh ${bin}`
+            const command = `${bin}`
             const reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
             all.push(TaskQueue.run(versionBinVersion, command, reg))
           }
