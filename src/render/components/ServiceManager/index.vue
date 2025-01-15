@@ -128,15 +128,24 @@
       </el-table-column>
       <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
         <template #header>
-          <el-tooltip :content="I18nT('service.envTips')" placement="top" show-after="600">
+          <el-tooltip :content="I18nT('service.envTips')" placement="top" :show-after="600">
             <span>{{ I18nT('service.env') }}</span>
           </el-tooltip>
         </template>
         <template #default="scope">
-          <template v-if="isInEnv(scope.row)">
-            <el-button link type="primary">
-              <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
-            </el-button>
+          <template v-if="isInAppEnv(scope.row)">
+            <el-tooltip :content="I18nT('service.setByApp')" :show-after="600" placement="top">
+              <el-button link type="primary">
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </el-tooltip>
+          </template>
+          <template v-else-if="isInEnv(scope.row)">
+            <el-tooltip :content="I18nT('service.setByNoApp')" :show-after="600" placement="top">
+              <el-button link type="warning">
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </el-tooltip>
           </template>
           <template v-else-if="ServiceActionStore.pathSeting[scope.row.bin]">
             <el-button style="width: auto; height: auto" text :loading="true"></el-button>
@@ -151,7 +160,7 @@
         align="left"
       >
         <template #header>
-          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
+          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" :show-after="600">
             <span>{{ I18nT('service.alias') }}</span>
           </el-tooltip>
         </template>
@@ -213,223 +222,31 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, type ComputedRef, reactive } from 'vue'
-  import { reloadService, startService, stopService } from '@/util/Service'
-  import { type AppHost, AppStore } from '@/store/app'
-  import { BrewStore, type SoftInstalled } from '@/store/brew'
   import { I18nT } from '@shared/lang'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-  import { MysqlStore } from '@/components/Mysql/mysql'
-  import { Service } from '@/components/ServiceManager/service'
-  import installedVersions from '@/util/InstalledVersions'
   import { FolderAdd } from '@element-plus/icons-vue'
-  import { AsyncComponentShow } from '@/util/AsyncComponent'
   import EXT from './EXT/index.vue'
   import type { AllAppModule } from '@/core/type'
-  import { handleWriteHosts } from '@/util/Host'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-
-  const { shell } = require('@electron/remote')
-  const { dirname } = require('path')
+  import { Setup } from './setup'
 
   const props = defineProps<{
     typeFlag: AllAppModule
     title: string
   }>()
 
-  if (!Service[props.typeFlag]) {
-    Service[props.typeFlag] = {
-      fetching: false
-    }
-  }
-
-  const appStore = AppStore()
-  const brewStore = BrewStore()
-
-  const service = computed(() => {
-    return Service[props.typeFlag]
-  })
-
-  const versions = computed(() => {
-    return brewStore.module(props.typeFlag).installed
-  })
-
-  const version = computed(() => {
-    const flag = props.typeFlag
-    const server: any = appStore.config.server
-    return server?.[flag]?.current
-  })
-
-  const currentVersion: ComputedRef<SoftInstalled | undefined> = computed(() => {
-    const flag = props.typeFlag
-    return brewStore
-      .module(flag)
-      ?.installed?.find(
-        (i) => i.path === version?.value?.path && i.version === version?.value?.version
-      )
-  })
-
-  const versionRunning = computed(() => {
-    const flag = props.typeFlag
-    return brewStore.module(flag)?.installed?.some((f) => f.running)
-  })
-
-  const isInEnv = (item: SoftInstalled) => {
-    return ServiceActionStore.allPath.includes(dirname(item.bin))
-  }
-
-  const groupTrunOn = (item: SoftInstalled) => {
-    const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
-    const key = item.bin
-    if (dict?.[key] === false) {
-      dict[key] = true
-      delete dict?.[key]
-    } else {
-      dict[key] = false
-    }
-    appStore.config.setup.phpGroupStart = reactive(dict)
-    appStore.saveConfig()
-  }
-
-  const resetData = () => {
-    if (service?.value?.fetching) {
-      return
-    }
-    service.value.fetching = true
-    const data = brewStore.module(props.typeFlag)
-    data.installedInited = false
-    installedVersions.allInstalledVersions([props.typeFlag]).then(() => {
-      service.value.fetching = false
-    })
-  }
-
-  const openDir = (dir: string) => {
-    shell.openPath(dir)
-  }
-
-  const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: SoftInstalled) => {
-    if (!item?.version || !item?.path) {
-      return
-    }
-    const typeFlag = props.typeFlag
-    let action: any
-    switch (flag) {
-      case 'stop':
-        action = stopService(typeFlag, item)
-        break
-      case 'start':
-      case 'restart':
-        action = startService(typeFlag, item)
-        break
-      case 'reload':
-        action = reloadService(typeFlag, item)
-        break
-    }
-    action.then((res: any) => {
-      if (typeof res === 'string') {
-        MessageError(res)
-      } else {
-        if (typeFlag === 'mysql') {
-          const mysqlStore = MysqlStore()
-          if (flag === 'stop') {
-            mysqlStore.groupStop().then()
-          } else {
-            mysqlStore.groupStart().then()
-          }
-        }
-        if (currentVersion.value) {
-          currentVersion.value.run = false
-          currentVersion.value.running = false
-        }
-        if (flag === 'stop') {
-          item.run = false
-          item.running = false
-        } else {
-          item.run = true
-          item.running = false
-          if (
-            item.version !== currentVersion.value?.version ||
-            item.path !== currentVersion.value?.path
-          ) {
-            appStore.UPDATE_SERVER_CURRENT({
-              flag: props.typeFlag,
-              data: JSON.parse(JSON.stringify(item))
-            })
-            appStore.saveConfig()
-          }
-        }
-        MessageSuccess(I18nT('base.success'))
-      }
-    })
-  }
-
-  let CustomPathVM: any
-  import('./customPath.vue').then((res) => {
-    CustomPathVM = res.default
-  })
-  const showCustomDir = () => {
-    AsyncComponentShow(CustomPathVM, {
-      flag: props.typeFlag
-    }).then((res) => {
-      if (res) {
-        console.log('showCustomDir chagned !!!')
-        resetData()
-      }
-    })
-  }
-
-  let PhpMyAdminVM: any
-  import('./phpMyAdmin.vue').then((res) => {
-    PhpMyAdminVM = res.default
-  })
-  const toPhpMyAdmin = () => {
-    const toOpenHost = (item: AppHost) => {
-      const host = item.name
-      const brewStore = BrewStore()
-      const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
-      const apacheRunning = brewStore.module('apache').installed.find((i) => i.run)
-      const caddyRunning = brewStore.module('caddy').installed.find((i) => i.run)
-      let http = 'http://'
-      let port = 80
-      if (item.useSSL) {
-        http = 'https://'
-        port = 443
-        if (nginxRunning) {
-          port = item.port.nginx_ssl
-        } else if (apacheRunning) {
-          port = item.port.apache_ssl
-        } else if (caddyRunning) {
-          port = item.port.caddy_ssl
-        }
-      } else {
-        if (nginxRunning) {
-          port = item.port.nginx
-        } else if (apacheRunning) {
-          port = item.port.apache
-        } else if (caddyRunning) {
-          port = item.port.caddy
-        }
-      }
-
-      const portStr = port === 80 || port === 443 ? '' : `:${port}`
-      const url = `${http}${host}${portStr}`
-      shell.openExternal(url)
-    }
-    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
-    if (find) {
-      toOpenHost(find)
-      return
-    }
-
-    AsyncComponentShow(PhpMyAdminVM).then(async (res) => {
-      if (res) {
-        await appStore.initHost()
-        handleWriteHosts().then().catch()
-        const url = 'http://phpmyadmin.phpwebstudy.test'
-        shell.openExternal(url)
-      }
-    })
-  }
-
-  ServiceActionStore.fetchPath()
+  const {
+    appStore,
+    service,
+    versions,
+    versionRunning,
+    isInEnv,
+    isInAppEnv,
+    groupTrunOn,
+    openDir,
+    serviceDo,
+    showCustomDir,
+    toPhpMyAdmin,
+    currentVersion,
+    resetData
+  } = Setup(props.typeFlag)
 </script>

@@ -10,6 +10,7 @@
     @show="onShow"
   >
     <ul v-poper-fix class="host-list-menu">
+      <slot></slot>
       <li class="path-set" :class="state" @click.stop="doChange">
         <template v-if="loading">
           <el-button style="width: auto; height: auto" text :loading="true"></el-button>

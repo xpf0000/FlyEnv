@@ -19,11 +19,13 @@ interface State {
   toolInstalling: boolean
   toolInstallEnd: boolean
   logs: string[]
+  all: string[]
 }
 
 const state: State = {
   tool: '',
   fetching: false,
+  all: [],
   fnm: {
     all: [],
     local: [],
@@ -45,32 +47,6 @@ export const NodejsStore = defineStore('nodejs', {
   state: (): State => state,
   getters: {},
   actions: {
-    doInstallTool(form: { tool: 'fnm' | 'nvm'; installBy: 'shell' | 'brew' | 'port' }) {
-      if (this.toolInstalling) {
-        return undefined
-      }
-      this.toolInstalling = true
-      this.logs.splice(0)
-      const flag = `${form.tool}-${form.installBy}`
-      return new Promise((resolve, reject) => {
-        IPC.send('app-fork:node', 'installNvm', flag).then((key: string, res: any) => {
-          if (res?.code === 0) {
-            IPC.off(key)
-            MessageSuccess(I18nT('base.success'))
-            this.fetchData(form.tool, true)
-            this.toolInstallEnd = true
-            resolve(true)
-          } else if (res?.code === 1) {
-            IPC.off(key)
-            this.toolInstalling = false
-            MessageError(I18nT('base.fail'))
-            reject(new Error('fail'))
-          } else if (res?.code === 200) {
-            this.logs.push(res?.msg ?? '')
-          }
-        })
-      })
-    },
     installOrUninstall(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', item: any) {
       item.installing = true
       IPC.send('app-fork:node', 'installOrUninstall', tool, action, item.version).then(
@@ -106,36 +82,35 @@ export const NodejsStore = defineStore('nodejs', {
         }
       )
     },
-    fetchData(tool: 'fnm' | 'nvm', reset = false) {
-      if (!tool || this.fetching || (!reset && this?.[tool]?.all.length > 0)) {
+    fetchAll() {
+      if (this.all.length > 0) {
         return
       }
-      this.fetching = true
-      let allFetch = false
-      let localFetch = false
-
-      IPC.send('app-fork:node', 'allVersion', tool).then((key: string, res: any) => {
-        IPC.off(key)
-        const item: NodeJSItem = this?.[tool]
-        item.all.splice(0)
-        item.all = res?.data?.all ?? []
-        allFetch = true
-        if (allFetch && localFetch) {
-          this.fetching = false
+      let saved: any = localStorage.getItem(`fetchVerion-nodejs-all`)
+      if (saved) {
+        saved = JSON.parse(saved)
+        const time = Math.round(new Date().getTime() / 1000)
+        if (time < saved.expire) {
+          const list: string[] = saved.data
+          this.all.splice(0)
+          this.all.push(...list)
+          return
         }
-      })
-
-      IPC.send('app-fork:node', 'localVersion', tool).then((key: string, res: any) => {
+      }
+      IPC.send('app-fork:node', 'allVersion').then((key: string, res: any) => {
         IPC.off(key)
-        const item: NodeJSItem = this?.[tool]
-        item.local.splice(0)
-        item.current = ''
-        item.local = res?.data?.versions ?? []
-        item.current = res?.data?.current ?? ''
-        localFetch = true
-        if (allFetch && localFetch) {
-          this.fetching = false
+        const list = res?.data?.all ?? []
+        if (list.length > 0) {
+          localStorage.setItem(
+            `fetchVerion-nodejs-all`,
+            JSON.stringify({
+              expire: Math.round(new Date().getTime() / 1000) + 60 * 60,
+              data: list
+            })
+          )
         }
+        this.all.splice(0)
+        this.all.push(...list)
       })
     },
     chekTool() {

@@ -27,7 +27,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
   const libSrc = computed({
     get(): 'brew' | 'port' | 'static' {
       if (brewStore.LibUse[typeFlag]) {
-        return brewStore.LibUse[typeFlag]
+        return brewStore.LibUse[typeFlag] as any
       }
       if (hasStatic) {
         return 'static'
