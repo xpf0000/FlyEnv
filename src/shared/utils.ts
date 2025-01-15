@@ -19,8 +19,9 @@ export async function fixEnv(): Promise<{ [k: string]: any }> {
   let text = ''
   try {
     await chmod(file, '0777')
-    const res = await exec(`zsh env.sh`, {
-      cwd: global.Server.Cache!
+    const res = await exec(`./env.sh`, {
+      cwd: global.Server.Cache!,
+      shell: '/bin/zsh'
     })
     text = res.stdout
   } catch (e) {}
@@ -40,7 +41,6 @@ export async function fixEnv(): Promise<{ [k: string]: any }> {
     })
   const PATH = `${AppEnv['PATH']}:/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/Homebrew/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin`
   AppEnv['PATH'] = Array.from(new Set(PATH.split(':'))).join(':')
-  console.log('PATH: ', AppEnv['PATH'])
   if (global.Server.Proxy) {
     for (const k in global.Server.Proxy) {
       AppEnv[k] = global.Server.Proxy[k]

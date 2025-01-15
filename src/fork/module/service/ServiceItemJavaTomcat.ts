@@ -375,7 +375,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       await writeFile(sh, this.command)
       await execPromiseRoot([`chmod`, '777', sh])
       try {
-        const res = await execPromise(`zsh ${sh}`, { env })
+        const res = await execPromise(`${sh}`, { env })
         console.log('start res: ', res)
         const pid = await this.checkPid()
         this.daemon()
