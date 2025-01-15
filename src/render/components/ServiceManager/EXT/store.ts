@@ -13,6 +13,7 @@ export const ServiceActionStore: {
   versionDeling: Record<string, boolean>
   pathSeting: Record<string, boolean>
   allPath: string[]
+  appPath: string[]
   fetchPathing: boolean
   fetchPath: () => void
   cleanAlias: () => void
@@ -27,6 +28,7 @@ export const ServiceActionStore: {
   versionDeling: {},
   pathSeting: {},
   allPath: [],
+  appPath: [],
   fetchPathing: false,
   showAlias(item: SoftInstalled) {
     import('./alias.vue').then((res) => {
@@ -90,8 +92,11 @@ export const ServiceActionStore: {
     ServiceActionStore.fetchPathing = true
     IPC.send('app-fork:tools', 'fetchPATH').then((key: string, res: any) => {
       IPC.off(key)
-      if (res?.code === 0 && res?.data?.length > 0) {
-        ServiceActionStore.allPath = reactive([...res.data])
+      if (res?.code === 0 && res?.data?.allPath) {
+        const all = res?.data?.allPath ?? []
+        const app = res?.data?.appPath ?? []
+        ServiceActionStore.allPath = reactive([...all])
+        ServiceActionStore.appPath = reactive([...app])
         setTimeout(() => {
           ServiceActionStore.fetchPathing = false
         }, 60000)
@@ -107,8 +112,10 @@ export const ServiceActionStore: {
       (key: string, res: any) => {
         IPC.off(key)
         if (res?.code === 0) {
-          const all = res?.data ?? []
+          const all = res?.data?.allPath ?? []
+          const app = res?.data?.appPath ?? []
           ServiceActionStore.allPath = reactive([...all])
+          ServiceActionStore.appPath = reactive([...app])
           MessageSuccess(I18nT('base.success'))
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))

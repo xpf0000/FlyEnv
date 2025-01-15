@@ -8,38 +8,38 @@ import { existsSync } from 'fs'
 import { chmod, copyFile, unlink, readdir } from 'fs-extra'
 import { execPromiseRootWhenNeed } from '@shared/Exec'
 import { fixEnv } from '@shared/utils'
+import axios from 'axios'
 
 class Manager extends Base {
   constructor() {
     super()
   }
 
-  allVersion(tool: 'fnm' | 'nvm') {
-    return new ForkPromise(async (resolve, reject) => {
-      let command = ''
-      if (tool === 'fnm') {
-        command = 'fnm ls-remote'
-      } else {
-        command =
-          'export NVM_DIR="${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ls-remote'
+  allVersion() {
+    return new ForkPromise(async (resolve) => {
+      const url = 'https://nodejs.org/dist/'
+      const res = await axios({
+        method: 'get',
+        url: url,
+        proxy: this.getAxiosProxy()
+      })
+      const html = res.data
+      const regex = /href="v([\d\.]+?)\/"/g
+      let result
+      let links = []
+      while ((result = regex.exec(html)) != null) {
+        links.push(result[1].trim())
       }
-      try {
-        const env = await fixEnv()
-        const res = await exec(command, {
-          env
+      console.log('links: ', links)
+      links = links
+        .filter((s) => Number(s.split('.')[0]) > 7)
+        .sort((a, b) => {
+          return compareVersions(b, a)
         })
-        const str = res?.stdout ?? ''
-        const all =
-          str?.match(/\sv\d+(\.\d+){1,4}\s/g)?.map((v) => {
-            return v.trim().replace('v', '')
-          }) ?? []
-        resolve({
-          all: all.reverse(),
-          tool
-        })
-      } catch (e) {
-        reject(e)
-      }
+      console.log('links: ', links)
+      resolve({
+        all: links
+      })
     })
   }
 
@@ -49,8 +49,7 @@ class Manager extends Base {
       if (tool === 'fnm') {
         command = 'fnm ls'
       } else {
-        command =
-          'export NVM_DIR="${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ls'
+        command = '[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ls'
       }
       try {
         const env = await fixEnv()
@@ -178,6 +177,23 @@ class Manager extends Base {
 
   nvmDir() {
     return new ForkPromise(async (resolve, reject) => {
+      const arr: Set<string> = new Set()
+      try {
+        const env = await fixEnv()
+        await exec(`fnm -V`, {
+          env
+        })
+        arr.add('fnm')
+      } catch (e) {}
+
+      try {
+        const env = await fixEnv()
+        await exec('[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm -v', {
+          env
+        })
+        arr.add('nvm')
+      } catch (e) {}
+
       try {
         const sh = join(global.Server.Static!, 'sh/node.sh')
         const copyfile = join(global.Server.Cache!, 'node.sh')

@@ -13,9 +13,9 @@ import {
   writeFile
 } from 'fs-extra'
 import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
-import { join, dirname, resolve as PathResolve } from 'path'
+import { join, dirname, resolve as PathResolve, basename } from 'path'
 import { I18nT } from '../lang'
-import { execPromiseRoot } from '@shared/Exec'
+import { execPromiseRoot, execPromise } from '@shared/Exec'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
 
 class BomCleanTask implements TaskItem {
@@ -166,23 +166,38 @@ class Manager extends Base {
       await chmod(cpSh, '0777')
       const arr: string[] = []
       try {
-        const res = await execPromiseRoot(['zsh', cpSh])
+        const res = await execPromise(`cd ${dirname(cpSh)} && ./${basename(cpSh)}`)
         const list = res?.stdout?.trim()?.split(':') ?? []
         arr.push(...list)
       } catch (e) {}
       await remove(cpSh)
-      resolve(arr)
+      resolve(Array.from(new Set(arr)))
     })
   }
 
-  fetchPATH(): ForkPromise<string[]> {
+  fetchPATH(): ForkPromise<{ allPath: string[]; appPath: string[] }> {
     return new ForkPromise(async (resolve) => {
+      const res: any = {
+        allPath: [],
+        appPath: []
+      }
       const pathArr = await this.fetchEnvPath()
       const allPath = pathArr
         .filter((f) => existsSync(f))
         .map((f) => realpathSync(f))
         .filter((f) => existsSync(f) && statSync(f).isDirectory())
-      resolve(allPath)
+      res.allPath = Array.from(new Set(allPath))
+
+      const dir = join(dirname(global.Server.AppDir!), 'env')
+      if (existsSync(dir)) {
+        let allFile = await readdir(dir)
+        allFile = allFile
+          .filter((f) => existsSync(join(dir, f)))
+          .map((f) => realpathSync(join(dir, f)))
+          .filter((f) => existsSync(f) && statSync(f).isDirectory())
+        res.appPath = Array.from(new Set(allFile))
+      }
+      resolve(res)
     })
   }
 
@@ -239,10 +254,16 @@ class Manager extends Base {
 
   updatePATH(item: SoftInstalled, flag: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const all = await this.fetchPATH()
+      const all = (await this.fetchPATH()).allPath
       let bin = dirname(item.bin)
       if (flag === 'php') {
-        bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
+        if (item?.phpBin) {
+          bin = dirname(item?.phpBin)
+        } else if (existsSync(join(item.path, 'bin/php'))) {
+          bin = join(item.path, 'bin')
+        } else if (existsSync(join(item.path, 'php'))) {
+          bin = item.path
+        }
       }
       const envDir = join(dirname(global.Server.AppDir!), 'env')
       if (!existsSync(envDir)) {
@@ -310,7 +331,8 @@ class Manager extends Base {
         reject(e)
         return
       }
-      resolve(allFile.map((f) => realpathSync(f)))
+      const allPath = await this.fetchPATH()
+      resolve(allPath)
     })
   }
 
@@ -343,7 +365,7 @@ class Manager extends Base {
         } else {
           let bin = service.bin
           if (service.typeFlag === 'php') {
-            bin = dirname(service?.phpBin ?? join(service.path, 'bin/php'))
+            bin = service?.phpBin ?? join(service.path, 'bin/php')
           }
           const content = `#!/bin/zsh
 "${bin}" $@`
@@ -366,7 +388,7 @@ class Manager extends Base {
         }
       }
 
-      const allPath = await this.fetchPATH()
+      const allPath = (await this.fetchPATH()).allPath
       if (allPath.includes(aliasDir)) {
         const res = await this.cleanAlias(alias)
         resolve(res)
@@ -400,7 +422,7 @@ class Manager extends Base {
 
       const matchs = content.match(regex) ?? []
       const arr: string[] = []
-      matchs.forEach((x) => {
+      matchs.forEach((x: string) => {
         content = content.replace(`\n${x}`, '').replace(`${x}`, '')
         const list = x
           .trim()

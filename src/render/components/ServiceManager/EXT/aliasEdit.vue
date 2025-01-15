@@ -55,6 +55,7 @@
   import type { AppServiceAliasItem, SoftInstalled } from '@shared/app.d.ts'
   import { AllAppModule } from '@/core/type'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+  import { join } from 'path'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -75,7 +76,12 @@
   Object.assign(form.value, props.item)
 
   const phpVersions = computed(() => {
-    return brewStore.module('php').installed
+    return brewStore.module('php').installed.map((i) => {
+      return {
+        bin: i?.phpBin ?? join(i.path, 'bin/php'),
+        version: i.version
+      }
+    })
   })
 
   const php = computed({

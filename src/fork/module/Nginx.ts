@@ -57,10 +57,10 @@ class Nginx extends Base {
       const pid = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
       const errlog = join(global.Server.NginxDir!, 'common/logs/error.log')
       const g = `pid ${pid};error_log ${errlog};`
-      const command = `${bin} -c ${c} -g '${g}'`
+      const command = `${bin} -c ${c} -g "${g}"`
       console.log('command: ', command)
       try {
-        const res = await execPromiseRoot([bin, '-c', c, '-g', `${g}`])
+        const res = await execPromiseRoot([bin, '-c', c, '-g', `"${g}"`])
         on(res.stdout)
         resolve(0)
       } catch (e: any) {
