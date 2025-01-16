@@ -36,6 +36,7 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
     SiteSuckerStore().init()
     AppToolStore.init()
     SetupStore().init()
+    store.chechAutoHide()
   } else {
     console.log('has inited !!!!')
   }

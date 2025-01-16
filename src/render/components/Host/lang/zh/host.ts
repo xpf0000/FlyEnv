@@ -35,5 +35,8 @@ export default {
   vhostNginxSSLEdit: '编辑Nginx SSL Vhost模板',
   vhostCaddyEdit: '编辑Caddy Vhost模板',
   vhostCaddySSLEdit: '编辑Caddy SSL Vhost模板',
-  licenseTips: '未获得许可证, 只可以创建三个站点'
+  licenseTips: '未获得许可证, 只可以创建三个站点',
+
+  composerVersion: 'Composer版本',
+  useSysVersion: '使用环境变量设定版本'
 }

@@ -389,7 +389,7 @@
       .catch()
   }
   const openCreateProject = () => {
-    import('./CreateProject/index.vue').then((res) => {
+    import('./CreateProject/new.vue').then((res) => {
       AsyncComponentShow(res.default).then(({ dir, rewrite }: any) => {
         console.log('openCreateProject dir: ', dir)
         AsyncComponentShow(EditVM, {
