@@ -40,6 +40,45 @@ body {
       color: #4096ff;
     }
   }
+  .app-el-table-v2 {
+    .el-table-v2__header-cell {
+      padding: 0 12px;
+
+      &.flex-1 {
+        flex: 1 !important;
+      }
+      &.flex-shrink-0 {
+        flex-shrink: 0 !important;
+      }
+    }
+
+    .el-table-v2__row {
+      .el-table-v2__row-cell {
+        padding: 0 12px;
+
+        &.flex-1 {
+          flex: 1 !important;
+        }
+        &.flex-shrink-0 {
+          flex-shrink: 0 !important;
+        }
+
+        .current {
+          color: #409eff;
+        }
+      }
+
+      .row-hover-show {
+        display: none;
+      }
+
+      &:hover {
+        .row-hover-show {
+          display: inline-flex;
+        }
+      }
+    }
+  }
 }
 #app {
   #container {

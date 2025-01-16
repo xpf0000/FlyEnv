@@ -1,13 +1,14 @@
 import { Base } from './Base'
-import { execPromise } from '../Fn'
+import { execPromise, readFileByRoot, writeFileByRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { compareVersions } from 'compare-versions'
 import { exec } from 'child-process-promise'
 import { existsSync } from 'fs'
-import { chmod, copyFile, unlink, readdir } from 'fs-extra'
+import { chmod, copyFile, unlink, readdir, writeFile } from 'fs-extra'
 import { fixEnv } from '@shared/utils'
 import axios from 'axios'
+import { execPromiseRoot } from '@shared/Exec'
 
 class Manager extends Base {
   constructor() {
@@ -91,6 +92,72 @@ class Manager extends Base {
     })
   }
 
+  private resetEnv(tool: 'fnm' | 'nvm') {
+    return new Promise(async (resolve) => {
+      const file = join(global.Server.UserHome!, '.zshrc')
+      if (!existsSync(file)) {
+        try {
+          await writeFile(file, '')
+        } catch (e) {}
+      }
+      if (!existsSync(file)) {
+        resolve(true)
+        return
+      }
+      let content = ''
+      try {
+        content = await readFileByRoot(file)
+      } catch (e) {
+        resolve(true)
+        return
+      }
+      let NVM_DIR = ''
+      const lines = content.split('\n')
+      const newLines: string[] = []
+      lines.forEach((s) => {
+        if (tool === 'fnm') {
+          const jump = s.includes('eval') && s.includes('fnm env')
+          if (!jump) {
+            newLines.push(s)
+          }
+        } else {
+          if (s.trim().startsWith('export NVM_DIR=')) {
+            NVM_DIR = s
+          }
+          const jump =
+            s.includes('export NVM_DIR=') ||
+            s.includes('"$NVM_DIR/nvm.sh"') ||
+            s.includes('"$NVM_DIR/bash_completion"')
+          if (!jump) {
+            newLines.push(s)
+          }
+        }
+      })
+      if (tool === 'fnm') {
+        newLines.push(`eval "$(fnm env --use-on-cd --shell zsh)"`)
+      } else {
+        if (NVM_DIR) {
+          newLines.push(NVM_DIR)
+        }
+        newLines.push(`[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"  # This loads nvm`)
+        newLines.push(
+          `[ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion`
+        )
+      }
+      content = newLines.join('\n')
+      try {
+        await writeFileByRoot(file, content)
+      } catch (e) {
+        resolve(true)
+        return
+      }
+      try {
+        await execPromiseRoot(['source', file])
+      } catch (e) {}
+      resolve(true)
+    })
+  }
+
   versionChange(tool: 'fnm' | 'nvm', select: string) {
     return new ForkPromise(async (resolve, reject) => {
       let command = ''
@@ -106,6 +173,7 @@ class Manager extends Base {
         })
         const { current }: any = await this.localVersion(tool)
         if (current === select) {
+          await this.resetEnv(tool)
           resolve(true)
         } else {
           reject(new Error('Fail'))
