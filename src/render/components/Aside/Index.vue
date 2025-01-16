@@ -25,13 +25,15 @@
         <ul class="menu top-menu">
           <template v-for="(item, index) in allList" :key="index">
             <div
-              :style="{
-                marginTop: index === 0 ? '15px' : null
-              }"
+              :style="
+                {
+                  marginTop: index === 0 ? '15px' : null
+                } as any
+              "
               class="module-type pb-3 pl-1 text-sm mb-3 mt-5 text-zinc-600 dark:text-gray-300 border-b border-zinc-200 dark:border-zinc-700"
               >{{ item.label }}</div
             >
-            <template v-for="(i, j) in item.sub" :key="j">
+            <template v-for="(i, _j) in item.sub" :key="_j">
               <component :is="i.aside"></component>
             </template>
           </template>
@@ -238,4 +240,23 @@
     }
     fns[fn] && fns[fn](arg)
   })
+
+  let autoStarted = false
+  watch(
+    groupDisabled,
+    (v) => {
+      if (!v) {
+        if (autoStarted) {
+          return
+        }
+        if (appStore.config.setup?.autoStartService === true) {
+          autoStarted = true
+          groupDo()
+        }
+      }
+    },
+    {
+      immediate: true
+    }
+  )
 </script>

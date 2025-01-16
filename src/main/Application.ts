@@ -582,8 +582,8 @@ export default class Application extends EventEmitter {
             })
           })
         return
-      case 'app:brew-install':
-        this.windowManager?.getFocusedWindow()?.minimize()
+      case 'APP:Auto-Hide':
+        this?.mainWindow?.hide()
         break
       case 'Application:APP-Minimize':
         this.windowManager?.getFocusedWindow()?.minimize()

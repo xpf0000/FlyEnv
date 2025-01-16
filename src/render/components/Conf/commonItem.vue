@@ -3,7 +3,9 @@
     <template #header>
       <div class="flex items-center justify-between gap-2 overflow-hidden">
         <div class="flex-1 overflow-hidden flex items-center gap-0.5">
-          <el-checkbox v-model="enable"></el-checkbox>
+          <template v-if="item.showEnable !== false">
+            <el-checkbox v-model="enable"></el-checkbox>
+          </template>
           <span class="truncate flex-1 select-text">{{ item.name }}</span>
         </div>
         <el-tooltip :content="item.tips()" placement="top" popper-class="max-w-[70%]">
@@ -20,7 +22,7 @@
     <template #default>
       <template v-if="item.options">
         <el-select v-model="value" :disabled="!item.enable" class="w-full">
-          <template v-for="(option, j) in item.options" :key="j">
+          <template v-for="(option, _j) in item.options" :key="_j">
             <el-option :label="option.label" :value="option.value"></el-option>
           </template>
         </el-select>
@@ -28,7 +30,7 @@
       <template v-else-if="item.isFile || item.isDir">
         <el-input v-model.trim="value" :disabled="!item.enable">
           <template #append>
-            <el-button :icon="Folder" @click.stop="chooseFile(item?.isDir)" />
+            <el-button :icon="Folder" @click.stop="chooseFile(item?.isDir ?? false)" />
           </template>
         </el-input>
       </template>

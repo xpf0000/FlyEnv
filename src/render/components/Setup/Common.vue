@@ -50,7 +50,17 @@
         <div class="col">
           <RestPassword />
         </div>
-        <div class="col"> </div>
+        <div class="col">
+          <AutoLanch />
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="col">
+          <AutoStartService />
+        </div>
+        <div class="col">
+          <AutoHide />
+        </div>
       </div>
       <div class="row-2">
         <div class="col">
@@ -83,6 +93,9 @@
   import Tool from './Tool/index.vue'
   import { AppModules } from '@/core/App'
   import ModuleShowHide from './ModuleShowHide/index.vue'
+  import AutoLanch from './AutoLanch/index.vue'
+  import AutoHide from './AutoHide/index.vue'
+  import AutoStartService from './AutoStartService/index.vue'
 
   const appStore = AppStore()
 

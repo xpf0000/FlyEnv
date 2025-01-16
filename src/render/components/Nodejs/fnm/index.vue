@@ -45,9 +45,12 @@
 <script lang="tsx" setup>
   import { I18nT } from '@shared/lang'
   import { FNMSetup, Setup } from '@/components/Nodejs/fnm/setup'
-  import { ElInput, ElButton } from 'element-plus'
+  import { ElInput, ElButton, ElTooltip } from 'element-plus'
   import type { Column } from 'element-plus'
   import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
+  import { MessageSuccess } from '@/util/Element'
+
+  const { clipboard } = require('@electron/remote')
 
   const {
     showInstall,
@@ -59,6 +62,11 @@
     installOrUninstall,
     tableData
   } = Setup()
+
+  const copyCommand = (command: string) => {
+    clipboard.writeText(command)
+    MessageSuccess(I18nT('base.copySuccess'))
+  }
 
   const columns: Column<any>[] = [
     {
@@ -78,15 +86,28 @@
           </div>
         )
       },
-      cellRenderer: ({ cellData: version }) => {
-        const c = { current: FNMSetup.current === version }
+      cellRenderer: ({ rowData: row }) => {
+        const c = { current: FNMSetup.current === row.version, 'hover-yellow-500': !!row.installed }
+        const tips = `fnm use ${row.version}`
+        const disabled = !row.installed
         return (
-          <span
-            style="display: inline-flex; align-items: center; padding: 2px 12px 2px 50px"
-            class={c}
-          >
-            {version}
-          </span>
+          <ElTooltip disabled={disabled} content={tips} show-after={600} placement="top">
+            {{
+              default: () => {
+                return (
+                  <span
+                    style="display: inline-flex; align-items: center; padding: 2px 12px; margin-left: 50px;"
+                    class={c}
+                    onClick={() => {
+                      copyCommand(tips)
+                    }}
+                  >
+                    {row.version}
+                  </span>
+                )
+              }
+            }}
+          </ElTooltip>
         )
       }
     },
