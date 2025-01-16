@@ -26,104 +26,27 @@
     </div>
   </template>
   <template v-else>
-    <el-table v-loading="NVMSetup.fetching" class="nodejs-table" :data="tableData">
-      <el-table-column :label="I18nT('base.version')" prop="version">
-        <template #header>
-          <div class="w-p100 name-cell">
-            <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
-              I18nT('base.version')
-            }}</span>
-            <el-input v-model.trim="NVMSetup.search" placeholder="search" clearable></el-input>
-          </div>
-        </template>
-        <template #default="scope">
-          <span
-            style="display: inline-flex; align-items: center; padding: 2px 12px 2px 50px"
-            :class="{ current: NVMSetup.current === scope.row.version }"
-            >{{ scope.row.version }}</span
-          >
-        </template>
-      </el-table-column>
-      <el-table-column :label="I18nT('util.nodeListCellCurrent')" :prop="null" align="center">
-        <template #default="scope">
-          <template v-if="NVMSetup.current === scope.row.version">
-            <el-button link>
-              <yb-icon
-                class="current"
-                :svg="import('@/svg/select.svg?raw')"
-                width="17"
-                height="17"
-              />
-            </el-button>
-          </template>
-          <template v-else-if="scope.row.installed">
-            <template v-if="scope.row.switching">
-              <el-button :loading="true" link></el-button>
-            </template>
-            <template v-else>
-              <el-button
-                v-if="!NVMSetup.switching"
-                link
-                class="current-set"
-                @click.stop="versionChange(scope.row)"
-              >
-                <yb-icon
-                  class="current-not"
-                  :svg="import('@/svg/select.svg?raw')"
-                  width="20"
-                  height="20"
-                />
-              </el-button>
-            </template>
-          </template>
-        </template>
-      </el-table-column>
-      <el-table-column :label="I18nT('util.nodeListCellInstalled')" :prop="null" align="center">
-        <template #default="scope">
-          <template v-if="scope.row.installed">
-            <el-button link>
-              <yb-icon
-                class="installed"
-                :svg="import('@/svg/select.svg?raw')"
-                width="20"
-                height="20"
-              />
-            </el-button>
-          </template>
-        </template>
-      </el-table-column>
-      <el-table-column :label="I18nT('base.operation')" width="140px" :prop="null" align="center">
-        <template #default="scope">
-          <template v-if="scope.row.installing">
-            <el-button :loading="true" link></el-button>
-          </template>
-          <template v-else>
-            <template v-if="scope.row.installed">
-              <el-button
-                type="primary"
-                link
-                @click.stop="installOrUninstall('uninstall', scope.row)"
-                >{{ I18nT('base.uninstall') }}</el-button
-              >
-            </template>
-            <template v-else>
-              <el-button
-                type="primary"
-                link
-                @click.stop="installOrUninstall('install', scope.row)"
-                >{{ I18nT('base.install') }}</el-button
-              >
-            </template>
-          </template>
-        </template>
-      </el-table-column>
-    </el-table>
+    <el-auto-resizer>
+      <template #default="{ height, width }">
+        <el-table-v2
+          class="app-el-table-v2"
+          :columns="columns"
+          :data="tableData"
+          :width="width"
+          :height="height"
+          :header-height="59"
+          :row-height="59"
+        />
+      </template>
+    </el-auto-resizer>
   </template>
 </template>
 
-<script lang="ts" setup>
+<script lang="tsx" setup>
   import { I18nT } from '@shared/lang'
   import { NVMSetup, Setup } from './setup'
+  import { type Column, ElButton, ElInput } from 'element-plus'
+  import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
 
   const {
     showInstall,
@@ -135,5 +58,130 @@
     installOrUninstall,
     tableData
   } = Setup()
+
+  const columns: Column<any>[] = [
+    {
+      key: 'version',
+      title: 'version',
+      dataKey: 'version',
+      class: 'flex-1',
+      headerClass: 'flex-1',
+      width: 0,
+      headerCellRenderer: () => {
+        return (
+          <div class="w-p100 name-cell">
+            <span style="display: inline-flex; align-items: center; padding: 2px 0">
+              {I18nT('base.version')}
+            </span>
+            <ElInput v-model={NVMSetup.search} placeholder="search" clearable={true}></ElInput>
+          </div>
+        )
+      },
+      cellRenderer: ({ cellData: version }) => {
+        const c = { current: NVMSetup.current === version }
+        return (
+          <span
+            style="display: inline-flex; align-items: center; padding: 2px 12px 2px 50px"
+            class={c}
+          >
+            {version}
+          </span>
+        )
+      }
+    },
+    {
+      key: 'current',
+      title: I18nT('util.nodeListCellCurrent'),
+      dataKey: 'current',
+      class: 'flex-1',
+      headerClass: 'flex-1',
+      width: 0,
+      align: 'center',
+      cellRenderer: ({ rowData: row }) => {
+        const isCurrent = NVMSetup.current === row.version
+        if (isCurrent) {
+          return (
+            <ElButton link type="primary">
+              <YbIcon class="current" svg={import('@/svg/select.svg?raw')} width="17" height="17" />
+            </ElButton>
+          )
+        } else if (row.installed) {
+          if (row.switching) {
+            return <ElButton loading={true} link></ElButton>
+          } else if (!NVMSetup.switching) {
+            return (
+              <ElButton
+                link
+                class="current-set row-hover-show"
+                onClick={() => {
+                  versionChange(row)
+                }}
+              >
+                <YbIcon
+                  class="current-not"
+                  svg={import('@/svg/select.svg?raw')}
+                  width="20"
+                  height="20"
+                />
+              </ElButton>
+            )
+          }
+        }
+        return <span></span>
+      }
+    },
+    {
+      key: 'installed',
+      title: I18nT('util.nodeListCellInstalled'),
+      dataKey: 'installed',
+      class: 'flex-1',
+      headerClass: 'flex-1',
+      width: 0,
+      align: 'center',
+      cellRenderer: ({ rowData: row }) => {
+        if (row.installed) {
+          return (
+            <ElButton link>
+              <YbIcon
+                class="installed"
+                svg={import('@/svg/select.svg?raw')}
+                width="17"
+                height="17"
+              />
+            </ElButton>
+          )
+        }
+        return <span></span>
+      }
+    },
+    {
+      key: 'operation',
+      title: I18nT('base.operation'),
+      dataKey: 'operation',
+      class: 'flex-shrink-0',
+      headerClass: 'flex-shrink-0',
+      width: 140,
+      align: 'center',
+      cellRenderer: ({ rowData: row }) => {
+        if (row.installing) {
+          return <ElButton loading={true} link></ElButton>
+        } else {
+          const t = row.installed ? I18nT('base.uninstall') : I18nT('base.install')
+          const a = row.installed ? 'uninstall' : 'install'
+          return (
+            <ElButton
+              type="primary"
+              onClick={() => {
+                installOrUninstall(a, row)
+              }}
+              link
+            >
+              {t}
+            </ElButton>
+          )
+        }
+      }
+    }
+  ]
 </script>
 <script setup lang="ts"></script>
