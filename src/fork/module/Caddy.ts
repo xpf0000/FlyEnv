@@ -3,6 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   brewInfoJson,
   hostAlias,
   portSearch,
@@ -31,10 +32,13 @@ class Caddy extends Base {
   }
 
   initConfig(): ForkPromise<string> {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       const baseDir = join(global.Server.BaseDir!, 'caddy')
       const iniFile = join(baseDir, 'Caddyfile')
       if (!existsSync(iniFile)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         const tmplFile = join(global.Server.Static!, 'tmpl/Caddyfile')
         let content = await readFile(tmplFile, 'utf-8')
         const sslDir = join(baseDir, 'ssl')
@@ -49,6 +53,9 @@ class Caddy extends Base {
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'Caddyfile.default')
         await writeFile(defaultIniFile, content)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: iniFile }))
+        })
       }
       resolve(iniFile)
     })
@@ -133,10 +140,16 @@ class Caddy extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `caddy-${version.version}` })
+        )
+      })
       const bin = version.bin
       await this.#fixVHost()
-      const iniFile = await this.initConfig()
+      const iniFile = await this.initConfig().on(on)
       if (existsSync(this.pidPath)) {
         await execPromiseRoot(['rm', '-rf', this.pidPath])
       }
@@ -152,8 +165,12 @@ class Caddy extends Base {
       }
 
       const checkPid = async (time = 0) => {
+        console.log('checkPid: ', time)
         if (existsSync(this.pidPath)) {
           const pid = await readFile(this.pidPath, 'utf-8')
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid.trim() }))
+          })
           resolve({
             'APP-Service-Start-PID': pid.trim()
           })
@@ -162,6 +179,15 @@ class Caddy extends Base {
             await waitTime(500)
             await checkPid(time + 1)
           } else {
+            on({
+              'APP-On-Log': AppLog(
+                'error',
+                I18nT('appLog.startServiceFail', {
+                  error: I18nT('fork.startFail'),
+                  service: `caddy-${version.version}`
+                })
+              )
+            })
             reject(new Error(I18nT('fork.startFail')))
           }
         }
@@ -177,14 +203,30 @@ class Caddy extends Base {
       const sh = join(global.Server.BaseDir!, `caddy/start.sh`)
       await writeFile(sh, command)
       await execPromiseRoot([`chmod`, '777', sh])
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       try {
         const res = await execPromiseRootWhenNeed(`zsh`, [sh])
         console.log('start res: ', res)
-        await checkPid()
       } catch (e) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', { error: e, service: `caddy-${version.version}` })
+          )
+        })
         console.log('start e: ', e)
         reject(e)
+        return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
+      on({
+        'APP-Service-Start-Success': true
+      })
+      await checkPid()
     })
   }
 

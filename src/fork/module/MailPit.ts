@@ -3,6 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   brewInfoJson,
   versionBinVersion,
   versionFilterSame,
@@ -14,6 +15,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
+import { I18nT } from '../lang'
 
 class MailPit extends Base {
   constructor() {
@@ -26,13 +28,16 @@ class MailPit extends Base {
   }
 
   initConfig(): ForkPromise<string> {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       const baseDir = join(global.Server.BaseDir!, 'mailpit')
       if (!existsSync(baseDir)) {
         await mkdirp(baseDir)
       }
       const iniFile = join(baseDir, 'mailpit.conf')
       if (!existsSync(iniFile)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         const tmplFile = join(global.Server.Static!, 'tmpl/mailpit.conf')
         let content = await readFile(tmplFile, 'utf-8')
         const logFile = join(baseDir, 'mailpit.log')
@@ -40,6 +45,9 @@ class MailPit extends Base {
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'mailpit.conf.default')
         await writeFile(defaultIniFile, content)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: iniFile }))
+        })
       }
       resolve(iniFile)
     })
@@ -65,9 +73,15 @@ class MailPit extends Base {
   }
 
   _startServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `mailpit-${version.version}` })
+        )
+      })
       const bin = version.bin
-      const iniFile = await this.initConfig()
+      const iniFile = await this.initConfig().on(on)
       if (existsSync(this.pidPath)) {
         try {
           await execPromiseRoot(['rm', '-rf', this.pidPath])
@@ -114,14 +128,29 @@ class MailPit extends Base {
       const sh = join(global.Server.BaseDir!, `mailpit/start.sh`)
       await writeFile(sh, command)
       await execPromiseRoot([`chmod`, '777', sh])
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       try {
         const res = await execPromiseRootWhenNeed(`zsh`, [sh], opt)
         console.log('start res: ', res)
         const pid = await readFile(this.pidPath, 'utf-8')
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+        })
         resolve({
           'APP-Service-Start-PID': pid
         })
       } catch (e) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.startServiceFail', {
+              error: e,
+              service: `mailpit-${version.version}`
+            })
+          )
+        })
         console.log('start e: ', e)
         reject(e)
       }

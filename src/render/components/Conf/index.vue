@@ -136,6 +136,7 @@
 
   defineExpose({
     setEditValue,
+    getEditValue,
     update
   })
 </script>

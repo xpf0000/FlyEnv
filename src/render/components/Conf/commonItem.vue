@@ -67,7 +67,9 @@
     },
     set(v) {
       const item: CommonSetItem = props.item
+      const old = item.value
       item.value = v
+      item?.onChange && item.onChange(v, old)
     }
   })
 

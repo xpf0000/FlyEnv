@@ -545,9 +545,13 @@ export default class Application extends EventEmitter {
         console.log('APP-Licenses-Code !!!')
         const code: string = info.msg['APP-Licenses-Code'] as any
         this.configManager?.setConfig('setup.license', code)
-      }
-      if (args && args?.[0] === 'installBrew' && info?.data?.BrewCellar) {
-        global.Server = info?.data
+      } else if (info?.msg?.['APP-On-Log']) {
+        this.windowManager.sendCommandTo(
+          this.mainWindow!,
+          'APP-On-Log',
+          'APP-On-Log',
+          info.msg['APP-On-Log']
+        )
       }
     }
     if (command.startsWith('app-fork:')) {

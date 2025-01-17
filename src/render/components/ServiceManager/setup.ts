@@ -4,10 +4,9 @@ import { AppHost, AppStore } from '@/store/app'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import installedVersions from '@/util/InstalledVersions'
-import { reloadService, startService, stopService } from '@/util/Service'
-import { MessageError, MessageSuccess } from '@/util/Element'
+import { startService, stopService } from '@/util/Service'
+import { MessageError } from '@/util/Element'
 import { MysqlStore } from '@/components/Mysql/mysql'
-import { I18nT } from '@shared/lang'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { handleWriteHosts } from '@/util/Host'
 import type { AllAppModule } from '@/core/type'
@@ -107,10 +106,11 @@ export const Setup = (typeFlag: AllAppModule) => {
         break
       case 'start':
       case 'restart':
-        action = startService(typeFlag, item)
-        break
-      case 'reload':
-        action = reloadService(typeFlag, item)
+        action = startService(
+          typeFlag,
+          item,
+          currentVersion?.value ? JSON.parse(JSON.stringify(currentVersion.value)) : undefined
+        )
         break
     }
     action.then((res: any) => {
@@ -125,7 +125,7 @@ export const Setup = (typeFlag: AllAppModule) => {
             mysqlStore.groupStart().then()
           }
         }
-        if (currentVersion.value) {
+        if (typeFlag !== 'php' && currentVersion.value) {
           currentVersion.value.run = false
           currentVersion.value.running = false
         }
@@ -146,7 +146,6 @@ export const Setup = (typeFlag: AllAppModule) => {
             appStore.saveConfig()
           }
         }
-        MessageSuccess(I18nT('base.success'))
       }
     })
   }

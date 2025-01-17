@@ -4,6 +4,7 @@ import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   brewInfoJson,
   execPromise,
   getAllFileAsync,
@@ -32,7 +33,7 @@ class Apache extends Base {
   }
 
   #resetConf(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       const defaultFile = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
       const defaultFileBack = join(
         global.Server.ApacheDir!,
@@ -45,9 +46,22 @@ class Apache extends Base {
         resolve(true)
         return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+      })
       // 获取httpd的默认配置文件路径
-      const res = await execPromise(`${bin} -D DUMP_INCLUDES`)
-      const str = res?.stdout?.toString() ?? ''
+      let str = ''
+      try {
+        const res = await execPromise(`${bin} -D DUMP_INCLUDES`)
+        str = res?.stdout?.toString() ?? ''
+      } catch (e) {
+        on({
+          'APP-On-Log': AppLog('error', I18nT('appLog.confInitFail', { error: e }))
+        })
+        reject(new Error(I18nT('fork.apacheLogPathErr')))
+        return
+      }
+
       let reg = new RegExp('(\\(*\\) )([\\s\\S]*?)(\\n)', 'g')
       let file = ''
       try {
@@ -55,6 +69,12 @@ class Apache extends Base {
       } catch (e) {}
       file = file.trim()
       if (!file || !existsSync(file)) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.confInitFail', { error: I18nT('appLog.confInitFail') })
+          )
+        })
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
@@ -87,6 +107,9 @@ class Apache extends Base {
 IncludeOptional "${vhost}*.conf"`
       await writeFile(defaultFile, content)
       await writeFile(defaultFileBack, content)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: defaultFile }))
+      })
       resolve(true)
     })
   }
@@ -180,21 +203,48 @@ IncludeOptional "${vhost}*.conf"`
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      await this.#resetConf(version)
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `apache-${version.version}` })
+        )
+      })
+      await this.#resetConf(version).on(on)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.apachePortHandleBegin'))
+      })
       await this.#handleListenPort(version)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.apachePortHandleEnd'))
+      })
       const logs = join(global.Server.ApacheDir!, 'common/logs')
       await mkdirp(logs)
       const bin = version.bin
       const conf = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
       if (!existsSync(conf)) {
+        on({
+          'APP-On-Log': AppLog('error', I18nT('fork.confNoFound'))
+        })
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       try {
         const res = await execPromiseRoot([bin, `-f`, conf, `-k`, `start`])
         on(res?.stdout)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: undefined }))
+        })
         resolve(0)
       } catch (e: any) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', { error: e, service: `apache-${version.version}` })
+          )
+        })
         reject(e)
       }
     })

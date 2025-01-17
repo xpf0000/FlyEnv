@@ -9,8 +9,9 @@ import type { AllAppModule } from '@/core/type'
 
 const exec = (
   typeFlag: AllAppModule,
+  fn: string,
   version: SoftInstalled,
-  fn: string
+  lastVersion?: SoftInstalled
 ): Promise<string | boolean> => {
   return new Promise((resolve) => {
     if (version.running) {
@@ -23,55 +24,78 @@ const exec = (
     }
     version.running = true
     const args = JSON.parse(JSON.stringify(version))
-    const appStore = AppStore()
     const taskStore = TaskStore()
     const brewStore = BrewStore()
     const task = taskStore.module(typeFlag)
     task?.log?.splice(0)
+    const handleResult = (run: boolean, pid?: string) => {
+      if (lastVersion && lastVersion?.path) {
+        const find = brewStore
+          .module(typeFlag)
+          .installed?.find(
+            (i) =>
+              i.path === lastVersion.path &&
+              i.version === lastVersion.version &&
+              i.bin === lastVersion.bin
+          )
+        lastVersion.pid = undefined
+        if (find) {
+          find.pid = undefined
+        }
+      }
+
+      const findV = brewStore
+        .module(typeFlag)
+        .installed?.find(
+          (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
+        )
+      version.run = run
+      version.running = false
+      version.pid = pid
+      if (findV) {
+        findV.run = version.run
+        findV.running = false
+        findV.pid = pid
+      }
+    }
     IPC.send(`app-fork:${typeFlag}`, fn, args).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
-        version.run = fn !== 'stopService'
-        version.running = false
-        if (typeFlag === 'php' && fn === 'startService') {
-          const hosts = appStore.hosts
-          if (hosts && hosts?.[0] && !hosts?.[0]?.phpVersion) {
-            appStore.initHost().then()
-          }
-        }
         const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
-        if (pid) {
-          brewStore.module(typeFlag).installed.forEach((i) => {
-            i.pid = pid
-          })
-        } else {
-          brewStore.module(typeFlag).installed.forEach((i) => {
-            delete i?.pid
-          })
-        }
+        handleResult(fn !== 'stopService', pid)
         resolve(true)
       } else if (res.code === 1) {
         IPC.off(key)
         task?.log?.push(res.msg)
-        version.running = false
+        handleResult(false)
         resolve(task?.log?.join('\n') ?? '')
       } else if (res.code === 200) {
-        task?.log?.push(res.msg)
+        if (typeof res?.msg === 'string') {
+          task.log!.push(res.msg)
+        } else if (res?.msg?.['APP-Service-Start-Success'] === true) {
+          handleResult(true)
+        } else if (res?.msg?.['APP-Service-Stop-Success'] === true) {
+          handleResult(false)
+        }
       }
     })
   })
 }
 
 export const stopService = (typeFlag: AllAppModule, version: SoftInstalled) => {
-  return exec(typeFlag, version, 'stopService')
+  return exec(typeFlag, 'stopService', version)
 }
 
-export const startService = (typeFlag: AllAppModule, version: SoftInstalled) => {
-  return exec(typeFlag, version, 'startService')
+export const startService = (
+  typeFlag: AllAppModule,
+  version: SoftInstalled,
+  lastVersion?: SoftInstalled
+) => {
+  return exec(typeFlag, 'startService', version, lastVersion)
 }
 
 export const reloadService = (typeFlag: AllAppModule, version: SoftInstalled) => {
-  return exec(typeFlag, version, 'reloadService')
+  return exec(typeFlag, 'startService', version)
 }
 
 export const reloadWebServer = (hosts?: Array<AppHost>) => {
