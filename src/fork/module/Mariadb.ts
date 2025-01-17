@@ -19,7 +19,7 @@ import {
   AppLog
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, mkdirp, chmod, remove, readFile } from 'fs-extra'
+import { writeFile, mkdirp, chmod, remove } from 'fs-extra'
 import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
 
