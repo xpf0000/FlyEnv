@@ -4,8 +4,7 @@ import Router from '@/router/index'
 import { BrewStore } from '@/store/brew'
 import { startService, stopService } from '@/util/Service'
 import { passwordCheck } from '@/util/Brew'
-import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { MessageError } from '@/util/Element'
 import type { AllAppModule } from '@/core/type'
 import { AppStore } from '@/store/app'
 
@@ -102,8 +101,6 @@ export const AsideSetup = (flag: AllAppModule) => {
       promise?.then((res) => {
         if (typeof res === 'string') {
           MessageError(res)
-        } else {
-          MessageSuccess(I18nT('base.success'))
         }
       })
     })

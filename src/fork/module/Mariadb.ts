@@ -1,10 +1,9 @@
 import { join, basename, dirname } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import {
-  spawnPromiseMore,
   execPromise,
   waitTime,
   versionLocalFetch,
@@ -16,11 +15,12 @@ import {
   brewInfoJson,
   brewSearch,
   portSearch,
-  versionFilterSame
+  versionFilterSame,
+  AppLog
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, mkdirp, chmod, unlink, remove } from 'fs-extra'
-import { execPromiseRoot } from '@shared/Exec'
+import { writeFile, mkdirp, chmod, remove, readFile } from 'fs-extra'
+import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
@@ -34,15 +34,27 @@ class Manager extends Base {
   }
 
   _initPassword(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise((resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.initDBPass'))
+      })
       execPromise('./mariadb-admin --socket=/tmp/mysql.sock -uroot password "root"', {
         cwd: dirname(version.bin)
       })
         .then((res) => {
           console.log('_initPassword res: ', res)
+          on({
+            'APP-On-Log': AppLog(
+              'info',
+              I18nT('appLog.initDBPassSuccess', { user: 'root', pass: 'root' })
+            )
+          })
           resolve(true)
         })
         .catch((err) => {
+          on({
+            'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: err }))
+          })
           console.log('_initPassword err: ', err)
           reject(err)
         })
@@ -51,11 +63,19 @@ class Manager extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      let bin = version.bin
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
       const dataDir = join(global.Server.MariaDBDir!, `data-${v}`)
       if (!existsSync(m)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         const conf = `[mariadbd]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
@@ -63,32 +83,110 @@ sql-mode=NO_ENGINE_SUBSTITUTION
 port = 3306
 datadir=${dataDir}`
         await writeFile(m, conf)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: m }))
+        })
       }
 
-      const p = join(global.Server.MariaDBDir!, 'mariadb.pid')
-      const s = join(global.Server.MariaDBDir!, 'slow.log')
-      const e = join(global.Server.MariaDBDir!, 'error.log')
-      const params = [
-        `--defaults-file=${m}`,
-        `--pid-file=${p}`,
-        '--slow-query-log=ON',
-        `--slow-query-log-file=${s}`,
-        `--log-error=${e}`,
-        `--socket=/tmp/mysql.sock`
-      ]
-      if (version?.flag === 'macports') {
-        params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
+      const unlinkDirOnFail = async () => {
+        if (existsSync(dataDir)) {
+          await remove(dataDir)
+        }
+        if (existsSync(m)) {
+          await remove(m)
+        }
       }
-      let needRestart = false
-      if (!existsSync(dataDir)) {
-        needRestart = true
+
+      const doStart = async () => {
+        return new Promise(async (resolve, reject) => {
+          const p = join(global.Server.MariaDBDir!, 'mariadb.pid')
+          const s = join(global.Server.MariaDBDir!, 'slow.log')
+          const e = join(global.Server.MariaDBDir!, 'error.log')
+          const params = [
+            `--defaults-file=${m}`,
+            `--pid-file=${p}`,
+            '--slow-query-log=ON',
+            `--slow-query-log-file=${s}`,
+            `--log-error=${e}`,
+            `--socket=/tmp/mysql.sock`
+          ]
+          if (version?.flag === 'macports') {
+            params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
+          }
+
+          if (existsSync(p)) {
+            try {
+              await remove(p)
+            } catch (e) {}
+          }
+
+          const startLog = join(global.Server.MariaDBDir!, 'start.log')
+          const startErrorLog = join(global.Server.MariaDBDir!, 'start.error.log')
+
+          if (existsSync(startErrorLog)) {
+            try {
+              await remove(startErrorLog)
+            } catch (e) {}
+          }
+          const bin = version.bin
+          const commands: string[] = ['#!/bin/zsh']
+          commands.push(`cd "${dirname(bin)}"`)
+          commands.push(
+            `nohup ./${basename(bin)} ${params.join(' ')} > "${startLog}" 2>"${startErrorLog}" &`
+          )
+          commands.push(`echo $!`)
+          const command = commands.join('\n')
+          console.log('command: ', command)
+          const sh = join(global.Server.MariaDBDir!, `start.sh`)
+          await writeFile(sh, command)
+          await execPromiseRoot([`chmod`, '777', sh])
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+          })
+          let res: any
+          try {
+            res = await execPromiseRootWhenNeed(`zsh`, [sh])
+            console.log('start res: ', res)
+          } catch (e) {
+            on({
+              'APP-On-Log': AppLog(
+                'error',
+                I18nT('appLog.execStartCommandFail', {
+                  error: e,
+                  service: `${this.type}-${version.version}`
+                })
+              )
+            })
+            console.log('start e: ', e)
+            reject(e)
+            return
+          }
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+          })
+          on({
+            'APP-On-Log': AppLog(
+              'info',
+              I18nT('appLog.startServiceSuccess', { pid: res.stdout.trim() })
+            )
+          })
+          resolve({
+            'APP-Service-Start-PID': res.pid
+          })
+        })
+      }
+
+      if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDir'))
+        })
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
-        bin = join(version.path, 'bin/mariadb-install-db')
+        let bin = join(version.path, 'bin/mariadb-install-db')
         if (!existsSync(bin)) {
           bin = join(version.path, 'bin/mysql_install_db')
         }
-        params.splice(0)
+        const params: string[] = []
         params.push(`--datadir=${dataDir}`)
         params.push(`--basedir=${version.path}`)
         params.push('--auth-root-authentication-method=normal')
@@ -103,81 +201,32 @@ datadir=${dataDir}`
             }
           }
         }
-      }
-      try {
-        if (existsSync(p)) {
-          await unlink(p)
+        try {
+          await execPromise(`cd "${dirname(bin)}" && ./${basename(bin)} ${params.join(' ')}`)
+        } catch (e) {
+          on({
+            'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
+          })
+          reject(e)
+          return
         }
-      } catch (e) {}
-
-      on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
-      const { promise, spawn } = await spawnPromiseMore(bin, params)
-      let success = false
-      let checking = false
-
-      console.log('mariadb start: ', bin, params.join(' '))
-      async function checkpid(time = 0) {
-        if (existsSync(p)) {
-          console.log('time: ', time)
-          success = true
-          try {
-            await execPromise(`kill -9 ${spawn.pid}`)
-          } catch (e) {}
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            await checkpid(time + 1)
-          } else {
-            try {
-              await execPromise(`kill -9 ${spawn.pid}`)
-            } catch (e) {}
-          }
-        }
-      }
-      const unlinkDirOnFail = async () => {
-        if (existsSync(dataDir)) {
-          await remove(dataDir)
-        }
-        if (existsSync(m)) {
-          await remove(m)
-        }
-      }
-      promise
-        .on(async (data) => {
-          console.log('promise on: ', data)
-          on(data)
-          if (!checking) {
-            checking = true
-            await checkpid()
-          }
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDirSuccess', { dir: dataDir }))
         })
-        .then(async (code) => {
-          console.log('promise then: ', code)
-          if (success) {
-            resolve(code)
-          } else {
-            if (needRestart) {
-              try {
-                await this._startServer(version).on(on)
-                await this._initPassword(version)
-                on(I18nT('fork.postgresqlInit', { dir: dataDir }))
-                resolve(code)
-              } catch (e) {
-                await unlinkDirOnFail()
-                reject(e)
-              }
-            } else {
-              reject(code)
-            }
-          }
-        })
-        .catch(async (err) => {
-          console.log('promise catch: ', err)
-          if (needRestart) {
-            await unlinkDirOnFail()
-          }
-          reject(err)
-        })
+        await waitTime(500)
+        try {
+          const res = await doStart()
+          await waitTime(500)
+          await this._initPassword(version).on(on)
+          on(I18nT('fork.postgresqlInit', { dir: dataDir }))
+          resolve(res)
+        } catch (e) {
+          await unlinkDirOnFail()
+          reject(e)
+        }
+      } else {
+        doStart().then(resolve).catch(reject)
+      }
     })
   }
 

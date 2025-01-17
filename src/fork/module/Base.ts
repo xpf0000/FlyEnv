@@ -2,7 +2,7 @@ import { I18nT } from '../lang'
 import { createWriteStream, existsSync } from 'fs'
 import { dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromise, spawnPromise, waitTime } from '../Fn'
+import { AppLog, execPromise, spawnPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, copyFile, unlink, chmod, remove, mkdirp, readdir } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
@@ -68,41 +68,6 @@ export class Base {
     })
   }
 
-  doLinkVersion(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject) => {
-      this._linkVersion(version).then((res) => {
-        if (res === true) {
-          resolve(true)
-        } else {
-          reject(new Error(res))
-        }
-      })
-    })
-  }
-
-  switchVersion(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      if (!existsSync(version?.bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
-      if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNoFound')))
-        return
-      }
-      try {
-        this._linkVersion(version)
-      } catch (e) {}
-      try {
-        await this._stopServer(version)
-        await this._startServer(version).on(on)
-        resolve(true)
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
-
   stopService(version: SoftInstalled) {
     return this._stopServer(version)
   }
@@ -125,7 +90,7 @@ export class Base {
         this._linkVersion(version)
       } catch (e) {}
       try {
-        await this._stopServer(version)
+        await this._stopServer(version).on(on)
         const res = await this._startServer(version).on(on)
         if (res?.['APP-Service-Start-PID']) {
           const pid = res['APP-Service-Start-PID']
@@ -142,16 +107,25 @@ export class Base {
 
   _stopServer(version: SoftInstalled) {
     console.log(version)
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
+      })
       const allPid: string[] = []
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       if (existsSync(appPidFile)) {
         const pid = (await readFile(appPidFile, 'utf-8')).trim()
         const pids = await ProcessPidListByPid(pid)
         allPid.push(...pids)
+        on({
+          'APP-Service-Stop-Success': true
+        })
       } else if (version?.pid) {
         const pids = await ProcessPidListByPid(version.pid.trim())
         allPid.push(...pids)
+        on({
+          'APP-Service-Stop-Success': true
+        })
       } else {
         const dis: { [k: string]: string } = {
           caddy: 'caddy',
@@ -188,7 +162,6 @@ export class Base {
           allPid.push(...pids)
         }
       }
-
       const arr: string[] = Array.from(new Set(allPid))
       if (arr.length > 0) {
         let sig = ''
@@ -208,13 +181,12 @@ export class Base {
           await execPromiseRoot([`kill`, sig, ...arr])
         } catch (e) {}
       }
-      await waitTime(300)
-      if (this.type === 'tomcat' && arr.length > 0) {
-        await waitTime(5000)
-      }
       if (existsSync(appPidFile)) {
         await remove(appPidFile)
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+      })
       resolve({
         'APP-Service-Stop-PID': arr
       })
@@ -234,7 +206,7 @@ export class Base {
             this.type === 'mariadb'
               ? '-HUP'
               : '-USR2'
-          await execPromiseRoot([`kill`, sign, pid])
+          await execPromiseRoot([`kill`, sign, pid.trim()])
           await waitTime(1000)
           resolve(0)
         } catch (e) {
@@ -288,6 +260,48 @@ export class Base {
       }
       execPromiseRoot([copyfile]).on(on).then(resolve).catch(reject)
     })
+  }
+
+  async waitPidFile(
+    pidFile: string,
+    errLog?: string,
+    time = 0
+  ): Promise<
+    | {
+        pid?: string
+        error?: string
+      }
+    | false
+  > {
+    let res:
+      | {
+          pid?: string
+          error?: string
+        }
+      | false = false
+    if (errLog && existsSync(errLog)) {
+      const error = await readFile(errLog, 'utf-8')
+      if (error.length > 0) {
+        return {
+          error
+        }
+      }
+    }
+    if (existsSync(pidFile)) {
+      const pid = (await readFile(pidFile, 'utf-8')).trim()
+      return {
+        pid
+      }
+    } else {
+      if (time < 20) {
+        await waitTime(500)
+        res = res || (await this.waitPidFile(pidFile, errLog, time + 1))
+      } else {
+        res = false
+      }
+    }
+    console.log('waitPid: ', time, res)
+    return res
   }
 
   getAxiosProxy() {

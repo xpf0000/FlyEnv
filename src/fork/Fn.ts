@@ -46,6 +46,11 @@ export const ProcessSendLog = (key: string, msg: any, on?: boolean) => {
   })
 }
 
+export const AppLog = (type: 'info' | 'error', msg: string) => {
+  const time = new Date().getTime()
+  return `[${type}]${time}:${msg}`
+}
+
 export function uuid(length = 32) {
   const num = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
   let str = ''

@@ -6,7 +6,10 @@
           <div
             class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
           >
-            <template v-for="(item, index) in setting.filter((s) => s.type === type)" :key="index">
+            <template
+              v-for="(item, _index) in setting.filter((s) => s.type === type)"
+              :key="_index"
+            >
               <CommonItem :item="item" />
             </template>
           </div>
@@ -18,7 +21,7 @@
     <div
       class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
     >
-      <template v-for="(item, index) in setting" :key="index">
+      <template v-for="(item, _index) in setting" :key="_index">
         <CommonItem :item="item" />
       </template>
     </div>
