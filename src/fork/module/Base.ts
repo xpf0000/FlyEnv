@@ -265,6 +265,7 @@ export class Base {
   async waitPidFile(
     pidFile: string,
     errLog?: string,
+    maxTime = 20,
     time = 0
   ): Promise<
     | {
@@ -279,25 +280,27 @@ export class Base {
           error?: string
         }
       | false = false
-    if (errLog && existsSync(errLog)) {
-      const error = await readFile(errLog, 'utf-8')
-      if (error.length > 0) {
-        return {
-          error
-        }
-      }
-    }
     if (existsSync(pidFile)) {
       const pid = (await readFile(pidFile, 'utf-8')).trim()
       return {
         pid
       }
     } else {
-      if (time < 20) {
+      if (time < maxTime) {
         await waitTime(500)
-        res = res || (await this.waitPidFile(pidFile, errLog, time + 1))
+        res = res || (await this.waitPidFile(pidFile, errLog, maxTime, time + 1))
       } else {
-        res = false
+        let error = ''
+        if (errLog && existsSync(errLog)) {
+          error = (await readFile(errLog, 'utf-8')).trim()
+        }
+        if (error.length > 0) {
+          res = {
+            error
+          }
+        } else {
+          res = false
+        }
       }
     }
     console.log('waitPid: ', time, res)

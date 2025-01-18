@@ -16,11 +16,12 @@ import {
   brewSearch,
   brewInfoJson,
   portSearch,
-  versionFilterSame
+  versionFilterSame,
+  AppLog
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
-import { execPromiseRoot } from '@shared/Exec'
+import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
 
 class Mysql extends Base {
@@ -34,15 +35,27 @@ class Mysql extends Base {
   }
 
   _initPassword(version: SoftInstalled) {
-    return new ForkPromise((resolve, reject) => {
+    return new ForkPromise((resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.initDBPass'))
+      })
       execPromise('./mysqladmin --socket=/tmp/mysql.sock -uroot password "root"', {
         cwd: dirname(version.bin)
       })
         .then((res) => {
+          on({
+            'APP-On-Log': AppLog(
+              'info',
+              I18nT('appLog.initDBPassSuccess', { user: 'root', pass: 'root' })
+            )
+          })
           console.log('_initPassword res: ', res)
           resolve(true)
         })
         .catch((err) => {
+          on({
+            'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: err }))
+          })
           console.log('_initPassword err: ', err)
           reject(err)
         })
@@ -51,43 +64,146 @@ class Mysql extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      let bin = version.bin
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
-      const oldm = join(global.Server.MysqlDir!, 'my.cnf')
       const dataDir = join(global.Server.MysqlDir!, `data-${v}`)
+      const p = join(global.Server.MysqlDir!, 'mysql.pid')
+      const s = join(global.Server.MysqlDir!, 'slow.log')
+      const e = join(global.Server.MysqlDir!, 'error.log')
       if (!existsSync(m)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         const conf = `[mysqld]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-#设置数据目录
-#brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
-#如果配置文件已更改, 原配置文件在: ${oldm}
-#可以复制原配置文件的内容, 使用原来的配置
 datadir=${dataDir}`
         await writeFile(m, conf)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: m }))
+        })
       }
 
-      const p = join(global.Server.MysqlDir!, 'mysql.pid')
-      const s = join(global.Server.MysqlDir!, 'slow.log')
-      const e = join(global.Server.MysqlDir!, 'error.log')
-      const params = [
-        `--defaults-file=${m}`,
-        `--pid-file=${p}`,
-        '--user=mysql',
-        `--slow-query-log-file=${s}`,
-        `--log-error=${e}`,
-        '--socket=/tmp/mysql.sock'
-      ]
-      if (version?.flag === 'macports') {
-        params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
+      const unlinkDirOnFail = async () => {
+        if (existsSync(dataDir)) {
+          await remove(dataDir)
+        }
+        if (existsSync(m)) {
+          await remove(m)
+        }
       }
-      let needRestart = false
+
+      const doStart = () => {
+        return new Promise(async (resolve, reject) => {
+          if (existsSync(p)) {
+            try {
+              await remove(p)
+            } catch (e) {}
+          }
+          const bin = version.bin
+          const params = [
+            `--defaults-file=${m}`,
+            `--pid-file=${p}`,
+            '--user=mysql',
+            `--slow-query-log-file=${s}`,
+            `--log-error=${e}`,
+            '--socket=/tmp/mysql.sock'
+          ]
+          if (version?.flag === 'macports') {
+            params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
+          }
+
+          const startLog = join(global.Server.MysqlDir!, 'start.log')
+          const startErrorLog = join(global.Server.MysqlDir!, 'start.error.log')
+          if (existsSync(startErrorLog)) {
+            try {
+              await remove(startErrorLog)
+            } catch (e) {}
+          }
+
+          const commands: string[] = ['#!/bin/zsh']
+          commands.push(`cd "${dirname(bin)}"`)
+          commands.push(
+            `nohup ./${basename(bin)} ${params.join(' ')} > "${startLog}" 2>"${startErrorLog}" &`
+          )
+          commands.push(`echo $!`)
+          const command = commands.join('\n')
+          console.log('command: ', command)
+          const sh = join(global.Server.MysqlDir!, `start.sh`)
+          await writeFile(sh, command)
+          await execPromiseRoot([`chmod`, '777', sh])
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+          })
+          let res: any
+          try {
+            res = await execPromiseRootWhenNeed(`zsh`, [sh])
+            console.log('start res: ', res)
+          } catch (e) {
+            on({
+              'APP-On-Log': AppLog(
+                'error',
+                I18nT('appLog.execStartCommandFail', {
+                  error: e,
+                  service: `${this.type}-${version.version}`
+                })
+              )
+            })
+            console.log('start e: ', e)
+            reject(e)
+            return
+          }
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+          })
+          on({
+            'APP-Service-Start-Success': true
+          })
+          res = await this.waitPidFile(p, startErrorLog)
+          if (res && res?.pid) {
+            on({
+              'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+            })
+            resolve({
+              'APP-Service-Start-PID': res.pid
+            })
+            return
+          }
+          on({
+            'APP-On-Log': AppLog(
+              'error',
+              I18nT('appLog.execStartCommandFail', {
+                error: res ? res?.error : 'Start Fail',
+                service: `${this.type}-${version.version}`
+              })
+            )
+          })
+          reject(new Error('Start Fail'))
+        })
+      }
+
       if (!existsSync(dataDir) || readdirSync(dataDir).length === 0) {
-        needRestart = true
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDir'))
+        })
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
+        let bin = version.bin
+        const params = [
+          `--defaults-file=${m}`,
+          `--pid-file=${p}`,
+          '--user=mysql',
+          `--slow-query-log-file=${s}`,
+          `--log-error=${e}`,
+          '--socket=/tmp/mysql.sock'
+        ]
         const installdb = join(version.path, 'bin/mysql_install_db')
         if (existsSync(installdb) && version.num! < 57) {
           bin = installdb
@@ -116,76 +232,35 @@ datadir=${dataDir}`
         } else {
           params.push('--initialize-insecure')
         }
-      }
-      try {
-        if (existsSync(p)) {
-          await unlink(p)
+
+        try {
+          await execPromise(
+            `cd "${dirname(bin)}" && ./${basename(bin)} ${params.join(' ')} && wait && exit 0`
+          )
+        } catch (e) {
+          on({
+            'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
+          })
+          reject(e)
+          return
         }
-      } catch (e) {}
-      console.log('mysql start: ', bin, params.join(' '))
-      on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
-      const { promise, spawn } = await spawnPromiseMore(bin, params)
-      let success = false
-      let checking = false
-      async function checkpid(time = 0) {
-        if (existsSync(p)) {
-          console.log('time: ', time)
-          success = true
-          try {
-            await execPromise(`kill -9 ${spawn.pid}`)
-          } catch (e) {}
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            await checkpid(time + 1)
-          } else {
-            try {
-              await execPromise(`kill -9 ${spawn.pid}`)
-            } catch (e) {}
-          }
-        }
-      }
-      const unlinkDirOnFail = async () => {
-        if (existsSync(dataDir)) {
-          await remove(dataDir)
-        }
-        if (existsSync(m)) {
-          await remove(m)
-        }
-      }
-      promise
-        .on(async (data) => {
-          on(data)
-          if (!checking) {
-            checking = true
-            await checkpid()
-          }
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDirSuccess', { dir: dataDir }))
         })
-        .then(async (code) => {
-          if (success) {
-            resolve(code)
-          } else {
-            if (needRestart) {
-              try {
-                await this._startServer(version).on(on)
-                await this._initPassword(version)
-                on(I18nT('fork.postgresqlInit', { dir: dataDir }))
-                resolve(code)
-              } catch (e) {
-                await unlinkDirOnFail()
-                reject(e)
-              }
-            } else {
-              reject(code)
-            }
-          }
-        })
-        .catch(async (err) => {
-          if (needRestart) {
-            await unlinkDirOnFail()
-          }
-          reject(err)
-        })
+        await waitTime(500)
+        try {
+          const res = await doStart()
+          await waitTime(500)
+          await this._initPassword(version).on(on)
+          on(I18nT('fork.postgresqlInit', { dir: dataDir }))
+          resolve(res)
+        } catch (e) {
+          await unlinkDirOnFail()
+          reject(e)
+        }
+      } else {
+        doStart().then(resolve).catch(reject)
+      }
     })
   }
 

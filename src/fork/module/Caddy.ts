@@ -175,7 +175,7 @@ class Caddy extends Base {
             'APP-Service-Start-PID': pid.trim()
           })
         } else {
-          if (time < 40) {
+          if (time < 10) {
             await waitTime(500)
             await checkPid(time + 1)
           } else {
@@ -198,6 +198,7 @@ class Caddy extends Base {
       commands.push(
         `nohup ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch > /dev/null 2>&1 &`
       )
+      commands.push(`echo $!`)
       const command = commands.join('\n')
       console.log('command: ', command)
       const sh = join(global.Server.BaseDir!, `caddy/start.sh`)

@@ -4,6 +4,7 @@ import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   brewInfoJson,
   brewSearch,
   execPromise,
@@ -33,34 +34,27 @@ class Manager extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
       const dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
       const confFile = join(dbPath, 'postgresql.conf')
       const pidFile = join(dbPath, 'postmaster.pid')
       const logFile = join(dbPath, 'pg.log')
-      let sendUserPass = false
-      try {
-        if (existsSync(pidFile)) {
-          await unlink(pidFile)
-        }
-      } catch (e) {}
-      const checkpid = async (time = 0) => {
-        if (existsSync(pidFile)) {
-          if (sendUserPass) {
-            on(I18nT('fork.postgresqlInit', { dir: dbPath }))
-          }
-          resolve(true)
-        } else {
-          if (time < 40) {
-            await waitTime(500)
-            await checkpid(time + 1)
-          } else {
-            reject(new Error('Start Failed'))
-          }
-        }
-      }
       const doRun = async () => {
+        try {
+          if (existsSync(pidFile)) {
+            await unlink(pidFile)
+          }
+        } catch (e) {}
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+        })
         const command = `${bin} -D ${dbPath} -l ${logFile} start`
         try {
           await execPromise(command, {
@@ -70,32 +64,79 @@ class Manager extends Base {
             }
           })
         } catch (e) {
+          on({
+            'APP-On-Log': AppLog(
+              'error',
+              I18nT('appLog.execStartCommandFail', {
+                error: e,
+                service: `${this.type}-${version.version}`
+              })
+            )
+          })
           reject(e)
           return
         }
-        await waitTime(1000)
-        await checkpid()
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+        })
+        on({
+          'APP-Service-Start-Success': true
+        })
+        const res = await this.waitPidFile(pidFile)
+        if (res && res?.pid) {
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+          })
+          resolve({
+            'APP-Service-Start-PID': res.pid
+          })
+          return
+        }
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', {
+              error: res ? res?.error : 'Start Fail',
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
+        reject(new Error(res ? res?.error : 'Start Fail'))
       }
       if (existsSync(confFile)) {
         await doRun()
       } else if (!existsSync(dbPath)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDir'))
+        })
         const binDir = dirname(bin)
         const initDB = join(binDir, 'initdb')
-        const command = `${initDB} -D ${dbPath} -U root`
+        const command = `${initDB} -D ${dbPath} -U root && wait`
         try {
           await execPromise(command)
         } catch (e) {
+          on({
+            'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
+          })
           reject(e)
           return
         }
         await waitTime(1000)
         if (!existsSync(confFile)) {
+          on({
+            'APP-On-Log': AppLog(
+              'error',
+              I18nT('appLog.initDBDataDirFail', { error: `Data Dir ${dbPath} create faild` })
+            )
+          })
           reject(new Error(`Data Dir ${dbPath} create faild`))
           return
         }
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDirSuccess', { dir: dbPath }))
+        })
         const defaultConfFile = join(dbPath, 'postgresql.conf.default')
         await copyFile(confFile, defaultConfFile)
-        sendUserPass = true
         await doRun()
       } else {
         reject(new Error(`Data Dir ${dbPath} has exists, but conf file not found in dir`))

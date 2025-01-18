@@ -88,7 +88,6 @@ export function execPromiseRoot(
     }
     const onPassword = (data: Uint8Array) => {
       const str = data.toString()
-      console.log('onPassword str: ', str, str.startsWith('Password:'))
       if (str.startsWith('Password:')) {
         child?.stdin?.write(password ?? global.Server.Password!)
         child?.stdin?.write(`\n`)
@@ -148,7 +147,6 @@ export function execPromiseRootWhenNeed(
     }
     const onPassword = (data: Uint8Array) => {
       const str = data.toString()
-      console.log('onPassword str: ', str, str.startsWith('Password:'))
       if (str.includes('Password:')) {
         child?.stdin?.write(global.Server.Password!)
         child?.stdin?.write(`\n`)

@@ -1,22 +1,22 @@
-import { join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   brewInfoJson,
-  execPromise,
   portSearch,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort,
-  waitTime
+  versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, unlink } from 'fs-extra'
+import { mkdirp, unlink, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 class Memcached extends Base {
   constructor() {
     super()
@@ -29,29 +29,78 @@ class Memcached extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
       const bin = version.bin
       const common = join(global.Server.MemcachedDir!, 'logs')
       const pid = join(common, 'memcached.pid')
       const log = join(common, 'memcached.log')
-      const command = `${bin} -d -P ${pid} -vv >> ${log} 2>&1`
+
+      const commands: string[] = ['#!/bin/zsh']
+      commands.push(`cd "${dirname(bin)}"`)
+      commands.push(`./${basename(bin)} -d -P "${pid}" -vv >> "${log}" 2>&1 &`)
+      commands.push(`echo $!`)
+      const command = commands.join('\n')
+      console.log('command: ', command)
+      const sh = join(global.Server.MemcachedDir!, `start.sh`)
+      await writeFile(sh, command)
+      await execPromiseRoot([`chmod`, '777', sh])
       try {
         if (existsSync(pid)) {
           await unlink(pid)
         }
       } catch (e) {}
+
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       try {
         await mkdirp(common)
-        const res = await execPromise(command)
-        on(res.stdout)
-        await waitTime(600)
-        if (existsSync(pid)) {
-          resolve(0)
-        } else {
-          reject(new Error(I18nT('fork.startFail')))
-        }
+        const res = await execPromiseRootWhenNeed(`zsh`, [sh])
+        console.log('res: ', res)
       } catch (e: any) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', {
+              error: e,
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
         reject(e)
+        return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
+      on({
+        'APP-Service-Start-Success': true
+      })
+      const res = await this.waitPidFile(pid)
+      if (res && res?.pid) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+        })
+        resolve({
+          'APP-Service-Start-PID': res.pid
+        })
+        return
+      }
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.execStartCommandFail', {
+            error: log,
+            service: `${this.type}-${version.version}`
+          })
+        )
+      })
+      reject(new Error('Start Fail'))
     })
   }
 
