@@ -8,6 +8,7 @@
     <div class="main-block">
       <Versions v-if="tab === 0"></Versions>
       <Config v-if="tab === 1" />
+      <Create v-if="tab === 2" />
     </div>
   </div>
 </template>
@@ -16,7 +17,9 @@
   import Versions from './List.vue'
   import Config from './Config.vue'
   import { AppModuleSetup } from '@/core/Module'
+  import { I18nT } from '@shared/lang'
+  import Create from './CreateProject.vue'
 
   const { tab } = AppModuleSetup('node')
-  const tabs = ['NodeJS', '.npmrc']
+  const tabs = ['NodeJS', '.npmrc', I18nT('host.newProject')]
 </script>

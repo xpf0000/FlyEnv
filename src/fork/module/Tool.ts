@@ -362,6 +362,7 @@ class Manager extends Base {
           const content = `#!/bin/zsh
 "${item?.php?.bin}" "${service.bin}" $@`
           await writeFile(file, content)
+          await chmod(file, '0777')
         } else {
           let bin = service.bin
           if (service.typeFlag === 'php') {

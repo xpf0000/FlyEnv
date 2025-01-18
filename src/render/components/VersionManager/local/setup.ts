@@ -3,9 +3,10 @@ import { BrewStore, SoftInstalled } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
 import installedVersions from '@/util/InstalledVersions'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+import { AppStore } from '@/store/app'
 
 const { shell } = require('@electron/remote')
-const { dirname } = require('path')
+const { dirname, join } = require('path')
 
 export const LocalSetup = reactive<{
   fetching: Partial<Record<AllAppModule, boolean>>
@@ -17,6 +18,7 @@ export const LocalSetup = reactive<{
 
 export const SetupAll = (typeFlag: AllAppModule) => {
   const brewStore = BrewStore()
+  const appStore = AppStore()
 
   const currentModule = computed(() => {
     return brewStore.module(typeFlag)
@@ -75,6 +77,22 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     shell.openPath(dir)
   }
 
+  const isInEnv = (item: SoftInstalled) => {
+    let bin = dirname(item.bin)
+    if (typeFlag === 'php') {
+      bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
+    }
+    return ServiceActionStore.allPath.includes(bin)
+  }
+
+  const isInAppEnv = (item: SoftInstalled) => {
+    let bin = dirname(item.bin)
+    if (typeFlag === 'php') {
+      bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
+    }
+    return ServiceActionStore.appPath.includes(bin)
+  }
+
   getData()
 
   return {
@@ -83,6 +101,9 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     reGetData,
     fetching,
     checkEnvPath,
-    openDir
+    openDir,
+    isInEnv,
+    isInAppEnv,
+    appStore
   }
 }

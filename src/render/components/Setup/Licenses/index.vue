@@ -99,13 +99,17 @@
   import { SetupStore } from '@/components/Setup/store'
   import { I18nT } from '@shared/lang'
 
+  const { shell } = require('@electron/remote')
+
   const store = SetupStore()
   const app = AppStore()
   const lang = computed(() => {
     return app.config.setup.lang
   })
 
-  const toUrl = (url: string) => {}
+  const toUrl = (url: string) => {
+    shell.openExternal(url)
+  }
   const doRequest = () => {
     store.postRequest()
   }

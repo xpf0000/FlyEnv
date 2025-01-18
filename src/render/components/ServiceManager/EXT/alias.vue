@@ -91,7 +91,7 @@
     return list.map((item) => {
       return {
         ...item,
-        path: join(aliasDir, `${item.name}.bat`)
+        path: join(aliasDir, `${item.name}`)
       }
     })
   })

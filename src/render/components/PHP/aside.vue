@@ -43,9 +43,13 @@
       passwordCheck().then(() => {
         const all: Array<Promise<any>> = []
         if (v) {
+          const runNum: Set<number> = new Set<number>()
           phpVersions?.value?.forEach((v) => {
             if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
-              all.push(startService('php', v))
+              if (!runNum.has(v.num!)) {
+                runNum.add(v.num!)
+                all.push(startService('php', v))
+              }
             }
           })
         } else {
@@ -91,9 +95,13 @@
       }
     } else {
       if (showItem?.value) {
+        const runNum: Set<number> = new Set<number>()
         phpVersions?.value?.forEach((v) => {
           if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
-            all.push(startService('php', v))
+            if (!runNum.has(v.num!)) {
+              runNum.add(v.num!)
+              all.push(startService('php', v))
+            }
           }
         })
       }

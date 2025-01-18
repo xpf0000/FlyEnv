@@ -55,8 +55,8 @@
   import type { AppServiceAliasItem, SoftInstalled } from '@shared/app.d.ts'
   import { AllAppModule } from '@/core/type'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-  import { join } from 'path'
 
+  const { join } = require('path')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{

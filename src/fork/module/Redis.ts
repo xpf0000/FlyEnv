@@ -4,6 +4,7 @@ import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   brewInfoJson,
   brewSearch,
   portSearch,
@@ -11,8 +12,7 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort,
-  waitTime
+  versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
@@ -42,10 +42,13 @@ class Redis extends Base {
     })
   }
   _initConf(version: SoftInstalled): ForkPromise<string> {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       const v = version?.version?.split('.')?.[0] ?? ''
       const confFile = join(global.Server.RedisDir!, `redis-${v}.conf`)
       if (!existsSync(confFile)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         const tmplFile = join(global.Server.Static!, 'tmpl/redis.conf')
         const dbDir = join(global.Server.RedisDir!, `db-${v}`)
         await mkdirp(dbDir)
@@ -58,6 +61,9 @@ class Redis extends Base {
         await writeFile(confFile, content)
         const defaultFile = join(global.Server.RedisDir!, `redis-${v}-default.conf`)
         await writeFile(defaultFile, content)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: confFile }))
+        })
       }
       resolve(confFile)
     })
@@ -65,35 +71,61 @@ class Redis extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
       const bin = version.bin
       const confFile = await this._initConf(version)
-      const checkpid = async (time = 0) => {
-        if (existsSync(this.pidPath)) {
-          const pid = await readFile(this.pidPath, 'utf-8')
-          resolve({
-            'APP-Service-Start-PID': pid.trim()
-          })
-        } else {
-          if (time < 20) {
-            await waitTime(500)
-            await checkpid(time + 1)
-          } else {
-            reject(new Error(I18nT('fork.startFail')))
-          }
-        }
-      }
       try {
         if (existsSync(this.pidPath)) {
           await unlink(this.pidPath)
         }
       } catch (e) {}
       try {
-        const res = await execPromiseRoot([bin, confFile])
-        on(res.stdout)
-        await checkpid()
+        await execPromiseRoot([bin, confFile])
       } catch (e) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', {
+              error: e,
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
         reject(e)
+        return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
+      on({
+        'APP-Service-Start-Success': true
+      })
+      const res = await this.waitPidFile(this.pidPath)
+      if (res && res?.pid) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+        })
+        resolve({
+          'APP-Service-Start-PID': res.pid
+        })
+        return
+      }
+      const error = res ? res?.error : I18nT('fork.startFail')
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.execStartCommandFail', {
+            error,
+            service: `${this.type}-${version.version}`
+          })
+        )
+      })
+      reject(new Error(error))
     })
   }
 
