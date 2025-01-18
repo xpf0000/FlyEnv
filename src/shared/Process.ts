@@ -129,3 +129,42 @@ export const ProcessListSearch = async (search: string, aA = true) => {
   }
   return all
 }
+
+export const ProcessListByPid = async (pid: string): Promise<PItem[]> => {
+  const all: Set<string> = new Set()
+  const arr = await ProcessPidList()
+  const find = (ppid: string) => {
+    for (const item of arr) {
+      if (item.PPID === ppid) {
+        console.log('find: ', ppid, item)
+        all.add(item.PID!)
+        find(item.PID!)
+      }
+    }
+  }
+  if (arr.find((a) => a.PID === pid)) {
+    all.add(pid)
+    find(pid)
+  }
+  const item = arr.find((a) => a.PPID === pid)
+  if (item) {
+    all.add(pid)
+    all.add(item.PID)
+    find(pid)
+    find(item.PID)
+  }
+  return Array.from(all).map((pid) => {
+    const find = arr.find((item) => item.PID === pid)
+    if (find) {
+      return find
+    }
+    const child = arr.find((item) => item.PPID === pid)
+    console.log('ProcessListByPid child: ', child)
+    return {
+      USER: '',
+      PID: pid,
+      PPID: '',
+      COMMAND: ''
+    } as PItem
+  })
+}

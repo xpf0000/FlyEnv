@@ -84,11 +84,12 @@ class Manager extends Base {
         })
         const res = await this.waitPidFile(pidFile)
         if (res && res?.pid) {
+          const pid = res.pid.split('\n').shift()?.trim() ?? ''
           on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
           })
           resolve({
-            'APP-Service-Start-PID': res.pid
+            'APP-Service-Start-PID': pid
           })
           return
         }

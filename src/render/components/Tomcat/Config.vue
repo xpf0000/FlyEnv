@@ -27,18 +27,23 @@
     return appStore.config?.server?.tomcat?.current
   })
 
+  const currentBaseDir = computed(() => {
+    const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+    return join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+  })
+
   const conf = ref()
   const file = computed(() => {
-    if (!currentVersion.value) {
+    if (!currentBaseDir.value) {
       return ''
     }
-    return join(currentVersion.value.path, `conf/${props.fileName}`)
+    return join(currentBaseDir.value, `conf/${props.fileName}`)
   })
 
   const defaultFile = computed(() => {
-    if (!currentVersion.value) {
+    if (!currentBaseDir.value) {
       return ''
     }
-    return join(currentVersion.value.path, `conf/${props.fileName}.default`)
+    return join(currentBaseDir.value, `conf/${props.fileName}.default`)
   })
 </script>

@@ -21,7 +21,7 @@
         <el-tooltip :show-after="600" :content="I18nT('base.open')" placement="top">
           <el-button
             class="shrink0"
-            :disabled="AppLogStore.checkLogFile()"
+            :disabled="!AppLogStore.checkLogFile()"
             @click="AppLogStore.open()"
           >
             <FolderOpened class="w-5 h-5 p-0.5" />
@@ -30,7 +30,7 @@
         <el-tooltip :show-after="600" :content="I18nT('base.clean')" placement="top">
           <el-button
             class="shrink0"
-            :disabled="AppLogStore.checkLogFile()"
+            :disabled="!AppLogStore.checkLogFile()"
             @click="AppLogStore.clean()"
           >
             <Notebook class="w-5 h-5 p-0.5" />

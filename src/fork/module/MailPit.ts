@@ -134,7 +134,7 @@ class MailPit extends Base {
       try {
         const res = await execPromiseRootWhenNeed(`zsh`, [sh], opt)
         console.log('start res: ', res)
-        const pid = await readFile(this.pidPath, 'utf-8')
+        const pid = (await readFile(this.pidPath, 'utf-8')).trim()
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
         })

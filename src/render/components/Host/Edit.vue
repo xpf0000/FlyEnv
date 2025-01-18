@@ -135,7 +135,10 @@
           </div>
 
           <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
-            <span>{{ I18nT('host.autoSSL') }}</span>
+            <div class="inline-flex items-center gap-1">
+              <span>{{ I18nT('host.autoSSL') }}</span>
+              <SSLTips />
+            </div>
             <el-switch v-model="item.autoSSL"></el-switch>
           </div>
 
@@ -278,7 +281,8 @@
   import { MessageError } from '@/util/Element'
   import { ElMessageBox } from 'element-plus'
   import { execPromiseRoot } from '@shared/Exec'
-  import { Plus, Minus, Delete } from '@element-plus/icons-vue'
+  import { Plus, Delete } from '@element-plus/icons-vue'
+  import SSLTips from './SSLTips/index.vue'
 
   const { dialog } = require('@electron/remote')
   const { accessSync, constants } = require('fs')

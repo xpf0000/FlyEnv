@@ -17,7 +17,7 @@ import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseRoot } from '@shared/Exec'
 import { arch } from 'os'
-import { ProcessPidList, ProcessPidListByPid } from '@shared/Process'
+import { PItem, ProcessListByPid, ProcessPidList } from '@shared/Process'
 import NodePTY from './core/NodePTY'
 import HttpServer from './core/HttpServer'
 
@@ -353,6 +353,7 @@ export default class Application extends EventEmitter {
         item.COMMAND.includes('mysqld') ||
         item.COMMAND.includes('mariadbd') ||
         item.COMMAND.includes('mongod') ||
+        item.COMMAND.includes('rabbit') ||
         item.COMMAND.includes('org.apache.catalina')
       ) {
         TERM.push(item.PID)
@@ -380,14 +381,38 @@ export default class Application extends EventEmitter {
     }
     const arr = Array.from(this.hostServicePID).map((pid) => {
       return new Promise(async (resolve) => {
-        let pids: string[] = []
+        const TERM: Array<string> = []
+        const INT: Array<string> = []
+        let pids: PItem[] = []
         try {
-          pids = await ProcessPidListByPid(pid)
+          pids = await ProcessListByPid(pid)
         } catch (e) {}
         if (pids.length > 0) {
-          try {
-            await execPromiseRoot([`kill`, '-9', ...pids])
-          } catch (e) {}
+          pids.forEach((item) => {
+            if (
+              item.COMMAND.includes('mysqld') ||
+              item.COMMAND.includes('mariadbd') ||
+              item.COMMAND.includes('mongod') ||
+              item.COMMAND.includes('rabbit') ||
+              item.COMMAND.includes('org.apache.catalina')
+            ) {
+              TERM.push(item.PID)
+            } else {
+              INT.push(item.PID)
+            }
+          })
+          if (TERM.length > 0) {
+            const sig = '-TERM'
+            try {
+              await execPromiseRoot([`kill`, sig, ...TERM])
+            } catch (e) {}
+          }
+          if (INT.length > 0) {
+            const sig = '-INT'
+            try {
+              await execPromiseRoot([`kill`, sig, ...INT])
+            } catch (e) {}
+          }
         }
         resolve(true)
       })

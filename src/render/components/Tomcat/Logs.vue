@@ -23,11 +23,16 @@
     return appStore.config.server?.tomcat?.current
   })
 
+  const currentBaseDir = computed(() => {
+    const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+    return join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+  })
+
   const log = ref()
   const filepath = computed(() => {
-    if (!currentVersion?.value) {
+    if (!currentBaseDir?.value) {
       return ''
     }
-    return join(currentVersion.value.path, `logs/catalina.out`)
+    return join(currentBaseDir.value, `logs/catalina.out`)
   })
 </script>
