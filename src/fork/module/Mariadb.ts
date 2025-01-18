@@ -122,12 +122,12 @@ datadir=${dataDir}`
 
           const startLog = join(global.Server.MariaDBDir!, 'start.log')
           const startErrorLog = join(global.Server.MariaDBDir!, 'start.error.log')
-
           if (existsSync(startErrorLog)) {
             try {
               await remove(startErrorLog)
             } catch (e) {}
           }
+
           const bin = version.bin
           const commands: string[] = ['#!/bin/zsh']
           commands.push(`cd "${dirname(bin)}"`)
@@ -165,14 +165,28 @@ datadir=${dataDir}`
             'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
           })
           on({
+            'APP-Service-Start-Success': true
+          })
+          res = await this.waitPidFile(p, startErrorLog)
+          if (res && res?.pid) {
+            on({
+              'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+            })
+            resolve({
+              'APP-Service-Start-PID': res.pid
+            })
+            return
+          }
+          on({
             'APP-On-Log': AppLog(
-              'info',
-              I18nT('appLog.startServiceSuccess', { pid: res.stdout.trim() })
+              'error',
+              I18nT('appLog.execStartCommandFail', {
+                error: res ? res?.error : 'Start Fail',
+                service: `${this.type}-${version.version}`
+              })
             )
           })
-          resolve({
-            'APP-Service-Start-PID': res.pid
-          })
+          reject(new Error('Start Fail'))
         })
       }
 

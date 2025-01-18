@@ -3,9 +3,10 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
+import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
 import { execPromiseRoot } from '@shared/Exec'
 import {
+  AppLog,
   brewInfoJson,
   portSearch,
   versionBinVersion,
@@ -16,6 +17,7 @@ import {
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
+import { I18nT } from '../lang'
 class Nginx extends Base {
   constructor() {
     super()
@@ -50,6 +52,12 @@ class Nginx extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `nginx-${version.version}` })
+        )
+      })
       await this.#handlePhpEnableConf()
       console.log('_startServer: ', version)
       const bin = version.bin
@@ -57,15 +65,59 @@ class Nginx extends Base {
       const pid = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
       const errlog = join(global.Server.NginxDir!, 'common/logs/error.log')
       const g = `pid ${pid};error_log ${errlog};`
-      const command = `${bin} -c ${c} -g "${g}"`
-      console.log('command: ', command)
-      try {
-        const res = await execPromiseRoot([bin, '-c', c, '-g', `"${g}"`])
-        on(res.stdout)
-        resolve(0)
-      } catch (e: any) {
-        reject(e)
+      if (existsSync(pid)) {
+        try {
+          await remove(pid)
+        } catch (e) {}
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
+      let res: any
+      try {
+        res = await execPromiseRoot([bin, '-c', c, '-g', `"${g}"`])
+        console.log('start res: ', res)
+      } catch (e) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', {
+              error: e,
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
+        console.log('start e: ', e)
+        reject(e)
+        return
+      }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
+      on({
+        'APP-Service-Start-Success': true
+      })
+      res = await this.waitPidFile(pid)
+      if (res && res?.pid) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+        })
+        resolve({
+          'APP-Service-Start-PID': res.pid
+        })
+        return
+      }
+      const error = res ? res?.error : I18nT('fork.startFail')
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.execStartCommandFail', {
+            error,
+            service: `${this.type}-${version.version}`
+          })
+        )
+      })
+      reject(new Error(error))
     })
   }
 

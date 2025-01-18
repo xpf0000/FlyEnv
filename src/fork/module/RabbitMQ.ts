@@ -4,6 +4,7 @@ import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
+  AppLog,
   brewInfoJson,
   brewSearch,
   portSearch,
@@ -16,7 +17,7 @@ import {
   waitTime
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, mkdirp, unlink } from 'fs-extra'
+import { writeFile, mkdirp, unlink, readFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { execPromiseRoot } from '@shared/Exec'
 class RabbitMQ extends Base {
@@ -46,12 +47,15 @@ class RabbitMQ extends Base {
     })
   }
   _initConf(version: SoftInstalled): ForkPromise<string> {
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject, on) => {
       const v = version?.version?.split('.')?.[0] ?? ''
       const confFile = join(this.baseDir, `rabbitmq-${v}.conf`)
       const logDir = join(this.baseDir, `log-${v}`)
       await mkdirp(logDir)
       if (!existsSync(confFile)) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
+        })
         const pluginsDir = join(version.path, 'plugins')
         const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)
         const content = `NODE_IP_ADDRESS=127.0.0.1
@@ -62,6 +66,9 @@ PLUGINS_DIR="${pluginsDir}"`
         await writeFile(confFile, content)
         const defaultFile = join(this.baseDir, `rabbitmq-${v}-default.conf`)
         await writeFile(defaultFile, content)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: confFile }))
+        })
       }
       resolve(confFile)
     })
@@ -80,20 +87,42 @@ PLUGINS_DIR="${pluginsDir}"`
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
       await this._initPlugin(version)
-      const confFile = await this._initConf(version)
+      const confFile = await this._initConf(version).on(on)
       const v = version?.version?.split('.')?.[0] ?? ''
       const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)
       await mkdirp(mnesiaBaseDir)
       const checkpid = async (time = 0) => {
         const all = readdirSync(mnesiaBaseDir)
-        if (all.some((p) => p.endsWith('.pid'))) {
-          resolve(0)
+        const pidFile = all.find((p) => p.endsWith('.pid'))
+        if (pidFile) {
+          const pid = (await readFile(join(mnesiaBaseDir, pidFile), 'utf-8')).trim()
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid }))
+          })
+          resolve({
+            'APP-Service-Start-PID': pid
+          })
         } else {
           if (time < 20) {
             await waitTime(500)
             await checkpid(time + 1)
           } else {
+            on({
+              'APP-On-Log': AppLog(
+                'error',
+                I18nT('appLog.execStartCommandFail', {
+                  error: I18nT('fork.startFail'),
+                  service: `${this.type}-${version.version}`
+                })
+              )
+            })
             reject(new Error(I18nT('fork.startFail')))
           }
         }
@@ -105,16 +134,35 @@ PLUGINS_DIR="${pluginsDir}"`
           await unlink(join(mnesiaBaseDir, pid))
         }
       } catch (e) {}
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
       try {
         await spawnPromise(version.bin, ['-detached', `--PWSAPPFLAG=${global.Server.BaseDir!}`], {
           env: {
             RABBITMQ_CONF_ENV_FILE: confFile
           }
         }).on(on)
-        await checkpid()
       } catch (e) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', {
+              error: e,
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
         reject(e)
+        return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
+      on({
+        'APP-Service-Start-Success': true
+      })
+      await checkpid()
     })
   }
 

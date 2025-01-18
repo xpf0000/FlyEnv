@@ -106,11 +106,7 @@ export const Setup = (typeFlag: AllAppModule) => {
         break
       case 'start':
       case 'restart':
-        action = startService(
-          typeFlag,
-          item,
-          currentVersion?.value ? JSON.parse(JSON.stringify(currentVersion.value)) : undefined
-        )
+        action = startService(typeFlag, item)
         break
     }
     action.then((res: any) => {

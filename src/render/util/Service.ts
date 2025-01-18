@@ -10,8 +10,7 @@ import type { AllAppModule } from '@/core/type'
 const exec = (
   typeFlag: AllAppModule,
   fn: string,
-  version: SoftInstalled,
-  lastVersion?: SoftInstalled
+  version: SoftInstalled
 ): Promise<string | boolean> => {
   return new Promise((resolve) => {
     if (version.running) {
@@ -28,54 +27,119 @@ const exec = (
     const brewStore = BrewStore()
     const task = taskStore.module(typeFlag)
     task?.log?.splice(0)
-    const handleResult = (run: boolean, pid?: string) => {
-      if (lastVersion && lastVersion?.path) {
-        const find = brewStore
-          .module(typeFlag)
-          .installed?.find(
-            (i) =>
-              i.path === lastVersion.path &&
-              i.version === lastVersion.version &&
-              i.bin === lastVersion.bin
-          )
-        lastVersion.pid = undefined
-        if (find) {
-          find.pid = undefined
-        }
-      }
 
+    const handleExecSuccess = (run: boolean) => {
+      if (typeFlag !== 'php') {
+        brewStore.module(typeFlag).installed.forEach((item) => {
+          delete item?.pid
+          item.run = false
+        })
+      } else {
+        brewStore
+          .module(typeFlag)
+          .installed.filter((v) => v.num === version.num)
+          .forEach((item) => {
+            delete item?.pid
+            item.run = false
+          })
+      }
+      version.run = run
       const findV = brewStore
         .module(typeFlag)
         .installed?.find(
           (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
         )
+      if (findV) {
+        findV.run = run
+      }
+    }
+    const handleTaskSuccess = (run: boolean, pid?: string) => {
+      if (typeFlag !== 'php') {
+        brewStore.module(typeFlag).installed.forEach((item) => {
+          delete item?.pid
+          item.run = false
+        })
+      } else {
+        brewStore
+          .module(typeFlag)
+          .installed.filter((v) => v.num === version.num)
+          .forEach((item) => {
+            delete item?.pid
+            item.run = false
+          })
+      }
       version.run = run
       version.running = false
       version.pid = pid
+      const findV = brewStore
+        .module(typeFlag)
+        .installed?.find(
+          (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
+        )
       if (findV) {
-        findV.run = version.run
+        findV.run = run
         findV.running = false
         findV.pid = pid
       }
+
+      if (typeFlag === 'php') {
+        brewStore
+          .module(typeFlag)
+          .installed.filter((v) => v.num === version.num)
+          .forEach((item) => {
+            item.pid = pid
+          })
+      }
     }
+    const handleTaskFailed = () => {
+      if (typeFlag !== 'php') {
+        brewStore.module(typeFlag).installed.forEach((item) => {
+          delete item?.pid
+          item.run = false
+        })
+      } else {
+        brewStore
+          .module(typeFlag)
+          .installed.filter((v) => v.num === version.num)
+          .forEach((item) => {
+            delete item?.pid
+            item.run = false
+          })
+      }
+
+      version.run = false
+      version.running = false
+      delete version.pid
+      const findV = brewStore
+        .module(typeFlag)
+        .installed?.find(
+          (i) => i.path === version.path && i.version === version.version && i.bin === version.bin
+        )
+      if (findV) {
+        findV.run = false
+        findV.running = false
+        delete findV.pid
+      }
+    }
+
     IPC.send(`app-fork:${typeFlag}`, fn, args).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
         const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
-        handleResult(fn !== 'stopService', pid)
+        handleTaskSuccess(fn !== 'stopService', pid)
         resolve(true)
       } else if (res.code === 1) {
         IPC.off(key)
         task?.log?.push(res.msg)
-        handleResult(false)
+        handleTaskFailed()
         resolve(task?.log?.join('\n') ?? '')
       } else if (res.code === 200) {
         if (typeof res?.msg === 'string') {
           task.log!.push(res.msg)
         } else if (res?.msg?.['APP-Service-Start-Success'] === true) {
-          handleResult(true)
+          handleExecSuccess(true)
         } else if (res?.msg?.['APP-Service-Stop-Success'] === true) {
-          handleResult(false)
+          handleExecSuccess(false)
         }
       }
     })
@@ -86,12 +150,8 @@ export const stopService = (typeFlag: AllAppModule, version: SoftInstalled) => {
   return exec(typeFlag, 'stopService', version)
 }
 
-export const startService = (
-  typeFlag: AllAppModule,
-  version: SoftInstalled,
-  lastVersion?: SoftInstalled
-) => {
-  return exec(typeFlag, 'startService', version, lastVersion)
+export const startService = (typeFlag: AllAppModule, version: SoftInstalled) => {
+  return exec(typeFlag, 'startService', version)
 }
 
 export const reloadService = (typeFlag: AllAppModule, version: SoftInstalled) => {

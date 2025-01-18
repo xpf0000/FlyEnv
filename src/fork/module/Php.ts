@@ -16,7 +16,8 @@ import {
   brewSearch,
   brewInfoJson,
   portSearch,
-  versionFilterSame
+  versionFilterSame,
+  AppLog
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
@@ -24,6 +25,7 @@ import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs
 import axios from 'axios'
 import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
+import { ProcessPidListByPid } from '@shared/Process'
 
 class Php extends Base {
   constructor() {
@@ -198,27 +200,38 @@ class Php extends Base {
   }
 
   _stopServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve) => {
-      const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
-      const confPath = join(global.Server.PhpDir!, v, 'conf')
-      const command = `ps aux | grep 'php' | awk '{print $2,$11,$12,$13,$14,$15}'`
-      const res = await execPromise(command)
-      const pids = res?.stdout?.toString()?.trim()?.split('\n') ?? []
+    return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
+      })
       const arr: Array<string> = []
-      for (const p of pids) {
-        if (p.includes(confPath)) {
-          arr.push(p.split(' ')[0])
+      if (!!version?.pid?.trim()) {
+        const pids = await ProcessPidListByPid(version.pid.trim())
+        arr.push(...pids)
+      } else {
+        const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
+        const confPath = join(global.Server.PhpDir!, v, 'conf')
+        const command = `ps aux | grep 'php' | awk '{print $2,$11,$12,$13,$14,$15}'`
+        const res = await execPromise(command)
+        const pids = res?.stdout?.toString()?.trim()?.split('\n') ?? []
+        for (const p of pids) {
+          if (p.includes(confPath)) {
+            arr.push(p.split(' ')[0])
+          }
         }
       }
-      if (arr.length === 0) {
-        resolve(true)
-      } else {
+      if (arr.length > 0) {
         const sig = '-INT'
         try {
           await execPromiseRoot([`kill`, sig, ...arr])
         } catch (e) {}
-        resolve(true)
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+      })
+      resolve({
+        'APP-Service-Stop-PID': arr
+      })
     })
   }
 
@@ -234,9 +247,9 @@ class Php extends Base {
       }
       try {
         await this._stopServer(version)
-        await this._startServer(version).on(on)
+        const res = await this._startServer(version).on(on)
         await this._resetEnablePhpConf(version)
-        resolve(true)
+        resolve(res)
       } catch (e) {
         reject(e)
       }
@@ -259,12 +272,19 @@ class Php extends Base {
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      on({
+        'APP-On-Log': AppLog(
+          'info',
+          I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
+        )
+      })
       const bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
       const confPath = join(global.Server.PhpDir!, v, 'conf')
       const varPath = join(global.Server.PhpDir!, v, 'var')
       const logPath = join(varPath, 'log')
       const runPath = join(varPath, 'run')
+      const pid = join(runPath, 'php-fpm.pid')
       await mkdirp(confPath)
       await mkdirp(varPath)
       await mkdirp(logPath)
@@ -276,7 +296,57 @@ class Php extends Base {
         content = content.replace('##PHP-CGI-VERSION##', v)
         await writeFile(phpFpmConf, content)
       }
-      spawnPromise(bin, ['-p', varPath, '-y', phpFpmConf]).on(on).then(resolve).catch(reject)
+      if (existsSync(pid)) {
+        try {
+          await remove(pid)
+        } catch (e) {}
+      }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+      })
+      try {
+        await spawnPromise(bin, ['-p', varPath, '-y', phpFpmConf, '-g', pid])
+      } catch (e) {
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', {
+              error: e,
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
+        console.log('start e: ', e)
+        reject(e)
+        return
+      }
+
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
+      on({
+        'APP-Service-Start-Success': true
+      })
+      const res = await this.waitPidFile(pid)
+      if (res && res?.pid) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+        })
+        resolve({
+          'APP-Service-Start-PID': res.pid
+        })
+        return
+      }
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.execStartCommandFail', {
+            error: res ? res?.error : 'Start Fail',
+            service: `${this.type}-${version.version}`
+          })
+        )
+      })
+      reject(new Error(res ? res?.error : 'Start Fail'))
     })
   }
 
