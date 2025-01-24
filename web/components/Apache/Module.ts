@@ -2,6 +2,7 @@ import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@web/core/type'
 
 const module: AppModuleItem = {
+  moduleType: 'webServer',
   typeFlag: 'apache',
   label: 'Apache',
   icon: import('@/svg/apache.svg?raw'),

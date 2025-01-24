@@ -3,6 +3,7 @@ import type { AppModuleItem } from '@web/core/type'
 import { I18nT } from '@shared/lang'
 
 const module: AppModuleItem = {
+  moduleType: 'site',
   typeFlag: 'hosts',
   label: () => I18nT('base.leftHosts'),
   index: defineAsyncComponent(() => import('./Index.vue')),

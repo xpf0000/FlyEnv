@@ -1,7 +1,7 @@
 <template>
   <div class="soft-index-panel main-right-panel">
-    <ul class="top-tab">
-      <el-dropdown class="mr-3" @command="setTab">
+    <ul class="top-tab mt-3 flex items-center gap-2.5">
+      <el-dropdown @command="setTab">
         <el-button class="outline-0 focus:outline-0">
           {{ tab }} <el-icon class="el-icon--right"><arrow-down /></el-icon>
         </el-button>
@@ -19,9 +19,21 @@
         </template>
       </el-dropdown>
       <el-button-group>
-        <el-button style="padding-left: 30px; padding-right: 30px" @click="toAdd">{{
-          I18nT('base.add')
-        }}</el-button>
+        <template v-if="isLock">
+          <el-tooltip placement="right" :content="I18nT('host.licenseTips')">
+            <el-button
+              :icon="Lock"
+              style="padding-left: 30px; padding-right: 30px"
+              @click="toLicense"
+              >{{ I18nT('base.add') }}</el-button
+            >
+          </el-tooltip>
+        </template>
+        <template v-else>
+          <el-button style="padding-left: 30px; padding-right: 30px" @click="toAdd">{{
+            I18nT('base.add')
+          }}</el-button>
+        </template>
         <el-dropdown trigger="click" @command="handleCommand">
           <template #default>
             <el-button
@@ -60,20 +72,24 @@
           </template>
         </el-dropdown>
       </el-button-group>
+      <el-button @click="openHosts">{{ I18nT('base.openHosts') }}</el-button>
       <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
         <template #reference>
-          <li style="width: auto; padding: 0 15px; margin-left: 20px; margin-right: 10px">
-            <span style="margin-right: 10px">{{ I18nT('host.enable') }}: </span>
+          <div class="inline-flex items-center gap-3 ml-2">
+            <span>{{ I18nT('host.enable') }}: </span>
             <el-switch v-model="hostsSet.write"></el-switch>
-          </li>
+          </div>
         </template>
         <template #default>
           <p>{{ I18nT('host.hostsWriteTips') }}</p>
         </template>
       </el-popover>
-      <li class="no-hover" style="width: auto; padding: 0 15px; margin-right: 10px">
-        <el-button @click="openHosts">{{ I18nT('base.openHosts') }}</el-button>
-      </li>
+      <template v-if="hostsSet.write">
+        <div class="inline-flex items-center gap-3">
+          <span>IPV6: </span>
+          <el-switch v-model="ipv6"></el-switch>
+        </div>
+      </template>
     </ul>
     <List v-show="HostStore.tab === 'php'"></List>
     <ListJava v-show="HostStore.tab === 'java'"></ListJava>
@@ -153,6 +169,15 @@
 
   watch(hostWrite, () => {
     hostsWrite()
+  })
+
+  const ipv6 = computed({
+    get() {
+      return hostsSet?.value?.ipv6 !== false
+    },
+    set(v) {
+      appStore.config.setup.hosts.ipv6 = v
+    }
   })
 
   const hostsWrite = (showTips = true) => {
@@ -235,7 +260,7 @@
     }
   }
   const openCreateProject = () => {
-    import('./CreateProject/index.vue').then((res) => {
+    import('./CreateProject/new.vue').then((res) => {
       AsyncComponentShow(res.default).then(({ dir, rewrite }: any) => {
         console.log('openCreateProject dir: ', dir)
         AsyncComponentShow(EditVM, {
