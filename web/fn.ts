@@ -186,7 +186,7 @@ export const join = (...dirs: string[]) => {
   return str
 }
 
-export const staticVersionDel = (dir: string) => {
+export const staticVersionDel = () => {
   ElMessageBox.confirm(I18nT('base.staticDelAlert'), undefined, {
     confirmButtonText: I18nT('base.confirm'),
     cancelButtonText: I18nT('base.cancel'),

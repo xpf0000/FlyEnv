@@ -49,8 +49,6 @@
   import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
   import { MessageSuccess } from '@/util/Element'
 
-  const { clipboard } = require('@electron/remote')
-
   const {
     showInstall,
     xtermDom,
@@ -63,7 +61,6 @@
   } = Setup()
 
   const copyCommand = (command: string) => {
-    clipboard.writeText(command)
     MessageSuccess(I18nT('base.copySuccess'))
   }
 

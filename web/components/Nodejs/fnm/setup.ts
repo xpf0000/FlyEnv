@@ -2,7 +2,6 @@ import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
 import { NodejsStore } from '../node'
-import { AppStore } from '@web/store/app'
 import { waitTime } from '@web/fn'
 
 export const FNMSetup = reactive<{
@@ -33,7 +32,6 @@ export const FNMSetup = reactive<{
 
 export const Setup = () => {
   const store = NodejsStore()
-  const appStore = AppStore()
 
   const xtermDom = ref<HTMLElement>()
 

@@ -1,0 +1,9 @@
+registry=https://registry.npmmirror.com/
+disturl=https://registry.npmmirror.com/-/binary/node/
+sass_binary_site=https://registry.npmmirror.com/node-sass
+phantomjs_cdnurl=https://registry.npmmirror.com/phantomjs
+chromedriver_cdnurl=https://registry.npmmirror.com/-/binary/chromedriver/
+operadriver_cdnurl=https://registry.npmmirror.com/-/binary/operadriver/
+electron_mirror=https://registry.npmmirror.com/-/binary/electron/
+electron_builder_binaries_mirror=https://registry.npmmirror.com/-/binary/electron-builder-binaries/
+always-auth=false

@@ -81,9 +81,7 @@
           <template v-if="!scope.row.version">
             <el-popover popper-class="version-error-tips" width="auto" placement="top">
               <template #reference>
-                <span class="path error" @click.stop="openDir(scope.row.path)">{{
-                  scope.row.path
-                }}</span>
+                <span class="path error" @click.stop="openDir()">{{ scope.row.path }}</span>
               </template>
               <template #default>
                 <span>{{ scope.row?.error ?? I18nT('base.versionErrorTips') }}</span>
@@ -98,7 +96,7 @@
                   currentVersion?.version === scope.row.version &&
                   currentVersion?.path === scope.row.path
               }"
-              @click.stop="openDir(scope.row.path)"
+              @click.stop="openDir()"
               >{{ scope.row.path }}</span
             >
           </template>
@@ -124,6 +122,52 @@
               />
             </el-button>
           </template>
+        </template>
+      </el-table-column>
+      <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
+        <template #header>
+          <el-tooltip :content="I18nT('service.envTips')" placement="top" :show-after="600">
+            <span>{{ I18nT('service.env') }}</span>
+          </el-tooltip>
+        </template>
+        <template #default="scope">
+          <template v-if="isInAppEnv(scope.row)">
+            <el-tooltip :content="I18nT('service.setByApp')" :show-after="600" placement="top">
+              <el-button link type="primary">
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </el-tooltip>
+          </template>
+          <template v-else-if="isInEnv(scope.row)">
+            <el-tooltip :content="I18nT('service.setByNoApp')" :show-after="600" placement="top">
+              <el-button link type="warning">
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </el-tooltip>
+          </template>
+          <template v-else-if="ServiceActionStore.pathSeting[scope.row.bin]">
+            <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+          </template>
+        </template>
+      </el-table-column>
+      <el-table-column
+        :show-overflow-tooltip="true"
+        :label="I18nT('service.alias')"
+        :prop="null"
+        width="120px"
+        align="left"
+      >
+        <template #header>
+          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" :show-after="600">
+            <span>{{ I18nT('service.alias') }}</span>
+          </el-tooltip>
+        </template>
+        <template #default="scope">
+          <div class="flex items-center h-full min-h-9"
+            ><span class="truncate">{{
+              appStore.config.setup.alias?.[scope.row.bin]?.map((a) => a.name)?.join(',')
+            }}</span></div
+          >
         </template>
       </el-table-column>
       <el-table-column :label="I18nT('base.service')" :prop="null" width="110px">
@@ -176,162 +220,31 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, type ComputedRef, reactive } from 'vue'
-  import { reloadService, startService, stopService, waitTime } from '@web/fn'
-  import { AppStore } from '@web/store/app'
-  import { BrewStore, type SoftInstalled } from '@web/store/brew'
   import { I18nT } from '@shared/lang'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-  import { MysqlStore } from '@web/components/Mysql/mysql'
-  import { Service } from '@web/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
-  import { AsyncComponentShow } from '@web/fn'
   import EXT from './EXT/index.vue'
   import type { AllAppModule } from '@web/core/type'
+  import { ServiceActionStore } from './EXT/store'
+  import { Setup } from './setup'
 
   const props = defineProps<{
     typeFlag: AllAppModule
     title: string
   }>()
 
-  if (!Service[props.typeFlag]) {
-    Service[props.typeFlag] = {
-      fetching: false
-    }
-  }
-
-  const appStore = AppStore()
-  const brewStore = BrewStore()
-
-  const service = computed(() => {
-    return Service[props.typeFlag]
-  })
-
-  const versions = computed(() => {
-    return brewStore.module(props.typeFlag).installed
-  })
-
-  const version = computed(() => {
-    const flag = props.typeFlag
-    const server: any = appStore.config.server
-    return server?.[flag]?.current
-  })
-
-  const currentVersion: ComputedRef<SoftInstalled | undefined> = computed(() => {
-    const flag = props.typeFlag
-    return brewStore
-      .module(flag)
-      ?.installed?.find(
-        (i) => i.path === version?.value?.path && i.version === version?.value?.version
-      )
-  })
-
-  const versionRunning = computed(() => {
-    const flag = props.typeFlag
-    return brewStore.module(flag)?.installed?.some((f) => f.running)
-  })
-
-  const groupTrunOn = (item: SoftInstalled) => {
-    const dict = JSON.parse(JSON.stringify(appStore.phpGroupStart))
-    const key = item.bin
-    if (dict?.[key] === false) {
-      dict[key] = true
-      delete dict?.[key]
-    } else {
-      dict[key] = false
-    }
-    appStore.config.setup.phpGroupStart = reactive(dict)
-  }
-
-  const resetData = () => {
-    if (service?.value?.fetching) {
-      return
-    }
-    service.value.fetching = true
-    const data = brewStore.module(props.typeFlag)
-    data.installedInited = false
-    waitTime().then(() => {
-      service.value.fetching = false
-    })
-  }
-
-  const openDir = (dir: string) => {}
-
-  const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: SoftInstalled) => {
-    if (!item?.version || !item?.path) {
-      return
-    }
-    const typeFlag = props.typeFlag
-    let action: any
-    switch (flag) {
-      case 'stop':
-        action = stopService(typeFlag, item)
-        break
-      case 'start':
-      case 'restart':
-        action = startService(typeFlag, item)
-        break
-      case 'reload':
-        action = reloadService(typeFlag, item)
-        break
-    }
-    action.then((res: any) => {
-      if (typeof res === 'string') {
-        MessageError(res)
-      } else {
-        if (typeFlag === 'mysql') {
-          const mysqlStore = MysqlStore()
-          if (flag === 'stop') {
-            mysqlStore.groupStop().then()
-          } else {
-            mysqlStore.groupStart().then()
-          }
-        }
-        if (currentVersion.value) {
-          currentVersion.value.run = false
-          currentVersion.value.running = false
-        }
-        if (flag === 'stop') {
-          item.run = false
-          item.running = false
-        } else {
-          item.run = true
-          item.running = false
-          if (
-            item.version !== currentVersion.value?.version ||
-            item.path !== currentVersion.value?.path
-          ) {
-            appStore.UPDATE_SERVER_CURRENT({
-              flag: props.typeFlag,
-              data: JSON.parse(JSON.stringify(item))
-            })
-          }
-        }
-        MessageSuccess(I18nT('base.success'))
-      }
-    })
-  }
-
-  let CustomPathVM: any
-  import('./customPath.vue').then((res) => {
-    CustomPathVM = res.default
-  })
-  const showCustomDir = () => {
-    AsyncComponentShow(CustomPathVM, {
-      flag: props.typeFlag
-    }).then((res) => {
-      if (res) {
-        console.log('showCustomDir chagned !!!')
-        resetData()
-      }
-    })
-  }
-
-  let PhpMyAdminVM: any
-  import('./phpMyAdmin.vue').then((res) => {
-    PhpMyAdminVM = res.default
-  })
-  const toPhpMyAdmin = () => {
-    AsyncComponentShow(PhpMyAdminVM).then()
-  }
+  const {
+    appStore,
+    service,
+    versions,
+    versionRunning,
+    isInEnv,
+    isInAppEnv,
+    groupTrunOn,
+    openDir,
+    serviceDo,
+    showCustomDir,
+    toPhpMyAdmin,
+    currentVersion,
+    resetData
+  } = Setup(props.typeFlag)
 </script>

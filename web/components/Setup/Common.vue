@@ -13,7 +13,7 @@
       <div class="main user-select-none">
         <el-form label-position="left" label-width="100px">
           <el-row>
-            <template v-for="(item, index) in AppModules" :key="index">
+            <template v-for="(item, _index) in AppModules" :key="_index">
               <el-col :span="8">
                 <ModuleShowHide :label="item.label" :type-flag="item.typeFlag"></ModuleShowHide>
               </el-col>
@@ -50,7 +50,17 @@
         <div class="col">
           <RestPassword />
         </div>
-        <div class="col"> </div>
+        <div class="col">
+          <AutoLanch />
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="col">
+          <AutoStartService />
+        </div>
+        <div class="col">
+          <AutoHide />
+        </div>
       </div>
       <div class="row-2">
         <div class="col">
@@ -83,6 +93,9 @@
   import { AppModules } from '@web/core/App'
   import ModuleShowHide from './ModuleShowHide/index.vue'
   import BaseDialog from '@web/components/YbBaseDialog/dialog'
+  import AutoStartService from '@web/components/Setup/AutoStartService/index.vue'
+  import AutoLanch from '@web/components/Setup/AutoLanch/index.vue'
+  import AutoHide from '@web/components/Setup/AutoHide/index.vue'
 
   const appStore = AppStore()
 

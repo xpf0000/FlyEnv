@@ -20,6 +20,8 @@ export type CommonSetItem = {
   isDir?: boolean
   options?: CommonSetItemOption[]
   tips: () => string
+  onChange?: (newValue: any, oldValue: any) => void
+  key?: string
 }
 
 type ConfStoreType = {

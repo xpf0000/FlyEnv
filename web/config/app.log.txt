@@ -1,0 +1,28 @@
+[info]1737208606705:Start the mysql-8.4.3 service...
+[info]1737208606719:Start executing the startup command
+[info]1737208606724:Start command executed successfully, start checking if the startup was successful
+[info]1737208607726: service started successfully, pid: 24382
+[info]1737208619212:Start stopping caddy service
+[info]1737208619309:caddy service stopped successfully
+[info]1737208619310:Start the caddy-2.8.4 service...
+[info]1737208619344:Start executing the startup command
+[info]1737208619350:Start command executed successfully, start checking if the startup was successful
+[info]1737208619851: service started successfully, pid: 25149
+[info]1737212750722:Start the php-8.2.25 service...
+[info]1737212750724:Start executing the startup command
+[info]1737212750724:Start the php-7.2.34 service...
+[info]1737212750725:Start executing the startup command
+[info]1737212750733:Start the php-8.5.0 service...
+[info]1737212750733:Start executing the startup command
+[info]1737212750740:Start executing the startup command
+[info]1737212750748:Start the php-7.4.33 service...
+[info]1737212750749:Start executing the startup command
+[info]1737212750751:Start command executed successfully, start checking if the startup was successful
+[info]1737212750758:Start the php-7.3.33 service...
+[info]1737212750759:Start executing the startup command
+[info]1737212750779:Start the php-7.1.33 service...
+[info]1737212750780:Start executing the startup command
+[info]1737212750799:Start command executed successfully, start checking if the startup was successful
+[info]1737212750802: service started successfully, pid: 77642
+[info]1737212750811:Start command executed successfully, start checking if the startup was successful
+[info]1737212750812: service started successfully, pid: 77648

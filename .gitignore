@@ -7,6 +7,10 @@ dist-ssr
 /build/*.p8
 /build/JWT.js
 /build/Legacy.js
+/build/pkg-scripts
+/build/bin
+/build/plist
+/build/afterPack.js
 /electron
 /release
 /icon.sh

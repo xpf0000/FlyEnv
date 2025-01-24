@@ -23,6 +23,7 @@ import { Mailpit } from '@web/config/mailpit'
 import type { AllAppModule } from '@web/core/type'
 
 export interface SoftInstalled {
+  typeFlag: AllAppModule
   version: string | null
   bin: string
   path: string
@@ -68,7 +69,7 @@ interface State extends StateBase {
   showInstallLog: boolean
   brewSrc: string
   log: Array<string>
-  LibUse: { [k: string]: 'brew' | 'port' | 'static' }
+  LibUse: { [k: string]: 'brew' | 'port' | 'static' | 'local' }
 }
 
 const state: State = {
@@ -81,115 +82,210 @@ const state: State = {
   mailpit: {
     getListing: false,
     installedInited: true,
-    installed: Installed.mailpit,
+    installed: Installed.mailpit.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'mailpit'
+      }
+    }),
     list: Mailpit
   },
   composer: {
     getListing: false,
     installedInited: true,
-    installed: Installed.composer,
+    installed: Installed.composer.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'composer'
+      }
+    }),
     list: Composer
   },
   python: {
     getListing: false,
     installedInited: true,
-    installed: Installed.python,
+    installed: Installed.python.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'python'
+      }
+    }),
     list: Python
   },
   maven: {
     getListing: false,
     installedInited: true,
-    installed: Installed.maven,
+    installed: Installed.maven.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'maven'
+      }
+    }),
     list: Maven
   },
   golang: {
     getListing: false,
     installedInited: true,
-    installed: Installed.go,
+    installed: Installed.go.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'golang'
+      }
+    }),
     list: Go
   },
   rabbitmq: {
     getListing: false,
     installedInited: true,
-    installed: Installed.rabbitmq,
+    installed: Installed.rabbitmq.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'rabbitmq'
+      }
+    }),
     list: Rabbitmq
   },
   tomcat: {
     getListing: false,
     installedInited: true,
-    installed: Installed.tomcat,
+    installed: Installed.tomcat.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'tomcat'
+      }
+    }),
     list: Tomcat
   },
   java: {
     getListing: false,
     installedInited: true,
-    installed: Installed.java,
+    installed: Installed.java.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'java'
+      }
+    }),
     list: Java
   },
   postgresql: {
     getListing: false,
     installedInited: true,
-    installed: Installed.postgresql,
+    installed: Installed.postgresql.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'postgresql'
+      }
+    }),
     list: Postgresql
   },
   'pure-ftpd': {
     getListing: false,
     installedInited: true,
-    installed: Installed['pure-ftpd'],
+    installed: Installed['pure-ftpd'].map((item) => {
+      return {
+        ...item,
+        typeFlag: 'pure-ftpd'
+      }
+    }),
     list: Ftp
   },
   caddy: {
     getListing: false,
     installedInited: true,
-    installed: Installed.caddy,
+    installed: Installed.caddy.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'caddy'
+      }
+    }),
     list: Caddy
   },
   nginx: {
     getListing: false,
     installedInited: true,
-    installed: Installed.nginx,
+    installed: Installed.nginx.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'nginx'
+      }
+    }),
     list: Nginx
   },
   apache: {
     getListing: false,
     installedInited: true,
-    installed: Installed.apache,
+    installed: Installed.apache.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'apache'
+      }
+    }),
     list: Apache
   },
   php: {
     getListing: false,
     installedInited: true,
-    installed: Installed.php,
+    installed: Installed.php.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'php'
+      }
+    }),
     list: Php
   },
   memcached: {
     getListing: false,
     installedInited: true,
-    installed: Installed.memcached,
+    installed: Installed.memcached.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'memcached'
+      }
+    }),
     list: Memcached
   },
   mysql: {
     getListing: false,
     installedInited: true,
-    installed: Installed.mysql,
+    installed: Installed.mysql.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'mysql'
+      }
+    }),
     list: Mysql
   },
   mariadb: {
     getListing: false,
     installedInited: true,
-    installed: Installed.mariadb,
+    installed: Installed.mariadb.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'mariadb'
+      }
+    }),
     list: Mariadb
   },
   redis: {
     getListing: false,
     installedInited: true,
-    installed: Installed.redis,
+    installed: Installed.redis.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'redis'
+      }
+    }),
     list: Redis
   },
   mongodb: {
     getListing: false,
     installedInited: true,
-    installed: Installed.mongodb,
+    installed: Installed.mongodb.map((item) => {
+      return {
+        ...item,
+        typeFlag: 'mongodb'
+      }
+    }),
     list: Mongodb
   }
 }
