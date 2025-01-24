@@ -1,8 +1,8 @@
 <template>
   <div class="soft-index-panel main-right-panel">
-    <ul class="top-tab">
-      <li class="active" @click="doAdd">{{ $t('base.add') }}</li>
-    </ul>
+    <el-radio-group v-model="tab" class="mt-3">
+      <el-radio-button :label="$t('base.add')" :value="0" @click.stop="doAdd"></el-radio-button>
+    </el-radio-group>
     <List ref="list"></List>
   </div>
 </template>

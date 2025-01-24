@@ -1,234 +1,158 @@
-import { computed, ref } from 'vue'
-import { BrewStore, SoftInstalled } from '@web/store/brew'
-import { I18nT } from '@shared/lang'
+import { computed } from 'vue'
+import { BrewStore } from '@web/store/brew'
 import type { AllAppModule } from '@web/core/type'
-import { VersionManagerStore } from '@web/components/VersionManager/store'
-import { ServiceActionStore } from '@web/components/ServiceManager/EXT/store'
-import { dirname, staticVersionDel, waitTime } from '@web/fn'
+import { BrewSetup } from '@web/components/VersionManager/brew/setup'
+import { MacPortsSetup } from '@web/components/VersionManager/port/setup'
+import { StaticSetup } from '@web/components/VersionManager/static/setup'
+import { AsyncComponentShow, waitTime } from '@web/fn'
+import { LocalSetup } from '@web/components/VersionManager/local/setup'
 
 export const SetupAll = (typeFlag: AllAppModule) => {
   const brewStore = BrewStore()
 
-  const showNextBtn = ref(false)
-  const logs = ref()
-
-  const cardHeadTitle = computed(() => {
-    return brewStore.cardHeadTitle
-  })
-  const brewRunning = computed(() => {
-    return brewStore.brewRunning
-  })
-  const showInstallLog = computed(() => {
-    return brewStore.showInstallLog
-  })
-  const showLog = computed(() => {
-    return showInstallLog?.value || showNextBtn?.value
-  })
-  const currentModule = computed(() => {
-    return brewStore.module(typeFlag)
-  })
-
-  const toNext = () => {
-    showNextBtn.value = false
-    BrewStore().cardHeadTitle = I18nT('base.currentVersionLib')
-  }
-
-  const checkBrew = () => {
-    return true
-  }
-  const checkPort = () => {
-    return true
-  }
-
-  const handleOnlineVersion = (row: any) => {
-    if (!row.installed) {
-      if (row.downing) {
-        return
+  const libSrc = computed({
+    get(): 'brew' | 'port' | 'static' | 'local' {
+      if (brewStore.LibUse[typeFlag]) {
+        return brewStore.LibUse[typeFlag]
       }
-      row.downing = true
-      row.type = typeFlag
-
-      let p = 0
-      const run = () => {
-        p += 1
-        row.progress = p
-        if (p === 100) {
-          row.downState = 'success'
-          row.installed = true
-          row.downing = false
-          return
-        }
-        requestAnimationFrame(run)
-      }
-      requestAnimationFrame(run)
-    } else {
-      staticVersionDel(row.appDir)
+      return 'local'
+    },
+    set(v: 'brew' | 'port' | 'static' | 'local') {
+      brewStore.LibUse[typeFlag] = v
     }
-  }
+  })
 
-  const handleBrewPortVersion = (row: any) => {
-    if (brewRunning?.value) {
+  const showFooter = computed(() => {
+    if (libSrc.value === 'brew') {
+      return BrewSetup.installing
+    }
+    if (libSrc.value === 'port') {
+      return MacPortsSetup.installing
+    }
+    return false
+  })
+
+  const taskEnd = computed(() => {
+    if (libSrc.value === 'brew') {
+      return BrewSetup.installEnd
+    }
+    if (libSrc.value === 'port') {
+      return MacPortsSetup.installEnd
+    }
+    return false
+  })
+
+  const taskConfirm = () => {
+    console.log('taskConfirm: ', libSrc.value)
+    if (libSrc.value === 'brew') {
+      BrewSetup.installing = false
+      BrewSetup.installEnd = false
+      BrewSetup.xterm?.destory()
+      delete BrewSetup.xterm
+      BrewSetup.checkBrew()
       return
     }
-    brewStore.log.splice(0)
-    brewStore.showInstallLog = true
-    brewStore.brewRunning = true
-    if (row.installed) {
-      brewStore.cardHeadTitle = `${I18nT('base.uninstall')} ${row.name}`
-    } else {
-      brewStore.cardHeadTitle = `${I18nT('base.install')} ${row.name}`
-    }
 
-    waitTime().then(() => {
-      brewStore.brewRunning = false
-      showNextBtn.value = true
-      brewStore.showInstallLog = false
-      fetchInstalled().then()
-      if (row.flag === 'brew') {
-        fetchBrew().then()
-      } else {
-        fetchPort().then()
-      }
-    })
-  }
-
-  const tableData = computed(() => {
-    const localList = brewStore.module(typeFlag).installed
-    const onLineList = Object.values(currentModule?.value?.list?.static ?? {}).map((item) => {
-      const obj: any = {
-        ...item
-      }
-      obj.source = I18nT('base.staticBinarie')
-      return obj
-    })
-    const brewList = Object.values(currentModule?.value?.list?.brew ?? {}).map((item) => {
-      const obj: any = {
-        ...item
-      }
-      obj.source = 'Homebrew'
-      return obj
-    })
-    const portList = Object.values(currentModule?.value?.list?.port ?? {}).map((item) => {
-      const obj: any = {
-        ...item
-      }
-      obj.source = 'MacPorts'
-      return obj
-    })
-    return [...localList, ...onLineList, ...brewList, ...portList]
-  })
-
-  const fetchInstalled = () => {
-    const data = brewStore.module(typeFlag)
-    data.installedInited = false
-    return waitTime()
-  }
-
-  const fetchOnline = () => {
-    return new Promise((resolve) => {
-      waitTime().then(resolve)
-    })
-  }
-
-  const fetchBrew = () => {
-    return new Promise((resolve) => {
-      if (!checkBrew()) {
-        resolve(true)
-        return
-      }
-      waitTime().then(resolve)
-    })
-  }
-
-  const fetchPort = () => {
-    return new Promise((resolve) => {
-      if (!checkPort()) {
-        resolve(true)
-        return
-      }
-      waitTime().then(resolve)
-    })
-  }
-
-  const fetching = computed(() => {
-    return VersionManagerStore?.fetching?.[typeFlag] ?? false
-  })
-
-  const fetchDataAll = () => {
-    if (VersionManagerStore?.fetching?.[typeFlag]) {
+    if (libSrc.value === 'port') {
+      MacPortsSetup.installing = false
+      MacPortsSetup.installEnd = false
+      MacPortsSetup.xterm?.destory()
+      delete MacPortsSetup.xterm
+      MacPortsSetup.checkMacPorts()
       return
     }
-    VersionManagerStore.fetching[typeFlag] = true
-    const all: any = [fetchInstalled(), fetchOnline(), fetchBrew(), fetchPort()]
-    Promise.all(all).then(() => {
-      VersionManagerStore.fetching[typeFlag] = false
-    })
   }
 
-  const getData = () => {
-    const list = tableData?.value ?? []
-    if (Object.keys(list).length === 0) {
-      fetchDataAll()
-    }
-  }
-
-  const reGetData = () => {
-    if (fetching?.value) {
+  const taskCancel = () => {
+    console.log('taskCancel: ', libSrc.value)
+    if (libSrc.value === 'brew') {
+      BrewSetup.installing = false
+      BrewSetup.installEnd = false
+      BrewSetup.xterm?.stop()?.then(() => {
+        BrewSetup.xterm?.destory()
+        delete BrewSetup.xterm
+      })
       return
     }
-    const dict: any = currentModule.value.list
-    for (const key in dict) {
-      const list = dict[key]
-      for (const k in list) {
-        delete list[k]
+
+    if (libSrc.value === 'port') {
+      MacPortsSetup.installing = false
+      MacPortsSetup.installEnd = false
+      MacPortsSetup.xterm?.stop()?.then(() => {
+        MacPortsSetup.xterm?.destory()
+        delete MacPortsSetup.xterm
+      })
+      return
+    }
+  }
+
+  const loading = computed(() => {
+    if (libSrc.value === 'brew') {
+      return BrewSetup.fetching[typeFlag] || BrewSetup.installing
+    }
+    if (libSrc.value === 'port') {
+      return MacPortsSetup.fetching[typeFlag] || MacPortsSetup.installing
+    }
+    if (libSrc.value === 'static') {
+      return StaticSetup.fetching[typeFlag]
+    }
+    if (libSrc.value === 'local') {
+      return LocalSetup.fetching[typeFlag]
+    }
+    return false
+  })
+
+  const reFetch = () => {
+    if (libSrc.value === 'brew') {
+      console.log('reFetch brew !!!')
+      BrewSetup.reFetch()
+    }
+    if (libSrc.value === 'port') {
+      console.log('reFetch port !!!')
+      MacPortsSetup.reFetch()
+    }
+    if (libSrc.value === 'static') {
+      console.log('reFetch static !!!')
+      StaticSetup.reFetch()
+    }
+    if (libSrc.value === 'local') {
+      console.log('reFetch local !!!')
+      LocalSetup.reFetch()
+    }
+  }
+
+  const openURL = () => {}
+
+  let CustomPathVM: any
+  import('@web/components/ServiceManager/customPath.vue').then((res) => {
+    CustomPathVM = res.default
+  })
+  const showCustomDir = () => {
+    AsyncComponentShow(CustomPathVM, {
+      flag: typeFlag
+    }).then((res) => {
+      if (res) {
+        console.log('showCustomDir chagned !!!')
+        LocalSetup.fetching[typeFlag] = true
+        const data = brewStore.module(typeFlag)
+        data.installedInited = false
+        waitTime().then(() => {
+          data.installedInited = true
+          LocalSetup.fetching[typeFlag] = false
+        })
       }
-    }
-    brewStore.module(typeFlag).installed.splice(0)
-    getData()
-  }
-
-  const openURL = (url: string) => {}
-
-  const checkEnvPath = (item: SoftInstalled) => {
-    if (!item.bin) {
-      return false
-    }
-    return ServiceActionStore.allPath.includes(dirname(item.bin))
-  }
-
-  const openDir = (dir: string) => {}
-
-  const handleEdit = (row: any) => {
-    if (['Homebrew', 'MacPorts'].includes(row.source)) {
-      handleBrewPortVersion(row)
-    } else {
-      handleOnlineVersion(row)
-    }
-  }
-
-  getData()
-  if (!brewRunning?.value) {
-    brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
+    })
   }
 
   return {
-    showNextBtn,
-    cardHeadTitle,
-    toNext,
-    handleOnlineVersion,
-    handleBrewPortVersion,
-    tableData,
-    brewRunning,
-    checkBrew,
-    checkPort,
-    currentModule,
-    reGetData,
-    showLog,
+    libSrc,
+    showFooter,
+    taskEnd,
+    taskConfirm,
+    taskCancel,
+    loading,
+    reFetch,
     openURL,
-    fetching,
-    checkEnvPath,
-    openDir,
-    handleEdit,
-    logs
+    showCustomDir
   }
 }

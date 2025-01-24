@@ -3,6 +3,7 @@ import { reactive } from 'vue'
 import { Hosts } from '../config/host'
 import { User } from '../config/user'
 import type { AllAppModule } from '@web/core/type'
+import type { AppServiceAliasItem } from '@shared/app'
 
 export interface AppHost {
   id: number
@@ -73,6 +74,7 @@ type SetupBase = Partial<
 >
 
 type StateBase = SetupBase & {
+  alias?: Record<string, AppServiceAliasItem[]>
   common: {
     showItem: AppShowItem
   }
@@ -95,6 +97,9 @@ type StateBase = SetupBase & {
   currentNodeTool: 'fnm' | 'nvm' | ''
   editorConfig: EditorConfig
   phpGroupStart: { [k: string]: boolean }
+  autoStartService?: boolean
+  autoHide?: boolean
+  autoLunach?: boolean
 }
 
 interface State {

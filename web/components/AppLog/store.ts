@@ -33,3 +33,5 @@ export const AppLogStore = reactive({
     })
   }
 } as AppLogType)
+
+AppLogStore.init()
