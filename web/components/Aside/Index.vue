@@ -1,19 +1,19 @@
 <template>
   <el-aside width="280px" class="aside">
     <div class="aside-inner">
-      <ul class="top-tool">
-        <el-popover :show-after="800">
+      <ul class="top-tool mt-3 pt-2">
+        <el-popover
+          width="auto"
+          :show-after="800"
+          placement="right"
+          popper-class="app-popover-min-w-auto"
+        >
           <template #default>
-            <span>{{ I18nT('base.about') }}</span>
+            <span>{{ I18nT('aside.appLog') }}</span>
           </template>
           <template #reference>
-            <li @click="toDoc">
-              <yb-icon
-                style="opacity: 0.7"
-                :svg="import('@/svg/question.svg?raw')"
-                width="17"
-                height="17"
-              />
+            <li @click.stop="showLog()">
+              <yb-icon :svg="import('@/svg/log.svg?raw')" width="16" height="16" />
             </li>
           </template>
         </el-popover>
@@ -23,8 +23,19 @@
       </ul>
       <el-scrollbar>
         <ul class="menu top-menu">
-          <template v-for="(item, index) in AppModules" :key="index">
-            <component :is="item.aside"></component>
+          <template v-for="(item, index) in allList" :key="index">
+            <div
+              :style="
+                {
+                  marginTop: index === 0 ? '15px' : null
+                } as any
+              "
+              class="module-type pb-3 pl-1 text-sm mb-3 mt-5 text-zinc-600 dark:text-gray-300 border-b border-zinc-200 dark:border-zinc-700"
+              >{{ item.label }}</div
+            >
+            <template v-for="(i, _j) in item.sub" :key="_j">
+              <component :is="i.aside"></component>
+            </template>
           </template>
         </ul>
       </el-scrollbar>
@@ -53,13 +64,41 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { AppModules } from '@web/core/App'
   import { AppServiceModule } from '@web/core/ASide'
-  import BaseDialog from '@web/components/YbBaseDialog/dialog'
+  import { AppModuleTypeList } from '@/core/type'
+  import { AsyncComponentShow } from '@web/fn'
 
   const appStore = AppStore()
 
   const currentPage = computed(() => {
     return appStore.currentPage
   })
+
+  const allList = computed(() => {
+    return AppModuleTypeList.map((m) => {
+      const sub = AppModules.filter(
+        (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
+      ).filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
+      sub.sort((a, b) => {
+        let lowerA = a.typeFlag.toLowerCase()
+        let lowerB = b.typeFlag.toLowerCase()
+        if (lowerA < lowerB) return -1
+        if (lowerA > lowerB) return 1
+        return 0
+      })
+      return {
+        label: I18nT(`aside.${m}`),
+        sub
+      }
+    }).filter((s) => s.sub.length > 0)
+  })
+
+  let LogVM: any
+  import('@web/components/AppLog/log.vue').then((res) => {
+    LogVM = res.default
+  })
+  const showLog = () => {
+    AsyncComponentShow(LogVM).then()
+  }
 
   const groupIsRunning = computed(() => {
     return Object.values(AppServiceModule).some((m) => !!m?.serviceRunning)
@@ -80,15 +119,6 @@
       disabled: groupDisabled.value
     }
   })
-
-  const toDoc = () => {
-    new BaseDialog(import('@web/components/About/index.vue'))
-      .className('about-dialog')
-      .title(I18nT('base.about'))
-      .width('665px')
-      .noFooter()
-      .show()
-  }
 
   const groupDo = () => {
     if (groupDisabled.value) {

@@ -2,6 +2,7 @@ import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@web/core/type'
 
 const module: AppModuleItem = {
+  moduleType: 'dataQueue',
   typeFlag: 'redis',
   label: 'Redis',
   icon: import('@/svg/redis.svg?raw'),

@@ -2,6 +2,7 @@ import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@web/core/type'
 
 const module: AppModuleItem = {
+  moduleType: 'emailServer',
   typeFlag: 'mailpit',
   label: 'Mailpit',
   icon: import('@/svg/mailpit.svg?raw'),

@@ -2,6 +2,7 @@ import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@web/core/type'
 
 const module: AppModuleItem = {
+  moduleType: 'dataBaseServer',
   typeFlag: 'mongodb',
   label: 'MongoDB',
   icon: import('@/svg/MongoDB.svg?raw'),

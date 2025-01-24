@@ -1,17 +1,17 @@
 <template>
   <div class="soft-index-panel main-right-panel">
-    <ul class="top-tab">
-      <li
-        v-for="(item, index) in tabs"
-        :key="index"
-        :class="{
-          active: tab === index,
-          grouprun: index === 5 && groupRun
-        }"
-        @click="tab = index"
-        >{{ item }}</li
-      >
-    </ul>
+    <el-radio-group v-model="tab" class="mt-3">
+      <template v-for="(item, index) in tabs" :key="index">
+        <template v-if="index === 5">
+          <el-badge type="success" is-dot :hidden="!groupRun">
+            <el-radio-button :label="item" :value="index"></el-radio-button>
+          </el-badge>
+        </template>
+        <template v-else>
+          <el-radio-button :label="item" :value="index"></el-radio-button>
+        </template>
+      </template>
+    </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="mysql" title="Mysql"></Service>
       <Manager v-else-if="tab === 1" type-flag="mysql"></Manager>

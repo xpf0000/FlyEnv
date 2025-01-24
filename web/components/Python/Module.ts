@@ -2,6 +2,7 @@ import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@web/core/type'
 
 const module: AppModuleItem = {
+  moduleType: 'language',
   typeFlag: 'python',
   label: 'Python',
   index: defineAsyncComponent(() => import('./Index.vue')),
