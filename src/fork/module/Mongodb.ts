@@ -7,6 +7,7 @@ import {
   AppLog,
   brewInfoJson,
   brewSearch,
+  execPromise,
   portSearch,
   versionBinVersion,
   versionFilterSame,
@@ -18,7 +19,6 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, unlink, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 class Manager extends Base {
   constructor() {
     super()
@@ -77,7 +77,7 @@ class Manager extends Base {
       console.log('command: ', command)
       const sh = join(global.Server.MongoDBDir!, `start.sh`)
       await writeFile(sh, command)
-      await execPromiseRoot([`chmod`, '777', sh])
+      await chmod(sh, '0777')
       try {
         if (existsSync(this.pidPath)) {
           await unlink(this.pidPath)
@@ -88,7 +88,7 @@ class Manager extends Base {
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
       try {
-        const res = await execPromiseRootWhenNeed(`zsh`, [sh])
+        const res = await execPromise(`zsh "${sh}"`)
         console.log('res: ', res)
       } catch (e: any) {
         on({

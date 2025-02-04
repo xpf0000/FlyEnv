@@ -29,7 +29,9 @@ class NodePTY {
       pty.onData((data: string) => {
         console.log('pty.onData: ', data)
         if (data.trim() === 'Password:') {
-          pty.write(`${global.Server.Password!}\r`)
+          if (!!global.Server.Password) {
+            pty.write(`${global.Server.Password!}\r`)
+          }
         }
         this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
       })

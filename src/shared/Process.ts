@@ -1,5 +1,3 @@
-import { execPromiseRoot } from '@shared/Exec'
-
 export type PItem = {
   PID: string
   PPID: string
@@ -8,65 +6,8 @@ export type PItem = {
   children?: PItem[]
 }
 
-export const ProcessPidList = async (): Promise<PItem[]> => {
-  let res = ''
-  try {
-    res = (await execPromiseRoot(`ps axo user,pid,ppid,command`)).stdout
-  } catch (e) {}
-  if (!res) {
-    return []
-  }
-  return res
-    .trim()
-    .split(`\n`)
-    .filter((s) => !!s.trim())
-    .map((s) => {
-      const arr = s.split(' ').filter((s) => !!s.trim())
-      const USER = arr.shift()
-      const PID = arr.shift()
-      const PPID = arr.shift()
-      const COMMAND = arr.join(' ')
-      return {
-        USER,
-        PID,
-        PPID,
-        COMMAND
-      } as PItem
-    })
-}
-
-export const ProcessPidListByPids = async (pids: string[]): Promise<string[]> => {
+export const ProcessPidsByPid = (pid: string, arr: PItem[]): string[] => {
   const all: Set<string> = new Set()
-  const arr = await ProcessPidList()
-  const find = (ppid: string) => {
-    for (const item of arr) {
-      if (item.PPID === ppid) {
-        console.log('find: ', ppid, item)
-        all.add(item.PID!)
-        find(item.PID!)
-      }
-    }
-  }
-
-  for (const pid of pids) {
-    if (arr.find((a) => a.PID === pid)) {
-      all.add(pid)
-      find(pid)
-    }
-    const item = arr.find((a) => a.PPID === pid)
-    if (item) {
-      all.add(pid)
-      all.add(item.PID)
-      find(pid)
-      find(item.PID)
-    }
-  }
-  return [...all]
-}
-
-export const ProcessPidListByPid = async (pid: string): Promise<string[]> => {
-  const all: Set<string> = new Set()
-  const arr = await ProcessPidList()
   const find = (ppid: string) => {
     for (const item of arr) {
       if (item.PPID === ppid) {
@@ -90,12 +31,47 @@ export const ProcessPidListByPid = async (pid: string): Promise<string[]> => {
   return [...all]
 }
 
-export const ProcessListSearch = async (search: string, aA = true) => {
+export const ProcessListByPid = (pid: string, arr: PItem[]): PItem[] => {
+  const all: Set<string> = new Set()
+  const find = (ppid: string) => {
+    for (const item of arr) {
+      if (item.PPID === ppid) {
+        console.log('find: ', ppid, item)
+        all.add(item.PID!)
+        find(item.PID!)
+      }
+    }
+  }
+  if (arr.find((a) => a.PID === pid)) {
+    all.add(pid)
+    find(pid)
+  }
+  const item = arr.find((a) => a.PPID === pid)
+  if (item) {
+    all.add(pid)
+    all.add(item.PID)
+    find(pid)
+    find(item.PID)
+  }
+  return Array.from(all).map((pid) => {
+    const find = arr.find((item) => item.PID === pid)
+    if (find) {
+      return find
+    }
+    return {
+      USER: '',
+      PID: pid,
+      PPID: '',
+      COMMAND: ''
+    } as PItem
+  })
+}
+
+export const ProcessSearch = (search: string, aA = true, arr: PItem[]) => {
   const all: PItem[] = []
   if (!search) {
     return all
   }
-  const arr = await ProcessPidList()
   const find = (ppid: string) => {
     for (const item of arr) {
       if (item.PPID === ppid) {
@@ -128,43 +104,4 @@ export const ProcessListSearch = async (search: string, aA = true) => {
     }
   }
   return all
-}
-
-export const ProcessListByPid = async (pid: string): Promise<PItem[]> => {
-  const all: Set<string> = new Set()
-  const arr = await ProcessPidList()
-  const find = (ppid: string) => {
-    for (const item of arr) {
-      if (item.PPID === ppid) {
-        console.log('find: ', ppid, item)
-        all.add(item.PID!)
-        find(item.PID!)
-      }
-    }
-  }
-  if (arr.find((a) => a.PID === pid)) {
-    all.add(pid)
-    find(pid)
-  }
-  const item = arr.find((a) => a.PPID === pid)
-  if (item) {
-    all.add(pid)
-    all.add(item.PID)
-    find(pid)
-    find(item.PID)
-  }
-  return Array.from(all).map((pid) => {
-    const find = arr.find((item) => item.PID === pid)
-    if (find) {
-      return find
-    }
-    const child = arr.find((item) => item.PPID === pid)
-    console.log('ProcessListByPid child: ', child)
-    return {
-      USER: '',
-      PID: pid,
-      PPID: '',
-      COMMAND: ''
-    } as PItem
-  })
 }

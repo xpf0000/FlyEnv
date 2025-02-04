@@ -7,6 +7,7 @@ import {
   AppLog,
   brewInfoJson,
   brewSearch,
+  execPromise,
   portSearch,
   versionBinVersion,
   versionFilterSame,
@@ -16,8 +17,10 @@ import {
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
-import { execPromiseRoot } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
+import { userInfo } from 'os'
+import Helper from '../Helper'
+
 class Redis extends Base {
   constructor() {
     super()
@@ -64,6 +67,13 @@ class Redis extends Base {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: confFile }))
         })
+      } else {
+        const logFile = join(global.Server.RedisDir!, `redis-${v}.log`)
+        if (existsSync(logFile)) {
+          const uinfo = userInfo()
+          const user = `${uinfo.uid}:${uinfo.gid}`
+          await Helper.send('redis', 'logFileFixed', logFile, user)
+        }
       }
       resolve(confFile)
     })
@@ -85,7 +95,7 @@ class Redis extends Base {
         }
       } catch (e) {}
       try {
-        await execPromiseRoot([bin, confFile])
+        await execPromise([bin, `"${confFile}"`].join(' '))
       } catch (e) {
         on({
           'APP-On-Log': AppLog(

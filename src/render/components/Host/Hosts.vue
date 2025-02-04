@@ -30,7 +30,6 @@
   import { readFileAsync, writeFileAsync } from '@shared/file.ts'
   import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { nextTick } from 'vue'
-  import IPC from '@/util/IPC.ts'
   import { VueExtend } from '@/core/VueExtend.ts'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor.ts'
   import { MessageError, MessageSuccess } from '@/util/Element.ts'
@@ -62,10 +61,7 @@
     },
     computed: {},
     created: function () {
-      IPC.send('app-fork:host', 'doFixHostsRole').then((key) => {
-        IPC.off(key)
-        this.getConfig()
-      })
+      this.getConfig()
     },
     mounted() {
       nextTick().then(() => {

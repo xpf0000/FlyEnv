@@ -1,11 +1,10 @@
 import { dirname, join } from 'path'
-import { readFile } from 'fs-extra'
+import { chmod, readFile } from 'fs-extra'
 import { isEqual } from 'lodash'
 import type { AppHost } from '@shared/app'
 import { hostAlias } from '../../Fn'
 import { makeAutoSSL } from './SSL'
 import { existsSync } from 'fs'
-import { execPromiseRoot } from '@shared/Exec'
 
 type VhostTmplType = {
   nginx: string
@@ -98,7 +97,7 @@ export const setDirRole = async (dir: string, depth = 0) => {
   }
   if (existsSync(dir)) {
     try {
-      await execPromiseRoot([`chmod`, `755`, dir])
+      await chmod(dir, '0755')
     } catch (e) {}
     const parentDir = dirname(dir)
     if (parentDir !== dir) {

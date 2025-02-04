@@ -1,3 +1,5 @@
+import { uuid } from '@shared/utils'
+
 export interface SudoConfig {
   name?: string
   icns?: string
@@ -29,135 +31,107 @@ const NodeSudo = {
   util: require('util')
 }
 
-function Attempt(instance: Sudo, end: Function) {
-  const platform = NodeSudo.process.platform
-  if (platform === 'darwin') return Mac(instance, end)
-  end(new Error('Platform not yet supported.'))
-}
-
 function EscapeDoubleQuotes(string: string) {
   if (typeof string !== 'string') throw new Error('Expected a string.')
   return string.replace(/"/g, '\\"')
 }
 
-function Exec(...args: any) {
-  if (arguments.length < 1 || arguments.length > 3) {
-    throw new Error('Wrong number of arguments.')
-  }
-  const command = args[0]
-  let options: SudoConfig = {}
-  let end: Function = function () {}
-  if (typeof command !== 'string') {
-    throw new Error('Command should be a string.')
-  }
-  if (arguments.length === 2) {
-    if (NodeSudo.util.isObject(args[1])) {
-      options = args[1]
-    } else if (NodeSudo.util.isFunction(args[1])) {
-      end = args[1]
-    } else {
-      throw new Error('Expected options or callback.')
+function Exec(
+  command: string,
+  options: SudoConfig = {}
+): Promise<{ stdout?: string; stderr?: string }> {
+  return new Promise((resolve, reject) => {
+    if (arguments.length < 1 || arguments.length > 3) {
+      return reject(new Error('Wrong number of arguments.'))
     }
-  } else if (arguments.length === 3) {
-    if (NodeSudo.util.isObject(args[1])) {
-      options = args[1]
-    } else {
-      throw new Error('Expected options to be an object.')
+    if (/^sudo/i.test(command)) {
+      return reject(new Error('Command should not be prefixed with "sudo".'))
     }
-    if (NodeSudo.util.isFunction(args[2])) {
-      end = args[2]
-    } else {
-      throw new Error('Expected callback to be a function.')
+    if (typeof options.name === 'undefined') {
+      const title = NodeSudo.process.title
+      if (ValidName(title)) {
+        options.name = title
+      } else {
+        return reject(new Error('process.title cannot be used as a valid name.'))
+      }
+    } else if (!ValidName(options.name)) {
+      let error = ''
+      error += 'options.name must be alphanumeric only '
+      error += '(spaces are allowed) and <= 70 characters.'
+      return reject(new Error(error))
     }
-  }
-  if (/^sudo/i.test(command)) {
-    return end(new Error('Command should not be prefixed with "sudo".'))
-  }
-  if (typeof options.name === 'undefined') {
-    const title = NodeSudo.process.title
-    if (ValidName(title)) {
-      options.name = title
-    } else {
-      return end(new Error('process.title cannot be used as a valid name.'))
+    if (typeof options.icns !== 'undefined') {
+      if (typeof options.icns !== 'string') {
+        return reject(new Error('options.icns must be a string if provided.'))
+      } else if (options.icns.trim().length === 0) {
+        return reject(new Error('options.icns must not be empty if provided.'))
+      }
     }
-  } else if (!ValidName(options.name)) {
-    let error = ''
-    error += 'options.name must be alphanumeric only '
-    error += '(spaces are allowed) and <= 70 characters.'
-    return end(new Error(error))
-  }
-  if (typeof options.icns !== 'undefined') {
-    if (typeof options.icns !== 'string') {
-      return end(new Error('options.icns must be a string if provided.'))
-    } else if (options.icns.trim().length === 0) {
-      return end(new Error('options.icns must not be empty if provided.'))
-    }
-  }
-  if (typeof options.env !== 'undefined') {
-    if (typeof options.env !== 'object') {
-      return end(new Error('options.env must be an object if provided.'))
-    } else if (Object.keys(options.env).length === 0) {
-      return end(new Error('options.env must not be empty if provided.'))
-    } else {
-      for (const key in options.env) {
-        const value = options.env[key]
-        if (typeof key !== 'string' || typeof value !== 'string') {
-          return end(new Error('options.env environment variables must be strings.'))
-        }
-        // "Environment variable names used by the utilities in the Shell and
-        // Utilities volume of IEEE Std 1003.1-2001 consist solely of uppercase
-        // letters, digits, and the '_' (underscore) from the characters defined
-        // in Portable Character Set and do not begin with a digit. Other
-        // characters may be permitted by an implementation; applications shall
-        // tolerate the presence of such names."
-        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
-          return end(
-            new Error(
-              'options.env has an invalid environment variable name: ' + JSON.stringify(key)
+    if (typeof options.env !== 'undefined') {
+      if (typeof options.env !== 'object') {
+        return reject(new Error('options.env must be an object if provided.'))
+      } else if (Object.keys(options.env).length === 0) {
+        return reject(new Error('options.env must not be empty if provided.'))
+      } else {
+        for (const key in options.env) {
+          const value = options.env[key]
+          if (typeof key !== 'string' || typeof value !== 'string') {
+            return reject(new Error('options.env environment variables must be strings.'))
+          }
+          // "Environment variable names used by the utilities in the Shell and
+          // Utilities volume of IEEE Std 1003.1-2001 consist solely of uppercase
+          // letters, digits, and the '_' (underscore) from the characters defined
+          // in Portable Character Set and do not begin with a digit. Other
+          // characters may be permitted by an implementation; applications shall
+          // tolerate the presence of such names."
+          if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
+            return reject(
+              new Error(
+                'options.env has an invalid environment variable name: ' + JSON.stringify(key)
+              )
             )
-          )
-        }
-        if (/[\r\n]/.test(value)) {
-          return end(
-            new Error(
-              'options.env has an invalid environment variable value: ' + JSON.stringify(value)
+          }
+          if (/[\r\n]/.test(value)) {
+            return reject(
+              new Error(
+                'options.env has an invalid environment variable value: ' + JSON.stringify(value)
+              )
             )
-          )
+          }
         }
       }
     }
-  }
-  const platform = NodeSudo.process.platform
-  if (platform !== 'darwin' && platform !== 'linux' && platform !== 'win32') {
-    return end(new Error('Platform not yet supported.'))
-  }
-  const instance = {
-    command: command,
-    options: options,
-    uuid: undefined,
-    path: undefined
-  }
-  Attempt(instance, end)
+    const instance = {
+      command: command,
+      options: options,
+      uuid: undefined,
+      path: undefined
+    }
+    Mac(instance).then(resolve).catch(reject)
+  })
 }
 
-function Mac(instance: Sudo, callback: Function) {
-  const temp = instance?.options?.dir ?? NodeSudo.os.tmpdir()
-  if (!temp) return callback(new Error('os.tmpdir() not defined.'))
-  const user = NodeSudo.process.env.USER // Applet shell scripts require $USER.
-  if (!user) return callback(new Error(`env[\'USER\'] not defined.`))
-  UUID(instance, function (error: any, uuid: string) {
-    if (error) return callback(error)
-    instance.uuid = uuid
+function Mac(instance: Sudo): Promise<{ stdout?: string; stderr?: string }> {
+  return new Promise((resolve, reject) => {
+    const temp = instance?.options?.dir ?? NodeSudo.os.tmpdir()
+    if (!temp) return reject(new Error('os.tmpdir() not defined.'))
+    const user = NodeSudo.process.env.USER // Applet shell scripts require $USER.
+    if (!user) return reject(new Error(`env[\'USER\'] not defined.`))
+    instance.uuid = uuid()
     instance.path = NodeSudo.path.join(temp, instance.uuid, instance.options.name + '.app')
     function end(error: any, stdout?: string, stderr?: string) {
       if (instance?.options?.debug === true) {
-        callback(undefined, stdout, stderr)
+        if (error) {
+          reject(error)
+          return
+        }
+        resolve({ stdout, stderr })
         return
       }
       Remove(NodeSudo.path.dirname(instance.path), function (errorRemove: any) {
-        if (error) return callback(error)
-        if (errorRemove) return callback(errorRemove)
-        callback(undefined, stdout, stderr)
+        if (error) return reject(error)
+        if (errorRemove) return reject(errorRemove)
+        resolve({ stdout, stderr })
       })
     }
     MacApplet(instance, function (error: any, stdout: string, stderr: string) {
@@ -304,23 +278,6 @@ function Remove(path: string, end: Function) {
   NodeSudo.child.exec(command, { encoding: 'utf-8' }, end)
 }
 
-function UUID(instance: Sudo, end: Function) {
-  NodeSudo.crypto.randomBytes(256, function (error: any, random: string) {
-    if (error) random = Date.now() + '' + Math.random()
-    const hash = NodeSudo.crypto.createHash('SHA256')
-    hash.update('sudo-prompt-3')
-    hash.update(instance.options.name)
-    hash.update(instance.command)
-    hash.update(random)
-    const uuid = hash.digest('hex').slice(-32)
-    if (!uuid || typeof uuid !== 'string' || uuid.length !== 32) {
-      // This is critical to ensure we don't remove the wrong temp directory.
-      return end(new Error('Expected a valid UUID.'))
-    }
-    end(undefined, uuid)
-  })
-}
-
 function ValidName(string: string) {
   // We use 70 characters as a limit to side-step any issues with Unicode
   // normalization form causing a 255 character string to exceed the fs limit.
@@ -349,4 +306,5 @@ const APPLET =
 
 const PERMISSION_DENIED = 'User did not grant permission.'
 
+// See issue 66:
 export default Exec

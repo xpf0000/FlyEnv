@@ -1,11 +1,11 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join, basename } from 'path'
-import { mkdirp, readFile, writeFile } from 'fs-extra'
+import { chmod, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import { hostAlias } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
-import { execPromiseRoot } from '@shared/Exec'
 import { isEqual } from 'lodash'
+import Helper from '../../Helper'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -187,11 +187,32 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     const arr = [nvhost, rewritep, accesslogng, errorlogng]
     for (const f of arr) {
       if (existsSync(f.oldFile)) {
-        await execPromiseRoot([`cp`, `-f`, f.oldFile, f.newFile])
-        await execPromiseRoot([`rm`, `-rf`, f.oldFile])
+        let hasErr = false
+        try {
+          await copyFile(f.oldFile, f.newFile)
+        } catch (e) {
+          hasErr = true
+        }
+        if (hasErr) {
+          try {
+            const content = await Helper.send('tools', 'readFileByRoot', f.oldFile)
+            await writeFile(f.newFile, content)
+          } catch (e) {}
+        }
+        hasErr = false
+        try {
+          await remove(f.oldFile)
+        } catch (e) {
+          hasErr = true
+        }
+        if (hasErr) {
+          try {
+            await Helper.send('tools', 'rm', f.oldFile)
+          } catch (e) {}
+        }
       }
       if (existsSync(f.newFile)) {
-        await execPromiseRoot([`chmod`, `777`, f.newFile])
+        await chmod(f.newFile, '0777')
       }
     }
   }

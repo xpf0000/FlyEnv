@@ -88,7 +88,7 @@
               :placeholder="I18nT('base.selectPhpVersion')"
             >
               <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
-              <template v-for="(v, i) in phpVersions" :key="i">
+              <template v-for="(v, _i) in phpVersions" :key="_i">
                 <el-option :value="v.num" :label="v.num"></el-option>
               </template>
             </el-select>
@@ -267,7 +267,6 @@
 <script lang="ts" setup>
   import { computed, nextTick, ref, watch, Ref, onMounted, onUnmounted, reactive } from 'vue'
   import { getAllFileAsync, readFileAsync } from '@shared/file'
-  import { passwordCheck } from '@/util/Brew'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
@@ -278,14 +277,11 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-  import { MessageError } from '@/util/Element'
   import { ElMessageBox } from 'element-plus'
-  import { execPromiseRoot } from '@shared/Exec'
   import { Plus, Delete } from '@element-plus/icons-vue'
   import SSLTips from './SSLTips/index.vue'
 
   const { dialog } = require('@electron/remote')
-  const { accessSync, constants } = require('fs')
   const { join } = require('path')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
@@ -580,37 +576,10 @@
     const saveFn = () => {
       running.value = true
       let flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-      let access = false
-      try {
-        accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
-        access = true
-        console.log('可以读写')
-      } catch (err) {
-        console.error('无权访问')
-      }
-      passwordCheck().then(() => {
-        item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
-        if (!access) {
-          execPromiseRoot(`chmod 777 /private/etc`.split(' '))
-            .then(() => {
-              return execPromiseRoot(`chmod 777 /private/etc/hosts`.split(' '))
-            })
-            .then(() => {
-              handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
-                running.value = false
-                show.value = false
-              })
-            })
-            .catch(() => {
-              MessageError(I18nT('base.hostNoRole'))
-              running.value = false
-            })
-        } else {
-          handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
-            running.value = false
-            show.value = false
-          })
-        }
+      item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
+      handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
+        running.value = false
+        show.value = false
       })
     }
     if (!item.value.phpVersion && !props.isEdit) {

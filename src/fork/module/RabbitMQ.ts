@@ -19,7 +19,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, mkdirp, unlink, readFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { execPromiseRoot } from '@shared/Exec'
+import Helper from '../Helper'
 class RabbitMQ extends Base {
   baseDir: string = ''
 
@@ -76,10 +76,7 @@ PLUGINS_DIR="${pluginsDir}"`
 
   async _initPlugin(version: SoftInstalled) {
     try {
-      const res = await execPromiseRoot(`./rabbitmq-plugins enable rabbitmq_management`, {
-        cwd: dirname(version.bin)
-      })
-      console.log('_initPlugin res: ', res)
+      await Helper.send('rabbitmq', 'initPlugin', dirname(version.bin))
     } catch (e: any) {
       console.log('_initPlugin err: ', e)
     }

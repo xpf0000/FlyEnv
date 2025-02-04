@@ -8,9 +8,12 @@ dist-ssr
 /build/JWT.js
 /build/Legacy.js
 /build/pkg-scripts
-/build/bin
-/build/plist
+/build/bin/arm
+/build/bin/x86
+!/build/bin/arm/postinstall.sh
+!/build/bin/x86/postinstall.sh
 /build/afterPack.js
+/build/log
 /electron
 /release
 /icon.sh

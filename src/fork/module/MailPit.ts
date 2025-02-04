@@ -5,6 +5,7 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
+  execPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -12,8 +13,7 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
+import { readFile, writeFile, mkdirp, remove, chmod } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { I18nT } from '../lang'
 
@@ -84,7 +84,7 @@ class MailPit extends Base {
       const iniFile = await this.initConfig().on(on)
       if (existsSync(this.pidPath)) {
         try {
-          await execPromiseRoot(['rm', '-rf', this.pidPath])
+          await remove(this.pidPath)
         } catch (e) {}
       }
 
@@ -127,12 +127,12 @@ class MailPit extends Base {
       console.log('command: ', command)
       const sh = join(global.Server.BaseDir!, `mailpit/start.sh`)
       await writeFile(sh, command)
-      await execPromiseRoot([`chmod`, '777', sh])
+      await chmod(sh, '0777')
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
       try {
-        const res = await execPromiseRootWhenNeed(`zsh`, [sh], opt)
+        const res = await execPromise(`zsh "${sh}"`, opt)
         console.log('start res: ', res)
         const pid = (await readFile(this.pidPath, 'utf-8')).trim()
         on({

@@ -1,11 +1,12 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join } from 'path'
-import { existsSync, mkdirp, readFile, writeFile } from 'fs-extra'
+import { chmod, existsSync, mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
+import { execPromise } from '@shared/Exec'
 import { realpathSync } from 'fs'
-import { ProcessPidListByPid } from '@shared/Process'
+import Helper from '../../Helper'
+import { ProcessPidsByPid } from '@shared/Process'
 
 export class ServiceItemPython extends ServiceItem {
   start(item: AppHost) {
@@ -37,7 +38,7 @@ export class ServiceItemPython extends ServiceItem {
       const py3 = join(python, 'python3')
       if (existsSync(py3) && !existsSync(py)) {
         try {
-          await execPromiseRoot(['ln', '-s', py3, py])
+          await Helper.send('tools', 'ln_s', py3, py)
         } catch (e) {}
       }
 
@@ -47,7 +48,7 @@ export class ServiceItemPython extends ServiceItem {
       const log = join(javaDir, `${item.id}.log`)
       if (existsSync(pid)) {
         try {
-          await execPromiseRoot([`rm`, '-rf', pid])
+          await remove(pid)
         } catch (e) {}
       }
 
@@ -72,9 +73,9 @@ export class ServiceItemPython extends ServiceItem {
       console.log('command: ', this.command)
       const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
       await writeFile(sh, this.command)
-      await execPromiseRoot([`chmod`, '777', sh])
+      await chmod(sh, '0777')
       try {
-        const res = await execPromiseRootWhenNeed(`zsh`, [sh], opt)
+        const res = await execPromise(`zsh "${sh}"`, opt)
         console.log('start res: ', res)
         const pid = await this.checkPid()
         this.daemon()
@@ -99,6 +100,7 @@ export class ServiceItemPython extends ServiceItem {
       return []
     }
     const pid = (await readFile(pidFile, 'utf-8')).trim()
-    return await ProcessPidListByPid(pid)
+    const plist: any = await Helper.send('tools', 'processList')
+    return ProcessPidsByPid(pid, plist)
   }
 }

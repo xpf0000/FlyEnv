@@ -1,10 +1,11 @@
 import type { AppHost } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join } from 'path'
-import { existsSync, mkdirp, readFile, writeFile } from 'fs-extra'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
+import { chmod, existsSync, mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { execPromise } from '@shared/Exec'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
-import { ProcessPidListByPid } from '@shared/Process'
+import Helper from '../../Helper'
+import { ProcessPidsByPid } from '@shared/Process'
 
 export class ServiceItemJavaSpring extends ServiceItem {
   start(item: AppHost) {
@@ -32,7 +33,7 @@ export class ServiceItemJavaSpring extends ServiceItem {
       const log = join(javaDir, `${item.id}.log`)
       if (existsSync(pid)) {
         try {
-          await execPromiseRoot([`rm`, '-rf', pid])
+          await remove(pid)
         } catch (e) {}
       }
       const opt = await getHostItemEnv(item)
@@ -55,9 +56,9 @@ export class ServiceItemJavaSpring extends ServiceItem {
       console.log('command: ', this.command)
       const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
       await writeFile(sh, this.command)
-      await execPromiseRoot([`chmod`, '777', sh])
+      await chmod(sh, '0777')
       try {
-        const res = await execPromiseRootWhenNeed(`zsh`, [sh], opt)
+        const res = await execPromise(`zsh "${sh}"`, opt)
         console.log('start res: ', res)
         const pid = await this.checkPid()
         this.daemon()
@@ -82,6 +83,7 @@ export class ServiceItemJavaSpring extends ServiceItem {
       return []
     }
     const pid = (await readFile(pidFile, 'utf-8')).trim()
-    return await ProcessPidListByPid(pid)
+    const plist: any = await Helper.send('tools', 'processList')
+    return ProcessPidsByPid(pid, plist)
   }
 }

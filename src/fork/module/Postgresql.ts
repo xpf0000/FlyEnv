@@ -21,7 +21,6 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { chmod, copyFile, readFile, unlink, writeFile } from 'fs-extra'
 import axios from 'axios'
-import { execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
@@ -181,9 +180,9 @@ class Manager extends Base {
       content = content.replace('##BIN_PATH##', dirname(version.bin)).replace('##BRANCH##', tag)
       await writeFile(copyfile, content)
       await chmod(copyfile, '0777')
-      const params = [copyfile]
+      // const params = [copyfile]
       try {
-        execPromiseRootWhenNeed('zsh', params).then(resolve).catch(reject)
+        // ('zsh', params).then(resolve).catch(reject)
       } catch (e) {
         reject(e)
       }

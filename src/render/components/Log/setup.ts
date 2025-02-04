@@ -1,23 +1,16 @@
-import { computed, nextTick, onMounted, onUnmounted, ref, watch, Ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch, Ref } from 'vue'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
-import { EventBus } from '@/global'
-import { execPromiseRoot } from '@shared/Exec'
-import { AppStore } from '@/store/app'
 import type { FSWatcher } from 'fs'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+import IPC from '@/util/IPC'
 
 const fsWatch = require('fs').watch
 const { shell } = require('@electron/remote')
 const { existsSync, writeFile, readFile } = require('fs-extra')
 
 export const LogSetup = (file: Ref<string>) => {
-  const appStore = AppStore()
-  const password = computed(() => {
-    return appStore.config.password
-  })
-
   const logRef = ref()
   const log = ref('')
   let watcher: FSWatcher | null
@@ -40,18 +33,7 @@ export const LogSetup = (file: Ref<string>) => {
           })
         }
       }
-      const doFixRule = () => {
-        return new Promise((resolve, reject) => {
-          execPromiseRoot(['chmod', '777', file.value])
-            .then(() => {
-              resolve(true)
-            })
-            .catch((e: any) => {
-              MessageError(e.toString())
-              reject(e)
-            })
-        })
-      }
+
       const read = () => {
         return new Promise((resolve) => {
           readFile(file.value, 'utf-8')
@@ -60,16 +42,13 @@ export const LogSetup = (file: Ref<string>) => {
               resolve(true)
             })
             .catch(() => {
-              doFixRule().then(() => {
-                readFile(file.value, 'utf-8')
-                  .then((str: string) => {
-                    log.value = str
-                    resolve(true)
-                  })
-                  .catch((e: any) => {
-                    MessageError(e.toString())
-                  })
-              })
+              IPC.send(`app-fork:tools`, 'readFileByRoot', file.value).then(
+                (key: string, res: any) => {
+                  IPC.off(key)
+                  log.value = res?.data ?? ''
+                  resolve(true)
+                }
+              )
             })
         })
       }
@@ -100,17 +79,10 @@ export const LogSetup = (file: Ref<string>) => {
             MessageSuccess(I18nT('base.success'))
           })
           .catch(() => {
-            if (!password.value) {
-              EventBus.emit('vue:need-password')
-            } else {
-              execPromiseRoot(['chmod', '777', file.value])
-                .then(() => {
-                  logDo('clean')
-                })
-                .catch(() => {
-                  EventBus.emit('vue:need-password')
-                })
-            }
+            IPC.send(`app-fork:tools`, 'writeFileByRoot', file.value, '').then((key: string) => {
+              IPC.off(key)
+              MessageSuccess(I18nT('base.success'))
+            })
           })
         break
     }

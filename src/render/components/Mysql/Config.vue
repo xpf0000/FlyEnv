@@ -48,17 +48,11 @@
     if (!vm.value) {
       return ''
     }
-    const oldm = join(global.Server.MysqlDir, 'my.cnf')
     const dataDir = join(global.Server.MysqlDir, `data-${vm.value}`)
     return `[mysqld]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-
-#设置数据目录
-#brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
-#如果配置文件已更改, 原配置文件在: ${oldm}
-#可以复制原配置文件的内容, 使用原来的配置
 datadir=${dataDir}`
   })
 

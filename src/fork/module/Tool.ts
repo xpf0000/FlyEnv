@@ -1,6 +1,13 @@
 import { createReadStream, readFileSync, realpathSync, statSync } from 'fs'
 import { Base } from './Base'
-import { getAllFileAsync, uuid, systemProxyGet, writeFileByRoot, readFileByRoot } from '../Fn'
+import {
+  getAllFileAsync,
+  uuid,
+  systemProxyGet,
+  writeFileByRoot,
+  readFileByRoot,
+  execPromise
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import {
   appendFile,
@@ -15,8 +22,9 @@ import {
 import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
 import { join, dirname, resolve as PathResolve, basename } from 'path'
 import { I18nT } from '../lang'
-import { execPromiseRoot, execPromise } from '@shared/Exec'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
+import Helper from '../Helper'
+import { ProcessSearch } from '@shared/Process'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -135,10 +143,7 @@ class Manager extends Base {
         return
       }
       try {
-        const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
-        await writeFile(cacheFile, content)
-        await execPromiseRoot([`cp`, `-f`, cacheFile, file])
-        await remove(cacheFile)
+        await Helper.send('tools', 'writeFileByRoot', file, content)
         resolve(true)
       } catch (e) {
         reject(e)
@@ -244,9 +249,6 @@ class Manager extends Base {
         try {
           await writeFileByRoot(file, content)
         } catch (e) {}
-        try {
-          await execPromiseRoot(['source', file])
-        } catch (e) {}
       }
       resolve(true)
     })
@@ -271,11 +273,11 @@ class Manager extends Base {
       }
       const flagDir = join(envDir, flag)
       try {
-        await execPromiseRoot(['rm', '-rf', flagDir])
+        await Helper.send('tools', 'rm', flagDir)
       } catch (e) {}
       if (!all.includes(bin)) {
         try {
-          await execPromiseRoot(['ln', '-s', bin, flagDir])
+          await execPromise(['ln', '-s', `"${bin}"`, `"${flagDir}"`].join(' '))
         } catch (e) {}
       }
       let allFile = await readdir(envDir)
@@ -315,7 +317,7 @@ class Manager extends Base {
           const py3 = join(python, 'python3')
           if (existsSync(py3) && !existsSync(py)) {
             try {
-              await execPromiseRoot(['ln', '-s', py3, py])
+              await Helper.send('tools', 'ln_s', py3, py)
             } catch (e) {}
           }
         }
@@ -443,10 +445,6 @@ class Manager extends Base {
       try {
         await writeFileByRoot(zshrc, content)
       } catch (e) {}
-      try {
-        await execPromiseRoot(['source', zshrc])
-      } catch (e) {}
-
       const res = await this.cleanAlias(alias)
       resolve(res)
     })
@@ -481,6 +479,64 @@ class Manager extends Base {
         }
       }
       resolve(alias)
+    })
+  }
+
+  killPorts(ports: Array<string>) {
+    return new ForkPromise(async (resolve) => {
+      try {
+        await Helper.send('tools', 'killPorts', ports)
+      } catch (e) {}
+      resolve(true)
+    })
+  }
+
+  killPids(sig: string, pids: Array<string>) {
+    return new ForkPromise(async (resolve) => {
+      try {
+        await Helper.send('tools', 'kill', sig, pids)
+      } catch (e) {}
+      resolve(true)
+    })
+  }
+
+  readFileByRoot(file: string) {
+    return new ForkPromise(async (resolve) => {
+      let content = ''
+      try {
+        content = (await Helper.send('tools', 'readFileByRoot', file)) as any
+      } catch (e) {}
+      resolve(content)
+    })
+  }
+
+  writeFileByRoot(file: string, content: string) {
+    return new ForkPromise(async (resolve) => {
+      try {
+        await Helper.send('tools', 'writeFileByRoot', file, content)
+      } catch (e) {}
+      resolve(true)
+    })
+  }
+
+  getPortPids(port: string) {
+    return new ForkPromise(async (resolve) => {
+      let arr: any
+      try {
+        arr = await Helper.send('tools', 'getPortPids', port)
+      } catch (e) {}
+      resolve(arr)
+    })
+  }
+
+  getPidsByKey(key: string) {
+    return new ForkPromise(async (resolve) => {
+      let arr: any = []
+      try {
+        const plist: any = await Helper.send('tools', 'processList')
+        arr = ProcessSearch(key, false, plist)
+      } catch (e) {}
+      resolve(arr)
     })
   }
 }

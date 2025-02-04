@@ -8,7 +8,6 @@ import { existsSync } from 'fs'
 import { chmod, copyFile, unlink, readdir, writeFile } from 'fs-extra'
 import { fixEnv } from '@shared/utils'
 import axios from 'axios'
-import { execPromiseRoot } from '@shared/Exec'
 
 class Manager extends Base {
   constructor() {
@@ -151,9 +150,6 @@ class Manager extends Base {
         resolve(true)
         return
       }
-      try {
-        await execPromiseRoot(['source', file])
-      } catch (e) {}
       resolve(true)
     })
   }

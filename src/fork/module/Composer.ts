@@ -3,8 +3,7 @@ import { createWriteStream, existsSync, unlinkSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
-import { copyFile, mkdirp, readFile, remove } from 'fs-extra'
-import { execPromiseRoot } from '@shared/Exec'
+import { chmod, copyFile, mkdirp, readFile, remove } from 'fs-extra'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
@@ -58,7 +57,7 @@ class Composer extends Base {
         }
         const bin = join(row.appDir, 'composer')
         await copyFile(row.zip, bin)
-        await execPromiseRoot([`chmod`, `777`, bin])
+        await chmod(bin, '0777')
       }
 
       if (existsSync(row.zip)) {

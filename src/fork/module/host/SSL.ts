@@ -3,9 +3,9 @@ import { execPromise, hostAlias } from '../../Fn'
 import { dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { mkdirp, remove, writeFile } from 'fs-extra'
-import { execPromiseRoot } from '@shared/Exec'
 import { EOL } from 'os'
 import type { AppHost } from '@shared/app'
+import Helper from '../../Helper'
 
 export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: string } | false> => {
   return new ForkPromise(async (resolve) => {
@@ -27,14 +27,8 @@ export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: stri
           resolve(false)
           return
         }
-        command = `security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "PhpWebStudy-Root-CA.crt"`
-        await execPromiseRoot(command.split(' '), {
-          cwd: CADir
-        })
-        command = `security find-certificate -c "PhpWebStudy-Root-CA"`
-        const res = await execPromiseRoot(command.split(' '), {
-          cwd: CADir
-        })
+        await Helper.send('host', 'sslAddTrustedCert', CADir)
+        const res = await Helper.send('host', 'sslFindCertificate', CADir)
         if (
           !res.stdout.includes('PhpWebStudy-Root-CA') &&
           !res.stderr.includes('PhpWebStudy-Root-CA')

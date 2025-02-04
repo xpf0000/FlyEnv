@@ -1,12 +1,11 @@
 import { join } from 'path'
-import { existsSync, accessSync, constants } from 'fs'
+import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { getSubDir, hostAlias, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile } from 'fs-extra'
-import { execPromiseRoot } from '@shared/Exec'
+import { remove, writeFile } from 'fs-extra'
 import { makeCaddyConf, updateCaddyConf } from './host/Caddy'
 import { makeApacheConf, updateApacheConf } from './host/Apache'
 import { autoFillNginxRewrite, makeNginxConf, updateNginxConf } from './host/Nginx'
@@ -15,6 +14,7 @@ import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
 import { publicDecrypt } from 'crypto'
 import { fetchHostList, saveHostList } from './host/HostFile'
 import { machineId } from 'node-machine-id'
+import Helper from '../Helper'
 
 export class Host extends Base {
   constructor() {
@@ -239,8 +239,10 @@ export class Host extends Base {
       for (const f of arr) {
         if (existsSync(f)) {
           try {
-            await execPromiseRoot([`rm`, `-rf`, f])
-          } catch (e) {}
+            await remove(f)
+          } catch (e) {
+            await Helper.send('tools', 'rm', f)
+          }
         }
       }
       resolve(true)
@@ -334,8 +336,7 @@ export class Host extends Base {
       await writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
       if (!writeToSystem) {
         try {
-          await execPromiseRoot(['dscacheutil', '-flushcache'])
-          await execPromiseRoot(['killall', '-HUP', 'mDNSResponder'])
+          await Helper.send('host', 'dnsRefresh')
         } catch (e) {}
         resolve(true)
         return
@@ -345,7 +346,7 @@ export class Host extends Base {
         reject(new Error(I18nT('fork.hostsFileNoFound')))
         return
       }
-      let content = await readFile(filePath, 'utf-8')
+      let content: any = await Helper.send('tools', 'readFileByRoot', filePath)
       let x: any = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x && x[0]) {
         x = x[0]
@@ -358,42 +359,16 @@ export class Host extends Base {
       }
       content = content.trim()
       content += `\n${x}`
-      await writeFile(filePath, content.trim())
+      await Helper.send('tools', 'writeFileByRoot', filePath, content.trim())
       try {
-        await execPromiseRoot(['dscacheutil', '-flushcache'])
-        await execPromiseRoot(['killall', '-HUP', 'mDNSResponder'])
+        await Helper.send('host', 'dnsRefresh')
       } catch (e) {}
       resolve(true)
     })
   }
 
-  async _fixHostsRole() {
-    let access = false
-    try {
-      accessSync('/private/etc/hosts', constants.R_OK | constants.W_OK)
-      access = true
-      console.log('可以读写')
-    } catch (err) {
-      console.error('无权访问')
-    }
-    if (!access) {
-      try {
-        await execPromiseRoot(`chmod 777 /private/etc`.split(' '))
-        await execPromiseRoot(`chmod 777 /private/etc/hosts`.split(' '))
-      } catch (e) {}
-    }
-  }
-
-  doFixHostsRole() {
-    return new ForkPromise(async (resolve) => {
-      await this._fixHostsRole()
-      resolve(0)
-    })
-  }
-
   writeHosts(write = true, ipv6 = true) {
     return new ForkPromise(async (resolve, reject) => {
-      await this._fixHostsRole()
       let appHost: AppHost[] = []
       try {
         appHost = await fetchHostList()
@@ -405,11 +380,12 @@ export class Host extends Base {
       if (write) {
         this._initHost(appHost, true, ipv6).then(resolve)
       } else {
-        let hosts = await readFile('/private/etc/hosts', 'utf-8')
+        const file = '/private/etc/hosts'
+        let hosts: any = await Helper.send('tools', 'readFileByRoot', file)
         const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
         if (x) {
           hosts = hosts.replace(x[0], '')
-          await writeFile('/private/etc/hosts', hosts.trim())
+          await Helper.send('tools', 'writeFileByRoot', file, hosts.trim())
         }
         this._initHost(appHost, false, ipv6).then(resolve)
       }

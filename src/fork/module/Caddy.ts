@@ -5,6 +5,7 @@ import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
+  execPromise,
   hostAlias,
   portSearch,
   versionBinVersion,
@@ -15,11 +16,11 @@ import {
   waitTime
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
+import { readFile, writeFile, mkdirp, remove, chmod } from 'fs-extra'
 import { I18nT } from '../lang'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
+import Helper from '../Helper'
 
 class Caddy extends Base {
   constructor() {
@@ -58,15 +59,6 @@ class Caddy extends Base {
         })
       }
       resolve(iniFile)
-    })
-  }
-
-  fixLogPermit() {
-    return new ForkPromise(async (resolve) => {
-      const baseDir = join(global.Server.BaseDir!, 'caddy')
-      const logFile = join(baseDir, 'caddy.log')
-      await execPromiseRoot([`chmod`, `644`, logFile])
-      resolve(true)
     })
   }
 
@@ -151,18 +143,13 @@ class Caddy extends Base {
       await this.#fixVHost()
       const iniFile = await this.initConfig().on(on)
       if (existsSync(this.pidPath)) {
-        await execPromiseRoot(['rm', '-rf', this.pidPath])
+        try {
+          await remove(this.pidPath)
+        } catch (e) {}
       }
 
       const sslDir = join(global.Server.BaseDir!, 'caddy/ssl')
-      if (existsSync(sslDir)) {
-        try {
-          const res = await execPromiseRoot(['ls', '-al', sslDir])
-          if (res.stdout.includes(' root ')) {
-            await execPromiseRoot(['rm', '-rf', sslDir])
-          }
-        } catch (e) {}
-      }
+      await Helper.send('caddy', 'sslDirFixed', sslDir)
 
       const checkPid = async (time = 0) => {
         console.log('checkPid: ', time)
@@ -203,12 +190,12 @@ class Caddy extends Base {
       console.log('command: ', command)
       const sh = join(global.Server.BaseDir!, `caddy/start.sh`)
       await writeFile(sh, command)
-      await execPromiseRoot([`chmod`, '777', sh])
+      await chmod(sh, '0777')
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
       try {
-        const res = await execPromiseRootWhenNeed(`zsh`, [sh])
+        const res = await execPromise(`zsh "${sh}"`)
         console.log('start res: ', res)
       } catch (e) {
         on({

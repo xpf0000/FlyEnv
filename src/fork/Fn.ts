@@ -1,15 +1,16 @@
-import { spawn, type ChildProcess } from 'child_process'
+import { type ChildProcess, spawn } from 'child_process'
 import { merge } from 'lodash'
-import { statSync, readdirSync, mkdirSync, existsSync, createWriteStream, realpathSync } from 'fs'
-import path, { join, dirname } from 'path'
+import { createWriteStream, existsSync, mkdirSync, readdirSync, realpathSync, statSync } from 'fs'
+import path, { dirname, join } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import { readdir, readFile, writeFile } from 'fs-extra'
+import { readdir } from 'fs-extra'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { fixEnv } from '@shared/utils'
 import { compareVersions } from 'compare-versions'
-import { execPromise, execPromiseRoot } from '@shared/Exec'
+import { execPromise } from '@shared/Exec'
+import Helper from './Helper'
 
 export { execPromise }
 
@@ -690,58 +691,18 @@ export const portSearch = async (
 }
 
 export const writeFileByRoot = async (file: string, content: string) => {
-  let hasError = false
-  let error: any
   try {
-    await writeFile(file, content)
+    await Helper.send('tools', 'writeFileByRoot', file, content)
   } catch (e) {
-    hasError = true
-    error = e
-  }
-  if (hasError) {
-    const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
-    await writeFile(cacheFile, content)
-    try {
-      await execPromiseRoot(['cp', '-f', cacheFile, file])
-      hasError = false
-    } catch (e) {
-      error = e
-    }
-    try {
-      await execPromiseRoot(['rm', '-rf', cacheFile])
-    } catch (e) {}
-  }
-  if (hasError) {
-    throw error
+    throw e
   }
   return true
 }
 
-export const readFileByRoot = async (file: string) => {
-  let content = ''
-  let error: any
-  let hasErr = false
+export const readFileByRoot = async (file: string): Promise<string> => {
   try {
-    content = await readFile(file, 'utf-8')
+    return (await Helper.send('tools', 'readFileByRoot', file)) as any
   } catch (e) {
-    error = e
-    hasErr = true
+    throw e
   }
-  if (hasErr) {
-    const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
-    try {
-      await execPromiseRoot(['cp', '-f', file, cacheFile])
-      content = await readFile(cacheFile, 'utf-8')
-      await execPromiseRoot(['rm', '-rf', cacheFile])
-      hasErr = false
-    } catch (e) {
-      error = e
-      hasErr = true
-    }
-  }
-  if (hasErr) {
-    throw error
-  }
-
-  return content
 }

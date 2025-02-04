@@ -218,7 +218,6 @@ export const Setup = (typeFlag: AllAppModule) => {
       }
       let content = readFileSync(sh, 'utf-8')
       content = content
-        .replace(new RegExp('##PASSWORD##', 'g'), global.Server.Password!)
         .replace(new RegExp('##ARCH##', 'g'), arch)
         .replace(new RegExp('##ACTION##', 'g'), fn)
         .replace(new RegExp('##NAME##', 'g'), names.join(' '))

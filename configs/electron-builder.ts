@@ -55,8 +55,9 @@ const conf: Configuration = {
     icon: 'build/Icon.icns',
     target: {
       target: 'default',
-      arch: ['x64', 'arm64']
-      // arch: ['arm64']
+      // target: 'pkg',
+      // arch: ['x64', 'arm64']
+      arch: ['arm64']
     },
     asarUnpack: ['**/*.node'],
     extendInfo: {
@@ -72,6 +73,7 @@ const conf: Configuration = {
     hardenedRuntime: true,
     gatekeeperAssess: false
   },
+  afterPack: 'build/afterPack.js',
   afterSign: 'build/notarize.js',
   publish: [PublishConfig]
 }

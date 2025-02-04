@@ -12,7 +12,7 @@ async function packMain() {
     await DoFix()
     await esbuild(esbuildConfig.dist)
     await esbuild(esbuildConfig.distFork)
-    await esbuild(esbuildConfig.distDNSFork)
+    await esbuild(esbuildConfig.distHelper)
   } catch (err) {
     console.log('\nfailed to build main process')
     console.error(`\n${err}\n`)
