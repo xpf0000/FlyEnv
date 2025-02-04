@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync, statSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
@@ -11,12 +11,10 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort,
-  waitTime
+  versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
-import { execPromiseRoot } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
 class Manager extends Base {
   constructor() {
@@ -49,15 +47,17 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       const confFile = await this._initConf()
       const bin = version.bin
-      await execPromiseRoot([bin, confFile])
-      await waitTime(500)
-      let res: any = await execPromiseRoot(`ps aux | grep "pure-ftpd"`)
-      res = res.stdout.toString()
-      if (res.includes(`${bin} ${confFile}`)) {
-        resolve(true)
+      const pidfile = join(global.Server.FTPDir!, 'pure-ftpd.pid')
+      await execPromise(`cd "${dirname(bin)}" && ./${basename(bin)} "${confFile}"`)
+      const res = await this.waitPidFile(pidfile)
+      if (res && res?.pid) {
+        resolve({
+          'APP-Service-Start-PID': res.pid
+        })
         return
       }
-      reject(new Error(I18nT('fork.startFail')))
+      const error = res ? res?.error : I18nT('fork.startFail')
+      reject(new Error(error))
     })
   }
 

@@ -17,5 +17,6 @@ export default {
   zoom: '缩放',
   fullscreen: '全屏切换',
   front: '窗口置顶',
-  dev: '打开调试窗口'
+  dev: '打开调试窗口',
+  needInstallHelper: 'FlyEnv需要安装帮助程序'
 }

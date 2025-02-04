@@ -23,9 +23,9 @@ import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
 import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
 import axios from 'axios'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
-import { ProcessPidListByPid } from '@shared/Process'
+import { ProcessPidsByPid } from '@shared/Process'
+import Helper from '../Helper'
 
 class Php extends Base {
   constructor() {
@@ -37,7 +37,7 @@ class Php extends Base {
     this.pidPath = join(global.Server.PhpDir!, 'common/var/run/php-fpm.pid')
   }
 
-  getIniPath(version: SoftInstalled) {
+  getIniPath(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject) => {
       let command = ''
       let res: any
@@ -88,14 +88,12 @@ class Php extends Base {
             if (!existsSync(baseIni)) {
               if (existsSync(ini)) {
                 try {
-                  await execPromiseRoot([`cp`, `-f`, ini, baseIni])
-                  await execPromiseRoot([`chmod`, `755`, baseIni])
+                  await Helper.send('php', 'iniFileFixed', baseIni, ini)
                 } catch (e) {}
               } else {
                 const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
                 try {
-                  await execPromiseRoot([`cp`, `-f`, tmpl, baseIni])
-                  await execPromiseRoot([`chmod`, `755`, baseIni])
+                  await Helper.send('php', 'iniFileFixed', baseIni, tmpl)
                 } catch (e) {}
               }
             }
@@ -104,7 +102,9 @@ class Php extends Base {
           if (existsSync(ini)) {
             const iniDefault = `${ini}.default`
             if (!existsSync(iniDefault)) {
-              await execPromiseRoot([`cp`, `-f`, ini, iniDefault])
+              try {
+                await Helper.send('php', 'iniDefaultFileFixed', iniDefault, ini)
+              } catch (e) {}
             }
             resolve(ini)
             return
@@ -146,9 +146,9 @@ class Php extends Base {
           resolve(0)
           return
         }
-        try {
-          await this._doInstallOrUnInstallByBrew(args.libName, 'install').on(on)
-        } catch (e) {}
+        // try {
+        //   // await this._doInstallOrUnInstallByBrew(args.libName, 'install').on(on)
+        // } catch (e) {}
 
         check = await checkSo()
         if (check) {
@@ -159,12 +159,12 @@ class Php extends Base {
         return
       }
       if (args?.flag === 'macports') {
-        try {
-          await this._doInstallOrUnInstallByPort(args.libName, 'install').on(on)
-          resolve(0)
-        } catch (e) {
-          reject(e)
-        }
+        // try {
+        //   await this._doInstallOrUnInstallByPort(args.libName, 'install').on(on)
+        //   resolve(0)
+        // } catch (e) {
+        //   reject(e)
+        // }
         return
       }
       try {
@@ -185,11 +185,52 @@ class Php extends Base {
     })
   }
 
+  extensionIni(item: any, version: SoftInstalled) {
+    return new ForkPromise(async (resolve) => {
+      const ini = await this.getIniPath(version)
+      let content: string = (await Helper.send('tools', 'readFileByRoot', ini)) as any
+      content = content.trim()
+
+      const name = item.soname
+      const zend = ['opcache', 'xdebug']
+      const type = zend.includes(name) ? 'zend_extension' : 'extension'
+      if (item.installed) {
+        const regex: RegExp = new RegExp(`^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${name})"?`, 'gm')
+        content = content.replace(regex, ``).trim()
+        if (name === 'xdebug.so') {
+          content = content
+            .replace(/;\[FlyEnv-xdebug-ini-begin\]([\s\S]*?);\[FlyEnv-xdebug-ini-end\]/g, ``)
+            .trim()
+        }
+      } else {
+        content += `\n${type}=${name}`
+        if (name === 'xdebug.so') {
+          const output_dir = join(global.Server.PhpDir!, 'xdebug')
+          await mkdirp(output_dir)
+          content += `\n;[FlyEnv-xdebug-ini-begin]
+xdebug.idekey = "PHPSTORM"
+xdebug.client_host = localhost
+xdebug.client_port = 9003
+xdebug.mode = debug
+xdebug.profiler_append = 0
+xdebug.profiler_output_name = cachegrind.out.%p
+xdebug.start_with_request = yes
+xdebug.trigger_value=StartProfileForMe
+xdebug.output_dir = "${output_dir}"
+;[FlyEnv-xdebug-ini-end]`
+        }
+      }
+      content = content.trim()
+      await Helper.send('tools', 'writeFileByRoot', ini, content)
+      resolve(true)
+    })
+  }
+
   unInstallExtends(soPath: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
         if (existsSync(soPath)) {
-          await execPromiseRoot([`rm`, `-rf`, soPath])
+          await Helper.send('tools', 'rm', soPath)
         }
       } catch (e) {
         reject(e)
@@ -206,7 +247,8 @@ class Php extends Base {
       })
       const arr: Array<string> = []
       if (!!version?.pid?.trim()) {
-        const pids = await ProcessPidListByPid(version.pid.trim())
+        const plist: any = await Helper.send('tools', 'processList')
+        const pids = ProcessPidsByPid(version.pid.trim(), plist)
         arr.push(...pids)
       } else {
         const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
@@ -223,7 +265,7 @@ class Php extends Base {
       if (arr.length > 0) {
         const sig = '-INT'
         try {
-          await execPromiseRoot([`kill`, sig, ...arr])
+          await Helper.send('tools', 'kill', sig, arr)
         } catch (e) {}
       }
       on({
@@ -371,7 +413,6 @@ class Php extends Base {
         }
         const command = params.join(' ')
         on(I18nT('fork.ExtensionInstallFailTips', { command }))
-        execPromiseRootWhenNeed('zsh', params).on(on).then(resolve).catch(reject)
       }
 
       const installByMacports = async (type: string) => {
@@ -405,9 +446,6 @@ class Php extends Base {
           const params = [copyfile]
           const command = params.join(' ')
           on(I18nT('fork.ExtensionInstallFailTips', { command }))
-          try {
-            execPromiseRootWhenNeed('zsh', params).on(on).then(resolve).catch(reject)
-          } catch (e) {}
           return true
         }
         return false
@@ -439,9 +477,9 @@ class Php extends Base {
           const doCopy = async () => {
             if (existsSync(tmplPath)) {
               if (!existsSync(extendsDir)) {
-                await execPromiseRoot([`mkdir`, '-p', extendsDir])
+                // await ([`mkdir`, '-p', extendsDir])
               }
-              await execPromiseRoot([`cp`, tmplPath, soPath])
+              // await ([`cp`, tmplPath, soPath])
               if (existsSync(soPath)) {
                 resolve(true)
                 return true
@@ -637,7 +675,6 @@ class Php extends Base {
           const params = [copyfile, global.Server.Cache!, extendsDir, versionNums, archStr]
           const command = params.join(' ')
           on(I18nT('fork.ExtensionInstallFailTips', { command }))
-          execPromiseRootWhenNeed('zsh', params).on(on).then(resolve).catch(reject)
           break
       }
     })

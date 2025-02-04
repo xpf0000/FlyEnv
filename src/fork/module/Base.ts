@@ -2,14 +2,14 @@ import { I18nT } from '../lang'
 import { createWriteStream, existsSync } from 'fs'
 import { dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { AppLog, execPromise, spawnPromise, waitTime } from '../Fn'
+import { AppLog, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, copyFile, unlink, chmod, remove, mkdirp, readdir } from 'fs-extra'
-import { execPromiseRoot } from '@shared/Exec'
+import { readFile, writeFile, remove, mkdirp, readdir } from 'fs-extra'
 import axios from 'axios'
 import * as http from 'http'
 import * as https from 'https'
-import { ProcessListSearch, ProcessPidListByPid } from '@shared/Process'
+import { ProcessPidsByPid, ProcessSearch } from '@shared/Process'
+import Helper from '../Helper'
 
 export class Base {
   type: string
@@ -72,10 +72,6 @@ export class Base {
     return this._stopServer(version)
   }
 
-  reloadService(version: SoftInstalled) {
-    return this._reloadServer(version)
-  }
-
   startService(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       if (!existsSync(version?.bin)) {
@@ -115,13 +111,15 @@ export class Base {
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       if (existsSync(appPidFile)) {
         const pid = (await readFile(appPidFile, 'utf-8')).trim()
-        const pids = await ProcessPidListByPid(pid)
+        const plist: any = await Helper.send('tools', 'processList')
+        const pids = ProcessPidsByPid(pid, plist)
         allPid.push(...pids)
         on({
           'APP-Service-Stop-Success': true
         })
       } else if (version?.pid) {
-        const pids = await ProcessPidListByPid(version.pid.trim())
+        const plist: any = await Helper.send('tools', 'processList')
+        const pids = ProcessPidsByPid(version.pid.trim(), plist)
         allPid.push(...pids)
         on({
           'APP-Service-Stop-Success': true
@@ -143,7 +141,8 @@ export class Base {
         }
         const serverName = dis?.[this.type]
         if (serverName) {
-          const pids = (await ProcessListSearch(serverName, false))
+          const plist: any = await Helper.send('tools', 'processList')
+          const pids = ProcessSearch(serverName, false, plist)
             .filter((p) => {
               return (
                 p.COMMAND.includes(global.Server.BaseDir!) &&
@@ -178,7 +177,7 @@ export class Base {
             break
         }
         try {
-          await execPromiseRoot([`kill`, sig, ...arr])
+          await Helper.send('tools', 'kill', sig, arr)
         } catch (e) {}
       }
       if (existsSync(appPidFile)) {
@@ -190,75 +189,6 @@ export class Base {
       resolve({
         'APP-Service-Stop-PID': arr
       })
-    })
-  }
-
-  _reloadServer(version: SoftInstalled) {
-    console.log(version)
-    return new ForkPromise(async (resolve, reject) => {
-      if (existsSync(this.pidPath)) {
-        try {
-          const pid = await readFile(this.pidPath, 'utf-8')
-          const sign =
-            this.type === 'apache' ||
-            this.type === 'mysql' ||
-            this.type === 'nginx' ||
-            this.type === 'mariadb'
-              ? '-HUP'
-              : '-USR2'
-          await execPromiseRoot([`kill`, sign, pid.trim()])
-          await waitTime(1000)
-          resolve(0)
-        } catch (e) {
-          reject(e)
-        }
-      } else {
-        reject(new Error(I18nT('fork.serviceNoRun')))
-      }
-    })
-  }
-
-  _doInstallOrUnInstallByBrew(rb: string, action: string) {
-    return new ForkPromise<any>(async (resolve, reject, on) => {
-      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-      const name = rb
-      const sh = join(global.Server.Static!, 'sh/brew-cmd.sh')
-      const copyfile = join(global.Server.Cache!, 'brew-cmd.sh')
-      try {
-        if (existsSync(copyfile)) {
-          await unlink(copyfile)
-        }
-        await copyFile(sh, copyfile)
-        await chmod(copyfile, '0777')
-      } catch (e) {
-        reject(e)
-        return
-      }
-      spawnPromise('zsh', [copyfile, arch, action, name]).on(on).then(resolve).catch(reject)
-    })
-  }
-
-  _doInstallOrUnInstallByPort(name: string, action: string) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-      const sh = join(global.Server.Static!, 'sh/port-cmd.sh')
-      const copyfile = join(global.Server.Cache!, 'port-cmd.sh')
-      try {
-        if (existsSync(copyfile)) {
-          await unlink(copyfile)
-        }
-        let content = await readFile(sh, 'utf-8')
-        content = content
-          .trim()
-          .replace(new RegExp('##ARCH##', 'g'), arch)
-          .replace(new RegExp('##ACTION##', 'g'), action)
-          .replace(new RegExp('##NAME##', 'g'), name)
-        await writeFile(copyfile, content)
-        await chmod(copyfile, '0777')
-      } catch (e) {
-        reject(e)
-      }
-      execPromiseRoot([copyfile]).on(on).then(resolve).catch(reject)
     })
   }
 
@@ -396,7 +326,7 @@ export class Base {
         }
         if (this.type === 'mailpit') {
           try {
-            await execPromiseRoot(['xattr', '-dr', 'com.apple.quarantine', row.bin])
+            await Helper.send('mailpit', 'binFixed', row.bin)
           } catch (e) {}
         }
       }

@@ -1,10 +1,9 @@
-import { join, dirname } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
-import { execPromiseRoot } from '@shared/Exec'
 import {
   AppLog,
   brewInfoJson,
@@ -18,6 +17,7 @@ import {
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
 import { I18nT } from '../lang'
+import Helper from '../Helper'
 class Nginx extends Base {
   constructor() {
     super()
@@ -73,10 +73,9 @@ class Nginx extends Base {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
-      let res: any
+      const command = `cd "${dirname(bin)}" && ./${basename(bin)} -c ${c} -g "${g}"`
       try {
-        res = await execPromiseRoot([bin, '-c', c, '-g', `"${g}"`])
-        console.log('start res: ', res)
+        await Helper.send('nginx', 'startService', command)
       } catch (e) {
         on({
           'APP-On-Log': AppLog(
@@ -97,7 +96,7 @@ class Nginx extends Base {
       on({
         'APP-Service-Start-Success': true
       })
-      res = await this.waitPidFile(pid)
+      const res = await this.waitPidFile(pid)
       if (res && res?.pid) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))

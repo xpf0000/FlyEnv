@@ -17,5 +17,6 @@ export default {
   zoom: 'Zoom',
   fullscreen: 'Enter Full Screen',
   front: 'Bring PhpWebStudy to Front',
-  dev: 'Open Debug Window'
+  dev: 'Open Debug Window',
+  needInstallHelper: 'FlyEnv needs to install a helper program'
 }

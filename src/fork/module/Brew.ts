@@ -43,14 +43,6 @@ class Brew extends Base {
     })
   }
 
-  install(name: string) {
-    return this._doInstallOrUnInstallByBrew(name, 'install')
-  }
-
-  uninstall(name: string) {
-    return this._doInstallOrUnInstallByBrew(name, 'uninstall')
-  }
-
   addTap(name: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {

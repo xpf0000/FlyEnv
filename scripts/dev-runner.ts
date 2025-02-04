@@ -28,7 +28,7 @@ function buildMainProcess() {
     Promise.all([
       build(esbuildConfig.dev),
       build(esbuildConfig.devFork),
-      build(esbuildConfig.devDNSFork)
+      build(esbuildConfig.devHelper)
     ])
       .then(
         () => {

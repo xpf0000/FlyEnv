@@ -72,7 +72,7 @@ const devFork: BuildOptions = {
   minify: false,
   bundle: true,
   external,
-  plugins: [BuildPlugin()]
+  plugins: []
 }
 
 const dnsExternal = ['path', 'fs', 'os', 'child_process']
@@ -84,7 +84,7 @@ const distFork: BuildOptions = {
   minify: true,
   bundle: true,
   external,
-  plugins: [BuildPlugin()],
+  plugins: [],
   drop: ['debugger', 'console']
 }
 
@@ -95,7 +95,7 @@ const devDNSFork: BuildOptions = {
   minify: false,
   bundle: true,
   external: dnsExternal,
-  plugins: [BuildPlugin()]
+  plugins: []
 }
 
 const distDNSFork: BuildOptions = {
@@ -105,7 +105,28 @@ const distDNSFork: BuildOptions = {
   minify: true,
   bundle: true,
   external: dnsExternal,
-  plugins: [BuildPlugin()]
+  plugins: []
+}
+
+const devHelper: BuildOptions = {
+  platform: 'node',
+  entryPoints: ['src/helper/index.ts'],
+  outfile: 'dist/helper/helper.js',
+  minify: false,
+  bundle: true,
+  external: [],
+  plugins: []
+}
+
+const distHelper: BuildOptions = {
+  platform: 'node',
+  entryPoints: ['src/helper/index.ts'],
+  outfile: 'dist/helper/helper.js',
+  minify: true,
+  bundle: true,
+  external: [],
+  plugins: [],
+  drop: ['debugger', 'console']
 }
 
 export default {
@@ -114,5 +135,7 @@ export default {
   devFork,
   distFork,
   devDNSFork,
-  distDNSFork
+  distDNSFork,
+  devHelper,
+  distHelper
 }

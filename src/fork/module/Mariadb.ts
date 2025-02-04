@@ -20,8 +20,8 @@ import {
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { writeFile, mkdirp, chmod, remove } from 'fs-extra'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
+import Helper from '../Helper'
 
 class Manager extends Base {
   constructor() {
@@ -139,13 +139,13 @@ datadir=${dataDir}`
           console.log('command: ', command)
           const sh = join(global.Server.MariaDBDir!, `start.sh`)
           await writeFile(sh, command)
-          await execPromiseRoot([`chmod`, '777', sh])
+          await chmod(sh, '0777')
           on({
             'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
           })
           let res: any
           try {
-            res = await execPromiseRootWhenNeed(`zsh`, [sh])
+            res = await execPromise(`zsh "${sh}"`)
             console.log('start res: ', res)
           } catch (e) {
             on({
@@ -210,8 +210,7 @@ datadir=${dataDir}`
           if (!existsSync(enDir)) {
             const shareDir = `/opt/local/share/${basename(version.path)}`
             if (existsSync(shareDir)) {
-              await execPromiseRoot([`mkdir`, `-p`, enDir])
-              await execPromiseRoot([`cp`, `-R`, shareDir, enDir])
+              await Helper.send('mariadb', 'macportsDirFixed', enDir, shareDir)
             }
           }
         }

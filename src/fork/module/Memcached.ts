@@ -6,6 +6,7 @@ import type { SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
+  execPromise,
   portSearch,
   versionBinVersion,
   versionFilterSame,
@@ -14,9 +15,8 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, unlink, writeFile } from 'fs-extra'
+import { chmod, mkdirp, unlink, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
 class Memcached extends Base {
   constructor() {
     super()
@@ -48,7 +48,7 @@ class Memcached extends Base {
       console.log('command: ', command)
       const sh = join(global.Server.MemcachedDir!, `start.sh`)
       await writeFile(sh, command)
-      await execPromiseRoot([`chmod`, '777', sh])
+      await chmod(sh, '0777')
       try {
         if (existsSync(pid)) {
           await unlink(pid)
@@ -60,7 +60,7 @@ class Memcached extends Base {
       })
       try {
         await mkdirp(common)
-        const res = await execPromiseRootWhenNeed(`zsh`, [sh])
+        const res = await execPromise(`zsh "${sh}"`)
         console.log('res: ', res)
       } catch (e: any) {
         on({

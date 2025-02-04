@@ -1,13 +1,22 @@
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { basename, dirname, join, resolve as pathResolve } from 'path'
-import { copyFile, existsSync, mkdirp, readFile, writeFile, realpathSync } from 'fs-extra'
+import {
+  copyFile,
+  existsSync,
+  mkdirp,
+  readFile,
+  writeFile,
+  realpathSync,
+  remove,
+  chmod
+} from 'fs-extra'
 import { execPromise, hostAlias } from '../../Fn'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import { ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseRoot } from '@shared/Exec'
-import { ProcessPidListByPid } from '@shared/Process'
 import { fetchHostList } from '../host/HostFile'
+import Helper from '../../Helper'
+import { ProcessPidsByPid } from '@shared/Process'
 
 export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostAll: AppHost[]) => {
   const parser = new XMLParser({
@@ -351,7 +360,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       const pid = join(javaDir, `${item.id}.pid`)
       if (existsSync(pid)) {
         try {
-          await execPromiseRoot([`rm`, '-rf', pid])
+          await remove(pid)
         } catch (e) {}
       }
 
@@ -373,7 +382,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       console.log('command: ', this.command)
       const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
       await writeFile(sh, this.command)
-      await execPromiseRoot([`chmod`, '777', sh])
+      await chmod(sh, '0777')
       try {
         const res = await execPromise(`${sh}`, { env })
         console.log('start res: ', res)
@@ -400,6 +409,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       return []
     }
     const pid = (await readFile(pidFile, 'utf-8')).trim()
-    return await ProcessPidListByPid(pid)
+    const plist: any = await Helper.send('tools', 'processList')
+    return ProcessPidsByPid(pid, plist)
   }
 }

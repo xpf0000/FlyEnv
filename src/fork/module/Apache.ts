@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
@@ -18,9 +18,9 @@ import {
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
-import { execPromiseRoot } from '@shared/Exec'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
+import Helper from '../Helper'
 
 class Apache extends Base {
   constructor() {
@@ -29,7 +29,7 @@ class Apache extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.ApacheDir!, 'common/logs/httpd.pid')
+    this.pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
   }
 
   #resetConf(version: SoftInstalled) {
@@ -102,8 +102,8 @@ class Apache extends Base {
       content = content.replace(find?.[0] ?? '###@@@&&&', '\n#User _www\n')
       find = content.match(/\nGroup _www(.*?)\n/g)
       content = content.replace(find?.[0] ?? '###@@@&&&', '\n#Group _www\n')
-
-      content += `\nPidFile "${logs}httpd.pid"
+      const pidFile = join(global.Server.ApacheDir!, 'httpd.pid')
+      content += `\nPidFile "${pidFile}"
 IncludeOptional "${vhost}*.conf"`
       await writeFile(defaultFile, content)
       await writeFile(defaultFileBack, content)
@@ -231,13 +231,12 @@ IncludeOptional "${vhost}*.conf"`
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
+      const pidFile = join(global.Server.ApacheDir!, 'httpd.pid')
+      const logFile = join(logs, 'access_log')
+      const command = `cd "${dirname(bin)}" && ./${basename(bin)} -f "${conf}" -c "PidFile \"${pidFile}\"" -c "CustomLog \"${logFile}\" common" -k start`
+      console.log('apache start command: ', command)
       try {
-        const res = await execPromiseRoot([bin, `-f`, conf, `-k`, `start`])
-        on(res?.stdout)
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: undefined }))
-        })
-        resolve(0)
+        await Helper.send('apache', 'startService', command)
       } catch (e: any) {
         on({
           'APP-On-Log': AppLog(
@@ -246,7 +245,35 @@ IncludeOptional "${vhost}*.conf"`
           )
         })
         reject(e)
+        return
       }
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
+      on({
+        'APP-Service-Start-Success': true
+      })
+      const res = await this.waitPidFile(pidFile)
+      if (res && res?.pid) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+        })
+        resolve({
+          'APP-Service-Start-PID': res.pid
+        })
+        return
+      }
+      const error = res ? res?.error : I18nT('fork.startFail')
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.execStartCommandFail', {
+            error,
+            service: `${this.type}-${version.version}`
+          })
+        )
+      })
+      reject(new Error(error))
     })
   }
 

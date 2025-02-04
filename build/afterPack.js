@@ -1,26 +1,52 @@
-const { join } = require('path')
-const { execSync } = require('child_process')
+const { join, resolve } = require('path')
+const { mkdirp } = require('fs-extra')
+const { exec } = require('child-process-promise')
 /**
  * 处理appstore node-pty python链接库问题
  * @param pack
  * @returns {Promise<boolean>}
  */
 exports.default = async function after(pack) {
-  const dir = join(pack.appOutDir, 'PhpWebStudy.app/Contents/Resources')
-  const optdefault = { env: process.env, cwd: dir }
-  if (!optdefault.env['PATH']) {
-    optdefault.env['PATH'] =
-      '/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
-  } else {
-    optdefault.env[
-      'PATH'
-    ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:${optdefault.env['PATH']}`
+  if (pack.arch === 1) {
+    const fromBinDir = resolve(pack.appOutDir, '../../build/bin/x86')
+    const toBinDir = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/')
+    await mkdirp(toBinDir)
+    const command = `cp ./* "${toBinDir}"`
+    console.log('command: ', command)
+    await exec(command, {
+      cwd: fromBinDir
+    })
   }
-  execSync('asar e app.asar app', optdefault)
-  execSync('rm -rf app/node_modules/node-pty/build/node_gyp_bins', optdefault)
-  execSync('rm -rf app.asar', optdefault)
-  execSync('asar pack app app.asar', optdefault)
-  execSync('rm -rf app', optdefault)
+  // arm64
+  else if (pack.arch === 3) {
+    const fromBinDir = resolve(pack.appOutDir, '../../build/bin/arm')
+    const toBinDir = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/')
+    await mkdirp(toBinDir)
+    const command = `cp ./* "${toBinDir}"`
+    console.log('command: ', command)
+    await exec(command, {
+      cwd: fromBinDir
+    })
+  }
+
+  let fromBinDir = resolve(pack.appOutDir, '../../build/plist')
+  let toBinDir = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/plist/')
+  await mkdirp(toBinDir)
+  let command = `cp ./* "${toBinDir}"`
+  console.log('command: ', command)
+  await exec(command, {
+    cwd: fromBinDir
+  })
+
+  fromBinDir = resolve(pack.appOutDir, '../../dist/helper')
+  toBinDir = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/')
+  await mkdirp(toBinDir)
+  command = `cp ./* "${toBinDir}"`
+  console.log('command: ', command)
+  await exec(command, {
+    cwd: fromBinDir
+  })
+
   console.log('afterPack handle end !!!!!!')
   return true
 }

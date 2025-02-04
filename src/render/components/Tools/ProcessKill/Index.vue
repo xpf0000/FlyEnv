@@ -55,9 +55,9 @@
   import { markRaw } from 'vue'
   import { Search } from '@element-plus/icons-vue'
   import { passwordCheck } from '@/util/Brew.ts'
-  import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element.ts'
-  import { execPromiseRoot } from '@shared/Exec.ts'
-  import { ProcessListSearch } from '@shared/Process.ts'
+  import { MessageSuccess, MessageWarning } from '@/util/Element.ts'
+  import IPC from '@/util/IPC.ts'
+  import { I18nT } from '@shared/lang/index.ts'
 
   export default {
     components: {},
@@ -83,17 +83,15 @@
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(async () => {
+          .then(() => {
             const pids = this.select.map((s) => {
               return s.PID
             })
-            try {
-              await execPromiseRoot(['kill', '-9', ...pids])
-              MessageSuccess(this.$t('base.success'))
-              this.doSearch().then()
-            } catch (e) {
-              MessageError(this.$t('base.fail'))
-            }
+            IPC.send(`app-fork:tools`, 'killPids', '-9', pids).then((key) => {
+              IPC.off(key)
+              MessageSuccess(I18nT('base.success'))
+              this.doSearch()
+            })
           })
           .catch(() => {})
       },
@@ -102,17 +100,15 @@
           customClass: 'confirm-del',
           type: 'warning'
         })
-          .then(async () => {
+          .then(() => {
             const pids = this.arrs.map((s) => {
               return s.PID
             })
-            try {
-              await execPromiseRoot(['kill', '-9', ...pids])
-              MessageSuccess(this.$t('base.success'))
-              this.doSearch().then()
-            } catch (e) {
-              MessageError(this.$t('base.fail'))
-            }
+            IPC.send(`app-fork:tools`, 'killPids', '-9', pids).then((key) => {
+              IPC.off(key)
+              MessageSuccess(I18nT('base.success'))
+              this.doSearch()
+            })
           })
           .catch(() => {})
       },
@@ -126,32 +122,35 @@
       },
       async doSearch() {
         this.arrs.splice(0)
-        const arr = await ProcessListSearch(this.searchKey, false)
-        if (arr.length === 0) {
-          MessageWarning(this.$t('base.processNoFound'))
-          return
-        }
-        const arrs = []
-        const findSub = (item) => {
-          const sub = []
-          for (const s of arr) {
-            if (s.PPID === item.PID) {
-              sub.push(s)
+        IPC.send(`app-fork:tools`, 'getPidsByKey', this.searchKey).then((key, res) => {
+          IPC.off(key)
+          const arr = res?.data ?? []
+          if (arr.length === 0) {
+            MessageWarning(I18nT('base.processNoFound'))
+            return
+          }
+          const arrs = []
+          const findSub = (item) => {
+            const sub = []
+            for (const s of arr) {
+              if (s.PPID === item.PID) {
+                sub.push(s)
+              }
+            }
+            if (sub.length > 0) {
+              item.children = sub
             }
           }
-          if (sub.length > 0) {
-            item.children = sub
+          for (const item of arr) {
+            findSub(item)
+            const p = arr.find((s) => s.PID === item.PPID)
+            if (!p) {
+              arrs.push(item)
+            }
           }
-        }
-        for (const item of arr) {
-          findSub(item)
-          const p = arr.find((s) => s.PID === item.PPID)
-          if (!p) {
-            arrs.push(item)
-          }
-        }
-        this.arrs.splice(0)
-        this.arrs.push(...arrs)
+          this.arrs.splice(0)
+          this.arrs.push(...arrs)
+        })
       }
     }
   }

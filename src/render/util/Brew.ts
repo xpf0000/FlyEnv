@@ -7,7 +7,6 @@ import { MessageError } from '@/util/Element'
 import type { AllAppModule } from '@/core/type'
 import { reactive } from 'vue'
 
-const { getGlobal } = require('@electron/remote')
 const { existsSync } = require('fs')
 
 let passPromptShow = false
@@ -64,13 +63,8 @@ export const showPassPrompt = (showDesc = true) => {
  * @returns {Promise<unknown>}
  */
 export const passwordCheck = () => {
-  return new Promise((resolve, reject) => {
-    global.Server = getGlobal('Server')
-    if (!global.Server.Password) {
-      showPassPrompt().then(resolve).catch(reject)
-    } else {
-      resolve(true)
-    }
+  return new Promise((resolve) => {
+    resolve(true)
   })
 }
 

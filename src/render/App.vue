@@ -5,10 +5,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+  import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
   import TitleBar from './components/Native/TitleBar.vue'
-  import { EventBus } from './global'
-  import { passwordCheck, showPassPrompt } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import installedVersions from '@/util/InstalledVersions'
   import { AppStore } from '@/store/app'
@@ -60,33 +58,31 @@
       .show()
   }
 
-  const checkPassword = () => {
-    passwordCheck().then(() => {
-      checkProxy()
-      const flags: Array<AllAppModule> = allService.filter(
-        (f: AllAppModule) => showItem?.value?.[f] !== false
-      ) as Array<keyof typeof AppModuleEnum>
-      if (flags.length === 0) {
-        appStore.versionInited = true
-        inited.value = true
-        if (needFetch.length > 0) {
-          needFetch.pop()
-          onShowItemChange()
-        }
-        return
+  const init = () => {
+    checkProxy()
+    const flags: Array<AllAppModule> = allService.filter(
+      (f: AllAppModule) => showItem?.value?.[f] !== false
+    ) as Array<keyof typeof AppModuleEnum>
+    if (flags.length === 0) {
+      appStore.versionInited = true
+      inited.value = true
+      if (needFetch.length > 0) {
+        needFetch.pop()
+        onShowItemChange()
       }
-      installedVersions.allInstalledVersions(flags).then(() => {
-        appStore.versionInited = true
-        inited.value = true
-        if (needFetch.length > 0) {
-          needFetch.pop()
-          onShowItemChange()
-        }
-      })
-      if (appStore.hosts.length === 0) {
-        appStore.initHost().then()
+      return
+    }
+    installedVersions.allInstalledVersions(flags).then(() => {
+      appStore.versionInited = true
+      inited.value = true
+      if (needFetch.length > 0) {
+        needFetch.pop()
+        onShowItemChange()
       }
     })
+    if (appStore.hosts.length === 0) {
+      appStore.initHost().then()
+    }
   }
 
   const checkProxy = () => {
@@ -120,7 +116,6 @@
     })
   }
 
-  EventBus.on('vue:need-password', checkPassword)
   IPC.on('application:about').then(showAbout)
 
   watch(
@@ -143,31 +138,13 @@
       deep: true
     }
   )
-  let passChecking = false
-
-  IPC.on('application:need-password').then(() => {
-    if (passChecking) {
-      return
-    }
-    passChecking = true
-    showPassPrompt()
-      .then(() => {
-        checkPassword()
-      })
-      .finally(() => {
-        passChecking = false
-      })
-  })
 
   onMounted(() => {
-    nextTick().then(() => {
-      checkPassword()
-    })
+    init()
     brewStore.cardHeadTitle = I18nT('base.currentVersionLib')
   })
 
   onUnmounted(() => {
-    EventBus.off('vue:need-password', checkPassword)
     IPC.off('application:about')
     IPC.off('application:need-password')
   })

@@ -1,6 +1,4 @@
-import { I18nT } from './lang'
 import { ProcessSendError, ProcessSendLog, ProcessSendSuccess } from './Fn'
-import { execPromiseRoot } from '@shared/Exec'
 
 class BaseManager {
   Apache: any
@@ -39,13 +37,6 @@ class BaseManager {
 
   async exec(commands: Array<any>) {
     const ipcCommandKey = commands.shift()
-    try {
-      await execPromiseRoot([`true`])
-    } catch (e) {
-      ProcessSendError(ipcCommandKey, I18nT('fork.needPassWord'))
-      ProcessSendError('application:need-password', false, true)
-      return
-    }
     const then = (res: any) => {
       ProcessSendSuccess(ipcCommandKey, res)
     }

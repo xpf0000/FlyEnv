@@ -3,7 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromiseRoot, execPromiseRootWhenNeed } from '@shared/Exec'
+import { execPromise } from '@shared/Exec'
 import {
   AppLog,
   brewInfoJson,
@@ -16,7 +16,7 @@ import {
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { makeGlobalTomcatServerXML } from './service/ServiceItemJavaTomcat'
-import { copyFile, mkdirp, remove, writeFile } from 'fs-extra'
+import { chmod, copyFile, mkdirp, remove, writeFile } from 'fs-extra'
 import { I18nT } from '../lang'
 
 class Tomcat extends Base {
@@ -135,13 +135,13 @@ class Tomcat extends Base {
       console.log('command: ', command)
       const sh = join(tomcatDir, `start.sh`)
       await writeFile(sh, command)
-      await execPromiseRoot([`chmod`, '777', sh])
+      await chmod(sh, '0777')
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
       let res: any
       try {
-        res = await execPromiseRootWhenNeed(`zsh`, [sh])
+        res = await execPromise(`zsh "${sh}"`)
         console.log('start res: ', res)
       } catch (e) {
         on({
@@ -197,7 +197,7 @@ class Tomcat extends Base {
           const all: any[] = []
           for (const item of versions) {
             const bin = join(dirname(item.bin), 'version.sh')
-            await execPromiseRoot(['chmod', '777', bin])
+            await chmod(bin, '0777')
             const command = `${bin}`
             const reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
             all.push(TaskQueue.run(versionBinVersion, command, reg))

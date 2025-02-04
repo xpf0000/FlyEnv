@@ -10,16 +10,18 @@ import { join, resolve } from 'path'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
-import { AppI18n } from './lang'
-import DnsServerManager from './core/DnsServerManager'
+import { AppI18n, I18nT } from './lang'
+import DnsServerManager from './core/DNS'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseRoot } from '@shared/Exec'
 import { arch } from 'os'
-import { PItem, ProcessListByPid, ProcessPidList } from '@shared/Process'
+import { PItem, ProcessListByPid } from '@shared/Process'
 import NodePTY from './core/NodePTY'
 import HttpServer from './core/HttpServer'
+import AppHelper from './core/AppHelper'
+import Helper from '../fork/Helper'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
@@ -88,6 +90,33 @@ export default class Application extends EventEmitter {
       this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
     })
     console.log('Application inited !!!')
+
+    // Socket.init()
+    //   .then(() => {
+    //     dialog.showMessageBox({
+    //       message: 'Socket连接成功'
+    //     })
+    //   })
+    //   .catch((e) => {
+    //     dialog.showErrorBox('Error', 'Socket连接失败')
+    //     Socket.initHelper()
+    //   })
+
+    // Sudo(
+    //   `/bin/zsh -c "sudo -S cd \"/Users/x/Desktop/WorkSpace/GitHub/PhpWebStudy/build/pkg-scripts\" && sudo -S ls -al"`,
+    //   {
+    //     name: 'FlyEnv',
+    //     icns: '/Users/x/Desktop/WorkSpace/GitHub/PhpWebStudy/build/Icon.icns',
+    //     dir: '/Users/x/Desktop/WorkSpace/GitHub/PhpWebStudy/build/bin',
+    //     debug: true
+    //   }
+    // )
+    //   .then(({ stdout, stderr }) => {
+    //     console.log('sudo: ', stdout, stderr)
+    //   })
+    //   .catch((e) => {
+    //     console.log('sudo err: ', e)
+    //   })
   }
 
   initLang() {
@@ -321,7 +350,7 @@ export default class Application extends EventEmitter {
 
   async stop() {
     logger.info('[PhpWebStudy] application stop !!!')
-    await DnsServerManager.close()
+    DnsServerManager.close()
     SiteSuckerManager.destory()
     this.forkManager?.destory()
     await this.stopServer()
@@ -330,8 +359,8 @@ export default class Application extends EventEmitter {
   async stopServerByPid() {
     const TERM: Array<string> = []
     const INT: Array<string> = []
-    const all = await ProcessPidList()
-    const find = all.filter((p) => {
+    const all: any = await Helper.send('tools', 'processList')
+    const find = all.filter((p: any) => {
       return (
         (p.COMMAND.includes(global.Server.BaseDir!) || p.COMMAND.includes('redis-server')) &&
         !p.COMMAND.includes(' grep ') &&
@@ -364,13 +393,13 @@ export default class Application extends EventEmitter {
     if (TERM.length > 0) {
       const sig = '-TERM'
       try {
-        await execPromiseRoot([`kill`, sig, ...TERM])
+        await Helper.send('tools', 'kill', sig, TERM)
       } catch (e) {}
     }
     if (INT.length > 0) {
       const sig = '-INT'
       try {
-        await execPromiseRoot([`kill`, sig, ...INT])
+        await Helper.send('tools', 'kill', sig, INT)
       } catch (e) {}
     }
   }
@@ -385,7 +414,8 @@ export default class Application extends EventEmitter {
         const INT: Array<string> = []
         let pids: PItem[] = []
         try {
-          pids = await ProcessListByPid(pid)
+          const plist: any = await Helper.send('tools', 'processList')
+          pids = ProcessListByPid(pid, plist)
         } catch (e) {}
         if (pids.length > 0) {
           pids.forEach((item) => {
@@ -404,13 +434,13 @@ export default class Application extends EventEmitter {
           if (TERM.length > 0) {
             const sig = '-TERM'
             try {
-              await execPromiseRoot([`kill`, sig, ...TERM])
+              await Helper.send('tools', 'kill', sig, TERM)
             } catch (e) {}
           }
           if (INT.length > 0) {
             const sig = '-INT'
             try {
-              await execPromiseRoot([`kill`, sig, ...INT])
+              await Helper.send('tools', 'kill', sig, INT)
             } catch (e) {}
           }
         }
@@ -580,15 +610,45 @@ export default class Application extends EventEmitter {
       }
     }
     if (command.startsWith('app-fork:')) {
+      const exclude = ['app', 'version']
       const module = command.replace('app-fork:', '')
-      this.setProxy()
-      global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
-      global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
-      global.Server.Licenses = this.configManager?.getConfig('setup.license')
-      this.forkManager
-        ?.send(module, ...args)
-        .on(callBack)
-        .then(callBack)
+      const doFork = () => {
+        this.setProxy()
+        global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
+        global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
+        global.Server.Licenses = this.configManager?.getConfig('setup.license')
+        this.forkManager
+          ?.send(module, ...args)
+          .on(callBack)
+          .then(callBack)
+      }
+      if (exclude.includes(module)) {
+        doFork()
+      } else {
+        if (!AppHelper.installing) {
+          AppHelper.check()
+            .then(() => {
+              doFork()
+            })
+            .catch(() => {
+              AppHelper.initHelper()
+                .then(() => {
+                  doFork()
+                })
+                .catch(() => {
+                  this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+                    code: 1,
+                    msg: I18nT('menu.needInstallHelper')
+                  })
+                })
+            })
+        } else {
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+            code: 1,
+            msg: I18nT('menu.needInstallHelper')
+          })
+        }
+      }
       return
     }
     switch (command) {
@@ -686,6 +746,10 @@ export default class Application extends EventEmitter {
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0 })
         break
       case 'DNS:start':
+        if (DnsServerManager.running) {
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
+          return
+        }
         DnsServerManager.start()
           .then(() => {
             this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
@@ -695,9 +759,8 @@ export default class Application extends EventEmitter {
           })
         break
       case 'DNS:stop':
-        DnsServerManager.close().then(() => {
-          this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-        })
+        DnsServerManager.close()
+        this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
         break
       case 'app-sitesucker-run':
         const url = args[0]
