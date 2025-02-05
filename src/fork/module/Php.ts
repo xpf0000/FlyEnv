@@ -92,9 +92,13 @@ class Php extends Base {
                 } catch (e) {}
               } else {
                 const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
+                const content = await readFile(tmpl, 'utf-8')
+                const cacheFile = join(global.Server.Cache!, 'php.ini')
+                await writeFile(cacheFile, content)
                 try {
-                  await Helper.send('php', 'iniFileFixed', baseIni, tmpl)
+                  await Helper.send('php', 'iniFileFixed', baseIni, cacheFile)
                 } catch (e) {}
+                await remove(cacheFile)
               }
             }
             ini = baseIni

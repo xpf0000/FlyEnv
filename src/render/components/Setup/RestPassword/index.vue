@@ -1,5 +1,17 @@
 <template>
-  <div class="plant-title">{{ $t('base.resetPassword') }}</div>
+  <div class="plant-title flex items-center gap-1">
+    <span>
+      {{ $t('base.resetPassword') }}
+    </span>
+    <el-popover placement="top" width="auto">
+      <template #reference>
+        <yb-icon :svg="import('@/svg/question.svg?raw')" width="12" height="12"></yb-icon>
+      </template>
+      <template #default>
+        <span>{{ $t('setup.passwordTips') }}</span>
+      </template>
+    </el-popover>
+  </div>
   <div class="main reset-pass">
     <el-input
       v-if="show"

@@ -23,15 +23,20 @@
             <div class="card-header">
               <div class="left">
                 <el-radio-group v-model="lib" size="small">
+                  <el-radio-button value="loaded">{{
+                    I18nT('php.loadedExtension')
+                  }}</el-radio-button>
                   <template v-if="isHomeBrew">
                     <el-radio-button value="homebrew">Homebrew</el-radio-button>
                   </template>
                   <template v-else-if="isMacPorts">
                     <el-radio-button value="macports">Macports</el-radio-button>
                   </template>
-                  <el-radio-button value="phpwebstudy">{{
-                    I18nT('php.extensionsLibDefault')
-                  }}</el-radio-button>
+                  <template v-else-if="!isStatic">
+                    <el-radio-button value="phpwebstudy">{{
+                      I18nT('php.extensionsLibDefault')
+                    }}</el-radio-button>
+                  </template>
                 </el-radio-group>
               </div>
               <el-button class="button" :disabled="loading" link @click="reFetch">
@@ -44,10 +49,15 @@
             </div>
           </template>
 
-          <template v-if="lib === 'homebrew'">
+          <template v-if="lib === 'loaded'">
+            <LoadedVM :version="version" />
+          </template>
+          <template v-else-if="lib === 'homebrew'">
             <BrewVM :version="version" />
           </template>
-          <template v-else-if="lib === 'macports'"> </template>
+          <template v-else-if="lib === 'macports'">
+            <PortsVM :version="version" />
+          </template>
           <template v-else-if="lib === 'phpwebstudy'"> </template>
 
           <template v-if="showFooter" #footer>
@@ -72,7 +82,12 @@
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import BrewVM from './Extension/Homebrew/index.vue'
+  import LoadedVM from './Extension/Loaded/index.vue'
+  import PortsVM from './Extension/Macports/index.vue'
   import { Setup } from '@/components/PHP/Extension/setup'
+
+  const { join } = require('path')
+  const { existsSync } = require('fs')
 
   const props = defineProps<{
     version: SoftInstalled
@@ -98,12 +113,10 @@
   const isHomeBrew = computed(() => {
     return props.version?.path?.includes(global?.Server?.BrewCellar ?? '-----')
   })
-
-  if (isMacPorts.value) {
-    lib.value = 'macports'
-  } else if (isHomeBrew.value) {
-    lib.value = 'homebrew'
-  }
+  const isStatic = computed(() => {
+    const pkconfig = props.version?.phpConfig ?? join(props.version?.path, 'bin/php-config')
+    return !pkconfig || !existsSync(pkconfig)
+  })
 
   defineExpose({
     show,

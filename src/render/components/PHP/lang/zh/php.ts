@@ -11,5 +11,7 @@ export default {
   max_file_uploads: '允许同时上传文件的最大数量',
   default_socket_timeout: 'Socket超时时间',
   error_reporting: '错误级别',
-  timezone: '时区'
+  timezone: '时区',
+  loadedExtension: '已加载',
+  extension: '扩展'
 }

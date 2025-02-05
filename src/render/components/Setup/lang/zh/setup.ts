@@ -15,5 +15,7 @@ export default {
   autoHide: '自动隐藏界面',
   autoHideTips: '是否在自动启动服务后, 隐藏主界面, 只保留托盘图标',
   autoLunach: '开机启动',
-  autoLunachTips: '是否开机时自动启动App'
+  autoLunachTips: '是否开机时自动启动App',
+
+  passwordTips: '非必填. 用于执行命令时, 自动填充密码. 例如使用 Macports 安装卸载等'
 }

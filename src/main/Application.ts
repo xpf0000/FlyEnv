@@ -642,6 +642,11 @@ export default class Application extends EventEmitter {
                   })
                 })
             })
+        } else if (AppHelper.installed) {
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+            code: 1,
+            msg: I18nT('menu.waitHelper')
+          })
         } else {
           this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
             code: 1,

@@ -18,5 +18,6 @@ export default {
   fullscreen: '全屏切换',
   front: '窗口置顶',
   dev: '打开调试窗口',
-  needInstallHelper: 'FlyEnv需要安装帮助程序'
+  needInstallHelper: 'FlyEnv需要安装帮助程序',
+  waitHelper: '帮助程序正在启动, 请稍候'
 }

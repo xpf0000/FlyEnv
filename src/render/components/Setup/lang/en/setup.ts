@@ -17,5 +17,8 @@ export default {
   autoHideTips:
     'Whether to hide the main interface and keep only the tray icon after automatically starting the service',
   autoLunach: 'Auto Launch At Boot',
-  autoLunachTips: 'Whether to automatically launch the App when computer boot'
+  autoLunachTips: 'Whether to automatically launch the App when computer boot',
+
+  passwordTips:
+    'Not required. Automatically fill in password when executing commands. For example, installing and uninstalling using Macports, etc'
 }
