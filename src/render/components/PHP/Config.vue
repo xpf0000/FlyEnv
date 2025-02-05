@@ -42,6 +42,8 @@
   import IPC from '@/util/IPC'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
 
+  const { existsSync } = require('fs')
+
   const props = defineProps<{
     version: SoftInstalled
   }>()
@@ -279,7 +281,7 @@
     }
   }
 
-  if (flag.value && !file.value) {
+  if (flag.value && (!file.value || !existsSync(file.value))) {
     IPC.send('app-fork:php', 'getIniPath', JSON.parse(JSON.stringify(props.version))).then(
       (key: string, res: any) => {
         console.log(res)

@@ -1,12 +1,12 @@
 import { createConnection } from 'net'
 import Sudo from '@shared/Sudo'
 import { join, resolve as PathResolve } from 'path'
+import logger from './Logger'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 
 class AppHelper {
-  installed: boolean = false
-  installing: boolean = false
+  state: 'normal' | 'installing' | 'installed' = 'normal'
 
   check() {
     console.time('AppHelper check')
@@ -42,7 +42,26 @@ class AppHelper {
 
   initHelper() {
     return new Promise((resolve, reject) => {
-      this.installing = true
+      const doChech = (time = 0) => {
+        if (time > 9) {
+          this.state = 'normal'
+          reject(new Error('Helper Install Failed'))
+          return
+        }
+        this.check()
+          .then(() => {
+            logger.info('[FlyEnv][initHelper][doChech] time: ', time)
+            this.state = 'normal'
+            resolve(true)
+          })
+          .catch(() => {
+            setTimeout(() => {
+              doChech(time + 1)
+            }, 500)
+          })
+      }
+
+      this.state = 'installing'
       const binDir = PathResolve(global.Server.Static!, '../../../../')
       Sudo(`cd "${join(binDir, 'helper')}" && sudo ./postinstall.sh`, {
         name: 'FlyEnv',
@@ -51,15 +70,13 @@ class AppHelper {
       })
         .then(({ stdout, stderr }) => {
           console.log('initHelper: ', stdout, stderr)
-          this.installed = true
-          resolve(true)
+          this.state = 'installed'
+          doChech()
         })
         .catch((e) => {
           console.log('initHelper err: ', e)
+          this.state = 'normal'
           reject(e)
-        })
-        .finally(() => {
-          this.installing = false
         })
     })
   }

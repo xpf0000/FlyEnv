@@ -625,7 +625,7 @@ export default class Application extends EventEmitter {
       if (exclude.includes(module)) {
         doFork()
       } else {
-        if (!AppHelper.installing) {
+        if (AppHelper.state === 'normal') {
           AppHelper.check()
             .then(() => {
               doFork()
@@ -642,7 +642,7 @@ export default class Application extends EventEmitter {
                   })
                 })
             })
-        } else if (AppHelper.installed) {
+        } else if (AppHelper.state === 'installed') {
           this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
             code: 1,
             msg: I18nT('menu.waitHelper')

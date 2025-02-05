@@ -72,14 +72,14 @@ class Php extends Base {
             const baseDir = ini
             ini = join(baseDir, 'php.ini')
           }
-          await mkdirp(dirname(ini))
-          const iniPath = join(global.Server.PhpDir!, 'common/conf/php.ini')
-          const iniDefaultPath = join(global.Server.PhpDir!, 'common/conf/php.ini.default')
-          if (existsSync(iniPath)) {
-            await copyFile(iniPath, ini)
-          } else if (existsSync(iniDefaultPath)) {
-            await copyFile(iniPath, ini)
-          }
+          const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
+          const content = await readFile(tmpl, 'utf-8')
+          const cacheFile = join(global.Server.Cache!, 'php.ini')
+          await writeFile(cacheFile, content)
+          try {
+            await Helper.send('php', 'iniFileFixed', ini, cacheFile)
+          } catch (e) {}
+          await remove(cacheFile)
         }
         if (existsSync(ini)) {
           if (statSync(ini).isDirectory()) {
