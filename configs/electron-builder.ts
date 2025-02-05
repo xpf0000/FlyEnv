@@ -14,7 +14,7 @@ import PublishConfig from './publish'
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.7.2',
+  buildVersion: '4.8.0',
   electronVersion: '30.4.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -56,8 +56,8 @@ const conf: Configuration = {
     target: {
       target: 'default',
       // target: 'pkg',
-      // arch: ['x64', 'arm64']
-      arch: ['x64']
+      arch: ['x64', 'arm64']
+      // arch: ['arm64']
     },
     asarUnpack: ['**/*.node'],
     extendInfo: {
