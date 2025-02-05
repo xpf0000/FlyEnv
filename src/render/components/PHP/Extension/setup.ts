@@ -3,6 +3,8 @@ import { type SoftInstalled } from '@/store/brew'
 import { BrewSetup } from '@/components/PHP/Extension/Homebrew/setup'
 import { execAsync } from '@shared/utils'
 import { getAllFile } from '@shared/file'
+import { LoadedSetup } from '@/components/PHP/Extension/Loaded/setup'
+import { MacPortsSetup } from '@/components/PHP/Extension/Macports/setup'
 
 const { join } = require('path')
 const { shell } = require('@electron/remote')
@@ -18,15 +20,15 @@ export const ExtensionSetup = reactive<{
 })
 
 export const Setup = (version: SoftInstalled) => {
-  const lib: Ref<'phpwebstudy' | 'macports' | 'homebrew'> = ref('phpwebstudy')
+  const lib: Ref<'phpwebstudy' | 'macports' | 'homebrew' | 'loaded'> = ref('loaded')
 
   const showFooter = computed(() => {
     if (lib.value === 'homebrew') {
       return BrewSetup.installing
     }
-    // if (lib.value === 'macports') {
-    //   return MacPortsSetup.installing
-    // }
+    if (lib.value === 'macports') {
+      return MacPortsSetup.installing
+    }
     return false
   })
 
@@ -34,9 +36,9 @@ export const Setup = (version: SoftInstalled) => {
     if (lib.value === 'homebrew') {
       return BrewSetup.installEnd
     }
-    // if (lib.value === 'macports') {
-    //   return MacPortsSetup.installEnd
-    // }
+    if (lib.value === 'macports') {
+      return MacPortsSetup.installEnd
+    }
     return false
   })
 
@@ -49,13 +51,13 @@ export const Setup = (version: SoftInstalled) => {
       return
     }
 
-    // if (lib.value === 'macports') {
-    //   MacPortsSetup.installing = false
-    //   MacPortsSetup.installEnd = false
-    //   MacPortsSetup.xterm?.destory()
-    //   delete MacPortsSetup.xterm
-    //   return
-    // }
+    if (lib.value === 'macports') {
+      MacPortsSetup.installing = false
+      MacPortsSetup.installEnd = false
+      MacPortsSetup.xterm?.destory()
+      delete MacPortsSetup.xterm
+      return
+    }
   }
 
   const taskCancel = () => {
@@ -69,24 +71,27 @@ export const Setup = (version: SoftInstalled) => {
       return
     }
 
-    // if (lib.value === 'macports') {
-    //   MacPortsSetup.installing = false
-    //   MacPortsSetup.installEnd = false
-    //   MacPortsSetup.xterm?.stop()?.then(() => {
-    //     MacPortsSetup.xterm?.destory()
-    //     delete MacPortsSetup.xterm
-    //   })
-    //   return
-    // }
+    if (lib.value === 'macports') {
+      MacPortsSetup.installing = false
+      MacPortsSetup.installEnd = false
+      MacPortsSetup.xterm?.stop()?.then(() => {
+        MacPortsSetup.xterm?.destory()
+        delete MacPortsSetup.xterm
+      })
+      return
+    }
   }
 
   const loading = computed(() => {
     if (lib.value === 'homebrew') {
       return BrewSetup.fetching[version.bin] || BrewSetup.installing
     }
-    // if (lib.value === 'macports') {
-    //   return MacPortsSetup.fetching[typeFlag] || MacPortsSetup.installing
-    // }
+    if (lib.value === 'loaded') {
+      return LoadedSetup.fetching[version.bin]
+    }
+    if (lib.value === 'macports') {
+      return MacPortsSetup.fetching[version.bin] || MacPortsSetup.installing
+    }
     return false
   })
 
@@ -124,10 +129,14 @@ export const Setup = (version: SoftInstalled) => {
       console.log('reFetch brew !!!')
       BrewSetup.reFetch()
     }
-    // if (lib.value === 'macports') {
-    //   console.log('reFetch port !!!')
-    //   MacPortsSetup.reFetch()
-    // }
+    if (lib.value === 'loaded') {
+      console.log('reFetch brew !!!')
+      LoadedSetup.reFetch()
+    }
+    if (lib.value === 'macports') {
+      console.log('reFetch port !!!', MacPortsSetup.reFetch)
+      MacPortsSetup.reFetch()
+    }
   }
 
   const openDir = () => {

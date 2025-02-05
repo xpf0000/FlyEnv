@@ -3,18 +3,17 @@ import { AppStore } from '@/store/app'
 import { SoftInstalled } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
-import { getAllFileAsync } from '@shared/file'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
 import Base from '@/core/Base'
 import { ExtensionSetup } from '@/components/PHP/Extension/setup'
 
 const { clipboard } = require('@electron/remote')
-const { join, basename } = require('path')
-const { existsSync, unlinkSync, copyFileSync } = require('fs')
-const { copyFile, mkdirp, chmod } = require('fs-extra')
+const { join } = require('path')
+const { existsSync, unlinkSync, readFileSync, writeFileSync } = require('fs')
+const { chmod } = require('fs-extra')
 
-export const BrewSetup = reactive<{
+export const MacPortsSetup = reactive<{
   installEnd: boolean
   installing: boolean
   list: { [k: string]: any }
@@ -45,7 +44,7 @@ export const Setup = (version: SoftInstalled) => {
   })
 
   const fetching = computed(() => {
-    return BrewSetup.fetching?.[version.bin] ?? false
+    return MacPortsSetup.fetching?.[version.bin] ?? false
   })
 
   const versionNumber = computed(() => {
@@ -58,67 +57,66 @@ export const Setup = (version: SoftInstalled) => {
   })
 
   const fetchData = () => {
-    if (fetching.value || BrewSetup?.list?.[version.bin]) {
+    if (fetching.value || MacPortsSetup?.list?.[version.bin]) {
       return
     }
-    BrewSetup.fetching[version.bin] = true
-    IPC.send('app-fork:brew', 'fetchAllPhpExtensions', versionNumber.value).then(
+    MacPortsSetup.fetching[version.bin] = true
+    IPC.send('app-fork:brew', 'fetchAllPhpExtensionsByPort', versionNumber.value).then(
       (key: string, res: any) => {
         IPC.off(key)
         if (res?.data) {
-          BrewSetup.list[version.bin] = res.data
+          MacPortsSetup.list[version.bin] = res.data
         }
-        BrewSetup.fetching[version.bin] = false
+        MacPortsSetup.fetching[version.bin] = false
       }
     )
   }
 
   const reGetData = () => {
     console.log('reGetData !!!')
-    delete BrewSetup?.list?.[version.bin]
-    delete BrewSetup.fetching?.[version.bin]
+    delete MacPortsSetup?.list?.[version.bin]
+    delete MacPortsSetup.fetching?.[version.bin]
     fetchData()
   }
 
-  BrewSetup.reFetch = reGetData
+  MacPortsSetup.reFetch = reGetData
 
   const handleEdit = async (row: any) => {
-    if (BrewSetup.installing) {
+    if (MacPortsSetup.installing) {
       return
     }
-    BrewSetup.installing = true
-    BrewSetup.installEnd = false
-    const fn = row?.status ? 'uninstall' : 'install'
+    MacPortsSetup.installing = true
+    MacPortsSetup.installEnd = false
+
+    let fn = row?.status ? 'uninstall' : 'install'
     const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
     const name = row.libName
-    let params = []
-    const sh = join(global.Server.Static!, 'sh/brew-cmd.sh')
-    const copyfile = join(global.Server.Cache!, 'brew-cmd.sh')
+    const params = []
+    const sh = join(global.Server.Static!, 'sh/port-cmd.sh')
+    const copyfile = join(global.Server.Cache!, 'port-cmd.sh')
     if (existsSync(copyfile)) {
       unlinkSync(copyfile)
     }
-    copyFileSync(sh, copyfile)
+    if (fn === 'uninstall') {
+      fn = 'uninstall --follow-dependents'
+    }
+    let content = readFileSync(sh, 'utf-8')
+    content = content
+      .replace(new RegExp('##ARCH##', 'g'), arch)
+      .replace(new RegExp('##ACTION##', 'g'), fn)
+      .replace(new RegExp('##NAME##', 'g'), name)
+    writeFileSync(copyfile, content)
     await chmod(copyfile, '0777')
-    params = [`${copyfile} ${arch} ${fn} ${name};`]
+    params.push(`sudo -S "${copyfile}"`)
+
     if (proxyStr?.value) {
       params.unshift(proxyStr?.value)
     }
     await nextTick()
     const execXTerm = new XTerm()
-    BrewSetup.xterm = execXTerm
+    MacPortsSetup.xterm = execXTerm
     await execXTerm.mount(xtermDom.value!)
     await execXTerm.send(params)
-
-    const extensionDir = ExtensionSetup.dir?.[version.bin] ?? ''
-    const baseDir = row.libName.split('/').pop()
-    const dir = join(global.Server.BrewCellar!, baseDir)
-    const allFile = await getAllFileAsync(dir)
-    const so = allFile.filter((f) => f.endsWith('.so')).pop()
-    if (so) {
-      const destSo = join(extensionDir, basename(so))
-      await mkdirp(extensionDir)
-      await copyFile(so, destSo)
-    }
 
     IPC.send(
       'app-fork:php',
@@ -127,7 +125,7 @@ export const Setup = (version: SoftInstalled) => {
       JSON.parse(JSON.stringify(version))
     ).then((key: string) => {
       IPC.off(key)
-      BrewSetup.installEnd = true
+      MacPortsSetup.installEnd = true
     })
     ExtensionSetup.reFetch()
     reGetData()
@@ -158,7 +156,7 @@ export const Setup = (version: SoftInstalled) => {
       item.soPath = join(dir, item.soname)
       return item
     }
-    const list = BrewSetup.list?.[version.bin] ?? []
+    const list = MacPortsSetup.list?.[version.bin] ?? []
     if (!search.value) {
       return Array.from(list).map(map).sort(sortName).sort(sortStatus)
     }
@@ -231,9 +229,9 @@ xdebug.output_dir = "${output_dir}"
   fetchData()
 
   onMounted(() => {
-    if (BrewSetup.installing) {
+    if (MacPortsSetup.installing) {
       nextTick().then(() => {
-        const execXTerm: XTerm = BrewSetup.xterm as any
+        const execXTerm: XTerm = MacPortsSetup.xterm as any
         if (execXTerm && xtermDom.value) {
           execXTerm.mount(xtermDom.value).then().catch()
         }
@@ -242,7 +240,7 @@ xdebug.output_dir = "${output_dir}"
   })
 
   onUnmounted(() => {
-    BrewSetup.xterm && BrewSetup.xterm.unmounted()
+    MacPortsSetup.xterm && MacPortsSetup.xterm.unmounted()
   })
 
   return {

@@ -5,6 +5,7 @@ import { join, resolve as PathResolve } from 'path'
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 
 class AppHelper {
+  installed: boolean = false
   installing: boolean = false
 
   check() {
@@ -50,6 +51,7 @@ class AppHelper {
       })
         .then(({ stdout, stderr }) => {
           console.log('initHelper: ', stdout, stderr)
+          this.installed = true
           resolve(true)
         })
         .catch((e) => {

@@ -18,5 +18,6 @@ export default {
   fullscreen: 'Enter Full Screen',
   front: 'Bring PhpWebStudy to Front',
   dev: 'Open Debug Window',
-  needInstallHelper: 'FlyEnv needs to install a helper program'
+  needInstallHelper: 'FlyEnv needs to install a helper program',
+  waitHelper: 'Helper program is starting, please wait'
 }

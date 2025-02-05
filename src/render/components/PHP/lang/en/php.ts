@@ -11,5 +11,7 @@ export default {
   max_file_uploads: 'Maximum number of files allowed to be uploaded simultaneously',
   default_socket_timeout: 'Socket timeout',
   error_reporting: 'error reporting level',
-  timezone: 'Timezone'
+  timezone: 'Timezone',
+  loadedExtension: 'Loaded',
+  extension: 'Extension'
 }

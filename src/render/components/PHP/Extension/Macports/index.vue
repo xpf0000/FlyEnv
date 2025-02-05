@@ -1,5 +1,5 @@
 <template>
-  <template v-if="BrewSetup.installing">
+  <template v-if="MacPortsSetup.installing">
     <div class="w-full h-full overflow-hidden p-5">
       <div ref="xtermDom" class="w-full h-full overflow-hidden"></div>
     </div>
@@ -75,7 +75,7 @@
             </template>
             <template #reference>
               <el-button
-                :disabled="BrewSetup.installing"
+                :disabled="MacPortsSetup.installing"
                 type="primary"
                 link
                 :icon="Download"
@@ -91,7 +91,7 @@
 
 <script lang="ts" setup>
   import { type SoftInstalled } from '@/store/brew'
-  import { BrewSetup, Setup } from '@/components/PHP/Extension/Homebrew/setup'
+  import { MacPortsSetup, Setup } from './setup'
   import { I18nT } from '@shared/lang'
   import { Link, Document, Download, Delete } from '@element-plus/icons-vue'
 
