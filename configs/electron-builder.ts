@@ -56,8 +56,8 @@ const conf: Configuration = {
     target: {
       target: 'default',
       // target: 'pkg',
-      arch: ['x64', 'arm64']
-      // arch: ['arm64']
+      // arch: ['x64', 'arm64']
+      arch: ['x64']
     },
     asarUnpack: ['**/*.node'],
     extendInfo: {

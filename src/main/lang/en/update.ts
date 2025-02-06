@@ -5,5 +5,8 @@ export default {
   'update-downloaded-message': 'Ready to install...',
   'update-error-message': 'Update Error',
   yes: 'Yes',
-  no: 'No'
+  no: 'No',
+  needUpdateTitleTips: 'Warning',
+  needUpdateContentTips:
+    'Detected that the current app name is not FlyEnv. You may be using PhpWebStudy, which is no longer supported, or manually changing the app name. Please download and install FlyEnv again Or restore the application name to FlyEnv'
 }

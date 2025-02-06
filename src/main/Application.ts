@@ -90,33 +90,6 @@ export default class Application extends EventEmitter {
       this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
     })
     console.log('Application inited !!!')
-
-    // Socket.init()
-    //   .then(() => {
-    //     dialog.showMessageBox({
-    //       message: 'Socket连接成功'
-    //     })
-    //   })
-    //   .catch((e) => {
-    //     dialog.showErrorBox('Error', 'Socket连接失败')
-    //     Socket.initHelper()
-    //   })
-
-    // Sudo(
-    //   `/bin/zsh -c "sudo -S cd \"/Users/x/Desktop/WorkSpace/GitHub/PhpWebStudy/build/pkg-scripts\" && sudo -S ls -al"`,
-    //   {
-    //     name: 'FlyEnv',
-    //     icns: '/Users/x/Desktop/WorkSpace/GitHub/PhpWebStudy/build/Icon.icns',
-    //     dir: '/Users/x/Desktop/WorkSpace/GitHub/PhpWebStudy/build/bin',
-    //     debug: true
-    //   }
-    // )
-    //   .then(({ stdout, stderr }) => {
-    //     console.log('sudo: ', stdout, stderr)
-    //   })
-    //   .catch((e) => {
-    //     console.log('sudo err: ', e)
-    //   })
   }
 
   initLang() {
@@ -626,6 +599,22 @@ export default class Application extends EventEmitter {
         doFork()
       } else {
         if (AppHelper.state === 'normal') {
+          const helperVersion = this.configManager?.getConfig('helper.version') ?? 0
+          if (helperVersion !== AppHelper.version) {
+            AppHelper.initHelper()
+              .then(() => {
+                this.configManager.setConfig('helper.version', AppHelper.version)
+                doFork()
+              })
+              .catch(() => {
+                this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+                  code: 1,
+                  msg: I18nT('menu.needInstallHelper')
+                })
+              })
+            return
+          }
+
           AppHelper.check()
             .then(() => {
               doFork()

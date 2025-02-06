@@ -10,10 +10,10 @@ export class BaseManager {
       reject(new Error('No Found Function'))
     })
   }
-  startService(command: string): Promise<boolean> {
+  startService(command: string, options: any = {}): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
       try {
-        await exec(command)
+        await exec(command, options)
       } catch (e) {
         reject(e)
         return
