@@ -1,13 +1,14 @@
 import { createConnection } from 'net'
 import Sudo from '@shared/Sudo'
-import { join, resolve as PathResolve } from 'path'
+import { dirname, join, resolve as PathResolve } from 'path'
 import logger from './Logger'
+import is from 'electron-is'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 
 class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
-
+  version = 1
   check() {
     console.time('AppHelper check')
     return new Promise((resolve, reject) => {
@@ -62,10 +63,32 @@ class AppHelper {
       }
 
       this.state = 'installing'
-      const binDir = PathResolve(global.Server.Static!, '../../../../')
-      Sudo(`cd "${join(binDir, 'helper')}" && sudo ./postinstall.sh`, {
+      let command = ''
+      let icns = ``
+      if (is.production()) {
+        const binDir = PathResolve(global.Server.Static!, '../../../../')
+        const plist = join(binDir, 'plist/com.flyenv.helper.plist')
+        const bin = join(binDir, 'helper/flyenv-helper')
+        const script = join(binDir, 'helper/helper.js')
+        command = `cd "${join(binDir, 'helper')}" && sudo ./postinstall.sh "${plist}" "${bin}" "${script}"`
+        icns = join(binDir, 'icon.icns')
+      } else {
+        const binDir = PathResolve(global.Server.Static!, '../../../build/')
+        const plist = join(binDir, 'plist/com.flyenv.helper.plist')
+        const bin = join(
+          binDir,
+          'bin',
+          global.Server.isAppleSilicon ? 'arm' : 'x86',
+          'flyenv-helper'
+        )
+        const script = PathResolve(global.Server.Static!, '../../helper/helper.js')
+        command = `cd "${dirname(bin)}" && sudo ./postinstall.sh "${plist}" "${bin}" "${script}"`
+        icns = join(binDir, 'icon.icns')
+      }
+
+      Sudo(command, {
         name: 'FlyEnv',
-        icns: join(binDir, 'icon.icns'),
+        icns: icns,
         dir: global.Server.Cache!
       })
         .then(({ stdout, stderr }) => {

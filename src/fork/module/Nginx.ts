@@ -18,6 +18,9 @@ import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
 import { I18nT } from '../lang'
 import Helper from '../Helper'
+import { fixEnv } from '@shared/utils'
+import { userInfo } from 'os'
+
 class Nginx extends Base {
   constructor() {
     super()
@@ -73,9 +76,20 @@ class Nginx extends Base {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
-      const command = `cd "${dirname(bin)}" && ./${basename(bin)} -c ${c} -g "${g}"`
+      const env = await fixEnv()
+      console.log('env: ', env)
+      const command = `cd "${dirname(bin)}" && sudo -S ./${basename(bin)} -c ${c} -g "${g}"`
+      console.log('command: ', command)
+      const uinfo = userInfo()
+      const uid = uinfo.uid
+      const gid = uinfo.gid
+
       try {
-        await Helper.send('nginx', 'startService', command)
+        await Helper.send('nginx', 'startService', command, {
+          uid,
+          gid,
+          env
+        })
       } catch (e) {
         on({
           'APP-On-Log': AppLog(
