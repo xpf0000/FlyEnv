@@ -146,7 +146,13 @@ class AppHelper {
     server.listen(SOCKET_PATH, async () => {
       console.log('服务器监听在', SOCKET_PATH)
       await waitTime(500)
-      const appDir = `/Applications/FlyEnv.app`
+      let appDir = `/Applications/FlyEnv.app`
+      if (!existsSync(appDir)) {
+        appDir = `/Applications/PhpWebStudy.app`
+      }
+      if (!existsSync(appDir)) {
+        return
+      }
       let rule = ''
       try {
         rule = await dirChownFetch(appDir)
