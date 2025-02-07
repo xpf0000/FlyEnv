@@ -64,15 +64,15 @@ brew install flyenv
 
 ### Intel X86:
 
-[FlyEnv-4.8.1.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.1/FlyEnv-4.8.1.dmg)
+[FlyEnv-4.8.2.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.2/FlyEnv-4.8.2.dmg)
 
-[FlyEnv-4.8.1-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.1/FlyEnv-4.8.1-mac.zip)
+[FlyEnv-4.8.2-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.2/FlyEnv-4.8.2-mac.zip)
 
 ### Apple Silicon
 
-[FlyEnv-4.8.1-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.1/FlyEnv-4.8.1-arm64.dmg)
+[FlyEnv-4.8.2-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.2/FlyEnv-4.8.2-arm64.dmg)
 
-[FlyEnv-4.8.1-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.1/FlyEnv-4.8.1-arm64-mac.zip)
+[FlyEnv-4.8.2-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.2/FlyEnv-4.8.2-arm64-mac.zip)
 
 If you only need a simple PHP service and web service, you can also take a look at FlyEnv's derivative products: [FlyPHPServer](https://flyenv.com/flyphpserver.html),  Already listed on [Mac App Store](https://apps.apple.com/us/app/flyphpserver/id1506384441), available for direct download and use
 
