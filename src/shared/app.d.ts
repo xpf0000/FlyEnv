@@ -67,6 +67,7 @@ export interface AppHost {
   root: string
   phpVersion?: number
   mark?: string
+  bookmark?: string
 }
 
 export interface FtpItem {

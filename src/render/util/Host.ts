@@ -47,8 +47,8 @@ export const handleHost = (
     host = JSON.parse(JSON.stringify(host))
     old = JSON.parse(JSON.stringify(old ?? {}))
     IPC.send('app-fork:host', 'handleHost', host, flag, old, park).then((key: string, res: any) => {
-      IPC.off(key)
       if (res?.code === 0) {
+        IPC.off(key)
         if (res?.data?.host) {
           handleHostEnd(res.data.host, flag === 'add')
           resolve(true)
@@ -58,6 +58,7 @@ export const handleHost = (
           resolve(I18nT('base.hostParseErr'))
         }
       } else if (res?.code === 1) {
+        IPC.off(key)
         MessageError(res.msg)
         resolve(res.msg)
       }

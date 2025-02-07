@@ -109,6 +109,17 @@ class Manager extends BaseManager {
     })
   }
 
+  chmod(dir: string, flag: string) {
+    return new Promise(async (resolve) => {
+      if (existsSync(dir)) {
+        try {
+          await exec(`chmod ${flag} "${dir}"`)
+        } catch (e) {}
+      }
+      resolve(true)
+    })
+  }
+
   kill(sig: string, pids: string[]) {
     return new Promise(async (resolve) => {
       try {
