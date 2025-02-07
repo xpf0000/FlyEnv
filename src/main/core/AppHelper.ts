@@ -3,12 +3,14 @@ import Sudo from '@shared/Sudo'
 import { dirname, join, resolve as PathResolve } from 'path'
 import logger from './Logger'
 import is from 'electron-is'
+import Helper from '../../fork/Helper'
+import { userInfo } from 'os'
 
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 
 class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
-  version = 1
+  version = 2
   check() {
     console.time('AppHelper check')
     return new Promise((resolve, reject) => {
@@ -51,6 +53,27 @@ class AppHelper {
         }
         this.check()
           .then(() => {
+            const vhostLogs = join(global.Server.BaseDir!, 'vhost/logs')
+            const nginxLogs = join(global.Server.NginxDir!, 'common/logs')
+            const apacheLogs = join(global.Server.ApacheDir!, 'common/logs')
+            const uinfo = userInfo()
+            const uid = uinfo.uid
+            const gid = uinfo.gid
+            try {
+              Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${vhostLogs}"`)
+                .then()
+                .catch()
+            } catch (e) {}
+            try {
+              Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${nginxLogs}"`)
+                .then()
+                .catch()
+            } catch (e) {}
+            try {
+              Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${apacheLogs}"`)
+                .then()
+                .catch()
+            } catch (e) {}
             logger.info('[FlyEnv][initHelper][doChech] time: ', time)
             this.state = 'normal'
             resolve(true)

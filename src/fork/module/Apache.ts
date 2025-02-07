@@ -20,7 +20,6 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
-import Helper from '../Helper'
 
 class Apache extends Base {
   constructor() {
@@ -235,8 +234,12 @@ IncludeOptional "${vhost}*.conf"`
       const logFile = join(logs, 'access_log')
       const command = `cd "${dirname(bin)}" && ./${basename(bin)} -f "${conf}" -c "PidFile \"${pidFile}\"" -c "CustomLog \"${logFile}\" common" -k start`
       console.log('apache start command: ', command)
+      // const env = await fixEnv()
+      // const uinfo = userInfo()
+      // const uid = uinfo.uid
+      // const gid = uinfo.gid
       try {
-        await Helper.send('apache', 'startService', command)
+        await execPromise(command)
       } catch (e: any) {
         on({
           'APP-On-Log': AppLog(

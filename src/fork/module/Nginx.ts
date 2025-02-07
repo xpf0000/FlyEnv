@@ -7,6 +7,7 @@ import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
 import {
   AppLog,
   brewInfoJson,
+  execPromise,
   portSearch,
   versionBinVersion,
   versionFilterSame,
@@ -17,9 +18,6 @@ import {
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
 import { I18nT } from '../lang'
-import Helper from '../Helper'
-import { fixEnv } from '@shared/utils'
-import { userInfo } from 'os'
 
 class Nginx extends Base {
   constructor() {
@@ -68,6 +66,7 @@ class Nginx extends Base {
       const pid = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
       const errlog = join(global.Server.NginxDir!, 'common/logs/error.log')
       const g = `pid ${pid};error_log ${errlog};`
+      const p = join(global.Server.NginxDir!, 'common')
       if (existsSync(pid)) {
         try {
           await remove(pid)
@@ -76,20 +75,11 @@ class Nginx extends Base {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
-      const env = await fixEnv()
-      console.log('env: ', env)
-      const command = `cd "${dirname(bin)}" && sudo -S ./${basename(bin)} -c ${c} -g "${g}"`
+      const command = `cd "${dirname(bin)}" && ./${basename(bin)} -p "${p}" -e "${errlog}" -c ${c} -g "${g}"`
       console.log('command: ', command)
-      const uinfo = userInfo()
-      const uid = uinfo.uid
-      const gid = uinfo.gid
 
       try {
-        await Helper.send('nginx', 'startService', command, {
-          uid,
-          gid,
-          env
-        })
+        await execPromise(command)
       } catch (e) {
         on({
           'APP-On-Log': AppLog(

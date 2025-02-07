@@ -36,6 +36,7 @@ type FN =
   | 'dnsRefresh'
   | 'killPorts'
   | 'getPortPids'
+  | 'chmod'
 
 class Helper {
   send(module: Module, fn: FN, ...args: any) {
