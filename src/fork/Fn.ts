@@ -137,6 +137,7 @@ export function execPromise(
         cammand,
         merge(
           {
+            encoding: 'utf-8',
             env: fixEnv()
           },
           opt
@@ -696,9 +697,12 @@ export const fetchPATH = (): ForkPromise<string[]> => {
     await copyFile(sh, copySh)
     process.chdir(global.Server.Cache!)
     try {
-      const res = await execPromiseRoot('path.cmd')
+      const res = await execPromise('path.cmd')
       let str = res?.stdout ?? ''
       str = str.replace(new RegExp(`\n`, 'g'), '')
+      if (!str.includes(':\\') && !str.includes('%')) {
+        return resolve([])
+      }
       const oldPath = Array.from(new Set(str.split(';') ?? []))
         .filter((s) => !!s.trim())
         .map((s) => s.trim())
@@ -740,7 +744,7 @@ export const addPath = async (dir: string) => {
     })
     .join(';')
   try {
-    await execPromiseRoot(`setx /M PATH "${savePath}"`)
+    await execPromise(`setx /M PATH "${savePath}"`)
   } catch (e) {}
 }
 

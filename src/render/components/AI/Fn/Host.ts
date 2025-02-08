@@ -10,6 +10,7 @@ import { nextTick } from 'vue'
 import type { SoftInstalled } from '@shared/app'
 import { fetchInstalled } from '@/components/AI/Fn/Util'
 import { I18nT } from '@shared/lang'
+import { handleWriteHosts } from '@/util/Host'
 
 const { shell } = require('@electron/remote')
 
@@ -25,6 +26,7 @@ export function addRandaSite(this: BaseTask) {
         IPC.off(key)
         if (res.code === 0) {
           appStore.initHost()
+          handleWriteHosts().then().catch()
           const item = res.data
           const aiStore = AIStore()
           aiStore.chatList.push({
@@ -78,7 +80,7 @@ export function openSiteBaseService(this: BaseTask, item: { host: string; php: S
         url = `http://${item.host}:8080`
       }
       if (php) {
-        await startPhp.call(this, php)
+        await startPhp.call(this, php as any)
       }
       const arr = [
         I18nT('ai.服务启动成功'),

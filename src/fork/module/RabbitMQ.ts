@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromiseRoot,
+  execPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -56,7 +56,7 @@ class RabbitMQ extends Base {
       })
       process.chdir(dirname(version.bin))
       try {
-        const res = await execPromiseRoot(`rabbitmq-plugins.bat enable rabbitmq_management`)
+        const res = await execPromise(`rabbitmq-plugins.bat enable rabbitmq_management`)
         console.log('rabbitmq _initPlugin: ', res)
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.initPluginSuccess'))
@@ -194,7 +194,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
       })
       process.chdir(this.baseDir)
       try {
-        const res = await execPromiseRoot(
+        const res = await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
         console.log('rabbitmq start res: ', res.stdout)
@@ -253,7 +253,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
     }
     let str = ''
     try {
-      str = (await execPromiseRoot('set ERLANG_HOME')).stdout.trim().replace('ERLANG_HOME=', '')
+      str = (await execPromise('set ERLANG_HOME')).stdout.trim().replace('ERLANG_HOME=', '')
     } catch (e: any) {}
     if (!str || !existsSync(str)) {
       return
@@ -264,7 +264,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
       if (existsSync(bin)) {
         process.chdir(dirname(bin))
         try {
-          await execPromiseRoot('start /B ./epmd.exe > NUL 2>&1 &')
+          await execPromise('start /B ./epmd.exe > NUL 2>&1 &')
         } catch (e: any) {}
         break
       }

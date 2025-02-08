@@ -4,7 +4,7 @@ import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromiseRoot,
+  execPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -64,7 +64,7 @@ class Memcached extends Base {
       })
       process.chdir(global.Server.MemcachedDir!)
       try {
-        const res = await execPromiseRoot(
+        const res = await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
         console.log('pid res.stdout: ', res.stdout)

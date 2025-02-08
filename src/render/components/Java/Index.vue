@@ -6,7 +6,12 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service v-if="tab === 0"></Service>
+      <Service
+        v-if="tab === 0"
+        title="JAVA"
+        type-flag="java"
+        :fetch-data-when-create="true"
+      ></Service>
       <Manager
         v-else-if="tab === 1"
         type-flag="java"
@@ -24,7 +29,7 @@
 </template>
 
 <script lang="ts" setup>
-  import Service from './List.vue'
+  import Service from '@/components/ServiceManager/base.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@shared/lang'

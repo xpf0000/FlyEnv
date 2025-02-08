@@ -4,7 +4,7 @@ import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromiseRoot,
+  execPromise,
   hostAlias,
   versionBinVersion,
   versionFilterSame,
@@ -187,7 +187,7 @@ class Caddy extends Base {
       })
       process.chdir(join(global.Server.BaseDir!, `caddy`))
       try {
-        await execPromiseRoot(
+        await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
       } catch (e: any) {

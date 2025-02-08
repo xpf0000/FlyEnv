@@ -4,7 +4,7 @@ import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromiseRoot,
+  execPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -99,7 +99,7 @@ class Manager extends Base {
       })
       process.chdir(global.Server.MongoDBDir!)
       try {
-        await execPromiseRoot(
+        await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
       } catch (e: any) {

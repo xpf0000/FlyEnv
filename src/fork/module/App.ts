@@ -3,7 +3,7 @@ import { getMac } from '@lzwme/get-physical-address'
 import { machineId } from 'node-machine-id'
 import { ForkPromise } from '@shared/ForkPromise'
 import { cpus, arch } from 'os'
-import { execPromiseRoot, md5, uuid } from '../Fn'
+import { execPromise, md5, uuid } from '../Fn'
 import axios from 'axios'
 import { publicDecrypt } from 'crypto'
 import { basename, join, resolve as PathResolve } from 'path'
@@ -52,7 +52,7 @@ class App extends Base {
     await writeFile(shFile, command)
     process.chdir(global.Server.Cache!)
     try {
-      const res = await execPromiseRoot(`powershell.exe ./${basename(shFile)}`)
+      const res = await execPromise(`powershell.exe ./${basename(shFile)}`)
       const arr =
         res?.stdout
           ?.trim()
@@ -81,7 +81,7 @@ class App extends Base {
       await writeFile(shFile, command)
       process.chdir(global.Server.Cache!)
       try {
-        await execPromiseRoot(`powershell.exe ./${basename(shFile)}`)
+        await execPromise(`powershell.exe ./${basename(shFile)}`)
       } catch (e) {
         const key = '[handleWindowsDefenderExclusionPath][Add-MpPreference][error]'
         console.log(`${key}: `, e)

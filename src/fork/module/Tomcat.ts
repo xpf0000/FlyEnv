@@ -5,7 +5,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromiseRoot,
+  execPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -115,7 +115,7 @@ class Tomcat extends Base {
       if (arr.length > 0) {
         const str = arr.map((s) => `/pid ${s}`).join(' ')
         try {
-          await execPromiseRoot(`taskkill /f /t ${str}`)
+          await execPromise(`taskkill /f /t ${str}`)
         } catch (e) {}
       }
       on({
@@ -172,7 +172,7 @@ class Tomcat extends Base {
       })
       process.chdir(tomcatDir)
       try {
-        const res = await execPromiseRoot(
+        const res = await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
         on({

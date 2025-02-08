@@ -4,7 +4,7 @@ import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromiseRoot,
+  execPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -149,7 +149,7 @@ class Nginx extends Base {
       })
       process.chdir(global.Server.NginxDir!)
       try {
-        await execPromiseRoot(
+        await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
       } catch (e: any) {

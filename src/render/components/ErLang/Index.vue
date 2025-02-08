@@ -8,11 +8,11 @@
     <div class="main-block">
       <Service
         v-if="tab === 0"
-        title="Go"
-        type-flag="golang"
+        title="Erlang"
+        type-flag="erlang"
         :fetch-data-when-create="true"
       ></Service>
-      <Manager v-else-if="tab === 1" type-flag="golang" title="Go" :has-static="true"></Manager>
+      <Manager v-else-if="tab === 1" type-flag="erlang" title="Erlang" :has-static="true"></Manager>
     </div>
   </div>
 </template>
@@ -23,6 +23,6 @@
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@shared/lang'
 
-  const { tab } = AppModuleSetup('golang')
+  const { tab } = AppModuleSetup('erlang')
   const tabs = [I18nT('base.service'), I18nT('base.versionManager')]
 </script>

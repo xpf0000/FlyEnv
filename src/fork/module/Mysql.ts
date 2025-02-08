@@ -5,14 +5,14 @@ import { I18nT } from '../lang'
 import type { MysqlGroupItem, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   waitTime,
-  execPromiseRoot,
   versionLocalFetch,
   versionFilterSame,
   versionBinVersion,
   versionFixed,
   versionInitedApp,
   versionSort,
-  AppLog
+  AppLog,
+  execPromise
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, remove, readFile } from 'fs-extra'
@@ -39,7 +39,7 @@ class Mysql extends Base {
       if (existsSync(bin)) {
         process.chdir(dirname(bin))
         try {
-          await execPromiseRoot(`mysqladmin.exe -uroot password "root"`)
+          await execPromise(`mysqladmin.exe -uroot password "root"`)
         } catch (e) {
           on({
             'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: e }))
@@ -161,7 +161,7 @@ datadir="${dataDir}"`
           })
           process.chdir(global.Server.MysqlDir!)
           try {
-            await execPromiseRoot(
+            await execPromise(
               `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
             )
           } catch (e: any) {
@@ -248,7 +248,7 @@ datadir="${dataDir}"`
         command = `${basename(bin)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
-          const res = await execPromiseRoot(command)
+          const res = await execPromise(command)
           console.log('init res: ', res)
           on(res.stdout)
         } catch (e: any) {
@@ -295,7 +295,7 @@ datadir="${dataDir}"`
 
       if (arr.length > 0) {
         const str = arr.map((s) => `/pid ${s}`).join(' ')
-        await execPromiseRoot(`taskkill /f /t ${str}`)
+        await execPromise(`taskkill /f /t ${str}`)
       }
       await waitTime(500)
       resolve({
@@ -379,7 +379,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
 
           process.chdir(global.Server.MysqlDir!)
           try {
-            await execPromiseRoot(
+            await execPromise(
               `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
             )
           } catch (e: any) {
@@ -410,7 +410,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           if (existsSync(bin)) {
             process.chdir(dirname(bin))
             try {
-              await execPromiseRoot(
+              await execPromise(
                 `${basename(bin)} -P${version.port} -S"${sock}" -uroot password "root"`
               )
             } catch (e) {
@@ -443,7 +443,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         command = `${basename(bin!)} ${params.join(' ')}`
         console.log('command: ', command)
         try {
-          const res = await execPromiseRoot(command)
+          const res = await execPromise(command)
           console.log('init res: ', res)
           on(res.stdout)
         } catch (e: any) {
