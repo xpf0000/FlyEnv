@@ -1,5 +1,5 @@
 import { Base } from './Base'
-import { execPromiseRoot } from '../Fn'
+import { execPromise } from '../Fn'
 import { exec } from 'child-process-promise'
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join } from 'path'
@@ -41,14 +41,14 @@ class Manager extends Base {
           })
           .join(';')
         try {
-          await execPromiseRoot(`setx /M PATH "${savePath}"`)
+          await execPromise(`setx /M PATH "${savePath}"`)
         } catch (e) {}
       }
 
       let NVM_HOME = ''
       try {
         const command = `set NVM_HOME`
-        const res = await execPromiseRoot(command)
+        const res = await execPromise(command)
         NVM_HOME = res?.stdout?.trim()?.replace('NVM_HOME=', '').trim()
       } catch (e) {}
       if (NVM_HOME) {
@@ -60,7 +60,7 @@ class Manager extends Base {
 
       try {
         const command = `powershell.exe -command "$env:NVM_HOME"`
-        const res = await execPromiseRoot(command)
+        const res = await execPromise(command)
         NVM_HOME = res?.stdout?.trim()?.replace('NVM_HOME=', '').trim()
       } catch (e) {}
       if (NVM_HOME) {
@@ -81,15 +81,15 @@ class Manager extends Base {
         await writeFile(installcmd, content)
         process.chdir(nvmDir)
         try {
-          const res = await execPromiseRoot('install.cmd')
+          const res = await execPromise('install.cmd')
           console.log('installNvm res: ', res)
         } catch (e) {}
       }
       NVM_HOME = dirname(local)
       const NVM_SYMLINK = join(NVM_HOME, 'nodejs-link')
       try {
-        await execPromiseRoot(`setx /M NVM_HOME "${NVM_HOME}"`)
-        await execPromiseRoot(`setx /M NVM_SYMLINK "${NVM_SYMLINK}"`)
+        await execPromise(`setx /M NVM_HOME "${NVM_HOME}"`)
+        await execPromise(`setx /M NVM_SYMLINK "${NVM_SYMLINK}"`)
       } catch (e) {}
       await fixPath()
       resolve(NVM_HOME)
@@ -122,14 +122,14 @@ class Manager extends Base {
           })
           .join(';')
         try {
-          await execPromiseRoot(`setx /M PATH "${savePath}"`)
+          await execPromise(`setx /M PATH "${savePath}"`)
         } catch (e) {}
       }
 
       let FNM_HOME = ''
       try {
         const command = `set FNM_HOME`
-        const res = await execPromiseRoot(command)
+        const res = await execPromise(command)
         FNM_HOME = res?.stdout?.trim()?.replace('FNM_HOME=', '').trim()
       } catch (e) {}
       if (FNM_HOME) {
@@ -141,7 +141,7 @@ class Manager extends Base {
 
       try {
         const command = `powershell.exe -command "$env:FNM_HOME"`
-        const res = await execPromiseRoot(command)
+        const res = await execPromise(command)
         FNM_HOME = res?.stdout?.trim()?.replace('FNM_HOME=', '').trim()
       } catch (e) {}
       if (FNM_HOME) {
@@ -168,13 +168,13 @@ class Manager extends Base {
         await writeFile(installcmd, content)
         process.chdir(nvmDir)
         try {
-          const res = await execPromiseRoot('install.cmd')
+          const res = await execPromise('install.cmd')
           console.log('installNvm res: ', res)
         } catch (e) {}
       }
       FNM_HOME = dirname(local)
       try {
-        await execPromiseRoot(`setx /M FNM_HOME "${FNM_HOME}"`)
+        await execPromise(`setx /M FNM_HOME "${FNM_HOME}"`)
       } catch (e) {}
       await fixPath()
       resolve(FNM_HOME)
@@ -228,7 +228,7 @@ class Manager extends Base {
       let res: any
       process.chdir(dir)
       try {
-        res = await execPromiseRoot(`${tool}.exe ls`)
+        res = await execPromise(`${tool}.exe ls`)
         console.log('localVersion: ', res)
       } catch (e) {
         console.log('localVersion err: ', e)
@@ -300,7 +300,7 @@ class Manager extends Base {
       }
       process.chdir(dir)
       try {
-        await execPromiseRoot(command)
+        await execPromise(command)
         const { current }: any = await this.localVersion(tool)
         if (current === select) {
           resolve(true)
@@ -335,7 +335,7 @@ class Manager extends Base {
       }
       process.chdir(dir)
       try {
-        await execPromiseRoot(command)
+        await execPromise(command)
         const { versions, current }: { versions: Array<string>; current: string } =
           (await this.localVersion(tool)) as any
         if (

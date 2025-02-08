@@ -21,5 +21,5 @@
   }>()
 
   const log = ref()
-  const filepath = ref(join(global.Server.NginxDir, `common/logs/${props.type}.log`))
+  const filepath = ref(join(global.Server.NginxDir, `logs/${props.type}.log`))
 </script>

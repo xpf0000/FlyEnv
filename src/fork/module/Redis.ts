@@ -4,7 +4,7 @@ import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromiseRoot,
+  execPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -81,7 +81,7 @@ class Redis extends Base {
       if (arr.length > 0) {
         const str = arr.map((s) => `/pid ${s}`).join(' ')
         try {
-          await execPromiseRoot(`taskkill /f /t ${str}`)
+          await execPromise(`taskkill /f /t ${str}`)
         } catch (e) {}
       }
       on({
@@ -145,7 +145,7 @@ class Redis extends Base {
       })
       process.chdir(global.Server.RedisDir!)
       try {
-        await execPromiseRoot(
+        await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
       } catch (e: any) {

@@ -54,7 +54,7 @@ export const makeCaddyConf = async (host: AppHost) => {
 
   const hostName = host.name
   const root = host.root
-  const phpv = host.phpVersion
+  const phpv = host?.phpVersion
   const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
 
   const httpHostNameAll = httpNames.join(',\n')
@@ -62,7 +62,12 @@ export const makeCaddyConf = async (host: AppHost) => {
     .replace('##HOST-ALL##', httpHostNameAll)
     .replace('##LOG-PATH##', logFile.split('\\').join('/'))
     .replace('##ROOT##', root.split('\\').join('/'))
-    .replace('##PHP-VERSION##', `${phpv}`)
+  if (phpv) {
+    content = content.replace('##PHP-VERSION##', `${phpv}`)
+  } else {
+    content = content.replace('import enable-php-select ##PHP-VERSION##', `##Static Site Caddy##`)
+  }
+
   content = handleReverseProxy(host, content)
   contentList.push(content)
 
@@ -77,7 +82,11 @@ export const makeCaddyConf = async (host: AppHost) => {
       .replace('##LOG-PATH##', logFile.split('\\').join('/'))
       .replace('##SSL##', tls)
       .replace('##ROOT##', root.split('\\').join('/'))
-      .replace('##PHP-VERSION##', `${phpv}`)
+    if (phpv) {
+      content = content.replace('##PHP-VERSION##', `${phpv}`)
+    } else {
+      content = content.replace('import enable-php-select ##PHP-VERSION##', `##Static Site Caddy##`)
+    }
     content = handleReverseProxy(host, content)
     contentList.push(content)
   }
@@ -183,11 +192,21 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
       find.push(...[`import enable-php-select ${old.phpVersion}`])
     } else {
       find.push(...['import enable-php-select undefined'])
+      find.push(...['import enable-php-select 00'])
+      find.push(...['##Static Site Caddy##'])
     }
     if (host.phpVersion) {
       replace.push(...[`import enable-php-select ${host.phpVersion}`])
+      if (!old.phpVersion) {
+        replace.push(...[`import enable-php-select ${host.phpVersion}`])
+        replace.push(...[`import enable-php-select ${host.phpVersion}`])
+      }
     } else {
-      replace.push(...['import enable-php-select undefined'])
+      replace.push(...['##Static Site Caddy##'])
+      if (!old.phpVersion) {
+        replace.push(...['##Static Site Caddy##'])
+        replace.push(...['##Static Site Caddy##'])
+      }
     }
   }
   if (!isEqual(host?.reverseProxy, old?.reverseProxy)) {

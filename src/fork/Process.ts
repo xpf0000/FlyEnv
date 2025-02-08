@@ -1,4 +1,4 @@
-import { execPromiseRoot } from './Fn'
+import { execPromise } from './Fn'
 
 export type PItem = {
   ProcessId: number
@@ -11,7 +11,7 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
   const all: PItem[] = []
   const command = `powershell.exe -command "Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId | ConvertTo-Json"`
   try {
-    const res = await execPromiseRoot(command)
+    const res = await execPromise(command)
     const list = JSON.parse(res?.stdout ?? '[]')
     all.push(...list)
   } catch (e) {

@@ -4,7 +4,7 @@ import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromiseRoot,
+  execPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -149,7 +149,7 @@ class MailPit extends Base {
       })
       process.chdir(join(global.Server.BaseDir!, `mailpit`))
       try {
-        const res = await execPromiseRoot(
+        const res = await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
         if (res?.stdout) {

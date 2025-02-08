@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromiseRoot,
+  execPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -84,7 +84,7 @@ class Manager extends Base {
         })
         process.chdir(global.Server.PostgreSqlDir!)
         try {
-          await execPromiseRoot(
+          await execPromise(
             `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
           )
         } catch (e: any) {
@@ -167,7 +167,7 @@ class Manager extends Base {
         process.chdir(dirname(initDB))
         const command = `start /B ./${basename(initDB)} -D "${dbPath}" -U root > NUL 2>&1 &`
         try {
-          await execPromiseRoot(command)
+          await execPromise(command)
         } catch (e) {
           on({
             'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))

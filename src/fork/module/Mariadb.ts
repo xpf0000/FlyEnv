@@ -6,7 +6,6 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromise,
   waitTime,
-  execPromiseRoot,
   versionLocalFetch,
   versionFilterSame,
   versionBinVersion,
@@ -155,7 +154,7 @@ datadir="${dataDir}"`
           })
           process.chdir(global.Server.MariaDBDir!)
           try {
-            await execPromiseRoot(
+            await execPromise(
               `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
             )
           } catch (e: any) {
@@ -235,7 +234,7 @@ datadir="${dataDir}"`
         console.log('command: ', command)
 
         try {
-          const res = await execPromiseRoot(command)
+          const res = await execPromise(command)
           console.log('init res: ', res)
           on(res.stdout)
         } catch (e: any) {

@@ -2,7 +2,7 @@ import { I18nT } from '../lang'
 import { createWriteStream, existsSync, unlinkSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { AppLog, execPromiseRoot, getAllFileAsync, uuid, waitTime } from '../Fn'
+import { AppLog, execPromise, getAllFileAsync, uuid, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { appendFile, copyFile, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
@@ -106,7 +106,7 @@ export class Base {
         if (pids.length > 0) {
           const str = pids.map((s) => `/pid ${s}`).join(' ')
           try {
-            await execPromiseRoot(`taskkill /f /t ${str}`)
+            await execPromise(`taskkill /f /t ${str}`)
           } catch (e) {}
         }
         on({
@@ -127,7 +127,7 @@ export class Base {
         if (pids.length > 0) {
           const str = pids.map((s) => `/pid ${s}`).join(' ')
           try {
-            await execPromiseRoot(`taskkill /f /t ${str}`)
+            await execPromise(`taskkill /f /t ${str}`)
           } catch (e) {}
         }
         on({
@@ -161,7 +161,7 @@ export class Base {
       if (all.length > 0) {
         const str = all.map((s) => `/pid ${s.ProcessId}`).join(' ')
         try {
-          await execPromiseRoot(`taskkill /f /t ${str}`)
+          await execPromise(`taskkill /f /t ${str}`)
         } catch (e) {}
       }
       on({
@@ -266,7 +266,7 @@ export class Base {
       const handlePython = async () => {
         const tmpDir = join(global.Server.Cache!, `python-${row.version}-tmp`)
         if (existsSync(tmpDir)) {
-          await execPromiseRoot(`rmdir /S /Q ${tmpDir}`)
+          await execPromise(`rmdir /S /Q ${tmpDir}`)
         }
         const dark = join(global.Server.Cache!, 'dark/dark.exe')
         if (!existsSync(dark)) {
@@ -291,7 +291,7 @@ export class Base {
 
         process.chdir(global.Server.Cache!)
         try {
-          await execPromiseRoot(`powershell.exe ${sh}`)
+          await execPromise(`powershell.exe ${sh}`)
         } catch (e) {
           console.log('[python-install][error]: ', e)
           await appendFile(
@@ -326,7 +326,7 @@ export class Base {
           await copyFile(join(global.Server.Static!, 'sh/pip.ps1'), sh)
           process.chdir(APPDIR)
           try {
-            await execPromiseRoot(`powershell.exe ${sh}`)
+            await execPromise(`powershell.exe ${sh}`)
           } catch (e) {
             await appendFile(
               join(global.Server.BaseDir!, 'debug.log'),

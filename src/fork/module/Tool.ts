@@ -1,16 +1,9 @@
 import { createReadStream, readFileSync, statSync } from 'fs'
 import { Base } from './Base'
-import {
-  addPath,
-  execPromise,
-  execPromiseRoot,
-  fetchPATH,
-  getAllFileAsync,
-  systemProxyGet,
-  uuid
-} from '../Fn'
+import { addPath, execPromise, fetchPATH, getAllFileAsync, systemProxyGet, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import {
+  appendFile,
   copyFile,
   existsSync,
   mkdirp,
@@ -26,7 +19,7 @@ import { I18nT } from '../lang'
 import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
-import { PItem, ProcessListSearch } from '../Process'
+import { PItem, ProcessListSearch, ProcessPidList } from '../Process'
 import { AppServiceAliasItem } from '@shared/app'
 
 class BomCleanTask implements TaskItem {
@@ -213,24 +206,24 @@ class Manager extends Base {
 
         process.chdir(dirname(openssl))
         let command = `${basename(openssl)} genrsa -out "${caKey}" 2048`
-        await execPromiseRoot(command)
+        await execPromise(command)
 
         const caCSR = join(param.savePath, `${caFileName}.csr`)
 
         process.chdir(dirname(openssl))
         command = `${basename(openssl)} req -new -key "${caKey}" -out "${caCSR}" -sha256 -subj "/CN=Dev Root CA ${caFileName}" -config "${opensslCnf}"`
-        await execPromiseRoot(command)
+        await execPromise(command)
 
         process.chdir(param.savePath)
         command = `echo basicConstraints=CA:true > "${caFileName}.cnf"`
-        await execPromiseRoot(command)
+        await execPromise(command)
 
         const caCRT = join(param.savePath, `${caFileName}.crt`)
         const caCnf = join(param.savePath, `${caFileName}.cnf`)
 
         process.chdir(dirname(openssl))
         command = `${basename(openssl)} x509 -req -in "${caCSR}" -signkey "${caKey}" -out "${caCRT}" -extfile "${caCnf}" -sha256 -days 3650`
-        await execPromiseRoot(command)
+        await execPromise(command)
       }
 
       let ext = `authorityKeyIdentifier=keyid,issuer
@@ -252,11 +245,11 @@ subjectAltName=@alt_names
 
       process.chdir(dirname(openssl))
       let command = `${basename(openssl)} req -new -newkey rsa:2048 -nodes -keyout "${saveKey}" -out "${saveCSR}" -sha256 -subj "/CN=${saveName}" -config "${opensslCnf}"`
-      await execPromiseRoot(command)
+      await execPromise(command)
 
       process.chdir(dirname(openssl))
       command = `${basename(openssl)} x509 -req -in "${saveCSR}" -out "${saveCrt}" -extfile "${saveExt}" -CA "${caFile}.crt" -CAkey "${caFile}.key" -CAcreateserial -sha256 -days 3650`
-      await execPromiseRoot(command)
+      await execPromise(command)
 
       const crtFile = join(param.savePath, `${saveName}.crt`)
       if (existsSync(crtFile)) {
@@ -304,7 +297,7 @@ subjectAltName=@alt_names
     return new ForkPromise(async (resolve) => {
       const str = pids.map((s) => `/pid ${s}`).join(' ')
       try {
-        await execPromiseRoot(`taskkill /f /t ${str}`)
+        await execPromise(`taskkill /f /t ${str}`)
       } catch (e) {}
       resolve(true)
     })
@@ -315,7 +308,7 @@ subjectAltName=@alt_names
       const command = `netstat -ano | findstr :${name}`
       let res: any
       try {
-        res = await execPromiseRoot(command)
+        res = await execPromise(command)
       } catch (e) {}
       const lines = res?.stdout?.trim()?.split('\n') ?? []
       const list = lines
@@ -337,37 +330,48 @@ subjectAltName=@alt_names
         .filter((p: string) => !!p)
       const arr: any[] = []
       const pids = Array.from(new Set(list))
-
+      if (pids.length === 0) {
+        return resolve(arr)
+      }
       console.log('pids: ', pids)
-
+      const all = await ProcessPidList()
       for (const pid of pids) {
-        const command = `wmic process get CommandLine,ProcessId | findstr "${pid}"`
-        const res = await execPromiseRoot(command)
-        const lines = res?.stdout?.trim()?.split('\n') ?? []
-        lines
-          .filter((s) => !s.includes(`findstr `))
-          .forEach((i) => {
-            const all = i.split(' ').filter((s: string) => {
-              return !!s.trim()
-            })
-            const PID = all.pop()
-            if (PID === pid) {
-              const COMMAND = all.join(' ')
-              if (!arr.find((a) => a.PID === PID && a.COMMAND === COMMAND)) {
-                arr.push({
-                  PID,
-                  COMMAND
-                })
-              }
-            }
+        const find = all.find((a) => `${a.ProcessId}` === `${pid}`)
+        if (find) {
+          arr.push({
+            PID: find.ProcessId,
+            COMMAND: find.CommandLine
           })
+        }
       }
       resolve(arr)
     })
   }
 
   fetchPATH(): ForkPromise<string[]> {
-    return fetchPATH()
+    return new ForkPromise(async (resolve) => {
+      const res: any = {
+        allPath: [],
+        appPath: []
+      }
+      const pathArr = await fetchPATH()
+      const allPath = pathArr
+        .filter((f) => existsSync(f))
+        .map((f) => realpathSync(f))
+        .filter((f) => existsSync(f) && statSync(f).isDirectory())
+      res.allPath = Array.from(new Set(allPath))
+
+      const dir = join(dirname(global.Server.AppDir!), 'env')
+      if (existsSync(dir)) {
+        let allFile = await readdir(dir)
+        allFile = allFile
+          .filter((f) => existsSync(join(dir, f)))
+          .map((f) => realpathSync(join(dir, f)))
+          .filter((f) => existsSync(f) && statSync(f).isDirectory())
+        res.appPath = Array.from(new Set(allFile))
+      }
+      resolve(res)
+    })
   }
 
   _fetchRawPATH(): ForkPromise<string[]> {
@@ -380,15 +384,22 @@ subjectAltName=@alt_names
       await copyFile(sh, copySh)
       process.chdir(global.Server.Cache!)
       try {
-        const res = await execPromiseRoot('path.cmd')
+        const res = await execPromise('path.cmd')
         let str = res?.stdout ?? ''
         str = str.replace(new RegExp(`\n`, 'g'), '')
+        if (!str.includes(':\\') && !str.includes('%')) {
+          return resolve([])
+        }
         const oldPath = Array.from(new Set(str.split(';') ?? []))
           .filter((s) => !!s.trim())
           .map((s) => s.trim())
         console.log('_fetchRawPATH: ', str, oldPath)
         resolve(oldPath)
       } catch (e) {
+        await appendFile(
+          join(global.Server.BaseDir!, 'debug.log'),
+          `[_fetchRawPATH][error]: ${e}\n`
+        )
         reject(e)
       }
     })
@@ -424,13 +435,13 @@ subjectAltName=@alt_names
       const flagDir = join(envDir, typeFlag)
       console.log('flagDir: ', flagDir)
       try {
-        await execPromiseRoot(`rmdir /S /Q ${flagDir}`)
+        await execPromise(`rmdir /S /Q ${flagDir}`)
       } catch (e) {
         console.log('rmdir err: ', e)
       }
       if (!rawOldPath.includes(binDir)) {
         try {
-          await execPromiseRoot(`mklink /J "${flagDir}" "${item.path}"`)
+          await execPromise(`mklink /J "${flagDir}" "${item.path}"`)
         } catch (e) {
           console.log('updatePATH mklink err: ', e)
         }
@@ -528,7 +539,7 @@ php "%~dp0composer.phar" %*`
         )
         process.chdir(global.Server.Cache!)
         try {
-          const res = await execPromiseRoot(`powershell.exe "${f}"`)
+          const res = await execPromise(`powershell.exe "${f}"`)
           console.log('erlang path fix: ', res)
         } catch (e) {}
         await remove(f)
@@ -537,19 +548,15 @@ php "%~dp0composer.phar" %*`
       }
       console.log('updatePATH: ', content)
       await writeFile(copySh, content)
-      oldPath = oldPath.map((o) => {
-        if (existsSync(o)) {
-          return realpathSync(o)
-        }
-        return o
-      })
       process.chdir(global.Server.Cache!)
       try {
-        await execPromiseRoot('path-set.cmd')
-        resolve(oldPath)
+        await execPromise('path-set.cmd')
       } catch (e) {
-        reject(e)
+        return reject(e)
       }
+
+      const allPath = await this.fetchPATH()
+      resolve(allPath)
     })
   }
 
@@ -564,7 +571,7 @@ php "%~dp0composer.phar" %*`
       process.chdir(global.Server.Cache!)
       let old: string[] = []
       try {
-        const res = await execPromiseRoot('pathext.cmd')
+        const res = await execPromise('pathext.cmd')
         let str = res?.stdout ?? ''
         str = str.replace(new RegExp(`\n`, 'g'), '')
         old = Array.from(new Set(str.split(';') ?? []))
@@ -596,7 +603,7 @@ php "%~dp0composer.phar" %*`
       await writeFile(copySh, content)
       process.chdir(global.Server.Cache!)
       try {
-        await execPromiseRoot('pathext-set.cmd')
+        await execPromise('pathext-set.cmd')
         resolve(true)
       } catch (e) {
         reject(e)
@@ -657,7 +664,7 @@ chcp 65001>nul
       }
 
       try {
-        await execPromiseRoot(`setx /M FLYENV_ALIAS "${aliasDir}"`)
+        await execPromise(`setx /M FLYENV_ALIAS "${aliasDir}"`)
       } catch (e) {}
 
       await addPath('%FLYENV_ALIAS%')

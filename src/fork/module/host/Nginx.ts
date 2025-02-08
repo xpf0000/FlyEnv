@@ -209,15 +209,21 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     find.push(
       ...[
         `include ${rewritepath}/${old.name}.conf;`,
+        `include "${rewritepath}/${old.name}.conf";`,
         `access_log  ${logpath}/${old.name}.log;`,
-        `error_log  ${logpath}/${old.name}.error.log;`
+        `access_log  "${logpath}/${old.name}.log";`,
+        `error_log  ${logpath}/${old.name}.error.log;`,
+        `error_log  "${logpath}/${old.name}.error.log";`
       ]
     )
     replace.push(
       ...[
         `include ${rewritepath}/${host.name}.conf;`,
+        `include "${rewritepath}/${host.name}.conf";`,
         `access_log  ${logpath}/${host.name}.log;`,
-        `error_log  ${logpath}/${host.name}.error.log;`
+        `access_log  "${logpath}/${host.name}.log";`,
+        `error_log  ${logpath}/${host.name}.error.log;`,
+        `error_log  "${logpath}/${host.name}.error.log";`
       ]
     )
   }

@@ -3,7 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { getSubDir, hostAlias, uuid, execPromiseRoot } from '../Fn'
+import { getSubDir, hostAlias, uuid, execPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, remove, chmod } from 'fs-extra'
 import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
@@ -334,7 +334,7 @@ class Host extends Base {
       await chmod(this.hostsFile, 0o666)
     } catch (e) {}
     try {
-      await execPromiseRoot(`icacls ${this.hostsFile} /grant Everyone:F`)
+      await execPromise(`icacls ${this.hostsFile} /grant Everyone:F`)
     } catch (e) {
       console.log('_fixHostsRole err: ', e)
     }
@@ -374,7 +374,7 @@ class Host extends Base {
         } catch (e) {}
       }
       try {
-        await execPromiseRoot(`ipconfig /flushdns`)
+        await execPromise(`ipconfig /flushdns`)
       } catch (e) {}
       resolve(true)
     })
