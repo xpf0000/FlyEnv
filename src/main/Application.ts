@@ -600,7 +600,7 @@ export default class Application extends EventEmitter {
       } else {
         if (AppHelper.state === 'normal') {
           const helperVersion = this.configManager?.getConfig('helper.version') ?? 0
-          if (helperVersion !== AppHelper.version) {
+          if (is.production() && helperVersion !== AppHelper.version) {
             AppHelper.initHelper()
               .then(() => {
                 this.configManager.setConfig('helper.version', AppHelper.version)
