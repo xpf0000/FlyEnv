@@ -506,7 +506,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = ['mysql']
-        const cammand = 'brew search -q --formula "/mysql@[\\d\\.]+$/"'
+        const cammand = 'brew search -q --formula "/^mysql@[\\d\\.]+$/"'
         all = await brewSearch(all, cammand)
         const info = await brewInfoJson(all)
         resolve(info)
@@ -520,7 +520,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^mysql\\d*$`,
+        `^mysql([\\d]+)?$`,
         (f) => {
           return f.includes('Multithreaded SQL database server')
         },

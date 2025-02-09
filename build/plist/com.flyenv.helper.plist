@@ -5,6 +5,11 @@
     <key>Label</key>
     <string>com.flyenv.helper</string>
 
+    <key>StandardErrorPath</key>
+    <string>/var/log/com.flyenv.helper.log</string>
+    <key>StandardOutPath</key>
+    <string>/var/log/com.flyenv.helper.log</string>
+
     <key>ProgramArguments</key>
     <array>
         <string>/Library/Application Support/FlyEnv/Helper/flyenv-helper</string>

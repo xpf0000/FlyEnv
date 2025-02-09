@@ -30,6 +30,7 @@ class BaseManager {
   Maven: any
   Service: any
   MailPit: any
+  Erlang: any
 
   constructor() {}
 
@@ -233,6 +234,12 @@ class BaseManager {
         this.MailPit = res.default
       }
       doRun(this.MailPit)
+    } else if (module === 'erlang') {
+      if (!this.Erlang) {
+        const res = await import('./module/Erlang')
+        this.Erlang = res.default
+      }
+      doRun(this.Erlang)
     }
   }
 
