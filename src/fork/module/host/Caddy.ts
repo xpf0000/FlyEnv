@@ -63,7 +63,11 @@ export const makeCaddyConf = async (host: AppHost) => {
     .replace('##HOST-ALL##', httpHostNameAll)
     .replace('##LOG-PATH##', logFile)
     .replace('##ROOT##', root)
-    .replace('##PHP-VERSION##', `${phpv}`)
+  if (phpv) {
+    content = content.replace('##PHP-VERSION##', `${phpv}`)
+  } else {
+    content = content.replace('import enable-php-select ##PHP-VERSION##', `##Static Site Caddy##`)
+  }
   content = handleReverseProxy(host, content)
   contentList.push(content)
 
@@ -78,7 +82,11 @@ export const makeCaddyConf = async (host: AppHost) => {
       .replace('##LOG-PATH##', logFile)
       .replace('##SSL##', tls)
       .replace('##ROOT##', root)
-      .replace('##PHP-VERSION##', `${phpv}`)
+    if (phpv) {
+      content = content.replace('##PHP-VERSION##', `${phpv}`)
+    } else {
+      content = content.replace('import enable-php-select ##PHP-VERSION##', `##Static Site Caddy##`)
+    }
     content = handleReverseProxy(host, content)
     contentList.push(content)
   }
@@ -186,20 +194,15 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
     replace.push(...[hostHttpNames.join(',\n'), hostHttpsNames.join(',\n')])
   }
 
-  if (host.ssl.cert !== old.ssl.cert) {
+  if (host.ssl.cert !== old.ssl.cert || host.ssl.key !== old.ssl.key) {
     hasChanged = true
-    find.push(...[old.ssl.cert])
-    replace.push(...[host.ssl.cert])
-  }
-  if (host.ssl.key !== old.ssl.key) {
-    hasChanged = true
-    find.push(...[old.ssl.key])
-    replace.push(...[host.ssl.key])
+    find.push(`tls (.*?)\\n`)
+    replace.push(`tls ${host.ssl.cert} ${host.ssl.key}\n`)
   }
   if (host.root !== old.root) {
     hasChanged = true
-    find.push(...[old.root])
-    replace.push(...[host.root])
+    find.push(`root * (.*?)\\n`)
+    replace.push(`root * ${host.root}\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
@@ -207,11 +210,18 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
       find.push(...[`import enable-php-select ${old.phpVersion}`])
     } else {
       find.push(...['import enable-php-select undefined'])
+      find.push(...['##Static Site Caddy##'])
     }
     if (host.phpVersion) {
       replace.push(...[`import enable-php-select ${host.phpVersion}`])
+      if (!old.phpVersion) {
+        replace.push(...[`import enable-php-select ${host.phpVersion}`])
+      }
     } else {
-      replace.push(...['import enable-php-select undefined'])
+      replace.push(...['##Static Site Caddy##'])
+      if (!old.phpVersion) {
+        replace.push(...['##Static Site Caddy##'])
+      }
     }
   }
   if (!isEqual(host?.reverseProxy, old?.reverseProxy)) {

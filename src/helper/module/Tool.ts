@@ -100,11 +100,9 @@ class Manager extends BaseManager {
 
   rm(dir: string) {
     return new Promise(async (resolve) => {
-      if (existsSync(dir)) {
-        try {
-          await exec(`rm -rf "${dir}"`)
-        } catch (e) {}
-      }
+      try {
+        await exec(`rm -rf "${dir}"`)
+      } catch (e) {}
       resolve(true)
     })
   }

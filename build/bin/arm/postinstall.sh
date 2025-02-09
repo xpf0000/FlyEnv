@@ -15,9 +15,11 @@ fi
 
 # Copy the new plist file
 echo "Copying new plist file..."
+sudo rm -rf "$PLIST_PATH"
 sudo cp "$PLIST_SRC" "$PLIST_PATH"
 mkdir -p "/Library/Application Support/FlyEnv/Helper"
 sudo cp "$BIN" "$BIN_DEST"
+sudo rm -rf "$SCRIPT_DEST"
 sudo cp "$SCRIPT" "$SCRIPT_DEST"
 
 # Set the correct permissions
