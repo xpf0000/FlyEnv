@@ -128,8 +128,10 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
   const replace: Array<string> = []
   if (host.name !== old.name) {
     hasChanged = true
-    find.push(...[join(logpath, `${old.name}.caddy.log`)])
-    replace.push(...[join(logpath, `${host.name}.caddy.log`)])
+    find.push(`import set-log (.*?)\\r\\n`)
+    replace.push(`import set-log "${host.name}"\r\n`)
+    find.push(`import set-log (.*?)\\n`)
+    replace.push(`import set-log "${host.name}"\n`)
   }
   const oldAliasArr = hostAlias(old)
   const newAliasArr = hostAlias(host)

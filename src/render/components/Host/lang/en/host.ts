@@ -38,5 +38,13 @@ export default {
   licenseTips: 'Without obtaining a license, only three sites can be created',
 
   composerVersion: 'Composer Version',
-  useSysVersion: 'Versions set using environment variables'
+  useSysVersion: 'Versions set using environment variables',
+
+  sslTips:
+    '<p>The automatic SSL certificate function requires adding a certificate named PhpWebStudy-Root-CA to the certificate store and setting it to always trust</p>' +
+    '\n<p>Normally, this function will be automatically completed. </p>' +
+    '\n<p>If this function is abnormal. You can also copy and execute commands on the terminal. </p>' +
+    '\n<p>You can also find the certificate file in the opened folder. And manually add the certificate to the Trusted Root Certification Authorities folder of the certificate store</p>',
+  copyCommand: 'Copy Command',
+  showFile: 'Show File'
 }
