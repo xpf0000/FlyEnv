@@ -171,20 +171,15 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
     replace.push(...[hostHttpNames.join(',\n'), hostHttpsNames.join(',\n')])
   }
 
-  if (host.ssl.cert !== old.ssl.cert) {
+  if (host.ssl.cert !== old.ssl.cert || host.ssl.key !== old.ssl.key) {
     hasChanged = true
-    find.push(...[old.ssl.cert.split('\\').join('/')])
-    replace.push(...[host.ssl.cert.split('\\').join('/')])
-  }
-  if (host.ssl.key !== old.ssl.key) {
-    hasChanged = true
-    find.push(...[old.ssl.key.split('\\').join('/')])
-    replace.push(...[host.ssl.key.split('\\').join('/')])
+    find.push(`tls (.*?)\\n`)
+    replace.push(`tls ${host.ssl.cert} ${host.ssl.key}\n`)
   }
   if (host.root !== old.root) {
     hasChanged = true
-    find.push(...[old.root.split('\\').join('/')])
-    replace.push(...[host.root.split('\\').join('/')])
+    find.push(`root * (.*?)\\n`)
+    replace.push(`root * ${host.root}\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
@@ -192,19 +187,16 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
       find.push(...[`import enable-php-select ${old.phpVersion}`])
     } else {
       find.push(...['import enable-php-select undefined'])
-      find.push(...['import enable-php-select 00'])
       find.push(...['##Static Site Caddy##'])
     }
     if (host.phpVersion) {
       replace.push(...[`import enable-php-select ${host.phpVersion}`])
       if (!old.phpVersion) {
         replace.push(...[`import enable-php-select ${host.phpVersion}`])
-        replace.push(...[`import enable-php-select ${host.phpVersion}`])
       }
     } else {
       replace.push(...['##Static Site Caddy##'])
       if (!old.phpVersion) {
-        replace.push(...['##Static Site Caddy##'])
         replace.push(...['##Static Site Caddy##'])
       }
     }

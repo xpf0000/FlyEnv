@@ -107,6 +107,7 @@ type StateBase = SetupBase & {
   autoStartService?: boolean
   autoHide?: boolean
   autoLunach?: boolean
+  license?: string
 }
 
 interface State {

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import IPC from '@/util/IPC'
 import { ElMessage } from 'element-plus'
 import { I18nT } from '@shared/lang'
+import { AppStore } from '@/store/app'
 
 interface State {
   tab: string
@@ -33,6 +34,9 @@ export const SetupStore = defineStore('setup', {
         }
         console.log('licensesInit: ', res)
         Object.assign(this, res?.data)
+        const store = AppStore()
+        store.config.setup.license = this.activeCode
+        store.saveConfig().then().catch()
       })
     },
     refreshState() {

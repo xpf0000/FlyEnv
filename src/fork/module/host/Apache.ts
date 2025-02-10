@@ -145,21 +145,20 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   const newAliasArr = hostAlias(host)
   if (!isEqual(oldAliasArr, newAliasArr)) {
     hasChanged = true
-    const oldAlias = oldAliasArr.join(' ')
     const newAlias = newAliasArr.join(' ')
-    find.push(...[`ServerAlias ${oldAlias}`])
-    replace.push(...[`ServerAlias ${newAlias}`])
+    find.push(`ServerAlias (.*?)\\n`)
+    replace.push(`ServerAlias ${newAlias}\n`)
   }
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
-    find.push(...[old.ssl.cert.split('\\').join('/')])
-    replace.push(...[host.ssl.cert.split('\\').join('/')])
+    find.push(`SSLCertificateFile (.*?)\\n`)
+    replace.push(`SSLCertificateFile "${host.ssl.cert}"\n`)
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
-    find.push(...[old.ssl.key.split('\\').join('/')])
-    replace.push(...[host.ssl.key.split('\\').join('/')])
+    find.push(`SSLCertificateKeyFile (.*?)\\n`)
+    replace.push(`SSLCertificateKeyFile "${host.ssl.key}"\n`)
   }
 
   if (host.port.apache !== old.port.apache) {
@@ -178,8 +177,10 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   }
   if (host.root !== old.root) {
     hasChanged = true
-    find.push(...[old.root.split('\\').join('/')])
-    replace.push(...[host.root.split('\\').join('/')])
+    find.push(`DocumentRoot (.*?)\\n`)
+    replace.push(`DocumentRoot "${host.root}"\n`)
+    find.push(`<Directory (.*?)\\n`)
+    replace.push(`<Directory "${host.root}">\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true

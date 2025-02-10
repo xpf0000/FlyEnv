@@ -231,21 +231,20 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   const newAliasArr = hostAlias(host)
   if (!isEqual(oldAliasArr, newAliasArr)) {
     hasChanged = true
-    const oldAlias = oldAliasArr.join(' ')
     const newAlias = newAliasArr.join(' ')
-    find.push(...[`server_name ${oldAlias};`])
-    replace.push(...[`server_name ${newAlias};`])
+    find.push(`server_name (.*?)\\n`)
+    replace.push(`server_name ${newAlias}\n`)
   }
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
-    find.push(...[old.ssl.cert.split('\\').join('/')])
-    replace.push(...[host.ssl.cert.split('\\').join('/')])
+    find.push(`ssl_certificate (.*?)\\n`)
+    replace.push(`ssl_certificate "${host.ssl.cert}"\n`)
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
-    find.push(...[old.ssl.key.split('\\').join('/')])
-    replace.push(...[host.ssl.key.split('\\').join('/')])
+    find.push(`ssl_certificate_key (.*?)\\n`)
+    replace.push(`ssl_certificate_key "${host.ssl.key}"\n`)
   }
   if (host.port.nginx !== old.port.nginx) {
     hasChanged = true
@@ -259,8 +258,8 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   }
   if (host.root !== old.root) {
     hasChanged = true
-    find.push(...[old.root.split('\\').join('/')])
-    replace.push(...[host.root.split('\\').join('/')])
+    find.push(`root (.*?)\\n`)
+    replace.push(`root "${host.root}";\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true

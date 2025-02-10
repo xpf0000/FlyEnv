@@ -1,14 +1,13 @@
 import { Base } from './Base'
-import { execPromise } from '../Fn'
+import { execPromise, fetchPATH, waitTime, writePath } from '../Fn'
 import { exec } from 'child-process-promise'
 import { ForkPromise } from '@shared/ForkPromise'
-import { dirname, join } from 'path'
+import { dirname, join, isAbsolute } from 'path'
 import { compareVersions } from 'compare-versions'
 import { existsSync } from 'fs'
-import { mkdirp, readFile, writeFile, readdir } from 'fs-extra'
+import { mkdirp, readFile, writeFile, readdir, copyFile, remove } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
-import Tool from './Tool'
 
 class Manager extends Base {
   constructor() {
@@ -17,43 +16,15 @@ class Manager extends Base {
 
   _initNVM(): Promise<string> {
     return new Promise(async (resolve) => {
-      const fixPath = async () => {
-        let allPath: string[] = []
-        try {
-          allPath = await Tool.fetchPATH()
-        } catch (e) {
-          return
-        }
-        const index = allPath.indexOf('%NVM_HOME%')
-        if (index === 0) {
-          return
-        }
-        if (index > 0) {
-          allPath.splice(index, 1)
-        }
-        allPath.unshift('%NVM_HOME%')
-        const savePath = allPath
-          .map((p) => {
-            if (p.includes('%')) {
-              return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
-            }
-            return p
-          })
-          .join(';')
-        try {
-          await execPromise(`setx /M PATH "${savePath}"`)
-        } catch (e) {}
-      }
-
       let NVM_HOME = ''
       try {
         const command = `set NVM_HOME`
         const res = await execPromise(command)
         NVM_HOME = res?.stdout?.trim()?.replace('NVM_HOME=', '').trim()
       } catch (e) {}
-      if (NVM_HOME) {
+      if (NVM_HOME && existsSync(NVM_HOME) && existsSync(join(NVM_HOME, 'nvm.exe'))) {
         console.log('NVM_HOME 0: ', NVM_HOME)
-        await fixPath()
+        await this._resortToolInPath('nvm')
         resolve(NVM_HOME)
         return
       }
@@ -63,78 +34,53 @@ class Manager extends Base {
         const res = await execPromise(command)
         NVM_HOME = res?.stdout?.trim()?.replace('NVM_HOME=', '').trim()
       } catch (e) {}
-      if (NVM_HOME) {
+      if (NVM_HOME && existsSync(NVM_HOME) && existsSync(join(NVM_HOME, 'nvm.exe'))) {
         console.log('NVM_HOME 1: ', NVM_HOME)
-        await fixPath()
+        await this._resortToolInPath('nvm')
         resolve(NVM_HOME)
         return
       }
 
       const local = join(global.Server.AppDir!, 'nvm/nvm.exe')
-      if (!existsSync(local)) {
-        await zipUnPack(join(global.Server.Static!, `zip/nvm.7z`), global.Server.AppDir!)
-        const installcmd = join(global.Server.AppDir!, 'nvm/install.cmd')
-        const nvmDir = join(global.Server.AppDir!, 'nvm')
-        const linkDir = join(global.Server.AppDir!, 'nvm/nodejs-link')
-        let content = await readFile(installcmd, 'utf-8')
-        content = content.replace('##NVM_PATH##', nvmDir).replace('##NVM_SYMLINK##', linkDir)
-        await writeFile(installcmd, content)
-        process.chdir(nvmDir)
-        try {
-          const res = await execPromise('install.cmd')
-          console.log('installNvm res: ', res)
-        } catch (e) {}
-      }
+      await zipUnPack(join(global.Server.Static!, `zip/nvm.7z`), global.Server.AppDir!)
+      const installcmd = join(global.Server.AppDir!, 'nvm/install.cmd')
+      await remove(installcmd)
+      await copyFile(join(global.Server.Static!, 'sh/install-nvm.cmd'), installcmd)
+      const nvmDir = join(global.Server.AppDir!, 'nvm')
+      const linkDir = join(global.Server.AppDir!, 'nvm/nodejs-link')
+      let content = await readFile(installcmd, 'utf-8')
+      content = content
+        .replace(new RegExp('##NVM_PATH##', 'g'), nvmDir)
+        .replace(new RegExp('##NVM_SYMLINK##', 'g'), linkDir)
+      await writeFile(installcmd, content)
+      process.chdir(nvmDir)
+      try {
+        const res = await execPromise('install.cmd')
+        console.log('installNvm res: ', res)
+      } catch (e) {}
       NVM_HOME = dirname(local)
       const NVM_SYMLINK = join(NVM_HOME, 'nodejs-link')
       try {
         await execPromise(`setx /M NVM_HOME "${NVM_HOME}"`)
         await execPromise(`setx /M NVM_SYMLINK "${NVM_SYMLINK}"`)
       } catch (e) {}
-      await fixPath()
+      await this._resortToolInPath('nvm')
+      await waitTime(1000)
       resolve(NVM_HOME)
     })
   }
 
   _initFNM(): Promise<string> {
     return new Promise(async (resolve) => {
-      const fixPath = async () => {
-        let allPath: string[] = []
-        try {
-          allPath = await Tool.fetchPATH()
-        } catch (e) {
-          return
-        }
-        const index = allPath.indexOf('%FNM_HOME%')
-        if (index === 0) {
-          return
-        }
-        if (index > 0) {
-          allPath.splice(index, 1)
-        }
-        allPath.unshift('%FNM_HOME%')
-        const savePath = allPath
-          .map((p) => {
-            if (p.includes('%')) {
-              return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
-            }
-            return p
-          })
-          .join(';')
-        try {
-          await execPromise(`setx /M PATH "${savePath}"`)
-        } catch (e) {}
-      }
-
       let FNM_HOME = ''
       try {
         const command = `set FNM_HOME`
         const res = await execPromise(command)
         FNM_HOME = res?.stdout?.trim()?.replace('FNM_HOME=', '').trim()
       } catch (e) {}
-      if (FNM_HOME) {
+      if (FNM_HOME && existsSync(FNM_HOME) && existsSync(join(FNM_HOME, 'fnm.exe'))) {
         console.log('FNM_HOME 0: ', FNM_HOME)
-        await fixPath()
+        await this._resortToolInPath('fnm')
         resolve(FNM_HOME)
         return
       }
@@ -144,39 +90,42 @@ class Manager extends Base {
         const res = await execPromise(command)
         FNM_HOME = res?.stdout?.trim()?.replace('FNM_HOME=', '').trim()
       } catch (e) {}
-      if (FNM_HOME) {
+      if (FNM_HOME && existsSync(FNM_HOME) && existsSync(join(FNM_HOME, 'fnm.exe'))) {
         console.log('FNM_HOME 1: ', FNM_HOME)
-        await fixPath()
+        await this._resortToolInPath('fnm')
         resolve(FNM_HOME)
         return
       }
 
       const local = join(global.Server.AppDir!, 'fnm/fnm.exe')
-      if (!existsSync(local)) {
-        await zipUnPack(join(global.Server.Static!, `zip/fnm.7z`), global.Server.AppDir!)
-        const installcmd = join(global.Server.AppDir!, 'fnm/install.cmd')
-        const nvmDir = join(global.Server.AppDir!, 'fnm')
-        let content = await readFile(installcmd, 'utf-8')
-        content = content.replace('##FNM_PATH##', nvmDir)
-        let profile: any = await exec('$profile', { shell: 'powershell.exe' })
-        profile = profile.stdout.trim()
-        const profile_root = profile.replace('WindowsPowerShell', 'PowerShell')
-        await mkdirp(dirname(profile))
-        await mkdirp(dirname(profile_root))
-        content = content.replace('##PROFILE_ROOT##', profile_root.trim())
-        content = content.replace('##PROFILE##', profile.trim())
-        await writeFile(installcmd, content)
-        process.chdir(nvmDir)
-        try {
-          const res = await execPromise('install.cmd')
-          console.log('installNvm res: ', res)
-        } catch (e) {}
-      }
+      await zipUnPack(join(global.Server.Static!, `zip/fnm.7z`), global.Server.AppDir!)
+      const installcmd = join(global.Server.AppDir!, 'fnm/install.cmd')
+      await remove(installcmd)
+      await copyFile(join(global.Server.Static!, 'sh/install-fnm.cmd'), installcmd)
+      const nvmDir = join(global.Server.AppDir!, 'fnm')
+      const linkDir = join(global.Server.AppDir!, 'fnm/nodejs-link')
+      let content = await readFile(installcmd, 'utf-8')
+      content = content
+        .replace(new RegExp('##FNM_PATH##', 'g'), nvmDir)
+        .replace(new RegExp('##FNM_SYMLINK##', 'g'), linkDir)
+      let profile: any = await exec('$profile', { shell: 'powershell.exe' })
+      profile = profile.stdout.trim()
+      const profile_root = profile.replace('WindowsPowerShell', 'PowerShell')
+      await mkdirp(dirname(profile))
+      await mkdirp(dirname(profile_root))
+      content = content.replace(new RegExp('##PROFILE_ROOT##', 'g'), profile_root.trim())
+      content = content.replace(new RegExp('##PROFILE##', 'g'), profile.trim())
+      await writeFile(installcmd, content)
+      process.chdir(nvmDir)
+      try {
+        const res = await execPromise('install.cmd')
+        console.log('installNvm res: ', res)
+      } catch (e) {}
       FNM_HOME = dirname(local)
       try {
         await execPromise(`setx /M FNM_HOME "${FNM_HOME}"`)
       } catch (e) {}
-      await fixPath()
+      await this._resortToolInPath('fnm')
       resolve(FNM_HOME)
     })
   }
@@ -209,6 +158,33 @@ class Manager extends Base {
     })
   }
 
+  async _buildEnv(tool: 'fnm' | 'nvm', dir: string) {
+    let allPath: string[] = []
+    try {
+      allPath = await fetchPATH()
+    } catch (e) {
+      return
+    }
+    const env: any = {}
+    if (tool === 'fnm') {
+      env.FNM_HOME = dir
+      env.FNM_SYMLINK = join(dir, 'nodejs-link')
+      if (!allPath.includes('%FNM_HOME%')) {
+        allPath.push('%FNM_HOME%')
+      }
+      allPath.push(dir)
+    } else {
+      env.NVM_HOME = dir
+      env.NVM_SYMLINK = join(dir, 'nodejs-link')
+      if (!allPath.includes('%NVM_HOME%')) {
+        allPath.push('%NVM_HOME%')
+      }
+      allPath.push(dir)
+    }
+    env.PATH = allPath.join(';')
+    return env
+  }
+
   localVersion(tool: 'fnm' | 'nvm') {
     return new ForkPromise(async (resolve) => {
       let dir = ''
@@ -225,10 +201,14 @@ class Manager extends Base {
         })
       }
       console.log('localVersion: ', dir, existsSync(dir))
+      const env = await this._buildEnv(tool, dir)
       let res: any
       process.chdir(dir)
       try {
-        res = await execPromise(`${tool}.exe ls`)
+        res = await execPromise(`${tool}.exe ls`, {
+          cwd: dir,
+          env
+        })
         console.log('localVersion: ', res)
       } catch (e) {
         console.log('localVersion err: ', e)
@@ -280,6 +260,56 @@ class Manager extends Base {
     })
   }
 
+  async _resetFnmNodeLink() {
+    const command = `fnm.exe env`
+    const res = await execPromise(command)
+    const find = res?.stdout
+      ?.split('\n')
+      ?.map((s) => s.trim())
+      ?.find((s) => s.includes('SET FNM_MULTISHELL_PATH='))
+      ?.replace('SET FNM_MULTISHELL_PATH=', '')
+      ?.trim()
+    if (find) {
+      const linkDir = join(global.Server.AppDir!, 'fnm/nodejs-link')
+      await remove(linkDir)
+      await execPromise(`mklink /J "${linkDir}" "${find}"`)
+    }
+  }
+
+  async _resortToolInPath(tool: 'fnm' | 'nvm') {
+    let allPath: string[] = []
+    try {
+      allPath = await fetchPATH()
+    } catch (e) {
+      return
+    }
+    const pathStr = JSON.stringify(allPath)
+    const arr = tool === 'fnm' ? ['%FNM_HOME%', '%FNM_SYMLINK%'] : ['%NVM_HOME%', '%NVM_SYMLINK%']
+    arr.forEach((a) => {
+      const index = allPath.indexOf(a)
+      if (index >= 0) {
+        allPath.splice(index, 1)
+      }
+    })
+    const startIndex = allPath.findIndex((s) => isAbsolute(s))
+    if (startIndex >= 0) {
+      allPath.splice(startIndex + 1, 0, arr.pop()!)
+      allPath.splice(startIndex + 1, 0, arr.pop()!)
+    }
+
+    if (pathStr !== JSON.stringify(allPath)) {
+      const savePath = allPath
+        .map((p) => {
+          if (p.includes('%')) {
+            return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
+          }
+          return p
+        })
+        .join(';')
+      await writePath(savePath)
+    }
+  }
+
   versionChange(tool: 'fnm' | 'nvm', select: string) {
     return new ForkPromise(async (resolve, reject) => {
       let dir = ''
@@ -298,11 +328,19 @@ class Manager extends Base {
       } else {
         command = `nvm.exe use ${select}`
       }
+      const env = await this._buildEnv(tool, dir)
       process.chdir(dir)
       try {
-        await execPromise(command)
+        await execPromise(command, {
+          cwd: dir,
+          env
+        })
+        await this._resortToolInPath(tool)
         const { current }: any = await this.localVersion(tool)
         if (current === select) {
+          if (tool === 'fnm') {
+            await this._resetFnmNodeLink()
+          }
           resolve(true)
         } else {
           reject(new Error('Fail'))
@@ -333,15 +371,22 @@ class Manager extends Base {
       } else {
         command = `nvm.exe ${action} ${version}`
       }
+      const env = await this._buildEnv(tool, dir)
       process.chdir(dir)
       try {
-        await execPromise(command)
+        await execPromise(command, {
+          cwd: dir,
+          env
+        })
         const { versions, current }: { versions: Array<string>; current: string } =
           (await this.localVersion(tool)) as any
         if (
           (action === 'install' && versions.includes(version)) ||
           (action === 'uninstall' && !versions.includes(version))
         ) {
+          if (tool === 'fnm') {
+            await this._resetFnmNodeLink()
+          }
           resolve({
             versions,
             current
