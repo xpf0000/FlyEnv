@@ -146,17 +146,23 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   if (!isEqual(oldAliasArr, newAliasArr)) {
     hasChanged = true
     const newAlias = newAliasArr.join(' ')
+    find.push(`ServerAlias (.*?)\\r\\n`)
+    replace.push(`ServerAlias ${newAlias}\r\n`)
     find.push(`ServerAlias (.*?)\\n`)
     replace.push(`ServerAlias ${newAlias}\n`)
   }
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
+    find.push(`SSLCertificateFile (.*?)\\r\\n`)
+    replace.push(`SSLCertificateFile "${host.ssl.cert}"\r\n`)
     find.push(`SSLCertificateFile (.*?)\\n`)
     replace.push(`SSLCertificateFile "${host.ssl.cert}"\n`)
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
+    find.push(`SSLCertificateKeyFile (.*?)\\r\\n`)
+    replace.push(`SSLCertificateKeyFile "${host.ssl.key}"\r\n`)
     find.push(`SSLCertificateKeyFile (.*?)\\n`)
     replace.push(`SSLCertificateKeyFile "${host.ssl.key}"\n`)
   }
@@ -177,8 +183,12 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   }
   if (host.root !== old.root) {
     hasChanged = true
+    find.push(`DocumentRoot (.*?)\\r\\n`)
+    replace.push(`DocumentRoot "${host.root}"\r\n`)
     find.push(`DocumentRoot (.*?)\\n`)
     replace.push(`DocumentRoot "${host.root}"\n`)
+    find.push(`<Directory (.*?)\\r\\n`)
+    replace.push(`<Directory "${host.root}">\r\n`)
     find.push(`<Directory (.*?)\\n`)
     replace.push(`<Directory "${host.root}">\n`)
   }

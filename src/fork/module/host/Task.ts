@@ -95,7 +95,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
   return new ForkPromise(async (resolve, reject, on) => {
     const zipFile = join(global.Server.Cache!, 'phpMyAdmin.zip')
     const wwwDir = join(global.Server.BaseDir!, 'www')
-    const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin-5.2.1-all-languages')
+    const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin-5.2.2-all-languages')
     let hostList: Array<AppHost> = []
     try {
       hostList = await fetchHostList()
@@ -126,14 +126,14 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
           reject(new Error(I18nT('fork.downFileFail')))
           return
         }
-        const ini = join(wwwDir, 'phpMyAdmin-5.2.1-all-languages/config.sample.inc.php')
+        const ini = join(wwwDir, 'phpMyAdmin-5.2.2-all-languages/config.sample.inc.php')
         if (existsSync(ini)) {
           let content = await readFile(ini, 'utf-8')
           content = content.replace(
             `$cfg['Servers'][$i]['host'] = 'localhost';`,
             `$cfg['Servers'][$i]['host'] = '127.0.0.1';`
           )
-          const cpFile = join(wwwDir, 'phpMyAdmin-5.2.1-all-languages/config.inc.php')
+          const cpFile = join(wwwDir, 'phpMyAdmin-5.2.2-all-languages/config.inc.php')
           await writeFile(cpFile, content)
         }
       }
@@ -193,7 +193,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
     if (existsSync(zipTmpFile)) {
       await remove(zipTmpFile)
     }
-    const url = 'https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.zip'
+    const url = 'https://files.phpmyadmin.net/phpMyAdmin/5.2.2/phpMyAdmin-5.2.2-all-languages.zip'
     downFile(url, zipTmpFile)
       .on(on)
       .then(async () => {
