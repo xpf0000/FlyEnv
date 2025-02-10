@@ -13,7 +13,16 @@ import path, { join, dirname } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import { copyFile, mkdirp, readdir, remove, rename } from 'fs-extra'
+import {
+  appendFile,
+  copyFile,
+  mkdirp,
+  readdir,
+  readFile,
+  remove,
+  rename,
+  writeFile
+} from 'fs-extra'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import sudoPrompt from '@shared/sudo'
 import { compareVersions } from 'compare-versions'
@@ -720,6 +729,23 @@ export const fetchPATH = (): ForkPromise<string[]> => {
   })
 }
 
+export const writePath = async (path: string, other: string = '') => {
+  const sh = join(global.Server.Static!, 'sh/path-set.cmd')
+  const copySh = join(global.Server.Cache!, 'path-set.cmd')
+  if (existsSync(copySh)) {
+    await remove(copySh)
+  }
+  let content = await readFile(sh, 'utf-8')
+  content = content.replace('##NEW_PATH##', path).replace('##OTHER##', other)
+  await writeFile(copySh, content)
+  process.chdir(global.Server.Cache!)
+  try {
+    await execPromise('path-set.cmd')
+  } catch (e) {
+    await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[writePath][error]: ${e}\n`)
+  }
+}
+
 export const addPath = async (dir: string) => {
   let allPath: string[] = []
   try {
@@ -744,7 +770,7 @@ export const addPath = async (dir: string) => {
     })
     .join(';')
   try {
-    await execPromise(`setx /M PATH "${savePath}"`)
+    await writePath(savePath)
   } catch (e) {}
 }
 
