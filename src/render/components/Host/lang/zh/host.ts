@@ -38,5 +38,11 @@ export default {
   licenseTips: '未获得许可证, 只可以创建三个站点',
 
   composerVersion: 'Composer版本',
-  useSysVersion: '使用环境变量设定版本'
+  useSysVersion: '使用环境变量设定版本',
+
+  sslTips:
+    '自动SSL证书功能需要向证书库中添加一个名称为PhpWebStudy-Root-CA的证书, 并设定为始终信任.\n' +
+    '\n正常此功能会自动完成. 如果此功能异常. 也可拷贝执行命令在终端自行执行. 或者在打开的文件夹中, 手动添加证书到证书库的受信任的根证书颁发机构文件夹',
+  copyCommand: '复制命令',
+  showFile: '显示文件'
 }
