@@ -65,7 +65,9 @@
     },
     set(v) {
       const item: CommonSetItem = props.item
+      const old = item.value
       item.value = v
+      item?.onChange && item.onChange(v, old)
     }
   })
 
@@ -83,7 +85,9 @@
       }
       const [path] = filePaths
       const item: CommonSetItem = props.item
+      const old = item.value
       item.value = path
+      item?.onChange && item.onChange(path, old)
     })
   }
 </script>

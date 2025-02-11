@@ -20,24 +20,7 @@ class NodePTY {
         cwd: process.cwd(),
         encoding: 'utf8'
       })
-      pty.onData((data: string) => {
-        console.log('pty.onData: ', data)
-        this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
-        const item = this.pty[key]
-        if (item) {
-          item.data += data
-          if (item?.data?.includes(`Task-${key}-End`)) {
-            const task = item?.task ?? []
-            for (const t of task) {
-              const { command, key } = t
-              this._callback?.(command, key, true)
-            }
-            this.exitPtyByKey(key)
-          }
-        }
-      })
-      pty.onExit((e) => {
-        console.log('this.pty.onExit !!!!!!', e)
+      const onEnd = () => {
         const item = this.pty[key]
         if (item) {
           const task = item?.task ?? []
@@ -47,6 +30,19 @@ class NodePTY {
           }
           this.exitPtyByKey(key)
         }
+      }
+      pty.onData(async (data: string) => {
+        this._callback?.(`NodePty:data:${key}`, `NodePty:data:${key}`, data)
+        const item = this.pty[key]
+        if (item) {
+          item.data += data
+          if (item?.data?.includes(`Task-${key}-End`)) {
+            onEnd()
+          }
+        }
+      })
+      pty.onExit(async () => {
+        onEnd()
       })
       this.pty[key] = {
         task: [],
@@ -74,7 +70,7 @@ class NodePTY {
     }
   }
 
-  exec(ptyKey: string, param: string[], command: string, key: string) {
+  async exec(ptyKey: string, param: string[], command: string, key: string) {
     const pty = this.pty?.[ptyKey]?.pty
     param.forEach((s) => {
       pty?.write(`${s}\r`)

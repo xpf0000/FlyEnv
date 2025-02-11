@@ -548,7 +548,7 @@ body {
   }
 
   &.new-project {
-    width: 500px;
+    width: 600px;
     height: auto;
 
     .el-dialog__body {
@@ -2659,7 +2659,28 @@ body {
     color: #01cc74;
   }
 }
+.el-card {
+  &.app-base-el-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 
+    .el-card__header {
+      flex-shrink: 0;
+    }
+
+    .el-card__footer {
+      flex-shrink: 0;
+    }
+
+    .el-card__body {
+      flex: 1;
+      overflow: hidden;
+    }
+
+  }
+}
 .el-button.status {
   svg {
     width: 22px;

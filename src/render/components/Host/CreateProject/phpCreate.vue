@@ -11,14 +11,7 @@
     <template #default>
       <div class="main-wapper">
         <template v-if="loading">
-          <div class="h-[263px] overflow-hidden">
-            <el-scrollbar>
-              <pre class="w-full break-words whitespace-pre-wrap">
-                {{ ProjectSetup.log?.PHP?.join('\n') }}
-                <div ref="bottom"></div>
-              </pre>
-            </el-scrollbar>
-          </div>
+          <div ref="xterm" class="h-[263px] overflow-hidden"> </div>
         </template>
         <template v-else>
           <div class="main">
@@ -27,7 +20,7 @@
                 type="text"
                 class="input"
                 placeholder="root path"
-                :readonly="loading || created ? true : null"
+                :readonly="loading || created ? true : undefined"
                 :value="ProjectSetup.form.PHP.dir"
               />
               <div class="icon-block" @click="chooseRoot()">
@@ -45,12 +38,12 @@
               </div>
               <el-select
                 v-model="ProjectSetup.form.PHP.php"
-                class="w-32"
+                class="w-56 max-w-56"
                 filterable
                 :disabled="loading || created"
               >
                 <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
-                <template v-for="(v, k) in phpVersions" :key="k">
+                <template v-for="(v, _k) in phpVersions" :key="_k">
                   <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
                 </template>
               </el-select>
@@ -61,12 +54,12 @@
               </div>
               <el-select
                 v-model="ProjectSetup.form.PHP.composer"
-                class="w-32"
+                class="w-56 max-w-56"
                 filterable
                 :disabled="loading || created"
               >
                 <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
-                <template v-for="(v, k) in composerVersions" :key="k">
+                <template v-for="(v, _k) in composerVersions" :key="_k">
                   <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
                 </template>
               </el-select>
@@ -77,11 +70,11 @@
               </div>
               <el-select
                 v-model="ProjectSetup.form.PHP.version"
-                class="w-32"
+                class="w-56 max-w-56"
                 filterable
                 :disabled="loading || created"
               >
-                <template v-for="(v, k) in app.list" :key="k">
+                <template v-for="(v, _k) in app.list" :key="_k">
                   <el-option :value="v.version" :label="v.name"></el-option>
                 </template>
               </el-select>
@@ -93,14 +86,19 @@
     <template #footer>
       <div class="dialog-footer">
         <template v-if="!created">
-          <el-button @click="show = false">{{ I18nT('base.cancel') }}</el-button>
-          <el-button
-            :loading="loading"
-            :disabled="!createAble"
-            type="primary"
-            @click="doCreateProject"
-            >{{ I18nT('base.confirm') }}</el-button
-          >
+          <el-button @click="doStop">{{ I18nT('base.cancel') }}</el-button>
+          <template v-if="createFail">
+            <el-button type="primary" @click="doStop">{{ I18nT('base.confirm') }}</el-button>
+          </template>
+          <template v-else>
+            <el-button
+              :loading="loading"
+              :disabled="!createAble"
+              type="primary"
+              @click="doCreateProject"
+              >{{ I18nT('base.confirm') }}</el-button
+            >
+          </template>
         </template>
         <template v-else>
           <el-button @click="doCancel">{{ I18nT('base.confirm') }}</el-button>
@@ -113,16 +111,18 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
-  import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+  import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import IPC from '@/util/IPC'
   import { I18nT } from '@shared/lang'
-  import { MessageError, MessageSuccess } from '@/util/Element'
   import { BrewStore } from '@/store/brew'
   import AppVersions from './version'
   import installedVersions from '@/util/InstalledVersions'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
+  import XTerm from '@/util/XTerm'
+  import IPC from '@/util/IPC'
+  import { MessageError } from '@/util/Element'
 
+  const { writeFile } = require('fs-extra')
   const { join } = require('path')
   const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
@@ -131,7 +131,7 @@
     type: keyof typeof AppVersions
   }>()
 
-  const bottom = ref<HTMLElement>()
+  const xterm = ref<HTMLElement>()
 
   const app = computed(() => {
     return AppVersions[props.type]
@@ -156,12 +156,26 @@
     }
   })
 
+  const createFail = computed({
+    get() {
+      return ProjectSetup.form.PHP?.createFail ?? false
+    },
+    set(v) {
+      ProjectSetup.form.PHP.createFail = v
+    }
+  })
+
   const createAble = computed(() => {
     return !!ProjectSetup.form.PHP.dir && !!ProjectSetup.form.PHP.version
   })
 
   const phpVersions = computed(() => {
-    return brewStore.module('php').installed
+    return brewStore.module('php').installed.map((i) => {
+      return {
+        bin: join(i.path, 'php.exe'),
+        version: i.version
+      }
+    })
   })
 
   const composerVersions = computed(() => {
@@ -192,70 +206,117 @@
       })
   }
 
-  const doCreateProject = () => {
+  const doCreateProject = async () => {
     if (loading.value) {
       return
     }
     loading.value = true
-    ProjectSetup.form.PHP.frameWork = props.type.toLowerCase()
-    if (!ProjectSetup.log?.PHP) {
-      ProjectSetup.log.PHP = reactive([])
-    }
-    ProjectSetup.log.PHP.splice(0)
-    IPC.send(
-      'app-fork:project',
-      'createProject',
-      ProjectSetup.form.PHP.dir,
-      ProjectSetup.form.PHP.php,
-      ProjectSetup.form.PHP.composer,
-      props.type.toLowerCase(),
-      ProjectSetup.form.PHP.version
-    ).then((key: string, res: any) => {
-      if (res?.code === 0) {
-        IPC.off(key)
-        MessageSuccess(I18nT('base.success'))
-        loading.value = false
-        created.value = true
-      } else if (res?.code === 1) {
-        IPC.off(key)
-        if (ProjectSetup.log?.PHP && ProjectSetup.log?.PHP?.length > 0) {
-          MessageError(ProjectSetup.log?.PHP.join('\n'))
-        } else {
-          MessageError(I18nT('base.fail'))
-        }
-        loading.value = false
-      } else {
-        if (typeof res?.msg === 'string') {
-          ProjectSetup.log?.PHP?.push(res?.msg)
-        }
+    const form = ProjectSetup.form.PHP
+    const execXTerm = new XTerm()
+    const command: string[] = []
+    if (global.Server.Proxy) {
+      for (const k in global.Server.Proxy) {
+        const v = global.Server.Proxy[k]
+        command.push(`$Env:${k}="${v}"`)
       }
-    })
-  }
-
-  watch(
-    () => ProjectSetup.log?.PHP,
-    () => {
-      nextTick().then(() => {
-        bottom?.value?.scrollIntoView(true)
-      })
-    },
-    {
-      deep: true
     }
-  )
+    command.push(`cd "${form.dir}"`)
 
-  onMounted(() => {
+    if (props.type === 'WordPress') {
+      const tmpl = `{
+  "require": {
+    "johnpbloch/wordpress": "${form.version}"
+  },
+  "config": {
+    "allow-plugins": {
+      "johnpbloch/wordpress-core-installer": true
+    }
+  }
+}
+`
+      await writeFile(join(form.dir, 'composer.json'), tmpl)
+
+      if (form.php && form.composer) {
+        command.push(`${form.php} "${form.composer}" update`)
+      } else if (form.php) {
+        command.push(`${form.php} composer update`)
+      } else if (form.composer) {
+        command.push(`php "${form.composer}" update`)
+      } else {
+        command.push(`php composer update`)
+      }
+    } else {
+      const name = app.value.package
+      if (form.php && form.composer) {
+        command.push(
+          `${form.php} "${form.composer}" create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+        )
+      } else if (form.php) {
+        command.push(
+          `${form.php} composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+        )
+      } else if (form.composer) {
+        command.push(
+          `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+        )
+      } else {
+        command.push(
+          `php composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+        )
+      }
+    }
+
     nextTick().then(() => {
-      bottom?.value?.scrollIntoView(true)
+      execXTerm.mount(xterm.value!).then(() => {
+        execXTerm?.send(command)?.then(() => {
+          if (props.type === 'WordPress') {
+            created.value = true
+          } else {
+            IPC.send(
+              'app-fork:project',
+              'handleProjectDir',
+              ProjectSetup.form.PHP.dir,
+              props.type.toLowerCase()
+            ).then((key: string, res: any) => {
+              IPC.off(key)
+              if (res?.code === 0) {
+                created.value = true
+              } else {
+                if (res?.msg) {
+                  MessageError(res?.msg)
+                }
+                createFail.value = true
+              }
+            })
+          }
+        })
+      })
     })
-  })
+    ProjectSetup.execing.PHP = markRaw(execXTerm)
+  }
 
   const doCancel = () => {
     show.value = false
     ProjectSetup.phpFormInit()
   }
+
+  const doStop = () => {
+    if (!loading.value) {
+      show.value = false
+      return
+    }
+    const execXTerm = ProjectSetup.execing.PHP
+    execXTerm?.stop()?.then(() => {
+      execXTerm?.destory()
+      created.value = false
+      loading.value = false
+      createFail.value = false
+      delete ProjectSetup.execing.PHP
+    })
+  }
+
   const doCreateHost = () => {
-    const framework = ProjectSetup.form.PHP.frameWork
+    const framework = props.type.toLowerCase()
     let dir = ProjectSetup.form.PHP.dir
     let nginxRewrite = ''
     if (framework.includes('wordpress')) {
@@ -313,6 +374,28 @@ rewrite /wp-admin$ $scheme://$host$uri/ permanent;`
       })
     })
   }
+
+  onMounted(() => {
+    if (loading.value) {
+      nextTick().then(() => {
+        const execXTerm = ProjectSetup.execing.PHP
+        if (execXTerm && xterm.value) {
+          execXTerm.mount(xterm.value)
+        }
+      })
+    }
+  })
+
+  onBeforeUnmount(() => {
+    const execXTerm = ProjectSetup.execing.PHP
+    execXTerm?.unmounted()
+    if (created.value) {
+      execXTerm?.destory()
+      created.value = false
+      loading.value = false
+      delete ProjectSetup.execing.PHP
+    }
+  })
 
   defineExpose({
     show,

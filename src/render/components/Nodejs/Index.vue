@@ -6,29 +6,20 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Versions v-if="current_tab === 0"></Versions>
+      <Versions v-if="tab === 0"></Versions>
+      <Config v-if="tab === 1" />
+      <Create v-if="tab === 2" />
     </div>
   </div>
 </template>
 
-<script>
+<script lang="ts" setup>
   import Versions from './List.vue'
-  export default {
-    name: 'MoNodejsPanel',
-    components: {
-      Versions
-    },
-    props: {},
-    data() {
-      return {
-        tab: 0,
-        current_tab: 0,
-        tabs: ['NodeJS']
-      }
-    },
-    computed: {},
-    watch: {},
-    created: function () {},
-    methods: {}
-  }
+  import Config from './Config.vue'
+  import { AppModuleSetup } from '@/core/Module'
+  import { I18nT } from '@shared/lang'
+  import Create from './CreateProject.vue'
+
+  const { tab } = AppModuleSetup('node')
+  const tabs = ['NodeJS', '.npmrc', I18nT('host.newProject')]
 </script>

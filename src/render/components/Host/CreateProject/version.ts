@@ -1,6 +1,7 @@
 const version = {
   WordPress: {
     url: 'https://packagist.org/packages/johnpbloch/wordpress',
+    package: 'johnpbloch/wordpress',
     list: [
       {
         name: 'wordpress latest',
@@ -22,6 +23,7 @@ const version = {
   },
   Laravel: {
     url: 'https://packagist.org/packages/laravel/laravel',
+    package: 'laravel/laravel',
     list: [
       {
         name: 'laravel latest',
@@ -55,6 +57,7 @@ const version = {
   },
   Yii2: {
     url: 'https://packagist.org/packages/yiisoft/yii2-app-basic',
+    package: 'yiisoft/yii2-app-basic',
     list: [
       {
         name: 'yii2 latest',
@@ -64,6 +67,7 @@ const version = {
   },
   ThinkPHP: {
     url: 'https://packagist.org/packages/topthink/think',
+    package: 'topthink/think',
     list: [
       {
         name: 'thinkphp latest',
@@ -81,6 +85,7 @@ const version = {
   },
   Symfony: {
     url: 'https://packagist.org/packages/symfony/skeleton',
+    package: 'symfony/skeleton',
     list: [
       {
         name: 'symfony latest',
@@ -106,6 +111,7 @@ const version = {
   },
   CodeIgniter: {
     url: 'https://packagist.org/packages/codeigniter4/appstarter',
+    package: 'codeigniter4/appstarter',
     list: [
       {
         name: 'codeIgniter latest',
@@ -115,6 +121,7 @@ const version = {
   },
   CakePHP: {
     url: 'https://packagist.org/packages/cakephp/app',
+    package: 'cakephp/app',
     list: [
       {
         name: 'cakephp latest',
@@ -132,6 +139,7 @@ const version = {
   },
   Slim: {
     url: 'https://packagist.org/packages/slim/slim-skeleton',
+    package: 'slim/slim-skeleton',
     list: [
       {
         name: 'slim latest',
