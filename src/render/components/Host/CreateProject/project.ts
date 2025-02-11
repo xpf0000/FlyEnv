@@ -11,6 +11,7 @@ export type ProjectPHPForm = {
   frameWork: string
   running: boolean
   created: boolean
+  createFail?: boolean
 }
 
 export type ProjectNodeJSForm = {
@@ -20,6 +21,7 @@ export type ProjectNodeJSForm = {
   frameWork: string
   running: boolean
   created: boolean
+  createFail?: boolean
 }
 
 export const ProjectSetup = reactive<{

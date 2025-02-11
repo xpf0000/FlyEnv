@@ -38,7 +38,7 @@
               </div>
               <el-select
                 v-model="ProjectSetup.form.NodeJS.node"
-                class="w-32"
+                class="w-56 max-w-56"
                 filterable
                 :disabled="loading || created"
               >
@@ -54,7 +54,7 @@
               </div>
               <el-select
                 v-model="ProjectSetup.form.NodeJS.version"
-                class="w-32"
+                class="w-56 max-w-56"
                 filterable
                 :disabled="loading || created"
               >
@@ -196,7 +196,6 @@
 
     nextTick().then(() => {
       execXTerm.mount(xterm.value!).then(() => {
-        command.push(`echo "Task-${execXTerm.ptyKey}-End"`)
         execXTerm?.send(command)?.then(() => {
           created.value = true
         })
@@ -218,9 +217,9 @@
 
   onBeforeUnmount(() => {
     const execXTerm = ProjectSetup.execing.NodeJS
-    execXTerm?.destory()
+    execXTerm?.unmounted()
     if (created.value) {
-      execXTerm?.cleanLog()
+      execXTerm?.destory()
       created.value = false
       loading.value = false
       delete ProjectSetup.execing.NodeJS
@@ -235,7 +234,6 @@
     const execXTerm = ProjectSetup.execing.NodeJS
     execXTerm?.stop()?.then(() => {
       execXTerm?.destory()
-      execXTerm?.cleanLog()
       created.value = false
       loading.value = false
       delete ProjectSetup.execing.NodeJS

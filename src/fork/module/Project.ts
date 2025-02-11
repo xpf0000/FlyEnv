@@ -152,6 +152,33 @@ APP_KEY=${key}`
       }
     })
   }
+
+  handleProjectDir(dir: string, framework: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const pdir = join(dir, 'flyenv-create-project')
+      if (!existsSync(pdir)) {
+        return reject(new Error(I18nT('appLog.newProjectFail')))
+      }
+      try {
+        await moveDirToDir(pdir, dir)
+        await remove(pdir)
+        if (framework === 'laravel') {
+          const envFile = join(dir, '.env')
+          if (!existsSync(envFile)) {
+            const key = md5(uuid())
+            await writeFile(
+              envFile,
+              `APP_DEBUG=true
+APP_KEY=${key}`
+            )
+          }
+        }
+      } catch (e) {
+        return reject(e)
+      }
+      resolve(true)
+    })
+  }
 }
 
 export default new Manager()

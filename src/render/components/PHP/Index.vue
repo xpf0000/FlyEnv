@@ -21,6 +21,7 @@
         url="https://getcomposer.org/download/"
       >
       </Composer>
+      <Create v-else-if="tab === 3" />
     </div>
   </div>
 </template>
@@ -31,7 +32,13 @@
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@shared/lang'
   import Composer from '../VersionManager/all.vue'
+  import Create from './CreateProject.vue'
 
   const { tab } = AppModuleSetup('php')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), 'Composer']
+  const tabs = [
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    'Composer',
+    I18nT('host.newProject')
+  ]
 </script>
