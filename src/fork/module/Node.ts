@@ -1,11 +1,11 @@
 import { Base } from './Base'
 import { execPromise, readFileByRoot, writeFileByRoot } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { join } from 'path'
+import { basename, dirname, join } from 'path'
 import { compareVersions } from 'compare-versions'
 import { exec } from 'child-process-promise'
-import { existsSync } from 'fs'
-import { chmod, copyFile, unlink, readdir, writeFile } from 'fs-extra'
+import { createWriteStream, existsSync } from 'fs'
+import { chmod, copyFile, unlink, readdir, writeFile, realpath, remove, mkdirp } from 'fs-extra'
 import { fixEnv } from '@shared/utils'
 import axios from 'axios'
 
@@ -42,8 +42,40 @@ class Manager extends Base {
     })
   }
 
-  localVersion(tool: 'fnm' | 'nvm') {
+  localVersion(tool: 'fnm' | 'nvm' | 'default') {
     return new ForkPromise(async (resolve, reject) => {
+      if (tool === 'default') {
+        const dir = join(global.Server.AppDir!, 'nodejs')
+        if (!existsSync(dir)) {
+          return resolve({
+            versions: [],
+            current: '',
+            tool
+          })
+        }
+        const dirs = await readdir(dir)
+        const versions = dirs
+          .filter((s) => s.startsWith('v') && existsSync(join(dir, s, 'bin/node')))
+          .map((s) => s.replace('v', '').trim())
+        const envDir = join(dirname(global.Server.AppDir!), 'env')
+        const currentDir = join(envDir, 'nodejs')
+        let current = ''
+        if (existsSync(currentDir) && existsSync(join(currentDir, 'node'))) {
+          const realDir = await realpath(currentDir)
+          const folder = basename(dirname(realDir))
+          if (folder.startsWith('v')) {
+            current = folder.replace('v', '').trim()
+          }
+        }
+        versions.sort((a, b) => {
+          return compareVersions(b, a)
+        })
+        return resolve({
+          versions,
+          current,
+          tool
+        })
+      }
       let command = ''
       if (tool === 'fnm') {
         command = 'unset PREFIX;fnm ls'
@@ -180,8 +212,125 @@ class Manager extends Base {
     })
   }
 
-  installOrUninstall(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', version: string) {
-    return new ForkPromise(async (resolve, reject) => {
+  installOrUninstall(
+    tool: 'fnm' | 'nvm' | 'default',
+    action: 'install' | 'uninstall',
+    version: string
+  ) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      if (tool === 'default') {
+        if (action === 'uninstall') {
+          const dir = join(global.Server.AppDir!, `nodejs/v${version}`)
+          if (existsSync(dir)) {
+            try {
+              await remove(dir)
+            } catch (e) {
+              return reject(e)
+            }
+          }
+          const { versions, current }: { versions: Array<string>; current: string } =
+            (await this.localVersion(tool)) as any
+          resolve({
+            versions,
+            current
+          })
+        } else {
+          const arch = global.Server.isAppleSilicon ? 'arm64' : 'x64'
+          const url = `https://nodejs.org/dist/v${version}/node-v${version}-darwin-${arch}.tar.xz`
+          const destDir = join(global.Server.AppDir!, `nodejs/v${version}`)
+          if (existsSync(destDir)) {
+            try {
+              await remove(destDir)
+            } catch (e) {}
+          }
+          await mkdirp(destDir)
+
+          const zip = join(global.Server.Cache!, `node-v${version}.tar.xz`)
+
+          const unpack = async () => {
+            try {
+              await execPromise(`tar -xzf ${zip} -C ${destDir}`)
+              const subDirs = await readdir(destDir)
+              const subDir = subDirs.pop()
+              if (subDir) {
+                await execPromise(`cd ${join(destDir, subDir)} && mv ./* ../`)
+                await remove(join(destDir, subDir))
+              }
+            } catch (e) {
+              return e
+            }
+            return true
+          }
+
+          const end = async () => {
+            const res = await unpack()
+            if (res === true) {
+              const { versions, current }: { versions: Array<string>; current: string } =
+                (await this.localVersion(tool)) as any
+              const envDir = join(dirname(global.Server.AppDir!), 'env')
+              const currentDir = join(envDir, 'nodejs')
+              resolve({
+                versions,
+                current,
+                setEnv: !existsSync(currentDir)
+              })
+              return true
+            }
+            return res
+          }
+
+          if (existsSync(zip)) {
+            if ((await end()) === true) {
+              return
+            }
+            await remove(zip)
+          }
+
+          const fail = async () => {
+            try {
+              await remove(zip)
+              await remove(destDir)
+            } catch (e) {}
+          }
+
+          axios({
+            method: 'get',
+            url: url,
+            proxy: this.getAxiosProxy(),
+            responseType: 'stream',
+            onDownloadProgress: (progress) => {
+              if (progress.total) {
+                const num = Math.round((progress.loaded * 100.0) / progress.total)
+                on({
+                  progress: num
+                })
+              }
+            }
+          })
+            .then(function (response) {
+              const stream = createWriteStream(zip)
+              response.data.pipe(stream)
+              stream.on('error', async (err: any) => {
+                console.log('stream error: ', err)
+                await fail()
+                reject(err)
+              })
+              stream.on('finish', async () => {
+                const res = await end()
+                if (res === true) {
+                  return
+                }
+                reject(res)
+              })
+            })
+            .catch(async (err) => {
+              console.log('down error: ', err)
+              await fail()
+              reject(err)
+            })
+        }
+        return
+      }
       let command = ''
       if (tool === 'fnm') {
         command = `unset PREFIX;fnm ${action} ${version}`

@@ -18,24 +18,16 @@ class XTerm implements XTermType {
   logs: Array<string> = []
   ptyKey: string = ''
   end = false
+  resized = false
   private resolve: Function | undefined = undefined
 
   constructor() {}
-
-  getSize(): { cols: number; rows: number } {
-    const domRect = this.dom!.getBoundingClientRect()
-    const cols = Math.floor(domRect.width / 9.1)
-    const rows = Math.floor(domRect.height / 18)
-    IPC.send('NodePty:resize', this.ptyKey, { cols, rows }).then((key: string) => IPC.off(key))
-    return { cols, rows }
-  }
 
   mount(dom: HTMLElement) {
     this.dom = dom
     return new Promise((resolve) => {
       const doMount = () => {
         console.log('doMount: ', dom)
-        const { cols, rows } = this.getSize()
         const appStore = AppStore()
         const theme: { [k: string]: string } = {}
         let appTheme = ''
@@ -54,8 +46,6 @@ class XTerm implements XTermType {
           theme.selectionBackground = '#606266'
         }
         this.xterm = new Terminal({
-          cols: cols,
-          rows: rows,
           cursorBlink: true,
           allowProposedApi: true,
           cursorWidth: 5,
@@ -67,6 +57,9 @@ class XTerm implements XTermType {
         this.xterm.loadAddon(fitaddon)
         this.xterm.open(dom)
         fitaddon.fit()
+        const cols = this.xterm.cols
+        const rows = this.xterm.rows
+        IPC.send('NodePty:resize', this.ptyKey, { cols, rows }).then((key: string) => IPC.off(key))
         this.fitaddon = fitaddon
         this.initEvent()
         this.xterm.focus()
@@ -123,6 +116,10 @@ class XTerm implements XTermType {
       console.log('not xterm !!!!!!')
     }
     this.xterm?.write(data)
+    if (!this.resized) {
+      this.resized = true
+      this.onWindowResit()
+    }
     if (
       data.startsWith(`\r`) ||
       data.endsWith(`\u001b[K`) ||
@@ -144,9 +141,12 @@ class XTerm implements XTermType {
   }
 
   onWindowResit() {
-    const { cols, rows } = this.getSize()
-    this.xterm!.resize(cols, rows)
-    this.fitaddon?.fit()
+    if (this.xterm) {
+      this.fitaddon?.fit()
+      const cols = this.xterm.cols
+      const rows = this.xterm.rows
+      IPC.send('NodePty:resize', this.ptyKey, { cols, rows }).then((key: string) => IPC.off(key))
+    }
   }
 
   cleanLog() {

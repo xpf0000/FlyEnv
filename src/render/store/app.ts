@@ -102,7 +102,7 @@ type StateBase = SetupBase & {
   showTool?: boolean
   phpBrewInited: boolean
   mongodbBrewInited: boolean
-  currentNodeTool: 'fnm' | 'nvm' | ''
+  currentNodeTool: 'fnm' | 'nvm' | 'default'
   editorConfig: EditorConfig
   phpGroupStart: { [k: string]: boolean }
   autoStartService?: boolean
@@ -157,7 +157,7 @@ const state: State = {
       mongodbBrewInited: false,
       editorConfig: EditorBaseConfig,
       phpGroupStart: {},
-      currentNodeTool: ''
+      currentNodeTool: 'default'
     }
   },
   httpServe: [],
