@@ -655,7 +655,9 @@ export const brewSearch = async (
       .map((s: string) => s.trim())
       .filter((s: string) => s && !s.includes(' '))
     all.push(...content)
-  } catch (e) {}
+  } catch (e) {
+    console.log('brewSearch err: ', e)
+  }
   return all
 }
 

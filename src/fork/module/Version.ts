@@ -24,6 +24,7 @@ class Manager extends Base {
   Maven: any
   MailPit: any
   Erlang: any
+  Ruby: any
   constructor() {
     super()
   }
@@ -155,6 +156,12 @@ class Manager extends Base {
             this.Erlang = res.default
           }
           versions.erlang = this.Erlang.allInstalledVersions(setup)
+        } else if (type === 'ruby') {
+          if (!this.Ruby) {
+            const res = await import('./Ruby')
+            this.Ruby = res.default
+          }
+          versions.ruby = this.Ruby.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

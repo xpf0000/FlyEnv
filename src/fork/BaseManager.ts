@@ -31,6 +31,7 @@ class BaseManager {
   Service: any
   MailPit: any
   Erlang: any
+  Ruby: any
 
   constructor() {}
 
@@ -240,6 +241,12 @@ class BaseManager {
         this.Erlang = res.default
       }
       doRun(this.Erlang)
+    } else if (module === 'ruby') {
+      if (!this.Ruby) {
+        const res = await import('./module/Ruby')
+        this.Ruby = res.default
+      }
+      doRun(this.Ruby)
     }
   }
 
