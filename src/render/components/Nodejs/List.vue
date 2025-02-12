@@ -4,6 +4,7 @@
       <div class="card-header">
         <div class="left">
           <el-radio-group v-model="currentTool" size="small">
+            <el-radio-button value="default">FlyEnv</el-radio-button>
             <el-radio-button value="fnm">fnm</el-radio-button>
             <el-radio-button value="nvm">nvm</el-radio-button>
           </el-radio-group>
@@ -23,6 +24,9 @@
     <template v-else-if="currentTool === 'nvm'">
       <NVMVM />
     </template>
+    <template v-else-if="currentTool === 'default'">
+      <DefaultVM />
+    </template>
     <template v-if="showFooter" #footer>
       <template v-if="taskEnd">
         <el-button type="primary" @click.stop="taskConfirm">{{ I18nT('base.confirm') }}</el-button>
@@ -40,6 +44,7 @@
   import { Setup } from '@/components/Nodejs/setup'
   import FnmVM from './fnm/index.vue'
   import NVMVM from './nvm/index.vue'
+  import DefaultVM from './default/index.vue'
 
   const nodejsStore = NodejsStore()
 

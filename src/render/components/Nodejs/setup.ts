@@ -3,6 +3,7 @@ import { AppStore } from '@/store/app'
 import { FNMSetup } from '@/components/Nodejs/fnm/setup'
 import { NodejsStore } from '@/components/Nodejs/node'
 import { NVMSetup } from '@/components/Nodejs/nvm/setup'
+import { NodeDefaultSetup } from '@/components/Nodejs/default/setup'
 
 export const Setup = () => {
   const appStore = AppStore()
@@ -10,7 +11,7 @@ export const Setup = () => {
 
   const currentTool = computed({
     get() {
-      return appStore.config.setup.currentNodeTool
+      return appStore.config.setup.currentNodeTool || 'default'
     },
     set(v) {
       if (v !== appStore.config.setup.currentNodeTool) {
@@ -86,6 +87,9 @@ export const Setup = () => {
     if (currentTool.value === 'nvm') {
       return NVMSetup.fetching || NVMSetup.installing
     }
+    if (currentTool.value === 'default') {
+      return NodeDefaultSetup.fetching
+    }
     return false
   })
 
@@ -95,6 +99,9 @@ export const Setup = () => {
     }
     if (currentTool.value === 'nvm') {
       NVMSetup.reFetch()
+    }
+    if (currentTool.value === 'default') {
+      NodeDefaultSetup.reFetch()
     }
   }
 
