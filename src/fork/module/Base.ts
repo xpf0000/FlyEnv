@@ -137,7 +137,8 @@ export class Base {
           postgresql: 'postgres',
           'pure-ftpd': 'pure-ftpd',
           tomcat: 'org.apache.catalina.startup.Bootstrap',
-          rabbitmq: 'rabbit'
+          rabbitmq: 'rabbit',
+          elasticsearch: 'org.elasticsearch.server/org.elasticsearch.bootstrap.Elasticsearch'
         }
         const serverName = dis?.[this.type]
         if (serverName) {
@@ -145,7 +146,8 @@ export class Base {
           const pids = ProcessSearch(serverName, false, plist)
             .filter((p) => {
               return (
-                p.COMMAND.includes(global.Server.BaseDir!) &&
+                (p.COMMAND.includes(global.Server.BaseDir!) ||
+                  p.COMMAND.includes(global.Server.AppDir!)) &&
                 !p.COMMAND.includes(' grep ') &&
                 !p.COMMAND.includes(' /bin/sh -c') &&
                 !p.COMMAND.includes('/Contents/MacOS/') &&
@@ -170,6 +172,7 @@ export class Base {
           case 'mongodb':
           case 'tomcat':
           case 'rabbitmq':
+          case 'elasticsearch':
             sig = '-TERM'
             break
           default:
@@ -313,11 +316,13 @@ export class Base {
           const dir = row.appDir
           await mkdirp(dir)
           await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
-          if (['java', 'tomcat', 'golang', 'maven'].includes(this.type)) {
+          if (['java', 'tomcat', 'golang', 'maven', 'elasticsearch'].includes(this.type)) {
             const subDirs = await readdir(dir)
             const subDir = subDirs.pop()
             if (subDir) {
               await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
+              await waitTime(300)
+              await remove(subDir)
             }
           }
         } catch (e) {

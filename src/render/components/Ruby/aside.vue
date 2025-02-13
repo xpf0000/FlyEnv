@@ -6,7 +6,7 @@
   >
     <div class="left">
       <div class="icon-block">
-        <yb-icon style="padding: 5px" :svg="import('@/svg/Ruby.svg?raw')" width="29" height="29" />
+        <yb-icon style="padding: 6px" :svg="import('@/svg/Ruby.svg?raw')" width="29" height="29" />
       </div>
       <span class="title">Ruby</span>
     </div>
