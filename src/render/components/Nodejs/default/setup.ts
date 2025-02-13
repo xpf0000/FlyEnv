@@ -5,6 +5,7 @@ import { I18nT } from '@shared/lang'
 import { NodejsStore } from '@/components/Nodejs/node'
 import installedVersions from '@/util/InstalledVersions'
 import { BrewStore } from '@/store/brew'
+import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 
 const { join } = require('path')
 
@@ -69,6 +70,7 @@ export const Setup = () => {
       IPC.off(key)
       if (res?.code === 0) {
         reFetch()
+        ServiceActionStore.fetchPath()
         MessageSuccess(I18nT('base.success'))
       } else {
         MessageError(res?.msg ?? I18nT('base.fail'))
