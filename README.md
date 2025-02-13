@@ -38,6 +38,7 @@
 - [x] Python
 - [x] Go
 - [x] Erlang
+- [x] Ruby
 
 ### Data Queue & Data Cache
 
@@ -47,8 +48,7 @@
 
 ### Search Engine
 
-- [ ] Elasticsearch
-- [ ] Manticore Search
+- [x] Elasticsearch
 
 ### Other
 
@@ -66,15 +66,15 @@ brew install flyenv
 
 ### Intel X86:
 
-[FlyEnv-4.8.3.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.3/FlyEnv-4.8.3.dmg)
+[FlyEnv-4.8.4.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.4/FlyEnv-4.8.4.dmg)
 
-[FlyEnv-4.8.3-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.3/FlyEnv-4.8.3-mac.zip)
+[FlyEnv-4.8.4-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.4/FlyEnv-4.8.4-mac.zip)
 
 ### Apple Silicon
 
-[FlyEnv-4.8.3-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.3/FlyEnv-4.8.3-arm64.dmg)
+[FlyEnv-4.8.4-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.4/FlyEnv-4.8.4-arm64.dmg)
 
-[FlyEnv-4.8.3-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.3/FlyEnv-4.8.3-arm64-mac.zip)
+[FlyEnv-4.8.4-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.4/FlyEnv-4.8.4-arm64-mac.zip)
 
 If you only need a simple PHP service and web service, you can also take a look at FlyEnv's derivative products: [FlyPHPServer](https://flyenv.com/flyphpserver.html),  Already listed on [Mac App Store](https://apps.apple.com/us/app/flyphpserver/id1506384441), available for direct download and use
 
