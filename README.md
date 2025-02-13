@@ -48,6 +48,7 @@
 ### Search Engine
 
 - [ ] Elasticsearch
+- [ ] Manticore Search
 
 ### Other
 

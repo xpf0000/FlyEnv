@@ -32,6 +32,7 @@ class BaseManager {
   MailPit: any
   Erlang: any
   Ruby: any
+  Elasticsearch: any
 
   constructor() {}
 
@@ -247,6 +248,12 @@ class BaseManager {
         this.Ruby = res.default
       }
       doRun(this.Ruby)
+    } else if (module === 'elasticsearch') {
+      if (!this.Elasticsearch) {
+        const res = await import('./module/Elasticsearch')
+        this.Elasticsearch = res.default
+      }
+      doRun(this.Elasticsearch)
     }
   }
 

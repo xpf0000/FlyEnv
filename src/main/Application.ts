@@ -335,7 +335,9 @@ export default class Application extends EventEmitter {
     const all: any = await Helper.send('tools', 'processList')
     const find = all.filter((p: any) => {
       return (
-        (p.COMMAND.includes(global.Server.BaseDir!) || p.COMMAND.includes('redis-server')) &&
+        (p.COMMAND.includes(global.Server.BaseDir!) ||
+          p.COMMAND.includes(global.Server.AppDir!) ||
+          p.COMMAND.includes('redis-server')) &&
         !p.COMMAND.includes(' grep ') &&
         !p.COMMAND.includes(' /bin/sh -c') &&
         !p.COMMAND.includes('/Contents/MacOS/') &&
@@ -356,7 +358,8 @@ export default class Application extends EventEmitter {
         item.COMMAND.includes('mariadbd') ||
         item.COMMAND.includes('mongod') ||
         item.COMMAND.includes('rabbit') ||
-        item.COMMAND.includes('org.apache.catalina')
+        item.COMMAND.includes('org.apache.catalina') ||
+        item.COMMAND.includes('elasticsearch')
       ) {
         TERM.push(item.PID)
       } else {
@@ -397,7 +400,8 @@ export default class Application extends EventEmitter {
               item.COMMAND.includes('mariadbd') ||
               item.COMMAND.includes('mongod') ||
               item.COMMAND.includes('rabbit') ||
-              item.COMMAND.includes('org.apache.catalina')
+              item.COMMAND.includes('org.apache.catalina') ||
+              item.COMMAND.includes('elasticsearch')
             ) {
               TERM.push(item.PID)
             } else {
