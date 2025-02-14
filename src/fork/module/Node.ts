@@ -653,6 +653,7 @@ class Manager extends Base {
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
+          console.log('versions: ', versions)
           const all = versions.map((item) =>{
             const command = `${basename(item.bin)} -v`
             const reg = /(v)(\d+(\.\d+){1,4})(.*?)$/gm
