@@ -73,6 +73,7 @@ class Elasticsearch extends Base {
         }
       }
 
+      await mkdirp(join(global.Server.BaseDir!, `elasticsearch`))
       const startLogFile = join(global.Server.BaseDir!, `elasticsearch/start.log`)
       if (existsSync(startLogFile)) {
         try {
