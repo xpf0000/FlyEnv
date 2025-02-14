@@ -563,52 +563,31 @@ export const versionLocalFetch = async (
   customDirs: string[],
   binName: string
 ): Promise<Array<SoftInstalled>> => {
-  const installed: Array<{
-    bin: string
-    path: string
-  }> = []
+  const installed: Set<string> = new Set()
 
   const findInstalled = async (
     dir: string,
     depth = 0,
     maxDepth = 2
-  ): Promise<
-    | {
-        bin: string
-        path: string
-      }
-    | false
-  > => {
-    let res:
-      | {
-          bin: string
-          path: string
-        }
-      | false = false
+  ) => {
     if (!existsSync(dir)) {
-      return false
+      return
     }
     dir = realpathSync(dir)
     let binPath = versionCheckBin(join(dir, `${binName}`))
     if (binPath) {
-      return {
-        bin: binPath,
-        path: dir
-      }
+      installed.add(binPath)
+      return
     }
     binPath = versionCheckBin(join(dir, `bin/${binName}`))
     if (binPath) {
-      return {
-        bin: binPath,
-        path: dir
-      }
+      installed.add(binPath)
+      return
     }
     binPath = versionCheckBin(join(dir, `sbin/${binName}`))
     if (binPath) {
-      return {
-        bin: binPath,
-        path: dir
-      }
+      installed.add(binPath)
+      return
     }
     if (depth >= maxDepth) {
       return false
@@ -618,10 +597,9 @@ export const versionLocalFetch = async (
       versionDirCache[dir] = sub
     }
     for (const s of sub) {
-      const sres: any = await findInstalled(s, depth + 1, maxDepth)
-      res = res || sres
+      await findInstalled(s, depth + 1, maxDepth)
     }
-    return res
+    return
   }
 
   const base = global.Server.AppDir!
@@ -630,29 +608,25 @@ export const versionLocalFetch = async (
     versionDirCache[base] = subDir
   }
   for (const f of subDir) {
-    const bin = await findInstalled(f)
-    if (bin) {
-      installed.push(bin)
-    }
+    await findInstalled(f)
   }
 
   for (const s of customDirs) {
-    const bin = await findInstalled(s, 0, 1)
-    if (bin && !installed.find((i) => i.bin === bin.bin)) {
-      installed.push(bin)
-    }
+    await findInstalled(s, 0, 1)
   }
 
-  const count = installed.length
+  const count = installed.size
   if (count === 0) {
     return []
   }
 
   const list: Array<SoftInstalled> = []
-  for (const i of installed) {
+  const installedList: Array<string> = Array.from(installed)
+  for (const i of installedList) {
+    const path = fetchPathByBin(i)
     const item = {
-      bin: i.bin,
-      path: i.path,
+      bin: i,
+      path: `${path}`,
       run: false,
       running: false
     }
