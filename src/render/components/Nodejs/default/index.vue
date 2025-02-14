@@ -152,7 +152,7 @@
             </ElButton>
           )
         } else if (NodeDefaultSetup.installing.hasOwnProperty(row.version)) {
-          return <ElProgress percentage={NodeDefaultSetup.installing[row.version]} />
+          return <ElProgress class="w-full" percentage={NodeDefaultSetup.installing[row.version]} />
         }
         return <span></span>
       }
