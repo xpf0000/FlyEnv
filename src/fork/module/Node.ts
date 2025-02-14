@@ -14,7 +14,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join, isAbsolute, basename } from 'path'
 import { compareVersions } from 'compare-versions'
 import {createWriteStream, existsSync} from 'fs'
-import { mkdirp, readFile, writeFile, readdir, copyFile, remove } from 'fs-extra'
+import { mkdirp, readFile, writeFile, readdir, copyFile, remove, realpath } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { SoftInstalled } from "@shared/app";

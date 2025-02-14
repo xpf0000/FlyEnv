@@ -63,7 +63,7 @@
   const props = defineProps<{
     item: SoftInstalled
     type: AllAppModule
-    showHideShow: boolean
+    showHideShow?: boolean
   }>()
 
   const popper = ref()

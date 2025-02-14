@@ -140,21 +140,22 @@
       width: 0,
       align: 'center',
       cellRenderer: ({ rowData: row }) => {
-        if (row.installed) {
-          return (
-            <ElButton link>
-              <YbIcon
-                class="installed"
-                svg={import('@/svg/select.svg?raw')}
-                width="17"
-                height="17"
-              />
-            </ElButton>
-          )
-        } else if (NodeDefaultSetup.installing.hasOwnProperty(row.version)) {
-          return <ElProgress percentage={NodeDefaultSetup.installing[row.version]} />
-        }
-        return <span></span>
+        return <ElProgress percentage={50} />
+        // if (row.installed) {
+        //   return (
+        //     <ElButton link>
+        //       <YbIcon
+        //         class="installed"
+        //         svg={import('@/svg/select.svg?raw')}
+        //         width="17"
+        //         height="17"
+        //       />
+        //     </ElButton>
+        //   )
+        // } else if (NodeDefaultSetup.installing.hasOwnProperty(row.version)) {
+        //   return <ElProgress percentage={NodeDefaultSetup.installing[row.version]} />
+        // }
+        // return <span></span>
       }
     },
     {
