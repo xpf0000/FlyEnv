@@ -51,7 +51,9 @@ export enum AppModuleEnum {
   python = 'python',
   maven = 'maven',
   erlang = 'erlang',
-  mailpit = 'mailpit'
+  mailpit = 'mailpit',
+  ruby = 'ruby',
+  elasticsearch = 'elasticsearch'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

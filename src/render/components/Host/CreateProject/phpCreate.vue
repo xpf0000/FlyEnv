@@ -121,6 +121,7 @@
   import XTerm from '@/util/XTerm'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
+  import {dirname} from "path";
 
   const { writeFile } = require('fs-extra')
   const { join } = require('path')
@@ -237,9 +238,11 @@
       await writeFile(join(form.dir, 'composer.json'), tmpl)
 
       if (form.php && form.composer) {
-        command.push(`${form.php} "${form.composer}" update`)
+        command.push(`$Env:PATH = "${dirname(form.php)};" + $Env:PATH`)
+        command.push(`php "${form.composer}" update`)
       } else if (form.php) {
-        command.push(`${form.php} composer update`)
+        command.push(`$Env:PATH = "${dirname(form.php)};" + $Env:PATH`)
+        command.push(`php composer update`)
       } else if (form.composer) {
         command.push(`php "${form.composer}" update`)
       } else {
@@ -248,12 +251,14 @@
     } else {
       const name = app.value.package
       if (form.php && form.composer) {
+        command.push(`$Env:PATH = "${dirname(form.php)};" + $Env:PATH`)
         command.push(
-          `${form.php} "${form.composer}" create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+          `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
         )
       } else if (form.php) {
+        command.push(`$Env:PATH = "${dirname(form.php)};" + $Env:PATH`)
         command.push(
-          `${form.php} composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+          `php composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
         )
       } else if (form.composer) {
         command.push(

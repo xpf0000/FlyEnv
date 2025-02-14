@@ -1,13 +1,24 @@
 import { Base } from './Base'
-import { execPromise, fetchPATH, waitTime, writePath } from '../Fn'
+import {
+  execPromise,
+  fetchPATH, fetchPathByBin,
+  moveChildDirToParent,
+  versionBinVersion,
+  versionFilterSame, versionFixed,
+  versionLocalFetch, versionSort,
+  waitTime,
+  writePath
+} from '../Fn'
 import { exec } from 'child-process-promise'
 import { ForkPromise } from '@shared/ForkPromise'
-import { dirname, join, isAbsolute } from 'path'
+import { dirname, join, isAbsolute, basename } from 'path'
 import { compareVersions } from 'compare-versions'
-import { existsSync } from 'fs'
+import {createWriteStream, existsSync} from 'fs'
 import { mkdirp, readFile, writeFile, readdir, copyFile, remove } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
+import { SoftInstalled } from "@shared/app";
+import TaskQueue from "../TaskQueue";
 
 class Manager extends Base {
   constructor() {
@@ -185,8 +196,40 @@ class Manager extends Base {
     return env
   }
 
-  localVersion(tool: 'fnm' | 'nvm') {
+  localVersion(tool: 'fnm' | 'nvm' | 'default') {
     return new ForkPromise(async (resolve) => {
+      if (tool === 'default') {
+        const dir = join(global.Server.AppDir!, 'nodejs')
+        if (!existsSync(dir)) {
+          return resolve({
+            versions: [],
+            current: '',
+            tool
+          })
+        }
+        const dirs = await readdir(dir)
+        const versions = dirs
+          .filter((s: string) => s.startsWith('v') && existsSync(join(dir, s, 'node.exe')))
+          .map((s: string) => s.replace('v', '').trim())
+        const envDir = join(dirname(global.Server.AppDir!), 'env')
+        const currentDir = join(envDir, 'nodejs')
+        let current = ''
+        if (existsSync(currentDir) && existsSync(join(currentDir, 'node.exe'))) {
+          const realDir = await realpath(currentDir)
+          process.chdir(realDir)
+          const res = await execPromise(`node.exe -v`)
+          current = res?.stdout?.trim()?.replace('v', '') ?? ''
+        }
+        versions.sort((a: string, b: string) => {
+          return compareVersions(b, a)
+        })
+        return resolve({
+          versions,
+          current,
+          tool
+        })
+      }
+
       let dir = ''
       if (tool === 'fnm') {
         dir = await this._initFNM()
@@ -352,8 +395,115 @@ class Manager extends Base {
     })
   }
 
-  installOrUninstall(tool: 'fnm' | 'nvm', action: 'install' | 'uninstall', version: string) {
-    return new ForkPromise(async (resolve, reject) => {
+  installOrUninstall(tool: 'fnm' | 'nvm' | 'default', action: 'install' | 'uninstall', version: string) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      if (tool === 'default') {
+        if (action === 'uninstall') {
+          const dir = join(global.Server.AppDir!, `nodejs/v${version}`)
+          if (existsSync(dir)) {
+            try {
+              await remove(dir)
+            } catch (e) {
+              return reject(e)
+            }
+          }
+          const { versions, current }: { versions: Array<string>; current: string } =
+            (await this.localVersion(tool)) as any
+          resolve({
+            versions,
+            current
+          })
+        } else {
+          const url = `https://nodejs.org/dist/v${version}/node-v${version}-win-x64.7z`
+          const destDir = join(global.Server.AppDir!, `nodejs/v${version}`)
+          if (existsSync(destDir)) {
+            try {
+              await remove(destDir)
+            } catch (e) {}
+          }
+          await mkdirp(destDir)
+
+          const zip = join(global.Server.Cache!, `node-v${version}.7z`)
+
+          const unpack = async () => {
+            try {
+              await zipUnPack(zip, destDir)
+              await moveChildDirToParent(destDir)
+            } catch (e) {
+              return e
+            }
+            return true
+          }
+
+          const end = async () => {
+            const res = await unpack()
+            if (res === true) {
+              const { versions, current }: { versions: Array<string>; current: string } =
+                (await this.localVersion(tool)) as any
+              const envDir = join(dirname(global.Server.AppDir!), 'env')
+              const currentDir = join(envDir, 'nodejs')
+              resolve({
+                versions,
+                current,
+                setEnv: !existsSync(currentDir)
+              })
+              return true
+            }
+            return res
+          }
+
+          if (existsSync(zip)) {
+            if ((await end()) === true) {
+              return
+            }
+            await remove(zip)
+          }
+
+          const fail = async () => {
+            try {
+              await remove(zip)
+              await remove(destDir)
+            } catch (e) {}
+          }
+
+          axios({
+            method: 'get',
+            url: url,
+            proxy: this.getAxiosProxy(),
+            responseType: 'stream',
+            onDownloadProgress: (progress) => {
+              if (progress.total) {
+                const num = Math.round((progress.loaded * 100.0) / progress.total)
+                on({
+                  progress: num
+                })
+              }
+            }
+          })
+            .then(function (response) {
+              const stream = createWriteStream(zip)
+              response.data.pipe(stream)
+              stream.on('error', async (err: any) => {
+                console.log('stream error: ', err)
+                await fail()
+                reject(err)
+              })
+              stream.on('finish', async () => {
+                const res = await end()
+                if (res === true) {
+                  return
+                }
+                reject(res)
+              })
+            })
+            .catch(async (err) => {
+              console.log('down error: ', err)
+              await fail()
+              reject(err)
+            })
+        }
+        return
+      }
       let dir = ''
       if (tool === 'fnm') {
         dir = await this._initFNM()
@@ -400,7 +550,12 @@ class Manager extends Base {
     })
   }
 
-  allInstalled() {
+  allInstalled(): ForkPromise<
+    Array<{
+      version: string
+      bin: string
+    }>
+  >  {
     return new ForkPromise(async (resolve) => {
       const all: any[] = []
       let fnmDir = ''
@@ -487,6 +642,64 @@ class Manager extends Base {
         }
       }
       resolve(all)
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      const dir = [...(setup?.node?.dirs ?? [])]
+      Promise.all([versionLocalFetch(dir, 'node.exe')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) =>{
+            const command = `${basename(item.bin)} -v`
+            const reg = /(v)(\d+(\.\d+){1,4})(.*?)$/gm
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
+          if (all.length === 0) {
+            return Promise.resolve([])
+          }
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          try {
+            const fnmvnmVersions = await this.allInstalled()
+            fnmvnmVersions.forEach((item) => {
+              const path = fetchPathByBin(item.bin)
+              const num = item.version
+                ? Number(versionFixed(item.version).split('.').slice(0, 2).join(''))
+                : null
+              versions.push({
+                run: false,
+                running: false,
+                typeFlag: 'node',
+                path,
+                bin: item.bin,
+                version: item.version,
+                num,
+                enable: true
+              })
+            })
+          } catch (e) {}
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

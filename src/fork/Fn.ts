@@ -9,7 +9,7 @@ import {
   createWriteStream,
   realpathSync
 } from 'fs'
-import path, { join, dirname } from 'path'
+import { join, dirname } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -424,7 +424,7 @@ export const getAllFileAsync = async (
   for (const file of files) {
     const arr = [...basePath]
     arr.push(file.name)
-    const childPath = path.join(dirPath, file.name)
+    const childPath = join(dirPath, file.name)
     if (file.isDirectory()) {
       const sub = await getAllFileAsync(childPath, fullpath, arr)
       list.push(...sub)
@@ -443,7 +443,7 @@ export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<
   const list: Array<string> = []
   const files = await readdir(dirPath, { withFileTypes: true })
   for (const file of files) {
-    const childPath = path.join(dirPath, file.name)
+    const childPath = join(dirPath, file.name)
     if (file.isDirectory()) {
       const name = fullpath ? childPath : file.name
       list.push(name)
@@ -784,8 +784,8 @@ export async function moveDirToDir(src: string, dest: string) {
   const entries = await readdir(src, { withFileTypes: true })
 
   for (const entry of entries) {
-    const srcPath = path.join(src, entry.name)
-    const destPath = path.join(dest, entry.name)
+    const srcPath = join(src, entry.name)
+    const destPath = join(dest, entry.name)
 
     if (entry.isDirectory()) {
       await mkdirp(destPath)
@@ -796,4 +796,28 @@ export async function moveDirToDir(src: string, dest: string) {
       await rename(srcPath, destPath)
     }
   }
+}
+
+export async function moveChildDirToParent(dir: string) {
+  const sub = await readdir(dir)
+  for (const s of sub) {
+    const sdir = join(dir, s)
+    await moveDirToDir(sdir, dir)
+    await remove(sdir)
+  }
+}
+
+export function fetchPathByBin(bin: string) {
+  let path = dirname(bin)
+  const paths = bin.split(`\\`)
+  let isBin = paths.pop()
+  while (isBin) {
+    if (['bin', 'sbin'].includes(isBin)) {
+      path = paths.join(`\\`)
+      isBin = undefined
+      break
+    }
+    isBin = paths.pop()
+  }
+  return path
 }
