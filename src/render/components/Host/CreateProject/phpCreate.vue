@@ -38,7 +38,7 @@
               </div>
               <el-select
                 v-model="ProjectSetup.form.PHP.php"
-                class="w-32"
+                class="w-56 max-w-56"
                 filterable
                 :disabled="loading || created"
               >
@@ -54,7 +54,7 @@
               </div>
               <el-select
                 v-model="ProjectSetup.form.PHP.composer"
-                class="w-32"
+                class="w-56 max-w-56"
                 filterable
                 :disabled="loading || created"
               >
@@ -70,7 +70,7 @@
               </div>
               <el-select
                 v-model="ProjectSetup.form.PHP.version"
-                class="w-32"
+                class="w-56 max-w-56"
                 filterable
                 :disabled="loading || created"
               >

@@ -3,6 +3,9 @@ import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
 import { NodejsStore } from '@/components/Nodejs/node'
+import installedVersions from '@/util/InstalledVersions'
+import { BrewStore } from '@/store/brew'
+import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 
 const { join } = require('path')
 
@@ -67,6 +70,7 @@ export const Setup = () => {
       IPC.off(key)
       if (res?.code === 0) {
         reFetch()
+        ServiceActionStore.fetchPath()
         MessageSuccess(I18nT('base.success'))
       } else {
         MessageError(res?.msg ?? I18nT('base.fail'))
@@ -75,7 +79,7 @@ export const Setup = () => {
       NodeDefaultSetup.switching = false
     })
   }
-
+  const brewStore = BrewStore()
   const installOrUninstall = (action: 'install' | 'uninstall', item: any) => {
     item.installing = true
     IPC.send('app-fork:node', 'installOrUninstall', 'default', action, item.version).then(
@@ -91,6 +95,8 @@ export const Setup = () => {
           if (res?.data?.setEnv) {
             versionChange(item)
           }
+          brewStore.module('node').installedInited = false
+          installedVersions.allInstalledVersions(['node']).then()
           MessageSuccess(I18nT('base.success'))
         } else if (res?.code === 1) {
           IPC.off(key)

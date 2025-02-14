@@ -1,17 +1,17 @@
-version: 4.8.3
+version: 4.8.4
 files:
-  - url: FlyEnv-4.8.3-mac.zip
-    sha512: hm17WdcmWuQ7gIRkAoYUIv9YoMqcOGMx2cVgaSNUnYFsFHrS2A7NPIsRUpuH4RFPKaKJcW6OSJ2jSoh0lKwk7g==
-    size: 152946511
-  - url: FlyEnv-4.8.3-arm64-mac.zip
-    sha512: gIdmsck+Ep/QOmV0gABr06a265qjkMbHVICDNuyTiuKOVYPDA7WtsBPbTQzfgz+R17lLsUkrh/oO7j7vtQQVlg==
-    size: 145163514
-  - url: FlyEnv-4.8.3.dmg
-    sha512: U0yO+aL8PQvX+8HNAbBgCQ1WZTKXiRj4P/zlmj1QTi3vYSn0N5VtgY3TQSu6+NbNIbHkz7w3UVoLtRQIpIdTnw==
-    size: 160273767
-  - url: FlyEnv-4.8.3-arm64.dmg
-    sha512: gJ9WBOL7g68DbKyuUePZmbqUlOjDZZgLtG27rBKxRIPif1F6xUx6MrU/s3bOR++lwJigyk10LrapmNphRYLQcg==
-    size: 152495506
-path: FlyEnv-4.8.3-mac.zip
-sha512: hm17WdcmWuQ7gIRkAoYUIv9YoMqcOGMx2cVgaSNUnYFsFHrS2A7NPIsRUpuH4RFPKaKJcW6OSJ2jSoh0lKwk7g==
-releaseDate: '2025-02-09T14:01:00.834Z'
+  - url: FlyEnv-4.8.4-mac.zip
+    sha512: 8DP46/KMGriRvdZ22v7uzq6V6rRx1hggRqaHWqkGJSbDJQ6p6zw+1QqSEKH7FYI0eEE3SB5TlYkhkWsM3EwVXg==
+    size: 153283911
+  - url: FlyEnv-4.8.4-arm64-mac.zip
+    sha512: 2kbBSNPfHMtvqvqte6srs+NZmtOmGz+RiYJvL6KCL4fETfrrd7CFfCquyrGlJs5j4VM3BbxQRAddXPc9fR4tTg==
+    size: 146550505
+  - url: FlyEnv-4.8.4.dmg
+    sha512: rocl/tZt3Howaa03uapCtmdDHHV/2P3Il/G6k4fK88h//seikRed7osqGSFl2PP8LQ/qVlPmECfIrViOS1UBEA==
+    size: 160565025
+  - url: FlyEnv-4.8.4-arm64.dmg
+    sha512: TcTOm1ldtq6c8aYEOqxORc+Q2N2JTVRGrqiGIzEPyGDsRpHcuM3VJ56KYy6Yvwga9b88GVIN+XKAfOnbHM5zTw==
+    size: 153892163
+path: FlyEnv-4.8.4-mac.zip
+sha512: 8DP46/KMGriRvdZ22v7uzq6V6rRx1hggRqaHWqkGJSbDJQ6p6zw+1QqSEKH7FYI0eEE3SB5TlYkhkWsM3EwVXg==
+releaseDate: '2025-02-13T15:43:04.719Z'

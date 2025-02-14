@@ -25,6 +25,9 @@ class Manager extends Base {
   MailPit: any
   Erlang: any
   Ruby: any
+  Node: any
+  Elasticsearch: any
+
   constructor() {
     super()
   }
@@ -162,6 +165,18 @@ class Manager extends Base {
             this.Ruby = res.default
           }
           versions.ruby = this.Ruby.allInstalledVersions(setup)
+        } else if (type === 'node') {
+          if (!this.Node) {
+            const res = await import('./Node')
+            this.Node = res.default
+          }
+          versions.node = this.Node.allInstalledVersions(setup)
+        } else if (type === 'elasticsearch') {
+          if (!this.Elasticsearch) {
+            const res = await import('./Elasticsearch')
+            this.Elasticsearch = res.default
+          }
+          versions.elasticsearch = this.Elasticsearch.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []
