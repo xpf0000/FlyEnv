@@ -35,7 +35,13 @@
           }}</span>
         </template>
         <template #default="scope">
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.version }}</span>
+          <span
+            style="padding: 2px 12px 2px 24px; display: block"
+            :class="{
+              current: isInAppEnv(scope.row)
+            }"
+            >{{ scope.row.version }}</span
+          >
         </template>
       </el-table-column>
       <el-table-column :label="I18nT('base.path')" :prop="null">
@@ -56,9 +62,7 @@
             <span
               class="path"
               :class="{
-                current:
-                  currentVersion?.version === scope.row.version &&
-                  currentVersion?.path === scope.row.path
+                current: isInAppEnv(scope.row)
               }"
               @click.stop="openDir(scope.row.path)"
               >{{ scope.row.path }}</span

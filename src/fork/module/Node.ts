@@ -1,5 +1,14 @@
 import { Base } from './Base'
-import { execPromise, readFileByRoot, writeFileByRoot } from '../Fn'
+import {
+  execPromise,
+  readFileByRoot,
+  versionBinVersion,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort,
+  writeFileByRoot
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { basename, dirname, join } from 'path'
 import { compareVersions } from 'compare-versions'
@@ -8,6 +17,8 @@ import { createWriteStream, existsSync } from 'fs'
 import { chmod, copyFile, unlink, readdir, writeFile, realpath, remove, mkdirp } from 'fs-extra'
 import { fixEnv } from '@shared/utils'
 import axios from 'axios'
+import type { SoftInstalled } from '@shared/app'
+import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
   constructor() {
@@ -381,7 +392,12 @@ class Manager extends Base {
     })
   }
 
-  allInstalled() {
+  allInstalled(): ForkPromise<
+    Array<{
+      version: string
+      bin: string
+    }>
+  > {
     return new ForkPromise(async (resolve) => {
       const all: any[] = []
       let fnmDir = ''
@@ -436,6 +452,97 @@ class Manager extends Base {
         }
       }
       resolve(all)
+    })
+  }
+
+  allInstalledVersions(setup: any) {
+    return new ForkPromise((resolve) => {
+      let versions: SoftInstalled[] = []
+      const dir = [...(setup?.node?.dirs ?? [])]
+      Promise.all([versionLocalFetch(dir, 'node', 'node')])
+        .then(async (list) => {
+          versions = list.flat()
+          versions = versionFilterSame(versions)
+          const all = versions.map((item) =>
+            TaskQueue.run(versionBinVersion, `${item.bin} -v`, /(v)(\d+(\.\d+){1,4})(.*?)$/gm)
+          )
+          if (all.length === 0) {
+            return Promise.resolve([])
+          }
+          return Promise.all(all)
+        })
+        .then(async (list) => {
+          list.forEach((v, i) => {
+            const { error, version } = v
+            const num = version
+              ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+              : null
+            Object.assign(versions[i], {
+              version: version,
+              num,
+              enable: version !== null,
+              error
+            })
+          })
+          try {
+            const fnmvnmVersions = await this.allInstalled()
+            fnmvnmVersions.forEach((item) => {
+              let path = item.bin
+              if (path.includes('/sbin/') || path.includes('/bin/')) {
+                path = path
+                  .replace(`/sbin/`, '/##SPLIT##/')
+                  .replace(`/bin/`, '/##SPLIT##/')
+                  .split('/##SPLIT##/')
+                  .shift()!
+              } else {
+                path = dirname(path)
+              }
+              const num = item.version
+                ? Number(versionFixed(item.version).split('.').slice(0, 2).join(''))
+                : null
+              versions.push({
+                run: false,
+                running: false,
+                typeFlag: 'node',
+                path,
+                bin: item.bin,
+                version: item.version,
+                num,
+                enable: true
+              })
+            })
+          } catch (e) {}
+
+          const dir = join(global.Server.AppDir!, 'nodejs')
+          if (existsSync(dir)) {
+            const dirs = await readdir(dir)
+            const appVersions: SoftInstalled[] = dirs
+              .filter((s) => s.startsWith('v') && existsSync(join(dir, s, 'bin/node')))
+              .map((s) => {
+                const version = s.replace('v', '').trim()
+                const path = join(dir, s)
+                const bin = join(dir, s, 'bin/node')
+                const num = version
+                  ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
+                  : null
+                return {
+                  run: false,
+                  running: false,
+                  typeFlag: 'node',
+                  path,
+                  bin,
+                  version,
+                  num,
+                  enable: true
+                }
+              })
+            versions.push(...appVersions)
+          }
+          resolve(versionSort(versions))
+        })
+        .catch(() => {
+          resolve([])
+        })
     })
   }
 }

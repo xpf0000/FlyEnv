@@ -23,7 +23,6 @@ class BaseManager {
   Java: any
   Tomcat: any
   App: any
-  CodeMake: any
   GoLang: any
   RabbitMQ: any
   Python: any
@@ -32,6 +31,7 @@ class BaseManager {
   MailPit: any
   Erlang: any
   Ruby: any
+  Elasticsearch: any
 
   constructor() {}
 
@@ -193,12 +193,6 @@ class BaseManager {
         this.App = res.default
       }
       doRun(this.App)
-    } else if (module === 'codemake') {
-      if (!this.CodeMake) {
-        const res = await import('./module/CodeMake')
-        this.CodeMake = res.default
-      }
-      doRun(this.CodeMake)
     } else if (module === 'golang') {
       if (!this.GoLang) {
         const res = await import('./module/GoLang')
@@ -247,6 +241,12 @@ class BaseManager {
         this.Ruby = res.default
       }
       doRun(this.Ruby)
+    } else if (module === 'elasticsearch') {
+      if (!this.Elasticsearch) {
+        const res = await import('./module/Elasticsearch')
+        this.Elasticsearch = res.default
+      }
+      doRun(this.Elasticsearch)
     }
   }
 
