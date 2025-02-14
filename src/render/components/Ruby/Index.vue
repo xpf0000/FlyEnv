@@ -12,7 +12,7 @@
         type-flag="ruby"
         :fetch-data-when-create="true"
       ></Service>
-      <Manager v-else-if="tab === 1" type-flag="ruby" :has-static="false"></Manager>
+      <Manager v-else-if="tab === 1" type-flag="ruby" title="Ruby" url="https://github.com/oneclick/rubyinstaller2/releases"></Manager>
     </div>
   </div>
 </template>

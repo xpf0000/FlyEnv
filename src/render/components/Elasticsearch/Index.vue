@@ -10,9 +10,8 @@
       <Manager
         v-else-if="tab === 1"
         type-flag="elasticsearch"
-        :has-static="true"
-        :show-port-lib="false"
-        :show-brew-lib="false"
+        title="Elasticsearch"
+        url="https://github.com/elastic/elasticsearch"
       ></Manager>
       <Config v-if="tab === 2" name="elasticsearch.yml" ext="yml"></Config>
       <Config v-if="tab === 3" name="jvm.options" ext="options"></Config>

@@ -2,7 +2,7 @@ import { I18nT } from '../lang'
 import { createWriteStream, existsSync, unlinkSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { AppLog, execPromise, getAllFileAsync, uuid, waitTime } from '../Fn'
+import {AppLog, execPromise, getAllFileAsync, moveChildDirToParent, uuid, waitTime} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { appendFile, copyFile, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
@@ -371,27 +371,11 @@ export class Base {
         }
       }
 
-      const handleTwoLevDir = async (flag: string) => {
-        const tmpDir = join(global.Server.Cache!, `${flag}-${row.version}-tmp`)
-        if (existsSync(tmpDir)) {
-          await remove(tmpDir)
-        }
-        await zipUnPack(row.zip, tmpDir)
-        const sub = await readdir(tmpDir)
-        const subDir = join(tmpDir, sub.pop()!)
-        const allFile = await getAllFileAsync(subDir, false)
-        console.log('handleTwoLevDir: ', sub, subDir, allFile)
-        if (!existsSync(row.appDir)) {
-          await mkdirp(row.appDir)
-        }
-        for (const f of allFile) {
-          const destFile = join(row.appDir, f)
-          await mkdirp(dirname(destFile))
-          await copyFile(join(subDir, f), destFile)
-        }
-        if (existsSync(tmpDir)) {
-          await remove(tmpDir)
-        }
+      const handleTwoLevDir = async () => {
+        await remove(row.appDir)
+        await mkdirp(row.appDir)
+        await zipUnPack(row.zip, row.appDir)
+        await moveChildDirToParent(row.appDir)
       }
 
       const handleComposer = async () => {
@@ -406,33 +390,37 @@ php "%~dp0composer.phar" %*`
         )
       }
 
+      const doHandleZip = async () => {
+        const two = [
+          'java',
+          'tomcat',
+          'golang',
+          'maven',
+          'rabbitmq',
+          'mariadb',
+          'ruby',
+          'elasticsearch'
+        ];
+        if (two.includes(row.type)) {
+          await handleTwoLevDir()
+        } else if (row.type === 'memcached') {
+          await handleMemcached()
+        } else if (row.type === 'composer') {
+          await handleComposer()
+        } else if (row.type === 'python') {
+          await handlePython()
+        } else {
+          await zipUnPack(row.zip, row.appDir)
+        }
+      }
+
       if (existsSync(row.zip)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.installFromZip', { service }))
         })
         let success = false
         try {
-          if (row.type === 'memcached') {
-            await handleMemcached()
-          } else if (row.type === 'composer') {
-            await handleComposer()
-          } else if (row.type === 'java') {
-            await handleTwoLevDir('java')
-          } else if (row.type === 'tomcat') {
-            await handleTwoLevDir('tomcat')
-          } else if (row.type === 'golang') {
-            await handleTwoLevDir('golang')
-          } else if (row.type === 'maven') {
-            await handleTwoLevDir('maven')
-          } else if (row.type === 'rabbitmq') {
-            await handleTwoLevDir('rabbitmq')
-          } else if (row.type === 'mariadb') {
-            await handleTwoLevDir('mariadb')
-          } else if (row.type === 'python') {
-            await handlePython()
-          } else {
-            await zipUnPack(row.zip, row.appDir)
-          }
+          await doHandleZip()
           success = true
           refresh()
         } catch (e) {
@@ -508,27 +496,7 @@ php "%~dp0composer.phar" %*`
             row.downState = 'success'
             try {
               if (existsSync(row.zip)) {
-                if (row.type === 'memcached') {
-                  await handleMemcached()
-                } else if (row.type === 'composer') {
-                  await handleComposer()
-                } else if (row.type === 'java') {
-                  await handleTwoLevDir('java')
-                } else if (row.type === 'tomcat') {
-                  await handleTwoLevDir('tomcat')
-                } else if (row.type === 'golang') {
-                  await handleTwoLevDir('golang')
-                } else if (row.type === 'maven') {
-                  await handleTwoLevDir('maven')
-                } else if (row.type === 'rabbitmq') {
-                  await handleTwoLevDir('rabbitmq')
-                } else if (row.type === 'mariadb') {
-                  await handleTwoLevDir('mariadb')
-                } else if (row.type === 'python') {
-                  await handlePython()
-                } else {
-                  await zipUnPack(row.zip, row.appDir)
-                }
+                await doHandleZip()
               }
               refresh()
             } catch (e) {
