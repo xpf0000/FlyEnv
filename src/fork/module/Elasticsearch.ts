@@ -169,8 +169,8 @@ class Elasticsearch extends Base {
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
-            const command = `${basename(item.bin)} version`
-            const reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
+            const command = `${basename(item.bin)} --version`
+            const reg = /(Version: )(\d+(\.\d+){1,4})(.*?)/g
             return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
           if (all.length === 0) {
