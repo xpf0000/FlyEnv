@@ -121,10 +121,9 @@
   import XTerm from '@/util/XTerm'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
-  import {dirname} from "path";
 
   const { writeFile } = require('fs-extra')
-  const { join } = require('path')
+  const { join, dirname } = require('path')
   const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
