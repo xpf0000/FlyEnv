@@ -133,8 +133,10 @@ class Manager extends Base {
         console.log('installNvm res: ', res)
       } catch (e) {}
       FNM_HOME = dirname(local)
+      const FNM_SYMLINK = join(FNM_HOME, 'nodejs-link')
       try {
         await execPromise(`setx /M FNM_HOME "${FNM_HOME}"`)
+        await execPromise(`setx /M FNM_SYMLINK "${FNM_SYMLINK}"`)
       } catch (e) {}
       await this._resortToolInPath('fnm')
       resolve(FNM_HOME)
@@ -199,7 +201,7 @@ class Manager extends Base {
   localVersion(tool: 'fnm' | 'nvm' | 'default') {
     return new ForkPromise(async (resolve) => {
       if (tool === 'default') {
-        const dir = join(global.Server.AppDir!, 'nodejs')
+        const dir = join(global.Server.AppDir!, 'node')
         if (!existsSync(dir)) {
           return resolve({
             versions: [],
@@ -212,7 +214,7 @@ class Manager extends Base {
           .filter((s: string) => s.startsWith('v') && existsSync(join(dir, s, 'node.exe')))
           .map((s: string) => s.replace('v', '').trim())
         const envDir = join(dirname(global.Server.AppDir!), 'env')
-        const currentDir = join(envDir, 'nodejs')
+        const currentDir = join(envDir, 'node')
         let current = ''
         if (existsSync(currentDir) && existsSync(join(currentDir, 'node.exe'))) {
           const realDir = await realpath(currentDir)
@@ -441,7 +443,7 @@ class Manager extends Base {
               const { versions, current }: { versions: Array<string>; current: string } =
                 (await this.localVersion(tool)) as any
               const envDir = join(dirname(global.Server.AppDir!), 'env')
-              const currentDir = join(envDir, 'nodejs')
+              const currentDir = join(envDir, 'node')
               resolve({
                 versions,
                 current,

@@ -66,7 +66,7 @@ export const Setup = () => {
       bin: join(global.Server.AppDir!, `nodejs/v${item.version}/bin/node`),
       path: join(global.Server.AppDir!, `nodejs/v${item.version}`)
     }
-    IPC.send('app-fork:tools', 'updatePATH', param, 'nodejs').then((key: string, res: any) => {
+    IPC.send('app-fork:tools', 'updatePATH', param, 'node').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
         reFetch()
