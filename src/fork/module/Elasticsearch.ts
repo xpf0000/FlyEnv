@@ -86,7 +86,7 @@ class Elasticsearch extends Base {
         `set "ES_HOME=${version.path}"`,
         `set "ES_PATH_CONF=${join(version.path, 'config')}"`,
         `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} -d -p "${this.pidPath}" > "${startLogFile}" 2>&1 &`
+        `${basename(bin)} -d -p "${this.pidPath}" > "${startLogFile}" 2>&1 &`
       ]
 
       const command = commands.join(EOL)
