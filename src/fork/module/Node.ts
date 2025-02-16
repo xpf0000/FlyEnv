@@ -201,7 +201,7 @@ class Manager extends Base {
   localVersion(tool: 'fnm' | 'nvm' | 'default') {
     return new ForkPromise(async (resolve) => {
       if (tool === 'default') {
-        const dir = join(global.Server.AppDir!, 'node')
+        const dir = join(global.Server.AppDir!, 'nodejs')
         if (!existsSync(dir)) {
           return resolve({
             versions: [],

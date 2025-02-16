@@ -87,6 +87,29 @@ body {
       }
     }
   }
+
+  .el-table {
+    .el-table__row {
+      .el-table__cell {
+        .hover-yellow-500 {
+
+          &:hover {
+            color: #fdab1f;
+          }
+        }
+      }
+
+      .row-hover-show {
+        display: none;
+      }
+
+      &:hover {
+        .row-hover-show {
+          display: inline-flex;
+        }
+      }
+    }
+  }
 }
 #app {
   #container {
