@@ -62,22 +62,18 @@ export const Setup = () => {
     }
     NodeDefaultSetup.switching = true
     item.switching = true
-    const param = {
+    const param: any = {
       bin: join(global.Server.AppDir!, `nodejs/v${item.version}/bin/node`),
       path: join(global.Server.AppDir!, `nodejs/v${item.version}`)
     }
-    IPC.send('app-fork:tools', 'updatePATH', param, 'nodejs').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
+    ServiceActionStore.updatePath(param, 'node')
+      .then(() => {
         reFetch()
-        ServiceActionStore.fetchPath()
-        MessageSuccess(I18nT('base.success'))
-      } else {
-        MessageError(res?.msg ?? I18nT('base.fail'))
-      }
-      item.switching = false
-      NodeDefaultSetup.switching = false
-    })
+      })
+      .finally(() => {
+        item.switching = false
+        NodeDefaultSetup.switching = false
+      })
   }
   const brewStore = BrewStore()
   const installOrUninstall = (action: 'install' | 'uninstall', item: any) => {
@@ -124,7 +120,15 @@ export const Setup = () => {
       }) ?? []
     const remotas =
       store.all
-        .filter((a) => !NodeDefaultSetup.local.includes(a))
+        .filter((v) => {
+          const a = !NodeDefaultSetup.local.includes(v)
+          if (global.Server.isAppleSilicon) {
+            const vn = Number(v.split('.')[0])
+            const b = !isNaN(vn) && vn > 15
+            return a && b
+          }
+          return a
+        })
         .map((v) => {
           return {
             version: v,
