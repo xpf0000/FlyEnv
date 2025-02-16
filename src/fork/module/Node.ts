@@ -684,16 +684,18 @@ class Manager extends Base {
               const num = item.version
                 ? Number(versionFixed(item.version).split('.').slice(0, 2).join(''))
                 : null
-              versions.push({
-                run: false,
-                running: false,
-                typeFlag: 'node',
-                path,
-                bin: item.bin,
-                version: item.version,
-                num,
-                enable: true
-              })
+              if (!versions.some((v) => v.bin === item.bin)) {
+                versions.push({
+                  run: false,
+                  running: false,
+                  typeFlag: 'node',
+                  path,
+                  bin: item.bin,
+                  version: item.version,
+                  num,
+                  enable: true
+                })
+              }
             })
           } catch (e) {}
           resolve(versionSort(versions))
