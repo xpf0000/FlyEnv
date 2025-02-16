@@ -156,13 +156,27 @@
           </el-tooltip>
         </template>
         <template #default="scope">
-          <template v-if="isInEnv(scope.row)">
-            <el-button link type="primary">
-              <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
-            </el-button>
-          </template>
-          <template v-else-if="ServiceActionStore.pathSeting[scope.row.bin]">
+          <template v-if="ServiceActionStore.pathSeting[scope.row.bin]">
             <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+          </template>
+          <template v-else-if="isInAppEnv(scope.row)">
+            <el-tooltip :content="I18nT('service.setByApp')" :show-after="600" placement="top">
+              <el-button link type="primary" @click.stop="ServiceActionStore.updatePath(scope.row, typeFlag)">
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </el-tooltip>
+          </template>
+          <template v-else-if="isInEnv(scope.row)">
+            <el-tooltip :content="I18nT('service.setByNoApp')" :show-after="600" placement="top">
+              <el-button link type="warning" @click.stop="ServiceActionStore.updatePath(scope.row, typeFlag)">
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </el-tooltip>
+          </template>
+          <template v-else>
+            <el-button class="current-set row-hover-show" link @click.stop="ServiceActionStore.updatePath(scope.row, typeFlag)">
+              <yb-icon class="current-not" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+            </el-button>
           </template>
         </template>
       </el-table-column>
@@ -328,7 +342,11 @@
   })
 
   const isInEnv = (item: SoftInstalled) => {
-    return ServiceActionStore.allPath.includes(dirname(item.bin))
+    return ServiceActionStore.allPath.includes(item.path)
+  }
+
+  const isInAppEnv = (item: SoftInstalled) => {
+    return ServiceActionStore.appPath.includes(item.path)
   }
 
   const groupTrunOn = (item: SoftInstalled) => {

@@ -232,7 +232,8 @@
                   <yb-icon
                     class="current"
                     :class="{
-                      'text-blue-500': isInAppEnv(scope.row)
+                      'text-blue-500': isInAppEnv(scope.row),
+                      'opacity-100': isInAppEnv(scope.row)
                     }"
                     :svg="import('@/svg/select.svg?raw')"
                     width="17"

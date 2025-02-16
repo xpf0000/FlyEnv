@@ -16,7 +16,8 @@
         </template>
         <template v-else>
           <yb-icon class="current" :class="{
-            'text-blue-500': isInAppEnv
+            'text-blue-500': isInAppEnv,
+            'opacity-100': isInAppEnv
           }" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
         </template>
         <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
