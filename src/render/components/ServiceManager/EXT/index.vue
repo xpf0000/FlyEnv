@@ -16,7 +16,16 @@
           <el-button style="width: auto; height: auto" text :loading="true"></el-button>
         </template>
         <template v-else>
-          <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+          <yb-icon
+            class="current"
+            :class="{
+              'text-blue-500': isInAppEnv,
+              'opacity-100': isInAppEnv
+            }"
+            :svg="import('@/svg/select.svg?raw')"
+            width="17"
+            height="17"
+          />
         </template>
         <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
       </li>
@@ -53,6 +62,10 @@
 
   const loading = computed(() => {
     return ServiceActionStore.pathSeting?.[props.item.bin] ?? false
+  })
+
+  const isInAppEnv = computed(() => {
+    return ServiceActionStore.appPath.includes(props.item.path)
   })
 
   const state = computed(() => {

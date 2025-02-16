@@ -14,7 +14,7 @@ import PublishConfig from './publish'
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.8.4',
+  buildVersion: '4.8.5',
   electronVersion: '32.3.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,
