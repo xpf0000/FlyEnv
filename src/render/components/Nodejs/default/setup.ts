@@ -62,19 +62,13 @@ export const Setup = () => {
     }
     NodeDefaultSetup.switching = true
     item.switching = true
-    const param = {
+    const param: any = {
       bin: join(global.Server.AppDir!, `nodejs/v${item.version}/bin/node`),
       path: join(global.Server.AppDir!, `nodejs/v${item.version}`)
     }
-    IPC.send('app-fork:tools', 'updatePATH', param, 'node').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        reFetch()
-        ServiceActionStore.fetchPath()
-        MessageSuccess(I18nT('base.success'))
-      } else {
-        MessageError(res?.msg ?? I18nT('base.fail'))
-      }
+    ServiceActionStore.updatePath(param, 'node').then(() => {
+      reFetch()
+    }).finally(() => {
       item.switching = false
       NodeDefaultSetup.switching = false
     })

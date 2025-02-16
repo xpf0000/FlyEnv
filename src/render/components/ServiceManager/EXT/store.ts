@@ -26,7 +26,7 @@ type ServiceActionType = {
     item?: AppServiceAliasItem,
     old?: AppServiceAliasItem
   ) => Promise<boolean>
-  updatePath: (item: SoftInstalled, typeFlag: string) => void
+  updatePath: (item: SoftInstalled, typeFlag: string) => Promise<boolean>
   delVersion: (item: SoftInstalled, typeFlag: string) => void
 }
 
@@ -112,25 +112,31 @@ export const ServiceActionStore: ServiceActionType = reactive({
     })
   },
   updatePath(item: SoftInstalled, typeFlag: string) {
-    if (ServiceActionStore.pathSeting?.[item.bin]) {
-      return
-    }
-    ServiceActionStore.pathSeting[item.bin] = true
-    IPC.send('app-fork:tools', 'updatePATH', JSON.parse(JSON.stringify(item)), typeFlag).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          const all = res?.data?.allPath ?? []
-          const app = res?.data?.appPath ?? []
-          ServiceActionStore.allPath = reactive([...all])
-          ServiceActionStore.appPath = reactive([...app])
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-        delete ServiceActionStore.pathSeting?.[item.bin]
+    return new Promise((resolve, reject) => {
+      if (ServiceActionStore.pathSeting?.[item.bin]) {
+        return resolve(true)
       }
-    )
+      ServiceActionStore.pathSeting[item.bin] = true
+      const action = ServiceActionStore.appPath.includes(item.path) ? 'removePATH' : 'updatePATH'
+      IPC.send('app-fork:tools', action, JSON.parse(JSON.stringify(item)), typeFlag).then(
+        (key: string, res: any) => {
+          IPC.off(key)
+          delete ServiceActionStore.pathSeting?.[item.bin]
+          if (res?.code === 0) {
+            const all = res?.data?.allPath ?? []
+            const app = res?.data?.appPath ?? []
+            ServiceActionStore.allPath = reactive([...all])
+            ServiceActionStore.appPath = reactive([...app])
+            MessageSuccess(I18nT('base.success'))
+            resolve(true)
+          } else {
+            const msg = res?.msg ?? I18nT('base.fail')
+            MessageError(msg)
+            reject(new Error(msg))
+          }
+        }
+      )
+    })
   },
   delVersion(item: SoftInstalled, type: AllAppModule) {
     if (ServiceActionStore.versionDeling?.[item.bin]) {

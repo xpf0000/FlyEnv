@@ -14,7 +14,7 @@ import {
   writeFile
 } from 'fs-extra'
 import { TaskItem, TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
-import { basename, dirname, join, resolve as PathResolve } from 'path'
+import {basename, dirname, isAbsolute, join, resolve as PathResolve} from 'path'
 import { I18nT } from '../lang'
 import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
@@ -405,6 +405,80 @@ subjectAltName=@alt_names
     })
   }
 
+  removePATH(item: SoftInstalled, typeFlag: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      let oldPath: string[] = []
+      try {
+        oldPath = await this._fetchRawPATH()
+      } catch (e) {}
+      if (oldPath.length === 0) {
+        reject(new Error('Fail'))
+        return
+      }
+
+      const envDir = join(dirname(global.Server.AppDir!), 'env')
+      const flagDir = join(envDir, typeFlag)
+      try {
+        await execPromise(`rmdir /S /Q ${flagDir}`)
+      } catch (e) {
+        console.log('rmdir err: ', e)
+      }
+
+      for (const p of oldPath) {
+        if (p.startsWith(flagDir)) {
+          const index = oldPath.indexOf(p)
+          if (index >= 0) {
+            oldPath.splice(index, 1)
+          }
+        }
+      }
+
+      for (const p of oldPath) {
+        if (p.startsWith(item.path)) {
+          const index = oldPath.indexOf(p)
+          if (index >= 0) {
+            oldPath.splice(index, 1)
+          }
+        }
+      }
+
+      const dirIndex = oldPath.findIndex((s) => isAbsolute(s))
+      const varIndex = oldPath.findIndex((s) => !isAbsolute(s))
+      if (varIndex < dirIndex && dirIndex > 0) {
+        const dir = oldPath[dirIndex]
+       oldPath.splice(dirIndex, 1)
+       oldPath.unshift(dir)
+      }
+
+      oldPath = oldPath.map((p) => {
+        if (p.includes('%')) {
+          return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
+        }
+        return p
+      })
+
+      const sh = join(global.Server.Static!, 'sh/path-set.cmd')
+      const copySh = join(global.Server.Cache!, 'path-set.cmd')
+      if (existsSync(copySh)) {
+        await remove(copySh)
+      }
+      let content = await readFile(sh, 'utf-8')
+      content = content.replace('##NEW_PATH##', oldPath.join(';'))
+      content = content.replace('##OTHER##', ``)
+
+      await writeFile(copySh, content)
+      process.chdir(global.Server.Cache!)
+      try {
+        await execPromise('path-set.cmd')
+      } catch (e) {
+        return reject(e)
+      }
+
+      const allPath = await this.fetchPATH()
+      resolve(allPath)
+    })
+  }
+
   updatePATH(item: SoftInstalled, typeFlag: string) {
     return new ForkPromise(async (resolve, reject) => {
       let oldPath: string[] = []
@@ -529,9 +603,9 @@ php "%~dp0composer.phar" %*`
       let content = await readFile(sh, 'utf-8')
       content = content.replace('##NEW_PATH##', oldPath.join(';'))
       if (typeFlag === 'java') {
-        content = content.replace('##OTHER##', `setx /M JAVA_HOME "${item.path}"`)
+        content = content.replace('##OTHER##', `setx /M JAVA_HOME "${flagDir}"`)
       } else if (typeFlag === 'erlang') {
-        content = content.replace('##OTHER##', `setx /M ERLANG_HOME "${item.path}"`)
+        content = content.replace('##OTHER##', `setx /M ERLANG_HOME "${flagDir}"`)
         const f = join(global.Server.Cache!, `${uuid()}.ps1`)
         await writeFile(
           f,
