@@ -12,6 +12,13 @@
 
 ## Main Modules
 
+### AI
+
+- [ ] Ollama
+- [ ] DeepSeek
+- [ ] Chatbox
+- [ ] MaxKB
+
 ### Web Server
 
 - [x] Apache
