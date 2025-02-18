@@ -539,6 +539,31 @@ class Manager extends Base {
       resolve(arr)
     })
   }
+
+  writeFileAndChmod777ByRoot(file: string, content: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        await Helper.send('tools', 'writeFileByRoot', file, content)
+        await Helper.send('tools', 'chmod', file, '777')
+      } catch (e) {
+        return reject(e)
+      }
+      resolve(true)
+    })
+  }
+
+  readFileAndChmod777ByRoot(file: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      let content = ''
+      try {
+        content = (await Helper.send('tools', 'readFileByRoot', file)) as any
+        await Helper.send('tools', 'chmod', file, '777')
+      } catch (e) {
+        return reject(e)
+      }
+      resolve(content)
+    })
+  }
 }
 
 export default new Manager()
