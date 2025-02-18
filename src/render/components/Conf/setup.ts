@@ -4,6 +4,7 @@ import { EditorConfigMake, EditorCreate } from '@/util/Editor'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
 import type { AllAppModule } from '@/core/type'
+import IPC from '@/util/IPC'
 
 const { dialog } = require('@electron/remote')
 const { shell } = require('@electron/remote')
@@ -103,11 +104,24 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       return
     }
     const content = monacoInstance?.getValue() ?? ''
-    writeFile(props.value.file, content).then(() => {
-      config.value = content
-      changed.value = false
-      MessageSuccess(I18nT('base.success'))
-    })
+    writeFile(props.value.file, content)
+      .then(() => {
+        config.value = content
+        changed.value = false
+        MessageSuccess(I18nT('base.success'))
+      })
+      .catch(() => {
+        IPC.send('app-fork:tools', 'writeFileAndChmod777ByRoot', props.value.file, content).then(
+          (key: string, res: any) => {
+            IPC.off(key)
+            if (res?.code === 0) {
+              MessageSuccess(I18nT('base.success'))
+              return
+            }
+            MessageError(res?.msg ?? I18nT('base.fail'))
+          }
+        )
+      })
   }
 
   const getEditValue = () => {
@@ -188,10 +202,26 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       initEditor()
       return
     }
-    readFile(props.value.file, 'utf-8').then((conf: string) => {
-      config.value = conf
-      initEditor()
-    })
+    readFile(props.value.file, 'utf-8')
+      .then((conf: string) => {
+        config.value = conf
+        initEditor()
+      })
+      .catch(() => {
+        IPC.send('app-fork:tools', 'readFileAndChmod777ByRoot', props.value.file).then(
+          (key: string, res: any) => {
+            IPC.off(key)
+            if (res?.code === 0) {
+              config.value = res?.data ?? ''
+              initEditor()
+              return
+            }
+            config.value = ''
+            initEditor()
+            MessageError(res?.msg ?? I18nT('base.fail'))
+          }
+        )
+      })
   }
 
   const getDefault = () => {

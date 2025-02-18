@@ -51,6 +51,36 @@ class Nginx extends Base {
     }
   }
 
+  async _fixConf() {
+    return new ForkPromise(async (resolve) => {
+      const c = join(global.Server.NginxDir!, 'common/conf/nginx.conf')
+      if (!existsSync(c)) {
+        return resolve(true)
+      }
+      let content = await readFile(c, 'utf-8')
+      const add: string[] = [
+        'client_body_temp',
+        'proxy_temp',
+        'fastcgi_temp',
+        'uwsgi_temp',
+        'scgi_temp'
+      ]
+        .filter((s) => {
+          const regex = new RegExp(`([\\s\\n]?[^\\n]*)${s}_path (.*?);`, 'g')
+          return !regex.test(content)
+        })
+        .map((s) => `    ${s}_path run/${s};`)
+
+      if (add.length === 0) {
+        return resolve(true)
+      }
+
+      content = content.replace(/http(.*?)\{(.*?)\n/g, `http {\n${add.join('\n')}\n`)
+      await writeFile(c, content)
+      resolve(true)
+    })
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
@@ -65,6 +95,9 @@ class Nginx extends Base {
       const c = join(global.Server.NginxDir!, 'common/conf/nginx.conf')
       const pid = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
       const errlog = join(global.Server.NginxDir!, 'common/logs/error.log')
+      const temp_path = join(global.Server.NginxDir!, 'common/run')
+      await mkdirp(temp_path)
+      await this._fixConf()
       const g = `pid ${pid};error_log ${errlog};`
       const p = join(global.Server.NginxDir!, 'common')
       if (existsSync(pid)) {
