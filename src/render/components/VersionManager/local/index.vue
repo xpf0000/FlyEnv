@@ -47,15 +47,6 @@
         </template>
       </template>
     </el-table-column>
-    <el-table-column align="center" :label="I18nT('base.isInstalled')" width="150">
-      <template #default="scope">
-        <div class="cell-status">
-          <template v-if="scope.row.installed || scope.row?.path">
-            <yb-icon :svg="import('@/svg/ok.svg?raw')" class="installed"></yb-icon>
-          </template>
-        </div>
-      </template>
-    </el-table-column>
     <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
       <template #header>
         <el-tooltip :content="I18nT('service.envTips')" placement="top" :show-after="600">
@@ -63,22 +54,44 @@
         </el-tooltip>
       </template>
       <template #default="scope">
-        <template v-if="isInAppEnv(scope.row)">
+        <template v-if="ServiceActionStore.pathSeting[scope.row.bin]">
+          <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+        </template>
+        <template v-else-if="isInAppEnv(scope.row)">
           <el-tooltip :content="I18nT('service.setByApp')" :show-after="600" placement="top">
-            <el-button link type="primary">
+            <el-button
+              link
+              type="primary"
+              @click.stop="ServiceActionStore.updatePath(scope.row, typeFlag)"
+            >
               <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
             </el-button>
           </el-tooltip>
         </template>
         <template v-else-if="isInEnv(scope.row)">
           <el-tooltip :content="I18nT('service.setByNoApp')" :show-after="600" placement="top">
-            <el-button link type="warning">
+            <el-button
+              link
+              type="warning"
+              @click.stop="ServiceActionStore.updatePath(scope.row, typeFlag)"
+            >
               <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
             </el-button>
           </el-tooltip>
         </template>
-        <template v-else-if="ServiceActionStore.pathSeting[scope.row.bin]">
-          <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+        <template v-else>
+          <el-button
+            class="current-set row-hover-show"
+            link
+            @click.stop="ServiceActionStore.updatePath(scope.row, typeFlag)"
+          >
+            <yb-icon
+              class="current-not"
+              :svg="import('@/svg/select.svg?raw')"
+              width="17"
+              height="17"
+            />
+          </el-button>
         </template>
       </template>
     </el-table-column>
