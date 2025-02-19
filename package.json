@@ -95,7 +95,7 @@
     "concurrently": "^7.0.0",
     "cross-env": "^7.0.3",
     "crypto-js": "^4.2.0",
-    "electron": "^32.3.0",
+    "electron": "^31.7.7",
     "electron-builder": "^24.13.3",
     "electron-debug": "^3.2.0",
     "electron-devtools-installer": "^4.0.0",
