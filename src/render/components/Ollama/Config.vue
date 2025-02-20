@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, Ref, ref, watch } from 'vue'
+  import { computed, reactive, Ref, ref, watch } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import IPC from '@/util/IPC'
   import type { CommonSetItem } from '@/components/Conf/setup'
@@ -40,25 +40,22 @@
       name: 'OLLAMA_DEBUG',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_DEBUG')
       }
     },
     {
       name: 'OLLAMA_HOST',
-      value: '',
+      value: '127.0.0.1:11434',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_HOST')
       }
     },
     {
       name: 'OLLAMA_KEEP_ALIVE',
-      value: '',
+      value: '5m',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_KEEP_ALIVE')
       }
@@ -67,7 +64,6 @@
       name: 'OLLAMA_MAX_LOADED_MODELS',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_MAX_LOADED_MODELS')
       }
@@ -76,7 +72,6 @@
       name: 'OLLAMA_MAX_QUEUE',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_MAX_QUEUE')
       }
@@ -85,7 +80,6 @@
       name: 'OLLAMA_MODELS',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_MODELS')
       }
@@ -94,7 +88,6 @@
       name: 'OLLAMA_NUM_PARALLEL',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_NUM_PARALLEL')
       }
@@ -103,7 +96,6 @@
       name: 'OLLAMA_NOPRUNE',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_NOPRUNE')
       }
@@ -112,7 +104,6 @@
       name: 'OLLAMA_ORIGINS',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_ORIGINS')
       }
@@ -121,7 +112,6 @@
       name: 'OLLAMA_SCHED_SPREAD',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_SCHED_SPREAD')
       }
@@ -130,16 +120,14 @@
       name: 'OLLAMA_FLASH_ATTENTION',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_FLASH_ATTENTION')
       }
     },
     {
       name: 'OLLAMA_KV_CACHE_TYPE',
-      value: '',
+      value: 'f16',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_KV_CACHE_TYPE')
       }
@@ -148,7 +136,6 @@
       name: 'OLLAMA_LLM_LIBRARY',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_LLM_LIBRARY')
       }
@@ -157,16 +144,14 @@
       name: 'OLLAMA_GPU_OVERHEAD',
       value: '',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_GPU_OVERHEAD')
       }
     },
     {
       name: 'OLLAMA_LOAD_TIMEOUT',
-      value: '',
+      value: '5m',
       enable: false,
-
       tips() {
         return I18nT('ollama.OLLAMA_LOAD_TIMEOUT')
       }
@@ -177,7 +162,7 @@
 
   const onSettingUpdate = () => {
     let config = editConfig
-    const list = ['#PhpWebStudy-Conf-Common-Begin#']
+    const list = ['#FlyEnv-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
       const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
       config = config.replace(regex, `\n\n`)
@@ -185,9 +170,9 @@
         list.push(`${item.name}=${item.value}`)
       }
     })
-    list.push('#PhpWebStudy-Conf-Common-END#')
+    list.push('#FlyEnv-Conf-Common-END#')
     config = config
-      .replace(/#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g, '')
+      .replace(/#FlyEnv-Conf-Common-Begin#([\s\S]*?)#FlyEnv-Conf-Common-END#/g, '')
       .replace(/\n+/g, '\n')
       .trim()
     config = `${list.join('\n')}\n` + config
@@ -224,7 +209,7 @@
       item.value = find?.v ?? item.value
       return item
     })
-    commonSetting.value = arr as any
+    commonSetting.value = reactive(arr) as any
     watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
       deep: true
     })
@@ -234,6 +219,8 @@
     console.log('onTypeChange: ', type, config)
     if (editConfig !== config) {
       editConfig = config
+      getCommonSetting()
+    } else if (commonSetting.value.length === 0) {
       getCommonSetting()
     }
   }
