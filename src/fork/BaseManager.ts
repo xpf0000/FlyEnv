@@ -32,6 +32,7 @@ class BaseManager {
   Erlang: any
   Ruby: any
   Elasticsearch: any
+  Ollama: any
 
   constructor() {}
 
@@ -247,6 +248,12 @@ class BaseManager {
         this.Elasticsearch = res.default
       }
       doRun(this.Elasticsearch)
+    } else if (module === 'ollama') {
+      if (!this.Ollama) {
+        const res = await import('./module/Ollama')
+        this.Ollama = res.default
+      }
+      doRun(this.Ollama)
     }
   }
 
