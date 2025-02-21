@@ -17,6 +17,9 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, remove, chmod } from 'fs-extra'
 import { I18nT } from '../lang'
 import TaskQueue from '../TaskQueue'
+import axios from 'axios'
+import http from 'http'
+import https from 'https'
 
 class Ollama extends Base {
   constructor() {
@@ -234,6 +237,30 @@ class Ollama extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       resolve({})
+    })
+  }
+
+  fetchAllModels() {
+    return new ForkPromise(async (resolve) => {
+      let list: any = []
+      try {
+        const res = await axios({
+          url: 'https://api.one-env.com/api/version/fetch',
+          method: 'post',
+          data: {
+            app: 'ollama_models',
+            os: 'mac',
+            arch: global.Server.Arch === 'x86_64' ? 'x86' : 'arm'
+          },
+          timeout: 30000,
+          withCredentials: false,
+          httpAgent: new http.Agent({ keepAlive: false }),
+          httpsAgent: new https.Agent({ keepAlive: false }),
+          proxy: this.getAxiosProxy()
+        })
+        list = res?.data?.data ?? []
+      } catch (e) {}
+      return resolve(list)
     })
   }
 }
