@@ -1,22 +1,17 @@
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { AppStore } from '@/store/app'
-import { BrewStore, OnlineVersionItem } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
-import type { AllAppModule } from '@/core/type'
-import installedVersions from '@/util/InstalledVersions'
-import { brewInfo } from '@/util/Brew'
-import { chmod } from '@shared/file'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
 
 const { clipboard } = require('@electron/remote')
-const { join, basename, dirname } = require('path')
-const { existsSync, unlinkSync, copyFileSync } = require('fs')
+const { dirname } = require('path')
 
 export type OllamaModelItem = {
   name: string
-  size: string
+  size?: string
+  children?: OllamaModelItem[]
 }
 
 export const OllamaModelsSetup = reactive<{
@@ -37,7 +32,6 @@ export const OllamaModelsSetup = reactive<{
 
 export const Setup = () => {
   const appStore = AppStore()
-  const brewStore = BrewStore()
 
   const proxy = computed(() => {
     return appStore.config.setup.proxy
@@ -93,14 +87,27 @@ export const Setup = () => {
 
   OllamaModelsSetup.reFetch = reGetData
 
+  const tableData = computed(() => {
+    const dict = OllamaModelsSetup.list
+    const list: OllamaModelItem[] = []
+    for (const type in dict) {
+      const arr = dict[type]
+      list.push({
+        name: type,
+        children: arr
+      })
+    }
+    return list
+  })
+
   const fetchCommand = (row: any) => {
     let fn = ''
     if (row.installed) {
-      fn = 'uninstall'
+      fn = 'rm'
     } else {
-      fn = 'install'
+      fn = 'pull'
     }
-    return `brew ${fn} ${row.name}`
+    return `cd "${dirname(row.bin)}" && ./ollama ${fn} ${row.name}`
   }
 
   const copyCommand = (row: any) => {
@@ -115,23 +122,7 @@ export const Setup = () => {
     }
     OllamaModelsSetup.installing = true
     OllamaModelsSetup.installEnd = false
-    let fn = ''
-    if (row.installed) {
-      fn = 'uninstall'
-    } else {
-      fn = 'install'
-    }
-    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-    const name = row.name
-    let params = []
-    const sh = join(global.Server.Static!, 'sh/brew-cmd.sh')
-    const copyfile = join(global.Server.Cache!, 'brew-cmd.sh')
-    if (existsSync(copyfile)) {
-      unlinkSync(copyfile)
-    }
-    copyFileSync(sh, copyfile)
-    chmod(copyfile, '0777')
-    params = [`${copyfile} ${arch} ${fn} ${name};`]
+    const params = [fetchCommand(row)]
     if (proxyStr?.value) {
       params.unshift(proxyStr?.value)
     }
@@ -141,74 +132,9 @@ export const Setup = () => {
     await execXTerm.mount(xtermDom.value!)
     await execXTerm.send(params)
     OllamaModelsSetup.installEnd = true
-    regetInstalled()
   }
-
-  const tableData = computed(() => {
-    const arr = []
-    const list = brewStore.module(typeFlag).list?.['brew']
-    for (const name in list) {
-      const value = list[name]
-      const nums = value.version.split('.').map((n: string, i: number) => {
-        if (i > 0) {
-          const num = parseInt(n)
-          if (isNaN(num)) {
-            return '00'
-          }
-          if (num < 10) {
-            return `0${num}`
-          }
-          return num
-        }
-        return n
-      })
-      const num = parseInt(nums.join(''))
-      Object.assign(value, {
-        name,
-        version: value.version,
-        installed: value.installed,
-        num,
-        flag: value.flag
-      })
-      arr.push(value)
-    }
-    arr.sort((a, b) => {
-      return b.num - a.num
-    })
-    return arr
-  })
 
   const xtermDom = ref<HTMLElement>()
-
-  const installBrew = async () => {
-    if (OllamaModelsSetup.installing) {
-      return
-    }
-    OllamaModelsSetup.installEnd = false
-    OllamaModelsSetup.installing = true
-    await nextTick()
-    const file =
-      appStore.config.setup.lang === 'zh'
-        ? join(global.Server.Static!, 'sh/brew-install.sh')
-        : join(global.Server.Static!, 'sh/brew-install-en.sh')
-    const copyFile = join(global.Server.Cache!, basename(file))
-    copyFileSync(file, copyFile)
-    const execXTerm = new XTerm()
-    OllamaModelsSetup.xterm = execXTerm
-    console.log('xtermDom.value: ', xtermDom.value)
-    await execXTerm.mount(xtermDom.value!)
-    const command: string[] = [`cd "${dirname(copyFile)}"`, `./${basename(file)}`]
-    await execXTerm.send(command)
-    OllamaModelsSetup.installEnd = true
-  }
-
-  getData()
-
-  watch(checkBrew, (v, ov) => {
-    if (!ov && v) {
-      getData()
-    }
-  })
 
   onMounted(() => {
     if (OllamaModelsSetup.installing) {
@@ -226,14 +152,12 @@ export const Setup = () => {
   })
 
   return {
-    installBrew,
     handleBrewVersion,
-    tableData,
-    checkBrew,
     reGetData,
     fetching,
     xtermDom,
     fetchCommand,
-    copyCommand
+    copyCommand,
+    tableData
   }
 }
