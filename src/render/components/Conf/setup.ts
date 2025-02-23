@@ -164,6 +164,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
         }
         const currentValue = monacoInstance?.getValue()
         changed.value = currentValue !== config.value
+        config.value = currentValue
       })
     } else {
       monacoInstance.setValue(config.value)
@@ -204,6 +205,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       return
     }
     readFile(props.value.defaultFile, 'utf-8').then((conf: string) => {
+      console.log('getDefault config.value === conf', config.value === conf)
       config.value = conf
       initEditor()
     })
