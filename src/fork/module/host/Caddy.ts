@@ -200,20 +200,20 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
     }
     if (host.phpVersion) {
       if (old.phpVersion) {
-        replace.push(...[`import enable-php-select ${host.phpVersion}`])
-        replace.push(...[`import enable-php-select ${host.phpVersion}`])
+        replace.push(...[`import enable-php-select ${host.phpVersion}\r\n`])
+        replace.push(...[`import enable-php-select ${host.phpVersion}\n`])
       } else {
-        replace.push(...[`import enable-php-select ${host.phpVersion}`])
-        replace.push(...[`import enable-php-select ${host.phpVersion}`])
+        replace.push(...[`import enable-php-select ${host.phpVersion}\r\n`])
+        replace.push(...[`import enable-php-select ${host.phpVersion}\n`])
         replace.push(...[`import enable-php-select ${host.phpVersion}`])
       }
     } else {
       if (old.phpVersion) {
-        replace.push(...['##Static Site Caddy##'])
-        replace.push(...['##Static Site Caddy##'])
+        replace.push(...['##Static Site Caddy##\r\n'])
+        replace.push(...['##Static Site Caddy##\n'])
       } else {
-        replace.push(...['##Static Site Caddy##'])
-        replace.push(...['##Static Site Caddy##'])
+        replace.push(...['##Static Site Caddy##\r\n'])
+        replace.push(...['##Static Site Caddy##\n'])
         replace.push(...['##Static Site Caddy##'])
       }
     }
