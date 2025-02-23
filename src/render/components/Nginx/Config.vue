@@ -145,7 +145,7 @@
       watcher()
     }
     let config = editConfig.replace(/\r\n/gm, '\n')
-    const arr = names.map((item) => {
+    const arr = [...names].map((item) => {
       const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
       const matchs =
         config.match(regex)?.map((s) => {
@@ -162,10 +162,7 @@
         }) ?? []
       console.log('getCommonSetting: ', matchs, item.name)
       const find = matchs?.find((m) => m.k === item.name)
-      if (!find) {
-        item.enable = false
-        return item
-      }
+      item.enable = !!find
       item.value = find?.v ?? item.value
       item.key = uuid()
       return item
