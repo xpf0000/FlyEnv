@@ -146,10 +146,11 @@
     if (watcher) {
       watcher()
     }
+    let config = editConfig.replace(/\r\n/gm, '\n')
     const arr = names.map((item) => {
       const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
       const matchs =
-        editConfig.match(regex)?.map((s) => {
+        config.match(regex)?.map((s) => {
           const sarr = s
             .trim()
             .split(' ')
