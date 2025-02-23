@@ -203,21 +203,14 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
     if (old.phpVersion) {
-      find.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${old.phpVersion}"`])
-      find.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${old.phpVersion}/"`])
+      find.push(...[`SetHandler "proxy:fcgi://127\.0\.0\.1:90(.*?)"`])
     } else {
       find.push(...['##Static Site Apache##'])
     }
     if (host.phpVersion) {
       replace.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}/"`])
-      if (old.phpVersion) {
-        replace.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}/"`])
-      }
     } else {
       replace.push(...['##Static Site Apache##'])
-      if (old.phpVersion) {
-        replace.push(...['##Static Site Apache##'])
-      }
     }
   }
   if (!isEqual(host?.reverseProxy, old?.reverseProxy)) {
