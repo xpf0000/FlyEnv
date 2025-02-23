@@ -164,6 +164,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
         }
         const currentValue = monacoInstance?.getValue()
         changed.value = currentValue !== config.value
+        config.value = currentValue
       })
     } else {
       monacoInstance.setValue(config.value)
