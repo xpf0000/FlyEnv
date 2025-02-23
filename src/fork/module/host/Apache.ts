@@ -126,18 +126,26 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
     hasChanged = true
     find.push(
       ...[
-        `ServerName ${old.name}`,
-        `ErrorLog "${logpath}/${old.name}-error_log"`,
-        `CustomLog "${logpath}/${old.name}-access_log" combined`,
-        `ServerName SSL.${old.name}`
+        `ServerName(.*?)SSL\.(.*?)\\r\\n`,
+        `ServerName(.*?)SSL\.(.*?)\\n`,
+        `ServerName(?!\\s+SSL\.).*?\\r\\n`,
+        `ServerName(?!\\s+SSL\.).*?\\n`,
+        `ErrorLog(.*?)${logpath}/(.*?)\\r\\n`,
+        `ErrorLog(.*?)${logpath}/(.*?)\\n`,
+        `CustomLog(.*?)${logpath}/(.*?)\\r\\n`,
+        `CustomLog(.*?)${logpath}/(.*?)\\n`
       ]
     )
     replace.push(
       ...[
-        `ServerName ${host.name}`,
-        `ErrorLog "${logpath}/${host.name}-error_log"`,
-        `CustomLog "${logpath}/${host.name}-access_log" combined`,
-        `ServerName SSL.${host.name}`
+        `ServerName SSL.${host.name}\r\n`,
+        `ServerName SSL.${host.name}\n`,
+        `ServerName ${host.name}\r\n`,
+        `ServerName ${host.name}\n`,
+        `ErrorLog "${logpath}/${host.name}-error_log"\r\n`,
+        `ErrorLog "${logpath}/${host.name}-error_log"\n`,
+        `CustomLog "${logpath}/${host.name}-access_log" combined\r\n`,
+        `CustomLog "${logpath}/${host.name}-access_log" combined\n`
       ]
     )
   }
