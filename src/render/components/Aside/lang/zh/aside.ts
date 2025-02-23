@@ -9,5 +9,6 @@ export default {
   dnsServer: 'DNS服务器',
   ftpServer: 'FTP服务器',
   other: '其他',
-  appLog: 'App日志'
+  appLog: 'App日志',
+  ai: 'AI'
 }

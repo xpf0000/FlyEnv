@@ -40,6 +40,7 @@ body {
       color: #4096ff;
     }
   }
+
   .app-el-table-v2 {
     .el-table-v2__header-cell {
       padding: 0 12px;
@@ -69,6 +70,29 @@ body {
 
         .hover-yellow-500 {
           cursor: pointer;
+
+          &:hover {
+            color: #fdab1f;
+          }
+        }
+      }
+
+      .row-hover-show {
+        display: none;
+      }
+
+      &:hover {
+        .row-hover-show {
+          display: inline-flex;
+        }
+      }
+    }
+  }
+
+  .el-table {
+    .el-table__row {
+      .el-table__cell {
+        .hover-yellow-500 {
 
           &:hover {
             color: #fdab1f;
@@ -833,7 +857,9 @@ body {
 
       &.path-set {
         >svg {
-          opacity: 0.5;
+          &:not(.opacity-100) {
+            opacity: 0.5;
+          }
         }
 
         &.seted {

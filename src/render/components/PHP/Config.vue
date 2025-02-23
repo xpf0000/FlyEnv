@@ -289,6 +289,7 @@
         if (res.code === 0) {
           ConfStore.phpIniFiles[flag.value] = res.data
           ConfStore.save()
+          conf?.value?.update && conf.value.update()
         }
       }
     )
