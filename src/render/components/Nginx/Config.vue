@@ -138,6 +138,7 @@
       .trim()
     config = config.replace(/http(.*?)\{(.*?)\n/g, `http {\n${list.join('\n')}\n`)
     conf.value.setEditValue(config)
+    editConfig = config
   }
 
   const getCommonSetting = () => {
