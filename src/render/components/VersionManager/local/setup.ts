@@ -84,7 +84,6 @@ export const SetupAll = (typeFlag: AllAppModule) => {
     currentModule,
     reGetData,
     fetching,
-    checkEnvPath,
     openDir,
     isInEnv,
     isInAppEnv,
