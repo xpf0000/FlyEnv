@@ -3,8 +3,8 @@
     <el-card>
       <div v-show="type === 'default'" ref="input" class="block"></div>
       <template v-if="showCommond">
-        <el-scrollbar v-show="type === 'common'" class="p-4">
-          <Common :key="commanKey" :setting="commonSetting" />
+        <el-scrollbar v-if="type === 'common'" class="p-4">
+          <Common :setting="commonSetting" />
         </el-scrollbar>
       </template>
       <template #footer>
@@ -57,13 +57,12 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, watch, ref } from 'vue'
+  import { computed, watch } from 'vue'
   import { Document, Operation, FolderOpened } from '@element-plus/icons-vue'
   import type { AllAppModule } from '@/core/type'
   import { type CommonSetItem, ConfSetup } from '@/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import Common from './common.vue'
-  import { uuid } from "@shared/utils"
 
   const props = defineProps<{
     file: string
@@ -76,8 +75,6 @@
   }>()
 
   const emit = defineEmits(['onTypeChange'])
-
-  const commanKey = ref(uuid())
 
   const p = computed(() => {
     return {
@@ -120,11 +117,6 @@
       immediate: true
     }
   )
-
-  watch(() => props.commonSetting, () => {
-    console.trace('props.commonSetting changed !!!')
-    commanKey.value = uuid()
-  })
 
   defineExpose({
     setEditValue,
