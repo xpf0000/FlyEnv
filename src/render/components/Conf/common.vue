@@ -7,7 +7,7 @@
             class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
           >
             <template v-for="(item, index) in setting.filter((s) => s.type === type)" :key="index">
-              <CommonItem :item="item" />
+              <CommonItem :key="`${commanKey}-${index}`" :item="item" />
             </template>
           </div>
         </el-collapse-item>
@@ -19,7 +19,7 @@
       class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
     >
       <template v-for="(item, index) in setting" :key="index">
-        <CommonItem :item="item" />
+        <CommonItem :key="`${commanKey}-${index}`" :item="item" />
       </template>
     </div>
   </template>
@@ -28,10 +28,13 @@
   import { computed, ref, watch } from 'vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import CommonItem from './commonItem.vue'
+  import { uuid } from "@shared/utils";
 
   const props = defineProps<{
     setting: CommonSetItem[]
   }>()
+
+  const commanKey = ref(uuid())
 
   const allTypes = computed(() => {
     const set: Set<string> = new Set<string>()
@@ -47,5 +50,9 @@
 
   watch(allTypes, (v) => {
     activeNames.value = [...v]
+  })
+
+  watch(() => props.setting, () => {
+    commanKey.value = uuid()
   })
 </script>
