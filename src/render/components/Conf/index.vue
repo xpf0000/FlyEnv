@@ -2,9 +2,11 @@
   <div class="module-config">
     <el-card>
       <div v-show="type === 'default'" ref="input" class="block"></div>
-      <el-scrollbar v-show="type === 'common'" class="p-4">
-        <slot name="common"></slot>
-      </el-scrollbar>
+      <template v-if="showCommond">
+        <el-scrollbar v-show="type === 'common'" class="p-4">
+          <Common :key="commanKey" :setting="commonSetting"/>
+        </el-scrollbar>
+      </template>
       <template #footer>
         <div class="tool">
           <el-radio-group v-if="showCommond" v-model="type" class="mr-7" size="small">
@@ -55,11 +57,13 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, watch } from 'vue'
+  import { computed, watch, ref } from 'vue'
   import { Document, Operation, FolderOpened } from '@element-plus/icons-vue'
   import type { AllAppModule } from '@/core/type'
-  import { ConfSetup } from '@/components/Conf/setup'
+  import { type CommonSetItem, ConfSetup } from '@/components/Conf/setup'
   import { I18nT } from '@shared/lang'
+  import Common from './common.vue'
+  import { uuid } from "@shared/utils"
 
   const props = defineProps<{
     file: string
@@ -68,9 +72,12 @@
     fileExt: string
     typeFlag: AllAppModule
     showCommond: boolean
+    commonSetting: CommonSetItem[]
   }>()
 
   const emit = defineEmits(['onTypeChange'])
+
+  const commanKey = ref(uuid())
 
   const p = computed(() => {
     return {
@@ -105,7 +112,7 @@
     watchFlag,
     (v) => {
       console.log('watchFlag changed: ', v, disabled.value)
-      if (!disabled.value) {
+      if (!disabled.value && type.value === 'common') {
         emit('onTypeChange', type.value, getEditValue())
       }
     },
@@ -113,6 +120,11 @@
       immediate: true
     }
   )
+
+  watch(() => props.commonSetting, () => {
+    console.trace('props.commonSetting changed !!!')
+    commanKey.value = uuid()
+  })
 
   defineExpose({
     setEditValue,

@@ -7,26 +7,21 @@
     :file-ext="'conf'"
     :show-commond="true"
     @on-type-change="onTypeChange"
+    :common-setting="commonSetting"
   >
-    <template #common>
-      <Common :key="commanKey" :setting="commonSetting" />
-    </template>
   </Conf>
 </template>
 
 <script lang="ts" setup>
   import { computed, ref, watch, Ref, reactive } from 'vue'
   import Conf from '@/components/Conf/index.vue'
-  import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
-  import { uuid } from "@shared/utils";
 
   const { join } = require('path')
 
   const conf = ref()
-  const commanKey = ref(uuid())
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const file = computed(() => {
     return join(global.Server.NginxDir, 'conf/nginx.conf')
@@ -174,7 +169,6 @@
       return item
     })
     commonSetting.value = reactive(arr) as any
-    commanKey.value = uuid()
     watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
       deep: true
     })
