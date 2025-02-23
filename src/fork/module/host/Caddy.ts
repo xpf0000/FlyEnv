@@ -191,19 +191,29 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
     if (old.phpVersion) {
-      find.push(...[`import enable-php-select ${old.phpVersion}`])
+      find.push(...[`import(\\s+)enable-php-select(.*?)\\r\\n`])
+      find.push(...[`import(\\s+)enable-php-select(.*?)\\n`])
     } else {
-      find.push(...['import enable-php-select undefined'])
+      find.push(...[`import(\\s+)enable-php-select(.*?)\\r\\n`])
+      find.push(...[`import(\\s+)enable-php-select(.*?)\\n`])
       find.push(...['##Static Site Caddy##'])
     }
     if (host.phpVersion) {
-      replace.push(...[`import enable-php-select ${host.phpVersion}`])
-      if (!old.phpVersion) {
+      if (old.phpVersion) {
+        replace.push(...[`import enable-php-select ${host.phpVersion}`])
+        replace.push(...[`import enable-php-select ${host.phpVersion}`])
+      } else {
+        replace.push(...[`import enable-php-select ${host.phpVersion}`])
+        replace.push(...[`import enable-php-select ${host.phpVersion}`])
         replace.push(...[`import enable-php-select ${host.phpVersion}`])
       }
     } else {
-      replace.push(...['##Static Site Caddy##'])
-      if (!old.phpVersion) {
+      if (old.phpVersion) {
+        replace.push(...['##Static Site Caddy##'])
+        replace.push(...['##Static Site Caddy##'])
+      } else {
+        replace.push(...['##Static Site Caddy##'])
+        replace.push(...['##Static Site Caddy##'])
         replace.push(...['##Static Site Caddy##'])
       }
     }

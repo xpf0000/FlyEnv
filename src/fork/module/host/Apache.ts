@@ -203,7 +203,7 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
     if (old.phpVersion) {
-      find.push(...[`SetHandler "proxy:fcgi://127\.0\.0\.1:90(.*?)"`])
+      find.push(...[`SetHandler(\\s+)"proxy:fcgi://127\.0\.0\.1:90(.*?)"`])
     } else {
       find.push(...['##Static Site Apache##'])
     }

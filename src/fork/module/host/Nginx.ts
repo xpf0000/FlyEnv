@@ -274,7 +274,7 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
     if (old.phpVersion) {
-      find.push(...[`include enable-php-${old.phpVersion}.conf;`])
+      find.push(...[`include(\\s+)enable-php-(.*?).conf;`])
     } else {
       find.push(...['##Static Site Nginx##'])
     }
