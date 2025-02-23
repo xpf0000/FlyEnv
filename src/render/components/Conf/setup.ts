@@ -258,6 +258,10 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     index.value += 1
   }
 
+  const watchFlag = computed(() => {
+    return `${type.value}-${disabled.value}-${config.value}`
+  })
+
   return {
     changed,
     update,
@@ -273,6 +277,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     loadCustom,
     getConfig,
     getEditValue,
-    setEditValue
+    setEditValue,
+    watchFlag
   }
 }

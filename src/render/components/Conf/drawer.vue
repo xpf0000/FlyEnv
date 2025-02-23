@@ -93,11 +93,12 @@
     openConfig,
     loadCustom,
     getEditValue,
-    setEditValue
+    setEditValue,
+    watchFlag
   } = ConfSetup(p)
 
   watch(
-    () => `${type.value}-${disabled.value}-${config.value}`,
+    watchFlag,
     () => {
       if (!disabled.value) {
         emit('onTypeChange', type.value, getEditValue())
