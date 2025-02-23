@@ -104,7 +104,7 @@
   watch(
     watchFlag,
     (v) => {
-      console.log('watchFlag: ', v)
+      console.log('watchFlag changed: ', v, disabled.value)
       if (!disabled.value) {
         emit('onTypeChange', type.value, getEditValue())
       }

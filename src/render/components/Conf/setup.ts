@@ -259,6 +259,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   }
 
   const watchFlag = computed(() => {
+    console.trace('watchFlag !!!', type.value, disabled.value, config.value)
     return `${type.value}-${disabled.value}-${config.value}`
   })
 
