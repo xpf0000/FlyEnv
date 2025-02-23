@@ -225,7 +225,7 @@ class Php extends Base {
       const command = commands.join(EOL)
       console.log('command: ', command)
 
-      const cmdName = `start.cmd`
+      const cmdName = `start-${version.num}.cmd`
       const sh = join(global.Server.PhpDir!, cmdName)
       await writeFile(sh, command)
 
