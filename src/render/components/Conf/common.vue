@@ -8,8 +8,8 @@
             :^data-key="commanKey"
             class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
           >
-            <template v-for="(item, index) in setting.filter((s) => s.type === type)" :key="`${commanKey}-${index}`">
-              <CommonItem :item="item" :index="commanKey" />
+            <template v-for="(item, index) in setting.filter((s) => s.type === type)" :key="item.key">
+              <CommonItem :item="item" :index="item.key" />
             </template>
           </div>
         </el-collapse-item>
@@ -22,8 +22,8 @@
       :^data-key="commanKey"
       class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
     >
-      <template v-for="(item, index) in setting" :key="`${commanKey}-${index}`">
-        <CommonItem :item="item" :index="commanKey" />
+      <template v-for="(item) in setting" :key="item.key">
+        <CommonItem :item="item" :index="item.key" />
       </template>
     </div>
   </template>

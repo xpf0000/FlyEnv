@@ -18,6 +18,7 @@
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
+  import {uuid} from "@shared/utils";
 
   const { join } = require('path')
 
@@ -166,6 +167,7 @@
         return item
       }
       item.value = find?.v ?? item.value
+      item.key = uuid()
       return item
     })
     commonSetting.value = reactive(arr) as any
