@@ -4,7 +4,7 @@
       <div v-show="type === 'default'" ref="input" class="block"></div>
       <template v-if="showCommond">
         <el-scrollbar v-show="type === 'common'" class="p-4">
-          <Common :key="commanKey" :setting="commonSetting"/>
+          <Common :key="commanKey" :setting="commonSetting" />
         </el-scrollbar>
       </template>
       <template #footer>

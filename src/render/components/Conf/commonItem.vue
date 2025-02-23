@@ -3,7 +3,7 @@
     <template #header>
       <div class="flex items-center justify-between gap-2 overflow-hidden">
         <div class="flex-1 overflow-hidden flex items-center gap-0.5">
-          <el-checkbox v-model="enable"></el-checkbox>
+          <el-checkbox :key="`${commonKey}-header`" v-model="enable"></el-checkbox>
           <span class="truncate flex-1 select-text">{{ item.name }}</span>
         </div>
         <el-tooltip :content="item.tips()" placement="top" popper-class="max-w-[70%]">
@@ -19,35 +19,43 @@
     </template>
     <template #default>
       <template v-if="item.options">
-        <el-select v-model="value" :disabled="!item.enable" class="w-full">
+        <el-select :key="`${commonKey}-default`" v-model="value" :disabled="!item.enable" class="w-full">
           <template v-for="(option, j) in item.options" :key="j">
             <el-option :label="option.label" :value="option.value"></el-option>
           </template>
         </el-select>
       </template>
       <template v-else-if="item.isFile || item.isDir">
-        <el-input v-model.trim="value" :disabled="!item.enable">
+        <el-input :key="`${commonKey}-default`" v-model.trim="value" :disabled="!item.enable">
           <template #append>
             <el-button :icon="Folder" @click.stop="chooseFile(item?.isDir)" />
           </template>
         </el-input>
       </template>
       <template v-else>
-        <el-input v-model.trim="value" :disabled="!item.enable"></el-input>
+        <el-input :key="`${commonKey}-default`" v-model.trim="value" :disabled="!item.enable"></el-input>
       </template>
     </template>
   </el-card>
 </template>
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, watch, ref } from 'vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { Folder } from '@element-plus/icons-vue'
+  import { uuid } from "@shared/utils"
 
   const { dialog } = require('@electron/remote')
 
   const props = defineProps<{
     item: CommonSetItem
   }>()
+
+  const commonKey = ref(uuid())
+
+  watch(() => props.item, () => {
+    console.trace('common item change !!!')
+    commonKey.value = uuid()
+  })
 
   const enable = computed({
     get() {
