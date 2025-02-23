@@ -148,7 +148,7 @@
     }
     let config = editConfig.replace(/\r\n/gm, '\n')
     const arr = names.map((item) => {
-      const regex = new RegExp(`^[\\s\\n]?(?!#)[\\s]?include\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
+      const regex = new RegExp(`^[\\s\\n]?(?!#)[\\s]?${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
       const matchs =
         config.match(regex)?.map((s) => {
           const sarr = s
@@ -178,7 +178,7 @@
   }
 
   const onTypeChange = (type: 'default' | 'common', config: string) => {
-    console.log('onTypeChange: ', type, config)
+    console.log('onTypeChange: ', type, config, editConfig !== config)
     if (editConfig !== config) {
       editConfig = config
       getCommonSetting()
