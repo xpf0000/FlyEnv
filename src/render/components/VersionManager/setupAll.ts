@@ -26,7 +26,7 @@ export const SetupAll = (typeFlag: AllAppModule) => {
   })
 
   const loading = computed(() => {
-    if (tableTab.value === 'static') {
+    if (tableTab.value === 'lib') {
       return StaticSetup.fetching[typeFlag]
     }
     if (tableTab.value === 'local') {
@@ -36,7 +36,7 @@ export const SetupAll = (typeFlag: AllAppModule) => {
   })
 
   const reFetch = () => {
-    if (tableTab.value === 'static') {
+    if (tableTab.value === 'lib') {
       console.log('reFetch static !!!')
       StaticSetup.reFetch()
     }
