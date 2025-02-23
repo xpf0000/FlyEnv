@@ -136,7 +136,7 @@
         /([\s\n]?[^\n]*)#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g,
         ''
       )
-      .replace(/\n+/g, '\n\n')
+      .replace(/\n+/g, '\n')
       .trim()
     config = config.replace(/http(.*?)\{(.*?)\n/g, `http {\n${list.join('\n')}\n`)
     conf.value.setEditValue(config)
