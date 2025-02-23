@@ -1,9 +1,11 @@
 <template>
   <div class="main-wapper">
     <div v-show="type === 'default'" ref="input" class="block"></div>
-    <el-scrollbar v-show="type === 'common'" class="p-2">
-      <slot name="common"></slot>
-    </el-scrollbar>
+    <template v-if="showCommond">
+      <el-scrollbar v-if="type === 'common'" class="p-2">
+        <Common :setting="commonSetting" />
+      </el-scrollbar>
+    </template>
   </div>
   <div class="tool">
     <el-radio-group v-if="showCommond" v-model="type" class="mr-7" size="small">
@@ -54,8 +56,9 @@
   import { computed, watch } from 'vue'
   import { Document, Operation, FolderOpened } from '@element-plus/icons-vue'
   import type { AllAppModule } from '@/core/type'
-  import { ConfSetup } from '@/components/Conf/setup'
+  import {type CommonSetItem, ConfSetup} from '@/components/Conf/setup'
   import { I18nT } from '@shared/lang'
+  import Common from './common.vue'
 
   const props = defineProps<{
     file: string
@@ -64,6 +67,7 @@
     fileExt: string
     typeFlag: AllAppModule
     showCommond: boolean
+    commonSetting: CommonSetItem[]
   }>()
 
   const emit = defineEmits(['onTypeChange'])
@@ -100,7 +104,7 @@
   watch(
     watchFlag,
     () => {
-      if (!disabled.value) {
+      if (!disabled.value && type.value === 'common') {
         emit('onTypeChange', type.value, getEditValue())
       }
     },

@@ -108,7 +108,6 @@
   watch(
     watchFlag,
     (v) => {
-      console.log('watchFlag changed: ', v, disabled.value)
       if (!disabled.value && type.value === 'common') {
         emit('onTypeChange', type.value, getEditValue())
       }

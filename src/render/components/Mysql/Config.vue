@@ -7,21 +7,19 @@
     :file-ext="'cnf'"
     :show-commond="true"
     @on-type-change="onTypeChange"
+    :common-setting="commonSetting"
   >
-    <template #common>
-      <Common :setting="commonSetting" />
-    </template>
   </Conf>
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch, Ref } from 'vue'
+  import { computed, ref, watch, Ref, reactive } from 'vue'
   import Conf from '@/components/Conf/index.vue'
-  import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
   import { AppStore } from '@/store/app'
+  import {uuid} from "@shared/utils";
 
   const { join } = require('path')
 
@@ -48,17 +46,11 @@
     if (!vm.value) {
       return ''
     }
-    const oldm = join(global.Server.MysqlDir, 'my.cnf')
     const dataDir = join(global.Server.MysqlDir, `data-${vm.value}`)
     return `[mysqld]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION
-
-#设置数据目录
-#brew安装的mysql, 数据目录是一样的, 会导致5.x版本和8.x版本无法互相切换, 所以为每个版本单独设置自己的数据目录
-#如果配置文件已更改, 原配置文件在: ${oldm}
-#可以复制原配置文件的内容, 使用原来的配置
 datadir=${dataDir}`
   })
 
@@ -157,10 +149,10 @@ datadir=${dataDir}`
   let watcher: any
 
   const onSettingUpdate = () => {
-    let config = editConfig
+    let config = editConfig.replace(/\r\n/gm, '\n')
     const list = ['#PhpWebStudy-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
+      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
       config = config.replace(regex, `\n\n`)
       if (item.enable) {
         list.push(`${item.name} = ${item.value}`)
@@ -180,17 +172,18 @@ datadir=${dataDir}`
       config = `[mysqld]\n${list.join('\n')}\n` + config
     }
     conf.value.setEditValue(config)
+    editConfig = config
   }
 
   const getCommonSetting = () => {
     if (watcher) {
       watcher()
     }
-    const arr = names
-      .map((item) => {
-        const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
-        const matchs =
-          editConfig.match(regex)?.map((s) => {
+    let config = editConfig.replace(/\r\n/gm, '\n')
+    const arr = [...names].map((item) => {
+      const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
+      const matchs =
+        config.match(regex)?.map((s) => {
             const sarr = s
               .trim()
               .split('=')
@@ -205,15 +198,13 @@ datadir=${dataDir}`
           }) ?? []
         console.log('getCommonSetting: ', matchs, item.name)
         const find = matchs?.find((m) => m.k === item.name)
-        if (!find) {
-          item.enable = false
-          return item
-        }
+        item.enable = !!find
         item.value = find?.v ?? item.value
+        item.key = uuid()
         return item
       })
       .filter((item) => item.show !== false)
-    commonSetting.value = arr as any
+    commonSetting.value = reactive(arr) as any
     watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
       deep: true
     })

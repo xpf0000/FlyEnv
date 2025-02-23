@@ -22,9 +22,6 @@
         file-ext="vhost"
         :show-commond="false"
       >
-        <template #common>
-          <Common :setting="commonSetting" />
-        </template>
       </Conf>
     </div>
   </el-drawer>
@@ -35,7 +32,6 @@
   import { I18nT } from '@shared/lang'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import Conf from '@/components/Conf/drawer.vue'
-  import Common from '@/components/Conf/common.vue'
 
   const { existsSync, copyFile, mkdirp } = require('fs-extra')
   const { join, dirname } = require('path')
