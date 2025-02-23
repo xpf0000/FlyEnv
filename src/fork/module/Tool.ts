@@ -496,6 +496,9 @@ subjectAltName=@alt_names
         reject(new Error('Fail'))
         return
       }
+      console.log('oldPath: ', oldPath)
+      console.log('rawOldPath: ', rawOldPath)
+
       const binDir = dirname(item.bin)
       /**
        * 初始化env文件夾
@@ -524,7 +527,10 @@ subjectAltName=@alt_names
       /**
        * 已存在的 删除
        */
-      const index = oldPath.indexOf(binDir)
+      const index = oldPath.findIndex((o) => {
+        return existsSync(o) && realpathSync(o) === binDir
+      })
+      console.log('已存在的 index: ', index)
       if (index >= 0) {
         oldPath.splice(index, 1)
       }
