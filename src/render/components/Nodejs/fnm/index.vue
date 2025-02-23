@@ -142,8 +142,8 @@
                 <YbIcon
                   class="current-not"
                   svg={import('@/svg/select.svg?raw')}
-                  width="20"
-                  height="20"
+                  width="17"
+                  height="17"
                 />
               </ElButton>
             )

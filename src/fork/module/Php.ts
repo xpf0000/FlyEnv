@@ -78,6 +78,7 @@ class Php extends Base {
           await writeFile(cacheFile, content)
           try {
             await Helper.send('php', 'iniFileFixed', ini, cacheFile)
+            await Helper.send('tools', 'chmod', ini, '777')
           } catch (e) {}
           await remove(cacheFile)
         }
@@ -89,6 +90,7 @@ class Php extends Base {
               if (existsSync(ini)) {
                 try {
                   await Helper.send('php', 'iniFileFixed', baseIni, ini)
+                  await Helper.send('tools', 'chmod', baseIni, '777')
                 } catch (e) {}
               } else {
                 const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
@@ -97,6 +99,7 @@ class Php extends Base {
                 await writeFile(cacheFile, content)
                 try {
                   await Helper.send('php', 'iniFileFixed', baseIni, cacheFile)
+                  await Helper.send('tools', 'chmod', baseIni, '777')
                 } catch (e) {}
                 await remove(cacheFile)
               }

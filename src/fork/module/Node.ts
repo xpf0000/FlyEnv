@@ -69,7 +69,7 @@ class Manager extends Base {
           .filter((s) => s.startsWith('v') && existsSync(join(dir, s, 'bin/node')))
           .map((s) => s.replace('v', '').trim())
         const envDir = join(dirname(global.Server.AppDir!), 'env')
-        const currentDir = join(envDir, 'nodejs')
+        const currentDir = join(envDir, 'node')
         let current = ''
         if (existsSync(currentDir) && existsSync(join(currentDir, 'node'))) {
           const realDir = await realpath(currentDir)
@@ -279,7 +279,7 @@ class Manager extends Base {
               const { versions, current }: { versions: Array<string>; current: string } =
                 (await this.localVersion(tool)) as any
               const envDir = join(dirname(global.Server.AppDir!), 'env')
-              const currentDir = join(envDir, 'nodejs')
+              const currentDir = join(envDir, 'node')
               resolve({
                 versions,
                 current,
