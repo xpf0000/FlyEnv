@@ -121,7 +121,7 @@
   let watcher: any
 
   const onSettingUpdate = () => {
-    let config = editConfig
+    let config = editConfig.replace(/\r\n/gm, '\n')
     const list = ['    #PhpWebStudy-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
       const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
