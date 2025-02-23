@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { getSubDir, hostAlias, uuid, execPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, remove } from 'fs-extra'
+import { readFile, writeFile, remove, appendFile } from 'fs-extra'
 import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
 import { setDirRole, updateAutoSSL, updateRootRule } from './host/Host'
 import { makeApacheConf, updateApacheConf } from './host/Apache'
@@ -310,11 +310,18 @@ class Host extends Base {
         reject(new Error(I18nT('fork.hostsFileNoFound')))
         return
       }
-      let content = await readFile(filePath, 'utf-8')
+      let content = ''
+      try {
+        content = await readFile(filePath, 'utf-8')
+      } catch (e) {
+        return reject(e)
+      }
       let x: any = content.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x && x[0]) {
         x = x[0]
-        content = content.replace(x, '')
+        if (x.includes('#X-HOSTS-BEGIN#') && x.includes('#X-HOSTS-END#')) {
+          content = content.replace(x, '')
+        }
       }
       if (host) {
         x = `#X-HOSTS-BEGIN#\n${host.join('\n')}\n#X-HOSTS-END#`
@@ -349,11 +356,20 @@ class Host extends Base {
           this._initHost(appHost, true, ipv6)
         } catch (e) {}
       } else {
-        let hosts = await readFile(this.hostsFile, 'utf-8')
-        const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
-        if (x) {
-          hosts = hosts.replace(x[0], '')
-          await writeFile(this.hostsFile, hosts.trim())
+        let hasErr = false
+        let hosts = ''
+        try {
+          hosts = await readFile(this.hostsFile, 'utf-8')
+        } catch (e) {
+          await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[Host][writeHosts][readFile]: ${e}\n`)
+          hasErr = true
+        }
+        if (!hasErr) {
+          const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
+          if (x && x[0] && x[0].includes('#X-HOSTS-BEGIN#') && x[0].includes('#X-HOSTS-END#')) {
+            hosts = hosts.replace(x[0], '')
+            await writeFile(this.hostsFile, hosts.trim())
+          }
         }
         try {
           this._initHost(appHost, false, ipv6)
