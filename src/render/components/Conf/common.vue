@@ -4,6 +4,7 @@
       <template v-for="type in allTypes" :key="type">
         <el-collapse-item :title="type" :name="type">
           <div
+            :key="commanKey"
             class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
           >
             <template v-for="(item, index) in setting.filter((s) => s.type === type)" :key="`${commanKey}-${index}`">
@@ -16,6 +17,7 @@
   </template>
   <template v-else>
     <div
+      :key="commanKey"
       class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
     >
       <template v-for="(item, index) in setting" :key="`${commanKey}-${index}`">
