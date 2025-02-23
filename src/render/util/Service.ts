@@ -166,9 +166,11 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
     }
 
     const host = [...hosts].pop()
+    console.log('reloadWebServer host: ', host, host?.phpVersion)
     if (host?.phpVersion) {
       const phpVersions = brewStore.module('php')?.installed ?? []
       const php = phpVersions?.find((p) => p.num === host.phpVersion)
+      console.log('reloadWebServer php: ', php)
       if (php) {
         startService('php', php).then()
       }
