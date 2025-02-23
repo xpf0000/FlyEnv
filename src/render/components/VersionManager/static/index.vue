@@ -8,28 +8,6 @@
         {{ I18nT('util.noVerionsFoundInLib') }}
       </template>
     </template>
-    <el-table-column prop="name">
-      <template #header>
-        <span style="padding: 2px 12px 2px 24px; display: block">{{
-          I18nT('base.brewLibrary')
-        }}</span>
-      </template>
-      <template #default="scope">
-        <el-tooltip :show-after="600" placement="top">
-          <template #content>
-            <pre v-html="fetchCommand(scope.row)"></pre>
-          </template>
-          <template #default>
-            <span
-              class="hover:text-yellow-500 cursor-pointer truncate"
-              style="padding: 2px 12px 2px 24px"
-              @click.stop="copyCommand(scope.row)"
-              >{{ scope.row.name }}</span
-            >
-          </template>
-        </el-tooltip>
-      </template>
-    </el-table-column>
     <el-table-column prop="version" :label="I18nT('base.version')" width="150"> </el-table-column>
     <el-table-column align="center" :label="I18nT('base.isInstalled')" width="120">
       <template #default="scope">
