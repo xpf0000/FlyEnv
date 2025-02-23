@@ -68,7 +68,7 @@ export const makeApacheConf = async (host: AppHost) => {
   if (host.phpVersion) {
     atmpl = atmpl.replace(
       /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
-      `SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}/"`
+      `SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}"`
     )
   } else {
     atmpl = atmpl.replace(
@@ -195,14 +195,21 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
     if (old.phpVersion) {
+      find.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${old.phpVersion}"`])
       find.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${old.phpVersion}/"`])
     } else {
       find.push(...['##Static Site Apache##'])
     }
     if (host.phpVersion) {
-      replace.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}/"`])
+      replace.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}"`])
+      if (old.phpVersion) {
+        replace.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}"`])
+      }
     } else {
       replace.push(...['##Static Site Apache##'])
+      if (old.phpVersion) {
+        replace.push(...['##Static Site Apache##'])
+      }
     }
   }
   if (!isEqual(host?.reverseProxy, old?.reverseProxy)) {

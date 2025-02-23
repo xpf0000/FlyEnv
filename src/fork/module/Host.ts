@@ -5,7 +5,7 @@ import { I18nT } from '../lang'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { getSubDir, hostAlias, uuid, execPromise } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, remove, chmod } from 'fs-extra'
+import { readFile, writeFile, remove } from 'fs-extra'
 import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
 import { setDirRole, updateAutoSSL, updateRootRule } from './host/Host'
 import { makeApacheConf, updateApacheConf } from './host/Apache'
@@ -328,28 +328,14 @@ class Host extends Base {
     })
   }
 
-  async _fixHostsRole() {
-    console.log('_fixHostsRole !!!')
-    try {
-      await chmod(this.hostsFile, 0o666)
-    } catch (e) {}
-    try {
-      await execPromise(`icacls ${this.hostsFile} /grant Everyone:F`)
-    } catch (e) {
-      console.log('_fixHostsRole err: ', e)
-    }
-  }
-
   doFixHostsRole() {
     return new ForkPromise(async (resolve) => {
-      await this._fixHostsRole()
       resolve(0)
     })
   }
 
   writeHosts(write = true, ipv6 = true) {
     return new ForkPromise(async (resolve, reject) => {
-      await this._fixHostsRole()
       let appHost: AppHost[] = []
       try {
         appHost = await fetchHostList()
