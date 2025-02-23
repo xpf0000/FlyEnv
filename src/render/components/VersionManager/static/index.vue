@@ -8,7 +8,17 @@
         {{ I18nT('util.noVerionsFoundInLib') }}
       </template>
     </template>
-    <el-table-column prop="version" :label="I18nT('base.version')" width="150"> </el-table-column>
+    <el-table-column prop="version" width="200">
+      <template #header>
+        <span style="padding: 2px 12px 2px 24px; display: block">{{ I18nT('base.version') }}</span>
+      </template>
+      <template #default="scope">
+        <span
+          style="padding: 2px 12px 2px 24px; display: block"
+        >{{ scope.row.version }}</span
+        >
+      </template>
+    </el-table-column>
     <el-table-column align="center" :label="I18nT('base.isInstalled')" width="120">
       <template #default="scope">
         <div class="cell-status">
