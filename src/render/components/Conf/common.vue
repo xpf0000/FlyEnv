@@ -6,8 +6,8 @@
           <div
             class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
           >
-            <template v-for="(item, index) in setting.filter((s) => s.type === type)" :key="index">
-              <CommonItem :key="`${commanKey}-${index}`" :item="item" />
+            <template v-for="(item, index) in setting.filter((s) => s.type === type)" :key="`${commanKey}-${index}`">
+              <CommonItem :item="item" />
             </template>
           </div>
         </el-collapse-item>
@@ -18,8 +18,8 @@
     <div
       class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
     >
-      <template v-for="(item, index) in setting" :key="index">
-        <CommonItem :key="`${commanKey}-${index}`" :item="item" />
+      <template v-for="(item, index) in setting" :key="`${commanKey}-${index}`">
+        <CommonItem :item="item" />
       </template>
     </div>
   </template>
