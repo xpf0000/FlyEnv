@@ -13,5 +13,9 @@ export default {
   OLLAMA_KV_CACHE_TYPE: 'K/V缓存的量化类型（默认值: f16）',
   OLLAMA_LLM_LIBRARY: '将LLM库设置为绕过自动检测',
   OLLAMA_GPU_OVERHEAD: '为每个GPU保留一部分VRAM（字节）',
-  OLLAMA_LOAD_TIMEOUT: '在放弃之前允许模型负载停滞多长时间（默认为"5m"）'
+  OLLAMA_LOAD_TIMEOUT: '在放弃之前允许模型负载停滞多长时间（默认为"5m"）',
+
+  needServiceRun: '请先启动Ollama服务',
+  size: '大小',
+  model: '模型'
 }

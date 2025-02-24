@@ -231,16 +231,22 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     hasChanged = true
     find.push(
       ...[
-        `include ${rewritepath}/${old.name}.conf;`,
-        `access_log  ${logpath}/${old.name}.log;`,
-        `error_log  ${logpath}/${old.name}.error.log;`
+        `include(.*?)${rewritepath}/(.*?)\\r\\n`,
+        `include(.*?)${rewritepath}/(.*?)\\n`,
+        `access_log(.*?)${logpath}/(.*?)\\r\\n`,
+        `access_log(.*?)${logpath}/(.*?)\\n`,
+        `error_log(.*?)${logpath}/(.*?)\\r\\n`,
+        `error_log(.*?)${logpath}/(.*?)\\n`
       ]
     )
     replace.push(
       ...[
-        `include ${rewritepath}/${host.name}.conf;`,
-        `access_log  ${logpath}/${host.name}.log;`,
-        `error_log  ${logpath}/${host.name}.error.log;`
+        `include "${rewritepath}/${host.name}.conf";\r\n`,
+        `include "${rewritepath}/${host.name}.conf";\n`,
+        `access_log  "${logpath}/${host.name}.log";\r\n`,
+        `access_log  "${logpath}/${host.name}.log";\n`,
+        `error_log  "${logpath}/${host.name}.error.log";\r\n`,
+        `error_log  "${logpath}/${host.name}.error.log";\n`
       ]
     )
   }
@@ -291,7 +297,7 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
     if (old.phpVersion) {
-      find.push(...[`include enable-php-${old.phpVersion}.conf;`])
+      find.push(...[`include(\\s+)enable-php-(.*?).conf;`])
     } else {
       find.push(...['##Static Site Nginx##'])
     }

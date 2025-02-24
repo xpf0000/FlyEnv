@@ -22,6 +22,7 @@
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
   import Common from '@/components/Conf/common.vue'
+  import { uuid } from '@shared/utils'
 
   const { join } = require('path')
   const { existsSync } = require('fs-extra')
@@ -46,7 +47,7 @@
     },
     {
       name: 'OLLAMA_HOST',
-      value: '127.0.0.1:11434',
+      value: '0.0.0.0:11434',
       enable: false,
       tips() {
         return I18nT('ollama.OLLAMA_HOST')
@@ -161,10 +162,10 @@
   let watcher: any
 
   const onSettingUpdate = () => {
-    let config = editConfig
+    let config = editConfig.replace(/\r\n/gm, '\n')
     const list = ['#FlyEnv-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
+      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
       config = config.replace(regex, `\n\n`)
       if (item.enable) {
         list.push(`${item.name}=${item.value}`)
@@ -177,16 +178,21 @@
       .trim()
     config = `${list.join('\n')}\n` + config
     conf.value.setEditValue(config)
+    editConfig = config
   }
 
   const getCommonSetting = () => {
     if (watcher) {
       watcher()
     }
-    const arr = names.map((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
+    let config = editConfig.replace(/\r\n/gm, '\n')
+    const arr = [...names].map((item) => {
+      const regex = new RegExp(
+        `^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`,
+        'gm'
+      )
       const matchs =
-        editConfig.match(regex)?.map((s) => {
+        config.match(regex)?.map((s) => {
           const sarr = s
             .trim()
             .split('=')
@@ -201,12 +207,9 @@
         }) ?? []
       console.log('getCommonSetting: ', matchs, item.name)
       const find = matchs?.find((m) => m.k === item.name)
-      if (!find) {
-        item.enable = false
-        return item
-      }
-      item.enable = true
+      item.enable = !!find
       item.value = find?.v ?? item.value
+      item.key = uuid()
       return item
     })
     commonSetting.value = reactive(arr) as any

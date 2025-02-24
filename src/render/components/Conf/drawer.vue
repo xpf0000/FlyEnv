@@ -1,9 +1,11 @@
 <template>
   <div class="main-wapper">
     <div v-show="type === 'default'" ref="input" class="block"></div>
-    <el-scrollbar v-show="type === 'common'" class="p-2">
-      <slot name="common"></slot>
-    </el-scrollbar>
+    <template v-if="showCommond">
+      <el-scrollbar v-if="type === 'common'" class="p-2">
+        <slot name="common"></slot>
+      </el-scrollbar>
+    </template>
   </div>
   <div class="tool gap-3">
     <el-radio-group v-if="showCommond" v-model="type" size="small">
@@ -92,7 +94,6 @@
   const {
     changed,
     update,
-    config,
     input,
     type,
     disabled,
@@ -104,13 +105,14 @@
     loadCustom,
     getEditValue,
     setEditValue,
-    openURL
+    openURL,
+    watchFlag
   } = ConfSetup(p)
 
   watch(
-    () => `${type.value}-${disabled.value}-${config.value}`,
+    watchFlag,
     () => {
-      if (!disabled.value) {
+      if (!disabled.value && type.value === 'common') {
         emit('onTypeChange', type.value, getEditValue())
       }
     },
