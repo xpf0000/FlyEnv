@@ -2,9 +2,11 @@
   <div class="module-config">
     <el-card>
       <div v-show="type === 'default'" ref="input" class="block"></div>
-      <el-scrollbar v-show="type === 'common'" class="p-4">
-        <slot name="common"></slot>
-      </el-scrollbar>
+      <template v-if="showCommond">
+        <el-scrollbar v-if="type === 'common'" class="p-4">
+          <slot name="common"></slot>
+        </el-scrollbar>
+      </template>
       <template #footer>
         <div class="tool gap-3">
           <el-radio-group v-if="showCommond" v-model="type" size="small">
@@ -107,7 +109,6 @@
   const {
     changed,
     update,
-    config,
     input,
     type,
     disabled,
@@ -119,13 +120,14 @@
     loadCustom,
     getEditValue,
     setEditValue,
-    openURL
+    openURL,
+    watchFlag
   } = ConfSetup(p)
 
   watch(
-    () => `${type.value}-${disabled.value}-${config.value}`,
+    watchFlag,
     () => {
-      if (!disabled.value) {
+      if (!disabled.value && type.value === 'common') {
         emit('onTypeChange', type.value, getEditValue())
       }
     },

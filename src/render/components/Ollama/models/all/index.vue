@@ -1,23 +1,20 @@
 <template>
-  <template v-if="BrewSetup.installing">
+  <template v-if="OllamaAllModelsSetup.installing">
     <div class="w-full h-full overflow-hidden p-5">
       <div ref="xtermDom" class="w-full h-full overflow-hidden"></div>
     </div>
   </template>
-  <template v-else-if="!checkBrew">
-    <div class="p-5">
-      <pre class="app-html-block" v-html="I18nT('versionmanager.noBrewFound')"></pre>
-      <el-button
-        type="primary"
-        class="mt-5"
-        :disabled="BrewSetup.installing"
-        @click.stop="installBrew"
-        >{{ I18nT('base.install') }}</el-button
-      >
-    </div>
-  </template>
   <template v-else>
-    <el-table height="100%" :data="tableData" :border="false" style="width: 100%">
+    <el-table
+      row-key="name"
+      :tree-props="{ children: 'children', hasChildren: 'children' }"
+      lazy
+      :load="onLoad"
+      height="100%"
+      :data="tableData"
+      :border="false"
+      style="width: 100%"
+    >
       <template #empty>
         <template v-if="fetching">
           {{ I18nT('base.gettingVersion') }}
@@ -61,7 +58,7 @@
             type="primary"
             link
             :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
-            :disabled="BrewSetup.installing"
+            :disabled="OllamaAllModelsSetup.installing"
             @click="handleBrewVersion(scope.row)"
             >{{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}</el-button
           >
@@ -73,23 +70,15 @@
 
 <script lang="ts" setup>
   import { I18nT } from '@shared/lang'
-  import type { AllAppModule } from '@/core/type'
-  import { BrewSetup, Setup } from './setup'
+  import { OllamaAllModelsSetup, Setup } from './setup'
+  import type { TreeNode } from 'element-plus'
 
-  const props = defineProps<{
-    typeFlag: AllAppModule
-  }>()
+  const { xtermDom, fetching, tableData, handleBrewVersion, fetchCommand, copyCommand } = Setup()
 
-  const {
-    xtermDom,
-    checkBrew,
-    fetching,
-    tableData,
-    handleBrewVersion,
-    installBrew,
-    fetchCommand,
-    copyCommand
-  } = Setup(props.typeFlag)
+  const onLoad = (row: any, treeNode: TreeNode, resolve: (data: any[]) => void) => {
+    console.log('onLoad: ', row)
+    resolve([])
+  }
 </script>
 <style lang="scss">
   .app-html-block {
