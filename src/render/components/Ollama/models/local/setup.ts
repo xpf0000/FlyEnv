@@ -2,8 +2,6 @@ import { computed, reactive } from 'vue'
 import IPC from '@/util/IPC'
 import type { OllamaModelItem } from '@/components/Ollama/models/all/setup'
 import { BrewStore } from '@/store/brew'
-import { MessageError } from '@/util/Element'
-import { I18nT } from '@shared/lang'
 
 export const OllamaLocalModelsSetup = reactive<{
   fetching: boolean
@@ -28,7 +26,6 @@ export const Setup = () => {
 
   const fetchData = () => {
     if (!runningService.value) {
-      MessageError(I18nT('ollama.needServiceRun'))
       return
     }
     if (fetching.value || Object.keys(OllamaLocalModelsSetup.list).length > 0) {
@@ -36,12 +33,14 @@ export const Setup = () => {
     }
     OllamaLocalModelsSetup.fetching = true
 
-    IPC.send('app-fork:ollama', 'allModel').then((key: string, res: any) => {
-      IPC.off(key)
-      const list = res?.data ?? []
-      OllamaLocalModelsSetup.list = reactive(list)
-      OllamaLocalModelsSetup.fetching = false
-    })
+    IPC.send('app-fork:ollama', 'allModel', JSON.parse(JSON.stringify(runningService.value))).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        const list = res?.data ?? []
+        OllamaLocalModelsSetup.list = reactive(list)
+        OllamaLocalModelsSetup.fetching = false
+      }
+    )
   }
 
   const reGetData = () => {
@@ -54,6 +53,8 @@ export const Setup = () => {
   const tableData = computed(() => {
     return OllamaLocalModelsSetup.list
   })
+
+  fetchData()
 
   return {
     reGetData,

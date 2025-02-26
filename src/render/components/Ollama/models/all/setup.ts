@@ -2,7 +2,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { AppStore } from '@/store/app'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
-import { MessageSuccess } from '@/util/Element'
+import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
 import { BrewStore } from '@/store/brew'
 import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'
@@ -11,8 +11,10 @@ const { clipboard } = require('@electron/remote')
 const { dirname } = require('path')
 
 export type OllamaModelItem = {
+  isRoot?: boolean
   name: string
   size?: string
+  hasChildren?: boolean
   children?: OllamaModelItem[]
 }
 
@@ -20,6 +22,7 @@ export const OllamaAllModelsSetup = reactive<{
   installEnd: boolean
   installing: boolean
   fetching: boolean
+  search: string
   xterm: XTerm | undefined
   reFetch: () => void
   list: Record<string, OllamaModelItem[]>
@@ -27,6 +30,7 @@ export const OllamaAllModelsSetup = reactive<{
   installEnd: false,
   installing: false,
   fetching: false,
+  search: '',
   xterm: undefined,
   reFetch: () => 0,
   list: {}
@@ -98,13 +102,19 @@ export const Setup = () => {
     const dict = OllamaAllModelsSetup.list
     const list: OllamaModelItem[] = []
     for (const type in dict) {
-      const arr = dict[type]
+      // const arr = dict[type]
       list.push({
+        isRoot: true,
         name: type,
-        children: arr
+        hasChildren: true,
+        children: []
       })
     }
-    return list
+    if (!OllamaAllModelsSetup.search.trim()) {
+      return list
+    }
+    const search = OllamaAllModelsSetup.search.trim().toLowerCase()
+    return list.filter((item) => item.name.includes(search) || search.includes(item.name))
   })
 
   const fetchCommand = (row: any) => {
@@ -127,6 +137,9 @@ export const Setup = () => {
   }
 
   const handleBrewVersion = async (row: any) => {
+    if (!runningService.value) {
+      return MessageError(I18nT('ollama.needServiceRun'))
+    }
     if (OllamaAllModelsSetup.installing) {
       return
     }
@@ -161,6 +174,8 @@ export const Setup = () => {
     OllamaAllModelsSetup.xterm && OllamaAllModelsSetup.xterm.unmounted()
   })
 
+  fetchData()
+
   return {
     handleBrewVersion,
     reGetData,
@@ -168,6 +183,7 @@ export const Setup = () => {
     xtermDom,
     fetchCommand,
     copyCommand,
-    tableData
+    tableData,
+    runningService
   }
 }

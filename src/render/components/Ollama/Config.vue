@@ -49,6 +49,7 @@
       name: 'OLLAMA_HOST',
       value: '0.0.0.0:11434',
       enable: false,
+      show: false,
       tips() {
         return I18nT('ollama.OLLAMA_HOST')
       }
