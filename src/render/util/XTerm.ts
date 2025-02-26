@@ -4,7 +4,7 @@ import { FitAddon } from '@xterm/addon-fit'
 import IPC from './IPC'
 import { AppStore } from '@/store/app'
 
-const { nativeTheme } = require('@electron/remote')
+const { nativeTheme, clipboard } = require('@electron/remote')
 
 interface XTermType {
   xterm: Terminal | undefined
@@ -87,6 +87,16 @@ class XTerm implements XTermType {
   }
 
   initEvent() {
+    this.xterm!.attachCustomKeyEventHandler((arg) => {
+      if (arg.ctrlKey && arg.code === 'KeyC' && arg.type === 'keydown') {
+        const selection = this.xterm!.getSelection()
+        if (selection) {
+          clipboard.writeText(selection)
+          return false
+        }
+      }
+      return true
+    })
     this.xterm!.onData((data) => {
       if (this.end) {
         return

@@ -31,6 +31,7 @@ export const SetupAll = () => {
       OllamaAllModelsSetup.installEnd = false
       OllamaAllModelsSetup.xterm?.destory()
       delete OllamaAllModelsSetup.xterm
+      OllamaLocalModelsSetup.reFetch()
       return
     }
   }

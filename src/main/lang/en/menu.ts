@@ -1,11 +1,11 @@
 export default {
   about: 'About',
-  app: 'PhpWebStudy',
+  app: 'FlyEnv',
   checkForUpdates: 'Check for Updates...',
-  hide: 'Hide PhpWebStudy',
+  hide: 'Hide FlyEnv',
   hideOthers: 'Hide Others',
   unhide: 'Show All',
-  quit: 'Quit PhpWebStudy',
+  quit: 'Quit FlyEnv',
   edit: 'Edit',
   cut: 'Cut',
   copy: 'Copy',
@@ -16,7 +16,7 @@ export default {
   minimize: 'Minimize',
   zoom: 'Zoom',
   fullscreen: 'Enter Full Screen',
-  front: 'Bring PhpWebStudy to Front',
+  front: 'Bring FlyEnv to Front',
   dev: 'Open Debug Window',
   needInstallHelper: 'FlyEnv needs to install a helper program',
   waitHelper: 'Helper program is starting, please wait'
