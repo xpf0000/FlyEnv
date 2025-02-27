@@ -7,8 +7,13 @@
       </div>
       <el-button @click="doClean">{{ $t('base.clean') }}</el-button>
     </div>
-    <Main />
-    <Tool ref="toolRef" />
+    <div class="flex-1 flex">
+      <ASideVM />
+      <div class="flex-1 h-full overflow-hidden flex flex-col">
+        <Main />
+        <Tool ref="toolRef" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -17,6 +22,7 @@
   import { ref, onMounted, onBeforeUnmount } from 'vue'
   import Tool from './tool.vue'
   import Main from './Main/index.vue'
+  import ASideVM from './ASide/index.vue'
 
   const action = ref('')
   const mask = ref()
