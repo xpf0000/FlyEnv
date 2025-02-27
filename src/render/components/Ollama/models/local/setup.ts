@@ -9,7 +9,23 @@ export const OllamaLocalModelsSetup = reactive<{
   list: OllamaModelItem[]
 }>({
   fetching: false,
-  reFetch: () => 0,
+  reFetch() {
+    const brewStore = BrewStore()
+    const runningService = brewStore.module('ollama').installed.find((o) => o.run)
+    if (!runningService) {
+      return
+    }
+    this.list.splice(0)
+    this.fetching = true
+    IPC.send('app-fork:ollama', 'allModel', JSON.parse(JSON.stringify(runningService))).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        const list = res?.data ?? []
+        this.list = reactive(list)
+        this.fetching = false
+      }
+    )
+  },
   list: []
 })
 
@@ -43,13 +59,6 @@ export const Setup = () => {
     )
   }
 
-  const reGetData = () => {
-    OllamaLocalModelsSetup.list.splice(0)
-    fetchData()
-  }
-
-  OllamaLocalModelsSetup.reFetch = reGetData
-
   const tableData = computed(() => {
     return OllamaLocalModelsSetup.list
   })
@@ -57,7 +66,6 @@ export const Setup = () => {
   fetchData()
 
   return {
-    reGetData,
     fetching,
     tableData,
     runningService
