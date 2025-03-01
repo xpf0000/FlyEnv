@@ -33,6 +33,7 @@ class BaseManager {
   Ruby: any
   Elasticsearch: any
   Ollama: any
+  Ai: any
 
   constructor() {}
 
@@ -254,6 +255,12 @@ class BaseManager {
         this.Ollama = res.default
       }
       doRun(this.Ollama)
+    } else if (module === 'ai') {
+      if (!this.Ai) {
+        const res = await import('./module/Ai')
+        this.Ai = res.default
+      }
+      doRun(this.Ai)
     }
   }
 
