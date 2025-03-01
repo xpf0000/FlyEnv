@@ -1,23 +1,20 @@
 <template>
-  <template v-if="BrewSetup.installing">
+  <template v-if="OllamaAllModelsSetup.installing">
     <div class="w-full h-full overflow-hidden p-5">
       <div ref="xtermDom" class="w-full h-full overflow-hidden"></div>
     </div>
   </template>
-  <template v-else-if="!checkBrew">
-    <div class="p-5">
-      <pre class="app-html-block" v-html="I18nT('versionmanager.noBrewFound')"></pre>
-      <el-button
-        type="primary"
-        class="mt-5"
-        :disabled="BrewSetup.installing"
-        @click.stop="installBrew"
-        >{{ I18nT('base.install') }}</el-button
-      >
-    </div>
-  </template>
   <template v-else>
-    <el-table height="100%" :data="tableData" :border="false" style="width: 100%">
+    <el-table
+      row-key="name"
+      :tree-props="{ children: 'children', hasChildren: 'children' }"
+      lazy
+      :load="onLoad"
+      height="100%"
+      :data="tableData"
+      :border="false"
+      style="width: 100%"
+    >
       <template #empty>
         <template v-if="fetching">
           {{ I18nT('base.gettingVersion') }}
@@ -28,9 +25,16 @@
       </template>
       <el-table-column prop="name">
         <template #header>
-          <span style="padding: 2px 12px 2px 24px; display: block">{{
-            I18nT('base.brewLibrary')
-          }}</span>
+          <div class="w-p100 name-cell">
+            <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
+              I18nT('base.brewLibrary')
+            }}</span>
+            <el-input
+              v-model.trim="OllamaAllModelsSetup.search"
+              placeholder="search"
+              clearable
+            ></el-input>
+          </div>
         </template>
         <template #default="scope">
           <el-tooltip :content="fetchCommand(scope.row)" :show-after="600" placement="top">
@@ -43,12 +47,12 @@
           </el-tooltip>
         </template>
       </el-table-column>
-      <el-table-column prop="version" :label="I18nT('base.version')" width="150"> </el-table-column>
+      <el-table-column prop="size" :label="I18nT('ollama.size')" width="150"> </el-table-column>
       <el-table-column align="center" :label="I18nT('base.isInstalled')" width="120">
         <template #default="scope">
           <div class="cell-status">
             <yb-icon
-              v-if="scope.row.installed"
+              v-if="isInstalled(scope.row)"
               :svg="import('@/svg/ok.svg?raw')"
               class="installed"
             ></yb-icon>
@@ -57,14 +61,26 @@
       </el-table-column>
       <el-table-column align="center" :label="I18nT('base.operation')" width="120">
         <template #default="scope">
-          <el-button
-            type="primary"
-            link
-            :style="{ opacity: scope.row.version !== undefined ? 1 : 0 }"
-            :disabled="BrewSetup.installing"
-            @click="handleBrewVersion(scope.row)"
-            >{{ scope.row.installed ? I18nT('base.uninstall') : I18nT('base.install') }}</el-button
-          >
+          <template v-if="!scope.row.isRoot">
+            <template v-if="isInstalled(scope.row)">
+              <el-button
+                :type="runningService ? 'primary' : 'info'"
+                link
+                :disabled="OllamaAllModelsSetup.installing"
+                :icon="Delete"
+                @click="handleBrewVersion(scope.row)"
+              ></el-button>
+            </template>
+            <template v-else>
+              <el-button
+                :type="runningService ? 'primary' : 'info'"
+                link
+                :disabled="OllamaAllModelsSetup.installing"
+                :icon="Download"
+                @click="handleBrewVersion(scope.row)"
+              ></el-button>
+            </template>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -73,23 +89,30 @@
 
 <script lang="ts" setup>
   import { I18nT } from '@shared/lang'
-  import type { AllAppModule } from '@/core/type'
-  import { BrewSetup, Setup } from './setup'
-
-  const props = defineProps<{
-    typeFlag: AllAppModule
-  }>()
+  import { OllamaAllModelsSetup, Setup } from './setup'
+  import type { TreeNode } from 'element-plus'
+  import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'
+  import { Download, Delete } from '@element-plus/icons-vue'
 
   const {
     xtermDom,
-    checkBrew,
     fetching,
     tableData,
     handleBrewVersion,
-    installBrew,
     fetchCommand,
-    copyCommand
-  } = Setup(props.typeFlag)
+    copyCommand,
+    runningService
+  } = Setup()
+
+  const isInstalled = (row: any) => {
+    return OllamaLocalModelsSetup.list.some((l) => l.name === row.name)
+  }
+
+  const onLoad = (row: any, treeNode: TreeNode, resolve: (data: any[]) => void) => {
+    const child = OllamaAllModelsSetup.list[row.name]
+    console.log('onLoad: ', row, child)
+    resolve(child)
+  }
 </script>
 <style lang="scss">
   .app-html-block {

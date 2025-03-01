@@ -7,8 +7,18 @@
       </div>
       <el-button @click="doClean">{{ $t('base.clean') }}</el-button>
     </div>
-    <Main />
-    <Tool ref="toolRef" />
+    <div class="flex-1 flex">
+      <ASideVM />
+      <div class="flex-1 h-full overflow-hidden flex flex-col">
+        <template v-if="AISetup.tab === 'flyenv'">
+          <Main />
+          <Tool ref="toolRef" />
+        </template>
+        <template v-else>
+          <OllamaVM />
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -17,6 +27,9 @@
   import { ref, onMounted, onBeforeUnmount } from 'vue'
   import Tool from './tool.vue'
   import Main from './Main/index.vue'
+  import ASideVM from './ASide/index.vue'
+  import { AISetup } from '@/components/AI/setup'
+  import OllamaVM from './Ollama/index.vue'
 
   const action = ref('')
   const mask = ref()
