@@ -158,7 +158,7 @@
         if (this.httpServe.includes(path)) {
           return
         }
-        this.httpServe.push(path)
+        this.httpServe.unshift(path)
         AppStore().saveConfig()
         this.$nextTick().then(() => {
           let item = this.service[path]

@@ -66,7 +66,7 @@ class Nginx extends Base {
         'scgi_temp'
       ]
         .filter((s) => {
-          const regex = new RegExp(`([\\s\\n]?[^\\n]*)${s}_path (.*?);`, 'g')
+          const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${s}_path\\s+(.*?);`, 'gm')
           return !regex.test(content)
         })
         .map((s) => `    ${s}_path run/${s};`)
