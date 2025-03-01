@@ -16,13 +16,14 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, Ref, ref, watch } from 'vue'
+  import { computed, reactive, Ref, ref, watch } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import IPC from '@/util/IPC'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@shared/lang'
   import { debounce } from 'lodash'
   import Common from '@/components/Conf/common.vue'
+  import { uuid } from '@shared/utils'
 
   const { join } = require('path')
   const { existsSync } = require('fs-extra')
@@ -506,10 +507,10 @@
   let watcher: any
 
   const onSettingUpdate = () => {
-    let config = editConfig
+    let config = editConfig.replace(/\r\n/gm, '\n')
     const list = ['#PhpWebStudy-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
+      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
       config = config.replace(regex, `\n\n`)
       if (item.enable) {
         list.push(`${item.name}=${item.value}`)
@@ -522,16 +523,21 @@
       .trim()
     config = `${list.join('\n')}\n` + config
     conf.value.setEditValue(config)
+    editConfig = config
   }
 
   const getCommonSetting = () => {
     if (watcher) {
       watcher()
     }
-    const arr = names.map((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
+    let config = editConfig.replace(/\r\n/gm, '\n')
+    const arr = [...names].map((item) => {
+      const regex = new RegExp(
+        `^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`,
+        'gm'
+      )
       const matchs =
-        editConfig.match(regex)?.map((s) => {
+        config.match(regex)?.map((s) => {
           const sarr = s
             .trim()
             .split('=')
@@ -546,15 +552,12 @@
         }) ?? []
       console.log('getCommonSetting: ', matchs, item.name)
       const find = matchs?.find((m) => m.k === item.name)
-      if (!find) {
-        item.enable = false
-        return item
-      }
-      item.enable = true
+      item.enable = !!find
       item.value = find?.v ?? item.value
+      item.key = uuid()
       return item
     })
-    commonSetting.value = arr as any
+    commonSetting.value = reactive(arr) as any
     watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
       deep: true
     })

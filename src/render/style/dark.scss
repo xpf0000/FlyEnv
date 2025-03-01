@@ -441,6 +441,41 @@ html.dark {
       }
     }
   }
+
+  .app-ai-chat-main {
+    background-color: rgb(3 7 18 / var(--tw-bg-opacity, 1));
+
+    > .cell {
+      > .icon {
+        background: rgb(51 65 85 / var(--tw-bg-opacity, 1));
+      }
+      > .content {
+        > .text {
+          color: rgba(255, 255, 255, .7);
+        }
+      }
+      &.ai {
+        > .icon {
+          color: #aa88ee;
+        }
+        > .content {
+          > .text {
+            background: rgb(51 65 85 / var(--tw-bg-opacity, 1));
+          }
+        }
+      }
+      &.user {
+        > .icon {
+          color: #409eff;
+        }
+        > .content {
+          > .text {
+            background: #1aad19;
+          }
+        }
+      }
+    }
+  }
 }
 
 html.dark {
