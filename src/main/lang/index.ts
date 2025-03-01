@@ -1,6 +1,8 @@
 import MenuEN from './en/menu'
+import MenuFR from './fr/menu'
 import MenuZH from './zh/menu'
 import UpdateEN from './en/update'
+import UpdateFR from './fr/update'
 import UpdateZH from './zh/update'
 import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
@@ -9,6 +11,10 @@ export const lang = {
   en: {
     menu: MenuEN,
     update: UpdateEN
+  },
+  fr: {
+    menu: MenuFR,
+    update: UpdateFR
   },
   zh: {
     menu: MenuZH,
