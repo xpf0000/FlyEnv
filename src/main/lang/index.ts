@@ -1,9 +1,16 @@
 import MenuEN from './en/menu'
 import MenuFR from './fr/menu'
+import MenuPT from './pt/menu'
 import MenuZH from './zh/menu'
+import MenuAZ from './az/menu'
+import MenuAR from './ar/menu'
 import UpdateEN from './en/update'
 import UpdateFR from './fr/update'
+import UpdatePT from './pt/update'
 import UpdateZH from './zh/update'
+import UpdateAZ from './az/update'
+import UpdateAR from './ar/update'
+
 import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 
@@ -16,9 +23,21 @@ export const lang = {
     menu: MenuFR,
     update: UpdateFR
   },
+  pt: {
+    menu: MenuPT,
+    update: UpdatePT
+  },
   zh: {
     menu: MenuZH,
     update: UpdateZH
+  },
+  az: {
+    menu: MenuAZ,
+    update: UpdateAZ
+  },
+  ar: {
+    menu: MenuAR,
+    update: UpdateAR
   }
 }
 
