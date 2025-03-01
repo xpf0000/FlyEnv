@@ -1,0 +1,23 @@
+export default {
+  about: 'Sobre',
+  app: 'FlyEnv',
+  checkForUpdates: 'Verificar atualizações...',
+  hide: 'Ocultar FlyEnv',
+  hideOthers: 'Ocultar outros',
+  unhide: 'Mostrar tudo',
+  quit: 'Sair do FlyEnv',
+  edit: 'Editar',
+  cut: 'Cortar',
+  copy: 'Copiar',
+  paste: 'Colar',
+  selectAll: 'Selecionar tudo',
+  window: 'Janela',
+  close: 'Fechar',
+  minimize: 'Minimizar',
+  zoom: 'Zoom',
+  fullscreen: 'Entrar em tela cheia',
+  front: 'Trazer FlyEnv para frente',
+  dev: 'Abrir janela de depuração',
+  needInstallHelper: 'O FlyEnv precisa instalar um programa auxiliar',
+  waitHelper: 'O programa auxiliar está iniciando, por favor, aguarde'
+}
