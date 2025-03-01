@@ -1,8 +1,10 @@
 import ENFork from './en/fork'
+import FRFork from './fr/fork'
 import PTFork from './pt/fork'
 import ZHFork from './zh/fork'
 import AZfork from './az/fork'
 import ENAppLog from './en/appLog'
+import FRAppLog from './fr/appLog'
 import PTAppLog from './pt/appLog'
 import ZHAppLog from './zh/appLog'
 import AZAppLog from './az/appLog'
@@ -14,6 +16,10 @@ const lang = {
     fork: ENFork,
     appLog: ENAppLog
   },
+  fr: {
+    fork: FRFork,
+    appLog: FRAppLog
+  },
   pt: {
     fork: PTFork,
     appLog: PTAppLog
@@ -23,8 +29,8 @@ const lang = {
     appLog: ZHAppLog
   },
   az: {
-	fork: AZfork,
-	appLog: AZAppLog
+    fork: AZfork,
+    appLog: AZAppLog
   }
 }
 
