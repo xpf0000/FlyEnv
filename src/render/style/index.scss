@@ -2032,20 +2032,24 @@ body {
   &.show {
     display: flex;
     &:not(.init) {
-      left: 280px;
       top: 0;
       right: 0;
       bottom: 0;
       border-radius: 0;
       width: calc(100vw - 280px);
+      min-width: 680px;
       height: 100vh;
       opacity: 1;
+
+      &:not(.animating) {
+        transition: none;
+      }
     }
     &.init {
       display: flex;
-      left: calc(100vw - 40px - 20px);
       top: calc(100vh - 40px - 20px);
       width: 40px;
+      min-width: 40px;
       height: 40px;
       right: 20px;
       bottom: 20px;
@@ -2070,6 +2074,7 @@ body {
       display: flex;
       align-items: center;
       padding: 6px 0;
+      flex-shrink: 0;
 
       .top-back-icon {
         width: 24px;

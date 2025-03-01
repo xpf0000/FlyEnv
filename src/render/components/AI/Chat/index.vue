@@ -2,10 +2,19 @@
   <div ref="mask" class="app-chat-mask"></div>
   <div ref="chat" class="app-chat">
     <div class="nav">
-      <div class="left" @click="hide">
-        <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
+      <div class="flex items-center">
+        <div class="left" @click="hide">
+          <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
+        </div>
       </div>
-      <el-button @click="doClean">{{ $t('base.clean') }}</el-button>
+      <div class="flex-1 flex items-center px-4">
+        <template v-if="currentChat">
+          <span class="truncate max-w-[320px] cursor-pointer hover:text-yellow-500">{{
+            currentChat.title
+          }}</span>
+        </template>
+      </div>
+      <el-button class="flex-shrink-0" @click="doClean">{{ $t('base.clean') }}</el-button>
     </div>
     <div class="flex-1 flex">
       <ASideVM />
@@ -24,11 +33,11 @@
 
 <script lang="ts" setup>
   import { AIStore } from '../store'
-  import { ref, onMounted, onBeforeUnmount } from 'vue'
+  import { ref, onMounted, onBeforeUnmount, type ComputedRef, computed } from 'vue'
   import Tool from './tool.vue'
   import Main from './Main/index.vue'
   import ASideVM from './ASide/index.vue'
-  import { AISetup } from '@/components/AI/setup'
+  import { AISetup, type ModelChatItem } from '@/components/AI/setup'
   import OllamaVM from './Ollama/index.vue'
 
   const action = ref('')
@@ -37,6 +46,10 @@
   const toolRef = ref()
   const aiStore = AIStore()
   const currentShow = ref(false)
+
+  const currentChat: ComputedRef<ModelChatItem> = computed(() => {
+    return AISetup.modelChatList?.[AISetup.model]?.find((f) => f.id === AISetup.tab)
+  })
 
   const show = () => {
     if (currentShow.value) {
@@ -55,6 +68,10 @@
     setTimeout(() => {
       dom.classList.remove('init')
       maskDom.classList.remove('init')
+      dom.classList.add('animating')
+      setTimeout(() => {
+        dom.classList.remove('animating')
+      }, 410)
     }, 50)
   }
 
