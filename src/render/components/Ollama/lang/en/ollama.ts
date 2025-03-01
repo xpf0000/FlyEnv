@@ -13,5 +13,9 @@ export default {
   OLLAMA_KV_CACHE_TYPE: 'Quantization type for the K/V cache (default: f16)',
   OLLAMA_LLM_LIBRARY: 'Set LLM library to bypass autodetection',
   OLLAMA_GPU_OVERHEAD: 'Reserve a portion of VRAM per GPU (bytes)',
-  OLLAMA_LOAD_TIMEOUT: 'How long to allow model loads to stall before giving up (default "5m")'
+  OLLAMA_LOAD_TIMEOUT: 'How long to allow model loads to stall before giving up (default "5m")',
+
+  needServiceRun: 'Please start the Olama service first',
+  size: 'Size',
+  model: 'Models'
 }

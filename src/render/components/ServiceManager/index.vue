@@ -201,17 +201,21 @@
           </template>
           <template v-else>
             <template v-if="scope.row.run">
-              <el-button link class="status running" :class="{ disabled: versionRunning }">
-                <yb-icon
-                  :svg="import('@/svg/stop2.svg?raw')"
-                  @click.stop="serviceDo('stop', scope.row)"
-                />
+              <el-button
+                link
+                class="status running"
+                :class="{ disabled: versionRunning }"
+                @click.stop="serviceDo('stop', scope.row)"
+              >
+                <yb-icon :svg="import('@/svg/stop2.svg?raw')" />
               </el-button>
-              <el-button link class="status refresh" :class="{ disabled: versionRunning }">
-                <yb-icon
-                  :svg="import('@/svg/icon_refresh.svg?raw')"
-                  @click.stop="serviceDo('restart', scope.row)"
-                />
+              <el-button
+                link
+                class="status refresh"
+                :class="{ disabled: versionRunning }"
+                @click.stop="serviceDo('restart', scope.row)"
+              >
+                <yb-icon :svg="import('@/svg/icon_refresh.svg?raw')" />
               </el-button>
             </template>
             <template v-else>
@@ -224,11 +228,9 @@
                     currentVersion?.version === scope.row.version &&
                     currentVersion?.path === scope.row.path
                 }"
+                @click.stop="serviceDo('start', scope.row)"
               >
-                <yb-icon
-                  :svg="import('@/svg/play.svg?raw')"
-                  @click.stop="serviceDo('start', scope.row)"
-                />
+                <yb-icon :svg="import('@/svg/play.svg?raw')" />
               </el-button>
             </template>
           </template>

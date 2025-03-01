@@ -1,10 +1,9 @@
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch, ComputedRef } from 'vue'
-import { editor, KeyMod, KeyCode } from 'monaco-editor/esm/vs/editor/editor.api.js'
+import { computed, ComputedRef, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import { EditorConfigMake, EditorCreate } from '@/util/Editor'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@shared/lang'
 import type { AllAppModule } from '@/core/type'
-import IPC from '@/util/IPC'
 
 const { dialog } = require('@electron/remote')
 const { shell } = require('@electron/remote')
@@ -20,7 +19,6 @@ export type CommonSetItem = {
   value: string
   enable: boolean
   show?: boolean
-  showEnable?: boolean
   type?: string
   isFile?: boolean
   isDir?: boolean
@@ -64,6 +62,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   const config = ref('')
   const input = ref()
   const index = ref(1)
+  const configIndex = ref(0)
   const changed = ref(false)
   let monacoInstance: editor.IStandaloneCodeEditor | null
 
@@ -104,24 +103,11 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       return
     }
     const content = monacoInstance?.getValue() ?? ''
-    writeFile(props.value.file, content)
-      .then(() => {
-        config.value = content
-        changed.value = false
-        MessageSuccess(I18nT('base.success'))
-      })
-      .catch(() => {
-        IPC.send('app-fork:tools', 'writeFileAndChmod777ByRoot', props.value.file, content).then(
-          (key: string, res: any) => {
-            IPC.off(key)
-            if (res?.code === 0) {
-              MessageSuccess(I18nT('base.success'))
-              return
-            }
-            MessageError(res?.msg ?? I18nT('base.fail'))
-          }
-        )
-      })
+    writeFile(props.value.file, content).then(() => {
+      config.value = content
+      changed.value = false
+      MessageSuccess(I18nT('base.success'))
+    })
   }
 
   const getEditValue = () => {
@@ -186,6 +172,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
         readOnly: disabled.value
       })
     }
+    configIndex.value += 1
   }
 
   const openConfig = () => {
@@ -202,26 +189,10 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       initEditor()
       return
     }
-    readFile(props.value.file, 'utf-8')
-      .then((conf: string) => {
-        config.value = conf
-        initEditor()
-      })
-      .catch(() => {
-        IPC.send('app-fork:tools', 'readFileAndChmod777ByRoot', props.value.file).then(
-          (key: string, res: any) => {
-            IPC.off(key)
-            if (res?.code === 0) {
-              config.value = res?.data ?? ''
-              initEditor()
-              return
-            }
-            config.value = ''
-            initEditor()
-            MessageError(res?.msg ?? I18nT('base.fail'))
-          }
-        )
-      })
+    readFile(props.value.file, 'utf-8').then((conf: string) => {
+      config.value = conf
+      initEditor()
+    })
   }
 
   const getDefault = () => {
@@ -230,11 +201,14 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       return
     }
     if (props?.value?.defaultConf) {
+      changed.value = props.value.defaultConf !== config.value
       config.value = props.value.defaultConf
       initEditor()
       return
     }
     readFile(props.value.defaultFile, 'utf-8').then((conf: string) => {
+      console.log('getDefault config.value === conf', config.value === conf)
+      changed.value = conf !== config.value
       config.value = conf
       initEditor()
     })
@@ -257,6 +231,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
           return
         }
         readFile(file, 'utf-8').then((conf: string) => {
+          changed.value = conf !== config.value
           config.value = conf
           initEditor()
         })
@@ -293,6 +268,10 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     index.value += 1
   }
 
+  const watchFlag = computed(() => {
+    return `${type.value}-${disabled.value}-${configIndex.value}`
+  })
+
   return {
     changed,
     update,
@@ -309,6 +288,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     getConfig,
     getEditValue,
     setEditValue,
-    openURL
+    openURL,
+    watchFlag
   }
 }

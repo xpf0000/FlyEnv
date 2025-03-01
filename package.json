@@ -1,6 +1,6 @@
 {
   "name": "PhpWebStudy",
-  "version": "4.8.5",
+  "version": "4.8.6",
   "description": "Powerful Web Server and Environment Manager",
   "author": {
     "name": "pengfei xu",
@@ -47,9 +47,9 @@
     "node-pty": "^1.0.0",
     "node-rsa": "^1.1.1",
     "normalize.css": "^8.0.1",
+    "ollama": "^0.5.14",
     "randexp": "^0.5.3",
     "serve": "^14.2.4",
-    "sudo-prompt": "^9.2.1",
     "tangerine": "^1.6.0",
     "undici": "^5.28.5",
     "vue": "^3.5.13",

@@ -13,8 +13,9 @@
         :has-static="true"
         :show-port-lib="false"
       ></Manager>
-      <Config v-if="tab === 2"></Config>
-      <Logs v-if="tab === 3"></Logs>
+      <ModelsVM v-if="tab === 2" />
+      <Config v-if="tab === 3"></Config>
+      <Logs v-if="tab === 4"></Logs>
     </div>
   </div>
 </template>
@@ -26,11 +27,13 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@shared/lang'
+  import ModelsVM from './models/index.vue'
 
   const { tab, checkVersion } = AppModuleSetup('ollama')
   const tabs = [
     I18nT('base.service'),
     I18nT('base.versionManager'),
+    I18nT('ollama.model'),
     I18nT('base.configFile'),
     I18nT('base.log')
   ]
