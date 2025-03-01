@@ -7,7 +7,7 @@
             <el-button round type="primary">FlyEnv</el-button>
           </template>
           <template v-else>
-            <el-button round>FlyEnv</el-button>
+            <el-button round @click.stop="toChat(undefined)">FlyEnv</el-button>
           </template>
           <div
             class="pb-1 pl-1 text-sm mb-3 flex items-center justify-between mt-5 text-zinc-600 dark:text-gray-300 border-b border-zinc-200 dark:border-zinc-700"
@@ -56,7 +56,7 @@
                     :class="{
                       active: AISetup.tab === citem.id
                     }"
-                    @click.stop="AISetup.tab = citem.id"
+                    @click.stop="toChat(citem)"
                   >
                     <span class="text-sm">{{ citem.title }}</span>
                     <div class="right-hover"></div>
@@ -84,10 +84,17 @@
 </template>
 <script lang="ts" setup>
   import { AISetup, Setup } from '@/components/AI/setup'
-  import { startService, stopService } from '@/util/Service'
+  import { stopService } from '@/util/Service'
 
-  const { collapseList, runningService, currentVersion, runService, serviceStart, startNewChat } =
-    Setup()
+  const {
+    collapseList,
+    runningService,
+    currentVersion,
+    runService,
+    serviceStart,
+    startNewChat,
+    toChat
+  } = Setup()
 </script>
 <style lang="scss">
   .model-chat-list {

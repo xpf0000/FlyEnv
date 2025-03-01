@@ -10,8 +10,13 @@
     <div class="flex-1 flex">
       <ASideVM />
       <div class="flex-1 h-full overflow-hidden flex flex-col">
-        <Main />
-        <Tool ref="toolRef" />
+        <template v-if="AISetup.tab === 'flyenv'">
+          <Main />
+          <Tool ref="toolRef" />
+        </template>
+        <template v-else>
+          <OllamaVM />
+        </template>
       </div>
     </div>
   </div>
@@ -23,6 +28,8 @@
   import Tool from './tool.vue'
   import Main from './Main/index.vue'
   import ASideVM from './ASide/index.vue'
+  import { AISetup } from '@/components/AI/setup'
+  import OllamaVM from './Ollama/index.vue'
 
   const action = ref('')
   const mask = ref()

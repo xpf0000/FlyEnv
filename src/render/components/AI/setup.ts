@@ -12,17 +12,23 @@ export type ChatItem = {
 }
 
 export type ModelChatItem = {
+  model: string
   id: string
   title: string
+  prompt: string
   chatList: ChatItem[]
 }
 
 export const AISetup = reactive<{
   tab: string
+  model: string
   modelChatList: Record<string, ModelChatItem[]>
+  content: string
 }>({
   tab: 'flyenv',
-  modelChatList: {}
+  model: '',
+  modelChatList: {},
+  content: ''
 })
 
 export const Setup = () => {
@@ -70,14 +76,30 @@ export const Setup = () => {
     if (!AISetup.modelChatList[model]) {
       AISetup.modelChatList[model] = reactive([])
     }
+    const find = AISetup.modelChatList[model].find((f) => f.chatList.length === 0)
+    if (find) {
+      AISetup.tab = find.id
+      return
+    }
     const id = uuid()
     const item: ModelChatItem = {
       id,
+      model,
       title: '新聊天',
       chatList: []
     }
     AISetup.modelChatList[model].unshift(item)
     AISetup.tab = id
+  }
+
+  const toChat = (item?: ModelChatItem) => {
+    if (!item) {
+      AISetup.tab = 'flyenv'
+      AISetup.model = ''
+    } else {
+      AISetup.tab = item.id
+      AISetup.model = item.model
+    }
   }
 
   return {
@@ -86,6 +108,7 @@ export const Setup = () => {
     runService,
     runningService,
     serviceStart,
-    startNewChat
+    startNewChat,
+    toChat
   }
 }
