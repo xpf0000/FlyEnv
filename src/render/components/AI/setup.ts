@@ -4,6 +4,7 @@ import { BrewStore, SoftInstalled } from '@/store/brew'
 import { AppStore } from '@/store/app'
 import { startService } from '@/util/Service'
 import { uuid } from '@shared/utils'
+import { I18nT } from '@shared/lang'
 
 export type ChatItem = {
   role: 'user' | 'system' | 'assistant'
@@ -85,7 +86,8 @@ export const Setup = () => {
     const item: ModelChatItem = {
       id,
       model,
-      title: '新聊天',
+      title: I18nT('prompt.newChat'),
+      prompt: I18nT('prompt.default'),
       chatList: []
     }
     AISetup.modelChatList[model].unshift(item)
