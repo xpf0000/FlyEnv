@@ -1,5 +1,8 @@
 <template>
-  <div class="pt-[1px] pr-[1px] w-64 flex-shrink-0 h-full overflow-hidden dark:pt-0 dark:pr-0">
+  <div
+    ref="aside"
+    class="pt-[1px] pr-[1px] w-64 flex-shrink-0 h-full overflow-hidden dark:pt-0 dark:pr-0"
+  >
     <div class="h-full overflow-hidden bg-white dark:bg-slate-900">
       <el-scrollbar>
         <div class="w-full flex flex-col p-2 pt-4 gap-3">
@@ -45,7 +48,7 @@
             <template v-for="(item, _i) in collapseList" :key="_i">
               <div class="flex justify-between mb-2">
                 <span>{{ item.name }}</span>
-                <el-button type="primary" link @click.stop="startNewChat(item.name)">
+                <el-button type="primary" link @click.stop="startNewChat(item)">
                   <yb-icon class="w-5 h-5" :svg="import('@/svg/chat-new.svg?raw')" />
                 </el-button>
               </div>
@@ -61,17 +64,40 @@
                     <span class="text-sm">{{ citem.title }}</span>
                     <div class="right-hover"></div>
                     <div class="right-tool-mask"></div>
-                    <div class="right-tool">
-                      <div class="ds-icon" style="font-size: 16px; width: 16px; height: 16px"
-                        ><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <path
-                            fill="currentColor"
-                            fill-rule="evenodd"
-                            d="M3 12a2 2 0 1 1 4 0 2 2 0 0 1-4 0m7 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0m7 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0"
-                            clip-rule="evenodd"
-                          ></path></svg
-                      ></div>
-                    </div>
+                    <el-dropdown
+                      :teleported="true"
+                      trigger="click"
+                      class="right-tool"
+                      popper-class="app-popper-z-99999"
+                    >
+                      <template #default>
+                        <div class="ds-icon" style="font-size: 16px; width: 16px; height: 16px"
+                          ><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <path
+                              fill="currentColor"
+                              fill-rule="evenodd"
+                              d="M3 12a2 2 0 1 1 4 0 2 2 0 0 1-4 0m7 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0m7 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0"
+                              clip-rule="evenodd"
+                            ></path></svg
+                        ></div>
+                      </template>
+                      <template #dropdown>
+                        <el-dropdown-menu>
+                          <el-dropdown-item :icon="Edit" @click.stop="showAdd(item)">
+                            {{ I18nT('base.edit') }}
+                          </el-dropdown-item>
+                          <el-dropdown-item
+                            :icon="CopyDocument"
+                            @click.stop="showAdd({ name: item.name, prompt: item.prompt })"
+                          >
+                            {{ I18nT('base.copy') }}
+                          </el-dropdown-item>
+                          <el-dropdown-item :icon="Delete" divided @click.stop="delChat(citem)">{{
+                            I18nT('base.del')
+                          }}</el-dropdown-item>
+                        </el-dropdown-menu>
+                      </template>
+                    </el-dropdown>
                   </div>
                 </template>
               </template>
@@ -83,8 +109,13 @@
   </div>
 </template>
 <script lang="ts" setup>
+  import { ref } from 'vue'
   import { AISetup, Setup } from '@/components/AI/setup'
   import { stopService } from '@/util/Service'
+  import { CopyDocument, Delete, Edit } from '@element-plus/icons-vue'
+  import { I18nT } from '@shared/lang'
+
+  const aside = ref<HTMLElement>()
 
   const {
     collapseList,
@@ -93,10 +124,14 @@
     runService,
     serviceStart,
     startNewChat,
-    toChat
+    toChat,
+    delChat
   } = Setup()
 </script>
 <style lang="scss">
+  .app-popper-z-99999 {
+    z-index: 99999 !important;
+  }
   .model-chat-list {
     --ds-rgb-blue-50: 239 246 255;
     --ds-rgb-blue-100: 219 234 254;

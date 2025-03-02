@@ -9,12 +9,13 @@
       </div>
       <div class="flex-1 flex items-center px-4">
         <template v-if="currentChat">
-          <span class="truncate max-w-[320px] cursor-pointer hover:text-yellow-500">{{
+          <span class="truncate max-w-[320px] cursor-pointer hover:text-yellow-500 mr-4">{{
             currentChat.title
           }}</span>
+          <PromptVM />
         </template>
       </div>
-      <el-button class="flex-shrink-0" @click="doClean">{{ $t('base.clean') }}</el-button>
+      <el-button class="flex-shrink-0" @click="doClean">{{ I18nT('base.clean') }}</el-button>
     </div>
     <div class="flex-1 flex">
       <ASideVM />
@@ -39,6 +40,8 @@
   import ASideVM from './ASide/index.vue'
   import { AISetup, type ModelChatItem } from '@/components/AI/setup'
   import OllamaVM from './Ollama/index.vue'
+  import PromptVM from '../Prompt/index.vue'
+  import { I18nT } from '@shared/lang'
 
   const action = ref('')
   const mask = ref()

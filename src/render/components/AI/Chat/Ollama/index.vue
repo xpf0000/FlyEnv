@@ -1,6 +1,7 @@
 <template>
   <el-scrollbar class="flex-1 overflow-hidden bg-[#f0f0f0] dark:bg-[#030712]">
     <div class="app-ai-chat-main">
+      {{ chatList }}
       <template v-for="(item, _index) in chatList" :key="_index">
         <div
           class="cell"
@@ -25,9 +26,9 @@
       <div ref="bottom" class="bottom"></div>
     </div>
   </el-scrollbar>
-  <div ref="input" class="app-ai-tool">
+  <div v-if="currentChat" ref="input" class="app-ai-tool">
     <el-input
-      v-model="AISetup.content"
+      v-model="currentChat.content"
       type="textarea"
       :autosize="{ minRows: 1, maxRows: 8 }"
       :autofocus="true"
@@ -41,6 +42,11 @@
   import { computed, watch, ref, nextTick, type ComputedRef } from 'vue'
   import { ChatLineRound, User, Setting } from '@element-plus/icons-vue'
   import { AISetup, type ChatItem } from '@/components/AI/setup'
+  import type { AIOllama } from '@/components/AI/AIOllama'
+
+  const currentChat: ComputedRef<AIOllama | undefined> = computed(() => {
+    return AISetup.modelChatList?.[AISetup.model]?.find((f) => f.id === AISetup.tab)
+  })
 
   const chatList: ComputedRef<ChatItem[]> = computed(() => {
     return AISetup.modelChatList?.[AISetup.model]?.find((f) => f.id === AISetup.tab)?.chatList ?? []
@@ -64,5 +70,7 @@
     }
   )
 
-  const submit = () => {}
+  const submit = () => {
+    currentChat?.value?.send()
+  }
 </script>

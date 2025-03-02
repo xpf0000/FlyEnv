@@ -2,22 +2,31 @@ import { computed, reactive } from 'vue'
 import IPC from '@/util/IPC'
 import type { OllamaModelItem } from '@/components/Ollama/models/all/setup'
 import { BrewStore } from '@/store/brew'
+import { AppStore } from '@/store/app'
+import InstalledVersions from '@/util/InstalledVersions'
 
 export const OllamaLocalModelsSetup = reactive<{
   fetching: boolean
-  reFetch: () => void
+  reFetch: () => Promise<boolean>
   list: OllamaModelItem[]
 }>({
   fetching: false,
-  reFetch() {
+  async reFetch() {
     const brewStore = BrewStore()
-    const runningService = brewStore.module('ollama').installed.find((o) => o.run)
-    if (!runningService) {
-      return
+    if (brewStore.module('ollama').installed.length === 0) {
+      await InstalledVersions.allInstalledVersions(['ollama'])
+    }
+    const appStore = AppStore()
+    const current = appStore.config.server?.ollama?.current
+    const service = brewStore
+      .module('ollama')
+      .installed.find((o) => o.path === current?.path && o.version === current?.version)
+    if (!service) {
+      return false
     }
     this.list.splice(0)
     this.fetching = true
-    IPC.send('app-fork:ollama', 'allModel', JSON.parse(JSON.stringify(runningService))).then(
+    IPC.send('app-fork:ollama', 'allModel', JSON.parse(JSON.stringify(service))).then(
       (key: string, res: any) => {
         IPC.off(key)
         const list = res?.data ?? []
@@ -25,6 +34,7 @@ export const OllamaLocalModelsSetup = reactive<{
         this.fetching = false
       }
     )
+    return true
   },
   list: []
 })

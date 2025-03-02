@@ -281,5 +281,25 @@ class Ollama extends Base {
       return resolve(list)
     })
   }
+
+  chat(param: any) {
+    return new ForkPromise((resolve, reject, on) => {
+      axios(param)
+        .then((response) => {
+          const reader = new TextDecoder()
+          response.data.on('data', (chunk: any) => {
+            const text = reader.decode(chunk)
+            const json = JSON.parse(text)
+            on(json)
+            if (json.done) {
+              resolve(true)
+            }
+          })
+        })
+        .catch((e) => {
+          reject(e)
+        })
+    })
+  }
 }
 export default new Ollama()

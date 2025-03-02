@@ -5,31 +5,38 @@ import { AppStore } from '@/store/app'
 import { startService } from '@/util/Service'
 import { uuid } from '@shared/utils'
 import { I18nT } from '@shared/lang'
+import type { PromptItem } from '@/components/AI/Prompt/setup'
+import { AIOllama } from '@/components/AI/AIOllama'
+import type { OllamaModelItem } from '@/components/Ollama/models/all/setup'
 
 export type ChatItem = {
   role: 'user' | 'system' | 'assistant'
   content: string
-  images: string[]
+  images?: string[]
 }
 
-export type ModelChatItem = {
-  model: string
-  id: string
-  title: string
-  prompt: string
-  chatList: ChatItem[]
-}
+export type ModelChatItem = AIOllama
 
 export const AISetup = reactive<{
   tab: string
   model: string
   modelChatList: Record<string, ModelChatItem[]>
   content: string
+  updateCurrentChatPrompt: (item: PromptItem) => void
 }>({
   tab: 'flyenv',
   model: '',
   modelChatList: {},
-  content: ''
+  content: '',
+  updateCurrentChatPrompt(item: PromptItem) {
+    const currentChat = AISetup.modelChatList?.[AISetup.model]?.find((f) => f.id === AISetup.tab)
+    if (!currentChat) {
+      return
+    }
+    currentChat.title = item.name
+    currentChat.prompt = item.prompt
+    currentChat.updatePrompt()
+  }
 })
 
 export const Setup = () => {
@@ -73,7 +80,8 @@ export const Setup = () => {
     })
   }
 
-  const startNewChat = (model: string) => {
+  const startNewChat = (oitem: OllamaModelItem) => {
+    const model = oitem.name
     if (!AISetup.modelChatList[model]) {
       AISetup.modelChatList[model] = reactive([])
     }
@@ -83,15 +91,20 @@ export const Setup = () => {
       return
     }
     const id = uuid()
-    const item: ModelChatItem = {
-      id,
-      model,
-      title: I18nT('prompt.newChat'),
-      prompt: I18nT('prompt.default'),
-      chatList: []
-    }
-    AISetup.modelChatList[model].unshift(item)
+    const item = reactive(
+      new AIOllama({
+        baseUrl: oitem?.url ?? 'http://127.0.0.1:11434',
+        id,
+        model,
+        title: I18nT('prompt.newChat'),
+        prompt: I18nT('prompt.default'),
+        chatList: []
+      })
+    )
+    item.updatePrompt()
+    AISetup.modelChatList[model].unshift(item as any)
     AISetup.tab = id
+    AISetup.model = model
   }
 
   const toChat = (item?: ModelChatItem) => {
@@ -104,6 +117,26 @@ export const Setup = () => {
     }
   }
 
+  const delChat = (item: ModelChatItem) => {
+    const list = AISetup.modelChatList[item.model]
+    const index = list.findIndex((f) => f.id === item.id)
+    if (index >= 0) {
+      list.splice(index, 1)
+    }
+    if (AISetup.tab === item.id) {
+      const fitem = list?.[0]
+      if (fitem) {
+        AISetup.tab = fitem.id
+        AISetup.model = fitem.model
+      } else {
+        AISetup.tab = 'flyenv'
+        AISetup.model = ''
+      }
+    }
+  }
+
+  const copyChat = () => {}
+
   return {
     collapseList,
     currentVersion,
@@ -111,6 +144,8 @@ export const Setup = () => {
     runningService,
     serviceStart,
     startNewChat,
-    toChat
+    toChat,
+    delChat,
+    copyChat
   }
 }
