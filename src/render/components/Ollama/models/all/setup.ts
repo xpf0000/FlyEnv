@@ -14,6 +14,7 @@ export type OllamaModelItem = {
   isRoot?: boolean
   name: string
   size?: string
+  url?: string
   hasChildren?: boolean
   children?: OllamaModelItem[]
 }
