@@ -17,7 +17,7 @@
       </div>
       <el-button class="flex-shrink-0" @click="doClean">{{ I18nT('base.clean') }}</el-button>
     </div>
-    <div class="flex-1 flex">
+    <div class="flex-1 flex h-full overflow-hidden">
       <ASideVM />
       <div class="flex-1 h-full overflow-hidden flex flex-col">
         <template v-if="AISetup.tab === 'flyenv'">
@@ -42,6 +42,7 @@
   import OllamaVM from './Ollama/index.vue'
   import PromptVM from '../Prompt/index.vue'
   import { I18nT } from '@shared/lang'
+  import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'
 
   const action = ref('')
   const mask = ref()
@@ -58,6 +59,7 @@
     if (currentShow.value) {
       return
     }
+    OllamaLocalModelsSetup.reFetch()
     currentShow.value = true
     action.value = 'show'
 

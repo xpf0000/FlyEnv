@@ -45,13 +45,17 @@ export const Setup = () => {
   })
 
   const brewStore = BrewStore()
+  const appStore = AppStore()
 
-  const runningService = computed(() => {
-    return brewStore.module('ollama').installed.find((o) => o.run)
+  const currentService = computed(() => {
+    const current = appStore.config.server?.ollama?.current
+    return brewStore
+      .module('ollama')
+      .installed.find((o) => o.path === current?.path && o.version === current?.version)
   })
 
   const fetchData = () => {
-    if (!runningService.value) {
+    if (!currentService.value) {
       return
     }
     if (fetching.value || Object.keys(OllamaLocalModelsSetup.list).length > 0) {
@@ -59,7 +63,7 @@ export const Setup = () => {
     }
     OllamaLocalModelsSetup.fetching = true
 
-    IPC.send('app-fork:ollama', 'allModel', JSON.parse(JSON.stringify(runningService.value))).then(
+    IPC.send('app-fork:ollama', 'allModel', JSON.parse(JSON.stringify(currentService.value))).then(
       (key: string, res: any) => {
         IPC.off(key)
         const list = res?.data ?? []
@@ -77,7 +81,6 @@ export const Setup = () => {
 
   return {
     fetching,
-    tableData,
-    runningService
+    tableData
   }
 }

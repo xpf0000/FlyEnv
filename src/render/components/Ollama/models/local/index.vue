@@ -1,10 +1,7 @@
 <template>
   <el-table height="100%" :data="tableData" :border="false" style="width: 100%">
     <template #empty>
-      <template v-if="!runningService">
-        {{ I18nT('ollama.needServiceRun') }}
-      </template>
-      <template v-else-if="fetching">
+      <template v-if="fetching">
         {{ I18nT('base.gettingVersion') }}
       </template>
     </template>
@@ -30,5 +27,5 @@
   import { I18nT } from '@shared/lang'
   import { Setup } from './setup'
 
-  const { fetching, tableData, runningService } = Setup()
+  const { fetching, tableData } = Setup()
 </script>
