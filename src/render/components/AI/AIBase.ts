@@ -8,7 +8,7 @@ export class AIBase {
   chatList: ChatItem[] = []
   streaming: boolean = false
   content: string = ''
-  temperature: number = 0.6
+  temperature: number = 0.7
   baseUrl = ''
 
   private _checkFns: Function[] = []

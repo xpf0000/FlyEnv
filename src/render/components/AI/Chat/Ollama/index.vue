@@ -1,7 +1,6 @@
 <template>
   <el-scrollbar class="flex-1 overflow-hidden bg-[#f0f0f0] dark:bg-[#030712]">
     <div class="app-ai-chat-main">
-      {{ chatList }}
       <template v-for="(item, _index) in chatList" :key="_index">
         <div
           class="cell"
@@ -19,7 +18,7 @@
             </template>
           </div>
           <div class="content">
-            <div class="text" v-html="item.content"> </div>
+            <ContentVM class="text" :content="item.content.trim()" />
           </div>
         </div>
       </template>
@@ -33,6 +32,7 @@
       :autosize="{ minRows: 1, maxRows: 8 }"
       :autofocus="true"
       :clearable="true"
+      @keydown.stop="onKeyDown"
     ></el-input>
     <el-button round :icon="ChatLineRound" @click.stop="submit"></el-button>
   </div>
@@ -43,6 +43,7 @@
   import { ChatLineRound, User, Setting } from '@element-plus/icons-vue'
   import { AISetup, type ChatItem } from '@/components/AI/setup'
   import type { AIOllama } from '@/components/AI/AIOllama'
+  import ContentVM from './content.vue'
 
   const currentChat: ComputedRef<AIOllama | undefined> = computed(() => {
     return AISetup.modelChatList?.[AISetup.model]?.find((f) => f.id === AISetup.tab)
@@ -54,13 +55,24 @@
 
   const bottom = ref()
 
+  const onKeyDown = (e: KeyboardEvent) => {
+    console.log('onKeyDown, e: ', e)
+    if (e.key === 'Enter') {
+      if (!e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+        e.preventDefault && e.preventDefault()
+        e.stopPropagation && e.stopPropagation()
+        currentChat?.value?.send()
+      }
+    }
+  }
+
   watch(
     chatList,
     () => {
       nextTick().then(() => {
         const dom: HTMLElement = bottom?.value as any
         dom?.scrollIntoView({
-          behavior: 'smooth',
+          behavior: 'auto',
           block: 'end'
         })
       })

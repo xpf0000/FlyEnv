@@ -58,29 +58,50 @@ export class AIOllama extends AIBase {
     })
   }
   updatePrompt() {
-    const messages = [...this.chatList]
-    messages.push({
+    const item: ChatItem = reactive({
       role: 'system',
       content: this.prompt
     })
-    this.request({ messages }).then().catch()
+    const messages = [...this.chatList].filter((f) => !f.error)
+    messages.push(item)
+    this.chatList.push(item)
+    this.request({ messages })
+      .then()
+      .catch(() => {
+        item.error = true
+      })
   }
 
   send() {
     if (!this.content.trim()) {
       return
     }
-    const messages = [...this.chatList]
-    messages.push({
-      role: 'user',
-      content: this.content
-    })
-    const content = this.content
+    const successedPrompt = this.chatList.find(
+      (f) => !f.error && f.role === 'system' && f.content === this.prompt
+    )
+    const messages = [...this.chatList].filter((f) => !f.error)
+    const arr: ChatItem[] = []
+    if (!successedPrompt) {
+      arr.push(
+        reactive({
+          role: 'system',
+          content: this.prompt
+        })
+      )
+    }
+    arr.push(
+      reactive({
+        role: 'user',
+        content: this.content
+      })
+    )
+    messages.push(...arr)
+    this.chatList.push(...arr)
     this.content = ''
     this.request({ messages })
       .then()
       .catch(() => {
-        this.content = content
+        arr.forEach((a) => (a.error = true))
       })
   }
 
@@ -90,13 +111,33 @@ export class AIOllama extends AIBase {
       if (files.length > 0) {
         const all = Array.from(files).map((file) => useBase64(file).execute())
         Promise.all(all).then((images) => {
-          const messages = [...this.chatList]
-          messages.push({
-            role: 'user',
-            content: '',
-            images
-          })
-          this.request({ messages }).then().catch()
+          const successedPrompt = this.chatList.find(
+            (f) => !f.error && f.role === 'system' && f.content === this.prompt
+          )
+          const messages = [...this.chatList].filter((f) => !f.error)
+          const arr: ChatItem[] = []
+          if (!successedPrompt) {
+            arr.push(
+              reactive({
+                role: 'system',
+                content: this.prompt
+              })
+            )
+          }
+          arr.push(
+            reactive({
+              role: 'user',
+              content: '',
+              images
+            })
+          )
+          messages.push(...arr)
+          this.chatList.push(...arr)
+          this.request({ messages })
+            .then()
+            .catch(() => {
+              arr.forEach((a) => (a.error = true))
+            })
         })
       }
     })
