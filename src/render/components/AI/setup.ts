@@ -8,6 +8,8 @@ import { I18nT } from '@shared/lang'
 import type { PromptItem } from '@/components/AI/Prompt/setup'
 import { AIOllama } from '@/components/AI/AIOllama'
 import type { OllamaModelItem } from '@/components/Ollama/models/all/setup'
+import { AsyncComponentShow } from '@/util/AsyncComponent'
+import localForage from 'localforage'
 
 export type ChatItem = {
   role: 'user' | 'system' | 'assistant'
@@ -24,6 +26,8 @@ export const AISetup = reactive<{
   modelChatList: Record<string, ModelChatItem[]>
   content: string
   updateCurrentChatPrompt: (item: PromptItem) => void
+  save: () => void
+  init: () => void
 }>({
   tab: 'flyenv',
   model: '',
@@ -36,7 +40,33 @@ export const AISetup = reactive<{
     }
     currentChat.title = item.name
     currentChat.prompt = item.prompt
-    currentChat.updatePrompt()
+    AISetup.save()
+  },
+  init() {
+    localForage
+      .getItem('flyenv-ai-chat-list')
+      .then((res: any) => {
+        if (res && res?.tab) {
+          AISetup.tab = res.tab
+        }
+        if (res && res?.model) {
+          AISetup.model = res.model
+        }
+        if (res && res?.modelChatList) {
+          AISetup.modelChatList = reactive(res.modelChatList)
+        }
+      })
+      .catch()
+  },
+  save() {
+    localForage
+      .setItem('flyenv-ai-chat-list', {
+        tab: AISetup.tab,
+        model: AISetup.model,
+        modelChatList: AISetup.modelChatList
+      })
+      .then()
+      .catch()
   }
 })
 
@@ -133,10 +163,10 @@ export const Setup = () => {
         ]
       })
     )
-    // item.updatePrompt()
     AISetup.modelChatList[model].unshift(item as any)
     AISetup.tab = id
     AISetup.model = model
+    AISetup.save()
   }
 
   const toChat = (item?: ModelChatItem) => {
@@ -147,6 +177,7 @@ export const Setup = () => {
       AISetup.tab = item.id
       AISetup.model = item.model
     }
+    AISetup.save()
   }
 
   const delChat = (item: ModelChatItem) => {
@@ -165,9 +196,34 @@ export const Setup = () => {
         AISetup.model = ''
       }
     }
+    AISetup.save()
   }
 
-  const copyChat = () => {}
+  const copyChat = (item: ModelChatItem) => {
+    const list = AISetup.modelChatList[item.model]
+    const index = list.findIndex((f) => f.id === item.id)
+    if (index >= 0) {
+      const chatItem = list[index]
+      const obj = JSON.parse(JSON.stringify(chatItem))
+      obj.id = uuid()
+      const copy = reactive(new AIOllama(obj))
+      list.splice(index + 1, 0, copy as any)
+    }
+    AISetup.save()
+  }
+
+  let EditVM: any
+  import('./ChatItemSetup/index.vue').then((res) => {
+    EditVM = res.default
+  })
+
+  const editChat = (item: ModelChatItem) => {
+    AsyncComponentShow(EditVM, {
+      item
+    }).then(() => {
+      AISetup.save()
+    })
+  }
 
   return {
     collapseList,
@@ -178,6 +234,7 @@ export const Setup = () => {
     startNewChat,
     toChat,
     delChat,
-    copyChat
+    copyChat,
+    editChat
   }
 }

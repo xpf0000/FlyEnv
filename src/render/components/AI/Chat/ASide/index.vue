@@ -83,13 +83,10 @@
                       </template>
                       <template #dropdown>
                         <el-dropdown-menu>
-                          <el-dropdown-item :icon="Edit" @click.stop="showAdd(item)">
+                          <el-dropdown-item :icon="Edit" @click.stop="editChat(citem)">
                             {{ I18nT('base.edit') }}
                           </el-dropdown-item>
-                          <el-dropdown-item
-                            :icon="CopyDocument"
-                            @click.stop="showAdd({ name: item.name, prompt: item.prompt })"
-                          >
+                          <el-dropdown-item :icon="CopyDocument" @click.stop="copyChat(citem)">
                             {{ I18nT('base.copy') }}
                           </el-dropdown-item>
                           <el-dropdown-item :icon="Delete" divided @click.stop="delChat(citem)">{{
@@ -125,7 +122,9 @@
     serviceStart,
     startNewChat,
     toChat,
-    delChat
+    delChat,
+    copyChat,
+    editChat
   } = Setup()
 </script>
 <style lang="scss">

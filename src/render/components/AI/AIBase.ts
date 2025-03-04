@@ -38,8 +38,6 @@ export class AIBase {
     return param && Promise.resolve(true)
   }
 
-  updatePrompt() {}
-
   send() {}
 
   sendDoc() {}

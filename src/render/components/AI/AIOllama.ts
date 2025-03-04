@@ -6,6 +6,7 @@ import { MessageError } from '@/util/Element'
 import { fileSelect } from '@/util/Index'
 import { useBase64 } from '@vueuse/core'
 import IPC from '@/util/IPC'
+import { AISetup } from '@/components/AI/setup'
 
 export class AIOllama extends AIBase {
   request(param: any): Promise<boolean> {
@@ -57,38 +58,14 @@ export class AIOllama extends AIBase {
       })
     })
   }
-  updatePrompt() {
-    const item: ChatItem = reactive({
-      role: 'system',
-      content: this.prompt
-    })
-    const messages = [...this.chatList].filter((f) => !f.error)
-    messages.push(item)
-    this.chatList.push(item)
-    this.request({ messages })
-      .then()
-      .catch(() => {
-        item.error = true
-      })
-  }
 
   send() {
     if (!this.content.trim()) {
       return
     }
-    const successedPrompt = this.chatList.find(
-      (f) => !f.error && f.role === 'system' && f.content === this.prompt
-    )
-    const messages = [...this.chatList].filter((f) => !f.error)
+
+    const messages = [...this.chatList].filter((f) => !f.error && f.role !== 'system')
     const arr: ChatItem[] = []
-    if (!successedPrompt) {
-      arr.push(
-        reactive({
-          role: 'system',
-          content: this.prompt
-        })
-      )
-    }
     arr.push(
       reactive({
         role: 'user',
@@ -96,12 +73,19 @@ export class AIOllama extends AIBase {
       })
     )
     messages.push(...arr)
+    messages.unshift({
+      role: 'system',
+      content: this.prompt
+    })
     this.chatList.push(...arr)
     this.content = ''
     this.request({ messages })
       .then()
       .catch(() => {
         arr.forEach((a) => (a.error = true))
+      })
+      .finally(() => {
+        AISetup.save()
       })
   }
 
@@ -111,19 +95,8 @@ export class AIOllama extends AIBase {
       if (files.length > 0) {
         const all = Array.from(files).map((file) => useBase64(file).execute())
         Promise.all(all).then((images) => {
-          const successedPrompt = this.chatList.find(
-            (f) => !f.error && f.role === 'system' && f.content === this.prompt
-          )
-          const messages = [...this.chatList].filter((f) => !f.error)
+          const messages = [...this.chatList].filter((f) => !f.error && f.role !== 'system')
           const arr: ChatItem[] = []
-          if (!successedPrompt) {
-            arr.push(
-              reactive({
-                role: 'system',
-                content: this.prompt
-              })
-            )
-          }
           arr.push(
             reactive({
               role: 'user',
@@ -132,11 +105,18 @@ export class AIOllama extends AIBase {
             })
           )
           messages.push(...arr)
+          messages.unshift({
+            role: 'system',
+            content: this.prompt
+          })
           this.chatList.push(...arr)
           this.request({ messages })
             .then()
             .catch(() => {
               arr.forEach((a) => (a.error = true))
+            })
+            .finally(() => {
+              AISetup.save()
             })
         })
       }

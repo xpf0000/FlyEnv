@@ -3,5 +3,8 @@ export default {
   PartnerPrompt: 'Partner Prompt',
   NeedPartnerName: 'Please input Partner Name',
   NeedPartnerPrompt: 'Please input Partner Prompt',
-  saveAsCustom: 'Save as Custom'
+  saveAsCustom: 'Save as Custom',
+  Temperature: 'Temperature',
+  Meticulous: 'Meticulous',
+  Creative: 'Creative'
 }
