@@ -1,7 +1,6 @@
 import type { ChatItem } from '@/components/AI/setup'
 
 export class AIBase {
-  model: string = ''
   id: string = ''
   title: string = ''
   prompt: string = ''
@@ -9,7 +8,6 @@ export class AIBase {
   streaming: boolean = false
   content: string = ''
   temperature: number = 0.7
-  baseUrl = ''
 
   private _checkFns: Function[] = []
 
@@ -39,6 +37,8 @@ export class AIBase {
   }
 
   send() {}
+
+  sendNotMake() {}
 
   sendDoc() {}
 

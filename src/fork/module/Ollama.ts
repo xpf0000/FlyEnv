@@ -301,5 +301,17 @@ class Ollama extends Base {
         })
     })
   }
+
+  models(param: any) {
+    return new ForkPromise((resolve, reject) => {
+      axios(param)
+        .then((response) => {
+          resolve(response.data)
+        })
+        .catch((e) => {
+          reject(e)
+        })
+    })
+  }
 }
 export default new Ollama()

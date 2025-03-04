@@ -5,7 +5,6 @@
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
-    :z-index="99990"
     @closed="closedFn"
   >
     <template #default>
