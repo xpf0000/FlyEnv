@@ -16,88 +16,62 @@
             class="pb-1 pl-1 text-sm mb-3 flex items-center justify-between mt-5 text-zinc-600 dark:text-gray-300 border-b border-zinc-200 dark:border-zinc-700"
           >
             <span> Ollama </span>
-            <div class="w-8 h-8 flex justify-center items-center">
-              <template v-if="runningService">
-                <el-button :loading="true" link></el-button>
-              </template>
-              <template v-else>
-                <template v-if="runService">
-                  <el-button link class="status running">
-                    <yb-icon
-                      :svg="import('@/svg/stop2.svg?raw')"
-                      @click.stop="stopService('ollama', currentVersion!)"
-                    />
-                  </el-button>
-                </template>
-                <template v-else>
-                  <template v-if="currentVersion">
-                    <el-button link class="status start current" @click.stop="serviceStart">
-                      <yb-icon :svg="import('@/svg/play.svg?raw')" />
-                    </el-button>
-                  </template>
-                  <template v-else>
-                    <el-button link class="status start" :disabled="true">
-                      <yb-icon :svg="import('@/svg/play.svg?raw')" />
-                    </el-button>
-                  </template>
-                </template>
-              </template>
+            <div class="flex justify-center items-center">
+              <el-button link @click.stop="toOllamaSetup">
+                <Setting class="w-5 h-5" />
+              </el-button>
+              <el-button type="primary" link @click.stop="startNewChat">
+                <yb-icon class="w-5 h-5" :svg="import('@/svg/chat-new.svg?raw')" />
+              </el-button>
             </div>
           </div>
           <div class="px-2 dark:text-[#ffffffb2]">
-            <template v-for="(item, _i) in collapseList" :key="_i">
-              <div class="flex justify-between mb-2">
-                <span>{{ item.name }}</span>
-                <el-button type="primary" link @click.stop="startNewChat(item)">
-                  <yb-icon class="w-5 h-5" :svg="import('@/svg/chat-new.svg?raw')" />
-                </el-button>
+            <template v-for="citem in AISetup.modelChatList" :key="citem.id">
+              <div
+                class="p-2 cursor-pointer relative rounded-[12px] overflow-hidden model-chat-list"
+                :class="{
+                  active: AISetup.tab === citem.id
+                }"
+                @click.stop="toChat(citem as any)"
+              >
+                <span class="text-sm">{{ citem.title }}</span>
+                <div class="right-hover"></div>
+                <div class="right-tool-mask"></div>
+                <el-dropdown
+                  :teleported="true"
+                  trigger="click"
+                  class="right-tool"
+                  popper-class="app-popper-z-99999"
+                >
+                  <template #default>
+                    <div class="ds-icon" style="font-size: 16px; width: 16px; height: 16px"
+                      ><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          fill-rule="evenodd"
+                          d="M3 12a2 2 0 1 1 4 0 2 2 0 0 1-4 0m7 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0m7 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0"
+                          clip-rule="evenodd"
+                        ></path></svg
+                    ></div>
+                  </template>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item :icon="Edit" @click.stop="editChat(citem as any)">
+                        {{ I18nT('base.edit') }}
+                      </el-dropdown-item>
+                      <el-dropdown-item :icon="CopyDocument" @click.stop="copyChat(citem as any)">
+                        {{ I18nT('base.copy') }}
+                      </el-dropdown-item>
+                      <el-dropdown-item
+                        :icon="Delete"
+                        divided
+                        @click.stop="delChat(citem as any)"
+                        >{{ I18nT('base.del') }}</el-dropdown-item
+                      >
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
               </div>
-              <template v-if="AISetup.modelChatList[item.name]">
-                <template v-for="citem in AISetup.modelChatList[item.name]" :key="citem.id">
-                  <div
-                    class="p-2 cursor-pointer relative rounded-[12px] overflow-hidden model-chat-list"
-                    :class="{
-                      active: AISetup.tab === citem.id
-                    }"
-                    @click.stop="toChat(citem)"
-                  >
-                    <span class="text-sm">{{ citem.title }}</span>
-                    <div class="right-hover"></div>
-                    <div class="right-tool-mask"></div>
-                    <el-dropdown
-                      :teleported="true"
-                      trigger="click"
-                      class="right-tool"
-                      popper-class="app-popper-z-99999"
-                    >
-                      <template #default>
-                        <div class="ds-icon" style="font-size: 16px; width: 16px; height: 16px"
-                          ><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <path
-                              fill="currentColor"
-                              fill-rule="evenodd"
-                              d="M3 12a2 2 0 1 1 4 0 2 2 0 0 1-4 0m7 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0m7 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0"
-                              clip-rule="evenodd"
-                            ></path></svg
-                        ></div>
-                      </template>
-                      <template #dropdown>
-                        <el-dropdown-menu>
-                          <el-dropdown-item :icon="Edit" @click.stop="editChat(citem)">
-                            {{ I18nT('base.edit') }}
-                          </el-dropdown-item>
-                          <el-dropdown-item :icon="CopyDocument" @click.stop="copyChat(citem)">
-                            {{ I18nT('base.copy') }}
-                          </el-dropdown-item>
-                          <el-dropdown-item :icon="Delete" divided @click.stop="delChat(citem)">{{
-                            I18nT('base.del')
-                          }}</el-dropdown-item>
-                        </el-dropdown-menu>
-                      </template>
-                    </el-dropdown>
-                  </div>
-                </template>
-              </template>
             </template>
           </div>
         </div>
@@ -108,24 +82,12 @@
 <script lang="ts" setup>
   import { ref } from 'vue'
   import { AISetup, Setup } from '@/components/AI/setup'
-  import { stopService } from '@/util/Service'
-  import { CopyDocument, Delete, Edit } from '@element-plus/icons-vue'
+  import { CopyDocument, Delete, Edit, Setting } from '@element-plus/icons-vue'
   import { I18nT } from '@shared/lang'
 
   const aside = ref<HTMLElement>()
 
-  const {
-    collapseList,
-    runningService,
-    currentVersion,
-    runService,
-    serviceStart,
-    startNewChat,
-    toChat,
-    delChat,
-    copyChat,
-    editChat
-  } = Setup()
+  const { toChat, delChat, copyChat, editChat, startNewChat, toOllamaSetup } = Setup()
 </script>
 <style lang="scss">
   .app-popper-z-99999 {

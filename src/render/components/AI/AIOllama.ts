@@ -12,10 +12,12 @@ export class AIOllama extends AIBase {
   request(param: any): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.streaming = true
+      const baseUrl = AISetup.ollamaServer.url
+      const model = AISetup.ollamaServer.model
       let messageObj: ChatItem | undefined = undefined
       let message = ''
       const data = {
-        url: `${this.baseUrl}/api/chat`,
+        url: `${baseUrl}/api/chat`,
         headers: {
           'Content-Type': 'application/json'
         },
@@ -23,7 +25,7 @@ export class AIOllama extends AIBase {
         responseType: 'stream',
         data: merge(
           {
-            model: 'deepseek-r1:1.5b',
+            model: model,
             stream: true,
             messages: [],
             options: {
@@ -48,7 +50,8 @@ export class AIOllama extends AIBase {
           if (!messageObj) {
             messageObj = reactive({
               role: 'assistant',
-              content: message
+              content: message,
+              model
             } as any)
             this.chatList.push(messageObj!)
           } else {
@@ -81,12 +84,26 @@ export class AIOllama extends AIBase {
     this.content = ''
     this.request({ messages })
       .then()
-      .catch(() => {
-        arr.forEach((a) => (a.error = true))
+      .catch((e: any) => {
+        arr.forEach((a) => (a.error = `${e}`))
       })
       .finally(() => {
         AISetup.save()
       })
+  }
+
+  sendNotMake() {
+    if (!this.content.trim()) {
+      return
+    }
+
+    this.chatList.push(
+      reactive({
+        role: 'user',
+        content: this.content
+      })
+    )
+    this.content = ''
   }
 
   sendImage() {
@@ -112,8 +129,8 @@ export class AIOllama extends AIBase {
           this.chatList.push(...arr)
           this.request({ messages })
             .then()
-            .catch(() => {
-              arr.forEach((a) => (a.error = true))
+            .catch((e: any) => {
+              arr.forEach((a) => (a.error = `${e}`))
             })
             .finally(() => {
               AISetup.save()
