@@ -9,9 +9,11 @@
       </div>
       <div class="flex-1 flex items-center px-4">
         <template v-if="currentChat">
-          <span class="truncate max-w-[320px] cursor-pointer hover:text-yellow-500 mr-4">{{
-            currentChat.title
-          }}</span>
+          <span
+            class="truncate max-w-[320px] cursor-pointer hover:text-yellow-500 mr-4"
+            @click.stop="editChat"
+            >{{ currentChat.title }}</span
+          >
           <PromptVM />
         </template>
       </div>
@@ -43,6 +45,7 @@
   import PromptVM from '../Prompt/index.vue'
   import { I18nT } from '@shared/lang'
   import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   const action = ref('')
   const mask = ref()
@@ -51,9 +54,20 @@
   const aiStore = AIStore()
   const currentShow = ref(false)
 
-  const currentChat: ComputedRef<ModelChatItem> = computed(() => {
+  const currentChat: ComputedRef<ModelChatItem | undefined> = computed(() => {
     return AISetup.modelChatList?.[AISetup.model]?.find((f) => f.id === AISetup.tab)
   })
+
+  let EditVM: any
+  import('../ChatItemSetup/index.vue').then((res) => {
+    EditVM = res.default
+  })
+
+  const editChat = () => {
+    AsyncComponentShow(EditVM, {
+      item: currentChat
+    }).then(() => {})
+  }
 
   const show = () => {
     if (currentShow.value) {

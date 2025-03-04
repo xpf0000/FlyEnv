@@ -2036,7 +2036,7 @@ body {
       right: 0;
       bottom: 0;
       border-radius: 0;
-      width: calc(100vw - 280px);
+      width: calc(100vw - 120px);
       min-width: 680px;
       height: 100vh;
       opacity: 1;
@@ -2206,7 +2206,7 @@ body {
       }
     }
     > .content {
-      max-width: 75%;
+      max-width: 90%;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -2214,12 +2214,14 @@ body {
 
       > .text {
         color: #303133;
-        padding: 10px;
+        padding: 10px 24px;
         line-height: 1.6;
         border-radius: 5px;
-        word-wrap: break-word;
-        white-space: pre-wrap;
         user-select: text;
+
+        * {
+          list-style: initial;
+        }
       }
     }
     &.ai {
