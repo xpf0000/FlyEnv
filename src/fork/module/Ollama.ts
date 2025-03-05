@@ -152,9 +152,10 @@ class Ollama extends Base {
       })
       process.chdir(join(global.Server.BaseDir!, `ollama`))
       try {
-        await execPromise(
+        const res = await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
+        console.log('### res: ', res.stdout)
       } catch (e) {
         on({
           'APP-On-Log': AppLog(

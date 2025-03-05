@@ -152,7 +152,9 @@ export class Base {
         postgresql: 'postgres',
         'pure-ftpd': 'pure-ftpd',
         tomcat: 'org.apache.catalina.startup.Bootstrap',
-        rabbitmq: 'rabbit'
+        rabbitmq: 'rabbit',
+        elasticsearch: 'org.elasticsearch.server/org.elasticsearch.bootstrap.Elasticsearch',
+        ollama: 'ollama'
       }
       const serverName = dis[this.type]
       const pids = await ProcessListSearch(serverName, false)
