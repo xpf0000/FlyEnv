@@ -35,30 +35,32 @@ export class AIOllama extends AIBase {
           param
         )
       }
-      IPC.send('app-fork:ollama', 'chat', data).then((key: string, res: any) => {
-        if (res?.code === 0) {
-          IPC.off(key)
-          this.onStreamEnd()
-          resolve(true)
-        } else if (res?.code === 1) {
-          IPC.off(key)
-          MessageError(res?.msg)
-          reject(new Error(res?.msg))
-        } else if (res?.code === 200) {
-          const json: any = res.msg
-          message += json.message.content
-          if (!messageObj) {
-            messageObj = reactive({
-              role: 'assistant',
-              content: message,
-              model
-            } as any)
-            this.chatList.push(messageObj!)
-          } else {
-            messageObj.content = message
+      IPC.send('app-fork:ollama', 'chat', data, AISetup.trialStartTime).then(
+        (key: string, res: any) => {
+          if (res?.code === 0) {
+            IPC.off(key)
+            this.onStreamEnd()
+            resolve(true)
+          } else if (res?.code === 1) {
+            IPC.off(key)
+            MessageError(res?.msg)
+            reject(new Error(res?.msg))
+          } else if (res?.code === 200) {
+            const json: any = res.msg
+            message += json.message.content
+            if (!messageObj) {
+              messageObj = reactive({
+                role: 'assistant',
+                content: message,
+                model
+              } as any)
+              this.chatList.push(messageObj!)
+            } else {
+              messageObj.content = message
+            }
           }
         }
-      })
+      )
     })
   }
 

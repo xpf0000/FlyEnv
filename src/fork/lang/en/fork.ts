@@ -25,5 +25,7 @@ export default {
     'Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root',
   toolFileNotExist: 'File does not exist',
   downFileFail: 'Download file failed!',
-  licenseTips: 'Without obtaining a license, only three sites can be created'
+  licenseTips: 'Without obtaining a license, only three sites can be created',
+
+  trialEnd: 'The trial has expired. To continue using this feature, please obtain a license'
 }
