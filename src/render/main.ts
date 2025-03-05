@@ -12,6 +12,7 @@ import { ThemeInit } from '@/util/Theme'
 import { AppToolStore } from '@/components/Tools/store'
 import { SetupStore } from '@/components/Setup/store'
 import { AppLogStore } from '@/components/AppLog/store'
+import { EventBus } from '@/global'
 
 const { getGlobal } = require('@electron/remote')
 global.Server = getGlobal('Server')
@@ -51,4 +52,8 @@ IPC.on('APP-Update-Global-Server').then((key: string, res: any) => {
 })
 IPC.on('APP-License-Need-Update').then(() => {
   SetupStore().init()
+})
+IPC.on('APP-Helper-Check-Success').then((key: string) => {
+  IPC.off(key)
+  EventBus.emit('APP-Helper-Check-Success')
 })

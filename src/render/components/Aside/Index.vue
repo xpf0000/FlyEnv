@@ -68,6 +68,7 @@
   import { AppServiceModule, type AppServiceModuleItem } from '@/core/ASide'
   import { type AllAppModule, AppModuleTypeList } from '@/core/type'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { EventBus } from '@/global'
 
   let lastTray = ''
 
@@ -242,11 +243,12 @@
   })
 
   let autoStarted = false
+  let helperInited = false
   watch(
     groupDisabled,
     (v) => {
       if (!v) {
-        if (autoStarted) {
+        if (autoStarted || !helperInited) {
           return
         }
         if (appStore.config.setup?.autoStartService === true) {
@@ -259,4 +261,13 @@
       immediate: true
     }
   )
+
+  EventBus.on('APP-Helper-Check-Success', () => {
+    console.log('EventBus on APP-Helper-Check-Success !!!')
+    helperInited = true
+    if (appStore.config.setup?.autoStartService === true && !autoStarted && !groupDisabled.value) {
+      autoStarted = true
+      groupDo()
+    }
+  })
 </script>
