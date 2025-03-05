@@ -26,5 +26,7 @@ export default {
   downFileFail: '文件下载失败',
   noPowerShell: '环境变量中未找到PowerShell, 请先在环境变量中配置PowerShell然后重启PWS重试',
   noEPMD: '未找到epmd进程。请重新设置erlang环境变量',
-  licenseTips: '未获得许可证, 只可以创建三个站点'
+  licenseTips: '未获得许可证, 只可以创建三个站点',
+
+  trialEnd: '试用已到期, 如需继续使用此功能, 请获取许可证'
 }

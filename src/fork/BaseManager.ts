@@ -31,6 +31,8 @@ class BaseManager {
   MailPit: any
   Ruby: any
   Elasticsearch: any
+  Ollama: any
+  Ai: any
 
   constructor() {}
 
@@ -241,6 +243,18 @@ class BaseManager {
         this.Elasticsearch = res.default
       }
       doRun(this.Elasticsearch)
+    } else if (module === 'ollama') {
+      if (!this.Ollama) {
+        const res = await import('./module/Ollama')
+        this.Ollama = res.default
+      }
+      doRun(this.Ollama)
+    } else if (module === 'ai') {
+      if (!this.Ai) {
+        const res = await import('./module/Ai')
+        this.Ai = res.default
+      }
+      doRun(this.Ai)
     }
   }
 

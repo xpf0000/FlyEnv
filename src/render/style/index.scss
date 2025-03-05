@@ -2049,62 +2049,13 @@ body {
     }
   }
 }
-.app-chat-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 9997;
-  background: rgba(0, 0, 0, 0.5);
-  transition: opacity 0.4s;
 
-  &:not(.show) {
-    display: none;
-  }
-
-  &.show {
-    opacity: 1;
-
-    &.init {
-      opacity: 0;
-    }
-  }
-}
 .app-chat {
-  position: fixed;
-  z-index: 9999;
   background: #f0f0f0;
-  display: none;
+  display: flex;
   flex-direction: column;
-  transition: all 0.4s;
   overflow: hidden;
-
-  &.show {
-    display: flex;
-    &:not(.init) {
-      left: 280px;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      border-radius: 0;
-      width: calc(100vw - 280px);
-      height: 100vh;
-      opacity: 1;
-    }
-    &.init {
-      display: flex;
-      left: calc(100vw - 40px - 20px);
-      top: calc(100vh - 40px - 20px);
-      width: 40px;
-      height: 40px;
-      right: 20px;
-      bottom: 20px;
-      border-radius: 44px;
-      opacity: 0.5;
-    }
-  }
-
-  &:not(.show) {
-    display: none;
-  }
+  height: 100vh;
 
   .nav {
     height: 55px;

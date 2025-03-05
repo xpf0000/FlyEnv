@@ -120,11 +120,7 @@ class MailPit extends Base {
       const commands: string[] = ['@echo off', 'chcp 65001>nul']
       for (const k in opt) {
         const v = opt[k]
-        if (v.includes(' ')) {
-          commands.push(`set ${k}="${v}"`)
-        } else {
-          commands.push(`set ${k}=${v}`)
-        }
+        commands.push(`set "${k}=${v}"`)
       }
       commands.push(`cd "${dirname(bin)}"`)
       commands.push(`start /B ./${basename(bin)} > "${startLogFile}" 2>&1 &`)
