@@ -130,7 +130,7 @@ class Ollama extends Base {
         commands.push(`set "${k}=${v}"`)
       }
       commands.push(`cd "${dirname(bin)}"`)
-      commands.push(`start /B ./${basename(bin)} >> "${log}" 2>&1 &`)
+      commands.push(`start /B ./${basename(bin)} serve >> "${log}" 2>&1 &`)
       commands.push(`echo $! > ${this.pidPath}`)
 
       const command = commands.join(EOL)
