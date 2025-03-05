@@ -131,6 +131,11 @@ export const Setup = () => {
   fetchLangs()
   fetchPrompts()
 
+  const onPoperShow = () => {
+    fetchLangs()
+    fetchPrompts()
+  }
+
   const promptList = computed(() => {
     return PromptSetup.prompts.filter((p) => p.lang === PromptSetup.lang).reverse()
   })
@@ -160,6 +165,7 @@ export const Setup = () => {
     promptList,
     showAdd,
     poperShow,
-    usePrompt
+    usePrompt,
+    onPoperShow
   }
 }

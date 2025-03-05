@@ -1,4 +1,5 @@
 export default {
+  AIPartner: 'AI搭档',
   PartnerName: '搭档名称',
   PartnerPrompt: '搭档设定',
   NeedPartnerName: '请输入搭档名称',
@@ -20,5 +21,7 @@ export default {
   picTips: '发送图片, 有些模型可能不支持',
   enterTips: '[回车键] 发送，[Shift+回车键] 换行, [Ctrl+回车键] 发送但不生成',
   noLiencesTips: '当前未获得许可证, 可试用三天',
-  alert: '提醒'
+  alert: '提醒',
+
+  customer: '自定义'
 }
