@@ -38,21 +38,9 @@ export const OllamaAllModelsSetup = reactive<{
 })
 
 export const Setup = () => {
-  const appStore = AppStore()
-
   const brewStore = BrewStore()
   const runningService = computed(() => {
     return brewStore.module('ollama').installed.find((o) => o.run)
-  })
-
-  const proxy = computed(() => {
-    return appStore.config.setup.proxy
-  })
-  const proxyStr = computed(() => {
-    if (!proxy?.value.on) {
-      return undefined
-    }
-    return proxy?.value?.proxy
   })
 
   const fetching = computed(() => {
@@ -128,7 +116,7 @@ export const Setup = () => {
     } else {
       fn = 'pull'
     }
-    return `cd "${dirname(runningService.value.bin)}" && ./ollama ${fn} ${row.name}`
+    return `cd "${dirname(runningService.value.bin)}" & ./ollama.exe ${fn} ${row.name}`
   }
 
   const copyCommand = (row: any) => {
@@ -146,15 +134,19 @@ export const Setup = () => {
     }
     OllamaAllModelsSetup.installing = true
     OllamaAllModelsSetup.installEnd = false
-    const params = [fetchCommand(row)]
-    if (proxyStr?.value) {
-      params.unshift(proxyStr?.value)
+    const command: string[] = []
+    if (global.Server.Proxy) {
+      for (const k in global.Server.Proxy) {
+        const v = global.Server.Proxy[k]
+        command.push(`$Env:${k}="${v}"`)
+      }
     }
+    command.push(fetchCommand(row))
     await nextTick()
     const execXTerm = new XTerm()
     OllamaAllModelsSetup.xterm = execXTerm
     await execXTerm.mount(xtermDom.value!)
-    await execXTerm.send(params)
+    await execXTerm.send(command)
     OllamaAllModelsSetup.installEnd = true
   }
 
