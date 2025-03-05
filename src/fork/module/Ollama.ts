@@ -130,7 +130,7 @@ class Ollama extends Base {
         commands.push(`set "${k}=${v}"`)
       }
       commands.push(`cd "${dirname(bin)}"`)
-      commands.push(`./${basename(bin)} serve >> "${log}" 2>&1 &`)
+      commands.push(`./${basename(bin)} serve >> "${log}" 2>&1`)
 
       const command = commands.join(EOL)
       console.log('command: ', command)
