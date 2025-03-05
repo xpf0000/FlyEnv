@@ -3,9 +3,10 @@
     :visible="poperShow"
     :teleported="false"
     placement="bottom"
-    title="AI搭档"
+    :title="I18nT('ai.AIPartner')"
     width="auto"
     trigger="click"
+    @show="onPoperShow"
   >
     <template #reference>
       <el-button link>
@@ -18,7 +19,7 @@
           <div
             class="flex justify-center items-center w-[120px] border-b-2 border-blue-500 border-solid py-2"
           >
-            自定义
+            {{ I18nT('ai.customer') }}
           </div>
           <div class="mt-4 grid grid-cols-4 gap-4">
             <div
@@ -123,5 +124,5 @@
   import { PromptSetup, Setup } from '@/components/AI/Prompt/setup'
   import { I18nT } from '@shared/lang'
 
-  const { promptList, showAdd, poperShow, usePrompt } = Setup()
+  const { promptList, showAdd, poperShow, usePrompt, onPoperShow } = Setup()
 </script>

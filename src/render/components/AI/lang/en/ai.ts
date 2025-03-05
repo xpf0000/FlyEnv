@@ -1,4 +1,5 @@
 export default {
+  AIPartner: 'AI Partner',
   PartnerName: 'Partner Name',
   PartnerPrompt: 'Partner Prompt',
   NeedPartnerName: 'Please input Partner Name',
@@ -20,5 +21,7 @@ export default {
   picTips: 'Sending pictures, some models may not support it',
   enterTips: '[Enter] send, [Shift+Enter] line break, [Ctrl+Enter] send without generating',
   noLiencesTips: 'Currently without a license, you can try for three days',
-  alert: 'Alert'
+  alert: 'Alert',
+
+  customer: 'My Copilots'
 }
