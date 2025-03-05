@@ -18,5 +18,7 @@ export default {
   NeedApiUrl: 'Please input API Host',
   docTips: 'Select a file and read its contents',
   picTips: 'Sending pictures, some models may not support it',
-  enterTips: '[Enter] send, [Shift+Enter] line break, [Ctrl+Enter] send without generating'
+  enterTips: '[Enter] send, [Shift+Enter] line break, [Ctrl+Enter] send without generating',
+  noLiencesTips: 'Currently without a license, you can try for three days',
+  alert: 'Alert'
 }

@@ -18,5 +18,7 @@ export default {
   NeedApiUrl: '请输入API域名',
   docTips: '选择文件并读取文件内容',
   picTips: '发送图片, 有些模型可能不支持',
-  enterTips: '[回车键] 发送，[Shift+回车键] 换行, [Ctrl+回车键] 发送但不生成'
+  enterTips: '[回车键] 发送，[Shift+回车键] 换行, [Ctrl+回车键] 发送但不生成',
+  noLiencesTips: '当前未获得许可证, 可试用三天',
+  alert: '提醒'
 }

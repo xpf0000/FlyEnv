@@ -32,8 +32,7 @@
         { "id": "menu.zoom", "role": "zoom"},
         { "id": "menu.fullscreen", "role": "togglefullscreen"},
         { "type": "separator" },
-        { "id": "menu.front", "role": "front"},
-        { "id": "menu.dev", "command": "application:open-dev-window" }
+        { "id": "menu.front", "role": "front"}
       ]
     }
   ]

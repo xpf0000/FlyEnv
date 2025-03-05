@@ -24,5 +24,7 @@ export default {
   postgresqlInit: '服务启动成功\n数据文件夹位于 {dir}\n初始用户root, 密码root',
   toolFileNotExist: '文件不存在',
   downFileFail: '文件下载失败',
-  licenseTips: '未获得许可证, 只可以创建三个站点'
+  licenseTips: '未获得许可证, 只可以创建三个站点',
+
+  trialEnd: '试用已到期, 如需继续使用此功能, 请获取许可证'
 }
