@@ -27,6 +27,7 @@ class Manager extends Base {
   Ruby: any
   Node: any
   Elasticsearch: any
+  Ollama: any
 
   constructor() {
     super()
@@ -171,6 +172,12 @@ class Manager extends Base {
             this.Elasticsearch = res.default
           }
           versions.elasticsearch = this.Elasticsearch.allInstalledVersions(setup)
+        } else if (type === 'ollama') {
+          if (!this.Ollama) {
+            const res = await import('./Ollama')
+            this.Ollama = res.default
+          }
+          versions.ollama = this.Ollama.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []
