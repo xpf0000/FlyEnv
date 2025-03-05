@@ -130,8 +130,7 @@ class Ollama extends Base {
         commands.push(`set "${k}=${v}"`)
       }
       commands.push(`cd "${dirname(bin)}"`)
-      commands.push(`start /B ./${basename(bin)} serve >> "${log}" 2>&1 &`)
-      commands.push(`echo $! > ${this.pidPath}`)
+      commands.push(`./${basename(bin)} serve >> "${log}" 2>&1 &`)
 
       const command = commands.join(EOL)
       console.log('command: ', command)
@@ -156,6 +155,8 @@ class Ollama extends Base {
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
         console.log('### res: ', res.stdout)
+        const pid = res.stdout.trim()
+        await writeFile(this.pidPath, pid)
       } catch (e) {
         on({
           'APP-On-Log': AppLog(

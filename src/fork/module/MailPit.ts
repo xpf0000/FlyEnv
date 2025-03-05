@@ -124,7 +124,6 @@ class MailPit extends Base {
       }
       commands.push(`cd "${dirname(bin)}"`)
       commands.push(`start /B ./${basename(bin)} > "${startLogFile}" 2>&1 &`)
-      commands.push(`echo $! > ${this.pidPath}`)
 
       const command = commands.join(EOL)
       console.log('command: ', command)
