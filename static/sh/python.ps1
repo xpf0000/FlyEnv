@@ -3,8 +3,8 @@ function env($name,$global,$val='__get') {
   if($val -eq '__get') { [environment]::getEnvironmentVariable($name,$target) }
   else { [environment]::setEnvironmentVariable($name,$val,$target) }
 }
-
-#DARK# -nologo -x "#TMPL#" "#EXE#"
+cd "#DARKDIR#"
+./dark.exe -nologo -x "#TMPL#" "#EXE#"
 Start-Sleep -Seconds 1
 @('path.msi', 'pip.msi') | ForEach-Object {
   Remove-Item "#TMPL#\AttachedContainer\$_"

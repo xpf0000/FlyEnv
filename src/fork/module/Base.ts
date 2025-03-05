@@ -271,19 +271,19 @@ export class Base {
           await execPromise(`rmdir /S /Q ${tmpDir}`)
         }
         const dark = join(global.Server.Cache!, 'dark/dark.exe')
+        const darkDir = join(global.Server.Cache!, 'dark')
         if (!existsSync(dark)) {
           const darkZip = join(global.Server.Static!, 'zip/dark.zip')
           await zipUnPack(darkZip, dirname(dark))
         }
         const pythonSH = join(global.Server.Static!, 'sh/python.ps1')
         let content = await readFile(pythonSH, 'utf-8')
-        const DARK = dark
         const TMPL = tmpDir
         const EXE = row.zip
         const APPDIR = row.appDir
 
         content = content
-          .replace(new RegExp(`#DARK#`, 'g'), DARK)
+          .replace(new RegExp(`#DARKDIR#`, 'g'), darkDir)
           .replace(new RegExp(`#TMPL#`, 'g'), TMPL)
           .replace(new RegExp(`#EXE#`, 'g'), EXE)
           .replace(new RegExp(`#APPDIR#`, 'g'), APPDIR)
@@ -293,7 +293,7 @@ export class Base {
 
         process.chdir(global.Server.Cache!)
         try {
-          await execPromise(`powershell.exe ${sh}`)
+          await execPromise(`powershell.exe "${sh}"`)
         } catch (e) {
           console.log('[python-install][error]: ', e)
           await appendFile(
@@ -328,7 +328,7 @@ export class Base {
           await copyFile(join(global.Server.Static!, 'sh/pip.ps1'), sh)
           process.chdir(APPDIR)
           try {
-            await execPromise(`powershell.exe ${sh}`)
+            await execPromise(`powershell.exe "${sh}"`)
           } catch (e) {
             await appendFile(
               join(global.Server.BaseDir!, 'debug.log'),
