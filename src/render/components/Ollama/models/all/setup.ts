@@ -116,7 +116,7 @@ export const Setup = () => {
     } else {
       fn = 'pull'
     }
-    return `cd "${dirname(runningService.value.bin)}" & ./ollama.exe ${fn} ${row.name}`
+    return `cd "${dirname(runningService.value.bin)}"; ./ollama.exe ${fn} ${row.name}`
   }
 
   const copyCommand = (row: any) => {
