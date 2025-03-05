@@ -38,7 +38,7 @@ export default class Application extends EventEmitter {
   updateManager?: UpdateManager
   forkManager?: ForkManager
   hostServicePID: Set<string> = new Set()
-
+  helpCheckSuccessNoticed: boolean = false
   pty: Partial<Record<string, PtyItem>> = {}
 
   constructor() {
@@ -599,6 +599,18 @@ export default class Application extends EventEmitter {
           .on(callBack)
           .then(callBack)
       }
+      const doNotice = () => {
+        if (this.helpCheckSuccessNoticed) {
+          return
+        }
+        this.helpCheckSuccessNoticed = true
+        this.windowManager.sendCommandTo(
+          this.mainWindow!,
+          'APP-Helper-Check-Success',
+          'APP-Helper-Check-Success',
+          true
+        )
+      }
       if (exclude.includes(module)) {
         doFork()
       } else {
@@ -607,6 +619,7 @@ export default class Application extends EventEmitter {
           if (is.production() && helperVersion !== AppHelper.version) {
             AppHelper.initHelper()
               .then(() => {
+                doNotice()
                 this.configManager.setConfig('helper.version', AppHelper.version)
                 doFork()
               })
@@ -621,11 +634,13 @@ export default class Application extends EventEmitter {
 
           AppHelper.check()
             .then(() => {
+              doNotice()
               doFork()
             })
             .catch(() => {
               AppHelper.initHelper()
                 .then(() => {
+                  doNotice()
                   doFork()
                 })
                 .catch(() => {
