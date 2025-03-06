@@ -14,10 +14,9 @@
 
 ### AI
 
-- [ ] Ollama
-- [ ] DeepSeek
-- [ ] Chatbox
-- [ ] MaxKB
+- [x] Ollama
+- [x] DeepSeek
+- [x] Chatbox
 
 ### Web Server
 
@@ -87,7 +86,7 @@ If you only need a simple PHP service and web service, you can also take a look 
 
 ## Windows
 
-[FlyEnv.Setup.4.8.6.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.6/FlyEnv.Setup.4.8.6.exe)
+[FlyEnv.Setup.4.8.7.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.8.7/FlyEnv.Setup.4.8.7.exe)
 
 ## Linux
 
