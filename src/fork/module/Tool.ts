@@ -120,47 +120,6 @@ class Manager extends Base {
     })
   }
 
-  systemEnvFiles() {
-    return new ForkPromise(async (resolve, reject) => {
-      const envFiles = [
-        '~/.bashrc',
-        '~/.profile',
-        '~/.bash_login',
-        '~/.zprofile',
-        '~/.zshrc',
-        '~/.bash_profile',
-        '/etc/paths',
-        '/etc/profile'
-      ]
-      try {
-        const home = await execPromise(`echo $HOME`)
-        console.log('home: ', home)
-        const files = envFiles
-          .map((e) => e.replace('~', home.stdout.trim()))
-          .filter((e) => existsSync(e))
-        resolve(files)
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
-  systemEnvSave(file: string, content: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      if (!existsSync(file)) {
-        reject(new Error(I18nT('fork.toolFileNotExist')))
-        return
-      }
-      try {
-        const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
-        await writeFile(cacheFile, content)
-        await execPromise(`echo '${global.Server.Password}' | sudo -S cp -f ${cacheFile} ${file}`)
-        resolve(true)
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
-
   sysetmProxy() {
     return new ForkPromise((resolve) => {
       systemProxyGet()
@@ -419,7 +378,7 @@ subjectAltName=@alt_names
       const envDir = join(dirname(global.Server.AppDir!), 'env')
       const flagDir = join(envDir, typeFlag)
       try {
-        await execPromise(`rmdir /S /Q ${flagDir}`)
+        await execPromise(`rmdir /S /Q "${flagDir}"`)
       } catch (e) {
         console.log('rmdir err: ', e)
       }
@@ -512,7 +471,7 @@ subjectAltName=@alt_names
       const flagDir = join(envDir, typeFlag)
       console.log('flagDir: ', flagDir)
       try {
-        await execPromise(`rmdir /S /Q ${flagDir}`)
+        await execPromise(`rmdir /S /Q "${flagDir}"`)
       } catch (e) {
         console.log('rmdir err: ', e)
       }
