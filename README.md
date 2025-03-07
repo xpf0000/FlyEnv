@@ -135,8 +135,8 @@ We welcome contributions! Whether you're testing, translating, designing, or cod
 ## Feedback & Support
 
 - **Discord Community**: [Join Here](https://discord.gg/u5SuMGxjPE)
-- **QQ Group**: Scan the QR code below to join.
-  ![QQ Group QR Code](https://www.flyenv.com/image/index/qrcode0@2x.png)
+- **GitHub Issues**: [Feedback](https://github.com/xpf0000/FlyEnv/issues)
+- **GitHub Discussions**: [Discussions](https://github.com/xpf0000/FlyEnv/discussions)
 
 ---
 
