@@ -49,8 +49,6 @@ export const PromptSetup = reactive<PromptSetupType>({
     const lang = appStore.config.setup.lang
     if (lang === 'zh') {
       PromptSetup.lang = 'zh-Hans'
-    } else if (lang === 'vi') {
-      PromptSetup.lang = 'vi'
     } else {
       PromptSetup.lang = 'en'
     }
