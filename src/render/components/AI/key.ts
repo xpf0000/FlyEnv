@@ -270,3 +270,119 @@ export const AIKeysEN: Array<AIKeyItem> = [
     task: 'MysqlPassword'
   }
 ]
+export const AIKeysVI: Array<AIKeyItem> = [
+  {
+    tips: [
+      ['kết thúc', 'dừng', 'chấm dứt', 'thoát'],
+      ['tác vụ', 'nhiệm vụ']
+    ],
+    txt: 'Hủy tác vụ',
+    task: 'StopTask'
+  },
+  {
+    tips: [
+      ['macports', 'port', 'macport', 'phiên bản'],
+      ['không thể', 'làm sao', 'không có', 'không'],
+      ['sử dụng', 'cài đặt', 'thêm']
+    ],
+    txt: 'Cài đặt MacPorts',
+    task: 'MacportInstall'
+  },
+  {
+    tips: [
+      ['homebrew', 'brew', 'phiên bản'],
+      ['không thể', 'làm sao', 'không có', 'không'],
+      ['sử dụng', 'cài đặt', 'thêm']
+    ],
+    txt: 'Cài đặt Homebrew',
+    task: 'HomebrewInstall'
+  },
+  {
+    tips: [
+      ['mới', 'tạo', 'thêm', 'sinh'],
+      ['ngẫu nhiên', 'thử nghiệm'],
+      ['trang web', 'trang']
+    ],
+    txt: 'Tạo trang web ngẫu nhiên',
+    task: 'CreateSiteTest'
+  },
+  {
+    tips: [
+      ['mới', 'tạo', 'thêm', 'sinh'],
+      ['trang web', 'trang']
+    ],
+    txt: 'Tạo trang web',
+    task: 'CreateSite'
+  },
+  {
+    tips: [
+      ['trang web', 'trang'],
+      ['truy cập', 'duyệt', 'không thể', 'không mở được'],
+      ['bất thường', 'báo lỗi', 'mở']
+    ],
+    txt: 'Lỗi truy cập trang web',
+    task: 'SiteAccessIssues'
+  },
+  {
+    tips: [['nginx'], ['khởi động', 'dịch vụ', 'mở', 'bật'], ['bất thường', 'báo lỗi', 'thất bại']],
+    txt: 'Nginx khởi động thất bại',
+    task: 'StartNginx'
+  },
+  {
+    tips: [['apache'], ['khởi động', 'dịch vụ', 'mở', 'bật'], ['bất thường', 'báo lỗi', 'thất bại']],
+    txt: 'Apache khởi động thất bại',
+    task: 'StartApache'
+  },
+  {
+    tips: [['mysql'], ['khởi động', 'dịch vụ', 'mở', 'bật'], ['bất thường', 'báo lỗi', 'thất bại']],
+    txt: 'Mysql khởi động thất bại',
+    task: 'StartMysql'
+  },
+  {
+    tips: [['mariadb'], ['khởi động', 'dịch vụ', 'mở', 'bật'], ['bất thường', 'báo lỗi', 'thất bại']],
+    txt: 'Mariadb khởi động thất bại',
+    task: 'StartMariaDB'
+  },
+  {
+    tips: [['memcached'], ['khởi động', 'dịch vụ', 'mở', 'bật'], ['bất thường', 'báo lỗi', 'thất bại']],
+    txt: 'Memcached khởi động thất bại',
+    task: 'StartMemcached'
+  },
+  {
+    tips: [
+      ['homebrew', 'brew'],
+      ['php7', 'php5', 'thấp'],
+      ['không', 'không có', 'thiếu'],
+      ['khả dụng', 'tìm thấy', 'hiển thị']
+    ],
+    txt: 'Homebrew không có PHP phiên bản thấp',
+    task: 'HomebrewPhp7Issues'
+  },
+  {
+    tips: [
+      ['phiên bản', 'kho lưu trữ', 'quản lý', 'phiên bản hóa'],
+      ['không', 'không hiển thị', 'trống', 'luôn', 'luôn tải', 'không có nội dung', 'không có dữ liệu'],
+      ['hiển thị', 'tải', 'nội dung', 'dữ liệu']
+    ],
+    txt: 'Quản lý phiên bản Homebrew không có dữ liệu',
+    task: 'VersionManagerEmpty'
+  },
+  {
+    tips: [
+      ['phiên bản', 'phần mềm', 'dịch vụ'],
+      ['cài đặt', 'thêm', 'không thể', 'cài'],
+      ['chậm', 'treo', 'cài đặt', 'xong']
+    ],
+    txt: 'Cài đặt phiên bản rất chậm',
+    task: 'VersionInstallSlow'
+  },
+  {
+    tips: [
+      ['mysql', 'maraidb'],
+      ['cơ sở dữ liệu', 'mật khẩu', 'quản lý', 'ban đầu'],
+      ['mật khẩu', 'công cụ', 'phần mềm']
+    ],
+    txt: 'Mật khẩu ban đầu của Mysql&MariaDB',
+    task: 'MysqlPassword'
+  }
+]

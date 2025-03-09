@@ -43,6 +43,50 @@
           >
         </div>
       </template>
+      <template v-else-if="lang === 'vi'">
+        <div class="text-xl">Phương pháp nhận giấy phép</div>
+        <p>Chọn một trong các phương thức sau</p>
+        <p
+        >1. Dự án được tài trợ.
+          <el-button type="primary" link @click.stop="toUrl('https://flyenv.com/sponsor.html')"
+          >https://flyenv.com/sponsor.html</el-button
+          >
+        </p>
+        <p
+        >2. Tham gia phát triển dự án Gửi yêu cầu kéo
+          <el-button type="primary" link @click.stop="toUrl('https://github.com/xpf0000/FlyEnv')"
+          >https://github.com/xpf0000/FlyEnv</el-button
+          ></p
+        >
+        <p
+        >3. Hỗ trợ thúc đẩy dự án. Xuất bản bài viết, video, blog, vlog hoặc giới thiệu
+          Flyenv trong các bình luận khác nhau</p
+        >
+        <el-form-item class="w-full mt-5 mb-1" label-position="top" label="UUID">
+          <el-input v-model="store.uuid" readonly></el-input>
+        </el-form-item>
+        <el-form-item class="w-full mb-0" label-position="top" label="Message">
+          <el-input
+            v-model="store.message"
+            type="textarea"
+            resize="none"
+            rows="6"
+            placeholder="Vui lòng gửi số tiền tài trợ và tài trợ để tài trợ, vui lòng gửi liên kết PR để tham gia phát triển dự án, vui lòng gửi liên kết để giúp quảng bá dự án"
+          ></el-input>
+        </el-form-item>
+        <div class="mt-4">
+          <el-button
+            :loading="store.fetching"
+            :disabled="store.fetching || !store.message.trim()"
+            type="primary"
+            @click.stop="doRequest"
+          >Giấy phép yêu cầu</el-button
+          >
+          <el-button :loading="store.fetching" :disabled="store.fetching" @click.stop="doRefresh"
+          >Làm mới trạng thái</el-button
+          >
+        </div>
+      </template>
       <template v-else>
         <div class="text-xl">License acquisition method</div>
         <p>Choose one of the following methods</p>

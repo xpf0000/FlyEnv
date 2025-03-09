@@ -233,10 +233,16 @@ export const Setup = (typeFlag: AllAppModule) => {
     BrewSetup.installEnd = false
     BrewSetup.installing = true
     await nextTick()
-    const file =
-      appStore.config.setup.lang === 'zh'
-        ? join(global.Server.Static!, 'sh/brew-install.sh')
-        : join(global.Server.Static!, 'sh/brew-install-en.sh')
+    let script = 'brew-install-en.sh';
+    switch (appStore.config.setup.lang) {
+      case 'zh':
+        script = 'brew-install.sh';
+        break;
+      case 'vi':
+        script = 'brew-install-vi.sh';
+        break;
+    }
+    const file = join(global.Server.Static!, `sh/${script}`);
     const copyFile = join(global.Server.Cache!, basename(file))
     copyFileSync(file, copyFile)
     const execXTerm = new XTerm()

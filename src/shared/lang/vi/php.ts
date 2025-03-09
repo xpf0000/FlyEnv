@@ -1,0 +1,23 @@
+export default {
+  phpiniNoFound: 'Không tìm thấy tệp php.ini',
+  phpExtension: 'Phần mở rộng PHP',
+  copyConfTemplate: 'Sao chép mẫu cấu hình',
+  availableExtensions: 'Các phần mở rộng có sẵn',
+  extensionCopySuccess: 'Đã sao chép liên kết phần mở rộng vào bộ nhớ tạm',
+  xdebugConfCopySuccess: 'Đã sao chép mẫu cấu hình xdebug vào bộ nhớ tạm',
+  noVersionTips: 'Không phát hiện thấy phiên bản đã cài đặt, vui lòng cài đặt phiên bản PHP trong quản lý phiên bản hoặc tự cài đặt',
+  fpmLog: 'Nhật ký FPM',
+  extension: 'Phần mở rộng',
+  phpSetGlobal: 'Đặt làm phiên bản toàn cục',
+  obfuscatorPhpVersion: 'Làm rối mã với phiên bản PHP',
+  obfuscatorSrc: 'Tệp hoặc thư mục PHP cần làm rối mã',
+  obfuscatorDesc: 'Lưu tệp hoặc thư mục, không trùng lặp với tệp hoặc thư mục nguồn',
+  obfuscatorConfig: 'Cài đặt nâng cao',
+  obfuscatorErrorLog: 'Nhật ký lỗi',
+  noExtensionsDir: 'Thư mục phần mở rộng không tồn tại, vui lòng cài đặt phần mở rộng trước',
+  extensionsLib: 'Thư viện phần mở rộng',
+  extensionsLibDefault: 'Mặc định',
+  groupStartOff: 'Tắt khởi động nhanh nhóm',
+  groupStartOn: 'Bật khởi động nhanh nhóm',
+  quickStart: 'Khởi động nhóm' // Or 'Khởi động nhanh theo nhóm'
+}

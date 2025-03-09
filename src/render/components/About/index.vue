@@ -50,6 +50,39 @@
         </el-col>
       </el-row>
     </template>
+    <template v-else-if="lang === 'vi'">
+      <el-row style="padding: 0 20px; margin-top: 30px">
+        <el-col>
+          Cảm ơn vì đã sử dụng FlyEnv. Nếu bạn có bất kỳ câu hỏi hoặc đề xuất nào, bạn có thể tham gia
+          Cộng đồng để thảo luận. Bạn cũng có thể gửi các vấn đề của GitHub
+        </el-col>
+        <el-col style="margin-top: 12px">
+          Nếu FlyEnv hữu ích cho bạn, xin vui lòng đóng vai chính và nhà tài trợ cho dự án. Cảm ơn
+        </el-col>
+        <el-col style="margin-top: 12px">
+          GitHub:
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://github.com/xpf0000/FlyEnv')"
+          >
+            https://github.com/xpf0000/FlyEnv
+          </a>
+        </el-col>
+        <el-col style="margin-top: 12px">
+          Sponsor:
+          <a
+            target="_blank"
+            href="javascript:"
+            rel="noopener noreferrer"
+            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
+          >
+            https://www.macphpstudy.com/sponsor.html
+          </a>
+        </el-col>
+      </el-row>
+    </template>
     <template v-else>
       <el-row style="padding: 0 20px; margin-top: 30px">
         <el-col>

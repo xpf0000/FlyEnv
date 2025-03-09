@@ -18,7 +18,7 @@
   import { ChatLineRound } from '@element-plus/icons-vue'
   import { AIStore } from '@web/components/AI/store'
   import { CreateSiteTest } from '@web/components/AI/Task/CreateSiteTest'
-  import { AIKeys, AIKeysEN } from '@web/components/AI/key'
+  import { AIKeys, AIKeysEN, AIKeysVI } from '@web/components/AI/key'
   import { CreateSite } from '@web/components/AI/Task/CreateSite'
   import { SiteAccessIssues } from '@web/components/AI/Task/SiteAccessIssues'
   import { NginxStartFail } from '@web/components/AI/Task/NginxStartFail'
@@ -57,7 +57,15 @@
 
   const querySearch = (queryString: string, cb: any) => {
     console.log('querySearch: ', queryString)
-    const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys : AIKeysEN
+    let ALLKeys = AIKeysEN;
+    switch (appStore.config.setup.lang) {
+      case 'zh':
+        ALLKeys = AIKeys;
+        break;
+      case 'vi':
+        ALLKeys = AIKeysVI;
+        break;
+    }
     const find = ALLKeys.find((a) => a.txt === queryString.trim())
     if (find) {
       cb([
@@ -107,7 +115,15 @@
   }
 
   const checkContent = (v: string) => {
-    const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys : AIKeysEN
+    let ALLKeys = AIKeysEN;
+    switch (appStore.config.setup.lang) {
+      case 'zh':
+        ALLKeys = AIKeys;
+        break;
+      case 'vi':
+        ALLKeys = AIKeysVI;
+        break;
+    }
     const find = ALLKeys.find((a) => a.txt === v)
     if (find?.task === 'StopTask' && aiStore?.currentTask) {
       aiStore.currentTask.state = 'failed'

@@ -18,7 +18,7 @@
   import { ChatLineRound } from '@element-plus/icons-vue'
   import { AIStore } from '@/components/AI/store'
   import { CreateSiteTest } from '@/components/AI/Task/CreateSiteTest'
-  import { AIKeys, AIKeysEN } from '@/components/AI/key'
+  import { AIKeys, AIKeysEN, AIKeysVI } from '@/components/AI/key'
   import { CreateSite } from '@/components/AI/Task/CreateSite'
   import { SiteAccessIssues } from '@/components/AI/Task/SiteAccessIssues'
   import { NginxStartFail } from '@/components/AI/Task/NginxStartFail'
@@ -57,7 +57,15 @@
 
   const querySearch = (queryString: string, cb: any) => {
     console.log('querySearch: ', queryString)
-    const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys : AIKeysEN
+    let ALLKeys = AIKeysEN;
+    switch (appStore.config.setup.lang) {
+      case 'zh':
+        ALLKeys = AIKeys;
+        break;
+      case 'vi':
+        ALLKeys = AIKeysVI;
+        break;
+    }
     const find = ALLKeys.find((a) => a.txt === queryString.trim())
     if (find) {
       cb([

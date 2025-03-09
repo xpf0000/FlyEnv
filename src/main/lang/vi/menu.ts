@@ -1,0 +1,23 @@
+export default {
+  about: 'Giới thiệu',
+  app: 'FlyEnv',
+  checkForUpdates: 'Kiểm tra cập nhật...',
+  hide: 'Ẩn FlyEnv',
+  hideOthers: 'Ẩn ứng dụng khác',
+  unhide: 'Hiển thị tất cả',
+  quit: 'Thoát FlyEnv',
+  edit: 'Chỉnh sửa',
+  cut: 'Cắt',
+  copy: 'Sao chép',
+  paste: 'Dán',
+  selectAll: 'Chọn tất cả',
+  window: 'Cửa sổ',
+  close: 'Đóng',
+  minimize: 'Thu nhỏ',
+  zoom: 'Thu phóng',
+  fullscreen: 'Chế độ toàn màn hình',
+  front: 'Đưa FlyEnv lên trước',
+  dev: 'Mở cửa sổ gỡ lỗi',
+  needInstallHelper: 'FlyEnv cần cài đặt một chương trình hỗ trợ',
+  waitHelper: 'Chương trình hỗ trợ đang khởi động, vui lòng đợi'
+}

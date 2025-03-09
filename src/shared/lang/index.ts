@@ -1,17 +1,24 @@
 import ENBase from './en/base'
 import ZHBase from './zh/base'
+import VIBase from './vi/base'
 import ENPHP from './en/php'
 import ZHPHP from './zh/php'
+import VIPHP from './vi/php'
 import ENTray from './en/tray'
 import ZHTray from './zh/tray'
+import VITray from './vi/tray'
 import ENUtil from './en/util'
 import ZHUtil from './zh/util'
+import VIUtil from './vi/util'
 import ENHost from './en/host'
 import ZHHost from './zh/host'
+import VIHost from './vi/host'
 import ENAI from './en/ai'
 import ZHAI from './zh/ai'
+import VIAI from './vi/ai'
 import ENTools from './en/tools'
 import ZHTools from './zh/tools'
+import VITools from './vi/tools'
 import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 import { merge } from 'lodash'
@@ -62,7 +69,16 @@ export const lang = merge(
       host: ZHHost,
       ai: ZHAI,
       tools: ZHTools
-    }
+    },
+    vi: {
+      base: VIBase,
+      php: VIPHP,
+      tray: VITray,
+      util: VIUtil,
+      host: VIHost,
+      ai: VIAI,
+      tools: VITools
+    },
   },
   dict
 )
