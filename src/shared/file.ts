@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const { existsSync, readdir } = require('fs-extra')
 
 export function getAllFile(fp: string, fullpath = true) {
   let arr: Array<string> = []
@@ -27,40 +28,29 @@ export function getAllFile(fp: string, fullpath = true) {
   return arr
 }
 
-export function getAllFileAsync(fp: string, fullpath = true) {
-  return new Promise<Array<string>>((resolve) => {
-    fs.stat(fp, (_: any, stat: any) => {
-      if (stat.isFile()) {
-        resolve([fp])
-      } else if (stat.isDirectory()) {
-        let arr: Array<string> = []
-        const subs: Array<Promise<Array<string>>> = []
-        fs.readdir(fp, (_: any, paths: Array<string>) => {
-          paths.forEach((item, index) => {
-            const fPath = path.join(fp, item)
-            fs.stat(fPath, (_: any, stat: any) => {
-              if (stat.isDirectory()) {
-                subs.push(getAllFileAsync(fPath, fullpath))
-              }
-              if (stat.isFile()) {
-                arr.push(fullpath ? fPath : item)
-              }
-              if (index === paths.length - 1) {
-                if (subs.length > 0) {
-                  Promise.all(subs).then((arrs) => {
-                    arr = arr.concat(...arrs)
-                    resolve(arr)
-                  })
-                } else {
-                  resolve(arr)
-                }
-              }
-            })
-          })
-        })
-      }
-    })
-  })
+export const getAllFileAsync = async (
+  dirPath: string,
+  fullpath = true,
+  basePath: Array<string> = []
+): Promise<string[]> => {
+  if (!existsSync(dirPath)) {
+    return []
+  }
+  const list: Array<string> = []
+  const files = await readdir(dirPath, { withFileTypes: true })
+  for (const file of files) {
+    const arr = [...basePath]
+    arr.push(file.name)
+    const childPath = path.join(dirPath, file.name)
+    if (file.isDirectory()) {
+      const sub = await getAllFileAsync(childPath, fullpath, arr)
+      list.push(...sub)
+    } else if (file.isFile()) {
+      const name = fullpath ? childPath : arr.join('/')
+      list.push(name)
+    }
+  }
+  return list
 }
 
 export function getSubDir(fp: string, fullpath = true) {

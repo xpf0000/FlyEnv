@@ -111,12 +111,10 @@
 <script lang="ts" setup>
   import { computed, watch, ref, nextTick, type ComputedRef } from 'vue'
   import {
-    ChatLineRound,
     User,
     Setting,
     Document,
     Picture,
-    DocumentCopy,
     CopyDocument,
     EditPen,
     Warning,
@@ -140,7 +138,11 @@
   })
 
   const chatList: ComputedRef<ChatItem[]> = computed(() => {
-    return AISetup.modelChatList.find((f) => f.id === AISetup.tab)?.chatList ?? []
+    return (
+      AISetup.modelChatList
+        .find((f) => f.id === AISetup.tab)
+        ?.chatList?.filter((f) => f.role !== 'tool') ?? []
+    )
   })
 
   const reEdit = (text: string) => {
