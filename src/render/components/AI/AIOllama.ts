@@ -8,7 +8,22 @@ import { useBase64 } from '@vueuse/core'
 import IPC from '@/util/IPC'
 import { AISetup } from '@/components/AI/setup'
 
+type ToolCallItem = {
+  function: {
+    name: string
+    arguments: Record<string, string>
+  }
+}
+
 export class AIOllama extends AIBase {
+  private async _HanleToolCalls(tools: ToolCallItem[]) {
+    for (const tool of tools) {
+      if (tool.function.name === 'get_folder_all_files') {
+
+      }
+    }
+  }
+
   request(param: any): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.streaming = true
@@ -30,13 +45,33 @@ export class AIOllama extends AIBase {
             messages: [],
             options: {
               temperature: this.temperature
-            }
+            },
+            tools: [
+              {
+                type: 'function',
+                function: {
+                  name: 'get_folder_all_files',
+                  description: '获取文件夹下所有文件',
+                  parameters: {
+                    type: 'object',
+                    properties: {
+                      dir: {
+                        type: 'string',
+                        description: '需要获取文件的文件夹路径.'
+                      }
+                    },
+                    required: ['dir']
+                  }
+                }
+              }
+            ]
           },
           param
         )
       }
       IPC.send('app-fork:ollama', 'chat', data, AISetup.trialStartTime).then(
         (key: string, res: any) => {
+          console.log('ollama chat res: ', res)
           if (res?.code === 0) {
             IPC.off(key)
             this.onStreamEnd()
@@ -48,6 +83,9 @@ export class AIOllama extends AIBase {
           } else if (res?.code === 200) {
             const json: any = res.msg
             message += json.message.content
+            if (json.message.tool_calls) {
+              message += '开始执行'
+            }
             if (!messageObj) {
               messageObj = reactive({
                 role: 'assistant',
