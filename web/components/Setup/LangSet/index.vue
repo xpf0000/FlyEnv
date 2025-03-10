@@ -25,7 +25,8 @@
       return {
         langs: {
           en: 'English',
-          zh: '中文'
+          zh: '中文',
+          vi: 'Tiếng Việt',
         },
         running: false
       }
