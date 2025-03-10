@@ -1,27 +1,44 @@
 import { AIBase } from '@/components/AI/AIBase'
 import { merge } from 'lodash'
-import type { ChatItem } from '@/components/AI/setup'
+import type { ChatItem, ToolCallItem } from '@/components/AI/setup'
 import { reactive } from 'vue'
 import { MessageError } from '@/util/Element'
 import { fileSelect } from '@/util/Index'
 import { useBase64 } from '@vueuse/core'
 import IPC from '@/util/IPC'
 import { AISetup } from '@/components/AI/setup'
+import { getAllFileAsync } from '@shared/file'
 
-type ToolCallItem = {
-  function: {
-    name: string
-    arguments: Record<string, string>
-  }
-}
+const { existsSync } = require('fs-extra')
 
 export class AIOllama extends AIBase {
-  private async _HanleToolCalls(tools: ToolCallItem[]) {
+  async _HanleToolCalls(tools: ToolCallItem[]) {
+    console.log('_HanleToolCalls: ', tools)
+    const list: string[] = []
     for (const tool of tools) {
+      console.log('tool: ', tool, tool.function.name)
       if (tool.function.name === 'get_folder_all_files') {
-
+        const dir = tool.function.arguments.dir
+        console.log('get_folder_all_files: ', dir, existsSync(dir))
+        if (!dir) {
+          list.push(`文件夹路径为空,无法获取文件夹下文件`)
+          continue
+        } else if (!existsSync(dir)) {
+          list.push(`文件夹'${dir}'不存在,无法获取文件夹下文件`)
+          continue
+        }
+        list.push(`使用工具获取 '${dir}' 文件夹中的文件列表。`)
+        console.log('get files !!!')
+        getAllFileAsync(dir).then((files) => {
+          this._send({
+            role: 'tool',
+            content: files.join('\n')
+          })
+        })
       }
     }
+    console.log('list: ', list)
+    return list.join('\n')
   }
 
   request(param: any): Promise<boolean> {
@@ -30,6 +47,7 @@ export class AIOllama extends AIBase {
       const baseUrl = AISetup.ollamaServer.url
       const model = AISetup.ollamaServer.model
       let messageObj: ChatItem | undefined = undefined
+      let tool_calls: ToolCallItem[] | undefined
       let message = ''
       const data = {
         url: `${baseUrl}/api/chat`,
@@ -84,7 +102,17 @@ export class AIOllama extends AIBase {
             const json: any = res.msg
             message += json.message.content
             if (json.message.tool_calls) {
-              message += '开始执行'
+              if (!tool_calls) {
+                tool_calls = json.message.tool_calls
+              } else {
+                tool_calls.push(...json.message.tool_calls)
+              }
+              this._HanleToolCalls(json.message.tool_calls)
+                .then((msg) => {
+                  message += msg
+                  messageObj!.content = message
+                })
+                .catch()
             }
             if (!messageObj) {
               messageObj = reactive({
@@ -96,25 +124,19 @@ export class AIOllama extends AIBase {
             } else {
               messageObj.content = message
             }
+            if (tool_calls) {
+              messageObj!.tool_calls = tool_calls
+            }
           }
         }
       )
     })
   }
 
-  send() {
-    if (!this.content.trim()) {
-      return
-    }
-
+  private _send(item: ChatItem) {
     const messages = [...this.chatList].filter((f) => !f.error && f.role !== 'system')
     const arr: ChatItem[] = []
-    arr.push(
-      reactive({
-        role: 'user',
-        content: this.content
-      })
-    )
+    arr.push(reactive(item))
     messages.push(...arr)
     messages.unshift({
       role: 'system',
@@ -130,6 +152,16 @@ export class AIOllama extends AIBase {
       .finally(() => {
         AISetup.save()
       })
+  }
+
+  send() {
+    if (!this.content.trim()) {
+      return
+    }
+    this._send({
+      role: 'user',
+      content: this.content
+    })
   }
 
   sendNotMake() {
@@ -152,29 +184,11 @@ export class AIOllama extends AIBase {
       if (files.length > 0) {
         const all = Array.from(files).map((file) => useBase64(file).execute())
         Promise.all(all).then((images) => {
-          const messages = [...this.chatList].filter((f) => !f.error && f.role !== 'system')
-          const arr: ChatItem[] = []
-          arr.push(
-            reactive({
-              role: 'user',
-              content: '',
-              images
-            })
-          )
-          messages.push(...arr)
-          messages.unshift({
-            role: 'system',
-            content: this.prompt
+          this._send({
+            role: 'user',
+            content: '',
+            images
           })
-          this.chatList.push(...arr)
-          this.request({ messages })
-            .then()
-            .catch((e: any) => {
-              arr.forEach((a) => (a.error = `${e}`))
-            })
-            .finally(() => {
-              AISetup.save()
-            })
         })
       }
     })

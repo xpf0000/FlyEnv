@@ -8,12 +8,20 @@ import localForage from 'localforage'
 import { SetupStore } from '@/components/Setup/store'
 import { ElMessageBox } from 'element-plus'
 
+export type ToolCallItem = {
+  function: {
+    name: string
+    arguments: Record<string, string>
+  }
+}
+
 export type ChatItem = {
-  role: 'user' | 'system' | 'assistant'
+  role: 'user' | 'system' | 'assistant' | 'tool'
   content: string
   images?: string[]
   error?: string
   model?: string
+  tool_calls?: ToolCallItem[]
 }
 
 export type ModelChatItem = AIOllama
