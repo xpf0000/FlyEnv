@@ -170,7 +170,11 @@
     const utterance = new SpeechSynthesisUtterance(item.content.trim());
     utterance.lang = speakLang; // 设置为中文
     utterance.rate = 1; // 语速（默认值为 1）
-    utterance.pitch = 1; // 音调（默认值为 1）
+    utterance.pitch = 1; // 音调（默认值为 1)
+    utterance.onend = () => {
+      speaking.value = undefined
+      utterance.onend = null
+    }
     window.speechSynthesis.speak(utterance);
     speaking.value = item
   }
