@@ -19,7 +19,6 @@ import { PItem, ProcessPidList, ProcessPidListByPids } from '../fork/Process'
 import NodePTY from './core/NodePTY'
 
 const { createFolder } = require('../shared/file')
-const { isAppleSilicon } = require('../shared/utils')
 const ServeHandler = require('serve-handler')
 const Http = require('http')
 const IP = require('ip')
@@ -116,7 +115,6 @@ export default class Application extends EventEmitter {
     this.setProxy()
     global.Server.UserHome = app.getPath('home')
     console.log('global.Server.UserHome: ', global.Server.UserHome)
-    global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
     global.Server.AppDir = join(runpath, 'app')
     createFolder(global.Server.BaseDir)
