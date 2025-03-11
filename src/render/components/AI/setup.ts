@@ -17,6 +17,7 @@ export type ToolCallItem = {
 
 export type ChatItem = {
   role: 'user' | 'system' | 'assistant' | 'tool'
+  name?: string
   content: string
   images?: string[]
   error?: string

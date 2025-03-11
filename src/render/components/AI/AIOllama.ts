@@ -14,31 +14,23 @@ const { existsSync } = require('fs-extra')
 export class AIOllama extends AIBase {
   async _HanleToolCalls(tools: ToolCallItem[]) {
     console.log('_HanleToolCalls: ', tools)
-    const list: string[] = []
     for (const tool of tools) {
       console.log('tool: ', tool, tool.function.name)
       if (tool.function.name === 'get_folder_all_files') {
         const dir = tool.function.arguments.dir
         console.log('get_folder_all_files: ', dir, existsSync(dir))
-        if (!dir) {
-          list.push(`文件夹路径为空,无法获取文件夹下文件`)
-          continue
-        } else if (!existsSync(dir)) {
-          list.push(`文件夹'${dir}'不存在,无法获取文件夹下文件`)
+        if (!dir || !existsSync(dir)) {
           continue
         }
-        list.push(`使用工具获取 '${dir}' 文件夹中的文件列表。`)
-        console.log('get files !!!')
         getAllFileAsync(dir).then((files) => {
           this._send({
             role: 'tool',
-            content: files.join('\n')
+            name: tool.function.name,
+            content: JSON.stringify({ filepaths: files })
           })
         })
       }
     }
-    console.log('list: ', list)
-    return list.join('\n')
   }
 
   request(param: any): Promise<boolean> {
@@ -63,26 +55,26 @@ export class AIOllama extends AIBase {
             messages: [],
             options: {
               temperature: this.temperature
-            },
-            tools: [
-              {
-                type: 'function',
-                function: {
-                  name: 'get_folder_all_files',
-                  description: '获取文件夹下所有文件',
-                  parameters: {
-                    type: 'object',
-                    properties: {
-                      dir: {
-                        type: 'string',
-                        description: '需要获取文件的文件夹路径.'
-                      }
-                    },
-                    required: ['dir']
-                  }
-                }
-              }
-            ]
+            }
+            // tools: [
+            //   {
+            //     type: 'function',
+            //     function: {
+            //       name: 'get_folder_all_files',
+            //       description: '获取文件夹下所有文件',
+            //       parameters: {
+            //         type: 'object',
+            //         properties: {
+            //           dir: {
+            //             type: 'string',
+            //             description: '需要获取文件的文件夹路径.'
+            //           }
+            //         },
+            //         required: ['dir']
+            //       }
+            //     }
+            //   }
+            // ]
           },
           param
         )
@@ -107,12 +99,7 @@ export class AIOllama extends AIBase {
               } else {
                 tool_calls.push(...json.message.tool_calls)
               }
-              this._HanleToolCalls(json.message.tool_calls)
-                .then((msg) => {
-                  message += msg
-                  messageObj!.content = message
-                })
-                .catch()
+              this._HanleToolCalls(json.message.tool_calls).then().catch()
             }
             if (!messageObj) {
               messageObj = reactive({

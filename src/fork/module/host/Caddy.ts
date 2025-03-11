@@ -74,7 +74,7 @@ export const makeCaddyConf = async (host: AppHost) => {
   if (host.useSSL) {
     let tls = 'internal'
     if (host.ssl.cert && host.ssl.key) {
-      tls = `${host.ssl.cert} ${host.ssl.key}`
+      tls = `"${host.ssl.cert}" "${host.ssl.key}"`
     }
     const httpHostNameAll = httpsNames.join(',\n')
     let content = tmpl.caddySSL
@@ -197,12 +197,12 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
   if (host.ssl.cert !== old.ssl.cert || host.ssl.key !== old.ssl.key) {
     hasChanged = true
     find.push(`tls (.*?)\\n`)
-    replace.push(`tls ${host.ssl.cert} ${host.ssl.key}\n`)
+    replace.push(`tls "${host.ssl.cert}" "${host.ssl.key}"\n`)
   }
   if (host.root !== old.root) {
     hasChanged = true
     find.push(`root * (.*?)\\n`)
-    replace.push(`root * ${host.root}\n`)
+    replace.push(`root * "${host.root}"\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
