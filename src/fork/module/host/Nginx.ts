@@ -5,6 +5,7 @@ import { hostAlias } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash'
+import {pathFixedToUnix} from "@shared/utils";
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -240,17 +241,19 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
+    const cert = pathFixedToUnix(host.ssl.cert)
     find.push(`ssl_certificate (.*?)\\r\\n`)
-    replace.push(`ssl_certificate "${host.ssl.cert}";\r\n`)
+    replace.push(`ssl_certificate "${cert}";\r\n`)
     find.push(`ssl_certificate (.*?)\\n`)
-    replace.push(`ssl_certificate "${host.ssl.cert}";\n`)
+    replace.push(`ssl_certificate "${cert}";\n`)
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
+    const key = pathFixedToUnix(host.ssl.key)
     find.push(`ssl_certificate_key (.*?)\\r\\n`)
-    replace.push(`ssl_certificate_key "${host.ssl.key}";\r\n`)
+    replace.push(`ssl_certificate_key "${key}";\r\n`)
     find.push(`ssl_certificate_key (.*?)\\n`)
-    replace.push(`ssl_certificate_key "${host.ssl.key}";\n`)
+    replace.push(`ssl_certificate_key "${key}";\n`)
   }
   if (host.port.nginx !== old.port.nginx) {
     hasChanged = true
@@ -266,10 +269,11 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   }
   if (host.root !== old.root) {
     hasChanged = true
+    const root = pathFixedToUnix(host.root)
     find.push(`root (.*?)\\r\\n`)
-    replace.push(`root "${host.root}";\r\n`)
+    replace.push(`root "${root}";\r\n`)
     find.push(`root (.*?)\\n`)
-    replace.push(`root "${host.root}";\n`)
+    replace.push(`root "${root}";\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true

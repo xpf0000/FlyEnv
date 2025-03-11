@@ -39,6 +39,25 @@
               <template v-if="item.role === 'assistant'">
                 <div class="flex items-center gap-2">
                   <span class="pl-1 text-[12px] opacity-60">model: {{ item.model }}</span>
+                  <template v-if="speaking === item">
+                    <el-button
+                      type="warning"
+                      class=""
+                      link
+                      @click.stop="textSpeakCancel()"
+                    >
+                      <VideoPause class="w-4 h-4" />
+                    </el-button>
+                  </template>
+                  <template v-else>
+                    <el-button
+                      class="opacity-0 group-hover:opacity-100"
+                      link
+                      @click.stop="textSpeakStart(item)"
+                    >
+                      <yb-icon class="w-4 h-4" :svg="import('@/svg/voice.svg?raw')" />
+                    </el-button>
+                  </template>
                   <el-button
                     class="opacity-0 group-hover:opacity-100"
                     link
@@ -118,15 +137,43 @@
     CopyDocument,
     EditPen,
     Warning,
-    Promotion
+    Promotion,
+    VideoPause
   } from '@element-plus/icons-vue'
   import { AISetup, type ChatItem } from '@/components/AI/setup'
   import ContentVM from './content.vue'
   import { MessageSuccess, MessageWarning } from '@/util/Element'
   import { I18nT } from '@shared/lang'
+  import {AppStore} from "@/store/app";
 
   const { dialog, clipboard } = require('@electron/remote')
   const { statSync, readFile } = require('fs-extra')
+
+  const appStore = AppStore()
+
+  const speaking = ref<ChatItem | undefined>()
+
+  const textSpeakCancel = () => {
+    window.speechSynthesis.cancel()
+    speaking.value = undefined
+  }
+
+  const textSpeakStart = (item: ChatItem) => {
+    textSpeakCancel()
+    const lang = appStore.config.setup.lang
+    let speakLang = ''
+    if (lang === 'zh') {
+      speakLang = 'zh-CN'
+    } else {
+      speakLang = 'en-US'
+    }
+    const utterance = new SpeechSynthesisUtterance(item.content.trim());
+    utterance.lang = speakLang; // 设置为中文
+    utterance.rate = 1; // 语速（默认值为 1）
+    utterance.pitch = 1; // 音调（默认值为 1）
+    window.speechSynthesis.speak(utterance);
+    speaking.value = item
+  }
 
   const copyText = (txt: string) => {
     clipboard.writeText(txt)
