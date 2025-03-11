@@ -180,11 +180,13 @@ class Ollama extends Base {
 
   allModel(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
-
       const command = `ollama.exe list`
-      const res = await execPromise(command, {
-        cwd: dirname(version.bin)
-      })
+      let res: any
+      try {
+        res = await execPromise(command, {
+          cwd: dirname(version.bin)
+        })
+      } catch (e) {}
       const arr = res?.stdout?.split('\n')?.filter((s) => !!s.trim()) ?? []
       const list: any = []
       arr.shift()
