@@ -37,8 +37,8 @@
             <template v-else>
               <ContentVM class="text" :content="item.content.trim()" />
               <template v-if="item.role === 'assistant'">
-                <div class="flex items-center gap-2">
-                  <span class="pl-1 text-[12px] opacity-60">model: {{ item.model }}</span>
+                <div class="flex items-center">
+                  <span class="pl-1 text-[12px] opacity-60 mr-2">model: {{ item.model }}</span>
                   <template v-if="speaking === item">
                     <el-button
                       type="warning"
