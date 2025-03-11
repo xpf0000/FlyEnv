@@ -38,7 +38,7 @@
               <ContentVM class="text" :content="item.content.trim()" />
               <template v-if="item.role === 'assistant'">
                 <div class="flex items-center">
-                  <span class="pl-1 text-[12px] opacity-60 mr-2">model: {{ item.model }}</span>
+                  <span class="pl-1 text-[12px] opacity-60 mr-3">model: {{ item.model }}</span>
                   <template v-if="speaking === item">
                     <el-button
                       type="warning"
@@ -46,7 +46,7 @@
                       link
                       @click.stop="textSpeakCancel()"
                     >
-                      <VideoPause class="w-4 h-4" />
+                      <VideoPause class="w-5 h-5" />
                     </el-button>
                   </template>
                   <template v-else>
@@ -55,7 +55,7 @@
                       link
                       @click.stop="textSpeakStart(item)"
                     >
-                      <yb-icon class="w-4 h-4" :svg="import('@/svg/voice.svg?raw')" />
+                      <yb-icon class="w-5 h-5" :svg="import('@/svg/voice.svg?raw')" />
                     </el-button>
                   </template>
                   <el-button

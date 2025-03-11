@@ -311,6 +311,18 @@
     const nginxRunning = brewStore.module('nginx').installed.find((i) => i.run)
     const apacheRunning = brewStore.module('apache').installed.find((i) => i.run)
     const caddyRunning = brewStore.module('caddy').installed.find((i) => i.run)
+    if (item.useSSL && item.ssl.cert && item.ssl.key) {
+      let port = 443
+      if (nginxRunning) {
+        port = item.port.nginx_ssl
+      } else if (apacheRunning) {
+        port = item.port.apache_ssl
+      } else if (caddyRunning) {
+        port = item.port.caddy_ssl
+      }
+      const portStr = port === 443 ? '' : `:${port}`
+      return `https://${host}${portStr}`
+    }
     let port = 80
     if (nginxRunning) {
       port = item.port.nginx
@@ -320,12 +332,11 @@
       port = item.port.caddy
     }
     const portStr = port === 80 ? '' : `:${port}`
-    return `${host}${portStr}`
+    return `http://${host}${portStr}`
   }
 
   const openSite = (item: any) => {
-    const name = siteName(item)
-    const url = `http://${name}`
+    const url = siteName(item)
     shell.openExternal(url)
   }
 
