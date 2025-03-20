@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="I18nT('base.leftSetup')"
+    :title="I18nT('base.setup')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
@@ -36,7 +36,7 @@
 <script lang="ts" setup>
   import { onBeforeUnmount, reactive, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import type { FormInstance, FormRules } from 'element-plus'
   import { MessageError } from '@/util/Element'
   import { AISetup, type OllamaServerSetup } from '@/components/AI/setup'

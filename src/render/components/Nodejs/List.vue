@@ -40,7 +40,7 @@
 
 <script lang="ts" setup>
   import { NodejsStore } from '@/components/Nodejs/node'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { Setup } from '@/components/Nodejs/setup'
   import FnmVM from './fnm/index.vue'
   import NVMVM from './nvm/index.vue'

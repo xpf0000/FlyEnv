@@ -19,7 +19,7 @@
   import Conf from '@/components/Conf/index.vue'
   import IPC from '@/util/IPC'
   import type { CommonSetItem } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
   import Common from '@/components/Conf/common.vue'
   import { uuid } from '@shared/utils'

@@ -1,5 +1,4 @@
 {
-  "keepalive_timeout": "连接超时时间",
   "gzip": "是否开启GZIP压缩传输",
   "gzip_min_length": "最小压缩文件",
   "gzip_comp_level": "压缩率",

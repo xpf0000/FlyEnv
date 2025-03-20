@@ -89,7 +89,7 @@
   import MacPortsSrc from './MacPortsSrc/index.vue'
   import ThemeSet from './Theme/index.vue'
   import Base from '@/core/Base'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Tool from './Tool/index.vue'
   import { AppModules } from '@/core/App'
   import ModuleShowHide from './ModuleShowHide/index.vue'

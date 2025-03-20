@@ -28,7 +28,7 @@
 <script lang="ts" setup>
   import { onBeforeUnmount, reactive, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import type { FormInstance, FormRules } from 'element-plus'
   import { type PromptItem, PromptSetup } from '@/components/AI/Prompt/setup'
   import { MessageError } from '@/util/Element'

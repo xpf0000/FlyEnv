@@ -1,5 +1,5 @@
 import Store from 'electron-store'
-import { AppI18n } from '../lang'
+import { AppI18n } from '@lang/index'
 import type ElectronStore from 'electron-store'
 
 interface ConfigOptions {

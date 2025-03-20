@@ -11,7 +11,7 @@
   import installedVersions from '@/util/InstalledVersions'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
   import { MessageSuccess } from '@/util/Element'
   import FloatButton from '@/components/FloatBtn/index.vue'

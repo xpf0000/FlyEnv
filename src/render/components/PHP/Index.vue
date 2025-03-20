@@ -27,7 +27,7 @@
   import Service from './List.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Composer from '../VersionManager/all.vue'
   import Create from './CreateProject.vue'
 

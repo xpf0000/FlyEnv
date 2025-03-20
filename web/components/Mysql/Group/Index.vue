@@ -110,7 +110,7 @@
       align: 'center',
       width: 120,
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('util.mysqlVersion')}</span>
+        return <span class="flex items-center">{I18nT('base.version')}</span>
       },
       cellRenderer: ({ cellData: version }) => <span class="user">{version}</span>
     },
@@ -121,7 +121,7 @@
       width: 90,
       align: 'center',
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('util.mysqlPort')}</span>
+        return <span class="flex items-center">{I18nT('host.port')}</span>
       },
       cellRenderer: ({ cellData: port }) => <span class="dir">{port}</span>
     },

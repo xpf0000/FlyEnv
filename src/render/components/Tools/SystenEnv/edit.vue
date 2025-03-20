@@ -33,7 +33,7 @@
 <script lang="ts" setup>
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'

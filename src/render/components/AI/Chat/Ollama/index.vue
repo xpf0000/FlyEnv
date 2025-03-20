@@ -138,7 +138,7 @@
   import { AISetup, type ChatItem } from '@/components/AI/setup'
   import ContentVM from './content.vue'
   import { MessageSuccess, MessageWarning } from '@/util/Element'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AppStore } from '@/store/app'
 
   const { dialog, clipboard } = require('@electron/remote')

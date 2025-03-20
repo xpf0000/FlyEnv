@@ -4,7 +4,7 @@ import { BrewStore } from '@/store/brew'
 import { startService } from '@/util/Service'
 import { AIStore } from '@/components/AI/store'
 import { fetchInstalled } from '@/components/AI/Fn/Util'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 export function startMemcached(this: BaseTask) {
   return new Promise(async (resolve, reject) => {

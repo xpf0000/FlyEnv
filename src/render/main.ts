@@ -1,5 +1,5 @@
 import { VueExtend } from './core/VueExtend'
-import { AppI18n } from '@shared/lang'
+import { AppI18n } from '@lang/index'
 import App from './App.vue'
 import '@/components/Theme/Index.scss'
 import IPC from '@/util/IPC'

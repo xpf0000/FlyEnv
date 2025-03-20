@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="item?.id ? I18nT('tool.editTool') : I18nT('tool.addTool')"
+    :title="item?.id ? I18nT('tools.editTool') : I18nT('tools.addTool')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"
@@ -16,7 +16,7 @@
               type="text"
               class="input"
               :class="{ error: errs?.label }"
-              :placeholder="I18nT('tool.label')"
+              :placeholder="I18nT('tools.label')"
             />
           </div>
           <div class="path-choose mt-20 mb-20">
@@ -25,7 +25,7 @@
               type="text"
               class="input"
               :class="{ error: errs?.component }"
-              :placeholder="I18nT('tool.component')"
+              :placeholder="I18nT('tools.component')"
             />
           </div>
         </div>
@@ -44,7 +44,7 @@
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AppToolStore } from './store'
   import type { AppToolModuleItem } from '@/core/type'
 

@@ -18,7 +18,7 @@
             ></el-radio-button>
             <el-radio-button
               class="flex-1"
-              :label="I18nT('versionmanager.Library')"
+              :label="I18nT('base.Library')"
               value="all"
             ></el-radio-button>
           </el-radio-group>
@@ -51,7 +51,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { OllamaModelsSetup, SetupAll } from './setup'
   import LocalVM from './local/index.vue'
   import AllVM from './all/index.vue'

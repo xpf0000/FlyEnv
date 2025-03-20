@@ -4,7 +4,7 @@ import { SoftInstalled } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import Base from '@/core/Base'
 import { ExtensionSetup } from '@/components/PHP/Extension/setup'
 

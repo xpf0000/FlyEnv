@@ -76,7 +76,7 @@
       <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
         <template #reference>
           <div class="inline-flex items-center gap-3 ml-2">
-            <span>{{ I18nT('host.enable') }}: </span>
+            <span>{{ I18nT('base.enable') }}: </span>
             <el-switch v-model="hostsSet.write"></el-switch>
           </div>
         </template>

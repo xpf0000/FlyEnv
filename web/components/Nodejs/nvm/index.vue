@@ -11,7 +11,7 @@
         <el-form-item :label="I18nT('util.nodeToolInstallBy')">
           <el-radio-group v-model="NVMSetup.installLib">
             <el-radio-button key="shell" label="shell">{{
-              I18nT('util.nodeToolShell')
+              I18nT('base.Official')
             }}</el-radio-button>
             <el-radio-button key="brew" :disabled="!hasBrew" label="brew">Homebrew</el-radio-button>
             <el-radio-button key="port" :disabled="!hasPort" label="port">Macports</el-radio-button>
@@ -19,7 +19,7 @@
         </el-form-item>
         <el-form-item>
           <el-button class="mt-3" type="primary" @click.stop="installNVM">{{
-            I18nT('util.nodeToolInstallBtn')
+            I18nT('base.install')
           }}</el-button>
         </el-form-item>
       </el-form>

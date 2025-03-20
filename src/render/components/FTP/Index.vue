@@ -18,7 +18,7 @@
   import Config from './Config.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { tab, checkVersion } = AppModuleSetup('pure-ftpd')
   const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('base.configFile')]

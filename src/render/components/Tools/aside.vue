@@ -15,7 +15,7 @@
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { showItem, currentPage, nav } = AsideSetup('tools')
 </script>

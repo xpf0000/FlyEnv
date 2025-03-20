@@ -15,7 +15,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, remove, chmod } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 
 class MailPit extends Base {
   constructor() {

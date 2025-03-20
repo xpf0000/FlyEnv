@@ -95,7 +95,7 @@
           </div>
         </div>
 
-        <div class="plant-title">{{ I18nT('host.hostPort') }}</div>
+        <div class="plant-title">{{ I18nT('host.port') }}</div>
         <div class="main">
           <div class="port-set mb-20">
             <div class="port-type"> Nginx </div>

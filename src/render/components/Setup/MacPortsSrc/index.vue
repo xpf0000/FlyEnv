@@ -14,7 +14,7 @@
 
 <script lang="ts" setup>
   import { ref, computed } from 'vue'
-  import { I18nT } from '@shared/lang/index'
+  import { I18nT } from '@lang/index'
   import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
 

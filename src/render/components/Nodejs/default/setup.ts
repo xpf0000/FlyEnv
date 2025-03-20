@@ -1,7 +1,7 @@
 import { computed, onMounted, onUnmounted, reactive } from 'vue'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
 import installedVersions from '@/util/InstalledVersions'
 import { BrewStore } from '@/store/brew'

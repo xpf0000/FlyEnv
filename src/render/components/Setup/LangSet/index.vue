@@ -1,5 +1,5 @@
 <template>
-  <div class="plant-title">{{ $t('base.lang') }}</div>
+  <div class="plant-title">{{ I18nT('base.lang') }}</div>
   <div class="main brew-src">
     <el-select
       v-model="appLang"
@@ -7,46 +7,32 @@
       :disabled="running"
       :placeholder="$t('base.changeLang')"
     >
-      <template v-for="(label, value) in langs" :key="value">
+      <template v-for="(label, value) in AppAllLang" :key="value">
         <el-option :label="label" :value="value"></el-option>
       </template>
     </el-select>
   </div>
 </template>
 
-<script lang="ts">
-  import { defineComponent, nextTick } from 'vue'
+<script lang="ts" setup>
+  import { computed, nextTick, ref } from 'vue'
   import { AppStore } from '@/store/app'
-  import { AppI18n } from '@shared/lang'
-  export default defineComponent({
-    components: {},
-    props: {},
-    data() {
-      return {
-        langs: {
-          en: 'English',
-          zh: '中文'
-        },
-        running: false
-      }
+  import { AppAllLang, AppI18n, I18nT } from '@lang/index'
+
+  const appStore = AppStore()
+  const running = ref(false)
+  const appLang = computed({
+    get() {
+      return appStore.config.setup.lang
     },
-    computed: {
-      appLang: {
-        get() {
-          return AppStore().config.setup.lang
-        },
-        set(v: string) {
-          this.running = true
-          AppStore().config.setup.lang = v
-          AppI18n(v)
-          AppStore().saveConfig()
-          nextTick().then(() => {
-            this.running = false
-          })
-        }
-      }
-    },
-    created: function () {},
-    methods: {}
+    set(v: string) {
+      running.value = true
+      AppStore().config.setup.lang = v
+      AppI18n(v)
+      AppStore().saveConfig()
+      nextTick().then(() => {
+        running.value = false
+      })
+    }
   })
 </script>

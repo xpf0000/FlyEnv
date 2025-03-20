@@ -95,7 +95,7 @@
           </div>
         </div>
 
-        <div class="plant-title">{{ I18nT('host.hostPort') }}</div>
+        <div class="plant-title">{{ I18nT('host.port') }}</div>
         <div class="main">
           <div class="port-set mb-20">
             <div class="port-type"> Nginx </div>
@@ -271,7 +271,7 @@
   import { AppHost, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
   import { RewriteAll } from '@/components/Host/store'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'

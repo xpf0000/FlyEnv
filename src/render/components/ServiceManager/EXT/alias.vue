@@ -64,7 +64,7 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { AsyncComponentSetup, AsyncComponentShow } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { MessageSuccess } from '@/util/Element'
   import { AppStore } from '@/store/app'
   import { Edit, Delete, Plus } from '@element-plus/icons-vue'

@@ -124,7 +124,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import ExtSet from '@/components/ServiceManager/EXT/index.vue'
   import { SetupAll } from './setup'
   import type { AllAppModule } from '@/core/type'

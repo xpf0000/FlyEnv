@@ -21,7 +21,7 @@
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { tab, checkVersion } = AppModuleSetup('mariadb')
   const tabs = [

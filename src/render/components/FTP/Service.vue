@@ -78,7 +78,7 @@
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { startService, stopService } from '@/util/Service'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { Edit, Delete } from '@element-plus/icons-vue'
   import Base from '@/core/Base'

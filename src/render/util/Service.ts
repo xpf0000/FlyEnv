@@ -2,7 +2,7 @@ import IPC from '@/util/IPC'
 import { BrewStore, type SoftInstalled } from '@/store/brew'
 import { type AppHost, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { Service } from '@/components/ServiceManager/service'
 import installedVersions from '@/util/InstalledVersions'
 import type { AllAppModule } from '@/core/type'
@@ -18,7 +18,7 @@ const exec = (
       return
     }
     if (!version?.version) {
-      resolve(I18nT('util.versionNoFound'))
+      resolve(I18nT('fork.phpiniNoFound'))
       return
     }
     version.running = true

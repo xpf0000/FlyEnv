@@ -32,7 +32,7 @@
   import Group from './Group/Index.vue'
   import { MysqlStore } from './mysql'
   import { AppModuleSetup } from '@/core/Module'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   const mysqlStore = MysqlStore()
   const { tab, checkVersion } = AppModuleSetup('mysql')
   const tabs = [

@@ -9,7 +9,7 @@
   import { ref, onBeforeUnmount } from 'vue'
   import Chat from './Chat/index.vue'
   import { AIStore } from '@/components/AI/store'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { createMarkdownRenderer, disposeMdItInstance } from '@/util/markdown/markdown'
   import { AISetup } from '@/components/AI/setup'
   import { useCopyCode } from '@/util/markdown/copyCode'

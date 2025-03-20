@@ -221,7 +221,7 @@
 
 <script lang="ts" setup>
   import type { SoftInstalled } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { FolderAdd } from '@element-plus/icons-vue'
   import EXT from '@/components/ServiceManager/EXT/index.vue'

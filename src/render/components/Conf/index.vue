@@ -75,7 +75,7 @@
   import { Document, Operation, FolderOpened } from '@element-plus/icons-vue'
   import type { AllAppModule } from '@/core/type'
   import { ConfSetup } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const props = withDefaults(
     defineProps<{

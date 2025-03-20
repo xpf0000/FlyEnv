@@ -1,13 +1,13 @@
 <script setup lang="ts">
   import Store from './store'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 </script>
 
 <template>
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('encryption.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.encryption-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

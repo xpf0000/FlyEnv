@@ -27,7 +27,7 @@
           <el-radio-group v-model="form.installBy">
             <template v-if="form.tool === 'nvm'">
               <el-radio-button key="shell" label="shell">{{
-                $t('util.nodeToolShell')
+                $t('base.Official')
               }}</el-radio-button>
             </template>
             <el-radio-button key="brew" :disabled="!hasBrew" label="brew">Homebrew</el-radio-button>
@@ -35,7 +35,7 @@
           </el-radio-group>
         </el-form-item>
         <el-button type="primary" @click.stop="doInstallTool">{{
-          $t('util.nodeToolInstallBtn')
+          $t('base.install')
         }}</el-button>
       </el-form>
     </template>

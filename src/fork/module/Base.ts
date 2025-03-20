@@ -1,4 +1,4 @@
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync } from 'fs'
 import { dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -63,7 +63,7 @@ export class Base {
           resolve(e.toString())
         }
       } else {
-        resolve(I18nT('fork.needSelectVersion'))
+        resolve(I18nT('base.needSelectVersion'))
       }
     })
   }

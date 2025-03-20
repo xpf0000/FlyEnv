@@ -195,7 +195,7 @@
             </div>
           </div>
 
-          <div class="plant-title">{{ I18nT('host.hostPort') }}</div>
+          <div class="plant-title">{{ I18nT('host.port') }}</div>
           <div class="main">
             <div class="port-set mb-4">
               <div class="port-type"> Tomcat </div>
@@ -258,7 +258,7 @@
 
             <template v-if="item.useSSL">
               <div class="ssl-switch mb-20 mt-20">
-                <span>{{ I18nT('host.hostPort') }}</span>
+                <span>{{ I18nT('host.port') }}</span>
               </div>
               <div class="port-set port-ssl mb-20">
                 <div class="port-type"> Tomcat </div>

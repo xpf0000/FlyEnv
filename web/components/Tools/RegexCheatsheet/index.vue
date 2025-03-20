@@ -15,7 +15,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('regex-cheatsheet.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.regex-cheatsheet-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

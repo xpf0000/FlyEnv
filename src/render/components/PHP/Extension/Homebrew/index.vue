@@ -92,7 +92,7 @@
 <script lang="ts" setup>
   import { type SoftInstalled } from '@/store/brew'
   import { BrewSetup, Setup } from '@/components/PHP/Extension/Homebrew/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { Link, Document, Download, Delete } from '@element-plus/icons-vue'
 
   const props = defineProps<{

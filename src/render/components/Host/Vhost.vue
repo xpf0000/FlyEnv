@@ -33,7 +33,7 @@
   import { readFileAsync, writeFileAsync } from '@shared/file'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageSuccess } from '@/util/Element'

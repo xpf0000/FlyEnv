@@ -9,7 +9,7 @@ import { startPhp } from '@/components/AI/Fn/Php'
 import { nextTick } from 'vue'
 import type { SoftInstalled } from '@shared/app'
 import { fetchInstalled } from '@/components/AI/Fn/Util'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { handleWriteHosts } from '@/util/Host'
 
 const { shell } = require('@electron/remote')

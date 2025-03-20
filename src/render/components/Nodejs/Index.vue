@@ -24,7 +24,7 @@
   import Versions from './List.vue'
   import Config from './Config.vue'
   import { AppModuleSetup } from '@/core/Module'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Create from './CreateProject.vue'
 
   const { tab } = AppModuleSetup('node')

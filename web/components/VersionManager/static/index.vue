@@ -11,7 +11,7 @@
     <el-table-column prop="name">
       <template #header>
         <span style="padding: 2px 12px 2px 24px; display: block">{{
-          I18nT('base.brewLibrary')
+          I18nT('base.Library')
         }}</span>
       </template>
       <template #default="scope">

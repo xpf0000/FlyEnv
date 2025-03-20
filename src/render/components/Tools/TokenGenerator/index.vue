@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { watch } from 'vue'
   import Store from './store'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   watch(
     () => {

@@ -52,7 +52,7 @@
           </div>
         </div>
 
-        <div class="plant-title">{{ I18nT('host.hostPort') }}</div>
+        <div class="plant-title">{{ I18nT('host.port') }}</div>
         <div class="main">
           <div class="port-set mb-20">
             <div class="port-type"> Tomcat </div>
@@ -138,7 +138,7 @@
   import { passwordCheck } from '@/util/Brew'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
 

@@ -27,6 +27,9 @@
       "@shared/*": [
         "src/shared/*"
       ],
+      "@lang/*": [
+        "src/lang/*"
+      ],
       "@web/*": [
         "web/*"
       ]

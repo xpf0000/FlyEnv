@@ -6,7 +6,7 @@
 </template>
 <script lang="ts" setup>
   import type { SoftInstalled } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   const props = defineProps<{

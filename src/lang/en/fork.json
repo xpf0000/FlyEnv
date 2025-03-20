@@ -5,7 +5,6 @@
   "switchFail": "Switch Fail",
   "needPassWord": "Sudo needs a computer password, please enter",
   "versionError": "The version is wrong, please select again",
-  "needSelectVersion": "Please select a version first",
   "serviceNoRun": "Service not running",
   "brewNoFound": "Brew Not Found",
   "getVersionNumFail": "Failed to get version number",
@@ -14,15 +13,11 @@
   "hostsReadFail": "Failed to read /private/etc/hosts file",
   "startFail": "Failed to start, please check the log file",
   "command": "Command",
-  "nvmDirNoFound": "NVM_DIR Not Found",
-  "phpiniNoFound": "php.ini file not found",
   "ExtensionInstallFail": "Extension installation failed",
   "phpStopFail": "PHP{version} failed to stop, please try to stop it manually",
   "ExtensionInstallFailTips": "Install the extension and execute the command:\n{command}\nIf the installation fails, you can try to copy the command and try to install it yourself\n",
   "versionNoFound": "Failed to get software version, operation failed.",
   "postgresqlInit": "Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root",
-  "toolFileNotExist": "File does not exist",
   "downFileFail": "Download file failed!",
-  "licenseTips": "Without obtaining a license, only three sites can be created",
   "trialEnd": "The trial has expired. To continue using this feature, please obtain a license"
 }

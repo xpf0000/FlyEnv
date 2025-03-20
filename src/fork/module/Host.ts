@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { getSubDir, hostAlias, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -147,7 +147,7 @@ export class Host extends Base {
         isLock = uid !== uuid
       }
       if (flag === 'add' && isLock) {
-        reject(new Error(I18nT('fork.licenseTips')))
+        reject(new Error(I18nT('host.licenseTips')))
         return
       }
 

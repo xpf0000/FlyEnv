@@ -1,5 +1,0 @@
-export default {
-  default:
-    'You are a helpful assistant. You can help me by answering my questions. You can also ask me questions.',
-  newChat: 'New Chat'
-}

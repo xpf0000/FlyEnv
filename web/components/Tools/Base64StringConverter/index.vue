@@ -36,7 +36,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('base64-string-converter.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.base64-string-converter-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>
