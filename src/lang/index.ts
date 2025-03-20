@@ -1,13 +1,3 @@
-import ENFork from './en/fork'
-import FRFork from './fr/fork'
-import PTFork from './pt/fork'
-import ZHFork from './zh/fork'
-import AZfork from './az/fork'
-import ENAppLog from './en/appLog'
-import FRAppLog from './fr/appLog'
-import PTAppLog from './pt/appLog'
-import ZHAppLog from './zh/appLog'
-import AZAppLog from './az/appLog'
 import { createI18n } from 'vue-i18n'
 import type { I18n } from 'vue-i18n'
 
@@ -16,21 +6,9 @@ const lang = {
     fork: ENFork,
     appLog: ENAppLog
   },
-  fr: {
-    fork: FRFork,
-    appLog: FRAppLog
-  },
-  pt: {
-    fork: PTFork,
-    appLog: PTAppLog
-  },
   zh: {
     fork: ZHFork,
     appLog: ZHAppLog
-  },
-  az: {
-    fork: AZfork,
-    appLog: AZAppLog
   }
 }
 

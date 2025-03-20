@@ -1,8 +1,4 @@
 export default {
-  MenuEN: 'English',
-  UpdateEN: 'Update',
-  MenuAR: 'العربية',
-  UpdateAR: 'تحديث',
   about: 'About',
   app: 'FlyEnv',
   checkForUpdates: 'Check for Updates...',
