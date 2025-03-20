@@ -83,7 +83,7 @@
   import { ref } from 'vue'
   import { AISetup, Setup } from '@/components/AI/setup'
   import { CopyDocument, Delete, Edit, Setting } from '@element-plus/icons-vue'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const aside = ref<HTMLElement>()
 

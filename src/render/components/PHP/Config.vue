@@ -36,7 +36,7 @@
   import Conf from '@/components/Conf/drawer.vue'
   import Common from '@/components/Conf/common.vue'
   import { type CommonSetItem, ConfStore } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
   import { SoftInstalled } from '@/store/brew'
   import IPC from '@/util/IPC'

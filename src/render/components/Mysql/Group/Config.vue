@@ -33,7 +33,7 @@
 
 <script lang="ts" setup>
   import { computed, reactive, Ref, ref, watch } from 'vue'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import type { MysqlGroupItem } from '@shared/app'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import Conf from '@/components/Conf/drawer.vue'

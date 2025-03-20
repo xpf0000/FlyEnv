@@ -1,7 +1,7 @@
 import { dirname, join } from 'path'
 import { existsSync, readdirSync, realpathSync } from 'fs'
 import { Base } from './Base'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,

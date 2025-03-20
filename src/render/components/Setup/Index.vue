@@ -17,7 +17,7 @@
   import { computed } from 'vue'
   import Common from './Common.vue'
   import EditorConfig from './EditorConfig/index.vue'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { SetupStore } from '@/components/Setup/store'
   import Licenses from './Licenses/index.vue'
 

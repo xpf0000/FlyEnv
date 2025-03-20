@@ -1,7 +1,7 @@
 import BaseTask from '@/components/AI/Task/BaseTask'
 import { AIStore } from '@/components/AI/store'
 import { startApache } from '@/components/AI/Fn/Apache'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 export class ApacheStartFail extends BaseTask {
   constructor() {

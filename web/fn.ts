@@ -48,7 +48,7 @@ const exec = (
       return
     }
     if (!version?.version) {
-      resolve(I18nT('util.versionNoFound'))
+      resolve(I18nT('fork.phpiniNoFound'))
       return
     }
     version.running = true

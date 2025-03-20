@@ -40,7 +40,7 @@
 <script lang="ts" setup>
   import { computed, onBeforeUnmount, reactive, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import type { FormInstance, FormRules } from 'element-plus'
   import { MessageError } from '@/util/Element'
   import type { AIOllama } from '@/components/AI/AIOllama'

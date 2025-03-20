@@ -1,6 +1,6 @@
 import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@/core/type'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 const module: AppModuleItem = {
   typeFlag: 'tools',

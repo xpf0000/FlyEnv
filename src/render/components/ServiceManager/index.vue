@@ -246,7 +246,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { FolderAdd } from '@element-plus/icons-vue'
   import EXT from './EXT/index.vue'
   import type { AllAppModule } from '@/core/type'

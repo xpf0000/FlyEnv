@@ -4,7 +4,7 @@ import '@/components/Theme/Index.scss'
 import { createPinia } from 'pinia'
 import IPC from './util/IPC'
 import { AppStore } from './tray/store/app'
-import { AppI18n } from '@shared/lang'
+import { AppI18n } from '@lang/index'
 import { ThemeInit } from '@/tray/Theme'
 
 const pinia = createPinia()

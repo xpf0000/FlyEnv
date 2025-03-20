@@ -29,7 +29,7 @@
 
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import Conf from '@/components/Conf/drawer.vue'
 

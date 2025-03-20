@@ -1,6 +1,6 @@
 import { nextTick, onMounted, onUnmounted, ref, watch, Ref } from 'vue'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import type { FSWatcher } from 'fs'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import { EditorConfigMake, EditorCreate } from '@/util/Editor'

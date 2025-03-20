@@ -34,7 +34,7 @@
                   </template>
                   <template v-else-if="!isStatic">
                     <el-radio-button value="phpwebstudy">{{
-                      I18nT('php.extensionsLibDefault')
+                      I18nT('base.default')
                     }}</el-radio-button>
                   </template>
                 </el-radio-group>
@@ -79,7 +79,7 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { type SoftInstalled } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import BrewVM from './Extension/Homebrew/index.vue'
   import LoadedVM from './Extension/Loaded/index.vue'

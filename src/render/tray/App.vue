@@ -49,7 +49,7 @@
   import { AppStore } from './store/app'
   import IPC from '../util/IPC'
   import { AppModules } from '@/core/App'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const allService = AppModules.filter((m) => m.isTray).map((m) => {
     return {

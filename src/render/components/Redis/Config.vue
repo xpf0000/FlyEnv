@@ -19,7 +19,7 @@
   import Conf from '@/components/Conf/index.vue'
   import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
@@ -60,7 +60,7 @@
       value: '6379',
       enable: true,
       tips() {
-        return I18nT('redis.port')
+        return I18nT('host.port')
       }
     },
     {
@@ -76,7 +76,7 @@
       value: '10000',
       enable: true,
       tips() {
-        return I18nT('redis.maxclients')
+        return I18nT('mysql.max_connections')
       }
     },
     {

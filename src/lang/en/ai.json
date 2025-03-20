@@ -56,7 +56,6 @@
   "Temperature": "Temperature",
   "Meticulous": "Meticulous",
   "Creative": "Creative",
-  "chatName": "Name",
   "chatPrompt": "Instruction(System Prompt)",
   "NeedChatName": "Please input Name",
   "NeedChatPrompt": "Please input Instruction(System Prompt)",

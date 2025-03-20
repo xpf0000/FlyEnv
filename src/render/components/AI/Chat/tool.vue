@@ -27,7 +27,7 @@
   import { MariadbStartFail } from '@/components/AI/Task/MariadbStartFail'
   import { MemcachedStartFail } from '@/components/AI/Task/MemcachedStartFail'
   import { AppStore } from '@/store/app'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { wordSplit } from '@/components/AI/Fn/Util'
   import { BrewPHP7Issues } from '@/components/AI/Task/BrewPHP7Issues'
   import { VersionManagerEmpty } from '@/components/AI/Task/VersionManagerEmpty'

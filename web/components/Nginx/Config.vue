@@ -35,7 +35,7 @@
       value: '60',
       enable: true,
       tips() {
-        return I18nT('nginx.keepalive_timeout')
+        return I18nT('apache.Timeout')
       }
     },
     {

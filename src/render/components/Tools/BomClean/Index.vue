@@ -6,7 +6,9 @@
         <slot name="like"></slot>
       </div>
       <template v-if="data.end">
-        <el-button type="primary" class="shrink0" @click="doEnd">{{ $t('util.ok') }}</el-button>
+        <el-button type="primary" class="shrink0" @click="doEnd">{{
+          $t('base.confirm')
+        }}</el-button>
       </template>
       <template v-else>
         <el-button
@@ -15,7 +17,7 @@
           :disabled="files.length === 0 || data.running"
           :loading="data.running"
           @click="doClean"
-          >{{ $t('util.clean') }}</el-button
+          >{{ $t('base.clean') }}</el-button
         >
       </template>
     </div>
@@ -124,7 +126,7 @@
   import store, { Ext } from './store'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   const { extname } = require('path')
   const { dialog } = require('@electron/remote')
   const emit = defineEmits(['doClose'])

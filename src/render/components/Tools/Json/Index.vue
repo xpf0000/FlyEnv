@@ -73,7 +73,7 @@
   import JSONStore, { JSONStoreTab } from '@/components/Tools/Json/store'
   import type { TabPaneName } from 'element-plus'
   import { MessageSuccess } from '@/util/Element'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { Document } from '@element-plus/icons-vue'
   import { EditorCreate } from '@/util/Editor'
 

@@ -3,7 +3,7 @@
   "webServer": "Web服务器",
   "dataBaseServer": "数据库服务器",
   "emailServer": "邮件服务器",
-  "language": "语言",
+  "language": "语言&运行时",
   "dataQueue": "数据队列&缓存",
   "searchEngine": "搜索引擎",
   "dnsServer": "DNS服务器",

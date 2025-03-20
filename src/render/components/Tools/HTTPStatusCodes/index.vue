@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue'
   import { codesByCategories } from './http-status-codes.constants'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const search = ref('')
   const searchResult = computed(() => {
@@ -33,7 +33,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('http-status-codes.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.http-status-codes-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

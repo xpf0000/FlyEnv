@@ -34,7 +34,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('chmod-calculator.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.chmod-calculator-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

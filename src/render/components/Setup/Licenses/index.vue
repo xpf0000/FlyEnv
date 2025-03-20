@@ -159,7 +159,7 @@ Please submit article/video link if you choose to help promote the project"
   import { computed } from 'vue'
   import { AppStore } from '@/store/app'
   import { SetupStore } from '@/components/Setup/store'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { shell } = require('@electron/remote')
 

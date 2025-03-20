@@ -1,5 +1,5 @@
 import Base from '@/core/Base'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 const { shell } = require('@electron/remote')
 const { existsSync } = require('fs')

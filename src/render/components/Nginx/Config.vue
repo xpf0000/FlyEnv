@@ -19,7 +19,7 @@
   import Conf from '@/components/Conf/index.vue'
   import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
   import { uuid } from '@shared/utils'
 
@@ -40,7 +40,7 @@
       value: '60',
       enable: true,
       tips() {
-        return I18nT('nginx.keepalive_timeout')
+        return I18nT('apache.Timeout')
       }
     },
     {

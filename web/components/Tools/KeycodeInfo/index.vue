@@ -62,7 +62,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('keycode-info.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.keycode-info-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

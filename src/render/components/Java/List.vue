@@ -116,7 +116,7 @@
   import { Service } from '@/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { shell } = require('@electron/remote')
   const { dirname } = require('path')

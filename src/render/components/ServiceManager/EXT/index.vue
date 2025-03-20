@@ -49,7 +49,7 @@
   import type { SoftInstalled } from '@/store/brew'
   import { ServiceActionStore } from './store'
   import Extension from '@/components/ServiceManager/Pgsql/extension.vue'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { dirname, join } = require('path')
 

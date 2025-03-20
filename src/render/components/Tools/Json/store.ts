@@ -23,7 +23,7 @@ import {
 import { JSONSort } from '@shared/JsonSort'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import { FormatHtml, FormatPHP, FormatTS, FormatYaml } from '@shared/FormatCode'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 export class JSONStoreTab {
   value = ''

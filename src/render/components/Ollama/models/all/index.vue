@@ -27,7 +27,7 @@
         <template #header>
           <div class="w-p100 name-cell">
             <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
-              I18nT('base.brewLibrary')
+              I18nT('base.Library')
             }}</span>
             <el-input
               v-model.trim="OllamaAllModelsSetup.search"
@@ -88,7 +88,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { OllamaAllModelsSetup, Setup } from './setup'
   import type { TreeNode } from 'element-plus'
   import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'

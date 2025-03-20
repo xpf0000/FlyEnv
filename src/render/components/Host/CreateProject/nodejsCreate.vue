@@ -90,7 +90,7 @@
   import { computed, nextTick, onBeforeUnmount, onMounted, ref, markRaw } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import IPC from '@/util/IPC'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import AppVersions from './version_nodejs'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'

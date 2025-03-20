@@ -49,7 +49,7 @@
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import type { AppServiceAliasItem, SoftInstalled } from '@shared/app.d.ts'

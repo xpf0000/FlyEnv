@@ -1,5 +1,4 @@
 {
-  "keepalive_timeout": "The number of seconds before receives and sends time out.",
   "gzip": "Is enable GZIP compression transmission",
   "gzip_min_length": "Minimum compressed file",
   "gzip_comp_level": "compressibility",

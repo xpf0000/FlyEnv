@@ -74,7 +74,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { ServiceActionStore } from '../ServiceManager/EXT/store'
   import { SetupAll } from './setupAll'
   import type { AllAppModule } from '@/core/type'

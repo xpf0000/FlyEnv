@@ -15,7 +15,7 @@
 </template>
 
 <script lang="tsx" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { NodeDefaultSetup, Setup } from './setup'
   import { ElInput, ElButton, ElTooltip, ElProgress } from 'element-plus'
   import type { Column } from 'element-plus'

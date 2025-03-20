@@ -6,7 +6,7 @@
         <slot name="like"></slot>
       </div>
       <template v-if="data.end">
-        <el-button type="primary" class="shrink0" @click="doEnd">{{ $t('util.ok') }}</el-button>
+        <el-button type="primary" class="shrink0" @click="doEnd">{{ $t('base.confirm') }}</el-button>
       </template>
       <template v-else>
         <el-button
@@ -15,7 +15,7 @@
           :disabled="files.length === 0 || data.running"
           :loading="data.running"
           @click="doClean"
-          >{{ $t('util.clean') }}</el-button
+          >{{ $t('base.clean') }}</el-button
         >
       </template>
     </div>

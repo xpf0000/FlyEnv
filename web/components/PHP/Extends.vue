@@ -41,7 +41,7 @@
                     </template>
                     <el-option
                       value="phpwebstudy"
-                      :label="I18nT('php.extensionsLibDefault')"
+                      :label="I18nT('base.default')"
                     ></el-option>
                   </el-select>
                 </template>

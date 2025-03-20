@@ -46,7 +46,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import type { AllAppModule } from '@/core/type'
   import { Setup } from '@/components/VersionManager/setup'
   import BrewVM from './brew/index.vue'

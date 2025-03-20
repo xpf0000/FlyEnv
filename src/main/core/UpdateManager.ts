@@ -4,7 +4,7 @@ import is from 'electron-is'
 import { autoUpdater } from 'electron-updater'
 import { resolve } from 'path'
 import logger from './Logger'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import type { AppUpdater } from 'electron-updater/out/AppUpdater'
 
 if (is.dev()) {

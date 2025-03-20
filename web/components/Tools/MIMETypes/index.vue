@@ -33,7 +33,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('mime-types.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.mime-types-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

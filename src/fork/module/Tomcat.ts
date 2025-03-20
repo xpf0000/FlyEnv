@@ -17,7 +17,7 @@ import {
 import TaskQueue from '../TaskQueue'
 import { makeGlobalTomcatServerXML } from './service/ServiceItemJavaTomcat'
 import { chmod, copyFile, mkdirp, remove, writeFile } from 'fs-extra'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 
 class Tomcat extends Base {
   constructor() {

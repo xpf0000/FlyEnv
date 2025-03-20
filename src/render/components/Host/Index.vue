@@ -76,7 +76,7 @@
       <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
         <template #reference>
           <div class="inline-flex items-center gap-3 ml-2">
-            <span>{{ I18nT('host.enable') }}: </span>
+            <span>{{ I18nT('base.enable') }}: </span>
             <el-switch v-model="hostsSet.write"></el-switch>
           </div>
         </template>
@@ -106,7 +106,7 @@
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { readFileAsync, writeFileAsync } from '@shared/file'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { More, ArrowDown, Lock } from '@element-plus/icons-vue'
   import { MessageError, MessageSuccess } from '@/util/Element'

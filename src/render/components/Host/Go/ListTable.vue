@@ -175,7 +175,7 @@
   import { AppStore } from '@/store/app'
   import QrcodePopper from '../Qrcode/Index.vue'
   import Base from '@/core/Base'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'

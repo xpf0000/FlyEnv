@@ -17,7 +17,7 @@ import {
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 
 class Nginx extends Base {
   constructor() {

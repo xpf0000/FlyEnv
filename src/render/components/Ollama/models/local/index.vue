@@ -7,9 +7,7 @@
     </template>
     <el-table-column prop="name">
       <template #header>
-        <span style="padding: 2px 12px 2px 24px; display: block">{{
-          I18nT('base.brewLibrary')
-        }}</span>
+        <span style="padding: 2px 12px 2px 24px; display: block">{{ I18nT('base.Library') }}</span>
       </template>
       <template #default="scope">
         <span
@@ -24,7 +22,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { Setup } from './setup'
 
   const { fetching, tableData } = Setup()

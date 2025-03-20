@@ -29,7 +29,7 @@
   import { computed } from 'vue'
   import { passwordCheck } from '@/util/Brew'
   import { MessageError, MessageSuccess } from '@/util/Element'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { showItem, serviceDisabled, currentPage, nav, stopNav } = AsideSetup('dns')
 

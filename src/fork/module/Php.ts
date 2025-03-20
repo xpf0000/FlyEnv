@@ -1,7 +1,7 @@
 import { join, basename, dirname } from 'path'
 import { createWriteStream, existsSync, statSync, unlinkSync } from 'fs'
 import { Base } from './Base'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromise,
@@ -118,7 +118,7 @@ class Php extends Base {
           }
         }
       }
-      reject(new Error(I18nT('fork.phpiniNoFound')))
+      reject(new Error(I18nT('php.phpiniNoFound')))
     })
   }
 

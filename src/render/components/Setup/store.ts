@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import IPC from '@/util/IPC'
 import { ElMessage } from 'element-plus'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { AppStore } from '@/store/app'
 
 interface State {

@@ -21,7 +21,7 @@ import {
 } from 'fs-extra'
 import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
 import { join, dirname, resolve as PathResolve, basename } from 'path'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
 import Helper from '../Helper'
 import { ProcessSearch } from '@shared/Process'
@@ -139,7 +139,7 @@ class Manager extends Base {
   systemEnvSave(file: string, content: string) {
     return new ForkPromise(async (resolve, reject) => {
       if (!existsSync(file)) {
-        reject(new Error(I18nT('fork.toolFileNotExist')))
+        reject(new Error(I18nT('util.phpiniNoFound')))
         return
       }
       try {

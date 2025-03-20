@@ -16,6 +16,22 @@
   "component": "工具URL链接",
   "addTool": "添加工具",
   "editTool": "编辑工具",
-  "actionEdit": "编辑",
-  "actionDel": "删除"
+
+  "base64-file-converter-title": "Base64 文件转换器",
+  "base64-string-converter-title": "Base64字符串编码/解码",
+  "chmod-calculator-title": "Chmod计算器",
+  "encryption-title": "加密/解密文本",
+  "escape-html-title": "HTML转义",
+  "git-cheatsheet-title": "GIT备忘录",
+  "hash-text-title": "Hash 文本",
+  "http-status-codes-title": "HTTP状态码",
+  "keycode-info-title": "Keycode信息",
+  "mime-types-title": "MIME类型",
+  "qr-code-generator-title": "二维码生成",
+  "regex-cheatsheet-title": "正则备忘录",
+  "regex-tester-title": "正则测试",
+  "rsa-key-generator-title": "RSA密钥对生成器",
+  "url-encode-title": "URL编码/解码",
+  "url-parse-title": "URL解析",
+  "wifi-qr-code-generator-title": "WiFi二维码生成"
 }

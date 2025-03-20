@@ -35,7 +35,7 @@
       value: '6379',
       enable: true,
       tips() {
-        return I18nT('redis.port')
+        return I18nT('host.port')
       }
     },
     {
@@ -51,7 +51,7 @@
       value: '10000',
       enable: true,
       tips() {
-        return I18nT('redis.maxclients')
+        return I18nT('mysql.max_connections')
       }
     },
     {

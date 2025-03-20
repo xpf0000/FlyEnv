@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
 import type { SoftInstalled } from '@/store/brew'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import type { AppServiceAliasItem } from '@shared/app'
 import { AsyncComponentShow } from '@/util/AsyncComponent'

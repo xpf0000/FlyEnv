@@ -54,7 +54,7 @@
   import { passwordCheck } from '@/util/Brew'
   import { MessageSuccess, MessageWarning } from '@/util/Element'
   import IPC from '@/util/IPC'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const SearchIcon = markRaw(Search)
   export default defineComponent({

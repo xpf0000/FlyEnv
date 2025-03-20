@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
 
 const { app } = require('@electron/remote')

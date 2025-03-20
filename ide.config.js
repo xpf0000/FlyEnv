@@ -8,6 +8,7 @@ module.exports = {
     alias: {
       '@': resolve('src/render'),
       '@shared': resolve('src/shared'),
+      '@lang': resolve('src/lang'),
       '@web': resolve('web')
     }
   }

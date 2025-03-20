@@ -112,7 +112,7 @@
 
 <script lang="ts" setup>
   import { type SoftInstalled } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { Setup, PgsqlExtensionSetup } from './setup'
   import { Download } from '@element-plus/icons-vue'

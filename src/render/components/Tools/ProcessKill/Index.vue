@@ -57,7 +57,7 @@
   import { passwordCheck } from '@/util/Brew.ts'
   import { MessageSuccess, MessageWarning } from '@/util/Element.ts'
   import IPC from '@/util/IPC.ts'
-  import { I18nT } from '@shared/lang/index.ts'
+  import { I18nT } from '@lang/index'
 
   export default {
     components: {},

@@ -1,4 +1,4 @@
-import { AppI18n } from './lang'
+import { AppI18n } from '@lang/index'
 import BaseManager from './BaseManager'
 const manager = new BaseManager()
 process.on('message', function (args: any) {

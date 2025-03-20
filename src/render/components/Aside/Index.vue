@@ -48,7 +48,7 @@
             <div class="icon-block">
               <yb-icon :svg="import('@/svg/setup.svg?raw')" width="30" height="30" />
             </div>
-            <span class="title">{{ I18nT('base.leftSetup') }}</span>
+            <span class="title">{{ I18nT('base.setup') }}</span>
           </div>
         </li>
       </ul>
@@ -61,7 +61,7 @@
   import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Router from '@/router/index'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { AppModules } from '@/core/App'

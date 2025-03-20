@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import IPC from '@/util/IPC'
 import { reactive } from 'vue'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 const IP = require('ip')
 
 export interface DNSLogItem {
