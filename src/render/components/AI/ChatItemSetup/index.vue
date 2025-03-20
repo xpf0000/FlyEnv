@@ -9,7 +9,7 @@
   >
     <template #default>
       <el-form ref="formRef" label-position="top" :rules="rules" :model="form">
-        <el-form-item :label="I18nT('ai.chatName')" prop="title" :required="true">
+        <el-form-item :label="I18nT('base.name')" prop="title" :required="true">
           <el-input v-model="form.title"></el-input>
         </el-form-item>
         <el-form-item :label="I18nT('ai.chatPrompt')" prop="prompt" :required="true">
