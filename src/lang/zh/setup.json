@@ -14,5 +14,7 @@
   "autoHideTips": "是否在自动启动服务后, 隐藏主界面, 只保留托盘图标",
   "autoLunach": "开机启动",
   "autoLunachTips": "是否开机时自动启动App",
-  "passwordTips": "非必填. 用于执行命令时, 自动填充密码. 例如使用 Macports 安装卸载等"
+  "passwordTips": "非必填. 用于执行命令时, 自动填充密码. 例如使用 Macports 安装卸载等",
+  "langTips": "加载用户自定义语言包. 同时也会初始化一套默认语言包, 方便用户翻译成其他语言.",
+  "openLangDir": "打开语言包文件夹"
 }

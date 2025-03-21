@@ -66,7 +66,6 @@
   "customVersionDir": "Custom Version Folder Path",
   "customVersionDirTips": "Customize the version path, it will automatically find the executable file in the bin&sbin directory of this path.",
   "inputPassword": "Enter the computer password",
-  "inputPasswordDesc": "PhpWebStudy requires a computer password to do the following things\n\n1. Nginx/Apache/Caddy start on ports 80 and 443\n\nOn macOS, to use ports smaller than 1024, you must use the sudo command, otherwise it won't work. The default ports for http and https are 80 and 443. If you don't want to carry a port number when you access a site with a domain name, then nginx/apache/caddy must be started as sudo.\n\n2. Installation and uninstallation of software in MacPorts\n\nMacPorts installs and uninstalls software, which must be installed using sudo.\n\n3. Reading and writing configuration files for software installed by MacPorts\n\nMacPorts installs software that requires sudu to read and write files. For example, the php.ini configuration file for php.\n\n4. DNS Server\n\nThe DNS server uses port 53 by default, and since it is smaller than 1024, it must also be started with a sudo command.\n\nThese are computer system limits, all applications of the same type, ask for permission, PhpWebStudy is no different from any other application.",
   "passwordError": "Password error, please re-enter",
   "defaultConFileNoFound": "Default config file no found",
   "linkCopySuccess": "Link copied to clipboard successed",

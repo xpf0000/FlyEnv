@@ -119,18 +119,9 @@ export const Setup = (version: SoftInstalled) => {
       await mkdirp(extensionDir)
       await copyFile(so, destSo)
     }
-
-    IPC.send(
-      'app-fork:php',
-      'extensionIni',
-      JSON.parse(JSON.stringify(row)),
-      JSON.parse(JSON.stringify(version))
-    ).then((key: string) => {
-      IPC.off(key)
-      BrewSetup.installEnd = true
-    })
     ExtensionSetup.reFetch()
     reGetData()
+    BrewSetup.installEnd = true
   }
 
   const tableData = computed(() => {

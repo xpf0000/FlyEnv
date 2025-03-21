@@ -13,11 +13,13 @@ import { AppToolStore } from '@/components/Tools/store'
 import { SetupStore } from '@/components/Setup/store'
 import { AppLogStore } from '@/components/AppLog/store'
 import { EventBus } from '@/global'
+import { loadCustomerLang } from '@lang/loader'
 
 const { getGlobal } = require('@electron/remote')
 global.Server = getGlobal('Server')
 
 const app = VueExtend(App)
+loadCustomerLang().then().catch()
 
 let inited = false
 IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {

@@ -10,15 +10,14 @@ import { reactive } from 'vue'
 const { existsSync } = require('fs')
 
 let passPromptShow = false
-export const showPassPrompt = (showDesc = true) => {
+export const showPassPrompt = () => {
   return new Promise((resolve, reject) => {
     if (passPromptShow) {
       reject(new Error('prompt had show'))
       return
     }
     passPromptShow = true
-    const desc = showDesc ? I18nT('base.inputPasswordDesc') : ''
-    ElMessageBox.prompt(desc, I18nT('base.inputPassword'), {
+    ElMessageBox.prompt('', I18nT('base.inputPassword'), {
       confirmButtonText: I18nT('base.confirm'),
       cancelButtonText: I18nT('base.cancel'),
       inputType: 'password',
