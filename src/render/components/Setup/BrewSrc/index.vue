@@ -3,7 +3,7 @@
   <div class="main brew-src">
     <el-select v-model="currentBrewSrc" :disabled="!checkBrew()">
       <template v-for="(label, value) in brewSrc" :key="value">
-        <el-option :label="$t(`setup.${value}`)" :value="value"></el-option>
+        <el-option :label="srcLabel[value]" :value="value"></el-option>
       </template>
     </el-select>
     <el-button
@@ -22,6 +22,7 @@
   import IPC from '@/util/IPC'
   import { BrewStore } from '@/store/brew'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { I18nT } from '@lang/index'
   export default defineComponent({
     components: {},
     props: {},
@@ -40,6 +41,16 @@
       }
     },
     computed: {
+      srcLabel() {
+        return {
+          default: I18nT('base.default'),
+          tsinghua: I18nT('setup.tsinghua'),
+          bfsu: I18nT('setup.bfsu'),
+          tencent: I18nT('setup.tencent'),
+          aliyun: I18nT('setup.aliyun'),
+          ustc: I18nT('setup.ustc')
+        }
+      },
       brewRunning() {
         return BrewStore().brewRunning
       },

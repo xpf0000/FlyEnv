@@ -139,7 +139,7 @@ class Manager extends Base {
   systemEnvSave(file: string, content: string) {
     return new ForkPromise(async (resolve, reject) => {
       if (!existsSync(file)) {
-        reject(new Error(I18nT('util.phpiniNoFound')))
+        reject(new Error(I18nT('php.phpiniNoFound')))
         return
       }
       try {
