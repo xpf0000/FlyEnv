@@ -39,7 +39,9 @@ type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
       ? AppendStringToKeys<T[K], `${Prefix}.${K}`> // 递归处理嵌套对象
       : `${Prefix}.${K}` // 非对象类型，直接拼接键
     : K extends number
-      ? `${Prefix}.${K}` // 处理数组索引
+      ? T extends readonly any[] // 检查 T 是否是数组类型
+        ? `${Prefix}.${K}` // 如果是数组，处理索引
+        : never // 如果不是数组，忽略
       : never // 排除 symbol 类型的键
 }[keyof T] // 提取所有值的联合类型
 

@@ -156,7 +156,7 @@
     "terser": "^5.38.2",
     "terser-webpack-plugin": "^5.3.11",
     "tiny-emitter": "^2.1.0",
-    "typescript": "^5.7.3",
+    "typescript": "^5.8.2",
     "vite": "^4.5.9",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vite-plugin-wasm": "^3.4.1",
