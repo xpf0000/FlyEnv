@@ -1,7 +1,7 @@
 <template>
   <div class="h-full overflow-hidden">
     <el-scrollbar>
-      <div v-if="true" class="flex flex-col gap-2 items-start">
+      <div v-if="!store.isActive" class="flex flex-col gap-2 items-start">
         <div class="text-xl">{{ I18nT('licenses.title') }}</div>
         <p>{{ I18nT('licenses.description') }}</p>
         <p>{{ I18nT('licenses.restrictions.title') }} </p>
@@ -65,18 +65,12 @@
   </div>
 </template>
 <script lang="ts" setup>
-  import { computed } from 'vue'
-  import { AppStore } from '@/store/app'
   import { SetupStore } from '@/components/Setup/store'
   import { I18nT } from '@lang/index'
 
   const { shell } = require('@electron/remote')
 
   const store = SetupStore()
-  const app = AppStore()
-  const lang = computed(() => {
-    return app.config.setup.lang
-  })
 
   const toUrl = (url: string) => {
     shell.openExternal(url)
