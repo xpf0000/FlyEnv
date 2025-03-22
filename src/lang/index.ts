@@ -28,6 +28,7 @@ import tray from './zh/tray.json'
 import update from './zh/update.json'
 import util from './zh/util.json'
 import versionmanager from './zh/versionmanager.json'
+import licenses from './zh/licenses.json'
 
 import ZH from './zh/index'
 import EN from './en/index'
@@ -37,10 +38,13 @@ type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
     ? T[K] extends object
       ? AppendStringToKeys<T[K], `${Prefix}.${K}`> // 递归处理嵌套对象
       : `${Prefix}.${K}` // 非对象类型，直接拼接键
-    : never // 排除 symbol 类型的键
+    : K extends number
+      ? `${Prefix}.${K}` // 处理数组索引
+      : never // 排除 symbol 类型的键
 }[keyof T] // 提取所有值的联合类型
 
 type LangKey =
+  | AppendStringToKeys<typeof licenses, 'licenses'>
   | AppendStringToKeys<typeof ai, 'ai'>
   | AppendStringToKeys<typeof apache, 'apache'>
   | AppendStringToKeys<typeof appLog, 'appLog'>
