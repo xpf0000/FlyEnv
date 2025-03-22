@@ -2,7 +2,7 @@
   import { computed, ref } from 'vue'
   import { CopyDocument } from '@element-plus/icons-vue'
   import { useEventListener } from '@vueuse/core'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { MessageSuccess } from '@/util/Element'
 
   const { clipboard } = require('@electron/remote')
@@ -65,7 +65,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('keycode-info.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.keycode-info-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

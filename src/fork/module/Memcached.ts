@@ -15,7 +15,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, remove, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 
 class Memcached extends Base {
   constructor() {

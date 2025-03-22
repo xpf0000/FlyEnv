@@ -50,7 +50,7 @@ import ASideVM from './ASide/index.vue'
 import { AISetup } from '@/components/AI/setup'
 import OllamaVM from './Ollama/index.vue'
 import PromptVM from '../Prompt/index.vue'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 
 const chat = ref()

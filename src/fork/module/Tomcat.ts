@@ -17,7 +17,7 @@ import TaskQueue from '../TaskQueue'
 import { makeGlobalTomcatServerXML } from './service/ServiceItemJavaTomcat'
 import { EOL } from 'os'
 import { ProcessListSearch } from '../Process'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 
 class Tomcat extends Base {
   constructor() {

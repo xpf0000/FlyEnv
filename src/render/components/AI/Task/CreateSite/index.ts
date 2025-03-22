@@ -3,7 +3,7 @@ import { BrewStore } from '@/store/brew'
 import { AIStore } from '@/components/AI/store'
 import { handleHost } from '@/util/Host'
 import { openSiteBaseService } from '@/components/AI/Fn/Host'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 const { existsSync } = require('fs-extra')
 

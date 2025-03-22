@@ -4,7 +4,7 @@ import type { AllAppModule } from '@/core/type'
 import installedVersions from '@/util/InstalledVersions'
 import { fetchVerion } from '@/util/Brew'
 import {MessageError, MessageSuccess} from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
 import { staticVersionDel } from '@/util/Version'
 

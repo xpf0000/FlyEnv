@@ -285,7 +285,7 @@
   import { startService, stopService } from '@/util/Service'
   import installedVersions from '@/util/InstalledVersions'
   import { BrewStore, SoftInstalled } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { AppStore } from '@/store/app'
   import { MessageError, MessageSuccess } from '@/util/Element'

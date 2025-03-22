@@ -15,7 +15,7 @@
 </template>
 
 <script lang="tsx" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { FNMSetup, Setup } from '@/components/Nodejs/fnm/setup'
   import { ElInput, ElButton, ElTooltip } from 'element-plus'
   import type { Column } from 'element-plus'

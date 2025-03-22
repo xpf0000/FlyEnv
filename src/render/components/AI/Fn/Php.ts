@@ -2,7 +2,7 @@ import type BaseTask from '@/components/AI/Task/BaseTask'
 import { startService } from '@/util/Service'
 import { AIStore } from '@/components/AI/store'
 import type { SoftInstalled } from '@shared/app'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 export function startPhp(this: BaseTask, version: SoftInstalled) {
   return new Promise(async (resolve, reject) => {

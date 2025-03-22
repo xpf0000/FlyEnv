@@ -33,7 +33,7 @@
   import { computed, ref, watch, Ref, reactive } from 'vue'
   import Conf from '@/components/Conf/drawer.vue'
   import { type CommonSetItem, ConfStore } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
   import { SoftInstalled } from '@/store/brew'
   import IPC from '@/util/IPC'

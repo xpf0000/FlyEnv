@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
 import { SoftInstalled } from '@/store/brew'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import Base from '@/core/Base'
 import { reGetInstalled, stopService } from '@/util/Service'

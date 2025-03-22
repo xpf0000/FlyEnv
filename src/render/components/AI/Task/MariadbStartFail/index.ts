@@ -2,7 +2,7 @@ import BaseTask from '@/components/AI/Task/BaseTask'
 import { AIStore } from '@/components/AI/store'
 import { killPort } from '@/components/AI/Fn/Util'
 import { startMariaDB } from '@/components/AI/Fn/Mariadb'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 export class MariadbStartFail extends BaseTask {
   constructor() {

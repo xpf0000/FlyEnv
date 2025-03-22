@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 import { MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 const { clipboard } = require('@electron/remote')
 

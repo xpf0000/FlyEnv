@@ -67,7 +67,7 @@
 
 <script>
   import { MessageSuccess } from '@/util/Element.ts'
-  import { I18nT } from '@shared/lang/index.ts'
+  import { I18nT } from '@lang/index'
 
   const { clipboard } = require('@electron/remote')
   export default {

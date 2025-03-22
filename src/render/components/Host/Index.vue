@@ -111,7 +111,7 @@
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { readFileAsync, writeFileAsync } from '@shared/file'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { More, ArrowDown, Lock } from '@element-plus/icons-vue'
   import { MessageError, MessageSuccess } from '@/util/Element'

@@ -17,7 +17,7 @@
   import { AppStore } from '@/store/app'
   import Conf from '@/components/Conf/index.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
   import {uuid} from "@shared/utils";
 

@@ -124,7 +124,7 @@
   import store, { Ext } from './store'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   const { extname } = require('path')
   const { dialog } = require('@electron/remote')
 

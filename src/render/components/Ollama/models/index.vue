@@ -51,7 +51,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { OllamaModelsSetup, SetupAll } from './setup'
   import LocalVM from './local/index.vue'
   import AllVM from './all/index.vue'

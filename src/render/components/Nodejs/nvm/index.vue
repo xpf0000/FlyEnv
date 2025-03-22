@@ -15,7 +15,7 @@
 </template>
 
 <script lang="tsx" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { NVMSetup, Setup } from './setup'
   import { type Column, ElButton, ElInput, ElTooltip } from 'element-plus'
   import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Memo from './regex-memo.content.md?raw'
   import markdownit from 'markdown-it'
 
@@ -22,7 +22,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('regex-cheatsheet.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.regex-cheatsheet-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

@@ -39,7 +39,7 @@
   import { computed } from 'vue'
   import { MysqlStore } from '@/components/Mysql/mysql'
   import type { Column } from 'element-plus'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
   import type { MysqlGroupItem } from '@shared/app'
   import { AsyncComponentShow } from '@/util/AsyncComponent'

@@ -15,74 +15,22 @@
         rel="noopener noreferrer"
         @click="toHome($event)"
       >
-        FlyEnv - https://www.macphpstudy.com
+        FlyEnv - https://www.flyenv.com
       </a>
     </div>
-    <template v-if="lang === 'zh'">
-      <el-row style="padding: 0 20px; margin-top: 30px">
-        <el-col>
-          感谢使用FlyEnv. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub Issues
-        </el-col>
-        <el-col style="margin-top: 12px">
-          如果FlyEnv有帮助到你. 为了项目更好的发展, 烦请star和赞助. 感谢
-        </el-col>
-        <el-col style="margin-top: 12px">
-          GitHub:
-          <a
-            target="_blank"
-            href="javascript:"
-            rel="noopener noreferrer"
-            @click="openUrl($event, 'https://github.com/xpf0000/FlyEnv')"
-          >
-            https://github.com/xpf0000/FlyEnv
-          </a>
-        </el-col>
-        <el-col style="margin-top: 12px">
-          赞助:
-          <a
-            target="_blank"
-            href="javascript:"
-            rel="noopener noreferrer"
-            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
-          >
-            https://www.macphpstudy.com/sponsor.html
-          </a>
-        </el-col>
-      </el-row>
-    </template>
-    <template v-else>
-      <el-row style="padding: 0 20px; margin-top: 30px">
-        <el-col>
-          Thanks for using FlyEnv. If you have any questions or suggestions, you can join the
-          community for discussion. You can also submit GitHub Issues
-        </el-col>
-        <el-col style="margin-top: 12px">
-          If FlyEnv is helpful to you, please star and sponsor for the project. Thanks
-        </el-col>
-        <el-col style="margin-top: 12px">
-          GitHub:
-          <a
-            target="_blank"
-            href="javascript:"
-            rel="noopener noreferrer"
-            @click="openUrl($event, 'https://github.com/xpf0000/FlyEnv')"
-          >
-            https://github.com/xpf0000/FlyEnv
-          </a>
-        </el-col>
-        <el-col style="margin-top: 12px">
-          Sponsor:
-          <a
-            target="_blank"
-            href="javascript:"
-            rel="noopener noreferrer"
-            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
-          >
-            https://www.macphpstudy.com/sponsor.html
-          </a>
-        </el-col>
-      </el-row>
-    </template>
+    <el-row style="padding: 0 20px; margin-top: 30px">
+      <el-col style="margin-top: 12px">
+        GitHub:
+        <a
+          target="_blank"
+          href="javascript:"
+          rel="noopener noreferrer"
+          @click="openUrl($event, 'https://github.com/xpf0000/FlyEnv')"
+        >
+          https://github.com/xpf0000/FlyEnv
+        </a>
+      </el-col>
+    </el-row>
     <div style="margin: 20px 20px 0">
       <span style="margin-right: 12px">{{ $t('feedback.anythingToSay') }}</span>
       <el-button type="primary" @click.stop="toFeedback">{{

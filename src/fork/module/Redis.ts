@@ -17,7 +17,7 @@ import { readFile, writeFile, mkdirp, chmod, copyFile, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
 import { ProcessListSearch } from '../Process'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 
 class Redis extends Base {
   constructor() {

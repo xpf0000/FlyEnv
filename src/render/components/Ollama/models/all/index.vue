@@ -88,7 +88,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { OllamaAllModelsSetup, Setup } from './setup'
   import type { TreeNode } from 'element-plus'
   import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'

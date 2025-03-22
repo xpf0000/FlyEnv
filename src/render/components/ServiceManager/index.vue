@@ -265,7 +265,7 @@
   import { reGetInstalled, startService, stopService } from '@/util/Service'
   import { type AppHost, AppStore } from '@/store/app'
   import { BrewStore, type SoftInstalled } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { MysqlStore } from '@/components/Mysql/mysql'
   import { Service } from '@/components/ServiceManager/service'

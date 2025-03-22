@@ -22,7 +22,7 @@
   </el-popover>
 </template>
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { MessageSuccess } from '@/util/Element'
 
   const { shell, clipboard } = require('@electron/remote')

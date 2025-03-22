@@ -50,7 +50,7 @@
 <script lang="ts" setup>
   import { ref, computed } from 'vue'
   import { SoftInstalled } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { PHPSetup } from '@/components/PHP/store'
 
   const { shell } = require('@electron/remote')

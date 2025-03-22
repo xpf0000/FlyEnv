@@ -14,7 +14,7 @@
 <script lang="ts" setup>
   import Service from './Service.vue'
   import { AppModuleSetup } from '@/core/Module'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { tab } = AppModuleSetup('pure-ftpd')
   const tabs = [I18nT('base.service')]

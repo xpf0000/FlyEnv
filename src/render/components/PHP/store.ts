@@ -2,7 +2,7 @@ import { reactive } from 'vue'
 import { SoftInstalled } from '@shared/app'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { LoadedSetup } from '@/components/PHP/Extension/Loaded/setup'
 
 export type PHPExtendLocal = {

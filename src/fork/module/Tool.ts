@@ -15,7 +15,7 @@ import {
 } from 'fs-extra'
 import { TaskItem, TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
 import {basename, dirname, isAbsolute, join, resolve as PathResolve} from 'path'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
