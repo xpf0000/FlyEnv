@@ -2,7 +2,7 @@ import { reactive } from 'vue'
 import ZH from './zh/index'
 import EN from './en/index'
 import { AppStore } from '@/store/app'
-import { AppI18n } from '@lang/index'
+import {AppAllLang, AppI18n} from '@lang/index'
 
 const { readdir, readFile, existsSync, mkdirp, writeFile } = require('fs-extra')
 const { join, resolve } = require('path')
@@ -78,6 +78,9 @@ export const loadCustomerLang = async () => {
       continue
     }
     if (!json?.lang || !json?.label) {
+      continue
+    }
+    if (Object.keys(AppAllLang).includes(json.lang)) {
       continue
     }
     const files = await readdir(join(langDir, d))
