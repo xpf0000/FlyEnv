@@ -420,6 +420,8 @@ php "%~dp0composer.phar" %*`
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.installFromZip', { service }))
         })
+        row.progress = 100
+        on(row)
         let success = false
         try {
           await doHandleZip()
