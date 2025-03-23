@@ -2,7 +2,7 @@ import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync, unlinkSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import {AppLog, execPromise, execPromiseRoot, getAllFileAsync, moveChildDirToParent, uuid, waitTime} from '../Fn'
+import {AppLog, execPromise, getAllFileAsync, moveChildDirToParent, uuid, waitTime} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { appendFile, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
@@ -293,7 +293,7 @@ export class Base {
 
         process.chdir(global.Server.Cache!)
         try {
-          await execPromiseRoot(`powershell.exe "${sh}"`)
+          await execPromise(`powershell.exe "${basename(sh)}"`)
         } catch (e) {
           console.log('[python-install][error]: ', e)
           await appendFile(
@@ -325,10 +325,12 @@ export class Base {
         if (res) {
           await waitTime(1000)
           sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
-          await copyFile(join(global.Server.Static!, 'sh/pip.ps1'), sh)
-          process.chdir(APPDIR)
+          let content = await readFile(join(global.Server.Static!, 'sh/pip.ps1'), 'utf-8')
+          content = content.replace('#APPDIR#', APPDIR)
+          await writeFile(sh, content)
+          process.chdir(global.Server.Cache!)
           try {
-            await execPromiseRoot(`powershell.exe "${sh}"`)
+            await execPromise(`powershell.exe "${basename(sh)}"`)
           } catch (e) {
             await appendFile(
               join(global.Server.BaseDir!, 'debug.log'),
