@@ -293,7 +293,7 @@ export class Base {
 
         process.chdir(global.Server.Cache!)
         try {
-          await execPromise(`powershell.exe "${basename(sh)}"`)
+          await execPromise(`powershell.exe ./${basename(sh)}`)
         } catch (e) {
           console.log('[python-install][error]: ', e)
           await appendFile(
@@ -330,7 +330,7 @@ export class Base {
           await writeFile(sh, content)
           process.chdir(global.Server.Cache!)
           try {
-            await execPromise(`powershell.exe "${basename(sh)}"`)
+            await execPromise(`powershell.exe ./${basename(sh)}`)
           } catch (e) {
             await appendFile(
               join(global.Server.BaseDir!, 'debug.log'),

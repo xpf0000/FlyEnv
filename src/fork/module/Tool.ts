@@ -578,7 +578,7 @@ php "%~dp0composer.phar" %*`
         )
         process.chdir(global.Server.Cache!)
         try {
-          const res = await execPromise(`powershell.exe "${f}"`)
+          const res = await execPromise(`powershell.exe ./${basename(f)}`)
           console.log('erlang path fix: ', res)
         } catch (e) {}
         await remove(f)
