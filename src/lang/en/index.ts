@@ -25,9 +25,11 @@ import trayZH from './tray.json'
 import updateZH from './update.json'
 import utilZH from './util.json'
 import versionmanagerZH from './versionmanager.json'
+import licensesZH from './licenses.json'
 
 export default {
   en: {
+    licenses: licensesZH,
     ai: aiZH,
     apache: apacheZH,
     appLog: appLogZH,

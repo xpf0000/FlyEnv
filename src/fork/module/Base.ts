@@ -301,7 +301,7 @@ export class Base {
             `[python][python-install][error]: ${e}\n`
           )
         }
-        await remove(sh)
+        // await remove(sh)
 
         const checkState = async (time = 0): Promise<boolean> => {
           let res = false
@@ -335,7 +335,7 @@ export class Base {
               `[python][pip-install][error]: ${e}\n`
             )
           }
-          await remove(sh)
+          // await remove(sh)
           await waitTime(1000)
           await remove(tmpDir)
           return
