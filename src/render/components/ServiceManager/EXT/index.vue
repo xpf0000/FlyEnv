@@ -109,6 +109,9 @@
   }
 
   const doChange = () => {
+    if(loading.value) {
+      return
+    }
     ServiceActionStore.updatePath(props.item, props.type).then().catch()
   }
 
