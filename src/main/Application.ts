@@ -12,7 +12,7 @@ import type { StaticHttpServe, PtyItem } from './type'
 import type { ServerResponse } from 'http'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
-import { execPromiseRoot } from '../fork/Fn'
+import { execPromise } from '../fork/Fn'
 import is from 'electron-is'
 import UpdateManager from './core/UpdateManager'
 import { PItem, ProcessPidList, ProcessPidListByPids } from '../fork/Process'
@@ -78,6 +78,9 @@ export default class Application extends EventEmitter {
       this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
     })
     this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion(), is.dev())
+    try {
+      execPromise(`Set-ExecutionPolicy RemoteSigned`).then(() => {}).catch()
+    } catch (e){}
   }
 
   initLang() {
@@ -244,7 +247,7 @@ export default class Application extends EventEmitter {
       })
       const str = arr.map((s) => `/pid ${s}`).join(' ')
       try {
-        await execPromiseRoot(`taskkill /f /t ${str}`)
+        await execPromise(`taskkill /f /t ${str}`)
       } catch (e) {
         console.log('taskkill e: ', e)
       }
@@ -259,7 +262,7 @@ export default class Application extends EventEmitter {
     if (all.length > 0) {
       const str = all.map((s) => `/pid ${s}`).join(' ')
       try {
-        await execPromiseRoot(`taskkill /f /t ${str}`)
+        await execPromise(`taskkill /f /t ${str}`)
       } catch (e) {
         console.log('taskkill e: ', e)
       }
