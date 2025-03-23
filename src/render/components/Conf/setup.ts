@@ -2,7 +2,7 @@ import {computed, ComputedRef, nextTick, onMounted, onUnmounted, reactive, ref, 
 import {editor, KeyCode, KeyMod} from 'monaco-editor/esm/vs/editor/editor.api.js'
 import {EditorConfigMake, EditorCreate} from '@/util/Editor'
 import {MessageError, MessageSuccess} from '@/util/Element'
-import {I18nT} from '@shared/lang'
+import {I18nT} from '@lang/index'
 import type {AllAppModule} from '@/core/type'
 
 const { dialog } = require('@electron/remote')
