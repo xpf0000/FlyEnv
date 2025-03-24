@@ -2,7 +2,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { BrewStore } from '@/store/brew'
 import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'
 

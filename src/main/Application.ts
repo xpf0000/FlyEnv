@@ -7,19 +7,18 @@ import { join, resolve } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
-import { AppI18n } from './lang'
+import { AppI18n } from '@lang/index'
 import type { StaticHttpServe, PtyItem } from './type'
 import type { ServerResponse } from 'http'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
-import { execPromiseRoot } from '../fork/Fn'
+import { execPromise } from '../fork/Fn'
 import is from 'electron-is'
 import UpdateManager from './core/UpdateManager'
 import { PItem, ProcessPidList, ProcessPidListByPids } from '../fork/Process'
 import NodePTY from './core/NodePTY'
 
 const { createFolder } = require('../shared/file')
-const { isAppleSilicon } = require('../shared/utils')
 const ServeHandler = require('serve-handler')
 const Http = require('http')
 const IP = require('ip')
@@ -79,6 +78,11 @@ export default class Application extends EventEmitter {
       this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
     })
     this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion(), is.dev())
+    try {
+      execPromise(`[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;Set-ExecutionPolicy RemoteSigned`, {
+        shell: 'powershell.exe'
+      }).then(() => {}).catch()
+    } catch (e){}
   }
 
   initLang() {
@@ -116,7 +120,6 @@ export default class Application extends EventEmitter {
     this.setProxy()
     global.Server.UserHome = app.getPath('home')
     console.log('global.Server.UserHome: ', global.Server.UserHome)
-    global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
     global.Server.AppDir = join(runpath, 'app')
     createFolder(global.Server.BaseDir)
@@ -246,7 +249,7 @@ export default class Application extends EventEmitter {
       })
       const str = arr.map((s) => `/pid ${s}`).join(' ')
       try {
-        await execPromiseRoot(`taskkill /f /t ${str}`)
+        await execPromise(`taskkill /f /t ${str}`)
       } catch (e) {
         console.log('taskkill e: ', e)
       }
@@ -261,7 +264,7 @@ export default class Application extends EventEmitter {
     if (all.length > 0) {
       const str = all.map((s) => `/pid ${s}`).join(' ')
       try {
-        await execPromiseRoot(`taskkill /f /t ${str}`)
+        await execPromise(`taskkill /f /t ${str}`)
       } catch (e) {
         console.log('taskkill e: ', e)
       }

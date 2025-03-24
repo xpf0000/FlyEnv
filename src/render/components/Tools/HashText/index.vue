@@ -1,14 +1,14 @@
 <script setup lang="ts">
   import Store from './store'
   import { CopyDocument } from '@element-plus/icons-vue'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 </script>
 
 <template>
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('hash-text.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.hash-text-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

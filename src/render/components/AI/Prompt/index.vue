@@ -122,7 +122,7 @@
 <script lang="ts" setup>
   import { CirclePlus, MoreFilled, Edit, Delete, CopyDocument } from '@element-plus/icons-vue'
   import { PromptSetup, Setup } from '@/components/AI/Prompt/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { promptList, showAdd, poperShow, usePrompt, onPoperShow } = Setup()
 </script>

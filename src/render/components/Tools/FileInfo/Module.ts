@@ -1,6 +1,6 @@
 import { defineAsyncComponent, markRaw } from 'vue'
 import type { AppToolModuleItem } from '@/core/type'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 const module: AppToolModuleItem = {
   id: 'FileInfo',

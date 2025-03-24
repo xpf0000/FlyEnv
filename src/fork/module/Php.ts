@@ -1,7 +1,7 @@
 import { join, dirname, basename, isAbsolute } from 'path'
 import { createWriteStream, existsSync } from 'fs'
 import { Base } from './Base'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,

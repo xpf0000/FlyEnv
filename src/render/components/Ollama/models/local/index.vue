@@ -24,7 +24,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { Setup } from './setup'
 
   const { fetching, tableData } = Setup()

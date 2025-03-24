@@ -2,7 +2,7 @@
   import { ref } from 'vue'
   import type { QRCodeErrorCorrectionLevel } from 'qrcode'
   import { useQRCode } from './useQRCode'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { MessageError } from '@/util/Element'
 
   const { dialog, shell } = require('@electron/remote')
@@ -51,7 +51,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('qr-code-generator.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.qr-code-generator-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { AppLog, md5, moveDirToDir, spawnPromise, uuid } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { remove, writeFile } from 'fs-extra'
 import PHPManager from './Php'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import { existsSync } from 'fs'
 class Manager extends Base {
   constructor() {

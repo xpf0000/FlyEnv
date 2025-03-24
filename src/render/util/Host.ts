@@ -2,7 +2,7 @@ import IPC from '@/util/IPC'
 import { reloadWebServer } from '@/util/Service'
 import type { AppHost } from '@/store/app'
 import { AppStore } from '@/store/app'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { HostStore } from '@/components/Host/store'
 

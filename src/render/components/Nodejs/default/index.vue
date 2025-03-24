@@ -15,7 +15,7 @@
 </template>
 
 <script lang="tsx" setup>
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { NodeDefaultSetup, Setup } from './setup'
   import { ElInput, ElButton, ElTooltip, ElProgress } from 'element-plus'
   import type { Column } from 'element-plus'
@@ -166,7 +166,7 @@
       width: 140,
       align: 'center',
       cellRenderer: ({ rowData: row }) => {
-        if (row.installing) {
+        if (NodeDefaultSetup.versionInstalling[row.version]) {
           return <ElButton loading={true} link></ElButton>
         } else {
           const t = row.installed ? I18nT('base.uninstall') : I18nT('base.install')

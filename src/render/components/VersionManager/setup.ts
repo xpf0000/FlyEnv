@@ -7,7 +7,7 @@ import installedVersions from '@/util/InstalledVersions'
 import { fetchVerion } from '@/util/Brew'
 import { VersionManagerStore } from '@/components/VersionManager/store'
 import { MessageError } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 const { shell } = require('@electron/remote')
 

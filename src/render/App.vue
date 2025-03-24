@@ -9,7 +9,7 @@
   import installedVersions from '@/util/InstalledVersions'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
   import FloatButton from '@/components/FloatBtn/index.vue'
   import { type AllAppModule, AppModuleEnum } from '@/core/type'

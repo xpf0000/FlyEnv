@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import IPC from '@/util/IPC'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { MessageError, MessageSuccess } from '@/util/Element'
 
 export interface NodeJSItem {

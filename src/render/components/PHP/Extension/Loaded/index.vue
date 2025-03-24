@@ -24,7 +24,7 @@
 <script lang="ts" setup>
   import { type SoftInstalled } from '@/store/brew'
   import { Setup } from './setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const props = defineProps<{
     version: SoftInstalled

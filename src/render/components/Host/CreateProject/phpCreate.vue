@@ -113,7 +113,7 @@
 <script lang="ts" setup>
   import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { BrewStore } from '@/store/brew'
   import AppVersions from './version'
   import installedVersions from '@/util/InstalledVersions'

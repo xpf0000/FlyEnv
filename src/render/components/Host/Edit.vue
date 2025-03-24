@@ -256,7 +256,7 @@
   import { AppHost, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
   import { RewriteAll } from '@/components/Host/store'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'

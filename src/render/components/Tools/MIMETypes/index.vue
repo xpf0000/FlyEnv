@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { types as extensionToMimeType, extensions as mimeTypeToExtension } from 'mime-types'
   import { computed, ref } from 'vue'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const mimeInfos = Object.entries(mimeTypeToExtension).map(([mimeType, extensions]) => ({
     mimeType,
@@ -33,7 +33,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('mime-types.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.mime-types-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

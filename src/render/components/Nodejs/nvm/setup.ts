@@ -1,7 +1,7 @@
 import { computed, reactive } from 'vue'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
 import { AppStore } from '@/store/app'
 

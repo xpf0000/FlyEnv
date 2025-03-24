@@ -42,7 +42,7 @@
 </template>
 <script lang="ts" setup>
   import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { FolderOpened, Notebook } from '@element-plus/icons-vue'
   import { AppLogStore } from '@/components/AppLog/store'

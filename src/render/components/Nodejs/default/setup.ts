@@ -1,7 +1,7 @@
 import { computed, onMounted, onUnmounted, reactive } from 'vue'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
 import installedVersions from '@/util/InstalledVersions'
 import { BrewStore } from '@/store/brew'
@@ -11,6 +11,7 @@ const { join } = require('path')
 
 export const NodeDefaultSetup = reactive<{
   installing: Record<string, number>
+  versionInstalling: Record<string, boolean>
   fetching: boolean
   switching: boolean
   local: Array<string>
@@ -19,6 +20,7 @@ export const NodeDefaultSetup = reactive<{
   search: string
 }>({
   installing: {},
+  versionInstalling: {},
   fetching: false,
   switching: false,
   local: [],
@@ -63,7 +65,7 @@ export const Setup = () => {
     NodeDefaultSetup.switching = true
     item.switching = true
     const param: any = {
-      bin: join(global.Server.AppDir!, `nodejs/v${item.version}/bin/node`),
+      bin: join(global.Server.AppDir!, `nodejs/v${item.version}/node.exe`),
       path: join(global.Server.AppDir!, `nodejs/v${item.version}`)
     }
     ServiceActionStore.updatePath(param, 'node').then(() => {
@@ -76,6 +78,7 @@ export const Setup = () => {
   const brewStore = BrewStore()
   const installOrUninstall = (action: 'install' | 'uninstall', item: any) => {
     item.installing = true
+    NodeDefaultSetup.versionInstalling[item.version] = true
     IPC.send('app-fork:node', 'installOrUninstall', 'default', action, item.version).then(
       (key: string, res: any) => {
         console.log('installOrUninstall res: ', res)
@@ -86,6 +89,7 @@ export const Setup = () => {
           NodeDefaultSetup.local.splice(0)
           NodeDefaultSetup.local.push(...list)
           delete NodeDefaultSetup.installing?.[item.version]
+          delete NodeDefaultSetup.versionInstalling?.[item.version]
           if (res?.data?.setEnv) {
             versionChange(item)
           }
@@ -95,6 +99,7 @@ export const Setup = () => {
         } else if (res?.code === 1) {
           IPC.off(key)
           delete NodeDefaultSetup.installing?.[item.version]
+          delete NodeDefaultSetup.versionInstalling?.[item.version]
           MessageError(res?.msg ?? I18nT('base.fail'))
         } else if (typeof res?.msg?.progress === 'number') {
           NodeDefaultSetup.installing[item.version] = res?.msg?.progress

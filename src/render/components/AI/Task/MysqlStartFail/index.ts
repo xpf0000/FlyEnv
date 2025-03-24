@@ -2,7 +2,7 @@ import BaseTask from '@/components/AI/Task/BaseTask'
 import { AIStore } from '@/components/AI/store'
 import { killPid, killPort } from '@/components/AI/Fn/Util'
 import { startMysql } from '@/components/AI/Fn/Mysql'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 export class MysqlStartFail extends BaseTask {
   constructor() {

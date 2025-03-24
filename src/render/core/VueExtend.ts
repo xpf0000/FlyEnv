@@ -7,7 +7,7 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import SVGIcons from '../components/YbSvgIcon/index'
 import PoperFix from './directive/PoperFix/index'
 import { AppStore } from '@/store/app'
-import { AppI18n } from '@shared/lang'
+import { AppI18n } from '@lang/index'
 import { createPinia } from 'pinia'
 
 const baseStore = createPinia()

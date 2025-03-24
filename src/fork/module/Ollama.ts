@@ -14,7 +14,7 @@ import {
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 import axios from 'axios'
 import http from 'http'

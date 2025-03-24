@@ -58,7 +58,7 @@
   import { computed, ref, watch } from 'vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Router from '@/router/index'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { AppModules } from '@/core/App'

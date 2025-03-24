@@ -16,7 +16,7 @@
   import { computed, reactive, Ref, ref, watch } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
   import { uuid } from '@/util/Index'
 

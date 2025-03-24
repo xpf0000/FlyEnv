@@ -59,7 +59,7 @@
   import { AppStore } from '@/store/app'
   import { AllAppModule } from '@/core/type'
   import { stopService } from '@/util/Service'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { dirname } = require('path')
 
@@ -109,6 +109,9 @@
   }
 
   const doChange = () => {
+    if(loading.value) {
+      return
+    }
     ServiceActionStore.updatePath(props.item, props.type).then().catch()
   }
 

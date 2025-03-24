@@ -1,10 +1,10 @@
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync, unlinkSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {AppLog, execPromise, getAllFileAsync, moveChildDirToParent, uuid, waitTime} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { appendFile, copyFile, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
+import { appendFile, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { ProcessListSearch, ProcessPidList, ProcessPidListByPid } from '../Process'
@@ -293,7 +293,7 @@ export class Base {
 
         process.chdir(global.Server.Cache!)
         try {
-          await execPromise(`powershell.exe "${sh}"`)
+          await execPromise(`powershell.exe ./${basename(sh)}`)
         } catch (e) {
           console.log('[python-install][error]: ', e)
           await appendFile(
@@ -301,7 +301,7 @@ export class Base {
             `[python][python-install][error]: ${e}\n`
           )
         }
-        await remove(sh)
+        // await remove(sh)
 
         const checkState = async (time = 0): Promise<boolean> => {
           let res = false
@@ -325,17 +325,19 @@ export class Base {
         if (res) {
           await waitTime(1000)
           sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
-          await copyFile(join(global.Server.Static!, 'sh/pip.ps1'), sh)
-          process.chdir(APPDIR)
+          let content = await readFile(join(global.Server.Static!, 'sh/pip.ps1'), 'utf-8')
+          content = content.replace('#APPDIR#', APPDIR)
+          await writeFile(sh, content)
+          process.chdir(global.Server.Cache!)
           try {
-            await execPromise(`powershell.exe "${sh}"`)
+            await execPromise(`powershell.exe ./${basename(sh)}`)
           } catch (e) {
             await appendFile(
               join(global.Server.BaseDir!, 'debug.log'),
               `[python][pip-install][error]: ${e}\n`
             )
           }
-          await remove(sh)
+          // await remove(sh)
           await waitTime(1000)
           await remove(tmpDir)
           return
@@ -420,6 +422,8 @@ php "%~dp0composer.phar" %*`
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.installFromZip', { service }))
         })
+        row.progress = 100
+        on(row)
         let success = false
         try {
           await doHandleZip()

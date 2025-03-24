@@ -137,7 +137,7 @@
   import { computed, ref, watch } from 'vue'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
 

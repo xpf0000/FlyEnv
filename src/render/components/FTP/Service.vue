@@ -49,7 +49,7 @@
   import { computed, ref } from 'vue'
   import type { Column } from 'element-plus'
   import { FtpStore } from '@/components/FTP/ftp'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { Edit, Delete } from '@element-plus/icons-vue'
   import Base from '@/core/Base'

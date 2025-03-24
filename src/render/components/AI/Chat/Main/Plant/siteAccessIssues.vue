@@ -11,7 +11,7 @@
 
 <script lang="ts" setup>
   import { AIStore } from '@/components/AI/store'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const aiStore = AIStore()
   const send = (code: 403 | 404 | 502) => {
