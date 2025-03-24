@@ -28,6 +28,7 @@ export interface ServerType {
   ForceStart?: boolean
   UserHome?: string
   Licenses?: string
+  LangCustomer?: any
 }
 
 declare global {

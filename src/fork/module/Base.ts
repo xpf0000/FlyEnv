@@ -337,6 +337,8 @@ export class Base {
       }
 
       if (existsSync(row.zip)) {
+        row.progress = 100
+        on(row)
         await unpack()
         end()
         return

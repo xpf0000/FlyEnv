@@ -166,7 +166,7 @@
       width: 140,
       align: 'center',
       cellRenderer: ({ rowData: row }) => {
-        if (row.installing) {
+        if (NodeDefaultSetup.versionInstalling[row.version]) {
           return <ElButton loading={true} link></ElButton>
         } else {
           const t = row.installed ? I18nT('base.uninstall') : I18nT('base.install')

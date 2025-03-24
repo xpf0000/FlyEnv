@@ -90,13 +90,15 @@ export const Setup = (typeFlag: AllAppModule) => {
       if (row.downing) {
         return
       }
+      const all = Object.values(brewStore.module(typeFlag).list.static ?? {})
+      const find: any = all.find((r) => r.bin === row.bin && r.zip === row.zip)!
       row.downing = true
       row.type = typeFlag
+      find.downing = true
+      find.type = typeFlag
       IPC.send(`app-fork:${typeFlag}`, 'installSoft', JSON.parse(JSON.stringify(row))).then(
         (key: string, res: any) => {
           console.log('res: ', res)
-          const all = Object.values(brewStore.module(typeFlag).list.static ?? {})
-          const find = all.find((r) => r.bin === row.bin && r.zip === row.zip)
           if (res?.code === 200) {
             find && Object.assign(find, res.msg)
           } else if (res?.code === 0) {
