@@ -14,8 +14,7 @@ import {
   writeFile
 } from 'fs-extra'
 import { TaskItem, TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
-import {basename, dirname, isAbsolute, join, resolve as PathResolve} from 'path'
-import { I18nT } from '@lang/index'
+import { basename, dirname, isAbsolute, join, resolve as PathResolve } from 'path'
 import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
@@ -375,6 +374,8 @@ subjectAltName=@alt_names
         return
       }
 
+      console.log('removePATH oldPath 0: ', oldPath)
+
       const envDir = join(dirname(global.Server.AppDir!), 'env')
       const flagDir = join(envDir, typeFlag)
       try {
@@ -382,31 +383,38 @@ subjectAltName=@alt_names
       } catch (e) {
         console.log('rmdir err: ', e)
       }
+      console.log('removePATH flagDir: ', flagDir)
 
-      for (const p of oldPath) {
-        if (p.startsWith(flagDir)) {
-          const index = oldPath.indexOf(p)
-          if (index >= 0) {
-            oldPath.splice(index, 1)
-          }
+      oldPath = oldPath.filter((p) => {
+        const a = p.includes(flagDir)
+        const b = p.includes(item.path)
+        if (a || b) {
+          return false
         }
-      }
+        let res = true
+        if (isAbsolute(p)) {
+          try {
+            const realPath = realpathSync(p)
+            if (realPath.includes(flagDir) || realPath.includes(item.path)) {
+              res = false
+            }
+          } catch (error) {}
+        }
+        return res
+      })
 
-      for (const p of oldPath) {
-        if (p.startsWith(item.path)) {
-          const index = oldPath.indexOf(p)
-          if (index >= 0) {
-            oldPath.splice(index, 1)
-          }
-        }
-      }
+      console.log('removePATH oldPath 1: ', oldPath)
+
+      oldPath = oldPath.filter((p) => !p.startsWith(item.path))
+
+      console.log('removePATH oldPath 2: ', oldPath)
 
       const dirIndex = oldPath.findIndex((s) => isAbsolute(s))
       const varIndex = oldPath.findIndex((s) => !isAbsolute(s))
       if (varIndex < dirIndex && dirIndex > 0) {
         const dir = oldPath[dirIndex]
-       oldPath.splice(dirIndex, 1)
-       oldPath.unshift(dir)
+        oldPath.splice(dirIndex, 1)
+        oldPath.unshift(dir)
       }
 
       oldPath = oldPath.map((p) => {
@@ -415,6 +423,8 @@ subjectAltName=@alt_names
         }
         return p
       })
+
+      console.log('removePATH oldPath 3: ', oldPath)
 
       const sh = join(global.Server.Static!, 'sh/path-set.cmd')
       const copySh = join(global.Server.Cache!, 'path-set.cmd')
@@ -483,16 +493,10 @@ subjectAltName=@alt_names
         }
       }
 
-      /**
-       * 已存在的 删除
-       */
-      const index = oldPath.findIndex((o) => {
-        return existsSync(o) && realpathSync(o) === binDir
+      oldPath = oldPath.filter((o) => {
+        const a = existsSync(o) && realpathSync(o) === binDir
+        return !a
       })
-      console.log('已存在的 index: ', index)
-      if (index >= 0) {
-        oldPath.splice(index, 1)
-      }
 
       /**
        * 获取env文件夹下所有子文件夹
@@ -512,28 +516,36 @@ subjectAltName=@alt_names
           return check
         })
 
+      console.log('oldPath: ', oldPath)
       console.log('allFile: ', allFile)
+
       /**
        * 从原有PATH删除全部env文件夹
        */
-      oldPath = oldPath.filter((o) => {
-        if (o.includes(envDir)) {
-          if (!allFile.find((a) => o.includes(a))) {
+      oldPath = oldPath.filter((o) => !o.includes(envDir))
+
+      for (const envPath of allFile) {
+        const rawEnvPath = realpathSync(envPath)
+        oldPath = oldPath.filter((p) => {
+          const a = p.includes(envPath)
+          const b = p.includes(rawEnvPath)
+          if (a || b) {
             return false
           }
-        }
-        return true
-      })
-
-      if (existsSync(flagDir)) {
-        const index = oldPath.findIndex((o) => o.includes(flagDir))
-        if (index >= 0) {
-          oldPath.splice(index, 1)
-        }
-        const dir = dirname(item.bin.replace(item.path, flagDir))
-        oldPath.unshift(dir)
-        if (typeFlag === 'python') {
-          const pip = join(dir, 'Scripts/pip.exe')
+          let res = true
+          if (isAbsolute(p)) {
+            try {
+              const realPath = realpathSync(p)
+              if (realPath.includes(envPath) || realPath.includes(rawEnvPath)) {
+                res = false
+              }
+            } catch (error) {}
+          }
+          return res
+        })
+        oldPath.unshift(envPath)
+        if (existsSync(join(envPath, 'python.exe'))) {
+          const pip = join(envPath, 'Scripts/pip.exe')
           if (existsSync(pip)) {
             oldPath.unshift(dirname(pip))
           }

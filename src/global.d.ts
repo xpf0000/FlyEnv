@@ -26,6 +26,7 @@ export interface ServerType {
   AppDir?: string
   Licenses?: string
   UserHome?: string
+  LangCustomer?: any
 }
 
 declare global {

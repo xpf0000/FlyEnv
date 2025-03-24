@@ -1,11 +1,14 @@
 import { Base } from './Base'
 import {
   execPromise,
-  fetchPATH, fetchPathByBin,
+  fetchPATH,
+  fetchPathByBin,
   moveChildDirToParent,
   versionBinVersion,
-  versionFilterSame, versionFixed,
-  versionLocalFetch, versionSort,
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort,
   waitTime,
   writePath
 } from '../Fn'
@@ -13,12 +16,12 @@ import { exec } from 'child-process-promise'
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join, isAbsolute, basename } from 'path'
 import { compareVersions } from 'compare-versions'
-import {createWriteStream, existsSync} from 'fs'
+import { createWriteStream, existsSync } from 'fs'
 import { mkdirp, readFile, writeFile, readdir, copyFile, remove, realpath } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
-import { SoftInstalled } from "@shared/app";
-import TaskQueue from "../TaskQueue";
+import { SoftInstalled } from '@shared/app'
+import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
   constructor() {
@@ -330,12 +333,7 @@ class Manager extends Base {
     }
     const pathStr = JSON.stringify(allPath)
     const arr = tool === 'fnm' ? ['%FNM_HOME%', '%FNM_SYMLINK%'] : ['%NVM_HOME%', '%NVM_SYMLINK%']
-    arr.forEach((a) => {
-      const index = allPath.indexOf(a)
-      if (index >= 0) {
-        allPath.splice(index, 1)
-      }
-    })
+    allPath = allPath.filter((a) => !arr.includes(a))
     const startIndex = allPath.findIndex((s) => isAbsolute(s))
     if (startIndex >= 0) {
       allPath.splice(startIndex + 1, 0, arr.pop()!)
@@ -397,7 +395,11 @@ class Manager extends Base {
     })
   }
 
-  installOrUninstall(tool: 'fnm' | 'nvm' | 'default', action: 'install' | 'uninstall', version: string) {
+  installOrUninstall(
+    tool: 'fnm' | 'nvm' | 'default',
+    action: 'install' | 'uninstall',
+    version: string
+  ) {
     return new ForkPromise(async (resolve, reject, on) => {
       if (tool === 'default') {
         if (action === 'uninstall') {
@@ -557,7 +559,7 @@ class Manager extends Base {
       version: string
       bin: string
     }>
-  >  {
+  > {
     return new ForkPromise(async (resolve) => {
       const all: any[] = []
       let fnmDir = ''
@@ -656,7 +658,7 @@ class Manager extends Base {
           versions = list.flat()
           versions = versionFilterSame(versions)
           console.log('versions: ', versions)
-          const all = versions.map((item) =>{
+          const all = versions.map((item) => {
             const command = `${basename(item.bin)} -v`
             const reg = /(v)(\d+(\.\d+){1,4})(.*?)$/gm
             return TaskQueue.run(versionBinVersion, item.bin, command, reg)

@@ -7,7 +7,7 @@ import { join, resolve } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
-import { AppI18n } from '@lang/index'
+import { AppAllLang, AppI18n } from '@lang/index'
 import type { StaticHttpServe, PtyItem } from './type'
 import type { ServerResponse } from 'http'
 import SiteSuckerManager from './ui/SiteSucker'
@@ -34,7 +34,7 @@ export default class Application extends EventEmitter {
   forkManager?: ForkManager
   updateManager?: UpdateManager
   hostServicePID: Set<number | string> = new Set()
-
+  customerLang: Record<string, any> = {}
   pty: Partial<Record<string, PtyItem>> = {}
 
   constructor() {
@@ -79,10 +79,15 @@ export default class Application extends EventEmitter {
     })
     this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion(), is.dev())
     try {
-      execPromise(`[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;Set-ExecutionPolicy RemoteSigned`, {
-        shell: 'powershell.exe'
-      }).then(() => {}).catch()
-    } catch (e){}
+      execPromise(
+        `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;Set-ExecutionPolicy RemoteSigned`,
+        {
+          shell: 'powershell.exe'
+        }
+      )
+        .then(() => {})
+        .catch()
+    } catch (e) {}
   }
 
   initLang() {
@@ -469,6 +474,9 @@ export default class Application extends EventEmitter {
       global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
       global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
       global.Server.Licenses = this.configManager?.getConfig('setup.license')
+      if (!Object.keys(AppAllLang).includes(global.Server.Lang!)) {
+        global.Server.LangCustomer = this.customerLang[global.Server.Lang!]
+      }
       this.forkManager
         ?.send(module, ...args)
         .on(callBack)
@@ -608,6 +616,12 @@ export default class Application extends EventEmitter {
           this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
           SiteSuckerManager.updateConfig(args[0])
         }
+        return
+      case 'app-customer-lang-update':
+        const langKey = args[0]
+        const langValue = args[1]
+        this.customerLang[langKey] = langValue
+        AppI18n().global.setLocaleMessage(langKey, langValue)
         return
     }
   }
