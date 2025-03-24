@@ -590,8 +590,7 @@ php "%~dp0composer.phar" %*`
         )
         process.chdir(global.Server.Cache!)
         try {
-          const res = await execPromise(`powershell.exe ./${basename(f)}`)
-          console.log('erlang path fix: ', res)
+          await execPromise(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${f}'; & '${f}'"`)
         } catch (e) {}
         await remove(f)
       } else {

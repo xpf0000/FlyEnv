@@ -52,7 +52,8 @@ class App extends Base {
     await writeFile(shFile, command)
     process.chdir(global.Server.Cache!)
     try {
-      const res = await execPromise(`powershell.exe ./${basename(shFile)}`)
+      const res = await execPromise(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${shFile}'; & '${shFile}'"`)
+      console.log('Get-MpPreference res: ', res)
       const arr =
         res?.stdout
           ?.trim()
@@ -81,7 +82,8 @@ class App extends Base {
       await writeFile(shFile, command)
       process.chdir(global.Server.Cache!)
       try {
-        await execPromise(`powershell.exe ./${basename(shFile)}`)
+        const res = await execPromise(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${shFile}'; & '${shFile}'"`)
+        console.log('Add-MpPreference res: ', res)
       } catch (e) {
         const key = '[handleWindowsDefenderExclusionPath][Add-MpPreference][error]'
         console.log(`${key}: `, e)
