@@ -1,146 +1,124 @@
 # Development Guide
 
-First of all, thank you to everyone who wanted to contribute.
+Thank you to everyone who wishes to contribute to this project!
+This guide outlines the project's file structure, architecture, and interface style to help contributors get started quickly.
 
-This guide describes the project's file structure, project architecture, and interface style. I hope it will be helpful for contributors to get started.
+## Branches
+The project has three branches, each corresponding to a different platform:
+- **master**: macOS
+- **Win**: Windows
+- **Linux**: Linux
+
+Please select the appropriate branch based on your development environment.
+
+---
 
 ## Interface Style
 
-The current front-end interface framework uses [element-plus](https://element-plus.org/). It may not be very gorgeous. But at least it provides a complete set of components with a consistent style. I also hope someone can design a more beautiful interface.
+The current front-end interface is built using [Element Plus](https://element-plus.org/). While it may not be the most visually stunning, it provides a comprehensive set of components with a consistent style.
+We welcome contributions to improve the interface design!
 
-Currently, many custom classes are used. Will gradually switch to [taiwindcss](https://tailwindcss.com/) in the future.
+### Current Styling Approach
+- Previously, many custom classes were used.
+- **Now using [Tailwind CSS](https://tailwindcss.com/)** for styling.
 
-The design points of the overall style are as follows:
+### Design Principles
+1. **Simplicity and Directness**
+   As a developer tool, all functionalities should be straightforward. Minimize the number of clicks required to perform actions.
 
-1. Simple And Direct
+2. **Consistency**
+   While aesthetics can be subjective, maintaining a consistent interface is essential for a good user experience.
 
-As a developer tool, I want all functions to be simple and straightforward. If you can click once, don’t click twice.
+---
 
-2. Consistent Style
+## Project Architecture and File Structure
 
-Aesthetics may be a very subjective thing. But a consistent interface is definitely the right thing to do
-
-## Project Architecture And File Structure
-
-The running logic of the application is shown in the figure below:
+The application's workflow is illustrated below:
 
 ![flow.png](./flow.png)
 
 ### Main Process
+The main process acts as a command relay station.
+- Commands (e.g., start/stop) initiated from the rendering process (App interface) are forwarded to the forked asynchronous process for execution.
+- Results are passed back to the main process, which then relays them to the rendering process.
 
-Application main process. The biggest use is as a command transfer station.
+**Directory**: `/src/main`
+**Key Technologies**:
+- [Electron](https://electronjs.org/)
+- [Node.js](https://nodejs.org/)
 
-Commands (start/stop...) initiated from the rendering process (App interface) will be forwarded to the forked asynchronous process for execution. The execution results will be passed back to the main process. The main process will then pass them back to the rendering process.
+---
 
-Dir: /src/main
+### Forked Asynchronous Process
+All commands are executed here. Being asynchronous, it prevents the main thread from blocking, ensuring the application remains responsive.
 
-Main technology stack:
+**Directory**: `/src/fork`
+**Key Technologies**:
+- [Node.js](https://nodejs.org/)
 
-[Electron](https://electronjs.org/)
-
-[NodeJS](https://nodejs.org/)
-
-#### I18n
-
-dir: src/main/lang
-
-```typescript
-I18nT('update.checkForUpdates')
-```
-
-### Fork Async Process
-
-All commands are executed here. Because it is an asynchronous process, it will not cause the main thread to block, causing the application to freeze.
-
-Dir: /src/fork
-
-Main technology stack:
-
-[NodeJS](https://nodejs.org/)
-
-All services are split into separate module files in /src/fork/module.
-
-A module file usually contains the following content
+#### Module Structure
+Services are split into separate module files located in `/src/fork/module`.
+A typical module file includes the following:
 
 ```typescript
-/**
- * version: service version
- * bin: service executed file
- * path: service installation path
- */
 interface SoftInstalled {
-  version: string
-  bin: string
-  path: string
+  version: string; // Service version
+  bin: string;     // Executable file for the service
+  path: string;    // Installation path of the service
 }
 
 class Module extends Base {
   constructor() {
-    super()
-    this.type = 'apache'
+    super();
+    this.type = 'apache';
   }
 
   /**
-   * service start
-   * @param version
+   * Start the service
+   * @param version - The service version to start
    */
   async _startServer(version: SoftInstalled) {
-      //Start various services. Executed by calling exec/spawn of the child_process module of NodeJS
+    // Start services using Node.js's child_process.exec/spawn
   }
 
   /**
-   * service stop
-   * @param version
+   * Stop the service
+   * @param version - The service version to stop
    */
   async _stopService(version: SoftInstalled) {
-      //Get the running service process using the text contained in the process command. Then use the process signal to shut down the process
-      //Or some special way to shut down the process
+    // Stop the service by identifying the process and sending a termination signal
   }
 
   /**
-   * Get online packages. Note that many services on macOS and Linux do not have packages available for download.
+   * Fetch all available online packages
    */
   async fetchAllOnLineVersion() {
-    //Usually parsing the official download page or github release api
+    // Parse the official download page or GitHub release API
   }
 
   /**
-   *Download online package
+   * Download and install an online package
    */
   async installSoft() {}
 }
 ```
 
-#### I18n
+---
 
-dir: src/fork/lang
+### Rendering Process (App Interface)
+**Directory**: `/src/render`
+**Key Technologies**:
+- [Vue 3](https://vuejs.org/)
+- [Element Plus](https://element-plus.org/)
+- [Pinia](https://pinia.vuejs.org/)
+- [Monaco Editor](https://github.com/microsoft/monaco-editor)
+- [Node.js](https://nodejs.org/)
 
-```typescript
-I18nT('fork.needPassWord')
-```
+#### Module Structure
+Modules are organized under `/src/render/components` and are loaded automatically.
 
-### Render Process(App Interface)
-
-dir: /src/render
-
-Main technology stack:
-
-[Vue3](https://vuejs.org/)
-
-[Element-Plus](https://element-plus.org/)
-
-[Pinia](https://pinia.vuejs.org/)
-
-[Monaco-Editor](https://github.com/microsoft/monaco-editor)
-
-[NodeJS](https://nodejs.org/)
-
-
-All modules split into /src/render/components. The module will automatically load
-
-Define a module as follows:
-
-1. Add module flag in src/render/core/type.ts
+##### Defining a Module
+1. Add a module flag in `src/render/core/type.ts`:
 
 ```typescript
 export enum AppModuleEnum {
@@ -148,29 +126,15 @@ export enum AppModuleEnum {
   nginx = 'nginx',
   php = 'php',
   mysql = 'mysql',
-  mariadb = 'mariadb',
-  apache = 'apache',
-  memcached = 'memcached',
-  redis = 'redis',
-  mongodb = 'mongodb',
-  postgresql = 'postgresql',
-  tomcat = 'tomcat',
-  'pure-ftpd' = 'pure-ftpd',
-  java = 'java',
-  composer = 'composer',
-  node = 'node',
-  dns = 'dns',
-  hosts = 'hosts',
-  httpserver = 'httpserver',
-  tools = 'tools'
+  // ... other modules
 }
 ```
 
-2. Add module folder in /src/render/components. Then add Module.ts in module folder. Content is like this:
+2. Create a module folder in `/src/render/components` and add a `Module.ts` file with the following content:
 
 ```typescript
-import { defineAsyncComponent } from 'vue'
-import type { AppModuleItem } from '@/core/type'
+import { defineAsyncComponent } from 'vue';
+import type { AppModuleItem } from '@/core/type';
 
 const module: AppModuleItem = {
   typeFlag: 'redis',
@@ -180,64 +144,31 @@ const module: AppModuleItem = {
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 11,
   isService: true,
-  isTray: true
-}
-export default module
+  isTray: true,
+};
+export default module;
 ```
 
-The AppModulaItem description is as follows:
-
+##### AppModuleItem Description
 ```typescript
-/**
- * App Module Config
- */
 export type AppModuleItem = {
-  /**
-   * Module flag has defined in AppModuleEnum
-   */
-  typeFlag: AllAppModule
-  /**
-   * Module label. display in Setup -> Menu Show/Hide & Tray Window
-   */
-  label?: string | LabelFn
-  /**
-   * Module icon. display in Tray Window
-   */
-  icon?: any
-  /**
-   * App left aside module component
-   */
-  aside: any
-  /**
-   * Module sort in app left aside
-   */
-  asideIndex: number
-  /**
-   * Module home page
-   */
-  index: any
-  /**
-   * If module is a service. can start/stop.
-   */
-  isService?: boolean
-  /**
-   * If module show in tray window
-   */
-  isTray?: boolean
-}
+  typeFlag: AllAppModule; // Module flag defined in AppModuleEnum
+  label?: string | LabelFn; // Module label displayed in Setup -> Menu Show/Hide & Tray Window
+  icon?: any; // Module icon displayed in Tray Window
+  aside: any; // Left aside module component
+  asideIndex: number; // Sort order in the left aside
+  index: any; // Module home page component
+  isService?: boolean; // Whether the module is a service (can be started/stopped)
+  isTray?: boolean; // Whether the module is shown in the tray window
+};
 ```
 
-#### I18n
+---
 
-dir: src/shared/lang
+## Internationalization (i18n)
+**Directory**: `/src/lang`
 
-You can also define the I18n of a module in the module folder. eg: /src/render/components/Setup/lang. I18n language configuration will automatically merge
+FlyEnv supports dynamic loading of language packs.
+Contributors can modify and test language packs locally. Once validated, they can be integrated into the project.
 
-```typescript
-I18nT('fork.needPassWord')
-```
-
-
-
-
-
+---
