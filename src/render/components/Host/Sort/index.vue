@@ -15,7 +15,7 @@
     <template #default>
       <div v-poper-fix v-click-outside="onClickOut" class="host-sort">
         <div class="top">
-          <span>置顶</span>
+          <span>{{ I18nT('host.sticky') }}</span>
           <el-switch v-model="isTop" :disabled="!editHost"></el-switch>
         </div>
         <template v-if="disabled">
@@ -42,6 +42,7 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { ClickOutside as vClickOutside } from 'element-plus'
   import { HostStore } from '@/components/Host/store'
+  import { I18nT } from '@lang/index'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
