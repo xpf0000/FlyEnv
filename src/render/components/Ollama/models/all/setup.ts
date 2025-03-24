@@ -1,5 +1,4 @@
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { AppStore } from '@/store/app'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
