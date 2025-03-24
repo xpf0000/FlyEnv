@@ -78,16 +78,6 @@ export default class Application extends EventEmitter {
       this.windowManager.sendCommandTo(this.mainWindow!, command, ...args)
     })
     this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion(), is.dev())
-    try {
-      execPromise(
-        `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;Set-ExecutionPolicy RemoteSigned`,
-        {
-          shell: 'powershell.exe'
-        }
-      )
-        .then(() => {})
-        .catch()
-    } catch (e) {}
   }
 
   initLang() {
