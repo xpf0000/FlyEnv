@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Hiển thị thông tin gỡ lỗi bổ sung (ví dụ: OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "Địa chỉ IP cho máy chủ ollama (mặc định 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "Thời gian mà các mô hình được giữ trong bộ nhớ (mặc định \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Số lượng mô hình được tải tối đa trên mỗi GPU",
+  "OLLAMA_MAX_QUEUE": "Số lượng yêu cầu được xếp hàng tối đa",
+  "OLLAMA_MODELS": "Đường dẫn đến thư mục chứa các mô hình",
+  "OLLAMA_NUM_PARALLEL": "Số lượng yêu cầu song song tối đa",
+  "OLLAMA_NOPRUNE": "Không cắt tỉa các blob mô hình khi khởi động",
+  "OLLAMA_ORIGINS": "Danh sách các nguồn gốc được phép, phân tách bằng dấu phẩy",
+  "OLLAMA_SCHED_SPREAD": "Luôn lên lịch mô hình trên tất cả các GPU",
+  "OLLAMA_FLASH_ATTENTION": "Bật flash attention",
+  "OLLAMA_KV_CACHE_TYPE": "Loại lượng tử hóa cho bộ nhớ cache K/V (mặc định: f16)",
+  "OLLAMA_LLM_LIBRARY": "Đặt thư viện LLM để bỏ qua việc tự động phát hiện",
+  "OLLAMA_GPU_OVERHEAD": "Dành một phần VRAM cho mỗi GPU (byte)",
+  "OLLAMA_LOAD_TIMEOUT": "Thời gian cho phép tải mô hình bị tạm dừng trước khi từ bỏ (mặc định \"5m\")",
+  "needServiceRun": "Vui lòng khởi động dịch vụ Olama trước",
+  "size": "Kích thước",
+  "model": "Mô hình"
+}
