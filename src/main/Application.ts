@@ -10,7 +10,7 @@ import { join, resolve } from 'path'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
-import { AppI18n, I18nT } from '@lang/index'
+import { AppI18n, I18nT, AppAllLang } from '@lang/index'
 import DnsServerManager from './core/DNS'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
@@ -40,6 +40,7 @@ export default class Application extends EventEmitter {
   hostServicePID: Set<string> = new Set()
   helpCheckSuccessNoticed: boolean = false
   pty: Partial<Record<string, PtyItem>> = {}
+  customerLang: Record<string, any> = {}
 
   constructor() {
     super()
@@ -594,6 +595,9 @@ export default class Application extends EventEmitter {
         global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
         global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
         global.Server.Licenses = this.configManager?.getConfig('setup.license')
+        if (!Object.keys(AppAllLang).includes(global.Server.Lang!)) {
+          global.Server.LangCustomer = this.customerLang[global.Server.Lang!]
+        }
         this.forkManager
           ?.send(module, ...args)
           .on(callBack)
@@ -787,6 +791,12 @@ export default class Application extends EventEmitter {
         this.configManager.setConfig('tools.siteSucker', args[0])
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
         SiteSuckerManager.updateConfig(args[0])
+        return
+      case 'app-customer-lang-update':
+        const langKey = args[0]
+        const langValue = args[1]
+        this.customerLang[langKey] = langValue
+        AppI18n().global.setLocaleMessage(langKey, langValue)
         return
     }
   }
