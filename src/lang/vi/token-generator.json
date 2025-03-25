@@ -1,0 +1,15 @@
+{
+  "title": "Trình tạo token",
+  "description": "Tạo chuỗi ngẫu nhiên với các ký tự bạn muốn, chữ hoa hoặc chữ thường, số và/hoặc ký hiệu.",
+  "uppercase": "Chữ hoa (ABC...)",
+  "lowercase": "Chữ thường (abc...)",
+  "numbers": "Số (123...)",
+  "symbols": "Ký hiệu (!-;...)",
+  "length": "Độ dài",
+  "tokenPlaceholder": "Token...",
+  "copied": "Token đã được sao chép vào clipboard",
+  "button": {
+    "copy": "Sao chép",
+    "refresh": "Làm mới"
+  }
+}

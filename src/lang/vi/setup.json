@@ -1,0 +1,20 @@
+{
+  "menuShowHide": "Hiển thị/Ẩn Menu",
+  "tsinghua": "Nguồn tải xuống của Đại học Thanh Hoa",
+  "bfsu": "Nguồn tải xuống của Đại học Ngoại ngữ Bắc Kinh",
+  "tencent": "Nguồn tải xuống của Tencent",
+  "aliyun": "Nguồn tải xuống của Alibaba",
+  "ustc": "Nguồn tải xuống của Đại học Khoa học và Công nghệ Trung Quốc",
+  "Licenses": "Giấy phép",
+  "requestedTips": "Yêu cầu giấy phép đã được gửi, vui lòng kiên nhẫn chờ đợi Nếu bạn cần sửa đổi thông tin, bạn có thể gửi lại",
+  "licenseActivated": "Giấy phép đã được kích hoạt",
+  "autoStartService": "Tự động khởi động dịch vụ",
+  "autoStartServiceTips": "Có tự động khởi động dịch vụ khi ứng dụng khởi động hay không",
+  "autoHide": "Tự động ẩn giao diện",
+  "autoHideTips": "Có ẩn giao diện chính và chỉ giữ lại biểu tượng khay sau khi tự động khởi động dịch vụ hay không",
+  "autoLunach": "Tự động khởi chạy khi khởi động",
+  "autoLunachTips": "Có tự động khởi chạy ứng dụng khi máy tính khởi động hay không",
+  "passwordTips": "Không bắt buộc. Tự động điền mật khẩu khi thực hiện các lệnh. Ví dụ: cài đặt và gỡ cài đặt bằng Macports, v.v.",
+  "langTips": "Tải các gói ngôn ngữ do người dùng xác định Đồng thời, một gói ngôn ngữ mặc định sẽ được khởi tạo để tạo điều kiện cho người dùng dịch sang các ngôn ngữ khác",
+  "openLangDir": "Mở thư mục gói ngôn ngữ"
+}
