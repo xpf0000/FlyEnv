@@ -417,17 +417,21 @@ subjectAltName=@alt_names
         oldPath.unshift(dir)
       }
 
-      oldPath = oldPath.map((p) => {
-        if (p.includes('%')) {
-          return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
-        }
-        return p
-      })
+      oldPath = oldPath
+        .map((p) => {
+          return p.trim()
+        })
+        .filter((p) => {
+          if (!p) {
+            return false
+          }
+          return isAbsolute(p) || p.includes('%') || p.includes('$env:')
+        })
 
       console.log('removePATH oldPath 3: ', oldPath)
 
-      const sh = join(global.Server.Static!, 'sh/path-set.cmd')
-      const copySh = join(global.Server.Cache!, 'path-set.cmd')
+      const sh = join(global.Server.Static!, 'sh/path-set.ps1')
+      const copySh = join(global.Server.Cache!, 'path-set.ps1')
       if (existsSync(copySh)) {
         await remove(copySh)
       }
@@ -438,8 +442,14 @@ subjectAltName=@alt_names
       await writeFile(copySh, content)
       process.chdir(global.Server.Cache!)
       try {
-        await execPromise('path-set.cmd')
+        await execPromise(
+          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
+        )
       } catch (e) {
+        await appendFile(
+          join(global.Server.BaseDir!, 'debug.log'),
+          `[tool][removePATH][error]: ${e}\n`
+        )
         return reject(e)
       }
 
@@ -543,7 +553,14 @@ subjectAltName=@alt_names
           }
           return res
         })
+
         oldPath.unshift(envPath)
+        if (existsSync(join(envPath, 'bin'))) {
+          oldPath.unshift(join(envPath, 'bin'))
+        }
+        if (existsSync(join(envPath, 'sbin'))) {
+          oldPath.unshift(join(envPath, 'sbin'))
+        }
         if (existsSync(join(envPath, 'python.exe'))) {
           const pip = join(envPath, 'Scripts/pip.exe')
           if (existsSync(pip)) {
@@ -552,12 +569,16 @@ subjectAltName=@alt_names
         }
       }
 
-      oldPath = oldPath.map((p) => {
-        if (p.includes('%')) {
-          return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
-        }
-        return p
-      })
+      oldPath = oldPath
+        .map((p) => {
+          return p.trim()
+        })
+        .filter((p) => {
+          if (!p) {
+            return false
+          }
+          return isAbsolute(p) || p.includes('%') || p.includes('$env:')
+        })
 
       console.log('oldPath: ', oldPath)
 
@@ -572,17 +593,17 @@ php "%~dp0composer.phar" %*`
         }
       }
 
-      const sh = join(global.Server.Static!, 'sh/path-set.cmd')
-      const copySh = join(global.Server.Cache!, 'path-set.cmd')
+      const sh = join(global.Server.Static!, 'sh/path-set.ps1')
+      const copySh = join(global.Server.Cache!, 'path-set.ps1')
       if (existsSync(copySh)) {
         await remove(copySh)
       }
       let content = await readFile(sh, 'utf-8')
       content = content.replace('##NEW_PATH##', oldPath.join(';'))
       if (typeFlag === 'java') {
-        content = content.replace('##OTHER##', `setx /M JAVA_HOME "${flagDir}"`)
+        content = content.replace('##OTHER##', `"JAVA_HOME" = "${flagDir}"`)
       } else if (typeFlag === 'erlang') {
-        content = content.replace('##OTHER##', `setx /M ERLANG_HOME "${flagDir}"`)
+        content = content.replace('##OTHER##', `"ERLANG_HOME" = "${flagDir}"`)
         const f = join(global.Server.Cache!, `${uuid()}.ps1`)
         await writeFile(
           f,
@@ -602,7 +623,9 @@ php "%~dp0composer.phar" %*`
       await writeFile(copySh, content)
       process.chdir(global.Server.Cache!)
       try {
-        await execPromise('path-set.cmd')
+        await execPromise(
+          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
+        )
       } catch (e) {
         await appendFile(
           join(global.Server.BaseDir!, 'debug.log'),
@@ -613,57 +636,6 @@ php "%~dp0composer.phar" %*`
 
       const allPath = await this.fetchPATH()
       resolve(allPath)
-    })
-  }
-
-  updatePATHEXT(ext: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      let sh = join(global.Server.Static!, 'sh/pathext.cmd')
-      let copySh = join(global.Server.Cache!, 'pathext.cmd')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      await copyFile(sh, copySh)
-      process.chdir(global.Server.Cache!)
-      let old: string[] = []
-      try {
-        const res = await execPromise('pathext.cmd')
-        let str = res?.stdout ?? ''
-        str = str.replace(new RegExp(`\n`, 'g'), '')
-        old = Array.from(new Set(str.split(';') ?? []))
-          .filter((s) => !!s.trim())
-          .map((s) => s.trim())
-        console.log('updatePATHEXT path: ', str, old)
-      } catch (e) {
-        reject(e)
-        return
-      }
-      if (old.length === 0) {
-        reject(new Error('Fail'))
-        return
-      }
-      ext = ext.toUpperCase()
-      if (old.includes(ext)) {
-        resolve(true)
-        return
-      }
-      old.push(ext)
-      sh = join(global.Server.Static!, 'sh/pathext-set.cmd')
-      copySh = join(global.Server.Cache!, 'pathext-set.cmd')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      let content = await readFile(sh, 'utf-8')
-      content = content.replace('##NEW_PATHEXT##', old.join(';'))
-      console.log('updatePATHEXT: ', content)
-      await writeFile(copySh, content)
-      process.chdir(global.Server.Cache!)
-      try {
-        await execPromise('pathext-set.cmd')
-        resolve(true)
-      } catch (e) {
-        reject(e)
-      }
     })
   }
 

@@ -343,10 +343,13 @@ class Manager extends Base {
     if (pathStr !== JSON.stringify(allPath)) {
       const savePath = allPath
         .map((p) => {
-          if (p.includes('%')) {
-            return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
+          return p.trim()
+        })
+        .filter((p) => {
+          if (!p) {
+            return false
           }
-          return p
+          return isAbsolute(p) || p.includes('%') || p.includes('$env:')
         })
         .join(';')
       await writePath(savePath)

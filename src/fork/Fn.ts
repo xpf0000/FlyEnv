@@ -9,7 +9,7 @@ import {
   createWriteStream,
   realpathSync
 } from 'fs'
-import { join, dirname } from 'path'
+import { join, dirname, isAbsolute } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -565,11 +565,7 @@ export const versionLocalFetch = async (
 ): Promise<Array<SoftInstalled>> => {
   const installed: Set<string> = new Set()
 
-  const findInstalled = async (
-    dir: string,
-    depth = 0,
-    maxDepth = 2
-  ) => {
+  const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
     if (!existsSync(dir)) {
       return
     }
@@ -704,8 +700,8 @@ export const fetchPATH = (): ForkPromise<string[]> => {
 }
 
 export const writePath = async (path: string, other: string = '') => {
-  const sh = join(global.Server.Static!, 'sh/path-set.cmd')
-  const copySh = join(global.Server.Cache!, 'path-set.cmd')
+  const sh = join(global.Server.Static!, 'sh/path-set.ps1')
+  const copySh = join(global.Server.Cache!, 'path-set.ps1')
   if (existsSync(copySh)) {
     await remove(copySh)
   }
@@ -714,7 +710,9 @@ export const writePath = async (path: string, other: string = '') => {
   await writeFile(copySh, content)
   process.chdir(global.Server.Cache!)
   try {
-    await execPromise('path-set.cmd')
+    await execPromise(
+      `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
+    )
   } catch (e) {
     await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[writePath][error]: ${e}\n`)
   }
@@ -737,10 +735,13 @@ export const addPath = async (dir: string) => {
   allPath.unshift(dir)
   const savePath = allPath
     .map((p) => {
-      if (p.includes('%')) {
-        return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
+      return p.trim()
+    })
+    .filter((p) => {
+      if (!p) {
+        return false
       }
-      return p
+      return isAbsolute(p) || p.includes('%') || p.includes('$env:')
     })
     .join(';')
   try {
