@@ -6,11 +6,9 @@
     :file="file"
     :file-ext="'conf'"
     :show-commond="true"
+    :common-setting="commonSetting"
     @on-type-change="onTypeChange"
   >
-    <template #common>
-      <Common :setting="commonSetting" />
-    </template>
   </Conf>
 </template>
 
@@ -21,7 +19,6 @@
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
-  import Common from '@/components/Conf/common.vue'
   import { uuid } from '@shared/utils'
 
   const { join } = require('path')

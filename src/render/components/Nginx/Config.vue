@@ -6,8 +6,8 @@
     :file="file"
     :file-ext="'conf'"
     :show-commond="true"
-    @on-type-change="onTypeChange"
     :common-setting="commonSetting"
+    @on-type-change="onTypeChange"
   >
   </Conf>
 </template>
@@ -18,7 +18,7 @@
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
-  import {uuid} from "@shared/utils";
+  import { uuid } from '@shared/utils'
 
   const { join } = require('path')
 
@@ -147,7 +147,10 @@
     }
     let config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names].map((item) => {
-      const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
+      const regex = new RegExp(
+        `^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`,
+        'gm'
+      )
       const matchs =
         config.match(regex)?.map((s) => {
           const sarr = s

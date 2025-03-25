@@ -590,7 +590,9 @@ php "%~dp0composer.phar" %*`
         )
         process.chdir(global.Server.Cache!)
         try {
-          await execPromise(`powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${f}'; & '${f}'"`)
+          await execPromise(
+            `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${f}'; & '${f}'"`
+          )
         } catch (e) {}
         await remove(f)
       } else {
@@ -602,6 +604,10 @@ php "%~dp0composer.phar" %*`
       try {
         await execPromise('path-set.cmd')
       } catch (e) {
+        await appendFile(
+          join(global.Server.BaseDir!, 'debug.log'),
+          `[tool][updatePATH][error]: ${e}\n`
+        )
         return reject(e)
       }
 
