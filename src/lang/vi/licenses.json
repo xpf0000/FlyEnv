@@ -1,0 +1,36 @@
+{
+  "title": "Mô tả Giấy phép",
+  "description": "Giấy phép là sự công nhận và ủng hộ cho sự nỗ lực của FlyEnv và các tác giả của nó. Mục đích của nó không phải là hạn chế người dùng mà là nhắc nhở họ tôn trọng những nỗ lực của các nhà phát triển và tuân thủ các điều khoản liên quan khi sử dụng phần mềm. Bằng cách tuân thủ giấy phép, người dùng không chỉ hỗ trợ sự phát triển liên tục của dự án mà còn đóng góp vào tinh thần tin tưởng và hợp tác trong cộng đồng mã nguồn mở.",
+  "restrictions": {
+    "title": "Người dùng không có giấy phép sẽ phải chịu các hạn chế sau:",
+    "items": {
+      "0": "Có thể tạo tối đa ba trang web.",
+      "1": "Tính năng trò chuyện AI chỉ khả dụng trong thời gian dùng thử ba ngày.",
+      "2": "Các hạn chế bổ sung có thể áp dụng cho các tính năng trong tương lai."
+    }
+  },
+  "licenseInfo": "Giấy phép hiện tại được cung cấp là giấy phép vĩnh viễn, với một giấy phép tương ứng với một máy tính. Nếu bạn thay đổi máy tính, bạn sẽ cần yêu cầu một giấy phép mới.",
+  "howToObtain": {
+    "title": "Cách Nhận Giấy phép",
+    "description": "FlyEnv cung cấp các cách linh hoạt để có được giấy phép. Người dùng có thể chọn bất kỳ phương pháp nào sau đây để đăng ký:",
+    "methods": {
+      "0": {
+        "title": "Quyên góp cho Dự án",
+        "description": "Không có số tiền cố định nào được yêu cầu cho các khoản quyên góp. Xem xét tình hình kinh tế khác nhau của người dùng ở các quốc gia khác nhau (ví dụ: nhiều người dùng là sinh viên), vui lòng chọn một số tiền phù hợp với hoàn cảnh của bạn."
+      },
+      "1": {
+        "title": "Đóng góp cho Phát triển",
+        "description": "Tham gia vào dự án bằng cách gửi Yêu cầu Kéo. Bất kể số lượng mã, miễn là nó cải thiện tích cực dự án (ví dụ: sửa lỗi dịch thuật), nó đều đủ điều kiện."
+      },
+      "2": {
+        "title": "Quảng bá Dự án",
+        "description": "Quảng bá FlyEnv bằng cách xuất bản các bài viết, video, blog, vlog hoặc giới thiệu nó trong các bình luận. Nội dung có thể bằng bất kỳ ngôn ngữ nào và trên bất kỳ nền tảng nào, miễn là nó có thể truy cập công khai trên internet."
+      }
+    }
+  },
+  "submitInfo": "Sau khi hoàn thành bất kỳ phương pháp nào ở trên, vui lòng điền kết quả vào hộp nhập liệu bên dưới và nhấp vào nút 'Yêu cầu Giấy phép' để gửi đơn đăng ký của bạn. Yêu cầu giấy phép được xem xét thủ công, vì vậy hãy kiên nhẫn. Chúng thường được xử lý kịp thời.",
+  "messageLabel": "Tin nhắn",
+  "messagePlaceholder": "Vui lòng gửi người hiến tặng, liên kết quyên góp hoặc ID đơn hàng khi chọn quyên góp.\nVui lòng gửi liên kết PR cho những người chọn tham gia vào phát triển dự án.\nVui lòng gửi liên kết bài viết/video nếu bạn chọn giúp quảng bá dự án",
+  "requestButton": "Yêu cầu Giấy phép",
+  "refreshButton": "Làm Mới Trạng Thái"
+}
