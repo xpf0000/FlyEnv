@@ -1,9 +1,7 @@
 @echo off
 set FNM_PATH=##FNM_PATH##
 set FNM_HOME=%FNM_PATH%
-set FNM_SYMLINK=##FNM_SYMLINK##
 setx /M FNM_HOME "%FNM_HOME%"
-setx /M FNM_SYMLINK "%FNM_SYMLINK%"
 
 echo PATH=%PATH% > %FNM_HOME%\PATH.txt
 
@@ -24,7 +22,7 @@ if errorlevel 1 (
 endlocal
 
 for /f "skip=2 tokens=2,*" %%A in ('reg query "HKLM\System\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do (
-  setx /M PATH "%%B;%%FNM_HOME%%;%%FNM_SYMLINK%%"
+  setx /M PATH "%%B;%%FNM_HOME%%"
 )
 
 if exist "%SYSTEMDRIVE%\Program Files (x86)\" (

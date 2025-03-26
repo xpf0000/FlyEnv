@@ -666,7 +666,7 @@ export const AppLog = (type: 'info' | 'error', msg: string) => {
   return `[${type}]${time}:${msg}`
 }
 
-export const fetchPATH = (): ForkPromise<string[]> => {
+export const fetchRawPATH = (): ForkPromise<string[]> => {
   return new ForkPromise(async (resolve, reject) => {
     const sh = join(global.Server.Static!, 'sh/path.cmd')
     const copySh = join(global.Server.Cache!, 'path.cmd')
@@ -685,18 +685,46 @@ export const fetchPATH = (): ForkPromise<string[]> => {
       const oldPath = Array.from(new Set(str.split(';') ?? []))
         .filter((s) => !!s.trim())
         .map((s) => s.trim())
-        .map((s) => {
-          if (existsSync(s)) {
-            return realpathSync(s)
-          }
-          return s
-        })
-      console.log('fetchPATH path: ', str, oldPath)
+      console.log('_fetchRawPATH: ', str, oldPath)
       resolve(oldPath)
     } catch (e) {
+      await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[_fetchRawPATH][error]: ${e}\n`)
       reject(e)
     }
   })
+}
+
+export const handleWinPathArr = (paths: string[]) => {
+  return Array.from(new Set(paths))
+    .map((p) => {
+      return p.trim()
+    })
+    .filter((p) => {
+      if (!p) {
+        return false
+      }
+      return isAbsolute(p) || p.includes('%') || p.includes('$env:')
+    })
+    .sort((a, b) => {
+      // 判断a的类型
+      const aType = isAbsolute(a)
+        ? 1
+        : a.startsWith('%SystemRoot%')
+          ? 2
+          : a.includes('%') || a.includes('$env:')
+            ? 3
+            : 4
+      // 判断b的类型
+      const bType = isAbsolute(b)
+        ? 1
+        : b.startsWith('%SystemRoot%')
+          ? 2
+          : b.includes('%') || b.includes('$env:')
+            ? 3
+            : 4
+      // 比较优先级
+      return aType - bType
+    })
 }
 
 export const writePath = async (path: string, other: string = '') => {
@@ -721,7 +749,7 @@ export const writePath = async (path: string, other: string = '') => {
 export const addPath = async (dir: string) => {
   let allPath: string[] = []
   try {
-    allPath = await fetchPATH()
+    allPath = await fetchRawPATH()
   } catch (e) {
     return
   }
@@ -733,17 +761,7 @@ export const addPath = async (dir: string) => {
     allPath.splice(index, 1)
   }
   allPath.unshift(dir)
-  const savePath = allPath
-    .map((p) => {
-      return p.trim()
-    })
-    .filter((p) => {
-      if (!p) {
-        return false
-      }
-      return isAbsolute(p) || p.includes('%') || p.includes('$env:')
-    })
-    .join(';')
+  const savePath = handleWinPathArr(allPath).join(';')
   try {
     await writePath(savePath)
   } catch (e) {}

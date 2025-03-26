@@ -16,6 +16,10 @@
   "editTool": "Edit Tool",
   "actionEdit": "Edit",
   "actionDel": "Delete",
+  "envValue": "Value",
+  "rawEnvPath": "Actual Path",
+  "envValueErrorTips": "The path does not exist. You can click to copy the command and test it in Command Prompt.",
+  "invalidPath": "Invalid Path",
 
   "base64-file-converter-title": "Base64 file converter",
   "base64-string-converter-title": "Base64 string encoder/decoder",

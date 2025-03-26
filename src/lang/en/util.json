@@ -41,7 +41,7 @@
   "nodeToolInstallBtn": "Install",
   "nodeListCellCurrent": "Current",
   "nodeListCellInstalled": "State",
-  "toolSystemEnv": "System Env",
+  "toolSystemEnv": "System PATH Env",
   "toolSSL": "SSL Make",
   "toolFileInfo": "File Info",
   "toolTimestamp": "Timestamp",

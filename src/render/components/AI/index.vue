@@ -6,31 +6,31 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onBeforeUnmount } from 'vue'
-import Chat from './Chat/index.vue'
-import { AIStore } from '@/components/AI/store'
-import { I18nT } from '@lang/index'
-import { createMarkdownRenderer, disposeMdItInstance } from '@/util/markdown/markdown'
-import { AISetup } from '@/components/AI/setup'
-import { useCopyCode } from '@/util/markdown/copyCode'
+  import { ref, onBeforeUnmount } from 'vue'
+  import Chat from './Chat/index.vue'
+  import { AIStore } from '@/components/AI/store'
+  import { I18nT } from '@lang/index'
+  import { createMarkdownRenderer, disposeMdItInstance } from '@/util/markdown/markdown'
+  import { AISetup } from '@/components/AI/setup'
+  import { useCopyCode } from '@/util/markdown/copyCode'
 
-const aiStore = AIStore()
-const chat = ref()
-const showChat = () => {
-  if (aiStore.chatList.length === 0) {
-    aiStore.chatList.push({
-      user: 'ai',
-      content: I18nT('ai.我是pipi')
-    })
+  const aiStore = AIStore()
+  const chat = ref()
+  const showChat = () => {
+    if (aiStore.chatList.length === 0) {
+      aiStore.chatList.push({
+        user: 'ai',
+        content: I18nT('ai.我是pipi')
+      })
+    }
+    chat.value.show()
   }
-  chat.value.show()
-}
-useCopyCode()
-createMarkdownRenderer().then().catch()
-AISetup.init()
-AISetup.initCompositionEvent()
-onBeforeUnmount(() => {
-  disposeMdItInstance()
-  AISetup.deinitCompositionEvent()
-})
+  useCopyCode()
+  createMarkdownRenderer().then().catch()
+  AISetup.init()
+  AISetup.initCompositionEvent()
+  onBeforeUnmount(() => {
+    disposeMdItInstance()
+    AISetup.deinitCompositionEvent()
+  })
 </script>

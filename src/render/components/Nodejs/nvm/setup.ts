@@ -7,14 +7,14 @@ import { AppStore } from '@/store/app'
 
 export const NVMSetup = reactive<{
   fetching: boolean
-  switching: boolean
+  switching?: string
   local: Array<string>
   current: string
   reFetch: () => void
   search: string
 }>({
   fetching: false,
-  switching: false,
+  switching: undefined,
   local: [],
   current: '',
   reFetch: () => 0,
@@ -46,7 +46,6 @@ export const Setup = () => {
     NVMSetup.local.splice(0)
     NVMSetup.current = ''
     fetchLocal()
-    store.chekTool()?.then()?.catch()
   }
 
   NVMSetup.reFetch = reFetch
@@ -55,8 +54,7 @@ export const Setup = () => {
     if (NVMSetup.switching) {
       return
     }
-    NVMSetup.switching = true
-    item.switching = true
+    NVMSetup.switching = item.version
     IPC.send('app-fork:node', 'versionChange', 'nvm', item.version).then(
       (key: string, res: any) => {
         IPC.off(key)
@@ -66,8 +64,7 @@ export const Setup = () => {
         } else {
           MessageError(res?.msg ?? I18nT('base.fail'))
         }
-        item.switching = false
-        NVMSetup.switching = false
+        NVMSetup.switching = undefined
       }
     )
   }

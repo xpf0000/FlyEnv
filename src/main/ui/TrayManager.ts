@@ -17,6 +17,9 @@ export default class TrayManager extends EventEmitter {
     this.tray.setToolTip('PhpWebStudy')
     this.tray.on('click', this.handleTrayClick)
     this.tray.on('right-click', this.handleTrayClick)
+    this.tray.on('double-click', () => {
+      this.emit('double-click')
+    })
   }
 
   iconChange(status: boolean) {

@@ -1,6 +1,15 @@
 import { createReadStream, readFileSync, statSync } from 'fs'
 import { Base } from './Base'
-import { addPath, execPromise, fetchPATH, getAllFileAsync, systemProxyGet, uuid } from '../Fn'
+import {
+  addPath,
+  execPromise,
+  fetchRawPATH,
+  getAllFileAsync,
+  handleWinPathArr,
+  systemProxyGet,
+  uuid,
+  writePath
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import {
   appendFile,
@@ -20,6 +29,7 @@ import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
 import { PItem, ProcessListSearch, ProcessPidList } from '../Process'
 import { AppServiceAliasItem } from '@shared/app'
+import { exec } from 'child-process-promise'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -312,7 +322,7 @@ subjectAltName=@alt_names
         allPath: [],
         appPath: []
       }
-      const pathArr = await fetchPATH()
+      const pathArr = await fetchRawPATH()
       const allPath = pathArr
         .filter((f) => existsSync(f))
         .map((f) => realpathSync(f))
@@ -332,42 +342,11 @@ subjectAltName=@alt_names
     })
   }
 
-  _fetchRawPATH(): ForkPromise<string[]> {
-    return new ForkPromise(async (resolve, reject) => {
-      const sh = join(global.Server.Static!, 'sh/path.cmd')
-      const copySh = join(global.Server.Cache!, 'path.cmd')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      await copyFile(sh, copySh)
-      process.chdir(global.Server.Cache!)
-      try {
-        const res = await execPromise('path.cmd')
-        let str = res?.stdout ?? ''
-        str = str.replace(new RegExp(`\n`, 'g'), '')
-        if (!str.includes(':\\') && !str.includes('%')) {
-          return resolve([])
-        }
-        const oldPath = Array.from(new Set(str.split(';') ?? []))
-          .filter((s) => !!s.trim())
-          .map((s) => s.trim())
-        console.log('_fetchRawPATH: ', str, oldPath)
-        resolve(oldPath)
-      } catch (e) {
-        await appendFile(
-          join(global.Server.BaseDir!, 'debug.log'),
-          `[_fetchRawPATH][error]: ${e}\n`
-        )
-        reject(e)
-      }
-    })
-  }
-
   removePATH(item: SoftInstalled, typeFlag: string) {
     return new ForkPromise(async (resolve, reject) => {
       let oldPath: string[] = []
       try {
-        oldPath = await this._fetchRawPATH()
+        oldPath = await fetchRawPATH()
       } catch (e) {}
       if (oldPath.length === 0) {
         reject(new Error('Fail'))
@@ -417,16 +396,7 @@ subjectAltName=@alt_names
         oldPath.unshift(dir)
       }
 
-      oldPath = oldPath
-        .map((p) => {
-          return p.trim()
-        })
-        .filter((p) => {
-          if (!p) {
-            return false
-          }
-          return isAbsolute(p) || p.includes('%') || p.includes('$env:')
-        })
+      oldPath = handleWinPathArr(oldPath)
 
       console.log('removePATH oldPath 3: ', oldPath)
 
@@ -463,7 +433,7 @@ subjectAltName=@alt_names
       let oldPath: string[] = []
       let rawOldPath: string[] = []
       try {
-        oldPath = await this._fetchRawPATH()
+        oldPath = await fetchRawPATH()
         rawOldPath = oldPath.map((s) => {
           if (existsSync(s)) {
             return realpathSync(s)
@@ -569,16 +539,7 @@ subjectAltName=@alt_names
         }
       }
 
-      oldPath = oldPath
-        .map((p) => {
-          return p.trim()
-        })
-        .filter((p) => {
-          if (!p) {
-            return false
-          }
-          return isAbsolute(p) || p.includes('%') || p.includes('$env:')
-        })
+      oldPath = handleWinPathArr(oldPath)
 
       console.log('oldPath: ', oldPath)
 
@@ -732,6 +693,82 @@ chcp 65001>nul
         }
       }
       resolve(alias)
+    })
+  }
+
+  envPathList() {
+    return new ForkPromise(async (resolve, reject) => {
+      let oldPath: string[] = []
+      try {
+        oldPath = await fetchRawPATH()
+      } catch (e) {}
+      if (oldPath.length === 0) {
+        reject(new Error('Fail'))
+        return
+      }
+      const list: any = []
+      for (const p of oldPath) {
+        let raw = ''
+        let error = false
+        if (isAbsolute(p)) {
+          try {
+            raw = realpathSync(p)
+            error = !existsSync(raw)
+          } catch (e) {
+            error = true
+          }
+        } else if (p.includes('%') || p.includes('$env:')) {
+          try {
+            raw = (await execPromise(`echo ${p}`))?.stdout?.trim() ?? ''
+            error = !raw || !existsSync(raw)
+          } catch (e) {
+            error = true
+          }
+        }
+        list.push({
+          path: p,
+          raw,
+          error
+        })
+      }
+      resolve(list)
+    })
+  }
+
+  envPathString() {
+    return new ForkPromise(async (resolve) => {
+      let cmdRes = ''
+      let psRes = ''
+      try {
+        cmdRes = (await exec(`set PATH`))?.stdout?.trim() ?? ''
+      } catch (e) {
+        cmdRes = `${e}`
+      }
+      try {
+        psRes =
+          (
+            await exec(`$env:PATH`, {
+              shell: 'powershell.exe'
+            })
+          )?.stdout?.trim() ?? ''
+      } catch (e) {
+        psRes = `${e}`
+      }
+      resolve({
+        cmd: cmdRes,
+        ps: psRes
+      })
+    })
+  }
+
+  envPathUpdate(arr: string[]) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        await writePath(arr.join(';'))
+      } catch (e) {
+        return reject(e)
+      }
+      resolve(true)
     })
   }
 }

@@ -1,8 +1,9 @@
 import { Base } from './Base'
 import {
   execPromise,
-  fetchPATH,
   fetchPathByBin,
+  fetchRawPATH,
+  handleWinPathArr,
   moveChildDirToParent,
   versionBinVersion,
   versionFilterSame,
@@ -136,10 +137,8 @@ class Manager extends Base {
         console.log('installNvm res: ', res)
       } catch (e) {}
       FNM_HOME = dirname(local)
-      const FNM_SYMLINK = join(FNM_HOME, 'nodejs-link')
       try {
         await execPromise(`setx /M FNM_HOME "${FNM_HOME}"`)
-        await execPromise(`setx /M FNM_SYMLINK "${FNM_SYMLINK}"`)
       } catch (e) {}
       await this._resortToolInPath('fnm')
       resolve(FNM_HOME)
@@ -177,7 +176,7 @@ class Manager extends Base {
   async _buildEnv(tool: 'fnm' | 'nvm', dir: string) {
     let allPath: string[] = []
     try {
-      allPath = await fetchPATH()
+      allPath = await fetchRawPATH()
     } catch (e) {
       return
     }
@@ -325,34 +324,30 @@ class Manager extends Base {
   }
 
   async _resortToolInPath(tool: 'fnm' | 'nvm') {
+    const link = existsSync(join(global.Server.AppDir!, `${tool}/nodejs-link`))
     let allPath: string[] = []
     try {
-      allPath = await fetchPATH()
+      allPath = await fetchRawPATH()
     } catch (e) {
       return
     }
     const pathStr = JSON.stringify(allPath)
     const arr = tool === 'fnm' ? ['%FNM_HOME%', '%FNM_SYMLINK%'] : ['%NVM_HOME%', '%NVM_SYMLINK%']
     allPath = allPath.filter((a) => !arr.includes(a))
+    if (!link) {
+      arr.pop()
+    }
     const startIndex = allPath.findIndex((s) => isAbsolute(s))
     if (startIndex >= 0) {
       allPath.splice(startIndex + 1, 0, arr.pop()!)
-      allPath.splice(startIndex + 1, 0, arr.pop()!)
+      const item = arr.pop()
+      if (item) {
+        allPath.splice(startIndex + 1, 0, item)
+      }
     }
-
-    if (pathStr !== JSON.stringify(allPath)) {
-      const savePath = allPath
-        .map((p) => {
-          return p.trim()
-        })
-        .filter((p) => {
-          if (!p) {
-            return false
-          }
-          return isAbsolute(p) || p.includes('%') || p.includes('$env:')
-        })
-        .join(';')
-      await writePath(savePath)
+    const savePath = handleWinPathArr(allPath)
+    if (pathStr !== JSON.stringify(savePath)) {
+      await writePath(savePath.join(';'))
     }
   }
 
@@ -381,20 +376,22 @@ class Manager extends Base {
           cwd: dir,
           env
         })
-        await this._resortToolInPath(tool)
         const { current }: any = await this.localVersion(tool)
         if (current === select) {
           if (tool === 'fnm') {
             await this._resetFnmNodeLink()
           }
-          resolve(true)
         } else {
-          reject(new Error('Fail'))
+          return reject(new Error('Fail'))
         }
       } catch (e) {
         console.log('versionChange error: ', e)
-        reject(e)
+        return reject(e)
       }
+      try {
+        await this._resortToolInPath(tool)
+      } catch (e) {}
+      resolve(true)
     })
   }
 

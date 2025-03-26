@@ -41,7 +41,7 @@
   "nodeToolInstallBtn": "安装",
   "nodeListCellCurrent": "当前使用",
   "nodeListCellInstalled": "是否安装",
-  "toolSystemEnv": "环境变量",
+  "toolSystemEnv": "PATH环境变量",
   "toolSSL": "SSL证书",
   "toolFileInfo": "文件信息",
   "toolTimestamp": "时间戳",

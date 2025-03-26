@@ -53,6 +53,6 @@ export const NodejsStore = defineStore('nodejs', {
         this.all.splice(0)
         this.all.push(...list)
       })
-    },
+    }
   }
 })

@@ -104,6 +104,9 @@ export default class Application extends EventEmitter {
       this?.trayWindow?.moveTop()
       this.windowManager.sendCommandTo(this.trayWindow!, 'APP:Poper-Left', 'APP:Poper-Left', poperX)
     })
+    this.trayManager.on('double-click', () => {
+      this.show('index')
+    })
   }
 
   initServerDir() {

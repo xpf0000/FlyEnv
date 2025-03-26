@@ -23,11 +23,7 @@
 
   const { clipboard } = require('@electron/remote')
 
-  const {
-    versionChange,
-    installOrUninstall,
-    tableData
-  } = Setup()
+  const { versionChange, installOrUninstall, tableData } = Setup()
 
   const copyCommand = (command: string) => {
     clipboard.writeText(command)
@@ -94,7 +90,7 @@
             </ElButton>
           )
         } else if (row.installed) {
-          if (row.switching) {
+          if (NVMSetup.switching === row.version) {
             return <ElButton loading={true} link></ElButton>
           } else if (!NVMSetup.switching) {
             return (

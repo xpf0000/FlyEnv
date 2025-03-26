@@ -16,6 +16,10 @@
   "editTool": "编辑工具",
   "actionEdit": "编辑",
   "actionDel": "删除",
+  "envValue": "值",
+  "rawEnvPath": "实际路径",
+  "envValueErrorTips": "此值无法指向一个存在的路径。可点击复制命令再CMD中执行查看",
+  "invalidPath": "无效路径",
 
   "base64-file-converter-title": "Base64 文件转换器",
   "base64-string-converter-title": "Base64字符串编码/解码",

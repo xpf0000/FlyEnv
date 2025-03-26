@@ -1,3 +1,4 @@
+const { dialog } = require('@electron/remote')
 const crypto = require('crypto')
 
 export function md5(str: string) {
@@ -168,5 +169,23 @@ export function fileSelect(accept = '', multiple = false) {
       input = null
     }
     input.click()
+  })
+}
+
+export function chooseFolder(defaultPath?: string) {
+  return new Promise((resolve) => {
+    const options: any = {}
+    const opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
+    options.properties = opt
+    if (defaultPath) {
+      options.defaultPath = defaultPath
+    }
+    dialog.showOpenDialog(options).then(({ canceled, filePaths }: any) => {
+      if (canceled || filePaths.length === 0) {
+        return
+      }
+      const [path] = filePaths
+      resolve(path)
+    })
   })
 }
