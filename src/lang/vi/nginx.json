@@ -1,5 +1,5 @@
 {
-  "gzip": "Có bật truyền nén GZIP không",
+  "keepalive_timeout": "Số giây trước khi nhận và gửi hết thời gian chờ.",  "gzip": "Có bật truyền nén GZIP không",
   "gzip_min_length": "Tệp nén tối thiểu",
   "gzip_comp_level": "Khả năng nén",
   "client_max_body_size": "Kích thước tệp tải lên tối đa",
