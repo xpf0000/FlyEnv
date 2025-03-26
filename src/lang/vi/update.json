@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "Kiểm tra cập nhật",
+  "update-available-message": "Đã có phiên bản mới hơn của FlyEnv, cập nhật ngay bây giờ?",
+  "update-not-available-message": "Bạn đang sử dụng phiên bản mới nhất!",
+  "update-downloaded-message": "Sẵn sàng để cài đặt...",
+  "update-error-message": "Lỗi cập nhật",
+  "yes": "Có",
+  "no": "Không"
+ }

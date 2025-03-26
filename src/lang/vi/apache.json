@@ -1,0 +1,7 @@
+{
+  "Timeout": "Số giây trước khi nhận và gửi hết thời gian chờ.",
+  "KeepAlive": "Có cho phép kết nối liên tục hay không",
+  "KeepAliveTimeout": "Số giây chờ yêu cầu tiếp theo từ cùng một máy khách trên cùng một kết nối.",
+  "MaxKeepAliveRequests": "Số lượng yêu cầu tối đa được phép trong một kết nối liên tục.\nĐặt thành 0 để cho phép số lượng không giới hạn.\nChúng tôi khuyên bạn nên để số này cao, để có hiệu suất tối đa.",
+  "LimitRequestBody": "Byte. Giới hạn kích thước tải lên tệp. 0: không giới hạn"
+}

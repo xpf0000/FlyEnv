@@ -1,0 +1,14 @@
+{
+  "site": "Trang web",
+  "webServer": "Máy chủ web",
+  "dataBaseServer": "Máy chủ cơ sở dữ liệu",
+  "emailServer": "Máy chủ email",
+  "language": "Ngôn ngữ & Thời gian chạy",
+  "dataQueue": "Hàng đợi dữ liệu & Bộ nhớ cache dữ liệu",
+  "searchEngine": "Công cụ tìm kiếm",
+  "dnsServer": "Máy chủ DNS",
+  "ftpServer": "Máy chủ FTP",
+  "other": "Khác",
+  "appLog": "Nhật ký ứng dụng",
+  "ai": "AI"
+}
