@@ -42,7 +42,7 @@ class Manager extends Base {
           const ip = items?.shift()?.toLowerCase()
           if (ip) {
             items.forEach((i) => {
-              this.hosts[i] = ip === '127.0.0.1' || ip === 'localhost' ? LOCAL_IP : ip
+              this.hosts[i] = ip === '::1' || ip === '127.0.0.1' || ip === 'localhost' ? LOCAL_IP : ip
             })
           }
         })

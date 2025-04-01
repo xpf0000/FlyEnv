@@ -431,6 +431,7 @@ export default class Application extends EventEmitter {
     this.emit(command, ...args)
     let window
     const callBack = (info: any) => {
+      console.log('callBack info: ', info)
       const win = this.mainWindow!
       this.windowManager.sendCommandTo(win, command, key, info)
       if (info?.data?.['APP-Service-Start-PID']) {
