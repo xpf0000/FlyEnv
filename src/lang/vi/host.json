@@ -19,7 +19,7 @@
   "placeholderRootPath": "Đường dẫn gốc của host",
   "port": "Cổng",
   "hostSSL": "SSL",
-  "parkConfim": "Bạn có chắc chắn muốn tạo các trang web dựa trên các thư mục con?",
+  "parkConfirm": "Bạn có chắc chắn muốn tạo các trang web dựa trên các thư mục con?",
   "autoSSL": "Chứng chỉ SSL tự động",
   "phpMyAdminInstallTips": "Không tìm thấy trang web phpMyAdmin với tên miền phpmyadmin.phpwebstudy.test, Tải xuống phpMyAdmin và tạo trang web?",
   "phpMyAdminTaskRunning": "Tải xuống phpMyAdmin và tạo trang web",

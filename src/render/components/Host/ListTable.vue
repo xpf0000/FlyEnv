@@ -380,7 +380,7 @@
         break
       case 'park':
         console.log('item: ', item)
-        Base._Confirm(I18nT('host.parkConfim'), undefined, {
+        Base._Confirm(I18nT('host.parkConfirm'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })

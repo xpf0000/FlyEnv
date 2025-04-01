@@ -423,7 +423,7 @@
 
   const onParkChange = () => {
     if (!park.value) {
-      return Base._Confirm(I18nT('base.parkConfim'), undefined, {
+      return Base._Confirm(I18nT('base.parkConfirm'), undefined, {
         customClass: 'confirm-del',
         type: 'warning'
       })

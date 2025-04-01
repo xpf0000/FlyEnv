@@ -93,7 +93,7 @@ eval "\`fnm env\`"
     if (disabled.value || saving.value) {
       return
     }
-    ElMessageBox.confirm(I18nT('util.toolSaveConfim'), undefined, {
+    ElMessageBox.confirm(I18nT('util.toolSaveConfirm'), undefined, {
       confirmButtonText: I18nT('base.confirm'),
       cancelButtonText: I18nT('base.cancel'),
       closeOnClickModal: false,
