@@ -364,7 +364,7 @@
         break
       case 'park':
         console.log('item: ', item)
-        ElMessageBox.confirm(I18nT('host.parkConfim'), undefined, {
+        ElMessageBox.confirm(I18nT('host.parkConfirm'), undefined, {
           confirmButtonText: I18nT('base.confirm'),
           cancelButtonText: I18nT('base.cancel'),
           closeOnClickModal: false,

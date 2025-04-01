@@ -64,7 +64,7 @@
   "toolSiteSucker": "Site Sucker",
   "toolFileNotExist": "File does not exist",
   "toolFileTooMore": "Failed to get file, please do not clean up too many files at once.",
-  "toolSaveConfim": "Are you sure you want to save it?",
+  "toolSaveConfirm": "Are you sure you want to save it?",
   "auto": "Auto",
   "edit": {
     "vsLight": "Vs Light",

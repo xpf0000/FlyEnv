@@ -64,7 +64,7 @@
   "toolSiteSucker": "Site Sucker",
   "toolFileNotExist": "Tệp không tồn tại",
   "toolFileTooMore": "Không lấy được tệp, vui lòng không dọn dẹp quá nhiều tệp cùng một lúc.",
-  "toolSaveConfim": "Bạn có chắc chắn muốn lưu nó?",
+  "toolSaveConfirm": "Bạn có chắc chắn muốn lưu nó?",
   "auto": "Tự động",
   "edit": {
     "vsLight": "Vs Light",

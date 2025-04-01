@@ -64,7 +64,7 @@
   "toolSiteSucker": "网站抓取",
   "toolFileNotExist": "文件不存在",
   "toolFileTooMore": "文件获取失败, 请勿一次清理太多文件",
-  "toolSaveConfim": "确定保存?",
+  "toolSaveConfirm": "确定保存?",
   "auto": "自动",
   "edit": {
     "vsLight": "Vs Light",

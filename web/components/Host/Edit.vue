@@ -412,7 +412,7 @@
 
   const onParkChange = () => {
     if (!park.value) {
-      return ElMessageBox.confirm(I18nT('base.parkConfim'), undefined, {
+      return ElMessageBox.confirm(I18nT('base.parkConfirm'), undefined, {
         confirmButtonText: I18nT('base.confirm'),
         cancelButtonText: I18nT('base.cancel'),
         closeOnClickModal: false,

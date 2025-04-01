@@ -79,7 +79,7 @@
     unmounted() {},
     methods: {
       cleanSelect() {
-        this.$baseConfirm(this.$t('base.killProcessConfim'), null, {
+        this.$baseConfirm(this.$t('base.killProcessConfirm'), null, {
           customClass: 'confirm-del',
           type: 'warning'
         })
@@ -96,7 +96,7 @@
           .catch(() => {})
       },
       cleanAll() {
-        this.$baseConfirm(this.$t('base.killAllProcessConfim'), null, {
+        this.$baseConfirm(this.$t('base.killAllProcessConfirm'), null, {
           customClass: 'confirm-del',
           type: 'warning'
         })
