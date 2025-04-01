@@ -1,0 +1,36 @@
+{
+  "title": "Licensbeskrivning",
+  "description": "Licensen är ett erkännande och stöd för det hårda arbetet av FlyEnv och dess författare. Syftet är inte att begränsa användare utan att påminna dem om att respektera utvecklarnas ansträngningar och följa de relevanta villkoren vid användning av programvaran. Genom att följa licensen stödjer användarna inte bara den fortsatta utvecklingen av projektet utan bidrar också till andan av förtroende och samarbete inom open-source-gemenskapen.",
+  "restrictions": {
+    "title": "Användare utan licens kommer att omfattas av följande begränsningar:",
+    "items": {
+      "0": "Maximalt tre webbplatser kan skapas.",
+      "1": "AI-chattfunktionen är tillgänglig under en provperiod på endast tre dagar.",
+      "2": "Ytterligare begränsningar kan tillkomma för framtida funktioner."
+    }
+  },
+  "licenseInfo": "Den nuvarande licensen som erbjuds är en evig licens, där en licens motsvarar en dator. Om du byter dator måste du begära en ny licens.",
+  "howToObtain": {
+    "title": "Hur man skaffar en licens",
+    "description": "FlyEnv erbjuder flexibla sätt att skaffa en licens. Användare kan välja något av följande metoder för att ansöka:",
+    "methods": {
+      "0": {
+        "title": "Donera till projektet",
+        "description": "Det finns inget fast belopp som krävs för donationer. Med tanke på de varierande ekonomiska situationerna för användare i olika länder (t.ex. många användare är studenter), välj ett belopp som passar dina omständigheter."
+      },
+      "1": {
+        "title": "Bidra till utvecklingen",
+        "description": "Delta i projektet genom att skicka in en Pull Request. Oavsett mängden kod, så länge det positivt förbättrar projektet (t.ex. rättar ett översättningsfel), kvalificerar det sig."
+      },
+      "2": {
+        "title": "Främja projektet",
+        "description": "Främja FlyEnv genom att publicera artiklar, videor, bloggar, vloggar eller introducera det i kommentarer. Innehållet kan vara på vilket språk som helst och på vilken plattform som helst, så länge det är offentligt tillgängligt på internet."
+      }
+    }
+  },
+  "submitInfo": "Efter att ha slutfört någon av ovanstående metoder, fyll i resultaten i inmatningsrutan nedan och klicka på knappen 'Begär licens' för att skicka din ansökan. Licensförfrågningar granskas manuellt, så var vänlig och ha tålamod. De behandlas vanligtvis snabbt.",
+  "messageLabel": "Meddelande",
+  "messagePlaceholder": "Vänligen skicka in givaren, donationslänken eller order-ID när du väljer att donera.\nVänligen skicka in PR-länken för dem som väljer att delta i projektutvecklingen.\nVänligen skicka in artikel-/videolänken om du väljer att hjälpa till att främja projektet",
+  "requestButton": "Begär licens",
+  "refreshButton": "Uppdatera status"
+}

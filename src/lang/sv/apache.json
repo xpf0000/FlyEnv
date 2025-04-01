@@ -1,0 +1,7 @@
+{
+  "Timeout": "Antal sekunder innan mottagning och sändning går ut.",
+  "KeepAlive": "Om ihållande anslutningar ska tillåtas eller inte",
+  "KeepAliveTimeout": "Antal sekunder att vänta på nästa begäran från samma klient på samma anslutning.",
+  "MaxKeepAliveRequests": "Maximalt antal begäranden som tillåts under en ihållande anslutning.\nStäll in på 0 för att tillåta ett obegränsat antal.\nVi rekommenderar att du håller detta nummer högt för maximal prestanda.",
+  "LimitRequestBody": "Byte. Filuppladdningsstorleksgräns. 0: ingen gräns"
+}

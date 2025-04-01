@@ -1,0 +1,12 @@
+{
+  "setaliase": "Ställ in alias",
+  "env": "Miljö",
+  "alias": "Alias",
+  "envTips": "Har sökvägen lagts till i miljövariabeln",
+  "aliasTips": "Alias som används i terminalen",
+  "bundleinVersionDelTips": "Den här versionen är en inbyggd version, bekräfta att den inte visas?",
+  "customDirVersionDelTips": "Den här versionen är en anpassad sökvägsversion, bekräfta att den inte visas?",
+  "useSysPHP": "Använd standard PHP-version",
+  "setByApp": "Miljövariabler som ställts in av FlyEnv",
+  "setByNoApp": "Miljövariabler som inte ställts in av FlyEnv"
+}
