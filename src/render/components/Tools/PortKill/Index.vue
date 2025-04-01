@@ -84,7 +84,7 @@
     unmounted() {},
     methods: {
       cleanSelect() {
-        this.$baseConfirm(I18nT('base.killProcessConfim'), undefined, {
+        this.$baseConfirm(I18nT('base.killProcessConfirm'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
@@ -101,7 +101,7 @@
           .catch(() => {})
       },
       cleanAll() {
-        this.$baseConfirm(I18nT('base.killAllProcessConfim'), undefined, {
+        this.$baseConfirm(I18nT('base.killAllProcessConfirm'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })

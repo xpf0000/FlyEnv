@@ -90,7 +90,7 @@
     if (disabled.value || saving.value) {
       return
     }
-    Base.ConfirmWarning(I18nT('util.toolSaveConfim')).then(() => {
+    Base.ConfirmWarning(I18nT('util.toolSaveConfirm')).then(() => {
       saving.value = true
       IPC.send(
         'app-fork:tools',
