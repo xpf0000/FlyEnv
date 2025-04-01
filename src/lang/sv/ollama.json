@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Visa ytterligare felsökningsinformation (t.ex. OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "IP-adress för Ollama-servern (standard 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "Varaktighet som modeller förblir laddade i minnet (standard \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Maximalt antal laddade modeller per GPU",
+  "OLLAMA_MAX_QUEUE": "Maximalt antal köade förfrågningar",
+  "OLLAMA_MODELS": "Sökvägen till modellkatalogen",
+  "OLLAMA_NUM_PARALLEL": "Maximalt antal parallella förfrågningar",
+  "OLLAMA_NOPRUNE": "Ta inte bort modellblobbar vid start",
+  "OLLAMA_ORIGINS": "En kommaseparerad lista över tillåtna ursprung",
+  "OLLAMA_SCHED_SPREAD": "Schemalägg alltid modellen över alla GPU:er",
+  "OLLAMA_FLASH_ATTENTION": "Aktiverad flash-uppmärksamhet",
+  "OLLAMA_KV_CACHE_TYPE": "Kvantiseringstyp för K/V-cache (standard: f16)",
+  "OLLAMA_LLM_LIBRARY": "Ställ in LLM-bibliotek för att kringgå autodetektering",
+  "OLLAMA_GPU_OVERHEAD": "Reservera en del av VRAM per GPU (bytes)",
+  "OLLAMA_LOAD_TIMEOUT": "Hur länge modellinladdningar får stanna innan de avbryts (standard \"5m\")",
+  "needServiceRun": "Vänligen starta Ollama-tjänsten först",
+  "size": "Storlek",
+  "model": "Modeller"
+}

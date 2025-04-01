@@ -1,0 +1,15 @@
+{
+  "title": "Token-generator",
+  "description": "Generera slumpmässig sträng med de tecken du vill ha, stora eller små bokstäver, siffror och/eller symboler.",
+  "uppercase": "Versaler (ABC...)",
+  "lowercase": "Gemener (abc...)",
+  "numbers": "Siffror (123...)",
+  "symbols": "Symboler (!-;...)",
+  "length": "Längd",
+  "tokenPlaceholder": "Token...",
+  "copied": "Token kopierad till urklipp",
+  "button": {
+    "copy": "Kopiera",
+    "refresh": "Uppdatera"
+  }
+}

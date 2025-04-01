@@ -1,0 +1,14 @@
+{
+  "site": "Webbplats",
+  "webServer": "Webbserver",
+  "dataBaseServer": "Databasserver",
+  "emailServer": "E-postserver",
+  "language": "Språk & Körning",
+  "dataQueue": "Datakö & Cache",
+  "searchEngine": "Sökmotor",
+  "dnsServer": "DNS-Server",
+  "ftpServer": "FTP-Server",
+  "other": "Other",
+  "appLog": "App-logg",
+  "ai": "AI"
+}

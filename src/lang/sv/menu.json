@@ -1,0 +1,23 @@
+{
+  "about": "Om",
+  "app": "FlyEnv",
+  "checkForUpdates": "Sök efter uppdateringar...",
+  "hide": "Dölj FlyEnv",
+  "hideOthers": "Dölj andra",
+  "unhide": "Visa alla",
+  "quit": "Avsluta FlyEnv",
+  "edit": "Redigera",
+  "cut": "Klipp ut",
+  "copy": "Kopiera",
+  "paste": "Klistra in",
+  "selectAll": "Markera allt",
+  "window": "Fönster",
+  "close": "Stäng",
+  "minimize": "Minimera",
+  "zoom": "Zooma",
+  "fullscreen": "Gå till fullskärm",
+  "front": "Ta FlyEnv till förgrunden",
+  "dev": "Öppna felsökningsfönster",
+  "needInstallHelper": "FlyEnv behöver installera ett hjälpprogram",
+  "waitHelper": "Hjälpprogrammet startar, vänligen vänta"
+}
