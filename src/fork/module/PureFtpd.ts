@@ -5,6 +5,7 @@ import type { FtpItem } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import FtpServer from 'ftp-srv'
+import * as ip from 'ip'
 
 class Manager extends Base {
   server?: FtpServer
@@ -31,18 +32,32 @@ class Manager extends Base {
   }
 
   _startServer() {
+    const resolverFunction = (clientIP: string) => {
+      if (clientIP === "127.0.0.1" || clientIP === "::1") {
+        return "127.0.0.1"; // 本地连接直接返回回环地址
+      }
+      return ip.address()
+    };
+
     return new ForkPromise(async (resolve) => {
       const port = 21
       this.server = new FtpServer({
         url: 'ftp://0.0.0.0:' + port,
+        log: console.log, // 启用详细日志
         anonymous: true,
-        passv_ports: {
-          start: 49152,
-          end: 65535,
-        },
+        pasv_url: resolverFunction,
+        pasv_min: 49152,
+        pasv_max: 65535
       })
 
       this.server.on('login', async ({ connection, username, password }, resolve, reject) => {
+        connection.on('client-error', (error: any) => {
+          console.error('FTP Client Error:', error);
+        });
+        connection.on('STOR', (error: any) => {
+          if (error) console.error('Upload failed:', error);
+        });
+
         const json = join(global.Server.FTPDir!, 'pureftpd.json')
         const all: Array<any> = []
         if (existsSync(json)) {
