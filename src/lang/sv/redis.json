@@ -1,0 +1,6 @@
+{
+  "timeout": "Tidsgräns för inaktiv anslutning, 0 indikerar kontinuerlig öppning",
+  "databases": "Antal databaser",
+  "requirepass": "Redis-lösenord",
+  "maxmemory": "Byte, maximal minnesanvändning, 0 indikerar ingen gräns"
+}

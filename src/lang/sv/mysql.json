@@ -1,0 +1,13 @@
+{
+  "key_buffer_size": "Buffertstorlek för indexering",
+  "query_cache_size": "Frågecache, ställ in till 0 om den inte är aktiverad",
+  "tmp_table_size": "Cache-storlek för tillfälliga tabeller",
+  "innodb_buffer_pool_size": "InnoDB-buffertstorlek",
+  "innodb_log_buffer_size": "InnoDB-loggbuffertstorlek",
+  "sort_buffer_size": "Buffertstorlek för sortering per tråd",
+  "read_buffer_size": "Läsbuffertstorlek",
+  "read_rnd_buffer_size": "Slumpmässig läsbuffertstorlek",
+  "thread_cache_size": "Trådpoolstorlek",
+  "table_open_cache": "Tabellcache",
+  "max_connections": "Maximalt antal anslutningar"
+}

@@ -1,0 +1,11 @@
+{
+  "checkForUpdates": "Sök efter uppdateringar",
+  "update-available-message": "En nyare version av FlyEnv är tillgänglig, uppdatera nu?",
+  "update-not-available-message": "Du är uppdaterad!",
+  "update-downloaded-message": "Redo att installera...",
+  "update-error-message": "Uppdateringsfel",
+  "yes": "Ja",
+  "no": "Nej",
+  "needUpdateTitleTips": "Varning",
+  "needUpdateContentTips": "Upptäckte att det aktuella appnamnet inte är FlyEnv. Du kanske använder PhpWebStudy, som inte längre stöds, eller manuellt ändrat appnamnet. Ladda ner och installera FlyEnv igen eller återställ applikationsnamnet till FlyEnv."
+}
