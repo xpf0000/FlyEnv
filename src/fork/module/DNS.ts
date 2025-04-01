@@ -56,7 +56,9 @@ class Manager extends Base {
           const response = Packet.createResponseFromRequest(request)
           const [question] = request.questions
           const { name } = question
+          console.log('question: ', question, name)
           this.initHosts(LOCAL_IP)
+          console.log('this.hosts: ', this.hosts)
           if (this.hosts[name]) {
             const ip = this.hosts[name]
             const item = {
@@ -108,7 +110,10 @@ class Manager extends Base {
                   })
                   send(response)
                 }
-              })
+              }).catch((e: any) => {
+                console.log(`tangerine resolve error: ${e}`)
+              send(response)
+            })
           } catch (e) {
             send(response)
           }
