@@ -35,7 +35,11 @@ class Manager extends Base {
       const port = 21
       this.server = new FtpServer({
         url: 'ftp://0.0.0.0:' + port,
-        anonymous: true
+        anonymous: true,
+        passv_ports: {
+          start: 49152,
+          end: 65535,
+        },
       })
 
       this.server.on('login', async ({ connection, username, password }, resolve, reject) => {
