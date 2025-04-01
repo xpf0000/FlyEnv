@@ -552,6 +552,14 @@ subjectAltName=@alt_names
 php "%~dp0composer.phar" %*`
           )
         }
+        try {
+          const d = await execPromise(`composer.bat global config bin-dir`, {
+            cwd: binDir
+          });
+          console.log('d: ', d)
+        } catch (e) {
+          console.log('config bin-dir error: ', e)
+        }
       }
 
       const sh = join(global.Server.Static!, 'sh/path-set.ps1')
