@@ -70,15 +70,14 @@ class Manager extends Base {
               ttl: 60,
               address: ip
             }
-            const json = JSON.stringify({
-              host: name,
-              ttl: 60,
-              ip: ip
-            })
             process?.send?.({
               on: true,
               key: this.ipcCommandKey,
-              info: json
+              info: {
+                host: name,
+                ttl: 60,
+                ip: ip
+              }
             })
             response.answers.push(item)
             send(response)
@@ -99,15 +98,14 @@ class Manager extends Base {
                       ttl: item.ttl,
                       address: item.address
                     })
-                    const json = JSON.stringify({
-                      host: name,
-                      ttl: item.ttl,
-                      ip: item.address
-                    })
                     process?.send?.({
                       on: true,
                       key: this.ipcCommandKey,
-                      info: json
+                      info: {
+                        host: name,
+                        ttl: item.ttl,
+                        ip: item.address
+                      }
                     })
                   })
                   send(response)
