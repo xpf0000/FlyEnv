@@ -4,6 +4,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import dns2 from 'dns2'
 import { Packet } from 'dns2'
 import * as ip from 'ip'
+import {join} from "path";
 
 const Tangerine = require('@shared/Tangerine.js')
 
@@ -26,11 +27,12 @@ class Manager extends Base {
   }
 
   initHosts(LOCAL_IP: string) {
+    const hostFile = join('c:/windows/system32/drivers/etc', 'hosts')
     const time = new Date().getTime()
     if (time - this.lastTime > 60000) {
       this.lastTime = time
       try {
-        const hosts = readFileSync('/private/etc/hosts', 'utf-8') ?? ''
+        const hosts = readFileSync(hostFile, 'utf-8') ?? ''
         const arrs = hosts.split('\n').filter((s) => s.trim().indexOf('#') !== 0)
         arrs.forEach((s) => {
           const items = s
