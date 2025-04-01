@@ -43,7 +43,6 @@ class Manager extends Base {
       const port = 21
       this.server = new FtpServer({
         url: 'ftp://0.0.0.0:' + port,
-        log: console, // 启用详细日志
         anonymous: true,
         pasv_url: resolverFunction,
         pasv_min: 49152,
