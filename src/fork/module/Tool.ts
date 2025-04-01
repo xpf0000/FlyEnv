@@ -396,6 +396,10 @@ subjectAltName=@alt_names
         oldPath.unshift(dir)
       }
 
+      if (typeFlag === 'composer') {
+        oldPath = oldPath.filter((s) => !s.includes('%COMPOSER_HOME%\\vendor\\bin') && !s.includes('%APPDATA%\\Composer\\vendor\\bin'))
+      }
+
       oldPath = handleWinPathArr(oldPath)
 
       console.log('removePATH oldPath 3: ', oldPath)
@@ -539,10 +543,6 @@ subjectAltName=@alt_names
         }
       }
 
-      oldPath = handleWinPathArr(oldPath)
-
-      console.log('oldPath: ', oldPath)
-
       if (typeFlag === 'composer') {
         const bat = join(binDir, 'composer.bat')
         if (!existsSync(bat)) {
@@ -552,15 +552,29 @@ subjectAltName=@alt_names
 php "%~dp0composer.phar" %*`
           )
         }
+        let composer_bin_dir = ''
         try {
-          const d = await execPromise(`composer.bat global config bin-dir`, {
-            cwd: binDir
-          });
+          const d = await execPromise(`echo %COMPOSER_HOME%\\Composer`);
+          composer_bin_dir = d?.stdout?.trim()
           console.log('d: ', d)
-        } catch (e) {
-          console.log('config bin-dir error: ', e)
+        } catch (e) {}
+        if (composer_bin_dir && isAbsolute(composer_bin_dir)) {
+          oldPath.push(`%COMPOSER_HOME%\\vendor\\bin`)
+        } else {
+          try {
+            const d = await execPromise(`echo %APPDATA%\\Composer`);
+            composer_bin_dir = d?.stdout?.trim()
+            console.log('d: ', d)
+          } catch (e) {}
+          if (composer_bin_dir && isAbsolute(composer_bin_dir)) {
+            oldPath.push(`%APPDATA%\\Composer\\vendor\\bin`)
+          }
         }
       }
+
+      oldPath = handleWinPathArr(oldPath)
+
+      console.log('oldPath: ', oldPath)
 
       const sh = join(global.Server.Static!, 'sh/path-set.ps1')
       const copySh = join(global.Server.Cache!, 'path-set.ps1')
