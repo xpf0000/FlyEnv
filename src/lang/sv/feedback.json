@@ -1,0 +1,10 @@
+{
+  "email": "E-post",
+  "country": "Land",
+  "message": "Meddelande",
+  "messagelengthErr": "Meddelandets längd är 5 - 1024",
+  "sendMessage": "Skicka meddelande",
+  "anythingToSay": "Något att säga",
+  "noSelected": "Inget valt",
+  "inputFilter": "Skriv för att filtrera"
+}

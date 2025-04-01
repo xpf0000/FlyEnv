@@ -1,0 +1,10 @@
+{
+  "gzip": "Är GZIP-komprimering aktiverad",
+  "gzip_min_length": "Minsta komprimerade filstorlek",
+  "gzip_comp_level": "Komprimeringsnivå",
+  "client_max_body_size": "Maximal uppladdningsfilstorlek",
+  "server_names_hash_max_size": "Maximal storlek på hash-tabell för servernamn",
+  "server_names_hash_bucket_size": "Storlek på hash-tabell för servernamn",
+  "client_header_buffer_size": "Buffertstorlek för klientens begäranhuvud",
+  "client_body_buffer_size": "Buffertstorlek för begäranskropp"
+}

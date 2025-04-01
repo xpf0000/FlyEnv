@@ -1,0 +1,9 @@
+{
+  "rawFile": "Rå fil",
+  "CommonSetting": "Vanliga inställningar",
+  "open": "Öppna fil",
+  "save": "Spara fil Ctrl + s",
+  "loadDefault": "Ladda standardfil",
+  "saveCustom": "Spara som anpassad fil",
+  "loadCustom": "Ladda anpassad fil"
+}
