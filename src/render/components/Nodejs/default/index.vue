@@ -48,7 +48,7 @@
             </span>
             <ElInput
               v-model={NodeDefaultSetup.search}
-              placeholder="search"
+              placeholder="{{ I18nT('base.placeholderSearch') }}"
               clearable={true}
             ></ElInput>
           </div>

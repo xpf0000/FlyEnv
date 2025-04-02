@@ -174,7 +174,7 @@
             <span class="flex items-center">
               url({success}/{count})
             </span>
-            <ElInput v-model={search.value} placeholder="search" clearable={true}></ElInput>
+            <ElInput v-model={search.value} placeholder="{{ I18nT('base.placeholderSearch') }}" clearable={true}></ElInput>
           </div>
         )
       }
@@ -237,7 +237,7 @@
         return (
           <div class="wapper">
             <span class="flex items-center">host</span>
-            <ElInput v-model={searchHost.value} placeholder="search" clearable={true}></ElInput>
+            <ElInput v-model={searchHost.value} placeholder="{{ I18nT('base.placeholderSearch') }}" clearable={true}></ElInput>
           </div>
         )
       }

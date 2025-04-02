@@ -14,7 +14,7 @@
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
                 I18nT('host.name')
               }}</span>
-              <el-input v-model.trim="search" placeholder="search" clearable></el-input>
+              <el-input v-model.trim="search" placeholder="{{ I18nT('base.placeholderSearch') }}" clearable></el-input>
             </div>
           </template>
           <template #default="scope">
