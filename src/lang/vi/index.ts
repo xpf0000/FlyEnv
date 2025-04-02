@@ -26,6 +26,7 @@ import updateVI from './update.json'
 import utilVI from './util.json'
 import versionmanagerVI from './versionmanager.json'
 import licensesVI from './licenses.json'
+import requestTimer from './requestTimer.json'
 
 export default {
   vi: {
@@ -56,6 +57,7 @@ export default {
     tray: trayVI,
     update: updateVI,
     util: utilVI,
-    versionmanager: versionmanagerVI
+    versionmanager: versionmanagerVI,
+    requestTimer
   }
 }

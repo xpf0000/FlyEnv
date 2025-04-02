@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "Tra cứu DNS",
+  "tcpConnect": "Kết nối TCP",
+  "tlsHandshake": "Bắt tay TLS",
+  "requestProcessing": "Xử lý yêu cầu",
+  "ttfb": "Thời gian đến byte đầu tiên (TTFB)",
+  "contentDownload": "Tải nội dung",
+  "downloadSpeed": "Tốc độ tải xuống",
+  "dataSize": "Kích thước dữ liệu",
+  "httpVersion": "Phiên bản HTTP",
+  "statusCode": "Mã trạng thái",
+  "usingProxy": "Sử dụng proxy",
+  "totalTime": "Tổng thời gian",
+  "skippedForProxy": "Bỏ qua DNS cho proxy",
+  "metric": "Chỉ số",
+  "value": "Giá trị"
+}

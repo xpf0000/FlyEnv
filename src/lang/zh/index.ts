@@ -26,7 +26,7 @@ import updateZH from './update.json'
 import utilZH from './util.json'
 import versionmanagerZH from './versionmanager.json'
 import licensesZH from './licenses.json'
-
+import requestTimer from './requestTimer.json'
 export default {
   zh: {
     licenses: licensesZH,
@@ -56,6 +56,7 @@ export default {
     tray: trayZH,
     update: updateZH,
     util: utilZH,
-    versionmanager: versionmanagerZH
+    versionmanager: versionmanagerZH,
+    requestTimer
   }
 }

@@ -30,6 +30,7 @@ import type { SoftInstalled } from '@shared/app'
 import { PItem, ProcessListSearch, ProcessPidList } from '../Process'
 import { AppServiceAliasItem } from '@shared/app'
 import { exec } from 'child-process-promise'
+import RequestTimer from '@shared/requestTimer'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -802,6 +803,26 @@ chcp 65001>nul
         return reject(e)
       }
       resolve(true)
+    })
+  }
+
+  requestTimeFetch(url: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const timer = new RequestTimer({
+        timeout: 10000,
+        retries: 2,
+        followRedirects: true,
+        maxRedirects: 10,
+        keepAlive: true,
+        strictSSL: false // Set to false to ignore SSL errors
+      })
+      try {
+        const results = await timer.measure(url)
+        const res = RequestTimer.formatResults(results)
+        resolve(res)
+      } catch (error) {
+        reject(error)
+      }
     })
   }
 }

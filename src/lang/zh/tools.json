@@ -37,5 +37,6 @@
   "rsa-key-generator-title": "RSA密钥对生成器",
   "url-encode-title": "URL编码/解码",
   "url-parse-title": "URL解析",
-  "wifi-qr-code-generator-title": "WiFi二维码生成"
+  "wifi-qr-code-generator-title": "WiFi二维码生成",
+  "URLTimingAnalyzer": "URL请求计时分析"
 }

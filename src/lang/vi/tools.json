@@ -33,5 +33,6 @@
   "rsa-key-generator-title": "Trình tạo cặp khóa RSA",
   "url-encode-title": "Mã hóa/Giải mã URL",
   "url-parse-title": "Trình phân tích cú pháp URL",
-  "wifi-qr-code-generator-title": "Trình tạo mã QR WiFi"
+  "wifi-qr-code-generator-title": "Trình tạo mã QR WiFi",
+  "URLTimingAnalyzer": "Phân Tích Thời Gian URL"
 }
