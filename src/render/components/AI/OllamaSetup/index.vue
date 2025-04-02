@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="show"
-    :title="I18nT('base.setup')"
+    :title="I18nT('base.settings')"
     width="600px"
     :destroy-on-close="true"
     class="host-edit new-project"

@@ -48,7 +48,7 @@
             <div class="icon-block">
               <yb-icon :svg="import('@/svg/setup.svg?raw')" width="30" height="30" />
             </div>
-            <span class="title">{{ I18nT('base.setup') }}</span>
+            <span class="title">{{ I18nT('base.settings') }}</span>
           </div>
         </li>
       </ul>
