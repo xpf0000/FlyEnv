@@ -18,7 +18,7 @@ export function startApache(this: BaseTask) {
       apache = installed?.find((i) => !!i.path && !!i.version)
     }
     if (!apache || !apache?.version) {
-      reject(new Error(I18nT('ai.未发现可用版本')))
+      reject(new Error(I18nT('ai.noAvailableVersion')))
       return
     }
     const res = await startService('apache', apache)
@@ -26,7 +26,7 @@ export function startApache(this: BaseTask) {
       const aiStore = AIStore()
       aiStore.chatList.push({
         user: 'ai',
-        content: I18nT('ai.Apache服务启动成功')
+        content: I18nT('ai.apacheServiceStarted')
       })
       resolve(true)
       return
@@ -38,7 +38,7 @@ export function startApache(this: BaseTask) {
         const aiStore = AIStore()
         aiStore.chatList.push({
           user: 'ai',
-          content: I18nT('ai.服务启动失败端口占用', { err: res })
+          content: I18nT('ai.serviceStartFailedPort', { err: res })
         })
         regex.lastIndex = 0
         const port = new Set()
@@ -57,7 +57,7 @@ export function startApache(this: BaseTask) {
         }
         aiStore.chatList.push({
           user: 'ai',
-          content: I18nT('ai.Apache服务启动成功')
+          content: I18nT('ai.apacheServiceStarted')
         })
         resolve(true)
         return

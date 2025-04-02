@@ -17,7 +17,7 @@
     if (aiStore.chatList.length === 0) {
       aiStore.chatList.push({
         user: 'ai',
-        content: I18nT('ai.我是pipi')
+        content: I18nT('ai.imPipi')
       })
     }
     chat.value.show()

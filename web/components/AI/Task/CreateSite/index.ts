@@ -37,7 +37,7 @@ export class CreateSite extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.请输入或选择站点目录'),
+            content: I18nT('ai.enterOrSelectSiteDirectory'),
             action: 'ChooseSiteRoot'
           })
         },
@@ -54,7 +54,7 @@ export class CreateSite extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.请输入站点域名')
+            content: I18nT('ai.enterSiteDomain')
           })
         },
         needInput: true,
@@ -64,7 +64,7 @@ export class CreateSite extends BaseTask {
             try {
               new URL(`https://${url}`)
             } catch (e) {
-              reject(new Error(I18nT('ai.域名无效')))
+              reject(new Error(I18nT('ai.domain无效')))
             }
             this.host.name = url
             resolve(true)
@@ -76,7 +76,7 @@ export class CreateSite extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.创建站点中')
+            content: I18nT('ai.creatingSite')
           })
         },
         run: () => {
@@ -89,12 +89,12 @@ export class CreateSite extends BaseTask {
             const aiStore = AIStore()
             aiStore.chatList.push({
               user: 'ai',
-              content: `${I18nT('ai.成功创建站点')}
-${I18nT('ai.站点域名')}: ${this.host.name}
-${I18nT('ai.站点目录')}: <a href="javascript:void();" onclick="openDir('${this.host.root}')">${
+              content: `${I18nT('ai.siteCreatedSuccessfully')}
+${I18nT('ai.siteDomain')}: ${this.host.name}
+${I18nT('ai.siteDirectory')}: <a href="javascript:void();" onclick="openDir('${this.host.root}')">${
                 this.host.root
               }</a>
-${I18nT('ai.尝试开启服务')}`
+${I18nT('ai.tryingToStartService')}`
             })
             resolve({
               host: this.host.name,

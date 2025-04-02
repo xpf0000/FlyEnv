@@ -12,7 +12,7 @@ export class NginxStartFail extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.尝试启动Nginx服务')
+            content: I18nT('ai.tryingToStartNginxService')
           })
         },
         run: startNginx.bind(this)

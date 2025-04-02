@@ -11,7 +11,7 @@ export class SiteAccessIssues extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.站点错误码是否以下几种'),
+            content: I18nT('ai.siteErrorCodes'),
             action: 'SiteAccessIssues'
           })
         },
