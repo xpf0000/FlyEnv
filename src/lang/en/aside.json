@@ -4,7 +4,7 @@
   "dataBaseServer": "Database Server",
   "emailServer": "Email Server",
   "language": "Language & Runtime",
-  "dataQueue": "Data Queue & Data Cache",
+  "dataQueue": "Cache & Memory Storage",
   "searchEngine": "Search Engine",
   "dnsServer": "DNS Server",
   "ftpServer": "FTP Server",

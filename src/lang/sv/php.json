@@ -4,7 +4,7 @@
   "copyConfTemplate": "Kopiera konfigurationsmall",
   "availableExtensions": "Tillgängliga tillägg",
   "extensionCopySuccess": "Tilläggslänk kopierad till urklipp",
-  "xdebugConfCopySuccess": "xdebug-konfigurationsmall kopierad till urklipp",
+  "xdebugConfCopySuccess": "XDebug-konfigurationsmall kopierad till urklipp",
   "noVersionTips": "Den installerade versionen upptäcktes inte, vänligen installera PHP-versionen i versionshanteringen eller installera den själv",
   "fpmLog": "FPM-logg",
   "extension": "Tillägg",

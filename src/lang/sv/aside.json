@@ -3,12 +3,12 @@
   "webServer": "Webbserver",
   "dataBaseServer": "Databasserver",
   "emailServer": "E-postserver",
-  "language": "Språk & Körning",
-  "dataQueue": "Datakö & Cache",
+  "language": "Programspråk & exekveringsmiljö",
+  "dataQueue": "Cache & minneslagring",
   "searchEngine": "Sökmotor",
-  "dnsServer": "DNS-Server",
-  "ftpServer": "FTP-Server",
-  "other": "Other",
+  "dnsServer": "DNS-server",
+  "ftpServer": "FTP-server",
+  "other": "Övrigt",
   "appLog": "App-logg",
   "ai": "AI"
 }
