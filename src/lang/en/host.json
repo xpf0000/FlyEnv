@@ -15,7 +15,7 @@
   "hostsOpen": "Open custom hosts file",
   "placeholderName": "host name eg: www.xxx.com",
   "placeholderAlias": "host alias eg: www.xxx.com",
-  "placeholderRemarks": "host remarks",
+  "placeholderComment": "Comment",
   "placeholderRootPath": "host root path",
   "port": "Port",
   "hostSSL": "SSL",
