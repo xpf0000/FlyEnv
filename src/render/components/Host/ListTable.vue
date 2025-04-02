@@ -87,7 +87,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column align="center" :label="I18nT('host.setup')" width="100px">
+        <el-table-column align="center" :label="I18nT('host.operation')" width="100px">
           <template #default="scope">
             <template v-if="scope?.row?.deling || scope.row.id !== quickEdit?.id">
               <template v-if="!scope?.row?.deling">

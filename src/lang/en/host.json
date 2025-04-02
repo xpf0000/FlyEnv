@@ -1,6 +1,6 @@
 {
   "site": "Site",
-  "setup": "setup",
+  "operation": "Operation",
   "phpVersion": "php version",
   "comment": "Comment",
   "newProject": "New Project",
