@@ -20,7 +20,7 @@ export function startMemcached(this: BaseTask) {
       memcached = installed?.find((i) => !!i.path && !!i.version)
     }
     if (!memcached || !memcached?.version) {
-      reject(new Error(I18nT('ai.未发现可用版本')))
+      reject(new Error(I18nT('ai.noAvailableVersion')))
       return
     }
     const res = await startService('memcached', memcached)
@@ -28,7 +28,7 @@ export function startMemcached(this: BaseTask) {
       const aiStore = AIStore()
       aiStore.chatList.push({
         user: 'ai',
-        content: I18nT('ai.Memcached服务启动成功')
+        content: I18nT('ai.memcachedServiceStarted')
       })
       resolve(true)
       return

@@ -12,7 +12,7 @@ export class ApacheStartFail extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.尝试启动Apache服务')
+            content: I18nT('ai.tryingToStartApacheService')
           })
         },
         run: startApache.bind(this)

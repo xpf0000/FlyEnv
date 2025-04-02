@@ -13,7 +13,7 @@ export class MemcachedStartFail extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.请查看日志', { flag: 'Memcached' })
+            content: I18nT('ai.checkLogs', { flag: 'Memcached' })
           })
         },
         needInput: true,
@@ -24,7 +24,7 @@ export class MemcachedStartFail extends BaseTask {
             if (regex.test(err)) {
               aiStore.chatList.push({
                 user: 'ai',
-                content: I18nT('ai.识别到端口占用')
+                content: I18nT('ai.portOccupationDetected')
               })
               regex.lastIndex = 0
               const port = new Set()
@@ -48,7 +48,7 @@ export class MemcachedStartFail extends BaseTask {
                 })
               return
             }
-            reject(new Error(I18nT('ai.未识别到错误原因')))
+            reject(new Error(I18nT('ai.errorCauseNotIdentified')))
           })
         }
       }

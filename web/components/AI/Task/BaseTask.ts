@@ -47,7 +47,7 @@ class BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.任务执行失败', { err: e.toString() })
+            content: I18nT('ai.taskExecutionFailed', { err: e.toString() })
           })
         })
     }

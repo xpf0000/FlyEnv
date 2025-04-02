@@ -1,6 +1,6 @@
 <template>
   <div class="chat-plant-siteaccesserror">
-    <div class="title"> {{ $t('ai.错误类型') }} </div>
+    <div class="title"> {{ $t('ai.errorType') }} </div>
     <div class="btns">
       <el-button type="primary" @click.stop="send(403)">403</el-button>
       <el-button type="primary" @click.stop="send(404)">404</el-button>

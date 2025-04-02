@@ -114,14 +114,14 @@
       aiStore.currentTask = undefined
       aiStore.chatList.push({
         user: 'ai',
-        content: I18nT('ai.任务已终止')
+        content: I18nT('ai.tasksAborted')
       })
       return
     }
     if (aiStore?.currentTask?.state === 'normal' || aiStore?.currentTask?.state === 'running') {
       aiStore.chatList.push({
         user: 'ai',
-        content: I18nT('ai.当前有任务正在执行')
+        content: I18nT('ai.taskInProgress')
       })
       return
     }
@@ -192,7 +192,7 @@
     }
     aiStore.chatList.push({
       user: 'ai',
-      content: I18nT('ai.尚不能执行此任务')
+      content: I18nT('ai.taskCannotExecute')
     })
     return
   }
