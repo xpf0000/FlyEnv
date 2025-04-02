@@ -8,11 +8,11 @@
         default-expand-all
         :row-class-name="tableRowClassName"
       >
-        <el-table-column :label="I18nT('host.name')">
+        <el-table-column :label="I18nT('host.site')">
           <template #header>
             <div class="w-p100 name-cell">
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
-                I18nT('host.name')
+                I18nT('host.site')
               }}</span>
               <el-input v-model.trim="search" placeholder="{{ I18nT('base.placeholderSearch') }}" clearable></el-input>
             </div>

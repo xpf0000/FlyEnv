@@ -1,5 +1,5 @@
 {
-  "name": "site",
+  "site": "Site",
   "setup": "setup",
   "phpVersion": "php version",
   "comment": "Comment",
