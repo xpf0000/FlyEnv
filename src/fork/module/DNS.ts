@@ -4,7 +4,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import dns2 from 'dns2'
 import { Packet } from 'dns2'
 import * as ip from 'ip'
-import {join} from "path";
+import { join } from 'path'
 
 const Tangerine = require('@shared/Tangerine.js')
 
@@ -42,7 +42,8 @@ class Manager extends Base {
           const ip = items?.shift()?.toLowerCase()
           if (ip) {
             items.forEach((i) => {
-              this.hosts[i] = ip === '::1' || ip === '127.0.0.1' || ip === 'localhost' ? LOCAL_IP : ip
+              this.hosts[i] =
+                ip === '::1' || ip === '127.0.0.1' || ip === 'localhost' ? LOCAL_IP : ip
             })
           }
         })
@@ -110,10 +111,11 @@ class Manager extends Base {
                   })
                   send(response)
                 }
-              }).catch((e: any) => {
+              })
+              .catch((e: any) => {
                 console.log(`tangerine resolve error: ${e}`)
-              send(response)
-            })
+                send(response)
+              })
           } catch (e) {
             send(response)
           }

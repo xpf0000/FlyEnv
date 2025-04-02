@@ -397,7 +397,11 @@ subjectAltName=@alt_names
       }
 
       if (typeFlag === 'composer') {
-        oldPath = oldPath.filter((s) => !s.includes('%COMPOSER_HOME%\\vendor\\bin') && !s.includes('%APPDATA%\\Composer\\vendor\\bin'))
+        oldPath = oldPath.filter(
+          (s) =>
+            !s.includes('%COMPOSER_HOME%\\vendor\\bin') &&
+            !s.includes('%APPDATA%\\Composer\\vendor\\bin')
+        )
       }
 
       oldPath = handleWinPathArr(oldPath)
@@ -554,7 +558,7 @@ php "%~dp0composer.phar" %*`
         }
         let composer_bin_dir = ''
         try {
-          const d = await execPromise(`echo %COMPOSER_HOME%\\Composer`);
+          const d = await execPromise(`echo %COMPOSER_HOME%\\Composer`)
           composer_bin_dir = d?.stdout?.trim()
           console.log('d: ', d)
         } catch (e) {}
@@ -562,7 +566,7 @@ php "%~dp0composer.phar" %*`
           oldPath.push(`%COMPOSER_HOME%\\vendor\\bin`)
         } else {
           try {
-            const d = await execPromise(`echo %APPDATA%\\Composer`);
+            const d = await execPromise(`echo %APPDATA%\\Composer`)
             composer_bin_dir = d?.stdout?.trim()
             console.log('d: ', d)
           } catch (e) {}
@@ -615,6 +619,13 @@ php "%~dp0composer.phar" %*`
           `[tool][updatePATH][error]: ${e}\n`
         )
         return reject(e)
+      }
+
+      if (typeFlag === 'php') {
+        const phpModule = (await import('./Php')).default
+        try {
+          await phpModule.getIniPath(item)
+        } catch (e) {}
       }
 
       const allPath = await this.fetchPATH()

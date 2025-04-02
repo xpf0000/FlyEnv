@@ -6,7 +6,7 @@
       <el-popover popper-class="dns-tips-popper" :show-after="800" width="auto">
         <template #default>
           <div>
-            {{ $t('host.dnsInfo', { ip: `@${ip}` }) }}
+            {{ $t('host.dnsInfo', { ip: `@${ip}`, ipWin: ip }) }}
           </div>
         </template>
         <template #reference>

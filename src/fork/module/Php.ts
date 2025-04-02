@@ -77,10 +77,25 @@ class Php extends Base {
         if (existsSync(dll)) {
           content = content + `\nextension=php_fileinfo.dll`
         }
+        dll = join(version.path, 'ext/php_zip.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_zip.dll`
+        }
+        dll = join(version.path, 'ext/php_mbstring.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_mbstring.dll`
+        }
 
         content = content + `\nextension=php_mysqli.dll`
         content = content + `\nextension=php_pdo_mysql.dll`
         content = content + `\nextension=php_pdo_odbc.dll`
+
+        const cacertpem = join(global.Server.BaseDir!, 'CA/cacert.pem').split('\\').join('/')
+        await mkdirp(dirname(cacertpem))
+        if (!existsSync(cacertpem)) {
+          await copyFile(join(global.Server.Static!, 'tmpl/cacert.pem'), cacertpem)
+        }
+        content = content.replace(';curl.cainfo =', `curl.cainfo = "${cacertpem}"`)
 
         await writeFile(ini, content)
         const iniDefault = join(version.path, 'php.ini.default')

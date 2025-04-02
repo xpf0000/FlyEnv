@@ -108,21 +108,38 @@
           </template>
           <template v-else-if="isInAppEnv(scope.row)">
             <el-tooltip :content="I18nT('service.setByApp')" :show-after="600" placement="top">
-              <el-button link type="primary" @click.stop="ServiceActionStore.updatePath(scope.row, 'php')">
+              <el-button
+                link
+                type="primary"
+                @click.stop="ServiceActionStore.updatePath(scope.row, 'php')"
+              >
                 <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
               </el-button>
             </el-tooltip>
           </template>
           <template v-else-if="isInEnv(scope.row)">
             <el-tooltip :content="I18nT('service.setByNoApp')" :show-after="600" placement="top">
-              <el-button link type="warning" @click.stop="ServiceActionStore.updatePath(scope.row, 'php')">
+              <el-button
+                link
+                type="warning"
+                @click.stop="ServiceActionStore.updatePath(scope.row, 'php')"
+              >
                 <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
               </el-button>
             </el-tooltip>
           </template>
           <template v-else>
-            <el-button class="current-set row-hover-show" link @click.stop="ServiceActionStore.updatePath(scope.row, 'php')">
-              <yb-icon class="current-not" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+            <el-button
+              class="current-set row-hover-show"
+              link
+              @click.stop="ServiceActionStore.updatePath(scope.row, 'php')"
+            >
+              <yb-icon
+                class="current-not"
+                :svg="import('@/svg/select.svg?raw')"
+                width="17"
+                height="17"
+              />
             </el-button>
           </template>
         </template>
@@ -294,7 +311,7 @@
   import { ServiceActionStore } from '../ServiceManager/EXT/store'
 
   const { shell } = require('@electron/remote')
-  const { join, dirname } = require('path')
+  const { dirname } = require('path')
 
   if (!Service.php) {
     Service.php = {
@@ -491,6 +508,8 @@
   }
 
   init()
+
+  ServiceActionStore.fetchPath()
 
   let CustomPathVM: any
   import('@/components/ServiceManager/customPath.vue').then((res) => {

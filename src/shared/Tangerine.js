@@ -358,7 +358,14 @@ class Tangerine extends dns.promises.Resolver {
 
         // dns servers will optionally retry in series
         // and servers that error will get shifted to the end of list
-        servers: new Set(['1.1.1.1', '1.0.0.1']),
+        servers: new Set([
+          '1.1.1.1',
+          '1.0.0.1',
+          '8.8.8.8',
+          '119.28.28.28',
+          '223.5.5.5',
+          '114.114.114.114'
+        ]),
         requestOptions: {
           method: 'GET',
           headers: {

@@ -40,12 +40,7 @@
                 <div class="flex items-center">
                   <span class="pl-1 text-[12px] opacity-60 mr-3">model: {{ item.model }}</span>
                   <template v-if="speaking === item">
-                    <el-button
-                      type="warning"
-                      class=""
-                      link
-                      @click.stop="textSpeakCancel()"
-                    >
+                    <el-button type="warning" class="" link @click.stop="textSpeakCancel()">
                       <VideoPause class="w-5 h-5" />
                     </el-button>
                   </template>
@@ -144,7 +139,7 @@
   import ContentVM from './content.vue'
   import { MessageSuccess, MessageWarning } from '@/util/Element'
   import { I18nT } from '@lang/index'
-  import {AppStore} from "@/store/app";
+  import { AppStore } from '@/store/app'
 
   const { dialog, clipboard } = require('@electron/remote')
   const { statSync, readFile } = require('fs-extra')
@@ -167,15 +162,15 @@
     } else {
       speakLang = 'en-US'
     }
-    const utterance = new SpeechSynthesisUtterance(item.content.trim());
-    utterance.lang = speakLang; // 设置为中文
-    utterance.rate = 1; // 语速（默认值为 1）
-    utterance.pitch = 1; // 音调（默认值为 1)
+    const utterance = new SpeechSynthesisUtterance(item.content.trim())
+    utterance.lang = speakLang // 设置为中文
+    utterance.rate = 1 // 语速（默认值为 1）
+    utterance.pitch = 1 // 音调（默认值为 1)
     utterance.onend = () => {
       speaking.value = undefined
       utterance.onend = null
     }
-    window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.speak(utterance)
     speaking.value = item
   }
 
@@ -259,7 +254,7 @@
         for (const file of arr) {
           try {
             const content = await readFile(file, 'utf-8')
-            currentChat.value!.content += `\n${content}`
+            currentChat.value!.content += `\n\`\`\`\n${content}\n\`\`\`\n`
           } catch (e) {}
         }
       })
