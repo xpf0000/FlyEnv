@@ -1,8 +1,8 @@
 {
   "name": "site",
-  "mark": "mark",
   "setup": "setup",
   "phpVersion": "php version",
+  "comment": "Comment",
   "newProject": "New Project",
   "dir": "Dir",
   "frameWork": "Framework",
