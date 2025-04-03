@@ -11,7 +11,7 @@
       <div class="main p-0">
         <el-input
           v-model.number="port"
-          placeholder="Please input port"
+          placeholder="Please input port number"
           class="input-with-select"
           @change="doSearch"
         >
@@ -37,9 +37,9 @@
               @selection-change="handleSelectionChange"
             >
               <el-table-column type="selection" width="55" />
-              <el-table-column prop="COMMAND" label="COMMAND"> </el-table-column>
+              <el-table-column prop="COMMAND" label="Command"> </el-table-column>
               <el-table-column prop="PID" label="PID"> </el-table-column>
-              <el-table-column prop="USER" label="USER"> </el-table-column>
+              <el-table-column prop="USER" label="User"> </el-table-column>
             </el-table>
           </el-card>
         </div>

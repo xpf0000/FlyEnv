@@ -12,7 +12,7 @@
   "obfuscatorPhpVersion": "Obfuscate with PHP version",
   "obfuscatorSrc": "PHP file or folder to be obfuscated",
   "obfuscatorDesc": "Save the file or folder, not duplicate the source file or folder",
-  "obfuscatorConfig": "Advanced Setup",
+  "obfuscatorConfig": "Advanced Settings",
   "noExtensionsDir": "Extensions folder does not exist, please install the extension first",
   "extensionsLib": "Extensions Library",
   "groupStartOff": "Turn off group quickstart",

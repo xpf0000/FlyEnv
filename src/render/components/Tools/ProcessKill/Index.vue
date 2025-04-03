@@ -41,8 +41,8 @@
             >
               <el-table-column type="selection" width="55" />
               <el-table-column prop="PID" label="PID" width="240"> </el-table-column>
-              <el-table-column prop="USER" label="USER" width="110"> </el-table-column>
-              <el-table-column prop="COMMAND" label="COMMAND"> </el-table-column>
+              <el-table-column prop="USER" label="User" width="110"> </el-table-column>
+              <el-table-column prop="COMMAND" label="Command"> </el-table-column>
             </el-table>
           </el-card>
         </div>

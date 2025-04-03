@@ -88,7 +88,7 @@
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'link')">
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.link') }}</span>
+                      <span class="ml-15">{{ I18nT('base.links') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'log')">
                       <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />

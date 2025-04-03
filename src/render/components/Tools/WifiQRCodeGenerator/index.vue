@@ -86,7 +86,7 @@
     <div class="p-3 pb-0 overflow-hidden flex-1">
       <el-scrollbar>
         <el-card>
-          <el-form-item label="Encryption method" label-position="top">
+          <el-form-item label="Encryption Method" label-position="top">
             <el-select v-model="encryption" class="w-full">
               <template v-for="item in methods" :key="item.value">
                 <el-option :label="item.label" :value="item.value"></el-option>
@@ -133,7 +133,7 @@
             </el-form-item>
           </template>
 
-          <el-form-item label="Foreground color:" label-width="140px" label-position="right">
+          <el-form-item label="Foreground Color:" label-width="140px" label-position="right">
             <el-color-picker
               v-model="foreground"
               color-format="hex"
@@ -141,7 +141,7 @@
               @active-change="(v: string) => (foreground = v)"
             />
           </el-form-item>
-          <el-form-item label="Background color:" label-width="140px" label-position="right">
+          <el-form-item label="Background Color:" label-width="140px" label-position="right">
             <el-color-picker
               v-model="background"
               color-format="hex"
@@ -151,7 +151,7 @@
           </el-form-item>
           <div v-if="qrcode" class="flex flex-col items-center gap-3">
             <el-image :src="qrcode" class="w-48" />
-            <el-button @click="download"> Download qr-code </el-button>
+            <el-button @click="download"> Download QR Code </el-button>
           </div>
         </el-card>
       </el-scrollbar>

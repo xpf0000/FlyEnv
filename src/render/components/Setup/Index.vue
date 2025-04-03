@@ -31,7 +31,7 @@
       },
       {
         value: 'editor',
-        label: I18nT('base.editorSetup')
+        label: I18nT('base.editorSettings')
       },
       {
         value: 'licenses',

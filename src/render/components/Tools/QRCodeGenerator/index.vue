@@ -58,7 +58,7 @@
 
     <div class="main-wapper pb-0">
       <el-card>
-        <el-form-item label="Text:" label-width="140px" label-position="right">
+        <el-form-item label="Data / Text:" label-width="140px" label-position="right">
           <el-input
             v-model="text"
             type="text"
@@ -68,7 +68,7 @@
           />
         </el-form-item>
 
-        <el-form-item label="Foreground color:" label-width="140px" label-position="right">
+        <el-form-item label="Foreground Color:" label-width="140px" label-position="right">
           <el-color-picker
             v-model="foreground"
             color-format="hex"
@@ -76,7 +76,7 @@
             @active-change="(v: string) => (foreground = v)"
           />
         </el-form-item>
-        <el-form-item label="Background color:" label-width="140px" label-position="right">
+        <el-form-item label="Background Color:" label-width="140px" label-position="right">
           <el-color-picker
             v-model="background"
             color-format="hex"
@@ -84,7 +84,7 @@
             @active-change="(v: string) => (background = v)"
           />
         </el-form-item>
-        <el-form-item label="Error resistance:" label-width="140px" label-position="right">
+        <el-form-item label="Error Resistance:" label-width="140px" label-position="right">
           <el-select v-model="errorCorrectionLevel" class="w-full">
             <template v-for="item in errorCorrectionLevels" :key="item">
               <el-option :label="item" :value="item"></el-option>
@@ -94,7 +94,7 @@
 
         <div class="flex flex-col items-center gap-3">
           <el-image :src="qrcode" class="w-48" />
-          <el-button @click="download"> Download qr-code </el-button>
+          <el-button @click="download"> Download QR Code </el-button>
         </div>
       </el-card>
     </div>

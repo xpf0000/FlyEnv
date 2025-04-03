@@ -113,7 +113,7 @@
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'link')">
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.link') }}</span>
+                      <span class="ml-15">{{ I18nT('base.links') }}</span>
                     </li>
                     <li @click.stop="showConfig({ flag: 'nginx', item: scope.row })">
                       <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />

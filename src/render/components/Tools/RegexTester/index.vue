@@ -87,22 +87,22 @@
 
           <el-form-item label-position="top">
             <el-tooltip content="Global search">
-              <el-checkbox v-model="Store.global"> Global search. (g) </el-checkbox>
+              <el-checkbox v-model="Store.global"> Global Search [g] </el-checkbox>
             </el-tooltip>
             <el-tooltip content="Case-insensitive search">
-              <el-checkbox v-model="Store.ignoreCase"> Case-insensitive search. (i) </el-checkbox>
+              <el-checkbox v-model="Store.ignoreCase"> Case-Insensitive Search [i] </el-checkbox>
             </el-tooltip>
             <el-tooltip content="Allows ^ and $ to match next to newline characters.">
-              <el-checkbox v-model="Store.multiline"> Multiline(m) </el-checkbox>
+              <el-checkbox v-model="Store.multiline"> Multiline [m] </el-checkbox>
             </el-tooltip>
             <el-tooltip content="Allows . to match newline characters.">
-              <el-checkbox v-model="Store.dotAll"> Singleline(s) </el-checkbox>
+              <el-checkbox v-model="Store.dotAll"> Single Line [s] </el-checkbox>
             </el-tooltip>
             <el-tooltip content="Unicode; treat a pattern as a sequence of Unicode code points.">
-              <el-checkbox v-model="Store.unicode"> Unicode(u) </el-checkbox>
+              <el-checkbox v-model="Store.unicode"> Unicode [u] </el-checkbox>
             </el-tooltip>
             <el-tooltip content="An upgrade to the u mode with more Unicode features.">
-              <el-checkbox v-model="Store.unicodeSets"> Unicode Sets (v) </el-checkbox>
+              <el-checkbox v-model="Store.unicodeSets"> Unicode Sets [v] </el-checkbox>
             </el-tooltip>
           </el-form-item>
 
@@ -118,7 +118,7 @@
 
         <el-card header="Matches" class="mb-1 mt-3">
           <el-table v-if="Store.results?.length > 0" :data="Store.results">
-            <el-table-column label="Index in text" prop="index"></el-table-column>
+            <el-table-column label="Index" prop="index"></el-table-column>
             <el-table-column label="Value" prop="value"></el-table-column>
             <el-table-column label="Captures">
               <template #default="scope">

@@ -11,7 +11,7 @@
       <div class="main p-0">
         <el-input
           v-model.number="port"
-          placeholder="Please input port"
+          placeholder="Please input port number"
           class="input-with-select"
           @change="doSearch"
         >

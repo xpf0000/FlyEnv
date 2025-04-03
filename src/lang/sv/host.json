@@ -10,7 +10,7 @@
   "toCreateHost": "Skapa värd",
   "dnsInfo": "Slå på en DNS-server. Lös domännamnet som anges i /etc/hosts-filen till den lokala IP:n. Används huvudsakligen för att andra datorer eller telefoner i LAN ska kunna komma åt den lokala webbplatsen. \nDenna funktion kräver node, så om du inte har det installerat, installera det först.\nHur man använder.\n1. Starta DNS-servern.\n2. På andra datorer eller telefoner, ställ in nätverkets DNS, ange DNS-IP:n som visas i det aktuella gränssnittet. Det är bäst att endast behålla denna DNS-inställning och sedan återställa den ursprungliga inställningen när den inte längre används.\n3. Använd detta kommando för testning: dig {ip} domän\n4. På andra datorer eller telefoner, använd domännamnet för den lokala webbplatsen för att komma åt.\n",
   "staticSite": "Statisk webbplats",
-  "park": "Generera undersidor",
+  "park": "Aktivera undermappar som underdomäner",
   "hostsCopy": "Kopiera hosts-text",
   "hostsOpen": "Öppna anpassad hosts-fil",
   "placeholderName": "Värdnamn (Exempel: domain.tld)",

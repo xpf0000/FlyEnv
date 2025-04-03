@@ -55,13 +55,13 @@
   "toolSystemEnv": "Systemmiljö",
   "toolSSL": "SSL Skapa",
   "toolFileInfo": "Filinformation",
-  "toolTimestamp": "Tidsstämpel",
+  "toolTimestamp": "Tidsstämpelkonvertering",
   "toolDecode": "Avkoda/koda",
   "toolPortKill": "Port avsluta",
   "toolProcessKill": "Avsluta process",
   "toolPhpObfuscator": "PHP fördunklare",
-  "toolUTF8BomClean": "UTF8-Bom Rensa",
-  "toolSiteSucker": "Site Sucker",
+  "toolUTF8BomClean": "UTF-8 BOM Rensning",
+  "toolSiteSucker": "URL Harvesting",
   "toolFileNotExist": "Filen finns inte",
   "toolFileTooMore": "Misslyckades med att hämta filen, vänligen rensa inte för många filer samtidigt.",
   "toolSaveConfirm": "Är du säker på att du vill spara det?",
@@ -74,5 +74,5 @@
   },
   "noVerionsFoundInLib": "Ingen version tillgänglig",
   "noLibFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> eller <a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> hittades inte, versionshantering är inte tillgänglig.\nInstallera Macports, du kan klicka på denna länk\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nFölj dokumentationen för att installera.\nInstallera Homebrew, du kan klicka på denna länk\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macphpstudy.com/zh/help-4-2.html')\">https://www.macphpstudy.com/zh/help-4-2.html</a>\nFölj dokumentationen för att installera.",
-  "showToolBtn": "Visa Verktygsflytande kan"
+  "showToolBtn": "Visa flytande verktygsknappar"
 }
