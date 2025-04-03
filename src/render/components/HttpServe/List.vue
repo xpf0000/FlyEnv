@@ -16,7 +16,7 @@
             <span class="value" @click.stop="openDir(key)">{{ key }} </span>
           </div>
           <div class="bottom">
-            <span class="name">{{ $t('base.link') }}:</span>
+            <span class="name">{{ $t('base.links') }}:</span>
             <template v-if="!item.host">
               <span class="url empty">{{ $t('base.none') }}</span>
             </template>

@@ -56,7 +56,7 @@
                     v-model.trim="form.proxy"
                     type="text"
                     class="input"
-                    placeholder="eg: http://127.0.0.1:1087"
+                    placeholder="Example: http://127.0.0.1:1087"
                   />
                 </div>
               </el-form-item>

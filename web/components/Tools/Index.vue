@@ -280,7 +280,7 @@
     if (like.length > 0) {
       const likeItem: AsideTreeDataType = {
         isTop: true,
-        label: 'Favorite',
+        label: 'Favorites',
         children: []
       }
       for (const id of like) {

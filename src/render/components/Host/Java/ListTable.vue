@@ -128,7 +128,7 @@
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'link')">
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.link') }}</span>
+                      <span class="ml-15">{{ I18nT('base.links') }}</span>
                     </li>
                     <template v-if="scope.row.subType === 'other'">
                       <li @click.stop="showConfig(scope.row)">
