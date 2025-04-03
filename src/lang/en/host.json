@@ -21,7 +21,7 @@
   "hostSSL": "SSL",
   "parkConfirm": "Make sure to generate sites based on subdirectories?",
   "autoSSL": "Auto SSL Certificates",
-  "phpMyAdminInstallTips": "No phpMyAdmin site found with domain phpmyadmin.phpwebstudy.test, Download phpMyAdmin and create site?",
+  "phpMyAdminInstallTips": "No phpMyAdmin site found with domain phpmyadmin.local, Download phpMyAdmin and create site?",
   "phpMyAdminTaskRunning": "Download phpMyAdmin and create site",
   "warning": "Warning",
   "noPhpWarning": "Check that no PHP version is selected, a static site will be created, and the PHP files will cannot be executed. Are you sure to continue?",
