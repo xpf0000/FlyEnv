@@ -36,8 +36,8 @@
     <div class="main-wapper pb-0">
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
         <div>
-          <el-card header="Escape html entities">
-            <el-form-item label-position="top" label="Your string :">
+          <el-card header="Encode/Escape HTML Entities">
+            <el-form-item label-position="top" label="String:">
               <el-input
                 v-model="Store.encodeInput"
                 type="textarea"
@@ -45,7 +45,7 @@
                 placeholder="The string to escape"
               ></el-input>
             </el-form-item>
-            <el-form-item label="Your string escaped :" label-position="top">
+            <el-form-item label="Escaped String:" label-position="top">
               <el-input
                 :model-value="Store.encodeOutput"
                 readonly
@@ -60,8 +60,8 @@
           </el-card>
         </div>
         <div>
-          <el-card header="Unescape html entities">
-            <el-form-item label-position="top" label="Your escaped string :">
+          <el-card header="Decode/Unescape HTML Entities">
+            <el-form-item label-position="top" label="Escaped String:">
               <el-input
                 v-model="Store.decodeInput"
                 type="textarea"
@@ -69,7 +69,7 @@
                 placeholder="The string to unescape"
               ></el-input>
             </el-form-item>
-            <el-form-item label="Your string unescaped :" label-position="top">
+            <el-form-item label="Unescaped String:" label-position="top">
               <el-input
                 :model-value="Store.decodeOutput"
                 readonly

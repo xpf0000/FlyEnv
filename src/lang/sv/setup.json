@@ -12,8 +12,8 @@
   "autoStartServiceTips": "Om tjänster ska startas automatiskt när appen startar",
   "autoHide": "Dölj gränssnitt automatiskt",
   "autoHideTips": "Om huvudgränssnittet ska döljas och endast ikon i systemfältet behållas efter automatisk start av tjänsten",
-  "autoLunach": "Starta automatiskt vid uppstart",
-  "autoLunachTips": "Om appen ska startas automatiskt när datorn startar",
+  "autoLaunch": "Starta automatiskt vid uppstart",
+  "autoLaunchTips": "Om appen ska startas automatiskt när datorn startar",
   "passwordTips": "Ej obligatoriskt. Fyll automatiskt i lösenord vid körning av kommandon. Till exempel vid installation och avinstallation med Macports, etc.",
   "langTips": "Ladda användardefinierade språkpaket. Samtidigt kommer ett standardspråkpaket att initieras för att underlätta för användare att översätta till andra språk",
   "openLangDir": "Öppna mappen för språkpaket"

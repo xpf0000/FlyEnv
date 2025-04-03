@@ -151,7 +151,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   const getConfig = () => {
     console.log('getConfig: ', disabled.value)
     if (disabled.value) {
-      config.value = I18nT('base.configNoFound')
+      config.value = I18nT('base.configNotFound')
       initEditor()
       return
     }
