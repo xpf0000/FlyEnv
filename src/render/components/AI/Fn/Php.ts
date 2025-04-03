@@ -11,7 +11,7 @@ export function startPhp(this: BaseTask, version: SoftInstalled) {
       const aiStore = AIStore()
       aiStore.chatList.push({
         user: 'ai',
-        content: I18nT('ai.Php服务启动成功', { num: version.num })
+        content: I18nT('ai.phpServiceStarted', { num: version.num })
       })
       resolve(true)
     } else if (typeof res === 'string') {

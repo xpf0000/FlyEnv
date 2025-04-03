@@ -1,9 +1,9 @@
 <template>
   <div class="chat-plant-choosesiteroot">
-    <div class="title"> {{ $t('ai.选择站点目录') }} </div>
+    <div class="title"> {{ $t('ai.selectSiteDirectory') }} </div>
     <div class="btns">
       <el-button :disabled="item.actionEnd" type="primary" @click.stop="chooseDir()">{{
-        $t('ai.选择文件夹')
+        $t('ai.selectFolder')
       }}</el-button>
     </div>
   </div>

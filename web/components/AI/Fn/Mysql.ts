@@ -18,7 +18,7 @@ export function startMysql(this: BaseTask) {
       mysql = installed?.find((i) => !!i.path && !!i.version)
     }
     if (!mysql || !mysql?.version) {
-      reject(new Error(I18nT('ai.未发现可用版本')))
+      reject(new Error(I18nT('ai.noAvailableVersion')))
       return
     }
     const res = await startService('mysql', mysql)
@@ -26,7 +26,7 @@ export function startMysql(this: BaseTask) {
       const aiStore = AIStore()
       aiStore.chatList.push({
         user: 'ai',
-        content: I18nT('ai.Mysql服务启动成功')
+        content: I18nT('ai.mysqlServiceStarted')
       })
       resolve(true)
       return

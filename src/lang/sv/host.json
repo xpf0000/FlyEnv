@@ -1,7 +1,7 @@
 {
-  "name": "webbplats",
-  "mark": "markera",
-  "setup": "konfiguration",
+  "site": "Webbplats",
+  "comment": "Kommentar",
+  "operation": "Åtgärd",
   "phpVersion": "PHP-version",
   "newProject": "Nytt projekt",
   "dir": "Katalog",
@@ -13,10 +13,10 @@
   "park": "Generera undersidor",
   "hostsCopy": "Kopiera hosts-text",
   "hostsOpen": "Öppna anpassad hosts-fil",
-  "placeholderName": "värdnamn t.ex.: www.xxx.com",
-  "placeholderAlias": "värdalias t.ex.: www.xxx.com",
-  "placeholderRemarks": "värdanmärkningar",
-  "placeholderRootPath": "värdrotväg",
+  "placeholderName": "Värdnamn (Exempel: domain.tld)",
+  "placeholderAlias": "Domänalias (Example: www.domain.tld)",
+  "placeholderRemarks": "Kommentarer",
+  "placeholderRootPath": "Sökväg till dokumentrot",
   "port": "Port",
   "hostSSL": "SSL",
   "parkConfirm": "Är du säker på att du vill generera webbplatser baserade på undermappar?",
@@ -69,5 +69,5 @@
   "sslTips": "<p>Funktionen för automatiska SSL-certifikat kräver att ett certifikat med namnet PhpWebStudy-Root-CA läggs till i nyckelringen och ställs in på alltid lita på</p>\n<p>Normalt kommer denna funktion att slutföras automatiskt. </p>\n<p>Om denna funktion är onormal. Du kan också kopiera och köra kommandon i terminalen. </p>\n<p>Du kan också dubbelklicka för att lägga till certifikatet i den öppnade mappen och manuellt ställa in förtroendet till alltid lita på i nyckelringsappen</p>",
   "copyCommand": "Kopiera kommando",
   "showFile": "Visa fil",
-  "sticky": "Klistrig"
+  "sticky": "Fästbar"
 }
