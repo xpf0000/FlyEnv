@@ -11,7 +11,7 @@ http://phpmyadmin.phpwebstudy.test {
 
     redir @canonicalPath {path}/ 308
 
-    root * /Users/xxxxxx/Library/PhpWebStudy/server/www/phpMyAdmin-5.2.1-all-languages
+    root * /Users/xxxxxx/Library/PhpWebStudy/server/www/phpMyAdmin-5.2.2-all-languages
 
     route {
         import enable-php-select 84
@@ -35,7 +35,7 @@ https://phpmyadmin.phpwebstudy.test:443 {
 
     redir @canonicalPath {path}/ 308
 
-    root * /Users/xxxxxx/Library/PhpWebStudy/server/www/phpMyAdmin-5.2.1-all-languages
+    root * /Users/xxxxxx/Library/PhpWebStudy/server/www/phpMyAdmin-5.2.2-all-languages
 
     route {
         import enable-php-select 84
