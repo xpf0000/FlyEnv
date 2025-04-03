@@ -26,7 +26,7 @@
   "MP_SMTP_REQUIRE_STARTTLS": "要求所有 SMTP 客户端使用 STARTTLS 加密。如果设置为 true，则在连接升级到 STARTTLS 之前，唯一允许的命令是 NOOP、EHLO、STARTTLS 和 QUIT（如 RFC 4954 中指定）。",
   "MP_SMTP_REQUIRE_TLS": "要求所有 SMTP 客户端使用 SSL/TLS 加密。如果设置为 true，则所有与 SMTP 服务器的连接都必须通过 TLS 进行处理。这与 STARTTLS 不同，STARTTLS 要求初始连接未加密。请注意，此选项会禁用 STARTTLS，并可能会降低客户端兼容性。",
   "MP_SMTP_AUTH_ALLOW_INSECURE": "通常，对于所有 SMTP 身份验证都强制执行 STARTTLS 或 TLS。使用 STARTTLS 时，此选项允许不安全的 PLAIN 和 LOGIN SMTP 身份验证。",
-  "MP_SMTP_STRICT_RFC_HEADERS": "如果邮件标头包含 \\n 而不是 \\r\\n 换行符，则强制 Mailpit 返回 SMTP 错误。默认情况下，Mailpit 会默默地修复由某些损坏的 sendmail 客户端生成的错误换行符（请参阅相关的 Github 问题）。",
+  "MP_SMTP_STRICT_RFC_HEADERS": "如果邮件标头包含 \\n 而不是 \\r\\n 换行符，则强制 Mailpit 返回 SMTP 错误。默认情况下，Mailpit 会默默地修复由某些损坏的 sendmail 客户端生成的错误换行符（请参阅相关的 GitHub 问题）。",
   "MP_SMTP_MAX_RECIPIENTS": "每封邮件允许的 SMTP 收件人最大数量。",
   "MP_SMTP_ALLOWED_RECIPIENTS": "仅允许与正则表达式匹配的 SMTP 收件人。使用此选项可将传入邮件限制为仅发送到预定义列表的邮件。例如 --smtp-allowed-recipients '{'@'}example.com$' 仅允许将电子邮件发送给以 {'@'}example.com 结尾的收件人。",
   "MP_SMTP_DISABLE_RDNS": "禁用 SMTP 反向 DNS 查找。默认情况下，SMTP 将尝试解析连接客户端的 IP 地址的主机名，但在测试网络中，这有时可能会出现问题，导致每条消息传送延迟。",

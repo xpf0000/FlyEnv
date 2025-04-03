@@ -1,17 +1,17 @@
 <template>
   <div class="plant-title flex items-center gap-1">
-    <span>{{ $t('setup.autoLunach') }}</span>
+    <span>{{ $t('setup.autoLaunch') }}</span>
     <el-popover placement="top" width="auto">
       <template #reference>
         <yb-icon :svg="import('@/svg/question.svg?raw')" width="12" height="12"></yb-icon>
       </template>
       <template #default>
-        <span>{{ $t('setup.autoLunachTips') }}</span>
+        <span>{{ $t('setup.autoLaunchTips') }}</span>
       </template>
     </el-popover>
   </div>
   <div class="main reset-pass">
-    <el-switch v-model="autoLunach"></el-switch>
+    <el-switch v-model="autoLaunch"></el-switch>
   </div>
 </template>
 
@@ -21,12 +21,12 @@
 
   const store = AppStore()
 
-  const autoLunach = computed({
+  const autoLaunch = computed({
     get() {
-      return store.config.setup?.autoLunach ?? false
+      return store.config.setup?.autoLaunch ?? false
     },
     set(v) {
-      store.config.setup.autoLunach = v
+      store.config.setup.autoLaunch = v
     }
   })
 </script>
