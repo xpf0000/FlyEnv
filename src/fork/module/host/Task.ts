@@ -92,7 +92,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
   return new ForkPromise(async (resolve, reject, on) => {
     const zipFile = join(global.Server.Cache!, 'phpMyAdmin.zip')
     const wwwDir = join(global.Server.BaseDir!, 'www')
-    const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin-5.2.2-all-languages')
+    const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin')
     let hostList: Array<AppHost> = []
     try {
       hostList = await fetchHostList()
@@ -157,7 +157,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
         },
         url: '',
         root: siteDir,
-        mark: 'PhoMyAdmin - PhpWebStudy Auto Created',
+        mark: 'PhpMyAdmin (Auto Created)',
         phpVersion: undefined
       }
       if (phpVersion) {
@@ -180,7 +180,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
     if (existsSync(zipTmpFile)) {
       await remove(zipTmpFile)
     }
-    const url = 'https://files.phpmyadmin.net/phpMyAdmin/5.2.2/phpMyAdmin-5.2.2-all-languages.zip'
+    const url = 'https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.zip'
     downFile(url, zipTmpFile)
       .on(on)
       .then(async () => {
