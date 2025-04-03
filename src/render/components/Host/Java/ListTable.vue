@@ -8,13 +8,13 @@
         default-expand-all
         :row-class-name="tableRowClassName"
       >
-        <el-table-column :label="I18nT('host.name')">
+        <el-table-column :label="I18nT('host.site')">
           <template #header>
             <div class="w-p100 name-cell">
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
-                I18nT('host.name')
+                I18nT('host.site')
               }}</span>
-              <el-input v-model.trim="search" placeholder="search" clearable></el-input>
+              <el-input v-model.trim="search" placeholder="{{ I18nT('base.placeholderSearch') }}" clearable></el-input>
             </div>
           </template>
           <template #default="scope">
@@ -56,7 +56,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('host.mark')">
+        <el-table-column :label="I18nT('host.comment')">
           <template #default="scope">
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>
@@ -106,7 +106,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column align="center" :label="I18nT('host.setup')" width="100px">
+        <el-table-column align="center" :label="I18nT('host.operation')" width="100px">
           <template #default="scope">
             <template v-if="scope?.row?.deling || scope.row.id !== quickEdit?.id">
               <template v-if="!scope?.row?.deling">
