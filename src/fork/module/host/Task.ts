@@ -98,7 +98,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
       hostList = await fetchHostList()
     } catch (e) {}
 
-    const find = hostList.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
+    const find = hostList.find((h) => h.name === 'phpmyadmin.local')
     if (find) {
       resolve(true)
       return
@@ -136,7 +136,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
 
       const hostItem: any = {
         id: new Date().getTime(),
-        name: 'phpmyadmin.phpwebstudy.test',
+        name: 'phpmyadmin.local',
         alias: '',
         useSSL: useSSL,
         autoSSL: autoSSL,

@@ -1,6 +1,6 @@
-http://phpmyadmin.phpwebstudy.test {
+http://phpmyadmin.local {
     encode zstd gzip
-    import set-log /Users/xxxxxx/Library/PhpWebStudy/server/vhost/logs/phpmyadmin.phpwebstudy.test.caddy.log
+    import set-log /Users/xxxxxx/Library/PhpWebStudy/server/vhost/logs/phpmyadmin.local.caddy.log
 
     @canonicalPath {
         file {
@@ -20,9 +20,9 @@ http://phpmyadmin.phpwebstudy.test {
     file_server
 }
 
-https://phpmyadmin.phpwebstudy.test:443 {
+https://phpmyadmin.local:443 {
     encode zstd gzip
-    import set-log /Users/xxxxxx/Library/PhpWebStudy/server/vhost/logs/phpmyadmin.phpwebstudy.test.caddy.log
+    import set-log /Users/xxxxxx/Library/PhpWebStudy/server/vhost/logs/phpmyadmin.local.caddy.log
 
     tls /Users/xxxxxx/Library/PhpWebStudy/server/CA/1710224043276/CA-1710224043276.crt /Users/xxxxxx/Library/PhpWebStudy/server/CA/1710224043276/CA-1710224043276.key
 
