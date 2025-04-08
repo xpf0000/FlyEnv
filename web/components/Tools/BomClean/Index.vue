@@ -40,7 +40,7 @@
           :readonly="data.running ? 'readonly' : null"
           type="text"
           class="input-textarea"
-          placeholder="Exclude (Example: node_modules). One exclude string per line"
+          placeholder="Excludes (Example: node_modules), separated by line."
         ></textarea>
         <div class="block">
           <div class="mt-20"> File Type </div>

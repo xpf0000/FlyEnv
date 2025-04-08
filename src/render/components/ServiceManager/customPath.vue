@@ -21,7 +21,7 @@
       <div class="main">
         <template v-for="(item, index) in dirs" :key="index">
           <div class="path-choose mb-20">
-            <input type="text" class="input" placeholder="root path" readonly="" :value="item" />
+            <input type="text" class="input" placeholder="Document Root Directory" readonly="" :value="item" />
             <div class="icon-block">
               <yb-icon
                 :svg="import('@/svg/folder.svg?raw')"

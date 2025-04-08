@@ -8,7 +8,7 @@
   "serviceNoRun": "Service not running",
   "brewNoFound": "Brew Not Found",
   "getVersionNumFail": "Failed to get version number",
-  "hostsFileNoFound": "hosts file does not exist",
+  "hostsFileNoFound": "The hosts file does not exist",
   "hostsWriteFail": "Failed to write /private/etc/hosts file",
   "hostsReadFail": "Failed to read /private/etc/hosts file",
   "startFail": "Failed to start, please check the log file",

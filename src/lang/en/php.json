@@ -13,7 +13,7 @@
   "obfuscatorSrc": "PHP file or folder to be obfuscated",
   "obfuscatorDesc": "Save the file or folder, not duplicate the source file or folder",
   "obfuscatorConfig": "Advanced Settings",
-  "noExtensionsDir": "Extensions folder does not exist, please install the extension first",
+  "noExtensionsDir": "The extensions folder does not exist, please install extensions first",
   "extensionsLib": "Extensions Library",
   "groupStartOff": "Turn off group quickstart",
   "groupStartOn": "Turn on group quickstart",
