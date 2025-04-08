@@ -136,7 +136,7 @@
   "autoUpdate": "Auto Update",
   "loading": "Loading...",
   "parkTitle": "Resolve subdomains to subfolders",
-  "parkTips": "Resolves subdomains if subdomain name is matching a subfolder name e.g. {subfoldername}.domain.tld.",
+  "parkTips": "Resolves subdomains if subdomain name is matching a subfolder name e.g. {subfoldername}.mydomain.tld.",
   "parkConfirm": "This will make all subfolders accessible as subdomain sites, do you want to continue?",
   "hostsWriteTips": "Add or Remove hostname to \"hosts\" file, the provided content will be wrapped around custom tags, and will not affect other content",
   "brewInstallLang": "-en",

@@ -27,7 +27,7 @@
   "tryingToStartApacheService": "Đang thử khởi động dịch vụ Apache...",
   "enterOrSelectSiteDirectory": "Vui lòng nhập hoặc chọn thư mục trang web",
   "siteDirectoryInvalid": "Thư mục trang web không hợp lệ, tác vụ bị hủy bỏ",
-  "enterSiteDomain": "Vui lòng nhập tên miền của trang web, ví dụ: www.test.com",
+  "enterSiteDomain": "Vui lòng nhập tên miền của trang web, ví dụ: mydomain.tld",
   "domainInvalid": "Tên miền không hợp lệ, tác vụ bị hủy bỏ",
   "creatingSite": "Đang tạo trang web...",
   "checkLogs": "Vui lòng kiểm tra nhật ký {flag} và gửi cho tôi thông báo lỗi.",
