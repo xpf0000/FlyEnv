@@ -33,5 +33,6 @@
   "rsa-key-generator-title": "RSA key pair generator",
   "url-encode-title": "URL Encode/Decode",
   "url-parse-title": "URL Parser",
-  "wifi-qr-code-generator-title": "WiFi QR Code Generator"
+  "wifi-qr-code-generator-title": "WiFi QR Code Generator",
+  "URLTimingAnalyzer": "URL Timing Analyzer"
 }

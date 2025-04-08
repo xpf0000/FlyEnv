@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS-sökning",
+  "tcpConnect": "TCP-anslutning",
+  "tlsHandshake": "TLS-handskakning",
+  "requestProcessing": "Begäran bearbetas",
+  "ttfb": "Första bytetid (TTFB)",
+  "contentDownload": "Nedladdning av innehåll",
+  "downloadSpeed": "Nedladdningshastighet",
+  "dataSize": "Datastorlek",
+  "httpVersion": "HTTP-version",
+  "statusCode": "Statuskod",
+  "usingProxy": "Använder proxy",
+  "totalTime": "Total tid",
+  "skippedForProxy": "DNS hoppades över p.g.a. proxy",
+  "metric": "Mått",
+  "value": "Värde"
+}

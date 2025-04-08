@@ -26,9 +26,10 @@ import updateEN from './update.json'
 import utilEN from './util.json'
 import versionmanagerEN from './versionmanager.json'
 import licensesEN from './licenses.json'
-
+import requestTimer from './requestTimer.json'
 export default {
   en: {
+    requestTimer,
     licenses: licensesEN,
     ai: aiEN,
     apache: apacheEN,

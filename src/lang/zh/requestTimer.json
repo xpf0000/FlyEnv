@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS查询",
+  "tcpConnect": "TCP连接",
+  "tlsHandshake": "TLS握手",
+  "requestProcessing": "请求处理",
+  "ttfb": "首字节时间(TTFB)",
+  "contentDownload": "内容下载",
+  "downloadSpeed": "下载速度",
+  "dataSize": "数据大小",
+  "httpVersion": "HTTP版本",
+  "statusCode": "状态码",
+  "usingProxy": "使用代理",
+  "totalTime": "总耗时",
+  "skippedForProxy": "代理请求跳过DNS",
+  "metric": "指标",
+  "value": "数值"
+}

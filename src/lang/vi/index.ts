@@ -26,9 +26,11 @@ import updateVI from './update.json'
 import utilVI from './util.json'
 import versionmanagerVI from './versionmanager.json'
 import licensesVI from './licenses.json'
+import requestTimer from './requestTimer.json'
 
 export default {
   vi: {
+    requestTimer,
     licenses: licensesVI,
     ai: aiVI,
     apache: apacheVI,
