@@ -26,9 +26,11 @@ import updateZH from './update.json'
 import utilZH from './util.json'
 import versionmanagerZH from './versionmanager.json'
 import licensesZH from './licenses.json'
+import requestTimer from './requestTimer.json'
 
 export default {
   zh: {
+    requestTimer,
     licenses: licensesZH,
     ai: aiZH,
     apache: apacheZH,

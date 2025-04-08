@@ -29,6 +29,7 @@ import type update from './zh/update.json'
 import type util from './zh/util.json'
 import type versionmanager from './zh/versionmanager.json'
 import type licenses from './zh/licenses.json'
+import type requestTimer from './zh/requestTimer.json'
 
 import ZH from './zh/index'
 import EN from './en/index'
@@ -47,6 +48,7 @@ type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
 }[keyof T] // 提取所有值的联合类型
 
 type LangKey =
+  | AppendStringToKeys<typeof requestTimer, 'requestTimer'>
   | AppendStringToKeys<typeof licenses, 'licenses'>
   | AppendStringToKeys<typeof ai, 'ai'>
   | AppendStringToKeys<typeof apache, 'apache'>
@@ -79,7 +81,8 @@ type LangKey =
 export const AppAllLang = {
   en: 'English',
   zh: '中文',
-  vi: 'Tiếng Việt'
+  vi: 'Tiếng Việt',
+  sv: 'Svenska'
 }
 
 const lang = {
