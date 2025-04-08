@@ -27,7 +27,7 @@
   "tryingToStartApacheService": "Try starting the Apache service...",
   "enterOrSelectSiteDirectory": "Please enter or select a site directory",
   "siteDirectoryInvalid": "Site directory invalid, task aborted",
-  "enterSiteDomain": "Please enter the domain name of the site, e.g: www.test.com",
+  "enterSiteDomain": "Please enter the domain name of the site (Example: mydomain.tld).",
   "domainInvalid": "Domain name invalid, task aborted",
   "creatingSite": "Create site...",
   "checkLogs": "Please check the {flag} log, and send me the error message.",
