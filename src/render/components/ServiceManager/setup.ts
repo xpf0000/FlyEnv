@@ -198,7 +198,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       const url = `${http}${host}${portStr}`
       shell.openExternal(url)
     }
-    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
+    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.local')
     if (find) {
       toOpenHost(find)
       return
@@ -208,7 +208,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       if (res) {
         await appStore.initHost()
         handleWriteHosts().then().catch()
-        const url = 'http://phpmyadmin.phpwebstudy.test'
+        const url = 'http://phpmyadmin.local'
         shell.openExternal(url)
       }
     })
