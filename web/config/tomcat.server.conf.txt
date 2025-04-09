@@ -30,21 +30,21 @@
         <Context path="" docBase=""></Context>
         <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="phpmyadmin.phpwebstudy.test-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
       </Host>
-      <Host name="www.lvtest.com" appBase="/Users/xxx/Desktop/AAA/laravel11-test/public" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
+      <Host name="lvtest.local" appBase="/Users/xxx/Desktop/AAA/laravel11-test/public" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
         <Context path="" docBase=""></Context>
-        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="www.lvtest.com-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="lvtest.local-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
       </Host>
-      <Host name="www.lv123.com" appBase="/Users/xxx/Desktop/AAA/laravel11-test/public" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
+      <Host name="lv123.local" appBase="/Users/xxx/Desktop/AAA/laravel11-test/public" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
         <Context path="" docBase=""></Context>
-        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="www.lv123.com-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="lv123.local-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
       </Host>
-      <Host name="www.lv11.com" appBase="/Users/xxx/Desktop/AAA/laravel11-test/public" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
+      <Host name="lv11.local" appBase="/Users/xxx/Desktop/AAA/laravel11-test/public" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
         <Context path="" docBase=""></Context>
-        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="www.lv11.com-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="lv11.local-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
       </Host>
-      <Host name="www.test.com" appBase="/Users/xxx/Library/PhpWebStudy/server/www/www.test.com" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
+      <Host name="mydomain.tld" appBase="/Users/xxx/Library/PhpWebStudy/server/www/mydomain.tld" appFlag="PhpWebStudy" unpackWARs="true" autoDeploy="true">
         <Context path="" docBase=""></Context>
-        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="www.test.com-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="/Users/xxx/Library/PhpWebStudy/server/vhost/logs" prefix="mydomain.tld-tomcat_access_log" suffix=".log" pattern="%h %l %u %t &quot;%r&quot; %s %b"></Valve>
       </Host>
     </Engine>
   </Service>

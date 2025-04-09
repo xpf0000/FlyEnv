@@ -118,7 +118,7 @@
 
         <el-card header="Matches" class="mb-1 mt-3">
           <el-table v-if="Store.results?.length > 0" :data="Store.results">
-            <el-table-column label="Index in text" prop="index"></el-table-column>
+            <el-table-column label="Index" prop="index"></el-table-column>
             <el-table-column label="Value" prop="value"></el-table-column>
             <el-table-column label="Captures">
               <template #default="scope">

@@ -34,8 +34,8 @@
 
     <div class="main-wapper pb-0">
       <el-card>
-        <el-form-item label-position="top" label="Your url to parse:">
-          <el-input v-model="Store.url" placeholder="Your url to parse..."></el-input>
+        <el-form-item label-position="top" label="URL:">
+          <el-input v-model="Store.url" placeholder="Your URL to parse..."></el-input>
         </el-form-item>
         <template v-for="item in Store.list" :key="item.key">
           <el-form-item :label="item.title" label-position="left" label-width="100px">

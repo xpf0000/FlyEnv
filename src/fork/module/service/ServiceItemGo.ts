@@ -18,12 +18,12 @@ export class ServiceItemGo extends ServiceItem {
       await this.stop()
 
       if (!item.bin || !existsSync(item.bin)) {
-        reject(new Error(`Run File not exists: ${item.bin}`))
+        reject(new Error(`The executable file does not exist: ${item.bin}`))
         return
       }
 
       if (!item.root || !existsSync(item.root)) {
-        reject(new Error(`Run Directory not exists: ${item.root}`))
+        reject(new Error(`The working directory does not exist: ${item.root}`))
         return
       }
 

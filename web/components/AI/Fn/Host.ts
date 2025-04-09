@@ -17,12 +17,12 @@ export function addRandaSite(this: BaseTask) {
       aiStore.chatList.push({
         user: 'ai',
         content: `${I18nT('ai.siteCreatedSuccessfully')}
-${I18nT('ai.siteDomain')}: www.test.com
+${I18nT('ai.siteDomain')}: mydomain.tld
 ${I18nT('ai.siteDirectory')}: <a href="javascript:void();" onclick="openDir('xxxx')">xxxx</a>
 ${I18nT('ai.tryingToStartService')}`
       })
       resolve({
-        host: 'www.test.com',
+        host: 'mydomain.tld',
         php: '8.3.0'
       })
     })

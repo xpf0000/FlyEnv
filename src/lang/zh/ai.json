@@ -27,7 +27,7 @@
   "tryingToStartApacheService": "尝试启动Apache服务...",
   "enterOrSelectSiteDirectory": "请输入或选择站点目录",
   "siteDirectoryInvalid": "站点目录无效，任务终止",
-  "enterSiteDomain": "请输入站点域名, 例如：www.test.com",
+  "enterSiteDomain": "请输入站点域名, 例如：mydomain.tld",
   "domainInvalid": "域名无效，任务终止",
   "creatingSite": "创建站点中...",
   "checkLogs": "请查看{flag}日志, 把错误信息发送给我",

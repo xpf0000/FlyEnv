@@ -86,7 +86,7 @@
       </el-popover>
       <template v-if="hostsSet.write">
         <div class="inline-flex items-center gap-3">
-          <span>IPV6: </span>
+          <span>IPv6:</span>
           <el-switch v-model="ipv6"></el-switch>
         </div>
       </template>

@@ -345,13 +345,13 @@ export class ServiceItemJavaTomcat extends ServiceItem {
 
       const jdkDir = pathResolve(realpathSync(item.jdkDir!), '../../')
       if (!existsSync(jdkDir)) {
-        reject(new Error(`JDK not exists: ${item.jdkDir}`))
+        reject(new Error(`The JDK directory does not exist: ${item.jdkDir}`))
         return
       }
 
       const bin = item.tomcatDir!
       if (!existsSync(bin)) {
-        reject(new Error(`Tomcat not exists: ${bin}`))
+        reject(new Error(`Tomcat directory does not exist: ${bin}`))
         return
       }
 
