@@ -6,7 +6,7 @@ import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import { AppStore } from '@/store/app'
 
 const { shell } = require('@electron/remote')
-const { dirname, join } = require('path')
+const { dirname } = require('path')
 
 export const LocalSetup = reactive<{
   fetching: Partial<Record<AllAppModule, boolean>>
@@ -78,19 +78,11 @@ export const SetupAll = (typeFlag: AllAppModule) => {
   }
 
   const isInEnv = (item: SoftInstalled) => {
-    let bin = dirname(item.bin)
-    if (typeFlag === 'php') {
-      bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
-    }
-    return ServiceActionStore.allPath.includes(bin)
+    return ServiceActionStore.isInEnv(item)
   }
 
   const isInAppEnv = (item: SoftInstalled) => {
-    let bin = dirname(item.bin)
-    if (typeFlag === 'php') {
-      bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
-    }
-    return ServiceActionStore.appPath.includes(bin)
+    return ServiceActionStore.isInAppEnv(item)
   }
 
   getData()

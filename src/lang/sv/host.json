@@ -21,7 +21,7 @@
   "hostSSL": "SSL",
   "parkConfirm": "Är du säker på att du vill generera webbplatser baserade på undermappar?",
   "autoSSL": "Automatiska SSL-certifikat",
-  "phpMyAdminInstallTips": "Ingen phpMyAdmin-webbplats hittades med domänen phpmyadmin.local. Ladda ner phpMyAdmin och skapa webbplats?",
+  "phpMyAdminInstallTips": "Ingen phpMyAdmin-webbplats hittades med domänen phpmyadmin.test. Ladda ner phpMyAdmin och skapa webbplats?",
   "phpMyAdminTaskRunning": "Ladda ner phpMyAdmin och skapa webbplats",
   "warning": "Varning",
   "noPhpWarning": "Kontrollera att ingen PHP-version är vald, en statisk webbplats kommer att skapas och PHP-filerna kommer inte att kunna köras. Är du säker på att fortsätta?",

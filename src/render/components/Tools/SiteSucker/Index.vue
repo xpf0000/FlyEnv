@@ -76,6 +76,7 @@
   import type { Column } from 'element-plus'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { ElInput } from 'element-plus'
+  import { I18nT } from '@lang/index'
 
   const { shell } = require('@electron/remote')
 
@@ -174,7 +175,11 @@
             <span class="flex items-center">
               url({success}/{count})
             </span>
-            <ElInput v-model={search.value} placeholder="{{ I18nT('base.placeholderSearch') }}" clearable={true}></ElInput>
+            <ElInput
+              v-model={search.value}
+              placeholder={I18nT('base.placeholderSearch')}
+              clearable={true}
+            ></ElInput>
           </div>
         )
       }
@@ -237,7 +242,11 @@
         return (
           <div class="wapper">
             <span class="flex items-center">host</span>
-            <ElInput v-model={searchHost.value} placeholder="{{ I18nT('base.placeholderSearch') }}" clearable={true}></ElInput>
+            <ElInput
+              v-model={searchHost.value}
+              placeholder={I18nT('base.placeholderSearch')}
+              clearable={true}
+            ></ElInput>
           </div>
         )
       }

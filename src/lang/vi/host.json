@@ -21,7 +21,7 @@
   "hostSSL": "SSL",
   "parkConfirm": "Bạn có chắc chắn muốn tạo các trang web dựa trên các thư mục con?",
   "autoSSL": "Chứng chỉ SSL tự động",
-  "phpMyAdminInstallTips": "Không tìm thấy trang web phpMyAdmin với tên miền phpmyadmin.local, Tải xuống phpMyAdmin và tạo trang web?",
+  "phpMyAdminInstallTips": "Không tìm thấy trang web phpMyAdmin với tên miền phpmyadmin.test, Tải xuống phpMyAdmin và tạo trang web?",
   "phpMyAdminTaskRunning": "Tải xuống phpMyAdmin và tạo trang web",
   "warning": "Cảnh báo",
   "noPhpWarning": "Kiểm tra xem không có phiên bản PHP nào được chọn, một trang web tĩnh sẽ được tạo và các tệp PHP sẽ không thể thực thi. Bạn có chắc chắn muốn tiếp tục?",

@@ -1,7 +1,7 @@
 import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import type { AppHost, SoftInstalled } from '@shared/app'
+import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
 import {
@@ -217,6 +217,28 @@ class Nginx extends Base {
         }
       )
       resolve(Info)
+    })
+  }
+
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('nginx')
+        const dict: any = {}
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `nginx-${a.version}`, 'sbin/nginx')
+          const zip = join(global.Server.Cache!, `static-nginx-${a.version}.tar.xz`)
+          a.appDir = join(global.Server.AppDir!, `nginx-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+          dict[`nginx-${a.version}`] = a
+        })
+        resolve(dict)
+      } catch (e) {
+        resolve({})
+      }
     })
   }
 }

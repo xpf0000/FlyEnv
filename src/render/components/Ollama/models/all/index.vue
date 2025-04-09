@@ -31,7 +31,7 @@
             }}</span>
             <el-input
               v-model.trim="OllamaAllModelsSetup.search"
-              placeholder="{{ I18nT('base.placeholderSearch') }}"
+              :placeholder="I18nT('base.placeholderSearch')"
               clearable
             ></el-input>
           </div>

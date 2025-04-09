@@ -260,7 +260,7 @@ class Manager extends Base {
       //获取PATH环境变量数组. 真实绝对路径数组.
       const all = (await this.fetchPATH()).allPath
       //已安装软件的路径
-      const binPath = item.path
+      const binPath = dirname(join(item.path, 'bin'))
       const envDir = join(dirname(global.Server.AppDir!), 'env')
       if (!existsSync(envDir)) {
         await mkdirp(envDir)

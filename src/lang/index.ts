@@ -34,6 +34,7 @@ import type requestTimer from './zh/requestTimer.json'
 import ZH from './zh/index'
 import EN from './en/index'
 import VI from './vi/index'
+import SV from './sv/index'
 
 type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
   [K in keyof T]: K extends string
@@ -88,7 +89,8 @@ export const AppAllLang = {
 const lang = {
   ...ZH,
   ...EN,
-  ...VI
+  ...VI,
+  ...SV
 }
 
 let i18n: I18n

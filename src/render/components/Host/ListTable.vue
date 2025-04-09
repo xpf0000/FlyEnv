@@ -14,7 +14,11 @@
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
                 I18nT('host.site')
               }}</span>
-              <el-input v-model.trim="search" placeholder="{{ I18nT('base.placeholderSearch') }}" clearable></el-input>
+              <el-input
+                v-model.trim="search"
+                :placeholder="I18nT('base.placeholderSearch')"
+                clearable
+              ></el-input>
             </div>
           </template>
           <template #default="scope">
@@ -56,7 +60,7 @@
                 :placeholder="I18nT('base.selectPhpVersion')"
               >
                 <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
-                <template v-for="(v, i) in phpVersions" :key="i">
+                <template v-for="(v, _i) in phpVersions" :key="_i">
                   <el-option :value="v.num" :label="v.num"></el-option>
                 </template>
               </el-select>
