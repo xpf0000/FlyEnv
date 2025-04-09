@@ -82,7 +82,11 @@
             <span style="display: inline-flex; align-items: center; padding: 2px 0">
               {I18nT('base.version')}
             </span>
-            <ElInput v-model={FNMSetup.search} placeholder="{{ I18nT('base.placeholderSearch') }}" clearable={true}></ElInput>
+            <ElInput
+              v-model={FNMSetup.search}
+              placeholder={I18nT('base.placeholderSearch')}
+              clearable={true}
+            ></ElInput>
           </div>
         )
       },

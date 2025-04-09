@@ -7,7 +7,7 @@
     </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="nginx" title="Nginx"></Service>
-      <Manager v-else-if="tab === 1" type-flag="nginx"></Manager>
+      <Manager v-else-if="tab === 1" type-flag="nginx" :has-static="true"></Manager>
       <Config v-if="tab === 2"></Config>
       <Logs v-if="tab === 3" type="error"></Logs>
       <Logs v-if="tab === 4" type="access"></Logs>

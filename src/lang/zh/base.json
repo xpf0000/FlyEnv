@@ -8,6 +8,7 @@
   "foldOpen": "展开",
   "foldHidden": "收起",
   "link": "链接",
+  "links": "链接",
   "configFile": "配置文件",
   "log": "日志",
   "del": "删除",
@@ -144,6 +145,7 @@
   "leftHosts": "站点",
   "leftTools": "工具箱",
   "setup": "设置",
+  "settings": "设置",
   "theme": "主题",
   "themeDark": "暗色",
   "themeLight": "亮色",
@@ -151,5 +153,6 @@
   "addToPath": "添加到环境变量",
   "Official": "官方",
   "source": "源",
-  "staticDelAlert": "为了保证用户数据安全. 不再提供自动删除已安装软件的功能. 如确定要删除. 可点击确定. 在打开的文件夹中手动删除软件."
+  "staticDelAlert": "为了保证用户数据安全. 不再提供自动删除已安装软件的功能. 如确定要删除. 可点击确定. 在打开的文件夹中手动删除软件.",
+  "placeholderSearch": "搜索"
 }

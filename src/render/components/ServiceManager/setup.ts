@@ -12,7 +12,6 @@ import { handleWriteHosts } from '@/util/Host'
 import type { AllAppModule } from '@/core/type'
 
 const { shell } = require('@electron/remote')
-const { dirname, join } = require('path')
 
 export const Setup = (typeFlag: AllAppModule) => {
   if (!Service[typeFlag]) {
@@ -51,19 +50,11 @@ export const Setup = (typeFlag: AllAppModule) => {
   })
 
   const isInEnv = (item: SoftInstalled) => {
-    let bin = dirname(item.bin)
-    if (typeFlag === 'php') {
-      bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
-    }
-    return ServiceActionStore.allPath.includes(bin)
+    return ServiceActionStore.isInEnv(item)
   }
 
   const isInAppEnv = (item: SoftInstalled) => {
-    let bin = dirname(item.bin)
-    if (typeFlag === 'php') {
-      bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
-    }
-    return ServiceActionStore.appPath.includes(bin)
+    return ServiceActionStore.isInAppEnv(item)
   }
 
   const groupTrunOn = (item: SoftInstalled) => {
@@ -198,7 +189,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       const url = `${http}${host}${portStr}`
       shell.openExternal(url)
     }
-    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.local')
+    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.test')
     if (find) {
       toOpenHost(find)
       return
@@ -208,7 +199,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       if (res) {
         await appStore.initHost()
         handleWriteHosts().then().catch()
-        const url = 'http://phpmyadmin.local'
+        const url = 'http://phpmyadmin.test'
         shell.openExternal(url)
       }
     })

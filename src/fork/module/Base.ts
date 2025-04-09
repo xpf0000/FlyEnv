@@ -316,7 +316,7 @@ export class Base {
           const dir = row.appDir
           await mkdirp(dir)
           await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
-          if (['java', 'tomcat', 'golang', 'maven', 'elasticsearch'].includes(this.type)) {
+          if (['java', 'tomcat', 'golang', 'maven', 'elasticsearch', 'nginx'].includes(this.type)) {
             const subDirs = await readdir(dir)
             const subDir = subDirs.pop()
             if (subDir) {
@@ -324,6 +324,9 @@ export class Base {
               await waitTime(300)
               await remove(subDir)
             }
+          }
+          if (this.type === 'nginx' && existsSync(row.bin)) {
+            await Helper.send('mailpit', 'binFixed', row.bin)
           }
         } catch (e) {
           await fail()

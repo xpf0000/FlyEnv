@@ -65,7 +65,7 @@
   })
 
   const isInAppEnv = computed(() => {
-    return ServiceActionStore.appPath.includes(props.item.path)
+    return ServiceActionStore.isInAppEnv(props.item)
   })
 
   const state = computed(() => {
