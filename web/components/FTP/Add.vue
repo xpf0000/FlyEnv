@@ -43,7 +43,7 @@
               type="text"
               class="input"
               :class="{ error: errs?.dir }"
-              placeholder="root path"
+              placeholder="Document Root Directory"
               readonly="true"
               :value="form.dir"
             />

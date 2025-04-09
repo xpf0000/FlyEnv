@@ -27,11 +27,11 @@
     return [
       {
         value: 'base',
-        label: I18nT('base.setupBase')
+        label: I18nT('base.mainSettings')
       },
       {
         value: 'editor',
-        label: I18nT('base.editorSetup')
+        label: I18nT('base.editorSettings')
       },
       {
         value: 'licenses',

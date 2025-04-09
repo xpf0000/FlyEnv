@@ -19,7 +19,7 @@
               <input
                 type="text"
                 class="input"
-                placeholder="root path"
+                placeholder="Document Root Directory"
                 :readonly="loading || created ? true : undefined"
                 :value="ProjectSetup.form.PHP.dir"
               />
@@ -66,7 +66,7 @@
             </div>
             <div class="park">
               <div class="title">
-                <span>{{ I18nT('host.frameWork') }}</span>
+                <span>{{ I18nT('host.frameworkVersion') }}</span>
               </div>
               <el-select
                 v-model="ProjectSetup.form.PHP.version"

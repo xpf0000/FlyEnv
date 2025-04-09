@@ -16,7 +16,7 @@
           v-model.trim="item.domains"
           type="text"
           :class="'input-textarea' + (errs['domains'] ? ' error' : '')"
-          placeholder="domains eg: *.xxx.com, One domain name per line"
+          placeholder="Domains (Example: *.mydomain.tld) separated by line"
         ></textarea>
         <div class="path-choose mt-20 mb-20">
           <input

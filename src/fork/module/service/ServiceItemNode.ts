@@ -19,17 +19,17 @@ export class ServiceItemNode extends ServiceItem {
 
       const nodeDir = item?.nodeDir ?? ''
       if (!nodeDir || !existsSync(nodeDir)) {
-        reject(new Error(`NodeJS not exists: ${item.nodeDir}`))
+        reject(new Error(`The NodeJS directory does not exist: ${item.nodeDir}`))
         return
       }
 
       if (!item.bin || !existsSync(item.bin)) {
-        reject(new Error(`Run File not exists: ${item.bin}`))
+        reject(new Error(`The executable file does not exist: ${item.bin}`))
         return
       }
 
       if (!item.root || !existsSync(item.root)) {
-        reject(new Error(`Run Directory not exists: ${item.root}`))
+        reject(new Error(`The working directory does not exist: ${item.root}`))
         return
       }
 

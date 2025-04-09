@@ -99,7 +99,7 @@ type StateBase = SetupBase & {
   phpGroupStart: { [k: string]: boolean }
   autoStartService?: boolean
   autoHide?: boolean
-  autoLunach?: boolean
+  autoLaunch?: boolean
 }
 
 interface State {

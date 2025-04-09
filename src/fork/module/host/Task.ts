@@ -12,7 +12,7 @@ import { fetchHostList } from './HostFile'
 export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
   return new ForkPromise(async (resolve, reject) => {
     const baseName = join(global.Server.BaseDir!, 'www')
-    let host = `www.test.com`
+    let host = `mydomain.tld`
     let i = 0
     let dir = `${baseName}/${host}`
     while (existsSync(dir)) {

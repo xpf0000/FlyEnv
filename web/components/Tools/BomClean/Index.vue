@@ -27,7 +27,7 @@
             type="text"
             class="input"
             readonly="readonly"
-            placeholder="choose dir or file"
+            placeholder="Directory or file"
             :value="data.path"
           />
           <div class="icon-block" @click.stop="chooseDir">
@@ -40,7 +40,7 @@
           :readonly="data.running ? 'readonly' : null"
           type="text"
           class="input-textarea"
-          placeholder="exclude eg: node_modules, One exclude string per line"
+          placeholder="Excludes (Example: node_modules), separated by line."
         ></textarea>
         <div class="block">
           <div class="mt-20"> File Type </div>

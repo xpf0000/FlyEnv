@@ -8,7 +8,7 @@ export type ProjectPHPForm = {
   php: string
   composer: string
   version: string | undefined
-  frameWork: string
+  framework: string
   running: boolean
   created: boolean
 }
@@ -17,7 +17,7 @@ export type ProjectNodeJSForm = {
   dir: string
   node: string
   version: string | undefined
-  frameWork: string
+  framework: string
   running: boolean
   created: boolean
 }
@@ -45,7 +45,7 @@ export const ProjectSetup = reactive<{
       php: '',
       composer: '',
       version: undefined,
-      frameWork: '',
+      framework: '',
       running: false,
       created: false
     },
@@ -53,7 +53,7 @@ export const ProjectSetup = reactive<{
       dir: '',
       node: '',
       version: undefined,
-      frameWork: '',
+      framework: '',
       running: false,
       created: false
     }
@@ -63,7 +63,7 @@ export const ProjectSetup = reactive<{
     this.form.PHP.php = ''
     this.form.PHP.composer = ''
     this.form.PHP.version = undefined
-    this.form.PHP.frameWork = ''
+    this.form.PHP.framework = ''
     this.form.PHP.created = false
     this.form.PHP.running = false
   }

@@ -11,7 +11,7 @@
   "serviceUseBundle": "Used the built-in version, Started unpacking and installing {service}",
   "bundleUnzipSuccess": "Unzip installation completed, installation location: {appDir}",
   "bundleUnzipFail": "Unzip installation failed, reason: {error}",
-  "confInit": "The configuration file does not exist, generate configuration file",
+  "confInit": "The configuration file does not exist. Generating new configuration file",
   "confInitSuccess": "Configuration file generated successfully, file path: {file}",
   "confInitFail": "Configuration file generation failed, reason: {error}",
   "apachePortHandleBegin": "Start obtaining all Apache listening ports from the site",
