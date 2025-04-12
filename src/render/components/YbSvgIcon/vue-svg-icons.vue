@@ -140,7 +140,9 @@
         return hash & 0x7fffffff
       },
       initFromContent(nv) {
+        console.log('initFromContent nv: ', nv)
         let hash = this.hashCode(nv)
+        console.log('initFromContent hash: ', hash, icons[hash])
         this.iconHash = hash
         if (!icons[hash]) {
           let content = nv
@@ -177,6 +179,10 @@
       }
     },
     render() {
+      console.log('this.box: ', this.box)
+      console.log('this.style: ', this.style)
+      console.log('this.icon: ', this.icon)
+      console.log('this.raw: ', this.raw)
       return createElementBlock(
         'svg',
         {

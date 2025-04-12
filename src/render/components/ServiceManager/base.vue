@@ -140,7 +140,11 @@
       </el-table-column>
       <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
-          <EXT :item="scope.row" :type="typeFlag" />
+          <EXT :item="scope.row" :type="typeFlag">
+            <template #default>
+              <slot name="operation" :row="scope.row as SoftInstalled"></slot>
+            </template>
+          </EXT>
         </template>
       </el-table-column>
     </el-table>
@@ -154,6 +158,7 @@
   import type { AllAppModule } from '@/core/type'
   import { Setup } from '@/components/ServiceManager/setup'
   import EXT from '@/components/ServiceManager/EXT/index.vue'
+  import type { SoftInstalled } from '@shared/app'
 
   const props = defineProps<{
     typeFlag: AllAppModule

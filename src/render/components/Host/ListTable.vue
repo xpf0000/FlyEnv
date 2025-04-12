@@ -78,16 +78,23 @@
               <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>
             </template>
             <template v-else>
-              <el-popover width="auto" :show-after="800" placement="top">
-                <template #default>
-                  <span>{{ scope.row.mark }}</span>
-                </template>
-                <template #reference>
-                  <span style="display: inline-block; max-width: 100%">
-                    {{ scope.row.mark }}
-                  </span>
-                </template>
-              </el-popover>
+              <template v-if="!scope.row.mark">
+                <span class="truncate row-hover-show text-yellow-500">
+                  {{ I18nT('host.dbclickRowToEdit') }}
+                </span>
+              </template>
+              <template v-else>
+                <el-popover width="auto" :show-after="800" placement="top">
+                  <template #default>
+                    <span>{{ scope.row.mark }}</span>
+                  </template>
+                  <template #reference>
+                    <span class="truncate">
+                      {{ scope.row.mark }}
+                    </span>
+                  </template>
+                </el-popover>
+              </template>
             </template>
           </template>
         </el-table-column>
