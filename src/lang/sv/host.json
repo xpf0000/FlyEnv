@@ -69,5 +69,6 @@
   "sslTips": "<p>Funktionen för automatiska SSL-certifikat kräver att ett certifikat med namnet PhpWebStudy-Root-CA läggs till i nyckelringen och ställs in på alltid lita på</p>\n<p>Normalt kommer denna funktion att slutföras automatiskt. </p>\n<p>Om denna funktion är onormal. Du kan också kopiera och köra kommandon i terminalen. </p>\n<p>Du kan också dubbelklicka för att lägga till certifikatet i den öppnade mappen och manuellt ställa in förtroendet till alltid lita på i nyckelringsappen</p>",
   "copyCommand": "Kopiera kommando",
   "showFile": "Visa fil",
-  "sticky": "Fästbar"
+  "sticky": "Fästbar",
+  "dbclickRowToEdit": "Dubbelklicka på den här raden för att redigera"
 }

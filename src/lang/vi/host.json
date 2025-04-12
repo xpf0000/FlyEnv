@@ -69,5 +69,6 @@
   "sslTips": "<p>Chức năng chứng chỉ SSL tự động yêu cầu thêm chứng chỉ có tên PhpWebStudy-Root-CA vào keychain và đặt nó thành luôn tin cậy</p>\n<p>Thông thường, chức năng này sẽ được tự động hoàn thành. </p>\n<p>Nếu chức năng này bất thường. Bạn cũng có thể sao chép và thực hiện các lệnh trên terminal. </p>\n<p>Bạn cũng có thể nhấp đúp để thêm chứng chỉ trong thư mục đã mở và đặt thủ công độ tin cậy thành luôn tin cậy trong ứng dụng keychain</p>",
   "copyCommand": "Sao chép lệnh",
   "showFile": "Hiển thị tệp",
-  "sticky": "Ghim"
+  "sticky": "Ghim",
+  "dbclickRowToEdit": "Nhấp đúp vào dòng này để chỉnh sửa"
 }

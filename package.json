@@ -46,7 +46,6 @@
     "node-pty": "^1.0.0",
     "node-rsa": "^1.1.1",
     "normalize.css": "^8.0.1",
-    "ollama": "^0.5.14",
     "randexp": "^0.5.3",
     "serve": "^14.2.4",
     "tangerine": "^1.6.0",

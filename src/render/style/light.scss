@@ -113,23 +113,6 @@ html.light {
               }
             }
           }
-
-          .el-table {
-            .is-top {
-              --el-table-tr-bg-color: var(--el-color-info-light-9);
-            }
-
-            .is-sorting {
-              --el-table-tr-bg-color: #f8f8f8;
-              filter: drop-shadow(0 0 5px rgba(120,120,120,0.5));
-              position: relative;
-              z-index: 1500;
-
-              td.el-table__cell {
-                border: none;
-              }
-            }
-          }
         }
 
         .php-versions-list {
@@ -243,6 +226,21 @@ html.light {
 
   .el-table {
     --el-table-text-color: #345;
+
+    .is-top {
+      --el-table-tr-bg-color: var(--el-color-info-light-9);
+    }
+
+    .is-sorting {
+      --el-table-tr-bg-color: #f8f8f8;
+      filter: drop-shadow(0 0 5px rgba(120,120,120,0.5));
+      position: relative;
+      z-index: 1500;
+
+      td.el-table__cell {
+        border: none;
+      }
+    }
   }
 
   .el-popover.el-popper.host-list-poper {

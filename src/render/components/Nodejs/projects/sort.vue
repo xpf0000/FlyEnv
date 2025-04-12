@@ -14,10 +14,7 @@
     </template>
     <template #default>
       <div v-poper-fix v-click-outside="onClickOut" class="host-sort">
-        <div class="top">
-          <span>{{ I18nT('host.sticky') }}</span>
-          <el-switch v-model="isTop" :disabled="!editHost"></el-switch>
-        </div>
+        <div class="top"> </div>
         <template v-if="disabled">
           <el-slider :show-tooltip="false" :max="1" :disabled="true" vertical height="200px" />
         </template>
@@ -38,16 +35,14 @@
 </template>
 <script lang="ts" setup>
   import { computed, nextTick, type Ref, ref, watch } from 'vue'
-  import { type AppHost } from '@/store/app'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { ClickOutside as vClickOutside } from 'element-plus'
-  import { HostStore } from '@/components/Host/store'
-  import { I18nT } from '@lang/index'
+  import { type NodeProjectItem, NodeProjectSetup } from '@/components/Nodejs/projects/setup'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
-    hostId: number
+    id: string
     rect: DOMRect
   }>()
 
@@ -60,21 +55,21 @@
     opacity: 0
   }
 
-  let filterHosts: Ref<AppHost[]> = ref([])
+  let filterHosts: Ref<NodeProjectItem[]> = ref([])
   let hostBack = ''
 
-  let editHost: Ref<AppHost | undefined> = ref()
+  let editHost: Ref<NodeProjectItem | undefined> = ref()
 
   show.value = true
 
   let isShow = false
 
   watch(
-    () => props.hostId,
+    () => props.id,
     () => {
-      filterHosts.value = HostStore.tabList(HostStore.tab)
+      filterHosts.value = NodeProjectSetup.project
       hostBack = JSON.stringify(filterHosts.value)
-      editHost.value = filterHosts.value.find((h) => h?.id === props?.hostId)
+      editHost.value = filterHosts.value.find((h) => h?.id === props?.id)
     },
     {
       immediate: true
@@ -91,7 +86,7 @@
     const host = JSON.stringify(filterHosts.value)
     if (hostBack !== host) {
       console.log('has changed !!!')
-      HostStore.save()
+      NodeProjectSetup.saveProject()
     }
   }
 
@@ -105,7 +100,7 @@
   const flowScroll = () => {
     nextTick().then(() => {
       let dom: HTMLElement | null | undefined = document.querySelector(
-        `[data-host-id="${props.hostId}"]`
+        `[data-node-project-id="${props.id}"]`
       ) as any
       if (dom) {
         dom = dom?.parentElement?.parentElement?.parentElement
@@ -117,41 +112,8 @@
     })
   }
 
-  const isTop = computed({
-    get() {
-      return editHost?.value?.isTop ?? false
-    },
-    set(v: boolean) {
-      if (!editHost?.value) {
-        return
-      }
-      editHost.value!.isSorting = true
-      const host: any = editHost.value
-      host.isTop = v
-      if (v) {
-        const index = filterHosts.value.findIndex((h) => h === host)
-        if (index >= 0) {
-          filterHosts.value.splice(index, 1)
-          filterHosts.value.unshift(host)
-        }
-      } else {
-        const index = filterHosts.value.findIndex((h) => h === host)
-        if (index >= 0) {
-          filterHosts.value.splice(index, 1)
-          const list = filterHosts.value.filter((h) => !!h?.isTop)
-          filterHosts.value.splice(list.length, 0, host)
-        }
-      }
-      flowScroll()
-    }
-  })
-
   const max = computed(() => {
-    if (isTop.value) {
-      const list = filterHosts.value.filter((h) => !!h?.isTop)
-      return Math.max(0, list.length - 1)
-    }
-    const list = filterHosts.value.filter((h) => !h?.isTop)
+    const list = filterHosts.value
     console.log('max list.length: ', list.length)
     return Math.max(0, list.length - 1)
   })
@@ -161,10 +123,7 @@
       if (!editHost?.value) {
         return 0
       }
-      let list = filterHosts.value.filter((h) => !h?.isTop)
-      if (isTop.value) {
-        list = filterHosts.value.filter((h) => !!h?.isTop)
-      }
+      let list = filterHosts.value
       return list.length - 1 - list.findIndex((h) => h.id === editHost?.value?.id)
     },
     set(v: number) {
@@ -174,20 +133,11 @@
       editHost.value!.isSorting = true
       const host: any = editHost.value
       let index = v
-      if (isTop.value) {
-        const list = filterHosts.value.filter((h) => !!h?.isTop)
-        index = list.length - 1 - v
-      } else {
-        const list = filterHosts.value.filter((h) => !h?.isTop)
-        index = list.length - 1 - v
-      }
-      const list = filterHosts.value.filter((h) => !!h?.isTop)
+      const list = filterHosts.value
+      index = list.length - 1 - v
       const rawIndex = filterHosts.value.findIndex((h) => h === host)
       if (rawIndex >= 0) {
         filterHosts.value.splice(rawIndex, 1)
-        if (!isTop.value) {
-          index += list.length
-        }
         filterHosts.value.splice(index, 0, host)
       }
       flowScroll()
