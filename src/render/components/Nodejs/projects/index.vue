@@ -109,6 +109,10 @@
             width="auto"
           >
             <ul v-poper-fix class="host-list-menu">
+              <li @click.stop="showPackage(scope.row)">
+                <Reading width="13" height="13" />
+                <span class="ml-15">package.json</span>
+              </li>
               <li @click.stop="showSort($event, scope.row.id)">
                 <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ I18nT('host.sort') }}</span>
@@ -135,7 +139,7 @@
   import { I18nT } from '@lang/index'
   import { type NodeProjectItem, NodeProjectSetup } from './setup'
   import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
-  import { FolderAdd, Refresh } from '@element-plus/icons-vue'
+  import { FolderAdd, Refresh, Reading } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { isEqual } from 'lodash'
@@ -184,6 +188,17 @@
     AsyncComponentShow(SortVM, {
       id: id,
       rect
+    }).then()
+  }
+
+  let PackageVM: any
+  import('./package.vue').then((res) => {
+    PackageVM = res.default
+  })
+
+  const showPackage = (item: NodeProjectItem) => {
+    AsyncComponentShow(PackageVM, {
+      item
     }).then()
   }
 
