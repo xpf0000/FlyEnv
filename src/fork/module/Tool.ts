@@ -26,6 +26,7 @@ import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
 import Helper from '../Helper'
 import { ProcessSearch } from '@shared/Process'
 import RequestTimer from '@shared/requestTimer'
+import { spawn } from 'child_process'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -595,6 +596,38 @@ class Manager extends Base {
       } catch (error) {
         reject(error)
       }
+    })
+  }
+
+  runInTerminal(command: string) {
+    return new ForkPromise((resolve, reject) => {
+      // 转义命令中的特殊字符
+      command = command.replace(/"/g, '\\"')
+      // macOS 默认终端是 Terminal.app
+      const terminalApp = 'Terminal.app'
+
+      // 或者使用 iTerm（如果安装）
+      // const terminalApp = 'iTerm.app'
+
+      const appleScript = `
+    tell application "${terminalApp}"
+      activate
+      do script "${command}" in front window
+    end tell
+  `
+      let error: any = undefined
+      const osa = spawn('osascript', ['-e', appleScript])
+      osa.on('error', (err) => {
+        error = err
+      })
+      osa.on('close', () => {
+        console.log('close !!!')
+        if (error) {
+          reject(error)
+        } else {
+          resolve(true)
+        }
+      })
     })
   }
 }
