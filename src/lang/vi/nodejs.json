@@ -1,5 +1,8 @@
 {
   "installFNM": "Cài đặt <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
   "installNVM": "Cài đặt <a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
-  "registry": "Nguồn"
+  "registry": "Nguồn",
+  "checkPackageJsonUpdate": "Kiểm tra cập nhật",
+  "updatePackageJsonFile": "Cập nhật tệp package.json",
+  "updatePackageJsonFileTips": "Hành động này sẽ thay đổi tệp package.json. Bạn có chắc chắn muốn cập nhật không?"
 }
