@@ -113,6 +113,34 @@
                 <Reading width="13" height="13" />
                 <span class="ml-15">package.json</span>
               </li>
+              <li @click.stop="Project.copyPath(scope.row.path)">
+                <yb-icon :svg="import('@/svg/dirPath.svg?raw')" width="13" height="13" />
+                <span class="ml-15">拷贝路径</span>
+              </li>
+              <li @click.stop="Project.openPath(scope.row.path, 'Terminal')">
+                <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
+                <span class="ml-15">进入 终端</span>
+              </li>
+              <li @click.stop="Project.openPath(scope.row.path, 'vscode')">
+                <yb-icon :svg="import('@/svg/vscode.svg?raw')" width="13" height="13" />
+                <span class="ml-15">进入 VSCode</span>
+              </li>
+              <li @click.stop="Project.openPath(scope.row.path, 'vs')">
+                <yb-icon :svg="import('@/svg/vstudio.svg?raw')" width="13" height="13" />
+                <span class="ml-15">进入 Visual Studio</span>
+              </li>
+              <li @click.stop="Project.openPath(scope.row.path, 'PhpStorm')">
+                <yb-icon :svg="import('@/svg/phpstorm.svg?raw')" width="13" height="13" />
+                <span class="ml-15">进入 PhpStorm</span>
+              </li>
+              <li @click.stop="Project.openPath(scope.row.path, 'WebStorm')">
+                <yb-icon :svg="import('@/svg/webstorm.svg?raw')" width="13" height="13" />
+                <span class="ml-15">进入 WebStorm</span>
+              </li>
+              <li @click.stop="Project.openPath(scope.row.path, 'HBuilderX')">
+                <yb-icon :svg="import('@/svg/hbuilderx.svg?raw')" width="13" height="13" />
+                <span class="ml-15">进入 HBuilderX</span>
+              </li>
               <li @click.stop="showSort($event, scope.row.id)">
                 <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ I18nT('host.sort') }}</span>
@@ -143,6 +171,7 @@
   import { BrewStore } from '@/store/brew'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { isEqual } from 'lodash'
+  import { Project } from '@/util/Project'
 
   const { shell } = require('@electron/remote')
 

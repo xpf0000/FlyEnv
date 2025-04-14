@@ -603,18 +603,87 @@ class Manager extends Base {
     return new ForkPromise((resolve, reject) => {
       // 转义命令中的特殊字符
       command = command.replace(/"/g, '\\"')
-      // macOS 默认终端是 Terminal.app
-      const terminalApp = 'Terminal.app'
-
-      // 或者使用 iTerm（如果安装）
-      // const terminalApp = 'iTerm.app'
-
       const appleScript = `
-    tell application "${terminalApp}"
+        tell application "Terminal"
+          if not running then
+            activate
+            do script "${command}" in front window
+          else
+            activate
+            do script "${command}"
+          end if
+        end tell`
+
+      let error: any = undefined
+      const osa = spawn('osascript', ['-e', appleScript])
+      osa.on('error', (err) => {
+        error = err
+      })
+      osa.on('close', () => {
+        console.log('close !!!')
+        if (error) {
+          reject(error)
+        } else {
+          resolve(true)
+        }
+      })
+    })
+  }
+
+  openPathByApp(
+    dir: string,
+    app: 'Terminal' | 'vscode' | 'vs' | 'PhpStorm' | 'WebStorm' | 'HBuilderX'
+  ) {
+    return new ForkPromise((resolve, reject) => {
+      let appleScript = ''
+      if (app === 'Terminal') {
+        appleScript = `
+        tell application "Terminal"
+          if not running then
+            activate
+            do script "cd " & quoted form of "${dir}" in front window
+          else
+            activate
+            do script "cd " & quoted form of "${dir}"
+          end if
+        end tell`
+      } else if (app === 'vscode') {
+        appleScript = `
+    tell application "Visual Studio Code"
       activate
-      do script "${command}" in front window
+      open "${dir}"
     end tell
   `
+      } else if (app === 'vs') {
+        appleScript = `
+    tell application "Visual Studio"
+      activate
+      open "${dir}"
+    end tell
+  `
+      } else if (app === 'PhpStorm') {
+        appleScript = `
+    tell application "PhpStorm"
+      activate
+      open "${dir}"
+    end tell
+  `
+      } else if (app === 'WebStorm') {
+        appleScript = `
+    tell application "WebStorm"
+      activate
+      open "${dir}"
+    end tell
+  `
+      } else if (app === 'HBuilderX') {
+        appleScript = `
+    tell application "HBuilderX"
+      activate
+      open "${dir}"
+    end tell
+  `
+      }
+
       let error: any = undefined
       const osa = spawn('osascript', ['-e', appleScript])
       osa.on('error', (err) => {

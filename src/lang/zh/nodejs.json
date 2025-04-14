@@ -1,5 +1,8 @@
 {
   "installFNM": "安装<a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/Schniz/fnm')\">fnm</a>",
   "installNVM": "安装<a href=\"javascript:void();\" onclick=\"openUrl('https://github.com/nvm-sh/nvm')\">nvm</a>",
-  "registry": "registry"
+  "registry": "registry",
+  "checkPackageJsonUpdate": "检查更新",
+  "updatePackageJsonFile": "更新package.json文件",
+  "updatePackageJsonFileTips": "此操作会改变package.json文件, 确定更新?"
 }
