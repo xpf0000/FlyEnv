@@ -27,6 +27,7 @@ import Helper from '../Helper'
 import { ProcessSearch } from '@shared/Process'
 import RequestTimer from '@shared/requestTimer'
 import { spawn } from 'child_process'
+import { userInfo } from 'os'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -630,73 +631,96 @@ class Manager extends Base {
     })
   }
 
-  openPathByApp(
-    dir: string,
-    app: 'Terminal' | 'vscode' | 'vs' | 'PhpStorm' | 'WebStorm' | 'HBuilderX'
-  ) {
-    return new ForkPromise((resolve, reject) => {
+  openPathByApp(dir: string, app: 'Terminal') {
+    return new ForkPromise(async (resolve, reject) => {
       let appleScript = ''
       if (app === 'Terminal') {
-        appleScript = `
-        tell application "Terminal"
-          if not running then
-            activate
-            do script "cd " & quoted form of "${dir}" in front window
-          else
-            activate
-            do script "cd " & quoted form of "${dir}"
-          end if
-        end tell`
-      } else if (app === 'vscode') {
-        appleScript = `
-    tell application "Visual Studio Code"
-      activate
-      open "${dir}"
-    end tell
-  `
-      } else if (app === 'vs') {
-        appleScript = `
-    tell application "Visual Studio"
-      activate
-      open "${dir}"
-    end tell
-  `
-      } else if (app === 'PhpStorm') {
-        appleScript = `
-    tell application "PhpStorm"
-      activate
-      open "${dir}"
-    end tell
-  `
-      } else if (app === 'WebStorm') {
-        appleScript = `
-    tell application "WebStorm"
-      activate
-      open "${dir}"
-    end tell
-  `
-      } else if (app === 'HBuilderX') {
-        appleScript = `
-    tell application "HBuilderX"
-      activate
-      open "${dir}"
-    end tell
-  `
+        appleScript = `tell application "Terminal"
+  if not running then
+    activate
+    do script "cd " & quoted form of "${dir}" in front window
+  else
+    activate
+    do script "cd " & quoted form of "${dir}"
+  end if
+end tell`
+      }
+      const scptFile = join(global.Server.Cache!, `${uuid()}.scpt`)
+      await writeFile(scptFile, appleScript)
+      await chmod(scptFile, '0777')
+      try {
+        await execPromise(`osascript ./${basename(scptFile)}`, {
+          cwd: global.Server.Cache!
+        })
+        await remove(scptFile)
+      } catch (e) {
+        await remove(scptFile)
+        return reject(e)
+      }
+      resolve(true)
+    })
+  }
+
+  initFlyEnvSH() {
+    return new ForkPromise(async (resolve, reject) => {
+      const file = join(global.Server.UserHome!, '.zshrc')
+      if (!existsSync(file)) {
+        try {
+          await writeFile(file, '')
+        } catch (e) {}
+      }
+      if (!existsSync(file)) {
+        reject(new Error(`No found ${file} and create file failed`))
+        return
+      }
+      let content = ''
+      try {
+        content = await readFileByRoot(file)
+      } catch (e) {
+        reject(e)
+        return
+      }
+      const contentBack = content
+
+      const shfile = `/Applications/FlyEnv.app/Contents/Resources/helper/flyenv.sh`
+      if (!existsSync(shfile)) {
+        const fileContent = `# AutoLoad .flyenv
+autoload_flyenv() {
+  if [[ -f ".flyenv" ]]; then
+    echo "Found .flyenv file, loading..."
+    source ".flyenv"
+    echo "Successfully loaded environment variables from .flyenv"
+  fi
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd autoload_flyenv
+autoload_flyenv`
+        try {
+          await Helper.send('tools', 'writeFileByRoot', shfile, fileContent)
+        } catch (e) {}
+        if (existsSync(shfile)) {
+          const uinfo = userInfo()
+          const user = `${uinfo.uid}:${uinfo.gid}`
+          try {
+            await Helper.send('tools', 'chmod', shfile, '777')
+            await Helper.send('redis', 'logFileFixed', shfile, user)
+          } catch (e) {}
+        }
       }
 
-      let error: any = undefined
-      const osa = spawn('osascript', ['-e', appleScript])
-      osa.on('error', (err) => {
-        error = err
-      })
-      osa.on('close', () => {
-        console.log('close !!!')
-        if (error) {
-          reject(error)
-        } else {
-          resolve(true)
-        }
-      })
+      const regex = new RegExp(
+        `^(?!\\s*#)\\s*source\\s*"/Applications/FlyEnv\.app/Contents/Resources/helper/flyenv\.sh"`,
+        'gmu'
+      )
+      if (!content.match(regex) && existsSync(file)) {
+        content = content.trim() + `\nsource "${shfile}"`
+      }
+      if (content !== contentBack) {
+        try {
+          await writeFileByRoot(file, content)
+        } catch (e) {}
+      }
+      resolve(true)
     })
   }
 }

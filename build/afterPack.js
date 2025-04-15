@@ -1,5 +1,5 @@
 const { join, resolve } = require('path')
-const { mkdirp } = require('fs-extra')
+const { mkdirp, writeFile } = require('fs-extra')
 const { exec } = require('child-process-promise')
 /**
  * 处理appstore node-pty python链接库问题
@@ -46,6 +46,20 @@ exports.default = async function after(pack) {
   await exec(command, {
     cwd: fromBinDir
   })
+
+  const shFile = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/flyenv.sh')
+  const content = `# AutoLoad .flyenv
+autoload_flyenv() {
+  if [[ -f ".flyenv" ]]; then
+    echo "Found .flyenv file, loading..."
+    source ".flyenv"
+    echo "Successfully loaded environment variables from .flyenv"
+  fi
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd autoload_flyenv
+autoload_flyenv`
+  await writeFile(shFile, content)
 
   console.log('afterPack handle end !!!!!!')
   return true
