@@ -1,2 +1,4 @@
-cd /Applications/FlyEnv.app/Contents/Resources/helper
-sudo ./postinstall.sh "/Applications/FlyEnv.app/Contents/Resources/plist/com.flyenv.helper.plist" “/Applications/FlyEnv.app/Contents/Resources/helper/flyenv-helper” “/Applications/FlyEnv.app/Contents/Resources/helper/helper.js”
+autoload_flyenv() { [[ -f ".flyenv" ]] && source ".flyenv" }
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd autoload_flyenv
+autoload_flyenv  # 初始加载

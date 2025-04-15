@@ -4,7 +4,11 @@
       <el-table-column prop="name" label="Script Name" width="180" />
       <el-table-column prop="command" label="Command">
         <template #default="scope">
-          <span class="truncate">{{ scope.row.command }}</span>
+          <span
+            class="truncate hover:text-yellow-500 cursor-pointer"
+            @click.stop="Project.copyPath(scope.row.command)"
+            >{{ scope.row.command }}</span
+          >
         </template>
       </el-table-column>
       <el-table-column label="npm" width="80" align="center">
@@ -46,7 +50,7 @@
   import type { NodeProjectItem } from '@/components/Nodejs/projects/setup'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
-  import { I18nT } from '@lang/index'
+  import { Project } from '@/util/Project'
 
   const props = defineProps<{
     item: NodeProjectItem

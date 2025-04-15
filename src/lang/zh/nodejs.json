@@ -4,5 +4,13 @@
   "registry": "registry",
   "checkPackageJsonUpdate": "检查更新",
   "updatePackageJsonFile": "更新package.json文件",
-  "updatePackageJsonFileTips": "此操作会改变package.json文件, 确定更新?"
+  "updatePackageJsonFileTips": "此操作会改变package.json文件, 确定更新?",
+  "copyDirPath": "拷贝路径",
+  "openIN": "进入",
+  "Terminal": "终端",
+  "VSCode": "Visual Studio Code",
+  "VisualStudio": "Visual Studio",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "HBuilderX": "HBuilderX"
 }

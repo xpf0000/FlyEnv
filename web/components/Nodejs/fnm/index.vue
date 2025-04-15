@@ -47,7 +47,6 @@
   import { FNMSetup, Setup } from './setup'
   import { ElInput, ElButton, ElTooltip } from 'element-plus'
   import type { Column } from 'element-plus'
-  import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
   import { MessageSuccess } from '@/util/Element'
 
   const {
