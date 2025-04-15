@@ -4,7 +4,6 @@
     size="75%"
     :destroy-on-close="true"
     :with-header="false"
-    :close-on-click-modal="false"
     @closed="closedFn"
   >
     <div class="host-vhost">

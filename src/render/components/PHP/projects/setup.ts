@@ -10,49 +10,49 @@ const { dialog } = require('@electron/remote')
 const { join } = require('path')
 const { writeFile, existsSync, chmod } = require('fs-extra')
 
-export type NodeProjectItem = {
+export type PHPProjectItem = {
   id: string
   path: string
   comment: string
-  nodeVersion: string
-  nodePath: string
-  nodeBin: string
+  phpVersion: string
+  phpPath: string
+  phpBin: string
   isSorting?: boolean
 }
 
-export const NodeProjectSetup = reactive<{
+export const PHPProjectSetup = reactive<{
   fetching: boolean
-  project: Array<NodeProjectItem>
+  project: Array<PHPProjectItem>
   search: string
   saveProject: () => void
   fetchProject: () => void
   addProject: () => void
   delProject: (index: number) => void
-  setDirEnv: (item: NodeProjectItem) => Promise<any>
+  setDirEnv: (item: PHPProjectItem) => Promise<any>
 }>({
   fetching: false,
   project: [],
   search: '',
   saveProject() {
     localForage
-      .setItem('flyenv-node-projects', JSON.parse(JSON.stringify(NodeProjectSetup.project)))
+      .setItem('flyenv-php-projects', JSON.parse(JSON.stringify(PHPProjectSetup.project)))
       .then()
       .catch()
   },
   fetchProject() {
-    if (NodeProjectSetup.fetching) {
+    if (PHPProjectSetup.fetching) {
       return
     }
-    NodeProjectSetup.fetching = true
+    PHPProjectSetup.fetching = true
     localForage
-      .getItem('flyenv-node-projects')
-      .then((res: NodeProjectItem[]) => {
-        NodeProjectSetup.project.splice(0)
-        NodeProjectSetup.project.push(...res)
+      .getItem('flyenv-php-projects')
+      .then((res: PHPProjectItem[]) => {
+        PHPProjectSetup.project.splice(0)
+        PHPProjectSetup.project.push(...res)
       })
       .catch()
       .finally(() => {
-        NodeProjectSetup.fetching = false
+        PHPProjectSetup.fetching = false
       })
   },
   addProject() {
@@ -65,20 +65,20 @@ export const NodeProjectSetup = reactive<{
           return
         }
         const [path] = filePaths
-        const find = NodeProjectSetup.project.find((p) => p.path === path)
+        const find = PHPProjectSetup.project.find((p) => p.path === path)
         if (find) {
           return
         }
-        const item: NodeProjectItem = {
+        const item: PHPProjectItem = {
           id: uuid(),
           path,
           comment: '',
-          nodeVersion: '',
-          nodePath: '',
-          nodeBin: ''
+          phpVersion: '',
+          phpPath: '',
+          phpBin: ''
         }
-        NodeProjectSetup.project.unshift(item)
-        NodeProjectSetup.saveProject()
+        PHPProjectSetup.project.unshift(item)
+        PHPProjectSetup.saveProject()
       })
   },
   delProject(index: number) {
@@ -87,12 +87,12 @@ export const NodeProjectSetup = reactive<{
       type: 'warning'
     })
       .then(() => {
-        NodeProjectSetup.project.splice(index, 1)
-        NodeProjectSetup.saveProject()
+        PHPProjectSetup.project.splice(index, 1)
+        PHPProjectSetup.saveProject()
       })
       .catch(() => {})
   },
-  async setDirEnv(item: NodeProjectItem) {
+  async setDirEnv(item: PHPProjectItem) {
     IPC.send('app-fork:tools', 'initFlyEnvSH').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 1) {
@@ -101,10 +101,10 @@ export const NodeProjectSetup = reactive<{
     })
     try {
       const envFile = join(item.path, '.flyenv')
-      if (!item.nodeVersion) {
+      if (!item.phpVersion) {
         await writeFile(envFile, '')
       } else {
-        const arr = [item.nodePath, join(item.nodePath, 'bin'), join(item.nodePath, 'sbin')].filter(
+        const arr = [item.phpPath, join(item.phpPath, 'bin'), join(item.phpPath, 'sbin')].filter(
           (s) => existsSync(s)
         )
         await writeFile(envFile, `#!/bin/zsh\nexport PATH="${arr.join(':')}:$PATH"`)
