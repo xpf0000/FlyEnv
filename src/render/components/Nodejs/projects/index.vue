@@ -65,7 +65,6 @@
             <span
               class="node-project-list-cell-id cursor-pointer hover:text-yellow-500"
               :data-node-project-id="scope.row.id"
-              @click.stop="shell.showItemInFolder(scope.row.nodeBin)"
             >
               {{ scope.row.nodeVersion }}
             </span>
@@ -115,31 +114,41 @@
               </li>
               <li @click.stop="Project.copyPath(scope.row.path)">
                 <yb-icon :svg="import('@/svg/dirPath.svg?raw')" width="13" height="13" />
-                <span class="ml-15">拷贝路径</span>
+                <span class="ml-15">{{ I18nT('nodejs.copyDirPath') }}</span>
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'Terminal')">
                 <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
-                <span class="ml-15">进入 终端</span>
+                <span class="ml-15"
+                  >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.Terminal') }}</span
+                >
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'vscode')">
                 <yb-icon :svg="import('@/svg/vscode.svg?raw')" width="13" height="13" />
-                <span class="ml-15">进入 VSCode</span>
+                <span class="ml-15">{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.VSCode') }}</span>
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'vs')">
                 <yb-icon :svg="import('@/svg/vstudio.svg?raw')" width="13" height="13" />
-                <span class="ml-15">进入 Visual Studio</span>
+                <span class="ml-15"
+                  >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.VisualStudio') }}</span
+                >
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'PhpStorm')">
                 <yb-icon :svg="import('@/svg/phpstorm.svg?raw')" width="13" height="13" />
-                <span class="ml-15">进入 PhpStorm</span>
+                <span class="ml-15"
+                  >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.PhpStorm') }}</span
+                >
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'WebStorm')">
                 <yb-icon :svg="import('@/svg/webstorm.svg?raw')" width="13" height="13" />
-                <span class="ml-15">进入 WebStorm</span>
+                <span class="ml-15"
+                  >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.WebStorm') }}</span
+                >
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'HBuilderX')">
                 <yb-icon :svg="import('@/svg/hbuilderx.svg?raw')" width="13" height="13" />
-                <span class="ml-15">进入 HBuilderX</span>
+                <span class="ml-15"
+                  >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.HBuilderX') }}</span
+                >
               </li>
               <li @click.stop="showSort($event, scope.row.id)">
                 <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
@@ -151,7 +160,7 @@
               </li>
             </ul>
             <template #reference>
-              <el-button link class="status">
+              <el-button :key="scope.row.id" link class="status">
                 <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
               </el-button>
             </template>
@@ -163,10 +172,9 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, onBeforeUnmount, onMounted, type Ref, ref } from 'vue'
+  import { computed, nextTick, onBeforeUnmount, onMounted, reactive, type Ref, ref } from 'vue'
   import { I18nT } from '@lang/index'
   import { type NodeProjectItem, NodeProjectSetup } from './setup'
-  import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
   import { FolderAdd, Refresh, Reading } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
@@ -250,19 +258,22 @@
     const dom: HTMLElement = e?.target as any
     if (quickEdit?.value && !quickEditTr?.value?.contains(dom)) {
       if (!isEqual(quickEdit.value, quickEditBack)) {
-        const findNode = nodeVersions.value.find((n) => n.bin === quickEdit.value!.nodeBin)
-        const findProject = NodeProjectSetup.project.find((p) => p.path === quickEdit.value!.path)
-        if (findProject) {
-          findProject.nodeVersion = findNode?.version ?? ''
-          findProject.nodePath = findNode?.path ?? ''
-          findProject.nodeBin = findNode?.bin ?? ''
-          findProject.comment = quickEdit.value!.comment
-          NodeProjectSetup.saveProject()
-        }
+        const item = JSON.parse(JSON.stringify(quickEdit.value))
+        quickEdit.value = undefined
+        quickEditTr.value = undefined
+        quickEditBack = undefined
+        nextTick().then(() => {
+          const findNode = nodeVersions.value.find((n) => n.bin === item.nodeBin)
+          const findProject = NodeProjectSetup.project.findIndex((p) => p.path === item.path)
+          if (findProject) {
+            item.nodeVersion = findNode?.version ?? ''
+            item.nodePath = findNode?.path ?? ''
+            item.nodeBin = findNode?.bin ?? ''
+            NodeProjectSetup.project.splice(findProject, 1, reactive(item))
+            NodeProjectSetup.saveProject()
+          }
+        })
       }
-      quickEdit.value = undefined
-      quickEditTr.value = undefined
-      quickEditBack = undefined
     }
   }
 

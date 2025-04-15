@@ -19,7 +19,6 @@
   import { NodeDefaultSetup, Setup } from './setup'
   import { ElInput, ElButton, ElTooltip, ElProgress } from 'element-plus'
   import type { Column } from 'element-plus'
-  import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
   import { MessageSuccess } from '@/util/Element'
 
   const { clipboard } = require('@electron/remote')

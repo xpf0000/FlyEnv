@@ -86,5 +86,6 @@ export const NodeProjectSetup = reactive<{
         NodeProjectSetup.saveProject()
       })
       .catch(() => {})
-  }
+  },
+  setDirEnv(item: NodeProjectItem) {}
 })

@@ -47,7 +47,6 @@
   import { FNMSetup, Setup } from '@/components/Nodejs/fnm/setup'
   import { ElInput, ElButton, ElTooltip } from 'element-plus'
   import type { Column } from 'element-plus'
-  import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
   import { MessageSuccess } from '@/util/Element'
 
   const { clipboard } = require('@electron/remote')
