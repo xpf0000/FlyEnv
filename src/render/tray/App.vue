@@ -1,4 +1,5 @@
 <template>
+  <VueSvg />
   <div class="tray-aside-inner">
     <ul class="top-tool">
       <li
@@ -15,7 +16,7 @@
     </ul>
     <ul class="menu top-menu">
       <el-scrollbar>
-        <template v-for="(item, index) in allService" :key="index">
+        <template v-for="(item, _index) in allService" :key="_index">
           <li v-if="store[item.typeFlag] && store[item.typeFlag].show" class="non-draggable">
             <div class="left">
               <div class="icon-block" :class="{ run: store[item.typeFlag].run }">
@@ -50,6 +51,7 @@
   import IPC from '../util/IPC'
   import { AppModules } from '@/core/App'
   import { I18nT } from '@lang/index'
+  import VueSvg from '@/components/VueSvgIcon/svg.vue'
 
   const allService = AppModules.filter((m) => m.isTray).map((m) => {
     return {
@@ -60,9 +62,6 @@
   })
 
   const store = AppStore()
-  const password = computed(() => {
-    return store.password
-  })
   const groupIsRunning = computed(() => {
     return store.groupIsRunning
   })
@@ -76,7 +75,7 @@
   })
 
   const groupDo = () => {
-    if (groupDisabled?.value || !password?.value) {
+    if (groupDisabled?.value) {
       return
     }
     IPC.send('APP:Tray-Command', 'groupDo').then((key: string) => {
@@ -85,9 +84,6 @@
   }
 
   const switchChange = (flag: string) => {
-    if (!password?.value) {
-      return
-    }
     IPC.send('APP:Tray-Command', 'switchChange', flag).then((key: string) => {
       IPC.off(key)
     })

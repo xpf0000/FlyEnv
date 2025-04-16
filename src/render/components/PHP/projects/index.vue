@@ -170,6 +170,7 @@
   import { Project } from '@/util/Project'
 
   const { shell } = require('@electron/remote')
+  const { join } = require('path')
 
   let quickEditBack: PHPProjectItem | undefined = undefined
   const quickEdit: Ref<PHPProjectItem | undefined> = ref(undefined)
@@ -179,7 +180,12 @@
   const brewStore = BrewStore()
 
   const phpVersions = computed(() => {
-    return brewStore.module('php').installed
+    return brewStore.module('php').installed.map((p) => {
+      return {
+        ...p,
+        bin: p?.phpBin ?? join(p.path, 'bin/php')
+      }
+    })
   })
 
   const tableData = computed(() => {
