@@ -1029,7 +1029,10 @@ chcp 65001>nul
         { name: 'PowerShell 7+', exe: 'pwsh.exe', profileType: 'CurrentUserAllHosts' }
       ]
 
-      const flyenvScriptPath = join(global.Server.AppDir!, 'bin/flyenv.ps1')
+      const flyenvScriptPath = join(
+        dirname(dirname(global.Server.AppDir!)),
+        'PhpWebStudy/flyenv.ps1'
+      )
       await mkdirp(dirname(flyenvScriptPath))
       if (!existsSync(flyenvScriptPath)) {
         await copyFile(join(global.Server.Static!, 'sh/flyenv.ps1'), flyenvScriptPath)
