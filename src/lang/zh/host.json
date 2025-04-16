@@ -42,7 +42,7 @@
   "copyCommand": "复制命令",
   "showFile": "显示文件",
   "name": "站点",
-  "mark": "备注",
+  "comment": "备注",
   "setup": "操作",
   "phpVersion": "php版本",
   "newProject": "新建项目",

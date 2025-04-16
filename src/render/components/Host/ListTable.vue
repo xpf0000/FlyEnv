@@ -68,7 +68,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('host.mark')">
+        <el-table-column :label="$t('host.comment')">
           <template #default="scope">
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>

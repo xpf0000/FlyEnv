@@ -1035,7 +1035,7 @@ chcp 65001>nul
       )
       await mkdirp(dirname(flyenvScriptPath))
       if (!existsSync(flyenvScriptPath)) {
-        await copyFile(join(global.Server.Static!, 'sh/flyenv.ps1'), flyenvScriptPath)
+        await copyFile(join(global.Server.Static!, 'sh/fly-env.ps1'), flyenvScriptPath)
       }
 
       for (const version of psVersions) {

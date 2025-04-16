@@ -42,7 +42,7 @@
   "copyCommand": "Copy Command",
   "showFile": "Show File",
   "name": "site",
-  "mark": "mark",
+  "comment": "Comment",
   "setup": "setup",
   "phpVersion": "php version",
   "newProject": "New Project",
