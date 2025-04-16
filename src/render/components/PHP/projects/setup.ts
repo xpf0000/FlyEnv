@@ -8,7 +8,7 @@ import { MessageError } from '@/util/Element'
 
 const { dialog } = require('@electron/remote')
 const { join } = require('path')
-const { writeFile, existsSync, chmod } = require('fs-extra')
+const { writeFile, existsSync } = require('fs-extra')
 
 export type PHPProjectItem = {
   id: string
@@ -107,8 +107,10 @@ export const PHPProjectSetup = reactive<{
         const arr = [item.phpPath, join(item.phpPath, 'bin'), join(item.phpPath, 'sbin')].filter(
           (s) => existsSync(s)
         )
-        await writeFile(envFile, `#!/bin/zsh\nexport PATH="${arr.join(':')}:$PATH"`)
-        await chmod(envFile, '0777')
+        await writeFile(
+          envFile,
+          `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\n$env:PATH = "${arr.join(';')};" + $env:PATH`
+        )
       }
     } catch (e: any) {
       MessageError(e.toString())

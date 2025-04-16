@@ -106,11 +106,9 @@
                 <yb-icon :svg="import('@/svg/dirPath.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ I18nT('nodejs.copyDirPath') }}</span>
               </li>
-              <li @click.stop="Project.openPath(scope.row.path, 'Terminal')">
+              <li @click.stop="Project.openPath(scope.row.path, 'PowerShell')">
                 <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
-                <span class="ml-15"
-                  >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.Terminal') }}</span
-                >
+                <span class="ml-15">{{ I18nT('nodejs.openIN') }} PowerShell</span>
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'VSCode')">
                 <yb-icon :svg="import('@/svg/vscode.svg?raw')" width="13" height="13" />
@@ -179,7 +177,7 @@
     return brewStore.module('php').installed.map((p) => {
       return {
         ...p,
-        bin: p?.phpBin ?? join(p.path, 'bin/php')
+        bin: join(p.path, 'php.exe')
       }
     })
   })
