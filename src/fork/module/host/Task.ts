@@ -2,10 +2,10 @@ import type { AppHost, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { existsSync, readdirSync } from 'fs'
-import { copy, mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { copy, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import { setDirRole } from './Host'
 import { I18nT } from '@lang/index'
-import { downFile } from '../../Fn'
+import { downFile, moveDirToDir, waitTime } from '../../Fn'
 import { zipUnPack } from '@shared/file'
 import { fetchHostList } from './HostFile'
 
@@ -94,13 +94,12 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled, write = tru
 export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = true, ipv6 = true) {
   return new ForkPromise(async (resolve, reject, on) => {
     const zipFile = join(global.Server.Cache!, 'phpMyAdmin.zip')
-    const wwwDir = join(global.Server.BaseDir!, 'www')
-    const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin-5.2.2-all-languages')
+    const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin')
     let hostList: Array<AppHost> = []
     try {
       hostList = await fetchHostList()
     } catch (e) {}
-    const find = hostList.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
+    const find = hostList.find((h) => h.name === 'phpmyadmin.test')
     if (find) {
       resolve(true)
       return
@@ -115,9 +114,17 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
         if (existsSync(siteDir)) {
           await remove(siteDir)
         }
-        await mkdirp(wwwDir)
+        await mkdirp(siteDir)
+        const tmplDir = join(global.Server.Cache!, 'phpMyAdmin-tmpl')
         try {
-          await zipUnPack(zipFile, wwwDir)
+          await zipUnPack(zipFile, tmplDir)
+          const subDirs = await readdir(tmplDir)
+          const subDir = subDirs.pop()
+          if (subDir) {
+            await moveDirToDir(join(tmplDir, subDir), siteDir)
+            await waitTime(300)
+            await remove(tmplDir)
+          }
         } catch (e) {
           reject(e)
           return
@@ -126,14 +133,15 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
           reject(new Error(I18nT('fork.downFileFail')))
           return
         }
-        const ini = join(wwwDir, 'phpMyAdmin-5.2.2-all-languages/config.sample.inc.php')
+
+        const ini = join(siteDir, 'config.sample.inc.php')
         if (existsSync(ini)) {
           let content = await readFile(ini, 'utf-8')
           content = content.replace(
             `$cfg['Servers'][$i]['host'] = 'localhost';`,
             `$cfg['Servers'][$i]['host'] = '127.0.0.1';`
           )
-          const cpFile = join(wwwDir, 'phpMyAdmin-5.2.2-all-languages/config.inc.php')
+          const cpFile = join(siteDir, 'config.inc.php')
           await writeFile(cpFile, content)
         }
       }
@@ -148,7 +156,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
 
       const hostItem: any = {
         id: new Date().getTime(),
-        name: 'phpmyadmin.phpwebstudy.test',
+        name: 'phpmyadmin.test',
         alias: '',
         useSSL: useSSL,
         autoSSL: autoSSL,
@@ -169,7 +177,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
         },
         url: '',
         root: siteDir,
-        mark: 'PhoMyAdmin - PhpWebStudy Auto Created',
+        mark: 'PhpMyAdmin (Auto Created)',
         phpVersion: undefined
       }
       if (phpVersion) {
@@ -193,7 +201,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
     if (existsSync(zipTmpFile)) {
       await remove(zipTmpFile)
     }
-    const url = 'https://files.phpmyadmin.net/phpMyAdmin/5.2.2/phpMyAdmin-5.2.2-all-languages.zip'
+    const url = 'https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.zip'
     downFile(url, zipTmpFile)
       .on(on)
       .then(async () => {

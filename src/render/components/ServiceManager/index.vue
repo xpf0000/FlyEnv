@@ -507,7 +507,7 @@
       const url = `${http}${host}${portStr}`
       shell.openExternal(url)
     }
-    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
+    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.test')
     if (find) {
       toOpenHost(find)
       return
@@ -516,7 +516,7 @@
     AsyncComponentShow(PhpMyAdminVM).then(async (res) => {
       if (res) {
         await appStore.initHost()
-        const url = 'http://phpmyadmin.phpwebstudy.test'
+        const url = 'http://phpmyadmin.test'
         shell.openExternal(url)
       }
     })

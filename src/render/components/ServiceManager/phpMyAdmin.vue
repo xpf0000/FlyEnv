@@ -93,6 +93,7 @@
           state.value = 'error'
           IPC.off(key)
           MessageError(res?.msg)
+          PhpMyAdminTask.fetching = false
         }
       }
     )
