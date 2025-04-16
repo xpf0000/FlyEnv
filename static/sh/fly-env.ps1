@@ -4,7 +4,7 @@ $lastFlyenvDir = $null
 function global:Prompt {
   if ((Test-Path ".flyenv") -and ($PWD.Path -ne $lastFlyenvDir)) {
     Write-Host "Found .flyenv file, loading..." -ForegroundColor Green
-    . ".flyenv"
+    Get-Content ".flyenv" -Raw | Invoke-Expression
     Write-Host "Successfully loaded environment variables from .flyenv" -ForegroundColor Green
     $script:lastFlyenvDir = $PWD.Path
   }
