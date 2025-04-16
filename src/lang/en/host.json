@@ -69,5 +69,6 @@
   "noPhpWarning": "Check that no PHP version is selected, a static site will be created, and the PHP files will cannot be executed. Are you sure to continue?",
   "enable": "Enable",
   "hostsWriteTips": "Enable / Disable all hosts in this list",
-  "sort": "Sort"
+  "sort": "Sort",
+  "dbclickRowToEdit": "Double-click this line to edit"
 }

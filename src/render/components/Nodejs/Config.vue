@@ -6,8 +6,8 @@
     :file-ext="'conf'"
     :show-commond="true"
     :show-load-default="false"
-    @on-type-change="onTypeChange"
     :common-setting="commonSetting"
+    @on-type-change="onTypeChange"
   >
   </Conf>
 </template>

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import logger from './core/Logger'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
@@ -464,6 +464,31 @@ export default class Application extends EventEmitter {
     if (command.startsWith('app-fork:')) {
       console.log('app main time: ', new Date().getTime())
       const module = command.replace('app-fork:', '')
+      const openApps: Record<string, string> = {
+        VSCode: 'vscode://file/'
+      }
+
+      if (module === 'tools' && args?.[0] === 'openPathByApp' && !!openApps?.[args?.[2]]) {
+        const appKey = args[2]
+        const url = `${openApps[appKey]}${encodeURIComponent(args[1].replace(/\\/g, '/'))}`
+        console.log('openPathByApp ', args?.[2], url)
+        shell
+          .openExternal(url)
+          .then(() => {
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              code: 0,
+              data: true
+            })
+          })
+          .catch((e: any) => {
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              code: 1,
+              msg: e.toString()
+            })
+          })
+        return
+      }
+
       this.setProxy()
       global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
       global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')

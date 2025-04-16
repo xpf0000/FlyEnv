@@ -22,8 +22,8 @@
         :file="file"
         :file-ext="'ini'"
         :show-commond="true"
-        @on-type-change="onTypeChange"
         :common-setting="commonSetting"
+        @on-type-change="onTypeChange"
       >
       </Conf>
     </div>
@@ -38,7 +38,7 @@
   import { SoftInstalled } from '@/store/brew'
   import IPC from '@/util/IPC'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import {uuid} from "@shared/utils";
+  import { uuid } from '@shared/utils'
 
   const props = defineProps<{
     version: SoftInstalled
@@ -240,7 +240,10 @@
     }
     let config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names].map((item) => {
-      const regex = new RegExp(`^[\\s\\n]?((?![#;])([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
+      const regex = new RegExp(
+        `^[\\s\\n]?((?![#;])([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`,
+        'gm'
+      )
       const matchs =
         config.match(regex)?.map((s) => {
           const sarr = s

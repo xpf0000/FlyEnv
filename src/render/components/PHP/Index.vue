@@ -22,6 +22,7 @@
       >
       </Composer>
       <Create v-else-if="tab === 3" />
+      <ProjectIndex v-else-if="tab === 4" />
     </div>
   </div>
 </template>
@@ -33,12 +34,14 @@
   import { I18nT } from '@lang/index'
   import Composer from '../VersionManager/all.vue'
   import Create from './CreateProject.vue'
+  import ProjectIndex from './projects/index.vue'
 
   const { tab } = AppModuleSetup('php')
   const tabs = [
     I18nT('base.service'),
     I18nT('base.versionManager'),
     'Composer',
-    I18nT('host.newProject')
+    I18nT('host.newProject'),
+    I18nT('host.projectPhp')
   ]
 </script>

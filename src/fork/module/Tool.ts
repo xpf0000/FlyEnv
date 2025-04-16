@@ -31,6 +31,7 @@ import { PItem, ProcessListSearch, ProcessPidList } from '../Process'
 import { AppServiceAliasItem } from '@shared/app'
 import { exec } from 'child-process-promise'
 import RequestTimer from '@shared/requestTimer'
+import { userInfo } from 'os'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -822,6 +823,299 @@ chcp 65001>nul
         resolve(res)
       } catch (error) {
         reject(error)
+      }
+    })
+  }
+
+  runInTerminal(command: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      command = JSON.stringify(command).slice(1, -1)
+      console.log('command: ', command)
+      try {
+        await exec(`start powershell -NoExit -Command "${command}"`)
+      } catch (e) {
+        return reject(e)
+      }
+      resolve(true)
+    })
+  }
+
+  openPathByApp(
+    dir: string,
+    app:
+      | 'PowerShell'
+      | 'PhpStorm'
+      | 'WebStorm'
+      | 'IntelliJ'
+      | 'PyCharm'
+      | 'RubyMine'
+      | 'GoLand'
+      | 'HBuilderX'
+  ) {
+    return new ForkPromise(async (resolve, reject) => {
+      let command = ''
+      const JetBrains = ['PhpStorm', 'WebStorm', 'IntelliJ', 'PyCharm', 'RubyMine', 'GoLand']
+      if (JetBrains.includes(app)) {
+        const findIdePath = async (ideName: string) => {
+          try {
+            // 定义所有可能的注册表路径
+            const registryPaths = [
+              `HKLM\\SOFTWARE\\JetBrains\\${ideName}`,
+              `HKLM\\SOFTWARE\\WOW6432Node\\JetBrains\\${ideName}`,
+              `HKCU\\SOFTWARE\\JetBrains\\${ideName}`
+            ]
+
+            for (const regPath of registryPaths) {
+              try {
+                // 使用 /s 参数查询所有子项和值
+                const { stdout } = await exec(`reg query "${regPath}" /s`)
+                const lines = stdout.split('\n').map((line: string) => line.trim())
+
+                let basePath = null
+
+                for (const line of lines) {
+                  if (line.includes('InstallPath') || line.includes('(Default)')) {
+                    const pathMatch = line.match(/(InstallPath|\(Default\))\s+REG_SZ\s+(.+)/i)
+                    if (pathMatch) {
+                      basePath = pathMatch[2].trim()
+                      break // 找到路径后退出循环
+                    }
+                  }
+                }
+
+                if (basePath) {
+                  return formatExePath(basePath, ideName)
+                }
+              } catch (e) {
+                continue
+              }
+            }
+
+            return null
+          } catch (error) {
+            console.error(`Error finding IDE path: ${error}`)
+            return null
+          }
+        }
+
+        const findToolboxIdePath = async (ideName: string) => {
+          try {
+            // 尝试获取 Toolbox 安装目录
+            const { stdout } = await exec(
+              `reg query "HKCU\\SOFTWARE\\JetBrains\\Toolbox" /v "InstallDir"`
+            )
+            const match = stdout.match(/InstallDir\s+REG_SZ\s+(.+)/i)
+            if (!match) return null
+
+            const toolboxPath = match[1].trim()
+            const appsPath = `${toolboxPath}\\apps\\${ideName}\\ch-0`
+
+            // 获取最新版本目录（按修改时间倒序）
+            const { stdout: dirs } = await exec(`dir "${appsPath}" /AD /B /O-N`)
+            const latestVersionDir = dirs.split('\r\n')[0].trim()
+            if (!latestVersionDir) return null
+
+            return formatExePath(`${appsPath}\\${latestVersionDir}`, ideName)
+          } catch (error) {
+            console.error(`Error finding Toolbox IDE path: ${error}`)
+            return null
+          }
+        }
+
+        // 统一格式化可执行文件路径
+        const formatExePath = (basePath: string, ideName: string) => {
+          const exeMap: Record<string, string> = {
+            phpstorm: 'phpstorm64.exe',
+            pycharm: 'pycharm64.exe',
+            intellijidea: 'idea64.exe',
+            webstorm: 'webstorm64.exe',
+            clion: 'clion64.exe',
+            rider: 'rider64.exe',
+            goland: 'goland64.exe',
+            datagrip: 'datagrip64.exe',
+            rubymine: 'rubymine64.exe',
+            appcode: 'appcode64.exe'
+          }
+
+          const normalizedName = ideName.toLowerCase()
+          const exeName = exeMap[normalizedName] || `${normalizedName}64.exe`
+          const exePath = `${basePath}\\bin\\${exeName}`
+
+          if (existsSync(exePath)) {
+            return exePath
+          }
+          return null
+        }
+
+        const openWithIde = async (ideName: string, folderPath: string) => {
+          try {
+            let idePath = await findIdePath(ideName)
+            if (!idePath) {
+              idePath = await findToolboxIdePath(ideName)
+            }
+
+            if (!idePath) {
+              console.error(`${ideName} not found`)
+              return false
+            }
+
+            await exec(`"${idePath}" "${folderPath}"`)
+            console.log(`Opened ${folderPath} with ${ideName}`)
+            return true
+          } catch (error) {
+            console.error(`Error opening IDE: ${error}`)
+            return false
+          }
+        }
+
+        const res = await openWithIde(app, dir)
+        if (res) {
+          return resolve(true)
+        }
+        return reject(new Error(`${app} Not Found`))
+      }
+      if (app === 'HBuilderX') {
+        const getHBuilderXPath = async (): Promise<string | null> => {
+          try {
+            // 查询注册表
+            const { stdout } = await exec(`reg query "HKCR\\hbuilderx\\shell\\open\\command" /ve`)
+
+            // 提取路径（示例输出: "(Default) REG_SZ "D:\Program Files\HBuilderX\HBuilderX.exe" "%1""）
+            const match = stdout.match(/"(.*?HBuilderX\.exe)"/i)
+            if (match && match[1]) {
+              return match[1] // 返回可执行文件完整路径
+            }
+            return null
+          } catch (error) {
+            return null
+          }
+        }
+        const openWithHBuilderX = async (targetPath: string): Promise<boolean> => {
+          try {
+            const hbuilderxPath = await getHBuilderXPath()
+            if (!hbuilderxPath) {
+              return false
+            }
+            await exec(`"${hbuilderxPath}" "${targetPath}"`)
+            return true
+          } catch (error) {
+            return false
+          }
+        }
+
+        const res = await openWithHBuilderX(dir)
+        if (res) {
+          return resolve(true)
+        }
+        return reject(new Error(`HBuilderX Not Found`))
+      }
+      if (app === 'PowerShell') {
+        command = `cd "${dir}"`
+        command = JSON.stringify(command).slice(1, -1)
+        command = `start powershell -NoExit -Command "${command}"`
+      }
+      try {
+        await exec(command)
+      } catch (e) {
+        return reject(e)
+      }
+      resolve(true)
+    })
+  }
+
+  async function initFlyEnvSH() {
+    // 1. 定义所有需要处理的 PowerShell 版本
+    const psVersions = [
+      { name: 'PowerShell 5.1', exe: 'powershell.exe', profileType: 'CurrentUserCurrentHost' },
+      { name: 'PowerShell 7+', exe: 'pwsh.exe', profileType: 'CurrentUserAllHosts' }
+    ];
+
+    // 2. 准备 flyenv.ps1 脚本
+    const flyenvScriptPath = join(global.Server.AppDir!, 'bin/flyenv.ps1');
+    await mkdirp(dirname(flyenvScriptPath));
+    if (!existsSync(flyenvScriptPath)) {
+      await copyFile(join(global.Server.Static!, 'sh/flyenv.ps1'), flyenvScriptPath);
+    }
+
+    // 3. 为每个版本处理一个 Profile 文件
+    for (const version of psVersions) {
+      try {
+        // 获取目标 Profile 路径
+        const profilePath = (await exec(
+          `$PROFILE.${version.profileType}`,
+          { shell: version.exe }
+        )).stdout.trim();
+
+        if (!profilePath || profilePath === '') continue;
+
+        // 写入配置（如果不存在）
+        await mkdirp(dirname(profilePath));
+        const loadCommand = `. "${flyenvScriptPath.replace(/\\/g, '/')}"\n`;
+
+        if (!existsSync(profilePath)) {
+          await writeFile(profilePath, `# FlyEnv Auto-Load\n${loadCommand}`);
+        } else {
+          const content = await readFile(profilePath, 'utf-8');
+          if (!content.includes(loadCommand.trim())) {
+            await writeFile(profilePath, `${content.trim()}\n\n${loadCommand}`);
+          }
+        }
+
+        console.log(`[OK] ${version.name} configured: ${profilePath}`);
+      } catch (err) {
+        console.warn(`[Skip] ${version.name} not installed: ${err.message}`);
+      }
+    }
+  }
+
+  initFlyEnvSH() {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        // 1. 获取所有可能的 Profile 路径
+        const profiles = (
+          await exec(
+            '@($PROFILE.AllUsersAllHosts, $PROFILE.AllUsersCurrentHost, $PROFILE.CurrentUserAllHosts, $PROFILE.CurrentUserCurrentHost) | Select-Object -Unique',
+            { shell: 'powershell.exe' }
+          )
+        ).stdout
+          .trim()
+          .split('\n')
+
+        // 2. 确保 fly-env.ps1 存在
+        const copySh = join(dirname(global.Server.AppDir!), 'bin/fly-env.ps1')
+        await mkdirp(dirname(copySh))
+        if (!existsSync(copySh)) {
+          await copyFile(join(global.Server.Static!, 'sh/fly-env.ps1'), copySh)
+        }
+
+        // 3. 检查并修改每个 Profile
+        for (const profile of profiles) {
+          if (!profile) continue
+          await mkdirp(dirname(profile))
+
+          const content = existsSync(profile) ? await readFile(profile, 'utf-8') : ''
+          const escapedPath = copySh.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          const regex = new RegExp(`^\\s*\\.\\s*["']${escapedPath}["']`, 'm')
+
+          if (!regex.test(content)) {
+            await writeFile(profile, content.trim() + (content ? '\n\n' : '') + `. "${copySh}"\n`)
+          }
+        }
+
+        // 4. 确保执行策略允许
+        const policy = (
+          await exec('Get-ExecutionPolicy -Scope CurrentUser', { shell: 'powershell.exe' })
+        ).stdout.trim()
+        if (policy === 'Restricted') {
+          await exec('Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force', {
+            shell: 'powershell.exe'
+          })
+        }
+
+        return true
+      } catch (err) {
+        console.error('initFlyEnvSH failed:', err)
+        throw err
       }
     })
   }

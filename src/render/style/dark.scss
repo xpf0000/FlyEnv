@@ -8,6 +8,21 @@ html.dark {
     --el-table-bg-color: var(--main-panel-bg-color);
     --el-table-tr-bg-color: var(--main-panel-bg-color);
     --el-table-header-bg-color: var(--main-panel-bg-color);
+
+    .is-top {
+      --el-table-tr-bg-color: var(--el-color-info-light-9);
+    }
+
+    .is-sorting {
+      --el-table-tr-bg-color: #32364a;
+      filter: drop-shadow(0 0 5px rgba(60,60,60,0.5));
+      position: relative;
+      z-index: 1500;
+
+      td.el-table__cell {
+        border: none;
+      }
+    }
   }
   .el-table-v2 {
     --el-bg-color: var(--main-panel-bg-color);
@@ -370,25 +385,6 @@ html.dark {
     >.tools-panel {
       > li {
         background: #32364a;
-      }
-    }
-
-    >.host-list {
-      .el-table {
-        .is-top {
-          --el-table-tr-bg-color: var(--el-color-info-light-9);
-        }
-
-        .is-sorting {
-          --el-table-tr-bg-color: #32364a;
-          filter: drop-shadow(0 0 5px rgba(60,60,60,0.5));
-          position: relative;
-          z-index: 1500;
-
-          td.el-table__cell {
-            border: none;
-          }
-        }
       }
     }
   }

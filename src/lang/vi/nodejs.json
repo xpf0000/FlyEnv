@@ -1,3 +1,7 @@
 {
-  "noInstallTips": "{app} chưa được cài đặt, Xác nhận cài đặt?"
+  "noInstallTips": "{app} chưa được cài đặt, Xác nhận cài đặt?",
+  "registry": "Nguồn",
+  "checkPackageJsonUpdate": "Kiểm tra cập nhật",
+  "updatePackageJsonFile": "Cập nhật tệp package.json",
+  "updatePackageJsonFileTips": "Hành động này sẽ thay đổi tệp package.json. Bạn có chắc chắn muốn cập nhật không?"
 }

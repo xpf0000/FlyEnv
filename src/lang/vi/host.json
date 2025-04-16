@@ -69,5 +69,6 @@
   "warning": "Cảnh báo",
   "noPhpWarning": "Kiểm tra xem không có phiên bản PHP nào được chọn, một trang web tĩnh sẽ được tạo và các tệp PHP sẽ không thể thực thi. Bạn có chắc chắn muốn tiếp tục?",
   "hostsWriteTips": "Bật / Tắt tất cả các host trong danh sách này",
-  "sort": "Sắp xếp"
+  "sort": "Sắp xếp",
+  "dbclickRowToEdit": "Nhấp đúp vào dòng này để chỉnh sửa"
 }

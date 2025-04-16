@@ -1,4 +1,5 @@
 <template>
+  <VueSvg />
   <router-view />
   <FloatButton />
 </template>
@@ -14,6 +15,7 @@
   import FloatButton from '@/components/FloatBtn/index.vue'
   import { type AllAppModule, AppModuleEnum } from '@/core/type'
   import { AppModules } from '@/core/App'
+  import VueSvg from '@/components/VueSvgIcon/svg.vue'
 
   const inited = ref(false)
   const appStore = AppStore()

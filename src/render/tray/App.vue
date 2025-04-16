@@ -1,4 +1,5 @@
 <template>
+  <VueSvg />
   <div class="tray-aside-inner">
     <ul class="top-tool">
       <li
@@ -50,6 +51,7 @@
   import IPC from '../util/IPC'
   import { AppModules } from '@/core/App'
   import { I18nT } from '@lang/index'
+  import VueSvg from '@/components/VueSvgIcon/svg.vue'
 
   const allService = AppModules.filter((m) => m.isTray).map((m) => {
     return {

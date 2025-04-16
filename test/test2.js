@@ -1,44 +1,17 @@
-const a = () => {
-  return new Promise((resolve) => {
-    console.log('AAA')
-    resolve('a')
-  })
-}
+const { spawn } = require('child_process')
 
-const b = () => {
-  return new Promise((resolve) => {
-    console.log('BBB')
-    resolve('b')
-  })
-}
+// 方法 1：强制使用绝对路径（避免 PATH 问题）
+const powershellPath =
+  process.env.SystemRoot + '\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
 
-const c = () => {
-  return new Promise((resolve) => {
-    console.log('CCC')
-    resolve('c')
-  })
-}
+const powershell = spawn(
+  'powershell', // 使用绝对路径
+  ['-NoExit', '-Command', 'Write-Host "Hello, World!"'],
+  {
+    detached: true,
+    shell: true, // 强制使用系统 shell（关键！）
+    stdio: 'ignore' // 显示窗口（替代 'ignore'）
+  }
+)
 
-const d = () => {
-  return new Promise((resolve) => {
-    a()
-      .then(() => {
-        resolve('000')
-        return new Promise(() => {})
-      })
-      .then(() => {
-        return c()
-      })
-      .then(() => {
-        console.log('END')
-        resolve('111')
-      })
-      .catch((err) => {
-        console.log('err: ', err)
-      })
-  })
-}
-
-d().then((res) => {
-  console.log('res: ', res)
-})
+powershell.unref() // 避免阻塞父进程

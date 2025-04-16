@@ -68,12 +68,14 @@ export const Setup = () => {
       bin: join(global.Server.AppDir!, `nodejs/v${item.version}/node.exe`),
       path: join(global.Server.AppDir!, `nodejs/v${item.version}`)
     }
-    ServiceActionStore.updatePath(param, 'node').then(() => {
-      reFetch()
-    }).finally(() => {
-      item.switching = false
-      NodeDefaultSetup.switching = false
-    })
+    ServiceActionStore.updatePath(param, 'node')
+      .then(() => {
+        reFetch()
+      })
+      .finally(() => {
+        item.switching = false
+        NodeDefaultSetup.switching = false
+      })
   }
   const brewStore = BrewStore()
   const installOrUninstall = (action: 'install' | 'uninstall', item: any) => {

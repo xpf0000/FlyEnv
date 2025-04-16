@@ -4,7 +4,6 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
 
-
 export const FNMSetup = reactive<{
   fetching: boolean
   switching: boolean

@@ -46,6 +46,7 @@
     "node-pty": "^1.0.0",
     "node-rsa": "^1.1.1",
     "normalize.css": "^8.0.1",
+    "npm-check-updates": "^17.1.18",
     "serve": "^14.2.0",
     "tangerine": "^1.5.4",
     "undici": "^5.28.4",

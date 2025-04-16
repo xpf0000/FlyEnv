@@ -1,10 +1,11 @@
 import { createServer } from 'vite'
-import { spawn, ChildProcess, exec } from 'child_process'
+import { spawn, ChildProcess } from 'child_process'
 import { build } from 'esbuild'
 import _fs, { copySync } from 'fs-extra'
 import _path from 'path'
 // @ts-ignore
 import _md5 from 'md5'
+import { exec } from 'child-process-promise'
 
 import viteConfig from '../configs/vite.config'
 import esbuildConfig from '../configs/esbuild.config'
@@ -12,37 +13,23 @@ import esbuildConfig from '../configs/esbuild.config'
 let restart = false
 let electronProcess: ChildProcess | null
 
-function execRoot(cammand: string) {
-  return new Promise((resolve, reject) => {
-    try {
-      exec(cammand, (error, stdout, stderr) => {
-        if (!error) {
-          resolve({
-            stdout: stdout?.toString() ?? '',
-            stderr: stderr?.toString() ?? ''
-          })
-        } else {
-          reject(error)
-        }
-      })
-    } catch (e) {
-      reject(e)
-    }
-  })
-}
-
 async function killAllElectron() {
   const sh = _path.resolve(__dirname, '../scripts/electron-kill.ps1')
-  const command = `powershell.exe "${sh}"`
-  console.log('_stopServer command: ', command)
+  const scriptDir = _path.dirname(sh)
+  console.log('sh: ', sh, scriptDir)
+  const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './electron-kill.ps1'; & './electron-kill.ps1'"`
   let res: any = null
   try {
-    res = await execRoot(command)
+    res = await exec(command, {
+      cwd: scriptDir
+    })
   } catch (e) {
     console.log('killAllElectron err: ', e)
   }
-  console.log('killAllElectron res: ', res)
-  const all = JSON.parse(res?.stdout?.trim() ?? '[]')
+  let all: any = []
+  try {
+    all = JSON.parse(res?.stdout?.trim() ?? '[]')
+  } catch (e) {}
   console.log('all: ', all)
   const arr: Array<string> = []
   for (const item of all) {
@@ -51,7 +38,7 @@ async function killAllElectron() {
   console.log('_stopServer arr: ', arr)
   if (arr.length > 0) {
     const str = arr.map((s) => `/pid ${s}`).join(' ')
-    await execRoot(`taskkill /f /t ${str}`)
+    await exec(`taskkill /f /t ${str}`)
   }
 }
 
@@ -66,20 +53,10 @@ async function launchViteDevServer(openInBrowser = false) {
 
 function buildMainProcess() {
   return new Promise((resolve, reject) => {
-    Promise.all([build(esbuildConfig.dev), build(esbuildConfig.devFork)])
-      .then(
-        async () => {
-          try {
-            await killAllElectron()
-          } catch (e) {
-            console.log('close err: ', e)
-          }
-          resolve(true)
-        },
-        (err) => {
-          console.log(err)
-        }
-      )
+    Promise.all([killAllElectron(), build(esbuildConfig.dev), build(esbuildConfig.devFork)])
+      .then(() => {
+        resolve(true)
+      })
       .catch((e) => {
         console.log(e)
         reject(e)
@@ -139,6 +116,12 @@ if (process.env.TEST === 'browser') {
     console.log('Vite Dev Server Start !!!')
   })
 }
+
+process.on('SIGINT', async () => {
+  console.log('Catch SIGINT，Cleaning Electron Process...')
+  await killAllElectron()
+  process.exit(0)
+})
 
 // 监听main 文件改变
 let preveMd5 = ''

@@ -1,3 +1,15 @@
 {
-  "noInstallTips": "{app} is not installed, Confirm installation?"
+  "noInstallTips": "{app} is not installed, Confirm installation?",
+  "registry": "Source",
+  "checkPackageJsonUpdate": "Check for updates",
+  "updatePackageJsonFile": "Update package.json file",
+  "updatePackageJsonFileTips": "This action will modify the package.json file. Are you sure you want to update?",
+  "copyDirPath": "Copy Project Folder Path",
+  "openIN": "Open In",
+  "Terminal": "Terminal",
+  "VSCode": "Visual Studio Code",
+  "VisualStudio": "Visual Studio",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "HBuilderX": "HBuilderX"
 }

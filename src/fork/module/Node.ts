@@ -23,6 +23,7 @@ import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { SoftInstalled } from '@shared/app'
 import TaskQueue from '../TaskQueue'
+import ncu from 'npm-check-updates'
 
 class Manager extends Base {
   constructor() {
@@ -706,6 +707,21 @@ class Manager extends Base {
         })
         .catch(() => {
           resolve([])
+        })
+    })
+  }
+
+  packageJsonUpdate(file: string, cwd?: string) {
+    return new ForkPromise((resolve, reject) => {
+      ncu({
+        packageFile: file,
+        cwd
+      })
+        .then((res: any) => {
+          resolve(res)
+        })
+        .catch((e: any) => {
+          reject(e)
         })
     })
   }

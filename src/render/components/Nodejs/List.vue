@@ -31,15 +31,15 @@
 </template>
 
 <script lang="ts" setup>
-import { NodejsStore } from '@/components/Nodejs/node'
-import { Setup } from '@/components/Nodejs/setup'
-import FnmVM from './fnm/index.vue'
-import NVMVM from './nvm/index.vue'
-import DefaultVM from './default/index.vue'
+  import { NodejsStore } from '@/components/Nodejs/node'
+  import { Setup } from '@/components/Nodejs/setup'
+  import FnmVM from './fnm/index.vue'
+  import NVMVM from './nvm/index.vue'
+  import DefaultVM from './default/index.vue'
 
-const nodejsStore = NodejsStore()
+  const nodejsStore = NodejsStore()
 
-const { currentTool, loading, reFetch } = Setup()
+  const { currentTool, loading, reFetch } = Setup()
 
-nodejsStore.fetchAll()
+  nodejsStore.fetchAll()
 </script>
