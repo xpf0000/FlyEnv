@@ -661,6 +661,15 @@ end tell`
     })
   }
 
+  initAllowDir(json: string) {
+    return new ForkPromise(async (resolve) => {
+      const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
+      await mkdirp(dirname(jsonFile))
+      await writeFile(jsonFile, json)
+      resolve(true)
+    })
+  }
+
   initFlyEnvSH() {
     return new ForkPromise(async (resolve, reject) => {
       const file = join(global.Server.UserHome!, '.zshrc')
