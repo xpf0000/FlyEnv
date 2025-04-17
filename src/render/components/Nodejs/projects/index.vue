@@ -1,7 +1,7 @@
 <template>
   <ProjectIndex :type-flag="'node'" :title="I18nT('host.projectNode')">
-    <template #operation="item">
-      <li @click.stop="showPackage(item)">
+    <template #operation="{ row }">
+      <li @click.stop="showPackage(row)">
         <Reading width="13" height="13" />
         <span class="ml-15">package.json</span>
       </li>
@@ -11,7 +11,7 @@
 
 <script lang="ts" setup>
   import { I18nT } from '@lang/index'
-  import { type NodeProjectItem } from './setup'
+  import { type ProjectItem } from '@/components/PHP/projects/setup'
   import { Reading } from '@element-plus/icons-vue'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import ProjectIndex from '@/components/PHP/projects/index.vue'
@@ -21,7 +21,7 @@
     PackageVM = res.default
   })
 
-  const showPackage = (item: NodeProjectItem) => {
+  const showPackage = (item: ProjectItem) => {
     AsyncComponentShow(PackageVM, {
       item
     }).then()

@@ -18,8 +18,8 @@
         :title="I18nT('host.projectPython')"
         :type-flag="'python'"
       >
-        <template #openin="item">
-          <li @click.stop="Project.openPath(item.path, 'PyCharm')">
+        <template #openin="{ row }">
+          <li @click.stop="Project.openPath(row.path, 'PyCharm')">
             <yb-icon :svg="import('@/svg/pycharm.svg?raw')" width="13" height="13" />
             <span class="ml-15">{{ I18nT('nodejs.openIN') }} PyCharm</span>
           </li>

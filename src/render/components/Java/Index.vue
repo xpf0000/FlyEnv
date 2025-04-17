@@ -25,8 +25,8 @@
         url="https://maven.apache.org/"
       />
       <ProjectIndex v-else-if="tab === 3" :title="I18nT('host.projectJava')" :type-flag="'java'">
-        <template #openin="item">
-          <li @click.stop="Project.openPath(item.path, 'IntelliJ')">
+        <template #openin="{ row }">
+          <li @click.stop="Project.openPath(row.path, 'IntelliJ')">
             <yb-icon :svg="import('@/svg/idea.svg?raw')" width="13" height="13" />
             <span class="ml-15">{{ I18nT('nodejs.openIN') }} IntelliJ IDEA</span>
           </li>

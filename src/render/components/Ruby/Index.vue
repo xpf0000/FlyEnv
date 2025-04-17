@@ -23,8 +23,8 @@
         :title="`Ruby ${I18nT('base.projects')}`"
         :type-flag="'ruby'"
       >
-        <template #openin="item">
-          <li @click.stop="Project.openPath(item.path, 'RubyMine')">
+        <template #openin="{ row }">
+          <li @click.stop="Project.openPath(row.path, 'RubyMine')">
             <yb-icon :svg="import('@/svg/rubymine.svg?raw')" width="13" height="13" />
             <span class="ml-15">{{ I18nT('nodejs.openIN') }} Ruby</span>
           </li>

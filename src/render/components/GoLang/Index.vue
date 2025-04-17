@@ -14,8 +14,8 @@
       ></Service>
       <Manager v-else-if="tab === 1" type-flag="golang" title="Go" :has-static="true"></Manager>
       <ProjectIndex v-else-if="tab === 2" :title="I18nT('host.projectGo')" :type-flag="'golang'">
-        <template #openin="item">
-          <li @click.stop="Project.openPath(item.path, 'GoLand')">
+        <template #openin="{ row }">
+          <li @click.stop="Project.openPath(row.path, 'GoLand')">
             <yb-icon :svg="import('@/svg/goland.svg?raw')" width="13" height="13" />
             <span class="ml-15">{{ I18nT('nodejs.openIN') }} GoLand</span>
           </li>
