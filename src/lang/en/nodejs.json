@@ -12,5 +12,6 @@
   "VisualStudio": "Visual Studio",
   "PhpStorm": "PhpStorm",
   "WebStorm": "WebStorm",
-  "HBuilderX": "HBuilderX"
+  "HBuilderX": "HBuilderX",
+  "projectEnvSet": "Project Environment"
 }

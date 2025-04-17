@@ -596,7 +596,15 @@ export default class Application extends EventEmitter {
         WebStorm: 'webstorm://open?file=',
         IntelliJ: 'idea://open?file=',
         HBuilderX: 'hbuilderx://open?file=',
-        Sublime: 'subl://open?url=file://'
+        Sublime: 'subl://open?url=file://',
+        PyCharm: 'pycharm://open?file=',
+        RubyMine: 'rubymine://open?file=',
+        CLion: 'clion://open?file=',
+        GoLand: 'goland://open?file=',
+        Rider: 'rider://open?file=',
+        AppCode: 'appcode://open?file=',
+        DataGrip: 'datagrip://open?file=',
+        AndroidStudio: 'androidstudio://open?file='
       }
       if (module === 'tools' && args?.[0] === 'openPathByApp' && !!openApps?.[args?.[2]]) {
         const url = `${openApps[args[2]]}${encodeURIComponent(args[1])}`

@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
   import { computed, ComputedRef, reactive, ref } from 'vue'
-  import type { NodeProjectItem } from '@/components/Nodejs/projects/setup'
+  import type { ProjectItem } from '@/components/PHP/projects/setup'
   import { Check } from '@element-plus/icons-vue'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
@@ -93,7 +93,7 @@
   }
 
   const props = defineProps<{
-    item: NodeProjectItem
+    item: ProjectItem
   }>()
   const table = ref<TableInstance>()
   const index = ref(1)
@@ -141,7 +141,7 @@
     }
     checking.value = true
     const file = join(props.item.path, 'package.json')
-    const cwd = props.item.nodePath || undefined
+    const cwd = props.item.binPath || undefined
     IPC.send('app-fork:node', 'packageJsonUpdate', file, cwd).then((key: string, res: any) => {
       IPC.off(key)
       checking.value = false

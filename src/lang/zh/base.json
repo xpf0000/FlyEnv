@@ -154,5 +154,6 @@
   "Official": "官方",
   "source": "源",
   "staticDelAlert": "为了保证用户数据安全. 不再提供自动删除已安装软件的功能. 如确定要删除. 可点击确定. 在打开的文件夹中手动删除软件.",
-  "placeholderSearch": "搜索"
+  "placeholderSearch": "搜索",
+  "projects": "项目"
 }

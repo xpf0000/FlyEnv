@@ -47,13 +47,13 @@
 </template>
 <script lang="ts" setup>
   import { computed } from 'vue'
-  import type { NodeProjectItem } from '@/components/Nodejs/projects/setup'
+  import type { ProjectItem } from '@/components/PHP/projects/setup'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
   import { Project } from '@/util/Project'
 
   const props = defineProps<{
-    item: NodeProjectItem
+    item: ProjectItem
     packageJson: any
   }>()
 

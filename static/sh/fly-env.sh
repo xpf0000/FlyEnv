@@ -1,60 +1,73 @@
-# FlyEnv AutoLoader
-typeset -gA __flyenv_cache
-__flyenv_cache[allowed_paths]=()
+autoload -Uz colors && colors
 
-autoload_flyenv() {
-  local current_path="${PWD}"
-  (( $__flyenv_cache[allowed_paths][(Ie)$current_path] )) || return
+_flyenv_allowed_paths=()
+_flyenv_config_hash=""
 
-  [[ -f ".flyenv" ]] || return
+_flyenv_msg() {
+  [[ -z "$1" ]] && return
+  local color="$1"
+  shift
 
-  # 直接加载.flyenv文件
-  echo "[FlyEnv] Loading environment variables..."
-  if source ".flyenv"; then
-    echo "[FlyEnv] Load successful"
+  if (( $# == 0 )); then
+    print -P "%F{$color}[FlyEnv]%f"
   else
-    echo "[FlyEnv] Load failed"
+    print -P "%F{$color}[FlyEnv] ${*:1}%f"
   fi
 }
 
-# 初始化函数（仅在脚本目录查找.flyenv.dir）
-init_flyenv() {
-  # 确定脚本所在目录
-  local script_dir="${0:a:h}"
+_flyenv_hash() {
+  local hash
+  if hash=$(shasum -a 256 "$1" 2>/dev/null); then
+    echo ${hash%% *}
+  else
+    echo "invalid"
+    return 1
+  fi
+}
 
-  # 只查找脚本目录下的.flyenv.dir
-  local config_file="$script_dir/.flyenv.dir"
+_flyenv_reload() {
+  local config_file="$HOME/Library/PhpWebStudy/bin/.flyenv.dir"
+  local -a valid_paths
+  local new_hash dir_path clean_dir
+
+  new_hash=$(_flyenv_hash "$config_file") || return
+
+  [[ "$new_hash" == "$_flyenv_config_hash" ]] && return
+
+  _flyenv_allowed_paths=()
+  _flyenv_config_hash="$new_hash"
 
   if [[ -f "$config_file" ]]; then
-    echo "[FlyEnv] Loading allowed paths from $config_file"
-
-    # 严格绝对路径解析
-    while IFS= read -r path; do
-      # 仅接受以/开头的绝对路径
-      if [[ "$path" =~ ^/ ]]; then
-        # 规范化路径（去除末尾/）
-        local clean_path="${path:A}"
-        __flyenv_cache[allowed_paths]+=("${clean_path%%/}")
-      else
-        echo "[FlyEnv] Ignoring non-absolute path: $path"
+    while IFS= read -r dir_path || [[ -n "$dir_path" ]]; do
+      dir_path="${dir_path//$'\r'/}"
+      if [[ "$dir_path" =~ ^/ ]]; then
+        clean_dir="${dir_path:A}"
+        clean_dir="${clean_dir%%/}"
+        valid_paths+=("$clean_dir")
       fi
     done < "$config_file"
-
-    if (( ${#__flyenv_cache[allowed_paths]} > 0 )); then
-      echo "[FlyEnv] Loaded ${#__flyenv_cache[allowed_paths]} allowed paths"
-    else
-      echo "[FlyEnv] Warning: No valid absolute paths found"
-    fi
   else
-    echo "[FlyEnv] Strict mode: No .flyenv.dir found in script directory ($script_dir)"
-    echo "[FlyEnv] ALL paths are DENIED"
+    return 1
+  fi
+
+  _flyenv_allowed_paths=("${valid_paths[@]}")
+}
+
+flyenv_autoload() {
+  _flyenv_reload || return
+  local current_path="${PWD}" found=0
+  for allow_path in "${_flyenv_allowed_paths[@]}"; do
+    [[ "$allow_path" == "$current_path" ]] && { found=1; break; }
+  done
+  (( found )) || return
+
+  if [[ -f ".flyenv" ]]; then
+    _flyenv_msg cyan "Loading environment variables..."
+    source ".flyenv" && _flyenv_msg green "✓ Load successful" || _flyenv_msg red "✗ Load failed"
   fi
 }
 
-# 注册钩子
 autoload -Uz add-zsh-hook
-add-zsh-hook chpwd autoload_flyenv
+add-zsh-hook chpwd flyenv_autoload
 
-# 初始化
-init_flyenv
-autoload_flyenv
+flyenv_autoload

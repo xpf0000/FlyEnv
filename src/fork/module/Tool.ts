@@ -16,6 +16,7 @@ import {
   existsSync,
   mkdirp,
   readdir,
+  readFile,
   remove,
   writeFile
 } from 'fs-extra'
@@ -693,17 +694,7 @@ end tell`
 
       const shfile = `/Applications/FlyEnv.app/Contents/Resources/helper/flyenv.sh`
       if (!existsSync(shfile)) {
-        const fileContent = `# AutoLoad .flyenv
-autoload_flyenv() {
-  if [[ -f ".flyenv" ]]; then
-    echo "Found .flyenv file, loading..."
-    source ".flyenv"
-    echo "Successfully loaded environment variables from .flyenv"
-  fi
-}
-autoload -Uz add-zsh-hook
-add-zsh-hook chpwd autoload_flyenv
-autoload_flyenv`
+        const fileContent = await readFile(join(global.Server.Static!, 'sh/fly-env.sh'), 'utf-8')
         try {
           await Helper.send('tools', 'writeFileByRoot', shfile, fileContent)
         } catch (e) {}

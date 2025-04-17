@@ -1,5 +1,5 @@
 const { join, resolve } = require('path')
-const { mkdirp, writeFile } = require('fs-extra')
+const { mkdirp, writeFile, readFile } = require('fs-extra')
 const { exec } = require('child-process-promise')
 /**
  * 处理appstore node-pty python链接库问题
@@ -48,17 +48,8 @@ exports.default = async function after(pack) {
   })
 
   const shFile = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/flyenv.sh')
-  const content = `# AutoLoad .flyenv
-autoload_flyenv() {
-  if [[ -f ".flyenv" ]]; then
-    echo "Found .flyenv file, loading..."
-    source ".flyenv"
-    echo "Successfully loaded environment variables from .flyenv"
-  fi
-}
-autoload -Uz add-zsh-hook
-add-zsh-hook chpwd autoload_flyenv
-autoload_flyenv`
+  const tmplFile = resolve(pack.appOutDir, '../../static/sh/fly-env.sh')
+  const content = await readFile(tmplFile, 'utf-8')
   await writeFile(shFile, content)
 
   console.log('afterPack handle end !!!!!!')
