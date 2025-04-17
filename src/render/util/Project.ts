@@ -10,7 +10,17 @@ export const Project = {
   },
   openPath(
     dir: string,
-    flag: 'Terminal' | 'VSCode' | 'Sublime' | 'PhpStorm' | 'WebStorm' | 'HBuilderX'
+    flag:
+      | 'Terminal'
+      | 'VSCode'
+      | 'Sublime'
+      | 'PhpStorm'
+      | 'WebStorm'
+      | 'HBuilderX'
+      | 'GoLand'
+      | 'IntelliJ'
+      | 'PyCharm'
+      | 'RubyMine'
   ) {
     IPC.send('app-fork:tools', 'openPathByApp', dir, flag).then((key: string, res: any) => {
       IPC.off(key)

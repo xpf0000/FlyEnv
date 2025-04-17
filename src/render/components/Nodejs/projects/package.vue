@@ -28,7 +28,7 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import type { NodeProjectItem } from '@/components/Nodejs/projects/setup'
+  import type { ProjectItem } from '@/components/PHP/projects/setup'
   import ScriptVM from './scripts/index.vue'
   import DependencieVM from './dependencies/index.vue'
 
@@ -36,7 +36,7 @@
   const { existsSync, readFileSync } = require('fs')
 
   const props = defineProps<{
-    item: NodeProjectItem
+    item: ProjectItem
   }>()
 
   const packageJson = computed(() => {

@@ -155,5 +155,6 @@
   "Official": "Official",
   "source": "Source",
   "staticDelAlert": "In order to ensure the safe of user data, No longer provides the function of automatically deleting installed software. If you are sure you want to delete it, click OK. Manually delete the software in the open folder.",
-  "placeholderSearch": "Search"
+  "placeholderSearch": "Search",
+  "projects": "Project"
 }
