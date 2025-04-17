@@ -6,7 +6,7 @@ import { cpus, arch } from 'os'
 import { execPromise, md5, uuid } from '../Fn'
 import axios from 'axios'
 import { publicDecrypt } from 'crypto'
-import { basename, join, resolve as PathResolve } from 'path'
+import { join, resolve as PathResolve } from 'path'
 import { appendFile, remove, writeFile } from 'fs-extra'
 
 class App extends Base {

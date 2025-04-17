@@ -12,6 +12,7 @@ export const Project = {
     dir: string,
     flag:
       | 'PowerShell'
+      | 'PowerShell7'
       | 'VSCode'
       | 'VS'
       | 'Sublime'

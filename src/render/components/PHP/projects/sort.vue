@@ -37,14 +37,18 @@
   import { computed, nextTick, type Ref, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { ClickOutside as vClickOutside } from 'element-plus'
-  import { type PHPProjectItem, PHPProjectSetup } from './setup'
+  import { type ProjectItem, ProjectSetup } from './setup'
+  import type { AllAppModule } from '@/core/type'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
     id: string
     rect: DOMRect
+    typeFlag: AllAppModule
   }>()
+
+  const project = ProjectSetup(props.typeFlag)
 
   const style = {
     position: 'fixed',
@@ -55,10 +59,10 @@
     opacity: 0
   }
 
-  let filterHosts: Ref<PHPProjectItem[]> = ref([])
+  let filterHosts: Ref<ProjectItem[]> = ref([])
   let hostBack = ''
 
-  let editHost: Ref<PHPProjectItem | undefined> = ref()
+  let editHost: Ref<ProjectItem | undefined> = ref()
 
   show.value = true
 
@@ -67,7 +71,7 @@
   watch(
     () => props.id,
     () => {
-      filterHosts.value = PHPProjectSetup.project
+      filterHosts.value = project.project
       hostBack = JSON.stringify(filterHosts.value)
       editHost.value = filterHosts.value.find((h) => h?.id === props?.id)
     },
@@ -86,7 +90,7 @@
     const host = JSON.stringify(filterHosts.value)
     if (hostBack !== host) {
       console.log('has changed !!!')
-      PHPProjectSetup.saveProject()
+      project.saveProject()
     }
   }
 

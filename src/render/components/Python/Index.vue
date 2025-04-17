@@ -13,6 +13,18 @@
         :fetch-data-when-create="true"
       ></Service>
       <Manager v-else-if="tab === 1" type-flag="python" title="Python"></Manager>
+      <ProjectIndex
+        v-else-if="tab === 2"
+        :title="I18nT('host.projectPython')"
+        :type-flag="'python'"
+      >
+        <template #openin="item">
+          <li @click.stop="Project.openPath(item.path, 'PyCharm')">
+            <yb-icon :svg="import('@/svg/pycharm.svg?raw')" width="13" height="13" />
+            <span class="ml-15">{{ I18nT('nodejs.openIN') }} PyCharm</span>
+          </li>
+        </template>
+      </ProjectIndex>
     </div>
   </div>
 </template>
@@ -22,7 +34,9 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
+  import ProjectIndex from '@/components/PHP/projects/index.vue'
+  import { Project } from '@/util/Project'
 
   const { tab } = AppModuleSetup('python')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager')]
+  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('host.projectPython')]
 </script>

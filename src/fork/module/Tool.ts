@@ -843,6 +843,7 @@ chcp 65001>nul
     dir: string,
     app:
       | 'PowerShell'
+      | 'PowerShell7'
       | 'PhpStorm'
       | 'WebStorm'
       | 'IntelliJ'
@@ -1012,12 +1013,50 @@ chcp 65001>nul
         command = `cd "${dir}"`
         command = JSON.stringify(command).slice(1, -1)
         command = `start powershell -NoExit -Command "${command}"`
+      } else if (app === 'PowerShell7') {
+        command = `cd "${dir}"`
+        command = JSON.stringify(command).slice(1, -1)
+        command = `start pwsh.exe -NoExit -Command "${command}"`
       }
       try {
         await exec(command)
       } catch (e) {
         return reject(e)
       }
+      resolve(true)
+    })
+  }
+
+  initAllowDir(json: string) {
+    return new ForkPromise(async (resolve) => {
+      const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
+      await mkdirp(dirname(jsonFile))
+      await writeFile(jsonFile, json)
+      resolve(true)
+    })
+  }
+
+  envAllowDirUpdate(dir: string, action: 'add' | 'del') {
+    return new ForkPromise(async (resolve) => {
+      const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
+      let json: string[] = []
+      if (existsSync(jsonFile)) {
+        try {
+          const content = await readFile(jsonFile, 'utf-8')
+          json = JSON.parse(content)
+        } catch (e) {}
+      }
+      if (action === 'add') {
+        if (!json.includes('dir')) {
+          json.push(dir)
+        }
+      } else {
+        const index = json.indexOf(dir)
+        if (index >= 0) {
+          json.splice(index, 1)
+        }
+      }
+      await writeFile(jsonFile, JSON.stringify(json))
       resolve(true)
     })
   }
@@ -1029,14 +1068,9 @@ chcp 65001>nul
         { name: 'PowerShell 7+', exe: 'pwsh.exe', profileType: 'CurrentUserAllHosts' }
       ]
 
-      const flyenvScriptPath = join(
-        dirname(dirname(global.Server.AppDir!)),
-        'PhpWebStudy/flyenv.ps1'
-      )
+      const flyenvScriptPath = join(dirname(global.Server.AppDir!), 'bin/flyenv.ps1')
       await mkdirp(dirname(flyenvScriptPath))
-      if (!existsSync(flyenvScriptPath)) {
-        await copyFile(join(global.Server.Static!, 'sh/fly-env.ps1'), flyenvScriptPath)
-      }
+      await copyFile(join(global.Server.Static!, 'sh/fly-env.ps1'), flyenvScriptPath)
 
       for (const version of psVersions) {
         try {
@@ -1061,7 +1095,9 @@ chcp 65001>nul
               )
             }
           }
-        } catch (err) {}
+        } catch (err) {
+          console.log('initFlyEnvSH err: ', err)
+        }
       }
       try {
         await exec(

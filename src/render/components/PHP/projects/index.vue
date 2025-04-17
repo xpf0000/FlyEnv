@@ -3,32 +3,44 @@
     <template #header>
       <div class="card-header">
         <div class="left">
-          <span class="break-keep flex-shrink-0"> {{ I18nT('host.projectPhp') }} </span>
-          <el-button
-            class="custom-folder-add-btn"
-            :icon="FolderAdd"
-            link
-            @click.stop="PHPProjectSetup.addProject"
-          ></el-button>
+          <span class="break-keep flex-shrink-0"> {{ title }} </span>
+          <template v-if="isLock">
+            <el-tooltip placement="right" :content="I18nT('host.licenseTips')">
+              <el-button
+                class="custom-folder-add-btn"
+                :icon="Lock"
+                link
+                @click="toLicense"
+              ></el-button>
+            </el-tooltip>
+          </template>
+          <template v-else>
+            <el-button
+              class="custom-folder-add-btn"
+              :icon="FolderAdd"
+              link
+              @click.stop="project.addProject"
+            ></el-button>
+          </template>
           <el-input
-            v-model="PHPProjectSetup.search"
+            v-model="project.search"
             clearable
             class="ml-4"
             size="small"
             :placeholder="I18nT('base.placeholderSearch')"
           ></el-input>
         </div>
-        <el-button :disabled="PHPProjectSetup.fetching" link @click="PHPProjectSetup.fetchProject">
+        <el-button :disabled="project.fetching" link @click="project.fetchProject">
           <Refresh
             class="refresh-icon w-[24px] h-[24px]"
-            :class="{ 'fa-spin': PHPProjectSetup.fetching }"
+            :class="{ 'fa-spin': project.fetching }"
           />
         </el-button>
       </div>
     </template>
     <el-table
       ref="nodeProjectList"
-      v-loading="PHPProjectSetup?.fetching"
+      v-loading="project?.fetching"
       :show-overflow-tooltip="true"
       class="service-table"
       :data="tableData"
@@ -41,8 +53,8 @@
         <template #default="scope">
           <span
             style="padding: 2px 12px 2px 24px"
-            class="truncate cursor-pointer hover:text-yellow-500 php-project-list-cell-id"
-            :data-php-project-id="scope.row.id"
+            class="truncate cursor-pointer hover:text-yellow-500 project-list-cell-id"
+            :data-project-id="scope.row.id"
             @click.stop="shell.openPath(scope.row.path)"
             >{{ scope.row.path }}</span
           >
@@ -51,16 +63,16 @@
       <el-table-column :label="I18nT('base.version')" :prop="null" width="160px">
         <template #default="scope">
           <template v-if="quickEdit?.id === scope.row.id">
-            <el-select v-model="quickEdit!.phpBin">
+            <el-select v-model="quickEdit!.binBin">
               <el-option :value="''" :label="I18nT('host.useSysVersion')"></el-option>
-              <template v-for="(n, _i) in phpVersions" :key="_i">
+              <template v-for="(n, _i) in binVersions" :key="_i">
                 <el-option :value="n.bin" :label="`${n.version}-${n.bin}`"></el-option>
               </template>
             </el-select>
           </template>
           <template v-else>
             <span class="cursor-pointer hover:text-yellow-500">
-              {{ scope.row.phpVersion }}
+              {{ scope.row.binVersion }}
             </span>
           </template>
         </template>
@@ -102,6 +114,11 @@
             width="auto"
           >
             <ul v-poper-fix class="host-list-menu">
+              <slot name="operation" :row="scope.row as ProjectItem"></slot>
+              <li @click.stop="showConfig(scope.row)">
+                <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
+                <span class="ml-15"> {{ I18nT('nodejs.projectEnvSet') }} </span>
+              </li>
               <li @click.stop="Project.copyPath(scope.row.path)">
                 <yb-icon :svg="import('@/svg/dirPath.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ I18nT('nodejs.copyDirPath') }}</span>
@@ -109,6 +126,10 @@
               <li @click.stop="Project.openPath(scope.row.path, 'PowerShell')">
                 <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ I18nT('nodejs.openIN') }} PowerShell</span>
+              </li>
+              <li @click.stop="Project.openPath(scope.row.path, 'PowerShell7')">
+                <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
+                <span class="ml-15">{{ I18nT('nodejs.openIN') }} PowerShell7+</span>
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'VSCode')">
                 <yb-icon :svg="import('@/svg/vscode.svg?raw')" width="13" height="13" />
@@ -132,11 +153,12 @@
                   >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.HBuilderX') }}</span
                 >
               </li>
+              <slot name="openin" :row="scope.row as ProjectItem"></slot>
               <li @click.stop="showSort($event, scope.row.id)">
                 <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ I18nT('host.sort') }}</span>
               </li>
-              <li @click.stop="PHPProjectSetup.delProject(scope.$index)">
+              <li @click.stop="project.delProject(scope.$index)">
                 <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ I18nT('base.del') }}</span>
               </li>
@@ -156,43 +178,71 @@
 <script lang="ts" setup>
   import { computed, nextTick, onBeforeUnmount, onMounted, reactive, type Ref, ref } from 'vue'
   import { I18nT } from '@lang/index'
-  import { type PHPProjectItem, PHPProjectSetup } from './setup'
-  import { FolderAdd, Refresh } from '@element-plus/icons-vue'
+  import { type ProjectItem, ProjectSetup } from './setup'
+  import { FolderAdd, Lock, Refresh } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { isEqual } from 'lodash'
   import { Project } from '@/util/Project'
+  import type { AllAppModule } from '@/core/type'
+  import { SetupStore } from '@/components/Setup/store'
+  import Router from '@/router'
+  import { AppStore } from '@/store/app'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
 
-  let quickEditBack: PHPProjectItem | undefined = undefined
-  const quickEdit: Ref<PHPProjectItem | undefined> = ref(undefined)
+  const props = defineProps<{
+    typeFlag: AllAppModule
+    title: string
+  }>()
+
+  let quickEditBack: ProjectItem | undefined = undefined
+  const quickEdit: Ref<ProjectItem | undefined> = ref(undefined)
   const quickEditTr: Ref<HTMLElement | undefined> = ref(undefined)
 
   const nodeProjectList = ref()
   const brewStore = BrewStore()
 
-  const phpVersions = computed(() => {
-    return brewStore.module('php').installed.map((p) => {
+  const binVersions = computed(() => {
+    return brewStore.module(props.typeFlag).installed.map((p) => {
       return {
         ...p,
-        bin: join(p.path, 'php.exe')
+        bin: props.typeFlag === 'php' ? join(p.path, 'php.exe') : p.bin
       }
     })
   })
 
+  const project = ProjectSetup(props.typeFlag)
+
+  const appStore = AppStore()
+  const setupStore = SetupStore()
+
+  const isLock = computed(() => {
+    return !setupStore.isActive && project.project.length > 2
+  })
+
+  const toLicense = () => {
+    setupStore.tab = 'licenses'
+    appStore.currentPage = '/setup'
+    Router.push({
+      path: '/setup'
+    })
+      .then()
+      .catch()
+  }
+
   const tableData = computed(() => {
-    const search = PHPProjectSetup.search.trim()
+    const search = project.search.trim()
     if (!search) {
-      return PHPProjectSetup.project
+      return project.project
     }
-    return PHPProjectSetup.project.filter(
-      (p) => p.path.includes(search) || p.comment.includes(search) || p.phpVersion.includes(search)
+    return project.project.filter(
+      (p) => p.path.includes(search) || p.comment.includes(search) || p.binVersion.includes(search)
     )
   })
 
-  const tableRowClassName = ({ row }: { row: PHPProjectItem }) => {
+  const tableRowClassName = ({ row }: { row: ProjectItem }) => {
     if (row?.isSorting) {
       return 'is-sorting'
     }
@@ -212,7 +262,21 @@
     const rect = dom.getBoundingClientRect()
     AsyncComponentShow(SortVM, {
       id: id,
-      rect
+      rect,
+      typeFlag: props.typeFlag
+    }).then()
+  }
+
+  let ConfigVM: any
+  import('./config.vue').then((res) => {
+    ConfigVM = res.default
+  })
+
+  const showConfig = (item: ProjectItem) => {
+    AsyncComponentShow(ConfigVM, {
+      file: join(item.path, '.flyenv'),
+      fileExt: 'ps1',
+      typeFlag: props.typeFlag
     }).then()
   }
 
@@ -223,9 +287,9 @@
       node = node.parentNode as any
     }
     console.log('tr: ', node)
-    const idDom: HTMLElement = node.querySelector('.php-project-list-cell-id') as any
-    const id = idDom.getAttribute('data-php-project-id') ?? ''
-    const item = PHPProjectSetup.project.find((h) => `${h.id}` === `${id}`)
+    const idDom: HTMLElement = node.querySelector('.project-list-cell-id') as any
+    const id = idDom.getAttribute('data-project-id') ?? ''
+    const item = project.project.find((h) => `${h.id}` === `${id}`)
     quickEdit.value = JSON.parse(JSON.stringify(item))
     quickEditTr.value = node as any
     quickEditBack = JSON.parse(JSON.stringify(item))
@@ -240,17 +304,17 @@
         quickEditTr.value = undefined
         quickEditBack = undefined
         nextTick().then(() => {
-          const findNode = phpVersions.value.find((n) => n.bin === item.phpBin)
-          const findProjectIndex = PHPProjectSetup.project.findIndex((p) => p.path === item.path)
+          const findNode = binVersions.value.find((n) => n.bin === item.binBin)
+          const findProjectIndex = project.project.findIndex((p) => p.path === item.path)
           if (findProjectIndex >= 0) {
-            item.phpVersion = findNode?.version ?? ''
-            item.phpPath = findNode?.path ?? ''
-            item.phpBin = findNode?.bin ?? ''
-            const nodeChanged = PHPProjectSetup.project[findProjectIndex].phpBin !== item.phpBin
-            PHPProjectSetup.project.splice(findProjectIndex, 1, reactive(item))
-            PHPProjectSetup.saveProject()
+            item.binVersion = findNode?.version ?? ''
+            item.binPath = findNode?.path ?? ''
+            item.binBin = findNode?.bin ?? ''
+            const nodeChanged = project.project[findProjectIndex].binBin !== item.binBin
+            project.project.splice(findProjectIndex, 1, reactive(item))
+            project.saveProject()
             if (nodeChanged) {
-              PHPProjectSetup.setDirEnv(item).then().catch()
+              project.setDirEnv(item).then().catch()
             }
           }
         })
@@ -262,7 +326,7 @@
     }
   }
 
-  PHPProjectSetup.fetchProject()
+  project.fetchProject()
 
   onMounted(() => {
     document.addEventListener('click', docClick)

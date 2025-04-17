@@ -1,9 +1,9 @@
-import {computed, ComputedRef, nextTick, onMounted, onUnmounted, reactive, ref, watch} from 'vue'
-import {editor, KeyCode, KeyMod} from 'monaco-editor/esm/vs/editor/editor.api.js'
-import {EditorConfigMake, EditorCreate} from '@/util/Editor'
-import {MessageError, MessageSuccess} from '@/util/Element'
-import {I18nT} from '@lang/index'
-import type {AllAppModule} from '@/core/type'
+import { computed, ComputedRef, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
+import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+import { MessageError, MessageSuccess } from '@/util/Element'
+import { I18nT } from '@lang/index'
+import type { AllAppModule } from '@/core/type'
 
 const { dialog } = require('@electron/remote')
 const { shell } = require('@electron/remote')
@@ -56,6 +56,7 @@ type ConfSetupProps = {
   fileExt: string
   typeFlag: AllAppModule
   showCommond?: boolean
+  emptyTips?: string
 }
 
 export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
@@ -185,7 +186,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   const getConfig = () => {
     console.log('getConfig: ', disabled.value)
     if (disabled.value) {
-      config.value = I18nT('base.configNoFound')
+      config.value = props?.value?.emptyTips ?? I18nT('base.configNoFound')
       initEditor()
       return
     }

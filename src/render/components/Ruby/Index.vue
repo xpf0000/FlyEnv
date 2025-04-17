@@ -12,7 +12,24 @@
         type-flag="ruby"
         :fetch-data-when-create="true"
       ></Service>
-      <Manager v-else-if="tab === 1" type-flag="ruby" title="Ruby" url="https://github.com/oneclick/rubyinstaller2/releases"></Manager>
+      <Manager
+        v-else-if="tab === 1"
+        type-flag="ruby"
+        title="Ruby"
+        url="https://github.com/oneclick/rubyinstaller2/releases"
+      ></Manager>
+      <ProjectIndex
+        v-else-if="tab === 2"
+        :title="`Ruby ${I18nT('base.projects')}`"
+        :type-flag="'ruby'"
+      >
+        <template #openin="item">
+          <li @click.stop="Project.openPath(item.path, 'RubyMine')">
+            <yb-icon :svg="import('@/svg/rubymine.svg?raw')" width="13" height="13" />
+            <span class="ml-15">{{ I18nT('nodejs.openIN') }} Ruby</span>
+          </li>
+        </template>
+      </ProjectIndex>
     </div>
   </div>
 </template>
@@ -22,7 +39,13 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
+  import ProjectIndex from '@/components/PHP/projects/index.vue'
+  import { Project } from '@/util/Project'
 
   const { tab } = AppModuleSetup('ruby')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager')]
+  const tabs = [
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    `Ruby ${I18nT('base.projects')}`
+  ]
 </script>

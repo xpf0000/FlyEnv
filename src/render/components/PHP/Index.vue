@@ -22,7 +22,7 @@
       >
       </Composer>
       <Create v-else-if="tab === 3" />
-      <ProjectIndex v-else-if="tab === 4" />
+      <ProjectIndex v-else-if="tab === 4" :title="I18nT('host.projectPhp')" :type-flag="'php'" />
     </div>
   </div>
 </template>
