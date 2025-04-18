@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/xpf0000/FlyEnv/master/build/256x256.png" width="256" alt="FlyEnv Logo" />
 
-## Swift Switching, Full-Stack Control, Development Made Effortless.
+## All-In-One Full-Stack Environment Management Tool
 
 FlyEnv is an all-in-one environment management tool designed for modern developers. It simplifies development by offering **swift multi-version switching**, **full-stack technology support**, and a **seamless cross-platform experience**. Whether you're working with PHP, NodeJS, Java, Go, or Python, FlyEnv integrates all necessary tools with a single command, eliminating configuration headaches and letting you focus on what truly matters—**creation, not debugging**.
 
@@ -38,6 +38,9 @@ FlyEnv is packed with features to make your development workflow smoother and mo
 
 - **Full-Stack Environment Integration**:
   From web servers (Nginx/Apache) to databases (MySQL/Redis) and message queues, FlyEnv provides a one-command setup for your entire tech stack.
+
+- **Project-Level Environment Isolation**:
+  FlyEnv enables per-project runtime version management for NodeJS/PHP/Python and more. The environment automatically switches when entering the project directory via Terminal or PowerShell — **no manual setup required**.
 
 - **Native Performance**:
   FlyEnv runs as native static binaries, eliminating the overhead of virtual containers. This means faster startup times, lower memory usage, and a smoother development experience.
