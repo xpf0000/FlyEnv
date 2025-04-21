@@ -27,7 +27,7 @@
   "tryingToStartApacheService": "Försöker starta Apache-tjänsten...",
   "enterOrSelectSiteDirectory": "Vänligen ange eller välj en webbplatskatalog",
   "siteDirectoryInvalid": "Webbplatskatalogen är ogiltig, uppgiften avbröts.",
-  "enterSiteDomain": "Vänligen ange webbplatsens domännamn, t.ex.: www.domain.tld",
+  "enterSiteDomain": "Vänligen ange webbplatsens domännamn, t.ex.: mydomain.tld",
   "domainInvalid": "Domännamnet är ogiltigt, uppgiften avbröts.",
   "creatingSite": "Skapar webbplats...",
   "checkLogs": "Vänligen kontrollera {flag}-loggen och skicka felmeddelandet till mig.",

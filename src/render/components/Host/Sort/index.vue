@@ -37,7 +37,7 @@
   </el-popover>
 </template>
 <script lang="ts" setup>
-  import { computed, nextTick, type Ref, ref } from 'vue'
+  import { computed, nextTick, type Ref, ref, watch } from 'vue'
   import { type AppHost } from '@/store/app'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { ClickOutside as vClickOutside } from 'element-plus'
@@ -69,12 +69,20 @@
 
   let isShow = false
 
+  watch(
+    () => props.hostId,
+    () => {
+      filterHosts.value = HostStore.tabList(HostStore.tab)
+      hostBack = JSON.stringify(filterHosts.value)
+      editHost.value = filterHosts.value.find((h) => h?.id === props?.hostId)
+    },
+    {
+      immediate: true
+    }
+  )
+
   const onShow = () => {
     isShow = true
-    filterHosts.value = HostStore.tabList(HostStore.tab)
-    hostBack = JSON.stringify(filterHosts.value)
-    editHost.value = filterHosts.value.find((h) => h?.id === props?.hostId)
-    console.log('onShow: ', filterHosts.value, HostStore.tab)
   }
 
   const onHide = () => {

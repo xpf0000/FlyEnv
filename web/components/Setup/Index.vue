@@ -27,7 +27,7 @@
     return [
       {
         value: 'base',
-        label: I18nT('base.setupBase')
+        label: I18nT('base.mainSettings')
       },
       {
         value: 'editor',

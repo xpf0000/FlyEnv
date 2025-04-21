@@ -2,17 +2,17 @@ import type { AppHost, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { existsSync, readdirSync } from 'fs'
-import { copy, mkdirp, remove, writeFile } from 'fs-extra'
+import { copy, mkdirp, readdir, remove, writeFile } from 'fs-extra'
 import { setDirRole } from './Host'
 import { I18nT } from '@lang/index'
 import compressing from 'compressing'
-import { downFile } from '../../Fn'
+import { downFile, execPromise, waitTime } from '../../Fn'
 import { fetchHostList } from './HostFile'
 
 export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
   return new ForkPromise(async (resolve, reject) => {
     const baseName = join(global.Server.BaseDir!, 'www')
-    let host = `www.test.com`
+    let host = `mydomain.tld`
     let i = 0
     let dir = `${baseName}/${host}`
     while (existsSync(dir)) {
@@ -91,14 +91,13 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
 export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
   return new ForkPromise(async (resolve, reject, on) => {
     const zipFile = join(global.Server.Cache!, 'phpMyAdmin.zip')
-    const wwwDir = join(global.Server.BaseDir!, 'www')
     const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin')
     let hostList: Array<AppHost> = []
     try {
       hostList = await fetchHostList()
     } catch (e) {}
 
-    const find = hostList.find((h) => h.name === 'phpmyadmin.local')
+    const find = hostList.find((h) => h.name === 'phpmyadmin.test')
     if (find) {
       resolve(true)
       return
@@ -113,9 +112,17 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
         if (existsSync(siteDir)) {
           await remove(siteDir)
         }
-        await mkdirp(wwwDir)
+        await mkdirp(siteDir)
+        const tmplDir = join(global.Server.Cache!, 'phpMyAdmin-tmpl')
         try {
-          await compressing.zip.uncompress(zipFile, wwwDir)
+          await compressing.zip.uncompress(zipFile, tmplDir)
+          const subDirs = await readdir(tmplDir)
+          const subDir = subDirs.pop()
+          if (subDir) {
+            await execPromise(`cd ${join(tmplDir, subDir)} && mv ./* ${siteDir}/`)
+            await waitTime(300)
+            await remove(tmplDir)
+          }
         } catch (e) {
           reject(e)
           return
@@ -136,7 +143,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
 
       const hostItem: any = {
         id: new Date().getTime(),
-        name: 'phpmyadmin.local',
+        name: 'phpmyadmin.test',
         alias: '',
         useSSL: useSSL,
         autoSSL: autoSSL,

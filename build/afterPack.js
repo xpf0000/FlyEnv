@@ -1,5 +1,5 @@
 const { join, resolve } = require('path')
-const { mkdirp } = require('fs-extra')
+const { mkdirp, writeFile, readFile } = require('fs-extra')
 const { exec } = require('child-process-promise')
 /**
  * 处理appstore node-pty python链接库问题
@@ -46,6 +46,11 @@ exports.default = async function after(pack) {
   await exec(command, {
     cwd: fromBinDir
   })
+
+  const shFile = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/flyenv.sh')
+  const tmplFile = resolve(pack.appOutDir, '../../static/sh/fly-env.sh')
+  const content = await readFile(tmplFile, 'utf-8')
+  await writeFile(shFile, content)
 
   console.log('afterPack handle end !!!!!!')
   return true

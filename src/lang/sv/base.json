@@ -135,7 +135,7 @@
   "autoUpdate": "Automatisk uppdatering",
   "loading": "Laddar...",
   "parkTitle": "Lös underdomäner till undermappar",
-  "parkTips": "Löser underdomäner om underdomännamnet matchar ett undermappsnamn, t.ex. {undermappsnamn}.domain.tld.",
+  "parkTips": "Löser underdomäner om underdomännamnet matchar ett undermappsnamn, t.ex. {undermappsnamn}.mydomain.tld",
   "parkConfirm": "Detta gör att alla undermappar blir tillgängliga som underdomäner, vill du fortsätta?",
   "hostsWriteTips": "Lägg till eller ta bort värdnamn i \"hosts\"-filen, det angivna innehållet kommer att omslutas av anpassade taggar och påverkar inte annat innehåll",
   "brewInstallLang": "-sv",

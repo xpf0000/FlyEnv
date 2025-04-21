@@ -16,6 +16,7 @@ import {
   existsSync,
   mkdirp,
   readdir,
+  readFile,
   remove,
   writeFile
 } from 'fs-extra'
@@ -25,6 +26,9 @@ import { I18nT } from '@lang/index'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
 import Helper from '../Helper'
 import { ProcessSearch } from '@shared/Process'
+import RequestTimer from '@shared/requestTimer'
+import { spawn } from 'child_process'
+import { userInfo } from 'os'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -256,34 +260,33 @@ class Manager extends Base {
 
   updatePATH(item: SoftInstalled, flag: string) {
     return new ForkPromise(async (resolve, reject) => {
+      //获取PATH环境变量数组. 真实绝对路径数组.
       const all = (await this.fetchPATH()).allPath
-      let bin = dirname(item.bin)
-      if (flag === 'php') {
-        if (item?.phpBin) {
-          bin = dirname(item?.phpBin)
-        } else if (existsSync(join(item.path, 'bin/php'))) {
-          bin = join(item.path, 'bin')
-        } else if (existsSync(join(item.path, 'php'))) {
-          bin = item.path
-        }
-      }
+      //已安装软件的路径
+      const binPath = dirname(join(item.path, 'bin'))
       const envDir = join(dirname(global.Server.AppDir!), 'env')
       if (!existsSync(envDir)) {
         await mkdirp(envDir)
       }
+      //env文件夹下的`flag`子文件夹 flag: 'php' | 'nginx' | 'mysql'...
       const flagDir = join(envDir, flag)
+      //删除子文件夹
       try {
         await Helper.send('tools', 'rm', flagDir)
       } catch (e) {}
-      if (!all.includes(bin)) {
+      //PATH环境变量数组不包含已安装软件的路径, 创建软链接
+      if (!all.includes(binPath)) {
         try {
-          await execPromise(['ln', '-s', `"${bin}"`, `"${flagDir}"`].join(' '))
+          await execPromise(['ln', '-s', `"${binPath}"`, `"${flagDir}"`].join(' '))
         } catch (e) {}
       }
+      //获取env文件夹下的全部子文件夹 'php' | 'nginx' | 'mysql'...
       let allFile = await readdir(envDir)
+      //获取有效路径
       allFile = allFile
         .filter((f) => existsSync(join(envDir, f)))
         .map((f) => join(envDir, f))
+        //只取路径存在并且路径是文件夹的
         .filter((f) => {
           let check = false
           try {
@@ -294,12 +297,23 @@ class Manager extends Base {
           }
           return check
         })
+        .map((f) => {
+          const arr: string[] = [f]
+          if (existsSync(join(f, 'bin'))) {
+            arr.push(join(f, 'bin'))
+          } else if (existsSync(join(f, 'sbin'))) {
+            arr.push(join(f, 'sbin'))
+          }
+          return arr
+        })
+        .flat()
 
       const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
       const param: { zsh: string } = {
         zsh: ''
       }
       if (allFile.length > 0) {
+        //处理java路径 添加JAVA_HOME变量
         let java = allFile.find(
           (f) =>
             (f.toLowerCase().includes('java') || f.toLowerCase().includes('jdk')) &&
@@ -310,6 +324,7 @@ class Manager extends Base {
           java = dirname(realpathSync(java))
           java_home_zsh = `\nexport JAVA_HOME="${java}"`
         }
+        //处理python.
         let python = allFile.find((f) => realpathSync(f).includes('Python.framework'))
         if (python) {
           python = realpathSync(python)
@@ -326,6 +341,7 @@ class Manager extends Base {
         param.zsh = `\nexport PATH="${aliasDir}:$PATH"\n`
       }
       try {
+        //写入.zshrc文件
         await this.handleUpdatePath(param)
       } catch (e) {
         const debugFile = join(global.Server.BaseDir!, 'debug.log')
@@ -562,6 +578,149 @@ class Manager extends Base {
         return reject(e)
       }
       resolve(content)
+    })
+  }
+
+  requestTimeFetch(url: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const timer = new RequestTimer({
+        timeout: 10000,
+        retries: 2,
+        followRedirects: true,
+        maxRedirects: 10,
+        keepAlive: true,
+        strictSSL: false // Set to false to ignore SSL errors
+      })
+      try {
+        const results = await timer.measure(url)
+        const res = RequestTimer.formatResults(results)
+        resolve(res)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  runInTerminal(command: string) {
+    return new ForkPromise((resolve, reject) => {
+      // 转义命令中的特殊字符
+      command = command.replace(/"/g, '\\"')
+      const appleScript = `
+        tell application "Terminal"
+          if not running then
+            activate
+            do script "${command}" in front window
+          else
+            activate
+            do script "${command}"
+          end if
+        end tell`
+
+      let error: any = undefined
+      const osa = spawn('osascript', ['-e', appleScript])
+      osa.on('error', (err) => {
+        error = err
+      })
+      osa.on('close', () => {
+        console.log('close !!!')
+        if (error) {
+          reject(error)
+        } else {
+          resolve(true)
+        }
+      })
+    })
+  }
+
+  openPathByApp(dir: string, app: 'Terminal') {
+    return new ForkPromise(async (resolve, reject) => {
+      let appleScript = ''
+      if (app === 'Terminal') {
+        appleScript = `tell application "Terminal"
+  if not running then
+    activate
+    do script "cd " & quoted form of "${dir}" in front window
+  else
+    activate
+    do script "cd " & quoted form of "${dir}"
+  end if
+end tell`
+      }
+      const scptFile = join(global.Server.Cache!, `${uuid()}.scpt`)
+      await writeFile(scptFile, appleScript)
+      await chmod(scptFile, '0777')
+      try {
+        await execPromise(`osascript ./${basename(scptFile)}`, {
+          cwd: global.Server.Cache!
+        })
+        await remove(scptFile)
+      } catch (e) {
+        await remove(scptFile)
+        return reject(e)
+      }
+      resolve(true)
+    })
+  }
+
+  initAllowDir(json: string) {
+    return new ForkPromise(async (resolve) => {
+      const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
+      await mkdirp(dirname(jsonFile))
+      await writeFile(jsonFile, json)
+      resolve(true)
+    })
+  }
+
+  initFlyEnvSH() {
+    return new ForkPromise(async (resolve, reject) => {
+      const file = join(global.Server.UserHome!, '.zshrc')
+      if (!existsSync(file)) {
+        try {
+          await writeFile(file, '')
+        } catch (e) {}
+      }
+      if (!existsSync(file)) {
+        reject(new Error(`No found ${file} and create file failed`))
+        return
+      }
+      let content = ''
+      try {
+        content = await readFileByRoot(file)
+      } catch (e) {
+        reject(e)
+        return
+      }
+      const contentBack = content
+
+      const shfile = `/Applications/FlyEnv.app/Contents/Resources/helper/flyenv.sh`
+      if (!existsSync(shfile)) {
+        const fileContent = await readFile(join(global.Server.Static!, 'sh/fly-env.sh'), 'utf-8')
+        try {
+          await Helper.send('tools', 'writeFileByRoot', shfile, fileContent)
+        } catch (e) {}
+        if (existsSync(shfile)) {
+          const uinfo = userInfo()
+          const user = `${uinfo.uid}:${uinfo.gid}`
+          try {
+            await Helper.send('tools', 'chmod', shfile, '777')
+            await Helper.send('redis', 'logFileFixed', shfile, user)
+          } catch (e) {}
+        }
+      }
+
+      const regex = new RegExp(
+        `^(?!\\s*#)\\s*source\\s*"/Applications/FlyEnv\.app/Contents/Resources/helper/flyenv\.sh"`,
+        'gmu'
+      )
+      if (!content.match(regex) && existsSync(file)) {
+        content = content.trim() + `\nsource "${shfile}"`
+      }
+      if (content !== contentBack) {
+        try {
+          await writeFileByRoot(file, content)
+        } catch (e) {}
+      }
+      resolve(true)
     })
   }
 }

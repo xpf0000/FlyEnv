@@ -8,6 +8,8 @@ import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { AppStore } from '@/store/app'
 import { isEqual } from 'lodash'
 
+const { dirname, join } = require('path')
+
 let time = 0
 export const ServiceActionStore: {
   versionDeling: Record<string, boolean>
@@ -24,12 +26,34 @@ export const ServiceActionStore: {
     old?: AppServiceAliasItem
   ) => Promise<boolean>
   updatePath: (item: SoftInstalled, typeFlag: string) => Promise<boolean>
+  isInEnv: (item: SoftInstalled) => boolean
+  isInAppEnv: (item: SoftInstalled) => boolean
 } = reactive({
   versionDeling: {},
   pathSeting: {},
   allPath: [],
   appPath: [],
   fetchPathing: false,
+  isInEnv(item: SoftInstalled) {
+    let bin = dirname(item.bin)
+    if (item?.typeFlag === 'php') {
+      bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
+    }
+    return ServiceActionStore.allPath.includes(bin)
+  },
+  isInAppEnv(item: SoftInstalled) {
+    let bin = dirname(item.bin)
+    if (item?.typeFlag === 'php') {
+      bin = dirname(item?.phpBin ?? join(item.path, 'bin/php'))
+    }
+    const arr: string[] = [
+      bin,
+      dirname(join(item.path, 'bin')),
+      join(item.path, 'bin'),
+      join(item.path, 'sbin')
+    ]
+    return arr.some((s) => ServiceActionStore.appPath.includes(s))
+  },
   showAlias(item: SoftInstalled) {
     import('./alias.vue').then((res) => {
       AsyncComponentShow(res.default, {

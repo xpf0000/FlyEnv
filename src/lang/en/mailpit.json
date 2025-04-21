@@ -41,6 +41,6 @@
   "MP_TAGS_CONFIG": "Load tags filters from yaml configuration file (see docs).",
   "MP_TAGS_TITLE_CASE": "Enforces TitleCasing for all newly-created tags (see docs).",
   "MP_TAGS_DISABLE": "Disable specific auto-tagging. This option takes a comma-separated list of options (see docs).",
-  "MP_WEBHOOK_URL": "Call a webhook when new messages are received (see docs), Example: --webhook-url https://example.com/webhook.php.",
+  "MP_WEBHOOK_URL": "Call a webhook when new messages are received (see docs). Example: --webhook-url https://example.com/webhook.php",
   "MP_WEBHOOK_LIMIT": "Rate limited webhook requests per second. To prevent potentially overloading the webhook server, this is rate limited by default to a maximum of 1 request per second (see docs)."
 }

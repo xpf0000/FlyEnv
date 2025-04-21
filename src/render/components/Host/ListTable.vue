@@ -14,7 +14,11 @@
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
                 I18nT('host.site')
               }}</span>
-              <el-input v-model.trim="search" placeholder="{{ I18nT('base.placeholderSearch') }}" clearable></el-input>
+              <el-input
+                v-model.trim="search"
+                :placeholder="I18nT('base.placeholderSearch')"
+                clearable
+              ></el-input>
             </div>
           </template>
           <template #default="scope">
@@ -56,7 +60,7 @@
                 :placeholder="I18nT('base.selectPhpVersion')"
               >
                 <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
-                <template v-for="(v, i) in phpVersions" :key="i">
+                <template v-for="(v, _i) in phpVersions" :key="_i">
                   <el-option :value="v.num" :label="v.num"></el-option>
                 </template>
               </el-select>
@@ -74,16 +78,23 @@
               <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>
             </template>
             <template v-else>
-              <el-popover width="auto" :show-after="800" placement="top">
-                <template #default>
-                  <span>{{ scope.row.mark }}</span>
-                </template>
-                <template #reference>
-                  <span style="display: inline-block; max-width: 100%">
-                    {{ scope.row.mark }}
-                  </span>
-                </template>
-              </el-popover>
+              <template v-if="!scope.row.mark">
+                <span class="truncate row-hover-show text-yellow-500">
+                  {{ I18nT('host.dbclickRowToEdit') }}
+                </span>
+              </template>
+              <template v-else>
+                <el-popover width="auto" :show-after="800" placement="top">
+                  <template #default>
+                    <span>{{ scope.row.mark }}</span>
+                  </template>
+                  <template #reference>
+                    <span class="truncate">
+                      {{ scope.row.mark }}
+                    </span>
+                  </template>
+                </el-popover>
+              </template>
             </template>
           </template>
         </el-table-column>

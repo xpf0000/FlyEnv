@@ -40,7 +40,6 @@
   import { MysqlStore } from '../mysql'
   import type { Column } from 'element-plus'
   import { I18nT } from '@lang/index'
-  import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
   import type { MysqlGroupItem } from '@shared/app'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { MessageError, MessageSuccess } from '@/util/Element'

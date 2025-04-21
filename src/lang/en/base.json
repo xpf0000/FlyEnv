@@ -20,6 +20,7 @@
   "lang": "Language",
   "changeLang": "Change Language",
   "setupBase": "Setting",
+  "mainSettings": "Main Settings",
   "apachePortTips1": "The ports that Apache listens to in each site and config file cannot be repeated, otherwise, Apache will fail to start",
   "apachePortTips2": "The port set here will add port listening in the site vhost config file. If it is duplicate, please delete it manually",
   "attention": "Attention",
@@ -105,7 +106,7 @@
   "configNotFound": "No config file found, please reselect the version",
   "noLogs": "No Logs",
   "none": "None",
-  "noFoundLogFile": "log file does not exist",
+  "noFoundLogFile": "The log file does not exist",
   "selectVersion": "Select Version",
   "installed": "Installed",
   "nvmNoInstallTips": "The NodeJS version management tool nvm is not installed, install it now?",
@@ -135,7 +136,7 @@
   "autoUpdate": "Auto Update",
   "loading": "Loading...",
   "parkTitle": "Resolve subdomains to subfolders",
-  "parkTips": "Resolves subdomains if subdomain name is matching a subfolder name e.g. {subfoldername}.domain.tld.",
+  "parkTips": "Resolves subdomains if subdomain name is matching a subfolder name e.g. {subfoldername}.mydomain.tld.",
   "parkConfirm": "This will make all subfolders accessible as subdomain sites, do you want to continue?",
   "hostsWriteTips": "Add or Remove hostname to \"hosts\" file, the provided content will be wrapped around custom tags, and will not affect other content",
   "brewInstallLang": "-en",
@@ -154,5 +155,6 @@
   "Official": "Official",
   "source": "Source",
   "staticDelAlert": "In order to ensure the safe of user data, No longer provides the function of automatically deleting installed software. If you are sure you want to delete it, click OK. Manually delete the software in the open folder.",
-  "placeholderSearch": "Search"
+  "placeholderSearch": "Search",
+  "projects": "Project"
 }

@@ -46,7 +46,6 @@
   import { I18nT } from '@lang/index'
   import { NVMSetup, Setup } from './setup'
   import { type Column, ElButton, ElInput, ElTooltip } from 'element-plus'
-  import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
   import { MessageSuccess } from '@/util/Element'
 
   const { clipboard } = require('@electron/remote')
@@ -81,7 +80,11 @@
             <span style="display: inline-flex; align-items: center; padding: 2px 0">
               {I18nT('base.version')}
             </span>
-            <ElInput v-model={NVMSetup.search} placeholder="{{ I18nT('base.placeholderSearch') }}" clearable={true}></ElInput>
+            <ElInput
+              v-model={NVMSetup.search}
+              placeholder={I18nT('base.placeholderSearch')}
+              clearable={true}
+            ></ElInput>
           </div>
         )
       },

@@ -16,12 +16,12 @@ export class ServiceItemJavaSpring extends ServiceItem {
       }
 
       if (!item.jdkDir || !existsSync(item.jdkDir)) {
-        reject(new Error(`JDK not exists: ${item.jdkDir}`))
+        reject(new Error(`The JDK does not exist: ${item.jdkDir}`))
         return
       }
 
       if (!item.jarDir || !existsSync(item.jarDir)) {
-        reject(new Error(`JAR File not exists: ${item.jarDir}`))
+        reject(new Error(`The JAR file does not exist: ${item.jarDir}`))
         return
       }
 

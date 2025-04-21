@@ -26,9 +26,11 @@ import updateSV from './update.json'
 import utilSV from './util.json'
 import versionmanagerSV from './versionmanager.json'
 import licensesSV from './licenses.json'
+import requestTimer from './requestTimer.json'
 
 export default {
   sv: {
+    requestTimer,
     licenses: licensesSV,
     ai: aiSV,
     apache: apacheSV,

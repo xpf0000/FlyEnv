@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import is from 'electron-is'
 import logger from './core/Logger'
 import ConfigManager from './core/ConfigManager'
@@ -590,6 +590,41 @@ export default class Application extends EventEmitter {
     if (command.startsWith('app-fork:')) {
       const exclude = ['app', 'version']
       const module = command.replace('app-fork:', '')
+      const openApps: Record<string, string> = {
+        VSCode: 'vscode://file/',
+        PhpStorm: 'phpstorm://open?file=',
+        WebStorm: 'webstorm://open?file=',
+        IntelliJ: 'idea://open?file=',
+        HBuilderX: 'hbuilderx://open?file=',
+        Sublime: 'subl://open?url=file://',
+        PyCharm: 'pycharm://open?file=',
+        RubyMine: 'rubymine://open?file=',
+        CLion: 'clion://open?file=',
+        GoLand: 'goland://open?file=',
+        Rider: 'rider://open?file=',
+        AppCode: 'appcode://open?file=',
+        DataGrip: 'datagrip://open?file=',
+        AndroidStudio: 'androidstudio://open?file='
+      }
+      if (module === 'tools' && args?.[0] === 'openPathByApp' && !!openApps?.[args?.[2]]) {
+        const url = `${openApps[args[2]]}${encodeURIComponent(args[1])}`
+        console.log('openPathByApp ', args?.[2], url)
+        shell
+          .openExternal(url)
+          .then(() => {
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              code: 0,
+              data: true
+            })
+          })
+          .catch((e: any) => {
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              code: 1,
+              msg: e.toString()
+            })
+          })
+        return
+      }
       const doFork = () => {
         this.setProxy()
         global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'

@@ -19,7 +19,6 @@
   import { NodeDefaultSetup, Setup } from './setup'
   import { ElInput, ElButton, ElTooltip, ElProgress } from 'element-plus'
   import type { Column } from 'element-plus'
-  import YbIcon from '@/components/YbSvgIcon/vue-svg-icons.vue'
   import { MessageSuccess } from '@/util/Element'
 
   const { clipboard } = require('@electron/remote')
@@ -48,7 +47,7 @@
             </span>
             <ElInput
               v-model={NodeDefaultSetup.search}
-              placeholder="{{ I18nT('base.placeholderSearch') }}"
+              placeholder={I18nT('base.placeholderSearch')}
               clearable={true}
             ></ElInput>
           </div>
