@@ -4,7 +4,7 @@ phpdir=$2
 extendV=$3
 arch=$4
 cd $cachedir
-echo "downloading swoole-$extendV.tgz from http://pecl.php.net/get/swoole-$extendV.tgz"
+echo "Downloading swoole-$extendV.tgz from http://pecl.php.net/get/swoole-$extendV.tgz"
 curl -C - -O -L http://pecl.php.net/get/swoole-$extendV.tgz
 if [ -d "swoole-$extendV" ]; then
  rm -rf "swoole-$extendV"
@@ -14,7 +14,7 @@ if [ -f "swoole-$extendV.tgz" ]; then
 else
   exit 1
 fi
-echo "download success. start install"
+echo "Download complete. Now installing..."
 export HOMEBREW_NO_AUTO_UPDATE=1
 arch $arch brew install pkg-config autoconf automake libtool
 arch $arch brew install openssl

@@ -67,10 +67,10 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PhpWebStudy AI Created</title>
+    <title>FlyEnv AI Created</title>
   </head>
   <body>
-    PhpWebStudy AI Created
+    FlyEnv AI Created
   </body>
 </html>
 `

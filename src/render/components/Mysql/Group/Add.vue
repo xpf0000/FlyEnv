@@ -15,7 +15,7 @@
               v-model="form.path"
               class="w-p100"
               :class="{ error: errs?.path }"
-              placeholder="Mysql Version"
+              placeholder="MySQL Version"
             >
               <template v-for="(item, index) in mysqlVersion" :key="index">
                 <el-option :label="`${item.version}-${item.bin}`" :value="item.path"></el-option>
@@ -28,7 +28,7 @@
               type="text"
               class="input"
               :class="{ error: errs?.port }"
-              placeholder="Mysql Port"
+              placeholder="TCP Port"
             />
           </div>
           <div class="path-choose mt-20 mb-20">
@@ -36,7 +36,7 @@
               type="text"
               class="input"
               :class="{ error: errs?.dataDir }"
-              placeholder="Mysql Data Dir"
+              placeholder="MySQL Data Directory"
               readonly=""
               :value="form.dataDir"
             />

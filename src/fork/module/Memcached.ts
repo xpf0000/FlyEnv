@@ -100,7 +100,7 @@ class Memcached extends Base {
           })
         )
       })
-      reject(new Error('Start Fail'))
+      reject(new Error('Start failed'))
     })
   }
 

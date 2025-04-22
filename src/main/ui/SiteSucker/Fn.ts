@@ -26,22 +26,22 @@ export const urlToDir = (url: string, isPageUrl?: boolean) => {
       .filter((s) => !!s.trim())
       .join('/')
     /**
-     * 是否页面
+     * Is it a page
      */
     if (isPageUrl) {
       /**
-       * 包含问号
-       * 动态页面, 页面地址不变, 根据参数加载内容
-       * 根据参数生成每个页面
+       * Contains a question mark
+       * Dynamic page, the page address does not change, content is loaded based on parameters
+       * Generate a unique page for each parameter
        */
       const name = basename(pathDir)
       if (url.includes('?')) {
-        const newName = `${md5(name)}.html`
-        pathDir = pathDir.replace(name, newName)
+      const newName = `${md5(name)}.html`
+      pathDir = pathDir.replace(name, newName)
       } else {
-        const ext = extname(pathDir)
-        let newName = ''
-        // 有扩展名的
+      const ext = extname(pathDir)
+      let newName = ''
+      // Has an extension
         if (!!ext) {
           if (ext !== '.html') {
             newName = name.replace(ext, '.html')

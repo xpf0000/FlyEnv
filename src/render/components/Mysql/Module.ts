@@ -4,7 +4,7 @@ import type { AppModuleItem } from '@/core/type'
 const module: AppModuleItem = {
   moduleType: 'dataBaseServer',
   typeFlag: 'mysql',
-  label: 'Mysql',
+  label: 'MySQL',
   icon: import('@/svg/mysql.svg?raw'),
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),

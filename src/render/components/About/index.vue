@@ -15,7 +15,7 @@
         rel="noopener noreferrer"
         @click="toHome($event)"
       >
-        FlyEnv - https://www.macphpstudy.com
+        FlyEnv - https://flyenv.com
       </a>
     </div>
     <template v-if="lang === 'zh'">
@@ -43,9 +43,9 @@
             target="_blank"
             href="javascript:"
             rel="noopener noreferrer"
-            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
+            @click="openUrl($event, 'https://flyenv.com/sponsor.html')"
           >
-            https://www.macphpstudy.com/sponsor.html
+            https://flyenv.com/sponsor.html
           </a>
         </el-col>
       </el-row>
@@ -76,9 +76,9 @@
             target="_blank"
             href="javascript:"
             rel="noopener noreferrer"
-            @click="openUrl($event, 'https://www.macphpstudy.com/sponsor.html')"
+            @click="openUrl($event, 'https://flyenv.com/sponsor.html')"
           >
-            https://www.macphpstudy.com/sponsor.html
+            https://flyenv.com/sponsor.html
           </a>
         </el-col>
       </el-row>
@@ -122,7 +122,7 @@
       },
       toHome(e) {
         e.preventDefault()
-        shell.openExternal('https://www.macphpstudy.com')
+        shell.openExternal('https://flyenv.com')
       },
       toFeedback() {
         import('@/components/Feedback/index.vue').then((res) => {

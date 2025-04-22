@@ -36,7 +36,7 @@
   "projectTomcat": "Tomcat项目",
   "projectType": "项目类型",
   "other": "其他",
-  "jarPackage": "jar包路径",
+  "jarPackagePath": "jar包路径",
   "jdkPath": "jdk路径",
   "pythonPath": "Python路径",
   "tomcatPath": "Tomcat路径",

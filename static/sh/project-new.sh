@@ -23,16 +23,16 @@ if ! command -v composer &> /dev/null; then
     fi
 
     cd "$projectdir" || exit 1
-    "$cachedir"/composer.phar create-project --prefer-dist "$frameworkname" "phpwebstudy-create-project" "$version"
+    "$cachedir"/composer.phar create-project --prefer-dist "$frameworkname" "flyenv-created-project" "$version"
 else
     #command exists
-    echo "composer exist"
+    echo "composer exists"
     composer self-update
     cd "$projectdir" || exit 1
-    composer create-project --prefer-dist "$frameworkname" "phpwebstudy-create-project" "$version"
+    composer create-project --prefer-dist "$frameworkname" "flyenv-created-project" "$version"
 fi
 
-cd phpwebstudy-create-project || exit 1
+cd flyenv-created-project || exit 1
 mv ./* ../
 cd ../
-rm -rf phpwebstudy-create-project
+rm -rf flyenv-created-project

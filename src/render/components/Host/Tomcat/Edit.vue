@@ -122,7 +122,7 @@
                 v-model.number="item.port.tomcat_ssl"
                 type="number"
                 :class="'input' + (errs['port_tomcat_ssl'] ? ' error' : '')"
-                placeholder="default: 443"
+                placeholder="Default: 443"
               />
             </div>
           </template>

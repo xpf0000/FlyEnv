@@ -125,7 +125,7 @@ export function writeFileAsync(fp: string, content: string) {
 export function readFileAsync(fp: string, encode = 'utf-8') {
   return new Promise<string>((resolve, reject) => {
     if (!fs.existsSync(fp)) {
-      reject(new Error(`文件不存在: ${fp}`))
+      reject(new Error(`File does not exist: ${fp}`))
     }
     fs.readFile(fp, encode, (err: Error, data: string) => {
       if (err) {

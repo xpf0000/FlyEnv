@@ -100,7 +100,7 @@
       console.log('sysetmProxy: ', res)
       const proxy = res?.data ?? {}
       if (Object.keys(proxy).length > 0) {
-        Base._Confirm(I18nT('tools.systemProxyChech'), undefined, {
+        Base._Confirm(I18nT('tools.systemProxyCheck'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         }).then(() => {

@@ -132,8 +132,9 @@ export class ForkManager {
       return this.serviceFork!.send(...args)
     }
     /**
-     * 找到没有任务的线程
-     * 未找到, 小于CPU核心数, 新建一个线程, 执行完任务, 10秒后自动销毁, 等于CPU核心数, 从前往后轮询
+     * Find a thread with no tasks
+     * If not found, and the number of threads is less than the number of CPU cores, create a new thread that will automatically destroy itself 10 seconds after completing the task.
+     * If the number of threads equals the number of CPU cores, poll from front to back.
      */
     let find = this.forks.find((p) => p.taskFlag.length === 0)
     if (!find) {

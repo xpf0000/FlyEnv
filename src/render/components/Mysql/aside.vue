@@ -9,7 +9,7 @@
       <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon :svg="import('@/svg/mysql.svg?raw')" width="30" height="30" />
       </div>
-      <span class="title">Mysql</span>
+      <span class="title">MySQL</span>
     </div>
 
     <el-switch

@@ -128,7 +128,7 @@
           </el-form-item>
           <div v-if="qrcode" class="flex flex-col items-center gap-3">
             <el-image :src="qrcode" class="w-48" />
-            <el-button @click="download"> Download qr-code </el-button>
+            <el-button @click="download"> Download QR Code </el-button>
           </div>
         </el-card>
       </el-scrollbar>

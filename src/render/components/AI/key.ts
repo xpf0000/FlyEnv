@@ -193,7 +193,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['start', 'service', 'open', 'turn on'],
       ['exception', 'error', 'failed', 'issues']
     ],
-    txt: 'Nginx Startup Failed',
+    txt: 'Nginx startup failed',
     task: 'StartNginx'
   },
   {
@@ -202,7 +202,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['start', 'service', 'open', 'turn on'],
       ['exception', 'error', 'failed', 'issues']
     ],
-    txt: 'Apache Startup Failed',
+    txt: 'Apache startup failed',
     task: 'StartApache'
   },
   {
@@ -211,7 +211,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['start', 'service', 'open', 'turn on'],
       ['exception', 'error', 'failed', 'issues']
     ],
-    txt: 'Mysql Startup Failed',
+    txt: 'MySQL startup failed',
     task: 'StartMysql'
   },
   {
@@ -220,7 +220,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['start', 'service', 'open', 'turn on'],
       ['exception', 'error', 'failed', 'issues']
     ],
-    txt: 'Mariadb Startup Failed',
+    txt: 'MariaDB startup failed',
     task: 'StartMariaDB'
   },
   {
@@ -229,7 +229,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['start', 'service', 'open', 'turn on'],
       ['exception', 'error', 'failed', 'issues']
     ],
-    txt: 'Memcached Startup Failed',
+    txt: 'Memcached startup failed',
     task: 'StartMemcached'
   },
   {
@@ -266,7 +266,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['database', 'password', 'manage', 'initial'],
       ['password', 'tool', 'application', 'program', 'software']
     ],
-    txt: 'Mysql initial password',
+    txt: 'MySQL initial password',
     task: 'MysqlPassword'
   }
 ]

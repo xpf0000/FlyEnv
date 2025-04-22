@@ -31,5 +31,5 @@
   "default_socket_timeout": "Thời gian chờ socket",
   "error_reporting": "Mức báo cáo lỗi",
   "timezone": "Múi giờ",
-  "loadedExtension": "Đã tải"
+  "loadedExtensions": "Đã tải"
 }

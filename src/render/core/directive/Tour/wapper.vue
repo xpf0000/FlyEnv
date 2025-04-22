@@ -30,13 +30,13 @@
     </div>
     <div class="vue-tour-buttons">
       <template v-if="showPre">
-        <div class="vue-tour-button vue-tour-button-outline" @click.stop="pre">上一步</div>
+        <div class="vue-tour-button vue-tour-button-outline" @click.stop="pre">Previous</div>
       </template>
       <template v-if="showNext">
-        <div class="vue-tour-button" @click.stop="next">下一步</div>
+        <div class="vue-tour-button" @click.stop="next">Next</div>
       </template>
       <template v-if="showEnd">
-        <div class="vue-tour-button" @click.stop="end">结束</div>
+        <div class="vue-tour-button" @click.stop="end">End</div>
       </template>
     </div>
   </div>

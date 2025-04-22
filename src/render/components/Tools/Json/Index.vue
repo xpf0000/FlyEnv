@@ -81,9 +81,9 @@
   const { nativeTheme } = require('@electron/remote')
   const { readFile, writeFile } = require('fs-extra')
 
-  // 注册自定义语言
+  // Register custom language
   languages.register({ id: 'toml' })
-  // 为该自定义语言基本的Token
+  // Provide basic tokens for the custom language
   languages.setMonarchTokensProvider('toml', TomlRules as any)
 
   const emit = defineEmits(['doClose'])

@@ -61,13 +61,13 @@ export class AIOllama extends AIBase {
             //     type: 'function',
             //     function: {
             //       name: 'get_folder_all_files',
-            //       description: '获取文件夹下所有文件',
+            //       description: 'Get all files in the folder',
             //       parameters: {
             //         type: 'object',
             //         properties: {
             //           dir: {
             //             type: 'string',
-            //             description: '需要获取文件的文件夹路径.'
+            //             description: 'The folder path from which to retrieve files.'
             //           }
             //         },
             //         required: ['dir']

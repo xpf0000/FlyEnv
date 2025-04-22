@@ -31,5 +31,5 @@
   "default_socket_timeout": "Socket超时时间",
   "error_reporting": "错误级别",
   "timezone": "时区",
-  "loadedExtension": "已加载"
+  "loadedExtensions": "已加载"
 }

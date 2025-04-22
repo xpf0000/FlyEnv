@@ -51,7 +51,7 @@ class Helper {
           function: fn,
           args
         }
-        console.log('已连接到服务器', param)
+        console.log('Connected to server', param)
         client.write(JSON.stringify(param))
       })
 
@@ -63,20 +63,20 @@ class Helper {
           res = JSON.parse(content)
         } catch (e) {}
         if (res && res?.key && res?.key === key) {
-          console.log('helper res: ', res)
+          console.log('helper response: ', res)
           buffer.splice(0)
           if (res?.code === 0) {
             resolve(res?.data)
           } else {
-            reject(new Error(res?.msg ?? 'Exec Fail'))
+            reject(new Error(res?.msg ?? 'Execution failed'))
           }
-          client.end() // 关闭连接
+          client.end() // Close connection
           return
         }
       })
 
       client.on('end', () => {
-        console.log('已从服务器断开连接')
+        console.log('Disconnected from server')
         try {
           client.destroySoon()
         } catch (e) {}

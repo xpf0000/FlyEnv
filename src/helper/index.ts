@@ -3,7 +3,7 @@ import { remove, existsSync } from 'fs-extra'
 import { exec } from 'child-process-promise'
 import { dirChownFetch, waitTime } from './util'
 import type { TaskItem } from './type'
-// 套接字文件的路径
+// Path to the socket file
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 
 class AppHelper {
@@ -24,7 +24,7 @@ class AppHelper {
       await remove(SOCKET_PATH)
     }
 
-    // 创建服务器
+    // Create server
     const server = createServer((socket) => {
       const buffer: Buffer[] = []
       socket.on('data', async (data) => {
@@ -134,17 +134,16 @@ class AppHelper {
           }
         }
       })
-
       socket.on('end', () => {
-        console.log('客户端已断开连接')
+        console.log('Client has disconnected')
         try {
           socket.destroySoon()
         } catch (e) {}
       })
-    })
+        })
 
-    server.listen(SOCKET_PATH, async () => {
-      console.log('服务器监听在', SOCKET_PATH)
+        server.listen(SOCKET_PATH, async () => {
+      console.log('Server is listening on', SOCKET_PATH)
       await waitTime(500)
       let appDir = `/Applications/FlyEnv.app`
       if (!existsSync(appDir)) {

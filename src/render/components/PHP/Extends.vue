@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ I18nT('php.phpExtension') }}</span>
+          <span class="ml-15">{{ I18nT('php.phpExtensions') }}</span>
         </div>
         <el-button type="primary" class="shrink0" :disabled="!extensionDir" @click="openDir">{{
           I18nT('base.open')
@@ -24,7 +24,7 @@
               <div class="left">
                 <el-radio-group v-model="lib" size="small">
                   <el-radio-button value="loaded">{{
-                    I18nT('php.loadedExtension')
+                    I18nT('php.loadedExtensions')
                   }}</el-radio-button>
                   <template v-if="isHomeBrew">
                     <el-radio-button value="homebrew">Homebrew</el-radio-button>

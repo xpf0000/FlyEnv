@@ -132,7 +132,7 @@ class LinkTaskItem {
               res.data.pipe(stream)
             }
             /**
-             * 某些链接耗时太久, 设置超时跳过
+             * Some links take too long, set a timeout to skip them
              */
             timer = setTimeout(taskFail, Config.timeout)
           })

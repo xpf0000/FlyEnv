@@ -3,7 +3,7 @@ check_fnm_or_nvm() {
   unset PREFIX
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
   local BIN
-  # 有nvm
+  # has nvm
   if command -v nvm &> /dev/null 2>&1; then
     BIN="nvm"
   fi

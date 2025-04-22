@@ -72,7 +72,7 @@ class XTerm implements XTermType {
           IPC.off(key)
           this.ptyKey = res?.data ?? ''
           /**
-           * 接收node-pty数据
+           * Receive node-pty data
            */
           IPC.on(`NodePty:data:${this.ptyKey}`).then((key: string, data: string) => {
             this.write(data)
@@ -106,7 +106,7 @@ class XTerm implements XTermType {
       })
     })
     /**
-     * 重置界面大小
+     * Reset the interface size
      */
     this.onWindowResit = this.onWindowResit.bind(this)
     window.addEventListener('resize', this.onWindowResit)

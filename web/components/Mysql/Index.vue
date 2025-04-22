@@ -13,7 +13,7 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service v-if="tab === 0" type-flag="mysql" title="Mysql"></Service>
+      <Service v-if="tab === 0" type-flag="mysql" title="MySQL"></Service>
       <Manager v-else-if="tab === 1" type-flag="mysql"></Manager>
       <Config v-if="tab === 2"></Config>
       <Logs v-if="tab === 3" type="error"></Logs>

@@ -17,7 +17,7 @@
               class="input"
               :readonly="item?.user || running || null"
               :class="{ error: errs?.user }"
-              placeholder="username"
+              placeholder="Username"
             />
           </div>
           <div class="path-choose mt-20 mb-20">
@@ -27,7 +27,7 @@
               :readonly="running || null"
               class="input"
               :class="{ error: errs?.pass }"
-              placeholder="password"
+              placeholder="Password"
             />
             <div class="icon-block" @click="makePass()">
               <yb-icon

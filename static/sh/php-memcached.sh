@@ -4,7 +4,7 @@ phpdir=$2
 memcachedv=$3
 arch=$4
 cd $cachedir
-echo "downloading memcached-$memcachedv.tgz from http://pecl.php.net/get/memcached-$memcachedv.tgz"
+echo "Downloading memcached-$memcachedv.tgz from http://pecl.php.net/get/memcached-$memcachedv.tgz"
 curl -C - -O -L http://pecl.php.net/get/memcached-$memcachedv.tgz
 if [ -d "memcached-$memcachedv" ]; then
  rm -rf "memcached-$memcachedv"
@@ -14,7 +14,7 @@ if [ -f "memcached-$memcachedv.tgz" ]; then
 else
   exit 1
 fi
-echo "download success. start install"
+echo "Download complete. Now installing..."
 export HOMEBREW_NO_AUTO_UPDATE=1
 arch $arch brew install pkg-config autoconf automake libtool
 arch $arch brew install zlib

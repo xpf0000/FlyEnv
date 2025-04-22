@@ -260,7 +260,7 @@ export const codesByCategories: {
       },
       {
         code: 412,
-        name: 'Precondition Failed',
+        name: 'Precondition failed',
         description:
           'The server does not meet one of the preconditions that the requester put on the request.',
         type: 'HTTP'
@@ -293,7 +293,7 @@ export const codesByCategories: {
       },
       {
         code: 417,
-        name: 'Expectation Failed',
+        name: 'Expectation failed',
         description: 'The server cannot meet the requirements of the Expect request-header field.',
         type: 'HTTP'
       },

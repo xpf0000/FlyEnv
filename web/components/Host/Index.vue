@@ -47,18 +47,7 @@
           </template>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item :disabled="!canExport" command="export">{{
-                I18nT('base.export')
-              }}</el-dropdown-item>
-              <el-dropdown-item command="import">{{ I18nT('base.import') }}</el-dropdown-item>
-              <el-dropdown-item divided command="hostsCopy">{{
-                I18nT('host.hostsCopy')
-              }}</el-dropdown-item>
-              <el-dropdown-item command="hostsOpen">{{ I18nT('host.hostsOpen') }}</el-dropdown-item>
-              <el-dropdown-item divided>
-                <VhostTmpl />
-              </el-dropdown-item>
-              <el-dropdown-item divided command="newProject">
+              <el-dropdown-item command="newProject">
                 <el-popover :show-after="600" placement="bottom" trigger="hover" width="auto">
                   <template #reference>
                     <span>{{ I18nT('host.newProject') }}</span>
@@ -68,6 +57,13 @@
                   </template>
                 </el-popover>
               </el-dropdown-item>
+              <el-dropdown-item divided command="import">{{ I18nT('base.import') }}</el-dropdown-item>
+              <el-dropdown-item :disabled="!canExport" command="export">{{ I18nT('base.export') }}</el-dropdown-item>
+              <el-dropdown-item divided>
+                <VhostTmpl />
+              </el-dropdown-item>
+              <el-dropdown-item divided command="hostsCopy">{{ I18nT('host.hostsCopy') }}</el-dropdown-item>
+              <el-dropdown-item command="hostsOpen">{{ I18nT('host.hostsOpen') }}</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>

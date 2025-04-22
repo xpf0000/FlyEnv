@@ -171,7 +171,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('base.action')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <EXT :item="scope.row" type="php">
             <li @click.stop="action(scope.row, scope.$index, 'open')">
@@ -180,7 +180,7 @@
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'conf')">
               <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-              <span class="ml-15"> php.ini </span>
+              <span class="ml-15">{{ I18nT('php.editPhpIni') }}</span>
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'fpm-conf')">
               <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
@@ -196,7 +196,7 @@
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'extend')">
               <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('php.extension') }}</span>
+              <span class="ml-15">{{ I18nT('php.extensions') }}</span>
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'groupstart')">
               <yb-icon

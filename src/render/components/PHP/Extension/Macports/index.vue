@@ -31,7 +31,7 @@
     <el-table-column
       width="150px"
       align="left"
-      :label="I18nT('base.operation')"
+      :label="I18nT('base.action')"
       class-name="operation"
     >
       <template v-if="version?.version" #default="scope">

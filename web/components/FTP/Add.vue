@@ -17,7 +17,7 @@
               class="input"
               :readonly="item?.user || running || null"
               :class="{ error: errs?.user }"
-              placeholder="username"
+              placeholder="Username"
             />
           </div>
           <div class="path-choose mt-20 mb-20">

@@ -73,6 +73,6 @@
     "hcBlack": "Hc Black"
   },
   "noVerionsFoundInLib": "无可用版本",
-  "noLibFound": "未检测到 <a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> 或 <a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a>, 版本管理不可用.\n如想安装 Macports, 可以点击此链接\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\n按照文档说明进行安装.\n如想安装 Homebrew, 可以点击此链接\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macphpstudy.com/zh/help-4-2.html')\">https://www.macphpstudy.com/zh/help-4-2.html</a>\n按照文档说明进行安装.",
+  "noLibFound": "未检测到 <a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> 或 <a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a>, 版本管理不可用.\n如想安装 Macports, 可以点击此链接\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\n按照文档说明进行安装.\n如想安装 Homebrew, 可以点击此链接\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/zh/help-4-2.html')\">https://flyenv.com/zh/help-4-2.html</a>\n按照文档说明进行安装.",
   "showToolBtn": "显示工具浮动按钮"
 }

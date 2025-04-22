@@ -48,7 +48,7 @@ class Apache extends Base {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
       })
-      // 获取httpd的默认配置文件路径
+      // Get the default configuration file path for httpd
       let str = ''
       try {
         const res = await execPromise(`${bin} -D DUMP_INCLUDES`)
