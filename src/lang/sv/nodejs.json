@@ -4,5 +4,14 @@
   "registry": "Källa",
   "checkPackageJsonUpdate": "Sök efter uppdateringar",
   "updatePackageJsonFile": "Uppdatera package.json-fil",
-  "updatePackageJsonFileTips": "Denna åtgärd kommer att ändra package.json-filen. Är du säker på att du vill uppdatera?"
+  "updatePackageJsonFileTips": "Denna åtgärd kommer att ändra package.json-filen. Är du säker på att du vill uppdatera?",
+
+  "copyDirPath": "Kopiera projektmappens sökväg",
+  "openIN": "Öppna i",
+  "Terminal": "Terminal",
+  "VSCode": "Visual Studio Code",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "HBuilderX": "HBuilderX",
+  "projectEnvSet": "Projektmiljö"
 }

@@ -4,5 +4,14 @@
   "registry": "Nguồn",
   "checkPackageJsonUpdate": "Kiểm tra cập nhật",
   "updatePackageJsonFile": "Cập nhật tệp package.json",
-  "updatePackageJsonFileTips": "Hành động này sẽ thay đổi tệp package.json. Bạn có chắc chắn muốn cập nhật không?"
+  "updatePackageJsonFileTips": "Hành động này sẽ thay đổi tệp package.json. Bạn có chắc chắn muốn cập nhật không?",
+
+  "copyDirPath": "Sao chép đường dẫn thư mục dự án",
+  "openIN": "Mở bằng",
+  "Terminal": "Terminal",
+  "VSCode": "Visual Studio Code",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "HBuilderX": "HBuilderX",
+  "projectEnvSet": "Thiết lập môi trường dự án"
 }

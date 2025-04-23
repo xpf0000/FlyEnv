@@ -1,20 +1,14 @@
 {
   "phpiniNoFound": "Không tìm thấy tệp php.ini",
-  "phpExtension": "Tiện ích mở rộng PHP",
   "copyConfTemplate": "Sao chép mẫu cấu hình",
-  "availableExtensions": "Các tiện ích mở rộng có sẵn",
   "extensionCopySuccess": "Liên kết tiện ích mở rộng đã được sao chép vào khay nhớ tạm",
   "xdebugConfCopySuccess": "Mẫu cấu hình xdebug đã được sao chép vào khay nhớ tạm",
-  "noVersionTips": "Không phát hiện thấy phiên bản đã cài đặt, vui lòng cài đặt phiên bản PHP trong quản lý phiên bản hoặc tự cài đặt",
   "fpmLog": "Nhật ký FPM",
   "extension": "Tiện ích mở rộng",
-  "phpSetGlobal": "Đặt thành phiên bản toàn cục",
   "obfuscatorPhpVersion": "Làm rối mã với phiên bản PHP",
   "obfuscatorSrc": "Tệp hoặc thư mục PHP cần được làm rối mã",
   "obfuscatorDesc": "Lưu tệp hoặc thư mục, không trùng lặp tệp hoặc thư mục nguồn",
   "obfuscatorConfig": "Thiết lập nâng cao",
-  "noExtensionsDir": "Thư mục tiện ích mở rộng không tồn tại, vui lòng cài đặt tiện ích mở rộng trước",
-  "extensionsLib": "Thư viện tiện ích mở rộng",
   "groupStartOff": "Tắt khởi động nhanh nhóm",
   "groupStartOn": "Bật khởi động nhanh nhóm",
   "quickStart": "Khởi động nhóm",
@@ -31,5 +25,9 @@
   "default_socket_timeout": "Thời gian chờ socket",
   "error_reporting": "Mức báo cáo lỗi",
   "timezone": "Múi giờ",
-  "loadedExtensions": "Đã tải"
+  "loadedExtensions": "Đã tải",
+
+  "editPhpIni": "Sửa php.ini",
+  "phpExtensions": "Tiện ích mở rộng PHP",
+  "extensions": "Tiện ích mở rộng"
 }

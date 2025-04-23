@@ -7,8 +7,6 @@
   "systemProxyCheck": "Upptäckte att nätverket använder en proxy, är FlyEnv inställt att använda denna proxy?",
   "systemProxyUsed": "Inställning lyckades. Om du vill ändra det, gör det i Inställningar->Proxyinställningar.",
   "windowCount": "Fönsterräknare",
-  "phpPlayground": "PHP lekplats",
-  "raw": "Rå",
   "codemake": "Kodgenerering",
   "FavoriteTools": "Favoritverktyg",
   "AllTools": "Alla verktyg",

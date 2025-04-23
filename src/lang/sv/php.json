@@ -1,20 +1,14 @@
 {
   "phpiniNoFound": "php.ini-filen hittades inte",
-  "phpExtension": "PHP-tillägg",
   "copyConfTemplate": "Kopiera konfigurationsmall",
-  "availableExtensions": "Tillgängliga tillägg",
   "extensionCopySuccess": "Tilläggslänk kopierad till urklipp",
   "xdebugConfCopySuccess": "XDebug-konfigurationsmall kopierad till urklipp",
-  "noVersionTips": "Den installerade versionen upptäcktes inte, vänligen installera PHP-versionen i versionshanteringen eller installera den själv",
   "fpmLog": "FPM-logg",
   "extension": "Tillägg",
-  "phpSetGlobal": "Ställ in som global version",
   "obfuscatorPhpVersion": "Förvräng med PHP-version",
   "obfuscatorSrc": "PHP-fil eller mapp som ska förvrängas",
   "obfuscatorDesc": "Spara filen eller mappen, duplicera inte källfilen eller mappen",
   "obfuscatorConfig": "Avancerad inställning",
-  "noExtensionsDir": "Tilläggsmappen finns inte, vänligen installera tillägget först",
-  "extensionsLib": "Tilläggsbibliotek",
   "groupStartOff": "Stäng av gruppsnabbstart",
   "groupStartOn": "Slå på gruppsnabbstart",
   "quickStart": "Gruppstart",
@@ -31,5 +25,9 @@
   "default_socket_timeout": "Socket-timeout",
   "error_reporting": "Felrapporteringsnivå",
   "timezone": "Tidszon",
-  "loadedExtensions": "Laddade tillägg"
+  "loadedExtensions": "Laddade tillägg",
+
+  "editPhpIni": "Redigera php.ini",
+  "phpExtensions": "PHP-tillägg",
+  "extensions": "Tillägg"
 }
