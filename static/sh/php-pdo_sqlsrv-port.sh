@@ -4,7 +4,7 @@ extendV=$2
 phpize=$3
 phpconfig=$4
 cd "$cachedir" || exit 1
-echo "downloading pdo_sqlsrv-$extendv.tgz from http://pecl.php.net/get/pdo_sqlsrv-$extendv.tgz"
+echo "Downloading pdo_sqlsrv-$extendv.tgz from http://pecl.php.net/get/pdo_sqlsrv-$extendv.tgz"
 curl -C - -O -L http://pecl.php.net/get/pdo_sqlsrv-"$extendV".tgz
 if [ -d "pdo_sqlsrv-$extendV" ]; then
 sudo -S rm -rf "pdo_sqlsrv-$extendV"
@@ -14,7 +14,7 @@ if [ -f "pdo_sqlsrv-$extendV.tgz" ]; then
 else
   exit 1
 fi
-echo "download success. start install"
+echo "Download complete. Now installing..."
 sudo -S port install -v pkgconfig autoconf automake libtool unixodbc
 export CFLAGS=-I/opt/local/include
 export CXXFLAGS=-I/opt/local/include

@@ -181,7 +181,7 @@
     },
     {
       key: 'operation',
-      title: I18nT('base.operation'),
+      title: I18nT('base.action'),
       dataKey: 'operation',
       class: 'flex-shrink-0',
       headerClass: 'flex-shrink-0',

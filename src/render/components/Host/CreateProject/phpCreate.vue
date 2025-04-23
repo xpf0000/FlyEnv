@@ -238,28 +238,28 @@
       if (form.php && form.composer) {
         command.push(`"${form.php}" "${form.composer}" self-update`)
         command.push(
-          `"${form.php}" "${form.composer}" create-project --prefer-dist "${name}" "phpwebstudy-create-project" "${form.version}"`
+          `"${form.php}" "${form.composer}" create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       } else if (form.php) {
         command.push(`"${form.php}" composer self-update`)
         command.push(
-          `"${form.php}" composer create-project --prefer-dist "${name}" "phpwebstudy-create-project" "${form.version}"`
+          `"${form.php}" composer create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       } else if (form.composer) {
         command.push(`php "${form.composer}" self-update`)
         command.push(
-          `php "${form.composer}" create-project --prefer-dist "${name}" "phpwebstudy-create-project" "${form.version}"`
+          `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       } else {
         command.push(`php composer self-update`)
         command.push(
-          `php composer create-project --prefer-dist "${name}" "phpwebstudy-create-project" "${form.version}"`
+          `php composer create-project --prefer-dist "${name}" "flyenv-created-project" "${form.version}"`
         )
       }
-      command.push(`cd phpwebstudy-create-project`)
+      command.push(`cd flyenv-created-project`)
       command.push(`mv ./* ../`)
       command.push(`cd ../`)
-      command.push(`rm -rf phpwebstudy-create-project`)
+      command.push(`rm -rf flyenv-created-project`)
     }
 
     nextTick().then(() => {

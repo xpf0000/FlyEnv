@@ -73,6 +73,6 @@
     "hcBlack": "Hc Black"
   },
   "noVerionsFoundInLib": "Không có phiên bản nào khả dụng",
-  "noLibFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> hoặc <a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> không được tìm thấy, quản lý phiên bản không khả dụng.\nCài đặt Macports, bạn có thể nhấp vào liên kết này\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nLàm theo tài liệu để cài đặt.\nCài đặt Homebrew, bạn có thể nhấp vào liên kết này\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macphpstudy.com/zh/help-4-2.html')\">https://www.macphpstudy.com/zh/help-4-2.html</a>\nLàm theo tài liệu để cài đặt.",
+  "noLibFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> hoặc <a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> không được tìm thấy, quản lý phiên bản không khả dụng.\nCài đặt Macports, bạn có thể nhấp vào liên kết này\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nLàm theo tài liệu để cài đặt.\nCài đặt Homebrew, bạn có thể nhấp vào liên kết này\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/zh/help-4-2.html')\">https://flyenv.com/zh/help-4-2.html</a>\nLàm theo tài liệu để cài đặt.",
   "showToolBtn": "Hiển thị nút công cụ nổi"
 }

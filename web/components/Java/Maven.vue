@@ -104,7 +104,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="I18nT('base.operation')" width="150">
+      <el-table-column align="center" :label="I18nT('base.action')" width="150">
         <template #default="scope">
           <template v-if="scope.row?.path">
             <ExtSet :item="scope.row" type="maven" />

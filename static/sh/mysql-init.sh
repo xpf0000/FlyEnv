@@ -16,5 +16,5 @@ $mysql_conn  -e  "set global validate_password.length=4;"
 $mysql_conn  -e  "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('$NEWPASS');"
 $mysql_conn  -e  "alter user 'root'@'localhost'IDENTIFIED WITH mysql_native_password BY '$NEWPASS' PASSWORD EXPIRE NEVER;"
 $mysql_conn  -e  "flush privileges;"
-echo "初始化密码成功,root用户密码已设置为root"
+echo "Password initialization successful, root user password has been set to root"
 exit 0

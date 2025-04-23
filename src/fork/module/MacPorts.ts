@@ -8,7 +8,7 @@ class MacPorts extends Base {
   }
 
   /**
-   * 更改 macports 的源
+   * Change the source of macports
    * @param src
    */
   changSrc(src: { url: string; rsync_server: string; rsync_dir: string }) {

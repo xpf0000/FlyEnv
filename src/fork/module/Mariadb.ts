@@ -181,12 +181,12 @@ datadir=${dataDir}`
             'APP-On-Log': AppLog(
               'error',
               I18nT('appLog.execStartCommandFail', {
-                error: res ? res?.error : 'Start Fail',
+                error: res ? res?.error : 'Start failed',
                 service: `${this.type}-${version.version}`
               })
             )
           })
-          reject(new Error('Start Fail'))
+          reject(new Error('Start failed'))
         })
       }
 

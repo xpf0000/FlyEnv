@@ -43,11 +43,11 @@
             >
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
+        <el-table-column :label="I18nT('base.action')" :prop="null" width="100px" align="center">
           <template #default="scope">
             <el-button link type="primary" :icon="Edit" @click.stop="doEdit(scope.row)"></el-button>
             <el-popconfirm
-              :title="I18nT('base.delAlertContent')"
+              :title="I18nT('base.areYouSure')"
               @confirm="ServiceActionStore.setAlias(item, undefined, scope.row)"
             >
               <template #reference>

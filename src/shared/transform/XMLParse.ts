@@ -95,14 +95,14 @@ class XMLParse {
     const xmldom = new DOMParser()
     const dom = xmldom.parseFromString(xml, 'application/xml')
     if (!dom) {
-      throw new Error(`XML解析失败`)
+      throw new Error(`XML parsing failed`)
     }
     const root = dom.documentElement
     if (!root) return
     const errDom = root.querySelector('parsererror')
     if (errDom) {
       const rootError = errDom?.innerHTML
-      throw new Error(`XML格式错误: ${rootError}`)
+      throw new Error(`XML format error: ${rootError}`)
     }
     return this.#parseDOM(root)
   }

@@ -3,58 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>视频合成与进度查询</title>
-  <!-- 使用国内的 Tailwind CSS CDN -->
+  <title>Video Synthesis and Progress Query</title>
+  <!-- Use domestic Tailwind CSS CDN -->
   <link href="https://cdn.bootcdn.net/ajax/libs/tailwindcss/3.3.5/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100">
 <div class="container mx-auto p-4">
-  <h1 class="text-2xl font-bold mb-4">视频合成与进度查询</h1>
+  <h1 class="text-2xl font-bold mb-4">Video Synthesis and Progress Query</h1>
 
-  <!-- URL 配置部分 -->
+  <!-- URL Configuration Section -->
   <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-    <h2 class="text-xl font-semibold mb-4">API 配置</h2>
+    <h2 class="text-xl font-semibold mb-4">API Configuration</h2>
     <div class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700">服务器地址（IP + 端口）</label>
-        <input type="text" id="serverUrl" value="192.168.2.100:8383" placeholder="例如：127.0.0.1:8383" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+        <label class="block text-sm font-medium text-gray-700">Server Address (IP + Port)</label>
+        <input type="text" id="serverUrl" value="192.168.2.100:8383" placeholder="e.g., 127.0.0.1:8383" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
       </div>
     </div>
   </div>
 
-  <!-- 视频合成部分 -->
+  <!-- Video Synthesis Section -->
   <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-    <h2 class="text-xl font-semibold mb-4">视频合成</h2>
+    <h2 class="text-xl font-semibold mb-4">Video Synthesis</h2>
     <form id="synthesisForm" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700">音频文件</label>
+        <label class="block text-sm font-medium text-gray-700">Audio File</label>
         <input type="file" id="audioFile" name="audioFile" accept="audio/*" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700">视频文件</label>
+        <label class="block text-sm font-medium text-gray-700">Video File</label>
         <input type="file" id="videoFile" name="videoFile" accept="video/*" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
       </div>
       <div class="hidden">
-        <label class="block text-sm font-medium text-gray-700">唯一 KG</label>
+        <label class="block text-sm font-medium text-gray-700">Unique KG</label>
         <input type="text" id="code" name="code" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
       </div>
-      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">开始合成</button>
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Start Synthesis</button>
     </form>
   </div>
 
-  <!-- 进度查询部分 -->
+  <!-- Progress Query Section -->
   <div class="bg-white p-6 rounded-lg shadow-md">
-    <h2 class="text-xl font-semibold mb-4">进度查询</h2>
+    <h2 class="text-xl font-semibold mb-4">Progress Query</h2>
     <div id="progressResult" class="mt-4">
-      <p class="text-gray-700">提交任务后，进度将自动显示在这里。</p>
+      <p class="text-gray-700">After submitting the task, the progress will be displayed here automatically.</p>
     </div>
   </div>
 </div>
 
-<!-- 使用国内的 Axios CDN -->
+<!-- Use domestic Axios CDN -->
 <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.6.2/axios.min.js"></script>
 <script>
-  // 生成唯一 ID（UUID）
+  // Generate Unique ID (UUID)
   function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       const r = Math.random() * 16 | 0;
@@ -63,44 +63,44 @@
     });
   }
 
-  // 自动生成唯一 ID 并填充到输入框
+  // Automatically generate a unique ID and fill it into the input box
   document.addEventListener('DOMContentLoaded', function() {
     const codeInput = document.getElementById('code');
     codeInput.value = generateUUID();
   });
 
-  // 将文件转换为 Base64 编码
+  // Convert file to Base64 encoding
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result.split(',')[1]); // 去掉 Data URL 前缀
+      reader.onload = () => resolve(reader.result.split(',')[1]); // Remove Data URL prefix
       reader.onerror = error => reject(error);
     });
   }
 
-  // 轮询任务进度
+  // Poll task progress
   function pollTaskProgress(taskCode, queryUrl) {
     const interval = setInterval(async () => {
       try {
         const response = await axios.get(`${queryUrl}?code=${taskCode}`);
         const progressResult = document.getElementById('progressResult');
-        progressResult.innerHTML = `<p class="text-green-600">任务进度: ${JSON.stringify(response.data)}</p>`;
+        progressResult.innerHTML = `<p class="text-green-600">Task Progress: ${JSON.stringify(response.data)}</p>`;
 
-        // 如果任务完成，停止轮询
+        // If the task is completed, stop polling
         if (response.data.status === 'completed') {
           clearInterval(interval);
-          progressResult.innerHTML = `<p class="text-green-600">任务完成: ${JSON.stringify(response.data)}</p>`;
+          progressResult.innerHTML = `<p class="text-green-600">Task Completed: ${JSON.stringify(response.data)}</p>`;
         }
       } catch (error) {
-        console.error('查询进度失败', error);
+        console.error('Task progress query failed', error);
         clearInterval(interval);
-        document.getElementById('progressResult').innerHTML = `<p class="text-red-600">查询进度失败，请检查控制台。</p>`;
+        document.getElementById('progressResult').innerHTML = `<p class="text-red-600">Task progress query failed, please check the console.</p>`;
       }
-    }, 3000); // 每 3 秒查询一次
+    }, 3000); // Query every 3 seconds
   }
 
-  // 视频合成表单提交事件
+  // Video synthesis form submission event
   document.getElementById('synthesisForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -109,26 +109,29 @@
     const code = document.getElementById('code').value;
     const serverUrl = document.getElementById('serverUrl').value;
 
+    // Ensure audio and video files are selected
+    // Ensure server address (IP + Port) is filled
+
     // if (!audioFile || !videoFile) {
-    //   alert('请确保选择了音频和视频文件');
+    //   alert('Please ensure that audio and video files are selected');
     //   return;
     // }
     //
     // if (!serverUrl) {
-    //   alert('请填写服务器地址（IP + 端口）');
+    //   alert('Please fill in the server address (IP + Port)');
     //   return;
     // }
 
-    // 拼接完整的接口 URL
+    // Construct the complete API URL
     const submitUrl = `http://${serverUrl}/easy/submit`;
     const queryUrl = `http://${serverUrl}/easy/query`;
 
     try {
-      // 将文件转换为 Base64
+      // Convert files to Base64
       // const audioBase64 = await fileToBase64(audioFile);
       // const videoBase64 = await fileToBase64(videoFile);
 
-      // 构建 JSON 请求体
+      // Build JSON request body
       const requestBody = {
         audio_url: "file://D:/video/16.mp3",
         video_url: "file://D:/video/ceshi.mp4",
@@ -138,19 +141,19 @@
         pn: 1
       };
 
-      // 发送 JSON 请求
+      // Send JSON request
       const response = await axios.post(submitUrl, requestBody, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
 
-      // 提交成功后，开始轮询任务进度
-      document.getElementById('progressResult').innerHTML = `<p class="text-blue-600">任务已提交，任务代码: ${code}</p>`;
+      // After successful submission, start polling task progress
+      document.getElementById('progressResult').innerHTML = `<p class="text-blue-600">Task Submitted, Task Code: ${code}</p>`;
       pollTaskProgress(code, queryUrl);
     } catch (error) {
-      console.error('合成任务提交失败', error);
-      document.getElementById('progressResult').innerHTML = `<p class="text-red-600">合成任务提交失败，请检查控制台。</p>`;
+      console.error('Task submission failed', error);
+      document.getElementById('progressResult').innerHTML = `<p class="text-red-600">Task submission failed, please check the console.</p>`;
     }
   });
 </script>

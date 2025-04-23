@@ -53,7 +53,7 @@
   }
 
   const doDel = (data: MysqlGroupItem) => {
-    ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+    ElMessageBox.confirm(I18nT('base.areYouSure'), undefined, {
       confirmButtonText: I18nT('base.confirm'),
       cancelButtonText: I18nT('base.cancel'),
       closeOnClickModal: false,

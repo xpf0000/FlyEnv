@@ -163,9 +163,9 @@
       speakLang = 'en-US'
     }
     const utterance = new SpeechSynthesisUtterance(item.content.trim())
-    utterance.lang = speakLang // 设置为中文
-    utterance.rate = 1 // 语速（默认值为 1）
-    utterance.pitch = 1 // 音调（默认值为 1)
+    utterance.lang = speakLang // Set to Chinese
+    utterance.rate = 1 // Speech rate (default value is 1)
+    utterance.pitch = 1 // Pitch (default value is 1)
     utterance.onend = () => {
       speaking.value = undefined
       utterance.onend = null
@@ -253,7 +253,7 @@
           return info.size < 2 * 1024 * 1024
         })
         if (arr.length !== filePaths.length) {
-          MessageWarning('有些文件大于2M, 已忽略')
+            MessageWarning('Some files are larger than 2MB and have been ignored')
         }
         for (const file of arr) {
           try {

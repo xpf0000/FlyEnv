@@ -54,11 +54,11 @@ const config: UserConfig = {
     }
   },
   css: {
-    // css预处理器
+    // CSS preprocessor
     preprocessorOptions: {
       scss: {
-        // 引入 var.scss 这样就可以在全局中使用 var.scss中预定义的变量了
-        // 给导入的路径最后加上 ;
+      // Import var.scss so that the predefined variables in var.scss can be used globally
+      // Add a semicolon at the end of the imported path
         additionalData: '@import "@/components/Theme/Variables.scss";'
       }
     }

@@ -84,7 +84,7 @@
   const columns: Column<any>[] = [
     {
       key: 'host',
-      title: 'host',
+      title: 'Host',
       dataKey: 'host',
       class: 'host-column',
       headerClass: 'host-column',
@@ -100,13 +100,13 @@
     },
     {
       key: 'ip',
-      title: 'ip',
+      title: 'IP Address',
       dataKey: 'ip',
       width: 240
     },
     {
       key: 'ttl',
-      title: 'ttl',
+      title: 'TTL',
       dataKey: 'ttl',
       width: 120
     }

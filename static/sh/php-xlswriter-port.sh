@@ -4,7 +4,7 @@ extendV=$2
 phpize=$3
 phpconfig=$4
 cd "$cachedir" || exit 1
-echo "downloading xlswriter-$extendV.tgz from http://pecl.php.net/get/xlswriter-$extendV.tgz"
+echo "Downloading xlswriter-$extendV.tgz from http://pecl.php.net/get/xlswriter-$extendV.tgz"
 curl -C - -O -L http://pecl.php.net/get/xlswriter-"$extendV".tgz
 if [ -d "xlswriter-$extendV" ]; then
 sudo -S rm -rf "xlswriter-$extendV"
@@ -14,7 +14,7 @@ if [ -f "xlswriter-$extendV.tgz" ]; then
 else
   exit 1
 fi
-echo "download success. start install"
+echo "Download complete. Now installing..."
 sudo -S port install -v pkgconfig autoconf automake libtool
 export CFLAGS=-I/opt/local/include
 cd "xlswriter-$extendV" || exit 1

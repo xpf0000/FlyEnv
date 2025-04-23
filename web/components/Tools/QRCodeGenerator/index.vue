@@ -10,7 +10,7 @@
 
   const errorCorrectionLevels = ['low', 'medium', 'quartile', 'high']
 
-  const text = ref('https://macphpstudy.com')
+  const text = ref('https://flyenv.com')
   const { qrcode } = useQRCode({
     text,
     color: {
@@ -70,7 +70,7 @@
 
         <div class="flex flex-col items-center gap-3">
           <el-image :src="qrcode" class="w-48" />
-          <el-button @click="download"> Download qr-code </el-button>
+          <el-button @click="download"> Download QR Code </el-button>
         </div>
       </el-card>
     </div>

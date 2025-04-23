@@ -69,32 +69,32 @@ class PageTaskItem {
           } else if (k.toLowerCase() === 'content-length') {
             const length = headers[k]?.pop() ?? '0'
             size = parseInt(length)
+
           }
-        }
-        /**
-         * 普通页面
-         */
-        if (isPage) {
-          if (checkIsExcludeUrl(details.url, true)) {
-            callback({
-              cancel: true
-            })
-            return
-          }
-          let ok = false
-          if (Config.pageLimit) {
-            if (url.includes(Config.pageLimit)) {
-              ok = true
+          /**
+           * Regular page
+           */
+          if (isPage) {
+            if (checkIsExcludeUrl(details.url, true)) {
+              callback({
+                cancel: true
+              })
+              return
             }
-          } else {
-            if (uobj.host === Store.host) {
-              ok = true
+            let ok = false
+            if (Config.pageLimit) {
+              if (url.includes(Config.pageLimit)) {
+                ok = true
+              }
+            } else {
+              if (uobj.host === Store.host) {
+                ok = true
+              }
             }
-          }
-          if (ok) {
-            /**
-             * 新页面
-             */
+            if (ok) {
+              /**
+               * New page
+               */
             const saveFile = urlToDir(url, true)
             if (!Store.ExcludeUrl.has(url)) {
               Store.ExcludeUrl.add(url)
@@ -115,9 +115,9 @@ class PageTaskItem {
             })
             return
           }
-          /**
-           * 只下载本域名的文件
-           */
+            /**
+             * Only download files from the current domain
+             */
           if (uobj.host === Store.host) {
             const saveFile = urlToDir(url)
             if (!Store.ExcludeUrl.has(url)) {
@@ -182,13 +182,13 @@ class PageTaskItem {
       return
     }
     /**
-     * 查找正在等待运行的页面
+     * Find the page waiting to be processed
      */
     const page = Store.Pages.shift()
     /**
-     * 未找到
-     * 等待间隔时间
-     * 继续尝试获取页面
+     * Not found
+     * Wait for the interval time
+     * Continue trying to fetch a page
      */
     if (!page) {
       await wait()
@@ -212,7 +212,7 @@ class PageTaskItem {
     }
 
     /**
-     * 设置10秒超时
+     * Set a 10-second timeout
      */
     const timer = setTimeout(() => {
       this.#pageRetry(page)
@@ -237,10 +237,10 @@ class PageTaskItem {
       imgs.push(result[2].trim())
     }
     /**
-     * 过滤链接
-     * 1. host不一致, 外站链接
-     * 2. 非http/https协议
-     * 3. 如果设置了页面强制包含字符串, 则url必须包含此字符串
+     * Filter links
+     * 1. Host mismatch, external links
+     * 2. Non-http/https protocols
+     * 3. If a page must include a specific string, the URL must contain this string
      */
     const alinks = imgs.filter((u) => {
       if (u.startsWith('#')) {
@@ -265,8 +265,9 @@ class PageTaskItem {
     })
     const replace: { [k: string]: string } = {}
     /**
-     * 此处不能根据url过滤
-     * 多层页面可能有共同的url, 但是a链接里的不一样, 需要每个页面单独替换
+     * Do not filter based on the URL here.
+     * Multi-layer pages may have the same URL, but the links in the <a> tags are different,
+     * so each page needs to be replaced individually.
      */
     const linkUrls: Array<LinkItem> = alinks
       .map((a) => {
@@ -320,11 +321,11 @@ class PageTaskItem {
     }
     const replace: { [k: string]: string } = {}
     /**
-     * 过滤链接
-     * 1. 排除host包含链接的host的
-     * 非http和https协议的
-     * 页面里有的
-     * 后缀名是html htm php的
+     * Filter links
+     * 1. Exclude links whose host is included in the excluded hosts
+     * 2. Non-http and non-https protocols
+     * 3. Links already present on the page
+     * 4. Links with extensions like html, htm, php
      */
     const linkUrls: Array<LinkItem> = links
       .filter((a) => {

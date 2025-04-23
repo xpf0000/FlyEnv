@@ -72,12 +72,12 @@
         const contentHeight = monacoInstance!.getContentHeight()
         const viewportHeight = monacoInstance!.getLayoutInfo().height
 
-        // 判断是否滚动到底部
+        // Check if scrolled to the bottom
         const isScrolledToBottom = scrollTop + viewportHeight >= contentHeight
 
         if (isScrolledToBottom) {
-          // 已滚动到底部的处理逻辑
-          console.log('已滚动到底部')
+          // Logic for when scrolled to the bottom
+          console.log('Scrolled to the bottom')
           isBottom = true
         } else {
           isBottom = false

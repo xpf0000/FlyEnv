@@ -106,7 +106,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column align="center" :label="I18nT('host.operation')" width="100px">
+        <el-table-column align="center" :label="I18nT('host.action')" width="100px">
           <template #default="scope">
             <template v-if="scope?.row?.deling || scope.row.id !== quickEdit?.id">
               <template v-if="!scope?.row?.deling">
@@ -374,7 +374,7 @@
         }).then()
         break
       case 'del':
-        Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+        Base._Confirm(I18nT('base.areYouSure'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })

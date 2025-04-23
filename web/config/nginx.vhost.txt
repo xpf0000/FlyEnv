@@ -9,17 +9,17 @@ server
     include enable-php.conf;
     #PHP-INFO-END
 
-    #REWRITE-START URL重写规则引用,修改后将导致面板设置的伪静态规则失效
+    #REWRITE-START URL rewrite rule reference, modifying it will cause the pseudo-static rules set in the panel to fail
     include #Rewrite_Path#/#Server_Name#.conf;
     #REWRITE-END
 
-    #禁止访问的文件或目录
+    #Files or directories that are forbidden to access
     location ~ ^/(\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)
     {
         return 404;
     }
 
-    #一键申请SSL证书验证目录相关设置
+    #Settings related to the directory for one-click SSL certificate application verification
     location ~ \.well-known{
         allow all;
     }

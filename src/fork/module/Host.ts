@@ -274,7 +274,7 @@ export class Host extends Base {
   }
 
   /**
-   * 增量更新
+   * Incremental update
    * @param host
    * @param old
    * @param addApachePort

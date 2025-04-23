@@ -3,7 +3,7 @@
   "MP_LABEL": "Set an optional label to identify this Mailpit instance. This adds the label to the web UI, SMTP and POP3 servers.",
   "MP_TENANT_ID": "Set a tenant ID (table prefix). This is used to isolate the data from other Mailpit instances sharing the same data file (see docs).",
   "MP_MAX_MESSAGES": "Maximum number of messages to store. Mailpit will periodically delete the oldest messages if greater than this. Set to 0 to disable auto-deletion (see docs).",
-  "MP_MAX_AGE": "Maximum age of messages to store in either (h)ours or (d)ays. Mailpit will periodically delete the oldest messages if greater than this. The value must be either in hours (example: --max-age 36h) or days (example: --max-age 14d) (see docs).",
+  "MP_MAX_AGE": "Maximum age of messages to store in either (h)ours or (d)ays. Mailpit will periodically delete the oldest messages if greater than this. The value must be either in hours (Example: --max-age 36h) or days (Example: --max-age 14d) (see docs).",
   "MP_USE_MESSAGE_DATES": "Use message header date as the Mailpit received date & time instead of the SMTP-received date & time.",
   "MP_IGNORE_DUPLICATE_IDS": "Ignore duplicate messages based on Message-Ids.",
   "MP_LOG_FILE": "Log Mailpit output to file instead of stdout. Example: --log-file /path/to/logfile.log",

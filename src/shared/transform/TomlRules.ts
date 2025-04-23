@@ -36,11 +36,11 @@ export default {
       [/(".*?"|'.*?'|.*?)([ \t]*)(=)( |$)/, ['type', 'white', 'operators', 'white']],
       [/"/, 'string', '@string_double'],
       [/"""/, 'string', '@multiString."""'],
-      // 最后设置tag
+      // Finally set tag
       [/(\[)+([^,]+)(\])+/, 'tag']
     ],
     whitespace: [[/[ \t\r\n]+/, 'white']],
-    // 设置评论
+    // Set comments
     comment: [[/#.*$/, 'comment']],
     string_double: [
       [/".*?"/, 'string'],

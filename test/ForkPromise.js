@@ -11,9 +11,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 exports.__esModule = true;
 exports.ForkPromise = void 0;
 /**
- * 扩展Promise
- * resolve， reject， on
- * 可以发送中间过程信息了
+ * Extended Promise
+ * resolve, reject, on
+ * Allows sending intermediate process information
  */
 var ForkPromise = /** @class */ (function () {
     function ForkPromise(executor) {

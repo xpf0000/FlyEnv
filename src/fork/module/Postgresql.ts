@@ -96,12 +96,12 @@ class Manager extends Base {
           'APP-On-Log': AppLog(
             'error',
             I18nT('appLog.execStartCommandFail', {
-              error: res ? res?.error : 'Start Fail',
+              error: res ? res?.error : 'Start failed',
               service: `${this.type}-${version.version}`
             })
           )
         })
-        reject(new Error(res ? res?.error : 'Start Fail'))
+        reject(new Error(res ? res?.error : 'Start failed'))
       }
       if (existsSync(confFile)) {
         await doRun()

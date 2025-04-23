@@ -34,12 +34,13 @@ export type OllamaServerSetup = {
 
 const onCompositionstart = () => {
   AISetup.isComposing = true
-  console.log('开始中文输入')
+  console.log('Start Chinese input')
 }
 
 const onCompositionend = () => {
   AISetup.isComposing = false
-  console.log('结束中文输入')
+  console.log('End Chinese input')
+}
 }
 
 export const AISetup = reactive<{

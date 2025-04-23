@@ -16,12 +16,12 @@ class BaseDialog {
     this._componentData = {}
     this._dialogWidth = '50%'
     this._dialogClassName = ''
-    this._dialogTitle = '弹窗标题'
+    this._dialogTitle = 'Dialog Title'
     this._dialogFooter = undefined
   }
 
   /**
-   * 传递给内部页面的数据
+   * Data passed to the internal page
    * @param d
    * @returns {Dialog}
    */
@@ -31,7 +31,7 @@ class BaseDialog {
   }
 
   /**
-   * 弹窗宽度
+   * Dialog width
    * @param w
    * @returns {Dialog}
    */
@@ -41,7 +41,7 @@ class BaseDialog {
   }
 
   /**
-   * 弹窗附加的类名
+   * Additional class name for the dialog
    * @param c
    * @returns {Dialog}
    */
@@ -51,7 +51,7 @@ class BaseDialog {
   }
 
   /**
-   * 弹窗标题
+   * Dialog title
    * @param t
    * @returns {Dialog}
    */
@@ -61,7 +61,7 @@ class BaseDialog {
   }
 
   /**
-   * 不显示底部按钮
+   * Do not show bottom buttons
    * @returns {Dialog}
    */
   noFooter() {
@@ -70,7 +70,7 @@ class BaseDialog {
   }
 
   /**
-   * 显示弹窗
+   * Show dialog
    * @returns {Dialog}
    */
   show() {
@@ -81,9 +81,9 @@ class BaseDialog {
     document.body.appendChild(dom)
     this._component.then((res: any) => {
       const view = res.default
-      // 弹窗标题 优先级 方法设置 > 页面设置
-      const title = view.title ?? this._dialogTitle ?? '弹窗标题'
-      // 是否显示底部按钮 默认显示 优先级 方法设置 > 页面设置
+      // Dialog title priority: method setting > page setting
+      const title = view.title ?? this._dialogTitle ?? 'Dialog Title'
+      // Whether to show the footer buttons, default is to show. Priority: method setting > page setting
       const footer = this._dialogFooter ?? view.dialogFooterShow ?? true
       const opt = {
         show: true,
@@ -113,7 +113,7 @@ class BaseDialog {
   }
 
   /**
-   * 弹窗回调方法
+   * Dialog callback method
    * @param callBack
    * @returns {Dialog}
    */

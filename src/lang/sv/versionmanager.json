@@ -1,6 +1,6 @@
 {
   "Local": "Lokal",
   "Library": "Bibliotek",
-  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> hittades inte\nFör att installera Homebrew, klicka på installationsknappen för att fortsätta\nDu kan också klicka på denna länk\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macphpstudy.com/zh/help-4-2.html')\">https://www.macphpstudy.com/zh/help-4-2.html</a>\nFölj dokumentationen för att installera.",
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> hittades inte\nFör att installera Homebrew, klicka på installationsknappen för att fortsätta\nDu kan också klicka på denna länk\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/zh/help-4-2.html')\">https://flyenv.com/zh/help-4-2.html</a>\nFölj dokumentationen för att installera.",
   "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> hittades inte.\nInstallera Macports, du kan klicka på denna länk\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nFölj dokumentationen för att installera."
 }

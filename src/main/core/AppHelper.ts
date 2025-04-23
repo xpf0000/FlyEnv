@@ -16,7 +16,7 @@ class AppHelper {
     return new Promise((resolve, reject) => {
       const client = createConnection(SOCKET_PATH)
       client.on('connect', () => {
-        console.log('已连接到服务器')
+        console.log('Connected to the server')
         client.end()
         try {
           client.destroySoon()
@@ -26,18 +26,18 @@ class AppHelper {
       })
 
       client.on('data', (data: any) => {
-        console.log('收到服务器响应:', data.toString())
+        console.log('Received server response:', data.toString())
       })
 
       client.on('end', () => {
-        console.log('已从服务器断开连接')
+        console.log('Disconnected from the server')
       })
 
       client.on('error', () => {
         try {
           client.destroySoon()
         } catch (e) {}
-        reject(new Error('Helper Connect Failed'))
+        reject(new Error('Connect helper failed'))
         console.timeEnd('AppHelper check')
       })
     })
@@ -48,7 +48,7 @@ class AppHelper {
       const doChech = (time = 0) => {
         if (time > 9) {
           this.state = 'normal'
-          reject(new Error('Helper Install Failed'))
+          reject(new Error('Install helper failed'))
           return
         }
         this.check()

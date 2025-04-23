@@ -86,7 +86,7 @@
             v-model="selectedExtension"
             class="my-4 w-full"
             filterable
-            placeholder="Select your mimetype here... (ex: application/pdf)"
+            placeholder="Select your MIME type here... (ex: application/pdf)"
           >
             <template v-for="item in extensionToMimeTypeOptions" :key="item.value">
               <el-option :label="item.label" :value="item.value"></el-option>

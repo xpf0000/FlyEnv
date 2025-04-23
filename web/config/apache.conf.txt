@@ -387,7 +387,7 @@ LogLevel warn
 <IfModule mime_module>
     #
     # TypesConfig points to the file containing the list of mappings from
-    # filename extension to MIME-type.
+    # filename extension to MIME type.
     #
     TypesConfig etc/apache2/mime.types
 
