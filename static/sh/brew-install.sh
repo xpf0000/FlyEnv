@@ -1,76 +1,77 @@
 #!/bin/zsh
-# String coloring program
+# For Chinese users only. Do not edit.
+# 字符串染色程序
 if [[ -t 1 ]]; then
   tty_escape() { printf "\033[%sm" "$1"; }
 else
   tty_escape() { :; }
 fi
-tty_universal() { tty_escape "0;$1"; } # Normal display
-tty_blue="$(tty_universal 34)" # Blue
-tty_red="$(tty_universal 31)" # Red
-tty_green="$(tty_universal 32)" # Green
-tty_yellow="$(tty_universal 33)" # Yellow
-tty_bold="$(tty_universal 39)" # Bold
-tty_cyan="$(tty_universal 36)" # Cyan
-tty_reset="$(tty_escape 0)" # Remove color
+tty_universal() { tty_escape "0;$1"; } #正常显示
+tty_blue="$(tty_universal 34)" #蓝色
+tty_red="$(tty_universal 31)" #红色
+tty_green="$(tty_universal 32)" #绿色
+tty_yellow="$(tty_universal 33)" #黄色
+tty_bold="$(tty_universal 39)" #加黑
+tty_cyan="$(tty_universal 36)" #青色
+tty_reset="$(tty_escape 0)" #去除颜色
 hasBrew=$(which brew)
 if ! [[ "$hasBrew" == "brew not found" ]]; then
     echo -n "${tty_green}
-    Detected that brew is already installed, the installation script will exit automatically${tty_reset}"
-    echo "FlyEnv-Homebrew installation finished"
+    检测到brew已安装, 安装脚本自动退出${tty_reset}"
+    echo "FlyEnv-Homebrew安装结束"
     exit 0
 fi
 
 echo "
-              ${tty_green} Starting Homebrew installation program ${tty_reset}
+              ${tty_green} 开始执行Homebrew安装程序 ${tty_reset}
 "
-# Choose a brew download source
+#选择一个brew下载源
 echo -n "${tty_green}
-Please select a brew installation script
-1. Official brew script, installs from GitHub, not recommended if GitHub is inaccessible or slow
-2. Domestic brew installation script, allows selecting a brew software source, can be used if the official script fails ${tty_reset}"
+请选择brew安装脚本
+1. brew官方脚本, 从github安装, 无法访问github或github访问慢的不建议选择
+2. brew国内安装脚本, 可选brew软件源, brew官方脚本无法安装时可选用 ${tty_reset}"
 echo -n "
-${tty_blue}Enter the number: "
+${tty_blue}请输入序号: "
 read MY_DOWN_NUM
 echo "${tty_reset}"
 case $MY_DOWN_NUM in
 "1")
     echo "
-    You selected the official brew script
+    你选择了brew官方脚本
     "
 ;;
 "2")
     echo "
-    Domestic brew installation script
+    brew国内安装脚本
     "
 ;;
 *)
   echo "
-  Domestic brew installation script
+  brew国内安装脚本
   "
   MY_DOWN_NUM="2"
 ;;
 esac
 echo -n "${tty_green}
--> Start executing the script now? (N/Y) "
+->是否现在开始执行脚本（N/Y） "
 read MY_Del_Old
 echo "${tty_reset}"
 case $MY_Del_Old in
 "y")
-echo "--> Script execution started"
+echo "--> 脚本开始执行"
 ;;
 "Y")
-echo "--> Script execution started"
+echo "--> 脚本开始执行"
 ;;
 *)
-echo "You entered $MY_Del_Old, installation exited. To continue running the script, you should enter Y or y
+echo "你输入了 $MY_Del_Old ，安装退出, 如果继续运行脚本应该输入Y或者y
 "
-echo "FlyEnv-Homebrew installation finished"
+echo "FlyEnv-Homebrew安装结束"
 exit 0
 ;;
 esac
 
-sudo echo 'Starting execution'
+sudo echo '开始执行'
 case $MY_DOWN_NUM in
 "1")
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -79,4 +80,4 @@ case $MY_DOWN_NUM in
   /bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
 ;;
 esac
-echo "FlyEnv-Homebrew installation finished"
+echo "FlyEnv-Homebrew安装结束"

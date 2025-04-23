@@ -1,16 +1,5 @@
 {
-  "startInstall": "Bắt đầu cài đặt {service}",
-  "startDown": "Bắt đầu tải xuống {service}, Liên kết tải xuống: {url}",
-  "downSuccess": "Tải xuống hoàn tất, cài đặt {service}",
-  "downFail": "Tải xuống không thành công, cài đặt {service} không thành công",
-  "installSuccess": "Cài đặt {service} thành công, vị trí cài đặt: {appDir}",
-  "installFail": "Cài đặt {service} không thành công, lý do: {error}",
-  "installFromZip": "Gói cài đặt đã tồn tại, cài đặt {service}",
-  "installFromZipFail": "Cài đặt không thành công, tải xuống lại gói cài đặt để cài đặt",
   "startServiceBegin": "Bắt đầu dịch vụ {service}...",
-  "serviceUseBundle": "Đã sử dụng phiên bản tích hợp, Bắt đầu giải nén và cài đặt {service}",
-  "bundleUnzipSuccess": "Giải nén cài đặt hoàn tất, vị trí cài đặt: {appDir}",
-  "bundleUnzipFail": "Giải nén cài đặt không thành công, lý do: {error}",
   "confInit": "Tệp cấu hình không tồn tại, tạo tệp cấu hình",
   "confInitSuccess": "Tệp cấu hình được tạo thành công, đường dẫn tệp: {file}",
   "confInitFail": "Tạo tệp cấu hình không thành công, lý do: {error}",
@@ -28,13 +17,5 @@
   "initDBPassFail": "Không khởi tạo được mật khẩu cơ sở dữ liệu, lý do: {error}",
   "initDBDataDir": "Không tìm thấy thư mục dữ liệu, bắt đầu khởi tạo thư mục dữ liệu",
   "initDBDataDirSuccess": "Khởi tạo thư mục dữ liệu thành công, đường dẫn thư mục dữ liệu: {dir}",
-  "initDBDataDirFail": "Không khởi tạo được thư mục dữ liệu, lý do: {error}",
-  "initPlugin": "Bắt đầu khởi tạo plugin và thực thi lệnh: {command}",
-  "initPluginSuccess": "Khởi tạo plugin thành công",
-  "initPluginFail": "Khởi tạo plugin không thành công, lý do: {error}",
-  "erlangEnvInit": "Cố gắng khởi tạo môi trường thời gian chạy Erlang",
-  "erlangEnvInitEnd": "Hoàn tất việc khởi tạo môi trường thời gian chạy Erlang",
-  "newProjectBegin": "Bắt đầu một dự án mới và thực thi lệnh: {command}",
-  "newProjectSuccess": "Dự án mới đã được tạo thành công, đường dẫn dự án: {dir}",
-  "newProjectFail": "Không tạo được dự án mới"
+  "initDBDataDirFail": "Không khởi tạo được thư mục dữ liệu, lý do: {error}"
 }
