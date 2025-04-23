@@ -1,16 +1,5 @@
 {
-  "startInstall": "Börja installera {service}",
-  "startDown": "Börja ladda ner {service}, Nedladdningslänk: {url}",
-  "downSuccess": "Nedladdning slutförd, installera {service}",
-  "downFail": "Nedladdning misslyckades, installation av {service} misslyckades",
-  "installSuccess": "{service} installation lyckades, installationsplats: {appDir}",
-  "installFail": "{service} installation misslyckades, anledning: {error}",
-  "installFromZip": "Installationspaketet finns redan, installera {service}",
-  "installFromZipFail": "Installationen misslyckades, ladda ner installationspaketet igen för installation",
   "startServiceBegin": "Starta {service}-tjänsten...",
-  "serviceUseBundle": "Använde den inbyggda versionen, Började packa upp och installera {service}",
-  "bundleUnzipSuccess": "Uppackning och installation slutförd, installationsplats: {appDir}",
-  "bundleUnzipFail": "Uppackning misslyckades, anledning: {error}",
   "confInit": "Konfigurationsfilen finns inte, generera konfigurationsfil",
   "confInitSuccess": "Konfigurationsfil genererad framgångsrikt, filväg: {file}",
   "confInitFail": "Generering av konfigurationsfil misslyckades, anledning: {error}",
@@ -28,13 +17,5 @@
   "initDBPassFail": "Initiering av databaslösenord misslyckades, anledning: {error}",
   "initDBDataDir": "Datafolder hittades inte, börja initiera datafolder",
   "initDBDataDirSuccess": "Initiering av datafolder lyckades, datafolderns sökväg: {dir}",
-  "initDBDataDirFail": "Initiering av datafolder misslyckades, anledning: {error}",
-  "initPlugin": "Börja initiera plugin och kör kommandot: {command}",
-  "initPluginSuccess": "Initiering av plugin lyckades",
-  "initPluginFail": "Initiering av plugin misslyckades, anledning: {error}",
-  "erlangEnvInit": "Försök att initiera Erlang-körmiljön",
-  "erlangEnvInitEnd": "Initiering av Erlang-körmiljön slutförd",
-  "newProjectBegin": "Börja ett nytt projekt och kör kommandot: {command}",
-  "newProjectSuccess": "Det nya projektet skapades framgångsrikt, projektväg: {dir}",
-  "newProjectFail": "Misslyckades med att skapa nytt projekt"
+  "initDBDataDirFail": "Initiering av datafolder misslyckades, anledning: {error}"
 }
