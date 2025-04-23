@@ -198,7 +198,7 @@ xdebug.output_dir = "${output_dir}"
   }
 
   const doDel = (row: any) => {
-    Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+    Base._Confirm(I18nT('base.areYouSure'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })

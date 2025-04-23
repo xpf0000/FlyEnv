@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ I18nT('php.phpExtension') }}</span>
+          <span class="ml-15">{{ I18nT('php.phpExtensions') }}</span>
         </div>
         <el-button
           type="primary"
@@ -100,7 +100,7 @@
             <el-table-column
               width="150px"
               align="left"
-              :label="I18nT('base.operation')"
+              :label="I18nT('base.action')"
               class-name="operation"
             >
               <template v-if="version?.version" #default="scope">
@@ -1527,7 +1527,7 @@
   }
 
   const doDel = () => {
-    ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+    ElMessageBox.confirm(I18nT('base.areYouSure'), undefined, {
       confirmButtonText: I18nT('base.confirm'),
       cancelButtonText: I18nT('base.cancel'),
       closeOnClickModal: false,

@@ -58,7 +58,7 @@ export const showPassPrompt = () => {
 }
 
 /**
- * 电脑密码检测, 很多操作需要电脑密码
+ * Computer password verification, required for many operations
  * @returns {Promise<unknown>}
  */
 export const passwordCheck = () => {

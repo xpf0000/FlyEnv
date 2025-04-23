@@ -94,8 +94,10 @@ export const Setup = (typeFlag: AllAppModule) => {
       if (typeFlag === 'php') {
         if (src === 'brew' && !appStore?.config?.setup?.phpBrewInited) {
           /**
-           * 先获取已安装的 php, 同时安装shivammathur/php库, 安装成功后, 再刷新数据
-           * 避免国内用户添加库非常慢, 导致已安装数据也无法获取
+           * First, fetch the installed PHP versions, and simultaneously install the shivammathur/php repository.
+           * After a successful installation, refresh the data.
+           * This avoids the issue where domestic users experience very slow repository addition,
+           * which prevents fetching the installed data.
            */
           IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string, res: any) => {
             IPC.off(key)

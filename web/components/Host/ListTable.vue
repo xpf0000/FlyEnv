@@ -87,7 +87,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column align="center" :label="I18nT('host.operation')" width="100px">
+        <el-table-column align="center" :label="I18nT('host.action')" width="100px">
           <template #default="scope">
             <template v-if="scope?.row?.deling || scope.row.id !== quickEdit?.id">
               <template v-if="!scope?.row?.deling">
@@ -343,7 +343,7 @@
         }).then()
         break
       case 'del':
-        ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+        ElMessageBox.confirm(I18nT('base.areYouSure'), undefined, {
           confirmButtonText: I18nT('base.confirm'),
           cancelButtonText: I18nT('base.cancel'),
           closeOnClickModal: false,

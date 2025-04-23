@@ -198,7 +198,7 @@
   }
   const doDel = (data: any): void => {
     console.log('doEdit: ', data)
-    Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+    Base._Confirm(I18nT('base.areYouSure'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })
@@ -284,15 +284,15 @@
       align: 'center',
       width: 100,
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('util.ftpTableHeadSetup')}</span>
+        return <span class="flex items-center">{I18nT('util.ftpTableHeadAction')}</span>
       },
       cellRenderer: ({ rowData: data }): any => (
         <div class="setup">
           <Edit class="setup-icon" onClick={() => doEdit(data)}>
-            编辑
+            Edit
           </Edit>
           <Delete class="setup-icon" onClick={() => doDel(data)}>
-            编辑
+            Delete
           </Delete>
         </div>
       )

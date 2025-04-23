@@ -46,14 +46,14 @@
               :placeholder="I18nT('host.placeholderComment')"
             />
           </div>
-          <div class="plant-title">{{ I18nT('host.jarPackage') }}</div>
+          <div class="plant-title">{{ I18nT('host.jarPackagePath') }}</div>
           <div class="main">
             <div class="path-choose pb-4">
               <input
                 v-model.trim="item.jarDir"
                 type="text"
                 :class="'input' + (errs['jarDir'] ? ' error' : '')"
-                :placeholder="I18nT('host.jarPackage')"
+                :placeholder="I18nT('host.jarPackagePath')"
               />
               <div class="icon-block" @click="chooseRoot('jarDir')">
                 <yb-icon
@@ -75,14 +75,14 @@
             </el-select>
           </div>
 
-          <div class="plant-title">{{ I18nT('host.projectPort') }}</div>
+          <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
           <div class="main">
             <div class="port-set mb-20">
               <input
                 v-model.number="item.projectPort"
                 type="number"
                 :class="'input' + (errs['projectPort'] ? ' error' : '')"
-                :placeholder="I18nT('host.projectPort')"
+                :placeholder="I18nT('host.tcpPort')"
               />
             </div>
           </div>
@@ -203,7 +203,7 @@
                 v-model.number="item.port.tomcat"
                 type="number"
                 :class="'input' + (errs['port_tomcat'] ? ' error' : '')"
-                placeholder="default: 80"
+                placeholder="Default: 80"
               />
             </div>
           </div>
@@ -266,7 +266,7 @@
                   v-model.number="item.port.tomcat_ssl"
                   type="number"
                   :class="'input' + (errs['port_tomcat_ssl'] ? ' error' : '')"
-                  placeholder="default: 443"
+                  placeholder="Default: 443"
                 />
               </div>
             </template>

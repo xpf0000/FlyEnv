@@ -4,7 +4,7 @@
   "inputTips": "//Nhập JSON, Đối tượng/Mảng JavaScript, Mảng PHP, XML, YAML, PList. Tự động chuyển đổi sang định dạng đã chọn",
   "parseFailTips": "Phân tích cú pháp không thành công",
   "inputCheckFailTips": "Không xác định",
-  "systemProxyChech": "Phát hiện mạng đang sử dụng proxy, PhpWebStudy có được đặt để sử dụng proxy này không?",
+  "systemProxyCheck": "Phát hiện mạng đang sử dụng proxy, PhpWebStudy có được đặt để sử dụng proxy này không?",
   "systemProxyUsed": "Thiết lập thành công. Nếu bạn muốn sửa đổi nó, vui lòng thực hiện trong Cài đặt->Cài đặt Proxy.",
   "windowCount": "Số lượng cửa sổ",
   "phpPlayground": "PHP Playground",

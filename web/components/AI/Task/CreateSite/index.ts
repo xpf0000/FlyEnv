@@ -90,11 +90,11 @@ export class CreateSite extends BaseTask {
             aiStore.chatList.push({
               user: 'ai',
               content: `${I18nT('ai.siteCreatedSuccessfully')}
-${I18nT('ai.siteDomain')}: ${this.host.name}
-${I18nT('ai.siteDirectory')}: <a href="javascript:void();" onclick="openDir('${this.host.root}')">${
+              ${I18nT('ai.siteDomain')}: ${this.host.name}
+              ${I18nT('ai.siteDirectory')}: <a href="javascript:void();" onclick="openDir('${this.host.root}')">${
                 this.host.root
               }</a>
-${I18nT('ai.tryingToStartService')}`
+              ${I18nT('ai.tryingToStartService')}`
             })
             resolve({
               host: this.host.name,

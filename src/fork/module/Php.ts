@@ -390,12 +390,12 @@ xdebug.output_dir = "${output_dir}"
         'APP-On-Log': AppLog(
           'error',
           I18nT('appLog.execStartCommandFail', {
-            error: res ? res?.error : 'Start Fail',
+            error: res ? res?.error : 'Start failed',
             service: `${this.type}-${version.version}`
           })
         )
       })
-      reject(new Error(res ? res?.error : 'Start Fail'))
+      reject(new Error(res ? res?.error : 'Start failed'))
     })
   }
 
@@ -506,7 +506,7 @@ xdebug.output_dir = "${output_dir}"
               return
             }
           } catch (e) {
-            reject(new Error('File Download Fail'))
+            reject(new Error('File download failed'))
           }
           break
         case 'redis':

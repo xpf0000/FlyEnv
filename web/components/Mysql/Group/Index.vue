@@ -201,7 +201,7 @@
       align: 'center',
       width: 100,
       headerCellRenderer: () => {
-        return <span class="flex items-center">{I18nT('util.ftpTableHeadSetup')}</span>
+        return <span class="flex items-center">{I18nT('util.ftpTableHeadAction')}</span>
       },
       cellRenderer: ({ rowData: data }) => (
         <div class="setup">

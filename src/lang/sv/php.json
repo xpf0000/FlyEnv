@@ -31,5 +31,5 @@
   "default_socket_timeout": "Socket-timeout",
   "error_reporting": "Felrapporteringsnivå",
   "timezone": "Tidszon",
-  "loadedExtension": "Laddad"
+  "loadedExtensions": "Laddade tillägg"
 }

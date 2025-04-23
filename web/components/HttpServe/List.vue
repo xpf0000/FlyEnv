@@ -103,7 +103,7 @@
         selecter.addEventListener('drop', (e: any) => {
           e.preventDefault()
           e.stopPropagation()
-          // 获得拖拽的文件集合
+           // Get the collection of dragged files
           let files = e.dataTransfer.files
           const path = [...files].map((file) => {
             return file.path
@@ -168,7 +168,7 @@
         })
       },
       doDel(path: string) {
-        ElMessageBox.confirm(I18nT('base.delAlertContent'), undefined, {
+        ElMessageBox.confirm(I18nT('base.areYouSure'), undefined, {
           confirmButtonText: I18nT('base.confirm'),
           cancelButtonText: I18nT('base.cancel'),
           closeOnClickModal: false,

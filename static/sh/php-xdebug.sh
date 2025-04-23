@@ -4,12 +4,12 @@ phpdir=$2
 extendV=$3
 arch=$4
 cd $cachedir
-echo "downloading xdebug-$extendV.tgz from https://xdebug.org/files/xdebug-$extendV.tgz"
+echo "Downloading xdebug-$extendV.tgz from https://xdebug.org/files/xdebug-$extendV.tgz"
 curl -C - -O -L https://xdebug.org/files/xdebug-$extendV.tgz
 if [ ! -f "xdebug-$extendV.tgz" ]; then
   exit 1
 fi
-echo "download success. start install"
+echo "Download complete. Now installing..."
 cd "$phpdir/bin/"
 sudo $phpdir/bin/pecl uninstall xdebug
 fileEnv=$(file "$phpdir/bin/php")

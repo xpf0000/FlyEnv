@@ -2,32 +2,32 @@
   <div class="h-full">
     <div v-if="!store.isActive" class="flex flex-col gap-2 items-start">
       <template v-if="lang === 'zh'">
-        <div class="text-xl">许可证获取方式</div>
-        <p>以下几种方式任选其一即可</p>
+        <div class="text-xl">License acquisition method</div>
+        <p>Choose one of the following methods</p>
         <p
-          >1. 捐赠项目.
+          >1. Donate to the project.
           <el-button type="primary" link @click.stop="toUrl('https://flyenv.com/sponsor.html')"
             >https://flyenv.com/sponsor.html</el-button
           >
         </p>
         <p
-          >2. 参与项目开发. 提交Pull Request.
+            >2. Participate in project development. Submit a Pull Request.
           <el-button type="primary" link @click.stop="toUrl('https://github.com/xpf0000/FlyEnv')"
             >https://github.com/xpf0000/FlyEnv</el-button
           ></p
         >
-        <p>3. 帮助推广项目. 发表文章,视频,博客,vlog,或者在各种评论中介绍FlyEnv</p>
+        <p>3. Assist in promoting the project. Publish articles, videos, blogs, vlogs, or introduce FlyEnv in various comments</p>
         <el-form-item class="w-full mt-5 mb-1" label-position="top" label="UUID">
           <el-input v-model="store.uuid" readonly></el-input>
         </el-form-item>
         <el-form-item class="w-full mb-0" label-position="top" label="消息">
-          <el-input
+            <el-input
             v-model="store.message"
             class="mt-4"
             type="textarea"
             resize="none"
             rows="6"
-            placeholder="捐赠请提交捐赠人和捐赠金额.参与项目开发请提交PR链接.帮助推广项目,请提交链接"
+            placeholder="For sponsorship, please submit the sponsor and sponsorship amount. For project development participation, please submit the PR link. For project promotion, please submit the link."
           ></el-input>
         </el-form-item>
         <div class="mt-4">
@@ -36,10 +36,10 @@
             :disabled="store.fetching || !store.message.trim()"
             type="primary"
             @click.stop="doRequest"
-            >请求许可证</el-button
-          >
-          <el-button :loading="store.fetching" :disabled="store.fetching" @click.stop="doRefresh"
-            >刷新状态</el-button
+            >Request License</el-button
+            >
+            <el-button :loading="store.fetching" :disabled="store.fetching" @click.stop="doRefresh"
+            >Refresh State</el-button
           >
         </div>
       </template>

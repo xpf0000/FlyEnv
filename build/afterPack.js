@@ -2,7 +2,7 @@ const { join, resolve } = require('path')
 const { mkdirp, writeFile, readFile } = require('fs-extra')
 const { exec } = require('child-process-promise')
 /**
- * 处理appstore node-pty python链接库问题
+ * Handle the app store node-pty Python library linking issue
  * @param pack
  * @returns {Promise<boolean>}
  */

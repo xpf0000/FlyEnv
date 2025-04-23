@@ -1,13 +1,13 @@
 #!/bin/zsh
-# 字符串染色程序
+# String coloring program
 if [[ -t 1 ]]; then
   tty_escape() { printf "\033[%sm" "$1"; }
 else
   tty_escape() { :; }
 fi
-tty_universal() { tty_escape "0;$1"; } #正常显示
-tty_green="$(tty_universal 32)" #绿色
-tty_reset="$(tty_escape 0)" #去除颜色
+tty_universal() { tty_escape "0;$1"; } # Normal display
+tty_green="$(tty_universal 32)" # Green
+tty_reset="$(tty_escape 0)" # Remove color
 hasBrew=$(which brew)
 if ! [[ "$hasBrew" == "brew not found" ]]; then
     echo -n "${tty_green}

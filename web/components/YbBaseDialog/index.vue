@@ -11,8 +11,8 @@
     <div ref="contentWapper"></div>
     <template #footer>
       <div v-if="footerShow" class="dialog-footer">
-        <el-button @click="isShow = false">取 消</el-button>
-        <el-button type="primary" @click="onSubmit">确 定</el-button>
+        <el-button @click="isShow = false">Cancel</el-button>
+        <el-button type="primary" @click="onSubmit">Confirm</el-button>
       </div>
     </template>
   </el-dialog>
@@ -20,8 +20,8 @@
 
 <script lang="ts">
   /**
-   * @author 徐鹏飞 250881478@qq.com
-   * @desc 全局通用弹窗组件
+   * @author 徐鹏飞 (Xu Pengfei) 250881478@qq.com
+   * @desc Global common dialog component
    */
   import { VueExtend } from '@web/VueExtend'
   import { defineComponent } from 'vue'
@@ -62,7 +62,7 @@
     },
     data() {
       return {
-        isShow: false // 是否显示
+        isShow: false // Whether to show
       }
     },
     created() {
@@ -95,7 +95,7 @@
         this.isShow = false
       },
       /**
-       * 点击确定时的方法, 调用内部组件的onSubmit方法
+       * Method triggered when clicking confirm, calls the internal component's onSubmit method
        */
       onSubmit() {
         this.vmInstance.onSubmit && this.vmInstance.onSubmit()

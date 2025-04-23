@@ -76,14 +76,14 @@
           </div>
         </div>
 
-        <div class="plant-title">{{ I18nT('host.projectPort') }}</div>
+        <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
         <div class="main">
           <div class="port-set mb-20">
             <input
               v-model.number="item.projectPort"
               type="number"
               class="input"
-              :placeholder="I18nT('host.projectPort')"
+              :placeholder="I18nT('host.tcpPort')"
             />
           </div>
         </div>

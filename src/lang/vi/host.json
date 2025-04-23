@@ -36,7 +36,7 @@
   "projectTomcat": "Dự án Tomcat",
   "projectType": "Loại dự án",
   "other": "Khác",
-  "jarPackage": "Đường dẫn gói JAR",
+  "jarPackagePath": "Đường dẫn gói JAR",
   "jdkPath": "Đường dẫn JDK",
   "pythonPath": "Đường dẫn Python",
   "tomcatPath": "Đường dẫn Tomcat",

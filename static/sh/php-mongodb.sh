@@ -3,7 +3,7 @@ cachedir=$1
 phpdir=$2
 mongodbv=$3
 cd $cachedir
-echo "downloading mongodb-$mongodbv.tgz from http://pecl.php.net/get/mongodb-$mongodbv.tgz"
+echo "Downloading mongodb-$mongodbv.tgz from http://pecl.php.net/get/mongodb-$mongodbv.tgz"
 curl -C - -O -L http://pecl.php.net/get/mongodb-$mongodbv.tgz
 if [ -d "mongodb-$mongodbv" ]; then
  rm -rf "mongodb-$mongodbv"
@@ -13,7 +13,7 @@ if [ -f "mongodb-$mongodbv.tgz" ]; then
 else
   exit 1
 fi
-echo "download success. start install"
+echo "Download complete. Now installing..."
 export HOMEBREW_NO_AUTO_UPDATE=1
 arch $arch brew install pkg-config autoconf automake libtool
 prefix=$(brew --prefix)

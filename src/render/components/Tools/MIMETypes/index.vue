@@ -43,13 +43,13 @@
         <el-card>
           <h2 class="text-2xl font-bold"> MIME Type to Extension </h2>
           <div class="opacity-80 mt-1">
-            Know which file extensions are associated to a mime-type
+            Know which file extensions are associated to a MIME type
           </div>
           <el-select
             v-model="selectedMimeType"
             class="my-4 w-full"
             filterable
-            placeholder="Select your mimetype here... (ex: application/pdf)"
+            placeholder="Select your MIME type here... (ex: application/pdf)"
           >
             <template v-for="item in mimeToExtensionsOptions" :key="item.value">
               <el-option :label="item.label" :value="item.value"></el-option>
@@ -61,7 +61,7 @@
             <el-tag round type="info" effect="dark" class="select-text">
               {{ selectedMimeType }}
             </el-tag>
-            mime-type:
+            MIME type:
             <div style="margin-top: 10px">
               <el-tag
                 v-for="extension of extensionsFound"
@@ -78,9 +78,9 @@
           </div>
         </el-card>
         <el-card class="my-4">
-          <h2 class="text-2xl font-bold"> File extension to mime type </h2>
+          <h2 class="text-2xl font-bold"> File extension to MIME type </h2>
           <div class="opacity-80 mt-1">
-            Know which mime type is associated to a file extension
+            Know which MIME type is associated with a file extension
           </div>
           <el-select
             v-model="selectedExtension"

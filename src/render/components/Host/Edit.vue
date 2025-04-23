@@ -103,7 +103,7 @@
               v-model.number="item.port.nginx"
               type="number"
               :class="'input' + (errs['port_nginx'] ? ' error' : '')"
-              placeholder="default: 80"
+              placeholder="Default: 80"
             />
           </div>
 
@@ -113,7 +113,7 @@
               v-model.number="item.port.caddy"
               type="number"
               :class="'input' + (errs['port_caddy'] ? ' error' : '')"
-              placeholder="default: 80"
+              placeholder="Default: 80"
             />
           </div>
 
@@ -123,7 +123,7 @@
               v-model.number="item.port.apache"
               type="number"
               :class="'input' + (errs['port_apache'] ? ' error' : '')"
-              placeholder="default: 80"
+              placeholder="Default: 80"
             />
           </div>
         </div>
@@ -188,7 +188,7 @@
                 v-model.number="item.port.nginx_ssl"
                 type="number"
                 :class="'input' + (errs['port_nginx_ssl'] ? ' error' : '')"
-                placeholder="default: 443"
+                placeholder="Default: 443"
               />
             </div>
             <div class="port-set port-ssl mb-20">
@@ -197,7 +197,7 @@
                 v-model.number="item.port.caddy_ssl"
                 type="number"
                 :class="'input' + (errs['port_caddy_ssl'] ? ' error' : '')"
-                placeholder="default: 443"
+                placeholder="Default: 443"
               />
             </div>
             <div class="port-set port-ssl mb-20">
@@ -206,7 +206,7 @@
                 v-model.number="item.port.apache_ssl"
                 type="number"
                 :class="'input' + (errs['port_apache_ssl'] ? ' error' : '')"
-                placeholder="default: 443"
+                placeholder="Default: 443"
               />
             </div>
           </template>

@@ -48,8 +48,10 @@ export const ProcessSendLog = (key: string, msg: any, on?: boolean) => {
 }
 
 export const AppLog = (type: 'info' | 'error', msg: string) => {
-  const time = new Date().getTime()
-  return `[${type}]${time}:${msg}`
+  //const time = new Date().getTime() // Timestamp in milliseconds
+  //const time = new Date().toISOString() // ISO 8601 format
+  const time = new Date().toString() // Thu Apr 03 01:36:23
+  return `[${time}] ${type}: ${msg}` // Example: [Thu Apr 03 01:36:23] info: Log message here message here
 }
 
 export function uuid(length = 32) {

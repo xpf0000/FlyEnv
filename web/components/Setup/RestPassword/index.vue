@@ -55,7 +55,7 @@
             customClass: 'password-prompt',
             beforeClose: (action, instance, done) => {
               if (action === 'confirm') {
-                // 去除trim, 有些电脑的密码是空格...
+                // Remove trim, as some computers have passwords with spaces...
                 if (instance.inputValue) {
                   waitTime().then(() => {
                     done && done()
@@ -83,7 +83,7 @@
           customClass: 'password-prompt',
           beforeClose: (action, instance, done) => {
             if (action === 'confirm') {
-              // 去除trim, 有些电脑的密码是空格...
+              // Remove trim, as some computers have passwords with spaces...
               if (instance.inputValue) {
                 waitTime().then(() => {
                   done && done()

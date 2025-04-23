@@ -138,7 +138,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('base.action')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <EXT :item="scope.row" :type="typeFlag">
             <template #default>

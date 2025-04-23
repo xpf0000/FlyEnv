@@ -22,115 +22,115 @@ export interface AIKeyItem {
 export const AIKeys: Array<AIKeyItem> = [
   {
     tips: [
-      ['结束', '停止', '终止', '退出'],
-      ['任务', '执行']
+      ['end', 'stop', 'terminate', 'exit'],
+      ['task', 'execute']
     ],
-    txt: '终止任务',
+    txt: 'Terminate Task',
     task: 'StopTask'
   },
   {
     tips: [
-      ['macports', 'port', 'macport', '版本'],
-      ['无法', '怎么', '没有', '没'],
-      ['使用', '安装', '添加']
+      ['macports', 'port', 'macport', 'version'],
+      ['unable', 'how', 'no', 'not'],
+      ['use', 'install', 'add']
     ],
-    txt: 'MacPorts安装',
+    txt: 'MacPorts Installation',
     task: 'MacportInstall'
   },
   {
     tips: [
-      ['homebrew', 'brew', '版本'],
-      ['无法', '怎么', '没有', '没'],
-      ['使用', '安装', '添加']
+      ['homebrew', 'brew', 'version'],
+      ['unable', 'how', 'no', 'not'],
+      ['use', 'install', 'add']
     ],
-    txt: 'Homebrew安装',
+    txt: 'Homebrew Installation',
     task: 'HomebrewInstall'
   },
   {
     tips: [
-      ['新建', '创建', '新增', '添加', '生成'],
-      ['随机', '测试'],
-      ['站点', '网站']
+      ['new', 'create', 'add', 'generate'],
+      ['random', 'test'],
+      ['site', 'website']
     ],
-    txt: '创建随机站点',
+    txt: 'Create Random Site',
     task: 'CreateSiteTest'
   },
   {
     tips: [
-      ['新建', '创建', '新增', '添加', '生成'],
-      ['站点', '网站']
+      ['new', 'create', 'add', 'generate'],
+      ['site', 'website']
     ],
-    txt: '创建站点',
+    txt: 'Create Site',
     task: 'CreateSite'
   },
   {
     tips: [
-      ['站点', '网站'],
-      ['访问', '浏览', '无法', '打不开'],
-      ['异常', '报错', '打开']
+      ['site', 'website'],
+      ['access', 'browse', 'unable', 'cannot open'],
+      ['exception', 'error', 'open']
     ],
-    txt: '站点访问异常',
+    txt: 'Site Access Exception',
     task: 'SiteAccessIssues'
   },
   {
-    tips: [['nginx'], ['启动', '服务', '开启', '打开'], ['异常', '报错', '失败']],
-    txt: 'nginx启动失败',
+    tips: [['nginx'], ['start', 'service', 'open', 'turn on'], ['exception', 'error', 'failed']],
+    txt: 'Nginx Startup Failed',
     task: 'StartNginx'
   },
   {
-    tips: [['apache'], ['启动', '服务', '开启', '打开'], ['异常', '报错', '失败']],
-    txt: 'apache启动失败',
+    tips: [['apache'], ['start', 'service', 'open', 'turn on'], ['exception', 'error', 'failed']],
+    txt: 'Apache Startup Failed',
     task: 'StartApache'
   },
   {
-    tips: [['mysql'], ['启动', '服务', '开启', '打开'], ['异常', '报错', '失败']],
-    txt: 'mysql启动失败',
+    tips: [['mysql'], ['start', 'service', 'open', 'turn on'], ['exception', 'error', 'failed']],
+    txt: 'MySQL Startup Failed',
     task: 'StartMysql'
   },
   {
-    tips: [['mariadb'], ['启动', '服务', '开启', '打开'], ['异常', '报错', '失败']],
-    txt: 'mariadb启动失败',
+    tips: [['mariadb'], ['start', 'service', 'open', 'turn on'], ['exception', 'error', 'failed']],
+    txt: 'MariaDB Startup Failed',
     task: 'StartMariaDB'
   },
   {
-    tips: [['memcached'], ['启动', '服务', '开启', '打开'], ['异常', '报错', '失败']],
-    txt: 'memcached启动失败',
+    tips: [['memcached'], ['start', 'service', 'open', 'turn on'], ['exception', 'error', 'failed']],
+    txt: 'Memcached Startup Failed',
     task: 'StartMemcached'
   },
   {
     tips: [
       ['homebrew', 'brew'],
       ['php7', 'php5'],
-      ['没有', '找不到', '不显示', '缺失']
+      ['no', 'not found', 'not displayed', 'missing']
     ],
-    txt: 'Homebrew没有低版本PHP',
+    txt: 'Homebrew Missing Low Version PHP',
     task: 'HomebrewPhp7Issues'
   },
   {
     tips: [
-      ['版本', '版本库', '版本管理'],
-      ['不', '不显示', '无', '一直', '一直加载', '无内容', '无数据'],
-      ['显示', '加载', '内容', '数据']
+      ['version', 'repository', 'version management'],
+      ['no', 'not displayed', 'none', 'always', 'always loading', 'no content', 'no data'],
+      ['display', 'load', 'content', 'data']
     ],
-    txt: '版本管理Homebrew无数据',
+    txt: 'Version Management Homebrew No Data',
     task: 'VersionManagerEmpty'
   },
   {
     tips: [
-      ['版本', '软件', '服务'],
-      ['安装', '添加', '新增', '无法'],
-      ['慢', '卡', '安装', '完成']
+      ['version', 'software', 'service'],
+      ['install', 'add', 'unable'],
+      ['slow', 'stuck', 'install', 'done']
     ],
-    txt: '版本安装非常慢',
+    txt: 'Version Installation Very Slow',
     task: 'VersionInstallSlow'
   },
   {
     tips: [
-      ['mysql', 'maraidb'],
-      ['数据库', '密码', '管理', '初始'],
-      ['密码', '工具', '软件', '设置']
+      ['mysql', 'mariadb'],
+      ['database', 'password', 'manage', 'initial'],
+      ['password', 'tool', 'software', 'setup']
     ],
-    txt: 'Mysql&MariaDB初始密码',
+    txt: 'MySQL & MariaDB Initial Password',
     task: 'MysqlPassword'
   }
 ]
@@ -193,7 +193,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['start', 'service', 'open', 'turn on'],
       ['exception', 'error', 'failed', 'issues']
     ],
-    txt: 'Nginx Startup Failed',
+    txt: 'Nginx startup failed',
     task: 'StartNginx'
   },
   {
@@ -202,7 +202,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['start', 'service', 'open', 'turn on'],
       ['exception', 'error', 'failed', 'issues']
     ],
-    txt: 'Apache Startup Failed',
+    txt: 'Apache startup failed',
     task: 'StartApache'
   },
   {
@@ -211,7 +211,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['start', 'service', 'open', 'turn on'],
       ['exception', 'error', 'failed', 'issues']
     ],
-    txt: 'Mysql Startup Failed',
+    txt: 'MySQL startup failed',
     task: 'StartMysql'
   },
   {
@@ -220,7 +220,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['start', 'service', 'open', 'turn on'],
       ['exception', 'error', 'failed', 'issues']
     ],
-    txt: 'Mariadb Startup Failed',
+    txt: 'MariaDB startup failed',
     task: 'StartMariaDB'
   },
   {
@@ -229,7 +229,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['start', 'service', 'open', 'turn on'],
       ['exception', 'error', 'failed', 'issues']
     ],
-    txt: 'Memcached Startup Failed',
+    txt: 'Memcached Startup failed',
     task: 'StartMemcached'
   },
   {
@@ -266,7 +266,7 @@ export const AIKeysEN: Array<AIKeyItem> = [
       ['database', 'password', 'manage', 'initial'],
       ['password', 'tool', 'application', 'program', 'software']
     ],
-    txt: 'Mysql initial password',
+    txt: 'MySQL initial password',
     task: 'MysqlPassword'
   }
 ]

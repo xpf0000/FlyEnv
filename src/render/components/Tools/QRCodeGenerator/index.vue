@@ -14,7 +14,7 @@
 
   const errorCorrectionLevels = ['low', 'medium', 'quartile', 'high']
 
-  const text = ref('https://macphpstudy.com')
+  const text = ref('https://flyenv.com')
   const { qrcode } = useQRCode({
     text,
     color: {

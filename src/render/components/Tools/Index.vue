@@ -408,7 +408,7 @@
         item: command.item
       }).then()
     } else {
-      Base._Confirm(I18nT('base.delAlertContent'), undefined, {
+      Base._Confirm(I18nT('base.areYouSure'), undefined, {
         customClass: 'confirm-del',
         type: 'warning'
       }).then(() => {

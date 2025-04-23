@@ -106,7 +106,7 @@ if (process.env.TEST === 'browser') {
   })
 }
 
-// 监听main 文件改变
+// Watch for changes in main files
 let preveMd5 = ''
 let fsWait = false
 const next = (base: string, file?: string | null) => {
@@ -118,7 +118,7 @@ const next = (base: string, file?: string | null) => {
     }
     fsWait = true
     preveMd5 = currentMd5
-    console.log(`${file}文件发生更新`)
+    console.log(`${file} file has been updated`)
     restart = true
     buildMainProcess()
       .then()
@@ -169,8 +169,8 @@ _fs.watch(
       fsWait = true
       preveMd5 = currentMd5
       const to = _path.resolve(__dirname, '../dist/electron/static/', filename)
-      console.log(`${filename}文件发生更新`)
-      console.log('Copy文件: ', from, to)
+      console.log(`${filename} file has been updated`)
+      console.log('Copying file: ', from, to)
       copySync(from, to)
       setTimeout(() => {
         fsWait = false

@@ -1,5 +1,7 @@
 {
   "phpiniNoFound": "php.ini file not found",
+  "editPhpIni": "Edit php.ini",
+  "phpExtensions": "PHP Extensions",
   "phpExtension": "PHP Extension",
   "copyConfTemplate": "Copy config template",
   "availableExtensions": "Available extensions",
@@ -7,6 +9,7 @@
   "xdebugConfCopySuccess": "xdebug configuration template copied to clipboard",
   "noVersionTips": "The installed version is not detected, please install the PHP version in the version management or install it yourself",
   "fpmLog": "FPM Log",
+  "extensions": "Extensions",
   "extension": "Extension",
   "phpSetGlobal": "Set to global version",
   "obfuscatorPhpVersion": "Obfuscate with PHP version",
@@ -31,5 +34,5 @@
   "default_socket_timeout": "Socket timeout",
   "error_reporting": "error reporting level",
   "timezone": "Timezone",
-  "loadedExtension": "Loaded"
+  "loadedExtensions": "Loaded Extensions"
 }

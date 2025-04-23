@@ -39,14 +39,14 @@ import SV from './sv/index'
 type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
   [K in keyof T]: K extends string
     ? T[K] extends object
-      ? AppendStringToKeys<T[K], `${Prefix}.${K}`> // 递归处理嵌套对象
-      : `${Prefix}.${K}` // 非对象类型，直接拼接键
+      ? AppendStringToKeys<T[K], `${Prefix}.${K}`> // Recursively handle nested objects
+      : `${Prefix}.${K}` // Non-object type, directly concatenate keys
     : K extends number
-      ? T extends readonly any[] // 检查 T 是否是数组类型
-        ? `${Prefix}.${K}` // 如果是数组，处理索引
-        : never // 如果不是数组，忽略
-      : never // 排除 symbol 类型的键
-}[keyof T] // 提取所有值的联合类型
+      ? T extends readonly any[] // Check if T is an array type
+        ? `${Prefix}.${K}` // If it's an array, handle the index
+        : never // If not an array, ignore
+      : never // Exclude symbol type keys
+}[keyof T] // Extract the union type of all values
 
 type LangKey =
   | AppendStringToKeys<typeof requestTimer, 'requestTimer'>

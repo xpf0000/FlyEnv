@@ -59,7 +59,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="I18nT('base.operation')" width="120">
+      <el-table-column align="center" :label="I18nT('base.action')" width="120">
         <template #default="scope">
           <template v-if="!scope.row.isRoot">
             <template v-if="isInstalled(scope.row)">

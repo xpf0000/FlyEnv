@@ -101,7 +101,7 @@
       selecter.addEventListener('drop', (e) => {
         e.preventDefault()
         e.stopPropagation()
-        // 获得拖拽的文件集合
+        // Get the collection of dragged files
         let files = e.dataTransfer.files
         this.path = files[0].path
       })

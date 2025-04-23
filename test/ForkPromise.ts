@@ -3,9 +3,9 @@ type RejectType = (reason?: any) => void
 type OnType = (data?: any) => void
 
 /**
- * 扩展Promise
- * resolve， reject， on
- * 可以发送中间过程信息了
+ * Extended Promise
+ * resolve, reject, on
+ * Allows sending intermediate process information
  */
 export class ForkPromise<T> {
   _cbOn: OnType | undefined

@@ -117,7 +117,7 @@
         selecter.addEventListener('drop', (e: any) => {
           e.preventDefault()
           e.stopPropagation()
-          // 获得拖拽的文件集合
+          // Get the collection of dragged files
           let files = e.dataTransfer.files
           const path = [...files].map((file) => {
             return file.path
@@ -196,7 +196,7 @@
         })
       },
       doDel(path: string) {
-        this.$baseConfirm(this.$t('base.delAlertContent'), undefined, {
+        this.$baseConfirm(this.$t('base.areYouSure'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })
