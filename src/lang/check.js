@@ -258,5 +258,5 @@ function checkNoUseKey() {
   findUnusedKeys()
 }
 
-// diffKey()
+diffKey()
 checkNoUseKey()

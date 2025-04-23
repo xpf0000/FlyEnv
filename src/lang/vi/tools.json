@@ -7,8 +7,6 @@
   "systemProxyCheck": "Phát hiện mạng đang sử dụng proxy, PhpWebStudy có được đặt để sử dụng proxy này không?",
   "systemProxyUsed": "Thiết lập thành công. Nếu bạn muốn sửa đổi nó, vui lòng thực hiện trong Cài đặt->Cài đặt Proxy.",
   "windowCount": "Số lượng cửa sổ",
-  "phpPlayground": "PHP Playground",
-  "raw": "Thô",
   "codemake": "Tạo mã",
   "FavoriteTools": "Công cụ yêu thích",
   "AllTools": "Tất cả các công cụ",

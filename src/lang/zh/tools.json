@@ -7,8 +7,6 @@
   "systemProxyCheck": "检测到网络使用了代理, 是否使用代理?",
   "systemProxyUsed": "设置成功. 如需修改, 请在 设置->代理设置 中修改.",
   "windowCount": "窗口数量",
-  "phpPlayground": "PHP演练场",
-  "raw": "原始输出",
   "codemake": "代码生成",
   "FavoriteTools": "我的收藏",
   "AllTools": "全部工具",
