@@ -1,4 +1,5 @@
 {
+  "port": "port. default is 3306",
   "key_buffer_size": "Buffer size for indexing",
   "query_cache_size": "Query cache, please set to 0 if not enabled",
   "tmp_table_size": "Temporary table cache size",

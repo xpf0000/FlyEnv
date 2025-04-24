@@ -1,4 +1,5 @@
 {
+  "port": "port. default is 3306",
   "key_buffer_size": "Buffertstorlek för indexering",
   "query_cache_size": "Frågecache, ställ in till 0 om den inte är aktiverad",
   "tmp_table_size": "Cache-storlek för tillfälliga tabeller",

@@ -22,7 +22,9 @@
             </template>
             <template v-else>
               <template v-for="(url, index) in item.host" :key="index">
-                <span class="url" @click="doJump(url)">{{ url }} </span>
+                <QrcodePopper :url="url">
+                  <span class="url" @click="doJump(url)">{{ url }} </span>
+                </QrcodePopper>
               </template>
             </template>
           </div>
@@ -48,10 +50,11 @@
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { MessageError } from '@/util/Element'
+  import QrcodePopper from '@/components/Host/Qrcode/Index.vue'
   const { dialog, shell } = require('@electron/remote')
   const { pathExistsSync, statSync } = require('fs-extra')
   export default defineComponent({
-    components: {},
+    components: { QrcodePopper },
     props: {},
     data() {
       return {
