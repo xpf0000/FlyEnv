@@ -30,6 +30,10 @@ const version = {
         version: '*'
       },
       {
+        name: 'laravel 11',
+        version: '11.*'
+      },
+      {
         name: 'laravel 10',
         version: '10.*'
       },
@@ -80,6 +84,10 @@ const version = {
       {
         name: 'thinkphp 6',
         version: '6.*'
+      },
+      {
+        name: 'thinkphp 5',
+        version: '5.*'
       }
     ]
   },
