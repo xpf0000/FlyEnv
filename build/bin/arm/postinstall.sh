@@ -12,6 +12,7 @@ OS_VERSION=$(sw_vers -productVersion | cut -d. -f1)
 # Check if plist file already exists
 if [ -f "$PLIST_PATH" ]; then
   echo "Existing plist found. Unloading the existing Launch Daemon..."
+  sudo launchctl enable "system/com.flyenv.helper" 2>/dev/null
   if [ "$OS_VERSION" -ge 13 ]; then
     echo "launchctl bootout system \"$PLIST_PATH\""
     sudo launchctl bootout system "$PLIST_PATH" 2>/dev/null
@@ -35,6 +36,7 @@ sudo chmod 755 "$SCRIPT_DEST"
 
 # Load the new Launch Daemon
 echo "Loading new Launch Daemon..."
+sudo launchctl enable "system/com.flyenv.helper" 2>/dev/null
 if [ "$OS_VERSION" -ge 13 ]; then
   echo "launchctl bootstrap system \"$PLIST_PATH\""
   sudo launchctl bootstrap system "$PLIST_PATH"
