@@ -1,7 +1,7 @@
 {
   "jsonParseTitle": "JSON-tolkning",
   "noInputTips": "Ange innehåll",
-  "inputTips": "//Ange JSON, JavaScript-objekt/array, PHP-array, XML, YAML, PList. Automatisk konvertering till valt format",
+  "inputTips": "//Ange JSON, JavaScript-objekt/array, PHP-array, URL, XML, YAML, PList. Automatisk konvertering till valt format",
   "parseFailTips": "Parsning misslyckades",
   "inputCheckFailTips": "Oidentifierad",
   "systemProxyCheck": "Upptäckte att nätverket använder en proxy, är FlyEnv inställt att använda denna proxy?",

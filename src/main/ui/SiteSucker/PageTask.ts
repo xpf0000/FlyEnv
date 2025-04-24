@@ -69,7 +69,6 @@ class PageTaskItem {
           } else if (k.toLowerCase() === 'content-length') {
             const length = headers[k]?.pop() ?? '0'
             size = parseInt(length)
-
           }
           /**
            * Regular page
@@ -95,59 +94,59 @@ class PageTaskItem {
               /**
                * New page
                */
-            const saveFile = urlToDir(url, true)
-            if (!Store.ExcludeUrl.has(url)) {
-              Store.ExcludeUrl.add(url)
-              const item: PageLink = {
-                url,
-                saveFile,
-                state: 'wait',
-                type: contentType,
-                size
+              const saveFile = urlToDir(url, true)
+              if (!Store.ExcludeUrl.has(url)) {
+                Store.ExcludeUrl.add(url)
+                const item: PageLink = {
+                  url,
+                  saveFile,
+                  state: 'wait',
+                  type: contentType,
+                  size
+                }
+                Store.Pages.push(new LinkItem(item))
               }
-              Store.Pages.push(new LinkItem(item))
+            }
+          } else {
+            if (checkIsExcludeUrl(details.url, false)) {
+              callback({
+                cancel: true
+              })
+              return
+            }
+            /**
+             * Only download files from the current domain
+             */
+            if (uobj.host === Store.host) {
+              const saveFile = urlToDir(url)
+              if (!Store.ExcludeUrl.has(url)) {
+                Store.ExcludeUrl.add(url)
+                const item: PageLink = {
+                  url,
+                  saveFile,
+                  state: 'wait',
+                  type: contentType,
+                  size
+                }
+                Store.Links.push(new LinkItem(item))
+              }
             }
           }
-        } else {
-          if (checkIsExcludeUrl(details.url, false)) {
+          if (isMedia) {
             callback({
               cancel: true
             })
             return
           }
-            /**
-             * Only download files from the current domain
-             */
-          if (uobj.host === Store.host) {
-            const saveFile = urlToDir(url)
-            if (!Store.ExcludeUrl.has(url)) {
-              Store.ExcludeUrl.add(url)
-              const item: PageLink = {
-                url,
-                saveFile,
-                state: 'wait',
-                type: contentType,
-                size
-              }
-              Store.Links.push(new LinkItem(item))
-            }
-          }
         }
-        if (isMedia) {
-          callback({
-            cancel: true
-          })
-          return
-        }
+        callback({})
       }
-      callback({})
-    })
-    this.window.on('close', async () => {
-      this.destory()
-      this?.onDestoryed?.(this)
+      this?.window?.on('close', async () => {
+        this.destory()
+        this?.onDestoryed?.(this)
+      })
     })
   }
-
   async updateConfig() {
     if (Config.proxy.trim()) {
       const proxy = Config.proxy.trim()

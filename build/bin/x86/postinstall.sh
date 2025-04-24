@@ -7,16 +7,24 @@ PLIST_PATH="/Library/LaunchDaemons/com.flyenv.helper.plist"
 BIN_DEST="/Library/Application Support/FlyEnv/Helper/flyenv-helper"
 SCRIPT_DEST="/Library/Application Support/FlyEnv/Helper/helper.js"
 
+OS_VERSION=$(sw_vers -productVersion | cut -d. -f1)
+
 # Check if plist file already exists
 if [ -f "$PLIST_PATH" ]; then
   echo "Existing plist found. Unloading the existing Launch Daemon..."
-  sudo launchctl unload "$PLIST_PATH"
+  if [ "$OS_VERSION" -ge 13 ]; then
+    echo "launchctl bootout system \"$PLIST_PATH\""
+    sudo launchctl bootout system "$PLIST_PATH" 2>/dev/null
+  else
+    echo "launchctl unload \"$PLIST_PATH\""
+    sudo launchctl unload "$PLIST_PATH" 2>/dev/null
+  fi
 fi
 
 # Copy the new plist file
 echo "Copying new plist file..."
 sudo cp "$PLIST_SRC" "$PLIST_PATH"
-mkdir -p "/Library/Application Support/FlyEnv/Helper"
+sudo mkdir -p "/Library/Application Support/FlyEnv/Helper"
 sudo cp "$BIN" "$BIN_DEST"
 sudo cp "$SCRIPT" "$SCRIPT_DEST"
 
@@ -27,6 +35,17 @@ sudo chmod 755 "$SCRIPT_DEST"
 
 # Load the new Launch Daemon
 echo "Loading new Launch Daemon..."
-sudo launchctl load "$PLIST_PATH"
+if [ "$OS_VERSION" -ge 13 ]; then
+  echo "launchctl bootstrap system \"$PLIST_PATH\""
+  sudo launchctl bootstrap system "$PLIST_PATH"
+else
+  echo "launchctl load \"$PLIST_PATH\""
+  sudo launchctl load "$PLIST_PATH"
+fi
+
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to load daemon. Please grant permission"
+    exit 1
+fi
 
 echo "Installation complete."

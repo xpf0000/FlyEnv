@@ -1,7 +1,7 @@
 {
   "jsonParseTitle": "JSON Parse",
   "noInputTips": "Input Content",
-  "inputTips": "//Input JSON, JavaScript Object/Array, PHP Array, XML, YAML, PList. Automatic conversion to selected format",
+  "inputTips": "//Input JSON, JavaScript Object/Array, PHP Array, URL, XML, YAML, PList. Automatic conversion to selected format",
   "parseFailTips": "Parse failed",
   "inputCheckFailTips": "Unidentified",
   "systemProxyCheck": "Detected that the network is using a proxy, is FlyEnv set to use this proxy?",

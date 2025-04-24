@@ -59,6 +59,14 @@ datadir=${dataDir}`
 
   const names: CommonSetItem[] = [
     {
+      name: 'port',
+      value: '3306',
+      enable: true,
+      tips() {
+        return I18nT('mysql.port')
+      }
+    },
+    {
       name: 'key_buffer_size',
       value: '64M',
       enable: true,

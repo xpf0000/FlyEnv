@@ -41,7 +41,6 @@ const onCompositionend = () => {
   AISetup.isComposing = false
   console.log('End Chinese input')
 }
-}
 
 export const AISetup = reactive<{
   aiShow: boolean

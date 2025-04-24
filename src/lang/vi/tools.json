@@ -1,7 +1,7 @@
 {
   "jsonParseTitle": "Phân tích cú pháp JSON",
   "noInputTips": "Nhập nội dung",
-  "inputTips": "//Nhập JSON, Đối tượng/Mảng JavaScript, Mảng PHP, XML, YAML, PList. Tự động chuyển đổi sang định dạng đã chọn",
+  "inputTips": "//Nhập JSON, Đối tượng/Mảng JavaScript, Mảng PHP, URL, XML, YAML, PList. Tự động chuyển đổi sang định dạng đã chọn",
   "parseFailTips": "Phân tích cú pháp không thành công",
   "inputCheckFailTips": "Không xác định",
   "systemProxyCheck": "Phát hiện mạng đang sử dụng proxy, PhpWebStudy có được đặt để sử dụng proxy này không?",
