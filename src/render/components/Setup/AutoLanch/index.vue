@@ -1,12 +1,12 @@
 <template>
   <div class="plant-title flex items-center gap-1">
-    <span>{{ $t('setup.autoLunach') }}</span>
+    <span>{{ I18nT('setup.autoLunach') }}</span>
     <el-popover placement="top" width="auto">
       <template #reference>
         <yb-icon :svg="import('@/svg/question.svg?raw')" width="12" height="12"></yb-icon>
       </template>
       <template #default>
-        <span>{{ $t('setup.autoLunachTips') }}</span>
+        <span>{{ I18nT('setup.autoLunachTips') }}</span>
       </template>
     </el-popover>
   </div>
@@ -19,10 +19,11 @@
   import { computed } from 'vue'
   import { AppStore } from '@/store/app'
   import { MessageError } from '@/util/Element'
+  import { I18nT } from '@lang/index'
 
   const { app } = require('@electron/remote')
   const { exec } = require('child-process-promise')
-  const { writeFile, mkdirp, remove } = require('fs-extra')
+  const { writeFile, mkdirp, remove, readFile } = require('fs-extra')
   const { join } = require('path')
 
   const store = AppStore()
@@ -31,20 +32,12 @@
     const exePath = app.getPath('exe').replace(/"/g, '\\"')
     const taskName = 'FlyEnvStartup'
     if (enable) {
+      const tmpl = await readFile(join(global.Server.Static!, 'sh/flyenv-auto-start.ps1'), 'utf-8')
+      const content = tmpl.replace('#EXECPATH#', exePath)
       try {
-        const psCommand = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-$action = New-ScheduledTaskAction -Execute "${exePath}"
-$trigger = New-ScheduledTaskTrigger -AtLogon
-$settings = New-ScheduledTaskSettingsSet -DontStopIfGoingOnBatteries $true -AllowStartIfOnBatteries $true;
-$settings.ExecutionTimeLimit = "PT0S"
-$settings.RunOnlyIfLoggedOn = $true
-Register-ScheduledTask -TaskName "${taskName}" -User $user -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Force;
-Write-Host "Task Create End: ${taskName}"
-`
         await mkdirp(global.Server.Cache!)
         const file = join(global.Server.Cache!, 'flyenv-auto-start.ps1')
-        await writeFile(file, psCommand)
+        await writeFile(file, content)
         const res = await exec(
           `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${file}'; & '${file}'"`,
           { shell: true }
