@@ -6,6 +6,7 @@ import {
   fetchRawPATH,
   getAllFileAsync,
   handleWinPathArr,
+  isNTFS,
   systemProxyGet,
   uuid,
   writePath
@@ -512,6 +513,10 @@ subjectAltName=@alt_names
        * 从原有PATH删除全部env文件夹
        */
       oldPath = oldPath.filter((o) => !o.includes(envDir))
+
+      if (!(await isNTFS(envDir)) || !(await isNTFS(item.path))) {
+        allFile.push(item.path)
+      }
 
       for (const envPath of allFile) {
         const rawEnvPath = realpathSync(envPath)

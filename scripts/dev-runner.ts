@@ -32,6 +32,9 @@ async function killAllElectron() {
   } catch (e) {}
   console.log('all: ', all)
   const arr: Array<string> = []
+  if (all && !Array.isArray(all)) {
+    all = [all]
+  }
   for (const item of all) {
     arr.push(item.ProcessId)
   }

@@ -11,6 +11,7 @@ import { staticVersionDel } from '@/util/Version'
 import { AppServiceAliasItem } from '@shared/app'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { isEqual } from 'lodash'
+import localForage from 'localforage'
 
 type ServiceActionType = {
   versionDeling: Record<string, boolean>
@@ -105,6 +106,17 @@ export const ServiceActionStore: ServiceActionType = reactive({
         const app = res?.data?.appPath ?? []
         ServiceActionStore.allPath = reactive([...all])
         ServiceActionStore.appPath = reactive([...app])
+
+        localForage
+          .getItem(`flyenv-app-env-dir`)
+          .then((res: Record<string, string>) => {
+            const list = res || {}
+            const set = new Set([...Object.values(list), ...app])
+            const appList = Array.from(set)
+            ServiceActionStore.appPath = reactive([...appList])
+          })
+          .catch()
+
         setTimeout(() => {
           ServiceActionStore.fetchPathing = false
         }, 60000)
@@ -117,6 +129,7 @@ export const ServiceActionStore: ServiceActionType = reactive({
         return resolve(true)
       }
       ServiceActionStore.pathSeting[item.bin] = true
+
       const action = ServiceActionStore.appPath.includes(item.path) ? 'removePATH' : 'updatePATH'
       IPC.send('app-fork:tools', action, JSON.parse(JSON.stringify(item)), typeFlag).then(
         (key: string, res: any) => {
@@ -127,6 +140,24 @@ export const ServiceActionStore: ServiceActionType = reactive({
             const app = res?.data?.appPath ?? []
             ServiceActionStore.allPath = reactive([...all])
             ServiceActionStore.appPath = reactive([...app])
+
+            localForage
+              .getItem(`flyenv-app-env-dir`)
+              .then((res: Record<string, string>) => {
+                const list = res || {}
+                if (action === 'removePATH') {
+                  delete list?.[typeFlag]
+                } else {
+                  list[typeFlag] = item.path
+                }
+
+                const set = new Set([...Object.values(list), ...app])
+                const appList = Array.from(set)
+                localForage.setItem(`flyenv-app-env-dir`, list).then().catch()
+                ServiceActionStore.appPath = reactive([...appList])
+              })
+              .catch()
+
             MessageSuccess(I18nT('base.success'))
             resolve(true)
           } else {

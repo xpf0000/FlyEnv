@@ -1,17 +1,25 @@
-const { spawn } = require('child_process')
+const path = require('path')
+const { execSync } = require('child_process')
 
-// 方法 1：强制使用绝对路径（避免 PATH 问题）
-const powershellPath =
-  process.env.SystemRoot + '\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
-
-const powershell = spawn(
-  'powershell', // 使用绝对路径
-  ['-NoExit', '-Command', 'Write-Host "Hello, World!"'],
-  {
-    detached: true,
-    shell: true, // 强制使用系统 shell（关键！）
-    stdio: 'ignore' // 显示窗口（替代 'ignore'）
+function isNTFS(fileOrDirPath) {
+  try {
+    const driveLetter = path.parse(fileOrDirPath).root.replace(/[:\\]/g, '')
+    const jsonResult = execSync(
+      `powershell -command "Get-Volume -DriveLetter ${driveLetter} | ConvertTo-Json"`,
+      { encoding: 'utf-8' }
+    )
+    console.log('jsonResult: ', jsonResult)
+    const { FileSystem, FileSystemType } = JSON.parse(jsonResult)
+    return FileSystem === 'NTFS' || FileSystemType === 'NTFS'
+  } catch (error) {
+    console.error('PowerShell 检查失败:', error)
+    return false
   }
-)
+}
 
-powershell.unref() // 避免阻塞父进程
+// 示例用法
+;(async () => {
+  console.log(await isNTFS('C:\\PerfLogs')) // 检查文件
+  console.log(await isNTFS('D:\\LaoMaoTao')) // 检查文件夹
+  console.log(await isNTFS('E:\\scoopApp')) // 检查符号链接
+})()

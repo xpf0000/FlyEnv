@@ -9,7 +9,7 @@ import {
   createWriteStream,
   realpathSync
 } from 'fs'
-import { join, dirname, isAbsolute } from 'path'
+import { join, dirname, isAbsolute, parse } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -813,4 +813,28 @@ export function fetchPathByBin(bin: string) {
     isBin = paths.pop()
   }
   return path
+}
+
+const NTFS: Record<string, boolean> = {}
+
+export async function isNTFS(fileOrDirPath: string) {
+  const driveLetter = parse(fileOrDirPath).root.replace(/[:\\]/g, '')
+  if (NTFS.hasOwnProperty(driveLetter)) {
+    return NTFS[driveLetter]
+  }
+  try {
+    const jsonResult =
+      (
+        await execPromise(
+          `powershell -command "Get-Volume -DriveLetter ${driveLetter} | ConvertTo-Json"`,
+          { encoding: 'utf-8' }
+        )
+      )?.stdout ?? ''
+    const { FileSystem, FileSystemType } = JSON.parse(jsonResult)
+    const is = FileSystem === 'NTFS' || FileSystemType === 'NTFS'
+    NTFS[driveLetter] = is
+    return is
+  } catch (error) {
+    return false
+  }
 }
