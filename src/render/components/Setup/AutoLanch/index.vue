@@ -33,10 +33,13 @@
     if (enable) {
       try {
         const psCommand = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$action = New-ScheduledTaskAction -Execute "${exePath}" -Argument "--hidden";
-$trigger = New-ScheduledTaskTrigger -AtStartup;
-$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries;
-Register-ScheduledTask -TaskName "${taskName}" -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Force;
+$user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+$action = New-ScheduledTaskAction -Execute "${exePath}"
+$trigger = New-ScheduledTaskTrigger -AtLogon
+$settings = New-ScheduledTaskSettingsSet -DontStopIfGoingOnBatteries $true -AllowStartIfOnBatteries $true;
+$settings.ExecutionTimeLimit = "PT0S"
+$settings.RunOnlyIfLoggedOn = $true
+Register-ScheduledTask -TaskName "${taskName}" -User $user -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Force;
 Write-Host "Task Create End: ${taskName}"
 `
         await mkdirp(global.Server.Cache!)
