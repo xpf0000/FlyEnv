@@ -1,7 +1,13 @@
 {
-  "noInstallTips": "{app} chưa được cài đặt, Xác nhận cài đặt?",
   "registry": "Nguồn",
   "checkPackageJsonUpdate": "Kiểm tra cập nhật",
   "updatePackageJsonFile": "Cập nhật tệp package.json",
-  "updatePackageJsonFileTips": "Hành động này sẽ thay đổi tệp package.json. Bạn có chắc chắn muốn cập nhật không?"
+  "updatePackageJsonFileTips": "Hành động này sẽ thay đổi tệp package.json. Bạn có chắc chắn muốn cập nhật không?",
+  "copyDirPath": "拷贝路径",
+  "openIN": "进入",
+  "VSCode": "Visual Studio Code",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "HBuilderX": "HBuilderX",
+  "projectEnvSet": "Môi trường dự án"
 }

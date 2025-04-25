@@ -4,19 +4,13 @@
   "inputTips": "//Nhập JSON, Đối tượng/Mảng JavaScript, Mảng PHP, XML, YAML, PList. Tự động chuyển đổi sang định dạng đã chọn",
   "parseFailTips": "Phân tích cú pháp không thành công",
   "inputCheckFailTips": "Không xác định",
-  "systemProxyChech": "Phát hiện mạng đang sử dụng proxy, PhpWebStudy có được đặt để sử dụng proxy này không?",
-  "systemProxyUsed": "Thiết lập thành công. Nếu bạn muốn sửa đổi nó, vui lòng thực hiện trong Cài đặt->Cài đặt Proxy.",
   "windowCount": "Số lượng cửa sổ",
-  "phpPlayground": "PHP Playground",
-  "raw": "Thô",
-  "codemake": "Tạo mã",
   "FavoriteTools": "Công cụ yêu thích",
   "AllTools": "Tất cả các công cụ",
   "label": "Tên công cụ",
   "component": "URL công cụ",
   "addTool": "Thêm công cụ",
   "editTool": "Sửa công cụ",
-
   "base64-file-converter-title": "Chuyển đổi tệp Base64",
   "base64-string-converter-title": "Mã hóa/giải mã chuỗi Base64",
   "chmod-calculator-title": "Máy tính Chmod",
@@ -34,5 +28,11 @@
   "url-encode-title": "Mã hóa/Giải mã URL",
   "url-parse-title": "Trình phân tích cú pháp URL",
   "wifi-qr-code-generator-title": "Trình tạo mã QR WiFi",
-  "URLTimingAnalyzer": "Phân Tích Thời Gian URL"
+  "URLTimingAnalyzer": "Phân Tích Thời Gian URL",
+  "actionEdit": "Sửa",
+  "actionDel": "Xóa",
+  "envValue": "Giá trị",
+  "rawEnvPath": "Đường dẫn thực",
+  "envValueErrorTips": "Giá trị này không trỏ tới đường dẫn tồn tại. Có thể nhấp để sao chép lệnh và kiểm tra trong CMD",
+  "invalidPath": "Đường dẫn không hợp lệ"
 }

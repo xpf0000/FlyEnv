@@ -4,10 +4,7 @@
   "inputTips": "//输入 JSON, JavaScript对象或数组, PHP Array, XML, YAML, PList. 自动转换成所选格式",
   "parseFailTips": "解析失败",
   "inputCheckFailTips": "未识别",
-  "systemProxyChech": "检测到网络使用了代理, 是否使用代理?",
-  "systemProxyUsed": "设置成功. 如需修改, 请在 设置->代理设置 中修改.",
   "windowCount": "窗口数量",
-  "codemake": "代码生成",
   "FavoriteTools": "我的收藏",
   "AllTools": "全部工具",
   "label": "工具名称",
@@ -20,7 +17,6 @@
   "rawEnvPath": "实际路径",
   "envValueErrorTips": "此值无法指向一个存在的路径。可点击复制命令再CMD中执行查看",
   "invalidPath": "无效路径",
-
   "base64-file-converter-title": "Base64 文件转换器",
   "base64-string-converter-title": "Base64字符串编码/解码",
   "chmod-calculator-title": "Chmod计算器",
