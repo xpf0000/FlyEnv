@@ -82,7 +82,7 @@ brew install flyenv
 ---
 
 ### Windows
-- [FlyEnv.Setup.4.9.5.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.5/FlyEnv.Setup.4.9.5.exe)
+- [FlyEnv.Setup.4.9.6.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.6/FlyEnv.Setup.4.9.6.exe)
 
 ---
 
