@@ -17,6 +17,7 @@ import is from 'electron-is'
 import UpdateManager from './core/UpdateManager'
 import { PItem, ProcessPidList, ProcessPidListByPids } from '../fork/Process'
 import NodePTY from './core/NodePTY'
+import ScreenManager from './core/ScreenManager'
 
 const { createFolder } = require('../shared/file')
 const ServeHandler = require('serve-handler')
@@ -50,6 +51,7 @@ export default class Application extends EventEmitter {
       configManager: this.configManager
     })
     this.initWindowManager()
+    ScreenManager.initWatch()
     this.trayManager = new TrayManager()
     this.initTrayManager()
     this.initUpdaterManager()
@@ -180,6 +182,8 @@ export default class Application extends EventEmitter {
       this.emit('ready')
       this.windowManager.sendCommandTo(win, 'APP-Ready-To-Show', true)
     })
+    ScreenManager.initWindow(win)
+    ScreenManager.repositionAllWindows()
     this.trayWindow = this.windowManager.openTrayWindow()
   }
 
@@ -206,6 +210,7 @@ export default class Application extends EventEmitter {
   async stop() {
     logger.info('[PhpWebStudy] application stop !!!')
     try {
+      ScreenManager.destroy()
       SiteSuckerManager.destory()
       this.forkManager?.destory()
       this.trayManager?.destroy()
