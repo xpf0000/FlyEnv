@@ -185,7 +185,7 @@ export class JSONStoreTab {
     try {
       const u = new URL(this.value)
       const obj: any = {}
-      Object.entries(Object.fromEntries(u?.searchParams.entries() ?? [])).forEach(([k, v]) => {
+      Object.entries(Object.fromEntries(u?.searchParams?.entries() ?? [])).forEach(([k, v]) => {
         console.log('k: ', k, v)
         obj[k] = v
       })
