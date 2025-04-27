@@ -6,6 +6,8 @@
 
 FlyEnv is an all-in-one environment management tool designed for modern developers. It simplifies development by offering **swift multi-version switching**, **full-stack technology support**, and a **seamless cross-platform experience**. Whether you're working with PHP, NodeJS, Java, Go, or Python, FlyEnv integrates all necessary tools with a single command, eliminating configuration headaches and letting you focus on what truly matters—**creation, not debugging**.
 
+**Detailed Project Analysis:** [https://deepwiki.com/xpf0000/FlyEnv](https://deepwiki.com/xpf0000/FlyEnv)
+
 ---
 
 ## Supported Platforms
