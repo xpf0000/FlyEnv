@@ -10,6 +10,12 @@ FlyEnv is an all-in-one environment management tool designed for modern develope
 
 ---
 
+## Discussions
+
+[What technical limitations does FlyEnv have compared to similar tools?](https://github.com/xpf0000/FlyEnv/discussions/262)
+
+---
+
 ## Supported Platforms
 
 FlyEnv supports **macOS**, **Windows**, and **Linux**.
