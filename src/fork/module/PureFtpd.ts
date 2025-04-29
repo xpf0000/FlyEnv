@@ -16,6 +16,10 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
+import Helper from '../Helper'
+import { userInfo } from 'os'
+import { fixEnv } from '@shared/utils'
+
 class Manager extends Base {
   constructor() {
     super()
@@ -48,7 +52,24 @@ class Manager extends Base {
       const confFile = await this._initConf()
       const bin = version.bin
       const pidfile = join(global.Server.FTPDir!, 'pure-ftpd.pid')
-      await execPromise(`cd "${dirname(bin)}" && ./${basename(bin)} "${confFile}"`)
+      // const logFile = join(global.Server.FTPDir!, 'pure-ftpd.log')
+      const command = `export FTP_ANON_DIR="${global.Server.UserHome}" && cd "${dirname(bin)}" && ./${basename(bin)} "${confFile}"`
+      console.log('command: ', command)
+      // const uinfo = userInfo()
+      // const env = await fixEnv()
+      // console.log('env: ', env)
+      try {
+        await Helper.send('apache', 'startService', command, {
+          // uid: uinfo.uid,
+          // gid: uinfo.gid,
+          env: {
+            HOME: '/'
+          }
+        })
+      } catch (e) {
+        return reject(e)
+      }
+      // await execPromise(`cd "${dirname(bin)}" && ./${basename(bin)} "${confFile}"`)
       const res = await this.waitPidFile(pidfile)
       if (res && res?.pid) {
         resolve({
@@ -110,6 +131,7 @@ class Manager extends Base {
         reject(new Error(I18nT('fork.binNoFound')))
         return
       }
+      await this._initConf()
       await this._delFtp(item, version)
       const json = join(global.Server.FTPDir!, 'pureftpd.json')
       const all = []
@@ -136,6 +158,7 @@ class Manager extends Base {
         reject(new Error(I18nT('fork.binNoFound')))
         return
       }
+      await this._initConf()
       await this._delFtp(item, version)
 
       const dir = item.dir
