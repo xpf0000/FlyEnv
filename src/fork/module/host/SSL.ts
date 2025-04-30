@@ -28,7 +28,7 @@ export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: stri
           return
         }
         await Helper.send('host', 'sslAddTrustedCert', CADir)
-        const res = await Helper.send('host', 'sslFindCertificate', CADir)
+        const res: any = await Helper.send('host', 'sslFindCertificate', CADir)
         if (
           !res.stdout.includes('PhpWebStudy-Root-CA') &&
           !res.stderr.includes('PhpWebStudy-Root-CA')

@@ -30,7 +30,11 @@
       <template v-else-if="item.isFile || item.isDir">
         <el-input v-model.trim="value" :disabled="!item.enable">
           <template #append>
-            <el-button :icon="Folder" @click.stop="chooseFile(item?.isDir ?? false)" />
+            <el-button
+              :disabled="!item.enable"
+              :icon="Folder"
+              @click.stop="chooseFile(item?.isDir ?? false)"
+            />
           </template>
         </el-input>
       </template>
@@ -87,7 +91,7 @@
       }
       const [path] = filePaths
       const item: CommonSetItem = props.item
-      item.value = path
+      item.value = item?.pathHandler?.(path) ?? path
     })
   }
 </script>

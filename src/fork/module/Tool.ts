@@ -261,97 +261,97 @@ class Manager extends Base {
   updatePATH(item: SoftInstalled, flag: string) {
     return new ForkPromise(async (resolve, reject) => {
       // Get the PATH environment variable array. Real absolute path array.
-      const all = (await this.fetchPATH()).allPath;
+      const all = (await this.fetchPATH()).allPath
       // Path of the installed software
-      const binPath = dirname(join(item.path, 'bin'));
-      const envDir = join(dirname(global.Server.AppDir!), 'env');
+      const binPath = dirname(join(item.path, 'bin'))
+      const envDir = join(dirname(global.Server.AppDir!), 'env')
       if (!existsSync(envDir)) {
-        await mkdirp(envDir);
+        await mkdirp(envDir)
       }
       // Subfolder under the `env` folder for `flag` (e.g., 'php', 'nginx', 'mysql', etc.)
-      const flagDir = join(envDir, flag);
+      const flagDir = join(envDir, flag)
       // Delete the subfolder
       try {
-        await Helper.send('tools', 'rm', flagDir);
+        await Helper.send('tools', 'rm', flagDir)
       } catch (e) {}
       // If the PATH environment variable array does not include the installed software path, create a symlink
       if (!all.includes(binPath)) {
         try {
-          await execPromise(['ln', '-s', `"${binPath}"`, `"${flagDir}"`].join(' '));
+          await execPromise(['ln', '-s', `"${binPath}"`, `"${flagDir}"`].join(' '))
         } catch (e) {}
       }
       // Get all subfolders under the `env` folder (e.g., 'php', 'nginx', 'mysql', etc.)
-      let allFile = await readdir(envDir);
+      let allFile = await readdir(envDir)
       // Get valid paths
       allFile = allFile
         .filter((f) => existsSync(join(envDir, f)))
         .map((f) => join(envDir, f))
         // Only keep paths that exist and are directories
         .filter((f) => {
-          let check = false;
+          let check = false
           try {
-            const rf = realpathSync(f);
-            check = existsSync(rf) && statSync(rf).isDirectory();
+            const rf = realpathSync(f)
+            check = existsSync(rf) && statSync(rf).isDirectory()
           } catch (e) {
-            check = false;
+            check = false
           }
-          return check;
+          return check
         })
         .map((f) => {
-          const arr: string[] = [f];
+          const arr: string[] = [f]
           if (existsSync(join(f, 'bin'))) {
-            arr.push(join(f, 'bin'));
+            arr.push(join(f, 'bin'))
           } else if (existsSync(join(f, 'sbin'))) {
-            arr.push(join(f, 'sbin'));
+            arr.push(join(f, 'sbin'))
           }
-          return arr;
+          return arr
         })
-        .flat();
+        .flat()
 
-      const aliasDir = PathResolve(global.Server.BaseDir!, '../alias');
+      const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
       const param: { zsh: string } = {
         zsh: ''
-      };
+      }
       if (allFile.length > 0) {
         // Handle Java path and add JAVA_HOME variable
         let java = allFile.find(
           (f) =>
             (f.toLowerCase().includes('java') || f.toLowerCase().includes('jdk')) &&
             realpathSync(f).includes('/Contents/Home/')
-        );
-        let java_home_zsh = '';
+        )
+        let java_home_zsh = ''
         if (java) {
-          java = dirname(realpathSync(java));
-          java_home_zsh = `\nexport JAVA_HOME="${java}"`;
+          java = dirname(realpathSync(java))
+          java_home_zsh = `\nexport JAVA_HOME="${java}"`
         }
         // Handle Python
-        let python = allFile.find((f) => realpathSync(f).includes('Python.framework'));
+        let python = allFile.find((f) => realpathSync(f).includes('Python.framework'))
         if (python) {
-          python = realpathSync(python);
-          const py = join(python, 'python');
-          const py3 = join(python, 'python3');
+          python = realpathSync(python)
+          const py = join(python, 'python')
+          const py3 = join(python, 'python3')
           if (existsSync(py3) && !existsSync(py)) {
             try {
-              await Helper.send('tools', 'ln_s', py3, py);
+              await Helper.send('tools', 'ln_s', py3, py)
             } catch (e) {}
           }
         }
-        param.zsh = `\nexport PATH="${aliasDir}:${allFile.join(':')}:$PATH"${java_home_zsh}\n`;
+        param.zsh = `\nexport PATH="${aliasDir}:${allFile.join(':')}:$PATH"${java_home_zsh}\n`
       } else {
-        param.zsh = `\nexport PATH="${aliasDir}:$PATH"\n`;
+        param.zsh = `\nexport PATH="${aliasDir}:$PATH"\n`
       }
       try {
         // Write to the .zshrc file
-        await this.handleUpdatePath(param);
+        await this.handleUpdatePath(param)
       } catch (e) {
-        const debugFile = join(global.Server.BaseDir!, 'debug.log');
-        await appendFile(debugFile, `[updatePATH][error]: ${e} !!!\n`);
-        reject(e);
-        return;
+        const debugFile = join(global.Server.BaseDir!, 'debug.log')
+        await appendFile(debugFile, `[updatePATH][error]: ${e} !!!\n`)
+        reject(e)
+        return
       }
-      const allPath = await this.fetchPATH();
-      resolve(allPath);
-    });
+      const allPath = await this.fetchPATH()
+      resolve(allPath)
+    })
   }
 
   setAlias(
