@@ -28,11 +28,12 @@
 
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
-  import { join } from 'path'
   import { TomcatSetup } from '@/components/Tomcat/setup'
   import { ServiceActionExtParam } from '@/util/Service'
   import { type AllAppModule } from '@/core/type'
   import { type SoftInstalled } from '@/store/brew'
+
+  const { join } = require('path')
 
   const {
     showItem,
