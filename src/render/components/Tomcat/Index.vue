@@ -6,7 +6,24 @@
       </template>
     </el-radio-group>
     <div class="main-block">
-      <Service v-if="tab === 0" type-flag="tomcat" title="Tomcat"></Service>
+      <Service v-if="tab === 0" type-flag="tomcat" title="Tomcat">
+        <template #tool-left>
+          <div class="flex items-center gap-1 pl-4">
+            <span>CATALINA_BASE: </span>
+            <span
+              class="cursor-pointer hover:text-yellow-500"
+              @click.stop="shell.openPath(CATALINA_BASE)"
+              >{{ CATALINA_BASE }}</span
+            >
+            <el-button
+              :disabled="!CATALINA_BASE"
+              link
+              :icon="Edit"
+              @click.stop="chooseDir"
+            ></el-button>
+          </div>
+        </template>
+      </Service>
       <Manager
         v-else-if="tab === 1"
         type-flag="tomcat"
@@ -21,14 +38,22 @@
 </template>
 
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
+  import { Edit } from '@element-plus/icons-vue'
+  import { BrewStore } from '@/store/brew'
+  import { TomcatSetup } from '@/components/Tomcat/setup'
+  import { chooseFolder } from '@/util/File'
 
-  const { tab, checkVersion } = AppModuleSetup('nginx')
+  const { join } = require('path')
+  const { shell } = require('@electron/remote')
+
+  const { tab, checkVersion } = AppModuleSetup('tomcat')
   const tabs = [
     I18nT('base.service'),
     I18nT('base.versionManager'),
@@ -37,4 +62,38 @@
     I18nT('base.log')
   ]
   checkVersion()
+
+  const brewStore = BrewStore()
+
+  const currentVersion = computed(() => {
+    return brewStore.currentVersion('tomcat')
+  })
+
+  const CATALINA_BASE = computed({
+    get() {
+      if (currentVersion?.value?.bin) {
+        if (TomcatSetup.CATALINA_BASE[currentVersion.value.bin]) {
+          return TomcatSetup.CATALINA_BASE[currentVersion.value.bin]
+        }
+        const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+        return join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+      }
+      return I18nT('base.needSelectVersion')
+    },
+    set(v: string) {
+      if (!currentVersion?.value?.bin) {
+        return
+      }
+      TomcatSetup.CATALINA_BASE[currentVersion.value.bin] = v
+      TomcatSetup.save()
+    }
+  })
+
+  const chooseDir = () => {
+    chooseFolder()
+      .then((path: string) => {
+        CATALINA_BASE.value = path
+      })
+      .catch()
+  }
 </script>

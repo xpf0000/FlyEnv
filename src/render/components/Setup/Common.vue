@@ -62,16 +62,6 @@
           <AutoHide />
         </div>
       </div>
-      <div class="row-2">
-        <div class="col">
-          <div class="plant-title force-start-plant">
-            <span>{{ I18nT('base.about') }}</span>
-          </div>
-          <div class="main reset-pass">
-            <el-button @click.stop="showAbout">{{ I18nT('base.about') }}</el-button>
-          </div>
-        </div>
-      </div>
     </div>
   </el-scrollbar>
 </template>

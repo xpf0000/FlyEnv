@@ -7,13 +7,20 @@ import { Service } from '@/components/ServiceManager/service'
 import installedVersions from '@/util/InstalledVersions'
 import type { AllAppModule } from '@/core/type'
 
+type ServiceActionExtParamFN = (
+  typeFlag: AllAppModule,
+  fn: string,
+  version: SoftInstalled
+) => Promise<any[]>
+
+export const ServiceActionExtParam: Partial<Record<AllAppModule, ServiceActionExtParamFN>> = {}
+
 const exec = (
   typeFlag: AllAppModule,
   fn: string,
-  version: SoftInstalled,
-  ...params: any
+  version: SoftInstalled
 ): Promise<string | boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     if (version.running) {
       resolve(true)
       return
@@ -123,6 +130,17 @@ const exec = (
       }
     }
 
+    let params: any[] = []
+
+    if (ServiceActionExtParam?.[typeFlag]) {
+      try {
+        params = await ServiceActionExtParam[typeFlag](typeFlag, fn, version)
+      } catch (e) {
+        handleTaskFailed()
+        return resolve(true)
+      }
+    }
+
     IPC.send(`app-fork:${typeFlag}`, fn, args, ...params).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
@@ -151,8 +169,8 @@ export const stopService = (typeFlag: AllAppModule, version: SoftInstalled) => {
   return exec(typeFlag, 'stopService', version)
 }
 
-export const startService = (typeFlag: AllAppModule, version: SoftInstalled, ...args: any) => {
-  return exec(typeFlag, 'startService', version, ...args)
+export const startService = (typeFlag: AllAppModule, version: SoftInstalled) => {
+  return exec(typeFlag, 'startService', version)
 }
 
 export const reloadService = (typeFlag: AllAppModule, version: SoftInstalled) => {
