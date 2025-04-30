@@ -9,6 +9,7 @@
       <Common v-if="store.tab === 'base'"></Common>
       <EditorConfig v-if="store.tab === 'editor'"></EditorConfig>
       <Licenses v-if="store.tab === 'licenses'" />
+      <About v-if="store.tab === 'about'" />
     </div>
   </div>
 </template>
@@ -20,6 +21,7 @@
   import { I18nT } from '@lang/index'
   import { SetupStore } from '@/components/Setup/store'
   import Licenses from './Licenses/index.vue'
+  import About from './About/index.vue'
 
   const store = SetupStore()
 
@@ -36,6 +38,10 @@
       {
         value: 'licenses',
         label: I18nT('setup.Licenses')
+      },
+      {
+        value: 'about',
+        label: I18nT('base.about')
       }
     ]
   })
