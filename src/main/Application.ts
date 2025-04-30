@@ -22,6 +22,7 @@ import NodePTY from './core/NodePTY'
 import HttpServer from './core/HttpServer'
 import AppHelper from './core/AppHelper'
 import Helper from '../fork/Helper'
+import ScreenManager from './core/ScreenManager'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
@@ -56,6 +57,7 @@ export default class Application extends EventEmitter {
       configManager: this.configManager
     })
     this.initWindowManager()
+    ScreenManager.initWatch()
     this.trayManager = new TrayManager()
     this.initTrayManager()
     this.initUpdaterManager()
@@ -299,6 +301,8 @@ export default class Application extends EventEmitter {
         JSON.parse(JSON.stringify(global.Server))
       )
     })
+    ScreenManager.initWindow(win)
+    ScreenManager.repositionAllWindows()
     this.trayWindow = this.windowManager.openTrayWindow()
   }
 
@@ -324,10 +328,15 @@ export default class Application extends EventEmitter {
 
   async stop() {
     logger.info('[PhpWebStudy] application stop !!!')
-    DnsServerManager.close()
-    SiteSuckerManager.destory()
-    this.forkManager?.destory()
-    await this.stopServer()
+    try {
+      ScreenManager.destroy()
+      DnsServerManager.close()
+      SiteSuckerManager.destory()
+      this.forkManager?.destory()
+      await this.stopServer()
+    } catch (e) {
+      console.log('stop e: ', e)
+    }
   }
 
   async stopServerByPid() {
