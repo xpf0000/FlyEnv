@@ -21,155 +21,34 @@
       </div>
 
       <div class="main-wapper">
-        <div class="main">
-          <input
-            v-model.trim="item.name"
-            type="text"
-            :class="'input' + (errs['name'] ? ' error' : '')"
-            :placeholder="I18nT('host.placeholderName')"
-          />
-          <textarea
-            v-model.trim="item.alias"
-            type="text"
-            class="input-textarea"
-            :placeholder="I18nT('host.placeholderAlias')"
-          ></textarea>
-          <input
-            v-model.trim="item.mark"
-            style="margin: 15px 0 10px"
-            class="input"
-            :placeholder="I18nT('host.placeholderRemarks')"
-          />
-          <div class="path-choose mt-20 mb-20">
+        <el-scrollbar>
+          <div class="main">
             <input
+              v-model.trim="item.name"
               type="text"
-              :class="'input' + (errs['root'] ? ' error' : '')"
-              :placeholder="I18nT('host.placeholderRootPath')"
-              :value="item.root"
+              :class="'input' + (errs['name'] ? ' error' : '')"
+              :placeholder="I18nT('host.placeholderName')"
             />
-            <div class="icon-block" @click="chooseRoot('root')">
-              <yb-icon
-                :svg="import('@/svg/folder.svg?raw')"
-                class="choose"
-                width="18"
-                height="18"
-              />
-            </div>
-          </div>
-          <div class="park">
-            <div class="title">
-              <span>{{ I18nT('base.parkTitle') }}</span>
-              <el-popover placement="top" trigger="hover" width="auto">
-                <template #reference>
-                  <yb-icon
-                    :svg="import('@/svg/question.svg?raw')"
-                    width="12"
-                    height="12"
-                    style="margin-left: 5px"
-                  ></yb-icon>
-                </template>
-                <template #default>
-                  <p>
-                    {{ I18nT('base.parkTips') }}
-                  </p>
-                </template>
-              </el-popover>
-            </div>
-            <el-switch v-model="park" :before-change="onParkChange"></el-switch>
-          </div>
-        </div>
-
-        <div class="plant-title">{{ I18nT('base.phpVersion') }}</div>
-        <div class="main">
-          <div class="port-set">
-            <el-select
-              v-model="item.phpVersion"
-              class="w-p100"
-              :placeholder="I18nT('base.selectPhpVersion')"
-            >
-              <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
-              <template v-for="(v, i) in phpVersions" :key="i">
-                <el-option :value="v.num" :label="v.num"></el-option>
-              </template>
-            </el-select>
-          </div>
-        </div>
-
-        <div class="plant-title">{{ I18nT('host.hostPort') }}</div>
-        <div class="main">
-          <div class="port-set mb-20">
-            <div class="port-type"> Nginx </div>
+            <textarea
+              v-model.trim="item.alias"
+              type="text"
+              class="input-textarea"
+              :placeholder="I18nT('host.placeholderAlias')"
+            ></textarea>
             <input
-              v-model.number="item.port.nginx"
-              type="number"
-              :class="'input' + (errs['port_nginx'] ? ' error' : '')"
-              placeholder="default: 80"
+              v-model.trim="item.mark"
+              style="margin: 15px 0 10px"
+              class="input"
+              :placeholder="I18nT('host.placeholderRemarks')"
             />
-          </div>
-
-          <div class="port-set mb-20">
-            <div class="port-type"> Caddy </div>
-            <input
-              v-model.number="item.port.caddy"
-              type="number"
-              :class="'input' + (errs['port_caddy'] ? ' error' : '')"
-              placeholder="default: 80"
-            />
-          </div>
-
-          <div class="port-set mb-20">
-            <div class="port-type"> Apache </div>
-            <input
-              v-model.number="item.port.apache"
-              type="number"
-              :class="'input' + (errs['port_apache'] ? ' error' : '')"
-              placeholder="default: 80"
-            />
-          </div>
-        </div>
-
-        <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
-
-        <div class="main">
-          <div class="ssl-switch">
-            <span>SSL</span>
-            <el-switch v-model="item.useSSL"></el-switch>
-          </div>
-
-          <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
-            <div class="inline-flex items-center gap-1">
-              <span>{{ I18nT('host.autoSSL') }}</span>
-              <SSLTips />
-            </div>
-            <el-switch v-model="item.autoSSL"></el-switch>
-          </div>
-
-          <template v-if="item.useSSL && !item.autoSSL">
-            <div class="path-choose mt-20">
-              <input
-                type="text"
-                :class="'input' + (errs['cert'] ? ' error' : '')"
-                placeholder="cert"
-                :value="item.ssl.cert"
-              />
-              <div class="icon-block" @click="chooseRoot('cert', true)">
-                <yb-icon
-                  :svg="import('@/svg/folder.svg?raw')"
-                  class="choose"
-                  width="18"
-                  height="18"
-                />
-              </div>
-            </div>
-
             <div class="path-choose mt-20 mb-20">
               <input
                 type="text"
-                :class="'input' + (errs['certkey'] ? ' error' : '')"
-                placeholder="cert key"
-                :value="item.ssl.key"
+                :class="'input' + (errs['root'] ? ' error' : '')"
+                :placeholder="I18nT('host.placeholderRootPath')"
+                :value="item.root"
               />
-              <div class="icon-block" @click="chooseRoot('certkey', true)">
+              <div class="icon-block" @click="chooseRoot('root')">
                 <yb-icon
                   :svg="import('@/svg/folder.svg?raw')"
                   class="choose"
@@ -178,126 +57,250 @@
                 />
               </div>
             </div>
-          </template>
-
-          <template v-if="item.useSSL">
-            <div class="ssl-switch mb-20 mt-20">
-              <span>Port</span>
+            <div class="park">
+              <div class="title">
+                <span>{{ I18nT('base.parkTitle') }}</span>
+                <el-popover placement="top" trigger="hover" width="auto">
+                  <template #reference>
+                    <yb-icon
+                      :svg="import('@/svg/question.svg?raw')"
+                      width="12"
+                      height="12"
+                      style="margin-left: 5px"
+                    ></yb-icon>
+                  </template>
+                  <template #default>
+                    <p>
+                      {{ I18nT('base.parkTips') }}
+                    </p>
+                  </template>
+                </el-popover>
+              </div>
+              <el-switch v-model="park" :before-change="onParkChange"></el-switch>
             </div>
-            <div class="port-set port-ssl mb-20">
+          </div>
+
+          <div class="plant-title">{{ I18nT('base.phpVersion') }}</div>
+          <div class="main">
+            <div class="port-set">
+              <el-select
+                v-model="item.phpVersion"
+                class="w-p100"
+                :placeholder="I18nT('base.selectPhpVersion')"
+              >
+                <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>
+                <template v-for="(v, i) in phpVersions" :key="i">
+                  <el-option :value="v.num" :label="v.num"></el-option>
+                </template>
+              </el-select>
+            </div>
+          </div>
+
+          <div class="plant-title">{{ I18nT('host.hostPort') }}</div>
+          <div class="main">
+            <div class="port-set mb-20">
               <div class="port-type"> Nginx </div>
               <input
-                v-model.number="item.port.nginx_ssl"
+                v-model.number="item.port.nginx"
                 type="number"
-                :class="'input' + (errs['port_nginx_ssl'] ? ' error' : '')"
-                placeholder="default: 443"
+                :class="'input' + (errs['port_nginx'] ? ' error' : '')"
+                placeholder="default: 80"
               />
             </div>
-            <div class="port-set port-ssl mb-20">
+
+            <div class="port-set mb-20">
               <div class="port-type"> Caddy </div>
               <input
-                v-model.number="item.port.caddy_ssl"
+                v-model.number="item.port.caddy"
                 type="number"
-                :class="'input' + (errs['port_caddy_ssl'] ? ' error' : '')"
-                placeholder="default: 443"
+                :class="'input' + (errs['port_caddy'] ? ' error' : '')"
+                placeholder="default: 80"
               />
             </div>
-            <div class="port-set port-ssl mb-20">
+
+            <div class="port-set mb-20">
               <div class="port-type"> Apache </div>
               <input
-                v-model.number="item.port.apache_ssl"
+                v-model.number="item.port.apache"
                 type="number"
-                :class="'input' + (errs['port_apache_ssl'] ? ' error' : '')"
-                placeholder="default: 443"
+                :class="'input' + (errs['port_apache'] ? ' error' : '')"
+                placeholder="default: 80"
               />
             </div>
-          </template>
-        </div>
-
-        <div class="plant-title">
-          <div class="flex items-center justify-between">
-            <div class="inline-flex items-center">
-              <span>Nginx Url Rewrite</span>
-              <el-popover
-                placement="top"
-                :title="I18nT('base.attention')"
-                width="auto"
-                trigger="hover"
-              >
-                <template #reference>
-                  <yb-icon
-                    :svg="import('@/svg/question.svg?raw')"
-                    width="12"
-                    height="12"
-                    style="margin-left: 5px"
-                  ></yb-icon>
-                </template>
-                <p>{{ I18nT('base.nginxRewriteTips') }}</p>
-              </el-popover>
-            </div>
-            <template v-if="nginxRewriteFile">
-              <el-dropdown
-                size="small"
-                split-button
-                @click="shell.showItemInFolder(nginxRewriteFile)"
-              >
-                {{ I18nT('base.open') }}
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item @click.stop="Project.openPath(nginxRewriteFile, 'VSCode')">{{
-                      I18nT('nodejs.VSCode')
-                    }}</el-dropdown-item>
-                    <el-dropdown-item
-                      @click.stop="Project.openPath(nginxRewriteFile, 'PhpStorm')"
-                      >{{ I18nT('nodejs.PhpStorm') }}</el-dropdown-item
-                    >
-                    <el-dropdown-item
-                      @click.stop="Project.openPath(nginxRewriteFile, 'WebStorm')"
-                      >{{ I18nT('nodejs.WebStorm') }}</el-dropdown-item
-                    >
-                    <el-dropdown-item @click.stop="Project.openPath(nginxRewriteFile, 'Sublime')"
-                      >Sublime Text</el-dropdown-item
-                    >
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </template>
           </div>
-        </div>
 
-        <div class="main">
-          <el-select
-            v-model="rewriteKey"
-            filterable
-            :placeholder="I18nT('base.commonTemplates')"
-            class="w-p100"
-            @change="rewriteChange"
-          >
-            <el-option v-for="key in rewrites" :key="key" :label="key" :value="key"> </el-option>
-          </el-select>
+          <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
 
-          <div ref="input" class="input-textarea nginx-rewrite"></div>
-        </div>
+          <div class="main">
+            <div class="ssl-switch">
+              <span>SSL</span>
+              <el-switch v-model="item.useSSL"></el-switch>
+            </div>
 
-        <div class="plant-title flex items-center justify-between">
-          <span>{{ I18nT('host.reverseProxy') }}</span>
-          <el-button link :icon="Plus" @click.stop="addReverseProxy"></el-button>
-        </div>
-        <div class="main flex flex-col gap-3">
-          <template v-if="item.reverseProxy.length === 0">
-            <div class="flex justify-center">{{ I18nT('base.none') }}</div>
-          </template>
-          <template v-else>
-            <template v-for="(proxy, index) in item.reverseProxy" :key="index">
-              <div class="flex items-center justify-between gap-2">
-                <el-button link :icon="Delete" @click.stop="delReverseProxy(index)"></el-button>
-                <el-input v-model="proxy.path" class="w-28 ml-2"></el-input>
-                <el-input v-model="proxy.url"></el-input>
+            <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
+              <div class="inline-flex items-center gap-1">
+                <span>{{ I18nT('host.autoSSL') }}</span>
+                <SSLTips />
+              </div>
+              <el-switch v-model="item.autoSSL"></el-switch>
+            </div>
+
+            <template v-if="item.useSSL && !item.autoSSL">
+              <div class="path-choose mt-20">
+                <input
+                  type="text"
+                  :class="'input' + (errs['cert'] ? ' error' : '')"
+                  placeholder="cert"
+                  :value="item.ssl.cert"
+                />
+                <div class="icon-block" @click="chooseRoot('cert', true)">
+                  <yb-icon
+                    :svg="import('@/svg/folder.svg?raw')"
+                    class="choose"
+                    width="18"
+                    height="18"
+                  />
+                </div>
+              </div>
+
+              <div class="path-choose mt-20 mb-20">
+                <input
+                  type="text"
+                  :class="'input' + (errs['certkey'] ? ' error' : '')"
+                  placeholder="cert key"
+                  :value="item.ssl.key"
+                />
+                <div class="icon-block" @click="chooseRoot('certkey', true)">
+                  <yb-icon
+                    :svg="import('@/svg/folder.svg?raw')"
+                    class="choose"
+                    width="18"
+                    height="18"
+                  />
+                </div>
               </div>
             </template>
-          </template>
-        </div>
-        <div class="py-5"></div>
+
+            <template v-if="item.useSSL">
+              <div class="ssl-switch mb-20 mt-20">
+                <span>Port</span>
+              </div>
+              <div class="port-set port-ssl mb-20">
+                <div class="port-type"> Nginx </div>
+                <input
+                  v-model.number="item.port.nginx_ssl"
+                  type="number"
+                  :class="'input' + (errs['port_nginx_ssl'] ? ' error' : '')"
+                  placeholder="default: 443"
+                />
+              </div>
+              <div class="port-set port-ssl mb-20">
+                <div class="port-type"> Caddy </div>
+                <input
+                  v-model.number="item.port.caddy_ssl"
+                  type="number"
+                  :class="'input' + (errs['port_caddy_ssl'] ? ' error' : '')"
+                  placeholder="default: 443"
+                />
+              </div>
+              <div class="port-set port-ssl mb-20">
+                <div class="port-type"> Apache </div>
+                <input
+                  v-model.number="item.port.apache_ssl"
+                  type="number"
+                  :class="'input' + (errs['port_apache_ssl'] ? ' error' : '')"
+                  placeholder="default: 443"
+                />
+              </div>
+            </template>
+          </div>
+
+          <div class="plant-title">
+            <div class="flex items-center justify-between">
+              <div class="inline-flex items-center">
+                <span>Nginx Url Rewrite</span>
+                <el-popover
+                  placement="top"
+                  :title="I18nT('base.attention')"
+                  width="auto"
+                  trigger="hover"
+                >
+                  <template #reference>
+                    <yb-icon
+                      :svg="import('@/svg/question.svg?raw')"
+                      width="12"
+                      height="12"
+                      style="margin-left: 5px"
+                    ></yb-icon>
+                  </template>
+                  <p>{{ I18nT('base.nginxRewriteTips') }}</p>
+                </el-popover>
+              </div>
+              <template v-if="nginxRewriteFile">
+                <el-dropdown
+                  size="small"
+                  split-button
+                  @click="shell.showItemInFolder(nginxRewriteFile)"
+                >
+                  {{ I18nT('base.open') }}
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item
+                        @click.stop="Project.openPath(nginxRewriteFile, 'VSCode')"
+                        >{{ I18nT('nodejs.VSCode') }}</el-dropdown-item
+                      >
+                      <el-dropdown-item
+                        @click.stop="Project.openPath(nginxRewriteFile, 'PhpStorm')"
+                        >{{ I18nT('nodejs.PhpStorm') }}</el-dropdown-item
+                      >
+                      <el-dropdown-item
+                        @click.stop="Project.openPath(nginxRewriteFile, 'WebStorm')"
+                        >{{ I18nT('nodejs.WebStorm') }}</el-dropdown-item
+                      >
+                      <el-dropdown-item @click.stop="Project.openPath(nginxRewriteFile, 'Sublime')"
+                        >Sublime Text</el-dropdown-item
+                      >
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </template>
+            </div>
+          </div>
+
+          <div class="main">
+            <el-select
+              v-model="rewriteKey"
+              filterable
+              :placeholder="I18nT('base.commonTemplates')"
+              class="w-p100"
+              @change="rewriteChange"
+            >
+              <el-option v-for="key in rewrites" :key="key" :label="key" :value="key"> </el-option>
+            </el-select>
+
+            <div ref="input" class="input-textarea nginx-rewrite"></div>
+          </div>
+
+          <div class="plant-title flex items-center justify-between">
+            <span>{{ I18nT('host.reverseProxy') }}</span>
+            <el-button link :icon="Plus" @click.stop="addReverseProxy"></el-button>
+          </div>
+          <div class="main flex flex-col gap-3">
+            <template v-if="item.reverseProxy.length === 0">
+              <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+            </template>
+            <template v-else>
+              <template v-for="(proxy, index) in item.reverseProxy" :key="index">
+                <div class="flex items-center justify-between gap-2">
+                  <el-button link :icon="Delete" @click.stop="delReverseProxy(index)"></el-button>
+                  <el-input v-model="proxy.path" class="w-28 ml-2"></el-input>
+                  <el-input v-model="proxy.url"></el-input>
+                </div>
+              </template>
+            </template>
+          </div>
+          <div class="py-5"></div>
+        </el-scrollbar>
       </div>
     </div>
   </el-drawer>
