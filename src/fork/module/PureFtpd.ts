@@ -8,17 +8,16 @@ import {
   execPromise,
   portSearch,
   spawnPromiseMore,
+  uuid,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
+import { readFile, writeFile, mkdirp, chmod, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import Helper from '../Helper'
-import { userInfo } from 'os'
-import { fixEnv } from '@shared/utils'
+import { execPromiseRoot } from '@shared/Exec'
 
 class Manager extends Base {
   constructor() {
@@ -47,30 +46,40 @@ class Manager extends Base {
     })
   }
 
-  _startServer(version: SoftInstalled) {
+  _startServer(version: SoftInstalled, openInTerminal?: boolean) {
     return new ForkPromise(async (resolve, reject) => {
       const confFile = await this._initConf()
       const bin = version.bin
       const pidfile = join(global.Server.FTPDir!, 'pure-ftpd.pid')
-      // const logFile = join(global.Server.FTPDir!, 'pure-ftpd.log')
-      const command = `export FTP_ANON_DIR="${global.Server.UserHome}" && cd "${dirname(bin)}" && ./${basename(bin)} "${confFile}"`
-      console.log('command: ', command)
-      // const uinfo = userInfo()
-      // const env = await fixEnv()
-      // console.log('env: ', env)
-      try {
-        await Helper.send('apache', 'startService', command, {
-          // uid: uinfo.uid,
-          // gid: uinfo.gid,
-          env: {
-            HOME: '/'
-          }
-        })
-      } catch (e) {
-        return reject(e)
+      let command = `cd "${dirname(bin)}" && sudo -S ./${basename(bin)} "${confFile}"`
+      if (openInTerminal) {
+        command = command.replace(/"/g, '\\"')
+        const appleScript = `
+        tell application "Terminal"
+          if not running then
+            activate
+            do script "${command}" in front window
+          else
+            activate
+            do script "${command}"
+          end if
+        end tell`
+        const scptFile = join(global.Server.Cache!, `${uuid()}.scpt`)
+        await writeFile(scptFile, appleScript)
+        await chmod(scptFile, '0777')
+        try {
+          await execPromise(`osascript ./${basename(scptFile)}`, {
+            cwd: global.Server.Cache!
+          })
+          await remove(scptFile)
+        } catch (e) {
+          await remove(scptFile)
+          return reject(e)
+        }
+      } else {
+        await execPromiseRoot(command)
       }
-      // await execPromise(`cd "${dirname(bin)}" && ./${basename(bin)} "${confFile}"`)
-      const res = await this.waitPidFile(pidfile)
+      const res = await this.waitPidFile(pidfile, undefined, openInTerminal ? 60 : 20)
       if (res && res?.pid) {
         resolve({
           'APP-Service-Start-PID': res.pid

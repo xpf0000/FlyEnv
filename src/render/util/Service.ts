@@ -10,7 +10,8 @@ import type { AllAppModule } from '@/core/type'
 const exec = (
   typeFlag: AllAppModule,
   fn: string,
-  version: SoftInstalled
+  version: SoftInstalled,
+  ...params: any
 ): Promise<string | boolean> => {
   return new Promise((resolve) => {
     if (version.running) {
@@ -18,7 +19,7 @@ const exec = (
       return
     }
     if (!version?.version) {
-      resolve(I18nT('fork.phpiniNoFound'))
+      resolve(I18nT('fork.versionNoFound'))
       return
     }
     version.running = true
@@ -122,7 +123,7 @@ const exec = (
       }
     }
 
-    IPC.send(`app-fork:${typeFlag}`, fn, args).then((key: string, res: any) => {
+    IPC.send(`app-fork:${typeFlag}`, fn, args, ...params).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
         const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
@@ -150,8 +151,8 @@ export const stopService = (typeFlag: AllAppModule, version: SoftInstalled) => {
   return exec(typeFlag, 'stopService', version)
 }
 
-export const startService = (typeFlag: AllAppModule, version: SoftInstalled) => {
-  return exec(typeFlag, 'startService', version)
+export const startService = (typeFlag: AllAppModule, version: SoftInstalled, ...args: any) => {
+  return exec(typeFlag, 'startService', version, ...args)
 }
 
 export const reloadService = (typeFlag: AllAppModule, version: SoftInstalled) => {

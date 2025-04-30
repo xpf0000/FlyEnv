@@ -30,8 +30,9 @@ export class Base {
     })
   }
 
-  _startServer(version: SoftInstalled): ForkPromise<any> {
+  _startServer(version: SoftInstalled, ...args: any): ForkPromise<any> {
     console.log(version)
+    console.log(args)
     return new ForkPromise<any>((resolve) => {
       resolve(true)
     })
@@ -72,7 +73,7 @@ export class Base {
     return this._stopServer(version)
   }
 
-  startService(version: SoftInstalled) {
+  startService(version: SoftInstalled, ...args: any) {
     return new ForkPromise(async (resolve, reject, on) => {
       if (!existsSync(version?.bin)) {
         reject(new Error(I18nT('fork.binNoFound')))
@@ -87,7 +88,7 @@ export class Base {
       } catch (e) {}
       try {
         await this._stopServer(version).on(on)
-        const res = await this._startServer(version).on(on)
+        const res = await this._startServer(version, ...args).on(on)
         if (res?.['APP-Service-Start-PID']) {
           const pid = res['APP-Service-Start-PID']
           const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)

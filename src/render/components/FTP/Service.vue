@@ -73,7 +73,7 @@
 
 <script lang="tsx" setup>
   import { computed, ref } from 'vue'
-  import type { Column } from 'element-plus'
+  import { type Column, ElMessageBox } from 'element-plus'
   import { FtpStore } from './ftp'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
@@ -158,23 +158,65 @@
     if (ftpDisabled?.value) {
       return
     }
-    let action: any
-    switch (flag) {
-      case 'stop':
-        action = stopService('pure-ftpd', ftpVersion.value!)
-        break
-      case 'start':
-      case 'restart':
-        action = startService('pure-ftpd', ftpVersion.value!)
-        break
-    }
-    action.then((res: any) => {
-      if (typeof res === 'string') {
-        MessageError(res)
-      } else {
-        MessageSuccess(I18nT('base.success'))
+    const doAction = (openInTerminal = false) => {
+      let action: any
+      switch (flag) {
+        case 'stop':
+          action = stopService('pure-ftpd', ftpVersion.value!)
+          break
+        case 'start':
+        case 'restart':
+          action = startService('pure-ftpd', ftpVersion.value!, openInTerminal)
+          break
       }
-    })
+      action.then((res: any) => {
+        if (typeof res === 'string') {
+          MessageError(res)
+        } else {
+          MessageSuccess(I18nT('base.success'))
+        }
+      })
+    }
+    const showPasswordTips = () => {
+      ElMessageBox.prompt(I18nT('service.ftpdNeedPasswordToStart'), I18nT('host.warning'), {
+        confirmButtonText: I18nT('base.confirm'),
+        cancelButtonText: I18nT('nodejs.openIN') + ' ' + I18nT('nodejs.Terminal'),
+        inputType: 'password',
+        customClass: 'password-prompt',
+        beforeClose: (action, instance, done) => {
+          if (action === 'confirm') {
+            if (instance.inputValue) {
+              const pass = instance.inputValue
+              IPC.send('app:password-check', pass).then((key: string, res: any) => {
+                IPC.off(key)
+                if (res?.code === 0) {
+                  global.Server.Password = res?.data ?? pass
+                  AppStore()
+                    .initConfig()
+                    .then(() => {
+                      done && done()
+                      doAction()
+                    })
+                } else {
+                  instance.editorErrorMessage = res?.msg ?? I18nT('base.passwordError')
+                }
+              })
+            }
+          } else {
+            done()
+            doAction(true)
+          }
+        }
+      })
+        .then()
+        .catch()
+    }
+
+    if (!global.Server.Password && ['start', 'restart'].includes(flag)) {
+      showPasswordTips()
+    } else {
+      doAction()
+    }
   }
 
   const doAdd = (item?: any) => {

@@ -213,18 +213,54 @@
         </div>
 
         <div class="plant-title">
-          <span>Nginx Url Rewrite</span>
-          <el-popover placement="top" :title="I18nT('base.attention')" width="auto" trigger="hover">
-            <template #reference>
-              <yb-icon
-                :svg="import('@/svg/question.svg?raw')"
-                width="12"
-                height="12"
-                style="margin-left: 5px"
-              ></yb-icon>
+          <div class="flex items-center justify-between">
+            <div class="inline-flex items-center">
+              <span>Nginx Url Rewrite</span>
+              <el-popover
+                placement="top"
+                :title="I18nT('base.attention')"
+                width="auto"
+                trigger="hover"
+              >
+                <template #reference>
+                  <yb-icon
+                    :svg="import('@/svg/question.svg?raw')"
+                    width="12"
+                    height="12"
+                    style="margin-left: 5px"
+                  ></yb-icon>
+                </template>
+                <p>{{ I18nT('base.nginxRewriteTips') }}</p>
+              </el-popover>
+            </div>
+            <template v-if="nginxRewriteFile">
+              <el-dropdown
+                size="small"
+                split-button
+                @click="shell.showItemInFolder(nginxRewriteFile)"
+              >
+                {{ I18nT('base.open') }}
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item @click.stop="Project.openPath(nginxRewriteFile, 'VSCode')">{{
+                      I18nT('nodejs.VSCode')
+                    }}</el-dropdown-item>
+                    <el-dropdown-item
+                      @click.stop="Project.openPath(nginxRewriteFile, 'PhpStorm')"
+                      >{{ I18nT('nodejs.PhpStorm') }}</el-dropdown-item
+                    >
+                    <el-dropdown-item
+                      @click.stop="Project.openPath(nginxRewriteFile, 'WebStorm')"
+                      >{{ I18nT('nodejs.WebStorm') }}</el-dropdown-item
+                    >
+                    <el-dropdown-item @click.stop="Project.openPath(nginxRewriteFile, 'Sublime')"
+                      >Sublime Text</el-dropdown-item
+                    >
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
-            <p>{{ I18nT('base.nginxRewriteTips') }}</p>
-          </el-popover>
+          </div>
         </div>
         <div class="main">
           <el-select
@@ -280,9 +316,14 @@
   import { ElMessageBox } from 'element-plus'
   import { Plus, Delete } from '@element-plus/icons-vue'
   import SSLTips from './SSLTips/index.vue'
+  import { Project } from '@/util/Project'
+  import type { FSWatcher } from 'fs'
 
-  const { dialog } = require('@electron/remote')
+  const { dialog, shell } = require('@electron/remote')
   const { join } = require('path')
+  const { readFile } = require('fs-extra')
+  const { existsSync } = require('fs')
+  const fsWatch = require('fs').watch
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -397,6 +438,47 @@
   const itemName = computed(() => {
     return item.value.name
   })
+
+  const nginxRewriteFile = computed(() => {
+    const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
+    const rewritep = join(rewritepath, `${itemName.value}.conf`)
+    if (existsSync(rewritep)) {
+      return rewritep
+    }
+    return null
+  })
+
+  let watcher: FSWatcher | null
+
+  const readNginxRewriteFromFile = () => {
+    if (!nginxRewriteFile.value) {
+      return
+    }
+    try {
+      readFile(nginxRewriteFile.value, 'utf-8').then((str: string) => {
+        item.value.nginx.rewrite = str
+        monacoInstance?.setValue?.(str)
+      })
+    } catch (e) {}
+  }
+
+  watch(
+    nginxRewriteFile,
+    (v) => {
+      if (watcher) {
+        watcher.close()
+        watcher = null
+      }
+      if (v) {
+        watcher = fsWatch(v, () => {
+          readNginxRewriteFromFile()
+        })
+      }
+    },
+    {
+      immediate: true
+    }
+  )
 
   watch(itemName, (name) => {
     for (let h of hosts.value) {
@@ -599,11 +681,17 @@
   onMounted(() => {
     nextTick().then(() => {
       initEditor()
+      readNginxRewriteFromFile()
     })
   })
   onUnmounted(() => {
     monacoInstance && monacoInstance.dispose()
     monacoInstance = null
+    if (watcher) {
+      watcher.close()
+      watcher = null
+    }
+    console.log('onUnmounted !!!!')
   })
 
   defineExpose({

@@ -37,6 +37,19 @@ class Php extends Base {
     this.pidPath = join(global.Server.PhpDir!, 'common/var/run/php-fpm.pid')
   }
 
+  initCACertPEM() {
+    return new ForkPromise(async (resolve) => {
+      const capem = join(global.Server.BaseDir!, 'CA/cacert.pem')
+      if (!existsSync(capem)) {
+        try {
+          await mkdirp(dirname(capem))
+          await copyFile(join(global.Server.Static!, 'tmpl/cacert.pem'), capem)
+        } catch (e) {}
+      }
+      resolve(true)
+    })
+  }
+
   getIniPath(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject) => {
       let command = ''
