@@ -7,13 +7,21 @@ import { Service } from '@/components/ServiceManager/service'
 import installedVersions from '@/util/InstalledVersions'
 import { AllAppModule } from '@/core/type'
 
+type ServiceActionExtParamFN = (
+  typeFlag: AllAppModule,
+  fn: string,
+  version: SoftInstalled
+) => Promise<any[]>
+
+export const ServiceActionExtParam: Partial<Record<AllAppModule, ServiceActionExtParamFN>> = {}
+
 const exec = (
   typeFlag: AllAppModule,
   fn: string,
   version: SoftInstalled,
   lastVersion?: SoftInstalled
 ): Promise<string | boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     if (version.running) {
       resolve(true)
       return
@@ -59,28 +67,42 @@ const exec = (
         findV.pid = pid
       }
     }
-    IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion).then((key: string, res: any) => {
-      if (res.code === 0) {
-        console.log('### key: ', key)
-        IPC.off(key)
-        const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
-        handleResult(fn !== 'stopService', pid)
-        resolve(true)
-      } else if (res.code === 1) {
-        IPC.off(key)
-        task.log!.push(res.msg)
+
+    let params: any[] = []
+
+    if (ServiceActionExtParam?.[typeFlag]) {
+      try {
+        params = await ServiceActionExtParam[typeFlag]!(typeFlag, fn, version)
+      } catch (e) {
         handleResult(false)
-        resolve(task.log!.join('\n'))
-      } else if (res.code === 200) {
-        if (typeof res?.msg === 'string') {
+        return resolve(true)
+      }
+    }
+
+    IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion, ...params).then(
+      (key: string, res: any) => {
+        if (res.code === 0) {
+          console.log('### key: ', key)
+          IPC.off(key)
+          const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
+          handleResult(fn !== 'stopService', pid)
+          resolve(true)
+        } else if (res.code === 1) {
+          IPC.off(key)
           task.log!.push(res.msg)
-        } else if (res?.msg?.['APP-Service-Start-Success'] === true) {
-          handleResult(true)
-        } else if (res?.msg?.['APP-Service-Stop-Success'] === true) {
           handleResult(false)
+          resolve(task.log!.join('\n'))
+        } else if (res.code === 200) {
+          if (typeof res?.msg === 'string') {
+            task.log!.push(res.msg)
+          } else if (res?.msg?.['APP-Service-Start-Success'] === true) {
+            handleResult(true)
+          } else if (res?.msg?.['APP-Service-Stop-Success'] === true) {
+            handleResult(false)
+          }
         }
       }
-    })
+    )
   })
 }
 

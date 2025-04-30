@@ -214,20 +214,54 @@
           </template>
         </div>
 
-        <div class="plant-title flex justify-between items-center">
-          <div class="flex items-center">
-            <span>Nginx Url Rewrite</span>
-            <el-popover placement="top" :title="I18nT('base.attention')" width="auto" trigger="hover">
-              <template #reference>
-                <yb-icon
-                  :svg="import('@/svg/question.svg?raw')"
-                  width="12"
-                  height="12"
-                  style="margin-left: 5px"
-                ></yb-icon>
-              </template>
-              <p>{{ I18nT('base.nginxRewriteTips') }}</p>
-            </el-popover>
+        <div class="plant-title">
+          <div class="flex items-center justify-between">
+            <div class="inline-flex items-center">
+              <span>Nginx Url Rewrite</span>
+              <el-popover
+                placement="top"
+                :title="I18nT('base.attention')"
+                width="auto"
+                trigger="hover"
+              >
+                <template #reference>
+                  <yb-icon
+                    :svg="import('@/svg/question.svg?raw')"
+                    width="12"
+                    height="12"
+                    style="margin-left: 5px"
+                  ></yb-icon>
+                </template>
+                <p>{{ I18nT('base.nginxRewriteTips') }}</p>
+              </el-popover>
+            </div>
+            <template v-if="nginxRewriteFile">
+              <el-dropdown
+                size="small"
+                split-button
+                @click="shell.showItemInFolder(nginxRewriteFile)"
+              >
+                {{ I18nT('base.open') }}
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item @click.stop="Project.openPath(nginxRewriteFile, 'VSCode')">{{
+                      I18nT('nodejs.VSCode')
+                    }}</el-dropdown-item>
+                    <el-dropdown-item
+                      @click.stop="Project.openPath(nginxRewriteFile, 'PhpStorm')"
+                      >{{ I18nT('nodejs.PhpStorm') }}</el-dropdown-item
+                    >
+                    <el-dropdown-item
+                      @click.stop="Project.openPath(nginxRewriteFile, 'WebStorm')"
+                      >{{ I18nT('nodejs.WebStorm') }}</el-dropdown-item
+                    >
+                    <el-dropdown-item @click.stop="Project.openPath(nginxRewriteFile, 'Sublime')"
+                      >Sublime Text</el-dropdown-item
+                    >
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </template>
           </div>
         </div>
 
@@ -244,13 +278,33 @@
 
           <div ref="input" class="input-textarea nginx-rewrite"></div>
         </div>
+
+        <div class="plant-title flex items-center justify-between">
+          <span>{{ I18nT('host.reverseProxy') }}</span>
+          <el-button link :icon="Plus" @click.stop="addReverseProxy"></el-button>
+        </div>
+        <div class="main flex flex-col gap-3">
+          <template v-if="item.reverseProxy.length === 0">
+            <div class="flex justify-center">{{ I18nT('base.none') }}</div>
+          </template>
+          <template v-else>
+            <template v-for="(proxy, index) in item.reverseProxy" :key="index">
+              <div class="flex items-center justify-between gap-2">
+                <el-button link :icon="Delete" @click.stop="delReverseProxy(index)"></el-button>
+                <el-input v-model="proxy.path" class="w-28 ml-2"></el-input>
+                <el-input v-model="proxy.url"></el-input>
+              </div>
+            </template>
+          </template>
+        </div>
+        <div class="py-5"></div>
       </div>
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, ref, watch, Ref, onMounted, onUnmounted } from 'vue'
+  import { computed, nextTick, ref, watch, Ref, onMounted, onUnmounted, reactive } from 'vue'
   import { getAllFileAsync, readFileAsync } from '@shared/file'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
@@ -265,10 +319,14 @@
   import { ElMessageBox } from 'element-plus'
   import IPC from '@/util/IPC'
   import SSLTips from './SSLTips/index.vue'
+  import { Project } from '@/util/Project'
+  import type { FSWatcher } from 'fs'
+  import { Plus, Delete } from '@element-plus/icons-vue'
 
   const { dialog, shell } = require('@electron/remote')
   const { join } = require('path')
-  const { existsSync, mkdirp } = require('fs-extra')
+  const { existsSync, readFile } = require('fs-extra')
+  const fsWatch = require('fs').watch
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -303,7 +361,8 @@
     url: '',
     root: '',
     mark: '',
-    phpVersion: undefined
+    phpVersion: undefined,
+    reverseProxy: []
   })
   const errs = ref({
     name: false,
@@ -379,6 +438,47 @@
     return item.value.name
   })
 
+  const nginxRewriteFile = computed(() => {
+    const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
+    const rewritep = join(rewritepath, `${itemName.value}.conf`)
+    if (existsSync(rewritep)) {
+      return rewritep
+    }
+    return null
+  })
+
+  let watcher: FSWatcher | null
+
+  const readNginxRewriteFromFile = () => {
+    if (!nginxRewriteFile.value) {
+      return
+    }
+    try {
+      readFile(nginxRewriteFile.value, 'utf-8').then((str: string) => {
+        item.value.nginx.rewrite = str
+        monacoInstance?.setValue?.(str)
+      })
+    } catch (e) {}
+  }
+
+  watch(
+    nginxRewriteFile,
+    (v) => {
+      if (watcher) {
+        watcher.close()
+        watcher = null
+      }
+      if (v) {
+        watcher = fsWatch(v, () => {
+          readNginxRewriteFromFile()
+        })
+      }
+    },
+    {
+      immediate: true
+    }
+  )
+
   watch(itemName, (name) => {
     for (let h of hosts.value) {
       if (h.name === name && h.id !== item.value.id) {
@@ -451,6 +551,20 @@
     } else {
       rewrites.value.push(...Object.keys(RewriteAll))
     }
+  }
+
+  const addReverseProxy = () => {
+    const d = reactive({
+      path: '/',
+      url: 'http://127.0.0.1:3000'
+    })
+    const arr: any[] = item.value.reverseProxy as any
+    arr.unshift(d)
+  }
+
+  const delReverseProxy = (index: number) => {
+    const arr: any[] = item.value.reverseProxy as any
+    arr.splice(index, 1)
   }
 
   const chooseRoot = (flag: 'root' | 'certkey' | 'cert', choosefile = false) => {
@@ -562,11 +676,16 @@
   onMounted(() => {
     nextTick().then(() => {
       initEditor()
+      readNginxRewriteFromFile()
     })
   })
   onUnmounted(() => {
     monacoInstance && monacoInstance.dispose()
     monacoInstance = null
+    if (watcher) {
+      watcher.close()
+      watcher = null
+    }
   })
 
   defineExpose({

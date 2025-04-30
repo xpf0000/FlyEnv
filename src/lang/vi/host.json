@@ -63,5 +63,6 @@
   "dbclickRowToEdit": "Nhấp đúp vào dòng này để chỉnh sửa",
   "comment": "Ghi chú",
   "hostPort": "Cổng",
-  "enable": "Bật"
+  "enable": "Bật",
+  "reverseProxy": "Reverse Proxy"
 }

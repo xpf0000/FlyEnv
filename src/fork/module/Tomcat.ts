@@ -59,10 +59,15 @@ class Tomcat extends Base {
     }
   }
 
-  _initDefaultDir(version: SoftInstalled) {
+  _initDefaultDir(version: SoftInstalled, baseDir?: string) {
     return new ForkPromise(async (resolve, reject, on) => {
-      const v = version?.version?.split('.')?.shift() ?? ''
-      const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+      let dir = ''
+      if (baseDir) {
+        dir = baseDir
+      } else {
+        const v = version?.version?.split('.')?.shift() ?? ''
+        dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+      }
       if (existsSync(dir) && existsSync(join(dir, 'conf/server.xml'))) {
         resolve(dir)
       }
@@ -127,7 +132,7 @@ class Tomcat extends Base {
     })
   }
 
-  _startServer(version: SoftInstalled) {
+  _startServer(version: SoftInstalled, lastVersion?: SoftInstalled, CATALINA_BASE?: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog(
@@ -137,7 +142,7 @@ class Tomcat extends Base {
       })
       const bin = version.bin
       await this._fixStartBat(version)
-      const baseDir = await this._initDefaultDir(version).on(on)
+      const baseDir = await this._initDefaultDir(version, CATALINA_BASE).on(on)
       await makeGlobalTomcatServerXML({
         path: baseDir
       } as any)

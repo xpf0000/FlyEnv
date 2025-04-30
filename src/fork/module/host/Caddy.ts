@@ -5,7 +5,7 @@ import { hostAlias } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash'
-import {pathFixedToUnix} from "@shared/utils";
+import { pathFixedToUnix } from '@shared/utils'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -129,7 +129,9 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
   const replace: Array<string> = []
   if (host.name !== old.name) {
     hasChanged = true
-    const logFile = join(global.Server.BaseDir!, `vhost/logs/${host.name}.caddy.log`).split('\\').join('/')
+    const logFile = join(global.Server.BaseDir!, `vhost/logs/${host.name}.caddy.log`)
+      .split('\\')
+      .join('/')
     find.push(`import set-log (.*?)\\r\\n`)
     replace.push(`import set-log "${logFile}"\r\n`)
     find.push(`import set-log (.*?)\\n`)

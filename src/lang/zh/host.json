@@ -63,5 +63,6 @@
   "enable": "开启",
   "hostsWriteTips": "开启或关闭全部站点",
   "sort": "排序",
-  "dbclickRowToEdit": "双击此行进行编辑"
+  "dbclickRowToEdit": "双击此行进行编辑",
+  "reverseProxy": "反向代理"
 }

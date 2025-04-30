@@ -5,7 +5,7 @@ import { hostAlias } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash'
-import {pathFixedToUnix} from "@shared/utils";
+import { pathFixedToUnix } from '@shared/utils'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -214,7 +214,7 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
         `access_log(.*?)${logpath}/(.*?)\\r\\n`,
         `access_log(.*?)${logpath}/(.*?)\\n`,
         `error_log(.*?)${logpath}/(.*?)\\r\\n`,
-        `error_log(.*?)${logpath}/(.*?)\\n`,
+        `error_log(.*?)${logpath}/(.*?)\\n`
       ]
     )
     replace.push(

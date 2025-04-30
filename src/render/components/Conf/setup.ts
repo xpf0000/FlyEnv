@@ -26,6 +26,7 @@ export type CommonSetItem = {
   tips: () => string
   onChange?: (newValue: any, oldValue: any) => void
   key?: string
+  pathHandler?: (dir: string) => string
 }
 
 type ConfStoreType = {
