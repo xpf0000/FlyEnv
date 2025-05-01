@@ -1,4 +1,5 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+Set-Location -Path "#CWD#"
 $psi = New-Object System.Diagnostics.ProcessStartInfo
 $psi.FileName = "#BIN#"
 $psi.Arguments = "#ARGS#"
