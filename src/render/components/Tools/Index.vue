@@ -361,7 +361,9 @@
   })
 
   const onNodeClick = (data: any) => {
-    AppToolStore.id = data.id
+    if (data?.id) {
+      AppToolStore.id = data.id
+    }
   }
 
   const searchALL = computed(() => {
