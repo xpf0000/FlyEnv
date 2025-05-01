@@ -267,8 +267,8 @@ class Tomcat extends Base {
       await waitTime(3000)
       const res = await checkPid()
       if (res && res?.pid) {
-        await writeFile(this.pidPath, res.pid)
-        await writeFile(appPidFile, res.pid)
+        await writeFile(this.pidPath, `${res.pid}`)
+        await writeFile(appPidFile, `${res.pid}`)
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
         })
