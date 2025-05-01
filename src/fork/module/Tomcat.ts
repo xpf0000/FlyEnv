@@ -162,6 +162,7 @@ class Tomcat extends Base {
 
       const cmdName = `start.cmd`
       const sh = join(tomcatDir, cmdName)
+      await mkdirp(tomcatDir)
       await writeFile(sh, command)
 
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
