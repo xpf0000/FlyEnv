@@ -287,7 +287,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
                 version: undefined
               })
             }
-            const command = `${join(dirname(item.bin), 'rabbitmqctl.bat')} version`
+            const command = `rabbitmqctl.bat version`
             const reg = /(.*?)(\d+(\.\d+){1,4})(.*?)/g
             return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
