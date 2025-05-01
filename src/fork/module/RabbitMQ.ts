@@ -171,7 +171,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
         'chcp 65001>nul',
         `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`,
         `cd /d "${dirname(version.bin)}"`,
-        `start /B ${basename(version.bin)} -detached --PWSAPPFLAG=${global.Server.BaseDir!} > "${startLogFile}" 2>"${startErrorLogFile}" &`
+        `start /B cmd /c "${basename(version.bin)} -detached > \"${startLogFile}\" 2>\"${startErrorLogFile}\""`
       ]
 
       const command = commands.join(EOL)

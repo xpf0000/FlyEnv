@@ -135,14 +135,12 @@ class Tomcat extends Base {
 
       await mkdirp(join(baseDir, 'logs'))
 
-      const startLogFile = join(global.Server.BaseDir!, `tomcat/start.log`)
-
       const commands: string[] = [
         '@echo off',
         'chcp 65001>nul',
         `set "CATALINA_BASE=${baseDir}"`,
         `cd /d "${dirname(bin)}"`,
-        `start /B cmd /c "${basename(bin)} > "${startLogFile}" 2>&1"`
+        `start /B cmd /c "${basename(bin)} > NUL 2>&1"`
       ]
 
       const command = commands.join(EOL)
