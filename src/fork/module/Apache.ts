@@ -7,6 +7,7 @@ import {
   AppLog,
   execPromise,
   getAllFileAsync,
+  spawnPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -300,8 +301,18 @@ IncludeOptional "${vhost}*.conf"`
       })
       process.chdir(global.Server.ApacheDir!)
       try {
-        await execPromise(
-          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+        await spawnPromise(
+          'powershell.exe',
+          [
+            '-NoProfile',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-Command',
+            `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+          ],
+          {
+            shell: 'powershell.exe'
+          }
         )
       } catch (e: any) {
         console.log('-k start err: ', e)

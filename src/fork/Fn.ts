@@ -181,6 +181,7 @@ export function spawnPromise(
       params,
       merge(
         {
+          encoding: 'utf-8',
           env: fixEnv()
         },
         opt
