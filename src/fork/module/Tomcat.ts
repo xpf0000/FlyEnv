@@ -10,7 +10,8 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  waitTime
 } from '../Fn'
 import { copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
@@ -223,8 +224,51 @@ class Tomcat extends Base {
       on({
         'APP-Service-Start-Success': true
       })
-      const res = await this.waitPidFile(this.pidPath, startErrorLog)
+
+      /**
+       * "C:\Users\x\Desktop\Git Hub\FlyEnv\data\env\java\bin\javaw.exe"
+       * -Djava.util.logging.config.file="C:\Users\x\Desktop\App\CCC\conf\logging.properties"
+       * -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+       * -Djdk.tls.ephemeralDHKeySize=2048
+       * --add-opens=java.base/java.lang=ALL-UNNAMED
+       * --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+       * --add-opens=java.base/java.io=ALL-UNNAMED
+       * --add-opens=java.base/java.util=ALL-UNNAMED
+       * --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+       * --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+       * --enable-native-access=ALL-UNNAMED
+       * -classpath "C:\Users\x\Desktop\Git Hub\FlyEnv\data\app\tomcat-11.0.6\bin\bootstrap.jar;C:\Users\x\Desktop\Git Hub\FlyEnv\data\app\tomcat-11.0.6\bin\tomcat-juli.jar"
+       * -Dcatalina.base="C:\Users\x\Desktop\App\CCC"
+       * -Dcatalina.home="C:\Users\x\Desktop\Git Hub\FlyEnv\data\app\tomcat-11.0.6"
+       * -Djava.io.tmpdir="C:\Users\x\Desktop\App\CCC\temp"
+       * org.apache.catalina.startup.Bootstrap start
+       */
+      const checkPid = (): Promise<{ pid: number } | undefined> => {
+        return new Promise((resolve) => {
+          const doCheck = async (time: number) => {
+            const pids = await ProcessListSearch(`-Dcatalina.base="${baseDir}"`, false)
+            if (pids.length > 0) {
+              const pid = pids.pop()!
+              resolve({
+                pid: pid.ProcessId
+              })
+            } else {
+              if (time < 20) {
+                await waitTime(2000)
+                await doCheck(time + 1)
+              } else {
+                resolve(undefined)
+              }
+            }
+          }
+          doCheck(0).then().catch()
+        })
+      }
+      await waitTime(3000)
+      const res = await checkPid()
       if (res && res?.pid) {
+        await writeFile(this.pidPath, res.pid)
+        await writeFile(appPidFile, res.pid)
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
         })
@@ -237,7 +281,7 @@ class Tomcat extends Base {
         'APP-On-Log': AppLog(
           'error',
           I18nT('appLog.execStartCommandFail', {
-            error: res ? res?.error : 'Start failed',
+            error: 'Start failed',
             service: `${this.type}-${version.version}`
           })
         )
