@@ -75,6 +75,7 @@ class Tomcat extends Base {
       }
       if (existsSync(dir) && existsSync(join(dir, 'conf/server.xml'))) {
         resolve(dir)
+        return
       }
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
@@ -163,20 +164,13 @@ class Tomcat extends Base {
       await mkdirp(join(baseDir, 'logs'))
 
       const startLog = join(tomcatDir, 'start.log')
-      const startErrorLog = join(tomcatDir, 'start.error.log')
-      if (existsSync(startErrorLog)) {
-        try {
-          await remove(startErrorLog)
-        } catch (e) {}
-      }
 
       const commands: string[] = [
         '@echo off',
         'chcp 65001>nul',
         `set "CATALINA_BASE=${baseDir}"`,
-        `set "CATALINA_PID=${this.pidPath}"`,
         `cd /d "${dirname(bin)}"`,
-        `start /B ${basename(bin)} > "${startLog}" 2>"${startErrorLog}" &`
+        `start /B ${basename(bin)} > "${startLog}" 2>&1 &`
       ]
 
       const command = commands.join(EOL)
