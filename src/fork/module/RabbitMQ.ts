@@ -119,19 +119,13 @@ set "PLUGINS_DIR=${pluginsDir}"`
       const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)
       await mkdirp(mnesiaBaseDir)
 
-      const startLogFile = join(this.baseDir, `start.log`)
-      const startErrorLogFile = join(this.baseDir, `start.error.log`)
-      if (existsSync(startErrorLogFile)) {
-        try {
-          await remove(startErrorLogFile)
-        } catch (e) {}
-      }
-
       const checkpid = async (time = 0) => {
         const all = readdirSync(mnesiaBaseDir)
         const pidFile = all.find((p) => p.endsWith('.pid'))
         if (pidFile) {
-          const pid = await readFile(join(mnesiaBaseDir, pidFile), 'utf-8')
+          const pid = (await readFile(join(mnesiaBaseDir, pidFile), 'utf-8')).trim()
+          await writeFile(this.pidPath, `${pid}`)
+          await writeFile(appPidFile, `${pid}`)
           on({
             'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
           })
@@ -141,10 +135,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
             await waitTime(500)
             await checkpid(time + 1)
           } else {
-            let msg = I18nT('fork.startFail')
-            if (existsSync(startErrorLogFile)) {
-              msg = await readFile(startErrorLogFile)
-            }
+            const msg = I18nT('fork.startFail')
             on({
               'APP-On-Log': AppLog(
                 'error',
@@ -171,7 +162,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
         'chcp 65001>nul',
         `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`,
         `cd /d "${dirname(version.bin)}"`,
-        `start /B cmd /c "${basename(version.bin)} -detached > \"${startLogFile}\" 2>\"${startErrorLogFile}\""`
+        `start /B cmd /c "${basename(version.bin)} -detached > NUL 2>&1"`
       ]
 
       const command = commands.join(EOL)
