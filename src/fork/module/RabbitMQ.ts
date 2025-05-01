@@ -161,7 +161,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
         '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
         `$env:RABBITMQ_CONF_ENV_FILE = "${confFile}"`,
         `Set-Location -Path "${dirname(version.bin)}"`,
-        `$process = Start-Process -FilePath "${basename(version.bin)}" -ArgumentList "-detached" -WindowStyle Hidden -RedirectStandardOutput NUL -RedirectStandardError NUL -PassThru`,
+        `$process = Start-Process -FilePath "./${basename(version.bin)}" -ArgumentList "-detached" -WindowStyle Hidden -RedirectStandardOutput NUL -RedirectStandardError NUL -PassThru`,
         `Write-Host "$($process.Id)"`
       ]
 
