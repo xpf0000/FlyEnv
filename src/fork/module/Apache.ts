@@ -287,8 +287,8 @@ IncludeOptional "${vhost}*.conf"`
         `$process = Start-Process -FilePath "./${basename(bin)}" \``,
         `-ArgumentList "-f \`"${conf}\`"" \``,
         `-WindowStyle Hidden \``,
-        `-RedirectStandardOutput NUL \``,
-        `-RedirectStandardError "${errorFile}" \``,
+        // `-RedirectStandardOutput NUL \``,
+        // `-RedirectStandardError "${errorFile}" \``,
         `-PassThru`,
         `Write-Host "$($process.Id)"`
       ]
