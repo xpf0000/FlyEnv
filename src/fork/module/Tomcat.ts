@@ -166,9 +166,7 @@ class Tomcat extends Base {
       })
       process.chdir(tomcatDir)
       try {
-        await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
-        )
+        await execPromise(`./${cmdName}`)
       } catch (e: any) {
         on({
           'APP-On-Log': AppLog(
