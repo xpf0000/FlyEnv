@@ -102,16 +102,21 @@ export const ProcessListSearch = async (search: string, aA = true) => {
     if (!item?.CommandLine) {
       console.log('!item?.CommandLine: ', item)
     }
+    const b = `${item.ProcessId}` === `${search}`
+    const c = `${item.ParentProcessId}` === `${search}`
+
     if (!aA) {
       search = search.toLowerCase()
-      if (item?.CommandLine && item.CommandLine.toLowerCase().includes(search)) {
+      const a = item?.CommandLine && item.CommandLine.toLowerCase().includes(search)
+      if (a || b || c) {
         if (!all.find((f) => f.ProcessId === item.ProcessId)) {
           all.push(item)
           find(item.ProcessId!)
         }
       }
     } else {
-      if (item?.CommandLine && item.CommandLine.includes(search)) {
+      const a = item?.CommandLine && item.CommandLine.includes(search)
+      if (a || b || c) {
         if (!all.find((f) => f.ProcessId === item.ProcessId)) {
           all.push(item)
           find(item.ProcessId!)
