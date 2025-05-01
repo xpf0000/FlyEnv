@@ -279,10 +279,18 @@ IncludeOptional "${vhost}*.conf"`
         } catch (e) {}
       }
 
+      const outFile = join(global.Server.ApacheDir!, 'start.out.log')
+      const errorFile = join(global.Server.ApacheDir!, 'start.error.log')
+
       const psCommands: string[] = [
         '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
         `Set-Location -Path "${dirname(bin)}"`,
-        `$process = Start-Process -FilePath "./${basename(bin)}" -ArgumentList "-f \`"${conf}\`"" -WindowStyle Hidden -PassThru`,
+        `$process = Start-Process -FilePath "./${basename(bin)}" \``,
+        `-ArgumentList "-f \`"${conf}\`"" \``,
+        `-WindowStyle Hidden \``,
+        `-RedirectStandardOutput "${outFile}" \``,
+        `-RedirectStandardError "${errorFile}" \``,
+        `-PassThru`,
         `Write-Host "$($process.Id)"`
       ]
 
@@ -342,7 +350,10 @@ IncludeOptional "${vhost}*.conf"`
         reject(new Error(res?.error ?? 'Start Fail'))
         return
       }
-      const msg = 'Start Fail'
+      let msg = 'Start Fail'
+      if (existsSync(errorFile)) {
+        msg = (await readFile(errorFile, 'utf8')) || 'Start Fail'
+      }
       on({
         'APP-On-Log': AppLog(
           'error',
