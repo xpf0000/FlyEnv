@@ -26,8 +26,8 @@ try {
     $output = $process.StandardOutput.ReadToEndAsync()
     $error = $process.StandardError.ReadToEndAsync()
 
-    [IO.File]::WriteAllText($OUTLOG, $output)
-    [IO.File]::WriteAllText($ERRLOG, $error)
+    [IO.File]::WriteAllText($OUTLOG, $output.Result)
+    [IO.File]::WriteAllText($ERRLOG, $error.Result)
 }
 catch {
     $errorMessage = "$($_.Exception.Message)"
@@ -38,3 +38,4 @@ catch {
 finally {
     $process.Close()
 }
+exit 0
