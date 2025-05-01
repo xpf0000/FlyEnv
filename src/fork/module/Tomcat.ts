@@ -25,6 +25,10 @@ class Tomcat extends Base {
     this.type = 'tomcat'
   }
 
+  init() {
+    this.pidPath = join(global.Server.BaseDir!, 'tomcat/tomcat.pid')
+  }
+
   fetchAllOnLineVersion() {
     console.log('Tomcat fetchAllOnLineVersion !!!')
     return new ForkPromise(async (resolve) => {
@@ -59,7 +63,7 @@ class Tomcat extends Base {
     }
   }
 
-  _initDefaultDir(version: SoftInstalled, baseDir?: string) {
+  _initDefaultDir(version: SoftInstalled, baseDir?: string): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, on) => {
       let dir = ''
       if (baseDir) {
@@ -142,19 +146,36 @@ class Tomcat extends Base {
       })
       const bin = version.bin
       await this._fixStartBat(version)
-      const baseDir = await this._initDefaultDir(version, CATALINA_BASE).on(on)
+      const baseDir: string = await this._initDefaultDir(version, CATALINA_BASE).on(on)
       await makeGlobalTomcatServerXML({
         path: baseDir
       } as any)
 
+      if (existsSync(this.pidPath)) {
+        try {
+          await remove(this.pidPath)
+        } catch (e) {}
+      }
+
       const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
+
+      await mkdirp(join(baseDir, 'logs'))
+
+      const startLog = join(tomcatDir, 'start.log')
+      const startErrorLog = join(tomcatDir, 'start.error.log')
+      if (existsSync(startErrorLog)) {
+        try {
+          await remove(startErrorLog)
+        } catch (e) {}
+      }
 
       const commands: string[] = [
         '@echo off',
         'chcp 65001>nul',
         `set "CATALINA_BASE=${baseDir}"`,
+        `set "CATALINA_PID=${this.pidPath}"`,
         `cd /d "${dirname(bin)}"`,
-        `start /B ${basename(bin)} > NUL 2>&1 &`
+        `start /B ${basename(bin)} > "${startLog}" 2>"${startErrorLog}" &`
       ]
 
       const command = commands.join(EOL)
@@ -178,14 +199,9 @@ class Tomcat extends Base {
       })
       process.chdir(tomcatDir)
       try {
-        const res = await execPromise(
+        await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
         )
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.stdout }))
-        })
-        console.log('tomcat start res: ', res.stdout)
-        resolve(true)
       } catch (e: any) {
         on({
           'APP-On-Log': AppLog(
@@ -200,6 +216,33 @@ class Tomcat extends Base {
         reject(e)
         return
       }
+
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+      })
+      on({
+        'APP-Service-Start-Success': true
+      })
+      const res = await this.waitPidFile(this.pidPath, startErrorLog)
+      if (res && res?.pid) {
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+        })
+        resolve({
+          'APP-Service-Start-PID': res.pid
+        })
+        return
+      }
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.execStartCommandFail', {
+            error: res ? res?.error : 'Start failed',
+            service: `${this.type}-${version.version}`
+          })
+        )
+      })
+      reject(new Error('Start failed'))
     })
   }
 
