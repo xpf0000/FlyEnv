@@ -279,7 +279,6 @@ IncludeOptional "${vhost}*.conf"`
         } catch (e) {}
       }
 
-      const outFile = join(global.Server.ApacheDir!, 'start.out.log')
       const errorFile = join(global.Server.ApacheDir!, 'start.error.log')
 
       const psCommands: string[] = [
@@ -288,7 +287,7 @@ IncludeOptional "${vhost}*.conf"`
         `$process = Start-Process -FilePath "./${basename(bin)}" \``,
         `-ArgumentList "-f \`"${conf}\`"" \``,
         `-WindowStyle Hidden \``,
-        `-RedirectStandardOutput "${outFile}" \``,
+        `-RedirectStandardOutput NUL \``,
         `-RedirectStandardError "${errorFile}" \``,
         `-PassThru`,
         `Write-Host "$($process.Id)"`

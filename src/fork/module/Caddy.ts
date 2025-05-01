@@ -162,7 +162,6 @@ class Caddy extends Base {
         } catch (e) {}
       }
 
-      const outFile = join(global.Server.ApacheDir!, 'start.out.log')
       const errorFile = join(global.Server.ApacheDir!, 'start.error.log')
 
       const psCommands: string[] = [
@@ -171,7 +170,7 @@ class Caddy extends Base {
         `$process = Start-Process -FilePath "./${basename(bin)}" \``,
         `-ArgumentList "start --config \`"${iniFile}\`" --pidfile \`"${this.pidPath}\`" --watch" \``,
         `-WindowStyle Hidden \``,
-        `-RedirectStandardOutput "${outFile}" \``,
+        `-RedirectStandardOutput NUL \``,
         `-RedirectStandardError "${errorFile}" \``,
         `-PassThru`,
         `Write-Host "$($process.Id)"`
