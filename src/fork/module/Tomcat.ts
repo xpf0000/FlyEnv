@@ -135,21 +135,20 @@ class Tomcat extends Base {
 
       await mkdirp(join(baseDir, 'logs'))
 
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `set "CATALINA_BASE=${baseDir}"`,
-        `cd /d "${dirname(bin)}"`,
-        `start /B cmd /c "${basename(bin)} > NUL 2>&1"`
+      const psCommands: string[] = [
+        '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
+        `$env:CATALINA_BASE = "${baseDir}"`,
+        `Set-Location -Path "${dirname(bin)}"`,
+        `$process = Start-Process -FilePath "./${basename(bin)}" -WindowStyle Hidden -PassThru`,
+        `Write-Host "$($process.Id)"`
       ]
 
-      const command = commands.join(EOL)
-      console.log('command: ', command)
+      const psScript = psCommands.join(EOL)
+      console.log('PowerShell command: ', psScript)
 
-      const cmdName = `start.cmd`
-      const sh = join(tomcatDir, cmdName)
-      await mkdirp(tomcatDir)
-      await writeFile(sh, command)
+      const psName = `start.ps1`
+      const psPath = join(tomcatDir, psName)
+      await writeFile(psPath, psScript)
 
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       await mkdirp(dirname(appPidFile))
@@ -164,9 +163,10 @@ class Tomcat extends Base {
       })
       process.chdir(tomcatDir)
       try {
-        await execPromise(
-          `powershell.exe -Command "Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden"`
+        const res = await execPromise(
+          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
         )
+        console.log('tomcat res: ', res)
       } catch (e: any) {
         on({
           'APP-On-Log': AppLog(
