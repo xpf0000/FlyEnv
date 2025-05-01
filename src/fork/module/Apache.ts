@@ -281,14 +281,12 @@ IncludeOptional "${vhost}*.conf"`
       const outFile = join(global.Server.ApacheDir!, 'start.out.log')
       const errFile = join(global.Server.ApacheDir!, 'start.error.log')
 
-      const execBin = `./${basename(bin)}`
       const execArgs = `-f \`"${conf}\`"`
 
       let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
 
       psScript = psScript
-        .replace('#CWD#', dirname(bin))
-        .replace('#BIN#', execBin)
+        .replace('#BIN#', bin)
         .replace('#ARGS#', execArgs)
         .replace('#OUTLOG#', outFile)
         .replace('#ERRLOG#', errFile)
