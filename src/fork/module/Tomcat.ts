@@ -166,7 +166,9 @@ class Tomcat extends Base {
       })
       process.chdir(tomcatDir)
       try {
-        await execPromise(`./${cmdName}`)
+        await execPromise(`${cmdName}`, {
+          cwd: tomcatDir
+        })
       } catch (e: any) {
         on({
           'APP-On-Log': AppLog(
