@@ -17,7 +17,6 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
 import { fetchHostList } from './host/HostFile'
 
 class Apache extends Base {
@@ -279,22 +278,19 @@ IncludeOptional "${vhost}*.conf"`
         } catch (e) {}
       }
 
-      const errorFile = join(global.Server.ApacheDir!, 'start.error.log')
+      const outFile = join(global.Server.ApacheDir!, 'start.out.log')
+      const errFile = join(global.Server.ApacheDir!, 'start.error.log')
 
-      const psCommands: string[] = [
-        '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
-        `Set-Location -Path "${dirname(bin)}"`,
-        `$process = Start-Process -FilePath "./${basename(bin)}" \``,
-        `-ArgumentList "-f \`"${conf}\`"" \``,
-        `-WindowStyle Hidden \``,
-        // `-RedirectStandardOutput NUL \``,
-        // `-RedirectStandardError "${errorFile}" \``,
-        `-PassThru`,
-        `Write-Host "$($process.Id)"`
-      ]
+      const execBin = `./${basename(bin)}`
+      const execArgs = `-f \`"${conf}\`"`
 
-      const psScript = psCommands.join(EOL)
-      console.log('PowerShell command: ', psScript)
+      let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
+
+      psScript = psScript
+        .replace('#BIN#', execBin)
+        .replace('#ARGS#', execArgs)
+        .replace('#OUTLOG#', outFile)
+        .replace('#ERRLOG#', errFile)
 
       const psName = `start.ps1`
       const psPath = join(global.Server.ApacheDir!, psName)
@@ -350,8 +346,8 @@ IncludeOptional "${vhost}*.conf"`
         return
       }
       let msg = 'Start Fail'
-      if (existsSync(errorFile)) {
-        msg = (await readFile(errorFile, 'utf8')) || 'Start Fail'
+      if (existsSync(errFile)) {
+        msg = (await readFile(errFile, 'utf8')) || 'Start Fail'
       }
       on({
         'APP-On-Log': AppLog(
