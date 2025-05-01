@@ -110,34 +110,6 @@ class Tomcat extends Base {
     })
   }
 
-  _stopServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
-      })
-      const v = version?.version?.split('.')?.shift() ?? ''
-      const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
-      const all = await ProcessListSearch(dir, false)
-      const arr: Array<number> = []
-      all.forEach((item) => {
-        arr.push(item.ProcessId)
-      })
-      console.log('tomcat _stopServer arr: ', arr)
-      if (arr.length > 0) {
-        const str = arr.map((s) => `/pid ${s}`).join(' ')
-        try {
-          await execPromise(`taskkill /f /t ${str}`)
-        } catch (e) {}
-      }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
-      })
-      resolve({
-        'APP-Service-Stop-PID': arr
-      })
-    })
-  }
-
   _startServer(version: SoftInstalled, lastVersion?: SoftInstalled, CATALINA_BASE?: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
