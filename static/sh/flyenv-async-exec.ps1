@@ -23,8 +23,8 @@ try {
     $processId = $process.Id
     Write-Host "$($processId)"
 
-    $output = $process.StandardOutput.ReadToEnd()
-    $error = $process.StandardError.ReadToEnd()
+    $output = $process.StandardOutput.ReadToEndAsync()
+    $error = $process.StandardError.ReadToEndAsync()
 
     [IO.File]::WriteAllText($OUTLOG, $output)
     [IO.File]::WriteAllText($ERRLOG, $error)
