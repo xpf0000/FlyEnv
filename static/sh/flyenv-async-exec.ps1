@@ -7,7 +7,6 @@ $ERRLOG = "#ERRLOG#"
 
 $process = Start-Process -FilePath "$BIN" `
     -ArgumentList "$ARGS" `
-    -NoNewWindow `
     -WindowStyle Hidden `
     -PassThru `
     -RedirectStandardOutput "$OUTLOG" `
