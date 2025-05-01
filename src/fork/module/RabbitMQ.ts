@@ -161,7 +161,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
         '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
         `$env:RABBITMQ_CONF_ENV_FILE = "${confFile}"`,
         `Set-Location -Path "${dirname(version.bin)}"`,
-        `$process = Start-Process -FilePath "./${basename(version.bin)}" -ArgumentList "-detached" -WindowStyle Hidden -RedirectStandardOutput NUL -RedirectStandardError NUL -PassThru`,
+        `$process = Start-Process -FilePath "./${basename(version.bin)}" -ArgumentList "-detached" -WindowStyle Hidden -PassThru`,
         `Write-Host "$($process.Id)"`
       ]
 
@@ -203,6 +203,9 @@ set "PLUGINS_DIR=${pluginsDir}"`
         reject(e)
         return
       }
+      /**
+       * "C:\Users\x\Desktop\Git Hub\FlyEnv\data\env\erlang\bin\erl.exe" -W w -MBas ageffcbf -MHas ageffcbf -MBlmbcs 512 -MHlmbcs 512 -MMmcs 30 -pc unicode -P 1048576 -t 5000000 -stbt db -zdbbl 128000 -sbwt none -sbwtdcpu none -sbwtdio none -- -root "C:\Users\x\Desktop\Git Hub\FlyEnv\data\env\erlang" -bindir "C:\Users\x\Desktop\Git Hub\FlyEnv\data\env\erlang\erts-14.2.5.9\bin" -progname erl -- -home C:\Users\x -- -noshell -noinput -s rabbit boot -syslog logger [] -syslog syslog_error_logger false -kernel prevent_overlapping_partitions false -detached -noshell -noinput -boot start_sasl
+       */
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
       })
