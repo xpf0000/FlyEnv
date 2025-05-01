@@ -271,35 +271,27 @@ IncludeOptional "${vhost}*.conf"`
         } catch (e) {}
       }
 
-      const startLogFile = join(global.Server.ApacheDir!, `start.log`)
-      const startErrLogFile = join(global.Server.ApacheDir!, `start.error.log`)
-      if (existsSync(startErrLogFile)) {
-        try {
-          await remove(startErrLogFile)
-        } catch (e) {}
-      }
-
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} -f "${conf}" > "${startLogFile}" 2>"${startErrLogFile}" &`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.ApacheDir!, cmdName)
-      await writeFile(sh, command)
-
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       await mkdirp(dirname(appPidFile))
       if (existsSync(appPidFile)) {
         try {
-          await remove(startErrLogFile)
+          await remove(appPidFile)
         } catch (e) {}
       }
+
+      const psCommands: string[] = [
+        '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
+        `Set-Location -Path "${dirname(bin)}"`,
+        `$process = Start-Process -FilePath "./${basename(bin)}" -ArgumentList "-f \`"${conf}\`"" -WindowStyle Hidden -PassThru`,
+        `Write-Host "$($process.Id)"`
+      ]
+
+      const psScript = psCommands.join(EOL)
+      console.log('PowerShell command: ', psScript)
+
+      const psName = `start.ps1`
+      const psPath = join(global.Server.ApacheDir!, psName)
+      await writeFile(psPath, psScript)
 
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
@@ -307,7 +299,7 @@ IncludeOptional "${vhost}*.conf"`
       process.chdir(global.Server.ApacheDir!)
       try {
         await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
         )
       } catch (e: any) {
         console.log('-k start err: ', e)
@@ -350,10 +342,7 @@ IncludeOptional "${vhost}*.conf"`
         reject(new Error(res?.error ?? 'Start Fail'))
         return
       }
-      let msg = 'Start Fail'
-      if (existsSync(startLogFile)) {
-        msg = await readFile(startLogFile, 'utf-8')
-      }
+      const msg = 'Start Fail'
       on({
         'APP-On-Log': AppLog(
           'error',

@@ -154,26 +154,6 @@ class Caddy extends Base {
         } catch (e) {}
       }
 
-      const startLogFile = join(global.Server.BaseDir!, `caddy/start.log`)
-      if (existsSync(startLogFile)) {
-        try {
-          await remove(startLogFile)
-        } catch (e) {}
-      }
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch > "${startLogFile}" 2>&1 &`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.BaseDir!, `caddy/${cmdName}`)
-      await writeFile(sh, command)
-
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       await mkdirp(dirname(appPidFile))
       if (existsSync(appPidFile)) {
@@ -182,13 +162,27 @@ class Caddy extends Base {
         } catch (e) {}
       }
 
+      const psCommands: string[] = [
+        '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
+        `Set-Location -Path "${dirname(bin)}"`,
+        `$process = Start-Process -FilePath "./${basename(bin)}" -ArgumentList "start --config \`"${iniFile}\`" --pidfile \`"${this.pidPath}\`" --watch" -WindowStyle Hidden -PassThru`,
+        `Write-Host "$($process.Id)"`
+      ]
+
+      const psScript = psCommands.join(EOL)
+      console.log('PowerShell command: ', psScript)
+
+      const psName = `start.ps1`
+      const psPath = join(join(global.Server.BaseDir!, `caddy`), psName)
+      await writeFile(psPath, psScript)
+
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
       process.chdir(join(global.Server.BaseDir!, `caddy`))
       try {
         await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
         )
       } catch (e: any) {
         on({
@@ -231,10 +225,7 @@ class Caddy extends Base {
         reject(new Error(res?.error ?? 'Start Fail'))
         return
       }
-      let msg = 'Start Fail'
-      if (existsSync(startLogFile)) {
-        msg = await readFile(startLogFile, 'utf-8')
-      }
+      const msg = 'Start Fail'
       on({
         'APP-On-Log': AppLog(
           'error',
