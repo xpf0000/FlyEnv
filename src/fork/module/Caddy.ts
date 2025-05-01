@@ -4,8 +4,8 @@ import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
   hostAlias,
+  spawnPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -16,7 +16,6 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
 import { fetchHostList } from './host/HostFile'
 import { I18nT } from '@lang/index'
 
@@ -162,34 +161,42 @@ class Caddy extends Base {
         } catch (e) {}
       }
 
-      const errorFile = join(global.Server.ApacheDir!, 'start.error.log')
+      const baseDir = join(global.Server.BaseDir!, `caddy`)
 
-      const psCommands: string[] = [
-        '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
-        `Set-Location -Path "${dirname(bin)}"`,
-        `$process = Start-Process -FilePath "./${basename(bin)}" \``,
-        `-ArgumentList "start --config \`"${iniFile}\`" --pidfile \`"${this.pidPath}\`" --watch" \``,
-        `-WindowStyle Hidden \``,
-        `-RedirectStandardOutput NUL \``,
-        `-RedirectStandardError "${errorFile}" \``,
-        `-PassThru`,
-        `Write-Host "$($process.Id)"`
-      ]
+      const outFile = join(baseDir, 'start.out.log')
+      const errFile = join(baseDir, 'start.error.log')
 
-      const psScript = psCommands.join(EOL)
-      console.log('PowerShell command: ', psScript)
+      const execArgs = `start --config \`"${iniFile}\`" --pidfile \`"${this.pidPath}\`" --watch`
+
+      let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
+
+      psScript = psScript
+        .replace('#BIN#', bin)
+        .replace('#ARGS#', execArgs)
+        .replace('#OUTLOG#', outFile)
+        .replace('#ERRLOG#', errFile)
 
       const psName = `start.ps1`
-      const psPath = join(join(global.Server.BaseDir!, `caddy`), psName)
+      const psPath = join(baseDir, psName)
       await writeFile(psPath, psScript)
 
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
-      process.chdir(join(global.Server.BaseDir!, `caddy`))
+      process.chdir(baseDir)
       try {
-        await execPromise(
-          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+        await spawnPromise(
+          'powershell.exe',
+          [
+            '-NoProfile',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-Command',
+            `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+          ],
+          {
+            shell: 'powershell.exe'
+          }
         )
       } catch (e: any) {
         on({
@@ -233,8 +240,8 @@ class Caddy extends Base {
         return
       }
       let msg = 'Start Fail'
-      if (existsSync(errorFile)) {
-        msg = (await readFile(errorFile, 'utf8')) || 'Start Fail'
+      if (existsSync(errFile)) {
+        msg = (await readFile(errFile, 'utf8')) || 'Start Fail'
       }
       on({
         'APP-On-Log': AppLog(

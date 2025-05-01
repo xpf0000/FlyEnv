@@ -4,7 +4,7 @@ import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
+  spawnPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -16,7 +16,6 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
 import { fetchHostList } from './host/HostFile'
 import { I18nT } from '@lang/index'
 
@@ -114,28 +113,6 @@ class Nginx extends Base {
         } catch (e) {}
       }
 
-      const startLogFile = join(global.Server.NginxDir!, `start.log`)
-      const startErrLogFile = join(global.Server.NginxDir!, `start.error.log`)
-      if (existsSync(startErrLogFile)) {
-        try {
-          await remove(startErrLogFile)
-        } catch (e) {}
-      }
-
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} -p "${p}" > "${startLogFile}" 2>"${startErrLogFile}"`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.NginxDir!, cmdName)
-      await writeFile(sh, command)
-
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       await mkdirp(dirname(appPidFile))
       if (existsSync(appPidFile)) {
@@ -144,13 +121,42 @@ class Nginx extends Base {
         } catch (e) {}
       }
 
+      const baseDir = global.Server.NginxDir!
+
+      const outFile = join(baseDir, 'start.out.log')
+      const errFile = join(baseDir, 'start.error.log')
+
+      const execArgs = `-p \`"${p}\`"`
+
+      let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
+
+      psScript = psScript
+        .replace('#BIN#', bin)
+        .replace('#ARGS#', execArgs)
+        .replace('#OUTLOG#', outFile)
+        .replace('#ERRLOG#', errFile)
+
+      const psName = `start.ps1`
+      const psPath = join(baseDir, psName)
+      await writeFile(psPath, psScript)
+
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
       })
-      process.chdir(global.Server.NginxDir!)
+      process.chdir(baseDir)
       try {
-        await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        await spawnPromise(
+          'powershell.exe',
+          [
+            '-NoProfile',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-Command',
+            `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+          ],
+          {
+            shell: 'powershell.exe'
+          }
         )
       } catch (e: any) {
         on({
@@ -194,8 +200,8 @@ class Nginx extends Base {
         return
       }
       let msg = 'Start Fail'
-      if (existsSync(startLogFile)) {
-        msg = await readFile(startLogFile, 'utf-8')
+      if (existsSync(errFile)) {
+        msg = (await readFile(errFile, 'utf-8')) || 'Start Fail'
       }
       on({
         'APP-On-Log': AppLog(
