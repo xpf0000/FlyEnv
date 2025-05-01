@@ -1,24 +1,40 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-Set-Location -Path "#CWD#"
+
+$BIN = "#BIN#"
+$ARGS = "#ARGS#"
+$OUTLOG = "#OUTLOG#"
+$ERRLOG = "#ERRLOG#"
+
 $psi = New-Object System.Diagnostics.ProcessStartInfo
-$psi.FileName = "#BIN#"
-$psi.Arguments = "#ARGS#"
+$psi.FileName = $BIN
+$psi.Arguments = $ARGS
 $psi.UseShellExecute = $false
 $psi.RedirectStandardOutput = $true
 $psi.RedirectStandardError = $true
-$psi.StandardOutputEncoding = [Text.Encoding]::UTF8
-$psi.StandardErrorEncoding = [Text.Encoding]::UTF8
+$psi.StandardOutputEncoding = [System.Text.Encoding]::UTF8
+$psi.StandardErrorEncoding = [System.Text.Encoding]::UTF8
 $psi.WindowStyle = [Diagnostics.ProcessWindowStyle]::Hidden
-$process = [Diagnostics.Process]::Start($psi)
-$outputTask = $process.StandardOutput.ReadToEndAsync()
-$errorTask = $process.StandardError.ReadToEndAsync()
-$process.EnableRaisingEvents = $true
-$process.Exited += {
-    try {
-        [IO.File]::WriteAllText("#OUTLOG#", $outputTask.Result)
-        [IO.File]::WriteAllText("#ERRLOG#", $errorTask.Result)
-    }
-    catch {
-    }
+
+$process = New-Object System.Diagnostics.Process
+$process.StartInfo = $psi
+
+try {
+    $process.Start() | Out-Null
+    $processId = $process.Id
+    Write-Host "$($processId)"
+
+    $output = $process.StandardOutput.ReadToEnd()
+    $error = $process.StandardError.ReadToEnd()
+
+    [IO.File]::WriteAllText($OUTLOG, $output)
+    [IO.File]::WriteAllText($ERRLOG, $error)
 }
-Write-Host "$($process.Id)"
+catch {
+    $errorMessage = "$($_.Exception.Message)"
+    Write-Error $errorMessage
+    [IO.File]::AppendAllText($ERRLOG, $errorMessage)
+    exit 1
+}
+finally {
+    $process.Close()
+}
