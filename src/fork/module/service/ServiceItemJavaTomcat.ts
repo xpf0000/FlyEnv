@@ -32,12 +32,12 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
     const sslKey = host?.ssl?.key?.split('\\')?.join('/') ?? ''
 
     const port = host?.port?.tomcat ?? 80
-    if (!serverXML.Server.Service.Connector) {
+    if (!serverXML?.Server?.Service?.Connector) {
       const xml = `<Connector appFlag="PhpWebStudy" port="${port}" protocol="HTTP/1.1" connectionTimeout="60000"/>`
       const xmlObj = parser.parse(xml)
       serverXML.Server.Service.Connector = xmlObj.Connector
-    } else if (!Array.isArray(serverXML.Server.Service.Connector)) {
-      if (`${serverXML.Server.Service.Connector.port}` !== `${port}`) {
+    } else if (!Array.isArray(serverXML?.Server?.Service?.Connector)) {
+      if (`${serverXML?.Server?.Service?.Connector?.port}` !== `${port}`) {
         serverXML.Server.Service.Connector = [serverXML.Server.Service.Connector]
         const xml = `<Connector appFlag="PhpWebStudy" port="${port}" protocol="HTTP/1.1" connectionTimeout="60000"/>`
         const xmlObj = parser.parse(xml)
@@ -46,7 +46,7 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
     }
     if (host.useSSL && host.ssl.cert && host.ssl.key) {
       const port = host?.port?.tomcat_ssl ?? 443
-      if (!Array.isArray(serverXML.Server.Service.Connector)) {
+      if (!Array.isArray(serverXML?.Server?.Service?.Connector)) {
         serverXML.Server.Service.Connector = [serverXML.Server.Service.Connector]
       }
       console.log('serverXML.Server.Service.Connector: ', serverXML.Server.Service.Connector)
@@ -165,15 +165,14 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
   }
 
   const cleanPort = (allPort: Set<number>) => {
-    if (!serverXML.Server.Service.Connector) {
+    if (!serverXML?.Server?.Service?.Connector) {
       return
     }
-    if (!Array.isArray(serverXML.Server.Service.Connector)) {
+    if (!Array.isArray(serverXML?.Server?.Service?.Connector)) {
       return
     }
-    const allApp = serverXML.Server.Service.Connector.filter(
-      (c: any) => c.appFlag === 'PhpWebStudy'
-    )
+    const allApp =
+      serverXML?.Server?.Service?.Connector?.filter((c: any) => c.appFlag === 'PhpWebStudy') ?? []
     const dels: any[] = []
     for (const c of allApp) {
       const port = Number(c.port)
@@ -190,7 +189,7 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
   }
 
   const cleanVhost = (allName: Set<string>) => {
-    if (Array.isArray(serverXML.Server.Service.Engine.Host)) {
+    if (Array.isArray(serverXML?.Server?.Service?.Engine?.Host)) {
       const allHost = serverXML.Server.Service.Engine.Host.filter(
         (c: any) => c.appFlag === 'PhpWebStudy'
       )
@@ -208,7 +207,7 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
         }
       }
     }
-    if (Array.isArray(serverXML.Server.Service.Connector)) {
+    if (Array.isArray(serverXML?.Server?.Service?.Connector)) {
       for (const Connector of serverXML.Server.Service.Connector) {
         if (Connector?.appFlag !== 'PhpWebStudy') {
           continue
