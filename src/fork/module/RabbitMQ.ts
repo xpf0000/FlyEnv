@@ -157,20 +157,20 @@ set "PLUGINS_DIR=${pluginsDir}"`
         }
       } catch (e) {}
 
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`,
-        `cd /d "${dirname(version.bin)}"`,
-        `start /B cmd /c "${basename(version.bin)} -detached > NUL 2>&1"`
+      const psCommands: string[] = [
+        '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
+        `$env:RABBITMQ_CONF_ENV_FILE = "${confFile}"`,
+        `Set-Location -Path "${dirname(version.bin)}"`,
+        `$process = Start-Process -FilePath "${basename(version.bin)}" -ArgumentList "-detached" -WindowStyle Hidden -RedirectStandardOutput NUL -RedirectStandardError NUL -PassThru`,
+        `Write-Host "$($process.Id)"`
       ]
 
-      const command = commands.join(EOL)
-      console.log('command: ', command)
+      const psScript = psCommands.join(EOL)
+      console.log('PowerShell command: ', psScript)
 
-      const cmdName = `start.cmd`
-      const sh = join(this.baseDir, cmdName)
-      await writeFile(sh, command)
+      const psName = `start.ps1`
+      const psPath = join(this.baseDir, psName)
+      await writeFile(psPath, psScript)
 
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       await mkdirp(dirname(appPidFile))
@@ -186,7 +186,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
       process.chdir(this.baseDir)
       try {
         const res = await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
         )
         console.log('rabbitmq start res: ', res.stdout)
       } catch (e: any) {
@@ -255,7 +255,13 @@ set "PLUGINS_DIR=${pluginsDir}"`
       if (existsSync(bin)) {
         process.chdir(dirname(bin))
         try {
-          await execPromise('start /B ./epmd.exe > NUL 2>&1 &')
+          await execPromise(
+            `Start-Process -FilePath "./epmd.exe" -WindowStyle Hidden -NoNewWindow -RedirectStandardOutput NUL -RedirectStandardError NUL`,
+            {
+              cwd: dirname(bin),
+              shell: 'powershell.exe'
+            }
+          )
         } catch (e: any) {}
         break
       }
