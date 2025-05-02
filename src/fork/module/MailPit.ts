@@ -1,10 +1,10 @@
-import { basename, dirname, join } from 'path'
+import { basename, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -12,7 +12,7 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
+import { readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
 import { I18nT } from '@lang/index'
@@ -82,19 +82,6 @@ class MailPit extends Base {
       })
       const bin = version.bin
       const iniFile = await this.initConfig().on(on)
-      if (existsSync(this.pidPath)) {
-        try {
-          await remove(this.pidPath)
-        } catch (e) {}
-      }
-
-      const startLogFile = join(global.Server.BaseDir!, `mailpit/start.log`)
-      if (existsSync(startLogFile)) {
-        try {
-          await remove(startLogFile)
-        } catch (e) {}
-      }
-
       const getConfEnv = async () => {
         const content = await readFile(iniFile, 'utf-8')
         const arr = content
@@ -117,67 +104,35 @@ class MailPit extends Base {
       }
 
       const opt = await getConfEnv()
-      const commands: string[] = ['@echo off', 'chcp 65001>nul']
+
+      const envs: string[] = []
       for (const k in opt) {
         const v = opt[k]
-        commands.push(`set "${k}=${v}"`)
+        envs.push(`$env:${k}="${v}"`)
       }
-      commands.push(`cd "${dirname(bin)}"`)
-      commands.push(`start /B ./${basename(bin)} > "${startLogFile}" 2>&1 &`)
+      envs.push('')
 
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.BaseDir!, `mailpit/${cmdName}`)
-      await writeFile(sh, command)
+      const baseDir = join(global.Server.BaseDir!, `mailpit`)
+      await mkdirp(baseDir)
 
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
+      const execEnv = envs.join(EOL)
+      const execArgs = ``
 
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(join(global.Server.BaseDir!, `mailpit`))
       try {
-        const res = await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        const res = await serviceStartExec(
+          version,
+          this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on,
+          20,
+          500,
+          false
         )
-        if (res?.stdout) {
-          const pid = res.stdout.trim()
-          await writeFile(appPidFile, pid)
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-          })
-          resolve({
-            'APP-Service-Start-PID': pid
-          })
-        } else {
-          on({
-            'APP-On-Log': AppLog(
-              'error',
-              I18nT('appLog.startServiceFail', {
-                error: res?.stderr ?? 'Start Fail',
-                service: `mailpit-${version.version}`
-              })
-            )
-          })
-          reject(new Error(res?.stderr || 'Start Fail'))
-        }
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: e,
-              service: `mailpit-${version.version}`
-            })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return

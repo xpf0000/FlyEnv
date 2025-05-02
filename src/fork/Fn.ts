@@ -175,7 +175,7 @@ export function spawnPromise(
   cammand: string,
   params: Array<any>,
   opt?: { [k: string]: any }
-): ForkPromise<any> {
+): ForkPromise<string> {
   return new ForkPromise((resolve, reject, on) => {
     const stdout: Array<Buffer> = []
     const stderr: Array<Buffer> = []
@@ -925,9 +925,10 @@ export async function serviceStartExec(
   execEnv: string,
   on: Function,
   maxTime = 20,
-  timeToWait = 500
+  timeToWait = 500,
+  checkPidFile = true
 ): Promise<{ 'APP-Service-Start-PID': string }> {
-  if (existsSync(pidPath)) {
+  if (pidPath && existsSync(pidPath)) {
     try {
       await remove(pidPath)
     } catch (e) {}
@@ -954,8 +955,9 @@ export async function serviceStartExec(
   })
 
   process.chdir(baseDir)
+  let res: any
   try {
-    await spawnPromise(
+    res = await spawnPromise(
       'powershell.exe',
       [
         '-NoProfile',
@@ -989,7 +991,18 @@ export async function serviceStartExec(
     'APP-Service-Start-Success': true
   })
 
-  const res = await waitPidFile(pidPath, maxTime, timeToWait)
+  if (!checkPidFile) {
+    const pid = res.trim()
+    await writeFile(pidPath, pid)
+    on({
+      'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+    })
+    return {
+      'APP-Service-Start-PID': pid
+    }
+  }
+
+  res = await waitPidFile(pidPath, maxTime, timeToWait)
   if (res) {
     if (res?.pid) {
       await writeFile(pidPath, res.pid)

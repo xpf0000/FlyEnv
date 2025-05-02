@@ -39,8 +39,8 @@ class Elasticsearch extends Base {
       const baseDir = join(global.Server.BaseDir!, `elasticsearch`)
       await mkdirp(baseDir)
       const execEnv = `$env:ES_HOME="${version.path}"
-      $env:ES_PATH_CONF="${join(version.path, 'config')}
-      `
+$env:ES_PATH_CONF="${join(version.path, 'config')}"
+`
       const execArgs = `-d -p \`"${this.pidPath}\`"`
 
       try {
