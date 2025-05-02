@@ -227,11 +227,19 @@ set "PLUGINS_DIR=${pluginsDir}"`
     }
     if (!str) {
       try {
-        str = (
-          await execPromise('$env:ERLANG_HOME', {
-            shell: 'powershell.exe'
-          })
+        const stdout = (
+          await execPromise(
+            'Write-Host "##FlyEnv-ERLANG_HOME$($env:ERLANG_HOME)FlyEnv-ERLANG_HOME##"',
+            {
+              shell: 'powershell.exe'
+            }
+          )
         ).stdout.trim()
+        const regex = /FlyEnv-ERLANG_HOME(.*?)FlyEnv-ERLANG_HOME/g
+        const match = regex.exec(stdout)
+        if (match) {
+          str = match[1] // 捕获组 (\d+) 的内容
+        }
       } catch (e: any) {
         console.log('set ERLANG_HOME error: ', e)
       }
