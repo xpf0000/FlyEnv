@@ -9,7 +9,7 @@ import {
   realpathSync,
   statSync
 } from 'fs'
-import { dirname, isAbsolute, join, parse } from 'path'
+import { basename, dirname, isAbsolute, join, parse } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -937,16 +937,63 @@ export async function serviceStartExec(
   const outFile = join(baseDir, 'start.out.log')
   const errFile = join(baseDir, 'start.error.log')
 
-  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec1.ps1'), 'utf8')
+  /**
+   * const commands: string[] = [
+   *         '@echo off',
+   *         'chcp 65001>nul',
+   *         `set "ES_HOME=${version.path}"`,
+   *         `set "ES_PATH_CONF=${join(version.path, 'config')}"`,
+   *         `cd /d "${dirname(bin)}"`,
+   *         `${basename(bin)} -d -p "${this.pidPath}" > "${startLogFile}" 2>&1 &`
+   *       ]
+   *
+   *       const command = commands.join(EOL)
+   *       console.log('command: ', command)
+   *
+   *       const cmdName = `start.cmd`
+   *       const sh = join(global.Server.BaseDir!, `elasticsearch/${cmdName}`)
+   *       await writeFile(sh, command)
+   *
+   *       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+   *       await mkdirp(dirname(appPidFile))
+   *       if (existsSync(appPidFile)) {
+   *         try {
+   *           await remove(appPidFile)
+   *         } catch (e) {}
+   *       }
+   *       on({
+   *         'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+   *       })
+   *       process.chdir(join(global.Server.BaseDir!, `elasticsearch`))
+   *       try {
+   *         await execPromise(
+   *           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+   *         )
+   *       }
+   *
+   *       const commands: string[] = [
+   *         '@echo off',
+   *         'chcp 65001>nul',
+   *         `cd /d "${dirname(bin)}"`,
+   *         `start /B ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch > "${startLogFile}" 2>&1 &`
+   *       ]
+   *
+   *       await execPromise(
+   *           `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+   *         )
+   */
+
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.cmd'), 'utf8')
 
   psScript = psScript
     .replace('#ENV#', execEnv)
-    .replace('#BIN#', bin)
+    .replace('#CWD#', dirname(bin))
+    .replace('#BIN#', basename(bin))
     .replace('#ARGS#', execArgs)
     .replace('#OUTLOG#', outFile)
     .replace('#ERRLOG#', errFile)
 
-  const psName = `start.ps1`
+  const psName = `start.cmd`
   const psPath = join(baseDir, psName)
   await writeFile(psPath, psScript)
 
@@ -964,7 +1011,7 @@ export async function serviceStartExec(
         '-ExecutionPolicy',
         'Bypass',
         '-Command',
-        `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+        `"$id = (Start-Process -FilePath ./${psName} -PassThru -WindowStyle Hidden).Id; Write-Host \"##FlyEnv-Process-ID$idFlyEnv-Process-ID##\""`
       ],
       {
         shell: 'powershell.exe',
