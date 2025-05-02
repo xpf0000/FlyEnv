@@ -907,7 +907,7 @@ export async function waitPidFile(
   } else {
     if (time < maxTime) {
       await waitTime(timeToWait)
-      res = res || (await waitPidFile(pidFile, time + 1))
+      res = res || (await waitPidFile(pidFile, time + 1, maxTime, timeToWait))
     } else {
       res = false
     }
