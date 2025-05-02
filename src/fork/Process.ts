@@ -13,19 +13,22 @@ export type PItem = {
 export const ProcessPidList = async (): Promise<PItem[]> => {
   const all: PItem[] = []
   const json = join(global.Server.Cache!, `${uuid()}.json`)
+  console.log('ProcessPidList json: ', json)
   const command = `powershell.exe -NoProfile -WindowStyle Hidden -command "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId | ConvertTo-Json | Out-File -FilePath '${json}' -Encoding utf8"`
   try {
     await execPromise(command)
-    const list = JSON.parse(await readFile(json, 'utf8'))
+    const content = await readFile(json, 'utf8')
+    console.log('ProcessPidList json content: ', content)
+    const list = JSON.parse(content)
     all.push(...list)
-    if (existsSync(json)) {
-      await remove(json)
-    }
+    // if (existsSync(json)) {
+    //   await remove(json)
+    // }
   } catch (e) {
     console.log('ProcessPidList err0: ', e)
-    if (existsSync(json)) {
-      await remove(json)
-    }
+    // if (existsSync(json)) {
+    //   await remove(json)
+    // }
   }
   return all
 }
