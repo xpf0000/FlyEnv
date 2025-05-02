@@ -1,15 +1,15 @@
-import { exec, spawn, execSync, type ChildProcess } from 'child_process'
+import { type ChildProcess, exec, execSync, spawn } from 'child_process'
 import { merge } from 'lodash'
 import {
-  statSync,
   chmodSync,
-  readdirSync,
-  mkdirSync,
-  existsSync,
   createWriteStream,
-  realpathSync
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  realpathSync,
+  statSync
 } from 'fs'
-import { join, dirname, isAbsolute, parse } from 'path'
+import { dirname, isAbsolute, join, parse } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -852,27 +852,30 @@ export async function readFileAsUTF8(filePath: string): Promise<string> {
     console.log('detectedEncoding: ', detectedEncoding)
     if (
       !detectedEncoding ||
-      (typeof detectedEncoding === 'string' && detectedEncoding === 'UTF-8') ||
-      (Array.isArray(detectedEncoding) &&
-        detectedEncoding.length === 1 &&
-        detectedEncoding[0].name === 'UTF-8')
+      detectedEncoding.toLowerCase() === 'utf-8' ||
+      detectedEncoding.toLowerCase() === 'utf8'
     ) {
       return buffer.toString('utf-8')
     }
 
-    const allEncode = detectedEncoding.filter((d: any) => d.name !== 'UTF-8')
-    let str = ''
-    for (const e of allEncode) {
+    if (typeof detectedEncoding === 'string') {
+      let str = ''
       try {
-        if (!str) {
-          str = iconv.decode(buffer, e.name)
-        } else {
-          str = iconv.decode(Buffer.from(str), e.name)
-        }
+        str = iconv.decode(buffer, detectedEncoding)
       } catch (e) {}
+      return str
     }
-    return str
+
+    try {
+      return iconv.decode(buffer, detectedEncoding)
+    } catch (conversionError: any) {
+      console.error(
+        `Error converting from ${detectedEncoding} to UTF-8 for file: ${filePath}`,
+        conversionError
+      )
+      return buffer.toString('utf-8')
+    }
   } catch (err: any) {
-    throw err
+    return ''
   }
 }
