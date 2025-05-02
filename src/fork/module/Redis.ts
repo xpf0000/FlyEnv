@@ -110,9 +110,10 @@ class Redis extends Base {
       const confName = `redis-${v}.conf`
       const conf = join(global.Server.RedisDir!, confName)
       const appConfName = `pws-app-redis-${v}.conf`
-      await copyFile(conf, join(dirname(bin), appConfName))
+      const runConf = join(dirname(bin), appConfName)
+      await copyFile(conf, runConf)
 
-      const execArgs = `\`"${appConfName}\`"`
+      const execArgs = `\`"${runConf}\`"`
 
       try {
         const res = await serviceStartExec(

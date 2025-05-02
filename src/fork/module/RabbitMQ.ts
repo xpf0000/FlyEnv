@@ -136,7 +136,9 @@ set "PLUGINS_DIR=${pluginsDir}"`
           on({
             'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
           })
-          resolve(true)
+          resolve({
+            'APP-Service-Start-PID': pid
+          })
         } else {
           if (time < 20) {
             await waitTime(500)
