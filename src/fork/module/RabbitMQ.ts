@@ -216,33 +216,21 @@ set "PLUGINS_DIR=${pluginsDir}"`
     }
     let str = ''
     try {
-      const stdout = (await execPromise('set ERLANG_HOME')).stdout.trim()
-      const regex = /ERLANG_HOME=(.*?)/g
+      const stdout = (
+        await execPromise(
+          'Write-Host "##FlyEnv-ERLANG_HOME$($env:ERLANG_HOME)FlyEnv-ERLANG_HOME##"',
+          {
+            shell: 'powershell.exe'
+          }
+        )
+      ).stdout.trim()
+      const regex = /FlyEnv-ERLANG_HOME(.*?)FlyEnv-ERLANG_HOME/g
       const match = regex.exec(stdout)
       if (match) {
         str = match[1] // 捕获组 (\d+) 的内容
       }
     } catch (e: any) {
       console.log('set ERLANG_HOME error: ', e)
-    }
-    if (!str) {
-      try {
-        const stdout = (
-          await execPromise(
-            'Write-Host "##FlyEnv-ERLANG_HOME$($env:ERLANG_HOME)FlyEnv-ERLANG_HOME##"',
-            {
-              shell: 'powershell.exe'
-            }
-          )
-        ).stdout.trim()
-        const regex = /FlyEnv-ERLANG_HOME(.*?)FlyEnv-ERLANG_HOME/g
-        const match = regex.exec(stdout)
-        if (match) {
-          str = match[1] // 捕获组 (\d+) 的内容
-        }
-      } catch (e: any) {
-        console.log('set ERLANG_HOME error: ', e)
-      }
     }
     console.log('ERLANG_HOME: ', str)
     if (!str || !existsSync(str)) {
@@ -255,7 +243,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
         process.chdir(dirname(bin))
         try {
           await execPromise(
-            `Start-Process -FilePath "./epmd.exe" -WindowStyle Hidden -NoNewWindow -RedirectStandardOutput NUL -RedirectStandardError NUL`,
+            `Start-Process -FilePath "./epmd.exe" -WindowStyle Hidden -RedirectStandardOutput NUL -RedirectStandardError NUL`,
             {
               cwd: dirname(bin),
               shell: 'powershell.exe'
