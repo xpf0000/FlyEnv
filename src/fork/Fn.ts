@@ -1002,7 +1002,7 @@ export async function serviceStartExec(
     }
   }
 
-  res = await waitPidFile(pidPath, maxTime, timeToWait)
+  res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
   if (res) {
     if (res?.pid) {
       await writeFile(pidPath, res.pid)
