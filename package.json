@@ -27,6 +27,7 @@
     "@electron/remote": "^2.0.9",
     "@lzwme/get-physical-address": "^1.1.0",
     "axios": "^1.7.7",
+    "chardet": "^2.1.0",
     "child-process-promise": "^2.2.1",
     "compare-versions": "^6.1.0",
     "dns2": "^2.1.0",

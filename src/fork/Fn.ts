@@ -26,6 +26,8 @@ import {
 import type { AppHost, SoftInstalled } from '@shared/app'
 import sudoPrompt from '@shared/sudo'
 import { compareVersions } from 'compare-versions'
+import chardet from 'chardet'
+import iconv from 'iconv-lite'
 
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -837,5 +839,37 @@ export async function isNTFS(fileOrDirPath: string) {
     return is
   } catch (error) {
     return false
+  }
+}
+
+export async function readFileAsUTF8(filePath: string): Promise<string> {
+  try {
+    const buffer: Buffer = await readFile(filePath)
+    const detectedEncoding = chardet.detect(buffer)
+
+    if (
+      !detectedEncoding ||
+      (typeof detectedEncoding === 'string' && detectedEncoding === 'UTF-8') ||
+      (Array.isArray(detectedEncoding) &&
+        detectedEncoding.length === 1 &&
+        detectedEncoding[0].name === 'UTF-8')
+    ) {
+      return buffer.toString('utf-8')
+    }
+
+    const allEncode = detectedEncoding.filter((d: any) => d.name !== 'UTF-8')
+    let str = ''
+    for (const e of allEncode) {
+      try {
+        if (!str) {
+          str = iconv.decode(buffer, e.name)
+        } else {
+          str = iconv.decode(Buffer.from(str), e.name)
+        }
+      } catch (e) {}
+    }
+    return str
+  } catch (err: any) {
+    throw err
   }
 }

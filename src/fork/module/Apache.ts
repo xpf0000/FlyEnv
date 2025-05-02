@@ -13,7 +13,8 @@ import {
   versionFixed,
   versionInitedApp,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFileAsUTF8
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, readFile, remove, writeFile } from 'fs-extra'
@@ -357,7 +358,7 @@ IncludeOptional "${vhost}*.conf"`
       }
       let msg = 'Start Fail'
       if (existsSync(errFile)) {
-        msg = (await readFile(errFile, 'latin1')) || 'Start Fail'
+        msg = (await readFileAsUTF8(errFile)) || 'Start Fail'
       }
       on({
         'APP-On-Log': AppLog(
