@@ -992,7 +992,13 @@ export async function serviceStartExec(
   })
 
   if (!checkPidFile) {
-    const pid = res.trim()
+    let pid = ''
+    const stdout = res.trim()
+    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/
+    const match = regex.exec(stdout)
+    if (match) {
+      pid = match[1] // 捕获组 (\d+) 的内容
+    }
     await writeFile(pidPath, pid)
     on({
       'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))

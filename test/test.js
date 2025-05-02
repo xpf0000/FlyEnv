@@ -1,29 +1,10 @@
-const { exec } = require('child-process-promise')
+const input = '##FlyEnv-Process-ID7789FlyEnv-Process-ID##'
+const regex = /FlyEnv-Process-ID(\d+)FlyEnv-Process-ID/
+const match = regex.exec(input)
 
-const psName = 'start.ps1'
-
-// exec(
-//   `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './${psName}'; & './${psName}'"`,
-//   {
-//     cwd: `C:\\Users\\x\\Desktop\\Git Hub\\FlyEnv\\data\\server\\apache`
-//   }
-// )
-//   .then((res) => {
-//     console.log('res: ', res)
-//   })
-//   .catch((e) => {
-//     console.log('e: ', e)
-//   })
-
-const fn = async () => {
-  console.log('fn !!!')
-  const res = await exec(
-    `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './${psName}'; & './${psName}'"`,
-    {
-      cwd: `C:\\Users\\x\\Desktop\\Git Hub\\FlyEnv\\data\\server\\apache`
-    }
-  )
-  console.log('res: ', res.stdout, res.stderr)
+if (match) {
+  const processId = match[1] // 捕获组 (\d+) 的内容
+  console.log(processId) // 输出: "7789"
+} else {
+  console.log('未匹配到 Process ID')
 }
-
-fn().then().catch()

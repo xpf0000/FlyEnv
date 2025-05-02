@@ -19,7 +19,7 @@ $process = Start-Process -FilePath "$BIN" `
     -RedirectStandardError "$ERRLOG"
 
 if ($process) {
-    Write-Host "$($process.Id)"
+    Write-Host "##FlyEnv-Process-ID$($process.Id)FlyEnv-Process-ID##"
 }
 else {
     Write-Error "Exec Failed"
