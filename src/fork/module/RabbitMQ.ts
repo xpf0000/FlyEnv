@@ -242,9 +242,8 @@ set "PLUGINS_DIR=${pluginsDir}"`
       if (existsSync(bin)) {
         process.chdir(dirname(bin))
         try {
-          await execPromise(`Start-Process -FilePath "./epmd.exe" -WindowStyle Hidden *> $null`, {
-            cwd: dirname(bin),
-            shell: 'powershell.exe'
+          await execPromise(`start /B cmd /c "./epmd.exe > NUL 2>&1"`, {
+            cwd: dirname(bin)
           })
         } catch (e: any) {
           console.log('epmd.exe start error: ', e)
