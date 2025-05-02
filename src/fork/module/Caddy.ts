@@ -148,6 +148,7 @@ class Caddy extends Base {
       const iniFile = await this.initConfig().on(on)
 
       const baseDir = join(global.Server.BaseDir!, `caddy`)
+      await mkdirp(baseDir)
       const execArgs = `start --config \`"${iniFile}\`" --pidfile \`"${this.pidPath}\`" --watch`
 
       try {

@@ -1,22 +1,20 @@
-import { basename, dirname, join } from 'path'
+import { basename, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort,
-  waitTime
+  versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, remove, mkdirp } from 'fs-extra'
+import { mkdirp } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
-import {EOL} from "os";
 
 class Elasticsearch extends Base {
   constructor() {
@@ -37,101 +35,32 @@ class Elasticsearch extends Base {
         )
       })
       const bin = version.bin
-      if (existsSync(this.pidPath)) {
-        try {
-          await remove(this.pidPath)
-        } catch (e) {}
-      }
 
-      const checkPid = async (time = 0) => {
-        console.log('checkPid: ', time)
-        if (existsSync(this.pidPath)) {
-          const pid = await readFile(this.pidPath, 'utf-8')
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid.trim() }))
-          })
-          await writeFile(appPidFile, pid.trim())
-          resolve({
-            'APP-Service-Start-PID': pid.trim()
-          })
-        } else {
-          if (time < 120) {
-            await waitTime(1000)
-            await checkPid(time + 1)
-          } else {
-            on({
-              'APP-On-Log': AppLog(
-                'error',
-                I18nT('appLog.startServiceFail', {
-                  error: I18nT('fork.startFail'),
-                  service: `elasticsearch-${version.version}`
-                })
-              )
-            })
-            reject(new Error(I18nT('fork.startFail')))
-          }
-        }
-      }
+      const baseDir = join(global.Server.BaseDir!, `elasticsearch`)
+      await mkdirp(baseDir)
+      const execEnv = `$env:ES_HOME="${version.path}"
+      $env:ES_PATH_CONF="${join(version.path, 'config')}
+      `
+      const execArgs = `-d -p \`"${this.pidPath}\`"`
 
-      await mkdirp(join(global.Server.BaseDir!, `elasticsearch`))
-      const startLogFile = join(global.Server.BaseDir!, `elasticsearch/start.log`)
-      if (existsSync(startLogFile)) {
-        try {
-          await remove(startLogFile)
-        } catch (e) {}
-      }
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `set "ES_HOME=${version.path}"`,
-        `set "ES_PATH_CONF=${join(version.path, 'config')}"`,
-        `cd /d "${dirname(bin)}"`,
-        `${basename(bin)} -d -p "${this.pidPath}" > "${startLogFile}" 2>&1 &`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.BaseDir!, `elasticsearch/${cmdName}`)
-      await writeFile(sh, command)
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(join(global.Server.BaseDir!, `elasticsearch`))
       try {
-        await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        const res = await serviceStartExec(
+          version,
+          this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on,
+          120,
+          1000
         )
-      } catch (e) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `elasticsearch-${version.version}`
-            })
-          )
-        })
-        console.log('start e: ', e)
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      await checkPid()
     })
   }
 
@@ -163,9 +92,7 @@ class Elasticsearch extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([
-        versionLocalFetch(setup?.elasticsearch?.dirs ?? [], 'elasticsearch.bat')
-      ])
+      Promise.all([versionLocalFetch(setup?.elasticsearch?.dirs ?? [], 'elasticsearch.bat')])
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)

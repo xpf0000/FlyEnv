@@ -883,8 +883,9 @@ export async function readFileAsUTF8(filePath: string): Promise<string> {
 
 export async function waitPidFile(
   pidFile: string,
-  errLog?: string,
-  time = 0
+  time = 0,
+  maxTime = 20,
+  timeToWait = 500
 ): Promise<
   | {
       pid?: string
@@ -898,23 +899,15 @@ export async function waitPidFile(
         error?: string
       }
     | false = false
-  if (errLog && existsSync(errLog)) {
-    const error = await readFile(errLog, 'utf-8')
-    if (error.length > 0) {
-      return {
-        error
-      }
-    }
-  }
   if (existsSync(pidFile)) {
     const pid = (await readFile(pidFile, 'utf-8')).trim()
     return {
       pid
     }
   } else {
-    if (time < 20) {
-      await waitTime(500)
-      res = res || (await waitPidFile(pidFile, errLog, time + 1))
+    if (time < maxTime) {
+      await waitTime(timeToWait)
+      res = res || (await waitPidFile(pidFile, time + 1))
     } else {
       res = false
     }
@@ -930,7 +923,9 @@ export async function serviceStartExec(
   bin: string,
   execArgs: string,
   execEnv: string,
-  on: Function
+  on: Function,
+  maxTime = 20,
+  timeToWait = 500
 ): Promise<{ 'APP-Service-Start-PID': string }> {
   if (existsSync(pidPath)) {
     try {
@@ -978,7 +973,10 @@ export async function serviceStartExec(
     on({
       'APP-On-Log': AppLog(
         'error',
-        I18nT('appLog.execStartCommandFail', { error: e, service: `apache-${version.version}` })
+        I18nT('appLog.execStartCommandFail', {
+          error: e,
+          service: `${version.typeFlag}-${version.version}`
+        })
       )
     })
     throw e
@@ -991,7 +989,7 @@ export async function serviceStartExec(
     'APP-Service-Start-Success': true
   })
 
-  const res = await waitPidFile(pidPath)
+  const res = await waitPidFile(pidPath, maxTime, timeToWait)
   if (res) {
     if (res?.pid) {
       await writeFile(pidPath, res.pid)
@@ -1007,7 +1005,7 @@ export async function serviceStartExec(
         'error',
         I18nT('appLog.startServiceFail', {
           error: res?.error ?? 'Start Fail',
-          service: `apache-${version.version}`
+          service: `${version.typeFlag}-${version.version}`
         })
       )
     })
@@ -1020,7 +1018,10 @@ export async function serviceStartExec(
   on({
     'APP-On-Log': AppLog(
       'error',
-      I18nT('appLog.startServiceFail', { error: msg, service: `apache-${version.version}` })
+      I18nT('appLog.startServiceFail', {
+        error: msg,
+        service: `${version.typeFlag}-${version.version}`
+      })
     )
   })
   throw new Error(msg)
