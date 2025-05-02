@@ -845,8 +845,11 @@ export async function isNTFS(fileOrDirPath: string) {
 export async function readFileAsUTF8(filePath: string): Promise<string> {
   try {
     const buffer: Buffer = await readFile(filePath)
+    if (buffer?.length === 0 || buffer?.byteLength === 0) {
+      return ''
+    }
     const detectedEncoding = chardet.detect(buffer)
-
+    console.log('detectedEncoding: ', detectedEncoding)
     if (
       !detectedEncoding ||
       (typeof detectedEncoding === 'string' && detectedEncoding === 'UTF-8') ||
