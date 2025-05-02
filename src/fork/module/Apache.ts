@@ -357,7 +357,7 @@ IncludeOptional "${vhost}*.conf"`
       }
       let msg = 'Start Fail'
       if (existsSync(errFile)) {
-        msg = (await readFile(errFile, 'utf-8')) || 'Start Fail'
+        msg = (await readFile(errFile, 'latin1')) || 'Start Fail'
       }
       on({
         'APP-On-Log': AppLog(
