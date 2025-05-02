@@ -45,7 +45,10 @@ class Memcached extends Base {
           bin,
           execArgs,
           '',
-          on
+          on,
+          20,
+          500,
+          false
         )
         resolve(res)
       } catch (e: any) {
