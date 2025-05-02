@@ -15,12 +15,10 @@ export type PItem = {
 export const ProcessPidList = async (): Promise<PItem[]> => {
   const all: PItem[] = []
   const json = join(global.Server.Cache!, `${uuid()}.json`)
-  console.log('ProcessPidList json: ', json)
   const command = `powershell.exe -NoProfile -WindowStyle Hidden -command "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId | ConvertTo-Json | Out-File -FilePath '${json}' -Encoding utf8"`
   try {
     await exec(command)
     const content = await readFile(json, 'utf8')
-    console.log('ProcessPidList json content: ', content)
     const list = JSON5.parse(content)
     all.push(...list)
     if (existsSync(json)) {
@@ -38,7 +36,6 @@ export const ProcessPidList = async (): Promise<PItem[]> => {
 export const ProcessPidListByPids = async (pids: (string | number)[]): Promise<number[]> => {
   const all: Set<number> = new Set()
   const arr = await ProcessPidList()
-  console.log('arr: ', pids, arr)
   const find = (ppid: string | number) => {
     ppid = Number(ppid)
     for (const item of arr) {
@@ -71,7 +68,6 @@ export const ProcessPidListByPid = async (pid: string | number): Promise<number[
   pid = Number(pid)
   const all: Set<number> = new Set()
   const arr = await ProcessPidList()
-  console.log('arr: ', pid, arr)
   const find = (ppid: string | number) => {
     ppid = Number(ppid)
     for (const item of arr) {
@@ -114,9 +110,6 @@ export const ProcessListSearch = async (search: string, aA = true) => {
     }
   }
   for (const item of arr) {
-    if (!item?.CommandLine) {
-      console.log('!item?.CommandLine: ', item)
-    }
     const b = `${item.ProcessId}` === `${search}`
     const c = `${item.ParentProcessId}` === `${search}`
 

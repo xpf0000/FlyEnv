@@ -994,7 +994,7 @@ export async function serviceStartExec(
   if (!checkPidFile) {
     let pid = ''
     const stdout = res.trim()
-    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/
+    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
     const match = regex.exec(stdout)
     if (match) {
       pid = match[1] // 捕获组 (\d+) 的内容

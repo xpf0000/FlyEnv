@@ -58,7 +58,14 @@ class Manager extends Base {
           if (sendUserPass) {
             on(I18nT('fork.postgresqlInit', { dir: dbPath }))
           }
-          resolve(res)
+          const pid = res['APP-Service-Start-PID'].trim().split('\n').shift()!.trim()
+          await writeFile(pidFile, pid)
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+          })
+          resolve({
+            'APP-Service-Start-PID': pid
+          })
         } catch (e: any) {
           console.log('-k start err: ', e)
           reject(e)

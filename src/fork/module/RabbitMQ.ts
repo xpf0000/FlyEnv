@@ -216,8 +216,16 @@ set "PLUGINS_DIR=${pluginsDir}"`
     }
     let str = ''
     try {
-      str = (await execPromise('set ERLANG_HOME')).stdout.trim().replace('ERLANG_HOME=', '')
-    } catch (e: any) {}
+      const stdout = (await execPromise('set ERLANG_HOME')).stdout.trim()
+      const regex = /ERLANG_HOME=(.*?)/g
+      const match = regex.exec(stdout)
+      if (match) {
+        str = match[1] // 捕获组 (\d+) 的内容
+      }
+    } catch (e: any) {
+      console.log('set ERLANG_HOME error: ', e)
+    }
+    console.log('ERLANG_HOME: ', str)
     if (!str || !existsSync(str)) {
       return
     }
@@ -234,7 +242,9 @@ set "PLUGINS_DIR=${pluginsDir}"`
               shell: 'powershell.exe'
             }
           )
-        } catch (e: any) {}
+        } catch (e: any) {
+          console.log('epmd.exe start error: ', e)
+        }
         break
       }
     }
