@@ -1,6 +1,9 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 
+$env:LC_ALL = 'en_US.UTF-8'
+$env:LANG = 'en_US.UTF-8'
+
 $BIN = "#BIN#"
 $ARGS = "#ARGS#"
 $OUTLOG = "#OUTLOG#"
