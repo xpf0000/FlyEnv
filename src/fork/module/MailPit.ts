@@ -116,7 +116,7 @@ class MailPit extends Base {
       await mkdirp(baseDir)
 
       const execEnv = envs.join(EOL)
-      const execArgs = ``
+      const execArgs = ` `
 
       try {
         const res = await serviceStartExec(

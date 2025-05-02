@@ -136,12 +136,6 @@ datadir="${dataDir}"`
             reject(e)
             return
           }
-
-          if (existsSync(p)) {
-            try {
-              await remove(p)
-            } catch (e) {}
-          }
         })
       }
 

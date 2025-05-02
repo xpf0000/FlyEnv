@@ -5,15 +5,15 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort,
-  waitTime
+  versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
+import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 import axios from 'axios'
@@ -65,40 +65,6 @@ class Ollama extends Base {
       })
       const bin = version.bin
       const iniFile = await this.initConfig().on(on)
-      if (existsSync(this.pidPath)) {
-        try {
-          await remove(this.pidPath)
-        } catch (e) {}
-      }
-
-      const checkPid = async (time = 0) => {
-        console.log('checkPid: ', time)
-        if (existsSync(this.pidPath)) {
-          const pid = await readFile(this.pidPath, 'utf-8')
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid.trim() }))
-          })
-          resolve({
-            'APP-Service-Start-PID': pid.trim()
-          })
-        } else {
-          if (time < 10) {
-            await waitTime(500)
-            await checkPid(time + 1)
-          } else {
-            on({
-              'APP-On-Log': AppLog(
-                'error',
-                I18nT('appLog.startServiceFail', {
-                  error: I18nT('fork.startFail'),
-                  service: `ollama-${version.version}`
-                })
-              )
-            })
-            reject(new Error(I18nT('fork.startFail')))
-          }
-        }
-      }
 
       const getConfEnv = async () => {
         const content = await readFile(iniFile, 'utf-8')
@@ -120,61 +86,40 @@ class Ollama extends Base {
         })
         return dict
       }
-
-      const log = join(global.Server.BaseDir!, 'ollama/ollama.log')
-
       const opt = await getConfEnv()
-      const commands: string[] = ['@echo off', 'chcp 65001>nul']
+
+      const envs: string[] = []
       for (const k in opt) {
         const v = opt[k]
-        commands.push(`set "${k}=${v}"`)
+        envs.push(`$env:${k}="${v}"`)
       }
-      commands.push(`cd "${dirname(bin)}"`)
-      commands.push(`${basename(bin)} serve >> "${log}" 2>&1`)
+      envs.push('')
 
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.BaseDir!, `ollama/${cmdName}`)
-      await writeFile(sh, command)
+      const baseDir = join(global.Server.BaseDir!, `ollama`)
+      await mkdirp(baseDir)
 
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
+      const execEnv = envs.join(EOL)
+      const execArgs = `serve`
 
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(join(global.Server.BaseDir!, `ollama`))
       try {
-        const res = await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        const res = await serviceStartExec(
+          version,
+          this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on,
+          20,
+          500,
+          false
         )
-        console.log('### res: ', res.stdout)
-        const pid = res.stdout.trim()
-        await writeFile(this.pidPath, pid)
-      } catch (e) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', { error: e, service: `ollama-${version.version}` })
-          )
-        })
-        console.log('start e: ', e)
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      await checkPid()
     })
   }
 

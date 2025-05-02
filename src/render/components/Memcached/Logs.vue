@@ -18,5 +18,5 @@
   const { join } = require('path')
 
   const log = ref()
-  const filepath = ref(join(global.Server.MemcachedDir, 'logs/memcached.log'))
+  const filepath = ref(join(global.Server.MemcachedDir, 'start.out.log'))
 </script>

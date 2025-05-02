@@ -12,7 +12,8 @@ import {
   versionInitedApp,
   versionSort,
   AppLog,
-  execPromise
+  execPromise,
+  serviceStartExec
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, remove, readFile } from 'fs-extra'
@@ -110,118 +111,39 @@ datadir="${dataDir}"`
 
       const doStart = () => {
         return new Promise(async (resolve, reject) => {
-          if (existsSync(p)) {
-            try {
-              await remove(p)
-            } catch (e) {}
-          }
-
-          const startLogFile = join(global.Server.MysqlDir!, `start.log`)
-          const startErrLogFile = join(global.Server.MysqlDir!, `start.error.log`)
-          if (existsSync(startErrLogFile)) {
-            try {
-              await remove(startErrLogFile)
-            } catch (e) {}
-          }
-
+          const baseDir = global.Server.MysqlDir!
+          await mkdirp(baseDir)
           const params = [
-            `--defaults-file="${m}"`,
-            `--pid-file="${p}"`,
+            `--defaults-file=\`"${m}\`"`,
+            `--pid-file=\`"${p}\`"`,
             '--user=mysql',
             '--slow-query-log=ON',
-            `--slow-query-log-file="${s}"`,
-            `--log-error="${e}"`,
+            `--slow-query-log-file=\`"${s}\`"`,
+            `--log-error=\`"${e}\`"`,
             '--standalone'
           ]
 
-          const commands: string[] = [
-            '@echo off',
-            'chcp 65001>nul',
-            `cd /d "${dirname(bin)}"`,
-            `start /B ./${basename(bin)} ${params.join(' ')} > "${startLogFile}" 2>"${startErrLogFile}"`
-          ]
+          const execEnv = ``
+          const execArgs = params.join(' ')
 
-          command = commands.join(EOL)
-          console.log('command: ', command)
-
-          const cmdName = `start.cmd`
-          const sh = join(global.Server.MysqlDir!, cmdName)
-          await writeFile(sh, command)
-
-          const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-          await mkdirp(dirname(appPidFile))
-          if (existsSync(appPidFile)) {
-            try {
-              await remove(appPidFile)
-            } catch (e) {}
-          }
-
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-          })
-          process.chdir(global.Server.MysqlDir!)
           try {
-            await execPromise(
-              `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+            const res = await serviceStartExec(
+              version,
+              p,
+              baseDir,
+              bin,
+              execArgs,
+              execEnv,
+              on,
+              20,
+              1000
             )
+            resolve(res)
           } catch (e: any) {
-            on({
-              'APP-On-Log': AppLog(
-                'error',
-                I18nT('appLog.execStartCommandFail', {
-                  error: e,
-                  service: `${this.type}-${version.version}`
-                })
-              )
-            })
             console.log('-k start err: ', e)
             reject(e)
             return
           }
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-          })
-          on({
-            'APP-Service-Start-Success': true
-          })
-          const res = await this.waitPidFile(p)
-          if (res) {
-            if (res?.pid) {
-              on({
-                'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-              })
-              await writeFile(appPidFile, res.pid)
-              resolve({
-                'APP-Service-Start-PID': res.pid
-              })
-              return
-            }
-            on({
-              'APP-On-Log': AppLog(
-                'error',
-                I18nT('appLog.startServiceFail', {
-                  error: res?.error ?? 'Start Fail',
-                  service: `${this.type}-${version.version}`
-                })
-              )
-            })
-            reject(new Error(res?.error ?? 'Start Fail'))
-            return
-          }
-          let msg = 'Start Fail'
-          if (existsSync(startErrLogFile)) {
-            msg = await readFile(startErrLogFile, 'utf-8')
-          }
-          on({
-            'APP-On-Log': AppLog(
-              'error',
-              I18nT('appLog.startServiceFail', {
-                error: msg,
-                service: `${this.type}-${version.version}`
-              })
-            )
-          })
-          reject(new Error(msg))
         })
       }
 
