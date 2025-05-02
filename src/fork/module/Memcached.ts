@@ -35,7 +35,7 @@ class Memcached extends Base {
       })
       const bin = version.bin
 
-      const execArgs = `-d -P \`"${this.pidPath}\`" -vv`
+      const execArgs = `-d -P \`"${this.pidPath}\`"`
 
       try {
         const res = await serviceStartExec(

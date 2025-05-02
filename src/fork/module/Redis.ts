@@ -5,6 +5,7 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -13,9 +14,8 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, copyFile, remove } from 'fs-extra'
+import { readFile, writeFile, mkdirp, chmod, copyFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
 import { ProcessListSearch } from '../Process'
 import { I18nT } from '@lang/index'
 
@@ -112,84 +112,24 @@ class Redis extends Base {
       const appConfName = `pws-app-redis-${v}.conf`
       await copyFile(conf, join(dirname(bin), appConfName))
 
-      if (existsSync(this.pidPath)) {
-        try {
-          await remove(this.pidPath)
-        } catch (e) {}
-      }
+      const execArgs = `\`"${appConfName}\`"`
 
-      const startLogFile = join(global.Server.RedisDir!, `start.log`)
-      const startErrorLogFile = join(global.Server.RedisDir!, `start.error.log`)
-      if (existsSync(startErrorLogFile)) {
-        try {
-          await remove(startErrorLogFile)
-        } catch (e) {}
-      }
-
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} ${appConfName} > "${startLogFile}" 2>"${startErrorLogFile}" &`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.RedisDir!, cmdName)
-      await writeFile(sh, command)
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(global.Server.RedisDir!)
       try {
-        await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        const res = await serviceStartExec(
+          version,
+          this.pidPath,
+          global.Server.RedisDir!,
+          bin,
+          execArgs,
+          '',
+          on
         )
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(this.pidPath)
-      if (res && res?.pid) {
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-        })
-        resolve(true)
-        return
-      }
-      let msg = 'Start Fail'
-      if (existsSync(startLogFile)) {
-        msg = await readFile(startLogFile, 'utf-8')
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.startServiceFail', {
-            error: msg,
-            service: `${this.type}-${version.version}`
-          })
-        )
-      })
-      reject(new Error(msg))
     })
   }
 

@@ -6,6 +6,7 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -14,9 +15,8 @@ import {
   waitTime
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, readFile, writeFile, mkdirp, remove } from 'fs-extra'
+import { copyFile, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
 
 class Manager extends Base {
   constructor() {
@@ -43,112 +43,27 @@ class Manager extends Base {
       let sendUserPass = false
 
       const doRun = async () => {
-        if (existsSync(pidFile)) {
-          try {
-            await remove(pidFile)
-          } catch (e) {}
-        }
+        const execArgs = `-D \`"${dbPath}\`" -l \`"${logFile}\`" start`
 
-        const startLogFile = join(global.Server.PostgreSqlDir!, `start.log`)
-        const startErrLogFile = join(global.Server.PostgreSqlDir!, `start.error.log`)
-        if (existsSync(startErrLogFile)) {
-          try {
-            await remove(startErrLogFile)
-          } catch (e) {}
-        }
-
-        const commands: string[] = [
-          '@echo off',
-          'chcp 65001>nul',
-          `cd /d "${dirname(bin)}"`,
-          `start /B ./${basename(bin)} -D "${dbPath}" -l "${logFile}" start > "${startLogFile}" 2>"${startErrLogFile}"`
-        ]
-
-        const command = commands.join(EOL)
-        console.log('command: ', command)
-
-        const cmdName = `start.cmd`
-        const sh = join(global.Server.PostgreSqlDir!, cmdName)
-        await writeFile(sh, command)
-
-        const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-        await mkdirp(dirname(appPidFile))
-        if (existsSync(appPidFile)) {
-          try {
-            await remove(appPidFile)
-          } catch (e) {}
-        }
-
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-        })
-        process.chdir(global.Server.PostgreSqlDir!)
         try {
-          await execPromise(
-            `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+          const res = await serviceStartExec(
+            version,
+            pidFile,
+            global.Server.PostgreSqlDir!,
+            bin,
+            execArgs,
+            '',
+            on
           )
+          if (sendUserPass) {
+            on(I18nT('fork.postgresqlInit', { dir: dbPath }))
+          }
+          resolve(res)
         } catch (e: any) {
-          on({
-            'APP-On-Log': AppLog(
-              'error',
-              I18nT('appLog.execStartCommandFail', {
-                error: e,
-                service: `${this.type}-${version.version}`
-              })
-            )
-          })
           console.log('-k start err: ', e)
           reject(e)
           return
         }
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-        })
-        on({
-          'APP-Service-Start-Success': true
-        })
-        const res = await this.waitPidFile(pidFile)
-        if (res) {
-          if (res?.pid) {
-            if (sendUserPass) {
-              on(I18nT('fork.postgresqlInit', { dir: dbPath }))
-            }
-            const pid = res.pid.trim().split('\n').shift()!.trim()
-            await writeFile(appPidFile, pid)
-            on({
-              'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-            })
-            resolve({
-              'APP-Service-Start-PID': pid
-            })
-            return
-          }
-          on({
-            'APP-On-Log': AppLog(
-              'error',
-              I18nT('appLog.startServiceFail', {
-                error: res?.error ?? 'Start Fail',
-                service: `${this.type}-${version.version}`
-              })
-            )
-          })
-          reject(new Error(res?.error ?? 'Start Fail'))
-          return
-        }
-        let msg = 'Start Fail'
-        if (existsSync(startErrLogFile)) {
-          msg = await readFile(startErrLogFile, 'utf-8')
-        }
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: msg,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
-        reject(new Error(msg))
       }
 
       if (existsSync(confFile)) {

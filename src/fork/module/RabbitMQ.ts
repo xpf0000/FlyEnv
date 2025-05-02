@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
@@ -6,6 +6,7 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -16,7 +17,6 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
 import { ProcessListSearch } from '../Process'
 
 class RabbitMQ extends Base {
@@ -119,13 +119,20 @@ set "PLUGINS_DIR=${pluginsDir}"`
       const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)
       await mkdirp(mnesiaBaseDir)
 
+      try {
+        const all = readdirSync(mnesiaBaseDir)
+        const pid = all.find((p) => p.endsWith('.pid'))
+        if (pid) {
+          await remove(join(mnesiaBaseDir, pid))
+        }
+      } catch (e) {}
+
       const checkpid = async (time = 0) => {
         const all = readdirSync(mnesiaBaseDir)
         const pidFile = all.find((p) => p.endsWith('.pid'))
         if (pidFile) {
           const pid = (await readFile(join(mnesiaBaseDir, pidFile), 'utf-8')).trim()
           await writeFile(this.pidPath, `${pid}`)
-          await writeFile(appPidFile, `${pid}`)
           on({
             'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
           })
@@ -149,69 +156,31 @@ set "PLUGINS_DIR=${pluginsDir}"`
           }
         }
       }
+
+      const bin = version.bin
+      const baseDir = this.baseDir
+      await mkdirp(baseDir)
+      const execEnv = `$env:RABBITMQ_CONF_ENV_FILE="${confFile}"`
+      const execArgs = `-detached`
+
       try {
-        const all = readdirSync(mnesiaBaseDir)
-        const pid = all.find((p) => p.endsWith('.pid'))
-        if (pid) {
-          await remove(join(mnesiaBaseDir, pid))
-        }
-      } catch (e) {}
-
-      const psCommands: string[] = [
-        '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
-        `$env:RABBITMQ_CONF_ENV_FILE = "${confFile}"`,
-        `Set-Location -Path "${dirname(version.bin)}"`,
-        `$process = Start-Process -FilePath "./${basename(version.bin)}" -ArgumentList "-detached" -WindowStyle Hidden -PassThru`,
-        `Write-Host "$($process.Id)"`
-      ]
-
-      const psScript = psCommands.join(EOL)
-      console.log('PowerShell command: ', psScript)
-
-      const psName = `start.ps1`
-      const psPath = join(this.baseDir, psName)
-      await writeFile(psPath, psScript)
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(this.baseDir)
-      try {
-        const res = await execPromise(
-          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+        await serviceStartExec(
+          version,
+          this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on,
+          20,
+          500,
+          false
         )
-        console.log('rabbitmq start res: ', res.stdout)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
-      /**
-       * "C:\Users\x\Desktop\Git Hub\FlyEnv\data\env\erlang\bin\erl.exe" -W w -MBas ageffcbf -MHas ageffcbf -MBlmbcs 512 -MHlmbcs 512 -MMmcs 30 -pc unicode -P 1048576 -t 5000000 -stbt db -zdbbl 128000 -sbwt none -sbwtdcpu none -sbwtdio none -- -root "C:\Users\x\Desktop\Git Hub\FlyEnv\data\env\erlang" -bindir "C:\Users\x\Desktop\Git Hub\FlyEnv\data\env\erlang\erts-14.2.5.9\bin" -progname erl -- -home C:\Users\x -- -noshell -noinput -s rabbit boot -syslog logger [] -syslog syslog_error_logger false -kernel prevent_overlapping_partitions false -detached -noshell -noinput -boot start_sasl
-       */
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
       await checkpid()
     })
   }

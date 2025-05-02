@@ -6,6 +6,7 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -18,7 +19,6 @@ import { writeFile, readFile, remove, mkdirp, copyFile, readdir } from 'fs-extra
 import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
 import { ProcessListSearch } from '../Process'
-import { EOL } from 'os'
 import axios from 'axios'
 
 class Php extends Base {
@@ -243,46 +243,25 @@ class Php extends Base {
       }
       await copyFile(ini, runIni)
 
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `cd /d "${dirname(version.bin)}"`,
-        `start /B ./php-cgi-spawner.exe "php-cgi.exe -c php.phpwebstudy.90${version.num}.ini" 90${version.num} 4 > NUL 2>&1 &`
-      ]
+      const bin = join(version.path, 'php-cgi-spawner.exe')
+      const pidPath = join(global.Server.PhpDir!, `php${version.num}.pid`)
+      const execArgs = `\`"php-cgi.exe -c php.phpwebstudy.90${version.num}.ini\`" 90${version.num} 4`
 
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start-${version.num}.cmd`
-      const sh = join(global.Server.PhpDir!, cmdName)
-      await writeFile(sh, command)
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(global.Server.PhpDir!)
       try {
-        const res = await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        const res = await serviceStartExec(
+          version,
+          pidPath,
+          global.Server.PhpDir!,
+          bin,
+          execArgs,
+          '',
+          on,
+          20,
+          500,
+          false
         )
-        console.log('php start res: ', res.stdout)
-        const pid = res.stdout.trim()
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-        })
-        resolve({
-          'APP-Service-Start-PID': pid
-        })
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return

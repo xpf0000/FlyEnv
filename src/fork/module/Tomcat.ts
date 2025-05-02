@@ -1,11 +1,11 @@
-import { basename, dirname, join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -13,10 +13,9 @@ import {
   versionSort,
   waitTime
 } from '../Fn'
-import { copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { copyFile, mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { makeGlobalTomcatServerXML } from './service/ServiceItemJavaTomcat'
-import { EOL } from 'os'
 import { ProcessListSearch } from '../Process'
 import { I18nT } from '@lang/index'
 
@@ -125,69 +124,30 @@ class Tomcat extends Base {
         path: baseDir
       } as any)
 
-      if (existsSync(this.pidPath)) {
-        try {
-          await remove(this.pidPath)
-        } catch (e) {}
-      }
-
-      const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
-
       await mkdirp(join(baseDir, 'logs'))
 
-      const psCommands: string[] = [
-        '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
-        `$env:CATALINA_BASE = "${baseDir}"`,
-        `Set-Location -Path "${dirname(bin)}"`,
-        `$process = Start-Process -FilePath "./${basename(bin)}" -WindowStyle Hidden -PassThru`,
-        `Write-Host "$($process.Id)"`
-      ]
+      const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
+      const execEnv = `$env:CATALINA_BASE="${baseDir}"`
+      const execArgs = ` `
 
-      const psScript = psCommands.join(EOL)
-      console.log('PowerShell command: ', psScript)
-
-      const psName = `start.ps1`
-      const psPath = join(tomcatDir, psName)
-      await writeFile(psPath, psScript)
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(tomcatDir)
       try {
-        const res = await execPromise(
-          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+        await serviceStartExec(
+          version,
+          this.pidPath,
+          tomcatDir,
+          bin,
+          execArgs,
+          execEnv,
+          on,
+          20,
+          500,
+          false
         )
-        console.log('tomcat res: ', res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
 
       /**
        * "C:\Users\x\Desktop\Git Hub\FlyEnv\data\env\java\bin\javaw.exe"
@@ -232,7 +192,6 @@ class Tomcat extends Base {
       const res = await checkPid()
       if (res && res?.pid) {
         await writeFile(this.pidPath, `${res.pid}`)
-        await writeFile(appPidFile, `${res.pid}`)
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
         })

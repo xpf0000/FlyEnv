@@ -937,7 +937,7 @@ export async function serviceStartExec(
   const outFile = join(baseDir, 'start.out.log')
   const errFile = join(baseDir, 'start.error.log')
 
-  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec1.ps1'), 'utf8')
 
   psScript = psScript
     .replace('#ENV#', execEnv)

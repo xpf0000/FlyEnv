@@ -117,8 +117,11 @@ class Apache extends Base {
         srvroot = reg?.exec?.(content)?.[2] ?? ''
       } catch (e) {}
 
+      /**
+       * LoadModule headers_module modules/mod_headers.so
+       */
       content = content
-        .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
+        .replace('#LoadModule headers_module', 'LoadModule headers_module')
         .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
         .replace('#LoadModule proxy_module', 'LoadModule proxy_module')
         .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')

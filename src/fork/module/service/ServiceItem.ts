@@ -57,7 +57,7 @@ export class ServiceItem {
   timer: any
   pidFile?: string
   constructor() {}
-  async checkState(): Promise<string[]> {
+  async checkState(): Promise<Array<string | number>> {
     return []
   }
   start(item: AppHost): ForkPromise<any> {
