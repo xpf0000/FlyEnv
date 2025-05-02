@@ -225,6 +225,17 @@ set "PLUGINS_DIR=${pluginsDir}"`
     } catch (e: any) {
       console.log('set ERLANG_HOME error: ', e)
     }
+    if (!str) {
+      try {
+        str = (
+          await execPromise('$env:ERLANG_HOME', {
+            shell: 'powershell.exe'
+          })
+        ).stdout.trim()
+      } catch (e: any) {
+        console.log('set ERLANG_HOME error: ', e)
+      }
+    }
     console.log('ERLANG_HOME: ', str)
     if (!str || !existsSync(str)) {
       return
