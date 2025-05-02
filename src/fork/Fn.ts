@@ -28,6 +28,7 @@ import sudoPrompt from '@shared/sudo'
 import { compareVersions } from 'compare-versions'
 import chardet from 'chardet'
 import iconv from 'iconv-lite'
+import { I18nT } from '@lang/index'
 
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -878,4 +879,149 @@ export async function readFileAsUTF8(filePath: string): Promise<string> {
   } catch (err: any) {
     return ''
   }
+}
+
+export async function waitPidFile(
+  pidFile: string,
+  errLog?: string,
+  time = 0
+): Promise<
+  | {
+      pid?: string
+      error?: string
+    }
+  | false
+> {
+  let res:
+    | {
+        pid?: string
+        error?: string
+      }
+    | false = false
+  if (errLog && existsSync(errLog)) {
+    const error = await readFile(errLog, 'utf-8')
+    if (error.length > 0) {
+      return {
+        error
+      }
+    }
+  }
+  if (existsSync(pidFile)) {
+    const pid = (await readFile(pidFile, 'utf-8')).trim()
+    return {
+      pid
+    }
+  } else {
+    if (time < 20) {
+      await waitTime(500)
+      res = res || (await waitPidFile(pidFile, errLog, time + 1))
+    } else {
+      res = false
+    }
+  }
+  console.log('waitPid: ', time, res)
+  return res
+}
+
+export async function serviceStartExec(
+  version: SoftInstalled,
+  pidPath: string,
+  baseDir: string,
+  bin: string,
+  execArgs: string,
+  execEnv: string,
+  on: Function
+): Promise<{ 'APP-Service-Start-PID': string }> {
+  if (existsSync(pidPath)) {
+    try {
+      await remove(pidPath)
+    } catch (e) {}
+  }
+
+  const outFile = join(baseDir, 'start.out.log')
+  const errFile = join(baseDir, 'start.error.log')
+
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
+
+  psScript = psScript
+    .replace('#ENV#', execEnv)
+    .replace('#BIN#', bin)
+    .replace('#ARGS#', execArgs)
+    .replace('#OUTLOG#', outFile)
+    .replace('#ERRLOG#', errFile)
+
+  const psName = `start.ps1`
+  const psPath = join(baseDir, psName)
+  await writeFile(psPath, psScript)
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+  })
+
+  process.chdir(baseDir)
+  try {
+    await spawnPromise(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-Command',
+        `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+      ],
+      {
+        shell: 'powershell.exe',
+        cwd: baseDir
+      }
+    )
+  } catch (e) {
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.execStartCommandFail', { error: e, service: `apache-${version.version}` })
+      )
+    })
+    throw e
+  }
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+  })
+  on({
+    'APP-Service-Start-Success': true
+  })
+
+  const res = await waitPidFile(pidPath)
+  if (res) {
+    if (res?.pid) {
+      await writeFile(pidPath, res.pid)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+      })
+      return {
+        'APP-Service-Start-PID': res.pid
+      }
+    }
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.startServiceFail', {
+          error: res?.error ?? 'Start Fail',
+          service: `apache-${version.version}`
+        })
+      )
+    })
+    throw new Error(res?.error ?? 'Start Fail')
+  }
+  let msg = 'Start Fail'
+  if (existsSync(errFile)) {
+    msg = (await readFileAsUTF8(errFile)) || 'Start Fail'
+  }
+  on({
+    'APP-On-Log': AppLog(
+      'error',
+      I18nT('appLog.startServiceFail', { error: msg, service: `apache-${version.version}` })
+    )
+  })
+  throw new Error(msg)
 }

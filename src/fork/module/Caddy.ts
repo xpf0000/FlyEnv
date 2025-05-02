@@ -1,11 +1,11 @@
-import { join, dirname, basename } from 'path'
+import { join, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   hostAlias,
-  spawnPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -14,7 +14,7 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
+import { readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
 import { I18nT } from '@lang/index'
@@ -147,109 +147,17 @@ class Caddy extends Base {
       await this.#fixVHost()
       const iniFile = await this.initConfig().on(on)
 
-      if (existsSync(this.pidPath)) {
-        try {
-          await remove(this.pidPath)
-        } catch (e) {}
-      }
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
-
       const baseDir = join(global.Server.BaseDir!, `caddy`)
-
-      const outFile = join(baseDir, 'start.out.log')
-      const errFile = join(baseDir, 'start.error.log')
-
       const execArgs = `start --config \`"${iniFile}\`" --pidfile \`"${this.pidPath}\`" --watch`
 
-      let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
-
-      psScript = psScript
-        .replace('#BIN#', bin)
-        .replace('#ARGS#', execArgs)
-        .replace('#OUTLOG#', outFile)
-        .replace('#ERRLOG#', errFile)
-
-      const psName = `start.ps1`
-      const psPath = join(baseDir, psName)
-      await writeFile(psPath, psScript)
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(baseDir)
       try {
-        await spawnPromise(
-          'powershell.exe',
-          [
-            '-NoProfile',
-            '-ExecutionPolicy',
-            'Bypass',
-            '-Command',
-            `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
-          ],
-          {
-            shell: 'powershell.exe'
-          }
-        )
+        const res = await serviceStartExec(version, this.pidPath, baseDir, bin, execArgs, '', on)
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', { error: e, service: `caddy-${version.version}` })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(this.pidPath)
-      if (res) {
-        if (res?.pid) {
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-          })
-          await writeFile(appPidFile, res.pid)
-          resolve({
-            'APP-Service-Start-PID': res.pid
-          })
-          return
-        }
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: res?.error ?? 'Start Fail',
-              service: `caddy-${version.version}`
-            })
-          )
-        })
-        reject(new Error(res?.error ?? 'Start Fail'))
-        return
-      }
-      let msg = 'Start Fail'
-      if (existsSync(errFile)) {
-        msg = (await readFile(errFile, 'utf8')) || 'Start Fail'
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.startServiceFail', { error: msg, service: `caddy-${version.version}` })
-        )
-      })
-      reject(new Error(msg))
     })
   }
 

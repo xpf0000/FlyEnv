@@ -7,17 +7,16 @@ import {
   AppLog,
   execPromise,
   getAllFileAsync,
-  spawnPromise,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionInitedApp,
   versionLocalFetch,
   versionSort,
-  readFileAsUTF8
+  serviceStartExec
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
 
@@ -266,107 +265,24 @@ IncludeOptional "${vhost}*.conf"`
       }
 
       const pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
-      if (existsSync(pidPath)) {
-        try {
-          await remove(pidPath)
-        } catch (e) {}
-      }
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
-
-      const outFile = join(global.Server.ApacheDir!, 'start.out.log')
-      const errFile = join(global.Server.ApacheDir!, 'start.error.log')
-
       const execArgs = `-f \`"${conf}\`"`
 
-      let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
-
-      psScript = psScript
-        .replace('#BIN#', bin)
-        .replace('#ARGS#', execArgs)
-        .replace('#OUTLOG#', outFile)
-        .replace('#ERRLOG#', errFile)
-
-      const psName = `start.ps1`
-      const psPath = join(global.Server.ApacheDir!, psName)
-      await writeFile(psPath, psScript)
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(global.Server.ApacheDir!)
       try {
-        await spawnPromise(
-          'powershell.exe',
-          [
-            '-NoProfile',
-            '-ExecutionPolicy',
-            'Bypass',
-            '-Command',
-            `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
-          ],
-          {
-            shell: 'powershell.exe'
-          }
+        const res = await serviceStartExec(
+          version,
+          pidPath,
+          global.Server.ApacheDir!,
+          bin,
+          execArgs,
+          '',
+          on
         )
+        resolve(res)
       } catch (e: any) {
         console.log('-k start err: ', e)
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', { error: e, service: `apache-${version.version}` })
-          )
-        })
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(pidPath)
-      if (res) {
-        if (res?.pid) {
-          await writeFile(appPidFile, res.pid)
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-          })
-          resolve({
-            'APP-Service-Start-PID': res.pid
-          })
-          return
-        }
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: res?.error ?? 'Start Fail',
-              service: `apache-${version.version}`
-            })
-          )
-        })
-        reject(new Error(res?.error ?? 'Start Fail'))
-        return
-      }
-      let msg = 'Start Fail'
-      if (existsSync(errFile)) {
-        msg = (await readFileAsUTF8(errFile)) || 'Start Fail'
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.startServiceFail', { error: msg, service: `apache-${version.version}` })
-        )
-      })
-      reject(new Error(msg))
     })
   }
 

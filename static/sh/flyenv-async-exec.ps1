@@ -4,13 +4,12 @@
 $env:LC_ALL = 'en_US.UTF-8'
 $env:LANG = 'en_US.UTF-8'
 
+#ENV#
+
 $BIN = "#BIN#"
 $ARGS = "#ARGS#"
 $OUTLOG = "#OUTLOG#"
 $ERRLOG = "#ERRLOG#"
-
-"" | Out-File -FilePath $OUTLOG -Encoding UTF8
-"" | Out-File -FilePath $ERRLOG -Encoding UTF8
 
 $process = Start-Process -FilePath "$BIN" `
     -ArgumentList "$ARGS" `

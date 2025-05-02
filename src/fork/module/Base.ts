@@ -86,6 +86,12 @@ export class Base {
       try {
         await this._stopServer(version).on(on)
         const res = await this._startServer(version, ...args).on(on)
+        if (res?.['APP-Service-Start-PID']) {
+          const pid = res['APP-Service-Start-PID']
+          const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+          await mkdirp(dirname(appPidFile))
+          await writeFile(appPidFile, pid.trim())
+        }
         resolve(res)
       } catch (e) {
         reject(e)
