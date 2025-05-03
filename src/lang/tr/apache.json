@@ -1,0 +1,7 @@
+{
+  "Timeout": "Alım ve gönderim işlemleri zaman aşımına uğramadan önceki saniye sayısı.",
+  "KeepAlive": "Kalıcı bağlantılara izin verilip verilmeyeceği",
+  "KeepAliveTimeout": "Aynı bağlantı üzerinden aynı istemciden gelen bir sonraki isteği beklemek için saniye sayısı.",
+  "MaxKeepAliveRequests": "Kalıcı bir bağlantı sırasında izin verilen maksimum istek sayısı.\nSınırsız izin vermek için 0 olarak ayarlayın.\nMaksimum performans için bu değeri yüksek bırakmanız önerilir.",
+  "LimitRequestBody": "Bayt cinsinden dosya yükleme boyutu sınırı. 0: sınırsız"
+}

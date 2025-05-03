@@ -1,0 +1,14 @@
+{
+  "binNoFound": "Başlatma dosyası bulunamadı, işlem başarısız.",
+  "confNoFound": "Yapılandırma dosyası bulunamadı, sunucu başlatılamadı",
+  "apacheLogPathErr": "Yapılandırma dosyasındaki log yolu hatalı, geçiş başarısız oldu",
+  "hostsFileNoFound": "hosts dosyası bulunamadı",
+  "startFail": "Başlatma başarısız oldu, lütfen log dosyasını kontrol edin",
+  "phpiniNoFound": "php.ini dosyası bulunamadı",
+  "versionNoFound": "Yazılım sürümü alınamadı, işlem başarısız.",
+  "postgresqlInit": "Servis başarıyla başlatıldı\nVeri Dizini: {dir}\nVarsayılan Kullanıcı: root, Şifre: root",
+  "downFileFail": "Dosya indirilemedi!",
+  "noEPMD": "epmd süreci bulunamadı. Lütfen Erlang ortam değişkenlerini sıfırlayın",
+  "licenseTips": "Lisans alınmadan yalnızca üç site oluşturulabilir",
+  "trialEnd": "Deneme süresi sona erdi. Bu özelliği kullanmaya devam etmek için lütfen lisans edinin"
+}

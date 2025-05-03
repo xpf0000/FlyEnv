@@ -1,0 +1,13 @@
+{
+  "Licenses": "Lisans",
+  "requestedTips": "Lisans talebi gönderildi, lütfen sabırlı olun. Bilgileri değiştirmek isterseniz tekrar gönderebilirsiniz.",
+  "licenseActivated": "Lisans Etkinleştirildi",
+  "autoStartService": "Servisleri Otomatik Başlat",
+  "autoStartServiceTips": "Uygulama başladığında servislerin otomatik olarak başlatılıp başlatılmayacağı",
+  "autoHide": "Arayüzü Otomatik Gizle",
+  "autoHideTips": "Servisler otomatik başlatıldığında ana arayüzün gizlenip yalnızca sistem tepsisinde simge olarak kalıp kalmayacağı",
+  "autoLunach": "Bilgisayar Açılışında Otomatik Başlat",
+  "autoLunachTips": "Bilgisayar açıldığında uygulamanın otomatik olarak başlatılıp başlatılmayacağı",
+  "langTips": "Kullanıcı tanımlı dil paketlerini yükler. Aynı zamanda kullanıcıların başka dillere çevirmesi için varsayılan bir dil paketi de başlatılır.",
+  "openLangDir": "Dil paketi klasörünü aç"
+}

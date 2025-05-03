@@ -1,0 +1,21 @@
+{
+  "about": "Hakkında",
+  "app": "PhpWebStudy",
+  "checkForUpdates": "Güncellemeleri Kontrol Et...",
+  "hide": "PhpWebStudy'i Gizle",
+  "hideOthers": "Diğerlerini Gizle",
+  "unhide": "Tümünü Göster",
+  "quit": "PhpWebStudy'den Çık",
+  "edit": "Düzenle",
+  "cut": "Kes",
+  "copy": "Kopyala",
+  "paste": "Yapıştır",
+  "selectAll": "Tümünü Seç",
+  "window": "Pencere",
+  "close": "Kapat",
+  "minimize": "Küçült",
+  "zoom": "Büyüt",
+  "fullscreen": "Tam Ekran Moduna Geç",
+  "front": "PhpWebStudy'i Öne Getir",
+  "dev": "Hata Ayıklama Penceresini Aç"
+}

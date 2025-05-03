@@ -1,0 +1,36 @@
+{
+  "title": "Lisans Açıklaması",
+  "description": "Lisans, FlyEnv ve yazarlarının emeğine bir takdir ve destektir. Amacı kullanıcıları kısıtlamak değil, yazılımı kullanırken geliştiricilerin emeğine saygı gösterilmesini ve ilgili şartlara uyulmasını hatırlatmaktır. Lisansa uyum sağlayarak kullanıcılar, sadece projenin gelişimini desteklemekle kalmaz, aynı zamanda açık kaynak topluluğundaki güven ve iş birliği ruhuna da katkıda bulunurlar.",
+  "restrictions": {
+    "title": "Lisansı olmayan kullanıcılar aşağıdaki kısıtlamalara tabi olacaktır:",
+    "items": {
+      "0": "En fazla üç site oluşturulabilir.",
+      "1": "Yapay zeka sohbet özelliği yalnızca üç günlük deneme süresiyle kullanılabilir.",
+      "2": "Gelecekteki özellikler için ek kısıtlamalar uygulanabilir."
+    }
+  },
+  "licenseInfo": "Sunulan mevcut lisans süresizdir ve her lisans tek bir bilgisayara karşılık gelir. Bilgisayarınızı değiştirmeniz durumunda yeni bir lisans talebinde bulunmanız gerekir.",
+  "howToObtain": {
+    "title": "Lisans Nasıl Alınır?",
+    "description": "FlyEnv, lisans almak için esnek yollar sunar. Kullanıcılar aşağıdaki yöntemlerden herhangi birini seçerek başvurabilir:",
+    "methods": {
+      "0": {
+        "title": "Projeye Bağış Yapın",
+        "description": "Bağış için sabit bir tutar yoktur. Farklı ülkelerdeki kullanıcıların (örneğin öğrencilerin) ekonomik durumları göz önünde bulundurularak, lütfen kendi şartlarınıza uygun bir tutar seçin."
+      },
+      "1": {
+        "title": "Geliştirmeye Katkıda Bulunun",
+        "description": "Projeye Pull Request göndererek katılın. Kod miktarı önemli değildir; proje üzerinde olumlu bir etkisi olması (örneğin bir çeviri hatasının düzeltilmesi) yeterlidir."
+      },
+      "2": {
+        "title": "Projeyi Tanıtın",
+        "description": "FlyEnv'i tanıtmak için makale, video, blog, vlog yayınlayın veya yorumlarda bahsedin. İçerik herhangi bir dilde ve herhangi bir platformda olabilir, yeter ki internet üzerinde herkese açık olsun."
+      }
+    }
+  },
+  "submitInfo": "Yukarıdaki yöntemlerden herhangi birini tamamladıktan sonra, sonucu aşağıdaki giriş kutusuna girin ve 'Lisans Talep Et' düğmesine tıklayarak başvurunuzu gönderin. Lisans talepleri manuel olarak incelenmektedir, lütfen sabırlı olun. Genellikle hızlı şekilde yanıt verilir.",
+  "messageLabel": "Mesaj",
+  "messagePlaceholder": "Bağış yaptıysanız lütfen bağışçı adını, bağış bağlantısını veya sipariş numarasını girin.\nProje geliştirmeye katıldıysanız lütfen PR bağlantısını girin.\nTanıtım yaptıysanız lütfen makale/video bağlantısını paylaşın.",
+  "requestButton": "Lisans Talep Et",
+  "refreshButton": "Durumu Yenile"
+}

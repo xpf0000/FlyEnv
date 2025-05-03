@@ -1,0 +1,13 @@
+{
+  "registry": "Kaynak",
+  "checkPackageJsonUpdate": "Güncellemeleri Kontrol Et",
+  "updatePackageJsonFile": "package.json Dosyasını Güncelle",
+  "updatePackageJsonFileTips": "Bu işlem package.json dosyasını değiştirecek. Güncellemek istediğinize emin misiniz?",
+  "copyDirPath": "Proje Klasör Yolunu Kopyala",
+  "openIN": "Şurada Aç",
+  "VSCode": "Visual Studio Code",
+  "PhpStorm": "PhpStorm",
+  "WebStorm": "WebStorm",
+  "HBuilderX": "HBuilderX",
+  "projectEnvSet": "Proje Ortamı"
+}

@@ -1,0 +1,13 @@
+{
+  "setaliase": "Takma Ad Ayarla",
+  "env": "Ortam Değişkeni",
+  "alias": "Takma Ad",
+  "envTips": "Yol ortam değişkenlerine eklendi mi?",
+  "aliasTips": "Terminalde kullanılacak takma ad",
+  "bundleinVersionDelTips": "Bu sürüm yerleşik bir sürümdür, gizlensin mi?",
+  "customDirVersionDelTips": "Bu sürüm özel bir yol sürümüdür, gizlensin mi?",
+  "staticDelAlert": "Kullanıcı verilerinin güvenliğini sağlamak adına, kurulu yazılımların otomatik silinmesi artık desteklenmemektedir. Silmekte kararlıysanız Tamam’a tıklayın. Yazılımı açılan klasörden manuel olarak silin.",
+  "useSysPHP": "Varsayılan PHP sürümünü kullan",
+  "setByApp": "FlyEnv tarafından ayarlanmış ortam değişkeni",
+  "setByNoApp": "FlyEnv tarafından ayarlanmamış ortam değişkeni"
+}

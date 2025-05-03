@@ -1,0 +1,14 @@
+{
+  "site": "Site",
+  "webServer": "Web Sunucusu",
+  "dataBaseServer": "Veritabanı Sunucusu",
+  "emailServer": "E-posta Sunucusu",
+  "language": "Programlama Dili",
+  "dataQueue": "Veri Kuyruğu ve Önbellek",
+  "searchEngine": "Arama Motoru",
+  "dnsServer": "DNS Sunucusu",
+  "ftpServer": "FTP Sunucusu",
+  "other": "Diğer",
+  "appLog": "Uygulama Günlüğü",
+  "ai": "Yapay Zeka"
+}
