@@ -2,7 +2,7 @@
   "email": "E-Posta",
   "country": "Ülke",
   "message": "Mesaj",
-  "messagelengthErr": "Mesaj uzunluğu 5 ile 1024 karakter arasında olmalıdır",
+  "messagelengthErr": "Mesaj uzunluğu 5 - 1024 karakter olmalıdır",
   "sendMessage": "Mesaj Gönder",
   "anythingToSay": "Söylemek istediğiniz bir şey var mı?",
   "noSelected": "Seçilmedi",

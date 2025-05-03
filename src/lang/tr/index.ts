@@ -26,10 +26,11 @@ import updateTR from './update.json'
 import utilTR from './util.json'
 import versionmanagerTR from './versionmanager.json'
 import licensesTR from './licenses.json'
-import requestTimer from './requestTimer.json'
+import requestTimerTR from './requestTimer.json'
 
 export default {
   tr: {
+    requestTimer: requestTimerTR,
     licenses: licensesTR,
     ai: aiTR,
     apache: apacheTR,
@@ -57,7 +58,6 @@ export default {
     tray: trayTR,
     update: updateTR,
     util: utilTR,
-    versionmanager: versionmanagerTR,
-    requestTimer
+    versionmanager: versionmanagerTR
   }
 }

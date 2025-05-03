@@ -1,14 +1,15 @@
 {
   "binNoFound": "Başlatma dosyası bulunamadı, işlem başarısız.",
-  "confNoFound": "Yapılandırma dosyası bulunamadı, sunucu başlatılamadı",
-  "apacheLogPathErr": "Yapılandırma dosyasındaki log yolu hatalı, geçiş başarısız oldu",
-  "hostsFileNoFound": "hosts dosyası bulunamadı",
-  "startFail": "Başlatma başarısız oldu, lütfen log dosyasını kontrol edin",
-  "phpiniNoFound": "php.ini dosyası bulunamadı",
+  "confNoFound": "Yapılandırma dosyası mevcut değil, sunucu başlatılamadı",
+  "apacheLogPathErr": "Yapılandırma dosyasındaki günlük yolu hatalı, işlem başarısız",
+  "versionError": "Sürüm hatalı, lütfen tekrar seçin",
+  "hostsFileNoFound": "Hosts dosyası mevcut değil",
+  "startFail": "Başlatılamadı, lütfen günlük dosyasını kontrol edin",
+  "command": "Komut",
+  "ExtensionInstallFail": "Eklenti kurulumu başarısız",
+  "ExtensionInstallFailTips": "Eklentiyi kurmak ve komutu çalıştırmak için:\n{command}\nEğer kurulum başarısız olursa, komutu kopyalayıp kendiniz yüklemeyi deneyebilirsiniz\n",
   "versionNoFound": "Yazılım sürümü alınamadı, işlem başarısız.",
-  "postgresqlInit": "Servis başarıyla başlatıldı\nVeri Dizini: {dir}\nVarsayılan Kullanıcı: root, Şifre: root",
+  "postgresqlInit": "Servis başarıyla başlatıldı\nVeri Dizin: {dir}\nİlk Kullanıcı: root, Parola: root",
   "downFileFail": "Dosya indirilemedi!",
-  "noEPMD": "epmd süreci bulunamadı. Lütfen Erlang ortam değişkenlerini sıfırlayın",
-  "licenseTips": "Lisans alınmadan yalnızca üç site oluşturulabilir",
-  "trialEnd": "Deneme süresi sona erdi. Bu özelliği kullanmaya devam etmek için lütfen lisans edinin"
+  "trialEnd": "Deneme süresi sona erdi. Bu özelliği kullanmaya devam etmek için lütfen bir lisans edinin"
 }

@@ -2,12 +2,10 @@
   "setaliase": "Takma Ad Ayarla",
   "env": "Ortam Değişkeni",
   "alias": "Takma Ad",
-  "envTips": "Yol ortam değişkenlerine eklendi mi?",
+  "envTips": "Yol, ortam değişkenine eklendi mi?",
   "aliasTips": "Terminalde kullanılacak takma ad",
-  "bundleinVersionDelTips": "Bu sürüm yerleşik bir sürümdür, gizlensin mi?",
-  "customDirVersionDelTips": "Bu sürüm özel bir yol sürümüdür, gizlensin mi?",
-  "staticDelAlert": "Kullanıcı verilerinin güvenliğini sağlamak adına, kurulu yazılımların otomatik silinmesi artık desteklenmemektedir. Silmekte kararlıysanız Tamam’a tıklayın. Yazılımı açılan klasörden manuel olarak silin.",
   "useSysPHP": "Varsayılan PHP sürümünü kullan",
-  "setByApp": "FlyEnv tarafından ayarlanmış ortam değişkeni",
-  "setByNoApp": "FlyEnv tarafından ayarlanmamış ortam değişkeni"
+  "setByApp": "FlyEnv tarafından ayarlanmış ortam değişkenleri",
+  "setByNoApp": "FlyEnv tarafından ayarlanmamış ortam değişkenleri",
+  "ftpdNeedPasswordToStart": "Pure-FTPd çalıştırmak için sudo yetkileri gereklidir. Lütfen kullanıcı şifrenizi girin. Bu şifre daha sonra otomatik doldurma için kullanılacaktır. Veya aşağıdaki butona tıklayarak terminalde manuel olarak girebilirsiniz, ancak bu uyarı tekrar görünebilir."
 }

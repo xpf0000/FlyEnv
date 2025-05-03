@@ -1,7 +1,9 @@
 {
   "checkForUpdates": "Güncellemeleri Kontrol Et",
-  "update-available-message": "PhpWebStudy'nin daha yeni bir sürümü mevcut, şimdi güncellensin mi?",
+  "update-available-message": "FlyEnv'in daha yeni bir sürümü mevcut, şimdi güncellemek ister misiniz?",
+  "update-not-available-message": "Uygulamanız güncel!",
   "update-downloaded-message": "Kurulmaya hazır...",
+  "update-error-message": "Güncelleme Hatası",
   "yes": "Evet",
   "no": "Hayır"
 }

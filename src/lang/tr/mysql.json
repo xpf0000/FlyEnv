@@ -1,6 +1,7 @@
 {
-  "key_buffer_size": "Dizinleme için tampon boyutu",
-  "query_cache_size": "Sorgu önbelleği, etkin değilse lütfen 0 olarak ayarlayın",
+  "port": "Port. Varsayılan 3306'dır",
+  "key_buffer_size": "İndeksleme için tampon boyutu",
+  "query_cache_size": "Sorgu önbelleği, etkin değilse 0 olarak ayarlayın",
   "tmp_table_size": "Geçici tablo önbellek boyutu",
   "innodb_buffer_pool_size": "InnoDB tampon boyutu",
   "innodb_log_buffer_size": "InnoDB log tampon boyutu",
@@ -8,6 +9,6 @@
   "read_buffer_size": "Okuma tampon boyutu",
   "read_rnd_buffer_size": "Rastgele okuma tampon boyutu",
   "thread_cache_size": "İş parçacığı havuzu boyutu",
-  "table_open_cache": "Açık tablo önbelleği",
+  "table_open_cache": "Tablo önbelleği",
   "max_connections": "Maksimum bağlantı sayısı"
 }

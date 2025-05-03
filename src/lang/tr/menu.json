@@ -1,11 +1,11 @@
 {
   "about": "Hakkında",
-  "app": "PhpWebStudy",
+  "app": "FlyEnv",
   "checkForUpdates": "Güncellemeleri Kontrol Et...",
-  "hide": "PhpWebStudy'i Gizle",
+  "hide": "FlyEnv'i Gizle",
   "hideOthers": "Diğerlerini Gizle",
   "unhide": "Tümünü Göster",
-  "quit": "PhpWebStudy'den Çık",
+  "quit": "FlyEnv'den Çık",
   "edit": "Düzenle",
   "cut": "Kes",
   "copy": "Kopyala",
@@ -14,8 +14,10 @@
   "window": "Pencere",
   "close": "Kapat",
   "minimize": "Küçült",
-  "zoom": "Büyüt",
+  "zoom": "Yakınlaştır",
   "fullscreen": "Tam Ekran Moduna Geç",
-  "front": "PhpWebStudy'i Öne Getir",
-  "dev": "Hata Ayıklama Penceresini Aç"
+  "front": "FlyEnv'i Öne Getir",
+  "dev": "Hata Ayıklama Penceresini Aç",
+  "needInstallHelper": "FlyEnv yardımcı programı yüklemelidir",
+  "waitHelper": "Yardımcı program başlatılıyor, lütfen bekleyin"
 }

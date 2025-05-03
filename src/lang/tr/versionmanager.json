@@ -1,5 +1,5 @@
 {
   "Local": "Yerel",
-  "Library": "Kütüphane",
-  "installFail": "Kurulum Başarısız"
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> bulunamadı\nHomebrew kurmak için kur butonuna tıklayarak devam edebilirsiniz\nAyrıca aşağıdaki bağlantıya da tıklayabilirsiniz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/zh/help-4-2.html')\">https://flyenv.com/zh/help-4-2.html</a>\nKurulum kılavuzunu takip edin.",
+  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">MacPorts</a> bulunamadı.\nMacPorts kurmak için aşağıdaki bağlantıya tıklayabilirsiniz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nKurulum kılavuzunu takip edin."
 }
