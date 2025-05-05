@@ -98,7 +98,7 @@
       </el-table-column>
       <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
         <template #header>
-          <el-tooltip :content="I18nT('service.envTips')" placement="top" show-after="600">
+          <el-tooltip :content="I18nT('service.envTips')" placement="top" :show-after="600">
             <span>{{ I18nT('service.env') }}</span>
           </el-tooltip>
         </template>
@@ -152,7 +152,7 @@
         align="left"
       >
         <template #header>
-          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
+          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" :show-after="600">
             <span>{{ I18nT('service.alias') }}</span>
           </el-tooltip>
         </template>

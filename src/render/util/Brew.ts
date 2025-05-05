@@ -41,6 +41,15 @@ export const fetchVerion = (typeFlag: AllAppModule): Promise<boolean> => {
               'bin/mariadbd.exe'
             )
             item.installed = existsSync(item.bin) || existsSync(oldBin)
+          } else if (typeFlag === 'mongodb') {
+            item.bin = join(global.Server.AppDir!, `mongodb-${item.version}`, 'bin/mongod.exe')
+            const oldBin = join(
+              global.Server.AppDir!,
+              `mongodb-${item.version}`,
+              `mongodb-win32-x86_64-windows-${item.version}`,
+              'bin/mongodb.exe'
+            )
+            item.installed = existsSync(item.bin) || existsSync(oldBin)
           } else {
             item.installed = existsSync(item.bin)
           }
