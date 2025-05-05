@@ -4,7 +4,7 @@ import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  serviceStartExec,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -38,13 +38,13 @@ class Elasticsearch extends Base {
 
       const baseDir = join(global.Server.BaseDir!, `elasticsearch`)
       await mkdirp(baseDir)
-      const execEnv = `$env:ES_HOME="${version.path}"
-$env:ES_PATH_CONF="${join(version.path, 'config')}"
+      const execEnv = `set "ES_HOME=${version.path}"
+set "ES_PATH_CONF=${join(version.path, 'config')}"
 `
-      const execArgs = `-d -p \`"${this.pidPath}\`"`
+      const execArgs = `-d -p "${this.pidPath}"`
 
       try {
-        const res = await serviceStartExec(
+        const res = await serviceStartExecCMD(
           version,
           this.pidPath,
           baseDir,

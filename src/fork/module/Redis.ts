@@ -5,7 +5,7 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
-  serviceStartExec,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -113,10 +113,10 @@ class Redis extends Base {
       const runConf = join(dirname(bin), appConfName)
       await copyFile(conf, runConf)
 
-      const execArgs = `\`"${runConf}\`"`
+      const execArgs = `"${appConfName}"`
 
       try {
-        const res = await serviceStartExec(
+        const res = await serviceStartExecCMD(
           version,
           this.pidPath,
           global.Server.RedisDir!,

@@ -4,7 +4,7 @@ import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  serviceStartExec,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -108,10 +108,10 @@ class Nginx extends Base {
 
       const pid = join(global.Server.NginxDir!, 'logs/nginx.pid')
 
-      const execArgs = `-p \`"${p}\`"`
+      const execArgs = `-p "${p}"`
 
       try {
-        const res = await serviceStartExec(
+        const res = await serviceStartExecCMD(
           version,
           pid,
           global.Server.NginxDir!,

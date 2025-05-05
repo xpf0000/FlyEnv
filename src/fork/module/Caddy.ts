@@ -5,7 +5,7 @@ import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   hostAlias,
-  serviceStartExec,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -149,10 +149,10 @@ class Caddy extends Base {
 
       const baseDir = join(global.Server.BaseDir!, `caddy`)
       await mkdirp(baseDir)
-      const execArgs = `start --config \`"${iniFile}\`" --pidfile \`"${this.pidPath}\`" --watch`
+      const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
 
       try {
-        const res = await serviceStartExec(version, this.pidPath, baseDir, bin, execArgs, '', on)
+        const res = await serviceStartExecCMD(version, this.pidPath, baseDir, bin, execArgs, '', on)
         resolve(res)
       } catch (e: any) {
         console.log('-k start err: ', e)

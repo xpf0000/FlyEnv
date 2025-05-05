@@ -13,7 +13,7 @@ import {
   versionSort,
   AppLog,
   execPromise,
-  serviceStartExec
+  serviceStartExecCMD
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, remove, readFile } from 'fs-extra'
@@ -114,12 +114,12 @@ datadir="${dataDir}"`
           const baseDir = global.Server.MysqlDir!
           await mkdirp(baseDir)
           const params = [
-            `--defaults-file=\`"${m}\`"`,
-            `--pid-file=\`"${p}\`"`,
+            `--defaults-file="${m}"`,
+            `--pid-file="${p}"`,
             '--user=mysql',
             '--slow-query-log=ON',
-            `--slow-query-log-file=\`"${s}\`"`,
-            `--log-error=\`"${e}\`"`,
+            `--slow-query-log-file="${s}"`,
+            `--log-error="${e}"`,
             '--standalone'
           ]
 
@@ -127,7 +127,7 @@ datadir="${dataDir}"`
           const execArgs = params.join(' ')
 
           try {
-            const res = await serviceStartExec(
+            const res = await serviceStartExecCMD(
               version,
               p,
               baseDir,

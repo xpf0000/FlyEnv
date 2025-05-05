@@ -9,7 +9,7 @@ import {
   realpathSync,
   statSync
 } from 'fs'
-import { dirname, isAbsolute, join, parse } from 'path'
+import { dirname, isAbsolute, join, parse, basename } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -1007,6 +1007,114 @@ export async function serviceStartExec(
       'APP-Service-Start-PID': pid
     }
   }
+
+  res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
+  if (res) {
+    if (res?.pid) {
+      await writeFile(pidPath, res.pid)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+      })
+      return {
+        'APP-Service-Start-PID': res.pid
+      }
+    }
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.startServiceFail', {
+          error: res?.error ?? 'Start Fail',
+          service: `${version.typeFlag}-${version.version}`
+        })
+      )
+    })
+    throw new Error(res?.error ?? 'Start Fail')
+  }
+  let msg = 'Start Fail'
+  if (existsSync(errFile)) {
+    msg = (await readFileAsUTF8(errFile)) || 'Start Fail'
+  }
+  on({
+    'APP-On-Log': AppLog(
+      'error',
+      I18nT('appLog.startServiceFail', {
+        error: msg,
+        service: `${version.typeFlag}-${version.version}`
+      })
+    )
+  })
+  throw new Error(msg)
+}
+
+export async function serviceStartExecCMD(
+  version: SoftInstalled,
+  pidPath: string,
+  baseDir: string,
+  bin: string,
+  execArgs: string,
+  execEnv: string,
+  on: Function,
+  maxTime = 20,
+  timeToWait = 500
+): Promise<{ 'APP-Service-Start-PID': string }> {
+  if (pidPath && existsSync(pidPath)) {
+    try {
+      await remove(pidPath)
+    } catch (e) {}
+  }
+
+  const outFile = join(baseDir, 'start.out.log')
+  const errFile = join(baseDir, 'start.error.log')
+
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.cmd'), 'utf8')
+
+  let execBin = basename(bin)
+  if (execBin.includes('.exe')) {
+    execBin = `./${execBin}`
+  }
+
+  psScript = psScript
+    .replace('#ENV#', execEnv)
+    .replace('#CWD#', dirname(bin))
+    .replace('#BIN#', execBin)
+    .replace('#ARGS#', execArgs)
+    .replace('#OUTLOG#', outFile)
+    .replace('#ERRLOG#', errFile)
+
+  const psName = `start.cmd`
+  const psPath = join(baseDir, psName)
+  await writeFile(psPath, psScript)
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+  })
+
+  process.chdir(baseDir)
+  let res: any
+  try {
+    res = await spawnPromise('start.cmd', [], {
+      shell: 'cmd.exe',
+      cwd: baseDir
+    })
+  } catch (e) {
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.execStartCommandFail', {
+          error: e,
+          service: `${version.typeFlag}-${version.version}`
+        })
+      )
+    })
+    throw e
+  }
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+  })
+  on({
+    'APP-Service-Start-Success': true
+  })
 
   res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
   if (res) {

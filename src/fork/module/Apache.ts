@@ -13,7 +13,7 @@ import {
   versionInitedApp,
   versionLocalFetch,
   versionSort,
-  serviceStartExec
+  serviceStartExecCMD
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, readFile, writeFile } from 'fs-extra'
@@ -268,10 +268,10 @@ IncludeOptional "${vhost}*.conf"`
       }
 
       const pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
-      const execArgs = `-f \`"${conf}\`"`
+      const execArgs = `-f "${conf}"`
 
       try {
-        const res = await serviceStartExec(
+        const res = await serviceStartExecCMD(
           version,
           pidPath,
           global.Server.ApacheDir!,

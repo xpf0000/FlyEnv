@@ -99,7 +99,7 @@ export class Base {
     })
   }
 
-  _stopServer(version: SoftInstalled) {
+  _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
     console.log(version)
     return new ForkPromise(async (resolve, reject, on) => {
       on({
@@ -405,6 +405,11 @@ php "%~dp0composer.phar" %*`
         )
       }
 
+      const handleMongoDB = async () => {
+        await handleTwoLevDir()
+        // @ts-ignore
+        await this.initMongosh()
+      }
       const doHandleZip = async () => {
         const two = [
           'java',
@@ -424,6 +429,8 @@ php "%~dp0composer.phar" %*`
           await handleComposer()
         } else if (row.type === 'python') {
           await handlePython()
+        } else if (row.type === 'mongodb') {
+          await handleMongoDB()
         } else {
           await zipUnPack(row.zip, row.appDir)
         }
