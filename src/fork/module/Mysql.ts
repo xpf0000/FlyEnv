@@ -13,7 +13,8 @@ import {
   versionSort,
   AppLog,
   execPromise,
-  serviceStartExecCMD
+  serviceStartExecCMD,
+  spawnPromise
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, remove, readFile } from 'fs-extra'
@@ -295,15 +296,16 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           command = commands.join(EOL)
           console.log('command: ', command)
 
-          const cmdName = `start.cmd`
+          const cmdName = `start-${id}.cmd`
           const sh = join(global.Server.MysqlDir!, cmdName)
           await writeFile(sh, command)
 
           process.chdir(global.Server.MysqlDir!)
           try {
-            await execPromise(
-              `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
-            )
+            await spawnPromise(cmdName, [], {
+              shell: 'cmd.exe',
+              cwd: global.Server.MysqlDir!
+            })
           } catch (e: any) {
             console.log('-k start err: ', e)
             reject(e)

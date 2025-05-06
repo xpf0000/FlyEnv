@@ -6,7 +6,7 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
-  serviceStartExec,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -43,10 +43,10 @@ class Manager extends Base {
       let sendUserPass = false
 
       const doRun = async () => {
-        const execArgs = `-D \`"${dbPath}\`" -l \`"${logFile}\`" start`
+        const execArgs = `-D "${dbPath}" -l "${logFile}" start`
 
         try {
-          const res = await serviceStartExec(
+          const res = await serviceStartExecCMD(
             version,
             pidFile,
             global.Server.PostgreSqlDir!,

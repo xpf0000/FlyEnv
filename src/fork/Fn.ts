@@ -946,7 +946,7 @@ export async function serviceStartExec(
     .replace('#OUTLOG#', outFile)
     .replace('#ERRLOG#', errFile)
 
-  const psName = `start.ps1`
+  const psName = `start-${version.version!.trim()}.ps1`.split(' ').join('')
   const psPath = join(baseDir, psName)
   await writeFile(psPath, psScript)
 
@@ -1055,7 +1055,8 @@ export async function serviceStartExecCMD(
   execEnv: string,
   on: Function,
   maxTime = 20,
-  timeToWait = 500
+  timeToWait = 500,
+  checkPidFile = true
 ): Promise<{ 'APP-Service-Start-PID': string }> {
   if (pidPath && existsSync(pidPath)) {
     try {
@@ -1081,7 +1082,7 @@ export async function serviceStartExecCMD(
     .replace('#OUTLOG#', outFile)
     .replace('#ERRLOG#', errFile)
 
-  const psName = `start.cmd`
+  const psName = `start-${version.version!.trim()}.cmd`.split(' ').join('')
   const psPath = join(baseDir, psName)
   await writeFile(psPath, psScript)
 
@@ -1092,7 +1093,7 @@ export async function serviceStartExecCMD(
   process.chdir(baseDir)
   let res: any
   try {
-    res = await spawnPromise('start.cmd', [], {
+    res = await spawnPromise(psName, [], {
       shell: 'cmd.exe',
       cwd: baseDir
     })
@@ -1115,6 +1116,12 @@ export async function serviceStartExecCMD(
   on({
     'APP-Service-Start-Success': true
   })
+
+  if (!checkPidFile) {
+    return {
+      'APP-Service-Start-PID': ''
+    }
+  }
 
   res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
   if (res) {

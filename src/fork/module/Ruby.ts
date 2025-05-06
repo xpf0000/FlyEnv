@@ -1,7 +1,7 @@
-import {basename, join} from 'path'
+import { basename, join } from 'path'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import type {OnlineVersionItem, SoftInstalled} from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   versionBinVersion,
   versionFilterSame,
@@ -10,7 +10,7 @@ import {
   versionSort
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
-import {existsSync} from "fs";
+import { existsSync } from 'fs'
 
 class Ruby extends Base {
   constructor() {
@@ -23,7 +23,7 @@ class Ruby extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('ruby')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, 'ruby',`v${a.version}`, 'bin/ruby.exe')
+          const dir = join(global.Server.AppDir!, 'ruby', `v${a.version}`, 'bin/ruby.exe')
           const zip = join(global.Server.Cache!, `ruby-${a.version}.zip`)
           a.appDir = join(global.Server.AppDir!, 'ruby', `v${a.version}`)
           a.zip = zip

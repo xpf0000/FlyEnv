@@ -90,7 +90,7 @@ export class Base {
           const pid = res['APP-Service-Start-PID']
           const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
           await mkdirp(dirname(appPidFile))
-          await writeFile(appPidFile, pid.trim())
+          await writeFile(appPidFile, `${pid}`.trim())
         }
         resolve(res)
       } catch (e) {
@@ -129,7 +129,7 @@ export class Base {
         return
       }
       if (version?.pid) {
-        const pids = await ProcessPidListByPid(version.pid.trim())
+        const pids = await ProcessPidListByPid(`${version.pid}`.trim())
         console.log('_stopServer 1 pid: ', version.pid, pids)
         if (pids.length > 0) {
           const str = pids.map((s) => `/pid ${s}`).join(' ')
@@ -407,6 +407,7 @@ php "%~dp0composer.phar" %*`
 
       const handleMongoDB = async () => {
         await handleTwoLevDir()
+        await waitTime(1000)
         // @ts-ignore
         await this.initMongosh()
       }

@@ -654,6 +654,7 @@
     const saveFn = () => {
       running.value = true
       const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
+      item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
       IPC.send('app-fork:host', 'doFixHostsRole').then((key: string) => {
         IPC.off(key)
         handleHost(item.value as any, flag, props.edit as AppHost, park.value).then(() => {

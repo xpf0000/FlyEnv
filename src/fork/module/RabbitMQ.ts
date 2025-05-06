@@ -6,7 +6,7 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
-  serviceStartExec,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -162,11 +162,11 @@ set "PLUGINS_DIR=${pluginsDir}"`
       const bin = version.bin
       const baseDir = this.baseDir
       await mkdirp(baseDir)
-      const execEnv = `$env:RABBITMQ_CONF_ENV_FILE="${confFile}"`
+      const execEnv = `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`
       const execArgs = `-detached`
 
       try {
-        await serviceStartExec(
+        await serviceStartExecCMD(
           version,
           this.pidPath,
           baseDir,
@@ -241,11 +241,14 @@ set "PLUGINS_DIR=${pluginsDir}"`
     const dirs = await readdir(str)
     for (const dir of dirs) {
       const bin = join(str, dir, 'bin/epmd.exe')
+      console.log('epmd.exe: ', bin)
       if (existsSync(bin)) {
+        console.log('epmd.exe existsSync: ', bin)
         process.chdir(dirname(bin))
         try {
-          await execPromise(`start /B cmd /c "./epmd.exe > NUL 2>&1"`, {
-            cwd: dirname(bin)
+          await execPromise(`start /B ./epmd.exe > NUL 2>&1`, {
+            cwd: dirname(bin),
+            shell: 'cmd.exe'
           })
         } catch (e: any) {
           console.log('epmd.exe start error: ', e)

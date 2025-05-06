@@ -65,7 +65,7 @@ class Redis extends Base {
     })
   }
 
-  _stopServer(version: SoftInstalled) {
+  _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))

@@ -10,5 +10,6 @@
   "ftpServer": "FTP服务器",
   "other": "其他",
   "appLog": "App日志",
-  "ai": "AI"
+  "ai": "AI",
+  "objectStorage": "对象存储"
 }

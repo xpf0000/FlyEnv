@@ -361,7 +361,10 @@ class Host extends Base {
         try {
           hosts = await readFile(this.hostsFile, 'utf-8')
         } catch (e) {
-          await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[Host][writeHosts][readFile]: ${e}\n`)
+          await appendFile(
+            join(global.Server.BaseDir!, 'debug.log'),
+            `[Host][writeHosts][readFile]: ${e}\n`
+          )
           hasErr = true
         }
         if (!hasErr) {

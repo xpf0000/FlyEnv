@@ -28,6 +28,7 @@ class Manager extends Base {
   Node: any
   Elasticsearch: any
   Ollama: any
+  Minio: any
 
   constructor() {
     super()
@@ -178,6 +179,12 @@ class Manager extends Base {
             this.Ollama = res.default
           }
           versions.ollama = this.Ollama.allInstalledVersions(setup)
+        } else if (type === 'minio') {
+          if (!this.Minio) {
+            const res = await import('./Minio')
+            this.Minio = res.default
+          }
+          versions.minio = this.Minio.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []
@@ -190,7 +197,7 @@ class Manager extends Base {
       list.forEach((arr, i) => {
         const typeFlag = keys[i]
         arr.forEach((item) => {
-          item.typeFlag = typeFlag
+          item.typeFlag = typeFlag as any
         })
         versions[typeFlag] = arr
       })

@@ -5,7 +5,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  serviceStartExec,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -127,11 +127,11 @@ class Tomcat extends Base {
       await mkdirp(join(baseDir, 'logs'))
 
       const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
-      const execEnv = `$env:CATALINA_BASE="${baseDir}"`
-      const execArgs = ` `
+      const execEnv = `set "CATALINA_BASE=${baseDir}"`
+      const execArgs = ``
 
       try {
-        await serviceStartExec(
+        await serviceStartExecCMD(
           version,
           this.pidPath,
           tomcatDir,

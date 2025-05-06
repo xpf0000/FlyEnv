@@ -299,8 +299,6 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     contentNginxConf = handleReverseProxy(host, contentNginxConf)
     await writeFile(nginxConfPath, contentNginxConf)
   }
-  if (host.nginx.rewrite.trim() !== old.nginx.rewrite.trim()) {
-    const nginxRewriteConfPath = join(rewritepath, `${host.name}.conf`)
-    await writeFile(nginxRewriteConfPath, host.nginx.rewrite.trim())
-  }
+  const nginxRewriteConfPath = join(rewritepath, `${host.name}.conf`)
+  await writeFile(nginxRewriteConfPath, host.nginx.rewrite.trim())
 }
