@@ -1,0 +1,21 @@
+{
+  "startServiceBegin": "{service} servisi başlatılıyor...",
+  "confInit": "Yapılandırma dosyası bulunamadı. Yeni yapılandırma dosyası oluşturuluyor",
+  "confInitSuccess": "Yapılandırma dosyası başarıyla oluşturuldu, dosya yolu: {file}",
+  "confInitFail": "Yapılandırma dosyası oluşturulamadı, neden: {error}",
+  "apachePortHandleBegin": "Siteden tüm Apache dinleme portları alınıyor",
+  "apachePortHandleEnd": "Apache dinleme portları alındı, yapılandırma dosyası yazılıyor",
+  "execStartCommand": "Başlatma komutu çalıştırılıyor",
+  "execStartCommandSuccess": "Başlatma komutu başarıyla çalıştırıldı, başlatma durumu kontrol ediliyor",
+  "execStartCommandFail": "Başlatma komutu çalıştırılamadı, neden: {error}, {service} servisi başlatılamadı",
+  "startServiceSuccess": "{service} servisi başarıyla başlatıldı, pid: {pid}",
+  "startServiceFail": "{service} servisi başlatılamadı, neden: {error}",
+  "stopServiceBegin": "{service} servisi durduruluyor...",
+  "stopServiceEnd": "{service} servisi başarıyla durduruldu",
+  "initDBPass": "Veritabanı şifresi başlatılıyor...",
+  "initDBPassSuccess": "Veritabanı şifresi başarıyla başlatıldı, kullanıcı adı ve şifre: {user} {pass}",
+  "initDBPassFail": "Veritabanı şifresi başlatılamadı, neden: {error}",
+  "initDBDataDir": "Veri klasörü bulunamadı, başlatılıyor...",
+  "initDBDataDirSuccess": "Veri klasörü başarıyla başlatıldı, klasör yolu: {dir}",
+  "initDBDataDirFail": "Veri klasörü başlatılamadı, neden: {error}"
+}

@@ -1,0 +1,6 @@
+{
+  "timeout": "Boş bağlantı zaman aşımı, 0 sürekli açık anlamına gelir",
+  "databases": "Veritabanı sayısı",
+  "requirepass": "Redis şifresi",
+  "maxmemory": "Bayt cinsinden maksimum bellek kullanımı, 0 sınırsız anlamına gelir"
+}

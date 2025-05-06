@@ -1,0 +1,23 @@
+{
+  "about": "Hakkında",
+  "app": "FlyEnv",
+  "checkForUpdates": "Güncellemeleri Kontrol Et...",
+  "hide": "FlyEnv'i Gizle",
+  "hideOthers": "Diğerlerini Gizle",
+  "unhide": "Tümünü Göster",
+  "quit": "FlyEnv'den Çık",
+  "edit": "Düzenle",
+  "cut": "Kes",
+  "copy": "Kopyala",
+  "paste": "Yapıştır",
+  "selectAll": "Tümünü Seç",
+  "window": "Pencere",
+  "close": "Kapat",
+  "minimize": "Küçült",
+  "zoom": "Yakınlaştır",
+  "fullscreen": "Tam Ekran Moduna Geç",
+  "front": "FlyEnv'i Öne Getir",
+  "dev": "Hata Ayıklama Penceresini Aç",
+  "needInstallHelper": "FlyEnv yardımcı programı yüklemelidir",
+  "waitHelper": "Yardımcı program başlatılıyor, lütfen bekleyin"
+}

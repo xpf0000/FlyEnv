@@ -1,0 +1,10 @@
+{
+  "gzip": "GZIP sıkıştırma iletimini etkinleştir",
+  "gzip_min_length": "Sıkıştırılacak minimum dosya boyutu",
+  "gzip_comp_level": "Sıkıştırma seviyesi",
+  "client_max_body_size": "Maksimum yükleme dosya boyutu",
+  "server_names_hash_max_size": "Sunucu adı için hash tablo maksimum boyutu",
+  "server_names_hash_bucket_size": "Sunucu adı için hash tablo boyutu",
+  "client_header_buffer_size": "İstemci istek başlığı tampon boyutu",
+  "client_body_buffer_size": "İstek gövdesi tampon boyutu"
+}
