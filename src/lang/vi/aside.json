@@ -10,5 +10,6 @@
   "ftpServer": "Máy chủ FTP",
   "other": "Khác",
   "appLog": "Nhật ký ứng dụng",
-  "ai": "AI"
+  "ai": "AI",
+  "objectStorage": "Lưu trữ đối tượng"
 }

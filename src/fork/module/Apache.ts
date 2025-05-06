@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
@@ -10,6 +10,7 @@ import {
   getAllFileAsync,
   md5,
   portSearch,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -218,7 +219,6 @@ IncludeOptional "${vhost}*.conf"`
       })
       const logs = join(global.Server.ApacheDir!, 'common/logs')
       await mkdirp(logs)
-      const bin = version.bin
       const conf = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
       if (!existsSync(conf)) {
         on({
@@ -227,56 +227,23 @@ IncludeOptional "${vhost}*.conf"`
         reject(new Error(I18nT('fork.confNoFound')))
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
+
       const pidFile = join(global.Server.ApacheDir!, 'httpd.pid')
       const logFile = join(logs, 'access_log')
-      const command = `cd "${dirname(bin)}" && ./${basename(bin)} -f "${conf}" -c "PidFile \"${pidFile}\"" -c "CustomLog \"${logFile}\" common" -k start`
-      console.log('apache start command: ', command)
-      // const env = await fixEnv()
-      // const uinfo = userInfo()
-      // const uid = uinfo.uid
-      // const gid = uinfo.gid
+
+      const bin = version.bin
+      const baseDir = global.Server.ApacheDir!
+      const execEnv = ``
+      const execArgs = `-f "${conf}" -c "PidFile \"${pidFile}\"" -c "CustomLog \"${logFile}\" common" -k start`
+
       try {
-        await execPromise(command)
+        const res = await serviceStartExec(version, pidFile, baseDir, bin, execArgs, execEnv, on)
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', { error: e, service: `apache-${version.version}` })
-          )
-        })
+        console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(pidFile)
-      if (res && res?.pid) {
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-        })
-        resolve({
-          'APP-Service-Start-PID': res.pid
-        })
-        return
-      }
-      const error = res ? res?.error : I18nT('fork.startFail')
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.execStartCommandFail', {
-            error,
-            service: `${this.type}-${version.version}`
-          })
-        )
-      })
-      reject(new Error(error))
     })
   }
 

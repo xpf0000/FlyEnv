@@ -10,5 +10,6 @@
   "ftpServer": "FTP Server",
   "other": "Other",
   "appLog": "App Log",
-  "ai": "AI"
+  "ai": "AI",
+  "objectStorage": "Object Storage"
 }

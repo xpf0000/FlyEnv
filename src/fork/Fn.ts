@@ -1,16 +1,17 @@
 import { type ChildProcess, spawn } from 'child_process'
 import { merge } from 'lodash'
 import { createWriteStream, existsSync, mkdirSync, readdirSync, realpathSync, statSync } from 'fs'
-import path, { dirname, join } from 'path'
+import path, { basename, dirname, join } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import { readdir } from 'fs-extra'
+import { mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { fixEnv } from '@shared/utils'
 import { compareVersions } from 'compare-versions'
 import { execPromise } from '@shared/Exec'
 import Helper from './Helper'
+import { I18nT } from '@lang/index'
 
 export { execPromise }
 
@@ -97,6 +98,7 @@ export function spawnPromise(
     const onEnd = (code: number | null) => {
       if (exit) return
       exit = true
+      console.log('onEnd code: ', code)
       if (!code) {
         resolve(Buffer.concat(stdout).toString().trim())
       } else {
@@ -709,4 +711,151 @@ export const readFileByRoot = async (file: string): Promise<string> => {
   } catch (e) {
     throw e
   }
+}
+
+export async function waitPidFile(
+  pidFile: string,
+  time = 0,
+  maxTime = 20,
+  timeToWait = 500
+): Promise<
+  | {
+      pid?: string
+      error?: string
+    }
+  | false
+> {
+  let res:
+    | {
+        pid?: string
+        error?: string
+      }
+    | false = false
+  if (existsSync(pidFile)) {
+    const pid = (await readFile(pidFile, 'utf-8')).trim()
+    return {
+      pid
+    }
+  } else {
+    if (time < maxTime) {
+      await waitTime(timeToWait)
+      res = res || (await waitPidFile(pidFile, time + 1, maxTime, timeToWait))
+    } else {
+      res = false
+    }
+  }
+  console.log('waitPid: ', time, res)
+  return res
+}
+
+export async function serviceStartExec(
+  version: SoftInstalled,
+  pidPath: string,
+  baseDir: string,
+  bin: string,
+  execArgs: string,
+  execEnv: string,
+  on: Function,
+  maxTime = 20,
+  timeToWait = 500,
+  checkPidFile = true
+): Promise<{ 'APP-Service-Start-PID': string }> {
+  if (pidPath && existsSync(pidPath)) {
+    try {
+      await remove(pidPath)
+    } catch (e) {}
+  }
+  await mkdirp(baseDir)
+  const outFile = join(baseDir, 'start.out.log')
+  const errFile = join(baseDir, 'start.error.log')
+
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.sh'), 'utf8')
+
+  psScript = psScript
+    .replace('#ENV#', execEnv)
+    .replace('#CWD#', dirname(bin))
+    .replace('#BIN#', basename(bin))
+    .replace('#ARGS#', execArgs)
+    .replace('#OUTLOG#', outFile)
+    .replace('#ERRLOG#', errFile)
+
+  const psName = `start-${version.version!.trim()}.sh`.split(' ').join('')
+  const psPath = join(baseDir, psName)
+  await writeFile(psPath, psScript)
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+  })
+
+  process.chdir(baseDir)
+  let res: any
+  let error: any
+  try {
+    res = await spawnPromise('zsh', [psName], {
+      cwd: baseDir
+    })
+  } catch (e) {
+    error = e
+  }
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+  })
+  on({
+    'APP-Service-Start-Success': true
+  })
+
+  if (!checkPidFile) {
+    let pid = ''
+    const stdout = res.trim()
+    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
+    const match = regex.exec(stdout)
+    if (match) {
+      pid = match[1]
+    }
+    await writeFile(pidPath, pid)
+    on({
+      'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+    })
+    return {
+      'APP-Service-Start-PID': pid
+    }
+  }
+
+  res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
+  if (res) {
+    if (res?.pid) {
+      await writeFile(pidPath, res.pid)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+      })
+      return {
+        'APP-Service-Start-PID': res.pid
+      }
+    }
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.startServiceFail', {
+          error: res?.error ?? 'Start Fail',
+          service: `${version.typeFlag}-${version.version}`
+        })
+      )
+    })
+    throw new Error(res?.error ?? 'Start Fail')
+  }
+  let msg = 'Start Fail'
+  if (existsSync(errFile)) {
+    msg = (await readFile(errFile, 'utf-8')) || `${error.toString()}` || 'Start Fail'
+  }
+  on({
+    'APP-On-Log': AppLog(
+      'error',
+      I18nT('appLog.startServiceFail', {
+        error: msg,
+        service: `${version.typeFlag}-${version.version}`
+      })
+    )
+  })
+  throw new Error(msg)
 }
