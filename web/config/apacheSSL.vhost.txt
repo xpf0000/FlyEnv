@@ -6,18 +6,18 @@
     ErrorLog "#Log_Path#/#Server_Name#-error_log"
     CustomLog "#Log_Path#/#Server_Name#-access_log" combined
 
-    #DENY FILES
+    # File Access Restrictions
      <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
        Order allow,deny
        Deny from all
     </Files>
 
-    #PHP
+    # PHP
     <FilesMatch \.php$>
         SetHandler "proxy:fcgi://127.0.0.1:9000"
     </FilesMatch>
 
-    #PATH
+    # Directory
     <Directory "#Server_Root#">
         SetOutputFilter DEFLATE
         Options FollowSymLinks
@@ -35,7 +35,7 @@
     ErrorLog "#Log_Path#/#Server_Name#-error_log"
     CustomLog "#Log_Path#/#Server_Name#-access_log" combined
 
-    #SSL
+    # SSL
     SSLEngine On
     SSLCertificateFile "#Server_Cert#"
     SSLCertificateKeyFile "#Server_CertKey#"
@@ -43,19 +43,18 @@
     SSLProtocol All -SSLv2 -SSLv3
     SSLHonorCipherOrder On
 
-    #PHP
+    # PHP
     <FilesMatch \.php$>
-            SetHandler "proxy:fcgi://127.0.0.1:9000"
+        SetHandler "proxy:fcgi://127.0.0.1:9000"
     </FilesMatch>
 
-
-    #DENY FILES
+    # File Access Restrictions
      <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
        Order allow,deny
        Deny from all
     </Files>
 
-    #PATH
+    # Directory
     <Directory "#Server_Root#">
         SetOutputFilter DEFLATE
         Options FollowSymLinks
