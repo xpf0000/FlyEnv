@@ -244,8 +244,8 @@ export default class Application extends EventEmitter {
         .then(() => {
           readFileAsync(ngconf).then((content: string) => {
             content = content
-              .replace(/#PREFIX#/g, global.Server.NginxDir!)
-              .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx'))
+              .replace('{Prefix}', global.Server.NginxDir!)
+              .replace('{VHostPath}', join(global.Server.BaseDir!, 'vhost/nginx'))
             writeFileAsync(ngconf, content).then()
             writeFileAsync(
               join(global.Server.NginxDir!, 'common/conf/nginx.conf.default'),

@@ -1,10 +1,10 @@
-<VirtualHost *:#Port_Apache#>
+<VirtualHost *:{ServerPort}>
     ServerAdmin webmaster@example.com
-    DocumentRoot "#Server_Root#"
-    ServerName #Server_Name#
-    ServerAlias #Server_Alias#
-    ErrorLog "#Log_Path#/#Server_Name#-error_log"
-    CustomLog "#Log_Path#/#Server_Name#-access_log" combined
+    DocumentRoot "{ServerRoot}"
+    ServerName {ServerName}
+    ServerAlias {ServerAlias}
+    ErrorLog "{LogPath}/{ServerName}-error_log"
+    CustomLog "{LogPath}/{ServerName}-access_log" combined
 
     #DENY FILES
      <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
@@ -18,7 +18,7 @@
     </FilesMatch>
 
     #PATH
-    <Directory "#Server_Root#">
+    <Directory "{ServerRoot}">
         SetOutputFilter DEFLATE
         Options FollowSymLinks
         AllowOverride All

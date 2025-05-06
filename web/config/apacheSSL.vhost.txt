@@ -1,10 +1,10 @@
-<VirtualHost *:#Port_Apache#>
+<VirtualHost *:{ServerPort}>
     ServerAdmin webmaster@example.com
-    DocumentRoot "#Server_Root#"
-    ServerName #Server_Name#
-    ServerAlias #Server_Alias#
-    ErrorLog "#Log_Path#/#Server_Name#-error_log"
-    CustomLog "#Log_Path#/#Server_Name#-access_log" combined
+    DocumentRoot "{ServerRoot}"
+    ServerName {ServerName}
+    ServerAlias {ServerAlias}
+    ErrorLog "{LogPath}/{ServerName}-error_log"
+    CustomLog "{LogPath}/{ServerName}-access_log" combined
 
     #DENY FILES
      <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
@@ -18,7 +18,7 @@
     </FilesMatch>
 
     #PATH
-    <Directory "#Server_Root#">
+    <Directory "{ServerRoot}">
         SetOutputFilter DEFLATE
         Options FollowSymLinks
         AllowOverride All
@@ -27,18 +27,18 @@
     </Directory>
 </VirtualHost>
 
-<VirtualHost *:#Port_Apache_SSL#>
+<VirtualHost *:{ServerSSLPort}>
     ServerAdmin webmasterexample.com
-    DocumentRoot "#Server_Root#"
-    ServerName SSL.#Server_Name#
-    ServerAlias #Server_Alias#
-    ErrorLog "#Log_Path#/#Server_Name#-error_log"
-    CustomLog "#Log_Path#/#Server_Name#-access_log" combined
+    DocumentRoot "{ServerRoot}"
+    ServerName SSL.{ServerName}
+    ServerAlias {ServerAlias}
+    ErrorLog "{LogPath}/{ServerName}-error_log"
+    CustomLog "{LogPath}/{ServerName}-access_log" combined
 
     #SSL
     SSLEngine On
-    SSLCertificateFile "#Server_Cert#"
-    SSLCertificateKeyFile "#Server_CertKey#"
+    SSLCertificateFile "{ServerSSLCert}"
+    SSLCertificateKeyFile "{ServerSSLKey}"
     SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
     SSLProtocol All -SSLv2 -SSLv3
     SSLHonorCipherOrder On
@@ -56,7 +56,7 @@
     </Files>
 
     #PATH
-    <Directory "#Server_Root#">
+    <Directory "{ServerRoot}">
         SetOutputFilter DEFLATE
         Options FollowSymLinks
         AllowOverride All

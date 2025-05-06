@@ -1,8 +1,8 @@
-##HOST-ALL## {
+{ServerNames} {
     encode zstd gzip
-    import set-log ##LOG-PATH##
+    import set-log {LogFile}
 
-    tls ##SSL##
+    tls {SSLCertAndKey}
 
     @canonicalPath {
         file {
@@ -13,10 +13,10 @@
 
     redir @canonicalPath {path}/ 308
 
-    root * ##ROOT##
+    root * {ServerRoot}
 
     route {
-        import enable-php-select ##PHP-VERSION##
+        import enable-php-select {PHPVersion}
     }
 
     file_server

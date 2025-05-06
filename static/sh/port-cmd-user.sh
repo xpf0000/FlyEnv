@@ -5,4 +5,4 @@ fi
 if [ -f "~/.zshrc" ]; then
   source ~/.zshrc
 fi
-##CONTENT##
+{Content}

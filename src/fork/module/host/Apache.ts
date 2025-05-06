@@ -59,15 +59,15 @@ export const makeApacheConf = async (host: AppHost) => {
   const hostalias = hostAlias(host).join(' ')
 
   atmpl = atmpl
-    .replace(/#Server_Alias#/g, hostalias)
-    .replace(/#Server_Root#/g, host.root)
-    .replace(/#Rewrite_Path#/g, rewritepath)
-    .replace(/#Server_Name#/g, hostname)
-    .replace(/#Log_Path#/g, logpath)
-    .replace(/#Server_Cert#/g, host.ssl.cert)
-    .replace(/#Server_CertKey#/g, host.ssl.key)
-    .replace(/#Port_Apache#/g, `${host.port.apache}`)
-    .replace(/#Port_Apache_SSL#/g, `${host.port.apache_ssl}`)
+    .replace('{ServerAlias}', hostalias)
+    .replace('{ServerRoot}', host.root)
+    .replace('{RewritePath}', rewritepath)
+    .replace('{ServerName}', hostname)
+    .replace('{LogPath}', logpath)
+    .replace('{ServerSSLCert}', host.ssl.cert)
+    .replace('{ServerSSLKey}', host.ssl.key)
+    .replace('{ServerPort}', `${host.port.apache}`)
+    .replace('{ServerSSLPort}', `${host.port.apache_ssl}`)
   if (host.phpVersion) {
     atmpl = atmpl.replace(
       /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
