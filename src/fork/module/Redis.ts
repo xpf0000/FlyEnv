@@ -7,8 +7,8 @@ import {
   AppLog,
   brewInfoJson,
   brewSearch,
-  execPromise,
   portSearch,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -16,7 +16,7 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, unlink } from 'fs-extra'
+import { readFile, writeFile, mkdirp, chmod } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { userInfo } from 'os'
 import Helper from '../Helper'
@@ -87,55 +87,29 @@ class Redis extends Base {
           I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
         )
       })
-      const bin = version.bin
       const confFile = await this._initConf(version)
+
+      const bin = version.bin
+      const baseDir = global.Server.RedisDir!
+      const execEnv = ''
+      const execArgs = `"${confFile}"`
+
       try {
-        if (existsSync(this.pidPath)) {
-          await unlink(this.pidPath)
-        }
-      } catch (e) {}
-      try {
-        await execPromise([bin, `"${confFile}"`].join(' '))
-      } catch (e) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
+        const res = await serviceStartExec(
+          version,
+          this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on
+        )
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(this.pidPath)
-      if (res && res?.pid) {
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-        })
-        resolve({
-          'APP-Service-Start-PID': res.pid
-        })
-        return
-      }
-      const error = res ? res?.error : I18nT('fork.startFail')
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.execStartCommandFail', {
-            error,
-            service: `${this.type}-${version.version}`
-          })
-        )
-      })
-      reject(new Error(error))
     })
   }
 

@@ -11,7 +11,6 @@ export const ProcessPidsByPid = (pid: string, arr: PItem[]): string[] => {
   const find = (ppid: string) => {
     for (const item of arr) {
       if (item.PPID === ppid) {
-        console.log('find: ', ppid, item)
         all.add(item.PID!)
         find(item.PID!)
       }
@@ -36,7 +35,6 @@ export const ProcessListByPid = (pid: string, arr: PItem[]): PItem[] => {
   const find = (ppid: string) => {
     for (const item of arr) {
       if (item.PPID === ppid) {
-        console.log('find: ', ppid, item)
         all.add(item.PID!)
         find(item.PID!)
       }

@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
@@ -7,8 +7,8 @@ import {
   AppLog,
   brewInfoJson,
   brewSearch,
-  execPromise,
   portSearch,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -17,7 +17,7 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, unlink, remove } from 'fs-extra'
+import { readFile, writeFile, mkdirp, chmod } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 class Manager extends Base {
   constructor() {
@@ -59,76 +59,26 @@ class Manager extends Base {
       }
       const logPath = join(global.Server.MongoDBDir!, `mongodb-${v}.log`)
 
-      const startLog = join(global.Server.MongoDBDir!, 'start.log')
-      const startErrorLog = join(global.Server.MongoDBDir!, 'start.error.log')
-      if (existsSync(startErrorLog)) {
-        try {
-          await remove(startErrorLog)
-        } catch (e) {}
-      }
+      const baseDir = global.Server.MongoDBDir!
+      const execEnv = ''
+      const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}" --fork`
 
-      const commands: string[] = ['#!/bin/zsh']
-      commands.push(`cd "${dirname(bin)}"`)
-      commands.push(
-        `./${basename(bin)} --config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}" --fork > "${startLog}" 2>"${startErrorLog}" &`
-      )
-      commands.push(`echo $!`)
-      const command = commands.join('\n')
-      console.log('command: ', command)
-      const sh = join(global.Server.MongoDBDir!, `start.sh`)
-      await writeFile(sh, command)
-      await chmod(sh, '0777')
       try {
-        if (existsSync(this.pidPath)) {
-          await unlink(this.pidPath)
-        }
-      } catch (e) {}
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      try {
-        const res = await execPromise(`zsh "${sh}"`)
-        console.log('res: ', res)
+        const res = await serviceStartExec(
+          version,
+          this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on
+        )
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
+        console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(this.pidPath, startErrorLog)
-      if (res && res?.pid) {
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-        })
-        resolve({
-          'APP-Service-Start-PID': res.pid
-        })
-        return
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.execStartCommandFail', {
-            error: res ? res?.error : 'Start failed',
-            service: `${this.type}-${version.version}`
-          })
-        )
-      })
-      reject(new Error('Start failed'))
     })
   }
 

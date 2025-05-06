@@ -152,7 +152,7 @@
     let config = editConfig
     const list = ['#PhpWebStudy-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
+      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
       config = config.replace(regex, `\n\n`)
       if (item.enable) {
         list.push(`${item.name} = ${item.value}`)

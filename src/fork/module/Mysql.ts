@@ -17,7 +17,8 @@ import {
   brewInfoJson,
   portSearch,
   versionFilterSame,
-  AppLog
+  AppLog,
+  serviceStartExec
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
@@ -102,90 +103,31 @@ datadir=${dataDir}`
 
       const doStart = () => {
         return new Promise(async (resolve, reject) => {
-          if (existsSync(p)) {
-            try {
-              await remove(p)
-            } catch (e) {}
-          }
-          const bin = version.bin
           const params = [
-            `--defaults-file=${m}`,
-            `--pid-file=${p}`,
+            `--defaults-file="${m}"`,
+            `--pid-file="${p}"`,
             '--user=mysql',
-            `--slow-query-log-file=${s}`,
-            `--log-error=${e}`,
+            `--slow-query-log-file="${s}"`,
+            `--log-error="${e}"`,
             '--socket=/tmp/mysql.sock'
           ]
           if (version?.flag === 'macports') {
-            params.push(`--lc-messages-dir=/opt/local/share/${basename(version.path)}/english`)
+            params.push(`--lc-messages-dir="/opt/local/share/${basename(version.path)}/english"`)
           }
 
-          const startLog = join(global.Server.MysqlDir!, 'start.log')
-          const startErrorLog = join(global.Server.MysqlDir!, 'start.error.log')
-          if (existsSync(startErrorLog)) {
-            try {
-              await remove(startErrorLog)
-            } catch (e) {}
-          }
+          const bin = version.bin
+          const baseDir = global.Server.MysqlDir!
+          const execEnv = ''
+          const execArgs = params.join(' ')
 
-          const commands: string[] = ['#!/bin/zsh']
-          commands.push(`cd "${dirname(bin)}"`)
-          commands.push(
-            `nohup ./${basename(bin)} ${params.join(' ')} > "${startLog}" 2>"${startErrorLog}" &`
-          )
-          commands.push(`echo $!`)
-          const command = commands.join('\n')
-          console.log('command: ', command)
-          const sh = join(global.Server.MysqlDir!, `start.sh`)
-          await writeFile(sh, command)
-          await chmod(sh, '0777')
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-          })
-          let res: any
           try {
-            res = await execPromise(`zsh "${sh}"`)
-            console.log('start res: ', res)
-          } catch (e) {
-            on({
-              'APP-On-Log': AppLog(
-                'error',
-                I18nT('appLog.execStartCommandFail', {
-                  error: e,
-                  service: `${this.type}-${version.version}`
-                })
-              )
-            })
-            console.log('start e: ', e)
+            const res = await serviceStartExec(version, p, baseDir, bin, execArgs, execEnv, on)
+            resolve(res)
+          } catch (e: any) {
+            console.log('-k start err: ', e)
             reject(e)
             return
           }
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-          })
-          on({
-            'APP-Service-Start-Success': true
-          })
-          res = await this.waitPidFile(p, startErrorLog)
-          if (res && res?.pid) {
-            on({
-              'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-            })
-            resolve({
-              'APP-Service-Start-PID': res.pid
-            })
-            return
-          }
-          on({
-            'APP-On-Log': AppLog(
-              'error',
-              I18nT('appLog.execStartCommandFail', {
-                error: res ? res?.error : 'Start failed',
-                service: `${this.type}-${version.version}`
-              })
-            )
-          })
-          reject(new Error('Start failed'))
         })
       }
 
