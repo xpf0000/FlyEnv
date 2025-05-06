@@ -7,18 +7,18 @@
     ErrorLog "/Users/xxxx/Library/PhpWebStudy/server/vhost/logs/xxxx-error_log"
     CustomLog "/Users/xxxx/Library/PhpWebStudy/server/vhost/logs/xxxx-access_log" combined
 
-    #DENY FILES
+    # File Access Restrictions
      <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
        Order allow,deny
        Deny from all
     </Files>
 
-    #PHP
+    # PHP
     <FilesMatch \.php$>
-            SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-73.sock|fcgi://localhost"
+        SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-73.sock|fcgi://localhost"
     </FilesMatch>
 
-    #PATH
+    # Directory
     <Directory "/Users/xxxx/Desktop/www/xxxx">
         SetOutputFilter DEFLATE
         Options FollowSymLinks
@@ -28,7 +28,6 @@
     </Directory>
 </VirtualHost>
 
-
 <VirtualHost *:8443>
     ServerAdmin webmasterexample.com
     DocumentRoot "/Users/xxxx/Desktop/www/xxxx"
@@ -37,7 +36,7 @@
     ErrorLog "/Users/xxxx/Library/PhpWebStudy/server/vhost/logs/xxxx-error_log"
     CustomLog "/Users/xxxx/Library/PhpWebStudy/server/vhost/logs/xxxx-access_log" combined
 
-    #SSL
+    # SSL
     SSLEngine On
     SSLCertificateFile "/Users/xxxx/Desktop/CA/pQvEHH.xxxx.crt"
     SSLCertificateKeyFile "/Users/xxxx/Desktop/CA/pQvEHH.xxxx.key"
@@ -45,19 +44,18 @@
     SSLProtocol All -SSLv2 -SSLv3
     SSLHonorCipherOrder On
 
-    #PHP
+    # PHP
     <FilesMatch \.php$>
-            SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-73.sock|fcgi://localhost"
+        SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-73.sock|fcgi://localhost"
     </FilesMatch>
 
-
-    #DENY FILES
+    # File Access Restrictions
      <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
        Order allow,deny
        Deny from all
     </Files>
 
-    #PATH
+    # Directory
     <Directory "/Users/xxxx/Desktop/www/xxxx">
         SetOutputFilter DEFLATE
         Options FollowSymLinks

@@ -41,7 +41,7 @@
   "nodeListCellCurrent": "Nuvarande",
   "nodeListCellInstalled": "Status",
   "toolSystemEnv": "Systemmiljö",
-  "toolSSL": "SSL Skapa",
+  "toolSSL": "Generera SSL-certifikat",
   "toolFileInfo": "Filinformation",
   "toolTimestamp": "Tidsstämpelkonvertering",
   "toolPortKill": "Port avsluta",
