@@ -1,0 +1,15 @@
+{
+  "binNoFound": "Başlatma dosyası bulunamadı, işlem başarısız.",
+  "confNoFound": "Yapılandırma dosyası mevcut değil, sunucu başlatılamadı",
+  "apacheLogPathErr": "Yapılandırma dosyasındaki günlük yolu hatalı, işlem başarısız",
+  "versionError": "Sürüm hatalı, lütfen tekrar seçin",
+  "hostsFileNoFound": "Hosts dosyası mevcut değil",
+  "startFail": "Başlatılamadı, lütfen günlük dosyasını kontrol edin",
+  "command": "Komut",
+  "ExtensionInstallFail": "Eklenti kurulumu başarısız",
+  "ExtensionInstallFailTips": "Eklentiyi kurmak ve komutu çalıştırmak için:\n{command}\nEğer kurulum başarısız olursa, komutu kopyalayıp kendiniz yüklemeyi deneyebilirsiniz\n",
+  "versionNoFound": "Yazılım sürümü alınamadı, işlem başarısız.",
+  "postgresqlInit": "Servis başarıyla başlatıldı\nVeri Dizin: {dir}\nİlk Kullanıcı: root, Parola: root",
+  "downFileFail": "Dosya indirilemedi!",
+  "trialEnd": "Deneme süresi sona erdi. Bu özelliği kullanmaya devam etmek için lütfen bir lisans edinin"
+}

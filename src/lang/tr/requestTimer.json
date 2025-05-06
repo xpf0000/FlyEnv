@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNS Sorgusu",
+  "tcpConnect": "TCP Bağlantısı",
+  "tlsHandshake": "TLS El Sıkışması",
+  "requestProcessing": "İstek İşleme",
+  "ttfb": "İlk Bayta Kadar Geçen Süre (TTFB)",
+  "contentDownload": "İçerik İndirme",
+  "downloadSpeed": "İndirme Hızı",
+  "dataSize": "Veri Boyutu",
+  "httpVersion": "HTTP Sürümü",
+  "statusCode": "Durum Kodu",
+  "usingProxy": "Proxy Kullanılıyor",
+  "totalTime": "Toplam Süre",
+  "skippedForProxy": "Proxy nedeniyle atlandı",
+  "metric": "Metrik",
+  "value": "Değer"
+}
