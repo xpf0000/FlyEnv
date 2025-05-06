@@ -8,9 +8,8 @@
     CustomLog "/Users/xxxx/Library/PhpWebStudy/server/vhost/logs/xxxx-access_log" combined
 
     #DENY FILES
-     <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
-       Order allow,deny
-       Deny from all
+    <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
+        Require all denied
     </Files>
 
     #PHP
@@ -53,8 +52,7 @@
 
     #DENY FILES
      <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
-       Order allow,deny
-       Deny from all
+        Require all denied
     </Files>
 
     #PATH
