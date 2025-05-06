@@ -38,6 +38,7 @@ FlyEnv is packed with features to make your development workflow smoother and mo
 - **Programming Languages**: PHP (Composer), Java (Maven), NodeJS, Python, Go, Erlang, Ruby.
 - **Data Queue & Cache**: Redis, Memcached, RabbitMQ.
 - **Search Engine**: Elasticsearch.
+- **Object Storage**: Minio.
 - **Utilities**: DNS Server, FTP Server, Static HTTP Server.
 
 ### Highlights
@@ -78,19 +79,19 @@ brew install flyenv
 ```
 
 #### Intel (x86)
-- [FlyEnv-4.9.7.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.7/FlyEnv-4.9.7.dmg)
-- [FlyEnv-4.9.7-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.7/FlyEnv-4.9.7-mac.zip)
+- [FlyEnv-4.9.8.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.8/FlyEnv-4.9.8.dmg)
+- [FlyEnv-4.9.8-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.8/FlyEnv-4.9.8-mac.zip)
 
 #### Apple Silicon (ARM64)
-- [FlyEnv-4.9.7-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.7/FlyEnv-4.9.7-arm64.dmg)
-- [FlyEnv-4.9.7-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.7/FlyEnv-4.9.7-arm64-mac.zip)
+- [FlyEnv-4.9.8-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.8/FlyEnv-4.9.8-arm64.dmg)
+- [FlyEnv-4.9.8-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.8/FlyEnv-4.9.8-arm64-mac.zip)
 
 > **Tip**: For a lightweight PHP and web server solution, check out [FlyPHPServer](https://flyenv.com/flyphpserver.html), available on the [Mac App Store](https://apps.apple.com/us/app/flyphpserver/id1506384441).
 
 ---
 
 ### Windows
-- [FlyEnv.Setup.4.9.6.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.6/FlyEnv.Setup.4.9.6.exe)
+- [FlyEnv.Setup.4.9.8.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.8/FlyEnv.Setup.4.9.8.exe)
 
 ---
 
