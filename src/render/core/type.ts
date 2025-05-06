@@ -9,6 +9,7 @@ export enum AppModuleTypeEnum {
   dnsServer = 'dnsServer',
   ftpServer = 'ftpServer',
   other = 'other',
+  objectStorage = 'objectStorage',
   ai = 'ai'
 }
 
@@ -25,6 +26,7 @@ export const AppModuleTypeList: AllAppModuleType[] = [
   'dnsServer',
   'ftpServer',
   'searchEngine',
+  'objectStorage',
   'other'
 ]
 
@@ -56,7 +58,8 @@ export enum AppModuleEnum {
   erlang = 'erlang',
   ruby = 'ruby',
   elasticsearch = 'elasticsearch',
-  ollama = 'ollama'
+  ollama = 'ollama',
+  minio = 'minio'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

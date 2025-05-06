@@ -63,6 +63,7 @@ class Tomcat extends Base {
       }
       if (existsSync(dir) && existsSync(join(dir, 'conf/server.xml'))) {
         resolve(dir)
+        return
       }
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))

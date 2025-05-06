@@ -34,6 +34,7 @@ class BaseManager {
   Elasticsearch: any
   Ollama: any
   Ai: any
+  Minio: any
 
   constructor() {}
 
@@ -261,6 +262,12 @@ class BaseManager {
         this.Ai = res.default
       }
       doRun(this.Ai)
+    } else if (module === 'minio') {
+      if (!this.Minio) {
+        const res = await import('./module/Minio')
+        this.Minio = res.default
+      }
+      doRun(this.Minio)
     }
   }
 
