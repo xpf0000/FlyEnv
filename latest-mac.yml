@@ -1,17 +1,17 @@
-version: 4.9.7
+version: 4.9.8
 files:
-  - url: FlyEnv-4.9.7-mac.zip
-    sha512: 9R67ZkqXyiuK+0b5AAKsp34B2VjxuH7quF0uzwboJC3qryNPsVcsnuS7k/hbQqvLNlWVFz5le0BPFwkhTyYiew==
-    size: 156916640
-  - url: FlyEnv-4.9.7-arm64-mac.zip
-    sha512: GxafJGAB9mQyEkDryqF06+Ozbz3O3+DOMHa16SQwOo31K8YNfH7LM0l6vv564iGiMwEf39eEhG96jBE1iLyuzA==
-    size: 148638670
-  - url: FlyEnv-4.9.7.dmg
-    sha512: wtBaWQdoyEiSsGe1AVmb6czz02SogTmYZFInJqkynXHot24cLnHqboroMVbnzLCjUeeKrW6eHnvCbPb3BRW0lA==
-    size: 164394810
-  - url: FlyEnv-4.9.7-arm64.dmg
-    sha512: ZK8sbcUiTJPRbmIW/eCH6nRwfaerGDWJ6TtKFXCoKynWtqMWYvKJSlASfVZfVfZOSdtYF08ZqAy3SeQh4ZD6FQ==
-    size: 156132054
-path: FlyEnv-4.9.7-mac.zip
-sha512: 9R67ZkqXyiuK+0b5AAKsp34B2VjxuH7quF0uzwboJC3qryNPsVcsnuS7k/hbQqvLNlWVFz5le0BPFwkhTyYiew==
-releaseDate: '2025-04-30T14:06:22.892Z'
+  - url: FlyEnv-4.9.8-mac.zip
+    sha512: WO7nrn8fAm/d13HoflgN1hBCpsS0SG0+HjiL3S6bqAbcEhfO04T4EgGJbctyXVYyxkysVxV/0pzDyohoev3Fpw==
+    size: 156962549
+  - url: FlyEnv-4.9.8-arm64-mac.zip
+    sha512: 2ethg0JAjIAIRYphmxCl78scTKevk2Mh6u1969F+o6Z6L4OnsD67T7Eizv9uD8wpT4mw3AgF9s//w6KhilYThQ==
+    size: 148684622
+  - url: FlyEnv-4.9.8.dmg
+    sha512: jhSU+HzvdHHKxF7Ty/TCmTQJJX4i+H+tb3okkkZemWOMs2IQ5Ba0fUs+d+6XUAVfIU+iPQaXSttEh/vZ0JRLmQ==
+    size: 164485878
+  - url: FlyEnv-4.9.8-arm64.dmg
+    sha512: ndv9DRKPaIDdL9PBpRRy6WrvKVwJPYPD6wvZGEKGDKW4JmoCQMmZoEc3MrdeVvkC6VHDku2/y1pE/5yx9Ax73Q==
+    size: 156198528
+path: FlyEnv-4.9.8-mac.zip
+sha512: WO7nrn8fAm/d13HoflgN1hBCpsS0SG0+HjiL3S6bqAbcEhfO04T4EgGJbctyXVYyxkysVxV/0pzDyohoev3Fpw==
+releaseDate: '2025-05-06T15:02:15.181Z'

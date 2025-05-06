@@ -105,6 +105,9 @@
         </template>
       </el-table-column>
       <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
+        <template #header>
+          <span class="truncate">{{ I18nT('php.quickStart') }}</span>
+        </template>
         <template #default="scope">
           <template
             v-if="
@@ -129,7 +132,7 @@
       <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
         <template #header>
           <el-tooltip :content="I18nT('service.envTips')" placement="top" :show-after="600">
-            <span>{{ I18nT('service.env') }}</span>
+            <span class="truncate">{{ I18nT('service.env') }}</span>
           </el-tooltip>
         </template>
         <template #default="scope">
@@ -183,7 +186,7 @@
       >
         <template #header>
           <el-tooltip :content="I18nT('service.aliasTips')" placement="top" :show-after="600">
-            <span>{{ I18nT('service.alias') }}</span>
+            <span class="truncate">{{ I18nT('service.alias') }}</span>
           </el-tooltip>
         </template>
         <template #default="scope">
