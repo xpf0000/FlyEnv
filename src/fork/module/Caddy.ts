@@ -47,9 +47,9 @@ class Caddy extends Base {
         const vhostDir = join(global.Server.BaseDir!, 'vhost/caddy')
         await mkdirp(sslDir)
         content = content
-          .replace('##SSL_ROOT##', sslDir)
-          .replace('##LOG_FILE##', logFile)
-          .replace('##VHOST-DIR##', vhostDir)
+          .replace('{ServerRoot}', sslDir)
+          .replace('{LogFile}', logFile)
+          .replace('{VhostDir}', vhostDir)
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'Caddyfile.default')
         await writeFile(defaultIniFile, content)
@@ -106,10 +106,10 @@ class Caddy extends Base {
 
       const httpHostNameAll = httpNames.join(',\n')
       const content = tmplContent
-        .replace('##HOST-ALL##', httpHostNameAll)
-        .replace('##LOG-PATH##', logFile)
-        .replace('##ROOT##', root)
-        .replace('##PHP-VERSION##', `${phpv}`)
+        .replace('{ServerNames}', httpHostNameAll)
+        .replace('{LogFile}', logFile)
+        .replace('{ServerRoot}', root)
+        .replace('{PHPVersion}', `${phpv}`)
       contentList.push(content)
 
       if (host.useSSL) {
@@ -119,11 +119,11 @@ class Caddy extends Base {
         }
         const httpHostNameAll = httpsNames.join(',\n')
         const content = tmplSSLContent
-          .replace('##HOST-ALL##', httpHostNameAll)
-          .replace('##LOG-PATH##', logFile)
-          .replace('##SSL##', tls)
-          .replace('##ROOT##', root)
-          .replace('##PHP-VERSION##', `${phpv}`)
+          .replace('{ServerNames}', httpHostNameAll)
+          .replace('{LogFile}', logFile)
+          .replace('{SSLCertAndKey}', tls)
+          .replace('{ServerRoot}', root)
+          .replace('{PHPVersion}', `${phpv}`)
         contentList.push(content)
       }
       await writeFile(confFile, contentList.join('\n'))

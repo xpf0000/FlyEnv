@@ -1,9 +1,9 @@
 {
   storage file_system {
-      root ##SSL_ROOT##
+      root {ServerRoot}
   }
   log global_log {
-      output file ##LOG_FILE## {
+      output file {LogFile} {
           roll_size 1gb
           roll_keep 5
           roll_keep_for 720h
@@ -34,4 +34,4 @@
     php_fastcgi unix//tmp/phpwebstudy-php-cgi-{args.0}.sock
 }
 
-import ##VHOST-DIR##/*
+import {VhostDir}/*

@@ -42,7 +42,7 @@ class MailPit extends Base {
         const tmplFile = join(global.Server.Static!, 'tmpl/mailpit.conf')
         let content = await readFile(tmplFile, 'utf-8')
         const logFile = join(baseDir, 'mailpit.log')
-        content = content.replace('##LOG_FILE##', logFile)
+        content = content.replace('{LogFile}', logFile)
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'mailpit.conf.default')
         await writeFile(defaultIniFile, content)

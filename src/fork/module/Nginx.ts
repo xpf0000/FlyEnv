@@ -45,7 +45,7 @@ class Nginx extends Base {
         if (!tmplContent) {
           tmplContent = await readFile(tmplFile, 'utf-8')
         }
-        const content = tmplContent.replace('##VERSION##', `${v}`)
+        const content = tmplContent.replace('{PHPVersion}', `${v}`)
         await writeFile(confFile, content)
       }
     }

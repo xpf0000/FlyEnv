@@ -60,13 +60,13 @@ export const makeCaddyConf = async (host: AppHost) => {
 
   const httpHostNameAll = httpNames.join(',\n')
   let content = tmpl.caddy
-    .replace('##HOST-ALL##', httpHostNameAll)
-    .replace('##LOG-PATH##', logFile)
-    .replace('##ROOT##', root)
+    .replace('{ServerNames}', httpHostNameAll)
+    .replace('{LogFile}', logFile)
+    .replace('{ServerRoot}', root)
   if (phpv) {
-    content = content.replace('##PHP-VERSION##', `${phpv}`)
+    content = content.replace('{PHPVersion}', `${phpv}`)
   } else {
-    content = content.replace('import enable-php-select ##PHP-VERSION##', `##Static Site Caddy##`)
+    content = content.replace('import enable-php-select {PHPVersion}', `##Static Site Caddy##`)
   }
   content = handleReverseProxy(host, content)
   contentList.push(content)
@@ -78,14 +78,14 @@ export const makeCaddyConf = async (host: AppHost) => {
     }
     const httpHostNameAll = httpsNames.join(',\n')
     let content = tmpl.caddySSL
-      .replace('##HOST-ALL##', httpHostNameAll)
-      .replace('##LOG-PATH##', logFile)
-      .replace('##SSL##', tls)
-      .replace('##ROOT##', root)
+      .replace('{ServerNames}', httpHostNameAll)
+      .replace('{LogFile}', logFile)
+      .replace('{SSLCertAndKey}', tls)
+      .replace('{ServerRoot}', root)
     if (phpv) {
-      content = content.replace('##PHP-VERSION##', `${phpv}`)
+      content = content.replace('{PHPVersion}', `${phpv}`)
     } else {
-      content = content.replace('import enable-php-select ##PHP-VERSION##', `##Static Site Caddy##`)
+      content = content.replace('import enable-php-select {PHPVersion}', `##Static Site Caddy##`)
     }
     content = handleReverseProxy(host, content)
     contentList.push(content)

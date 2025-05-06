@@ -58,9 +58,9 @@ class Redis extends Base {
         chmod(dbDir, '0755')
         let content = await readFile(tmplFile, 'utf-8')
         content = content
-          .replace(/#PID_PATH#/g, join(global.Server.RedisDir!, 'redis.pid'))
-          .replace(/#LOG_PATH#/g, join(global.Server.RedisDir!, `redis-${v}.log`))
-          .replace(/#DB_PATH#/g, dbDir)
+          .replace('{PIDFile}', join(global.Server.RedisDir!, 'redis.pid'))
+          .replace('{LogFile}', join(global.Server.RedisDir!, `redis-${v}.log`))
+          .replace('{DBDir}', dbDir)
         await writeFile(confFile, content)
         const defaultFile = join(global.Server.RedisDir!, `redis-${v}-default.conf`)
         await writeFile(defaultFile, content)

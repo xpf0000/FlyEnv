@@ -1,16 +1,16 @@
 server
 {
-    listen #Port_Nginx#;
-    server_name #Server_Alias#;
+    listen {ServerPort}#;
+    server_name {ServerAlias};
     index index.php index.html index.htm default.php default.htm default.html;
-    root "#Server_Root#";
+    root "{ServerRoot}";
 
     #PHP-INFO-START
     include enable-php.conf;
     #PHP-INFO-END
 
     #REWRITE-START URL rewrite rule reference, modifying it will cause the pseudo-static rules set in the panel to fail
-    include #Rewrite_Path#/#Server_Name#.conf;
+    include {RewritePath}/{ServerName}.conf;
     #REWRITE-END
 
     #Files or directories that are forbidden to access
@@ -37,6 +37,6 @@ server
         error_log off;
         access_log /dev/null;
     }
-    access_log  #Log_Path#/#Server_Name#.log;
-    error_log  #Log_Path#/#Server_Name#.error.log;
+    access_log  {LogPath}/{ServerName}.log;
+    error_log  {LogPath}/{ServerName}.error.log;
 }

@@ -102,9 +102,9 @@ export const Setup = (version: SoftInstalled) => {
     }
     let content = readFileSync(sh, 'utf-8')
     content = content
-      .replace(new RegExp('##ARCH##', 'g'), arch)
-      .replace(new RegExp('##ACTION##', 'g'), fn)
-      .replace(new RegExp('##NAME##', 'g'), name)
+      .replace('{Arch}', arch)
+      .replace('{Action}', fn)
+      .replace('{Name}', name)
     writeFileSync(copyfile, content)
     await chmod(copyfile, '0777')
     params.push(`sudo -S "${copyfile}"`)

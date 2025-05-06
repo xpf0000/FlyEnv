@@ -144,7 +144,7 @@ export LANG="${global.Server.Local!}"
         await unlink(copyfile)
       }
       let content = await readFile(sh, 'utf-8')
-      content = content.replace('##BIN_PATH##', dirname(version.bin)).replace('##BRANCH##', tag)
+      content = content.replace('{BinPath}', dirname(version.bin)).replace('{Branch}', tag)
       await writeFile(copyfile, content)
       await chmod(copyfile, '0777')
       // const params = [copyfile]
