@@ -1,13 +1,13 @@
-import { basename, dirname, join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { execPromise } from '@shared/Exec'
 import {
   AppLog,
   brewInfoJson,
   brewSearch,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -16,7 +16,7 @@ import {
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { makeGlobalTomcatServerXML } from './service/ServiceItemJavaTomcat'
-import { chmod, copyFile, mkdirp, remove, writeFile } from 'fs-extra'
+import { chmod, copyFile, mkdirp } from 'fs-extra'
 import { I18nT } from '@lang/index'
 
 class Tomcat extends Base {
@@ -107,89 +107,36 @@ class Tomcat extends Base {
           I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
         )
       })
-      const bin = version.bin
       const baseDir: any = await this._initDefaultDir(version, CATALINA_BASE).on(on)
       await makeGlobalTomcatServerXML({
         path: baseDir
       } as any)
-      if (existsSync(this.pidPath)) {
-        try {
-          await remove(this.pidPath)
-        } catch (e) {}
-      }
+
       const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
 
       await mkdirp(join(baseDir, 'logs'))
 
-      const startLog = join(tomcatDir, 'start.log')
-      const startErrorLog = join(tomcatDir, 'start.error.log')
-      if (existsSync(startErrorLog)) {
-        try {
-          await remove(startErrorLog)
-        } catch (e) {}
-      }
+      const bin = version.bin
+      const execEnv = `export CATALINA_BASE="${baseDir}"
+export CATALINA_PID="${this.pidPath}"`
+      const execArgs = ``
 
-      const commands: string[] = [
-        '#!/bin/zsh',
-        `export CATALINA_BASE="${baseDir}"`,
-        `export CATALINA_PID="${this.pidPath}"`,
-        `cd "${dirname(bin)}"`,
-        `nohup ./${basename(bin)} > "${startLog}" 2>"${startErrorLog}" &`
-      ]
-
-      const command = commands.join('\n')
-      console.log('command: ', command)
-      const sh = join(tomcatDir, `start.sh`)
-      await writeFile(sh, command)
-      await chmod(sh, '0777')
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      let res: any
       try {
-        res = await execPromise(`zsh "${sh}"`)
-        console.log('start res: ', res)
-      } catch (e) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
-        console.log('start e: ', e)
+        const res = await serviceStartExec(
+          version,
+          this.pidPath,
+          tomcatDir,
+          bin,
+          execArgs,
+          execEnv,
+          on
+        )
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
         return
       }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      res = await this.waitPidFile(this.pidPath, startErrorLog)
-      if (res && res?.pid) {
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-        })
-        resolve({
-          'APP-Service-Start-PID': res.pid
-        })
-        return
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.execStartCommandFail', {
-            error: res ? res?.error : 'Start failed',
-            service: `${this.type}-${version.version}`
-          })
-        )
-      })
-      reject(new Error('Start failed'))
     })
   }
 

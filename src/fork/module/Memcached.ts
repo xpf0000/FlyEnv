@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
@@ -6,8 +6,8 @@ import type { SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
-  execPromise,
   portSearch,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -15,7 +15,6 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { chmod, mkdirp, unlink, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 class Memcached extends Base {
   constructor() {
@@ -24,7 +23,7 @@ class Memcached extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.MemcachedDir!, 'logs/memcached.pid')
+    this.pidPath = join(global.Server.MemcachedDir!, 'memcached.pid')
   }
 
   _startServer(version: SoftInstalled) {
@@ -36,71 +35,26 @@ class Memcached extends Base {
         )
       })
       const bin = version.bin
-      const common = join(global.Server.MemcachedDir!, 'logs')
-      const pid = join(common, 'memcached.pid')
-      const log = join(common, 'memcached.log')
+      const baseDir = global.Server.MemcachedDir!
+      const execEnv = ''
+      const execArgs = `-d -P "${this.pidPath}" -vv`
 
-      const commands: string[] = ['#!/bin/zsh']
-      commands.push(`cd "${dirname(bin)}"`)
-      commands.push(`./${basename(bin)} -d -P "${pid}" -vv >> "${log}" 2>&1 &`)
-      commands.push(`echo $!`)
-      const command = commands.join('\n')
-      console.log('command: ', command)
-      const sh = join(global.Server.MemcachedDir!, `start.sh`)
-      await writeFile(sh, command)
-      await chmod(sh, '0777')
       try {
-        if (existsSync(pid)) {
-          await unlink(pid)
-        }
-      } catch (e) {}
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      try {
-        await mkdirp(common)
-        const res = await execPromise(`zsh "${sh}"`)
-        console.log('res: ', res)
+        const res = await serviceStartExec(
+          version,
+          this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on
+        )
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
+        console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(pid)
-      if (res && res?.pid) {
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-        })
-        resolve({
-          'APP-Service-Start-PID': res.pid
-        })
-        return
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.execStartCommandFail', {
-            error: log,
-            service: `${this.type}-${version.version}`
-          })
-        )
-      })
-      reject(new Error('Start failed'))
     })
   }
 

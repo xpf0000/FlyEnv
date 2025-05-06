@@ -1,14 +1,14 @@
-import { join, dirname, basename } from 'path'
+import { join, dirname } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
+import { readFile, writeFile, mkdirp } from 'fs-extra'
 import {
   AppLog,
   brewInfoJson,
-  execPromise,
   portSearch,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -91,7 +91,6 @@ class Nginx extends Base {
       })
       await this.#handlePhpEnableConf()
       console.log('_startServer: ', version)
-      const bin = version.bin
       const c = join(global.Server.NginxDir!, 'common/conf/nginx.conf')
       const pid = join(global.Server.NginxDir!, 'common/logs/nginx.pid')
       const errlog = join(global.Server.NginxDir!, 'common/logs/error.log')
@@ -100,60 +99,20 @@ class Nginx extends Base {
       await this._fixConf()
       const g = `pid ${pid};error_log ${errlog};`
       const p = join(global.Server.NginxDir!, 'common')
-      if (existsSync(pid)) {
-        try {
-          await remove(pid)
-        } catch (e) {}
-      }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      const command = `cd "${dirname(bin)}" && ./${basename(bin)} -p "${p}" -e "${errlog}" -c ${c} -g "${g}"`
-      console.log('command: ', command)
+
+      const bin = version.bin
+      const baseDir = global.Server.NginxDir!
+      const execEnv = ''
+      const execArgs = `-p "${p}" -e "${errlog}" -c ${c} -g "${g}"`
 
       try {
-        await execPromise(command)
-      } catch (e) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
-        console.log('start e: ', e)
+        const res = await serviceStartExec(version, pid, baseDir, bin, execArgs, execEnv, on)
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(pid)
-      if (res && res?.pid) {
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-        })
-        resolve({
-          'APP-Service-Start-PID': res.pid
-        })
-        return
-      }
-      const error = res ? res?.error : I18nT('fork.startFail')
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.execStartCommandFail', {
-            error,
-            service: `${this.type}-${version.version}`
-          })
-        )
-      })
-      reject(new Error(error))
     })
   }
 

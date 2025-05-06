@@ -6,7 +6,6 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromise,
   getAllFileAsync,
-  spawnPromise,
   downFile,
   versionLocalFetch,
   versionMacportsFetch,
@@ -17,7 +16,8 @@ import {
   brewInfoJson,
   portSearch,
   versionFilterSame,
-  AppLog
+  AppLog,
+  serviceStartExec
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
@@ -358,57 +358,19 @@ xdebug.output_dir = "${output_dir}"
         content = content.replace('##PHP-CGI-VERSION##', v)
         await writeFile(phpFpmConf, content)
       }
-      if (existsSync(pid)) {
-        try {
-          await remove(pid)
-        } catch (e) {}
-      }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
+
+      const baseDir = global.Server.PhpDir!
+      const execEnv = ''
+      const execArgs = `-p "${varPath}" -y "${phpFpmConf}" -g "${pid}"`
+
       try {
-        await spawnPromise(bin, ['-p', varPath, '-y', phpFpmConf, '-g', pid])
-      } catch (e) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
-        console.log('start e: ', e)
+        const res = await serviceStartExec(version, pid, baseDir, bin, execArgs, execEnv, on)
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
         return
       }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(pid)
-      if (res && res?.pid) {
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-        })
-        resolve({
-          'APP-Service-Start-PID': res.pid
-        })
-        return
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.execStartCommandFail', {
-            error: res ? res?.error : 'Start failed',
-            service: `${this.type}-${version.version}`
-          })
-        )
-      })
-      reject(new Error(res ? res?.error : 'Start failed'))
     })
   }
 

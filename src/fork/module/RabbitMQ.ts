@@ -8,7 +8,7 @@ import {
   brewInfoJson,
   brewSearch,
   portSearch,
-  spawnPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -131,34 +131,30 @@ PLUGINS_DIR="${pluginsDir}"`
           await unlink(join(mnesiaBaseDir, pid))
         }
       } catch (e) {}
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
+
+      const bin = version.bin
+      const baseDir = this.baseDir
+      const execEnv = `export RABBITMQ_CONF_ENV_FILE="${confFile}"`
+      const execArgs = `-detached`
+
       try {
-        await spawnPromise(version.bin, ['-detached', `--PWSAPPFLAG=${global.Server.BaseDir!}`], {
-          env: {
-            RABBITMQ_CONF_ENV_FILE: confFile
-          }
-        }).on(on)
-      } catch (e) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
+        await serviceStartExec(
+          version,
+          this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on,
+          20,
+          500,
+          false
+        )
+      } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
       await checkpid()
     })
   }

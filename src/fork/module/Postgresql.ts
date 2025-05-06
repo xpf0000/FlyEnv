@@ -10,6 +10,7 @@ import {
   execPromise,
   getSubDirAsync,
   portSearch,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -46,62 +47,28 @@ class Manager extends Base {
       const pidFile = join(dbPath, 'postmaster.pid')
       const logFile = join(dbPath, 'pg.log')
       const doRun = async () => {
+        const baseDir = global.Server.PostgreSqlDir!
+        const execEnv = `export LC_ALL="${global.Server.Local!}"
+export LANG="${global.Server.Local!}"
+`
+        const execArgs = `-D "${dbPath}" -l "${logFile}" start`
+
         try {
-          if (existsSync(pidFile)) {
-            await unlink(pidFile)
-          }
-        } catch (e) {}
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-        })
-        const command = `${bin} -D ${dbPath} -l ${logFile} start`
-        try {
-          await execPromise(command, {
-            env: {
-              LC_ALL: global.Server.Local!,
-              LANG: global.Server.Local!
-            }
-          })
-        } catch (e) {
-          on({
-            'APP-On-Log': AppLog(
-              'error',
-              I18nT('appLog.execStartCommandFail', {
-                error: e,
-                service: `${this.type}-${version.version}`
-              })
-            )
-          })
-          reject(e)
-          return
-        }
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-        })
-        on({
-          'APP-Service-Start-Success': true
-        })
-        const res = await this.waitPidFile(pidFile)
-        if (res && res?.pid) {
-          const pid = res.pid.split('\n').shift()?.trim() ?? ''
+          const res = await serviceStartExec(version, pidFile, baseDir, bin, execArgs, execEnv, on)
+          const pid = res['APP-Service-Start-PID'].trim().split('\n').shift()!.trim()
+          await writeFile(pidFile, pid)
           on({
             'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
           })
           resolve({
             'APP-Service-Start-PID': pid
           })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
           return
         }
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: res ? res?.error : 'Start failed',
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
-        reject(new Error(res ? res?.error : 'Start failed'))
       }
       if (existsSync(confFile)) {
         await doRun()

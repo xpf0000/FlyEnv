@@ -1,11 +1,11 @@
-import { basename, dirname, join } from 'path'
+import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
-  execPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -13,9 +13,10 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, remove, chmod } from 'fs-extra'
+import { readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { I18nT } from '@lang/index'
+import { EOL } from 'os'
 
 class MailPit extends Base {
   constructor() {
@@ -82,11 +83,6 @@ class MailPit extends Base {
       })
       const bin = version.bin
       const iniFile = await this.initConfig().on(on)
-      if (existsSync(this.pidPath)) {
-        try {
-          await remove(this.pidPath)
-        } catch (e) {}
-      }
 
       const getConfEnv = async () => {
         const content = await readFile(iniFile, 'utf-8')
@@ -110,49 +106,36 @@ class MailPit extends Base {
       }
 
       const opt = await getConfEnv()
-      const commands: string[] = ['#!/bin/zsh']
+
+      const envs: string[] = []
       for (const k in opt) {
         const v = opt[k]
-        if (v.includes(' ')) {
-          commands.push(`export ${k}="${v}"`)
-        } else {
-          commands.push(`export ${k}=${v}`)
-        }
+        envs.push(`export ${k}="${v}"`)
       }
-      commands.push(`cd "${dirname(bin)}"`)
-      commands.push(`nohup ./${basename(bin)} > /dev/null 2>&1 &`)
-      commands.push(`echo $! > ${this.pidPath}`)
+      envs.push('')
 
-      const command = commands.join('\n')
-      console.log('command: ', command)
-      const sh = join(global.Server.BaseDir!, `mailpit/start.sh`)
-      await writeFile(sh, command)
-      await chmod(sh, '0777')
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
+      const baseDir = join(global.Server.BaseDir!, `mailpit`)
+      const execEnv = envs.join(EOL)
+      const execArgs = ``
+
       try {
-        const res = await execPromise(`zsh "${sh}"`, opt)
-        console.log('start res: ', res)
-        const pid = (await readFile(this.pidPath, 'utf-8')).trim()
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-        })
-        resolve({
-          'APP-Service-Start-PID': pid
-        })
-      } catch (e) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: e,
-              service: `mailpit-${version.version}`
-            })
-          )
-        })
-        console.log('start e: ', e)
+        const res = await serviceStartExec(
+          version,
+          this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on,
+          20,
+          500,
+          false
+        )
+        resolve(res)
+      } catch (e: any) {
+        console.log('-k start err: ', e)
         reject(e)
+        return
       }
     })
   }
