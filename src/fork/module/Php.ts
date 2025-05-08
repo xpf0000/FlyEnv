@@ -56,52 +56,52 @@ class Php extends Base {
         content = content.replace(';extension_dir = "ext"', 'extension_dir = "ext"')
         let dll = join(version.path, 'ext/php_redis.dll')
         if (existsSync(dll)) {
-          content = content + `\nextension=php_redis.dll`
+          content = content + `\nextension=redis`
         }
         dll = join(version.path, 'ext/php_xdebug.dll')
         if (existsSync(dll)) {
-          content = content + `\nzend_extension=php_xdebug.dll`
+          content = content + `\nzend_extension=xdebug`
         }
         dll = join(version.path, 'ext/php_mongodb.dll')
         if (existsSync(dll)) {
-          content = content + `\nextension=php_mongodb.dll`
+          content = content + `\nextension=mongodb`
         }
         dll = join(version.path, 'ext/php_memcache.dll')
         if (existsSync(dll)) {
-          content = content + `\nextension=php_memcache.dll`
+          content = content + `\nextension=memcache`
         }
         dll = join(version.path, 'ext/php_pdo_sqlsrv.dll')
         if (existsSync(dll)) {
-          content = content + `\nextension=php_pdo_sqlsrv.dll`
+          content = content + `\nextension=pdo_sqlsrv`
         }
         dll = join(version.path, 'ext/php_openssl.dll')
         if (existsSync(dll)) {
-          content = content + `\nextension=php_openssl.dll`
+          content = content + `\nextension=openssl`
         }
         dll = join(version.path, 'ext/php_curl.dll')
         if (existsSync(dll)) {
-          content = content + `\nextension=php_curl.dll`
+          content = content + `\nextension=curl`
         }
         dll = join(version.path, 'ext/php_gd.dll')
         if (existsSync(dll)) {
-          content = content + `\nextension=php_gd.dll`
+          content = content + `\nextension=gd`
         }
         dll = join(version.path, 'ext/php_fileinfo.dll')
         if (existsSync(dll)) {
-          content = content + `\nextension=php_fileinfo.dll`
+          content = content + `\nextension=fileinfo`
         }
         dll = join(version.path, 'ext/php_zip.dll')
         if (existsSync(dll)) {
-          content = content + `\nextension=php_zip.dll`
+          content = content + `\nextension=zip`
         }
         dll = join(version.path, 'ext/php_mbstring.dll')
         if (existsSync(dll)) {
-          content = content + `\nextension=php_mbstring.dll`
+          content = content + `\nextension=mbstring`
         }
 
-        content = content + `\nextension=php_mysqli.dll`
-        content = content + `\nextension=php_pdo_mysql.dll`
-        content = content + `\nextension=php_pdo_odbc.dll`
+        content = content + `\nextension=mysqli`
+        content = content + `\nextension=pdo_mysql`
+        content = content + `\nextension=pdo_odbc`
 
         // Set CA certificate path
         const cacertpem = join(global.Server.BaseDir!, 'CA/cacert.pem').split('\\').join('/')
