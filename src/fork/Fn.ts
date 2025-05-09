@@ -672,29 +672,54 @@ export const AppLog = (type: 'info' | 'error', msg: string) => {
 
 export const fetchRawPATH = (): ForkPromise<string[]> => {
   return new ForkPromise(async (resolve, reject) => {
-    const sh = join(global.Server.Static!, 'sh/path.cmd')
-    const copySh = join(global.Server.Cache!, 'path.cmd')
+    const sh = join(global.Server.Static!, 'sh/path-get.ps1')
+    const copySh = join(global.Server.Cache!, 'path-get.ps1')
     if (existsSync(copySh)) {
       await remove(copySh)
     }
     await copyFile(sh, copySh)
     process.chdir(global.Server.Cache!)
+    let res: any
     try {
-      const res = await execPromise('path.cmd')
-      let str = res?.stdout ?? ''
-      str = str.replace(new RegExp(`\n`, 'g'), '')
-      if (!str.includes(':\\') && !str.includes('%')) {
-        return resolve([])
-      }
-      const oldPath = Array.from(new Set(str.split(';') ?? []))
-        .filter((s) => !!s.trim())
-        .map((s) => s.trim())
-      console.log('_fetchRawPATH: ', str, oldPath)
-      resolve(oldPath)
+      res = await spawnPromise(
+        'powershell.exe',
+        [
+          '-NoProfile',
+          '-ExecutionPolicy',
+          'Bypass',
+          '-Command',
+          `"Unblock-File -LiteralPath './path-get.ps1'; & './path-get.ps1'"`
+        ],
+        {
+          shell: 'powershell.exe',
+          cwd: global.Server.Cache!
+        }
+      )
     } catch (e) {
       await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[_fetchRawPATH][error]: ${e}\n`)
-      reject(e)
+      return reject(e)
     }
+
+    let str = ''
+    const stdout = res.trim()
+    console.log('fetchRawPATH stdout: ', stdout)
+    const regex = /FlyEnv-PATH-GET([\s\S]*?)FlyEnv-PATH-GET/g
+    const match = regex.exec(stdout)
+    if (match) {
+      str = match[1].trim()
+    }
+    console.log('fetchRawPATH str: ', {
+      str
+    })
+    str = str.replace(new RegExp(`\r\n`, 'g'), '').replace(new RegExp(`\n`, 'g'), '')
+    if (!str.includes(':\\') && !str.includes('%')) {
+      return resolve([])
+    }
+    const oldPath = Array.from(new Set(str.split(';') ?? []))
+      .filter((s) => !!s.trim())
+      .map((s) => s.trim())
+    console.log('_fetchRawPATH: ', str, oldPath)
+    resolve(oldPath)
   })
 }
 
