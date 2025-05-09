@@ -348,7 +348,7 @@ class Manager extends Base {
     }
     const savePath = handleWinPathArr(allPath)
     if (pathStr !== JSON.stringify(savePath)) {
-      await writePath(savePath.join(';'))
+      await writePath(savePath)
     }
   }
 

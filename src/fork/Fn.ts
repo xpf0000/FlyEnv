@@ -756,14 +756,15 @@ export const handleWinPathArr = (paths: string[]) => {
     })
 }
 
-export const writePath = async (path: string, other: string = '') => {
+export const writePath = async (path: string[], other: string = '') => {
   const sh = join(global.Server.Static!, 'sh/path-set.ps1')
   const copySh = join(global.Server.Cache!, 'path-set.ps1')
   if (existsSync(copySh)) {
     await remove(copySh)
   }
+  const pathStr = path.map((p) => stringToUTF8(p)).join(';')
   let content = await readFile(sh, 'utf-8')
-  content = content.replace('##NEW_PATH##', path).replace('##OTHER##', other)
+  content = content.replace('##NEW_PATH##', pathStr).replace('##OTHER##', other)
   await writeFile(copySh, content)
   process.chdir(global.Server.Cache!)
   try {
@@ -790,7 +791,7 @@ export const addPath = async (dir: string) => {
     allPath.splice(index, 1)
   }
   allPath.unshift(dir)
-  const savePath = handleWinPathArr(allPath).join(';')
+  const savePath = handleWinPathArr(allPath)
   try {
     await writePath(savePath)
   } catch (e) {}
@@ -897,6 +898,44 @@ export async function readFileAsUTF8(filePath: string): Promise<string> {
     } catch (conversionError: any) {
       console.error(
         `Error converting from ${detectedEncoding} to UTF-8 for file: ${filePath}`,
+        conversionError
+      )
+      return buffer.toString('utf-8')
+    }
+  } catch (err: any) {
+    return ''
+  }
+}
+
+export function stringToUTF8(str: string): string {
+  try {
+    const buffer: Buffer = Buffer.from(str)
+    if (buffer?.length === 0 || buffer?.byteLength === 0) {
+      return ''
+    }
+    const detectedEncoding = chardet.detect(buffer)
+    console.log('detectedEncoding: ', detectedEncoding)
+    if (
+      !detectedEncoding ||
+      detectedEncoding.toLowerCase() === 'utf-8' ||
+      detectedEncoding.toLowerCase() === 'utf8'
+    ) {
+      return buffer.toString('utf-8')
+    }
+
+    if (typeof detectedEncoding === 'string') {
+      let str = ''
+      try {
+        str = iconv.decode(buffer, detectedEncoding)
+      } catch (e) {}
+      return str
+    }
+
+    try {
+      return iconv.decode(buffer, detectedEncoding)
+    } catch (conversionError: any) {
+      console.error(
+        `Error converting from ${detectedEncoding} to UTF-8 for str: ${str}`,
         conversionError
       )
       return buffer.toString('utf-8')

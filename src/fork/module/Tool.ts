@@ -13,7 +13,6 @@ import {
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import {
-  appendFile,
   copyFile,
   existsSync,
   mkdirp,
@@ -410,26 +409,10 @@ subjectAltName=@alt_names
 
       console.log('removePATH oldPath 3: ', oldPath)
 
-      const sh = join(global.Server.Static!, 'sh/path-set.ps1')
-      const copySh = join(global.Server.Cache!, 'path-set.ps1')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      let content = await readFile(sh, 'utf-8')
-      content = content.replace('##NEW_PATH##', oldPath.join(';'))
-      content = content.replace('##OTHER##', ``)
-
-      await writeFile(copySh, content)
-      process.chdir(global.Server.Cache!)
+      const pathString = oldPath
       try {
-        await execPromise(
-          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
-        )
+        await writePath(pathString, '')
       } catch (e) {
-        await appendFile(
-          join(global.Server.BaseDir!, 'debug.log'),
-          `[tool][removePATH][error]: ${e}\n`
-        )
         return reject(e)
       }
 
@@ -586,17 +569,12 @@ php "%~dp0composer.phar" %*`
 
       console.log('oldPath: ', oldPath)
 
-      const sh = join(global.Server.Static!, 'sh/path-set.ps1')
-      const copySh = join(global.Server.Cache!, 'path-set.ps1')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      let content = await readFile(sh, 'utf-8')
-      content = content.replace('##NEW_PATH##', oldPath.join(';'))
+      const pathString = oldPath
+      let otherString = ''
       if (typeFlag === 'java') {
-        content = content.replace('##OTHER##', `"JAVA_HOME" = "${flagDir}"`)
+        otherString = `"JAVA_HOME" = "${flagDir}"`
       } else if (typeFlag === 'erlang') {
-        content = content.replace('##OTHER##', `"ERLANG_HOME" = "${flagDir}"`)
+        otherString = `"ERLANG_HOME" = "${flagDir}"`
         const f = join(global.Server.Cache!, `${uuid()}.ps1`)
         await writeFile(
           f,
@@ -609,21 +587,11 @@ php "%~dp0composer.phar" %*`
           )
         } catch (e) {}
         await remove(f)
-      } else {
-        content = content.replace('##OTHER##', ``)
       }
-      console.log('updatePATH: ', content)
-      await writeFile(copySh, content)
-      process.chdir(global.Server.Cache!)
+
       try {
-        await execPromise(
-          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
-        )
+        await writePath(pathString, otherString)
       } catch (e) {
-        await appendFile(
-          join(global.Server.BaseDir!, 'debug.log'),
-          `[tool][updatePATH][error]: ${e}\n`
-        )
         return reject(e)
       }
 
@@ -803,7 +771,7 @@ chcp 65001>nul
   envPathUpdate(arr: string[]) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        await writePath(arr.join(';'))
+        await writePath(arr)
       } catch (e) {
         return reject(e)
       }
