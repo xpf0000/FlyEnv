@@ -762,10 +762,10 @@ export const writePath = async (path: string[], other: string = '') => {
   if (existsSync(copySh)) {
     await remove(copySh)
   }
-  const pathStr = path.map((p) => stringToUTF8(p)).join(';')
+  const pathStr = path.join(';')
   let content = await readFile(sh, 'utf-8')
   content = content.replace('##NEW_PATH##', pathStr).replace('##OTHER##', other)
-  await writeFile(copySh, content)
+  await writeFile(copySh, content, 'utf16le')
   process.chdir(global.Server.Cache!)
   try {
     await execPromise(
