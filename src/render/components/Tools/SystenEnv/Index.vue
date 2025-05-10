@@ -8,8 +8,8 @@
     </div>
 
     <div class="main-wapper">
-      <el-form label-position="top" class="w-full">
-        <el-form-item label="PATH">
+      <el-form label-position="top" class="w-full h-full overflow-hidden">
+        <el-form-item label="PATH" class="h-full overflow-hidden system-env-form-item">
           <template #label>
             <div class="flex items-center">
               <span>PATH</span>
@@ -26,77 +26,81 @@
               </template>
             </div>
           </template>
-          <el-table :data="Setup.list" :show-overflow-tooltip="true">
-            <el-table-column :label="I18nT('tools.envValue')">
-              <template #default="scope">
-                <el-button class="select-text" link @click.stop="pathClick(scope.row.path)">{{
-                  scope.row.path
-                }}</el-button>
-              </template>
-            </el-table-column>
-            <el-table-column :label="I18nT('tools.rawEnvPath')">
-              <template #default="scope">
-                <el-tooltip
-                  :show-after="600"
-                  placement="top"
-                  :disabled="!scope.row.error"
-                  :content="I18nT('tools.envValueErrorTips')"
-                >
-                  <el-button
-                    link
-                    :type="scope.row.error ? 'danger' : null"
-                    @click.stop="pathClick(`echo ${scope.row.raw}`)"
-                    >{{ scope.row.raw }}</el-button
-                  >
-                </el-tooltip>
-              </template>
-            </el-table-column>
-            <el-table-column
-              :label="I18nT('base.operation')"
-              :prop="null"
-              width="150px"
-              align="center"
-            >
-              <template #default="scope">
-                <el-button
-                  :class="{ 'opacity-0': scope.$index === Setup.list.length - 1 }"
-                  :disabled="scope.$index === Setup.list.length - 1"
-                  link
-                  type="primary"
-                  :icon="SortDown"
-                  @click.stop="doDown(scope.row, scope.$index)"
-                ></el-button>
-                <el-button
-                  :class="{ 'opacity-0': scope.$index === 0 }"
-                  :disabled="scope.$index === 0"
-                  link
-                  type="primary"
-                  :icon="SortUp"
-                  @click.stop="doUp(scope.row, scope.$index)"
-                ></el-button>
-                <el-button
-                  link
-                  type="primary"
-                  :icon="Edit"
-                  @click.stop="toEdit(scope.row.path, scope.$index)"
-                ></el-button>
-                <el-popconfirm
-                  :title="I18nT('base.delAlertContent')"
-                  @confirm="doDel(scope.row, scope.$index)"
-                >
-                  <template #reference>
-                    <el-button
-                      :class="{ 'opacity-0': scope.row.path.includes('%SystemRoot%') }"
-                      :disabled="scope.row.path.includes('%SystemRoot%')"
-                      link
-                      type="danger"
-                      :icon="Delete"
-                    ></el-button>
+          <el-auto-resizer>
+            <template #default="{ height }">
+              <el-table :data="Setup.list" :show-overflow-tooltip="true" :height="height">
+                <el-table-column :label="I18nT('tools.envValue')">
+                  <template #default="scope">
+                    <el-button class="select-text" link @click.stop="pathClick(scope.row.path)">{{
+                      scope.row.path
+                    }}</el-button>
                   </template>
-                </el-popconfirm>
-              </template>
-            </el-table-column>
-          </el-table>
+                </el-table-column>
+                <el-table-column :label="I18nT('tools.rawEnvPath')">
+                  <template #default="scope">
+                    <el-tooltip
+                      :show-after="600"
+                      placement="top"
+                      :disabled="!scope.row.error"
+                      :content="I18nT('tools.envValueErrorTips')"
+                    >
+                      <el-button
+                        link
+                        :type="scope.row.error ? 'danger' : null"
+                        @click.stop="pathClick(`echo ${scope.row.raw}`)"
+                        >{{ scope.row.raw }}</el-button
+                      >
+                    </el-tooltip>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  :label="I18nT('base.operation')"
+                  :prop="null"
+                  width="150px"
+                  align="center"
+                >
+                  <template #default="scope">
+                    <el-button
+                      :class="{ 'opacity-0': scope.$index === Setup.list.length - 1 }"
+                      :disabled="scope.$index === Setup.list.length - 1"
+                      link
+                      type="primary"
+                      :icon="SortDown"
+                      @click.stop="doDown(scope.row, scope.$index)"
+                    ></el-button>
+                    <el-button
+                      :class="{ 'opacity-0': scope.$index === 0 }"
+                      :disabled="scope.$index === 0"
+                      link
+                      type="primary"
+                      :icon="SortUp"
+                      @click.stop="doUp(scope.row, scope.$index)"
+                    ></el-button>
+                    <el-button
+                      link
+                      type="primary"
+                      :icon="Edit"
+                      @click.stop="toEdit(scope.row.path, scope.$index)"
+                    ></el-button>
+                    <el-popconfirm
+                      :title="I18nT('base.delAlertContent')"
+                      @confirm="doDel(scope.row, scope.$index)"
+                    >
+                      <template #reference>
+                        <el-button
+                          :class="{ 'opacity-0': scope.row.path.includes('%SystemRoot%') }"
+                          :disabled="scope.row.path.includes('%SystemRoot%')"
+                          link
+                          type="danger"
+                          :icon="Delete"
+                        ></el-button>
+                      </template>
+                    </el-popconfirm>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </template>
+          </el-auto-resizer>
         </el-form-item>
       </el-form>
     </div>
@@ -183,3 +187,22 @@
     Setup.updatePath(list)
   }
 </script>
+<style lang="scss">
+  .system-env-form-item {
+    display: flex;
+    flex-direction: column;
+
+    .el-form-item__label {
+      flex-shrink: 0;
+    }
+    .el-form-item__content {
+      flex: 1;
+      overflow: hidden;
+
+      > .el_table {
+        height: 100%;
+        overflow: hidden;
+      }
+    }
+  }
+</style>

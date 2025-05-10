@@ -1,5 +1,5 @@
 import { join, dirname, basename } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -15,7 +15,7 @@ import {
   waitTime
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, readFile, writeFile } from 'fs-extra'
+import { chmod, copyFile, mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
@@ -26,7 +26,7 @@ class Manager extends Base {
 
   init() {}
 
-  _startServer(version: SoftInstalled) {
+  _startServer(version: SoftInstalled, lastVersion?: SoftInstalled, DATA_DIR?: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog(
@@ -36,11 +36,13 @@ class Manager extends Base {
       })
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
-      const dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+      const dbPath = DATA_DIR ?? join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
       const confFile = join(dbPath, 'postgresql.conf')
       const pidFile = join(dbPath, 'postmaster.pid')
       const logFile = join(dbPath, 'pg.log')
       let sendUserPass = false
+
+      await mkdirp(global.Server.PostgreSqlDir!)
 
       const doRun = async () => {
         const execArgs = `-D "${dbPath}" -l "${logFile}" start`
@@ -73,16 +75,23 @@ class Manager extends Base {
         }
       }
 
+      console.log('confFile: ', confFile, existsSync(confFile))
+
       if (existsSync(confFile)) {
         await doRun()
-      } else if (!existsSync(dbPath)) {
+      } else if (!existsSync(dbPath) || (existsSync(dbPath) && readdirSync(dbPath).length === 0)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDir'))
         })
+
         process.env.LC_ALL = global.Server.Local!
         process.env.LANG = global.Server.Local!
 
         console.log('global.Server.Local: ', global.Server.Local)
+        await mkdirp(dbPath)
+        try {
+          await chmod(dbPath, '0777')
+        } catch (e) {}
 
         const binDir = dirname(bin)
         const initDB = join(binDir, 'initdb.exe')
