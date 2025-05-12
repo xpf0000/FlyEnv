@@ -1,0 +1,14 @@
+{
+  "port": "Port TCP (Default: 3306)",
+  "key_buffer_size": "Ukuran buffer untuk pengindeksan",
+  "query_cache_size": "Cache query, setel ke 0 jika tidak diaktifkan",
+  "tmp_table_size": "Ukuran cache tabel sementara",
+  "innodb_buffer_pool_size": "Ukuran buffer InnoDB",
+  "innodb_log_buffer_size": "Ukuran buffer log InnoDB",
+  "sort_buffer_size": "Ukuran buffer untuk pengurutan tiap thread",
+  "read_buffer_size": "Ukuran buffer untuk pembacaan",
+  "read_rnd_buffer_size": "Ukuran buffer untuk pembacaan acak",
+  "thread_cache_size": "Ukuran pool thread",
+  "table_open_cache": "Cache tabel",
+  "max_connections": "Jumlah koneksi maksimum"
+}

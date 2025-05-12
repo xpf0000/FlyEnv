@@ -1,0 +1,21 @@
+{
+  "startServiceBegin": "Memulai layanan {service}...",
+  "confInit": "File konfigurasi belum ada. Membuat file konfigurasi baru.",
+  "confInitSuccess": "File konfigurasi berhasil dibuat. Lokasi file: {file}",
+  "confInitFail": "Gagal membuat file konfigurasi. Alasan: {error}",
+  "apachePortHandleBegin": "Mulai mengambil semua port Apache yang sedang digunakan dari situs",
+  "apachePortHandleEnd": "Pengambilan port Apache selesai, konfigurasi berhasil disimpan ke file",
+  "execStartCommand": "Menjalankan perintah untuk memulai layanan",
+  "execStartCommandSuccess": "Perintah berhasil dijalankan, lanjut mengecek apakah layanan berhasil dimulai",
+  "execStartCommandFail": "Gagal menjalankan perintah. Alasan: {error}, layanan {service} gagal dimulai",
+  "startServiceSuccess": "Layanan {service} berhasil dimulai, PID: {pid}",
+  "startServiceFail": "Layanan {service} gagal dimulai. Alasan: {error}",
+  "stopServiceBegin": "Mulai menghentikan layanan {service}",
+  "stopServiceEnd": "Layanan {service} berhasil dihentikan",
+  "initDBPass": "Mulai mengatur password database",
+  "initDBPassSuccess": "Password database berhasil diatur. Akun: {user}, Password: {pass}",
+  "initDBPassFail": "Gagal mengatur password database. Alasan: {error}",
+  "initDBDataDir": "Folder data tidak ditemukan, mulai membuat folder data",
+  "initDBDataDirSuccess": "Folder data berhasil dibuat. Lokasi folder: {dir}",
+  "initDBDataDirFail": "Gagal membuat folder data. Alasan: {error}"
+}

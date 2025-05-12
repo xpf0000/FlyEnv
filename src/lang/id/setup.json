@@ -1,0 +1,20 @@
+{
+  "menuShowHide": "Tampilkan/Sembunyikan Menu",
+  "tsinghua": "Sumber unduhan Universitas Tsinghua",
+  "bfsu": "Sumber unduhan Universitas Studi Asing Beijing",
+  "tencent": "Sumber unduhan Tencent",
+  "aliyun": "Sumber unduhan Alibaba",
+  "ustc": "Sumber unduhan Universitas Sains dan Teknologi China",
+  "Licenses": "Lisensi",
+  "requestedTips": "Permintaan lisensi telah dikirim, harap bersabar dan tunggu. Jika Anda perlu mengubah informasi, Anda dapat mengirim ulang.",
+  "licenseActivated": "Lisensi Diaktifkan",
+  "autoStartService": "Mulai Layanan Secara Otomatis",
+  "autoStartServiceTips": "Apakah ingin memulai layanan secara otomatis saat aplikasi dimulai",
+  "autoHide": "Mulai Tersembunyi / Minimalkan ke Tray",
+  "autoHideTips": "Apakah ingin menyembunyikan antarmuka utama dan hanya menampilkan ikon di tray sistem setelah layanan dimulai secara otomatis",
+  "autoLaunch": "Luncurkan Otomatis Saat Boot",
+  "autoLaunchTips": "Apakah ingin meluncurkan FlyEnv secara otomatis saat komputer menyala",
+  "passwordTips": "Tidak diperlukan. Kata sandi akan diisi otomatis saat menjalankan perintah. Misalnya, instalasi dan pencopotan dengan Macports, dll.",
+  "langTips": "Muat paket bahasa yang didefinisikan pengguna. Ini juga akan menginisialisasi paket bahasa default, memudahkan pengguna untuk menerjemahkan FlyEnv ke bahasa lain.",
+  "openLangDir": "Buka folder paket bahasa"
+}
