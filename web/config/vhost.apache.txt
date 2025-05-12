@@ -8,9 +8,8 @@
     CustomLog "/Users/xxxx/Library/PhpWebStudy/server/vhost/logs/xxxx-access_log" combined
 
     # File Access Restrictions
-     <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
-       Order allow,deny
-       Deny from all
+    <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
+        Require all denied
     </Files>
 
     # PHP
@@ -41,7 +40,7 @@
     SSLCertificateFile "/Users/xxxx/Desktop/CA/pQvEHH.xxxx.crt"
     SSLCertificateKeyFile "/Users/xxxx/Desktop/CA/pQvEHH.xxxx.key"
     SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
-    SSLProtocol All -SSLv2 -SSLv3
+    SSLProtocol All -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
     SSLHonorCipherOrder On
 
     # PHP
@@ -51,8 +50,7 @@
 
     # File Access Restrictions
      <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
-       Order allow,deny
-       Deny from all
+        Require all denied
     </Files>
 
     # Directory
