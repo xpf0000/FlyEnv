@@ -773,6 +773,7 @@ chcp 65001>nul
       try {
         await writePath(arr)
       } catch (e) {
+        console.log('envPathUpdate err: ', e)
         return reject(e)
       }
       resolve(true)

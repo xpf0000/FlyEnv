@@ -6,6 +6,7 @@ import { I18nT } from '@lang/index'
 import { Service } from '@/components/ServiceManager/service'
 import installedVersions from '@/util/InstalledVersions'
 import { AllAppModule } from '@/core/type'
+import { computed } from 'vue'
 
 type ServiceActionExtParamFN = (
   typeFlag: AllAppModule,
@@ -78,6 +79,31 @@ const exec = (
         return resolve(true)
       }
     }
+
+    const handleVersion = () => {
+      if (fn !== 'startService') {
+        return
+      }
+      const appStore = AppStore()
+      const flag = typeFlag
+      const server: any = appStore.config.server
+      const currentVersion = server?.[flag]?.current
+      const currentItem = brewStore
+        .module(typeFlag)
+        ?.installed?.find(
+          (i) => i.path === currentVersion?.path && i.version === currentVersion?.version
+        )
+
+      if (version.version !== currentItem?.version || version.path !== currentItem?.path) {
+        appStore.UPDATE_SERVER_CURRENT({
+          flag: typeFlag,
+          data: JSON.parse(JSON.stringify(version))
+        })
+        appStore.saveConfig().then().catch()
+      }
+    }
+
+    handleVersion()
 
     IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion, ...params).then(
       (key: string, res: any) => {

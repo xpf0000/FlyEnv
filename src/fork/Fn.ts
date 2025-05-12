@@ -757,6 +757,7 @@ export const handleWinPathArr = (paths: string[]) => {
 }
 
 export const writePath = async (path: string[], other: string = '') => {
+  console.log('writePath paths: ', path)
   const sh = join(global.Server.Static!, 'sh/path-set.ps1')
   const copySh = join(global.Server.Cache!, 'path-set.ps1')
   if (existsSync(copySh)) {
@@ -765,13 +766,14 @@ export const writePath = async (path: string[], other: string = '') => {
   const pathStr = path.join(';')
   let content = await readFile(sh, 'utf-8')
   content = content.replace('##NEW_PATH##', pathStr).replace('##OTHER##', other)
-  await writeFile(copySh, content, 'utf16le')
+  await writeFile(copySh, content, 'utf-8')
   process.chdir(global.Server.Cache!)
   try {
     await execPromise(
       `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
     )
   } catch (e) {
+    console.log('writePath error: ', e)
     await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[writePath][error]: ${e}\n`)
   }
 }

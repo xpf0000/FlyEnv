@@ -15,6 +15,7 @@
   import ToolVM from '@/components/Log/tool.vue'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
+  import { PostgreSqlSetup } from '@/components/PostgreSql/setup'
 
   const { join } = require('path')
 
@@ -35,9 +36,19 @@
     if (!currentVersion?.value) {
       return ''
     }
-    const version = currentVersion.value?.version
-    const versionTop = version?.split('.')?.shift()
-    const dbPath = join(global.Server.PostgreSqlDir, `postgresql${versionTop}`)
+    let dbPath = ''
+
+    if (currentVersion?.value?.bin) {
+      if (PostgreSqlSetup.dir[currentVersion.value.bin]) {
+        dbPath = PostgreSqlSetup.dir[currentVersion.value.bin]
+      } else {
+        const versionTop = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+        dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+      }
+    } else {
+      return ''
+    }
+    console.log('dbPath: ', dbPath)
     return join(dbPath, 'pg.log')
   })
 </script>

@@ -13,7 +13,8 @@
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
   import Conf from '@/components/Conf/index.vue'
-  import { AppStore } from '@/store/app'
+  import { BrewStore } from '@/store/brew'
+  import { TomcatSetup } from '@/components/Tomcat/setup'
 
   const { join } = require('path')
 
@@ -21,10 +22,10 @@
     fileName: string
   }>()
 
-  const appStore = AppStore()
+  const brewStore = BrewStore()
 
   const currentVersion = computed(() => {
-    return appStore.config?.server?.tomcat?.current
+    return brewStore.currentVersion('tomcat')
   })
 
   const conf = ref()
@@ -32,13 +33,41 @@
     if (!currentVersion.value) {
       return ''
     }
-    return join(currentVersion.value.path, `conf/${props.fileName}`)
+
+    let baseDir = ''
+
+    if (currentVersion?.value?.bin) {
+      if (TomcatSetup.CATALINA_BASE[currentVersion.value.bin]) {
+        baseDir = TomcatSetup.CATALINA_BASE[currentVersion.value.bin]
+      } else {
+        const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+        baseDir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+      }
+    } else {
+      return ''
+    }
+
+    return join(baseDir, `conf/${props.fileName}`)
   })
 
   const defaultFile = computed(() => {
     if (!currentVersion.value) {
       return ''
     }
-    return join(currentVersion.value.path, `conf/${props.fileName}.default`)
+
+    let baseDir = ''
+
+    if (currentVersion?.value?.bin) {
+      if (TomcatSetup.CATALINA_BASE[currentVersion.value.bin]) {
+        baseDir = TomcatSetup.CATALINA_BASE[currentVersion.value.bin]
+      } else {
+        const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+        baseDir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+      }
+    } else {
+      return ''
+    }
+
+    return join(baseDir, `conf/${props.fileName}.default`)
   })
 </script>

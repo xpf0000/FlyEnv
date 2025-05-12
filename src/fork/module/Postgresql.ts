@@ -61,7 +61,6 @@ class Manager extends Base {
             on(I18nT('fork.postgresqlInit', { dir: dbPath }))
           }
           const pid = res['APP-Service-Start-PID'].trim().split('\n').shift()!.trim()
-          await writeFile(pidFile, pid)
           on({
             'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
           })
