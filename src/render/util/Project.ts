@@ -21,6 +21,7 @@ export const Project = {
       | 'IntelliJ'
       | 'PyCharm'
       | 'RubyMine'
+      | 'RustRover'
   ) {
     IPC.send('app-fork:tools', 'openPathByApp', dir, flag).then((key: string, res: any) => {
       IPC.off(key)

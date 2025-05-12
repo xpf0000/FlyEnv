@@ -610,6 +610,7 @@ export default class Application extends EventEmitter {
         RubyMine: 'rubymine://open?file=',
         CLion: 'clion://open?file=',
         GoLand: 'goland://open?file=',
+        RustRover: 'rustrover://open?file=',
         Rider: 'rider://open?file=',
         AppCode: 'appcode://open?file=',
         DataGrip: 'datagrip://open?file=',

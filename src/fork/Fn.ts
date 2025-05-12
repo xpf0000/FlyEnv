@@ -405,13 +405,16 @@ export function versionFixed(version?: string | null) {
 }
 
 export const versionCheckBin = (binPath: string) => {
+  console.log('versionCheckBin: ', binPath)
   if (existsSync(binPath)) {
     console.log('binPath: ', binPath)
     binPath = realpathSync(binPath)
     if (!existsSync(binPath)) {
       return false
     }
-    if (!statSync(binPath).isFile()) {
+    const stat = statSync(binPath)
+    console.log('stat: ', stat.isFile(), stat.isDirectory(), stat.isSymbolicLink())
+    if (!stat.isFile()) {
       return false
     }
     console.log('binPath realpathSync: ', binPath)
@@ -495,18 +498,21 @@ export const versionLocalFetch = async (
     dir = realpathSync(dir)
     console.log('findInstalled dir: ', dir)
     let binPath = versionCheckBin(join(dir, `${binName}`))
+    console.log('binPath 0: ', binPath)
     if (binPath) {
       realDirDict[binPath] = join(dir, `${binName}`)
       installed.add(binPath)
       return
     }
     binPath = versionCheckBin(join(dir, `bin/${binName}`))
+    console.log('binPath 1: ', binPath)
     if (binPath) {
       realDirDict[binPath] = join(dir, `bin/${binName}`)
       installed.add(binPath)
       return
     }
     binPath = versionCheckBin(join(dir, `sbin/${binName}`))
+    console.log('binPath 2: ', binPath)
     if (binPath) {
       realDirDict[binPath] = join(dir, `sbin/${binName}`)
       installed.add(binPath)
@@ -766,8 +772,8 @@ export async function serviceStartExec(
     } catch (e) {}
   }
   await mkdirp(baseDir)
-  const outFile = join(baseDir, 'start.out.log')
-  const errFile = join(baseDir, 'start.error.log')
+  const outFile = join(baseDir, `start.${version.version}.out.log`)
+  const errFile = join(baseDir, `start.${version.version}.error.log`)
 
   let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.sh'), 'utf8')
 

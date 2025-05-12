@@ -35,6 +35,8 @@ class BaseManager {
   Ollama: any
   Ai: any
   Minio: any
+  Rust: any
+  MeiliSearch: any
 
   constructor() {}
 
@@ -268,6 +270,18 @@ class BaseManager {
         this.Minio = res.default
       }
       doRun(this.Minio)
+    } else if (module === 'rust') {
+      if (!this.Rust) {
+        const res = await import('./module/Rust')
+        this.Rust = res.default
+      }
+      doRun(this.Rust)
+    } else if (module === 'meilisearch') {
+      if (!this.MeiliSearch) {
+        const res = await import('./module/MeiliSearch')
+        this.MeiliSearch = res.default
+      }
+      doRun(this.MeiliSearch)
     }
   }
 

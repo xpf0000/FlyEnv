@@ -1,6 +1,6 @@
 import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync } from 'fs'
-import { dirname, join } from 'path'
+import { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { AppLog, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -317,13 +317,37 @@ export class Base {
           const dir = row.appDir
           await mkdirp(dir)
           await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
-          if (['java', 'tomcat', 'golang', 'maven', 'elasticsearch', 'nginx'].includes(this.type)) {
+          if (
+            ['java', 'tomcat', 'golang', 'maven', 'elasticsearch', 'nginx', 'rust'].includes(
+              this.type
+            )
+          ) {
             const subDirs = await readdir(dir)
             const subDir = subDirs.pop()
             if (subDir) {
               await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
               await waitTime(300)
               await remove(subDir)
+            }
+          }
+          if (this.type === 'rust') {
+            const appBinDir = join(row.appDir, 'bin')
+            await mkdirp(appBinDir)
+            const subDirs = await readdir(row.appDir)
+            for (const d of subDirs) {
+              const binDir = join(row.appDir, d, 'bin')
+              if (existsSync(binDir)) {
+                const binFiles = await readdir(binDir)
+                for (const bin of binFiles) {
+                  const srcFile = join(binDir, bin)
+                  const destFile = join(appBinDir, basename(bin))
+                  if (!existsSync(destFile) && existsSync(srcFile)) {
+                    try {
+                      await execPromise(['ln', '-s', `"${srcFile}"`, `"${destFile}"`].join(' '))
+                    } catch (e) {}
+                  }
+                }
+              }
             }
           }
           if (this.type === 'nginx' && existsSync(row.bin)) {

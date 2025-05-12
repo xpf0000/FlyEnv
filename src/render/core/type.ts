@@ -59,7 +59,9 @@ export enum AppModuleEnum {
   ruby = 'ruby',
   elasticsearch = 'elasticsearch',
   ollama = 'ollama',
-  minio = 'minio'
+  minio = 'minio',
+  rust = 'rust',
+  meilisearch = 'meilisearch'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum
