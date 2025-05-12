@@ -29,6 +29,8 @@ class Manager extends Base {
   Elasticsearch: any
   Ollama: any
   Minio: any
+  Rust: any
+  MeiliSearch: any
 
   constructor() {
     super()
@@ -191,6 +193,18 @@ class Manager extends Base {
             this.Minio = res.default
           }
           versions.minio = this.Minio.allInstalledVersions(setup)
+        } else if (type === 'rust') {
+          if (!this.Rust) {
+            const res = await import('./Rust')
+            this.Rust = res.default
+          }
+          versions.rust = this.Rust.allInstalledVersions(setup)
+        } else if (type === 'meilisearch') {
+          if (!this.MeiliSearch) {
+            const res = await import('./MeiliSearch')
+            this.MeiliSearch = res.default
+          }
+          versions.meilisearch = this.MeiliSearch.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []
