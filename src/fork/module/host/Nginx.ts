@@ -116,15 +116,15 @@ export const makeNginxConf = async (host: AppHost) => {
   const nvhost = join(nginxvpath, `${hostname}.conf`)
   const hostalias = hostAlias(host).join(' ')
   ntmpl = ntmpl
-    .replace(/#Server_Alias#/g, hostalias)
-    .replace(/#Server_Root#/g, host.root)
-    .replace(/#Rewrite_Path#/g, rewritepath)
-    .replace(/#Server_Name#/g, hostname)
-    .replace(/#Log_Path#/g, logpath)
-    .replace(/#Server_Cert#/g, host.ssl.cert)
-    .replace(/#Server_CertKey#/g, host.ssl.key)
-    .replace(/#Port_Nginx#/g, `${host.port.nginx}`)
-    .replace(/#Port_Nginx_SSL#/g, `${host.port.nginx_ssl}`)
+    .replace('{ServerPort}', `${host.port.nginx}`)
+    .replace('{ServerName}', hostname)
+    .replace('{ServerAlias}', hostalias)
+    .replace('{ServerRoot}', host.root)
+    .replace('{LogPath}', logpath)
+    .replace('{RewritePath}', rewritepath)
+    .replace('{ServerSSLCert}', host.ssl.cert)
+    .replace('{ServerSSLKey}', host.ssl.key)
+    .replace('{ServerSSLPort}', `${host.port.nginx_ssl}`)
 
   if (host.phpVersion) {
     ntmpl = ntmpl.replace(
@@ -149,7 +149,7 @@ const handlePhpEnableConf = async (v: number) => {
       await mkdirp(dirname(confFile))
       const tmplFile = join(global.Server.Static!, 'tmpl/enable-php.conf')
       const tmplContent = await readFile(tmplFile, 'utf-8')
-      const content = tmplContent.replace('##VERSION##', `${v}`)
+      const content = tmplContent.replace('{PHPVersion}', `${v}`)
       await writeFile(confFile, content)
     }
   } catch (e) {}

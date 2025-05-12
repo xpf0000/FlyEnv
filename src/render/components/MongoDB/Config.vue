@@ -41,7 +41,7 @@
     const tmpl = join(global.Server.Static, 'tmpl/mongodb.conf')
     const dataDir = join(global.Server.MongoDBDir, `data-${vm.value}`)
     readFile(tmpl, 'utf-8').then((conf: string) => {
-      defaultConf.value = conf.replace('##DB-PATH##', dataDir)
+      defaultConf.value = conf.replace('{DataDir}', dataDir)
     })
   }
 

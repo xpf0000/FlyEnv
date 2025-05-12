@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo -S port install -v ##NAME##
+sudo -S port install -v {Name}

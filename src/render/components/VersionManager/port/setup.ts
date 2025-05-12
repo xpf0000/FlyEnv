@@ -203,7 +203,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       })
       arrs.unshift(`arch ${arch} sudo -S port -f deactivate libuuid`)
       let content = readFileSync(sh, 'utf-8')
-      content = content.replace('##CONTENT##', arrs.join('\n'))
+      content = content.replace('{Content}', arrs.join('\n'))
       writeFileSync(copyfile, content)
       chmod(copyfile, '0777')
       params = [`sudo -S "${copyfile}"`]
@@ -218,9 +218,9 @@ export const Setup = (typeFlag: AllAppModule) => {
       }
       let content = readFileSync(sh, 'utf-8')
       content = content
-        .replace(new RegExp('##ARCH##', 'g'), arch)
-        .replace(new RegExp('##ACTION##', 'g'), fn)
-        .replace(new RegExp('##NAME##', 'g'), names.join(' '))
+        .replace('{Arch}', arch)
+        .replace('{Action}', fn)
+        .replace('{Name}', names.join(' '))
       writeFileSync(copyfile, content)
       chmod(copyfile, '0777')
       params = [`sudo -S "${copyfile}"`]

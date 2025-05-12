@@ -325,7 +325,7 @@ xdebug.output_dir = "${output_dir}"
       const tmplPath = join(global.Server.Static!, 'tmpl/enable-php.conf')
       if (existsSync(tmplPath)) {
         let content = await readFile(tmplPath, 'utf-8')
-        content = content.replace('##VERSION##', v)
+        content = content.replace('{PHPVersion}', v)
         await writeFile(confPath, content)
       }
       resolve(true)
@@ -355,7 +355,7 @@ xdebug.output_dir = "${output_dir}"
       if (!existsSync(phpFpmConf)) {
         const phpFpmConfTmpl = join(global.Server.Static!, 'tmpl/php-fpm.conf')
         let content = await readFile(phpFpmConfTmpl, 'utf-8')
-        content = content.replace('##PHP-CGI-VERSION##', v)
+        content = content.replace('{PHPVersion}', v)
         await writeFile(phpFpmConf, content)
       }
 
@@ -422,7 +422,7 @@ xdebug.output_dir = "${output_dir}"
             await unlink(copyfile)
           }
           let content = await readFile(sh, 'utf-8')
-          content = content.replace('##NAME##', name)
+          content = content.replace('{Name}', name)
           await writeFile(copyfile, content)
           await chmod(copyfile, '0777')
           const params = [copyfile]

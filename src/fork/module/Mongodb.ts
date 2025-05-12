@@ -51,7 +51,7 @@ class Manager extends Base {
         })
         const tmpl = join(global.Server.Static!, 'tmpl/mongodb.conf')
         let conf = await readFile(tmpl, 'utf-8')
-        conf = conf.replace('##DB-PATH##', dataDir)
+        conf = conf.replace('{DataDir}', dataDir)
         await writeFile(m, conf)
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: m }))
