@@ -52,6 +52,7 @@
 pid = run/php-fpm.pid
 error_log = log/php-fpm.log
 log_level = notice
+
 [www]
 listen = /tmp/phpwebstudy-php-cgi-${props.item.num}.sock
 listen.allowed_clients = 127.0.0.1

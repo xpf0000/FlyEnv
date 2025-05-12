@@ -3,10 +3,10 @@
   "version": "4.9.8",
   "description": "Powerful Web Server and Environment Manager",
   "author": {
-    "name": "pengfei xu",
+    "name": "Pengfei Xu",
     "email": "250881478@qq.com"
   },
-  "copyright": "Copyright© pengfei xu",
+  "copyright": "Copyright © Pengfei Xu",
   "scripts": {
     "build-dev-runner": "cat scripts/args.esbuild.dev-runner | xargs npx esbuild",
     "web": "vite -c web/vite.config.ts",

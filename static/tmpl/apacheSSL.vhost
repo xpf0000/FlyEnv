@@ -6,17 +6,17 @@
     ErrorLog "#Log_Path#/#Server_Name#-error_log"
     CustomLog "#Log_Path#/#Server_Name#-access_log" combined
 
-    #DENY FILES
+    # File Access Restrictions
     <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
         Require all denied
     </Files>
 
-    #PHP
+    # PHP
     <FilesMatch \.php$>
         SetHandler "proxy:fcgi://127.0.0.1:9000"
     </FilesMatch>
 
-    #PATH
+    # Directory
     <Directory "#Server_Root#">
         SetOutputFilter DEFLATE
         Options FollowSymLinks
@@ -44,16 +44,15 @@
 
     #PHP
     <FilesMatch \.php$>
-            SetHandler "proxy:fcgi://127.0.0.1:9000"
+        SetHandler "proxy:fcgi://127.0.0.1:9000"
     </FilesMatch>
 
-
-    #DENY FILES
+    # File Access Restrictions
     <Files ~ (\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md)$>
         Require all denied
     </Files>
 
-    #PATH
+    # Directory
     <Directory "#Server_Root#">
         SetOutputFilter DEFLATE
         Options FollowSymLinks
