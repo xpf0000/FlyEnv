@@ -98,7 +98,7 @@ brew install flyenv
 
 #### Portable version
 
-- [FlyEnv.Portable.4.9.8.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.8/FlyEnv.Portable.4.9.8.zip)
+- [FlyEnv.Portable.4.9.8.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.8/FlyEnv.Portable.4.9.8.exe)
 
 ---
 
