@@ -49,8 +49,12 @@ const exec = (
               i.bin === lastVersion.bin
           )
         lastVersion.pid = undefined
+        lastVersion.run = false
+        lastVersion.running = false
         if (find) {
           find.pid = undefined
+          find.run = false
+          find.running = false
         }
       }
 

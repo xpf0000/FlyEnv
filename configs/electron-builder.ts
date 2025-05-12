@@ -39,6 +39,10 @@ const conf: Configuration = {
     oneClick: false,
     allowToChangeInstallationDirectory: true
   },
+  portable: {
+    artifactName: 'FlyEnv Portable ${version}.${ext}',
+    requestExecutionLevel: 'admin'
+  },
   publish: []
 }
 
