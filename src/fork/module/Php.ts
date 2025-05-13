@@ -53,55 +53,38 @@ class Php extends Base {
       }
       const initIniFile = async (file: string) => {
         let content = await readFile(file, 'utf-8')
-        content = content.replace(';extension_dir = "ext"', 'extension_dir = "ext"')
-        let dll = join(version.path, 'ext/php_redis.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=redis`
-        }
-        dll = join(version.path, 'ext/php_xdebug.dll')
-        if (existsSync(dll)) {
-          content = content + `\nzend_extension=xdebug`
-        }
-        dll = join(version.path, 'ext/php_mongodb.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=mongodb`
-        }
-        dll = join(version.path, 'ext/php_memcache.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=memcache`
-        }
-        dll = join(version.path, 'ext/php_pdo_sqlsrv.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=pdo_sqlsrv`
-        }
-        dll = join(version.path, 'ext/php_openssl.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=openssl`
-        }
-        dll = join(version.path, 'ext/php_curl.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=curl`
-        }
-        dll = join(version.path, 'ext/php_gd.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=gd`
-        }
-        dll = join(version.path, 'ext/php_fileinfo.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=fileinfo`
-        }
-        dll = join(version.path, 'ext/php_zip.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=zip`
-        }
-        dll = join(version.path, 'ext/php_mbstring.dll')
-        if (existsSync(dll)) {
-          content = content + `\nextension=mbstring`
-        }
 
-        content = content + `\nextension=mysqli`
-        content = content + `\nextension=pdo_mysql`
-        content = content + `\nextension=pdo_odbc`
+        // Set extension dir
+        content = content.replace(';extension_dir = "ext"', 'extension_dir = "ext"')
+
+        let phpExtensions = [
+          'curl',
+          'fileinfo',
+          'gd',
+          'intl',
+          'mbstring',
+          'memcache',
+          'mongodb',
+          'mysqli',
+          'openssl',
+          'pdo_sqlsrv',
+          'pdo_mysql',
+          'pdo_odbc',
+          'redis',
+          'xdebug',
+          'zip',
+        ]
+
+        // Set enabled extensions
+        phpExtensions.forEach((extension) => {
+          if (existsSync(join(version.path, `ext/php_${extension}.dll`))) {
+            if (parseFloat(version.version || '0') >= 7.2) {
+              content = content + `\nextension=${extension}`
+            } else {
+              content = content + `\nextension=php_${extension}.dll`
+            }
+          }
+        })
 
         // Set CA certificate path
         const cacertpem = join(global.Server.BaseDir!, 'CA/cacert.pem').split('\\').join('/')
@@ -112,6 +95,7 @@ class Php extends Base {
         content = content.replace(';curl.cainfo =', `curl.cainfo = "${cacertpem}"`)
         content = content.replace(';openssl.cafile=', `openssl.cafile="${cacertpem}"`)
 
+        // Write the ini file
         await writeFile(ini, content)
         const iniDefault = join(version.path, 'php.ini.default')
         await writeFile(iniDefault, content)
