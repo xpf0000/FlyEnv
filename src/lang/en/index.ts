@@ -27,8 +27,10 @@ import utilEN from './util.json'
 import versionmanagerEN from './versionmanager.json'
 import licensesEN from './licenses.json'
 import requestTimer from './requestTimer.json'
+import meilisearch from './meilisearch.json'
 export default {
   en: {
+    meilisearch,
     requestTimer,
     licenses: licensesEN,
     ai: aiEN,

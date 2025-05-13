@@ -27,8 +27,10 @@ import utilID from './util.json'
 import versionmanagerID from './versionmanager.json'
 import licensesID from './licenses.json'
 import requestTimer from './requestTimer.json'
+import meilisearch from './meilisearch.json'
 export default {
   id: {
+    meilisearch,
     requestTimer,
     licenses: licensesID,
     ai: aiID,

@@ -49,7 +49,8 @@ class MeiliSearch extends Base {
     })
   }
 
-  _startServer(version: SoftInstalled) {
+  _startServer(version: SoftInstalled, WORKING_DIR?: string) {
+    console.log('_startServer: ', version, WORKING_DIR)
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog(
@@ -73,8 +74,10 @@ class MeiliSearch extends Base {
       const outFile = join(baseDir, `start.${version.version}.out.log`)
       const errFile = join(baseDir, `start.${version.version}.error.log`)
 
+      const working_dir = WORKING_DIR ?? baseDir
+
       const psScript = `#!/bin/zsh
-cd "${baseDir}"
+cd "${working_dir}"
 nohup "${bin}" ${execArgs} > "${outFile}" 2>"${errFile}" &
 echo "##FlyEnv-Process-ID$!FlyEnv-Process-ID##"`
 

@@ -53,7 +53,7 @@ class Minio extends Base {
     })
   }
 
-  _startServer(version: SoftInstalled, lastVersion?: SoftInstalled, DATA_DIR?: string) {
+  _startServer(version: SoftInstalled, DATA_DIR?: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog(

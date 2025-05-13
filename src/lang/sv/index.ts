@@ -27,9 +27,10 @@ import utilSV from './util.json'
 import versionmanagerSV from './versionmanager.json'
 import licensesSV from './licenses.json'
 import requestTimer from './requestTimer.json'
-
+import meilisearch from './meilisearch.json'
 export default {
   sv: {
+    meilisearch,
     requestTimer,
     licenses: licensesSV,
     ai: aiSV,

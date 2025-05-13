@@ -27,9 +27,10 @@ import utilTR from './util.json'
 import versionmanagerTR from './versionmanager.json'
 import licensesTR from './licenses.json'
 import requestTimerTR from './requestTimer.json'
-
+import meilisearch from './meilisearch.json'
 export default {
   tr: {
+    meilisearch,
     requestTimer: requestTimerTR,
     licenses: licensesTR,
     ai: aiTR,

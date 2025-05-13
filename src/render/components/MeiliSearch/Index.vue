@@ -7,13 +7,24 @@
     </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="meilisearch" title="Meilisearch">
-        <template v-if="isRunning" #tool-left>
-          <el-button style="color: #01cc74" class="button" link @click.stop="openURL">
-            <yb-icon
-              style="width: 20px; height: 20px; margin-left: 10px"
-              :svg="import('@/svg/http.svg?raw')"
-            ></yb-icon>
-          </el-button>
+        <template #tool-left>
+          <template v-if="isRunning">
+            <el-button style="color: #01cc74" class="button" link @click.stop="openURL">
+              <yb-icon
+                style="width: 20px; height: 20px; margin-left: 10px"
+                :svg="import('@/svg/http.svg?raw')"
+              ></yb-icon>
+            </el-button>
+          </template>
+          <div class="flex items-center gap-1 pl-4">
+            <span>{{ I18nT('meilisearch.working_dir') }}: </span>
+            <span
+              class="cursor-pointer hover:text-yellow-500"
+              @click.stop="shell.openPath(DATA_DIR)"
+              >{{ DATA_DIR }}</span
+            >
+            <el-button :disabled="!DATA_DIR" link :icon="Edit" @click.stop="chooseDir"></el-button>
+          </div>
         </template>
       </Service>
       <Manager
@@ -35,6 +46,9 @@
   import { I18nT } from '@lang/index'
   import { computed } from 'vue'
   import { BrewStore } from '@/store/brew'
+  import { MeiliSearchSetup } from './setup'
+  import { chooseFolder } from '@/util/File'
+  import { Edit } from '@element-plus/icons-vue'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
@@ -47,6 +61,38 @@
   const isRunning = computed(() => {
     return brewStore.module('meilisearch').installed.some((m) => m.run)
   })
+
+  const currentVersion = computed(() => {
+    return brewStore.currentVersion('meilisearch')
+  })
+
+  const DATA_DIR = computed({
+    get() {
+      if (currentVersion?.value?.bin) {
+        if (MeiliSearchSetup.dir[currentVersion.value.bin]) {
+          return MeiliSearchSetup.dir[currentVersion.value.bin]
+        }
+        return join(global.Server.BaseDir!, `meilisearch`)
+      }
+      return I18nT('base.needSelectVersion')
+    },
+    set(v: string) {
+      if (!currentVersion?.value?.bin) {
+        return
+      }
+      MeiliSearchSetup.dir[currentVersion.value.bin] = v
+      MeiliSearchSetup.save()
+    }
+  })
+
+  const chooseDir = () => {
+    chooseFolder()
+      .then((path: string) => {
+        DATA_DIR.value = path
+      })
+      .catch()
+  }
+
   const openURL = async () => {
     const iniFile = join(global.Server.BaseDir!, 'meilisearch/meilisearch.toml')
     if (existsSync(iniFile)) {

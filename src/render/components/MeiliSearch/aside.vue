@@ -28,6 +28,12 @@
 
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
+  import { MeiliSearchSetup } from './setup'
+  import { ServiceActionExtParam } from '@/util/Service'
+  import type { AllAppModule } from '@/core/type'
+  import type { SoftInstalled } from '@/store/brew'
+
+  const { join } = require('path')
 
   const {
     showItem,
@@ -40,6 +46,24 @@
     nav,
     stopNav
   } = AsideSetup('meilisearch')
+
+  MeiliSearchSetup.init()
+
+  ServiceActionExtParam['meilisearch'] = (
+    typeFlag: AllAppModule,
+    fn: string,
+    version: SoftInstalled
+  ) => {
+    return new Promise<any[]>((resolve) => {
+      if (fn === 'startService') {
+        const dir = join(global.Server.BaseDir!, `meilisearch`)
+        const p = MeiliSearchSetup.dir?.[version.bin] ?? dir
+        resolve([p])
+        return
+      }
+      return resolve([])
+    })
+  }
 
   AppServiceModule.meilisearch = {
     groupDo,
