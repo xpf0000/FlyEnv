@@ -103,12 +103,14 @@ class Php extends Base {
         content = content + `\nextension=php_pdo_mysql.dll`
         content = content + `\nextension=php_pdo_odbc.dll`
 
+        // Set CA certificate path
         const cacertpem = join(global.Server.BaseDir!, 'CA/cacert.pem').split('\\').join('/')
         await mkdirp(dirname(cacertpem))
         if (!existsSync(cacertpem)) {
           await copyFile(join(global.Server.Static!, 'tmpl/cacert.pem'), cacertpem)
         }
         content = content.replace(';curl.cainfo =', `curl.cainfo = "${cacertpem}"`)
+        content = content.replace(';openssl.cafile=', `openssl.cafile="${cacertpem}"`)
 
         await writeFile(ini, content)
         const iniDefault = join(version.path, 'php.ini.default')
