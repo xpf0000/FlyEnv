@@ -1,0 +1,9 @@
+{
+  "rawFile": "File Mentah (RAW)",
+  "CommonSetting": "Pengaturan Umum",
+  "open": "Buka File",
+  "save": "Simpan File Ctrl + s",
+  "loadDefault": "Muat File Default",
+  "saveCustom": "Simpan Sebagai File Kustom",
+  "loadCustom": "Muat File Kustom"
+}

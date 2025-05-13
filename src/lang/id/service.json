@@ -1,0 +1,11 @@
+{
+  "setaliase": "Atur Alias",
+  "env": "Lingkungan",
+  "alias": "Alias",
+  "envTips": "Apakah path telah ditambahkan ke variabel lingkungan",
+  "aliasTips": "Alias yang digunakan di terminal",
+  "useSysPHP": "Gunakan versi PHP default",
+  "setByApp": "Variabel lingkungan yang disetel oleh FlyEnv",
+  "setByNoApp": "Variabel lingkungan yang tidak disetel oleh FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd membutuhkan hak akses sudo untuk memulai. Harap masukkan kata sandi pengguna Anda. Kata sandi ini akan digunakan untuk pengisian otomatis nanti. Atau Anda dapat mengklik tombol di bawah ini untuk memasukkan secara manual di terminal, tetapi prompt ini mungkin akan muncul lagi."
+}

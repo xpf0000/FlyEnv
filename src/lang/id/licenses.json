@@ -1,0 +1,36 @@
+{
+  "title": "Deskripsi Lisensi",
+  "description": "Lisensi ini adalah pengakuan dan dukungan untuk kerja keras FlyEnv dan penulisnya. Tujuannya bukan untuk membatasi pengguna, tetapi untuk mengingatkan mereka untuk menghormati upaya para pengembang dan mematuhi ketentuan yang relevan saat menggunakan perangkat lunak. Dengan mematuhi lisensi ini, pengguna tidak hanya mendukung pengembangan proyek yang berkelanjutan tetapi juga berkontribusi pada semangat kepercayaan dan kolaborasi dalam komunitas sumber terbuka.",
+  "restrictions": {
+    "title": "Pengguna tanpa lisensi akan dikenakan pembatasan berikut:",
+    "items": {
+      "0": "Maksimal tiga situs dapat dibuat.",
+      "1": "Fitur obrolan AI tersedia hanya untuk periode percobaan tiga hari.",
+      "2": "Pembatasan tambahan mungkin berlaku untuk fitur mendatang."
+    }
+  },
+  "licenseInfo": "Lisensi saat ini yang ditawarkan adalah lisensi permanen, dengan satu lisensi sesuai untuk satu komputer. Jika Anda mengganti komputer, Anda perlu meminta lisensi baru.",
+  "howToObtain": {
+    "title": "Cara Mendapatkan Lisensi",
+    "description": "FlyEnv menyediakan cara fleksibel untuk mendapatkan lisensi. Pengguna dapat memilih salah satu metode berikut untuk mengajukan permohonan:",
+    "methods": {
+      "0": {
+        "title": "Donasi untuk Proyek",
+        "description": "Tidak ada jumlah tetap yang diperlukan untuk donasi. Mengingat situasi ekonomi yang bervariasi di berbagai negara (misalnya, banyak pengguna adalah mahasiswa), silakan pilih jumlah yang sesuai dengan keadaan Anda."
+      },
+      "1": {
+        "title": "Berpartisipasi dalam Pengembangan",
+        "description": "Berpartisipasi dalam proyek dengan mengirimkan Pull Request. Tidak peduli seberapa banyak kode yang ditambahkan, selama itu meningkatkan proyek secara positif (misalnya, memperbaiki kesalahan terjemahan), itu memenuhi syarat."
+      },
+      "2": {
+        "title": "Mempromosikan Proyek",
+        "description": "Mempromosikan FlyEnv dengan mempublikasikan artikel, video, blog, vlog, atau memperkenalkannya dalam komentar. Konten dapat dalam bahasa apa pun dan di platform mana pun, asalkan dapat diakses publik di internet."
+      }
+    }
+  },
+  "submitInfo": "Setelah menyelesaikan salah satu metode di atas, harap isi hasilnya di kotak input di bawah ini dan klik tombol 'Ajukan Lisensi' untuk mengirimkan permohonan Anda. Permohonan lisensi akan ditinjau secara manual, jadi harap bersabar. Biasanya diproses dengan cepat.",
+  "messageLabel": "Pesan",
+  "messagePlaceholder": "Harap kirimkan donatur, tautan donasi, atau ID pesanan saat memilih untuk mendonasikan.\nHarap kirimkan tautan PR bagi mereka yang memilih untuk berpartisipasi dalam pengembangan proyek.\nHarap kirimkan tautan artikel/video jika Anda memilih untuk membantu mempromosikan proyek",
+  "requestButton": "Ajukan Lisensi",
+  "refreshButton": "Segarkan Status"
+}
