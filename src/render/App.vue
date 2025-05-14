@@ -150,4 +150,10 @@
     IPC.off('application:about')
     IPC.off('application:need-password')
   })
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+      e.preventDefault()
+    }
+  })
 </script>

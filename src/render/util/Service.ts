@@ -141,6 +141,31 @@ const exec = (
       }
     }
 
+    const handleVersion = () => {
+      if (fn !== 'startService') {
+        return
+      }
+      const appStore = AppStore()
+      const flag = typeFlag
+      const server: any = appStore.config.server
+      const currentVersion = server?.[flag]?.current
+      const currentItem = brewStore
+        .module(typeFlag)
+        ?.installed?.find(
+          (i) => i.path === currentVersion?.path && i.version === currentVersion?.version
+        )
+
+      if (version.version !== currentItem?.version || version.path !== currentItem?.path) {
+        appStore.UPDATE_SERVER_CURRENT({
+          flag: typeFlag,
+          data: JSON.parse(JSON.stringify(version))
+        })
+        appStore.saveConfig().then().catch()
+      }
+    }
+
+    handleVersion()
+
     IPC.send(`app-fork:${typeFlag}`, fn, args, ...params).then((key: string, res: any) => {
       if (res.code === 0) {
         IPC.off(key)
