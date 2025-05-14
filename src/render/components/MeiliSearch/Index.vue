@@ -32,6 +32,7 @@
         type-flag="meilisearch"
         :has-static="true"
         :show-port-lib="false"
+        url="https://github.com/meilisearch/meilisearch/releases"
       ></Manager>
       <Config v-if="tab === 2"></Config>
     </div>

@@ -17,6 +17,7 @@
         type-flag="rust"
         :has-static="true"
         :show-port-lib="false"
+        url="https://forge.rust-lang.org/infra/other-installation-methods.html#standalone-installers"
       ></Manager>
       <ProjectIndex
         v-else-if="tab === 2"
