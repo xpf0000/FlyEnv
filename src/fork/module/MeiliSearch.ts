@@ -61,7 +61,7 @@ class MeiliSearch extends Base {
 
       const bin = version.bin
       const baseDir = join(global.Server.BaseDir!, 'meilisearch')
-      const execArgs = `--config-file-path "${iniFile}"`
+      const execArgs = `--config-file-path \`"${iniFile}\`"`
       const execEnv = ``
       const working_dir = WORKING_DIR ?? baseDir
 

@@ -29,6 +29,7 @@
       </Service>
       <Manager
         v-else-if="tab === 1"
+        title="Meilisearch"
         type-flag="meilisearch"
         :has-static="true"
         :show-port-lib="false"

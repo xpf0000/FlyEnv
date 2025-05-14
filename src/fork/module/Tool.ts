@@ -20,7 +20,8 @@ import {
   readFile,
   realpathSync,
   remove,
-  writeFile
+  writeFile,
+  stat
 } from 'fs-extra'
 import { TaskItem, TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
 import { basename, dirname, isAbsolute, join, resolve as PathResolve } from 'path'
@@ -532,6 +533,19 @@ subjectAltName=@alt_names
           const pip = join(envPath, 'Scripts/pip.exe')
           if (existsSync(pip)) {
             oldPath.unshift(dirname(pip))
+          }
+        }
+        // Handle Rust
+        if (existsSync(join(rawEnvPath, 'cargo/bin/cargo.exe'))) {
+          const dirs = await readdir(rawEnvPath)
+          for (const f of dirs) {
+            const binDir = join(rawEnvPath, f, 'bin')
+            if (existsSync(binDir)) {
+              const state = await stat(binDir)
+              if (state.isDirectory()) {
+                oldPath.unshift(binDir)
+              }
+            }
           }
         }
       }

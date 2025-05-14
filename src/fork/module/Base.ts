@@ -1,17 +1,10 @@
 import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync, unlinkSync } from 'fs'
-import { basename, dirname, join } from 'path'
+import path, { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import {
-  AppLog,
-  execPromise,
-  getAllFileAsync,
-  moveChildDirToParent,
-  uuid,
-  waitTime
-} from '../Fn'
+import { AppLog, execPromise, getAllFileAsync, moveChildDirToParent, uuid, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { appendFile, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { appendFile, copyFile, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { ProcessListSearch, ProcessPidList, ProcessPidListByPid } from '../Process'
@@ -421,15 +414,41 @@ php "%~dp0composer.phar" %*`
       }
 
       const handleMeilisearch = async () => {
+        await waitTime(500)
+        await mkdirp(dirname(row.bin))
         try {
-          await spawn(basename(row.zip), ['--version'], {
-            shell: false
+          await copyFile(row.zip, row.bin)
+          await waitTime(500)
+          await spawn(basename(row.bin), ['--version'], {
+            shell: false,
+            cwd: dirname(row.bin)
           })
-        } catch (e) {
+        } catch (e: any) {
+          if (existsSync(row.bin)) {
+            await remove(row.bin)
+          }
+          await appendFile(
+            path.join(global.Server.BaseDir!, 'debug.log'),
+            `[handleMeilisearch][error]: ${e.toString()}\n`
+          )
           throw e
         }
-        await mkdirp(dirname(row.bin))
-        await copyFile(row.zip, row.bin)
+      }
+
+      const handleRust = async () => {
+        await remove(row.appDir)
+        await mkdirp(row.appDir)
+        const cacheDir = join(global.Server.Cache!, uuid())
+        await mkdirp(cacheDir)
+        await zipUnPack(row.zip, cacheDir)
+        const files = await readdir(cacheDir)
+        const find = files.find((f) => f.includes('.tar'))
+        if (!find) {
+          throw new Error('UnZIP failed')
+        }
+        await zipUnPack(join(cacheDir, find), row.appDir)
+        await moveChildDirToParent(row.appDir)
+        await remove(cacheDir)
       }
 
       const doHandleZip = async () => {
@@ -441,8 +460,7 @@ php "%~dp0composer.phar" %*`
           'rabbitmq',
           'mariadb',
           'ruby',
-          'elasticsearch',
-          'rust'
+          'elasticsearch'
         ]
         if (two.includes(row.type)) {
           await handleTwoLevDir()
@@ -456,6 +474,8 @@ php "%~dp0composer.phar" %*`
           await handleMongoDB()
         } else if (row.type === 'meilisearch') {
           await handleMeilisearch()
+        } else if (row.type === 'rust') {
+          await handleRust()
         } else {
           await zipUnPack(row.zip, row.appDir)
         }

@@ -6,12 +6,10 @@
     :file="file"
     :file-ext="'conf'"
     :show-commond="true"
+    :common-setting="commonSetting"
     url="https://www.meilisearch.com/docs/learn/self_hosted/configure_meilisearch_at_launch#configuration-file"
     @on-type-change="onTypeChange"
   >
-    <template #common>
-      <Common :setting="commonSetting" />
-    </template>
   </Conf>
 </template>
 
@@ -22,7 +20,6 @@
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
-  import Common from '@/components/Conf/common.vue'
   import { uuid } from '@shared/utils'
 
   const { join } = require('path')

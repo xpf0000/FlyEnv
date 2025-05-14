@@ -14,6 +14,7 @@
       ></Service>
       <Manager
         v-else-if="tab === 1"
+        title="Rust"
         type-flag="rust"
         :has-static="true"
         :show-port-lib="false"
