@@ -852,7 +852,7 @@ export async function serviceStartExec(
   }
   let msg = 'Start Fail'
   if (existsSync(errFile)) {
-    msg = (await readFile(errFile, 'utf-8')) || `${error.toString()}` || 'Start Fail'
+    msg = (await readFile(errFile, 'utf-8')) || `${error?.toString() ?? ''}` || 'Start Fail'
   }
   on({
     'APP-On-Log': AppLog(

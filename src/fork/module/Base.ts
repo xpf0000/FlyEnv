@@ -4,7 +4,7 @@ import { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import { AppLog, execPromise, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, remove, mkdirp, readdir } from 'fs-extra'
+import { readFile, writeFile, remove, mkdirp, readdir, copyFile, chmod } from 'fs-extra'
 import axios from 'axios'
 import * as http from 'http'
 import * as https from 'https'
@@ -313,6 +313,21 @@ export class Base {
       }
 
       const unpack = async () => {
+        if (this.type === 'meilisearch') {
+          const command = `cd "${dirname(row.bin)}" && ./${basename(row.bin)} --version`
+          console.log('command: ', command)
+          try {
+            await mkdirp(dirname(row.bin))
+            await copyFile(row.zip, row.bin)
+            await chmod(row.bin, '0777')
+            await waitTime(500)
+            await execPromise(command)
+          } catch (e) {
+            console.log('eeeee: ', e)
+            await fail()
+          }
+          return
+        }
         try {
           const dir = row.appDir
           await mkdirp(dir)
