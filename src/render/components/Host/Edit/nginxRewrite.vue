@@ -59,10 +59,7 @@
           </el-option-group>
         </template>
       </el-select>
-      <el-button
-        :icon="FolderOpened"
-        @click.stop="shell.openPath(nginxRewriteTemplateDir)"
-      ></el-button>
+      <el-button :icon="FolderOpened" @click.stop="openTemplateDir"></el-button>
     </div>
     <div ref="input" class="input-textarea nginx-rewrite"></div>
   </div>
@@ -77,6 +74,8 @@
   import { FolderOpened } from '@element-plus/icons-vue'
   import { Project } from '@/util/Project'
   import { HostNginxRewriteSetup } from '@/components/Host/Edit/rewrite'
+  import IPC from '@/util/IPC'
+  import { MessageSuccess } from '@/util/Element'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')
@@ -208,6 +207,13 @@
       }
       return
     }
+  }
+
+  const openTemplateDir = () => {
+    shell.openPath(nginxRewriteTemplateDir).then().catch()
+    IPC.send('app-fork:tools', 'fixDirRole', nginxRewriteTemplateDir).then((key: string) => {
+      IPC.off(key)
+    })
   }
 
   onMounted(() => {

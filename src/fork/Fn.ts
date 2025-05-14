@@ -9,7 +9,7 @@ import {
   realpathSync,
   statSync
 } from 'fs'
-import { dirname, isAbsolute, join, parse, basename } from 'path'
+import { dirname, isAbsolute, join, parse, basename, normalize } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -29,6 +29,7 @@ import { compareVersions } from 'compare-versions'
 import chardet from 'chardet'
 import iconv from 'iconv-lite'
 import { I18nT } from '@lang/index'
+import { userInfo, hostname } from 'os'
 
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -465,11 +466,6 @@ export const hostAlias = (item: AppHost) => {
   const arr = Array.from(new Set(alias)).sort()
   arr.unshift(item.name)
   return arr
-}
-
-export const systemProxyGet = async () => {
-  const proxy: any = {}
-  return proxy
 }
 
 export function versionFixed(version?: string | null) {
@@ -944,6 +940,41 @@ export function stringToUTF8(str: string): string {
     }
   } catch (err: any) {
     return ''
+  }
+}
+
+export async function setDir777ToCurrentUser(folderPath: string) {
+  if (!existsSync(folderPath)) {
+    return
+  }
+  const username = userInfo().username
+  const domain = hostname()
+  const identity = `"${domain}\\${username}"`
+
+  const args = [
+    `"${normalize(folderPath)}"`,
+    '/grant',
+    `${identity}:(F)`, // 注意这里不再额外加引号
+    '/t',
+    '/c',
+    '/q'
+  ]
+
+  console.log(`Executing: icacls ${args.join(' ')}`)
+  await appendFile(
+    join(global.Server.BaseDir!, 'debug.log'),
+    `[setDir777ToCurrentUser][args]: icacls ${args.join(' ')}\n`
+  )
+  try {
+    await spawnPromise('icacls', args, {
+      shell: true,
+      windowsHide: true
+    })
+  } catch (e) {
+    await appendFile(
+      join(global.Server.BaseDir!, 'debug.log'),
+      `[setDir777ToCurrentUser][error]: ${e}\n`
+    )
   }
 }
 

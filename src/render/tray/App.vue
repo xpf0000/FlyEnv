@@ -100,6 +100,12 @@
       IPC.off(key)
     })
   }
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+      e.preventDefault()
+    }
+  })
 </script>
 
 <style lang="scss">

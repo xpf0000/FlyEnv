@@ -7,6 +7,7 @@ import {
   AppLog,
   execPromise,
   serviceStartExecCMD,
+  setDir777ToCurrentUser,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -15,7 +16,7 @@ import {
   waitTime
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { chmod, copyFile, mkdirp, readFile, writeFile } from 'fs-extra'
+import { copyFile, mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
@@ -82,14 +83,13 @@ class Manager extends Base {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDir'))
         })
-
         process.env.LC_ALL = global.Server.Local!
         process.env.LANG = global.Server.Local!
 
         console.log('global.Server.Local: ', global.Server.Local)
         await mkdirp(dbPath)
         try {
-          await chmod(dbPath, '0777')
+          await setDir777ToCurrentUser(dbPath)
         } catch (e) {}
 
         const binDir = dirname(bin)

@@ -7,7 +7,7 @@ import {
   getAllFileAsync,
   handleWinPathArr,
   isNTFS,
-  systemProxyGet,
+  setDir777ToCurrentUser,
   uuid,
   writePath
 } from '../Fn'
@@ -91,8 +91,6 @@ class BomCleanTask implements TaskItem {
 }
 
 class Manager extends Base {
-  jiebaLoad = false
-  jiebaLoadFail = false
   constructor() {
     super()
   }
@@ -128,18 +126,6 @@ class Manager extends Base {
         return resolve([])
       }
       resolve(txt.trim().split(''))
-    })
-  }
-
-  sysetmProxy() {
-    return new ForkPromise((resolve) => {
-      systemProxyGet()
-        .then((proxy) => {
-          resolve(proxy)
-        })
-        .catch(() => {
-          resolve(false)
-        })
     })
   }
 
@@ -1105,6 +1091,15 @@ chcp 65001>nul
         )
       } catch (e) {}
 
+      resolve(true)
+    })
+  }
+
+  fixDirRole(dir: string) {
+    return new ForkPromise(async (resolve) => {
+      try {
+        await setDir777ToCurrentUser(dir)
+      } catch (e) {}
       resolve(true)
     })
   }
