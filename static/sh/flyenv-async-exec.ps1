@@ -11,7 +11,7 @@ $ARGS = "#ARGS#"
 $OUTLOG = "#OUTLOG#"
 $ERRLOG = "#ERRLOG#"
 
-Set-Location -Path (Split-Path -Path $BIN -Parent)
+Set-Location -Path "#CWD#"
 
 $process = Start-Process -FilePath "$BIN" `
     -ArgumentList "$ARGS" `

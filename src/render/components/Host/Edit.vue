@@ -215,71 +215,7 @@
             </template>
           </div>
 
-          <div class="plant-title">
-            <div class="flex items-center justify-between">
-              <div class="inline-flex items-center">
-                <span>Nginx Url Rewrite</span>
-                <el-popover
-                  placement="top"
-                  :title="I18nT('base.attention')"
-                  width="auto"
-                  trigger="hover"
-                >
-                  <template #reference>
-                    <yb-icon
-                      :svg="import('@/svg/question.svg?raw')"
-                      width="12"
-                      height="12"
-                      style="margin-left: 5px"
-                    ></yb-icon>
-                  </template>
-                  <p>{{ I18nT('base.nginxRewriteTips') }}</p>
-                </el-popover>
-              </div>
-              <template v-if="nginxRewriteFile">
-                <el-dropdown
-                  size="small"
-                  split-button
-                  @click="shell.showItemInFolder(nginxRewriteFile)"
-                >
-                  {{ I18nT('base.open') }}
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item
-                        @click.stop="Project.openPath(nginxRewriteFile, 'VSCode')"
-                        >{{ I18nT('nodejs.VSCode') }}</el-dropdown-item
-                      >
-                      <el-dropdown-item
-                        @click.stop="Project.openPath(nginxRewriteFile, 'PhpStorm')"
-                        >{{ I18nT('nodejs.PhpStorm') }}</el-dropdown-item
-                      >
-                      <el-dropdown-item
-                        @click.stop="Project.openPath(nginxRewriteFile, 'WebStorm')"
-                        >{{ I18nT('nodejs.WebStorm') }}</el-dropdown-item
-                      >
-                      <el-dropdown-item @click.stop="Project.openPath(nginxRewriteFile, 'Sublime')"
-                        >Sublime Text</el-dropdown-item
-                      >
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
-              </template>
-            </div>
-          </div>
-
-          <div class="main">
-            <el-select
-              v-model="rewriteKey"
-              filterable
-              :placeholder="I18nT('base.commonTemplates')"
-              class="w-p100"
-              @change="rewriteChange"
-            >
-              <el-option v-for="key in rewrites" :key="key" :label="key" :value="key"> </el-option>
-            </el-select>
-
-            <div ref="input" class="input-textarea nginx-rewrite"></div>
-          </div>
+          <NginxRewrite v-model="item.nginx.rewrite" :item-name="itemName" />
 
           <div class="plant-title flex items-center justify-between">
             <span>{{ I18nT('host.reverseProxy') }}</span>
@@ -307,29 +243,21 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, ref, watch, Ref, onMounted, onUnmounted, reactive } from 'vue'
-  import { getAllFileAsync, readFileAsync } from '@shared/file'
+  import { computed, ref, watch, onMounted, onUnmounted, reactive } from 'vue'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
-  import { RewriteAll } from '@/components/Host/store'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { ElMessageBox } from 'element-plus'
   import IPC from '@/util/IPC'
   import SSLTips from './SSLTips/index.vue'
-  import { Project } from '@/util/Project'
-  import type { FSWatcher } from 'fs'
   import { Plus, Delete } from '@element-plus/icons-vue'
+  import NginxRewrite from './Edit/nginxRewrite.vue'
 
-  const { dialog, shell } = require('@electron/remote')
-  const { join } = require('path')
-  const { existsSync, readFile } = require('fs-extra')
-  const fsWatch = require('fs').watch
+  const { dialog } = require('@electron/remote')
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -337,7 +265,6 @@
     isEdit: boolean
     edit: any
   }>()
-  const input = ref()
   const running = ref(false)
   const park = ref(false)
   const item = ref({
@@ -380,9 +307,6 @@
     port_caddy_ssl: false
   })
   merge(item.value, props.edit)
-  const rewrites: Ref<Array<string>> = ref([])
-  const rewriteKey = ref('')
-  const rewritePath = ref('')
   const appStore = AppStore()
   const brewStore = BrewStore()
   const hosts = computed(() => {
@@ -441,47 +365,6 @@
     return item.value.name
   })
 
-  const nginxRewriteFile = computed(() => {
-    const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
-    const rewritep = join(rewritepath, `${itemName.value}.conf`)
-    if (existsSync(rewritep)) {
-      return rewritep
-    }
-    return null
-  })
-
-  let watcher: FSWatcher | null
-
-  const readNginxRewriteFromFile = () => {
-    if (!nginxRewriteFile.value) {
-      return
-    }
-    try {
-      readFile(nginxRewriteFile.value, 'utf-8').then((str: string) => {
-        item.value.nginx.rewrite = str
-        monacoInstance?.setValue?.(str)
-      })
-    } catch (e) {}
-  }
-
-  watch(
-    nginxRewriteFile,
-    (v) => {
-      if (watcher) {
-        watcher.close()
-        watcher = null
-      }
-      if (v) {
-        watcher = fsWatch(v, () => {
-          readNginxRewriteFromFile()
-        })
-      }
-    },
-    {
-      immediate: true
-    }
-  )
-
   watch(itemName, (name) => {
     for (let h of hosts.value) {
       if (h.name === name && h.id !== item.value.id) {
@@ -499,61 +382,6 @@
       })
     }
     return true
-  }
-
-  let monacoInstance: editor.IStandaloneCodeEditor | null
-
-  const initEditor = () => {
-    if (!monacoInstance) {
-      if (!input?.value?.style) {
-        return
-      }
-      const config = EditorConfigMake(item.value.nginx.rewrite, false, 'off')
-      Object.assign(config, {
-        minimap: {
-          enabled: false
-        },
-        lineNumbers: 'off',
-        padding: {
-          top: 8,
-          bottom: 8
-        }
-      })
-      monacoInstance = EditorCreate(input.value, config)
-    } else {
-      monacoInstance.setValue(item.value.nginx.rewrite)
-    }
-  }
-
-  const rewriteChange = (flag: any) => {
-    if (!RewriteAll[flag]) {
-      let file = join(rewritePath.value, `${flag}.conf`)
-      readFileAsync(file).then((content) => {
-        RewriteAll[flag] = content
-        item.value.nginx.rewrite = content
-        monacoInstance?.setValue(item.value.nginx.rewrite)
-      })
-    } else {
-      item.value.nginx.rewrite = RewriteAll[flag]
-      monacoInstance?.setValue(item.value.nginx.rewrite)
-    }
-  }
-
-  const loadRewrite = () => {
-    rewrites.value.splice(0)
-    rewritePath.value = join(global.Server.Static, 'rewrite')
-    if (Object.keys(RewriteAll).length === 0) {
-      getAllFileAsync(rewritePath.value, false).then((files) => {
-        files = files.sort()
-        for (let file of files) {
-          let k = file.replace('.conf', '')
-          RewriteAll[k] = ''
-          rewrites.value.push(k)
-        }
-      })
-    } else {
-      rewrites.value.push(...Object.keys(RewriteAll))
-    }
   }
 
   const addReverseProxy = () => {
@@ -655,7 +483,6 @@
     const saveFn = () => {
       running.value = true
       const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-      item.value.nginx.rewrite = monacoInstance?.getValue() ?? ''
       IPC.send('app-fork:host', 'doFixHostsRole').then((key: string) => {
         IPC.off(key)
         handleHost(item.value as any, flag, props.edit as AppHost, park.value).then(() => {
@@ -677,21 +504,8 @@
     }
   }
 
-  loadRewrite()
-  onMounted(() => {
-    nextTick().then(() => {
-      initEditor()
-      readNginxRewriteFromFile()
-    })
-  })
-  onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
-    monacoInstance = null
-    if (watcher) {
-      watcher.close()
-      watcher = null
-    }
-  })
+  onMounted(() => {})
+  onUnmounted(() => {})
 
   defineExpose({
     show,

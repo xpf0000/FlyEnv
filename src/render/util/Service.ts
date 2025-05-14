@@ -6,7 +6,6 @@ import { I18nT } from '@lang/index'
 import { Service } from '@/components/ServiceManager/service'
 import installedVersions from '@/util/InstalledVersions'
 import { AllAppModule } from '@/core/type'
-import { computed } from 'vue'
 
 type ServiceActionExtParamFN = (
   typeFlag: AllAppModule,

@@ -27,9 +27,11 @@ import utilVI from './util.json'
 import versionmanagerVI from './versionmanager.json'
 import licensesVI from './licenses.json'
 import requestTimer from './requestTimer.json'
+import meilisearch from './meilisearch.json'
 
 export default {
   vi: {
+    meilisearch,
     licenses: licensesVI,
     ai: aiVI,
     apache: apacheVI,

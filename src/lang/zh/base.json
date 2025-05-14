@@ -100,5 +100,6 @@
   "hide": "隐藏版本",
   "noHide": "取消隐藏",
   "placeholderSearch": "搜索",
-  "projects": "项目"
+  "projects": "项目",
+  "default": "默认"
 }

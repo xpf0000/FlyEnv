@@ -2,13 +2,21 @@ import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync, unlinkSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { AppLog, execPromise, getAllFileAsync, moveChildDirToParent, uuid, waitTime } from '../Fn'
+import {
+  AppLog,
+  execPromise,
+  getAllFileAsync,
+  moveChildDirToParent,
+  uuid,
+  waitTime
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { appendFile, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { ProcessListSearch, ProcessPidList, ProcessPidListByPid } from '../Process'
 import TaskQueue from '../TaskQueue'
+import { spawn } from 'child-process-promise'
 
 export class Base {
   type: string
@@ -411,6 +419,19 @@ php "%~dp0composer.phar" %*`
         // @ts-ignore
         await this.initMongosh()
       }
+
+      const handleMeilisearch = async () => {
+        try {
+          await spawn(basename(row.zip), ['--version'], {
+            shell: false
+          })
+        } catch (e) {
+          throw e
+        }
+        await mkdirp(dirname(row.bin))
+        await copyFile(row.zip, row.bin)
+      }
+
       const doHandleZip = async () => {
         const two = [
           'java',
@@ -420,7 +441,8 @@ php "%~dp0composer.phar" %*`
           'rabbitmq',
           'mariadb',
           'ruby',
-          'elasticsearch'
+          'elasticsearch',
+          'rust'
         ]
         if (two.includes(row.type)) {
           await handleTwoLevDir()
@@ -432,6 +454,8 @@ php "%~dp0composer.phar" %*`
           await handlePython()
         } else if (row.type === 'mongodb') {
           await handleMongoDB()
+        } else if (row.type === 'meilisearch') {
+          await handleMeilisearch()
         } else {
           await zipUnPack(row.zip, row.appDir)
         }

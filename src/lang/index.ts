@@ -30,6 +30,7 @@ import type util from './zh/util.json'
 import type versionmanager from './zh/versionmanager.json'
 import type licenses from './zh/licenses.json'
 import type requestTimer from './zh/requestTimer.json'
+import type meilisearch from './zh/meilisearch.json'
 
 import ZH from './zh/index'
 import EN from './en/index'
@@ -48,6 +49,7 @@ type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
 }[keyof T] // 提取所有值的联合类型
 
 type LangKey =
+  | AppendStringToKeys<typeof meilisearch, 'meilisearch'>
   | AppendStringToKeys<typeof requestTimer, 'requestTimer'>
   | AppendStringToKeys<typeof licenses, 'licenses'>
   | AppendStringToKeys<typeof ai, 'ai'>

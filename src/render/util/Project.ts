@@ -23,6 +23,7 @@ export const Project = {
       | 'RubyMine'
       | 'GoLand'
       | 'HBuilderX'
+      | 'RustRover'
   ) {
     IPC.send('app-fork:tools', 'openPathByApp', dir, flag).then((key: string, res: any) => {
       IPC.off(key)

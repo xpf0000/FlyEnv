@@ -825,10 +825,19 @@ chcp 65001>nul
       | 'RubyMine'
       | 'GoLand'
       | 'HBuilderX'
+      | 'RustRover'
   ) {
     return new ForkPromise(async (resolve, reject) => {
       let command = ''
-      const JetBrains = ['PhpStorm', 'WebStorm', 'IntelliJ', 'PyCharm', 'RubyMine', 'GoLand']
+      const JetBrains = [
+        'PhpStorm',
+        'WebStorm',
+        'IntelliJ',
+        'PyCharm',
+        'RubyMine',
+        'GoLand',
+        'RustRover'
+      ]
       if (JetBrains.includes(app)) {
         const findIdePath = async (ideName: string) => {
           try {

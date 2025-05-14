@@ -100,5 +100,6 @@
   "hide": "Hidden Version",
   "noHide": "Unhide",
   "placeholderSearch": "Search",
-  "projects": "Project"
+  "projects": "Project",
+  "default": "Default"
 }

@@ -27,8 +27,11 @@ import utilZH from './util.json'
 import versionmanagerZH from './versionmanager.json'
 import licensesZH from './licenses.json'
 import requestTimer from './requestTimer.json'
+import meilisearch from './meilisearch.json'
+
 export default {
   zh: {
+    meilisearch,
     licenses: licensesZH,
     ai: aiZH,
     apache: apacheZH,
