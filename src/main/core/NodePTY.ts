@@ -2,10 +2,10 @@ import type { PtyItem } from '../type'
 import { uuid } from '../utils'
 import type { IPty } from 'node-pty'
 import { spawn } from 'node-pty'
-import { fixEnv } from '@shared/utils'
 import { basename, join } from 'path'
 import { chmod, remove, writeFile } from 'fs-extra'
 import { existsSync } from 'fs'
+import EnvSync from './EnvSync'
 
 class NodePTY {
   pty: Partial<Record<string, PtyItem>> = {}
@@ -17,7 +17,7 @@ class NodePTY {
   async initNodePty() {
     return new Promise(async (resolve) => {
       const key = uuid()
-      const env = await fixEnv()
+      const env = await EnvSync.sync()
       const pty: IPty = spawn('zsh', [], {
         name: 'xterm-color',
         cols: 80,

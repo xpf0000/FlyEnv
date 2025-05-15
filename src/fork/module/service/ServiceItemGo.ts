@@ -3,7 +3,7 @@ import { join } from 'path'
 import { chmod, existsSync, mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromise } from '@shared/Exec'
+import { execPromise } from '../../util/Exec'
 import Helper from '../../Helper'
 import { ProcessPidsByPid } from '@shared/Process'
 

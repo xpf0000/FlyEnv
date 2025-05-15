@@ -15,7 +15,7 @@ import DnsServerManager from './core/DNS'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
-import { execPromiseRoot } from '@shared/Exec'
+import { execPromiseRoot } from './core/Exec'
 import { arch } from 'os'
 import { PItem, ProcessListByPid } from '@shared/Process'
 import NodePTY from './core/NodePTY'
@@ -23,6 +23,7 @@ import HttpServer from './core/HttpServer'
 import AppHelper from './core/AppHelper'
 import Helper from '../fork/Helper'
 import ScreenManager from './core/ScreenManager'
+import AppLog from './core/AppLog'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
 const { execAsync, isAppleSilicon } = require('../shared/utils')
@@ -62,7 +63,6 @@ export default class Application extends EventEmitter {
     this.initTrayManager()
     this.initUpdaterManager()
     this.initServerDir()
-    this.checkBrewOrPort()
     this.handleCommands()
     this.handleIpcMessages()
     this.initForkManager()
@@ -164,6 +164,7 @@ export default class Application extends EventEmitter {
               .catch()
           })
           .catch((e: Error) => {
+            AppLog.debug(`[checkBrewOrPort][brew --repo][error]: ${e.toString()}`)
             console.log('brew --repo err: ', e)
           })
         execAsync('brew', ['--cellar'])
@@ -178,10 +179,12 @@ export default class Application extends EventEmitter {
             )
           })
           .catch((e: Error) => {
+            AppLog.debug(`[checkBrewOrPort][brew --cellar][error]: ${e.toString()}`)
             console.log('brew --cellar err: ', e)
           })
       })
       .catch((e: Error) => {
+        AppLog.debug(`[checkBrewOrPort][which brew][error]: ${e.toString()}`)
         console.log('which brew e: ', e)
       })
 
@@ -291,6 +294,8 @@ export default class Application extends EventEmitter {
   showPage(page: string) {
     const win = this.windowManager.openWindow(page)
     this.mainWindow = win
+    this.checkBrewOrPort()
+    AppLog.init(this.mainWindow)
     win.once('ready-to-show', () => {
       this.isReady = true
       this.emit('ready')

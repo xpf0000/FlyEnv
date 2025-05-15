@@ -1,6 +1,6 @@
 import type { AppHost } from '@shared/app'
 import { watch, existsSync, FSWatcher, readFile } from 'fs-extra'
-import { execPromise } from '@shared/Exec'
+import { execPromise } from '../../util/Exec'
 import { ForkPromise } from '@shared/ForkPromise'
 import { waitTime } from '../../Fn'
 import Helper from '../../Helper'

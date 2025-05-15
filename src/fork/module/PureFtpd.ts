@@ -17,7 +17,7 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { execPromiseRoot } from '@shared/Exec'
+import { execPromiseRoot } from '../util/Exec'
 
 class Manager extends Base {
   constructor() {

@@ -15,12 +15,11 @@ import { compareVersions } from 'compare-versions'
 import { exec } from 'child-process-promise'
 import { createWriteStream, existsSync } from 'fs'
 import { chmod, copyFile, unlink, readdir, writeFile, realpath, remove, mkdirp } from 'fs-extra'
-import { fixEnv } from '@shared/utils'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../TaskQueue'
 import ncu from 'npm-check-updates'
-
+import EnvSync from '../util/EnvSync'
 class Manager extends Base {
   constructor() {
     super()
@@ -95,7 +94,7 @@ class Manager extends Base {
         command = 'unset PREFIX;[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ls'
       }
       try {
-        const env = await fixEnv()
+        const env = await EnvSync.sync()
         const res = await exec(command, {
           env
         })
@@ -207,7 +206,7 @@ class Manager extends Base {
         command = `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm alias default ${select}`
       }
       try {
-        const env = await fixEnv()
+        const env = await EnvSync.sync()
         await exec(command, {
           env
         })
@@ -350,7 +349,7 @@ class Manager extends Base {
         command = `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ${action} ${version}`
       }
       try {
-        const env = await fixEnv()
+        const env = await EnvSync.sync()
         await exec(command, {
           env
         })

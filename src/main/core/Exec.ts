@@ -1,38 +1,10 @@
-import { fixEnv, uuid } from './utils'
 import { merge } from 'lodash'
 import { ForkPromise } from '@shared/ForkPromise'
-
-const { exec } = require('child-process-promise')
-const { spawn } = require('child_process')
-const { join } = require('path')
-const { existsSync, remove, writeFile } = require('fs-extra')
-
-export function execPromise(
-  cammand: string,
-  opt?: { [k: string]: any }
-): ForkPromise<{
-  stdout: string
-  stderr: string
-}> {
-  return new ForkPromise(async (resolve, reject) => {
-    try {
-      const env = await fixEnv()
-      const res = await exec(
-        cammand,
-        merge(
-          {
-            shell: '/bin/zsh',
-            env
-          },
-          opt
-        )
-      )
-      resolve(res)
-    } catch (e) {
-      reject(e)
-    }
-  })
-}
+import { spawn } from 'child_process'
+import { join } from 'path'
+import { existsSync, remove, writeFile } from 'fs-extra'
+import EnvSync from './EnvSync'
+import { uuid } from '../utils'
 
 export function execPromiseRoot(
   params: string | string[],
@@ -57,7 +29,7 @@ export function execPromiseRoot(
       args.push(...params)
     }
     console.log('args: ', args)
-    const env = await fixEnv()
+    const env = await EnvSync.sync()
     const child = spawn(
       'sudo',
       args,

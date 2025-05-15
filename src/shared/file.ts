@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const { existsSync, readdir } = require('fs-extra')
+const { existsSync, readdir, appendFile } = require('fs-extra')
 
 export function getAllFile(fp: string, fullpath = true) {
   let arr: Array<string> = []
@@ -135,4 +135,11 @@ export function readFileAsync(fp: string, encode = 'utf-8') {
       }
     })
   })
+}
+
+export async function appDebugLog(flag: string, info: string) {
+  try {
+    const debugFile = path.join(global.Server.BaseDir!, 'debug.log')
+    await appendFile(debugFile, `${flag}: ${info}\n`)
+  } catch (e) {}
 }

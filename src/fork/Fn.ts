@@ -7,13 +7,14 @@ import crypto from 'crypto'
 import axios from 'axios'
 import { mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { fixEnv } from '@shared/utils'
 import { compareVersions } from 'compare-versions'
-import { execPromise } from '@shared/Exec'
+import { execPromise, execPromiseRoot } from './util/Exec'
 import Helper from './Helper'
 import { I18nT } from '@lang/index'
+import { format } from 'date-fns'
+import EnvSync from './util/EnvSync'
 
-export { execPromise }
+export { execPromise, execPromiseRoot }
 
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -48,11 +49,13 @@ export const ProcessSendLog = (key: string, msg: any, on?: boolean) => {
   })
 }
 
-export const AppLog = (type: 'info' | 'error', msg: string) => {
-  //const time = new Date().getTime() // Timestamp in milliseconds
-  //const time = new Date().toISOString() // ISO 8601 format
-  const time = new Date().toString() // Thu Apr 03 01:36:23
-  return `[${time}] ${type}: ${msg}` // Example: [Thu Apr 03 01:36:23] info: Log message here message here
+export const AppLog = (type: 'info' | 'error' | 'debug', msg: string) => {
+  const time = format(new Date(), 'yyyy/MM/dd HH:mm:ss')
+  return `[${time}] [${type}] : ${msg}`
+}
+
+export const AppLogSend = (type: 'info' | 'error' | 'debug', msg: string) => {
+  ProcessSendLog('APP-On-Log', AppLog(type, msg))
 }
 
 export function uuid(length = 32) {
@@ -80,17 +83,23 @@ export function spawnPromise(
   return new ForkPromise(async (resolve, reject, on) => {
     const stdout: Array<Uint8Array> = []
     const stderr: Array<Uint8Array> = []
-    const env = await fixEnv()
-    const child = spawn(
-      cammand,
-      params,
-      merge(
-        {
-          env
-        },
-        opt
+    const env = await EnvSync.sync()
+    let child: ChildProcess
+    try {
+      child = spawn(
+        cammand,
+        params,
+        merge(
+          {
+            env
+          },
+          opt
+        )
       )
-    )
+    } catch (e) {
+      reject(e)
+      return
+    }
     const stdinFn = (txt: string) => {
       child?.stdin?.write(`${txt}\n`)
     }
@@ -128,7 +137,7 @@ export async function spawnPromiseMore(
 }> {
   const stdout: Array<Uint8Array> = []
   const stderr: Array<Uint8Array> = []
-  const env = await fixEnv()
+  const env = await EnvSync.sync()
   const child = spawn(
     cammand,
     params,

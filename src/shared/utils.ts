@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import { merge } from 'lodash'
+import { appDebugLog } from '@shared/file'
 
 const { spawn } = require('child_process')
 const { exec } = require('child-process-promise')
@@ -24,9 +25,11 @@ export async function fixEnv(): Promise<{ [k: string]: any }> {
       shell: '/bin/zsh'
     })
     text = res.stdout
-  } catch (e) {}
+  } catch (e: any) {
+    appDebugLog('[fixEnv][env.sh][error]', e.toString()).then().catch()
+  }
 
-  AppEnv = {}
+  AppEnv = process.env
   text
     .toString()
     .trim()
