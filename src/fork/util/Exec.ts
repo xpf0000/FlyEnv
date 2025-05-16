@@ -1,7 +1,7 @@
 import { merge } from 'lodash'
 import { ForkPromise } from '@shared/ForkPromise'
 import { exec } from 'child-process-promise'
-import { spawn } from 'child_process'
+import { ChildProcess, spawn } from 'child_process'
 import { join } from 'path'
 import { existsSync, remove, writeFile } from 'fs-extra'
 import EnvSync from './EnvSync'
@@ -58,17 +58,23 @@ export function execPromiseRoot(
     }
     console.log('args: ', args)
     const env = await EnvSync.sync()
-    const child = spawn(
-      'sudo',
-      args,
-      merge(
-        {
-          shell: '/bin/zsh',
-          env
-        },
-        opt
+    let child: ChildProcess
+    try {
+      child = spawn(
+        'sudo',
+        args,
+        merge(
+          {
+            shell: '/bin/zsh',
+            env
+          },
+          opt
+        )
       )
-    )
+    } catch (e) {
+      reject(e)
+      return
+    }
 
     let exit = false
     const onEnd = async (code: number | null) => {
@@ -103,7 +109,7 @@ export function execPromiseRoot(
       stderr.push(err)
       onPassword(err)
     })
-    child.on('exit', onEnd)
-    child.on('close', onEnd)
+    child?.on('exit', onEnd)
+    child?.on('close', onEnd)
   })
 }
