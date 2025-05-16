@@ -21,8 +21,8 @@
         :file="file"
         :file-ext="'cnf'"
         :show-commond="true"
-        @on-type-change="onTypeChange"
         :common-setting="commonSetting"
+        @on-type-change="onTypeChange"
       >
       </Conf>
     </div>
@@ -37,7 +37,7 @@
   import Conf from '@/components/Conf/drawer.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { debounce } from 'lodash'
-  import {uuid} from "@shared/utils";
+  import { uuid } from '@shared/utils'
 
   const { existsSync, writeFile } = require('fs-extra')
   const { join } = require('path')
@@ -175,7 +175,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
     let config = editConfig.replace(/\r\n/gm, '\n')
     const list = ['#PhpWebStudy-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
+      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       config = config.replace(regex, `\n\n`)
       if (item.enable) {
         list.push(`${item.name} = ${item.value}`)
@@ -203,10 +203,11 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
       watcher()
     }
     let config = editConfig.replace(/\r\n/gm, '\n')
-    const arr = [...names].map((item) => {
-      const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
-      const matchs =
-        config.match(regex)?.map((s) => {
+    const arr = [...names]
+      .map((item) => {
+        const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
+        const matchs =
+          config.match(regex)?.map((s) => {
             const sarr = s
               .trim()
               .split('=')

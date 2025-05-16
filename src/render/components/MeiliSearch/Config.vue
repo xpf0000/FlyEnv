@@ -461,7 +461,11 @@
         } else {
           value = `${item.name} = ${item.value}`
         }
-        config = config.replace(regex, `${value}\n`)
+        if (regex.test(config)) {
+          config = config.replace(regex, `${value}\n`)
+        } else {
+          config = `${value}\n` + config
+        }
       } else {
         config = config.replace(regex, `\n\n`)
       }
@@ -510,7 +514,7 @@
 
   const onTypeChange = (type: 'default' | 'common', config: string) => {
     console.log('onTypeChange: ', type, config)
-    if (editConfig !== config) {
+    if (editConfig !== config || commonSetting.value.length === 0) {
       editConfig = config
       getCommonSetting()
     }

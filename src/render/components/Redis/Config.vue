@@ -6,8 +6,8 @@
     :file="file"
     :file-ext="'conf'"
     :show-commond="true"
-    @on-type-change="onTypeChange"
     :common-setting="commonSetting"
+    @on-type-change="onTypeChange"
   >
   </Conf>
 </template>
@@ -20,7 +20,7 @@
   import { debounce } from 'lodash'
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
-  import {uuid} from "@shared/utils";
+  import { uuid } from '@shared/utils'
 
   const { join } = require('path')
   const { existsSync } = require('fs-extra')
@@ -132,10 +132,14 @@
       watcher()
     }
     let config = editConfig.replace(/\r\n/gm, '\n')
-    const arr = [...names].map((item) => {
-      const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
-      const matchs =
-        config.match(regex)?.map((s) => {
+    const arr = [...names]
+      .map((item) => {
+        const regex = new RegExp(
+          `^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`,
+          'gm'
+        )
+        const matchs =
+          config.match(regex)?.map((s) => {
             const sarr = s
               .trim()
               .split(' ')

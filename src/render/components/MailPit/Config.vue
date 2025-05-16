@@ -7,8 +7,8 @@
     :file-ext="'conf'"
     :show-commond="true"
     url="https://mailpit.axllent.org/docs/configuration/runtime-options/"
-    @on-type-change="onTypeChange"
     :common-setting="commonSetting"
+    @on-type-change="onTypeChange"
   >
   </Conf>
 </template>
@@ -20,7 +20,7 @@
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
-  import {uuid} from "@shared/utils";
+  import { uuid } from '@shared/utils'
 
   const { join } = require('path')
   const { existsSync } = require('fs-extra')
@@ -505,20 +505,24 @@
 
   const onSettingUpdate = () => {
     let config = editConfig.replace(/\r\n/gm, '\n')
-    const list = ['#PhpWebStudy-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
-      config = config.replace(regex, `\n\n`)
+      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       if (item.enable) {
-        list.push(`${item.name}=${item.value}`)
+        let value = ''
+        if (item.isString) {
+          value = `${item.name}="${item.value}"`
+        } else {
+          value = `${item.name}=${item.value}`
+        }
+        if (regex.test(config)) {
+          config = config.replace(regex, `${value}\n`)
+        } else {
+          config = `${value}\n` + config
+        }
+      } else {
+        config = config.replace(regex, `\n\n`)
       }
     })
-    list.push('#PhpWebStudy-Conf-Common-END#')
-    config = config
-      .replace(/#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g, '')
-      .replace(/\n+/g, '\n')
-      .trim()
-    config = `${list.join('\n')}\n` + config
     conf.value.setEditValue(config)
     editConfig = config
   }
@@ -528,8 +532,9 @@
       watcher()
     }
     let config = editConfig.replace(/\r\n/gm, '\n')
+    console.log('config: ', config)
     const arr = [...names].map((item) => {
-      const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
+      const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       const matchs =
         config.match(regex)?.map((s) => {
           const sarr = s
@@ -559,7 +564,7 @@
 
   const onTypeChange = (type: 'default' | 'common', config: string) => {
     console.log('onTypeChange: ', type, config)
-    if (editConfig !== config) {
+    if (editConfig !== config || commonSetting.value.length === 0) {
       editConfig = config
       getCommonSetting()
     }

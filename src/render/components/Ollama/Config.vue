@@ -163,7 +163,7 @@
     let config = editConfig.replace(/\r\n/gm, '\n')
     const list = ['#FlyEnv-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'gm')
+      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       config = config.replace(regex, `\n\n`)
       if (item.enable) {
         list.push(`${item.name}=${item.value}`)
@@ -185,10 +185,7 @@
     }
     let config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names].map((item) => {
-      const regex = new RegExp(
-        `^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`,
-        'gm'
-      )
+      const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       const matchs =
         config.match(regex)?.map((s) => {
           const sarr = s

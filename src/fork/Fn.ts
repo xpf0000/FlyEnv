@@ -546,7 +546,8 @@ export const versionBinVersion = (
     }
     try {
       const res = await execPromise(command, {
-        cwd: dirname(bin)
+        cwd: dirname(bin),
+        shell: 'powershell.exe'
       })
       console.log('versionBinVersion: ', command, reg, res)
       handleThen(res)

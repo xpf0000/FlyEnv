@@ -5,6 +5,7 @@ import dns2 from 'dns2'
 import { Packet } from 'dns2'
 import * as ip from 'ip'
 import { join } from 'path'
+import { reject } from 'lodash'
 
 const Tangerine = require('@shared/Tangerine.js')
 
@@ -127,6 +128,10 @@ class Manager extends Base {
         resolve(true)
       })
 
+      server.on('error', (error) => {
+        resolve(error.toString())
+      })
+
       server
         .listen({
           // Optionally specify port, address and/or the family of socket() for udp server:
@@ -142,6 +147,9 @@ class Manager extends Base {
           }
         })
         .then()
+        .catch((error) => {
+          resolve(error.toString())
+        })
       this.server = server
     })
   }
@@ -150,7 +158,7 @@ class Manager extends Base {
     this.server = null
   }
 
-  stopService(): ForkPromise<unknown> {
+  stopService(): any {
     return new ForkPromise((resolve) => {
       this.close()
       resolve(true)

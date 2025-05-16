@@ -6,6 +6,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp } from 'fs-extra'
 import FtpServer from 'ftp-srv'
 import * as ip from 'ip'
+import { setDir777ToCurrentUser } from '../Fn'
 
 class Manager extends Base {
   server?: FtpServer
@@ -39,7 +40,7 @@ class Manager extends Base {
       return ip.address()
     }
 
-    return new ForkPromise(async (resolve) => {
+    return new ForkPromise(async (resolve, reject) => {
       const port = 21
       this.server = new FtpServer({
         url: 'ftp://0.0.0.0:' + port,
@@ -83,10 +84,13 @@ class Manager extends Base {
         return reject(new Error('Invalid username or password'))
       })
 
-      this.server.listen().then(() => {
-        console.log('Ftp server is starting...')
-        resolve(true)
-      })
+      this.server
+        .listen()
+        .then(() => {
+          console.log('Ftp server is starting...')
+          resolve(true)
+        })
+        .catch(reject)
     })
   }
 
@@ -140,6 +144,12 @@ class Manager extends Base {
 
   addFtp(item: FtpItem) {
     return new ForkPromise(async (resolve) => {
+      if (item.dir && existsSync(item.dir)) {
+        try {
+          await setDir777ToCurrentUser(item.dir)
+        } catch (e) {}
+      }
+
       const json = join(global.Server.FTPDir!, 'pureftpd.json')
       const all = []
       if (existsSync(json)) {
