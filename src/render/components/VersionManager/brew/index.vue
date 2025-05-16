@@ -5,16 +5,26 @@
     </div>
   </template>
   <template v-else-if="!checkBrew">
-    <div class="p-5">
-      <pre class="app-html-block" v-html="I18nT('versionmanager.noBrewFound')"></pre>
-      <el-button
-        type="primary"
-        class="mt-5"
-        :disabled="BrewSetup.installing"
-        @click.stop="installBrew"
-        >{{ I18nT('base.install') }}</el-button
-      >
-    </div>
+    <template v-if="showBrewError">
+      <div class="p-5">
+        <pre
+          class="app-html-block"
+          v-html="I18nT('versionmanager.brewErrorTips', { bin: brewBin, error: brewError })"
+        ></pre>
+      </div>
+    </template>
+    <template v-else>
+      <div class="p-5">
+        <pre class="app-html-block" v-html="I18nT('versionmanager.noBrewFound')"></pre>
+        <el-button
+          type="primary"
+          class="mt-5"
+          :disabled="BrewSetup.installing"
+          @click.stop="installBrew"
+          >{{ I18nT('base.install') }}</el-button
+        >
+      </div>
+    </template>
   </template>
   <template v-else>
     <el-table height="100%" :data="tableData" :border="false" style="width: 100%">
@@ -88,7 +98,10 @@
     handleBrewVersion,
     installBrew,
     fetchCommand,
-    copyCommand
+    copyCommand,
+    showBrewError,
+    brewError,
+    brewBin
   } = Setup(props.typeFlag)
 </script>
 <style lang="scss">

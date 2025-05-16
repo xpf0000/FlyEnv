@@ -28,8 +28,11 @@ import versionmanagerID from './versionmanager.json'
 import licensesID from './licenses.json'
 import requestTimer from './requestTimer.json'
 import meilisearch from './meilisearch.json'
+import minio from './minio.json'
+
 export default {
   id: {
+    minio,
     meilisearch,
     requestTimer,
     licenses: licensesID,

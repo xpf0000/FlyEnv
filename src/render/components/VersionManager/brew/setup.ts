@@ -57,6 +57,21 @@ export const Setup = (typeFlag: AllAppModule) => {
     return !!global.Server.BrewCellar
   })
 
+  const showBrewError = computed(() => {
+    if (!appStore.envIndex) {
+      return false
+    }
+    return global?.Server?.BrewBin && global?.Server?.BrewError
+  })
+
+  const brewBin = computed(() => {
+    return global?.Server?.BrewBin ?? ''
+  })
+
+  const brewError = computed(() => {
+    return global?.Server?.BrewError ?? ''
+  })
+
   const fetching = computed(() => {
     return BrewSetup.fetching?.[typeFlag] ?? false
   })
@@ -282,6 +297,9 @@ export const Setup = (typeFlag: AllAppModule) => {
     fetching,
     xtermDom,
     fetchCommand,
-    copyCommand
+    copyCommand,
+    showBrewError,
+    brewBin,
+    brewError
   }
 }

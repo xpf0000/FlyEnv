@@ -1,5 +1,6 @@
 {
   "Local": "Local",
   "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> is not found\nTo install Homebrew, click the install button to proceed\nYou can also click on this link\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/zh/help-4-2.html')\">https://flyenv.com/zh/help-4-2.html</a>\nFollow the documentation to install.",
-  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> is not found.\nInstall Macports, you can click on this link\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nFollow the documentation to install."
+  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> is not found.\nInstall Macports, you can click on this link\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nFollow the documentation to install.",
+  "brewErrorTips": "At this location {bin}, Homebrew executable files were detected.\nHowever, FlyEnv cannot call them. Error message:\n{error}"
 }

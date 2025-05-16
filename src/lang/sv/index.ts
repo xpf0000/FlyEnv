@@ -28,8 +28,11 @@ import versionmanagerSV from './versionmanager.json'
 import licensesSV from './licenses.json'
 import requestTimer from './requestTimer.json'
 import meilisearch from './meilisearch.json'
+import minio from './minio.json'
+
 export default {
   sv: {
+    minio,
     meilisearch,
     requestTimer,
     licenses: licensesSV,

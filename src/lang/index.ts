@@ -31,6 +31,7 @@ import type versionmanager from './zh/versionmanager.json'
 import type licenses from './zh/licenses.json'
 import type requestTimer from './zh/requestTimer.json'
 import type meilisearch from './zh/meilisearch.json'
+import type minio from './zh/minio.json'
 
 import ZH from './zh/index'
 import EN from './en/index'
@@ -52,6 +53,7 @@ type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
 }[keyof T] // Extract the union type of all values
 
 type LangKey =
+  | AppendStringToKeys<typeof minio, 'minio'>
   | AppendStringToKeys<typeof meilisearch, 'meilisearch'>
   | AppendStringToKeys<typeof requestTimer, 'requestTimer'>
   | AppendStringToKeys<typeof licenses, 'licenses'>

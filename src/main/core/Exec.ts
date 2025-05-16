@@ -1,6 +1,6 @@
 import { merge } from 'lodash'
 import { ForkPromise } from '@shared/ForkPromise'
-import { spawn } from 'child_process'
+import { ChildProcess, spawn } from 'child_process'
 import { join } from 'path'
 import { existsSync, remove, writeFile } from 'fs-extra'
 import EnvSync from './EnvSync'
@@ -77,5 +77,56 @@ export function execPromiseRoot(
     })
     child.on('exit', onEnd)
     child.on('close', onEnd)
+  })
+}
+
+export function spawnAsync(
+  command: string,
+  arg: Array<string> = [],
+  options: { [key: string]: any } = {}
+): Promise<{
+  stdout: string
+  stderr: string
+}> {
+  return new Promise(async (resolve, reject) => {
+    const env = await EnvSync.sync()
+    const optdefault = {
+      shell: '/bin/zsh',
+      env
+    }
+    const opt = merge(optdefault, options)
+    let cp: ChildProcess
+    try {
+      cp = spawn(command, arg, opt)
+    } catch (e) {
+      reject(e)
+      return
+    }
+    const stdout: Array<Uint8Array> = []
+    const stderr: Array<Uint8Array> = []
+    cp?.stdout?.on('data', (data: Uint8Array) => {
+      stdout.push(data)
+    })
+
+    cp?.stderr?.on('data', (data: Uint8Array) => {
+      stderr.push(data)
+    })
+
+    let exit = false
+    const onEnd = async (code: number | null) => {
+      if (exit) return
+      exit = true
+      if (!code) {
+        resolve({
+          stdout: Buffer.concat(stdout).toString().trim(),
+          stderr: Buffer.concat(stderr).toString().trim()
+        })
+      } else {
+        reject(new Error(Buffer.concat(stderr).toString().trim()))
+      }
+    }
+
+    cp.on('exit', onEnd)
+    cp.on('close', onEnd)
   })
 }

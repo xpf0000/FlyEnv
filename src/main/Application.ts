@@ -15,7 +15,7 @@ import DnsServerManager from './core/DNS'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
-import { execPromiseRoot } from './core/Exec'
+import { execPromiseRoot, spawnAsync } from './core/Exec'
 import { arch } from 'os'
 import { PItem, ProcessListByPid } from '@shared/Process'
 import NodePTY from './core/NodePTY'
@@ -26,7 +26,7 @@ import ScreenManager from './core/ScreenManager'
 import AppLog from './core/AppLog'
 
 const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
-const { execAsync, isAppleSilicon } = require('../shared/utils')
+const { isAppleSilicon } = require('../shared/utils')
 const compressing = require('compressing')
 
 export default class Application extends EventEmitter {
@@ -131,66 +131,76 @@ export default class Application extends EventEmitter {
   }
 
   checkBrewOrPort() {
-    execAsync('which', ['brew'])
-      .then((res: string) => {
+    const handleBrewCheck = (error?: Error) => {
+      const brewBin = isAppleSilicon() ? '/opt/homebrew/bin/brew' : '/usr/local/Homebrew/bin/brew'
+      if (existsSync(brewBin)) {
+        global.Server.BrewBin = brewBin
+      }
+      if (error) {
+        global.Server.BrewError = error.toString()
+      }
+      this.windowManager.sendCommandTo(
+        this.mainWindow!,
+        'APP-Update-Global-Server',
+        'APP-Update-Global-Server',
+        JSON.parse(JSON.stringify(global.Server))
+      )
+    }
+    spawnAsync('which', ['brew'])
+      .then((res) => {
         console.log('which brew: ', res)
-        execAsync('brew', ['--repo'])
-          .then((p: string) => {
-            console.log('brew --repo: ', p)
-            global.Server.BrewHome = p
-            this.windowManager.sendCommandTo(
-              this.mainWindow!,
-              'APP-Update-Global-Server',
-              'APP-Update-Global-Server',
-              JSON.parse(JSON.stringify(global.Server))
-            )
-            execAsync('git', [
+        spawnAsync('brew', ['--repo'])
+          .then((res) => {
+            console.log('brew --repo: ', res)
+            const dir = res.stdout
+            global.Server.BrewHome = dir
+            handleBrewCheck()
+            spawnAsync('git', [
               'config',
               '--global',
               '--add',
               'safe.directory',
-              join(p, 'Library/Taps/homebrew/homebrew-core')
+              join(dir, 'Library/Taps/homebrew/homebrew-core')
             ])
               .then(() => {
-                return execAsync('git', [
+                return spawnAsync('git', [
                   'config',
                   '--global',
                   '--add',
                   'safe.directory',
-                  join(p, 'Library/Taps/homebrew/homebrew-cask')
+                  join(dir, 'Library/Taps/homebrew/homebrew-cask')
                 ])
               })
               .then()
               .catch()
           })
           .catch((e: Error) => {
+            handleBrewCheck(e)
             AppLog.debug(`[checkBrewOrPort][brew --repo][error]: ${e.toString()}`)
             console.log('brew --repo err: ', e)
           })
-        execAsync('brew', ['--cellar'])
-          .then((c: string) => {
-            console.log('brew --cellar: ', c)
-            global.Server.BrewCellar = c
-            this.windowManager.sendCommandTo(
-              this.mainWindow!,
-              'APP-Update-Global-Server',
-              'APP-Update-Global-Server',
-              JSON.parse(JSON.stringify(global.Server))
-            )
+        spawnAsync('brew', ['--cellar'])
+          .then((res) => {
+            const dir = res.stdout
+            console.log('brew --cellar: ', res)
+            global.Server.BrewCellar = dir
+            handleBrewCheck()
           })
           .catch((e: Error) => {
+            handleBrewCheck(e)
             AppLog.debug(`[checkBrewOrPort][brew --cellar][error]: ${e.toString()}`)
             console.log('brew --cellar err: ', e)
           })
       })
       .catch((e: Error) => {
+        handleBrewCheck(e)
         AppLog.debug(`[checkBrewOrPort][which brew][error]: ${e.toString()}`)
         console.log('which brew e: ', e)
       })
 
-    execAsync('which', ['port'])
-      .then((c: string) => {
-        global.Server.MacPorts = c
+    spawnAsync('which', ['port'])
+      .then((res) => {
+        global.Server.MacPorts = res.stdout
         this.windowManager.sendCommandTo(
           this.mainWindow!,
           'APP-Update-Global-Server',

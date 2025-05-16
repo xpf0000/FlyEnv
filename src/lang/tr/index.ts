@@ -28,8 +28,11 @@ import versionmanagerTR from './versionmanager.json'
 import licensesTR from './licenses.json'
 import requestTimerTR from './requestTimer.json'
 import meilisearch from './meilisearch.json'
+import minio from './minio.json'
+
 export default {
   tr: {
+    minio,
     meilisearch,
     requestTimer: requestTimerTR,
     licenses: licensesTR,

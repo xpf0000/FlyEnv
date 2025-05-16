@@ -13,11 +13,12 @@ import {
   versionLocalFetch,
   versionSort
 } from '../Fn'
-import { chmod, copyFile, mkdirp, remove } from 'fs-extra'
+import { chmod, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { I18nT } from '@lang/index'
 import axios from 'axios'
 import Helper from '../Helper'
+import { EOL } from 'os'
 
 class Minio extends Base {
   constructor() {
@@ -27,6 +28,20 @@ class Minio extends Base {
 
   init() {
     this.pidPath = join(global.Server.BaseDir!, 'minio/minio.pid')
+  }
+
+  initConfig(): ForkPromise<string> {
+    return new ForkPromise(async (resolve) => {
+      const baseDir = join(global.Server.BaseDir!, 'minio')
+      if (!existsSync(baseDir)) {
+        await mkdirp(baseDir)
+      }
+      const iniFile = join(baseDir, 'minio.conf')
+      if (!existsSync(iniFile)) {
+        await writeFile(iniFile, '')
+      }
+      resolve(iniFile)
+    })
   }
 
   fetchAllOnLineVersion() {
@@ -61,12 +76,65 @@ class Minio extends Base {
           I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
         )
       })
+
+      const iniFile = await this.initConfig().on(on)
+
+      let address = ''
+      let console_address = ''
+      let certs_dir = ''
+
+      const getConfEnv = async () => {
+        const content = await readFile(iniFile, 'utf-8')
+        const arr = content
+          .split('\n')
+          .filter((s) => {
+            const str = s.trim()
+            return !!str && str.startsWith('MINIO_')
+          })
+          .map((s) => s.trim())
+        const dict: Record<string, string> = {}
+        arr.forEach((a) => {
+          const item = a.split('=')
+          const k = item.shift()
+          const v = item.join('=')
+          if (k) {
+            dict[k] = v
+          }
+        })
+        return dict
+      }
+
+      const opt = await getConfEnv()
+
+      const envs: string[] = []
+      for (const k in opt) {
+        const v = opt[k]
+        if (k === 'MINIO_ADDRESS') {
+          address = v
+        } else if (k === 'MINIO_CONSOLE_ADDRESS') {
+          console_address = v
+        } else if (k === 'MINIO_CERTS_DIR') {
+          certs_dir = v
+        }
+        envs.push(`export ${k}="${v}"`)
+      }
+      envs.push('')
+
       const bin = version.bin
       const baseDir = join(global.Server.BaseDir!, 'minio')
       const dataDir = DATA_DIR ?? join(baseDir, 'data')
       await mkdirp(dataDir)
-      const execEnv = ``
-      const execArgs = `server "${dataDir}"`
+      const execEnv = envs.join(EOL)
+      let execArgs = `server "${dataDir}"`
+      if (address) {
+        execArgs += ` --address "${address}"`
+      }
+      if (console_address) {
+        execArgs += ` --console-address "${console_address}"`
+      }
+      if (certs_dir) {
+        execArgs += ` --certs-dir "${certs_dir}"`
+      }
 
       try {
         const res = await serviceStartExec(

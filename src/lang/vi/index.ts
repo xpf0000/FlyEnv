@@ -28,8 +28,11 @@ import versionmanagerVI from './versionmanager.json'
 import licensesVI from './licenses.json'
 import requestTimer from './requestTimer.json'
 import meilisearch from './meilisearch.json'
+import minio from './minio.json'
+
 export default {
   vi: {
+    minio,
     meilisearch,
     requestTimer,
     licenses: licensesVI,

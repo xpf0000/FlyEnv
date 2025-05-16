@@ -9,12 +9,7 @@
       <Service v-if="tab === 0" type-flag="minio" title="Minio">
         <template #tool-left>
           <template v-if="isRunning">
-            <el-button
-              style="color: #01cc74"
-              class="button"
-              link
-              @click.stop="shell.openExternal('http://127.0.0.1:9000')"
-            >
+            <el-button style="color: #01cc74" class="button" link @click.stop="openURL">
               <yb-icon
                 style="width: 20px; height: 20px; margin-left: 10px"
                 :svg="import('@/svg/http.svg?raw')"
@@ -42,6 +37,7 @@
         url="https://github.com/minio/minio"
       >
       </Manager>
+      <Config v-if="tab === 2"></Config>
     </div>
   </div>
 </template>
@@ -56,12 +52,14 @@
   import { chooseFolder } from '@/util/File'
   import { MinioSetup } from './setup'
   import { Edit } from '@element-plus/icons-vue'
+  import Config from './Config.vue'
 
   const { join } = require('path')
+  const { existsSync, readFile } = require('fs-extra')
   const { shell } = require('@electron/remote')
 
   const { tab, checkVersion } = AppModuleSetup('minio')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager')]
+  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('base.configFile')]
   checkVersion()
 
   const brewStore = BrewStore()
@@ -99,5 +97,20 @@
         DATA_DIR.value = path
       })
       .catch()
+  }
+
+  const openURL = async () => {
+    const iniFile = join(global.Server.BaseDir!, 'minio/minio.conf')
+    let port = '9000'
+    if (existsSync(iniFile)) {
+      const content = await readFile(iniFile, 'utf-8')
+      const logStr = content.split('\n').find((s: string) => s.includes('MINIO_ADDRESS'))
+      port =
+        logStr?.trim()?.split('=')?.pop()?.split(':')?.pop()?.replace(`"`, '')?.replace(`'`, '') ??
+        '9000'
+    }
+    const url = `http://127.0.0.1:${port}/`
+    console.log('url: ', url)
+    shell.openExternal(url).then().catch()
   }
 </script>

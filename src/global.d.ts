@@ -5,10 +5,12 @@ export interface ServerType {
   AppDir?: string
   Arch?: string
   BrewCellar?: string
+  BrewHome?: string
+  BrewBin?: string
+  BrewError?: string
   Password?: string
   Proxy?: { [key: string]: string }
   isAppleSilicon?: boolean
-  BrewHome?: string
   Static?: string
   Cache?: string
   RedisDir?: string
