@@ -161,27 +161,24 @@ datadir=${dataDir}`
 
   const onSettingUpdate = () => {
     let config = editConfig.replace(/\r\n/gm, '\n')
-    const list = ['#PhpWebStudy-Conf-Common-Begin#']
     commonSetting.value.forEach((item) => {
       const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
-      config = config.replace(regex, `\n\n`)
       if (item.enable) {
-        list.push(`${item.name} = ${item.value}`)
+        let value = ''
+        if (item.isString) {
+          value = `${item.name} = "${item.value}"`
+        } else {
+          value = `${item.name} = ${item.value}`
+        }
+        if (regex.test(config)) {
+          config = config.replace(regex, `${value}\n`)
+        } else {
+          config = `${value}\n` + config
+        }
+      } else {
+        config = config.replace(regex, ``)
       }
     })
-    list.push('#PhpWebStudy-Conf-Common-END#')
-    config = config
-      .replace(
-        /([\s\n]?[^\n]*)#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g,
-        ''
-      )
-      .replace(/\n+/g, '\n\n')
-      .trim()
-    if (config.includes('[mariadbd]')) {
-      config = config.replace(/\[mariadbd](.*?)\n/g, `[mariadbd]\n${list.join('\n')}\n`)
-    } else {
-      config = `[mariadbd]\n${list.join('\n')}\n` + config
-    }
     conf.value.setEditValue(config)
     editConfig = config
   }
@@ -193,10 +190,7 @@ datadir=${dataDir}`
     let config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names]
       .map((item) => {
-        const regex = new RegExp(
-          `^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`,
-          'gm'
-        )
+        const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
         const matchs =
           config.match(regex)?.map((s) => {
             const sarr = s
@@ -213,8 +207,12 @@ datadir=${dataDir}`
           }) ?? []
         console.log('getCommonSetting: ', matchs, item.name)
         const find = matchs?.find((m) => m.k === item.name)
+        let value = find?.v ?? item.value
+        if (item.isString) {
+          value = value.replace(new RegExp(`"`, 'g'), '').replace(new RegExp(`'`, 'g'), '')
+        }
         item.enable = !!find
-        item.value = find?.v ?? item.value
+        item.value = value
         item.key = uuid()
         return item
       })
@@ -227,7 +225,7 @@ datadir=${dataDir}`
 
   const onTypeChange = (type: 'default' | 'common', config: string) => {
     console.log('onTypeChange: ', type, config)
-    if (editConfig !== config) {
+    if (editConfig !== config || commonSetting.value.length === 0) {
       editConfig = config
       getCommonSetting()
     }

@@ -89,11 +89,13 @@
 <script lang="ts" setup>
   import { computed, nextTick, onBeforeUnmount, onMounted, ref, markRaw } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import IPC from '@/util/IPC'
   import { I18nT } from '@lang/index'
   import AppVersions from './version_nodejs'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
+  import { Service } from '@/components/ServiceManager/service'
+  import installedVersions from '@/util/InstalledVersions'
+  import { BrewStore } from '@/store/brew'
 
   const { dirname, join } = require('path')
   const { dialog, shell } = require('@electron/remote')
@@ -131,18 +133,32 @@
     return !!ProjectSetup.form.NodeJS.dir && !!ProjectSetup.form.NodeJS.version
   })
 
-  const nodes = ref([])
+  const brewStore = BrewStore()
 
-  IPC.send('app-fork:node', 'allInstalled').then((key: string, res: any) => {
-    IPC.off(key)
-    if (res?.data) {
-      nodes.value = res?.data
+  const nodes = computed(() => {
+    return brewStore.module('node')?.installed ?? []
+  })
+
+  const service = computed(() => {
+    return Service?.['node']
+  })
+
+  if (nodes.value.length === 0 && !service?.value?.fetching) {
+    if (!service?.value) {
+      Service['node'] = {
+        fetching: true
+      }
+    }
+    service.value.fetching = true
+    installedVersions.allInstalledVersions(['node']).then(() => {
+      service.value.fetching = false
+
       if (!ProjectSetup.form.NodeJS.node && nodes.value.length > 0) {
         const v: any = nodes.value[0]
         ProjectSetup.form.NodeJS.node = v.bin
       }
-    }
-  })
+    })
+  }
 
   const chooseRoot = () => {
     if (loading.value || created.value) {

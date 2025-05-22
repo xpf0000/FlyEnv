@@ -75,6 +75,7 @@ export const DnsStore = defineStore('dns', {
         IPC.send('DNS:start').then((key: string, res: boolean | string) => {
           IPC.off(key)
           this.fetching = false
+          console.log('dns res: ', res)
           if (typeof res === 'string') {
             MessageError(res)
           } else if (res) {

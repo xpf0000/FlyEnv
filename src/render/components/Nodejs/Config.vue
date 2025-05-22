@@ -261,7 +261,7 @@
   }
 
   const onTypeChange = (type: 'default' | 'common', config: string) => {
-    if (editConfig !== config) {
+    if (editConfig !== config || commonSetting.value.length === 0) {
       editConfig = config
       getCommonSetting()
     }

@@ -366,7 +366,7 @@
           config = `${value}\n` + config
         }
       } else {
-        config = config.replace(regex, `\n\n`)
+        config = config.replace(regex, ``)
       }
     })
     conf.value.setEditValue(config)
