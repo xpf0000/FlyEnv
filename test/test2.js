@@ -1,44 +1,25 @@
-const a = () => {
-  return new Promise((resolve) => {
-    console.log('AAA')
-    resolve('a')
-  })
+const path = require('path')
+const { execSync } = require('child_process')
+
+function isNTFS(fileOrDirPath) {
+  try {
+    const driveLetter = path.parse(fileOrDirPath).root.replace(/[:\\]/g, '')
+    const jsonResult = execSync(
+      `powershell -command "Get-Volume -DriveLetter ${driveLetter} | ConvertTo-Json"`,
+      { encoding: 'utf-8' }
+    )
+    console.log('jsonResult: ', jsonResult)
+    const { FileSystem, FileSystemType } = JSON.parse(jsonResult)
+    return FileSystem === 'NTFS' || FileSystemType === 'NTFS'
+  } catch (error) {
+    console.error('PowerShell 检查失败:', error)
+    return false
+  }
 }
 
-const b = () => {
-  return new Promise((resolve) => {
-    console.log('BBB')
-    resolve('b')
-  })
-}
-
-const c = () => {
-  return new Promise((resolve) => {
-    console.log('CCC')
-    resolve('c')
-  })
-}
-
-const d = () => {
-  return new Promise((resolve) => {
-    a()
-      .then(() => {
-        resolve('000')
-        return new Promise(() => {})
-      })
-      .then(() => {
-        return c()
-      })
-      .then(() => {
-        console.log('END')
-        resolve('111')
-      })
-      .catch((err) => {
-        console.log('err: ', err)
-      })
-  })
-}
-
-d().then((res) => {
-  console.log('res: ', res)
-})
+// 示例用法
+;(async () => {
+  console.log(await isNTFS('C:\\PerfLogs')) // 检查文件
+  console.log(await isNTFS('D:\\LaoMaoTao')) // 检查文件夹
+  console.log(await isNTFS('E:\\scoopApp')) // 检查符号链接
+})()

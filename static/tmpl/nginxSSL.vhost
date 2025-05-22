@@ -1,7 +1,7 @@
 server
 {
     listen #Port_Nginx#;
-    listen #Port_Nginx_SSL# ssl http2;
+    listen #Port_Nginx_SSL# ssl;
     server_name #Server_Alias#;
     index index.php index.html index.htm default.php default.htm default.html;
     root "#Server_Root#";

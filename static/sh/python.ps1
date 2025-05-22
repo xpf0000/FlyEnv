@@ -1,32 +1,42 @@
-function env($name,$global,$val='__get') {
-  $target = 'User'; if($global) {$target = 'Machine'}
-  if($val -eq '__get') { [environment]::getEnvironmentVariable($name,$target) }
-  else { [environment]::setEnvironmentVariable($name,$val,$target) }
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+function env($name, $global, $val = '__get') {
+  $target = 'User'
+  if ($global) { $target = 'Machine' }
+  if ($val -eq '__get') {
+    [environment]::getEnvironmentVariable($name, $target)
+  }
+  else {
+    [environment]::setEnvironmentVariable($name, $val, $target)
+  }
 }
 
-#DARK# -nologo -x "#TMPL#" "#EXE#"
+cd "#DARKDIR#"
+./dark.exe -nologo -x "#TMPL#" "#EXE#"
 Start-Sleep -Seconds 1
+
 @('path.msi', 'pip.msi') | ForEach-Object {
   Remove-Item "#TMPL#\AttachedContainer\$_"
 }
+
 (Get-ChildItem "#TMPL#\AttachedContainer\*.msi").FullName | ForEach-Object {
   if($((Get-Item $_).Basename) -eq 'appendpath') { return }
   try {
-    # 启动安装过程
-    $process = Start-Process msiexec.exe -ArgumentList "/a `"$_`" /qn TARGETDIR=`"#APPDIR#`"" -NoNewWindow -Wait -PassThru
-    # 等待安装完成
+    $msiPath = $_
+    $targetDir = "#APPDIR#"
+    $arguments = "/a `"$msiPath`" /qn TARGETDIR=`"$targetDir`""
+    Write-Output "Arguments: $arguments"
+    $process = Start-Process msiexec.exe -ArgumentList $arguments -NoNewWindow -Wait -PassThru
     $process.WaitForExit()
-    # 获取退出代码
     $exitCode = $process.ExitCode
-    # 检查退出代码
     if ($exitCode -eq 0) {
-      Write-Output "安装成功: $_"
+      Write-Output "Installation successful: $_"
     } else {
-      Write-Output "安装失败，退出代码: $exitCode"
+      Write-Output "Installation failed with exit code: $exitCode"
       exit 1
     }
   } catch {
-    Write-Output "安装过程中发生错误: $_"
+    Write-Output "Installation failed with error: $_"
     exit 1
   }
 }
