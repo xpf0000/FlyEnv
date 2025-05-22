@@ -14,13 +14,21 @@
   import { computed, ref } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import { AppStore } from '@/store/app'
+  import { PostgreSqlSetup } from '@/components/PostgreSql/setup'
+  import { BrewStore } from '@/store/brew'
 
   const { join, dirname } = require('path')
 
   const appStore = AppStore()
+  const brewStore = BrewStore()
 
   const currentVersion = computed(() => {
-    return appStore.config?.server?.postgresql?.current?.version
+    const current = appStore.config.server?.postgresql?.current
+    if (!current) {
+      return undefined
+    }
+    const installed = brewStore.module('postgresql').installed
+    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
   const conf = ref()
@@ -28,9 +36,19 @@
     if (!currentVersion.value) {
       return ''
     }
-    const version = currentVersion?.value ?? ''
-    const versionTop = version.split('.').shift()
-    const dbPath = join(global.Server.PostgreSqlDir, `postgresql${versionTop}`)
+    let dbPath = ''
+
+    if (currentVersion?.value?.bin) {
+      if (PostgreSqlSetup.dir[currentVersion.value.bin]) {
+        dbPath = PostgreSqlSetup.dir[currentVersion.value.bin]
+      } else {
+        const versionTop = currentVersion?.value?.version?.split('.')?.shift() ?? ''
+        dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+      }
+    } else {
+      return ''
+    }
+
     return join(dbPath, 'postgresql.conf')
   })
 

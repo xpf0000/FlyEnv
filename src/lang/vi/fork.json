@@ -1,0 +1,14 @@
+{
+  "binNoFound": "Tệp khởi động không tồn tại, thao tác không thành công.",
+  "confNoFound": "Tệp cấu hình không tồn tại, máy chủ không khởi động được",
+  "apacheLogPathErr": "Đường dẫn nhật ký của tệp cấu hình không đúng, và việc chuyển đổi không thành công",
+  "hostsFileNoFound": "Tệp hosts không tồn tại",
+  "startFail": "Khởi động không thành công, vui lòng kiểm tra tệp nhật ký",
+  "phpiniNoFound": "Không tìm thấy tệp php.ini",
+  "versionNoFound": "Không lấy được phiên bản phần mềm, thao tác không thành công.",
+  "postgresqlInit": "Dịch vụ đã khởi động thành công\nData Dir là {dir}\nNgười dùng ban đầu là root, Mật khẩu là root",
+  "downFileFail": "Tải xuống tệp không thành công!",
+  "noEPMD": "Không tìm thấy quy trình epmd. Vui lòng đặt lại các biến môi trường Erlang",
+  "licenseTips": "Nếu không có giấy phép, chỉ có thể tạo ba trang web",
+  "trialEnd": "Thời gian dùng thử đã hết. Để tiếp tục sử dụng tính năng này, vui lòng mua giấy phép"
+}

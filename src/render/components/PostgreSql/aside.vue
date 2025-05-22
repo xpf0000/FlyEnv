@@ -28,6 +28,12 @@
 
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
+  import { PostgreSqlSetup } from './setup'
+  import { ServiceActionExtParam } from '@/util/Service'
+  import type { AllAppModule } from '@/core/type'
+  import type { SoftInstalled } from '@/store/brew'
+
+  const { join } = require('path')
 
   const {
     showItem,
@@ -40,6 +46,25 @@
     nav,
     stopNav
   } = AsideSetup('postgresql')
+
+  PostgreSqlSetup.init()
+
+  ServiceActionExtParam['postgresql'] = (
+    typeFlag: AllAppModule,
+    fn: string,
+    version: SoftInstalled
+  ) => {
+    return new Promise<any[]>((resolve) => {
+      if (fn === 'startService') {
+        const versionTop = version?.version?.split('.')?.shift() ?? ''
+        const dir = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+        const p = PostgreSqlSetup.dir?.[version.bin] ?? dir
+        resolve([p])
+        return
+      }
+      return resolve([])
+    })
+  }
 
   AppServiceModule.postgresql = {
     groupDo,

@@ -87,7 +87,15 @@ export default class WindowManager extends EventEmitter {
     const pageOptions = this.getPageOptions(page)
     window = new BrowserWindow(trayBrowserOptions)
     enable(window.webContents)
+    window.webContents.on('before-input-event', (event, input) => {
+      if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
+        event.preventDefault()
+      }
+    })
+    window.webContents.on('will-navigate', (e) => e.preventDefault())
+    window.setMenu(null)
     window.loadURL(pageOptions.url).then()
+
     window.on('close', (event: Event) => {
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
@@ -118,6 +126,13 @@ export default class WindowManager extends EventEmitter {
       ...pageOptions.attrs
     })
     enable(window.webContents)
+    window.webContents.on('before-input-event', (event, input) => {
+      if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
+        event.preventDefault()
+      }
+    })
+    window.webContents.on('will-navigate', (e) => e.preventDefault())
+    window.setMenu(null)
     const bounds = this.getPageBounds(page)
     if (bounds) {
       window.setBounds(bounds)

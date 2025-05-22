@@ -4,7 +4,7 @@ import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -13,12 +13,11 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
+import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
 import { fetchHostList } from './host/HostFile'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 
 class Nginx extends Base {
   constructor() {
@@ -108,102 +107,25 @@ class Nginx extends Base {
       const p = global.Server.NginxDir!
 
       const pid = join(global.Server.NginxDir!, 'logs/nginx.pid')
-      if (existsSync(pid)) {
-        try {
-          await remove(pid)
-        } catch (e) {}
-      }
 
-      const startLogFile = join(global.Server.NginxDir!, `start.log`)
-      const startErrLogFile = join(global.Server.NginxDir!, `start.error.log`)
-      if (existsSync(startErrLogFile)) {
-        try {
-          await remove(startErrLogFile)
-        } catch (e) {}
-      }
+      const execArgs = `-p "${p}"`
 
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} -p "${p}" > "${startLogFile}" 2>"${startErrLogFile}"`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.NginxDir!, cmdName)
-      await writeFile(sh, command)
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(global.Server.NginxDir!)
       try {
-        await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        const res = await serviceStartExecCMD(
+          version,
+          pid,
+          global.Server.NginxDir!,
+          bin,
+          execArgs,
+          '',
+          on
         )
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', { error: e, service: `nginx-${version.version}` })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(pid)
-      if (res) {
-        if (res?.pid) {
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-          })
-          await writeFile(appPidFile, res.pid)
-          resolve({
-            'APP-Service-Start-PID': res.pid
-          })
-          return
-        }
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: res?.error ?? 'Start Fail',
-              service: `nginx-${version.version}`
-            })
-          )
-        })
-        reject(new Error(res?.error ?? 'Start Fail'))
-        return
-      }
-      let msg = 'Start Fail'
-      if (existsSync(startLogFile)) {
-        msg = await readFile(startLogFile, 'utf-8')
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.startServiceFail', { error: msg, service: `nginx-${version.version}` })
-        )
-      })
-      reject(new Error(msg))
     })
   }
 

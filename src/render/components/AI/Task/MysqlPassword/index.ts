@@ -1,6 +1,6 @@
 import BaseTask from '@/components/AI/Task/BaseTask'
 import { AIStore } from '@/components/AI/store'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 export class MysqlPassword extends BaseTask {
   constructor() {

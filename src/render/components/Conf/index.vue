@@ -2,9 +2,11 @@
   <div class="module-config">
     <el-card>
       <div v-show="type === 'default'" ref="input" class="block"></div>
-      <el-scrollbar v-show="type === 'common'" class="p-4">
-        <slot name="common"></slot>
-      </el-scrollbar>
+      <template v-if="showCommond">
+        <el-scrollbar v-if="type === 'common'" class="p-4">
+          <Common :setting="commonSetting" />
+        </el-scrollbar>
+      </template>
       <template #footer>
         <div class="tool">
           <el-radio-group v-if="showCommond" v-model="type" class="mr-7" size="small">
@@ -58,8 +60,9 @@
   import { computed, watch } from 'vue'
   import { Document, Operation, FolderOpened } from '@element-plus/icons-vue'
   import type { AllAppModule } from '@/core/type'
-  import { ConfSetup } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { type CommonSetItem, ConfSetup } from '@/components/Conf/setup'
+  import { I18nT } from '@lang/index'
+  import Common from './common.vue'
 
   const props = defineProps<{
     file: string
@@ -68,6 +71,7 @@
     fileExt: string
     typeFlag: AllAppModule
     showCommond: boolean
+    commonSetting: CommonSetItem[]
   }>()
 
   const emit = defineEmits(['onTypeChange'])
@@ -97,13 +101,14 @@
     openConfig,
     loadCustom,
     getEditValue,
-    setEditValue
+    setEditValue,
+    watchFlag
   } = ConfSetup(p)
 
   watch(
-    () => `${type.value}-${disabled.value}-${config.value}`,
-    () => {
-      if (!disabled.value) {
+    watchFlag,
+    (v) => {
+      if (!disabled.value && type.value === 'common') {
         emit('onTypeChange', type.value, getEditValue())
       }
     },

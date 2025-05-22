@@ -1,4 +1,5 @@
 <template>
+  <VueSvg />
   <router-view />
   <FloatButton />
 </template>
@@ -9,11 +10,12 @@
   import installedVersions from '@/util/InstalledVersions'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
   import FloatButton from '@/components/FloatBtn/index.vue'
   import { type AllAppModule, AppModuleEnum } from '@/core/type'
   import { AppModules } from '@/core/App'
+  import VueSvg from '@/components/VueSvgIcon/svg.vue'
 
   const inited = ref(false)
   const appStore = AppStore()
@@ -108,4 +110,10 @@
   })
 
   fetchModuleData()
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+      e.preventDefault()
+    }
+  })
 </script>

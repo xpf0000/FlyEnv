@@ -1,7 +1,7 @@
 import { join, basename, dirname } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
@@ -12,12 +12,12 @@ import {
   versionFixed,
   versionInitedApp,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  serviceStartExecCMD
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
 import { fetchHostList } from './host/HostFile'
 
 class Apache extends Base {
@@ -117,8 +117,11 @@ class Apache extends Base {
         srvroot = reg?.exec?.(content)?.[2] ?? ''
       } catch (e) {}
 
+      /**
+       * LoadModule headers_module modules/mod_headers.so
+       */
       content = content
-        .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
+        .replace('#LoadModule headers_module', 'LoadModule headers_module')
         .replace('#LoadModule deflate_module', 'LoadModule deflate_module')
         .replace('#LoadModule proxy_module', 'LoadModule proxy_module')
         .replace('#LoadModule proxy_fcgi_module', 'LoadModule proxy_fcgi_module')
@@ -265,102 +268,24 @@ IncludeOptional "${vhost}*.conf"`
       }
 
       const pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
-      if (existsSync(pidPath)) {
-        try {
-          await remove(pidPath)
-        } catch (e) {}
-      }
+      const execArgs = `-f "${conf}"`
 
-      const startLogFile = join(global.Server.ApacheDir!, `start.log`)
-      const startErrLogFile = join(global.Server.ApacheDir!, `start.error.log`)
-      if (existsSync(startErrLogFile)) {
-        try {
-          await remove(startErrLogFile)
-        } catch (e) {}
-      }
-
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} -f "${conf}" > "${startLogFile}" 2>"${startErrLogFile}" &`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.ApacheDir!, cmdName)
-      await writeFile(sh, command)
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(startErrLogFile)
-        } catch (e) {}
-      }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(global.Server.ApacheDir!)
       try {
-        await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        const res = await serviceStartExecCMD(
+          version,
+          pidPath,
+          global.Server.ApacheDir!,
+          bin,
+          execArgs,
+          '',
+          on
         )
+        resolve(res)
       } catch (e: any) {
         console.log('-k start err: ', e)
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', { error: e, service: `apache-${version.version}` })
-          )
-        })
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(pidPath)
-      if (res) {
-        if (res?.pid) {
-          await writeFile(appPidFile, res.pid)
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-          })
-          resolve({
-            'APP-Service-Start-PID': res.pid
-          })
-          return
-        }
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: res?.error ?? 'Start Fail',
-              service: `apache-${version.version}`
-            })
-          )
-        })
-        reject(new Error(res?.error ?? 'Start Fail'))
-        return
-      }
-      let msg = 'Start Fail'
-      if (existsSync(startLogFile)) {
-        msg = await readFile(startLogFile, 'utf-8')
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.startServiceFail', { error: msg, service: `apache-${version.version}` })
-        )
-      })
-      reject(new Error(msg))
     })
   }
 

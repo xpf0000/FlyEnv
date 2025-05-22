@@ -1,14 +1,15 @@
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync, unlinkSync } from 'fs'
-import { basename, dirname, join } from 'path'
+import path, { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { AppLog, execPromise, getAllFileAsync, uuid, waitTime } from '../Fn'
+import { AppLog, execPromise, getAllFileAsync, moveChildDirToParent, uuid, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { appendFile, copyFile, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { ProcessListSearch, ProcessPidList, ProcessPidListByPid } from '../Process'
 import TaskQueue from '../TaskQueue'
+import { spawn } from 'child-process-promise'
 
 export class Base {
   type: string
@@ -65,8 +66,9 @@ export class Base {
     })
   }
 
-  _startServer(version: SoftInstalled): ForkPromise<any> {
+  _startServer(version: SoftInstalled, ...args: any): ForkPromise<any> {
     console.log(version)
+    console.log(args)
     return new ForkPromise<any>((resolve) => {
       resolve(true)
     })
@@ -76,7 +78,7 @@ export class Base {
     return this._stopServer(version)
   }
 
-  startService(version: SoftInstalled) {
+  startService(version: SoftInstalled, ...args: any) {
     return new ForkPromise(async (resolve, reject, on) => {
       if (!version?.version) {
         reject(new Error(I18nT('fork.versionNoFound')))
@@ -84,7 +86,13 @@ export class Base {
       }
       try {
         await this._stopServer(version).on(on)
-        const res = await this._startServer(version).on(on)
+        const res = await this._startServer(version, ...args).on(on)
+        if (res?.['APP-Service-Start-PID']) {
+          const pid = res['APP-Service-Start-PID']
+          const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+          await mkdirp(dirname(appPidFile))
+          await writeFile(appPidFile, `${pid}`.trim())
+        }
         resolve(res)
       } catch (e) {
         reject(e)
@@ -92,7 +100,7 @@ export class Base {
     })
   }
 
-  _stopServer(version: SoftInstalled) {
+  _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
     console.log(version)
     return new ForkPromise(async (resolve, reject, on) => {
       on({
@@ -122,7 +130,7 @@ export class Base {
         return
       }
       if (version?.pid) {
-        const pids = await ProcessPidListByPid(version.pid.trim())
+        const pids = await ProcessPidListByPid(`${version.pid}`.trim())
         console.log('_stopServer 1 pid: ', version.pid, pids)
         if (pids.length > 0) {
           const str = pids.map((s) => `/pid ${s}`).join(' ')
@@ -152,7 +160,9 @@ export class Base {
         postgresql: 'postgres',
         'pure-ftpd': 'pure-ftpd',
         tomcat: 'org.apache.catalina.startup.Bootstrap',
-        rabbitmq: 'rabbit'
+        rabbitmq: 'rabbit',
+        elasticsearch: 'org.elasticsearch.server/org.elasticsearch.bootstrap.Elasticsearch',
+        ollama: 'ollama'
       }
       const serverName = dis[this.type]
       const pids = await ProcessListSearch(serverName, false)
@@ -269,19 +279,19 @@ export class Base {
           await execPromise(`rmdir /S /Q ${tmpDir}`)
         }
         const dark = join(global.Server.Cache!, 'dark/dark.exe')
+        const darkDir = join(global.Server.Cache!, 'dark')
         if (!existsSync(dark)) {
           const darkZip = join(global.Server.Static!, 'zip/dark.zip')
           await zipUnPack(darkZip, dirname(dark))
         }
         const pythonSH = join(global.Server.Static!, 'sh/python.ps1')
         let content = await readFile(pythonSH, 'utf-8')
-        const DARK = dark
         const TMPL = tmpDir
         const EXE = row.zip
         const APPDIR = row.appDir
 
         content = content
-          .replace(new RegExp(`#DARK#`, 'g'), DARK)
+          .replace(new RegExp(`#DARKDIR#`, 'g'), darkDir)
           .replace(new RegExp(`#TMPL#`, 'g'), TMPL)
           .replace(new RegExp(`#EXE#`, 'g'), EXE)
           .replace(new RegExp(`#APPDIR#`, 'g'), APPDIR)
@@ -291,7 +301,9 @@ export class Base {
 
         process.chdir(global.Server.Cache!)
         try {
-          await execPromise(`powershell.exe ${sh}`)
+          await execPromise(
+            `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${sh}'; & '${sh}'"`
+          )
         } catch (e) {
           console.log('[python-install][error]: ', e)
           await appendFile(
@@ -299,7 +311,7 @@ export class Base {
             `[python][python-install][error]: ${e}\n`
           )
         }
-        await remove(sh)
+        // await remove(sh)
 
         const checkState = async (time = 0): Promise<boolean> => {
           let res = false
@@ -323,17 +335,21 @@ export class Base {
         if (res) {
           await waitTime(1000)
           sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
-          await copyFile(join(global.Server.Static!, 'sh/pip.ps1'), sh)
-          process.chdir(APPDIR)
+          let content = await readFile(join(global.Server.Static!, 'sh/pip.ps1'), 'utf-8')
+          content = content.replace('#APPDIR#', APPDIR)
+          await writeFile(sh, content)
+          process.chdir(global.Server.Cache!)
           try {
-            await execPromise(`powershell.exe ${sh}`)
+            await execPromise(
+              `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${sh}'; & '${sh}'"`
+            )
           } catch (e) {
             await appendFile(
               join(global.Server.BaseDir!, 'debug.log'),
               `[python][pip-install][error]: ${e}\n`
             )
           }
-          await remove(sh)
+          // await remove(sh)
           await waitTime(1000)
           await remove(tmpDir)
           return
@@ -371,27 +387,11 @@ export class Base {
         }
       }
 
-      const handleTwoLevDir = async (flag: string) => {
-        const tmpDir = join(global.Server.Cache!, `${flag}-${row.version}-tmp`)
-        if (existsSync(tmpDir)) {
-          await remove(tmpDir)
-        }
-        await zipUnPack(row.zip, tmpDir)
-        const sub = await readdir(tmpDir)
-        const subDir = join(tmpDir, sub.pop()!)
-        const allFile = await getAllFileAsync(subDir, false)
-        console.log('handleTwoLevDir: ', sub, subDir, allFile)
-        if (!existsSync(row.appDir)) {
-          await mkdirp(row.appDir)
-        }
-        for (const f of allFile) {
-          const destFile = join(row.appDir, f)
-          await mkdirp(dirname(destFile))
-          await copyFile(join(subDir, f), destFile)
-        }
-        if (existsSync(tmpDir)) {
-          await remove(tmpDir)
-        }
+      const handleTwoLevDir = async () => {
+        await remove(row.appDir)
+        await mkdirp(row.appDir)
+        await zipUnPack(row.zip, row.appDir)
+        await moveChildDirToParent(row.appDir)
       }
 
       const handleComposer = async () => {
@@ -406,33 +406,90 @@ php "%~dp0composer.phar" %*`
         )
       }
 
+      const handleMongoDB = async () => {
+        await handleTwoLevDir()
+        await waitTime(1000)
+        // @ts-ignore
+        await this.initMongosh()
+      }
+
+      const handleMeilisearch = async () => {
+        await waitTime(500)
+        await mkdirp(dirname(row.bin))
+        try {
+          await copyFile(row.zip, row.bin)
+          await waitTime(500)
+          await spawn(basename(row.bin), ['--version'], {
+            shell: false,
+            cwd: dirname(row.bin)
+          })
+        } catch (e: any) {
+          if (existsSync(row.bin)) {
+            await remove(row.bin)
+          }
+          await appendFile(
+            path.join(global.Server.BaseDir!, 'debug.log'),
+            `[handleMeilisearch][error]: ${e.toString()}\n`
+          )
+          throw e
+        }
+      }
+
+      const handleRust = async () => {
+        await remove(row.appDir)
+        await mkdirp(row.appDir)
+        const cacheDir = join(global.Server.Cache!, uuid())
+        await mkdirp(cacheDir)
+        await zipUnPack(row.zip, cacheDir)
+        const files = await readdir(cacheDir)
+        const find = files.find((f) => f.includes('.tar'))
+        if (!find) {
+          throw new Error('UnZIP failed')
+        }
+        await zipUnPack(join(cacheDir, find), row.appDir)
+        await moveChildDirToParent(row.appDir)
+        await remove(cacheDir)
+      }
+
+      const doHandleZip = async () => {
+        const two = [
+          'java',
+          'tomcat',
+          'golang',
+          'maven',
+          'rabbitmq',
+          'mariadb',
+          'ruby',
+          'elasticsearch'
+        ]
+        if (two.includes(row.type)) {
+          await handleTwoLevDir()
+        } else if (row.type === 'memcached') {
+          await handleMemcached()
+        } else if (row.type === 'composer') {
+          await handleComposer()
+        } else if (row.type === 'python') {
+          await handlePython()
+        } else if (row.type === 'mongodb') {
+          await handleMongoDB()
+        } else if (row.type === 'meilisearch') {
+          await handleMeilisearch()
+        } else if (row.type === 'rust') {
+          await handleRust()
+        } else {
+          await zipUnPack(row.zip, row.appDir)
+        }
+      }
+
       if (existsSync(row.zip)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.installFromZip', { service }))
         })
+        row.progress = 100
+        on(row)
         let success = false
         try {
-          if (row.type === 'memcached') {
-            await handleMemcached()
-          } else if (row.type === 'composer') {
-            await handleComposer()
-          } else if (row.type === 'java') {
-            await handleTwoLevDir('java')
-          } else if (row.type === 'tomcat') {
-            await handleTwoLevDir('tomcat')
-          } else if (row.type === 'golang') {
-            await handleTwoLevDir('golang')
-          } else if (row.type === 'maven') {
-            await handleTwoLevDir('maven')
-          } else if (row.type === 'rabbitmq') {
-            await handleTwoLevDir('rabbitmq')
-          } else if (row.type === 'mariadb') {
-            await handleTwoLevDir('mariadb')
-          } else if (row.type === 'python') {
-            await handlePython()
-          } else {
-            await zipUnPack(row.zip, row.appDir)
-          }
+          await doHandleZip()
           success = true
           refresh()
         } catch (e) {
@@ -508,27 +565,7 @@ php "%~dp0composer.phar" %*`
             row.downState = 'success'
             try {
               if (existsSync(row.zip)) {
-                if (row.type === 'memcached') {
-                  await handleMemcached()
-                } else if (row.type === 'composer') {
-                  await handleComposer()
-                } else if (row.type === 'java') {
-                  await handleTwoLevDir('java')
-                } else if (row.type === 'tomcat') {
-                  await handleTwoLevDir('tomcat')
-                } else if (row.type === 'golang') {
-                  await handleTwoLevDir('golang')
-                } else if (row.type === 'maven') {
-                  await handleTwoLevDir('maven')
-                } else if (row.type === 'rabbitmq') {
-                  await handleTwoLevDir('rabbitmq')
-                } else if (row.type === 'mariadb') {
-                  await handleTwoLevDir('mariadb')
-                } else if (row.type === 'python') {
-                  await handlePython()
-                } else {
-                  await zipUnPack(row.zip, row.appDir)
-                }
+                await doHandleZip()
               }
               refresh()
             } catch (e) {

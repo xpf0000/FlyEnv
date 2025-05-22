@@ -7,22 +7,20 @@
     :file-ext="'conf'"
     :show-commond="true"
     url="https://mailpit.axllent.org/docs/configuration/runtime-options/"
+    :common-setting="commonSetting"
     @on-type-change="onTypeChange"
   >
-    <template #common>
-      <Common :setting="commonSetting" />
-    </template>
   </Conf>
 </template>
 
 <script lang="ts" setup>
-  import { computed, Ref, ref, watch } from 'vue'
+  import { computed, Ref, ref, watch, reactive } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import IPC from '@/util/IPC'
   import type { CommonSetItem } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
-  import Common from '@/components/Conf/common.vue'
+  import { uuid } from '@shared/utils'
 
   const { join } = require('path')
   const { existsSync } = require('fs-extra')
@@ -506,32 +504,39 @@
   let watcher: any
 
   const onSettingUpdate = () => {
-    let config = editConfig
-    const list = ['#PhpWebStudy-Conf-Common-Begin#']
+    let config = editConfig.replace(/\r\n/gm, '\n')
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
-      config = config.replace(regex, `\n\n`)
+      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       if (item.enable) {
-        list.push(`${item.name}=${item.value}`)
+        let value = ''
+        if (item.isString) {
+          value = `${item.name}="${item.value}"`
+        } else {
+          value = `${item.name}=${item.value}`
+        }
+        if (regex.test(config)) {
+          config = config.replace(regex, `${value}\n`)
+        } else {
+          config = `${value}\n` + config
+        }
+      } else {
+        config = config.replace(regex, ``)
       }
     })
-    list.push('#PhpWebStudy-Conf-Common-END#')
-    config = config
-      .replace(/#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g, '')
-      .replace(/\n+/g, '\n')
-      .trim()
-    config = `${list.join('\n')}\n` + config
     conf.value.setEditValue(config)
+    editConfig = config
   }
 
   const getCommonSetting = () => {
     if (watcher) {
       watcher()
     }
-    const arr = names.map((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
+    let config = editConfig.replace(/\r\n/gm, '\n')
+    console.log('config: ', config)
+    const arr = [...names].map((item) => {
+      const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       const matchs =
-        editConfig.match(regex)?.map((s) => {
+        config.match(regex)?.map((s) => {
           const sarr = s
             .trim()
             .split('=')
@@ -546,15 +551,12 @@
         }) ?? []
       console.log('getCommonSetting: ', matchs, item.name)
       const find = matchs?.find((m) => m.k === item.name)
-      if (!find) {
-        item.enable = false
-        return item
-      }
-      item.enable = true
+      item.enable = !!find
       item.value = find?.v ?? item.value
+      item.key = uuid()
       return item
     })
-    commonSetting.value = arr as any
+    commonSetting.value = reactive(arr) as any
     watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
       deep: true
     })
@@ -562,7 +564,7 @@
 
   const onTypeChange = (type: 'default' | 'common', config: string) => {
     console.log('onTypeChange: ', type, config)
-    if (editConfig !== config) {
+    if (editConfig !== config || commonSetting.value.length === 0) {
       editConfig = config
       getCommonSetting()
     }

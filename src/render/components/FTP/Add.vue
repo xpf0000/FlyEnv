@@ -73,7 +73,7 @@
   import { computed, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import IPC from '@/util/IPC'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import type { FtpItem } from './ftp'
   import { FtpStore } from './ftp'
   import { uuid } from '@shared/utils'

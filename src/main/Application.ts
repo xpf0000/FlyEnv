@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import logger from './core/Logger'
 import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
@@ -7,19 +7,19 @@ import { join, resolve } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import { getLanguage } from './utils'
-import { AppI18n } from './lang'
+import { AppAllLang, AppI18n } from '@lang/index'
 import type { StaticHttpServe, PtyItem } from './type'
 import type { ServerResponse } from 'http'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
-import { execPromiseRoot } from '../fork/Fn'
+import { execPromise } from '../fork/Fn'
 import is from 'electron-is'
 import UpdateManager from './core/UpdateManager'
 import { PItem, ProcessPidList, ProcessPidListByPids } from '../fork/Process'
 import NodePTY from './core/NodePTY'
+import ScreenManager from './core/ScreenManager'
 
 const { createFolder } = require('../shared/file')
-const { isAppleSilicon } = require('../shared/utils')
 const ServeHandler = require('serve-handler')
 const Http = require('http')
 const IP = require('ip')
@@ -35,7 +35,7 @@ export default class Application extends EventEmitter {
   forkManager?: ForkManager
   updateManager?: UpdateManager
   hostServicePID: Set<number | string> = new Set()
-
+  customerLang: Record<string, any> = {}
   pty: Partial<Record<string, PtyItem>> = {}
 
   constructor() {
@@ -51,6 +51,7 @@ export default class Application extends EventEmitter {
       configManager: this.configManager
     })
     this.initWindowManager()
+    ScreenManager.initWatch()
     this.trayManager = new TrayManager()
     this.initTrayManager()
     this.initUpdaterManager()
@@ -105,6 +106,9 @@ export default class Application extends EventEmitter {
       this?.trayWindow?.moveTop()
       this.windowManager.sendCommandTo(this.trayWindow!, 'APP:Poper-Left', 'APP:Poper-Left', poperX)
     })
+    this.trayManager.on('double-click', () => {
+      this.show('index')
+    })
   }
 
   initServerDir() {
@@ -116,7 +120,6 @@ export default class Application extends EventEmitter {
     this.setProxy()
     global.Server.UserHome = app.getPath('home')
     console.log('global.Server.UserHome: ', global.Server.UserHome)
-    global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
     global.Server.AppDir = join(runpath, 'app')
     createFolder(global.Server.BaseDir)
@@ -179,6 +182,8 @@ export default class Application extends EventEmitter {
       this.emit('ready')
       this.windowManager.sendCommandTo(win, 'APP-Ready-To-Show', true)
     })
+    ScreenManager.initWindow(win)
+    ScreenManager.repositionAllWindows()
     this.trayWindow = this.windowManager.openTrayWindow()
   }
 
@@ -205,6 +210,7 @@ export default class Application extends EventEmitter {
   async stop() {
     logger.info('[PhpWebStudy] application stop !!!')
     try {
+      ScreenManager.destroy()
       SiteSuckerManager.destory()
       this.forkManager?.destory()
       this.trayManager?.destroy()
@@ -246,7 +252,7 @@ export default class Application extends EventEmitter {
       })
       const str = arr.map((s) => `/pid ${s}`).join(' ')
       try {
-        await execPromiseRoot(`taskkill /f /t ${str}`)
+        await execPromise(`taskkill /f /t ${str}`)
       } catch (e) {
         console.log('taskkill e: ', e)
       }
@@ -261,7 +267,7 @@ export default class Application extends EventEmitter {
     if (all.length > 0) {
       const str = all.map((s) => `/pid ${s}`).join(' ')
       try {
-        await execPromiseRoot(`taskkill /f /t ${str}`)
+        await execPromise(`taskkill /f /t ${str}`)
       } catch (e) {
         console.log('taskkill e: ', e)
       }
@@ -430,6 +436,7 @@ export default class Application extends EventEmitter {
     this.emit(command, ...args)
     let window
     const callBack = (info: any) => {
+      console.log('callBack info: ', info)
       const win = this.mainWindow!
       this.windowManager.sendCommandTo(win, command, key, info)
       if (info?.data?.['APP-Service-Start-PID']) {
@@ -462,10 +469,38 @@ export default class Application extends EventEmitter {
     if (command.startsWith('app-fork:')) {
       console.log('app main time: ', new Date().getTime())
       const module = command.replace('app-fork:', '')
+      const openApps: Record<string, string> = {
+        VSCode: 'vscode://file/'
+      }
+
+      if (module === 'tools' && args?.[0] === 'openPathByApp' && !!openApps?.[args?.[2]]) {
+        const appKey = args[2]
+        const url = `${openApps[appKey]}${encodeURIComponent(args[1].replace(/\\/g, '/'))}`
+        console.log('openPathByApp ', args?.[2], url)
+        shell
+          .openExternal(url)
+          .then(() => {
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              code: 0,
+              data: true
+            })
+          })
+          .catch((e: any) => {
+            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+              code: 1,
+              msg: e.toString()
+            })
+          })
+        return
+      }
+
       this.setProxy()
       global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
       global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
       global.Server.Licenses = this.configManager?.getConfig('setup.license')
+      if (!Object.keys(AppAllLang).includes(global.Server.Lang!)) {
+        global.Server.LangCustomer = this.customerLang[global.Server.Lang!]
+      }
       this.forkManager
         ?.send(module, ...args)
         .on(callBack)
@@ -605,6 +640,12 @@ export default class Application extends EventEmitter {
           this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
           SiteSuckerManager.updateConfig(args[0])
         }
+        return
+      case 'app-customer-lang-update':
+        const langKey = args[0]
+        const langValue = args[1]
+        this.customerLang[langKey] = langValue
+        AppI18n().global.setLocaleMessage(langKey, langValue)
         return
     }
   }

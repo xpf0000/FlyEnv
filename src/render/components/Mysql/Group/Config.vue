@@ -21,25 +21,23 @@
         :file="file"
         :file-ext="'cnf'"
         :show-commond="true"
+        :common-setting="commonSetting"
         @on-type-change="onTypeChange"
       >
-        <template #common>
-          <Common :setting="commonSetting" />
-        </template>
       </Conf>
     </div>
   </el-drawer>
 </template>
 
 <script lang="ts" setup>
-  import { computed, Ref, ref, watch } from 'vue'
-  import { I18nT } from '@shared/lang'
+  import { computed, Ref, ref, watch, reactive } from 'vue'
+  import { I18nT } from '@lang/index'
   import type { MysqlGroupItem } from '@shared/app'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import Conf from '@/components/Conf/drawer.vue'
-  import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { debounce } from 'lodash'
+  import { uuid } from '@shared/utils'
 
   const { existsSync, writeFile } = require('fs-extra')
   const { join } = require('path')
@@ -80,6 +78,14 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
 
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const names: CommonSetItem[] = [
+    {
+      name: 'port',
+      value: '3306',
+      enable: true,
+      tips() {
+        return I18nT('mysql.port')
+      }
+    },
     {
       name: 'key_buffer_size',
       value: '64M',
@@ -174,40 +180,39 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
   let watcher: any
 
   const onSettingUpdate = () => {
-    let config = editConfig
-    const list = ['#PhpWebStudy-Conf-Common-Begin#']
+    let config = editConfig.replace(/\r\n/gm, '\n')
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
-      config = config.replace(regex, `\n\n`)
+      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       if (item.enable) {
-        list.push(`${item.name} = ${item.value}`)
+        let value = ''
+        if (item.isString) {
+          value = `${item.name} = "${item.value}"`
+        } else {
+          value = `${item.name} = ${item.value}`
+        }
+        if (regex.test(config)) {
+          config = config.replace(regex, `${value}\n`)
+        } else {
+          config = `${value}\n` + config
+        }
+      } else {
+        config = config.replace(regex, ``)
       }
     })
-    list.push('#PhpWebStudy-Conf-Common-END#')
-    config = config
-      .replace(
-        /([\s\n]?[^\n]*)#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g,
-        ''
-      )
-      .replace(/\n+/g, '\n\n')
-      .trim()
-    if (config.includes('[mysqld]')) {
-      config = config.replace(/\[mysqld](.*?)\n/g, `[mysqld]\n${list.join('\n')}\n`)
-    } else {
-      config = `[mysqld]\n${list.join('\n')}\n` + config
-    }
     conf.value.setEditValue(config)
+    editConfig = config
   }
 
   const getCommonSetting = () => {
     if (watcher) {
       watcher()
     }
-    const arr = names
+    let config = editConfig.replace(/\r\n/gm, '\n')
+    const arr = [...names]
       .map((item) => {
-        const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
+        const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
         const matchs =
-          editConfig.match(regex)?.map((s) => {
+          config.match(regex)?.map((s) => {
             const sarr = s
               .trim()
               .split('=')
@@ -222,15 +227,17 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           }) ?? []
         console.log('getCommonSetting: ', matchs, item.name)
         const find = matchs?.find((m) => m.k === item.name)
-        if (!find) {
-          item.enable = false
-          return item
+        let value = find?.v ?? item.value
+        if (item.isString) {
+          value = value.replace(new RegExp(`"`, 'g'), '').replace(new RegExp(`'`, 'g'), '')
         }
-        item.value = find?.v ?? item.value
+        item.enable = !!find
+        item.value = value
+        item.key = uuid()
         return item
       })
       .filter((item) => item.show !== false)
-    commonSetting.value = arr as any
+    commonSetting.value = reactive(arr) as any
     watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
       deep: true
     })
@@ -238,7 +245,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
 
   const onTypeChange = (type: 'default' | 'common', config: string) => {
     console.log('onTypeChange: ', type, config)
-    if (editConfig !== config) {
+    if (editConfig !== config || commonSetting.value.length === 0) {
       editConfig = config
       getCommonSetting()
     }

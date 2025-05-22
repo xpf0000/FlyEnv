@@ -1,10 +1,11 @@
-import { join, dirname, basename } from 'path'
-import { existsSync } from 'fs'
+import { join, basename, dirname } from 'path'
+import { createWriteStream, existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
+  moveChildDirToParent,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -14,10 +15,13 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, mkdirp, chmod, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
+import { zipUnPack } from '@shared/file'
+import axios from 'axios'
+import { spawn } from 'child-process-promise'
 
 class Manager extends Base {
+  mongoshVersion = '2.5.0'
   constructor() {
     super()
     this.type = 'mongodb'
@@ -25,6 +29,45 @@ class Manager extends Base {
 
   init() {
     this.pidPath = join(global.Server.MongoDBDir!, 'mongodb.pid')
+  }
+
+  _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        await this.initMongosh()
+      } catch (e) {}
+      const mongosh = join(global.Server.AppDir!, 'mongosh', this.mongoshVersion, 'bin/mongosh.exe')
+      if (existsSync(mongosh)) {
+        try {
+          await spawn('mongosh.exe', ['--eval', `"db.shutdownServer()"`], {
+            cwd: dirname(mongosh),
+            shell: false
+          })
+        } catch (e) {
+          console.log('mongosh shutdown error: ', e)
+        }
+        const pids = new Set<string>()
+        const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+        if (existsSync(appPidFile)) {
+          const pid = (await readFile(appPidFile, 'utf-8')).trim()
+          pids.add(pid)
+          TaskQueue.run(remove, appPidFile).then().catch()
+        }
+        if (version?.pid) {
+          pids.add(`${version.pid}`)
+        }
+        on({
+          'APP-Service-Stop-Success': true
+        })
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+        })
+        return resolve({
+          'APP-Service-Stop-PID': [...pids].map((p) => Number(p))
+        })
+      }
+      super._stopServer(version).on(on).then(resolve).catch(reject)
+    })
   }
 
   _startServer(version: SoftInstalled) {
@@ -57,109 +100,79 @@ class Manager extends Base {
       }
       const logPath = join(global.Server.MongoDBDir!, `mongodb-${v}.log`)
 
-      const pidPath = join(global.Server.MongoDBDir!, 'mongodb.pid')
-      if (existsSync(pidPath)) {
-        try {
-          await remove(pidPath)
-        } catch (e) {}
-      }
+      const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}"`
 
-      const startLogFile = join(global.Server.MongoDBDir!, `start.log`)
-      const startErrLogFile = join(global.Server.MongoDBDir!, `start.error.log`)
-      if (existsSync(startErrLogFile)) {
-        try {
-          await remove(startErrLogFile)
-        } catch (e) {}
-      }
-
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} --config "${m}" --logpath "${logPath}" --pidfilepath "${pidPath}" > "${startLogFile}" 2>"${startErrLogFile}"`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.MongoDBDir!, cmdName)
-      await writeFile(sh, command)
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(global.Server.MongoDBDir!)
       try {
-        await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        const res = await serviceStartExecCMD(
+          version,
+          this.pidPath,
+          global.Server.MongoDBDir!,
+          bin,
+          execArgs,
+          '',
+          on
         )
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(pidPath)
-      if (res) {
-        if (res?.pid) {
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-          })
-          await writeFile(appPidFile, res.pid)
-          resolve({
-            'APP-Service-Start-PID': res.pid
-          })
-          return
+    })
+  }
+
+  initMongosh() {
+    return new ForkPromise(async (resolve) => {
+      const version = this.mongoshVersion
+      const mongosh = join(global.Server.AppDir!, 'mongosh', version, 'bin/mongosh.exe')
+      if (existsSync(mongosh)) {
+        return resolve(true)
+      }
+      const appDir = join(global.Server.AppDir!, 'mongosh', version)
+      const url = `https://downloads.mongodb.com/compass/mongosh-${version}-win32-x64.zip`
+      const zip = join(global.Server.Cache!, `mongosh-${version}.zip`)
+      const doInstall = async () => {
+        if (existsSync(zip)) {
+          try {
+            await remove(appDir)
+            await mkdirp(appDir)
+            await zipUnPack(zip, appDir)
+            await moveChildDirToParent(appDir)
+            return existsSync(mongosh)
+          } catch (e) {
+            await remove(zip)
+          }
         }
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: res?.error ?? 'Start Fail',
-              service: `${this.type}-${version.version}`
-            })
-          )
+        return false
+      }
+
+      const installRes = await doInstall()
+      if (installRes) {
+        return resolve(true)
+      }
+
+      try {
+        const response = await axios({
+          method: 'get',
+          url: url,
+          responseType: 'stream'
         })
-        reject(new Error(res?.error ?? 'Start Fail'))
-        return
+
+        const writer = createWriteStream(zip)
+        response.data.pipe(writer)
+        writer.on('finish', async () => {
+          const installRes = await doInstall()
+          if (installRes) {
+            return resolve(true)
+          }
+          return resolve(false)
+        })
+        writer.on('error', () => {
+          resolve(false)
+        })
+      } catch (error) {
+        resolve(false)
       }
-      let msg = 'Start Fail'
-      if (existsSync(startErrLogFile)) {
-        msg = await readFile(startErrLogFile, 'utf-8')
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.startServiceFail', {
-            error: msg,
-            service: `${this.type}-${version.version}`
-          })
-        )
-      })
-      reject(new Error(msg || 'Start Fail'))
     })
   }
 
@@ -168,18 +181,21 @@ class Manager extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mongodb')
         all.forEach((a: any) => {
-          const dir = join(
+          const dir = join(global.Server.AppDir!, `mongodb-${a.version}`, 'bin/mongod.exe')
+          const zip = join(global.Server.Cache!, `mongodb-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `mongodb-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+
+          const dirOld = join(
             global.Server.AppDir!,
             `mongodb-${a.version}`,
             `mongodb-win32-x86_64-windows-${a.version}`,
             'bin/mongod.exe'
           )
-          const zip = join(global.Server.Cache!, `mongodb-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `mongodb-${a.version}`)
-          a.zip = zip
-          a.bin = dir
+
           a.downloaded = existsSync(zip)
-          a.installed = existsSync(dir)
+          a.installed = existsSync(dir) || existsSync(dirOld)
         })
         resolve(all)
       } catch (e) {

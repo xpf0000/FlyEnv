@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import IPC from '@/util/IPC'
 import { reactive } from 'vue'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 const IP = require('ip')
 
 export interface DNSLogItem {
@@ -72,18 +72,17 @@ export const DnsStore = defineStore('dns', {
           return
         }
         this.fetching = true
-        IPC.send('app-fork:dns', 'startService').then((key: string, res: boolean | string) => {
+        IPC.send('app-fork:dns', 'startService').then((key: string, res: any) => {
           IPC.off(key)
           this.fetching = false
-          if (typeof res === 'string') {
-            MessageError(res)
-          } else if (res) {
+          console.log('resres: ', res)
+          if (typeof res?.data === 'string') {
+            MessageError(res.data)
+          } else if (!!res?.data) {
             this.running = true
             MessageSuccess(I18nT('base.success'))
             resolve(true)
             return
-          } else if (!res) {
-            MessageError(I18nT('base.fail'))
           }
           reject(new Error('fail'))
         })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { onBeforeUnmount, ref, watch, watchEffect } from 'vue'
   import Store from './store'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import type { ShadowRootExpose } from 'vue-shadow-dom'
   import { ShadowRoot } from 'vue-shadow-dom'
   import { render } from '@regexper/render'
@@ -64,7 +64,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('regex-tester.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.regex-tester-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

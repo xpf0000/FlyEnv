@@ -76,7 +76,7 @@
           <template v-if="AppToolStore.id === 'home'">
             <el-scrollbar class="flex-1">
               <template v-if="likeData.length > 0">
-                <div class="py-3">{{ I18nT('tool.FavoriteTools') }}</div>
+                <div class="py-3">{{ I18nT('tools.FavoriteTools') }}</div>
                 <div
                   class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
                 >
@@ -111,12 +111,12 @@
                               <el-dropdown-menu>
                                 <el-dropdown-item :command="{ action: 'edit', item }"
                                   ><EditPen class="w-4 h-4 mr-2" /><span>{{
-                                    I18nT('tool.actionEdit')
+                                    I18nT('tools.actionEdit')
                                   }}</span></el-dropdown-item
                                 >
                                 <el-dropdown-item :command="{ action: 'del', item }"
                                   ><Delete class="w-4 h-4 mr-2" /><span>{{
-                                    I18nT('tool.actionDel')
+                                    I18nT('tools.actionDel')
                                   }}</span></el-dropdown-item
                                 >
                               </el-dropdown-menu>
@@ -128,7 +128,7 @@
                   </template>
                 </div>
               </template>
-              <div class="py-3">{{ I18nT('tool.AllTools') }}</div>
+              <div class="py-3">{{ I18nT('tools.AllTools') }}</div>
               <div
                 class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
               >
@@ -171,12 +171,12 @@
                             <el-dropdown-menu>
                               <el-dropdown-item :command="{ action: 'edit', item }"
                                 ><EditPen class="w-4 h-4 mr-2" /><span>{{
-                                  I18nT('tool.actionEdit')
+                                  I18nT('tools.actionEdit')
                                 }}</span></el-dropdown-item
                               >
                               <el-dropdown-item :command="{ action: 'del', item }"
                                 ><Delete class="w-4 h-4 mr-2" /><span>{{
-                                  I18nT('tool.actionDel')
+                                  I18nT('tools.actionDel')
                                 }}</span></el-dropdown-item
                               >
                             </el-dropdown-menu>
@@ -223,7 +223,7 @@
   import { AppToolStore } from './store'
   import { computed, ref, watch } from 'vue'
   import { type AppToolModuleItem, AppToolType } from '@/core/type'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import {
     Expand,
     Fold,
@@ -361,7 +361,9 @@
   })
 
   const onNodeClick = (data: any) => {
-    AppToolStore.id = data.id
+    if (data?.id) {
+      AppToolStore.id = data.id
+    }
   }
 
   const searchALL = computed(() => {

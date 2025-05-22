@@ -21,7 +21,7 @@
   import { startService, stopService } from '@/util/Service'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { AppServiceModule, AsideSetup } from '@/core/ASide'
 
@@ -42,9 +42,13 @@
     set(v: boolean) {
       const all: Array<Promise<any>> = []
       if (v) {
+        const runNum: Set<number> = new Set<number>()
         phpVersions?.value?.forEach((v) => {
           if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
-            all.push(startService('php', v))
+            if (!runNum.has(v.num!)) {
+              runNum.add(v.num!)
+              all.push(startService('php', v))
+            }
           }
         })
       } else {
@@ -89,9 +93,13 @@
       }
     } else {
       if (showItem?.value) {
+        const runNum: Set<number> = new Set<number>()
         phpVersions?.value?.forEach((v) => {
           if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
-            all.push(startService('php', v))
+            if (!runNum.has(v.num!)) {
+              runNum.add(v.num!)
+              all.push(startService('php', v))
+            }
           }
         })
       }

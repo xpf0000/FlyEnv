@@ -98,18 +98,49 @@
       </el-table-column>
       <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
         <template #header>
-          <el-tooltip :content="I18nT('service.envTips')" placement="top" show-after="600">
+          <el-tooltip :content="I18nT('service.envTips')" placement="top" :show-after="600">
             <span>{{ I18nT('service.env') }}</span>
           </el-tooltip>
         </template>
         <template #default="scope">
-          <template v-if="isInEnv(scope.row)">
-            <el-button link type="primary">
-              <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
-            </el-button>
-          </template>
-          <template v-else-if="ServiceActionStore.pathSeting[scope.row.bin]">
+          <template v-if="ServiceActionStore.pathSeting[scope.row.bin]">
             <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+          </template>
+          <template v-else-if="isInAppEnv(scope.row)">
+            <el-tooltip :content="I18nT('service.setByApp')" :show-after="600" placement="top">
+              <el-button
+                link
+                type="primary"
+                @click.stop="ServiceActionStore.updatePath(scope.row, 'php')"
+              >
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </el-tooltip>
+          </template>
+          <template v-else-if="isInEnv(scope.row)">
+            <el-tooltip :content="I18nT('service.setByNoApp')" :show-after="600" placement="top">
+              <el-button
+                link
+                type="warning"
+                @click.stop="ServiceActionStore.updatePath(scope.row, 'php')"
+              >
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </el-tooltip>
+          </template>
+          <template v-else>
+            <el-button
+              class="current-set row-hover-show"
+              link
+              @click.stop="ServiceActionStore.updatePath(scope.row, 'php')"
+            >
+              <yb-icon
+                class="current-not"
+                :svg="import('@/svg/select.svg?raw')"
+                width="17"
+                height="17"
+              />
+            </el-button>
           </template>
         </template>
       </el-table-column>
@@ -121,7 +152,7 @@
         align="left"
       >
         <template #header>
-          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
+          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" :show-after="600">
             <span>{{ I18nT('service.alias') }}</span>
           </el-tooltip>
         </template>
@@ -217,6 +248,10 @@
                 <template v-else>
                   <yb-icon
                     class="current"
+                    :class="{
+                      'text-blue-500': isInAppEnv(scope.row),
+                      'opacity-100': isInAppEnv(scope.row)
+                    }"
                     :svg="import('@/svg/select.svg?raw')"
                     width="17"
                     height="17"
@@ -267,7 +302,7 @@
   import { startService, stopService } from '@/util/Service'
   import installedVersions from '@/util/InstalledVersions'
   import { BrewStore, SoftInstalled } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { AppStore } from '@/store/app'
   import { MessageError, MessageSuccess } from '@/util/Element'
@@ -276,7 +311,7 @@
   import { ServiceActionStore } from '../ServiceManager/EXT/store'
 
   const { shell } = require('@electron/remote')
-  const { join, dirname } = require('path')
+  const { dirname } = require('path')
 
   if (!Service.php) {
     Service.php = {
@@ -334,8 +369,12 @@
     appStore.serviceShow(item.bin)
   }
 
+  const isInAppEnv = (item: SoftInstalled) => {
+    return ServiceActionStore.appPath.includes(item.path)
+  }
+
   const isInEnv = (item: SoftInstalled) => {
-    return ServiceActionStore.allPath.includes(dirname(item.bin))
+    return ServiceActionStore.allPath.includes(item.path)
   }
 
   const doHide = (item: SoftInstalled) => {
@@ -363,7 +402,7 @@
   })
 
   const pathChange = (item: SoftInstalled) => {
-    ServiceActionStore.updatePath(item, 'php')
+    ServiceActionStore.updatePath(item, 'php').then().catch()
   }
 
   const reinit = () => {
@@ -469,6 +508,8 @@
   }
 
   init()
+
+  ServiceActionStore.fetchPath()
 
   let CustomPathVM: any
   import('@/components/ServiceManager/customPath.vue').then((res) => {

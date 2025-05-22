@@ -58,7 +58,7 @@ export class ServiceItemGo extends ServiceItem {
       process.chdir(global.Server.Cache!)
       try {
         await execPromiseRoot(
-          `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
+          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
         )
         const cpid = await this.checkPid()
         this.daemon()
@@ -71,7 +71,7 @@ export class ServiceItemGo extends ServiceItem {
       }
     })
   }
-  async checkState(): Promise<string[]> {
+  async checkState(): Promise<Array<string | number>> {
     const id = this.host?.id
     if (!id) {
       return []

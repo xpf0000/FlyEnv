@@ -23,7 +23,7 @@ import {
 import { JSONSort } from '@shared/JsonSort'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import { FormatHtml, FormatPHP, FormatTS, FormatYaml } from '@shared/FormatCode'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 export class JSONStoreTab {
   value = ''
@@ -176,6 +176,42 @@ export class JSONStoreTab {
 
   checkFrom() {
     let type = ''
+    if (!this.value.trim()) {
+      this.type = I18nT('tools.inputCheckFailTips')
+      this.transformTo()
+      return
+    }
+
+    try {
+      const u = new URL(this.value)
+      const obj: any = {}
+      Object.entries(Object.fromEntries(u?.searchParams.entries() ?? [])).forEach(([k, v]) => {
+        console.log('k: ', k, v)
+        obj[k] = v
+      })
+      this.json = {
+        Protocol: u.protocol,
+        Username: u.username,
+        Password: u.password,
+        Hostname: u.hostname,
+        Port: u.port,
+        Path: u.pathname,
+        Params: u.search,
+        ParamObject: obj
+      }
+      console.log('this.json: ', this.json)
+      type = 'JSON'
+    } catch (e) {
+      this.json = null
+      type = ''
+    }
+    console.log('type 000: ', type)
+    if (type) {
+      this.type = type
+      this.transformTo()
+      return
+    }
+
     try {
       this.json = javascriptToJson(this.value)
       type = 'JSON'

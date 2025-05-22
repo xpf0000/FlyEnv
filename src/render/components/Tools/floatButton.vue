@@ -8,6 +8,7 @@
     :destroy-on-close="false"
     :with-header="false"
     append-to="#container"
+    @open="onOpen"
   >
     <ToolIndex @on-tool-show="onToolShow" />
   </el-drawer>
@@ -16,6 +17,8 @@
 <script lang="ts" setup>
   import { ref } from 'vue'
   import ToolIndex from './Index.vue'
+  import { Setup } from '@/components/Tools/SystenEnv/setup'
+  import { AppToolStore } from '@/components/Tools/store'
 
   const toolShow = ref(false)
   const show = () => {
@@ -23,5 +26,10 @@
   }
   const onToolShow = () => {
     toolShow.value = false
+  }
+  const onOpen = () => {
+    if (AppToolStore.id === 'SystemEnv') {
+      Setup.fetchList()
+    }
   }
 </script>

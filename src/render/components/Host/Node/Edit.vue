@@ -79,7 +79,7 @@
         <div class="plant-title">{{ I18nT('host.nodeJSVersion') }}</div>
         <div class="main">
           <el-select v-model="item.nodeDir" class="w-full">
-            <template v-for="(item, index) in nodes" :key="index">
+            <template v-for="(item, _index) in nodes" :key="_index">
               <el-option :label="`node${item.version}-${item.bin}`" :value="item.bin"></el-option>
             </template>
           </el-select>
@@ -164,10 +164,12 @@
   import { computed, ref, watch } from 'vue'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
-  import IPC from '@/util/IPC'
+  import { BrewStore } from '@/store/brew'
+  import { Service } from '@/components/ServiceManager/service'
+  import installedVersions from '@/util/InstalledVersions'
 
   const { dialog } = require('@electron/remote')
   const { existsSync, readFile } = require('fs-extra')
@@ -207,12 +209,32 @@
   })
   merge(item.value, props.edit)
 
-  const nodes = ref([])
   const scripts = ref({})
   const appStore = AppStore()
+  const brewStore = BrewStore()
   const hosts = computed(() => {
     return appStore.hosts
   })
+
+  const nodes = computed(() => {
+    return brewStore.module('node')?.installed ?? []
+  })
+
+  const service = computed(() => {
+    return Service?.['node']
+  })
+
+  if (nodes.value.length === 0 && !service?.value?.fetching) {
+    if (!service?.value) {
+      Service['node'] = {
+        fetching: true
+      }
+    }
+    service.value.fetching = true
+    installedVersions.allInstalledVersions(['node']).then(() => {
+      service.value.fetching = false
+    })
+  }
 
   watch(
     () => item.value.bin,
@@ -347,17 +369,6 @@
     }
     saveFn()
   }
-
-  IPC.send('app-fork:node', 'allInstalled').then((key: string, res: any) => {
-    IPC.off(key)
-    if (res?.data) {
-      nodes.value = res?.data
-      if (!item.value.nodeDir && nodes.value.length > 0) {
-        const v: any = nodes.value[0]
-        item.value.nodeDir = v.bin
-      }
-    }
-  })
 
   defineExpose({
     show,

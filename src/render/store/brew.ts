@@ -1,6 +1,7 @@
 import { AllAppModule } from '@/core/type'
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
+import { AppStore } from '@/store/app'
 
 export interface SoftInstalled {
   version: string | null
@@ -76,6 +77,15 @@ export const BrewStore = defineStore('brew', {
         })
       }
       return this[flag]!
+    },
+    currentVersion(flag: AllAppModule): SoftInstalled | undefined {
+      const appStore = AppStore()
+      const current = appStore.config.server?.[flag]?.current
+      if (!current) {
+        return undefined
+      }
+      const installed = this.module(flag).installed
+      return installed?.find((i) => i.path === current?.path && i.version === current?.version)
     }
   }
 })

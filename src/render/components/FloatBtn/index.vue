@@ -17,6 +17,9 @@
     return appStore?.config?.setup?.showAIRobot ?? true
   })
   const showTool = computed(() => {
+    if (appStore.currentPage === '/tools') {
+      return false
+    }
     return appStore?.config?.setup?.showTool ?? true
   })
 </script>

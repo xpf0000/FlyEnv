@@ -8,13 +8,16 @@ export enum AppModuleTypeEnum {
   searchEngine = 'searchEngine',
   dnsServer = 'dnsServer',
   ftpServer = 'ftpServer',
-  other = 'other'
+  other = 'other',
+  objectStorage = 'objectStorage',
+  ai = 'ai'
 }
 
 export type AllAppModuleType = keyof typeof AppModuleTypeEnum
 
 export const AppModuleTypeList: AllAppModuleType[] = [
   'site',
+  'ai',
   'webServer',
   'language',
   'dataBaseServer',
@@ -23,6 +26,7 @@ export const AppModuleTypeList: AllAppModuleType[] = [
   'dnsServer',
   'ftpServer',
   'searchEngine',
+  'objectStorage',
   'other'
 ]
 
@@ -51,7 +55,13 @@ export enum AppModuleEnum {
   python = 'python',
   maven = 'maven',
   erlang = 'erlang',
-  mailpit = 'mailpit'
+  mailpit = 'mailpit',
+  ruby = 'ruby',
+  elasticsearch = 'elasticsearch',
+  ollama = 'ollama',
+  minio = 'minio',
+  rust = 'rust',
+  meilisearch = 'meilisearch'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum

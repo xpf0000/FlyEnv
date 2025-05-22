@@ -1,0 +1,10 @@
+{
+  "email": "EMail",
+  "country": "Quốc gia",
+  "message": "Tin nhắn",
+  "messagelengthErr": "Độ dài tin nhắn là 5 - 1024",
+  "sendMessage": "Gửi tin nhắn",
+  "anythingToSay": "Có gì muốn nói",
+  "noSelected": "Không chọn",
+  "inputFilter": "Nhập để lọc"
+}

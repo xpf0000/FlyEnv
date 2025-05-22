@@ -1,0 +1,13 @@
+{
+  "title": "Trình tạo token",
+  "uppercase": "Chữ hoa (ABC...)",
+  "lowercase": "Chữ thường (abc...)",
+  "numbers": "Số (123...)",
+  "symbols": "Ký hiệu (!-;...)",
+  "length": "Độ dài",
+  "tokenPlaceholder": "Token...",
+  "button": {
+    "copy": "Sao chép",
+    "refresh": "Làm mới"
+  }
+}

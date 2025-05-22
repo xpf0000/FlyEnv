@@ -1,0 +1,8 @@
+{
+  "port": "Cổng",
+  "timeout": "Thời gian chờ kết nối nhàn rỗi, 0 biểu thị mở liên tục",
+  "databases": "Số lượng cơ sở dữ liệu",
+  "requirepass": "Mật khẩu Redis",
+  "maxmemory": "Byte, mức sử dụng bộ nhớ tối đa, 0 biểu thị không giới hạn",
+  "maxclients": "Số kết nối tối đa"
+}

@@ -15,7 +15,16 @@
           <el-button style="width: auto; height: auto" text :loading="true"></el-button>
         </template>
         <template v-else>
-          <yb-icon class="current" :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+          <yb-icon
+            class="current"
+            :class="{
+              'text-blue-500': isInAppEnv,
+              'opacity-100': isInAppEnv
+            }"
+            :svg="import('@/svg/select.svg?raw')"
+            width="17"
+            height="17"
+          />
         </template>
         <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
       </li>
@@ -56,14 +65,14 @@
   import { AppStore } from '@/store/app'
   import { AllAppModule } from '@/core/type'
   import { stopService } from '@/util/Service'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { dirname } = require('path')
 
   const props = defineProps<{
     item: SoftInstalled
     type: AllAppModule
-    showHideShow: boolean
+    showHideShow?: boolean
   }>()
 
   const popper = ref()
@@ -80,6 +89,10 @@
 
   const loading = computed(() => {
     return ServiceActionStore.pathSeting?.[props.item.bin] ?? false
+  })
+
+  const isInAppEnv = computed(() => {
+    return ServiceActionStore.appPath.includes(props.item.path)
   })
 
   const state = computed(() => {
@@ -102,7 +115,10 @@
   }
 
   const doChange = () => {
-    ServiceActionStore.updatePath(props.item, props.type)
+    if (loading.value) {
+      return
+    }
+    ServiceActionStore.updatePath(props.item, props.type).then().catch()
   }
 
   const doSetAlias = () => {

@@ -4,6 +4,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import dns2 from 'dns2'
 import { Packet } from 'dns2'
 import * as ip from 'ip'
+import { join } from 'path'
 
 const Tangerine = require('@shared/Tangerine.js')
 
@@ -26,11 +27,12 @@ class Manager extends Base {
   }
 
   initHosts(LOCAL_IP: string) {
+    const hostFile = join('c:/windows/system32/drivers/etc', 'hosts')
     const time = new Date().getTime()
     if (time - this.lastTime > 60000) {
       this.lastTime = time
       try {
-        const hosts = readFileSync('/private/etc/hosts', 'utf-8') ?? ''
+        const hosts = readFileSync(hostFile, 'utf-8') ?? ''
         const arrs = hosts.split('\n').filter((s) => s.trim().indexOf('#') !== 0)
         arrs.forEach((s) => {
           const items = s
@@ -40,7 +42,8 @@ class Manager extends Base {
           const ip = items?.shift()?.toLowerCase()
           if (ip) {
             items.forEach((i) => {
-              this.hosts[i] = ip === '127.0.0.1' || ip === 'localhost' ? LOCAL_IP : ip
+              this.hosts[i] =
+                ip === '::1' || ip === '127.0.0.1' || ip === 'localhost' ? LOCAL_IP : ip
             })
           }
         })
@@ -56,7 +59,9 @@ class Manager extends Base {
           const response = Packet.createResponseFromRequest(request)
           const [question] = request.questions
           const { name } = question
+          console.log('question: ', question, name)
           this.initHosts(LOCAL_IP)
+          console.log('this.hosts: ', this.hosts)
           if (this.hosts[name]) {
             const ip = this.hosts[name]
             const item = {
@@ -66,15 +71,14 @@ class Manager extends Base {
               ttl: 60,
               address: ip
             }
-            const json = JSON.stringify({
-              host: name,
-              ttl: 60,
-              ip: ip
-            })
             process?.send?.({
               on: true,
               key: this.ipcCommandKey,
-              info: json
+              info: {
+                host: name,
+                ttl: 60,
+                ip: ip
+              }
             })
             response.answers.push(item)
             send(response)
@@ -95,19 +99,22 @@ class Manager extends Base {
                       ttl: item.ttl,
                       address: item.address
                     })
-                    const json = JSON.stringify({
-                      host: name,
-                      ttl: item.ttl,
-                      ip: item.address
-                    })
                     process?.send?.({
                       on: true,
                       key: this.ipcCommandKey,
-                      info: json
+                      info: {
+                        host: name,
+                        ttl: item.ttl,
+                        ip: item.address
+                      }
                     })
                   })
                   send(response)
                 }
+              })
+              .catch((e: any) => {
+                console.log(`tangerine resolve error: ${e}`)
+                send(response)
               })
           } catch (e) {
             send(response)
@@ -118,6 +125,10 @@ class Manager extends Base {
       server.on('listening', () => {
         console.log('Start Success')
         resolve(true)
+      })
+
+      server.on('error', (error) => {
+        resolve(error.toString())
       })
 
       server
@@ -135,6 +146,9 @@ class Manager extends Base {
           }
         })
         .then()
+        .catch((error) => {
+          resolve(error.toString())
+        })
       this.server = server
     })
   }
@@ -143,7 +157,7 @@ class Manager extends Base {
     this.server = null
   }
 
-  stopService(): ForkPromise<unknown> {
+  stopService(): any {
     return new ForkPromise((resolve) => {
       this.close()
       resolve(true)

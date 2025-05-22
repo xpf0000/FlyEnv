@@ -5,6 +5,7 @@ import { hostAlias } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash'
+import { pathFixedToUnix } from '@shared/utils'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -126,18 +127,26 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
     hasChanged = true
     find.push(
       ...[
-        `ServerName ${old.name}`,
-        `ErrorLog "${logpath}/${old.name}-error_log"`,
-        `CustomLog "${logpath}/${old.name}-access_log" combined`,
-        `ServerName SSL.${old.name}`
+        `ServerName(.*?)SSL\.(.*?)\\r\\n`,
+        `ServerName(.*?)SSL\.(.*?)\\n`,
+        `ServerName(?!\\s+SSL\.).*?\\r\\n`,
+        `ServerName(?!\\s+SSL\.).*?\\n`,
+        `ErrorLog(.*?)${logpath}/(.*?)\\r\\n`,
+        `ErrorLog(.*?)${logpath}/(.*?)\\n`,
+        `CustomLog(.*?)${logpath}/(.*?)\\r\\n`,
+        `CustomLog(.*?)${logpath}/(.*?)\\n`
       ]
     )
     replace.push(
       ...[
-        `ServerName ${host.name}`,
-        `ErrorLog "${logpath}/${host.name}-error_log"`,
-        `CustomLog "${logpath}/${host.name}-access_log" combined`,
-        `ServerName SSL.${host.name}`
+        `ServerName SSL.${host.name}\r\n`,
+        `ServerName SSL.${host.name}\n`,
+        `ServerName ${host.name}\r\n`,
+        `ServerName ${host.name}\n`,
+        `ErrorLog "${logpath}/${host.name}-error_log"\r\n`,
+        `ErrorLog "${logpath}/${host.name}-error_log"\n`,
+        `CustomLog "${logpath}/${host.name}-access_log" combined\r\n`,
+        `CustomLog "${logpath}/${host.name}-access_log" combined\n`
       ]
     )
   }
@@ -154,17 +163,19 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
+    const cert = pathFixedToUnix(host.ssl.cert)
     find.push(`SSLCertificateFile (.*?)\\r\\n`)
-    replace.push(`SSLCertificateFile "${host.ssl.cert}"\r\n`)
+    replace.push(`SSLCertificateFile "${cert}"\r\n`)
     find.push(`SSLCertificateFile (.*?)\\n`)
-    replace.push(`SSLCertificateFile "${host.ssl.cert}"\n`)
+    replace.push(`SSLCertificateFile "${cert}"\n`)
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
+    const key = pathFixedToUnix(host.ssl.key)
     find.push(`SSLCertificateKeyFile (.*?)\\r\\n`)
-    replace.push(`SSLCertificateKeyFile "${host.ssl.key}"\r\n`)
+    replace.push(`SSLCertificateKeyFile "${key}"\r\n`)
     find.push(`SSLCertificateKeyFile (.*?)\\n`)
-    replace.push(`SSLCertificateKeyFile "${host.ssl.key}"\n`)
+    replace.push(`SSLCertificateKeyFile "${key}"\n`)
   }
 
   if (host.port.apache !== old.port.apache) {
@@ -183,19 +194,20 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   }
   if (host.root !== old.root) {
     hasChanged = true
+    const root = pathFixedToUnix(host.root)
     find.push(`DocumentRoot (.*?)\\r\\n`)
-    replace.push(`DocumentRoot "${host.root}"\r\n`)
+    replace.push(`DocumentRoot "${root}"\r\n`)
     find.push(`DocumentRoot (.*?)\\n`)
-    replace.push(`DocumentRoot "${host.root}"\n`)
+    replace.push(`DocumentRoot "${root}"\n`)
     find.push(`<Directory (.*?)\\r\\n`)
-    replace.push(`<Directory "${host.root}">\r\n`)
+    replace.push(`<Directory "${root}">\r\n`)
     find.push(`<Directory (.*?)\\n`)
-    replace.push(`<Directory "${host.root}">\n`)
+    replace.push(`<Directory "${root}">\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
     if (old.phpVersion) {
-      find.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${old.phpVersion}/"`])
+      find.push(...[`SetHandler(\\s+)"proxy:fcgi://127\.0\.0\.1:90(.*?)"`])
     } else {
       find.push(...['##Static Site Apache##'])
     }

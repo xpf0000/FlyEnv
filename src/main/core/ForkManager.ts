@@ -130,18 +130,21 @@ export class ForkManager {
     if (args?.[0] === 'service') {
       if (!this.serviceFork) {
         this.serviceFork = new ForkItem(this.file, false)
+        this._on && (this.serviceFork._on = this._on)
       }
       return this.serviceFork!.send(...args)
     }
     if (args?.[0] === 'pure-ftpd') {
       if (!this.ftpFork) {
         this.ftpFork = new ForkItem(this.file, false)
+        this._on && (this.ftpFork._on = this._on)
       }
       return this.ftpFork!.send(...args)
     }
     if (args?.[0] === 'dns') {
       if (!this.dnsFork) {
         this.dnsFork = new ForkItem(this.file, false)
+        this._on && (this.dnsFork._on = this._on)
       }
       return this.dnsFork!.send(...args)
     }
@@ -153,6 +156,7 @@ export class ForkManager {
     if (!find) {
       if (this.forks.length < cpus().length) {
         find = new ForkItem(this.file, true)
+        this._on && (find._on = this._on)
         this.forks.push(find)
       } else {
         find = this.forks.shift()!

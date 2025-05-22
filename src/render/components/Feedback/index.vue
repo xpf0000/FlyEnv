@@ -57,7 +57,7 @@
 
 <script lang="ts" setup>
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import Country from './country.json'
   import { FeedbackStore } from '@/components/Feedback/store'
 

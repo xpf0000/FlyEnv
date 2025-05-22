@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { watch } from 'vue'
   import Store from './store'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   watch(
     () => Store.encodeInput,
@@ -28,7 +28,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('url-encode.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.url-encode-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

@@ -13,6 +13,12 @@
         :fetch-data-when-create="true"
       ></Service>
       <Manager v-else-if="tab === 1" type-flag="erlang" title="Erlang" :has-static="true"></Manager>
+      <ProjectIndex
+        v-else-if="tab === 2"
+        :title="`Erlang ${I18nT('base.projects')}`"
+        :type-flag="'erlang'"
+      >
+      </ProjectIndex>
     </div>
   </div>
 </template>
@@ -21,8 +27,13 @@
   import Service from '@/components/ServiceManager/base.vue'
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
+  import ProjectIndex from '@/components/PHP/projects/index.vue'
 
   const { tab } = AppModuleSetup('erlang')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager')]
+  const tabs = [
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    `Erlang ${I18nT('base.projects')}`
+  ]
 </script>

@@ -7,7 +7,7 @@ import installedVersions from '@/util/InstalledVersions'
 import { fetchVerion } from '@/util/Brew'
 import { VersionManagerStore } from '@/components/VersionManager/store'
 import { MessageError } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 const { shell } = require('@electron/remote')
 
@@ -67,11 +67,13 @@ export const Setup = (typeFlag: AllAppModule) => {
       brewStore.module(typeFlag).installing[row.bin] = row
       row.downing = true
       row.type = typeFlag
+      const all = brewStore.module(typeFlag).list
+      const find: any = all.find((r) => r.bin === row.bin && r.zip === row.zip)
+      find.downing = true
+      find.type = typeFlag
       IPC.send(`app-fork:${typeFlag}`, 'installSoft', JSON.parse(JSON.stringify(row))).then(
         (key: string, res: any) => {
           console.log('res: ', res)
-          const all = brewStore.module(typeFlag).list
-          const find = all.find((r) => r.bin === row.bin && r.zip === row.zip)
           const findInstalling = brewStore.module(typeFlag).installing[row.bin]
           if (res?.code === 200) {
             find && Object.assign(find, res.msg)

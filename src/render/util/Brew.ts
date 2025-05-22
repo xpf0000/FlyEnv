@@ -22,8 +22,15 @@ export const fetchVerion = (typeFlag: AllAppModule): Promise<boolean> => {
       saved = JSON.parse(saved)
       const time = Math.round(new Date().getTime() / 1000)
       if (time < saved.expire) {
+        const dataDirName = 'PhpWebStudy-Data'
         const list: OnlineVersionItem[] = [...saved.data]
         list.forEach((item) => {
+          if (!item.appDir.includes(global.Server.AppDir!)) {
+            const current = global.Server.AppDir!.split(dataDirName).shift()! + dataDirName
+            item.appDir = current + item.appDir.split(dataDirName).pop()
+            item.bin = current + item.bin.split(dataDirName).pop()
+            item.zip = current + item.zip.split(dataDirName).pop()
+          }
           item.downloaded = existsSync(item.zip)
           if (typeFlag === 'mariadb') {
             item.bin = join(global.Server.AppDir!, `mariadb-${item.version}`, 'bin/mariadbd.exe')
@@ -32,6 +39,15 @@ export const fetchVerion = (typeFlag: AllAppModule): Promise<boolean> => {
               `mariadb-${item.version}`,
               `mariadb-${item.version}-winx64`,
               'bin/mariadbd.exe'
+            )
+            item.installed = existsSync(item.bin) || existsSync(oldBin)
+          } else if (typeFlag === 'mongodb') {
+            item.bin = join(global.Server.AppDir!, `mongodb-${item.version}`, 'bin/mongod.exe')
+            const oldBin = join(
+              global.Server.AppDir!,
+              `mongodb-${item.version}`,
+              `mongodb-win32-x86_64-windows-${item.version}`,
+              'bin/mongodb.exe'
             )
             item.installed = existsSync(item.bin) || existsSync(oldBin)
           } else {

@@ -1,5 +1,5 @@
 import { AIStore } from '@/components/AI/store'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 /**
  * content: 聊天内容
  * needInput: 是否需要用户的输入

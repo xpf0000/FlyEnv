@@ -1,0 +1,13 @@
+{
+  "title": "Token 生成器",
+  "uppercase": "大写 (ABC...)",
+  "lowercase": "小写 (abc...)",
+  "numbers": "数字 (123...)",
+  "symbols": "符号 (!-;...)",
+  "length": "长度",
+  "tokenPlaceholder": "令牌...",
+  "button": {
+    "copy": "复制",
+    "refresh": "刷新"
+  }
+}

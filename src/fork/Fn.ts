@@ -1,15 +1,15 @@
-import { exec, spawn, execSync, type ChildProcess } from 'child_process'
+import { type ChildProcess, exec, execSync, spawn } from 'child_process'
 import { merge } from 'lodash'
 import {
-  statSync,
   chmodSync,
-  readdirSync,
-  mkdirSync,
-  existsSync,
   createWriteStream,
-  realpathSync
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  realpathSync,
+  statSync
 } from 'fs'
-import path, { join, dirname } from 'path'
+import { dirname, isAbsolute, join, parse, basename, normalize } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -26,6 +26,10 @@ import {
 import type { AppHost, SoftInstalled } from '@shared/app'
 import sudoPrompt from '@shared/sudo'
 import { compareVersions } from 'compare-versions'
+import chardet from 'chardet'
+import iconv from 'iconv-lite'
+import { I18nT } from '@lang/index'
+import { userInfo, hostname } from 'os'
 
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -172,7 +176,7 @@ export function spawnPromise(
   cammand: string,
   params: Array<any>,
   opt?: { [k: string]: any }
-): ForkPromise<any> {
+): ForkPromise<string> {
   return new ForkPromise((resolve, reject, on) => {
     const stdout: Array<Buffer> = []
     const stderr: Array<Buffer> = []
@@ -181,6 +185,7 @@ export function spawnPromise(
       params,
       merge(
         {
+          encoding: 'utf-8',
           env: fixEnv()
         },
         opt
@@ -424,7 +429,7 @@ export const getAllFileAsync = async (
   for (const file of files) {
     const arr = [...basePath]
     arr.push(file.name)
-    const childPath = path.join(dirPath, file.name)
+    const childPath = join(dirPath, file.name)
     if (file.isDirectory()) {
       const sub = await getAllFileAsync(childPath, fullpath, arr)
       list.push(...sub)
@@ -443,7 +448,7 @@ export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<
   const list: Array<string> = []
   const files = await readdir(dirPath, { withFileTypes: true })
   for (const file of files) {
-    const childPath = path.join(dirPath, file.name)
+    const childPath = join(dirPath, file.name)
     if (file.isDirectory()) {
       const name = fullpath ? childPath : file.name
       list.push(name)
@@ -461,11 +466,6 @@ export const hostAlias = (item: AppHost) => {
   const arr = Array.from(new Set(alias)).sort()
   arr.unshift(item.name)
   return arr
-}
-
-export const systemProxyGet = async () => {
-  const proxy: any = {}
-  return proxy
 }
 
 export function versionFixed(version?: string | null) {
@@ -563,52 +563,27 @@ export const versionLocalFetch = async (
   customDirs: string[],
   binName: string
 ): Promise<Array<SoftInstalled>> => {
-  const installed: Array<{
-    bin: string
-    path: string
-  }> = []
+  const installed: Set<string> = new Set()
 
-  const findInstalled = async (
-    dir: string,
-    depth = 0,
-    maxDepth = 2
-  ): Promise<
-    | {
-        bin: string
-        path: string
-      }
-    | false
-  > => {
-    let res:
-      | {
-          bin: string
-          path: string
-        }
-      | false = false
+  const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
     if (!existsSync(dir)) {
-      return false
+      return
     }
     dir = realpathSync(dir)
     let binPath = versionCheckBin(join(dir, `${binName}`))
     if (binPath) {
-      return {
-        bin: binPath,
-        path: dir
-      }
+      installed.add(binPath)
+      return
     }
     binPath = versionCheckBin(join(dir, `bin/${binName}`))
     if (binPath) {
-      return {
-        bin: binPath,
-        path: dir
-      }
+      installed.add(binPath)
+      return
     }
     binPath = versionCheckBin(join(dir, `sbin/${binName}`))
     if (binPath) {
-      return {
-        bin: binPath,
-        path: dir
-      }
+      installed.add(binPath)
+      return
     }
     if (depth >= maxDepth) {
       return false
@@ -618,10 +593,9 @@ export const versionLocalFetch = async (
       versionDirCache[dir] = sub
     }
     for (const s of sub) {
-      const sres: any = await findInstalled(s, depth + 1, maxDepth)
-      res = res || sres
+      await findInstalled(s, depth + 1, maxDepth)
     }
-    return res
+    return
   }
 
   const base = global.Server.AppDir!
@@ -630,29 +604,25 @@ export const versionLocalFetch = async (
     versionDirCache[base] = subDir
   }
   for (const f of subDir) {
-    const bin = await findInstalled(f)
-    if (bin) {
-      installed.push(bin)
-    }
+    await findInstalled(f)
   }
 
   for (const s of customDirs) {
-    const bin = await findInstalled(s, 0, 1)
-    if (bin && !installed.find((i) => i.bin === bin.bin)) {
-      installed.push(bin)
-    }
+    await findInstalled(s, 0, 1)
   }
 
-  const count = installed.length
+  const count = installed.size
   if (count === 0) {
     return []
   }
 
   const list: Array<SoftInstalled> = []
-  for (const i of installed) {
+  const installedList: Array<string> = Array.from(installed)
+  for (const i of installedList) {
+    const path = fetchPathByBin(i)
     const item = {
-      bin: i.bin,
-      path: i.path,
+      bin: i,
+      path: `${path}`,
       run: false,
       running: false
     }
@@ -696,52 +666,110 @@ export const AppLog = (type: 'info' | 'error', msg: string) => {
   return `[${type}]${time}:${msg}`
 }
 
-export const fetchPATH = (): ForkPromise<string[]> => {
+export const fetchRawPATH = (): ForkPromise<string[]> => {
   return new ForkPromise(async (resolve, reject) => {
-    const sh = join(global.Server.Static!, 'sh/path.cmd')
-    const copySh = join(global.Server.Cache!, 'path.cmd')
+    const sh = join(global.Server.Static!, 'sh/path-get.ps1')
+    const copySh = join(global.Server.Cache!, 'path-get.ps1')
     if (existsSync(copySh)) {
       await remove(copySh)
     }
     await copyFile(sh, copySh)
     process.chdir(global.Server.Cache!)
+    let res: any
     try {
-      const res = await execPromise('path.cmd')
-      let str = res?.stdout ?? ''
-      str = str.replace(new RegExp(`\n`, 'g'), '')
-      if (!str.includes(':\\') && !str.includes('%')) {
-        return resolve([])
-      }
-      const oldPath = Array.from(new Set(str.split(';') ?? []))
-        .filter((s) => !!s.trim())
-        .map((s) => s.trim())
-        .map((s) => {
-          if (existsSync(s)) {
-            return realpathSync(s)
-          }
-          return s
-        })
-      console.log('fetchPATH path: ', str, oldPath)
-      resolve(oldPath)
+      res = await spawnPromise(
+        'powershell.exe',
+        [
+          '-NoProfile',
+          '-ExecutionPolicy',
+          'Bypass',
+          '-Command',
+          `"Unblock-File -LiteralPath './path-get.ps1'; & './path-get.ps1'"`
+        ],
+        {
+          shell: 'powershell.exe',
+          cwd: global.Server.Cache!
+        }
+      )
     } catch (e) {
-      reject(e)
+      await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[_fetchRawPATH][error]: ${e}\n`)
+      return reject(e)
     }
+
+    let str = ''
+    const stdout = res.trim()
+    console.log('fetchRawPATH stdout: ', stdout)
+    const regex = /FlyEnv-PATH-GET([\s\S]*?)FlyEnv-PATH-GET/g
+    const match = regex.exec(stdout)
+    if (match) {
+      str = match[1].trim()
+    }
+    console.log('fetchRawPATH str: ', {
+      str
+    })
+    str = str.replace(new RegExp(`\r\n`, 'g'), '').replace(new RegExp(`\n`, 'g'), '')
+    if (!str.includes(':\\') && !str.includes('%')) {
+      return resolve([])
+    }
+    const oldPath = Array.from(new Set(str.split(';') ?? []))
+      .filter((s) => !!s.trim())
+      .map((s) => s.trim())
+    console.log('_fetchRawPATH: ', str, oldPath)
+    resolve(oldPath)
   })
 }
 
-export const writePath = async (path: string, other: string = '') => {
-  const sh = join(global.Server.Static!, 'sh/path-set.cmd')
-  const copySh = join(global.Server.Cache!, 'path-set.cmd')
+export const handleWinPathArr = (paths: string[]) => {
+  return Array.from(new Set(paths))
+    .map((p) => {
+      return p.trim()
+    })
+    .filter((p) => {
+      if (!p) {
+        return false
+      }
+      return isAbsolute(p) || p.includes('%') || p.includes('$env:')
+    })
+    .sort((a, b) => {
+      // 判断a的类型
+      const aType = isAbsolute(a)
+        ? 1
+        : a.startsWith('%SystemRoot%')
+          ? 2
+          : a.includes('%') || a.includes('$env:')
+            ? 3
+            : 4
+      // 判断b的类型
+      const bType = isAbsolute(b)
+        ? 1
+        : b.startsWith('%SystemRoot%')
+          ? 2
+          : b.includes('%') || b.includes('$env:')
+            ? 3
+            : 4
+      // 比较优先级
+      return aType - bType
+    })
+}
+
+export const writePath = async (path: string[], other: string = '') => {
+  console.log('writePath paths: ', path)
+  const sh = join(global.Server.Static!, 'sh/path-set.ps1')
+  const copySh = join(global.Server.Cache!, 'path-set.ps1')
   if (existsSync(copySh)) {
     await remove(copySh)
   }
+  const pathStr = path.join(';')
   let content = await readFile(sh, 'utf-8')
-  content = content.replace('##NEW_PATH##', path).replace('##OTHER##', other)
-  await writeFile(copySh, content)
+  content = content.replace('##NEW_PATH##', pathStr).replace('##OTHER##', other)
+  await writeFile(copySh, content, 'utf-8')
   process.chdir(global.Server.Cache!)
   try {
-    await execPromise('path-set.cmd')
+    await execPromise(
+      `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
+    )
   } catch (e) {
+    console.log('writePath error: ', e)
     await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[writePath][error]: ${e}\n`)
   }
 }
@@ -749,7 +777,7 @@ export const writePath = async (path: string, other: string = '') => {
 export const addPath = async (dir: string) => {
   let allPath: string[] = []
   try {
-    allPath = await fetchPATH()
+    allPath = await fetchRawPATH()
   } catch (e) {
     return
   }
@@ -761,14 +789,7 @@ export const addPath = async (dir: string) => {
     allPath.splice(index, 1)
   }
   allPath.unshift(dir)
-  const savePath = allPath
-    .map((p) => {
-      if (p.includes('%')) {
-        return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
-      }
-      return p
-    })
-    .join(';')
+  const savePath = handleWinPathArr(allPath)
   try {
     await writePath(savePath)
   } catch (e) {}
@@ -784,8 +805,8 @@ export async function moveDirToDir(src: string, dest: string) {
   const entries = await readdir(src, { withFileTypes: true })
 
   for (const entry of entries) {
-    const srcPath = path.join(src, entry.name)
-    const destPath = path.join(dest, entry.name)
+    const srcPath = join(src, entry.name)
+    const destPath = join(dest, entry.name)
 
     if (entry.isDirectory()) {
       await mkdirp(destPath)
@@ -795,5 +816,544 @@ export async function moveDirToDir(src: string, dest: string) {
       // 移动文件
       await rename(srcPath, destPath)
     }
+  }
+}
+
+export async function moveChildDirToParent(dir: string) {
+  const sub = await readdir(dir)
+  for (const s of sub) {
+    const sdir = join(dir, s)
+    await moveDirToDir(sdir, dir)
+    await remove(sdir)
+  }
+}
+
+export function fetchPathByBin(bin: string) {
+  let path = dirname(bin)
+  const paths = bin.split(`\\`)
+  let isBin = paths.pop()
+  while (isBin) {
+    if (['bin', 'sbin'].includes(isBin)) {
+      path = paths.join(`\\`)
+      isBin = undefined
+      break
+    }
+    isBin = paths.pop()
+  }
+  return path
+}
+
+const NTFS: Record<string, boolean> = {}
+
+export async function isNTFS(fileOrDirPath: string) {
+  const driveLetter = parse(fileOrDirPath).root.replace(/[:\\]/g, '')
+  if (NTFS.hasOwnProperty(driveLetter)) {
+    return NTFS[driveLetter]
+  }
+  try {
+    const jsonResult =
+      (
+        await execPromise(
+          `powershell -command "Get-Volume -DriveLetter ${driveLetter} | ConvertTo-Json"`,
+          { encoding: 'utf-8' }
+        )
+      )?.stdout ?? ''
+    const { FileSystem, FileSystemType } = JSON.parse(jsonResult)
+    const is = FileSystem === 'NTFS' || FileSystemType === 'NTFS'
+    NTFS[driveLetter] = is
+    return is
+  } catch (error) {
+    return false
+  }
+}
+
+export async function readFileAsUTF8(filePath: string): Promise<string> {
+  try {
+    const buffer: Buffer = await readFile(filePath)
+    if (buffer?.length === 0 || buffer?.byteLength === 0) {
+      return ''
+    }
+    const detectedEncoding = chardet.detect(buffer)
+    console.log('detectedEncoding: ', detectedEncoding)
+    if (
+      !detectedEncoding ||
+      detectedEncoding.toLowerCase() === 'utf-8' ||
+      detectedEncoding.toLowerCase() === 'utf8'
+    ) {
+      return buffer.toString('utf-8')
+    }
+
+    if (typeof detectedEncoding === 'string') {
+      let str = ''
+      try {
+        str = iconv.decode(buffer, detectedEncoding)
+      } catch (e) {}
+      return str
+    }
+
+    try {
+      return iconv.decode(buffer, detectedEncoding)
+    } catch (conversionError: any) {
+      console.error(
+        `Error converting from ${detectedEncoding} to UTF-8 for file: ${filePath}`,
+        conversionError
+      )
+      return buffer.toString('utf-8')
+    }
+  } catch (err: any) {
+    return ''
+  }
+}
+
+export function stringToUTF8(str: string): string {
+  try {
+    const buffer: Buffer = Buffer.from(str)
+    if (buffer?.length === 0 || buffer?.byteLength === 0) {
+      return ''
+    }
+    const detectedEncoding = chardet.detect(buffer)
+    console.log('detectedEncoding: ', detectedEncoding)
+    if (
+      !detectedEncoding ||
+      detectedEncoding.toLowerCase() === 'utf-8' ||
+      detectedEncoding.toLowerCase() === 'utf8'
+    ) {
+      return buffer.toString('utf-8')
+    }
+
+    if (typeof detectedEncoding === 'string') {
+      let str = ''
+      try {
+        str = iconv.decode(buffer, detectedEncoding)
+      } catch (e) {}
+      return str
+    }
+
+    try {
+      return iconv.decode(buffer, detectedEncoding)
+    } catch (conversionError: any) {
+      console.error(
+        `Error converting from ${detectedEncoding} to UTF-8 for str: ${str}`,
+        conversionError
+      )
+      return buffer.toString('utf-8')
+    }
+  } catch (err: any) {
+    return ''
+  }
+}
+
+export async function setDir777ToCurrentUser(folderPath: string) {
+  if (!existsSync(folderPath)) {
+    return
+  }
+  const username = userInfo().username
+  const domain = hostname()
+  const identity = `"${domain}\\${username}"`
+
+  const args = [
+    `"${normalize(folderPath)}"`,
+    '/grant',
+    `${identity}:(F)`, // 注意这里不再额外加引号
+    '/t',
+    '/c',
+    '/q'
+  ]
+
+  console.log(`Executing: icacls ${args.join(' ')}`)
+  await appendFile(
+    join(global.Server.BaseDir!, 'debug.log'),
+    `[setDir777ToCurrentUser][args]: icacls ${args.join(' ')}\n`
+  )
+  try {
+    await spawnPromise('icacls', args, {
+      shell: true,
+      windowsHide: true
+    })
+  } catch (e) {
+    await appendFile(
+      join(global.Server.BaseDir!, 'debug.log'),
+      `[setDir777ToCurrentUser][error]: ${e}\n`
+    )
+  }
+}
+
+export async function waitPidFile(
+  pidFile: string,
+  time = 0,
+  maxTime = 20,
+  timeToWait = 500
+): Promise<
+  | {
+      pid?: string
+      error?: string
+    }
+  | false
+> {
+  let res:
+    | {
+        pid?: string
+        error?: string
+      }
+    | false = false
+  if (existsSync(pidFile)) {
+    const pid = (await readFile(pidFile, 'utf-8')).trim()
+    return {
+      pid
+    }
+  } else {
+    if (time < maxTime) {
+      await waitTime(timeToWait)
+      res = res || (await waitPidFile(pidFile, time + 1, maxTime, timeToWait))
+    } else {
+      res = false
+    }
+  }
+  console.log('waitPid: ', time, res)
+  return res
+}
+
+export async function serviceStartExec(
+  version: SoftInstalled,
+  pidPath: string,
+  baseDir: string,
+  bin: string,
+  execArgs: string,
+  execEnv: string,
+  on: Function,
+  maxTime = 20,
+  timeToWait = 500,
+  checkPidFile = true
+): Promise<{ 'APP-Service-Start-PID': string }> {
+  if (pidPath && existsSync(pidPath)) {
+    try {
+      await remove(pidPath)
+    } catch (e) {}
+  }
+
+  const typeFlag = version.typeFlag
+  const versionStr = version.version!.trim()
+
+  const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
+  const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
+
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
+
+  psScript = psScript
+    .replace('#ENV#', execEnv)
+    .replace('#CWD#', dirname(bin))
+    .replace('#BIN#', bin)
+    .replace('#ARGS#', execArgs)
+    .replace('#OUTLOG#', outFile)
+    .replace('#ERRLOG#', errFile)
+
+  const psName = `${typeFlag}-${versionStr}-start.ps1`.split(' ').join('')
+  const psPath = join(baseDir, psName)
+  await writeFile(psPath, psScript)
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+  })
+
+  process.chdir(baseDir)
+  let res: any
+  try {
+    res = await spawnPromise(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-Command',
+        `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+      ],
+      {
+        shell: 'powershell.exe',
+        cwd: baseDir
+      }
+    )
+  } catch (e) {
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.execStartCommandFail', {
+          error: e,
+          service: `${version.typeFlag}-${version.version}`
+        })
+      )
+    })
+    throw e
+  }
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+  })
+  on({
+    'APP-Service-Start-Success': true
+  })
+
+  if (!checkPidFile) {
+    let pid = ''
+    const stdout = res.trim()
+    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
+    const match = regex.exec(stdout)
+    if (match) {
+      pid = match[1] // 捕获组 (\d+) 的内容
+    }
+    await writeFile(pidPath, pid)
+    on({
+      'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+    })
+    return {
+      'APP-Service-Start-PID': pid
+    }
+  }
+
+  res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
+  if (res) {
+    if (res?.pid) {
+      await writeFile(pidPath, res.pid)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+      })
+      return {
+        'APP-Service-Start-PID': res.pid
+      }
+    }
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.startServiceFail', {
+          error: res?.error ?? 'Start Fail',
+          service: `${version.typeFlag}-${version.version}`
+        })
+      )
+    })
+    throw new Error(res?.error ?? 'Start Fail')
+  }
+  let msg = 'Start Fail'
+  if (existsSync(errFile)) {
+    msg = (await readFileAsUTF8(errFile)) || 'Start Fail'
+  }
+  on({
+    'APP-On-Log': AppLog(
+      'error',
+      I18nT('appLog.startServiceFail', {
+        error: msg,
+        service: `${version.typeFlag}-${version.version}`
+      })
+    )
+  })
+  throw new Error(msg)
+}
+
+export async function serviceStartExecCMD(
+  version: SoftInstalled,
+  pidPath: string,
+  baseDir: string,
+  bin: string,
+  execArgs: string,
+  execEnv: string,
+  on: Function,
+  maxTime = 20,
+  timeToWait = 500,
+  checkPidFile = true
+): Promise<{ 'APP-Service-Start-PID': string }> {
+  if (pidPath && existsSync(pidPath)) {
+    try {
+      await remove(pidPath)
+    } catch (e) {}
+  }
+
+  const typeFlag = version.typeFlag
+  const versionStr = version.version!.trim()
+
+  const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
+  const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
+
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.cmd'), 'utf8')
+
+  let execBin = basename(bin)
+  if (execBin.includes('.exe')) {
+    execBin = `./${execBin}`
+  }
+
+  psScript = psScript
+    .replace('#ENV#', execEnv)
+    .replace('#CWD#', dirname(bin))
+    .replace('#BIN#', execBin)
+    .replace('#ARGS#', execArgs)
+    .replace('#OUTLOG#', outFile)
+    .replace('#ERRLOG#', errFile)
+
+  const psName = `${typeFlag}-${versionStr}-start.cmd`.split(' ').join('')
+  const psPath = join(baseDir, psName)
+  await writeFile(psPath, psScript)
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+  })
+
+  process.chdir(baseDir)
+  let res: any
+  try {
+    res = await spawnPromise(psName, [], {
+      shell: 'cmd.exe',
+      cwd: baseDir
+    })
+  } catch (e) {
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.execStartCommandFail', {
+          error: e,
+          service: `${version.typeFlag}-${version.version}`
+        })
+      )
+    })
+    throw e
+  }
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+  })
+  on({
+    'APP-Service-Start-Success': true
+  })
+
+  if (!checkPidFile) {
+    return {
+      'APP-Service-Start-PID': ''
+    }
+  }
+
+  res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
+  if (res) {
+    if (res?.pid) {
+      await writeFile(pidPath, res.pid)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+      })
+      return {
+        'APP-Service-Start-PID': res.pid
+      }
+    }
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.startServiceFail', {
+          error: res?.error ?? 'Start Fail',
+          service: `${version.typeFlag}-${version.version}`
+        })
+      )
+    })
+    throw new Error(res?.error ?? 'Start Fail')
+  }
+  let msg = 'Start Fail'
+  if (existsSync(errFile)) {
+    msg = (await readFileAsUTF8(errFile)) || 'Start Fail'
+  }
+  on({
+    'APP-On-Log': AppLog(
+      'error',
+      I18nT('appLog.startServiceFail', {
+        error: msg,
+        service: `${version.typeFlag}-${version.version}`
+      })
+    )
+  })
+  throw new Error(msg)
+}
+
+export async function serviceStartExecGetPID(
+  version: SoftInstalled,
+  pidPath: string,
+  baseDir: string,
+  cwdDir: string,
+  bin: string,
+  execArgs: string,
+  execEnv: string,
+  on: Function
+): Promise<{ 'APP-Service-Start-PID': string }> {
+  if (pidPath && existsSync(pidPath)) {
+    try {
+      await remove(pidPath)
+    } catch (e) {}
+  }
+
+  const typeFlag = version.typeFlag
+  const versionStr = version.version!.trim()
+
+  const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
+  const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
+
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
+
+  psScript = psScript
+    .replace('#ENV#', execEnv)
+    .replace('#CWD#', cwdDir)
+    .replace('#BIN#', bin)
+    .replace('#ARGS#', execArgs)
+    .replace('#OUTLOG#', outFile)
+    .replace('#ERRLOG#', errFile)
+
+  const psName = `${typeFlag}-${versionStr}-start.ps1`.split(' ').join('')
+  const psPath = join(baseDir, psName)
+  await writeFile(psPath, psScript)
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
+  })
+
+  process.chdir(baseDir)
+  let res: any
+  try {
+    res = await spawnPromise(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-Command',
+        `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
+      ],
+      {
+        shell: 'powershell.exe',
+        cwd: baseDir
+      }
+    )
+  } catch (e) {
+    on({
+      'APP-On-Log': AppLog(
+        'error',
+        I18nT('appLog.execStartCommandFail', {
+          error: e,
+          service: `${version.typeFlag}-${version.version}`
+        })
+      )
+    })
+    throw e
+  }
+
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
+  })
+  on({
+    'APP-Service-Start-Success': true
+  })
+
+  let pid = ''
+  const stdout = res.trim()
+  const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
+  const match = regex.exec(stdout)
+  if (match) {
+    pid = match[1] // 捕获组 (\d+) 的内容
+  }
+  await writeFile(pidPath, pid)
+  on({
+    'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
+  })
+  return {
+    'APP-Service-Start-PID': pid
   }
 }

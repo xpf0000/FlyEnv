@@ -6,20 +6,17 @@
     :file-ext="'conf'"
     :show-commond="true"
     :show-load-default="false"
+    :common-setting="commonSetting"
     @on-type-change="onTypeChange"
   >
-    <template #common>
-      <Common :key="commonKey" :setting="commonSetting" />
-    </template>
   </Conf>
 </template>
 
 <script lang="ts" setup>
   import { computed, reactive, Ref, ref, watch } from 'vue'
   import Conf from '@/components/Conf/index.vue'
-  import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
   import { uuid } from '@/util/Index'
 
@@ -30,8 +27,6 @@
   const file = computed(() => {
     return join(global.Server.UserHome!, '.npmrc')
   })
-
-  const commonKey = ref(uuid())
 
   const baseOptions = [
     {
@@ -202,7 +197,7 @@
   ]
 
   const onSettingUpdate = () => {
-    let config = editConfig
+    let config = editConfig.replace(/\r\n/gm, '\n')
     commonSetting.value.forEach((item) => {
       const regex = new RegExp(`^(?!\\s*#)\\s*${item.name}\\s*=(.*?)([^\\n])(\\n|$)`, 'gmu')
       if (item.enable) {
@@ -213,7 +208,7 @@
           config = config.trim() + `\n${item.name}=${item.value}`
         }
       } else {
-        config = config.replace(regex, `\n`)
+        config = config.replace(regex, ``)
         config = config.replace(/^\s*[\r\n]+|[\r\n]+\s*$/gm, '\n').replace(/\n\s*\n/g, '\n')
       }
       if (item.name === 'registry') {
@@ -226,16 +221,18 @@
     })
     config = config.trim()
     conf.value.setEditValue(config)
+    editConfig = config
   }
 
   const getCommonSetting = () => {
     if (watcher) {
       watcher()
     }
-    const arr = names.map((item) => {
+    let config = editConfig.replace(/\r\n/gm, '\n')
+    const arr = [...names].map((item) => {
       const regex = new RegExp(`^(?!\\s*#)\\s*${item.name}\\s*=(.*?)([^\\n])(\\n|$)`, 'gmu')
       const matchs =
-        editConfig.match(regex)?.map((s) => {
+        config.match(regex)?.map((s) => {
           const sarr = s
             .trim()
             .split('=')
@@ -249,31 +246,19 @@
         }) ?? []
       console.log('getCommonSetting: ', matchs, item.name)
       const find = matchs?.find((m) => m.k === item.name)
-      if (!find) {
-        item.enable = false
-        return item
-      }
-      item.enable = true
+      item.enable = !!find
       item.value = find?.v ?? item.value
+      item.key = uuid()
       return item
     })
-    if (commonSetting.value.length === 0) {
-      commonSetting.value = reactive(arr) as any
-    } else {
-      arr.forEach((item, index) => {
-        const setting = commonSetting.value[index]
-        setting.enable = item.enable
-        setting.value = item.value
-      })
-    }
-    commonKey.value = uuid()
+    commonSetting.value = reactive(arr) as any
     watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
       deep: true
     })
   }
 
   const onTypeChange = (type: 'default' | 'common', config: string) => {
-    if (editConfig !== config) {
+    if (editConfig !== config || commonSetting.value.length === 0) {
       editConfig = config
       getCommonSetting()
     }

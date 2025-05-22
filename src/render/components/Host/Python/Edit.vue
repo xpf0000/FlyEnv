@@ -39,7 +39,7 @@
         <div class="plant-title">{{ I18nT('host.pythonPath') }}</div>
         <div class="main">
           <el-select v-model="item.pythonDir" class="w-full">
-            <template v-for="(item, index) in pythons" :key="index">
+            <template v-for="(item, _index) in pythons" :key="_index">
               <el-option :label="`java${item.version}-${item.bin}`" :value="item.bin"></el-option>
             </template>
           </el-select>
@@ -155,7 +155,7 @@
   import { computed, ref, watch } from 'vue'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
   import { BrewStore } from '@/store/brew'

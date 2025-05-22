@@ -1,11 +1,12 @@
-import { basename, dirname, join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -16,7 +17,6 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
 import { ProcessListSearch } from '../Process'
 
 class RabbitMQ extends Base {
@@ -119,32 +119,32 @@ set "PLUGINS_DIR=${pluginsDir}"`
       const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)
       await mkdirp(mnesiaBaseDir)
 
-      const startLogFile = join(this.baseDir, `start.log`)
-      const startErrorLogFile = join(this.baseDir, `start.error.log`)
-      if (existsSync(startErrorLogFile)) {
-        try {
-          await remove(startErrorLogFile)
-        } catch (e) {}
-      }
+      try {
+        const all = readdirSync(mnesiaBaseDir)
+        const pid = all.find((p) => p.endsWith('.pid'))
+        if (pid) {
+          await remove(join(mnesiaBaseDir, pid))
+        }
+      } catch (e) {}
 
       const checkpid = async (time = 0) => {
         const all = readdirSync(mnesiaBaseDir)
         const pidFile = all.find((p) => p.endsWith('.pid'))
         if (pidFile) {
-          const pid = await readFile(join(mnesiaBaseDir, pidFile), 'utf-8')
+          const pid = (await readFile(join(mnesiaBaseDir, pidFile), 'utf-8')).trim()
+          await writeFile(this.pidPath, `${pid}`)
           on({
             'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
           })
-          resolve(true)
+          resolve({
+            'APP-Service-Start-PID': pid
+          })
         } else {
           if (time < 20) {
             await waitTime(500)
             await checkpid(time + 1)
           } else {
-            let msg = I18nT('fork.startFail')
-            if (existsSync(startErrorLogFile)) {
-              msg = await readFile(startErrorLogFile)
-            }
+            const msg = I18nT('fork.startFail')
             on({
               'APP-On-Log': AppLog(
                 'error',
@@ -158,66 +158,31 @@ set "PLUGINS_DIR=${pluginsDir}"`
           }
         }
       }
+
+      const bin = version.bin
+      const baseDir = this.baseDir
+      await mkdirp(baseDir)
+      const execEnv = `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`
+      const execArgs = `-detached`
+
       try {
-        const all = readdirSync(mnesiaBaseDir)
-        const pid = all.find((p) => p.endsWith('.pid'))
-        if (pid) {
-          await remove(join(mnesiaBaseDir, pid))
-        }
-      } catch (e) {}
-
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `set "RABBITMQ_CONF_ENV_FILE=${confFile}"`,
-        `cd /d "${dirname(version.bin)}"`,
-        `start /B ${basename(version.bin)} -detached --PWSAPPFLAG=${global.Server.BaseDir!} > "${startLogFile}" 2>"${startErrorLogFile}" &`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(this.baseDir, cmdName)
-      await writeFile(sh, command)
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(this.baseDir)
-      try {
-        const res = await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        await serviceStartExecCMD(
+          version,
+          this.pidPath,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on,
+          20,
+          500,
+          false
         )
-        console.log('rabbitmq start res: ', res.stdout)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
       await checkpid()
     })
   }
@@ -253,19 +218,41 @@ set "PLUGINS_DIR=${pluginsDir}"`
     }
     let str = ''
     try {
-      str = (await execPromise('set ERLANG_HOME')).stdout.trim().replace('ERLANG_HOME=', '')
-    } catch (e: any) {}
+      const stdout = (
+        await execPromise(
+          'Write-Host "##FlyEnv-ERLANG_HOME$($env:ERLANG_HOME)FlyEnv-ERLANG_HOME##"',
+          {
+            shell: 'powershell.exe'
+          }
+        )
+      ).stdout.trim()
+      const regex = /FlyEnv-ERLANG_HOME(.*?)FlyEnv-ERLANG_HOME/g
+      const match = regex.exec(stdout)
+      if (match) {
+        str = match[1] // 捕获组 (\d+) 的内容
+      }
+    } catch (e: any) {
+      console.log('set ERLANG_HOME error: ', e)
+    }
+    console.log('ERLANG_HOME: ', str)
     if (!str || !existsSync(str)) {
       return
     }
     const dirs = await readdir(str)
     for (const dir of dirs) {
       const bin = join(str, dir, 'bin/epmd.exe')
+      console.log('epmd.exe: ', bin)
       if (existsSync(bin)) {
+        console.log('epmd.exe existsSync: ', bin)
         process.chdir(dirname(bin))
         try {
-          await execPromise('start /B ./epmd.exe > NUL 2>&1 &')
-        } catch (e: any) {}
+          await execPromise(`start /B ./epmd.exe > NUL 2>&1`, {
+            cwd: dirname(bin),
+            shell: 'cmd.exe'
+          })
+        } catch (e: any) {
+          console.log('epmd.exe start error: ', e)
+        }
         break
       }
     }
@@ -287,7 +274,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
                 version: undefined
               })
             }
-            const command = `${join(dirname(item.bin), 'rabbitmqctl.bat')} version`
+            const command = `rabbitmqctl.bat version`
             const reg = /(.*?)(\d+(\.\d+){1,4})(.*?)/g
             return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })

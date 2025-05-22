@@ -1,5 +1,6 @@
 <template>
-  <el-card v-if="item.show !== false" :header="item.name">
+  <el-card v-if="item.show !== false"
+           :header="item.name">
     <template #header>
       <div class="flex items-center justify-between gap-2 overflow-hidden">
         <div class="flex-1 overflow-hidden flex items-center gap-0.5">

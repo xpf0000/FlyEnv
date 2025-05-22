@@ -34,6 +34,82 @@ body {
     .el-dialog__header {
     }
   }
+
+  .app-html-block {
+    a {
+      color: #4096ff;
+    }
+  }
+  .app-el-table-v2 {
+    .el-table-v2__header-cell {
+      padding: 0 12px;
+
+      &.flex-1 {
+        flex: 1 !important;
+      }
+      &.flex-shrink-0 {
+        flex-shrink: 0 !important;
+      }
+    }
+
+    .el-table-v2__row {
+      .el-table-v2__row-cell {
+        padding: 0 12px;
+
+        &.flex-1 {
+          flex: 1 !important;
+        }
+        &.flex-shrink-0 {
+          flex-shrink: 0 !important;
+        }
+
+        .current {
+          color: #409eff;
+        }
+
+        .hover-yellow-500 {
+          cursor: pointer;
+
+          &:hover {
+            color: #fdab1f;
+          }
+        }
+      }
+
+      .row-hover-show {
+        display: none;
+      }
+
+      &:hover {
+        .row-hover-show {
+          display: inline-flex;
+        }
+      }
+    }
+  }
+
+  .el-table {
+    .el-table__row {
+      .el-table__cell {
+        .hover-yellow-500 {
+
+          &:hover {
+            color: #fdab1f;
+          }
+        }
+      }
+
+      .row-hover-show {
+        display: none;
+      }
+
+      &:hover {
+        .row-hover-show {
+          display: inline-flex;
+        }
+      }
+    }
+  }
 }
 #app {
   #container {
@@ -417,13 +493,9 @@ body {
   .main-wapper {
     flex: 1;
     width: 100%;
-    overflow: auto;
+    overflow: hidden;
     padding: 12px;
-    &::-webkit-scrollbar {
-      width: 0;
-      height: 0;
-      display: none;
-    }
+
     .input {
       background: transparent;
       border-top: none;
@@ -810,7 +882,9 @@ body {
 
       &.path-set {
         >svg {
-          opacity: 0.5;
+          &:not(.opacity-100) {
+            opacity: 0.5;
+          }
         }
 
         &.seted {
@@ -1971,62 +2045,13 @@ body {
     }
   }
 }
-.app-chat-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 9997;
-  background: rgba(0, 0, 0, 0.5);
-  transition: opacity 0.4s;
 
-  &:not(.show) {
-    display: none;
-  }
-
-  &.show {
-    opacity: 1;
-
-    &.init {
-      opacity: 0;
-    }
-  }
-}
 .app-chat {
-  position: fixed;
-  z-index: 9999;
   background: #f0f0f0;
-  display: none;
+  display: flex;
   flex-direction: column;
-  transition: all 0.4s;
   overflow: hidden;
-
-  &.show {
-    display: flex;
-    &:not(.init) {
-      left: 280px;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      border-radius: 0;
-      width: calc(100vw - 280px);
-      height: 100vh;
-      opacity: 1;
-    }
-    &.init {
-      display: flex;
-      left: calc(100vw - 40px - 20px);
-      top: calc(100vh - 40px - 20px);
-      width: 40px;
-      height: 40px;
-      right: 20px;
-      bottom: 20px;
-      border-radius: 44px;
-      opacity: 0.5;
-    }
-  }
-
-  &:not(.show) {
-    display: none;
-  }
+  height: 100vh;
 
   .nav {
     height: 55px;
@@ -2171,7 +2196,7 @@ body {
       }
     }
     > .content {
-      max-width: 75%;
+      max-width: 90%;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -2179,12 +2204,14 @@ body {
 
       > .text {
         color: #303133;
-        padding: 10px;
+        padding: 10px 24px;
         line-height: 1.6;
         border-radius: 5px;
-        word-wrap: break-word;
-        white-space: pre-wrap;
         user-select: text;
+
+        * {
+          list-style: initial;
+        }
       }
     }
     &.ai {
@@ -2738,8 +2765,6 @@ body {
   }
 }
 .about-panel {
-  max-width: 632px;
-
   .app-info {
     position: relative;
     margin: 8px 0;
@@ -2752,9 +2777,6 @@ body {
       line-height: 18px;
     }
     .app-icon {
-      position: absolute;
-      top: -8px;
-      right: 0;
       background: transparent url('@/assets/256x256.png') center center no-repeat;
       background-size: 128px 128px;
       width: 128px;

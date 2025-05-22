@@ -12,7 +12,7 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { AppStore } from '@/store/app'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { nativeTheme } = require('@electron/remote')
 

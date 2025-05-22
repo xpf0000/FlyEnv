@@ -1,28 +1,32 @@
-import { basename, dirname, join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  waitTime
 } from '../Fn'
-import { copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { copyFile, mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { makeGlobalTomcatServerXML } from './service/ServiceItemJavaTomcat'
-import { EOL } from 'os'
 import { ProcessListSearch } from '../Process'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 
 class Tomcat extends Base {
   constructor() {
     super()
     this.type = 'tomcat'
+  }
+
+  init() {
+    this.pidPath = join(global.Server.BaseDir!, 'tomcat/tomcat.pid')
   }
 
   fetchAllOnLineVersion() {
@@ -59,12 +63,18 @@ class Tomcat extends Base {
     }
   }
 
-  _initDefaultDir(version: SoftInstalled) {
+  _initDefaultDir(version: SoftInstalled, baseDir?: string): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, on) => {
-      const v = version?.version?.split('.')?.shift() ?? ''
-      const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+      let dir = ''
+      if (baseDir) {
+        dir = baseDir
+      } else {
+        const v = version?.version?.split('.')?.shift() ?? ''
+        dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+      }
       if (existsSync(dir) && existsSync(join(dir, 'conf/server.xml'))) {
         resolve(dir)
+        return
       }
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
@@ -99,35 +109,7 @@ class Tomcat extends Base {
     })
   }
 
-  _stopServer(version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
-      })
-      const v = version?.version?.split('.')?.shift() ?? ''
-      const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
-      const all = await ProcessListSearch(dir, false)
-      const arr: Array<number> = []
-      all.forEach((item) => {
-        arr.push(item.ProcessId)
-      })
-      console.log('tomcat _stopServer arr: ', arr)
-      if (arr.length > 0) {
-        const str = arr.map((s) => `/pid ${s}`).join(' ')
-        try {
-          await execPromise(`taskkill /f /t ${str}`)
-        } catch (e) {}
-      }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
-      })
-      resolve({
-        'APP-Service-Stop-PID': arr
-      })
-    })
-  }
-
-  _startServer(version: SoftInstalled) {
+  _startServer(version: SoftInstalled, lastVersion?: SoftInstalled, CATALINA_BASE?: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog(
@@ -137,63 +119,97 @@ class Tomcat extends Base {
       })
       const bin = version.bin
       await this._fixStartBat(version)
-      const baseDir = await this._initDefaultDir(version).on(on)
+      const baseDir: string = await this._initDefaultDir(version, CATALINA_BASE).on(on)
       await makeGlobalTomcatServerXML({
         path: baseDir
       } as any)
 
+      await mkdirp(join(baseDir, 'logs'))
+
       const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
+      const execEnv = `set "CATALINA_BASE=${baseDir}"`
+      const execArgs = ``
 
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `set "CATALINA_BASE=${baseDir}"`,
-        `cd /d "${dirname(bin)}"`,
-        `start /B ${basename(bin)} > NUL 2>&1 &`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(tomcatDir, cmdName)
-      await writeFile(sh, command)
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(tomcatDir)
       try {
-        const res = await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        await serviceStartExecCMD(
+          version,
+          this.pidPath,
+          tomcatDir,
+          bin,
+          execArgs,
+          execEnv,
+          on,
+          20,
+          500,
+          false
         )
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.stdout }))
-        })
-        console.log('tomcat start res: ', res.stdout)
-        resolve(true)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
+
+      /**
+       * "C:\Users\x\Desktop\Git Hub\FlyEnv\data\env\java\bin\javaw.exe"
+       * -Djava.util.logging.config.file="C:\Users\x\Desktop\App\CCC\conf\logging.properties"
+       * -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+       * -Djdk.tls.ephemeralDHKeySize=2048
+       * --add-opens=java.base/java.lang=ALL-UNNAMED
+       * --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+       * --add-opens=java.base/java.io=ALL-UNNAMED
+       * --add-opens=java.base/java.util=ALL-UNNAMED
+       * --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+       * --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+       * --enable-native-access=ALL-UNNAMED
+       * -classpath "C:\Users\x\Desktop\Git Hub\FlyEnv\data\app\tomcat-11.0.6\bin\bootstrap.jar;C:\Users\x\Desktop\Git Hub\FlyEnv\data\app\tomcat-11.0.6\bin\tomcat-juli.jar"
+       * -Dcatalina.base="C:\Users\x\Desktop\App\CCC"
+       * -Dcatalina.home="C:\Users\x\Desktop\Git Hub\FlyEnv\data\app\tomcat-11.0.6"
+       * -Djava.io.tmpdir="C:\Users\x\Desktop\App\CCC\temp"
+       * org.apache.catalina.startup.Bootstrap start
+       */
+      const checkPid = (): Promise<{ pid: number } | undefined> => {
+        return new Promise((resolve) => {
+          const doCheck = async (time: number) => {
+            const pids = await ProcessListSearch(`-Dcatalina.base="${baseDir}"`, false)
+            if (pids.length > 0) {
+              const pid = pids.pop()!
+              resolve({
+                pid: pid.ProcessId
+              })
+            } else {
+              if (time < 20) {
+                await waitTime(2000)
+                await doCheck(time + 1)
+              } else {
+                resolve(undefined)
+              }
+            }
+          }
+          doCheck(0).then().catch()
+        })
+      }
+      await waitTime(3000)
+      const res = await checkPid()
+      if (res && res?.pid) {
+        await writeFile(this.pidPath, `${res.pid}`)
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+        })
+        resolve({
+          'APP-Service-Start-PID': res.pid
+        })
+        return
+      }
+      on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.execStartCommandFail', {
+            error: 'Start failed',
+            service: `${this.type}-${version.version}`
+          })
+        )
+      })
+      reject(new Error('Start failed'))
     })
   }
 

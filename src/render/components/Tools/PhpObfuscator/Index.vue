@@ -179,7 +179,7 @@
         this.errs.desc =
           this.item.desc.length === 0 ||
           this.item.src === this.item.desc ||
-          this.item.desc.includes(this.item.src)
+          `${this.item.desc}\\`.includes(`${this.item.src}\\`)
         const errs: { [key: string]: boolean } = this.errs
         for (let k in errs) {
           if (errs[k]) {

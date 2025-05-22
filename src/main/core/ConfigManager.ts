@@ -1,5 +1,5 @@
 import Store, { Options } from 'electron-store'
-import { AppI18n } from '../lang'
+import { AppI18n } from '@lang/index'
 
 interface ConfigOptions {
   'last-check-update-time': number

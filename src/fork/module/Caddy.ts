@@ -1,11 +1,11 @@
-import { join, dirname, basename } from 'path'
+import { join, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
   hostAlias,
+  serviceStartExecCMD,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -14,11 +14,10 @@ import {
   versionSort
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, remove } from 'fs-extra'
+import { readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { EOL } from 'os'
 import { fetchHostList } from './host/HostFile'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 
 class Caddy extends Base {
   constructor() {
@@ -148,100 +147,18 @@ class Caddy extends Base {
       await this.#fixVHost()
       const iniFile = await this.initConfig().on(on)
 
-      if (existsSync(this.pidPath)) {
-        try {
-          await remove(this.pidPath)
-        } catch (e) {}
-      }
+      const baseDir = join(global.Server.BaseDir!, `caddy`)
+      await mkdirp(baseDir)
+      const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
 
-      const startLogFile = join(global.Server.BaseDir!, `caddy/start.log`)
-      if (existsSync(startLogFile)) {
-        try {
-          await remove(startLogFile)
-        } catch (e) {}
-      }
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `cd /d "${dirname(bin)}"`,
-        `start /B ./${basename(bin)} start --config "${iniFile}" --pidfile "${this.pidPath}" --watch > "${startLogFile}" 2>&1 &`
-      ]
-
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.BaseDir!, `caddy/${cmdName}`)
-      await writeFile(sh, command)
-
-      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
-      await mkdirp(dirname(appPidFile))
-      if (existsSync(appPidFile)) {
-        try {
-          await remove(appPidFile)
-        } catch (e) {}
-      }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(join(global.Server.BaseDir!, `caddy`))
       try {
-        await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
-        )
+        const res = await serviceStartExecCMD(version, this.pidPath, baseDir, bin, execArgs, '', on)
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.execStartCommandFail', { error: e, service: `caddy-${version.version}` })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return
       }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-      const res = await this.waitPidFile(this.pidPath)
-      if (res) {
-        if (res?.pid) {
-          on({
-            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-          })
-          await writeFile(appPidFile, res.pid)
-          resolve({
-            'APP-Service-Start-PID': res.pid
-          })
-          return
-        }
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: res?.error ?? 'Start Fail',
-              service: `caddy-${version.version}`
-            })
-          )
-        })
-        reject(new Error(res?.error ?? 'Start Fail'))
-        return
-      }
-      let msg = 'Start Fail'
-      if (existsSync(startLogFile)) {
-        msg = await readFile(startLogFile, 'utf-8')
-      }
-      on({
-        'APP-On-Log': AppLog(
-          'error',
-          I18nT('appLog.startServiceFail', { error: msg, service: `caddy-${version.version}` })
-        )
-      })
-      reject(new Error(msg))
     })
   }
 

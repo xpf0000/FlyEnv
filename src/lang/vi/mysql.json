@@ -1,0 +1,14 @@
+{
+  "port": "port. default is 3306",
+  "key_buffer_size": "Kích thước bộ đệm để lập chỉ mục",
+  "query_cache_size": "Bộ nhớ cache truy vấn, vui lòng đặt thành 0 nếu không được bật",
+  "tmp_table_size": "Kích thước bộ nhớ cache bảng tạm",
+  "innodb_buffer_pool_size": "Kích thước bộ đệm InnoDB",
+  "innodb_log_buffer_size": "Kích thước bộ đệm nhật ký InnoDB",
+  "sort_buffer_size": "Kích thước bộ đệm để sắp xếp mỗi luồng",
+  "read_buffer_size": "Kích thước bộ đệm đọc vào",
+  "read_rnd_buffer_size": "Kích thước bộ đệm đọc ngẫu nhiên",
+  "thread_cache_size": "Kích thước nhóm luồng",
+  "table_open_cache": "Bộ nhớ cache bảng",
+  "max_connections": "Kết nối tối đa"
+}

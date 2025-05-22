@@ -31,7 +31,7 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import PHP from './php.vue'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { nextTick } from 'vue'
   import NodeJS from './nodejs.vue'
 

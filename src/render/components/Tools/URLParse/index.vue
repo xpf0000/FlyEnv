@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { watch, computed, ComputedRef } from 'vue'
   import Store from './store'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { CopyDocument } from '@element-plus/icons-vue'
 
   const dict: ComputedRef<Record<string, string>> = computed(() => {
@@ -27,7 +27,7 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ I18nT('url-parse.title') }}</span>
+        <span class="text-xl">{{ I18nT('tools.url-parse-title') }}</span>
         <slot name="like"></slot>
       </div>
     </div>

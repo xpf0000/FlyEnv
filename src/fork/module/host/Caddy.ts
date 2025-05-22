@@ -5,6 +5,7 @@ import { hostAlias } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash'
+import { pathFixedToUnix } from '@shared/utils'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -74,7 +75,7 @@ export const makeCaddyConf = async (host: AppHost) => {
   if (host.useSSL) {
     let tls = 'internal'
     if (host.ssl.cert && host.ssl.key) {
-      tls = `${host.ssl.cert.split('\\').join('/')} ${host.ssl.key.split('\\').join('/')}`
+      tls = `"${host.ssl.cert.split('\\').join('/')}" "${host.ssl.key.split('\\').join('/')}"`
     }
     const httpHostNameAll = httpsNames.join(',\n')
     let content = tmpl.caddySSL
@@ -128,7 +129,9 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
   const replace: Array<string> = []
   if (host.name !== old.name) {
     hasChanged = true
-    const logFile = join(global.Server.BaseDir!, `vhost/logs/${host.name}.caddy.log`).split('\\').join('/')
+    const logFile = join(global.Server.BaseDir!, `vhost/logs/${host.name}.caddy.log`)
+      .split('\\')
+      .join('/')
     find.push(`import set-log (.*?)\\r\\n`)
     replace.push(`import set-log "${logFile}"\r\n`)
     find.push(`import set-log (.*?)\\n`)
@@ -176,34 +179,47 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
 
   if (host.ssl.cert !== old.ssl.cert || host.ssl.key !== old.ssl.key) {
     hasChanged = true
+    const cert = pathFixedToUnix(host.ssl.cert)
+    const key = pathFixedToUnix(host.ssl.key)
     find.push(`tls (.*?)\\r\\n`)
-    replace.push(`tls ${host.ssl.cert} ${host.ssl.key}\r\n`)
+    replace.push(`tls "${cert}" "${key}"\r\n`)
     find.push(`tls (.*?)\\n`)
-    replace.push(`tls ${host.ssl.cert} ${host.ssl.key}\n`)
+    replace.push(`tls "${cert}" "${key}"\n`)
   }
   if (host.root !== old.root) {
     hasChanged = true
+    const root = pathFixedToUnix(host.root)
     find.push(`root * (.*?)\\r\\n`)
-    replace.push(`root * ${host.root}\r\n`)
+    replace.push(`root * "${root}"\r\n`)
     find.push(`root * (.*?)\\n`)
-    replace.push(`root * ${host.root}\n`)
+    replace.push(`root * "${root}"\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
     if (old.phpVersion) {
-      find.push(...[`import enable-php-select ${old.phpVersion}`])
+      find.push(...[`import(\\s+)enable-php-select(.*?)\\r\\n`])
+      find.push(...[`import(\\s+)enable-php-select(.*?)\\n`])
     } else {
-      find.push(...['import enable-php-select undefined'])
+      find.push(...[`import(\\s+)enable-php-select(.*?)\\r\\n`])
+      find.push(...[`import(\\s+)enable-php-select(.*?)\\n`])
       find.push(...['##Static Site Caddy##'])
     }
     if (host.phpVersion) {
-      replace.push(...[`import enable-php-select ${host.phpVersion}`])
-      if (!old.phpVersion) {
+      if (old.phpVersion) {
+        replace.push(...[`import enable-php-select ${host.phpVersion}\r\n`])
+        replace.push(...[`import enable-php-select ${host.phpVersion}\n`])
+      } else {
+        replace.push(...[`import enable-php-select ${host.phpVersion}\r\n`])
+        replace.push(...[`import enable-php-select ${host.phpVersion}\n`])
         replace.push(...[`import enable-php-select ${host.phpVersion}`])
       }
     } else {
-      replace.push(...['##Static Site Caddy##'])
-      if (!old.phpVersion) {
+      if (old.phpVersion) {
+        replace.push(...['##Static Site Caddy##\r\n'])
+        replace.push(...['##Static Site Caddy##\n'])
+      } else {
+        replace.push(...['##Static Site Caddy##\r\n'])
+        replace.push(...['##Static Site Caddy##\n'])
         replace.push(...['##Static Site Caddy##'])
       }
     }

@@ -24,6 +24,14 @@ class Manager extends Base {
   Maven: any
   ERLang: any
   MailPit: any
+  Ruby: any
+  Node: any
+  Elasticsearch: any
+  Ollama: any
+  Minio: any
+  Rust: any
+  MeiliSearch: any
+
   constructor() {
     super()
   }
@@ -149,6 +157,48 @@ class Manager extends Base {
             this.MailPit = res.default
           }
           versions.mailpit = this.MailPit.allInstalledVersions(setup)
+        } else if (type === 'ruby') {
+          if (!this.Ruby) {
+            const res = await import('./Ruby')
+            this.Ruby = res.default
+          }
+          versions.ruby = this.Ruby.allInstalledVersions(setup)
+        } else if (type === 'node') {
+          if (!this.Node) {
+            const res = await import('./Node')
+            this.Node = res.default
+          }
+          versions.node = this.Node.allInstalledVersions(setup)
+        } else if (type === 'elasticsearch') {
+          if (!this.Elasticsearch) {
+            const res = await import('./Elasticsearch')
+            this.Elasticsearch = res.default
+          }
+          versions.elasticsearch = this.Elasticsearch.allInstalledVersions(setup)
+        } else if (type === 'ollama') {
+          if (!this.Ollama) {
+            const res = await import('./Ollama')
+            this.Ollama = res.default
+          }
+          versions.ollama = this.Ollama.allInstalledVersions(setup)
+        } else if (type === 'minio') {
+          if (!this.Minio) {
+            const res = await import('./Minio')
+            this.Minio = res.default
+          }
+          versions.minio = this.Minio.allInstalledVersions(setup)
+        } else if (type === 'rust') {
+          if (!this.Rust) {
+            const res = await import('./Rust')
+            this.Rust = res.default
+          }
+          versions.rust = this.Rust.allInstalledVersions(setup)
+        } else if (type === 'meilisearch') {
+          if (!this.MeiliSearch) {
+            const res = await import('./MeiliSearch')
+            this.MeiliSearch = res.default
+          }
+          versions.meilisearch = this.MeiliSearch.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []
@@ -161,7 +211,7 @@ class Manager extends Base {
       list.forEach((arr, i) => {
         const typeFlag = keys[i]
         arr.forEach((item) => {
-          item.typeFlag = typeFlag
+          item.typeFlag = typeFlag as any
         })
         versions[typeFlag] = arr
       })

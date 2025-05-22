@@ -47,7 +47,7 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('host.mark')">
+        <el-table-column :label="I18nT('host.comment')">
           <template #default="scope">
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-input v-model="quickEdit.mark" @change="docClick(undefined)"></el-input>
@@ -134,7 +134,7 @@
   import { BrewStore } from '@/store/brew'
   import QrcodePopper from '../Qrcode/Index.vue'
   import Base from '@/core/Base'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
   import { isEqual } from 'lodash'

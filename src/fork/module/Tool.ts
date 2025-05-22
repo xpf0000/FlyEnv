@@ -1,9 +1,18 @@
 import { createReadStream, readFileSync, statSync } from 'fs'
 import { Base } from './Base'
-import { addPath, execPromise, fetchPATH, getAllFileAsync, systemProxyGet, uuid } from '../Fn'
+import {
+  addPath,
+  execPromise,
+  fetchRawPATH,
+  getAllFileAsync,
+  handleWinPathArr,
+  isNTFS,
+  setDir777ToCurrentUser,
+  uuid,
+  writePath
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import {
-  appendFile,
   copyFile,
   existsSync,
   mkdirp,
@@ -11,16 +20,18 @@ import {
   readFile,
   realpathSync,
   remove,
-  writeFile
+  writeFile,
+  stat
 } from 'fs-extra'
 import { TaskItem, TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
-import { basename, dirname, join, resolve as PathResolve } from 'path'
-import { I18nT } from '../lang'
+import { basename, dirname, isAbsolute, join, resolve as PathResolve } from 'path'
 import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
 import { PItem, ProcessListSearch, ProcessPidList } from '../Process'
 import { AppServiceAliasItem } from '@shared/app'
+import { exec } from 'child-process-promise'
+import RequestTimer from '@shared/requestTimer'
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -80,8 +91,6 @@ class BomCleanTask implements TaskItem {
 }
 
 class Manager extends Base {
-  jiebaLoad = false
-  jiebaLoadFail = false
   constructor() {
     super()
   }
@@ -117,59 +126,6 @@ class Manager extends Base {
         return resolve([])
       }
       resolve(txt.trim().split(''))
-    })
-  }
-
-  systemEnvFiles() {
-    return new ForkPromise(async (resolve, reject) => {
-      const envFiles = [
-        '~/.bashrc',
-        '~/.profile',
-        '~/.bash_login',
-        '~/.zprofile',
-        '~/.zshrc',
-        '~/.bash_profile',
-        '/etc/paths',
-        '/etc/profile'
-      ]
-      try {
-        const home = await execPromise(`echo $HOME`)
-        console.log('home: ', home)
-        const files = envFiles
-          .map((e) => e.replace('~', home.stdout.trim()))
-          .filter((e) => existsSync(e))
-        resolve(files)
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
-  systemEnvSave(file: string, content: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      if (!existsSync(file)) {
-        reject(new Error(I18nT('fork.toolFileNotExist')))
-        return
-      }
-      try {
-        const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
-        await writeFile(cacheFile, content)
-        await execPromise(`echo '${global.Server.Password}' | sudo -S cp -f ${cacheFile} ${file}`)
-        resolve(true)
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
-
-  sysetmProxy() {
-    return new ForkPromise((resolve) => {
-      systemProxyGet()
-        .then((proxy) => {
-          resolve(proxy)
-        })
-        .catch(() => {
-          resolve(false)
-        })
     })
   }
 
@@ -354,7 +310,7 @@ subjectAltName=@alt_names
         allPath: [],
         appPath: []
       }
-      const pathArr = await fetchPATH()
+      const pathArr = await fetchRawPATH()
       const allPath = pathArr
         .filter((f) => existsSync(f))
         .map((f) => realpathSync(f))
@@ -374,34 +330,81 @@ subjectAltName=@alt_names
     })
   }
 
-  _fetchRawPATH(): ForkPromise<string[]> {
+  removePATH(item: SoftInstalled, typeFlag: string) {
     return new ForkPromise(async (resolve, reject) => {
-      const sh = join(global.Server.Static!, 'sh/path.cmd')
-      const copySh = join(global.Server.Cache!, 'path.cmd')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      await copyFile(sh, copySh)
-      process.chdir(global.Server.Cache!)
+      let oldPath: string[] = []
       try {
-        const res = await execPromise('path.cmd')
-        let str = res?.stdout ?? ''
-        str = str.replace(new RegExp(`\n`, 'g'), '')
-        if (!str.includes(':\\') && !str.includes('%')) {
-          return resolve([])
-        }
-        const oldPath = Array.from(new Set(str.split(';') ?? []))
-          .filter((s) => !!s.trim())
-          .map((s) => s.trim())
-        console.log('_fetchRawPATH: ', str, oldPath)
-        resolve(oldPath)
-      } catch (e) {
-        await appendFile(
-          join(global.Server.BaseDir!, 'debug.log'),
-          `[_fetchRawPATH][error]: ${e}\n`
-        )
-        reject(e)
+        oldPath = await fetchRawPATH()
+      } catch (e) {}
+      if (oldPath.length === 0) {
+        reject(new Error('Fail'))
+        return
       }
+
+      console.log('removePATH oldPath 0: ', oldPath)
+
+      const envDir = join(dirname(global.Server.AppDir!), 'env')
+      const flagDir = join(envDir, typeFlag)
+      try {
+        await execPromise(`rmdir /S /Q "${flagDir}"`)
+      } catch (e) {
+        console.log('rmdir err: ', e)
+      }
+      console.log('removePATH flagDir: ', flagDir)
+
+      oldPath = oldPath.filter((p) => {
+        const a = p.includes(flagDir)
+        const b = p.includes(item.path)
+        if (a || b) {
+          return false
+        }
+        let res = true
+        if (isAbsolute(p)) {
+          try {
+            const realPath = realpathSync(p)
+            if (realPath.includes(flagDir) || realPath.includes(item.path)) {
+              res = false
+            }
+          } catch (error) {}
+        }
+        return res
+      })
+
+      console.log('removePATH oldPath 1: ', oldPath)
+
+      oldPath = oldPath.filter((p) => !p.startsWith(item.path))
+
+      console.log('removePATH oldPath 2: ', oldPath)
+
+      const dirIndex = oldPath.findIndex((s) => isAbsolute(s))
+      const varIndex = oldPath.findIndex((s) => !isAbsolute(s))
+      if (varIndex < dirIndex && dirIndex > 0) {
+        const dir = oldPath[dirIndex]
+        oldPath.splice(dirIndex, 1)
+        oldPath.unshift(dir)
+      }
+
+      if (typeFlag === 'composer') {
+        oldPath = oldPath.filter(
+          (s) =>
+            !s.includes('%COMPOSER_HOME%\\vendor\\bin') &&
+            !s.includes('%APPDATA%\\Composer\\vendor\\bin')
+        )
+      }
+
+      oldPath = handleWinPathArr(oldPath)
+
+      console.log('removePATH oldPath 3: ', oldPath)
+
+      const pathString = oldPath
+      try {
+        await writePath(pathString, '')
+      } catch (e) {
+        return reject(e)
+      }
+
+      const allPath = await this.fetchPATH()
+      resolve(allPath)
     })
   }
 
@@ -410,7 +413,7 @@ subjectAltName=@alt_names
       let oldPath: string[] = []
       let rawOldPath: string[] = []
       try {
-        oldPath = await this._fetchRawPATH()
+        oldPath = await fetchRawPATH()
         rawOldPath = oldPath.map((s) => {
           if (existsSync(s)) {
             return realpathSync(s)
@@ -422,6 +425,9 @@ subjectAltName=@alt_names
         reject(new Error('Fail'))
         return
       }
+      console.log('oldPath: ', oldPath)
+      console.log('rawOldPath: ', rawOldPath)
+
       const binDir = dirname(item.bin)
       /**
        * 初始化env文件夾
@@ -435,7 +441,7 @@ subjectAltName=@alt_names
       const flagDir = join(envDir, typeFlag)
       console.log('flagDir: ', flagDir)
       try {
-        await execPromise(`rmdir /S /Q ${flagDir}`)
+        await execPromise(`rmdir /S /Q "${flagDir}"`)
       } catch (e) {
         console.log('rmdir err: ', e)
       }
@@ -447,13 +453,10 @@ subjectAltName=@alt_names
         }
       }
 
-      /**
-       * 已存在的 删除
-       */
-      const index = oldPath.indexOf(binDir)
-      if (index >= 0) {
-        oldPath.splice(index, 1)
-      }
+      oldPath = oldPath.filter((o) => {
+        const a = existsSync(o) && realpathSync(o) === binDir
+        return !a
+      })
 
       /**
        * 获取env文件夹下所有子文件夹
@@ -473,42 +476,65 @@ subjectAltName=@alt_names
           return check
         })
 
+      console.log('oldPath: ', oldPath)
       console.log('allFile: ', allFile)
+
       /**
        * 从原有PATH删除全部env文件夹
        */
-      oldPath = oldPath.filter((o) => {
-        if (o.includes(envDir)) {
-          if (!allFile.find((a) => o.includes(a))) {
+      oldPath = oldPath.filter((o) => !o.includes(envDir))
+
+      if (!(await isNTFS(envDir)) || !(await isNTFS(item.path))) {
+        allFile.push(item.path)
+      }
+
+      for (const envPath of allFile) {
+        const rawEnvPath = realpathSync(envPath)
+        oldPath = oldPath.filter((p) => {
+          const a = p.includes(envPath)
+          const b = p.includes(rawEnvPath)
+          if (a || b) {
             return false
           }
-        }
-        return true
-      })
+          let res = true
+          if (isAbsolute(p)) {
+            try {
+              const realPath = realpathSync(p)
+              if (realPath.includes(envPath) || realPath.includes(rawEnvPath)) {
+                res = false
+              }
+            } catch (error) {}
+          }
+          return res
+        })
 
-      if (existsSync(flagDir)) {
-        const index = oldPath.findIndex((o) => o.includes(flagDir))
-        if (index >= 0) {
-          oldPath.splice(index, 1)
+        oldPath.unshift(envPath)
+        if (existsSync(join(envPath, 'bin'))) {
+          oldPath.unshift(join(envPath, 'bin'))
         }
-        const dir = dirname(item.bin.replace(item.path, flagDir))
-        oldPath.unshift(dir)
-        if (typeFlag === 'python') {
-          const pip = join(dir, 'Scripts/pip.exe')
+        if (existsSync(join(envPath, 'sbin'))) {
+          oldPath.unshift(join(envPath, 'sbin'))
+        }
+        if (existsSync(join(envPath, 'python.exe'))) {
+          const pip = join(envPath, 'Scripts/pip.exe')
           if (existsSync(pip)) {
             oldPath.unshift(dirname(pip))
           }
         }
-      }
-
-      oldPath = oldPath.map((p) => {
-        if (p.includes('%')) {
-          return p.replace(new RegExp('%', 'g'), '#').replace(new RegExp('#', 'g'), '%%')
+        // Handle Rust
+        if (existsSync(join(rawEnvPath, 'cargo/bin/cargo.exe'))) {
+          const dirs = await readdir(rawEnvPath)
+          for (const f of dirs) {
+            const binDir = join(rawEnvPath, f, 'bin')
+            if (existsSync(binDir)) {
+              const state = await stat(binDir)
+              if (state.isDirectory()) {
+                oldPath.unshift(binDir)
+              }
+            }
+          }
         }
-        return p
-      })
-
-      console.log('oldPath: ', oldPath)
+      }
 
       if (typeFlag === 'composer') {
         const bat = join(binDir, 'composer.bat')
@@ -519,19 +545,36 @@ subjectAltName=@alt_names
 php "%~dp0composer.phar" %*`
           )
         }
+        let composer_bin_dir = ''
+        try {
+          const d = await execPromise(`echo %COMPOSER_HOME%\\Composer`)
+          composer_bin_dir = d?.stdout?.trim()
+          console.log('d: ', d)
+        } catch (e) {}
+        if (composer_bin_dir && isAbsolute(composer_bin_dir)) {
+          oldPath.push(`%COMPOSER_HOME%\\vendor\\bin`)
+        } else {
+          try {
+            const d = await execPromise(`echo %APPDATA%\\Composer`)
+            composer_bin_dir = d?.stdout?.trim()
+            console.log('d: ', d)
+          } catch (e) {}
+          if (composer_bin_dir && isAbsolute(composer_bin_dir)) {
+            oldPath.push(`%APPDATA%\\Composer\\vendor\\bin`)
+          }
+        }
       }
 
-      const sh = join(global.Server.Static!, 'sh/path-set.cmd')
-      const copySh = join(global.Server.Cache!, 'path-set.cmd')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      let content = await readFile(sh, 'utf-8')
-      content = content.replace('##NEW_PATH##', oldPath.join(';'))
+      oldPath = handleWinPathArr(oldPath)
+
+      console.log('oldPath: ', oldPath)
+
+      const pathString = oldPath
+      let otherString = ''
       if (typeFlag === 'java') {
-        content = content.replace('##OTHER##', `setx /M JAVA_HOME "${item.path}"`)
+        otherString = `"JAVA_HOME" = "${flagDir}"`
       } else if (typeFlag === 'erlang') {
-        content = content.replace('##OTHER##', `setx /M ERLANG_HOME "${item.path}"`)
+        otherString = `"ERLANG_HOME" = "${flagDir}"`
         const f = join(global.Server.Cache!, `${uuid()}.ps1`)
         await writeFile(
           f,
@@ -539,75 +582,28 @@ php "%~dp0composer.phar" %*`
         )
         process.chdir(global.Server.Cache!)
         try {
-          const res = await execPromise(`powershell.exe "${f}"`)
-          console.log('erlang path fix: ', res)
+          await execPromise(
+            `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${f}'; & '${f}'"`
+          )
         } catch (e) {}
         await remove(f)
-      } else {
-        content = content.replace('##OTHER##', ``)
       }
-      console.log('updatePATH: ', content)
-      await writeFile(copySh, content)
-      process.chdir(global.Server.Cache!)
+
       try {
-        await execPromise('path-set.cmd')
+        await writePath(pathString, otherString)
       } catch (e) {
         return reject(e)
       }
 
+      if (typeFlag === 'php') {
+        const phpModule = (await import('./Php')).default
+        try {
+          await phpModule.getIniPath(item)
+        } catch (e) {}
+      }
+
       const allPath = await this.fetchPATH()
       resolve(allPath)
-    })
-  }
-
-  updatePATHEXT(ext: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      let sh = join(global.Server.Static!, 'sh/pathext.cmd')
-      let copySh = join(global.Server.Cache!, 'pathext.cmd')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      await copyFile(sh, copySh)
-      process.chdir(global.Server.Cache!)
-      let old: string[] = []
-      try {
-        const res = await execPromise('pathext.cmd')
-        let str = res?.stdout ?? ''
-        str = str.replace(new RegExp(`\n`, 'g'), '')
-        old = Array.from(new Set(str.split(';') ?? []))
-          .filter((s) => !!s.trim())
-          .map((s) => s.trim())
-        console.log('updatePATHEXT path: ', str, old)
-      } catch (e) {
-        reject(e)
-        return
-      }
-      if (old.length === 0) {
-        reject(new Error('Fail'))
-        return
-      }
-      ext = ext.toUpperCase()
-      if (old.includes(ext)) {
-        resolve(true)
-        return
-      }
-      old.push(ext)
-      sh = join(global.Server.Static!, 'sh/pathext-set.cmd')
-      copySh = join(global.Server.Cache!, 'pathext-set.cmd')
-      if (existsSync(copySh)) {
-        await remove(copySh)
-      }
-      let content = await readFile(sh, 'utf-8')
-      content = content.replace('##NEW_PATHEXT##', old.join(';'))
-      console.log('updatePATHEXT: ', content)
-      await writeFile(copySh, content)
-      process.chdir(global.Server.Cache!)
-      try {
-        await execPromise('pathext-set.cmd')
-        resolve(true)
-      } catch (e) {
-        reject(e)
-      }
     })
   }
 
@@ -704,6 +700,407 @@ chcp 65001>nul
         }
       }
       resolve(alias)
+    })
+  }
+
+  envPathList() {
+    return new ForkPromise(async (resolve, reject) => {
+      let oldPath: string[] = []
+      try {
+        oldPath = await fetchRawPATH()
+      } catch (e) {}
+      if (oldPath.length === 0) {
+        reject(new Error('Fail'))
+        return
+      }
+      const list: any = []
+      for (const p of oldPath) {
+        let raw = ''
+        let error = false
+        if (isAbsolute(p)) {
+          try {
+            raw = realpathSync(p)
+            error = !existsSync(raw)
+          } catch (e) {
+            error = true
+          }
+        } else if (p.includes('%') || p.includes('$env:')) {
+          try {
+            raw = (await execPromise(`echo ${p}`))?.stdout?.trim() ?? ''
+            error = !raw || !existsSync(raw)
+          } catch (e) {
+            error = true
+          }
+        }
+        list.push({
+          path: p,
+          raw,
+          error
+        })
+      }
+      resolve(list)
+    })
+  }
+
+  envPathString() {
+    return new ForkPromise(async (resolve) => {
+      let cmdRes = ''
+      let psRes = ''
+      try {
+        cmdRes = (await exec(`set PATH`))?.stdout?.trim() ?? ''
+      } catch (e) {
+        cmdRes = `${e}`
+      }
+      try {
+        psRes =
+          (
+            await exec(`$env:PATH`, {
+              shell: 'powershell.exe'
+            })
+          )?.stdout?.trim() ?? ''
+      } catch (e) {
+        psRes = `${e}`
+      }
+      resolve({
+        cmd: cmdRes,
+        ps: psRes
+      })
+    })
+  }
+
+  envPathUpdate(arr: string[]) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        await writePath(arr)
+      } catch (e) {
+        console.log('envPathUpdate err: ', e)
+        return reject(e)
+      }
+      resolve(true)
+    })
+  }
+
+  requestTimeFetch(url: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      const timer = new RequestTimer({
+        timeout: 10000,
+        retries: 2,
+        followRedirects: true,
+        maxRedirects: 10,
+        keepAlive: true,
+        strictSSL: false // Set to false to ignore SSL errors
+      })
+      try {
+        const results = await timer.measure(url)
+        const res = RequestTimer.formatResults(results)
+        resolve(res)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  runInTerminal(command: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      command = JSON.stringify(command).slice(1, -1)
+      console.log('command: ', command)
+      try {
+        await exec(`start powershell -NoExit -Command "${command}"`)
+      } catch (e) {
+        return reject(e)
+      }
+      resolve(true)
+    })
+  }
+
+  openPathByApp(
+    dir: string,
+    app:
+      | 'PowerShell'
+      | 'PowerShell7'
+      | 'PhpStorm'
+      | 'WebStorm'
+      | 'IntelliJ'
+      | 'PyCharm'
+      | 'RubyMine'
+      | 'GoLand'
+      | 'HBuilderX'
+      | 'RustRover'
+  ) {
+    return new ForkPromise(async (resolve, reject) => {
+      let command = ''
+      const JetBrains = [
+        'PhpStorm',
+        'WebStorm',
+        'IntelliJ',
+        'PyCharm',
+        'RubyMine',
+        'GoLand',
+        'RustRover'
+      ]
+      if (JetBrains.includes(app)) {
+        const findIdePath = async (ideName: string) => {
+          try {
+            // 定义所有可能的注册表路径
+            const registryPaths = [
+              `HKLM\\SOFTWARE\\JetBrains\\${ideName}`,
+              `HKLM\\SOFTWARE\\WOW6432Node\\JetBrains\\${ideName}`,
+              `HKCU\\SOFTWARE\\JetBrains\\${ideName}`
+            ]
+
+            for (const regPath of registryPaths) {
+              try {
+                // 使用 /s 参数查询所有子项和值
+                const { stdout } = await exec(`reg query "${regPath}" /s`)
+                const lines = stdout.split('\n').map((line: string) => line.trim())
+
+                let basePath = null
+
+                for (const line of lines) {
+                  if (line.includes('InstallPath') || line.includes('(Default)')) {
+                    const pathMatch = line.match(/(InstallPath|\(Default\))\s+REG_SZ\s+(.+)/i)
+                    if (pathMatch) {
+                      basePath = pathMatch[2].trim()
+                      break // 找到路径后退出循环
+                    }
+                  }
+                }
+
+                if (basePath) {
+                  return formatExePath(basePath, ideName)
+                }
+              } catch (e) {
+                continue
+              }
+            }
+
+            return null
+          } catch (error) {
+            console.error(`Error finding IDE path: ${error}`)
+            return null
+          }
+        }
+
+        const findToolboxIdePath = async (ideName: string) => {
+          try {
+            // 尝试获取 Toolbox 安装目录
+            const { stdout } = await exec(
+              `reg query "HKCU\\SOFTWARE\\JetBrains\\Toolbox" /v "InstallDir"`
+            )
+            const match = stdout.match(/InstallDir\s+REG_SZ\s+(.+)/i)
+            if (!match) return null
+
+            const toolboxPath = match[1].trim()
+            const appsPath = `${toolboxPath}\\apps\\${ideName}\\ch-0`
+
+            // 获取最新版本目录（按修改时间倒序）
+            const { stdout: dirs } = await exec(`dir "${appsPath}" /AD /B /O-N`)
+            const latestVersionDir = dirs.split('\r\n')[0].trim()
+            if (!latestVersionDir) return null
+
+            return formatExePath(`${appsPath}\\${latestVersionDir}`, ideName)
+          } catch (error) {
+            console.error(`Error finding Toolbox IDE path: ${error}`)
+            return null
+          }
+        }
+
+        // 统一格式化可执行文件路径
+        const formatExePath = (basePath: string, ideName: string) => {
+          const exeMap: Record<string, string> = {
+            phpstorm: 'phpstorm64.exe',
+            pycharm: 'pycharm64.exe',
+            intellijidea: 'idea64.exe',
+            webstorm: 'webstorm64.exe',
+            clion: 'clion64.exe',
+            rider: 'rider64.exe',
+            goland: 'goland64.exe',
+            datagrip: 'datagrip64.exe',
+            rubymine: 'rubymine64.exe',
+            appcode: 'appcode64.exe'
+          }
+
+          const normalizedName = ideName.toLowerCase()
+          const exeName = exeMap[normalizedName] || `${normalizedName}64.exe`
+          const exePath = `${basePath}\\bin\\${exeName}`
+
+          if (existsSync(exePath)) {
+            return exePath
+          }
+          return null
+        }
+
+        const openWithIde = async (ideName: string, folderPath: string) => {
+          try {
+            let idePath = await findIdePath(ideName)
+            if (!idePath) {
+              idePath = await findToolboxIdePath(ideName)
+            }
+
+            if (!idePath) {
+              console.error(`${ideName} not found`)
+              return false
+            }
+
+            await exec(`"${idePath}" "${folderPath}"`)
+            console.log(`Opened ${folderPath} with ${ideName}`)
+            return true
+          } catch (error) {
+            console.error(`Error opening IDE: ${error}`)
+            return false
+          }
+        }
+
+        const res = await openWithIde(app, dir)
+        if (res) {
+          return resolve(true)
+        }
+        return reject(new Error(`${app} Not Found`))
+      }
+      if (app === 'HBuilderX') {
+        const getHBuilderXPath = async (): Promise<string | null> => {
+          try {
+            // 查询注册表
+            const { stdout } = await exec(`reg query "HKCR\\hbuilderx\\shell\\open\\command" /ve`)
+
+            // 提取路径（示例输出: "(Default) REG_SZ "D:\Program Files\HBuilderX\HBuilderX.exe" "%1""）
+            const match = stdout.match(/"(.*?HBuilderX\.exe)"/i)
+            if (match && match[1]) {
+              return match[1] // 返回可执行文件完整路径
+            }
+            return null
+          } catch (error) {
+            return null
+          }
+        }
+        const openWithHBuilderX = async (targetPath: string): Promise<boolean> => {
+          try {
+            const hbuilderxPath = await getHBuilderXPath()
+            if (!hbuilderxPath) {
+              return false
+            }
+            await exec(`"${hbuilderxPath}" "${targetPath}"`)
+            return true
+          } catch (error) {
+            return false
+          }
+        }
+
+        const res = await openWithHBuilderX(dir)
+        if (res) {
+          return resolve(true)
+        }
+        return reject(new Error(`HBuilderX Not Found`))
+      }
+      if (app === 'PowerShell') {
+        command = `cd "${dir}"`
+        command = JSON.stringify(command).slice(1, -1)
+        command = `start powershell -NoExit -Command "${command}"`
+      } else if (app === 'PowerShell7') {
+        command = `cd "${dir}"`
+        command = JSON.stringify(command).slice(1, -1)
+        command = `start pwsh.exe -NoExit -Command "${command}"`
+      }
+      try {
+        await exec(command)
+      } catch (e) {
+        return reject(e)
+      }
+      resolve(true)
+    })
+  }
+
+  initAllowDir(json: string) {
+    return new ForkPromise(async (resolve) => {
+      const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
+      await mkdirp(dirname(jsonFile))
+      await writeFile(jsonFile, json)
+      resolve(true)
+    })
+  }
+
+  envAllowDirUpdate(dir: string, action: 'add' | 'del') {
+    return new ForkPromise(async (resolve) => {
+      const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
+      let json: string[] = []
+      if (existsSync(jsonFile)) {
+        try {
+          const content = await readFile(jsonFile, 'utf-8')
+          json = JSON.parse(content)
+        } catch (e) {}
+      }
+      if (action === 'add') {
+        if (!json.includes('dir')) {
+          json.push(dir)
+        }
+      } else {
+        const index = json.indexOf(dir)
+        if (index >= 0) {
+          json.splice(index, 1)
+        }
+      }
+      await writeFile(jsonFile, JSON.stringify(json))
+      resolve(true)
+    })
+  }
+
+  initFlyEnvSH() {
+    return new ForkPromise(async (resolve) => {
+      const psVersions = [
+        { name: 'PowerShell 5.1', exe: 'powershell.exe', profileType: 'CurrentUserCurrentHost' },
+        { name: 'PowerShell 7+', exe: 'pwsh.exe', profileType: 'CurrentUserAllHosts' }
+      ]
+
+      const flyenvScriptPath = join(dirname(global.Server.AppDir!), 'bin/flyenv.ps1')
+      await mkdirp(dirname(flyenvScriptPath))
+      await copyFile(join(global.Server.Static!, 'sh/fly-env.ps1'), flyenvScriptPath)
+
+      for (const version of psVersions) {
+        try {
+          const profilePath = (
+            await exec(`$PROFILE.${version.profileType}`, { shell: version.exe })
+          ).stdout.trim()
+
+          if (!profilePath || profilePath === '') continue
+
+          // 写入配置（如果不存在）
+          await mkdirp(dirname(profilePath))
+          const loadCommand = `. "${flyenvScriptPath.replace(/\\/g, '/')}"\n`
+
+          if (!existsSync(profilePath)) {
+            await writeFile(profilePath, `# FlyEnv Auto-Load\n${loadCommand}`)
+          } else {
+            const content = await readFile(profilePath, 'utf-8')
+            if (!content.includes(loadCommand.trim())) {
+              await writeFile(
+                profilePath,
+                `${content.trim()}\n\n# FlyEnv Auto-Load\n${loadCommand}`
+              )
+            }
+          }
+        } catch (err) {
+          console.log('initFlyEnvSH err: ', err)
+        }
+      }
+      try {
+        await exec(
+          `if ((Get-ExecutionPolicy -Scope CurrentUser) -eq 'Restricted') {
+  Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+}`,
+          { shell: 'powershell.exe' }
+        )
+      } catch (e) {}
+
+      resolve(true)
+    })
+  }
+
+  fixDirRole(dir: string) {
+    return new ForkPromise(async (resolve) => {
+      try {
+        await setDir777ToCurrentUser(dir)
+      } catch (e) {}
+      resolve(true)
     })
   }
 }

@@ -16,7 +16,7 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { AsideSetup } from '@/core/ASide'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
 
   const { showItem, currentPage, nav } = AsideSetup('hosts')
   const title = computed(() => {

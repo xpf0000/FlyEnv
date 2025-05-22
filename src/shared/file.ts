@@ -22,7 +22,7 @@ export function getAllFile(fp: string, fullpath = true) {
         const sub = getAllFile(fPath, fullpath)
         arr = arr.concat(sub)
       }
-      if (stat.isFile()) {
+      if (stat.isFile()) {-
         arr.push(fullpath ? fPath : item)
       }
     }

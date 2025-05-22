@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
 import { SoftInstalled } from '@/store/brew'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import Base from '@/core/Base'
 import { reGetInstalled, stopService } from '@/util/Service'
@@ -11,6 +11,7 @@ import { staticVersionDel } from '@/util/Version'
 import { AppServiceAliasItem } from '@shared/app'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { isEqual } from 'lodash'
+import localForage from 'localforage'
 
 type ServiceActionType = {
   versionDeling: Record<string, boolean>
@@ -26,7 +27,7 @@ type ServiceActionType = {
     item?: AppServiceAliasItem,
     old?: AppServiceAliasItem
   ) => Promise<boolean>
-  updatePath: (item: SoftInstalled, typeFlag: string) => void
+  updatePath: (item: SoftInstalled, typeFlag: string) => Promise<boolean>
   delVersion: (item: SoftInstalled, typeFlag: string) => void
 }
 
@@ -105,6 +106,17 @@ export const ServiceActionStore: ServiceActionType = reactive({
         const app = res?.data?.appPath ?? []
         ServiceActionStore.allPath = reactive([...all])
         ServiceActionStore.appPath = reactive([...app])
+
+        localForage
+          .getItem(`flyenv-app-env-dir`)
+          .then((res: Record<string, string>) => {
+            const list = res || {}
+            const set = new Set([...Object.values(list), ...app])
+            const appList = Array.from(set)
+            ServiceActionStore.appPath = reactive([...appList])
+          })
+          .catch()
+
         setTimeout(() => {
           ServiceActionStore.fetchPathing = false
         }, 60000)
@@ -112,25 +124,50 @@ export const ServiceActionStore: ServiceActionType = reactive({
     })
   },
   updatePath(item: SoftInstalled, typeFlag: string) {
-    if (ServiceActionStore.pathSeting?.[item.bin]) {
-      return
-    }
-    ServiceActionStore.pathSeting[item.bin] = true
-    IPC.send('app-fork:tools', 'updatePATH', JSON.parse(JSON.stringify(item)), typeFlag).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          const all = res?.data?.allPath ?? []
-          const app = res?.data?.appPath ?? []
-          ServiceActionStore.allPath = reactive([...all])
-          ServiceActionStore.appPath = reactive([...app])
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-        delete ServiceActionStore.pathSeting?.[item.bin]
+    return new Promise((resolve, reject) => {
+      if (ServiceActionStore.pathSeting?.[item.bin]) {
+        return resolve(true)
       }
-    )
+      ServiceActionStore.pathSeting[item.bin] = true
+
+      const action = ServiceActionStore.appPath.includes(item.path) ? 'removePATH' : 'updatePATH'
+      IPC.send('app-fork:tools', action, JSON.parse(JSON.stringify(item)), typeFlag).then(
+        (key: string, res: any) => {
+          IPC.off(key)
+          delete ServiceActionStore.pathSeting?.[item.bin]
+          if (res?.code === 0) {
+            const all = res?.data?.allPath ?? []
+            const app = res?.data?.appPath ?? []
+            ServiceActionStore.allPath = reactive([...all])
+            ServiceActionStore.appPath = reactive([...app])
+
+            localForage
+              .getItem(`flyenv-app-env-dir`)
+              .then((res: Record<string, string>) => {
+                const list = res || {}
+                if (action === 'removePATH') {
+                  delete list?.[typeFlag]
+                } else {
+                  list[typeFlag] = item.path
+                }
+
+                const set = new Set([...Object.values(list), ...app])
+                const appList = Array.from(set)
+                localForage.setItem(`flyenv-app-env-dir`, list).then().catch()
+                ServiceActionStore.appPath = reactive([...appList])
+              })
+              .catch()
+
+            MessageSuccess(I18nT('base.success'))
+            resolve(true)
+          } else {
+            const msg = res?.msg ?? I18nT('base.fail')
+            MessageError(msg)
+            reject(new Error(msg))
+          }
+        }
+      )
+    })
   },
   delVersion(item: SoftInstalled, type: AllAppModule) {
     if (ServiceActionStore.versionDeling?.[item.bin]) {

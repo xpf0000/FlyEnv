@@ -5,7 +5,6 @@ export interface ServerType {
   BrewCellar?: string
   Password?: string
   Proxy?: { [key: string]: string }
-  isAppleSilicon?: boolean
   BrewHome?: string
   Static?: string
   Cache?: string
@@ -27,6 +26,7 @@ export interface ServerType {
   AppDir?: string
   Licenses?: string
   UserHome?: string
+  LangCustomer?: any
 }
 
 declare global {

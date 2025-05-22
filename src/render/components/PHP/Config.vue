@@ -22,25 +22,25 @@
         :file="file"
         :file-ext="'ini'"
         :show-commond="true"
+        :common-setting="commonSetting"
         @on-type-change="onTypeChange"
       >
-        <template #common>
-          <Common :setting="commonSetting" />
-        </template>
       </Conf>
     </div>
   </el-drawer>
 </template>
 <script lang="ts" setup>
-  import { computed, ref, watch, Ref } from 'vue'
+  import { computed, ref, watch, Ref, reactive } from 'vue'
   import Conf from '@/components/Conf/drawer.vue'
-  import Common from '@/components/Conf/common.vue'
   import { type CommonSetItem, ConfStore } from '@/components/Conf/setup'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { debounce } from 'lodash'
   import { SoftInstalled } from '@/store/brew'
   import IPC from '@/util/IPC'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import { uuid } from '@shared/utils'
+
+  const { join } = require('path')
 
   const props = defineProps<{
     version: SoftInstalled
@@ -63,7 +63,7 @@
     }
     return `${file.value}.default`
   })
-
+  const cacert = join(global.Server.BaseDir!, 'CA/cacert.pem')
   const names: CommonSetItem[] = [
     {
       name: 'display_errors',
@@ -208,41 +208,67 @@
       tips() {
         return I18nT('php.timezone')
       }
+    },
+    {
+      name: 'curl.cainfo',
+      value: `"${cacert}"`,
+      enable: true,
+      isFile: true,
+      isString: true,
+      tips() {
+        return `curl.cainfo. can found in ${cacert}`
+      }
+    },
+    {
+      name: 'openssl.cafile',
+      value: `"${cacert}"`,
+      enable: true,
+      isFile: true,
+      isString: true,
+      tips() {
+        return `openssl.cafile. can found in ${cacert}`
+      }
     }
   ]
   let editConfig = ''
   let watcher: any
 
   const onSettingUpdate = () => {
-    let config = editConfig
-    const list = ['#PhpWebStudy-Conf-Common-Begin#']
+    let config = editConfig.replace(/\r\n/gm, '\n')
     commonSetting.value.forEach((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}\\s+(.*?)([^\\n])(\\n|$)`, 'g')
-      config = config.replace(regex, `\n\n`)
+      const regex = new RegExp(`^[\\s\\n#]?([\\s#]*?)${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       if (item.enable) {
-        list.push(`${item.name} = ${item.value}`)
+        let value = ''
+        if (item.isString) {
+          value = `${item.name} = "${item.value}"`
+        } else {
+          value = `${item.name} = ${item.value}`
+        }
+        if (regex.test(config)) {
+          config = config.replace(regex, `${value}\n`)
+        } else {
+          config = `${value}\n` + config
+        }
+      } else {
+        config = config.replace(regex, ``)
       }
     })
-    list.push('#PhpWebStudy-Conf-Common-END#')
-    config = config
-      .replace(
-        /([\s\n]?[^\n]*)#PhpWebStudy-Conf-Common-Begin#([\s\S]*?)#PhpWebStudy-Conf-Common-END#/g,
-        ''
-      )
-      .replace(/\n+/g, '\n\n')
-      .trim()
-    config = `${list.join('\n')}\n` + config
     conf.value.setEditValue(config)
+    editConfig = config
   }
 
   const getCommonSetting = () => {
     if (watcher) {
       watcher()
     }
-    const arr = names.map((item) => {
-      const regex = new RegExp(`([\\s\\n#]?[^\\n]*)${item.name}(.*?)([^\\n])(\\n|$)`, 'g')
+    let config = editConfig.replace(/\r\n/gm, '\n')
+    const arr = [...names].map((item) => {
+      const regex = new RegExp(
+        `^[\\s\\n]?((?![#;])([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`,
+        'gm'
+      )
       const matchs =
-        editConfig.match(regex)?.map((s) => {
+        config.match(regex)?.map((s) => {
           const sarr = s
             .trim()
             .split('=')
@@ -257,14 +283,16 @@
         }) ?? []
       console.log('getCommonSetting: ', matchs, item.name)
       const find = matchs?.find((m) => m.k === item.name)
-      if (!find) {
-        item.enable = false
-        return item
+      let value = find?.v ?? item.value
+      if (item.isString) {
+        value = value.replace(new RegExp(`"`, 'g'), '').replace(new RegExp(`'`, 'g'), '')
       }
-      item.value = find?.v ?? item.value
+      item.enable = !!find
+      item.value = value
+      item.key = uuid()
       return item
     })
-    commonSetting.value = arr as any
+    commonSetting.value = reactive(arr) as any
     watcher = watch(commonSetting, debounce(onSettingUpdate, 500), {
       deep: true
     })
@@ -272,7 +300,7 @@
 
   const onTypeChange = (type: 'default' | 'common', config: string) => {
     console.log('onTypeChange: ', type, config)
-    if (editConfig !== config) {
+    if (editConfig !== config || commonSetting.value.length === 0) {
       editConfig = config
       getCommonSetting()
     }
@@ -290,6 +318,10 @@
       }
     )
   }
+
+  IPC.send('app-fork:php', 'initCACertPEM').then((key: string) => {
+    IPC.off(key)
+  })
 
   defineExpose({ show, onClosed, onSubmit, closedFn })
 </script>

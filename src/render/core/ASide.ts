@@ -4,7 +4,7 @@ import Router from '@/router/index'
 import { BrewStore } from '@/store/brew'
 import { startService, stopService } from '@/util/Service'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import type { AllAppModule } from '@/core/type'
 import { AppStore } from '@/store/app'
 

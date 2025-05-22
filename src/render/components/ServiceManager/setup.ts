@@ -90,6 +90,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     if (!item?.version || !item?.path) {
       return
     }
+    const currentItem = currentVersion.value
     let action: any
     switch (flag) {
       case 'stop':
@@ -98,9 +99,21 @@ export const Setup = (typeFlag: AllAppModule) => {
       case 'start':
       case 'restart':
         action = startService(typeFlag, item)
+        if (item.version !== currentItem?.version || item.path !== currentItem?.path) {
+          console.log('UPDATE_SERVER_CURRENT !!!: ', item)
+          appStore.UPDATE_SERVER_CURRENT({
+            flag: typeFlag,
+            data: JSON.parse(JSON.stringify(item))
+          })
+          appStore.saveConfig().then().catch()
+        }
         break
     }
     action.then((res: any) => {
+      if (typeFlag !== 'php' && currentItem) {
+        currentItem.run = false
+        currentItem.running = false
+      }
       if (typeof res === 'string') {
         MessageError(res)
       } else {
@@ -112,26 +125,12 @@ export const Setup = (typeFlag: AllAppModule) => {
             mysqlStore.groupStart().then()
           }
         }
-        if (typeFlag !== 'php' && currentVersion.value) {
-          currentVersion.value.run = false
-          currentVersion.value.running = false
-        }
         if (flag === 'stop') {
           item.run = false
           item.running = false
         } else {
           item.run = true
           item.running = false
-          if (
-            item.version !== currentVersion.value?.version ||
-            item.path !== currentVersion.value?.path
-          ) {
-            appStore.UPDATE_SERVER_CURRENT({
-              flag: typeFlag,
-              data: JSON.parse(JSON.stringify(item))
-            })
-            appStore.saveConfig()
-          }
         }
       }
     })
@@ -189,7 +188,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       const url = `${http}${host}${portStr}`
       shell.openExternal(url)
     }
-    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
+    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.test')
     if (find) {
       toOpenHost(find)
       return
@@ -199,7 +198,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       if (res) {
         await appStore.initHost()
         handleWriteHosts().then().catch()
-        const url = 'http://phpmyadmin.phpwebstudy.test'
+        const url = 'http://phpmyadmin.test'
         shell.openExternal(url)
       }
     })

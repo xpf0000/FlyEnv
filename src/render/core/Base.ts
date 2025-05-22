@@ -4,7 +4,7 @@ import { ElMessageBox as MessageBox } from 'element-plus'
 import { ElMessage as Message } from 'element-plus'
 import BaseDialog from '../components/YbBaseDialog/dialog'
 import { EventBus } from '@/global'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 
 let loading: any
 let loadingTxtDom: any

@@ -45,7 +45,7 @@
   import { EventBus } from '@/global'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import type { FSWatcher } from 'fs'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'

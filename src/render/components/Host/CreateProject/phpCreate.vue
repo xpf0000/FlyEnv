@@ -113,7 +113,7 @@
 <script lang="ts" setup>
   import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { BrewStore } from '@/store/brew'
   import AppVersions from './version'
   import installedVersions from '@/util/InstalledVersions'
@@ -123,7 +123,7 @@
   import { MessageError } from '@/util/Element'
 
   const { writeFile } = require('fs-extra')
-  const { join } = require('path')
+  const { join, dirname } = require('path')
   const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
@@ -237,9 +237,11 @@
       await writeFile(join(form.dir, 'composer.json'), tmpl)
 
       if (form.php && form.composer) {
-        command.push(`${form.php} "${form.composer}" update`)
+        command.push(`$Env:PATH = "${dirname(form.php)};" + $Env:PATH`)
+        command.push(`php "${form.composer}" update`)
       } else if (form.php) {
-        command.push(`${form.php} composer update`)
+        command.push(`$Env:PATH = "${dirname(form.php)};" + $Env:PATH`)
+        command.push(`php composer update`)
       } else if (form.composer) {
         command.push(`php "${form.composer}" update`)
       } else {
@@ -248,12 +250,14 @@
     } else {
       const name = app.value.package
       if (form.php && form.composer) {
+        command.push(`$Env:PATH = "${dirname(form.php)};" + $Env:PATH`)
         command.push(
-          `${form.php} "${form.composer}" create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+          `php "${form.composer}" create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
         )
       } else if (form.php) {
+        command.push(`$Env:PATH = "${dirname(form.php)};" + $Env:PATH`)
         command.push(
-          `${form.php} composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
+          `php composer create-project --prefer-dist "${name}" "flyenv-create-project" "${form.version}"`
         )
       } else if (form.composer) {
         command.push(

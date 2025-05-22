@@ -80,7 +80,12 @@
         </el-button>
       </div>
     </template>
-    <el-table v-loading="service?.fetching" class="service-table" :data="versions">
+    <el-table
+      v-loading="service?.fetching"
+      class="service-table"
+      :data="versions"
+      :show-overflow-tooltip="true"
+    >
       <el-table-column prop="version" width="140px">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{
@@ -151,18 +156,49 @@
       </el-table-column>
       <el-table-column :label="I18nT('service.env')" :prop="null" width="100px" align="center">
         <template #header>
-          <el-tooltip :content="I18nT('service.envTips')" placement="top" show-after="600">
+          <el-tooltip :content="I18nT('service.envTips')" placement="top" :show-after="600">
             <span>{{ I18nT('service.env') }}</span>
           </el-tooltip>
         </template>
         <template #default="scope">
-          <template v-if="isInEnv(scope.row)">
-            <el-button link type="primary">
-              <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
-            </el-button>
-          </template>
-          <template v-else-if="ServiceActionStore.pathSeting[scope.row.bin]">
+          <template v-if="ServiceActionStore.pathSeting[scope.row.bin]">
             <el-button style="width: auto; height: auto" text :loading="true"></el-button>
+          </template>
+          <template v-else-if="isInAppEnv(scope.row)">
+            <el-tooltip :content="I18nT('service.setByApp')" :show-after="600" placement="top">
+              <el-button
+                link
+                type="primary"
+                @click.stop="ServiceActionStore.updatePath(scope.row, typeFlag)"
+              >
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </el-tooltip>
+          </template>
+          <template v-else-if="isInEnv(scope.row)">
+            <el-tooltip :content="I18nT('service.setByNoApp')" :show-after="600" placement="top">
+              <el-button
+                link
+                type="warning"
+                @click.stop="ServiceActionStore.updatePath(scope.row, typeFlag)"
+              >
+                <yb-icon :svg="import('@/svg/select.svg?raw')" width="17" height="17" />
+              </el-button>
+            </el-tooltip>
+          </template>
+          <template v-else>
+            <el-button
+              class="current-set row-hover-show"
+              link
+              @click.stop="ServiceActionStore.updatePath(scope.row, typeFlag)"
+            >
+              <yb-icon
+                class="current-not"
+                :svg="import('@/svg/select.svg?raw')"
+                width="17"
+                height="17"
+              />
+            </el-button>
           </template>
         </template>
       </el-table-column>
@@ -174,14 +210,14 @@
         align="left"
       >
         <template #header>
-          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" show-after="600">
+          <el-tooltip :content="I18nT('service.aliasTips')" placement="top" :show-after="600">
             <span>{{ I18nT('service.alias') }}</span>
           </el-tooltip>
         </template>
         <template #default="scope">
           <div class="flex items-center h-full min-h-9"
             ><span class="truncate">{{
-              appStore.config.setup.alias?.[scope.row.bin]?.map((a) => a.name)?.join(',')
+              appStore.config.setup.alias?.[scope.row.bin]?.map((a: any) => a.name)?.join(',')
             }}</span></div
           >
         </template>
@@ -251,7 +287,7 @@
   import { reGetInstalled, startService, stopService } from '@/util/Service'
   import { type AppHost, AppStore } from '@/store/app'
   import { BrewStore, type SoftInstalled } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { MysqlStore } from '@/components/Mysql/mysql'
   import { Service } from '@/components/ServiceManager/service'
@@ -261,11 +297,9 @@
   import IPC from '@/util/IPC'
   import type { AllAppModule } from '@/core/type'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-  import { ClickOutside as vClickOutside } from 'element-plus'
 
   const { shell } = require('@electron/remote')
   const { existsSync } = require('fs')
-  const { dirname } = require('path')
 
   const props = defineProps<{
     typeFlag: AllAppModule
@@ -328,7 +362,11 @@
   })
 
   const isInEnv = (item: SoftInstalled) => {
-    return ServiceActionStore.allPath.includes(dirname(item.bin))
+    return ServiceActionStore.allPath.includes(item.path)
+  }
+
+  const isInAppEnv = (item: SoftInstalled) => {
+    return ServiceActionStore.appPath.includes(item.path)
   }
 
   const groupTrunOn = (item: SoftInstalled) => {
@@ -489,7 +527,7 @@
       const url = `${http}${host}${portStr}`
       shell.openExternal(url)
     }
-    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.phpwebstudy.test')
+    const find = appStore.hosts.find((h) => h.name === 'phpmyadmin.test')
     if (find) {
       toOpenHost(find)
       return
@@ -498,7 +536,7 @@
     AsyncComponentShow(PhpMyAdminVM).then(async (res) => {
       if (res) {
         await appStore.initHost()
-        const url = 'http://phpmyadmin.phpwebstudy.test'
+        const url = 'http://phpmyadmin.test'
         shell.openExternal(url)
       }
     })

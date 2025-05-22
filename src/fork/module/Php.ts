@@ -1,11 +1,12 @@
 import { join, dirname, basename, isAbsolute } from 'path'
 import { createWriteStream, existsSync } from 'fs'
 import { Base } from './Base'
-import { I18nT } from '../lang'
+import { I18nT } from '@lang/index'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
+  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -18,7 +19,6 @@ import { writeFile, readFile, remove, mkdirp, copyFile, readdir } from 'fs-extra
 import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
 import { ProcessListSearch } from '../Process'
-import { EOL } from 'os'
 import axios from 'axios'
 
 class Php extends Base {
@@ -29,6 +29,19 @@ class Php extends Base {
 
   init() {
     this.pidPath = join(global.Server.PhpDir!, 'php.pid')
+  }
+
+  initCACertPEM() {
+    return new ForkPromise(async (resolve) => {
+      const capem = join(global.Server.BaseDir!, 'CA/cacert.pem')
+      if (!existsSync(capem)) {
+        try {
+          await mkdirp(dirname(capem))
+          await copyFile(join(global.Server.Static!, 'tmpl/cacert.pem'), capem)
+        } catch (e) {}
+      }
+      resolve(true)
+    })
   }
 
   getIniPath(version: SoftInstalled): ForkPromise<string> {
@@ -77,10 +90,27 @@ class Php extends Base {
         if (existsSync(dll)) {
           content = content + `\nextension=php_fileinfo.dll`
         }
+        dll = join(version.path, 'ext/php_zip.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_zip.dll`
+        }
+        dll = join(version.path, 'ext/php_mbstring.dll')
+        if (existsSync(dll)) {
+          content = content + `\nextension=php_mbstring.dll`
+        }
 
         content = content + `\nextension=php_mysqli.dll`
         content = content + `\nextension=php_pdo_mysql.dll`
         content = content + `\nextension=php_pdo_odbc.dll`
+
+        // Set CA certificate path
+        const cacertpem = join(global.Server.BaseDir!, 'CA/cacert.pem').split('\\').join('/')
+        await mkdirp(dirname(cacertpem))
+        if (!existsSync(cacertpem)) {
+          await copyFile(join(global.Server.Static!, 'tmpl/cacert.pem'), cacertpem)
+        }
+        content = content.replace(';curl.cainfo =', `curl.cainfo = "${cacertpem}"`)
+        content = content.replace(';openssl.cafile=', `openssl.cafile="${cacertpem}"`)
 
         await writeFile(ini, content)
         const iniDefault = join(version.path, 'php.ini.default')
@@ -109,7 +139,7 @@ class Php extends Base {
     })
   }
 
-  _stopServer(version: SoftInstalled) {
+  _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
@@ -215,46 +245,25 @@ class Php extends Base {
       }
       await copyFile(ini, runIni)
 
-      const commands: string[] = [
-        '@echo off',
-        'chcp 65001>nul',
-        `cd /d "${dirname(version.bin)}"`,
-        `start /B ./php-cgi-spawner.exe "php-cgi.exe -c php.phpwebstudy.90${version.num}.ini" 90${version.num} 4 > NUL 2>&1 &`
-      ]
+      const bin = join(version.path, 'php-cgi-spawner.exe')
+      const pidPath = join(global.Server.PhpDir!, `php${version.num}.pid`)
+      const execArgs = `\`"php-cgi.exe -c php.phpwebstudy.90${version.num}.ini\`" 90${version.num} 4`
 
-      const command = commands.join(EOL)
-      console.log('command: ', command)
-
-      const cmdName = `start.cmd`
-      const sh = join(global.Server.PhpDir!, cmdName)
-      await writeFile(sh, command)
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-      process.chdir(global.Server.PhpDir!)
       try {
-        const res = await execPromise(
-          `powershell.exe -Command "(Start-Process -FilePath ./${cmdName} -PassThru -WindowStyle Hidden).Id"`
+        const res = await serviceStartExec(
+          version,
+          pidPath,
+          global.Server.PhpDir!,
+          bin,
+          execArgs,
+          '',
+          on,
+          20,
+          500,
+          false
         )
-        console.log('php start res: ', res.stdout)
-        const pid = res.stdout.trim()
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-        })
-        resolve({
-          'APP-Service-Start-PID': pid
-        })
+        resolve(res)
       } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: e,
-              service: `${this.type}-${version.version}`
-            })
-          )
-        })
         console.log('-k start err: ', e)
         reject(e)
         return

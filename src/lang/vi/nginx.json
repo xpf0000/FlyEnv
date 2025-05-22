@@ -1,0 +1,10 @@
+{
+  "keepalive_timeout": "Số giây trước khi nhận và gửi hết thời gian chờ.",  "gzip": "Có bật truyền nén GZIP không",
+  "gzip_min_length": "Tệp nén tối thiểu",
+  "gzip_comp_level": "Khả năng nén",
+  "client_max_body_size": "Kích thước tệp tải lên tối đa",
+  "server_names_hash_max_size": "Kích thước tối đa của bảng băm cho tên máy chủ",
+  "server_names_hash_bucket_size": "Kích thước bảng băm cho tên máy chủ",
+  "client_header_buffer_size": "Kích thước bộ đệm tiêu đề yêu cầu của máy khách",
+  "client_body_buffer_size": "Kích thước bộ đệm nội dung yêu cầu"
+}

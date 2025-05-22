@@ -5,6 +5,7 @@ import { hostAlias } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
 import { isEqual } from 'lodash'
+import { pathFixedToUnix } from '@shared/utils'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -208,22 +209,22 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     hasChanged = true
     find.push(
       ...[
-        `include ${rewritepath}/${old.name}.conf;`,
-        `include "${rewritepath}/${old.name}.conf";`,
-        `access_log  ${logpath}/${old.name}.log;`,
-        `access_log  "${logpath}/${old.name}.log";`,
-        `error_log  ${logpath}/${old.name}.error.log;`,
-        `error_log  "${logpath}/${old.name}.error.log";`
+        `include(.*?)${rewritepath}/(.*?)\\r\\n`,
+        `include(.*?)${rewritepath}/(.*?)\\n`,
+        `access_log(.*?)${logpath}/(.*?)\\r\\n`,
+        `access_log(.*?)${logpath}/(.*?)\\n`,
+        `error_log(.*?)${logpath}/(.*?)\\r\\n`,
+        `error_log(.*?)${logpath}/(.*?)\\n`
       ]
     )
     replace.push(
       ...[
-        `include ${rewritepath}/${host.name}.conf;`,
-        `include "${rewritepath}/${host.name}.conf";`,
-        `access_log  ${logpath}/${host.name}.log;`,
-        `access_log  "${logpath}/${host.name}.log";`,
-        `error_log  ${logpath}/${host.name}.error.log;`,
-        `error_log  "${logpath}/${host.name}.error.log";`
+        `include "${rewritepath}/${host.name}.conf";\r\n`,
+        `include "${rewritepath}/${host.name}.conf";\n`,
+        `access_log  "${logpath}/${host.name}.log";\r\n`,
+        `access_log  "${logpath}/${host.name}.log";\n`,
+        `error_log  "${logpath}/${host.name}.error.log";\r\n`,
+        `error_log  "${logpath}/${host.name}.error.log";\n`
       ]
     )
   }
@@ -233,24 +234,26 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     hasChanged = true
     const newAlias = newAliasArr.join(' ')
     find.push(`server_name (.*?)\\r\\n`)
-    replace.push(`server_name ${newAlias}\r\n`)
+    replace.push(`server_name ${newAlias};\r\n`)
     find.push(`server_name (.*?)\\n`)
-    replace.push(`server_name ${newAlias}\n`)
+    replace.push(`server_name ${newAlias};\n`)
   }
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
+    const cert = pathFixedToUnix(host.ssl.cert)
     find.push(`ssl_certificate (.*?)\\r\\n`)
-    replace.push(`ssl_certificate "${host.ssl.cert}"\r\n`)
+    replace.push(`ssl_certificate "${cert}";\r\n`)
     find.push(`ssl_certificate (.*?)\\n`)
-    replace.push(`ssl_certificate "${host.ssl.cert}"\n`)
+    replace.push(`ssl_certificate "${cert}";\n`)
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
+    const key = pathFixedToUnix(host.ssl.key)
     find.push(`ssl_certificate_key (.*?)\\r\\n`)
-    replace.push(`ssl_certificate_key "${host.ssl.key}"\r\n`)
+    replace.push(`ssl_certificate_key "${key}";\r\n`)
     find.push(`ssl_certificate_key (.*?)\\n`)
-    replace.push(`ssl_certificate_key "${host.ssl.key}"\n`)
+    replace.push(`ssl_certificate_key "${key}";\n`)
   }
   if (host.port.nginx !== old.port.nginx) {
     hasChanged = true
@@ -261,18 +264,21 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     hasChanged = true
     find.push(...[`listen ${old.port.nginx_ssl} ssl http2;`])
     replace.push(...[`listen ${host.port.nginx_ssl} ssl http2;`])
+    find.push(...[`listen ${old.port.nginx_ssl} ssl;`])
+    replace.push(...[`listen ${host.port.nginx_ssl} ssl;`])
   }
   if (host.root !== old.root) {
     hasChanged = true
+    const root = pathFixedToUnix(host.root)
     find.push(`root (.*?)\\r\\n`)
-    replace.push(`root "${host.root}";\r\n`)
+    replace.push(`root "${root}";\r\n`)
     find.push(`root (.*?)\\n`)
-    replace.push(`root "${host.root}";\n`)
+    replace.push(`root "${root}";\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
     if (old.phpVersion) {
-      find.push(...[`include enable-php-${old.phpVersion}.conf;`])
+      find.push(...[`include(\\s+)enable-php-(.*?).conf;`])
     } else {
       find.push(...['##Static Site Nginx##'])
     }
@@ -293,8 +299,6 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     contentNginxConf = handleReverseProxy(host, contentNginxConf)
     await writeFile(nginxConfPath, contentNginxConf)
   }
-  if (host.nginx.rewrite.trim() !== old.nginx.rewrite.trim()) {
-    const nginxRewriteConfPath = join(rewritepath, `${host.name}.conf`)
-    await writeFile(nginxRewriteConfPath, host.nginx.rewrite.trim())
-  }
+  const nginxRewriteConfPath = join(rewritepath, `${host.name}.conf`)
+  await writeFile(nginxRewriteConfPath, host.nginx.rewrite.trim())
 }

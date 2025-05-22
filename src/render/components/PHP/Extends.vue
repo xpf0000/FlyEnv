@@ -75,7 +75,7 @@
 <script lang="ts" setup>
   import { ref, computed, watch } from 'vue'
   import { SoftInstalled } from '@/store/brew'
-  import { I18nT } from '@shared/lang'
+  import { I18nT } from '@lang/index'
   import { AsyncComponentSetup, AsyncComponentShow } from '@/util/AsyncComponent'
   import { PHPSetup } from '@/components/PHP/store'
   import { MessageWarning } from '@/util/Element'

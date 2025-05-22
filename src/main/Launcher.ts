@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app } from 'electron'
+import { app, Menu } from 'electron'
 import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
@@ -62,6 +62,7 @@ export default class Launcher extends EventEmitter {
       global.application = new Application()
       global.application.start('index')
       global.application.on('ready', () => {})
+      Menu.setApplicationMenu(null)
     })
 
     app.on('activate', () => {

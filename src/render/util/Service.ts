@@ -2,10 +2,18 @@ import IPC from '@/util/IPC'
 import { BrewStore, type SoftInstalled } from '@/store/brew'
 import { type AppHost, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import { Service } from '@/components/ServiceManager/service'
 import installedVersions from '@/util/InstalledVersions'
 import { AllAppModule } from '@/core/type'
+
+type ServiceActionExtParamFN = (
+  typeFlag: AllAppModule,
+  fn: string,
+  version: SoftInstalled
+) => Promise<any[]>
+
+export const ServiceActionExtParam: Partial<Record<AllAppModule, ServiceActionExtParamFN>> = {}
 
 const exec = (
   typeFlag: AllAppModule,
@@ -13,7 +21,7 @@ const exec = (
   version: SoftInstalled,
   lastVersion?: SoftInstalled
 ): Promise<string | boolean> => {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     if (version.running) {
       resolve(true)
       return
@@ -40,8 +48,12 @@ const exec = (
               i.bin === lastVersion.bin
           )
         lastVersion.pid = undefined
+        lastVersion.run = false
+        lastVersion.running = false
         if (find) {
           find.pid = undefined
+          find.run = false
+          find.running = false
         }
       }
 
@@ -59,28 +71,67 @@ const exec = (
         findV.pid = pid
       }
     }
-    IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion).then((key: string, res: any) => {
-      if (res.code === 0) {
-        console.log('### key: ', key)
-        IPC.off(key)
-        const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
-        handleResult(fn !== 'stopService', pid)
-        resolve(true)
-      } else if (res.code === 1) {
-        IPC.off(key)
-        task.log!.push(res.msg)
+
+    let params: any[] = []
+
+    if (ServiceActionExtParam?.[typeFlag]) {
+      try {
+        params = await ServiceActionExtParam[typeFlag]!(typeFlag, fn, version)
+      } catch (e) {
         handleResult(false)
-        resolve(task.log!.join('\n'))
-      } else if (res.code === 200) {
-        if (typeof res?.msg === 'string') {
+        return resolve(true)
+      }
+    }
+
+    const handleVersion = () => {
+      if (fn !== 'startService') {
+        return
+      }
+      const appStore = AppStore()
+      const flag = typeFlag
+      const server: any = appStore.config.server
+      const currentVersion = server?.[flag]?.current
+      const currentItem = brewStore
+        .module(typeFlag)
+        ?.installed?.find(
+          (i) => i.path === currentVersion?.path && i.version === currentVersion?.version
+        )
+
+      if (version.version !== currentItem?.version || version.path !== currentItem?.path) {
+        appStore.UPDATE_SERVER_CURRENT({
+          flag: typeFlag,
+          data: JSON.parse(JSON.stringify(version))
+        })
+        appStore.saveConfig().then().catch()
+      }
+    }
+
+    handleVersion()
+
+    IPC.send(`app-fork:${typeFlag}`, fn, args, lastVersion, ...params).then(
+      (key: string, res: any) => {
+        if (res.code === 0) {
+          console.log('### key: ', key)
+          IPC.off(key)
+          const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
+          handleResult(fn !== 'stopService', pid)
+          resolve(true)
+        } else if (res.code === 1) {
+          IPC.off(key)
           task.log!.push(res.msg)
-        } else if (res?.msg?.['APP-Service-Start-Success'] === true) {
-          handleResult(true)
-        } else if (res?.msg?.['APP-Service-Stop-Success'] === true) {
           handleResult(false)
+          resolve(task.log!.join('\n'))
+        } else if (res.code === 200) {
+          if (typeof res?.msg === 'string') {
+            task.log!.push(res.msg)
+          } else if (res?.msg?.['APP-Service-Start-Success'] === true) {
+            handleResult(true)
+          } else if (res?.msg?.['APP-Service-Stop-Success'] === true) {
+            handleResult(false)
+          }
         }
       }
-    })
+    )
   })
 }
 
@@ -166,9 +217,11 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
     }
 
     const host = [...hosts].pop()
+    console.log('reloadWebServer host: ', host, host?.phpVersion)
     if (host?.phpVersion) {
       const phpVersions = brewStore.module('php')?.installed ?? []
       const php = phpVersions?.find((p) => p.num === host.phpVersion)
+      console.log('reloadWebServer php: ', php)
       if (php) {
         startService('php', php).then()
       }

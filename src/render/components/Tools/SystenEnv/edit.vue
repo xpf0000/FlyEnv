@@ -1,124 +1,91 @@
 <template>
-  <el-drawer
+  <el-dialog
     v-model="show"
-    :title="null"
-    :with-header="false"
-    size="75%"
+    :title="index >= 0 ? I18nT('base.edit') : I18nT('base.add')"
+    size="600px"
     :destroy-on-close="true"
     @closed="closedFn"
   >
     <template #default>
-      <div class="host-edit">
-        <div class="nav">
-          <div class="left" @click="show = false">
-            <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-            <span class="ml-15">{{ file }}</span>
-          </div>
-          <el-button
-            type="primary"
-            class="shrink0"
-            :disabled="disabled || saving"
-            :loading="saving"
-            @click="doSubmit"
-            >{{ $t('base.confirm') }}</el-button
-          >
-        </div>
-        <div class="main-wapper">
-          <div ref="input" class="block" style="width: 100%; height: 100%"></div>
-        </div>
+      <el-input v-model="path">
+        <template #append>
+          <el-button :icon="FolderOpened" @click.stop="choose()"></el-button>
+        </template>
+      </el-input>
+    </template>
+    <template #footer>
+      <div class="flex justify-end">
+        <el-button @click="show = false">{{ I18nT('base.cancel') }}</el-button>
+        <el-button type="primary" @click="doSubmit">{{ I18nT('base.confirm') }}</el-button>
       </div>
     </template>
-  </el-drawer>
+  </el-dialog>
 </template>
 <script lang="ts" setup>
-  import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+  import { ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { I18nT } from '@shared/lang'
-  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import { I18nT } from '@lang/index'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-  import IPC from '@/util/IPC'
-  import { MessageError, MessageSuccess } from '@/util/Element'
-  import Base from '@/core/Base'
+  import { FolderOpened } from '@element-plus/icons-vue'
+  import { chooseFolder } from '@/util'
+  import { MessageError } from '@/util/Element'
 
-  const { readFile, existsSync } = require('fs-extra')
-  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+  const { existsSync, realpathSync } = require('fs')
+  const { isAbsolute } = require('path')
+  const { exec } = require('child-process-promise')
+
+  const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const props = defineProps<{
-    file: string
+    item: string
+    index: number
   }>()
 
-  const disabled = ref(false)
-  const content = ref('')
-  const input = ref()
-  const saving = ref(false)
-  let monacoInstance: editor.IStandaloneCodeEditor | null
+  const path = ref(props.item)
+  const loading = ref(false)
 
-  const initEditor = () => {
-    if (!monacoInstance) {
-      if (!input?.value?.style) {
-        return
-      }
-      monacoInstance = EditorCreate(input.value, EditorConfigMake(content.value, false, 'off'))
-      monacoInstance.addAction({
-        id: 'save',
-        label: 'save',
-        keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
-        run: () => {
-          doSubmit()
-        }
-      })
-    } else {
-      monacoInstance.setValue(content.value)
-    }
+  const choose = () => {
+    chooseFolder().then((p: string) => {
+      path.value = p
+    })
   }
-
-  const fetchContent = async () => {
-    if (!existsSync(props.file)) {
-      content.value = I18nT('util.toolFileNotExist')
-      disabled.value = true
-      return
-    }
-    content.value = await readFile(props.file, 'utf-8')
-    initEditor()
-  }
-
-  fetchContent().then()
 
   const doSubmit = () => {
-    if (disabled.value || saving.value) {
+    if (loading.value) {
       return
     }
-    Base.ConfirmWarning(I18nT('util.toolSaveConfim')).then(() => {
-      saving.value = true
-      IPC.send(
-        'app-fork:tools',
-        'systemEnvSave',
-        props.file,
-        monacoInstance?.getValue() ?? ''
-      ).then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-        saving.value = false
+    loading.value = true
+    if (isAbsolute(path.value) && existsSync(path.value)) {
+      callback({
+        path: path.value,
+        raw: path.value,
+        index: props.index
       })
-    })
+      show.value = false
+      return
+    }
+    exec(`echo ${path.value}`)
+      .then((res) => {
+        const p = res?.stdout?.trim() ?? ''
+        if (isAbsolute(p) && existsSync(p)) {
+          callback({
+            path: path.value,
+            raw: realpathSync(p),
+            index: props.index
+          })
+          show.value = false
+          return
+        } else {
+          MessageError(I18nT('tools.invalidPath'))
+          loading.value = false
+        }
+      })
+      .catch(() => {
+        MessageError(I18nT('tools.invalidPath'))
+        loading.value = false
+      })
   }
-
-  onMounted(() => {
-    nextTick().then(() => {
-      initEditor()
-    })
-  })
-
-  onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
-    monacoInstance = null
-  })
 
   defineExpose({
     show,

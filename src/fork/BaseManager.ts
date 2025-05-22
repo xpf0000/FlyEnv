@@ -29,6 +29,13 @@ class BaseManager {
   Service: any
   ERLang: any
   MailPit: any
+  Ruby: any
+  Elasticsearch: any
+  Ollama: any
+  Ai: any
+  Minio: any
+  Rust: any
+  MeiliSearch: any
 
   constructor() {}
 
@@ -227,6 +234,48 @@ class BaseManager {
         this.MailPit = res.default
       }
       doRun(this.MailPit)
+    } else if (module === 'ruby') {
+      if (!this.Ruby) {
+        const res = await import('./module/Ruby')
+        this.Ruby = res.default
+      }
+      doRun(this.Ruby)
+    } else if (module === 'elasticsearch') {
+      if (!this.Elasticsearch) {
+        const res = await import('./module/Elasticsearch')
+        this.Elasticsearch = res.default
+      }
+      doRun(this.Elasticsearch)
+    } else if (module === 'ollama') {
+      if (!this.Ollama) {
+        const res = await import('./module/Ollama')
+        this.Ollama = res.default
+      }
+      doRun(this.Ollama)
+    } else if (module === 'ai') {
+      if (!this.Ai) {
+        const res = await import('./module/Ai')
+        this.Ai = res.default
+      }
+      doRun(this.Ai)
+    } else if (module === 'minio') {
+      if (!this.Minio) {
+        const res = await import('./module/Minio')
+        this.Minio = res.default
+      }
+      doRun(this.Minio)
+    } else if (module === 'rust') {
+      if (!this.Rust) {
+        const res = await import('./module/Rust')
+        this.Rust = res.default
+      }
+      doRun(this.Rust)
+    } else if (module === 'meilisearch') {
+      if (!this.MeiliSearch) {
+        const res = await import('./module/MeiliSearch')
+        this.MeiliSearch = res.default
+      }
+      doRun(this.MeiliSearch)
     }
   }
 

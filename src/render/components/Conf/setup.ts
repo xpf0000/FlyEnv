@@ -1,8 +1,8 @@
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch, ComputedRef } from 'vue'
-import { editor, KeyMod, KeyCode } from 'monaco-editor/esm/vs/editor/editor.api.js'
+import { computed, ComputedRef, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import { EditorConfigMake, EditorCreate } from '@/util/Editor'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import { I18nT } from '@shared/lang'
+import { I18nT } from '@lang/index'
 import type { AllAppModule } from '@/core/type'
 
 const { dialog } = require('@electron/remote')
@@ -20,12 +20,14 @@ export type CommonSetItem = {
   enable: boolean
   show?: boolean
   type?: string
+  isString?: boolean
   isFile?: boolean
   isDir?: boolean
   options?: CommonSetItemOption[]
   tips: () => string
   onChange?: (newValue: any, oldValue: any) => void
   key?: string
+  pathHandler?: (dir: string) => string
 }
 
 type ConfStoreType = {
@@ -56,12 +58,14 @@ type ConfSetupProps = {
   fileExt: string
   typeFlag: AllAppModule
   showCommond?: boolean
+  emptyTips?: string
 }
 
 export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   const config = ref('')
   const input = ref()
   const index = ref(1)
+  const configIndex = ref(0)
   const changed = ref(false)
   let monacoInstance: editor.IStandaloneCodeEditor | null
 
@@ -171,6 +175,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
         readOnly: disabled.value
       })
     }
+    configIndex.value += 1
   }
 
   const openConfig = () => {
@@ -183,7 +188,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   const getConfig = () => {
     console.log('getConfig: ', disabled.value)
     if (disabled.value) {
-      config.value = I18nT('base.configNoFound')
+      config.value = props?.value?.emptyTips ?? I18nT('base.configNoFound')
       initEditor()
       return
     }
@@ -199,11 +204,14 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       return
     }
     if (props?.value?.defaultConf) {
+      changed.value = props.value.defaultConf !== config.value
       config.value = props.value.defaultConf
       initEditor()
       return
     }
     readFile(props.value.defaultFile, 'utf-8').then((conf: string) => {
+      console.log('getDefault config.value === conf', config.value === conf)
+      changed.value = conf !== config.value
       config.value = conf
       initEditor()
     })
@@ -226,6 +234,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
           return
         }
         readFile(file, 'utf-8').then((conf: string) => {
+          changed.value = conf !== config.value
           config.value = conf
           initEditor()
         })
@@ -258,6 +267,10 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     index.value += 1
   }
 
+  const watchFlag = computed(() => {
+    return `${type.value}-${disabled.value}-${configIndex.value}`
+  })
+
   return {
     changed,
     update,
@@ -273,6 +286,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     loadCustom,
     getConfig,
     getEditValue,
-    setEditValue
+    setEditValue,
+    watchFlag
   }
 }
