@@ -14,6 +14,7 @@ import { SetupStore } from '@/components/Setup/store'
 import { AppLogStore } from '@/components/AppLog/store'
 import { EventBus } from '@/global'
 import { loadCustomerLang } from '@lang/loader'
+import { AppCustomerModule } from '@/core/Module'
 
 const { getGlobal } = require('@electron/remote')
 global.Server = getGlobal('Server')
@@ -37,6 +38,7 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
         app.mount('#app')
       })
       .catch()
+    AppCustomerModule.init()
     SiteSuckerStore().init()
     AppToolStore.init()
     SetupStore().init()

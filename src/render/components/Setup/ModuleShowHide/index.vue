@@ -4,6 +4,7 @@
       <div class="w-[100px]">{{ title }}</div>
       <el-switch v-model="showItem" />
     </div>
+    <slot name="default"></slot>
   </div>
 </template>
 

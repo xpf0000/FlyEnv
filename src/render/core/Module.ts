@@ -48,6 +48,7 @@ export type CustomerModuleServiceExecItem = {
   name: string
   comment: string
   command: string
+  isSudo?: boolean
   pidPath?: string
   configPath?: Array<{
     name: string
