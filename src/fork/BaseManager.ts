@@ -37,6 +37,7 @@ class BaseManager {
   Minio: any
   Rust: any
   MeiliSearch: any
+  ModuleCustomer: any
 
   constructor() {}
 
@@ -282,6 +283,14 @@ class BaseManager {
         this.MeiliSearch = res.default
       }
       doRun(this.MeiliSearch)
+    } else if (module === 'module-customer') {
+      if (!this.ModuleCustomer) {
+        const res = await import('./module/ModuleCustomer')
+        this.ModuleCustomer = res.default
+      }
+      doRun(this.ModuleCustomer)
+    } else {
+      ProcessSendError(ipcCommandKey, 'No Found Module')
     }
   }
 

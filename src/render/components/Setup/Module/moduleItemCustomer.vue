@@ -13,7 +13,7 @@
     </div>
 
     <div class="inline-flex items-center gap-4">
-      <el-button style="margin-left: 0" size="small" link @click.stop="showAddService">
+      <el-button style="margin-left: 0" size="small" link @click.stop="showAddModule(undefined)">
         <Plus class="w-[15px] h-[15px]" />
       </el-button>
       <el-switch
@@ -26,35 +26,50 @@
   </div>
   <template v-if="!item.sub.length">
     <div class="flex items-center justify-center p-5">
-      <el-button :icon="Plus">{{ I18nT('setup.moduleAdd') }}</el-button>
+      <el-button :icon="Plus" @click.stop="showAddModule(undefined)">{{
+        I18nT('setup.moduleAdd')
+      }}</el-button>
     </div>
   </template>
   <template v-else>
     <div class="grid grid-cols-3 2xl:grid-cols-4 gap-4">
       <template v-for="(i, _j) in item.sub" :key="_j">
         <div class="flex items-center justify-center w-full">
-          <ModuleShowHide :label="i.label" :type-flag="i.typeFlag"></ModuleShowHide>
+          <ModuleShowHide :label="i.label" :type-flag="i.typeFlag">
+            <template #default>
+              <div class="absolute top-0 left-0 right-0">
+                <el-button link class="absolute left-1 top-1" @click.stop="showAddModule(i)">
+                  <Edit width="16" height="16"></Edit>
+                </el-button>
+                <el-button link class="absolute right-1 top-1" @click.stop="doDelModule(i, _j)">
+                  <Delete width="16" height="16"></Delete>
+                </el-button>
+              </div>
+            </template>
+          </ModuleShowHide>
         </div>
       </template>
     </div>
   </template>
 </template>
 <script lang="ts" setup>
-  import { computed, ref, nextTick } from 'vue'
+  import { computed, ref, nextTick, reactive } from 'vue'
   import ModuleShowHide from '@/components/Setup/ModuleShowHide/index.vue'
-  import type { AppModuleItem } from '@/core/type'
   import { Plus, Delete, Edit } from '@element-plus/icons-vue'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { ElMessageBox } from 'element-plus'
   import { AppCustomerModule } from '@/core/Module'
-  import { uuid } from '@/util'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { ModuleCustomer } from '@/core/ModuleCustomer'
+  import Base from '@/core/Base'
 
   const props = defineProps<{
     index: number
     item: {
       label: string
-      sub: AppModuleItem[]
+      moduleType: string
+      sub: ModuleCustomer[]
     }
   }>()
 
@@ -89,10 +104,10 @@
       inputValue: item.label
     })
       .then(({ value }) => {
-        const find = AppCustomerModule.module.find((f) => f.id === item.id)
+        const find = AppCustomerModule.moduleCate.find((f) => f.id === item.id)
         if (find) {
           find.label = value
-          AppCustomerModule.saveModule()
+          AppCustomerModule.saveModuleCate()
         }
       })
       .catch()
@@ -104,10 +119,49 @@
       cancelButtonText: I18nT('base.cancel')
     })
       .then(() => {
-        AppCustomerModule.delModule(props.item as any)
+        AppCustomerModule.delModuleCate(props.item as any)
       })
       .catch()
   }
 
-  const showAddService = () => {}
+  let EditVM: any
+  import('./module/moduleAdd.vue').then((res) => {
+    EditVM = res.default
+  })
+  const showAddModule = (edit: any) => {
+    AsyncComponentShow(EditVM, {
+      edit: edit ? JSON.parse(JSON.stringify(edit)) : undefined,
+      isEdit: !!edit
+    }).then((res) => {
+      console.log('res: ', res)
+      const save = reactive(new ModuleCustomer(res))
+      save.moduleType = props.item.moduleType
+      if (!edit) {
+        AppCustomerModule.module.unshift(save)
+      } else {
+        const index = AppCustomerModule.module.findIndex((f) => f.id === edit.id)
+        if (index >= 0) {
+          AppCustomerModule.module.splice(index, 1, save)
+        }
+      }
+      AppCustomerModule.saveModule()
+    })
+  }
+
+  const doDelModule = (item: ModuleCustomer, i: number) => {
+    Base._Confirm(I18nT('base.areYouSure'), undefined, {
+      customClass: 'confirm-del',
+      type: 'warning'
+    })
+      .then(() => {
+        const findIndex = AppCustomerModule.module.findIndex((f) => f.id === item.id)
+        if (findIndex >= 0) {
+          const find = AppCustomerModule.module[findIndex]
+          find.stop()
+          AppCustomerModule.module.splice(findIndex, 1)
+          AppCustomerModule.saveModule()
+        }
+      })
+      .catch()
+  }
 </script>

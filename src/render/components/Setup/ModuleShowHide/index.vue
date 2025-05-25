@@ -1,5 +1,7 @@
 <template>
-  <div class="flex justify-center items-center py-5 bg-gray-200 w-full rounded-md dark:bg-gray-700">
+  <div
+    class="relative flex justify-center items-center py-5 bg-gray-200 w-full rounded-md dark:bg-gray-700"
+  >
     <div class="flex items-center">
       <div class="w-[100px]">{{ title }}</div>
       <el-switch v-model="showItem" />

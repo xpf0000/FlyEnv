@@ -36,6 +36,7 @@
       return 0
     })
     return {
+      moduleType: m,
       label: I18nT(`aside.site`),
       sub
     }
@@ -52,6 +53,7 @@
         return 0
       })
       return {
+        moduleType: m,
         label: I18nT(`aside.${m}`),
         sub
       }
@@ -59,8 +61,8 @@
   })
 
   const customerList = computed(() => {
-    return AppCustomerModule.module.map((m) => {
-      const sub = AppCustomerModule.service.filter((s) => {
+    return AppCustomerModule.moduleCate.map((m) => {
+      const sub = AppCustomerModule.module.filter((s) => {
         return s.moduleType === m.moduleType
       })
       return {

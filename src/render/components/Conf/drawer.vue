@@ -33,7 +33,12 @@
           </el-badge>
         </el-button>
       </el-tooltip>
-      <el-tooltip :show-after="600" :content="I18nT('conf.loadDefault')" placement="top">
+      <el-tooltip
+        v-if="showLoadDefault !== false"
+        :show-after="600"
+        :content="I18nT('conf.loadDefault')"
+        placement="top"
+      >
         <el-button :disabled="disabled || defaultDisabled" @click="getDefault">
           <yb-icon :svg="import('@/svg/load-default.svg?raw')" class="w-5 h-5" />
         </el-button>
@@ -68,15 +73,21 @@
   import { ConfSetup } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
 
-  const props = defineProps<{
-    file: string
-    defaultFile?: string
-    defaultConf?: string
-    fileExt: string
-    typeFlag: AllAppModule
-    showCommond: boolean
-    url?: string
-  }>()
+  const props = withDefaults(
+    defineProps<{
+      file: string
+      defaultFile?: string
+      defaultConf?: string
+      fileExt: string
+      typeFlag: AllAppModule
+      showCommond: boolean
+      url?: string
+      showLoadDefault?: boolean
+    }>(),
+    {
+      showLoadDefault: true
+    }
+  )
 
   const emit = defineEmits(['onTypeChange'])
 

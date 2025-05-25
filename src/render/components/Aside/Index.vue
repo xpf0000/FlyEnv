@@ -23,7 +23,7 @@
       </ul>
       <el-scrollbar>
         <ul class="menu top-menu">
-          <template v-for="(item, index) in allList" :key="index">
+          <template v-for="(item, index) in allModule" :key="index">
             <div
               :style="
                 {
@@ -34,7 +34,12 @@
               >{{ item.label }}</div
             >
             <template v-for="(i, _j) in item.sub" :key="_j">
-              <component :is="i.aside"></component>
+              <template v-if="i?.isCustomer">
+                <CustomerModule :item="i" />
+              </template>
+              <template v-else>
+                <component :is="i.aside"></component>
+              </template>
             </template>
           </template>
         </ul>
@@ -69,6 +74,8 @@
   import { type AllAppModule, AppModuleTypeList } from '@/core/type'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { EventBus } from '@/global'
+  import { AppCustomerModule } from '@/core/Module'
+  import CustomerModule from '@/components/CustomerModule/aside.vue'
 
   let lastTray = ''
 
@@ -78,23 +85,74 @@
     return appStore.currentPage
   })
 
+  const firstItem = computed(() => {
+    const m = 'site'
+    const sub = AppModules.filter((a) => a?.moduleType === m).filter(
+      (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
+    )
+    sub.sort((a, b) => {
+      let lowerA = a.typeFlag.toLowerCase()
+      let lowerB = b.typeFlag.toLowerCase()
+      if (lowerA < lowerB) return -1
+      if (lowerA > lowerB) return 1
+      return 0
+    })
+    const customer = AppCustomerModule.module
+      .filter((f) => f.moduleType === m)
+      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+    console.log('customer: ', customer, m)
+    sub.unshift(...customer)
+    return sub.length
+      ? {
+          label: I18nT(`aside.site`),
+          sub
+        }
+      : undefined
+  })
+
   const allList = computed(() => {
-    return AppModuleTypeList.map((m) => {
-      const sub = AppModules.filter(
-        (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
-      ).filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
-      sub.sort((a, b) => {
-        let lowerA = a.typeFlag.toLowerCase()
-        let lowerB = b.typeFlag.toLowerCase()
-        if (lowerA < lowerB) return -1
-        if (lowerA > lowerB) return 1
-        return 0
+    return AppModuleTypeList.filter((f) => f !== 'site')
+      .map((m) => {
+        const sub = AppModules.filter(
+          (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
+        ).filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
+        sub.sort((a, b) => {
+          let lowerA = a.typeFlag.toLowerCase()
+          let lowerB = b.typeFlag.toLowerCase()
+          if (lowerA < lowerB) return -1
+          if (lowerA > lowerB) return 1
+          return 0
+        })
+        const customer = AppCustomerModule.module
+          .filter((f) => f.moduleType === m)
+          .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+        sub.unshift(...customer)
+        return {
+          label: I18nT(`aside.${m}`),
+          sub
+        }
       })
-      return {
-        label: I18nT(`aside.${m}`),
-        sub
-      }
-    }).filter((s) => s.sub.length > 0)
+      .filter((s) => s.sub.length > 0)
+  })
+
+  const customerList = computed(() => {
+    return AppCustomerModule.moduleCate
+      .map((m) => {
+        const sub = AppCustomerModule.module
+          .filter((s) => {
+            return s.moduleType === m.moduleType
+          })
+          .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+        return {
+          ...m,
+          sub
+        }
+      })
+      .filter((s) => s.sub.length > 0)
+  })
+
+  const allModule = computed(() => {
+    return [firstItem.value, ...allList.value, ...customerList.value].filter((f) => !!f)
   })
 
   const groupIsRunning = computed(() => {

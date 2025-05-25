@@ -21,5 +21,24 @@
   "moduleCateAddTips": "添加模块分类",
   "moduleCateName": "模块分类名称",
   "moduleAdd": "添加模块",
-  "moduleCateDelTips": "此分类下的模块也会一并删除, 确定删除模块分类?"
+  "moduleCateDelTips": "此分类下的模块也会一并删除, 确定删除模块分类?",
+
+  "modelName": "模块名称",
+  "modelIcon": "模块图标",
+  "modelIsService": "模块是否是服务",
+  "modelIsOnlyRunOne": "同一时间只能启动一个服务",
+  "moduleExecItem": "模块执行项",
+
+  "module": {
+    "name": "名称",
+    "path": "文件路径",
+    "comment": "备注",
+    "exec": "运行",
+    "command": "命令",
+    "commandFile": "文件",
+    "isSudo": "是否以sudo启动",
+    "pidPath": "pid文件路径",
+    "configPath": "配置文件",
+    "logPath": "日志文件"
+  }
 }
