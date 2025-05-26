@@ -59,7 +59,7 @@ export interface AppServerCurrent {
   run?: boolean
 }
 
-type AppShowItem = Partial<Record<AllAppModule, boolean>>
+type AppShowItem = Partial<Record<AllAppModule | string, boolean>>
 
 type ServerBase = Partial<
   Record<

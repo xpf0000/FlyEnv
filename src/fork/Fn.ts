@@ -6,7 +6,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
 import { mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
-import type { AppHost, SoftInstalled } from '@shared/app'
+import type { AppHost, ModuleExecItem, SoftInstalled } from '@shared/app'
 import { compareVersions } from 'compare-versions'
 import { execPromise, execPromiseRoot } from './util/Exec'
 import Helper from './Helper'
@@ -874,5 +874,97 @@ export async function serviceStartExec(
       })
     )
   })
+  throw new Error(msg)
+}
+
+export async function customerServiceStartExec(
+  version: ModuleExecItem
+): Promise<{ 'APP-Service-Start-PID': string }> {
+  const pidPath = version?.pidPath ?? ''
+  if (pidPath && existsSync(pidPath)) {
+    try {
+      await remove(pidPath)
+    } catch (e) {}
+  }
+
+  const baseDir = join(global.Server.BaseDir!, 'module-customer')
+  await mkdirp(baseDir)
+
+  const outFile = join(baseDir, `${version.id}.out.log`)
+  const errFile = join(baseDir, `${version.id}.error.log`)
+
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.sh'), 'utf8')
+
+  let bin = ''
+  if (version.commandType === 'file') {
+    bin = version.commandFile
+    try {
+      await Helper.send('tools', 'chmod', bin, '0777')
+    } catch (e) {}
+  } else {
+    bin = join(baseDir, `${version.id}.start.sh`)
+    await writeFile(bin, version.command)
+  }
+
+  psScript = psScript
+    .replace('#ENV#', '')
+    .replace('#CWD#', dirname(bin))
+    .replace('#BIN#', basename(bin))
+    .replace('#ARGS#', '')
+    .replace('#OUTLOG#', outFile)
+    .replace('#ERRLOG#', errFile)
+
+  const psName = `start-${version.id.trim()}.sh`.split(' ').join('')
+  const psPath = join(baseDir, psName)
+  await writeFile(psPath, psScript)
+
+  process.chdir(baseDir)
+  let res: any
+  let error: any
+  try {
+    if (version.isSudo) {
+      res = (
+        await execPromiseRoot(['zsh', psName], {
+          cwd: baseDir
+        })
+      ).stdout
+    } else {
+      res = await spawnPromise('zsh', [psName], {
+        cwd: baseDir
+      })
+    }
+  } catch (e) {
+    error = e
+  }
+
+  if (!version.pidPath) {
+    let pid = ''
+    const stdout = res.trim()
+    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
+    const match = regex.exec(stdout)
+    if (match) {
+      pid = match[1]
+    }
+    return {
+      'APP-Service-Start-PID': pid
+    }
+  }
+
+  res = await waitPidFile(pidPath, 0, 20, 500)
+  if (res) {
+    if (res?.pid) {
+      await writeFile(pidPath, res.pid)
+      return {
+        'APP-Service-Start-PID': res.pid
+      }
+    }
+    throw new Error(res?.error ?? 'Start Fail')
+  }
+  let msg = 'Start Fail'
+  if (existsSync(errFile)) {
+    msg = await readFile(errFile, 'utf-8')
+  } else if (error) {
+    msg = error && error?.toString ? error?.toString() : ''
+  }
   throw new Error(msg)
 }

@@ -16,14 +16,20 @@
       </div>
     </template>
     <el-table class="service-table" :data="moduleExecItems">
-      <el-table-column prop="name" width="140px">
+      <el-table-column prop="name" width="280px">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{
             I18nT('setup.module.name')
           }}</span>
         </template>
         <template #default="scope">
-          <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.name }}</span>
+          <span
+            style="padding: 2px 12px 2px 24px; display: block"
+            :class="{
+              'text-blue-500': currentItem === scope.row.id
+            }"
+            >{{ scope.row.name }}</span
+          >
         </template>
       </el-table-column>
       <el-table-column :label="I18nT('setup.module.comment')" prop="comment"> </el-table-column>
@@ -43,7 +49,7 @@
               <el-button link class="status refresh">
                 <yb-icon
                   :svg="import('@/svg/icon_refresh.svg?raw')"
-                  @click.stop="serviceDo('start', scope.row)"
+                  @click.stop="serviceDo('restart', scope.row)"
                 />
               </el-button>
             </template>
@@ -67,8 +73,6 @@
             placement="left-start"
             :show-arrow="false"
             width="auto"
-            @before-enter="onBeforEnter"
-            @show="onShow"
           >
             <ul v-poper-fix class="host-list-menu">
               <li @click.stop="action(scope.row, scope.$index, 'edit')">
@@ -111,6 +115,7 @@
   import { AppCustomerModule } from '@/core/Module'
   import { ModuleCustomerExecItem } from '@/core/ModuleCustomer'
   import { FolderAdd } from '@element-plus/icons-vue'
+  import Base from '@/core/Base'
 
   const title = computed(() => {
     return AppCustomerModule.currentModule?.label ?? ''
@@ -118,6 +123,21 @@
 
   const moduleExecItems = computed(() => {
     return AppCustomerModule.currentModule?.item ?? []
+  })
+
+  const currentItem = computed(() => {
+    if (AppCustomerModule.index < 0) {
+      return ''
+    }
+    if (
+      !AppCustomerModule.currentModule?.isService ||
+      !AppCustomerModule.currentModule?.isOnlyRunOne
+    ) {
+      console.log('currentItem 0000 !!!')
+      return ''
+    }
+    console.log('currentItem v: ', AppCustomerModule.currentModule)
+    return AppCustomerModule.currentModule?.currentItemID ?? ''
   })
 
   let EditVM: any
@@ -172,9 +192,8 @@
           type: 'warning'
         })
           .then(() => {
-            const findIndex = AppCustomerModule.currentModule?.item?.findIndex(
-              (f) => f.id === item.id
-            )
+            const findIndex =
+              AppCustomerModule.currentModule?.item?.findIndex((f) => f.id === item.id) ?? -1
             if (findIndex >= 0) {
               const find: ModuleCustomerExecItem = AppCustomerModule.currentModule!.item[findIndex]
               find.stop().then().catch()
@@ -187,11 +206,17 @@
     }
   }
 
-  const serviceDo = (fn: 'start' | 'stop', item: ModuleCustomerExecItem) => {
+  const serviceDo = (fn: 'start' | 'stop' | 'restart', item: ModuleCustomerExecItem) => {
     if (fn === 'start') {
       item.start().then().catch()
-    } else {
+    } else if (fn === 'stop') {
       item.stop().then().catch()
+    } else if (fn === 'restart') {
+      item
+        .stop()
+        .then(() => item.start())
+        .then()
+        .catch()
     }
   }
 </script>

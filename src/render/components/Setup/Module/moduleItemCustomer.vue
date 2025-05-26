@@ -13,9 +13,18 @@
     </div>
 
     <div class="inline-flex items-center gap-4">
-      <el-button style="margin-left: 0" size="small" link @click.stop="showAddModule(undefined)">
-        <Plus class="w-[15px] h-[15px]" />
-      </el-button>
+      <template v-if="isLock">
+        <el-tooltip placement="left" :content="I18nT('host.licenseTips')">
+          <el-button size="small" link @click="toLicense">
+            <Lock class="w-[15px] h-[15px]" />
+          </el-button>
+        </el-tooltip>
+      </template>
+      <template v-else>
+        <el-button size="small" link @click.stop="showAddModule(undefined)">
+          <Plus class="w-[15px] h-[15px]" />
+        </el-button>
+      </template>
       <el-switch
         v-model="groupState"
         :loading="groupSetting"
@@ -26,9 +35,14 @@
   </div>
   <template v-if="!item.sub.length">
     <div class="flex items-center justify-center p-5">
-      <el-button :icon="Plus" @click.stop="showAddModule(undefined)">{{
-        I18nT('setup.moduleAdd')
-      }}</el-button>
+      <template v-if="isLock">
+        <el-button :icon="Lock" @click.stop="toLicense">{{ I18nT('setup.moduleAdd') }}</el-button>
+      </template>
+      <template v-else>
+        <el-button :icon="Plus" @click.stop="showAddModule(undefined)">{{
+          I18nT('setup.moduleAdd')
+        }}</el-button>
+      </template>
     </div>
   </template>
   <template v-else>
@@ -55,7 +69,7 @@
 <script lang="ts" setup>
   import { computed, ref, nextTick, reactive } from 'vue'
   import ModuleShowHide from '@/components/Setup/ModuleShowHide/index.vue'
-  import { Plus, Delete, Edit } from '@element-plus/icons-vue'
+  import { Plus, Delete, Edit, Lock } from '@element-plus/icons-vue'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { ElMessageBox } from 'element-plus'
@@ -63,6 +77,8 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { ModuleCustomer } from '@/core/ModuleCustomer'
   import Base from '@/core/Base'
+  import { SetupStore } from '@/components/Setup/store'
+  import Router from '@/router'
 
   const props = defineProps<{
     index: number
@@ -162,6 +178,22 @@
           AppCustomerModule.saveModule()
         }
       })
+      .catch()
+  }
+
+  const setupStore = SetupStore()
+
+  const isLock = computed(() => {
+    return !setupStore.isActive && AppCustomerModule.module.length > 2
+  })
+
+  const toLicense = () => {
+    setupStore.tab = 'licenses'
+    appStore.currentPage = '/setup'
+    Router.push({
+      path: '/setup'
+    })
+      .then()
       .catch()
   }
 </script>

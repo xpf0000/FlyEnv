@@ -97,7 +97,7 @@
       if (lowerA > lowerB) return 1
       return 0
     })
-    const customer = AppCustomerModule.module
+    const customer: any = AppCustomerModule.module
       .filter((f) => f.moduleType === m)
       .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
     console.log('customer: ', customer, m)
@@ -123,7 +123,7 @@
           if (lowerA > lowerB) return 1
           return 0
         })
-        const customer = AppCustomerModule.module
+        const customer: any = AppCustomerModule.module
           .filter((f) => f.moduleType === m)
           .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
         sub.unshift(...customer)
@@ -155,15 +155,30 @@
     return [firstItem.value, ...allList.value, ...customerList.value].filter((f) => !!f)
   })
 
+  const allCustomerServiceModuleExecItem = computed(() => {
+    return AppCustomerModule.module
+      .filter((f) => f.isService)
+      .map((m) => m.item)
+      .flat()
+  })
+
   const groupIsRunning = computed(() => {
-    return Object.values(AppServiceModule).some((m) => !!m?.serviceRunning)
+    return (
+      Object.values(AppServiceModule).some((m) => !!m?.serviceRunning) ||
+      allCustomerServiceModuleExecItem.value.some((s) => s.run)
+    )
   })
 
   const groupDisabled = computed(() => {
     const modules = Object.values(AppServiceModule)
     const allDisabled = modules.every((m) => !!m?.serviceDisabled)
     const running = modules.some((m) => !!m?.serviceFetching)
-    return allDisabled || running || !appStore.versionInited
+    return (
+      allDisabled ||
+      running ||
+      !appStore.versionInited ||
+      allCustomerServiceModuleExecItem.value.some((s) => s.running)
+    )
   })
 
   const groupClass = computed(() => {
@@ -173,6 +188,23 @@
       on: groupIsRunning.value,
       disabled: groupDisabled.value
     }
+  })
+
+  const customerModule = computed(() => {
+    return AppCustomerModule.module
+      .filter((f) => f.isService)
+      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+      .map((m) => {
+        return {
+          id: m.id,
+          label: m.label,
+          icon: m.icon,
+          show: true,
+          disabled: false,
+          run: m.item.some((s) => s.run),
+          running: m.item.some((s) => s.running)
+        }
+      })
   })
 
   const trayStore = computed(() => {
@@ -193,7 +225,8 @@
       lang: appStore?.config?.setup?.lang,
       theme: appStore?.config?.setup?.theme,
       groupDisabled: groupDisabled.value,
-      groupIsRunning: groupIsRunning.value
+      groupIsRunning: groupIsRunning.value,
+      customerModule: customerModule.value
     }
   })
 
@@ -233,40 +266,46 @@
     if (groupDisabled.value) {
       return
     }
-    passwordCheck().then(() => {
-      const modules = Object.values(AppServiceModule)
-      const all: Array<Promise<string | boolean>> = []
-      modules.forEach((m) => {
-        const arr = m?.groupDo(groupIsRunning?.value) ?? []
-        all.push(...arr)
+    const modules = Object.values(AppServiceModule)
+    const all: Array<Promise<string | boolean>> = []
+    modules.forEach((m) => {
+      const arr = m?.groupDo(groupIsRunning?.value) ?? []
+      all.push(...arr)
+    })
+    const isRun = groupIsRunning.value
+    const customerModule = AppCustomerModule.module
+      .filter((f) => f.isService)
+      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+      .map((m) => {
+        return isRun ? m.stop() : m.start()
       })
-      if (all.length > 0) {
-        const err: Array<string> = []
-        const run = () => {
-          const task = all.pop()
-          if (task) {
-            task
-              .then((s: boolean | string) => {
-                if (typeof s === 'string') {
-                  err.push(s)
-                }
-                run()
-              })
-              .catch((e: any) => {
-                err.push(e.toString())
-                run()
-              })
+    all.push(...customerModule)
+    if (all.length > 0) {
+      const err: Array<string> = []
+      const run = () => {
+        const task = all.pop()
+        if (task) {
+          task
+            .then((s: boolean | string) => {
+              if (typeof s === 'string') {
+                err.push(s)
+              }
+              run()
+            })
+            .catch((e: any) => {
+              err.push(e.toString())
+              run()
+            })
+        } else {
+          if (err.length === 0) {
+            MessageSuccess(I18nT('base.success'))
           } else {
-            if (err.length === 0) {
-              MessageSuccess(I18nT('base.success'))
-            } else {
-              MessageError(err.join('<br/>'))
-            }
+            MessageError(err.join('<br/>'))
           }
         }
-        run()
       }
-    })
+      run()
+    }
   }
 
   const switchChange = (flag: AllAppModule) => {
@@ -289,6 +328,16 @@
 
   IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
     console.log('on APP:Tray-Command', key, fn, arg)
+    const find = AppCustomerModule.module.find((m) => m.id === arg)
+    if (find) {
+      const run = find.item.some((s) => s.run)
+      if (run) {
+        find.stop()
+      } else {
+        find.start()
+      }
+      return
+    }
     if (fn === 'switchChange' && arg === 'php') {
       AppServiceModule.php?.switchChange()
       return

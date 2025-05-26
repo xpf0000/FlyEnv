@@ -31,7 +31,6 @@
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import type { AllAppModule } from '@/core/type'
-  import type { Action } from 'element-plus'
 
   const {
     showItem,
@@ -94,14 +93,7 @@
           }
         })
           .then()
-          .catch((action: Action) => {
-            console.log('catch: ', action)
-            if (action === 'cancel') {
-              resolve([true])
-            } else {
-              reject(new Error('User Cancel Action'))
-            }
-          })
+          .catch()
       }
       if (!global.Server.Password && fn === 'startService') {
         showPasswordTips()

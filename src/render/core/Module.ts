@@ -6,7 +6,7 @@ import { ModuleCustomer, ModuleCustomerExecItem } from '@/core/ModuleCustomer'
 
 export const AppModuleTab: Record<AllAppModule, number> = reactive({}) as any
 
-export const AppModuleSetup = (flag: any) => {
+export const AppModuleSetup = (flag: AllAppModule) => {
   const appStore = AppStore()
 
   const currentVersion = computed(() => {
@@ -64,7 +64,7 @@ export type CustomerModuleExecItem = {
 }
 
 export type CustomerModuleItem = {
-  isCustomer: true
+  isCustomer: boolean
   id: string
   typeFlag: string
   label: string
@@ -87,15 +87,17 @@ const APPCustomerModuleCateKey = 'flyenv-customer-module-cate'
 const APPCustomerModuleKey = 'flyenv-customer-module'
 
 export const AppCustomerModule: {
+  index: number
   moduleCate: CustomerModuleCateItem[]
   module: ModuleCustomer[]
   init: () => void
   saveModuleCate: () => void
-  saveModule: () => void
+  saveModule: () => Promise<any>
   addModuleCate: (item: CustomerModuleCateItem) => void
   delModuleCate: (item: CustomerModuleCateItem) => void
   currentModule?: ModuleCustomer
 } = reactive({
+  index: 1,
   currentModule: undefined,
   moduleCate: [],
   module: [],
@@ -125,10 +127,10 @@ export const AppCustomerModule: {
       .catch()
   },
   saveModule() {
-    localForage
-      .setItem(APPCustomerModuleKey, JSON.parse(JSON.stringify(AppCustomerModule.module)))
-      .then()
-      .catch()
+    return localForage.setItem(
+      APPCustomerModuleKey,
+      JSON.parse(JSON.stringify(AppCustomerModule.module))
+    )
   },
   addModuleCate(item: CustomerModuleCateItem) {
     AppCustomerModule.moduleCate.unshift(item)

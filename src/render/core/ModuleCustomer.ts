@@ -1,7 +1,11 @@
 import type { CustomerModuleExecItem, CustomerModuleItem } from '@/core/Module'
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
-import { MessageError } from '@/util/Element'
+import { MessageError, MessageSuccess } from '@/util/Element'
+import { AppCustomerModule } from '@/core/Module'
+import { ElMessageBox } from 'element-plus'
+import { I18nT } from '@lang/index'
+import { AppStore } from '@/store/app'
 
 const ModuleDefaultIcon = `<svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
 >
@@ -33,10 +37,13 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
   run = false
   pid = ''
 
-  _onStart!: (item: ModuleCustomerExecItem) => Promise<any>
+  _onStart!: (item: ModuleCustomerExecItem) => Promise<ModuleCustomer>
 
   constructor(item: any) {
     Object.assign(this, item)
+    this.running = false
+    this.run = false
+    this.pid = ''
   }
 
   stop() {
@@ -44,31 +51,50 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
       if (!this.run) {
         return resolve(true)
       }
+      this.running = true
       this.run = false
       IPC.send('app-fork:module-customer', 'stopService', this.pid).then((key: string) => {
         IPC.off(key)
         this.run = false
         this.pid = ''
+        this.running = false
         resolve(true)
       })
     })
   }
 
-  start() {
-    return new Promise(async (resolve, reject) => {
+  start(): Promise<boolean | string> {
+    return new Promise(async (resolve) => {
       if (this.run && this.pid) {
         return resolve(true)
       }
       this.running = true
-      await this._onStart(this)
-      IPC.send('app-fork:module-customer', 'startService', JSON.parse(JSON.stringify(this))).then(
-        (key: string, res: any) => {
+      const module = await this._onStart(this)
+
+      let hadRun = false
+
+      const doRun = (openInTerminal?: boolean) => {
+        if (hadRun) {
+          return
+        }
+        hadRun = true
+        IPC.send(
+          'app-fork:module-customer',
+          'startService',
+          JSON.parse(JSON.stringify(this)),
+          module.isService,
+          openInTerminal
+        ).then((key: string, res: any) => {
           if (res.code === 0) {
             IPC.off(key)
             const pid = res?.data?.['APP-Service-Start-PID'] ?? ''
             this.running = false
-            this.run = true
-            this.pid = pid
+            if (module.isService) {
+              this.run = true
+              this.pid = pid
+            } else {
+              MessageSuccess(I18nT('base.success'))
+            }
             resolve(true)
           } else if (res.code === 1) {
             IPC.off(key)
@@ -76,14 +102,59 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
             this.run = false
             this.pid = ''
             MessageError(res.msg)
-            reject(new Error(res.msg))
+            resolve(res.msg)
           } else if (res.code === 200) {
-            if (res?.msg?.['APP-Service-Start-Success'] === true) {
+            if (res?.msg?.['APP-Service-Start-Success'] === true && module.isService) {
               this.run = true
             }
           }
-        }
-      )
+        })
+      }
+
+      const showPasswordTips = () => {
+        ElMessageBox.prompt(I18nT('setup.module.needPasswordToStart'), I18nT('host.warning'), {
+          distinguishCancelAndClose: true,
+          confirmButtonText: I18nT('base.confirm'),
+          cancelButtonText: I18nT('nodejs.openIN') + ' ' + I18nT('nodejs.Terminal'),
+          inputType: 'password',
+          customClass: 'password-prompt',
+          beforeClose: (action, instance, done) => {
+            console.log('beforeClose: ', action)
+            if (action === 'confirm') {
+              if (instance.inputValue) {
+                const pass = instance.inputValue
+                IPC.send('app:password-check', pass).then((key: string, res: any) => {
+                  IPC.off(key)
+                  if (res?.code === 0) {
+                    global.Server.Password = res?.data ?? pass
+                    AppStore()
+                      .initConfig()
+                      .then(() => {
+                        done && done()
+                        doRun()
+                      })
+                  } else {
+                    instance.editorErrorMessage = res?.msg ?? I18nT('base.passwordError')
+                  }
+                })
+              }
+            } else if (action === 'cancel') {
+              done()
+              doRun(true)
+            } else {
+              done()
+              resolve('User Cancel Action')
+            }
+          }
+        })
+          .then()
+          .catch()
+      }
+      if (this.isSudo && !global.Server.Password) {
+        showPasswordTips()
+      } else {
+        doRun()
+      }
     })
   }
 
@@ -120,12 +191,70 @@ class ModuleCustomer implements CustomerModuleItem {
     this.item = reactive(list)
   }
 
-  onExecStart() {
+  onExecStart(item: ModuleCustomerExecItem) {
     return new Promise(async (resolve) => {
       if (this.isOnlyRunOne !== true) {
         resolve(true)
       }
-      console.log('this: ', this, this.item)
+      if (this.currentItemID !== item.id) {
+        console.log('this.currentItemID !== item.id !!', this.currentItemID, item.id)
+        this.currentItemID = item.id
+        if (AppCustomerModule?.currentModule?.id === this.id) {
+          console.log('AppCustomerModule?.currentModule?.id === this.id', this.id)
+          AppCustomerModule.currentModule!.currentItemID = item.id
+        }
+        await AppCustomerModule.saveModule()
+        AppCustomerModule.index += 1
+      }
+      Promise.all(this.item.map((a) => a.stop()))
+        .then(() => {
+          resolve(this)
+        })
+        .catch(() => {
+          resolve(this)
+        })
+    })
+  }
+
+  start(): Promise<boolean | string> {
+    return new Promise((resolve) => {
+      if (this.isOnlyRunOne !== true) {
+        Promise.all(this.item.map((a) => a.start()))
+          .then((arrs) => {
+            const err = arrs.filter((a) => typeof a === 'string')
+            if (err.length) {
+              resolve(err.join('\n'))
+            } else {
+              resolve(true)
+            }
+          })
+          .catch((e) => {
+            resolve(e.toString())
+          })
+        return
+      }
+      if (this.item.length === 0) {
+        resolve(true)
+        return
+      }
+      let find = this.item.find((f) => f.id === this.currentItemID)
+      if (!this.currentItemID || !find) {
+        this.currentItemID = this.item[0].id
+      }
+      find = this.item.find((f) => f.id === this.currentItemID)
+      find!
+        .start()
+        .then((res) => {
+          resolve(res)
+        })
+        .catch((e) => {
+          resolve(e.toString())
+        })
+    })
+  }
+
+  stop(): Promise<boolean | string> {
+    return new Promise((resolve) => {
       Promise.all(this.item.map((a) => a.stop()))
         .then(() => {
           resolve(true)
@@ -134,30 +263,6 @@ class ModuleCustomer implements CustomerModuleItem {
           resolve(true)
         })
     })
-  }
-
-  start() {
-    if (this.isOnlyRunOne !== true) {
-      Promise.all(this.item.map((a) => a.start()))
-        .then()
-        .catch()
-      return
-    }
-    if (this.item.length === 0) {
-      return
-    }
-    let find = this.item.find((f) => f.id === this.currentItemID)
-    if (!this.currentItemID || !find) {
-      this.currentItemID = this.item[0].id
-    }
-    find = this.item.find((f) => f.id === this.currentItemID)
-    find!.start().then().catch()
-  }
-
-  stop() {
-    Promise.all(this.item.map((a) => a.stop()))
-      .then()
-      .catch()
   }
 }
 

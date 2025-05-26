@@ -1,26 +1,25 @@
-import { join } from 'path'
-import { Base } from './Base'
-import { serviceStartExec, waitTime } from '../Fn'
+import { basename, join } from 'path'
+import { customerServiceStartExec, execPromise, uuid, waitPidFile, waitTime } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import Helper from '../Helper'
 import { existsSync } from 'fs'
-import { mkdirp, writeFile } from 'fs-extra'
+import { chmod, mkdirp, remove, writeFile } from 'fs-extra'
 import { ProcessPidsByPid } from '@shared/Process'
+import { I18nT } from '@lang/index'
+import type { ModuleExecItem } from '@shared/app'
 
-type ModuleExecItem = {
-  id: string
-  name: string
-  comment: string
-  command: string
-  commandFile: string
-  commandType: 'command' | 'file'
-  isSudo?: boolean
-  pidPath?: string
-}
+class ModuleCustomer {
+  constructor() {}
 
-class ModuleCustomer extends Base {
-  constructor() {
-    super()
+  exec(fnName: string, ...args: any) {
+    // @ts-ignore
+    const fn: (...args: any) => ForkPromise<any> = this?.[fnName] as any
+    if (fn) {
+      return fn.call(this, ...args)
+    }
+    return new ForkPromise((resolve, reject) => {
+      reject(new Error('No Found Function'))
+    })
   }
 
   stopService(pid: string) {
@@ -46,47 +45,77 @@ class ModuleCustomer extends Base {
       })
     })
   }
-  startService(version: ModuleExecItem) {
+  startService(version: ModuleExecItem, isService: boolean, openInTerminal?: boolean) {
     return new ForkPromise(async (resolve, reject) => {
       if (version.commandType === 'file' && !existsSync(version.commandFile)) {
         reject(new Error('Command File Not Exists'))
         return
       }
 
-      const on = () => {}
-
-      let bin = ''
-      const baseDir = join(global.Server.BaseDir!, 'module-customer')
-      await mkdirp(baseDir)
-      const execEnv = ``
-      const execArgs = ``
-
-      if (version.commandType === 'file') {
-        bin = version.commandFile
+      if (openInTerminal) {
+        let command = ''
+        if (version.commandType === 'file') {
+          command = version.commandFile
+        } else {
+          command = version.command
+          const baseDir = join(global.Server.BaseDir!, 'module-customer')
+          await mkdirp(baseDir)
+          command = join(baseDir, `${version.id}.sh`)
+          await writeFile(command, version.command)
+          try {
+            await Helper.send('tools', 'chmod', command, '0777')
+          } catch (e) {}
+        }
+        command = command.replace(/"/g, '\\"')
+        const appleScript = `
+        tell application "Terminal"
+          if not running then
+            activate
+            do script "${command}" in front window
+          else
+            activate
+            do script "${command}"
+          end if
+        end tell`
+        const scptFile = join(global.Server.Cache!, `${uuid()}.scpt`)
+        await writeFile(scptFile, appleScript)
+        await chmod(scptFile, '0777')
         try {
-          await Helper.send('tools', 'chmod', bin, '0777')
-        } catch (e) {}
-      } else {
-        bin = join(baseDir, `${version.id}.start.sh`)
-        await writeFile(bin, version.command)
+          await execPromise(`osascript ./${basename(scptFile)}`, {
+            cwd: global.Server.Cache!
+          })
+          await remove(scptFile)
+        } catch (e) {
+          await remove(scptFile)
+          return reject(e)
+        }
+
+        if (!isService) {
+          resolve(true)
+          return
+        }
+        if (!version?.pidPath) {
+          reject(new Error(I18nT('setup.module.hadOpenInTerminal')))
+          return
+        }
+
+        const res = await waitPidFile(version.pidPath, 0, 20, 500)
+        if (res) {
+          if (res?.pid) {
+            resolve({
+              'APP-Service-Start-PID': res.pid
+            })
+            return
+          }
+          reject(new Error(res?.error ?? 'Start Fail'))
+          return
+        }
+        reject(new Error('Start Fail'))
+        return
       }
 
       try {
-        const res = await serviceStartExec(
-          {
-            version: '1.0',
-            typeFlag: ''
-          },
-          version?.pidPath ?? '',
-          baseDir,
-          bin,
-          execArgs,
-          execEnv,
-          on,
-          20,
-          500,
-          !!version?.pidPath
-        )
+        const res = await customerServiceStartExec(version)
         resolve(res)
       } catch (e: any) {
         console.log('-k start err: ', e)

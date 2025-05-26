@@ -16,6 +16,24 @@
     </ul>
     <ul class="menu top-menu">
       <el-scrollbar>
+        <template v-for="(item, _index) in customerModule" :key="_index">
+          <li class="non-draggable">
+            <div class="left">
+              <div class="icon-block" :class="{ run: item.run }">
+                <yb-icon :svg="item.icon" width="30" height="30" />
+              </div>
+              <span class="title">{{ item.label }}</span>
+            </div>
+
+            <el-switch
+              v-model="item.run"
+              :disabled="item.running"
+              :loading="item.running"
+              @change="switchChange(item.id)"
+            >
+            </el-switch>
+          </li>
+        </template>
         <template v-for="(item, _index) in allService" :key="_index">
           <li v-if="store[item.typeFlag] && store[item.typeFlag].show" class="non-draggable">
             <div class="left">
@@ -28,8 +46,9 @@
             </div>
 
             <el-switch
-              v-model="store[item.typeFlag].run"
+              v-model="store[item.typeFlag]!.run"
               :disabled="store[item.typeFlag]?.disabled"
+              :loading="store[item.typeFlag]?.running"
               @change="switchChange(item.typeFlag)"
             >
             </el-switch>
@@ -68,6 +87,11 @@
   const groupDisabled = computed(() => {
     return store.groupDisabled
   })
+
+  const customerModule = computed(() => {
+    return store.customerModule
+  })
+
   const left: Ref<string | null> = ref(null)
   IPC.on('APP:Poper-Left').then((key: string, res: any) => {
     console.log('APP:Poper-Left: ', key, res)

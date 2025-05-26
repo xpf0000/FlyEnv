@@ -106,3 +106,14 @@ export type AppServiceAliasItem = {
   }
   name: string
 }
+
+export type ModuleExecItem = {
+  id: string
+  name: string
+  comment: string
+  command: string
+  commandFile: string
+  commandType: 'command' | 'file'
+  isSudo?: boolean
+  pidPath?: string
+}
