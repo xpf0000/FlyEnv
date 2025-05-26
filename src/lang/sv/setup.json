@@ -16,5 +16,33 @@
   "autoLaunchTips": "Om appen ska startas automatiskt när datorn startar",
   "passwordTips": "Ej obligatoriskt. Fyll automatiskt i lösenord vid körning av kommandon. Till exempel vid installation och avinstallation med Macports, etc.",
   "langTips": "Ladda användardefinierade språkpaket. Samtidigt kommer ett standardspråkpaket att initieras för att underlätta för användare att översätta till andra språk",
-  "openLangDir": "Öppna mappen för språkpaket"
+  "openLangDir": "Öppna mappen för språkpaket",
+
+  "moduleCateAddTips": "Lägg till modulkategori",
+  "moduleCateName": "Modulkategorinamn",
+  "moduleAdd": "Lägg till modul",
+  "moduleCateDelTips": "Moduler i denna kategori raderas också. Bekräfta borttagning?",
+
+  "moduleTitle": "Module",
+  "moduleName": "Modulnamn",
+  "moduleIcon": "Modulikon",
+  "moduleIsService": "Är modulen en tjänst?",
+  "moduleIsOnlyRunOne": "Endast en tjänst kan köras åt gången",
+  "moduleExecItem": "Modulutföringsobjekt",
+
+  "module": {
+    "name": "Namn",
+    "path": "Filsökväg",
+    "comment": "Kommentar",
+    "exec": "Kör",
+    "command": "Kommando",
+    "commandFile": "Fil",
+    "isSudo": "Kör med sudo?",
+    "pidPath": "PID-filsökväg",
+    "configPath": "Konfigurationsfil",
+    "logPath": "Loggfil",
+    "needPasswordToStart": "Adminrättigheter krävs. Ange lösenord (sparas för framtida bruk). Eller ange manuellt i terminalen, men denna prompt kan dyka upp igen.",
+    "hadOpenInTerminal": "Körs redan i terminalen—resultat ej tillgängliga.",
+    "licenseTips": "Ingen licens hittades. Endast 3 moduler/utföringsobjekt kan skapas."
+  }
 }

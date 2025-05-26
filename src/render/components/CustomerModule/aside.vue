@@ -41,7 +41,7 @@
   const stopNav = () => {}
 
   const isActive = computed(() => {
-    return appStore.currentPage === props.item.id
+    return appStore.currentPage === `/${props.item.id}`
   })
 
   const serviceRunning = computed(() => {
@@ -62,12 +62,12 @@
 
   const nav = () => {
     return new Promise((resolve, reject) => {
-      const path = props.item.id
+      const path = `/${props.item.id}`
       if (appStore.currentPage === path) {
         reject(new Error('Path Not Change'))
         return
       }
-      AppCustomerModule.currentModule = props.item
+      AppCustomerModule.currentModule = AppCustomerModule.module.find((f) => f.id === props.item.id)
       Router.push({
         path: '/customer-module'
       })

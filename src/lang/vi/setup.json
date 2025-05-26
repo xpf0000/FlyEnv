@@ -16,5 +16,33 @@
   "autoLaunchTips": "Có tự động khởi chạy ứng dụng khi máy tính khởi động hay không",
   "passwordTips": "Không bắt buộc. Tự động điền mật khẩu khi thực hiện các lệnh. Ví dụ: cài đặt và gỡ cài đặt bằng Macports, v.v.",
   "langTips": "Tải các gói ngôn ngữ do người dùng xác định Đồng thời, một gói ngôn ngữ mặc định sẽ được khởi tạo để tạo điều kiện cho người dùng dịch sang các ngôn ngữ khác",
-  "openLangDir": "Mở thư mục gói ngôn ngữ"
+  "openLangDir": "Mở thư mục gói ngôn ngữ",
+
+  "moduleCateAddTips": "Thêm danh mục module",
+  "moduleCateName": "Tên danh mục module",
+  "moduleAdd": "Thêm module",
+  "moduleCateDelTips": "Các module trong danh mục này cũng sẽ bị xóa. Xác nhận xóa?",
+
+  "moduleTitle": "Module",
+  "moduleName": "Tên module",
+  "moduleIcon": "Biểu tượng module",
+  "moduleIsService": "Module có phải là dịch vụ?",
+  "moduleIsOnlyRunOne": "Chỉ một dịch vụ có thể chạy cùng lúc",
+  "moduleExecItem": "Mục thực thi module",
+
+  "module": {
+    "name": "Tên",
+    "path": "Đường dẫn tệp",
+    "comment": "Ghi chú",
+    "exec": "Chạy",
+    "command": "Lệnh",
+    "commandFile": "Tệp",
+    "isSudo": "Chạy với sudo?",
+    "pidPath": "Đường dẫn tệp PID",
+    "configPath": "Tệp cấu hình",
+    "logPath": "Tệp nhật ký",
+    "needPasswordToStart": "Yêu cầu quyền admin. Nhập mật khẩu (sẽ được lưu để dùng sau). Hoặc nhập thủ công trong terminal, nhưng thông báo này có thể hiện lại.",
+    "hadOpenInTerminal": "Đang chạy trong terminal—không thể xem kết quả.",
+    "licenseTips": "Không có giấy phép. Chỉ được tạo tối đa 3 module/mục thực thi."
+  }
 }

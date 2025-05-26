@@ -16,5 +16,33 @@
   "autoLaunchTips": "Apakah ingin meluncurkan FlyEnv secara otomatis saat komputer menyala",
   "passwordTips": "Tidak diperlukan. Kata sandi akan diisi otomatis saat menjalankan perintah. Misalnya, instalasi dan pencopotan dengan Macports, dll.",
   "langTips": "Muat paket bahasa yang didefinisikan pengguna. Ini juga akan menginisialisasi paket bahasa default, memudahkan pengguna untuk menerjemahkan FlyEnv ke bahasa lain.",
-  "openLangDir": "Buka folder paket bahasa"
+  "openLangDir": "Buka folder paket bahasa",
+
+  "moduleCateAddTips": "Tambahkan Kategori Modul",
+  "moduleCateName": "Nama Kategori Modul",
+  "moduleAdd": "Tambahkan Modul",
+  "moduleCateDelTips": "Modul dalam kategori ini juga akan dihapus. Konfirmasi penghapusan?",
+
+  "moduleTitle": "Modul",
+  "moduleName": "Nama Modul",
+  "moduleIcon": "Ikon Modul",
+  "moduleIsService": "Apakah modul adalah layanan?",
+  "moduleIsOnlyRunOne": "Hanya satu layanan yang dapat berjalan sekaligus",
+  "moduleExecItem": "Item Eksekusi Modul",
+
+  "module": {
+    "name": "Nama",
+    "path": "Lokasi File",
+    "comment": "Komentar",
+    "exec": "Jalankan",
+    "command": "Perintah",
+    "commandFile": "File",
+    "isSudo": "Jalankan dengan sudo?",
+    "pidPath": "Lokasi File PID",
+    "configPath": "File Konfigurasi",
+    "logPath": "File Log",
+    "needPasswordToStart": "Diperlukan hak admin. Masukkan sandi (akan disimpan untuk penggunaan selanjutnya). Atau masukkan manual di terminal, tetapi pesan ini mungkin muncul lagi.",
+    "hadOpenInTerminal": "Sudah berjalan di terminal—hasil tidak tersedia.",
+    "licenseTips": "Lisensi tidak ditemukan. Hanya 3 modul/item eksekusi yang dapat dibuat."
+  }
 }

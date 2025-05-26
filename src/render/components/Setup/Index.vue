@@ -35,7 +35,7 @@
       },
       {
         value: 'module',
-        label: '模块'
+        label: I18nT('setup.moduleTitle')
       },
       {
         value: 'editor',

@@ -23,10 +23,11 @@
   "moduleAdd": "添加模块",
   "moduleCateDelTips": "此分类下的模块也会一并删除, 确定删除模块分类?",
 
-  "modelName": "模块名称",
-  "modelIcon": "模块图标",
-  "modelIsService": "模块是否是服务",
-  "modelIsOnlyRunOne": "同一时间只能启动一个服务",
+  "moduleTitle": "模块",
+  "moduleName": "模块名称",
+  "moduleIcon": "模块图标",
+  "moduleIsService": "模块是否是服务",
+  "moduleIsOnlyRunOne": "同一时间只能启动一个服务",
   "moduleExecItem": "模块执行项",
 
   "module": {

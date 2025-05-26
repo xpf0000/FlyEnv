@@ -63,7 +63,6 @@
 
 <script lang="ts" setup>
   import { computed, watch } from 'vue'
-  import { passwordCheck } from '@/util/Brew'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
@@ -152,8 +151,68 @@
   })
 
   const allModule = computed(() => {
-    return [firstItem.value, ...allList.value, ...customerList.value].filter((f) => !!f)
+    return [firstItem.value, ...customerList.value, ...allList.value].filter((f) => !!f)
   })
+
+  const isRouteCurrent = computed(() => {
+    const current = appStore.currentPage
+    if (current === '/setup') {
+      return true
+    }
+    const find = allModule.value
+      .map((m) => m.sub)
+      .flat()
+      .some((m) => `/${m.typeFlag}` === current)
+    console.log('isRouteCurrent: ', current, find)
+    return find
+  })
+
+  const routeWatchObj = computed(() => {
+    return {
+      current: isRouteCurrent.value,
+      module: allModule.value.length
+    }
+  })
+
+  watch(
+    routeWatchObj,
+    (v) => {
+      console.log('isRouteCurrent watch: ', v)
+      if (!v.current && v.module > 0) {
+        const item = allModule.value[0]
+        if (item) {
+          const sub = item?.sub?.[0]
+          if (!sub) {
+            return
+          }
+          console.log('sub: ', sub)
+          if (sub?.isCustomer) {
+            const path = `/${sub.typeFlag}`
+            AppCustomerModule.currentModule = AppCustomerModule.module.find(
+              (f) => f.id === sub.typeFlag
+            )
+            Router.push({
+              path: '/customer-module'
+            })
+              .then()
+              .catch()
+            appStore.currentPage = path
+          } else {
+            const path = `/${sub.typeFlag}`
+            Router.push({
+              path
+            })
+              .then()
+              .catch()
+            appStore.currentPage = path
+          }
+        }
+      }
+    },
+    {
+      immediate: true
+    }
+  )
 
   const allCustomerServiceModuleExecItem = computed(() => {
     return AppCustomerModule.module

@@ -958,13 +958,13 @@ export async function customerServiceStartExec(
         'APP-Service-Start-PID': res.pid
       }
     }
-    throw new Error(res?.error ?? 'Start Fail')
   }
-  let msg = 'Start Fail'
+  let msg = 'Start Fail: '
+  if (error && error?.toString) {
+    msg += '\n' + (error?.toString() ?? '')
+  }
   if (existsSync(errFile)) {
-    msg = await readFile(errFile, 'utf-8')
-  } else if (error) {
-    msg = error && error?.toString ? error?.toString() : ''
+    msg += '\n' + (await readFile(errFile, 'utf-8'))
   }
   throw new Error(msg)
 }

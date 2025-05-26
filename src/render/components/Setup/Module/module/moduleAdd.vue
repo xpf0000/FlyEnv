@@ -26,10 +26,10 @@
             v-model.trim="item.label"
             type="text"
             :class="'input' + (errs['label'] ? ' error' : '')"
-            :placeholder="I18nT('setup.modelName')"
+            :placeholder="I18nT('setup.moduleName')"
           />
           <div class="flex items-center justify-between mt-6">
-            <span class="text-[15px] font-bold">{{ I18nT('setup.modelIcon') }}</span>
+            <span class="text-[15px] font-bold">{{ I18nT('setup.moduleIcon') }}</span>
             <div class="inline-flex items-center">
               <el-button link>
                 <yb-icon :key="iconKey" :svg="item.icon" width="20" height="20" />
@@ -43,13 +43,13 @@
             </div>
           </div>
           <div class="ssl-switch mt-6">
-            <span>{{ I18nT('setup.modelIsService') }}</span>
+            <span>{{ I18nT('setup.moduleIsService') }}</span>
             <el-switch v-model="item.isService"></el-switch>
           </div>
 
           <div v-if="item.isService" class="ssl-switch mt-6">
             <div class="inline-flex items-center gap-1">
-              <span>{{ I18nT('setup.modelIsOnlyRunOne') }}</span>
+              <span>{{ I18nT('setup.moduleIsOnlyRunOne') }}</span>
             </div>
             <el-switch v-model="item.isOnlyRunOne"></el-switch>
           </div>
@@ -57,7 +57,16 @@
 
         <div class="plant-title flex items-center justify-between">
           <span>{{ I18nT('setup.moduleExecItem') }}</span>
-          <el-button link :icon="Plus" @click.stop="addExecItem(undefined)"></el-button>
+          <template v-if="isLock">
+            <el-tooltip placement="left" :content="I18nT('setup.module.licenseTips')">
+              <el-button link @click="toLicense">
+                <Lock class="w-[17px] h-[17px]" />
+              </el-button>
+            </el-tooltip>
+          </template>
+          <template v-else>
+            <el-button link :icon="Plus" @click.stop="addExecItem(undefined)"></el-button>
+          </template>
         </div>
         <div class="main flex flex-col gap-3">
           <template v-if="item.item.length === 0">
@@ -188,16 +197,19 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+  import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup, AsyncComponentShow } from '@/util/AsyncComponent'
   import { merge } from 'lodash'
-  import { Close, Delete, Edit, FolderOpened, Plus } from '@element-plus/icons-vue'
+  import { Close, Delete, Edit, FolderOpened, Lock, Plus } from '@element-plus/icons-vue'
   import { uuid } from '@/util/Index'
   import { ModuleCustomerExecItem, ModuleDefaultIcon } from '@/core/ModuleCustomer'
   import { AppCustomerModule, type CustomerModuleItem } from '@/core/Module'
   import { getExtractedSVG } from 'svg-inline-loader'
   import Base from '@/core/Base'
+  import { SetupStore } from '@/components/Setup/store'
+  import Router from '@/router'
+  import { AppStore } from '@/store/app'
 
   const { dialog } = require('@electron/remote')
   const { readFile } = require('fs-extra')
@@ -211,6 +223,10 @@
   const iconKey = ref(uuid())
   const running = ref(false)
   const item = ref<CustomerModuleItem>({
+    configPath: [],
+    isCustomer: true,
+    logPath: [],
+    typeFlag: '',
     id: uuid(),
     label: '',
     isService: true,
@@ -399,6 +415,23 @@
     console.log('item.value: ', item.value)
     callback(JSON.parse(JSON.stringify(item.value)))
     show.value = false
+  }
+
+  const appStore = AppStore()
+  const setupStore = SetupStore()
+
+  const isLock = computed(() => {
+    return !setupStore.isActive && item.value.item.length > 2
+  })
+
+  const toLicense = () => {
+    setupStore.tab = 'licenses'
+    appStore.currentPage = '/setup'
+    Router.push({
+      path: '/setup'
+    })
+      .then()
+      .catch()
   }
 
   onMounted(() => {})

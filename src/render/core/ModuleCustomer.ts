@@ -193,8 +193,9 @@ class ModuleCustomer implements CustomerModuleItem {
 
   onExecStart(item: ModuleCustomerExecItem) {
     return new Promise(async (resolve) => {
-      if (this.isOnlyRunOne !== true) {
-        resolve(true)
+      if (!this.isOnlyRunOne || !this.isService) {
+        resolve(this)
+        return
       }
       if (this.currentItemID !== item.id) {
         console.log('this.currentItemID !== item.id !!', this.currentItemID, item.id)

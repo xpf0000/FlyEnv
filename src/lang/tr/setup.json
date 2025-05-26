@@ -16,5 +16,33 @@
   "autoLaunchTips": "Bilgisayar açıldığında FlyEnv’in otomatik olarak başlatılıp başlatılmayacağı",
   "passwordTips": "Gerekli değil. Komutları çalıştırırken şifreyi otomatik olarak doldurur. Örneğin Macports ile yazılım yükleme ve kaldırma işlemlerinde.",
   "langTips": "Kullanıcı tanımlı dil paketlerini yükle. Bu işlem aynı zamanda varsayılan dil paketini başlatır, böylece kullanıcıların FlyEnv’i başka dillere çevirmesi kolaylaşır.",
-  "openLangDir": "Dil paketi klasörünü aç"
+  "openLangDir": "Dil paketi klasörünü aç",
+
+  "moduleCateAddTips": "Modül Kategorisi Ekle",
+  "moduleCateName": "Modül Kategori Adı",
+  "moduleAdd": "Modül Ekle",
+  "moduleCateDelTips": "Bu kategorideki modüller de silinecek. Silmeyi onaylıyor musunuz?",
+
+  "moduleTitle": "Modül",
+  "moduleName": "Modül Adı",
+  "moduleIcon": "Modül Simgesi",
+  "moduleIsService": "Modül bir servis mi?",
+  "moduleIsOnlyRunOne": "Aynı anda yalnızca bir servis çalıştırılabilir",
+  "moduleExecItem": "Modül Çalıştırma Öğesi",
+
+  "module": {
+    "name": "Ad",
+    "path": "Dosya Yolu",
+    "comment": "Açıklama",
+    "exec": "Çalıştır",
+    "command": "Komut",
+    "commandFile": "Dosya",
+    "isSudo": "sudo ile çalıştırılsın mı?",
+    "pidPath": "PID Dosya Yolu",
+    "configPath": "Yapılandırma Dosyası",
+    "logPath": "Günlük Dosyası",
+    "needPasswordToStart": "Yönetici hakları gerekiyor. Şifrenizi girin (ileride kullanılmak üzere kaydedilecektir). Alternatif olarak terminalde manuel girebilirsiniz, ancak bu uyarı tekrar görünebilir.",
+    "hadOpenInTerminal": "Terminalde zaten çalışıyor—sonuçlar görüntülenemiyor.",
+    "licenseTips": "Lisans bulunamadı. Yalnızca 3 modül/çalıştırma öğesi oluşturulabilir."
+  }
 }

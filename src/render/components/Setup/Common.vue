@@ -9,18 +9,6 @@
           <theme-set />
         </div>
       </div>
-      <div class="plant-title">{{ I18nT('setup.menuShowHide') }}</div>
-      <div class="main user-select-none">
-        <el-form label-position="left" label-width="100px">
-          <el-row>
-            <template v-for="(item, index) in AppModules" :key="index">
-              <el-col :span="8">
-                <ModuleShowHide :label="item.label" :type-flag="item.typeFlag"></ModuleShowHide>
-              </el-col>
-            </template>
-          </el-row>
-        </el-form>
-      </div>
       <ProxySet />
       <div class="row-2">
         <div class="col">

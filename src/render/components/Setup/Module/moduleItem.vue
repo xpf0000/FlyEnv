@@ -20,15 +20,15 @@
 
     <div class="inline-flex items-center gap-4">
       <template v-if="isLock">
-        <el-tooltip placement="left" :content="I18nT('host.licenseTips')">
+        <el-tooltip placement="left" :content="I18nT('setup.module.licenseTips')">
           <el-button size="small" link @click="toLicense">
-            <Lock class="w-[15px] h-[15px]" />
+            <Lock class="w-[17px] h-[17px]" />
           </el-button>
         </el-tooltip>
       </template>
       <template v-else>
         <el-button size="small" link @click.stop="showAddModule(undefined)">
-          <Plus class="w-[15px] h-[15px]" />
+          <Plus class="w-[17px] h-[17px]" />
         </el-button>
       </template>
       <el-switch
@@ -150,6 +150,8 @@
       } else {
         const index = AppCustomerModule.module.findIndex((f) => f.id === edit.id)
         if (index >= 0) {
+          const find = AppCustomerModule.module[index]
+          find.stop().then().catch()
           AppCustomerModule.module.splice(index, 1, save)
         }
       }
