@@ -8,7 +8,7 @@
   >
     <div class="left">
       <div class="icon-block" :class="{ run: serviceRunning }">
-        <yb-icon :svg="item.icon" style="padding: 4px" width="28" height="28" />
+        <yb-icon :key="iconKey" :svg="itemIcon" style="padding: 4px" width="28" height="28" />
       </div>
       <span class="title">{{ item.label }}</span>
     </div>
@@ -26,11 +26,12 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { ModuleCustomer } from '@/core/ModuleCustomer'
   import Router from '@/router'
   import { AppCustomerModule } from '@/core/Module'
   import { AppStore } from '@/store/app'
+  import { uuid } from '@/util/Index'
 
   const props = defineProps<{
     item: ModuleCustomer
@@ -39,6 +40,16 @@
   const appStore = AppStore()
 
   const stopNav = () => {}
+
+  const iconKey = ref(uuid())
+
+  const itemIcon = computed(() => {
+    return AppCustomerModule.module.find((f) => f.id === props.item.id)?.icon ?? ''
+  })
+
+  watch(itemIcon, () => {
+    iconKey.value = uuid()
+  })
 
   const isActive = computed(() => {
     return appStore.currentPage === `/${props.item.id}`

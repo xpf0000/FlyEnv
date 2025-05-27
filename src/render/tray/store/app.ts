@@ -10,7 +10,7 @@ type ModuleItemState = {
 
 type StateBase = Partial<Record<AllAppModule, ModuleItemState>>
 
-type CustomerModuleItem = {
+export type CustomerModuleItem = {
   id: string
   label: string
   icon: string

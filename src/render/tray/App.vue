@@ -17,22 +17,7 @@
     <ul class="menu top-menu">
       <el-scrollbar>
         <template v-for="(item, _index) in customerModule" :key="_index">
-          <li class="non-draggable">
-            <div class="left">
-              <div class="icon-block" :class="{ run: item.run }">
-                <yb-icon :svg="item.icon" width="30" height="30" />
-              </div>
-              <span class="title">{{ item.label }}</span>
-            </div>
-
-            <el-switch
-              v-model="item.run"
-              :disabled="item.running"
-              :loading="item.running"
-              @change="switchChange(item.id)"
-            >
-            </el-switch>
-          </li>
+          <CustomerItem :item="item" />
         </template>
         <template v-for="(item, _index) in allService" :key="_index">
           <li v-if="store[item.typeFlag] && store[item.typeFlag].show" class="non-draggable">
@@ -71,6 +56,7 @@
   import { AppModules } from '@/core/App'
   import { I18nT } from '@lang/index'
   import VueSvg from '@/components/VueSvgIcon/svg.vue'
+  import CustomerItem from './CustomerItem.vue'
 
   const allService = AppModules.filter((m) => m.isTray).map((m) => {
     return {
