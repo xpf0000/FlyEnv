@@ -4,7 +4,7 @@
 
 ## All-In-One Full-Stack Environment Management Tool
 
-FlyEnv is an all-in-one environment management tool designed for modern developers. It simplifies development by offering **swift multi-version switching**, **full-stack technology support**, and a **seamless cross-platform experience**. Whether you're working with PHP, NodeJS, Java, Go, or Python, FlyEnv integrates all necessary tools with a single command, eliminating configuration headaches and letting you focus on what truly matters—**creation, not debugging**.
+FlyEnv is an all-in-one environment management tool. Help developers quickly set up a local development environment. It simplifies development by offering **swift multi-version switching**, **full-stack technology support**, and a **seamless cross-platform experience**. Whether you're working with PHP, NodeJS, Java, Go, Rust or Python, FlyEnv integrates all necessary tools with a single command, eliminating configuration headaches and letting you focus on what truly matters—**creation, not debugging**.
 
 **Detailed Project Analysis:** [https://deepwiki.com/xpf0000/FlyEnv](https://deepwiki.com/xpf0000/FlyEnv)
 
@@ -40,6 +40,7 @@ FlyEnv is packed with features to make your development workflow smoother and mo
 - **Search Engine**: Elasticsearch, Meilisearch
 - **Object Storage**: Minio.
 - **Utilities**: DNS Server, FTP Server, Static HTTP Server.
+- **Custom modules**: Users can add modules on their own, whether as services or commonly used commands. FlyEnv's custom module system ensures that user modules function just like system modules, delivering a seamless user experience.
 
 ### Highlights
 - **Swift Multi-Version Switching**:
@@ -79,12 +80,12 @@ brew install flyenv
 ```
 
 #### Intel (x86)
-- [FlyEnv-4.9.11.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.11/FlyEnv-4.9.11.dmg)
-- [FlyEnv-4.9.11-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.11/FlyEnv-4.9.11-mac.zip)
+- [FlyEnv-4.9.12.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.12/FlyEnv-4.9.12.dmg)
+- [FlyEnv-4.9.12-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.12/FlyEnv-4.9.12-mac.zip)
 
 #### Apple Silicon (ARM64)
-- [FlyEnv-4.9.11-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.11/FlyEnv-4.9.11-arm64.dmg)
-- [FlyEnv-4.9.11-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.11/FlyEnv-4.9.11-arm64-mac.zip)
+- [FlyEnv-4.9.12-arm64.dmg](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.12/FlyEnv-4.9.12-arm64.dmg)
+- [FlyEnv-4.9.12-arm64-mac.zip](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.12/FlyEnv-4.9.12-arm64-mac.zip)
 
 > **Tip**: For a lightweight PHP and web server solution, check out [FlyPHPServer](https://flyenv.com/flyphpserver.html), available on the [Mac App Store](https://apps.apple.com/us/app/flyphpserver/id1506384441).
 
@@ -94,11 +95,11 @@ brew install flyenv
 
 #### Installer version
 
-- [FlyEnv.Setup.4.9.11.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.11/FlyEnv.Setup.4.9.11.exe)
+- [FlyEnv.Setup.4.9.12.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.12/FlyEnv.Setup.4.9.12.exe)
 
 #### Portable version
 
-- [FlyEnv.Portable.4.9.11.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.11/FlyEnv.Portable.4.9.11.exe)
+- [FlyEnv.Portable.4.9.12.exe](https://github.com/xpf0000/FlyEnv/releases/download/v4.9.12/FlyEnv.Portable.4.9.12.exe)
 
 ---
 
