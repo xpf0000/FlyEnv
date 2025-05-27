@@ -10,18 +10,28 @@ type ModuleItemState = {
 
 type StateBase = Partial<Record<AllAppModule, ModuleItemState>>
 
+export type CustomerModuleItem = {
+  id: string
+  label: string
+  icon: string
+} & ModuleItemState
+
 export interface TrayState extends StateBase {
+  password: string
   lang: string
   theme: string
   groupIsRunning: boolean
   groupDisabled: boolean
+  customerModule: CustomerModuleItem[]
 }
 
 const state: TrayState = {
   lang: '',
   theme: '',
+  password: '',
   groupIsRunning: false,
-  groupDisabled: true
+  groupDisabled: true,
+  customerModule: []
 }
 
 export const AppStore = defineStore('trayApp', {

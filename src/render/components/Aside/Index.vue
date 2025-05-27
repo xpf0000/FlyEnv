@@ -13,7 +13,7 @@
           </template>
           <template #reference>
             <li @click.stop="showLog()">
-              <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
+              <yb-icon :svg="import('@/svg/log.svg?raw')" width="16" height="16" />
             </li>
           </template>
         </el-popover>
@@ -23,16 +23,23 @@
       </ul>
       <el-scrollbar>
         <ul class="menu top-menu">
-          <template v-for="(item, index) in allList" :key="index">
+          <template v-for="(item, index) in allModule" :key="index">
             <div
-              :style="{
-                marginTop: index === 0 ? '15px' : null
-              }"
+              :style="
+                {
+                  marginTop: index === 0 ? '15px' : null
+                } as any
+              "
               class="module-type pb-3 pl-1 text-sm mb-3 mt-5 text-zinc-600 dark:text-gray-300 border-b border-zinc-200 dark:border-zinc-700"
               >{{ item.label }}</div
             >
-            <template v-for="(i, j) in item.sub" :key="j">
-              <component :is="i.aside"></component>
+            <template v-for="(i, _j) in item.sub" :key="_j">
+              <template v-if="i?.isCustomer">
+                <CustomerModule :item="i" />
+              </template>
+              <template v-else>
+                <component :is="i.aside"></component>
+              </template>
             </template>
           </template>
         </ul>
@@ -55,7 +62,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch } from 'vue'
+  import { computed, watch } from 'vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
@@ -63,8 +70,10 @@
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { AppModules } from '@/core/App'
   import { AppServiceModule, type AppServiceModuleItem } from '@/core/ASide'
-  import { AllAppModule, AppModuleTypeList } from '@/core/type'
+  import { type AllAppModule, AppModuleTypeList } from '@/core/type'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { AppCustomerModule } from '@/core/Module'
+  import CustomerModule from '@/components/CustomerModule/aside.vue'
 
   let lastTray = ''
 
@@ -74,41 +83,160 @@
     return appStore.currentPage
   })
 
-  const allList = computed(() => {
-    return AppModuleTypeList.map((m) => {
-      const sub = AppModules.filter(
-        (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
-      ).filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
-      sub.sort((a, b) => {
-        let lowerA = a.typeFlag.toLowerCase()
-        let lowerB = b.typeFlag.toLowerCase()
-        if (lowerA < lowerB) return -1
-        if (lowerA > lowerB) return 1
-        return 0
-      })
-      return {
-        label: I18nT(`aside.${m}`),
-        sub
-      }
-    }).filter((s) => s.sub.length > 0)
+  const firstItem = computed(() => {
+    const m = 'site'
+    const sub = AppModules.filter((a) => a?.moduleType === m).filter(
+      (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
+    )
+    sub.sort((a, b) => {
+      let lowerA = a.typeFlag.toLowerCase()
+      let lowerB = b.typeFlag.toLowerCase()
+      if (lowerA < lowerB) return -1
+      if (lowerA > lowerB) return 1
+      return 0
+    })
+    const customer: any = AppCustomerModule.module
+      .filter((f) => f.moduleType === m)
+      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+    console.log('customer: ', customer, m)
+    sub.unshift(...customer)
+    return sub.length
+      ? {
+          label: I18nT(`aside.site`),
+          sub
+        }
+      : undefined
   })
 
-  const index = ref(1)
+  const allList = computed(() => {
+    return AppModuleTypeList.filter((f) => f !== 'site')
+      .map((m) => {
+        const sub = AppModules.filter(
+          (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
+        ).filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
+        sub.sort((a, b) => {
+          let lowerA = a.typeFlag.toLowerCase()
+          let lowerB = b.typeFlag.toLowerCase()
+          if (lowerA < lowerB) return -1
+          if (lowerA > lowerB) return 1
+          return 0
+        })
+        const customer: any = AppCustomerModule.module
+          .filter((f) => f.moduleType === m)
+          .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+        sub.unshift(...customer)
+        return {
+          label: I18nT(`aside.${m}`),
+          sub
+        }
+      })
+      .filter((s) => s.sub.length > 0)
+  })
+
+  const customerList = computed(() => {
+    return AppCustomerModule.moduleCate
+      .map((m) => {
+        const sub = AppCustomerModule.module
+          .filter((s) => {
+            return s.moduleType === m.moduleType
+          })
+          .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+        return {
+          ...m,
+          sub
+        }
+      })
+      .filter((s) => s.sub.length > 0)
+  })
+
+  const allModule = computed(() => {
+    return [firstItem.value, ...customerList.value, ...allList.value].filter((f) => !!f)
+  })
+
+  const isRouteCurrent = computed(() => {
+    const current = appStore.currentPage
+    if (current === '/setup') {
+      return true
+    }
+    const find = allModule.value
+      .map((m) => m.sub)
+      .flat()
+      .some((m) => `/${m.typeFlag}` === current)
+    console.log('isRouteCurrent: ', current, find)
+    return find
+  })
+
+  const routeWatchObj = computed(() => {
+    return {
+      current: isRouteCurrent.value,
+      module: allModule.value.length
+    }
+  })
+
+  watch(
+    routeWatchObj,
+    (v) => {
+      console.log('isRouteCurrent watch: ', v)
+      if (!v.current && v.module > 0) {
+        const item = allModule.value[0]
+        if (item) {
+          const sub = item?.sub?.[0]
+          if (!sub) {
+            return
+          }
+          console.log('sub: ', sub)
+          if (sub?.isCustomer) {
+            const path = `/${sub.typeFlag}`
+            AppCustomerModule.currentModule = AppCustomerModule.module.find(
+              (f) => f.id === sub.typeFlag
+            )
+            Router.push({
+              path: '/customer-module'
+            })
+              .then()
+              .catch()
+            appStore.currentPage = path
+          } else {
+            const path = `/${sub.typeFlag}`
+            Router.push({
+              path
+            })
+              .then()
+              .catch()
+            appStore.currentPage = path
+          }
+        }
+      }
+    },
+    {
+      immediate: true
+    }
+  )
+
+  const allCustomerServiceModuleExecItem = computed(() => {
+    return AppCustomerModule.module
+      .filter((f) => f.isService)
+      .map((m) => m.item)
+      .flat()
+  })
 
   const groupIsRunning = computed(() => {
-    if (index.value > 0) {
-      const v = Object.values(AppServiceModule).some((m) => !!m?.serviceRunning)
-      console.log('groupIsRunning computed: ', v)
-      return v
-    }
-    return false
+    return (
+      Object.values(AppServiceModule).some((m) => !!m?.serviceRunning) ||
+      allCustomerServiceModuleExecItem.value.some((s) => s.run)
+    )
   })
 
   const groupDisabled = computed(() => {
     const modules = Object.values(AppServiceModule)
     const allDisabled = modules.every((m) => !!m?.serviceDisabled)
     const running = modules.some((m) => !!m?.serviceFetching)
-    return allDisabled || running || !appStore.versionInited
+    return (
+      allDisabled ||
+      running ||
+      !appStore.versionInited ||
+      allCustomerServiceModuleExecItem.value.some((s) => s.running)
+    )
   })
 
   const groupClass = computed(() => {
@@ -118,6 +246,23 @@
       on: groupIsRunning.value,
       disabled: groupDisabled.value
     }
+  })
+
+  const customerModule = computed(() => {
+    return AppCustomerModule.module
+      .filter((f) => f.isService)
+      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+      .map((m) => {
+        return {
+          id: m.id,
+          label: m.label,
+          icon: m.icon,
+          show: true,
+          disabled: false,
+          run: m.item.some((s) => s.run),
+          running: m.item.some((s) => s.running)
+        }
+      })
   })
 
   const trayStore = computed(() => {
@@ -137,9 +282,42 @@
       lang: appStore?.config?.setup?.lang,
       theme: appStore?.config?.setup?.theme,
       groupDisabled: groupDisabled.value,
-      groupIsRunning: groupIsRunning.value
+      groupIsRunning: groupIsRunning.value,
+      customerModule: customerModule.value
     }
   })
+
+  watch(groupIsRunning, (val) => {
+    IPC.send('Application:tray-status-change', val).then((key: string) => {
+      IPC.off(key)
+    })
+  })
+
+  watch(
+    trayStore,
+    (v) => {
+      const current = JSON.stringify(v)
+      if (lastTray !== current) {
+        lastTray = current
+        console.log('trayStore changed: ', current)
+        IPC.send('APP:Tray-Store-Sync', JSON.parse(current)).then((key: string) => {
+          IPC.off(key)
+        })
+      }
+    },
+    {
+      immediate: true,
+      deep: true
+    }
+  )
+
+  let LogVM: any
+  import('@/components/AppLog/log.vue').then((res) => {
+    LogVM = res.default
+  })
+  const showLog = () => {
+    AsyncComponentShow(LogVM).then()
+  }
 
   const groupDo = () => {
     if (groupDisabled.value) {
@@ -151,6 +329,14 @@
       const arr = m?.groupDo(groupIsRunning?.value) ?? []
       all.push(...arr)
     })
+    const isRun = groupIsRunning.value
+    const customerModule = AppCustomerModule.module
+      .filter((f) => f.isService)
+      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+      .map((m) => {
+        return isRun ? m.stop() : m.start()
+      })
+    all.push(...customerModule)
     if (all.length > 0) {
       const err: Array<string> = []
       const run = () => {
@@ -197,16 +383,18 @@
     })
   }
 
-  let LogVM: any
-  import('@/components/AppLog/log.vue').then((res) => {
-    LogVM = res.default
-  })
-  const showLog = () => {
-    AsyncComponentShow(LogVM).then()
-  }
-
   IPC.on('APP:Tray-Command').then((key: string, fn: string, arg: any) => {
     console.log('on APP:Tray-Command', key, fn, arg)
+    const find = AppCustomerModule.module.find((m) => m.id === arg)
+    if (find) {
+      const run = find.item.some((s) => s.run)
+      if (run) {
+        find.stop()
+      } else {
+        find.start()
+      }
+      return
+    }
     if (fn === 'switchChange' && arg === 'php') {
       AppServiceModule.php?.switchChange()
       return
@@ -218,31 +406,13 @@
     fns[fn] && fns[fn](arg)
   })
 
-  watch(
-    trayStore,
-    (v) => {
-      index.value += 1
-      const current = JSON.stringify(v)
-      if (lastTray !== current) {
-        lastTray = current
-        console.log('trayStore changed: ', current)
-        IPC.send('APP:Tray-Store-Sync', JSON.parse(current)).then((key: string) => {
-          IPC.off(key)
-        })
-      }
-    },
-    {
-      immediate: true,
-      deep: true
-    }
-  )
-
   let autoStarted = false
+  let helperInited = false
   watch(
     groupDisabled,
     (v) => {
       if (!v) {
-        if (autoStarted) {
+        if (autoStarted || !helperInited) {
           return
         }
         if (appStore.config.setup?.autoStartService === true) {

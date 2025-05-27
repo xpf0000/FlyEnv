@@ -16,10 +16,13 @@
     </ul>
     <ul class="menu top-menu">
       <el-scrollbar>
-        <template v-for="(item, index) in allService" :key="index">
-          <li v-if="store[item.typeFlag] && store[item.typeFlag]!.show" class="non-draggable">
+        <template v-for="(item, _index) in customerModule" :key="_index">
+          <CustomerItem :item="item" />
+        </template>
+        <template v-for="(item, _index) in allService" :key="_index">
+          <li v-if="store[item.typeFlag] && store[item.typeFlag].show" class="non-draggable">
             <div class="left">
-              <div class="icon-block" :class="{ run: store[item.typeFlag]!.run }">
+              <div class="icon-block" :class="{ run: store[item.typeFlag].run }">
                 <yb-icon :svg="item.icon" width="30" height="30" />
               </div>
               <span class="title">{{
@@ -30,6 +33,7 @@
             <el-switch
               v-model="store[item.typeFlag]!.run"
               :disabled="store[item.typeFlag]?.disabled"
+              :loading="store[item.typeFlag]?.running"
               @change="switchChange(item.typeFlag)"
             >
             </el-switch>
@@ -52,6 +56,7 @@
   import { AppModules } from '@/core/App'
   import { I18nT } from '@lang/index'
   import VueSvg from '@/components/VueSvgIcon/svg.vue'
+  import CustomerItem from './CustomerItem.vue'
 
   const allService = AppModules.filter((m) => m.isTray).map((m) => {
     return {
@@ -68,6 +73,11 @@
   const groupDisabled = computed(() => {
     return store.groupDisabled
   })
+
+  const customerModule = computed(() => {
+    return store.customerModule
+  })
+
   const left: Ref<string | null> = ref(null)
   IPC.on('APP:Poper-Left').then((key: string, res: any) => {
     console.log('APP:Poper-Left: ', key, res)

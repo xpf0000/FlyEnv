@@ -14,6 +14,7 @@ import { AppToolStore } from '@/components/Tools/store'
 import { SetupStore } from '@/components/Setup/store'
 import { AppLogStore } from '@/components/AppLog/store'
 import { loadCustomerLang } from '@lang/loader'
+import { AppCustomerModule } from '@/core/Module'
 
 const { getGlobal } = require('@electron/remote')
 global.Server = getGlobal('Server')
@@ -27,6 +28,7 @@ IPC.on('APP-Ready-To-Show').then(() => {
   if (!inited) {
     inited = true
     const store = AppStore()
+    AppCustomerModule.init()
     store
       .initConfig()
       .then(() => {

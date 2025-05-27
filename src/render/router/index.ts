@@ -14,6 +14,10 @@ const routes = [
         path: '/setup',
         component: defineAsyncComponent(() => import('@/components/Setup/Index.vue'))
       },
+      {
+        path: '/customer-module',
+        component: defineAsyncComponent(() => import('@/components/CustomerModule/Index.vue'))
+      },
       ...AppModules.map((item) => {
         return {
           path: item.typeFlag,

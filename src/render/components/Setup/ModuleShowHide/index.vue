@@ -1,7 +1,13 @@
 <template>
-  <el-form-item :label="title">
-    <el-switch v-model="showItem" />
-  </el-form-item>
+  <div
+    class="relative flex justify-center items-center py-5 bg-gray-200 w-full rounded-md dark:bg-gray-700"
+  >
+    <div class="flex items-center">
+      <div class="w-[100px]">{{ title }}</div>
+      <el-switch v-model="showItem" />
+    </div>
+    <slot name="default"></slot>
+  </div>
 </template>
 
 <script lang="ts" setup>

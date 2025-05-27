@@ -9,5 +9,35 @@
   "autoLunach": "Auto Launch At Boot",
   "autoLunachTips": "Whether to automatically launch the App when computer boot",
   "langTips": "Load user-defined language packs At the same time, a default language pack will be initialized to facilitate users in translating into other languages",
-  "openLangDir": "Open the language pack folder"
+  "openLangDir": "Open the language pack folder",
+
+  "moduleCateAddTips": "Add Module Category",
+  "moduleCateName": "Module Category Name",
+  "moduleAdd": "Add Module",
+  "moduleCateDelTips": "Modules under this category will also be deleted. Confirm deletion?",
+
+  "moduleTitle": "Module",
+  "moduleName": "Module Name",
+  "moduleIcon": "Module Icon",
+  "moduleIsService": "Is Module a Service?",
+  "moduleIsOnlyRunOne": "Only one service can run at a time",
+  "moduleExecItem": "Module Execution Item",
+
+  "module": {
+    "name": "Name",
+    "path": "File Path",
+    "comment": "Comment",
+    "exec": "Run",
+    "command": "Command",
+    "commandFile": "File",
+    "isSudo": "Run with sudo?",
+    "pidPath": "PID File Path",
+    "configPath": "Config File",
+    "logPath": "Log File",
+    "needPasswordToStart": "Admin rights required. Enter your password (it will be saved for future use). Alternatively, manually enter it in the terminal, but this prompt may reappear.",
+    "hadOpenInTerminal": "Already running in terminal—results unavailable.",
+    "licenseTips": "No license found. Only 3 modules/execution items can be created.",
+    "commandTips": "Please enter a PowerShell or CMD command",
+    "commandFileTips": "Select a PowerShell, CMD, or BAT file"
+  }
 }

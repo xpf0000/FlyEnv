@@ -1,12 +1,13 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="store.tab" class="mt-3">
-      <template v-for="(item, index) in tabs" :key="index">
+      <template v-for="(item, _index) in tabs" :key="_index">
         <el-radio-button :label="item.label" :value="item.value"></el-radio-button>
       </template>
     </el-radio-group>
     <div class="main-block">
       <Common v-if="store.tab === 'base'"></Common>
+      <ModuleVM v-if="store.tab === 'module'" />
       <EditorConfig v-if="store.tab === 'editor'"></EditorConfig>
       <Licenses v-if="store.tab === 'licenses'" />
       <About v-if="store.tab === 'about'" />
@@ -22,6 +23,7 @@
   import { SetupStore } from '@/components/Setup/store'
   import Licenses from './Licenses/index.vue'
   import About from './About/index.vue'
+  import ModuleVM from './Module/index.vue'
 
   const store = SetupStore()
 
@@ -30,6 +32,10 @@
       {
         value: 'base',
         label: I18nT('base.setupBase')
+      },
+      {
+        value: 'module',
+        label: I18nT('setup.moduleTitle')
       },
       {
         value: 'editor',

@@ -9,5 +9,35 @@
   "autoLunach": "开机启动",
   "autoLunachTips": "是否开机时自动启动App",
   "langTips": "加载用户自定义语言包. 同时也会初始化一套默认语言包, 方便用户翻译成其他语言.",
-  "openLangDir": "打开语言包文件夹"
+  "openLangDir": "打开语言包文件夹",
+
+  "moduleCateAddTips": "添加模块分类",
+  "moduleCateName": "模块分类名称",
+  "moduleAdd": "添加模块",
+  "moduleCateDelTips": "此分类下的模块也会一并删除, 确定删除模块分类?",
+
+  "moduleTitle": "模块",
+  "moduleName": "模块名称",
+  "moduleIcon": "模块图标",
+  "moduleIsService": "模块是否是服务",
+  "moduleIsOnlyRunOne": "同一时间只能启动一个服务",
+  "moduleExecItem": "模块执行项",
+
+  "module": {
+    "name": "名称",
+    "path": "文件路径",
+    "comment": "备注",
+    "exec": "运行",
+    "command": "命令",
+    "commandFile": "文件",
+    "isSudo": "是否以sudo启动",
+    "pidPath": "pid文件路径",
+    "configPath": "配置文件",
+    "logPath": "日志文件",
+    "needPasswordToStart": "需要管理员权限启动，请输入当前用户密码。后续会使用此密码自动填充. 您也可以点击下方按钮在终端中手动输入, 但此提示可能会再次出现。",
+    "hadOpenInTerminal": "已从终端执行, 无法获取执行结果",
+    "licenseTips": "未获得许可证, 只可以创建三个模块和模块执行项",
+    "commandTips": "请输入PowerShell或者CMD命令",
+    "commandFileTips": "选择PowerShell, CMD, BAT文件"
+  }
 }
