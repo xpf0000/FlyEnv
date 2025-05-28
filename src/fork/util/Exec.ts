@@ -1,11 +1,14 @@
 import { merge } from 'lodash'
 import { ForkPromise } from '@shared/ForkPromise'
-import { exec } from 'child-process-promise'
-import { ChildProcess, spawn } from 'child_process'
+import { type ChildProcess, spawn, exec } from 'child_process'
 import { join } from 'path'
 import { existsSync, remove, writeFile } from 'fs-extra'
 import EnvSync from './EnvSync'
 import { uuid } from '../Fn'
+
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
 
 export function execPromise(
   cammand: string,
@@ -17,7 +20,7 @@ export function execPromise(
   return new ForkPromise(async (resolve, reject) => {
     try {
       const env = await EnvSync.sync()
-      const res = await exec(
+      const res = await execAsync(
         cammand,
         merge(
           {

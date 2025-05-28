@@ -43,6 +43,8 @@
     "logPath": "Log File",
     "needPasswordToStart": "Admin rights required. Enter your password (it will be saved for future use). Alternatively, manually enter it in the terminal, but this prompt may reappear.",
     "hadOpenInTerminal": "Already running in terminal—results unavailable.",
-    "licenseTips": "No license found. Only 3 modules/execution items can be created."
+    "licenseTips": "No license found. Only 3 modules/execution items can be created.",
+    "outputLog": "Output Log",
+    "errorLog": "Error Log"
   }
 }

@@ -79,6 +79,12 @@
                 <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
                 <span class="ml-15">{{ I18nT('base.edit') }}</span>
               </li>
+              <template v-for="(c, _i) in logs(scope.row)" :key="_i">
+                <li @click.stop="action(c, _i, 'log')">
+                  <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
+                  <span class="ml-15"> {{ c.label }} </span>
+                </li>
+              </template>
               <template v-for="(c, _i) in scope.row.configPath" :key="_i">
                 <li @click.stop="action(c, _i, 'conf')">
                   <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
@@ -117,6 +123,8 @@
   import { FolderAdd } from '@element-plus/icons-vue'
   import Base from '@/core/Base'
 
+  const { join } = require('path')
+
   const title = computed(() => {
     return AppCustomerModule.currentModule?.label ?? ''
   })
@@ -139,6 +147,19 @@
     console.log('currentItem v: ', AppCustomerModule.currentModule)
     return AppCustomerModule.currentModule?.currentItemID ?? ''
   })
+
+  const logs = (item: ModuleCustomerExecItem) => {
+    return [
+      {
+        label: I18nT('setup.module.outputLog'),
+        path: join(global.Server.BaseDir!, 'module-customer', `${item.id}.out.log`)
+      },
+      {
+        label: I18nT('setup.module.errorLog'),
+        path: join(global.Server.BaseDir!, 'module-customer', `${item.id}.error.log`)
+      }
+    ]
+  }
 
   let EditVM: any
   import('@/components/Setup/Module/module/moduleExecItemAdd.vue').then((res) => {

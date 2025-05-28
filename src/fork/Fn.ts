@@ -13,6 +13,7 @@ import Helper from './Helper'
 import { I18nT } from '@lang/index'
 import { format } from 'date-fns'
 import EnvSync from './util/EnvSync'
+import { userInfo } from 'os'
 
 export { execPromise, execPromiseRoot }
 
@@ -878,8 +879,11 @@ export async function serviceStartExec(
 }
 
 export async function customerServiceStartExec(
-  version: ModuleExecItem
+  version: ModuleExecItem,
+  isService: boolean
 ): Promise<{ 'APP-Service-Start-PID': string }> {
+  console.log('customerServiceStartExec: ', version, isService)
+
   const pidPath = version?.pidPath ?? ''
   if (pidPath && existsSync(pidPath)) {
     try {
@@ -893,18 +897,33 @@ export async function customerServiceStartExec(
   const outFile = join(baseDir, `${version.id}.out.log`)
   const errFile = join(baseDir, `${version.id}.error.log`)
 
+  try {
+    await Helper.send('tools', 'rm', errFile)
+  } catch (e) {}
+  try {
+    await Helper.send('tools', 'rm', outFile)
+  } catch (e) {}
+
   let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.sh'), 'utf8')
 
   let bin = ''
   if (version.commandType === 'file') {
     bin = version.commandFile
-    try {
-      await Helper.send('tools', 'chmod', bin, '0777')
-    } catch (e) {}
   } else {
     bin = join(baseDir, `${version.id}.start.sh`)
     await writeFile(bin, version.command)
   }
+  const uinfo = userInfo()
+  const uid = uinfo.uid
+  const gid = uinfo.gid
+
+  try {
+    await Helper.send('tools', 'chmod', bin, '0777')
+  } catch (e) {}
+
+  try {
+    await Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${bin}"`)
+  } catch (e) {}
 
   psScript = psScript
     .replace('#ENV#', '')
@@ -918,23 +937,49 @@ export async function customerServiceStartExec(
   const psPath = join(baseDir, psName)
   await writeFile(psPath, psScript)
 
+  try {
+    await Helper.send('tools', 'chmod', psPath, '0777')
+  } catch (e) {}
+
+  try {
+    await Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${psPath}"`)
+  } catch (e) {}
+
   process.chdir(baseDir)
   let res: any
   let error: any
   try {
     if (version.isSudo) {
-      res = (
-        await execPromiseRoot(['zsh', psName], {
-          cwd: baseDir
-        })
-      ).stdout
+      const execRes = await execPromiseRoot(['zsh', psName], {
+        cwd: baseDir
+      })
+      res = (execRes.stdout + '\n' + execRes.stderr).trim()
     } else {
       res = await spawnPromise('zsh', [psName], {
-        cwd: baseDir
+        cwd: baseDir,
+        shell: '/bin/zsh'
       })
     }
   } catch (e) {
     error = e
+    if (!isService || !version.pidPath) {
+      throw e
+    }
+  }
+
+  await waitPidFile(errFile, 0, 6, 500)
+
+  if (!isService) {
+    let msg = ''
+    if (existsSync(errFile)) {
+      msg = await readFile(errFile, 'utf-8')
+    }
+    if (msg) {
+      throw new Error(msg)
+    }
+    return {
+      'APP-Service-Start-PID': '-1'
+    }
   }
 
   if (!version.pidPath) {
@@ -945,8 +990,12 @@ export async function customerServiceStartExec(
     if (match) {
       pid = match[1]
     }
-    return {
-      'APP-Service-Start-PID': pid
+    if (pid) {
+      return {
+        'APP-Service-Start-PID': pid
+      }
+    } else {
+      throw new Error(stdout)
     }
   }
 

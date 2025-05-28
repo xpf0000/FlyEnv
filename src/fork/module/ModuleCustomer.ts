@@ -115,7 +115,7 @@ class ModuleCustomer {
       }
 
       try {
-        const res = await customerServiceStartExec(version)
+        const res = await customerServiceStartExec(version, isService)
         resolve(res)
       } catch (e: any) {
         console.log('-k start err: ', e)

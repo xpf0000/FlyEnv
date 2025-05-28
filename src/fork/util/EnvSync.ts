@@ -1,7 +1,10 @@
 import { join } from 'path'
 import { chmod, copyFile } from 'fs-extra'
-import { exec } from 'child-process-promise'
+import { exec } from 'child_process'
 import { AppLogSend } from '../Fn'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
 
 class EnvSync {
   AppEnv: Record<string, any> | undefined
@@ -16,7 +19,7 @@ class EnvSync {
     let text = ''
     try {
       await chmod(file, '0777')
-      const res = await exec(`./env.sh`, {
+      const res = await execAsync(`./env.sh`, {
         cwd: global.Server.Cache!,
         shell: '/bin/zsh'
       })
