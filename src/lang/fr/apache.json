@@ -1,7 +1,7 @@
 {
-  "Timeout": "The number of seconds before receives and sends time out.",
-  "KeepAlive": "Whether or not to allow persistent connections",
-  "KeepAliveTimeout": "Number of seconds to wait for the next request from the same client on the same connection.",
-  "MaxKeepAliveRequests": "The maximum number of requests to allow during a persistent connection.\nSet to 0 to allow an unlimited amount.\nWe recommend you leave this number high, for maximum performance.",
-  "LimitRequestBody": "Byte. File upload size limit. 0: no limit"
+  "Timeout": "Le nombre de secondes avant que les réceptions et les envois expirent.",
+  "KeepAlive": "Autoriser ou non les connexions persistantes",
+  "KeepAliveTimeout": "Nombre de secondes à attendre pour la prochaine requête du même client sur la même connexion.",
+  "MaxKeepAliveRequests": "Le nombre maximum de requêtes autorisées pendant une connexion persistante.\nRéglez sur 0 pour autoriser un nombre illimité.\nNous vous recommandons de laisser ce nombre élevé pour des performances maximales.",
+  "LimitRequestBody": "Octets. Limite de taille pour le téléchargement de fichiers. 0 : aucune limite"
 }

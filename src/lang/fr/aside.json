@@ -1,15 +1,15 @@
 {
   "site": "Site",
-  "webServer": "Web Server",
-  "dataBaseServer": "Database Server",
-  "emailServer": "Email Server",
-  "language": "Language & Runtime",
-  "dataQueue": "Cache & Memory Storage",
-  "searchEngine": "Search Engine",
-  "dnsServer": "DNS Server",
-  "ftpServer": "FTP Server",
-  "other": "Other",
-  "appLog": "App Log",
-  "ai": "AI",
-  "objectStorage": "Object Storage"
+  "webServer": "Serveur Web",
+  "dataBaseServer": "Serveur de base de données",
+  "emailServer": "Serveur de messagerie",
+  "language": "Language et Durée d'exécution",
+  "dataQueue": "Cache et Mémoire",
+  "searchEngine": "Moteur de recherche",
+  "dnsServer": "Serveur DNS",
+  "ftpServer": "Serveur FTP",
+  "other": "Autre",
+  "appLog": "Journal de l'application",
+  "ai": "IA",
+  "objectStorage": "Stockage des données"
 }
