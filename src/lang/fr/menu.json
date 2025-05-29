@@ -1,0 +1,21 @@
+{
+  "about": "À propos",
+  "app": "PhpWebStudy",
+  "checkForUpdates": "Vérifier les mises à jour...",
+  "hide": "Masquer PhpWebStudy",
+  "hideOthers": "Masquer les autres",
+  "unhide": "Afficher tout",
+  "quit": "Quitter PhpWebStudy",
+  "edit": "Modifier",
+  "cut": "Couper",
+  "copy": "Copier",
+  "paste": "Coller",
+  "selectAll": "Tout sélectionner",
+  "window": "Fenêtre",
+  "close": "Fermer",
+  "minimize": "Réduire",
+  "zoom": "Zoom",
+  "fullscreen": "Passer en plein écran",
+  "front": "Passer PhpWebStudy au premier plan",
+  "dev": "Ouvrir la fenêtre de débogage"
+}

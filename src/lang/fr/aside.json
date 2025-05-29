@@ -1,0 +1,15 @@
+{
+  "site": "Site",
+  "webServer": "Serveur Web",
+  "dataBaseServer": "Serveur de base de données",
+  "emailServer": "Serveur de messagerie",
+  "language": "Langage",
+  "dataQueue": "File de données & Cache de données",
+  "searchEngine": "Moteur de recherche",
+  "dnsServer": "Serveur DNS",
+  "ftpServer": "Serveur FTP",
+  "other": "Autre",
+  "appLog": "Journal de l'application",
+  "ai": "IA",
+  "objectStorage": "Stockage des données"
+}

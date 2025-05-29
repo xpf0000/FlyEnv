@@ -1,0 +1,11 @@
+{
+  "keepalive_timeout": "Nombre de secondes avant l'expiration des réceptions et des envois.",
+  "gzip": "Activer ou non la transmission avec compression GZIP",
+  "gzip_min_length": "Taille minimale des fichiers compressés",
+  "gzip_comp_level": "Niveau de compressibilité",
+  "client_max_body_size": "Taille maximale des fichiers téléversés",
+  "server_names_hash_max_size": "Taille maximale de la table de hachage pour les noms de serveur",
+  "server_names_hash_bucket_size": "Taille de la table de hachage pour les noms de serveur",
+  "client_header_buffer_size": "Taille du tampon d'en-tête des requêtes client",
+  "client_body_buffer_size": "Taille du tampon du corps des requêtes"
+}

@@ -1,0 +1,36 @@
+{
+  "title": "Description de la licence",
+  "description": "La licence est une reconnaissance et un soutien pour le travail acharné de FlyEnv et de ses auteurs. Son objectif n'est pas de restreindre les utilisateurs mais de leur rappeler de respecter les efforts des développeurs et de se conformer aux termes pertinents lors de l'utilisation du logiciel. En respectant la licence, les utilisateurs soutiennent non seulement le développement continu du projet mais contribuent également à l'esprit de confiance et de collaboration au sein de la communauté open-source.",
+  "restrictions": {
+    "title": "Les utilisateurs sans licence seront soumis aux restrictions suivantes :",
+    "items": {
+      "0": "Un maximum de trois sites peut être créé.",
+      "1": "La fonction de chat IA est disponible pour une période d'essai de trois jours seulement.",
+      "2": "Des restrictions supplémentaires peuvent s'appliquer aux fonctionnalités futures."
+    }
+  },
+  "licenseInfo": "La licence actuelle offerte est une licence perpétuelle, avec une licence correspondant à un ordinateur. Si vous changez d'ordinateur, vous devrez demander une nouvelle licence.",
+  "howToObtain": {
+    "title": "Comment obtenir une licence",
+    "description": "FlyEnv propose des moyens flexibles pour obtenir une licence. Les utilisateurs peuvent choisir l'une des méthodes suivantes pour postuler :",
+    "methods": {
+      "0": {
+        "title": "Faire un don au projet",
+        "description": "Aucun montant fixe n'est requis pour les dons. Compte tenu des situations économiques variées des utilisateurs dans différents pays (par exemple, de nombreux utilisateurs sont des étudiants), veuillez choisir un montant qui convient à vos circonstances."
+      },
+      "1": {
+        "title": "Contribuer au développement",
+        "description": "Participez au projet en soumettant une Pull Request. Peu importe la quantité de code, tant qu'elle améliore positivement le projet (par exemple, corriger une erreur de traduction), cela est éligible."
+      },
+      "2": {
+        "title": "Promouvoir le projet",
+        "description": "Promouvez FlyEnv en publiant des articles, vidéos, blogs, vlogs ou en l'introduisant dans des commentaires. Le contenu peut être dans n'importe quelle langue et sur n'importe quelle plateforme, tant qu'il est accessible publiquement sur Internet."
+      }
+    }
+  },
+  "submitInfo": "Après avoir complété l'une des méthodes ci-dessus, veuillez remplir les résultats dans la boîte de saisie ci-dessous et cliquer sur le bouton 'Demander une licence' pour soumettre votre candidature. Les demandes de licence sont examinées manuellement, alors soyez patient. Elles sont généralement traitées rapidement.",
+  "messageLabel": "Message",
+  "messagePlaceholder": "Veuillez soumettre le donateur, le lien de don ou l'ID de commande lors du choix de faire un don.\nVeuillez soumettre le lien PR pour ceux qui choisissent de participer au développement du projet.\nVeuillez soumettre le lien article/vidéo si vous choisissez d'aider à promouvoir le projet",
+  "requestButton": "Demander une licence",
+  "refreshButton": "Actualiser l'état"
+}
