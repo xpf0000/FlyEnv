@@ -1,0 +1,21 @@
+{
+  "startServiceBegin": "Démarrage du service {service}...",
+  "confInit": "Le fichier de configuration n'existe pas. Génération d'un nouveau fichier de configuration",
+  "confInitSuccess": "Fichier de configuration généré avec succès, chemin du fichier : {file}",
+  "confInitFail": "Échec de la génération du fichier de configuration, raison : {error}",
+  "apachePortHandleBegin": "Début de l'obtention de tous les ports d'écoute Apache du site",
+  "apachePortHandleEnd": "Acquisition des ports d'écoute Apache terminée, écriture réussie du fichier de configuration",
+  "execStartCommand": "Début de l'exécution de la commande de démarrage",
+  "execStartCommandSuccess": "Commande de démarrage exécutée avec succès, vérification si réussi du démarrage",
+  "execStartCommandFail": "Échec de l'exécution de la commande de démarrage, raison : {error}, le service {service} n'a pas pu démarrer",
+  "startServiceSuccess": "{service} démarré avec succès, pid: {pid}",
+  "startServiceFail": "{service} service démarrage échoué, raison: {error}",
+  "stopServiceBegin": "Arrêt en cours {service} service",
+  "stopServiceEnd": "{service} service terminé avec succès",
+  "initDBPass": "Changement du mot de passe de la base de donneés",
+  "initDBPassSuccess": "Changement du mot de passe de la base de donneés réussi, nouveau mot de passe: {user} {pass}",
+  "initDBPassFail": "Echéc du changement du mot de passe de la base de donneés, raison: {error}",
+  "initDBDataDir": "Répertoire des données non trouvé, création du répertoire en cours",
+  "initDBDataDirSuccess": "Création du répertoire des données réussi, chemin du répertoire des données: {dir}",
+  "initDBDataDirFail": "Echec création du répertoire des données, raison: {error}"
+}
