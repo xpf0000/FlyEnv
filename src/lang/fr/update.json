@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "Vérifier les mises à jour",
+  "update-available-message": "Une nouvelle version de FlyEnv est disponible, mettre à jour maintenant ?",
+  "update-not-available-message": "Vous êtes à jour !",
+  "update-downloaded-message": "Prêt pour l'installation...",
+  "update-error-message": "Erreur de mise à jour",
+  "yes": "Oui",
+  "no": "Non"
+}

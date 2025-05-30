@@ -1,0 +1,10 @@
+{
+  "gzip": "Activer la compression GZIP pour la transmission",
+  "gzip_min_length": "Fichier minimum compressé",
+  "gzip_comp_level": "Niveau de compressibilité",
+  "client_max_body_size": "Taille maximale du fichier téléversé",
+  "server_names_hash_max_size": "Taille maximale de la table de hachage pour le nom du serveur",
+  "server_names_hash_bucket_size": "Taille de la table de hachage pour le nom du serveur",
+  "client_header_buffer_size": "Taille du tampon d'en-tête de requête client",
+  "client_body_buffer_size": "Taille du tampon du corps de la requête"
+}

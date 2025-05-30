@@ -1,0 +1,6 @@
+{
+  "timeout": "Délai d'inactivité de la connexion, 0 indique aucun délai",
+  "databases": "Nombre de bases de données",
+  "requirepass": "Mot de passe Redis",
+  "maxmemory": "Octets, utilisation maximale de la mémoire, 0 indique aucune limite"
+}

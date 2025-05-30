@@ -1,0 +1,11 @@
+{
+  "setaliase": "Définir un alias",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "Le chemin a-t-il été ajouté à la variable d'environnement",
+  "aliasTips": "Alias utilisé dans le terminal",
+  "useSysPHP": "Utiliser la version PHP par défaut",
+  "setByApp": "Variables d'environnement définies par FlyEnv",
+  "setByNoApp": "Variables d'environnement non définies par FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd nécessite des privilèges sudo pour démarrer. Veuillez entrer votre mot de passe utilisateur. Le mot de passe sera utilisé pour le remplissage automatique plus tard. Ou vous pouvez cliquer sur le bouton ci-dessous pour entrer manuellement dans le terminal, mais cette invite peut réapparaître."
+}
