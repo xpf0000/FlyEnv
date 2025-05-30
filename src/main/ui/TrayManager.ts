@@ -14,7 +14,7 @@ export default class TrayManager extends EventEmitter {
     this.normalIcon = nativeImage.createFromPath(join(__static, '32x32.png'))
     this.activeIcon = nativeImage.createFromPath(join(__static, '32x32_active.png'))
     this.tray = new Tray(this.normalIcon)
-    this.tray.setToolTip('PhpWebStudy')
+    this.tray.setToolTip('FlyEnv')
     this.tray.on('click', this.handleTrayClick)
     this.tray.on('right-click', this.handleTrayClick)
     this.tray.on('double-click', () => {

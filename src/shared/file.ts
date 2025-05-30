@@ -193,7 +193,7 @@ export function zipUnPack(fp: string, dist: string) {
   })
 }
 
-// 读取文件并计算其MD5和SHA256
+// Read a file and calculate MD5 and SHA256 checksums
 export function getFileHashes(filePath: string, algorithm: 'sha1' | 'sha256' | 'md5' = 'sha256') {
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash(algorithm)

@@ -40,7 +40,7 @@
               </template>
             </template>
           </el-popover>
-          <el-button link @click="openUrl('http://pecl.php.net/')"> Pecl </el-button>
+          <el-button link @click="openUrl('http://pecl.php.net/')"> PECL </el-button>
         </div>
         <el-button class="button" :disabled="service?.fetching" link @click="resetData">
           <yb-icon
@@ -103,7 +103,7 @@
           </el-tooltip>
         </template>
         <template #default="scope">
-          <template v-if="ServiceActionStore.pathSeting[scope.row.bin]">
+          <template v-if="ServiceActionStore.pathSetting[scope.row.bin]">
             <el-button style="width: auto; height: auto" text :loading="true"></el-button>
           </template>
           <template v-else-if="isInAppEnv(scope.row)">
@@ -354,7 +354,7 @@
   }
 
   const pathLoading = (item: SoftInstalled) => {
-    return ServiceActionStore.pathSeting?.[item.bin] ?? false
+    return ServiceActionStore.pathSetting?.[item.bin] ?? false
   }
 
   const excludeLocalVersion = computed(() => {
@@ -389,7 +389,7 @@
       return ''
     }
 
-    return ServiceActionStore.allPath.includes(dirname(item.bin)) ? 'seted' : 'noset'
+    return ServiceActionStore.allPath.includes(path.dirname(item.bin)) ? 'seted' : 'noset'
   }
 
   const isShowHide = computed({

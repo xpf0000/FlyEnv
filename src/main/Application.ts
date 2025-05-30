@@ -208,7 +208,7 @@ export default class Application extends EventEmitter {
   }
 
   async stop() {
-    logger.info('[PhpWebStudy] application stop !!!')
+    logger.info('[FlyEnv] application stop !!!')
     try {
       ScreenManager.destroy()
       SiteSuckerManager.destory()

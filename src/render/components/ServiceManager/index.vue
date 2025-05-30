@@ -161,7 +161,7 @@
           </el-tooltip>
         </template>
         <template #default="scope">
-          <template v-if="ServiceActionStore.pathSeting[scope.row.bin]">
+          <template v-if="ServiceActionStore.pathSetting[scope.row.bin]">
             <el-button style="width: auto; height: auto" text :loading="true"></el-button>
           </template>
           <template v-else-if="isInAppEnv(scope.row)">

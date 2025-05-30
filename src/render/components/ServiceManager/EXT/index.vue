@@ -88,7 +88,7 @@
   })
 
   const loading = computed(() => {
-    return ServiceActionStore.pathSeting?.[props.item.bin] ?? false
+    return ServiceActionStore.pathSetting?.[props.item.bin] ?? false
   })
 
   const isInAppEnv = computed(() => {
