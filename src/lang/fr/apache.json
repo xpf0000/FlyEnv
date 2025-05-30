@@ -1,0 +1,7 @@
+{
+  "Timeout": "Le nombre de secondes avant l'expiration des réceptions et des envois.",
+  "KeepAlive": "Autoriser ou non les connexions persistantes",
+  "KeepAliveTimeout": "Nombre de secondes entre les requêtes du même client sur la même connexion.",
+  "MaxKeepAliveRequests": "Le nombre maximum de requêtes autorisées pendant une connexion persistante.\nDéfinir à 0 pour autoriser un nombre illimité.\nNous vous recommandons de laisser ce nombre élevé pour des performances maximales.",
+  "LimitRequestBody": "Octet. Limite de taille de téléchargement de fichier. 0 : aucune limite"
+}

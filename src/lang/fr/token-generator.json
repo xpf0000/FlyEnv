@@ -1,0 +1,13 @@
+{
+  "title": "Générateur de jetons",
+  "uppercase": "Majuscules (ABC...)",
+  "lowercase": "Minuscules (abc...)",
+  "numbers": "Nombres (123...)",
+  "symbols": "Symboles (!-;...)",
+  "length": "Longueur",
+  "tokenPlaceholder": "Jeton...",
+  "button": {
+    "copy": "Copier",
+    "refresh": "Rafraîchir"
+  }
+}

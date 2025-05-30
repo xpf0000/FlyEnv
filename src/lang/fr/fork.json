@@ -1,0 +1,14 @@
+{
+  "binNoFound": "Le fichier de démarrage n'existe pas, opération échouée.",
+  "confNoFound": "Le fichier de configuration n'existe pas, le serveur n'a pas pu démarrer",
+  "apacheLogPathErr": "Le chemin du journal du fichier de configuration est incorrect, et le basculement a échoué",
+  "hostsFileNoFound": "Le fichier hosts n'existe pas",
+  "startFail": "Échec du démarrage, veuillez vérifier le fichier journal",
+  "phpiniNoFound": "Fichier php.ini introuvable",
+  "versionNoFound": "Impossible d'obtenir la version du logiciel, opération échouée.",
+  "postgresqlInit": "Service démarré avec succès\nLe répertoire des données est {dir}\nL'utilisateur initial est root, le mot de passe est root",
+  "downFileFail": "Échec du téléchargement du fichier !",
+  "noEPMD": "Le processus epmd n'a pas été trouvé. Veuillez réinitialiser les variables d'environnement Erlang",
+  "licenseTips": "Sans licence, seuls trois sites peuvent être créés",
+  "trialEnd": "La période d'essai a expiré. Pour continuer à utiliser cette fonctionnalité, veuillez acquérir une licence"
+}

@@ -1,0 +1,13 @@
+{
+  "setaliase": "Définir un alias",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "Le chemin a-t-il été ajouté à la variable d'environnement",
+  "aliasTips": "Alias utilisé dans le terminal",
+  "bundleinVersionDelTips": "Cette version est une version intégrée, confirmer qu'elle n'est pas affichée ?",
+  "customDirVersionDelTips": "Cette version est une version de chemin personnalisé, confirmer qu'elle n'est pas affichée ?",
+  "staticDelAlert": "Pour garantir la sécurité des données utilisateur, la fonction de suppression automatique des logiciels installés n'est plus fournie. Si vous êtes sûr de vouloir le supprimer, cliquez sur OK. Supprimez manuellement le logiciel dans le dossier ouvert.",
+  "useSysPHP": "Utiliser la version PHP par défaut",
+  "setByApp": "Variables d'environnement définies par FlyEnv",
+  "setByNoApp": "Variables d'environnement non définies par FlyEnv"
+}

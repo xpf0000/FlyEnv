@@ -36,6 +36,7 @@ import type minio from './zh/minio.json'
 import ZH from './zh/index'
 import EN from './en/index'
 import VI from './vi/index'
+import FR from './vi/index'
 
 type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
   [K in keyof T]: K extends string
@@ -85,13 +86,15 @@ type LangKey =
 export const AppAllLang = {
   en: 'English',
   zh: '中文',
-  vi: 'Tiếng Việt'
+  vi: 'Tiếng Việt',
+  fr: 'Français'
 }
 
 const lang = {
   ...ZH,
   ...EN,
-  ...VI
+  ...VI,
+  ...FR
 }
 
 let i18n: I18n
