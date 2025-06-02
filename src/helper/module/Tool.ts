@@ -1,6 +1,5 @@
-import { readFile, writeFile } from 'fs-extra'
 import { join } from 'path'
-import { uuid } from '../util'
+import { uuid, readFile, writeFile } from '../util'
 import { existsSync } from 'fs'
 import { BaseManager } from './Base'
 import { exec } from 'child_process'
@@ -30,7 +29,7 @@ class Manager extends BaseManager {
         }
         try {
           await execAsync(`rm -rf "${cacheFile}"`)
-        } catch (e) {}
+        } catch {}
       }
       if (hasError) {
         reject(error)
@@ -75,7 +74,7 @@ class Manager extends BaseManager {
       let res = ''
       try {
         res = (await execAsync(`ps axo user,pid,ppid,command`)).stdout
-      } catch (e) {}
+      } catch {}
       if (!res) {
         return resolve([])
       }
@@ -105,7 +104,7 @@ class Manager extends BaseManager {
     return new Promise(async (resolve) => {
       try {
         await execAsync(`rm -rf "${dir}"`)
-      } catch (e) {}
+      } catch {}
       resolve(true)
     })
   }
@@ -115,7 +114,7 @@ class Manager extends BaseManager {
       if (existsSync(dir)) {
         try {
           await execAsync(`chmod ${flag} "${dir}"`)
-        } catch (e) {}
+        } catch {}
       }
       resolve(true)
     })
@@ -125,7 +124,7 @@ class Manager extends BaseManager {
     return new Promise(async (resolve) => {
       try {
         await execAsync(`kill ${sig} ${pids.join(' ')}`)
-      } catch (e) {}
+      } catch {}
       resolve(true)
     })
   }
@@ -135,7 +134,7 @@ class Manager extends BaseManager {
       if (existsSync(dir)) {
         try {
           await execAsync(`ln -s "${dir}" "${dir1}"`)
-        } catch (e) {}
+        } catch {}
       }
       resolve(true)
     })
@@ -165,7 +164,7 @@ class Manager extends BaseManager {
       if (pids.size > 0) {
         try {
           await execAsync(['kill', '-9', ...Array.from(pids)].join(' '))
-        } catch (e) {}
+        } catch {}
       }
       resolve(true)
     })

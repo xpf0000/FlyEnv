@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { initCustomerLang, loadCustomerLang } from '@lang/loader'
+import { lang } from '@/util/NodeFn'
 import { resolve } from 'path-browserify'
 import { shell } from '@/util/NodeFn'
 
@@ -10,11 +10,11 @@ export const LangSetup = reactive({
       return
     }
     this.loading = true
-    await loadCustomerLang()
+    await lang.loadCustomerLang()
     this.loading = false
   },
   async openLangDir() {
-    await initCustomerLang()
+    await lang.initCustomerLang()
     const langDir = resolve(window.Server.BaseDir!, '../lang')
     shell.openPath(langDir).then().catch()
   }

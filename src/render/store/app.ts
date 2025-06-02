@@ -259,6 +259,7 @@ export const AppStore = defineStore('app', {
     initConfig() {
       return new Promise(async (resolve) => {
         const config = await app.getConfig()
+        console.log('initConfig config: ', config)
         if (!config.password) {
           config.password = ''
         }

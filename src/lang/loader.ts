@@ -1,24 +1,18 @@
-import { reactive } from 'vue'
 import ZH from './zh/index'
 import EN from './en/index'
-import { AppStore } from '@/store/app'
 import { AppAllLang, AppI18n } from '@lang/index'
 import IPC from '@/util/IPC'
-import { readdir, readFile, existsSync, mkdirp, writeFile } from 'fs-extra'
+import _fs from 'fs-extra'
 import { join, resolve } from 'path'
+import { CustomerLangs } from '@lang/customer'
+
+const { readdir, readFile, existsSync, mkdirp, writeFile } = _fs
 
 type CustomerLangItem = {
   label: string
   key: string
   lang: any
 }
-
-export const CustomerLangs = reactive<
-  {
-    label: string
-    lang: string
-  }[]
->([])
 
 /**
  * Initialize a language pack.
@@ -27,7 +21,7 @@ export const CustomerLangs = reactive<
 export const initCustomerLang = async () => {
   const langDir = resolve(global.Server.BaseDir!, '../lang')
   await mkdirp(langDir)
-  const currentLang = AppStore().config.setup.lang
+  const currentLang = global.Server.Lang!
   await mkdirp(join(langDir, currentLang))
   const lang: any = currentLang === 'zh' ? ZH.zh : EN.en
   for (const k in lang) {
@@ -73,7 +67,7 @@ export const loadCustomerLang = async () => {
     let json: any
     try {
       json = JSON.parse(content)
-    } catch (e) {}
+    } catch {}
     if (!json) {
       continue
     }
@@ -99,7 +93,7 @@ export const loadCustomerLang = async () => {
       let json: any
       try {
         json = JSON.parse(content)
-      } catch (e) {}
+      } catch {}
       if (!json) {
         continue
       }

@@ -2,9 +2,19 @@ import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { AppLog, execPromise, waitTime } from '../Fn'
+import {
+  AppLog,
+  execPromise,
+  waitTime,
+  readFile,
+  writeFile,
+  remove,
+  mkdirp,
+  readdir,
+  copyFile,
+  chmod
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, remove, mkdirp, readdir, copyFile, chmod } from 'fs-extra'
 import axios from 'axios'
 import * as http from 'http'
 import * as https from 'https'
@@ -85,7 +95,7 @@ export class Base {
       }
       try {
         this._linkVersion(version)
-      } catch (e) {}
+      } catch {}
       try {
         await this._stopServer(version).on(on)
         const res = await this._startServer(version, ...args).on(on)
@@ -182,7 +192,7 @@ export class Base {
         }
         try {
           await Helper.send('tools', 'kill', sig, arr)
-        } catch (e) {}
+        } catch {}
       }
       if (existsSync(appPidFile)) {
         await remove(appPidFile)
@@ -251,7 +261,7 @@ export class Base {
         proxy.protocol = u.protocol.replace(':', '')
         proxy.host = u.hostname
         proxy.port = u.port
-      } catch (e) {
+      } catch {
         proxy = undefined
       }
     } else {
@@ -309,7 +319,7 @@ export class Base {
         try {
           await remove(row.zip)
           await remove(row.appDir)
-        } catch (e) {}
+        } catch {}
       }
 
       const unpack = async () => {
@@ -359,7 +369,7 @@ export class Base {
                   if (!existsSync(destFile) && existsSync(srcFile)) {
                     try {
                       await execPromise(['ln', '-s', `"${srcFile}"`, `"${destFile}"`].join(' '))
-                    } catch (e) {}
+                    } catch {}
                   }
                 }
               }
@@ -368,14 +378,14 @@ export class Base {
           if (this.type === 'nginx' && existsSync(row.bin)) {
             await Helper.send('mailpit', 'binFixed', row.bin)
           }
-        } catch (e) {
+        } catch {
           await fail()
           return
         }
         if (this.type === 'mailpit') {
           try {
             await Helper.send('mailpit', 'binFixed', row.bin)
-          } catch (e) {}
+          } catch {}
         }
       }
 

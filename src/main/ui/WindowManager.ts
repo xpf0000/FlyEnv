@@ -1,13 +1,10 @@
 import { EventEmitter } from 'events'
 import { app, BrowserWindow, screen } from 'electron'
 import pageConfig from '../configs/page'
-import { debounce } from 'lodash'
+import { debounce } from 'lodash-es'
 import Event = Electron.Main.Event
 import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions
-import { initialize, enable } from '@electron/remote/main'
 import { join } from 'path'
-
-initialize()
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
@@ -17,7 +14,7 @@ const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   webPreferences: {
     nodeIntegration: false,
     contextIsolation: true,
-    webSecurity: false,
+    webSecurity: true,
     webviewTag: true
   }
 }
@@ -35,7 +32,7 @@ const trayBrowserOptions: BrowserWindowConstructorOptions = {
   webPreferences: {
     nodeIntegration: false,
     contextIsolation: true,
-    webSecurity: false
+    webSecurity: true
   }
 }
 export default class WindowManager extends EventEmitter {
@@ -84,9 +81,8 @@ export default class WindowManager extends EventEmitter {
       return window
     }
     const pageOptions = this.getPageOptions(page)
-    trayBrowserOptions.webPreferences!.preload = join(global.Server.Static!, 'preload/preload.mjs')
+    trayBrowserOptions.webPreferences!.preload = join(global.Server.Static!, 'preload/preload.js')
     window = new BrowserWindow(trayBrowserOptions)
-    enable(window.webContents)
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
         event.preventDefault()
@@ -121,13 +117,12 @@ export default class WindowManager extends EventEmitter {
     }
     defaultBrowserOptions.webPreferences!.preload = join(
       global.Server.Static!,
-      'preload/preload.mjs'
+      'preload/preload.js'
     )
     window = new BrowserWindow({
       ...defaultBrowserOptions,
       ...pageOptions.attrs
     })
-    enable(window.webContents)
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
         event.preventDefault()

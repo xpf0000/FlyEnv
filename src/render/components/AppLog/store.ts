@@ -34,7 +34,7 @@ export const AppLogStore = reactive({
   async init() {
     const file = join(window.Server.BaseDir!, 'app.log')
     if (await fs.existsSync(file)) {
-      const content = await fs.readFile(file, 'utf-8')
+      const content = await fs.readFile(file)
       this.log = reactive(content.split('\n'))
     }
     IPC.on('APP-On-Log').then((key: string, info: string) => {

@@ -43,7 +43,7 @@
     const file = join(props.item.path, 'package.json')
     const exists = await fs.existsSync(file)
     if (exists) {
-      const content = await fs.readFile(file, 'utf-8')
+      const content = await fs.readFile(file)
       try {
         return JSON.parse(content)
       } catch {

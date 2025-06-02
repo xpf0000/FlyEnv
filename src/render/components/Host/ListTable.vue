@@ -185,7 +185,7 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
-  import { isEqual } from 'lodash'
+  import { isEqual } from 'lodash-es'
   import { HostStore } from '@/components/Host/store'
   import { shell } from '@/util/NodeFn'
 

@@ -10,10 +10,12 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { I18nT } from '@lang/index'
 import { EOL } from 'os'
@@ -156,7 +158,7 @@ class MailPit extends Base {
           dict[`mailpit-${a.version}`] = a
         })
         resolve(dict)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })

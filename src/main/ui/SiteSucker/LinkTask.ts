@@ -2,9 +2,8 @@ import request from '@shared/request'
 import Config from './Config'
 import { checkIsExcludeUrl } from './Fn'
 import { Store } from './Store'
-import { wait } from '../../utils'
+import { wait, existsSync, mkdirp, createWriteStream, removeSync, stat } from '../../utils'
 import { dirname } from 'path'
-import { createWriteStream, existsSync, mkdirp, removeSync, stat } from 'fs-extra'
 import type { LinkItem } from './LinkItem'
 
 class LinkTaskItem {
@@ -54,7 +53,7 @@ class LinkTaskItem {
 
       let timer: NodeJS.Timeout
       const next = () => {
-        timer && clearTimeout(timer)
+        clearTimeout(timer)
         link.state = 'success'
         this.run().then()
       }
@@ -70,7 +69,7 @@ class LinkTaskItem {
         const dir = dirname(saveFile)
         try {
           await mkdirp(dir)
-        } catch (e) {}
+        } catch {}
         const stream = createWriteStream(saveFile)
         const onError = () => {
           this.#retry(link)
@@ -81,7 +80,7 @@ class LinkTaskItem {
               }
               this.run().then()
             })
-          } catch (e) {
+          } catch {
             this.run().then()
           }
         }
@@ -97,7 +96,7 @@ class LinkTaskItem {
         const taskFail = () => {
           try {
             controller.abort()
-          } catch (e) {}
+          } catch {}
           onError()
         }
         timer = setTimeout(taskFail, Config.timeout)

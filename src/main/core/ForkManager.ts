@@ -1,9 +1,10 @@
 import { ChildProcess, fork } from 'child_process'
-import { uuid } from '../utils'
+import { uuid, appendFile } from '../utils'
 import { ForkPromise } from '@shared/ForkPromise'
-import { appendFile } from 'fs-extra'
 import { join } from 'path'
 import { cpus } from 'os'
+
+type CallBack = (...args: any) => void
 
 class ForkItem {
   forkFile: string
@@ -11,11 +12,11 @@ class ForkItem {
   autoDestory: boolean
   destoryTimer?: NodeJS.Timeout
   taskFlag: Array<number> = []
-  _on: Function = () => {}
+  _on: CallBack = () => {}
   callback: {
     [k: string]: {
-      resolve: Function
-      on: Function
+      resolve: CallBack
+      on: CallBack
     }
   }
   waitDestory() {
@@ -79,7 +80,7 @@ class ForkItem {
 
   send(...args: any) {
     return new ForkPromise((resolve, reject, on) => {
-      this.destoryTimer && clearTimeout(this.destoryTimer)
+      clearTimeout(this.destoryTimer)
       this.taskFlag.push(1)
       const thenKey = uuid()
       this.callback[thenKey] = {
@@ -107,7 +108,7 @@ class ForkItem {
       if (pid) {
         process.kill(pid)
       }
-    } catch (e) {}
+    } catch {}
   }
 }
 
@@ -115,12 +116,12 @@ export class ForkManager {
   file: string
   forks: Array<ForkItem> = []
   serviceFork?: ForkItem
-  _on: Function = () => {}
+  _on: CallBack = () => {}
   constructor(file: string) {
     this.file = file
   }
 
-  on(fn: Function) {
+  on(fn: CallBack) {
     this._on = fn
   }
 

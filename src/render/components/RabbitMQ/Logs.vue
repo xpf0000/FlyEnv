@@ -45,7 +45,7 @@
       return
     }
     const logDir = join(window.Server.BaseDir!, 'rabbitmq', `log-${v}`)
-    const content = await fs.readFile(confFile, 'utf-8')
+    const content = await fs.readFile(confFile)
     const name =
       content
         .split('\n')

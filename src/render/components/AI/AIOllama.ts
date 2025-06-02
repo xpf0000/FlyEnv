@@ -1,5 +1,5 @@
 import { AIBase } from '@/components/AI/AIBase'
-import { merge } from 'lodash'
+import { merge } from 'lodash-es'
 import type { ChatItem, ToolCallItem } from '@/components/AI/setup'
 import { reactive } from 'vue'
 import { MessageError } from '@/util/Element'
@@ -7,30 +7,8 @@ import { fileSelect } from '@/util/Index'
 import { useBase64 } from '@vueuse/core'
 import IPC from '@/util/IPC'
 import { AISetup } from '@/components/AI/setup'
-import { fs } from '@/util/NodeFn'
 
 export class AIOllama extends AIBase {
-  async _HanleToolCalls(tools: ToolCallItem[]) {
-    console.log('_HanleToolCalls: ', tools)
-    for (const tool of tools) {
-      console.log('tool: ', tool, tool.function.name)
-      if (tool.function.name === 'get_folder_all_files') {
-        const dir = tool.function.arguments.dir
-        const exists = await fs.existsSync(dir)
-        if (!dir || !exists) {
-          continue
-        }
-        fs.readdir(dir).then((files) => {
-          this._send({
-            role: 'tool',
-            name: tool.function.name,
-            content: JSON.stringify({ filepaths: files })
-          })
-        })
-      }
-    }
-  }
-
   request(param: any): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.streaming = true
@@ -91,14 +69,6 @@ export class AIOllama extends AIBase {
           } else if (res?.code === 200) {
             const json: any = res.msg
             message += json.message.content
-            if (json.message.tool_calls) {
-              if (!tool_calls) {
-                tool_calls = json.message.tool_calls
-              } else {
-                tool_calls.push(...json.message.tool_calls)
-              }
-              this._HanleToolCalls(json.message.tool_calls).then().catch()
-            }
             if (!messageObj) {
               messageObj = reactive({
                 role: 'assistant',

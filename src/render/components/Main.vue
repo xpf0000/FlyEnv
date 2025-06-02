@@ -1,5 +1,5 @@
 <template>
-  <el-container id="container">
+  <el-container id="container" class="overflow-hidden h-screen">
     <Aside />
     <router-view />
   </el-container>

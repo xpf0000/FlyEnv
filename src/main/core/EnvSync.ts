@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { chmod, copyFile } from 'fs-extra'
+import { chmod, copyFile } from '../utils'
 import AppLog from './AppLog'
 import { exec } from 'child_process'
 import { promisify } from 'util'

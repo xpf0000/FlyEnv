@@ -10,10 +10,13 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  mkdirp,
+  readFile,
+  remove,
+  writeFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 
@@ -68,7 +71,7 @@ class MeiliSearch extends Base {
       if (pidPath && existsSync(pidPath)) {
         try {
           await remove(pidPath)
-        } catch (e) {}
+        } catch {}
       }
       await mkdirp(baseDir)
       const outFile = join(baseDir, `start.${version.version}.out.log`)
@@ -148,7 +151,7 @@ echo "##FlyEnv-Process-ID$!FlyEnv-Process-ID##"`
           dict[`meilisearch-${a.version}`] = a
         })
         resolve(dict)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })

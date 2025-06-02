@@ -3,12 +3,13 @@
     "target": "ESNext",
     "module": "ESNext",
     "useDefineForClassFields": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "strict": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "lib": ["esnext", "dom"],
     "sourceMap": false,
     "strictFunctionTypes": false,
@@ -20,6 +21,7 @@
     "noImplicitAny": true,
     "allowJs": false,
     "noEmit": true,
+    "types": ["vite/client", "node"],
     "baseUrl": "./",
     "paths": {
       "@/*": [
@@ -34,15 +36,15 @@
     }
   },
   "include": [
-    "configs/**/*.ts",
-    "configs/**/*.js",
-    "scripts/**/*.ts",
-    "scripts/**/*.js",
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.tsx",
-    "src/**/*.vue",
     "src/**/*.jsx",
-    "src/**/*.js"
+    "src/**/*.js",
+    "src/**/*.vue",
+    "configs/**/*.ts",
+    "configs/**/*.js",
+    "scripts/**/*.ts",
+    "scripts/**/*.js"
   ]
 }

@@ -12,10 +12,12 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
@@ -66,7 +68,7 @@ class Caddy extends Base {
     const vhostDir = join(global.Server.BaseDir!, 'vhost/caddy')
     try {
       hostAll = await fetchHostList()
-    } catch (e) {}
+    } catch {}
     await mkdirp(vhostDir)
     let tmplContent = ''
     let tmplSSLContent = ''
@@ -184,7 +186,7 @@ class Caddy extends Base {
           dict[`caddy-${a.version}`] = a
         })
         resolve(dict)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })

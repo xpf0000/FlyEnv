@@ -3,9 +3,8 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { getSubDir, hostAlias, uuid } from '../Fn'
+import { getSubDir, hostAlias, uuid, remove, writeFile, machineId } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { remove, writeFile } from 'fs-extra'
 import { makeCaddyConf, updateCaddyConf } from './host/Caddy'
 import { makeApacheConf, updateApacheConf } from './host/Apache'
 import { autoFillNginxRewrite, makeNginxConf, updateNginxConf } from './host/Nginx'
@@ -13,7 +12,6 @@ import { setDirRole, updateAutoSSL, updateRootRule } from './host/Host'
 import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
 import { publicDecrypt } from 'crypto'
 import { fetchHostList, saveHostList } from './host/HostFile'
-import { machineId } from 'node-machine-id'
 import Helper from '../Helper'
 
 export class Host extends Base {
@@ -26,7 +24,7 @@ export class Host extends Base {
       let host: AppHost[] = []
       try {
         host = await fetchHostList()
-      } catch (e) {}
+      } catch {}
       resolve({
         host
       })
@@ -154,13 +152,15 @@ export class Host extends Base {
       let index: number
       switch (flag) {
         case 'add':
-          if (isMakeConf()) {
-            await this._addVhost(host)
-            await doPark()
+          {
+            if (isMakeConf()) {
+              await this._addVhost(host)
+              await doPark()
+            }
+            const topList = hostList.filter((h) => !!h?.isTop)
+            hostList.splice(topList.length, 0, host)
+            await writeHostFile()
           }
-          const topList = hostList.filter((h) => !!h?.isTop)
-          hostList.splice(topList.length, 0, host)
-          await writeHostFile()
           break
         case 'del':
           if (host?.name) {
@@ -240,7 +240,7 @@ export class Host extends Base {
         if (existsSync(f)) {
           try {
             await remove(f)
-          } catch (e) {
+          } catch {
             await Helper.send('tools', 'rm', f)
           }
         }
@@ -337,7 +337,7 @@ export class Host extends Base {
       if (!writeToSystem) {
         try {
           await Helper.send('host', 'dnsRefresh')
-        } catch (e) {}
+        } catch {}
         resolve(true)
         return
       }
@@ -362,7 +362,7 @@ export class Host extends Base {
       await Helper.send('tools', 'writeFileByRoot', filePath, content.trim())
       try {
         await Helper.send('host', 'dnsRefresh')
-      } catch (e) {}
+      } catch {}
       resolve(true)
     })
   }

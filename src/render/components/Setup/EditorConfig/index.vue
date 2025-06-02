@@ -79,7 +79,7 @@
 
   onMounted(() => {
     if (!EditorConfigMap.text) {
-      fs.readFile(join(window.Server.Static!, 'tmpl/httpd.conf'), 'utf-8').then((text: string) => {
+      fs.readFile(join(window.Server.Static!, 'tmpl/httpd.conf')).then((text: string) => {
         EditorConfigMap.text = text
         initEditor()
       })

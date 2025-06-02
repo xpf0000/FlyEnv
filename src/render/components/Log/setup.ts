@@ -46,7 +46,7 @@ export const LogSetup = (file: Ref<string>) => {
 
       const read = () => {
         return new Promise((resolve) => {
-          fs.readFile(file.value, 'utf-8')
+          fs.readFile(file.value)
             .then((str: string) => {
               log.value = str
               resolve(true)

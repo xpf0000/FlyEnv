@@ -1,8 +1,7 @@
 import { dirname, join } from 'path'
-import { chmod, readFile } from 'fs-extra'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import type { AppHost } from '@shared/app'
-import { hostAlias } from '../../Fn'
+import { hostAlias, chmod, readFile } from '../../Fn'
 import { makeAutoSSL } from './SSL'
 import { existsSync } from 'fs'
 
@@ -99,7 +98,7 @@ export const setDirRole = async (dir: string, depth = 0) => {
   if (existsSync(dir)) {
     try {
       await chmod(dir, '0755')
-    } catch (e) {}
+    } catch {}
     const parentDir = dirname(dir)
     if (parentDir !== dir) {
       await setDirRole(parentDir, depth + 1)

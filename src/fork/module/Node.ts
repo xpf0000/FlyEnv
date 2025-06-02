@@ -7,13 +7,20 @@ import {
   versionFixed,
   versionLocalFetch,
   versionSort,
-  writeFileByRoot
+  writeFileByRoot,
+  chmod,
+  copyFile,
+  unlink,
+  readdir,
+  writeFile,
+  realpath,
+  remove,
+  mkdirp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { basename, dirname, join } from 'path'
 import { compareVersions } from 'compare-versions'
 import { createWriteStream, existsSync } from 'fs'
-import { chmod, copyFile, unlink, readdir, writeFile, realpath, remove, mkdirp } from 'fs-extra'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../TaskQueue'
@@ -33,7 +40,7 @@ class Manager extends Base {
         proxy: this.getAxiosProxy()
       })
       const html = res.data
-      const regex = /href="v([\d\.]+?)\/"/g
+      const regex = /href="v([\d.]+?)\/"/g
       let result
       let links = []
       while ((result = regex.exec(html)) != null) {
@@ -136,7 +143,7 @@ class Manager extends Base {
       if (!existsSync(file)) {
         try {
           await writeFile(file, '')
-        } catch (e) {}
+        } catch {}
       }
       if (!existsSync(file)) {
         resolve(true)
@@ -145,7 +152,7 @@ class Manager extends Base {
       let content = ''
       try {
         content = await readFileByRoot(file)
-      } catch (e) {
+      } catch {
         resolve(true)
         return
       }
@@ -185,7 +192,7 @@ class Manager extends Base {
       content = newLines.join('\n')
       try {
         await writeFileByRoot(file, content)
-      } catch (e) {
+      } catch {
         resolve(true)
         return
       }
@@ -245,7 +252,7 @@ class Manager extends Base {
           if (existsSync(destDir)) {
             try {
               await remove(destDir)
-            } catch (e) {}
+            } catch {}
           }
           await mkdirp(destDir)
 
@@ -294,7 +301,7 @@ class Manager extends Base {
             try {
               await remove(zip)
               await remove(destDir)
-            } catch (e) {}
+            } catch {}
           }
 
           axios({
@@ -393,14 +400,14 @@ class Manager extends Base {
       let fnmDir = ''
       try {
         fnmDir = (await execPromise(`echo $FNM_DIR`)).stdout.trim()
-      } catch (e) {}
+      } catch {}
       if (fnmDir && existsSync(fnmDir)) {
         fnmDir = join(fnmDir, 'node-versions')
         if (existsSync(fnmDir)) {
           let allFnm: any[] = []
           try {
             allFnm = await readdir(fnmDir)
-          } catch (e) {}
+          } catch {}
           allFnm = allFnm
             .filter(
               (f) => f.startsWith('v') && existsSync(join(fnmDir, f, 'installation/bin/node'))
@@ -420,14 +427,14 @@ class Manager extends Base {
       let nvmDir = ''
       try {
         nvmDir = (await execPromise(`echo $NVM_DIR`)).stdout.trim()
-      } catch (e) {}
+      } catch {}
       if (nvmDir && existsSync(nvmDir)) {
         nvmDir = join(nvmDir, 'versions/node')
         if (existsSync(nvmDir)) {
           let allNVM: any[] = []
           try {
             allNVM = await readdir(nvmDir)
-          } catch (e) {}
+          } catch {}
           allNVM = allNVM
             .filter((f) => f.startsWith('v') && existsSync(join(nvmDir, f, 'bin/node')))
             .map((f) => {
@@ -501,7 +508,7 @@ class Manager extends Base {
                 enable: true
               })
             })
-          } catch (e) {}
+          } catch {}
 
           const dir = join(global.Server.AppDir!, 'nodejs')
           if (existsSync(dir)) {

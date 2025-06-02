@@ -221,7 +221,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       initEditor()
       return
     }
-    fs.readFile(props.value.file, 'utf-8').then((conf: string) => {
+    fs.readFile(props.value.file).then((conf: string) => {
       config.value = conf
       initEditor()
     })
@@ -238,7 +238,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       initEditor()
       return
     }
-    fs.readFile(props.value.defaultFile, 'utf-8').then((conf: string) => {
+    fs.readFile(props.value.defaultFile).then((conf: string) => {
       console.log('getDefault config.value === conf', config.value === conf)
       changed.value = conf !== config.value
       config.value = conf
@@ -262,7 +262,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
           MessageError(I18nT('base.fileBigErr'))
           return
         }
-        fs.readFile(file, 'utf-8').then((conf: string) => {
+        fs.readFile(file).then((conf: string) => {
           changed.value = conf !== config.value
           config.value = conf
           initEditor()

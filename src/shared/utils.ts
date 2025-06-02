@@ -1,13 +1,22 @@
 import crypto from 'crypto'
-import { merge } from 'lodash'
-import { appDebugLog } from '@shared/file'
+import { merge } from 'lodash-es'
 import { spawn, exec } from 'child_process'
 import { cpus } from 'os'
 import { join } from 'path'
-import { chmod, copyFile } from 'fs-extra'
+import _fs from 'fs-extra'
 import { promisify } from 'util'
 
+const { chmod, copyFile, appendFile } = _fs
 const execPromise = promisify(exec)
+
+export async function appDebugLog(flag: string, info: string) {
+  try {
+    const debugFile = join(global.Server.BaseDir!, 'debug.log')
+    await appendFile(debugFile, `${flag}: ${info}\n`)
+  } catch {
+    /* empty */
+  }
+}
 
 let AppEnv: any
 

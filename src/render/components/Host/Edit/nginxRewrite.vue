@@ -139,7 +139,7 @@
       return
     }
     try {
-      fs.readFile(nginxRewriteFile.value, 'utf-8').then((str: string) => {
+      fs.readFile(nginxRewriteFile.value).then((str: string) => {
         emits('update:modelValue', str)
         monacoInstance?.setValue?.(str)
       })
@@ -198,7 +198,7 @@
     if (HostNginxRewriteSetup.nginxRewriteCustom[file]) {
       const item = HostNginxRewriteSetup.nginxRewriteCustom[file]
       if (!item.content) {
-        fs.readFile(file, 'utf-8').then((content) => {
+        fs.readFile(file).then((content) => {
           item.content = content
           emits('update:modelValue', content)
           monacoInstance?.setValue(content)
@@ -213,7 +213,7 @@
     if (HostNginxRewriteSetup.nginxRewriteDefault[file]) {
       const item = HostNginxRewriteSetup.nginxRewriteDefault[file]
       if (!item.content) {
-        fs.readFile(file, 'utf-8').then((content) => {
+        fs.readFile(file).then((content) => {
           item.content = content
           emits('update:modelValue', content)
           monacoInstance?.setValue(content)

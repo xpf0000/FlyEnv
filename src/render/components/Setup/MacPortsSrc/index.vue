@@ -121,7 +121,7 @@
     if (!(await fs.existsSync(sourcesConf))) {
       return ''
     }
-    const content = await fs.readFile(sourcesConf, 'utf-8')
+    const content = await fs.readFile(sourcesConf)
     const regex = /^(?:\s*rsync:\/\/.*\[default\])$/gm
     const all: Array<string> = content.match(regex)?.map((s: string) => s.trim()) ?? []
     let find = all?.find((a) => a.includes('[default]'))

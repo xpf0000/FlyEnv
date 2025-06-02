@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash-es'
 import type { GroupPermissions, Permissions } from './chmod-calculator.types'
 
 export { computeChmodOctalRepresentation, computeChmodSymbolicRepresentation }

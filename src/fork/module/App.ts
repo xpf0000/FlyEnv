@@ -1,5 +1,5 @@
 import { Base } from './Base'
-import { machineId } from 'node-machine-id'
+import { machineId } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { arch } from 'os'
 import axios from 'axios'

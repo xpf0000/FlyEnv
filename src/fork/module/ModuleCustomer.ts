@@ -1,9 +1,18 @@
 import { basename, join } from 'path'
-import { customerServiceStartExec, execPromise, uuid, waitPidFile, waitTime } from '../Fn'
+import {
+  customerServiceStartExec,
+  execPromise,
+  uuid,
+  waitPidFile,
+  waitTime,
+  chmod,
+  mkdirp,
+  remove,
+  writeFile
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import Helper from '../Helper'
 import { existsSync } from 'fs'
-import { chmod, mkdirp, remove, writeFile } from 'fs-extra'
 import { ProcessPidsByPid } from '@shared/Process'
 import { I18nT } from '@lang/index'
 import type { ModuleExecItem } from '@shared/app'
@@ -33,12 +42,12 @@ class ModuleCustomer {
         let sig = '-TERM'
         try {
           await Helper.send('tools', 'kill', sig, arr)
-        } catch (e) {}
+        } catch {}
         await waitTime(500)
         sig = '-INT'
         try {
           await Helper.send('tools', 'kill', sig, arr)
-        } catch (e) {}
+        } catch {}
       }
       resolve({
         'APP-Service-Stop-PID': arr
@@ -64,7 +73,7 @@ class ModuleCustomer {
           await writeFile(command, version.command)
           try {
             await Helper.send('tools', 'chmod', command, '0777')
-          } catch (e) {}
+          } catch {}
         }
         command = command.replace(/"/g, '\\"')
         const appleScript = `

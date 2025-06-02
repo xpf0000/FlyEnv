@@ -13,10 +13,13 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  chmod
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { userInfo } from 'os'
 import Helper from '../Helper'

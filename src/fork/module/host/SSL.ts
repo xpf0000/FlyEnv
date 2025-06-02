@@ -1,8 +1,7 @@
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromise, hostAlias } from '../../Fn'
+import { execPromise, hostAlias, mkdirp, remove, writeFile } from '../../Fn'
 import { dirname, join } from 'path'
 import { existsSync } from 'fs'
-import { mkdirp, remove, writeFile } from 'fs-extra'
 import { EOL } from 'os'
 import type { AppHost } from '@shared/app'
 import Helper from '../../Helper'
@@ -71,7 +70,7 @@ subjectAltName=@alt_names
         crt,
         key: join(hostCADir, `${hostCAName}.key`)
       })
-    } catch (e) {
+    } catch {
       resolve(false)
     }
   })

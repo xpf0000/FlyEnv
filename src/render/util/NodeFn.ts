@@ -1,10 +1,13 @@
 import IPC from '@/util/IPC'
+import { CustomerLangs } from '@lang/customer'
+import { AppI18n } from '@lang/index'
 
 // Helper function to create consistent IPC calls with proper typing
 const createIPCCall = <T>(namespace: string, method: string) => {
   return (...args: any[]): Promise<T> =>
     new Promise((resolve) => {
       IPC.send(`App-Node-FN`, namespace, method, ...args).then((key: string, res: T) => {
+        console.log('App-Node-FN res: ', namespace, method, res)
         IPC.off(key)
         resolve(res)
       })
@@ -51,6 +54,39 @@ export class DirWatcher {
       IPC.off(key)
     })
   }
+}
+
+type CustomerLangItem = {
+  label: string
+  key: string
+  lang: any
+}
+
+export const lang = {
+  initCustomerLang: createIPCCall<any>('lang', 'initCustomerLang'),
+  loadCustomerLang: () => {
+    return new Promise((resolve) => {
+      createIPCCall<CustomerLangItem[]>('lang', 'loadCustomerLang')()
+        .then((langArr) => {
+          CustomerLangs.splice(0)
+          for (const item of langArr) {
+            CustomerLangs.push({
+              label: item.label,
+              lang: item.key
+            })
+            AppI18n().global.setLocaleMessage(item.key, item.lang)
+          }
+        })
+        .catch()
+        .finally(() => {
+          resolve(true)
+        })
+    })
+  }
+}
+
+export const ip = {
+  address: createIPCCall<string>('ip', 'address')
 }
 
 export const clipboard = {

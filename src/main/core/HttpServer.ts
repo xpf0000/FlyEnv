@@ -2,7 +2,7 @@ import type { StaticHttpServe } from '../type'
 import type { ServerResponse } from 'http'
 import ServeHandler from 'serve-handler'
 import Http from 'http'
-import IP from 'neoip'
+import { address } from 'neoip'
 
 class HttpServer {
   httpServes: { [k: string]: StaticHttpServe } = {}
@@ -26,7 +26,7 @@ class HttpServer {
         console.log('server.address(): ', server.address())
         const port = server.address().port
         const host = [`http://localhost:${port}/`]
-        const ip = IP.address()
+        const ip = address()
         if (ip && typeof ip === 'string' && ip.includes('.')) {
           host.push(`http://${ip}:${port}/`)
         }

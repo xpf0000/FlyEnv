@@ -95,7 +95,7 @@
   const openURL = async () => {
     const iniFile = join(window.Server.BaseDir!, 'meilisearch/meilisearch.toml')
     if (await fs.existsSync(iniFile)) {
-      const content = await fs.readFile(iniFile, 'utf-8')
+      const content = await fs.readFile(iniFile)
       const logStr = content.split('\n').find((s: string) => s.includes('http_addr'))
       const port = logStr?.trim()?.split('=')?.pop()?.split(':')?.pop()?.replace('"', '') ?? '7700'
       shell.openExternal(`http://127.0.0.1:${port}/`).then().catch()

@@ -9,7 +9,7 @@ class IPC {
     this.listens = {}
     window.FlyEnvNodeAPI.ipcReceiveFromMain(
       (e: any, command: string, key: string, ...args: any) => {
-        // console.log('command on: ', command, key, args)
+        console.log('ipcReceiveFromMain: ', command, key, args)
         if (this.listens[key]) {
           this.listens[key](key, ...args)
         } else if (this.listens[command]) {

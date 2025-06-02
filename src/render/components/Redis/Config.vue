@@ -20,7 +20,7 @@
   import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
   import { uuid } from '@/util/Index'

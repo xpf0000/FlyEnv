@@ -1,11 +1,18 @@
 import { type ChildProcess, spawn } from 'child_process'
-import { merge } from 'lodash'
-import { createWriteStream, existsSync, mkdirSync, readdirSync, realpathSync, statSync } from 'fs'
+import { merge } from 'lodash-es'
+import {
+  createWriteStream,
+  mkdirSync,
+  readdirSync,
+  realpathSync,
+  statSync,
+  type FSWatcher
+} from 'fs'
 import path, { basename, dirname, join } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import { mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
+import _fs from 'fs-extra'
 import type { AppHost, ModuleExecItem, SoftInstalled } from '@shared/app'
 import { compareVersions } from 'compare-versions'
 import { execPromise, execPromiseRoot } from './util/Exec'
@@ -14,6 +21,45 @@ import { I18nT } from '@lang/index'
 import { format } from 'date-fns'
 import EnvSync from './util/EnvSync'
 import { userInfo } from 'os'
+import _node_machine_id from 'node-machine-id'
+
+const { machineId } = _node_machine_id
+
+export { machineId }
+
+const {
+  watch,
+  copy,
+  chmod,
+  copyFile,
+  unlink,
+  readdir,
+  writeFile,
+  realpath,
+  remove,
+  mkdirp,
+  readFile,
+  existsSync,
+  appendFile
+} = _fs
+
+export {
+  realpathSync,
+  FSWatcher,
+  watch,
+  copy,
+  chmod,
+  copyFile,
+  unlink,
+  readdir,
+  writeFile,
+  realpath,
+  remove,
+  mkdirp,
+  readFile,
+  existsSync,
+  appendFile
+}
 
 export { execPromise, execPromiseRoot }
 
@@ -240,7 +286,7 @@ export function downFile(url: string, savepath: string) {
         proxy.protocol = u.protocol.replace(':', '')
         proxy.host = u.hostname
         proxy.port = u.port
-      } catch (e) {
+      } catch {
         proxy = undefined
       }
     } else {
@@ -294,7 +340,9 @@ export function getSubDir(fp: string, fullpath = true) {
           }
         }
       })
-    } catch (e) {}
+    } catch {
+      /* empty */
+    }
   }
   return arr
 }
@@ -394,7 +442,9 @@ export const systemProxyGet = async () => {
         }
       }
     }
-  } catch (e) {}
+  } catch {
+    /* empty */
+  }
   console.log('systemProxyGet: ', proxy)
   return proxy
 }
@@ -471,7 +521,7 @@ export const versionBinVersion = (
       try {
         version = reg?.exec(str)?.[2]?.trim()
         reg!.lastIndex = 0
-      } catch (e) {}
+      } catch {}
       resolve({
         version
       })
@@ -650,7 +700,7 @@ export const brewInfoJson = async (names: string[]) => {
         flag: 'brew'
       }
     })
-  } catch (e) {}
+  } catch {}
   return info
 }
 
@@ -708,25 +758,17 @@ export const portSearch = async (
     arr.forEach((item: any) => {
       Info[item.name] = item
     })
-  } catch (e) {}
+  } catch {}
   return Info
 }
 
 export const writeFileByRoot = async (file: string, content: string) => {
-  try {
-    await Helper.send('tools', 'writeFileByRoot', file, content)
-  } catch (e) {
-    throw e
-  }
+  await Helper.send('tools', 'writeFileByRoot', file, content)
   return true
 }
 
 export const readFileByRoot = async (file: string): Promise<string> => {
-  try {
-    return (await Helper.send('tools', 'readFileByRoot', file)) as any
-  } catch (e) {
-    throw e
-  }
+  return (await Helper.send('tools', 'readFileByRoot', file)) as any
 }
 
 export async function waitPidFile(
@@ -771,7 +813,7 @@ export async function serviceStartExec(
   bin: string,
   execArgs: string,
   execEnv: string,
-  on: Function,
+  on: (...args: any) => void,
   maxTime = 20,
   timeToWait = 500,
   checkPidFile = true
@@ -779,7 +821,7 @@ export async function serviceStartExec(
   if (pidPath && existsSync(pidPath)) {
     try {
       await remove(pidPath)
-    } catch (e) {}
+    } catch {}
   }
   await mkdirp(baseDir)
   const outFile = join(baseDir, `start.${version.version}.out.log`)
@@ -888,7 +930,7 @@ export async function customerServiceStartExec(
   if (pidPath && existsSync(pidPath)) {
     try {
       await remove(pidPath)
-    } catch (e) {}
+    } catch {}
   }
 
   const baseDir = join(global.Server.BaseDir!, 'module-customer')
@@ -899,10 +941,10 @@ export async function customerServiceStartExec(
 
   try {
     await Helper.send('tools', 'rm', errFile)
-  } catch (e) {}
+  } catch {}
   try {
     await Helper.send('tools', 'rm', outFile)
-  } catch (e) {}
+  } catch {}
 
   let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.sh'), 'utf8')
 
@@ -919,11 +961,11 @@ export async function customerServiceStartExec(
 
   try {
     await Helper.send('tools', 'chmod', bin, '0777')
-  } catch (e) {}
+  } catch {}
 
   try {
     await Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${bin}"`)
-  } catch (e) {}
+  } catch {}
 
   psScript = psScript
     .replace('#ENV#', '')
@@ -939,11 +981,11 @@ export async function customerServiceStartExec(
 
   try {
     await Helper.send('tools', 'chmod', psPath, '0777')
-  } catch (e) {}
+  } catch {}
 
   try {
     await Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${psPath}"`)
-  } catch (e) {}
+  } catch {}
 
   process.chdir(baseDir)
   let res: any

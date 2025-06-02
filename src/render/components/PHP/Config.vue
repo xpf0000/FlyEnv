@@ -37,7 +37,7 @@
   import Common from '@/components/Conf/common.vue'
   import { type CommonSetItem, ConfStore } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import { SoftInstalled } from '@/store/brew'
   import IPC from '@/util/IPC'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'

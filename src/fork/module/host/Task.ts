@@ -2,11 +2,10 @@ import type { AppHost, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { existsSync, readdirSync } from 'fs'
-import { copy, mkdirp, readdir, remove, writeFile } from 'fs-extra'
 import { setDirRole } from './Host'
 import { I18nT } from '@lang/index'
 import compressing from 'compressing'
-import { downFile, execPromise, waitTime } from '../../Fn'
+import { downFile, execPromise, waitTime, copy, mkdirp, readdir, remove, writeFile } from '../../Fn'
 import { fetchHostList } from './HostFile'
 
 export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
@@ -95,7 +94,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
     let hostList: Array<AppHost> = []
     try {
       hostList = await fetchHostList()
-    } catch (e) {}
+    } catch {}
 
     const find = hostList.find((h) => h.name === 'phpmyadmin.test')
     if (find) {

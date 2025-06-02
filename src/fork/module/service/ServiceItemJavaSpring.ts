@@ -1,7 +1,7 @@
 import type { AppHost } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join } from 'path'
-import { chmod, existsSync, mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { chmod, existsSync, mkdirp, readFile, remove, writeFile } from '../../Fn'
 import { execPromise } from '../../util/Exec'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import Helper from '../../Helper'
@@ -34,7 +34,7 @@ export class ServiceItemJavaSpring extends ServiceItem {
       if (existsSync(pid)) {
         try {
           await remove(pid)
-        } catch (e) {}
+        } catch {}
       }
       const opt = await getHostItemEnv(item)
       const commands: string[] = ['#!/bin/zsh']

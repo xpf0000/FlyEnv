@@ -34,7 +34,6 @@
 --external:serve-handler
 --external:electron-updater
 --external:js-yaml
---external:@electron/remote
 --external:atomically
 --external:electron-log
 --external:jszip
@@ -46,6 +45,11 @@
 --external:@babel/core
 --external:vite-plugin-wasm
 --external:vite-plugin-monaco-editor
+--external:electron-localshortcut
+--external:electron-is
+--external:hpagent
+--external:node-machine-id
+--inject:scripts/shim-dynamic-require.mjs
 --format=esm
 scripts/dev-runner.ts
---outfile=electron/dev-runner.js
+--outfile=electron/dev-runner.mjs

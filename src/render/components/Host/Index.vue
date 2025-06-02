@@ -309,7 +309,7 @@
           MessageError(I18nT('base.fileBigErr'))
           return
         }
-        fs.readFile(file, 'utf-8').then(async (conf) => {
+        fs.readFile(file).then(async (conf) => {
           let arr = []
           try {
             arr = JSON.parse(conf)

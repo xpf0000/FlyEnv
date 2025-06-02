@@ -184,7 +184,7 @@
   import { FolderAdd, Lock, Refresh } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import { isEqual } from 'lodash'
+  import { isEqual } from 'lodash-es'
   import { Project } from '@/util/Project'
   import type { AllAppModule } from '@/core/type'
   import { SetupStore } from '@/components/Setup/store'

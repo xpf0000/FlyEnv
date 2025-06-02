@@ -3,14 +3,16 @@ import { uuid } from '../utils'
 import type { IPty } from 'node-pty'
 import { spawn } from 'node-pty'
 import { basename, join } from 'path'
-import { chmod, remove, writeFile } from 'fs-extra'
+import { chmod, remove, writeFile } from '../utils'
 import { existsSync } from 'fs'
 import EnvSync from './EnvSync'
 
+type CallBack = (...args: any) => void
+
 class NodePTY {
   pty: Partial<Record<string, PtyItem>> = {}
-  private _callback: Function | undefined
-  onSendCommand(callback: Function) {
+  private _callback: CallBack | undefined
+  onSendCommand(callback: CallBack) {
     this._callback = callback
   }
 
@@ -29,7 +31,7 @@ class NodePTY {
       pty.onData((data: string) => {
         console.log('pty.onData: ', data)
         if (data.trim() === 'Password:') {
-          if (!!global.Server.Password) {
+          if (global.Server.Password) {
             pty.write(`${global.Server.Password!}\r`)
           }
         }
@@ -71,7 +73,7 @@ class NodePTY {
         process.kill(item?.pty?.pid)
       }
       item?.pty?.kill()
-    } catch (e) {}
+    } catch {}
     delete this.pty[key]
   }
 

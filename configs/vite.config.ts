@@ -25,31 +25,27 @@ const config: UserConfig = {
     vue({
       include: [/\.vue$/, /\.md$/] // <-- allows Vue to compile Markdown files
     }),
-    vueJsx()
+    vueJsx({
+      transformOn: true,
+      mergeProps: true
+    })
   ],
+  esbuild: {
+    jsx: 'preserve',
+    target: 'esnext',
+    supported: {
+      'top-level-await': true
+    }
+  },
   assetsInclude: ['**/*.node'],
   optimizeDeps: {
     esbuildOptions: {
+      jsx: 'preserve',
       target: 'esnext',
       supported: {
         'top-level-await': true
       }
-    },
-    exclude: [
-      'electron',
-      'path',
-      'fs',
-      'node-pty',
-      'fsevents',
-      'mock-aws-s3',
-      'aws-sdk',
-      'nock',
-      'nodejieba',
-      'os',
-      'child_process',
-      'fs-extra',
-      'node-forge'
-    ]
+    }
   },
   root: renderPath,
   resolve: {
@@ -62,11 +58,7 @@ const config: UserConfig = {
   css: {
     // CSS preprocessor
     preprocessorOptions: {
-      scss: {
-        // Import var.scss so that the predefined variables in var.scss can be used globally
-        // Add a semicolon at the end of the imported path
-        additionalData: '@import "@/components/Theme/Variables.scss";'
-      }
+      scss: {}
     }
   }
 }
@@ -93,7 +85,12 @@ const buildConfig: UserConfig = {
   build: {
     outDir: '../../dist/render',
     assetsDir: 'static',
+    commonjsOptions: {
+      transformMixedEsModules: true,
+      ignoreDynamicRequires: true
+    },
     rollupOptions: {
+      external: [],
       input: {
         main: path.resolve(__dirname, '../src/render/index.html'),
         tray: path.resolve(__dirname, '../src/render/tray.html')

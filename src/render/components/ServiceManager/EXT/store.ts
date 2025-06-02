@@ -6,7 +6,7 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import type { AppServiceAliasItem } from '@shared/app'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { AppStore } from '@/store/app'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import { dirname, join } from 'path-browserify'
 
 let time = 0

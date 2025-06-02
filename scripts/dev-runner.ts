@@ -11,6 +11,11 @@ import esbuildConfig from '../configs/esbuild.config'
 import { DoFix } from './fix'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+
+global.require = require
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const { copySync } = _fs
@@ -76,7 +81,7 @@ function logPrinter(data: string[]) {
 }
 
 function runElectronApp() {
-  const args = ['--inspect=5858', 'dist/electron/main.js']
+  const args = ['--inspect=5858', 'dist/electron/main.mjs']
   electronProcess = spawn('electron', args)
   electronProcess?.stderr?.on('data', (data) => {
     logPrinter(data)

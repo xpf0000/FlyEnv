@@ -304,7 +304,7 @@
           return
         }
         const [path] = filePaths
-        currentValue.value = await fs.readFile(path, 'utf-8')
+        currentValue.value = await fs.readFile(path)
         fromEditor?.setValue(currentValue.value)
       })
   }

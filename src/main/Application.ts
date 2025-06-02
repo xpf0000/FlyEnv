@@ -9,7 +9,7 @@ import UpdateManager from './core/UpdateManager'
 import { join, resolve } from 'path'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
-import { getLanguage, isAppleSilicon } from './utils'
+import { getLanguage, isAppleSilicon, mkdirp, readFile, writeFile } from './utils'
 import { AppI18n, I18nT, AppAllLang } from '@lang/index'
 import DnsServerManager from './core/DNS'
 import type { PtyItem } from './type'
@@ -25,9 +25,10 @@ import Helper from '../fork/Helper'
 import ScreenManager from './core/ScreenManager'
 import AppLog from './core/AppLog'
 import compressing from 'compressing'
-import { mkdirp, readFile, writeFile } from 'fs-extra'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
+import AppNodeFnManager, { type AppNodeFn } from './core/AppNodeFn'
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default class Application extends EventEmitter {
@@ -47,11 +48,14 @@ export default class Application extends EventEmitter {
 
   constructor() {
     super()
+    AppNodeFnManager.customerLang = this.customerLang
+    AppNodeFnManager.nativeTheme_watch()
     global.Server = {
       Local: `${app.getLocale()}.UTF-8`
     }
     this.isReady = false
     this.configManager = new ConfigManager()
+    AppNodeFnManager.configManager = this.configManager
     this.initLang()
     this.menuManager = new MenuManager()
     this.menuManager.setup()
@@ -106,7 +110,7 @@ export default class Application extends EventEmitter {
   }
 
   initForkManager() {
-    this.forkManager = new ForkManager(resolve(__dirname, './fork.js'))
+    this.forkManager = new ForkManager(resolve(__dirname, './fork.mjs'))
     this.forkManager.on(({ key, info }: { key: string; info: any }) => {
       this.windowManager.sendCommandTo(this.mainWindow!, key, key, info)
     })
@@ -305,6 +309,8 @@ export default class Application extends EventEmitter {
   showPage(page: string) {
     const win = this.windowManager.openWindow(page)
     this.mainWindow = win
+    AppNodeFnManager.mainWindow = win
+    console.log('AppNodeFnManager.mainWindow: ', AppNodeFnManager.mainWindow)
     this.checkBrewOrPort()
     AppLog.init(this.mainWindow)
     this.windowManager.sendCommandTo(
@@ -326,6 +332,7 @@ export default class Application extends EventEmitter {
     ScreenManager.initWindow(win)
     ScreenManager.repositionAllWindows()
     this.trayWindow = this.windowManager.openTrayWindow()
+    AppNodeFnManager.trayWindow = this.trayWindow
   }
 
   show(page = 'index') {
@@ -402,13 +409,13 @@ export default class Application extends EventEmitter {
       const sig = '-TERM'
       try {
         await Helper.send('tools', 'kill', sig, TERM)
-      } catch (e) {}
+      } catch {}
     }
     if (INT.length > 0) {
       const sig = '-INT'
       try {
         await Helper.send('tools', 'kill', sig, INT)
-      } catch (e) {}
+      } catch {}
     }
   }
 
@@ -424,7 +431,7 @@ export default class Application extends EventEmitter {
         try {
           const plist: any = await Helper.send('tools', 'processList')
           pids = ProcessListByPid(pid, plist)
-        } catch (e) {}
+        } catch {}
         if (pids.length > 0) {
           pids.forEach((item) => {
             if (
@@ -444,13 +451,13 @@ export default class Application extends EventEmitter {
             const sig = '-TERM'
             try {
               await Helper.send('tools', 'kill', sig, TERM)
-            } catch (e) {}
+            } catch {}
           }
           if (INT.length > 0) {
             const sig = '-INT'
             try {
               await Helper.send('tools', 'kill', sig, INT)
-            } catch (e) {}
+            } catch {}
           }
         }
         resolve(true)
@@ -458,7 +465,7 @@ export default class Application extends EventEmitter {
     })
     try {
       await Promise.all(arr)
-    } catch (e) {}
+    } catch {}
   }
 
   async stopServer() {
@@ -472,7 +479,7 @@ export default class Application extends EventEmitter {
         hosts = hosts.replace(x[0], '')
         writeFileSync('/private/etc/hosts', hosts)
       }
-    } catch (e) {}
+    } catch {}
   }
 
   sendCommand(command: string, ...args: any) {
@@ -736,24 +743,41 @@ export default class Application extends EventEmitter {
       return
     }
     switch (command) {
+      case 'App-Node-FN':
+        {
+          const namespace: string = args.shift()
+          const method: string = args.shift()
+          const fn: keyof AppNodeFn = `${namespace}_${method}` as any
+          console.log('App-Node-FN: ', fn)
+          console.log('AppNodeFnManager.mainWindow: ', AppNodeFnManager.mainWindow)
+          try {
+            if (typeof AppNodeFnManager[fn] === 'function') {
+              const nodeFn = AppNodeFnManager[fn] as any
+              nodeFn.call(AppNodeFnManager, command, key, ...args)
+            }
+          } catch {}
+        }
+        break
       case 'app:password-check':
-        const pass = args?.[0] ?? ''
-        execPromiseRoot([`-k`, 'echo', 'PhpWebStudy'], undefined, pass)
-          .then(() => {
-            this.configManager.setConfig('password', pass)
-            global.Server.Password = pass
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-              code: 0,
-              data: pass
+        {
+          const pass = args?.[0] ?? ''
+          execPromiseRoot([`-k`, 'echo', 'PhpWebStudy'], undefined, pass)
+            .then(() => {
+              this.configManager.setConfig('password', pass)
+              global.Server.Password = pass
+              this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+                code: 0,
+                data: pass
+              })
             })
-          })
-          .catch((err: Error) => {
-            console.log('err: ', err)
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-              code: 1,
-              msg: err
+            .catch((err: Error) => {
+              console.log('err: ', err)
+              this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+                code: 1,
+                msg: err
+              })
             })
-          })
+        }
         return
       case 'APP:Auto-Hide':
         this?.mainWindow?.hide()
@@ -847,12 +871,16 @@ export default class Application extends EventEmitter {
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
         break
       case 'app-sitesucker-run':
-        const url = args[0]
-        SiteSuckerManager.show(url)
+        {
+          const url = args[0]
+          SiteSuckerManager.show(url)
+        }
         break
       case 'app-sitesucker-setup':
-        const setup = this.configManager.getConfig('tools.siteSucker')
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, setup)
+        {
+          const setup = this.configManager.getConfig('tools.siteSucker')
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, setup)
+        }
         return
       case 'app-sitesucker-setup-save':
         this.configManager.setConfig('tools.siteSucker', args[0])
@@ -860,10 +888,12 @@ export default class Application extends EventEmitter {
         SiteSuckerManager.updateConfig(args[0])
         return
       case 'app-customer-lang-update':
-        const langKey = args[0]
-        const langValue = args[1]
-        this.customerLang[langKey] = langValue
-        AppI18n().global.setLocaleMessage(langKey, langValue)
+        {
+          const langKey = args[0]
+          const langValue = args[1]
+          this.customerLang[langKey] = langValue
+          AppI18n().global.setLocaleMessage(langKey, langValue)
+        }
         return
     }
   }

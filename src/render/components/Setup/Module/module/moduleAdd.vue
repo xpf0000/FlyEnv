@@ -200,7 +200,7 @@
   import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup, AsyncComponentShow } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import { Close, Delete, Edit, FolderOpened, Lock, Plus } from '@element-plus/icons-vue'
   import { uuid } from '@/util/Index'
   import { ModuleCustomerExecItem, ModuleDefaultIcon } from '@/core/ModuleCustomer'
@@ -282,7 +282,7 @@
           return
         }
         const file = filePaths[0]
-        fs.readFile(file, 'utf-8').then((svg: string) => {
+        fs.readFile(file).then((svg: string) => {
           const config = {
             removeTags: true,
             removingTags: ['p-id', 'id', 'class', 'title', 'desc', 'defs', 'style'],

@@ -17,11 +17,17 @@ import {
   portSearch,
   versionFilterSame,
   AppLog,
-  serviceStartExec
+  serviceStartExec,
+  unlink,
+  writeFile,
+  readFile,
+  copyFile,
+  mkdirp,
+  chmod,
+  remove
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
-import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
 import axios from 'axios'
 import TaskQueue from '../TaskQueue'
 import { ProcessPidsByPid } from '@shared/Process'
@@ -44,7 +50,7 @@ class Php extends Base {
         try {
           await mkdirp(dirname(capem))
           await copyFile(join(global.Server.Static!, 'tmpl/cacert.pem'), capem)
-        } catch (e) {}
+        } catch {}
       }
       resolve(true)
     })
@@ -65,7 +71,7 @@ class Php extends Base {
         res = await execPromise(command)
         ini = res?.stdout?.trim()?.split('=>')?.pop()?.trim() ?? ''
         ini = ini?.split('=>')?.pop()?.trim() ?? ''
-      } catch (e) {}
+      } catch {}
 
       if (!ini) {
         if (version?.phpConfig) {
@@ -76,7 +82,7 @@ class Php extends Base {
         try {
           res = await execPromise(command)
           ini = res?.stdout?.trim()
-        } catch (e) {}
+        } catch {}
       }
 
       if (ini) {
@@ -92,7 +98,7 @@ class Php extends Base {
           try {
             await Helper.send('php', 'iniFileFixed', ini, cacheFile)
             await Helper.send('tools', 'chmod', ini, '777')
-          } catch (e) {}
+          } catch {}
           await remove(cacheFile)
         }
         if (existsSync(ini)) {
@@ -104,7 +110,7 @@ class Php extends Base {
                 try {
                   await Helper.send('php', 'iniFileFixed', baseIni, ini)
                   await Helper.send('tools', 'chmod', baseIni, '777')
-                } catch (e) {}
+                } catch {}
               } else {
                 const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
                 const content = await readFile(tmpl, 'utf-8')
@@ -113,7 +119,7 @@ class Php extends Base {
                 try {
                   await Helper.send('php', 'iniFileFixed', baseIni, cacheFile)
                   await Helper.send('tools', 'chmod', baseIni, '777')
-                } catch (e) {}
+                } catch {}
                 await remove(cacheFile)
               }
             }
@@ -124,7 +130,7 @@ class Php extends Base {
             if (!existsSync(iniDefault)) {
               try {
                 await Helper.send('php', 'iniDefaultFileFixed', iniDefault, ini)
-              } catch (e) {}
+              } catch {}
             }
             resolve(ini)
             return
@@ -168,7 +174,7 @@ class Php extends Base {
         }
         // try {
         //   // await this._doInstallOrUnInstallByBrew(args.libName, 'install').on(on)
-        // } catch (e) {}
+        // } catch {}
 
         check = await checkSo()
         if (check) {
@@ -266,7 +272,7 @@ xdebug.output_dir = "${output_dir}"
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
       const arr: Array<string> = []
-      if (!!version?.pid?.trim()) {
+      if (version?.pid?.trim()) {
         const plist: any = await Helper.send('tools', 'processList')
         const pids = ProcessPidsByPid(version.pid.trim(), plist)
         arr.push(...pids)
@@ -286,7 +292,7 @@ xdebug.output_dir = "${output_dir}"
         const sig = '-INT'
         try {
           await Helper.send('tools', 'kill', sig, arr)
-        } catch (e) {}
+        } catch {}
       }
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
@@ -450,38 +456,40 @@ xdebug.output_dir = "${output_dir}"
       let extendv = ''
       switch (extend) {
         case 'ionCube':
-          soPath = join(extendsDir, 'ioncube.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          const tmplPath = join(global.Server.Cache!, `ioncube_loader_mac_${versionNumber}.so`)
-          const doCopy = async () => {
-            if (existsSync(tmplPath)) {
-              if (!existsSync(extendsDir)) {
-                // await ([`mkdir`, '-p', extendsDir])
-              }
-              // await ([`cp`, tmplPath, soPath])
-              if (existsSync(soPath)) {
-                resolve(true)
-                return true
-              }
+          {
+            soPath = join(extendsDir, 'ioncube.so')
+            if (existsSync(soPath)) {
+              resolve(true)
+              return
             }
-            return false
-          }
-          let res = await doCopy()
-          if (res) {
-            return
-          }
-          const url = `http://mbimage.ybvips.com/electron/phpwebstudy/ioncube/ioncube_loader_mac_${versionNumber}.so`
-          try {
-            await downFile(url, tmplPath)
-            res = await doCopy()
+            const tmplPath = join(global.Server.Cache!, `ioncube_loader_mac_${versionNumber}.so`)
+            const doCopy = async () => {
+              if (existsSync(tmplPath)) {
+                if (!existsSync(extendsDir)) {
+                  // await ([`mkdir`, '-p', extendsDir])
+                }
+                // await ([`cp`, tmplPath, soPath])
+                if (existsSync(soPath)) {
+                  resolve(true)
+                  return true
+                }
+              }
+              return false
+            }
+            let res = await doCopy()
             if (res) {
               return
             }
-          } catch (e) {
-            reject(new Error('File download failed'))
+            const url = `http://mbimage.ybvips.com/electron/phpwebstudy/ioncube/ioncube_loader_mac_${versionNumber}.so`
+            try {
+              await downFile(url, tmplPath)
+              res = await doCopy()
+              if (res) {
+                return
+              }
+            } catch {
+              reject(new Error('File download failed'))
+            }
           }
           break
         case 'redis':
@@ -638,25 +646,27 @@ xdebug.output_dir = "${output_dir}"
           await installByShell('php-yaf.sh', extendv)
           break
         case 'sg11':
-          if (existsSync(join(extendsDir, 'ixed.dar'))) {
-            resolve(true)
-            return
+          {
+            if (existsSync(join(extendsDir, 'ixed.dar'))) {
+              resolve(true)
+              return
+            }
+            sh = join(global.Server.Static!, 'sh/php-sg11.sh')
+            copyfile = join(global.Server.Cache!, 'php-sg11.sh')
+            if (existsSync(copyfile)) {
+              await unlink(copyfile)
+            }
+            await copyFile(sh, copyfile)
+            await chmod(copyfile, '0777')
+            const versionNums = version?.version?.split('.')?.splice(2)?.join('.') ?? ''
+            let archStr = ''
+            if (versionNumber >= 7.4 && arch === '-arm64') {
+              archStr = arch
+            }
+            const params = [copyfile, global.Server.Cache!, extendsDir, versionNums, archStr]
+            const command = params.join(' ')
+            on(I18nT('fork.ExtensionInstallFailTips', { command }))
           }
-          sh = join(global.Server.Static!, 'sh/php-sg11.sh')
-          copyfile = join(global.Server.Cache!, 'php-sg11.sh')
-          if (existsSync(copyfile)) {
-            await unlink(copyfile)
-          }
-          await copyFile(sh, copyfile)
-          await chmod(copyfile, '0777')
-          const versionNums = version?.version?.split('.')?.splice(2)?.join('.') ?? ''
-          let archStr = ''
-          if (versionNumber >= 7.4 && arch === '-arm64') {
-            archStr = arch
-          }
-          const params = [copyfile, global.Server.Cache!, extendsDir, versionNums, archStr]
-          const command = params.join(' ')
-          on(I18nT('fork.ExtensionInstallFailTips', { command }))
           break
       }
     })
@@ -703,7 +713,7 @@ xdebug.output_dir = "${output_dir}"
           dict[`php-${a.version}`] = a
         })
         resolve(dict)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })
@@ -729,7 +739,7 @@ xdebug.output_dir = "${output_dir}"
           await execPromise(`tar -xzf ${row.zip} -C ${bin}`)
 
           success = true
-        } catch (e) {}
+        } catch {}
         if (success) {
           refresh()
           row.downState = 'success'
@@ -766,7 +776,7 @@ xdebug.output_dir = "${output_dir}"
                   if (existsSync(row.zip)) {
                     unlinkSync(row.zip)
                   }
-                } catch (e) {}
+                } catch {}
                 resolve(false)
               })
               stream.on('finish', async () => {
@@ -776,7 +786,7 @@ xdebug.output_dir = "${output_dir}"
                     await mkdirp(sbin)
                     await execPromise(`tar -xzf ${row.zip} -C ${sbin}`)
                   }
-                } catch (e) {}
+                } catch {}
                 resolve(true)
               })
             })
@@ -786,7 +796,7 @@ xdebug.output_dir = "${output_dir}"
                 if (existsSync(row.zip)) {
                   unlinkSync(row.zip)
                 }
-              } catch (e) {}
+              } catch {}
               resolve(false)
             })
         })
@@ -816,7 +826,7 @@ xdebug.output_dir = "${output_dir}"
                   if (existsSync(cliZIP)) {
                     unlinkSync(cliZIP)
                   }
-                } catch (e) {}
+                } catch {}
                 resolve(false)
               })
               stream.on('finish', async () => {
@@ -826,7 +836,7 @@ xdebug.output_dir = "${output_dir}"
                     await mkdirp(bin)
                     await execPromise(`tar -xzf ${cliZIP} -C ${bin}`)
                   }
-                } catch (e) {}
+                } catch {}
                 resolve(true)
               })
             })
@@ -836,7 +846,7 @@ xdebug.output_dir = "${output_dir}"
                 if (existsSync(cliZIP)) {
                   unlinkSync(cliZIP)
                 }
-              } catch (e) {}
+              } catch {}
               resolve(false)
             })
         })

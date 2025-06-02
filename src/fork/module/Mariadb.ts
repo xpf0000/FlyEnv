@@ -17,10 +17,13 @@ import {
   portSearch,
   versionFilterSame,
   AppLog,
-  serviceStartExec
+  serviceStartExec,
+  writeFile,
+  mkdirp,
+  chmod,
+  remove
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, mkdirp, chmod, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import Helper from '../Helper'
 

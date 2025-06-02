@@ -39,7 +39,7 @@
   import Conf from '@/components/Conf/drawer.vue'
   import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import { uuid } from '@/util/Index'
   import { join } from 'path-browserify'
   import { fs } from '@/util/NodeFn'

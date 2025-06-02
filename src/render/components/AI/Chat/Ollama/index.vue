@@ -258,7 +258,7 @@
         }
         for (const file of arr) {
           try {
-            const content = await fs.readFile(file, 'utf-8')
+            const content = await fs.readFile(file)
             currentChat.value!.content += `\n\`\`\`\n${content}\n\`\`\`\n`
           } catch {
             /* empty */

@@ -14,10 +14,13 @@ import {
   versionFixed,
   versionLocalFetch,
   versionSort,
-  waitTime
+  waitTime,
+  writeFile,
+  mkdirp,
+  unlink,
+  readFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, mkdirp, unlink, readFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import Helper from '../Helper'
 class RabbitMQ extends Base {
@@ -130,7 +133,7 @@ PLUGINS_DIR="${pluginsDir}"`
         if (pid) {
           await unlink(join(mnesiaBaseDir, pid))
         }
-      } catch (e) {}
+      } catch {}
 
       const bin = version.bin
       const baseDir = this.baseDir
@@ -179,7 +182,7 @@ PLUGINS_DIR="${pluginsDir}"`
           dict[`rabbitmq-${a.version}`] = a
         })
         resolve(dict)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })

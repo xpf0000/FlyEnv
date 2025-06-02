@@ -57,7 +57,7 @@
     const iniFile = join(window.Server.BaseDir!, 'mailpit/mailpit.conf')
     const exists = await fs.existsSync(iniFile)
     if (exists) {
-      const content = await fs.readFile(iniFile, 'utf-8')
+      const content = await fs.readFile(iniFile)
       const logStr = content.split('\n').find((s: string) => s.includes('MP_UI_BIND_ADDR'))
       const port = logStr?.trim()?.split('=')?.pop()?.split(':')?.pop() ?? '8025'
       shell.openExternal(`http://127.0.0.1:${port}/`).then().catch()

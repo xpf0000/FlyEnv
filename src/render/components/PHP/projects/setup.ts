@@ -168,7 +168,7 @@ class Project {
           }
         }
       } else {
-        const content = await fs.readFile(envFile, 'utf-8')
+        const content = await fs.readFile(envFile)
         const lines = content
           .trim()
           .split('\n')

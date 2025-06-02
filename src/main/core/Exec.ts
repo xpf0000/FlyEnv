@@ -1,10 +1,9 @@
-import { merge } from 'lodash'
+import { merge } from 'lodash-es'
 import { ForkPromise } from '@shared/ForkPromise'
 import { ChildProcess, spawn } from 'child_process'
 import { join } from 'path'
-import { existsSync, remove, writeFile } from 'fs-extra'
 import EnvSync from './EnvSync'
-import { uuid } from '../utils'
+import { uuid, existsSync, remove, writeFile } from '../utils'
 
 export function execPromiseRoot(
   params: string | string[],

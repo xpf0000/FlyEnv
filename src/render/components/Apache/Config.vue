@@ -22,7 +22,7 @@
   import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import { uuid } from '@/util/Index'
   import { join } from 'path-browserify'
 

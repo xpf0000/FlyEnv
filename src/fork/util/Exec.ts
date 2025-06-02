@@ -1,11 +1,9 @@
-import { merge } from 'lodash'
+import { merge } from 'lodash-es'
 import { ForkPromise } from '@shared/ForkPromise'
 import { type ChildProcess, spawn, exec } from 'child_process'
 import { join } from 'path'
-import { existsSync, remove, writeFile } from 'fs-extra'
 import EnvSync from './EnvSync'
-import { uuid } from '../Fn'
-
+import { uuid, existsSync, remove, writeFile } from '../Fn'
 import { promisify } from 'util'
 
 const execAsync = promisify(exec)

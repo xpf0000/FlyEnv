@@ -1,5 +1,34 @@
 import { app } from 'electron'
 import { cpus } from 'os'
+import _fs from 'fs-extra'
+
+const {
+  createWriteStream,
+  removeSync,
+  stat,
+  existsSync,
+  copyFile,
+  appendFile,
+  chmod,
+  remove,
+  mkdirp,
+  readFile,
+  writeFile
+} = _fs
+
+export {
+  createWriteStream,
+  removeSync,
+  stat,
+  existsSync,
+  copyFile,
+  appendFile,
+  chmod,
+  remove,
+  mkdirp,
+  readFile,
+  writeFile
+}
 
 export function uuid(length = 32) {
   const num = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'

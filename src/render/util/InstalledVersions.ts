@@ -2,7 +2,7 @@ import IPC from '@/util/IPC.js'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import { AppStore } from '@/store/app'
 import { reactive } from 'vue'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import type { AllAppModule } from '@/core/type'
 import { AppModuleEnum } from '@/core/type'
 

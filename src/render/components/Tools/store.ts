@@ -12,7 +12,7 @@ const getToolData = async () => {
   const file = join(window.Server.BaseDir!, 'app.tools.json')
   const exists = await fs.existsSync(file)
   if (exists) {
-    const json = await fs.readFile(file, 'utf-8')
+    const json = await fs.readFile(file)
     try {
       obj = JSON.parse(json)
     } catch {

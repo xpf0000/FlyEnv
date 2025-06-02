@@ -21,7 +21,9 @@ export const ThemeInit = () => {
   const resetHtmlThemeTag = () => {
     const html = document.documentElement
     html.classList.remove('dark', 'light')
-    html.classList.add(theme.value ?? '')
+    if (theme?.value) {
+      html.classList.add(theme.value)
+    }
   }
   resetHtmlThemeTag()
 

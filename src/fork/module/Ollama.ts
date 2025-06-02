@@ -11,16 +11,18 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  machineId
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 import axios from 'axios'
 import http from 'http'
 import https from 'https'
-import { machineId } from 'node-machine-id'
 import { publicDecrypt } from 'crypto'
 import { EOL } from 'os'
 
@@ -129,7 +131,7 @@ class Ollama extends Base {
       let res: any
       try {
         res = await execPromise(command)
-      } catch (e) {}
+      } catch {}
       const arr = res?.stdout?.split('\n')?.filter((s: string) => !!s.trim()) ?? []
       const list: any = []
       arr.shift()
@@ -160,7 +162,7 @@ class Ollama extends Base {
           dict[`ollama-${a.version}`] = a
         })
         resolve(dict)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })
@@ -237,7 +239,7 @@ class Ollama extends Base {
           proxy: this.getAxiosProxy()
         })
         list = res?.data?.data ?? []
-      } catch (e) {}
+      } catch {}
       return resolve(list)
     })
   }

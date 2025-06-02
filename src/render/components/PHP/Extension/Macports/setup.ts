@@ -98,7 +98,7 @@ export const Setup = (version: SoftInstalled) => {
     if (fn === 'uninstall') {
       fn = 'uninstall --follow-dependents'
     }
-    let content = await fs.readFile(sh, 'utf-8')
+    let content = await fs.readFile(sh)
     content = content
       .replace(new RegExp('##ARCH##', 'g'), arch)
       .replace(new RegExp('##ACTION##', 'g'), fn)

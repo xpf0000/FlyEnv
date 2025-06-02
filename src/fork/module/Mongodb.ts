@@ -14,10 +14,13 @@ import {
   versionFixed,
   versionLocalFetch,
   versionMacportsFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  chmod
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 class Manager extends Base {
   constructor() {

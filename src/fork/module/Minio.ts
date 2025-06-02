@@ -11,9 +11,14 @@ import {
   versionBinVersion,
   versionFilterSame,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  chmod,
+  copyFile,
+  mkdirp,
+  readFile,
+  remove,
+  writeFile
 } from '../Fn'
-import { chmod, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { I18nT } from '@lang/index'
 import axios from 'axios'
@@ -214,7 +219,7 @@ class Minio extends Base {
         await chmod(row.bin, '0777')
         try {
           await Helper.send('mailpit', 'binFixed', row.bin)
-        } catch (e) {}
+        } catch {}
       }
 
       if (existsSync(row.zip)) {
@@ -225,7 +230,7 @@ class Minio extends Base {
             cwd: dirname(row.zip)
           })
           zipCheck = true
-        } catch (e) {
+        } catch {
           zipCheck = false
         }
 
@@ -276,7 +281,7 @@ class Minio extends Base {
               if (existsSync(row.zip)) {
                 unlinkSync(row.zip)
               }
-            } catch (e) {}
+            } catch {}
             refresh()
             on(row)
             setTimeout(() => {
@@ -290,7 +295,7 @@ class Minio extends Base {
                 await doHandleZip()
               }
               refresh()
-            } catch (e) {
+            } catch {
               refresh()
             }
             on(row)
@@ -304,7 +309,7 @@ class Minio extends Base {
             if (existsSync(row.zip)) {
               unlinkSync(row.zip)
             }
-          } catch (e) {}
+          } catch {}
           refresh()
           on(row)
           setTimeout(() => {

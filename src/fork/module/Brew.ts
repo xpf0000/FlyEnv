@@ -1,9 +1,9 @@
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import { execPromise, spawnPromise } from '../Fn'
+import { execPromise, spawnPromise, copyFile, unlink, chmod } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, unlink, chmod } from 'fs-extra'
+
 class Brew extends Base {
   constructor() {
     super()

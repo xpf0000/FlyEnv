@@ -17,10 +17,14 @@ import {
   versionLocalFetch,
   versionMacportsFetch,
   versionSort,
-  waitTime
+  waitTime,
+  chmod,
+  copyFile,
+  readFile,
+  unlink,
+  writeFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { chmod, copyFile, readFile, unlink, writeFile } from 'fs-extra'
 import axios from 'axios'
 import TaskQueue from '../TaskQueue'
 
@@ -128,9 +132,9 @@ export LANG="${global.Server.Local!}"
           } else {
             arr = html
           }
-        } catch (e) {}
+        } catch {}
         resolve(arr?.[0]?.name)
-      } catch (e) {
+      } catch {
         resolve('v0.7.4')
       }
     })

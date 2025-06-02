@@ -167,7 +167,7 @@
   import { AppHost, AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import { BrewStore } from '@/store/brew'
   import { Service } from '@/components/ServiceManager/service'
   import installedVersions from '@/util/InstalledVersions'
@@ -246,7 +246,7 @@
       if (!exists) {
         return
       }
-      let json: any = await fs.readFile(packageJson, 'utf-8')
+      let json: any = await fs.readFile(packageJson)
       try {
         json = JSON.parse(json)
         scripts.value = json?.scripts ?? {}

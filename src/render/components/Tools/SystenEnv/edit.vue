@@ -81,7 +81,7 @@
       disabled.value = true
       return
     }
-    content.value = await fs.readFile(props.file, 'utf-8')
+    content.value = await fs.readFile(props.file)
     initEditor()
   }
 

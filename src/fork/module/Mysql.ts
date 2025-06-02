@@ -18,10 +18,14 @@ import {
   portSearch,
   versionFilterSame,
   AppLog,
-  serviceStartExec
+  serviceStartExec,
+  mkdirp,
+  writeFile,
+  chmod,
+  unlink,
+  remove
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, writeFile, chmod, unlink, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import Helper from '../Helper'
 
@@ -292,7 +296,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         if (existsSync(p)) {
           await unlink(p)
         }
-      } catch (e) {}
+      } catch {}
       console.log('mysql start: ', bin, params.join(' '))
       on(I18nT('fork.command') + `: ${bin} ${params.join(' ')}`)
       const { promise, spawn } = await spawnPromiseMore(bin!, params)
@@ -319,7 +323,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           success = true
           try {
             await execPromise(`kill -9 ${spawn.pid}`)
-          } catch (e) {}
+          } catch {}
         } else {
           if (time < 40) {
             await waitTime(500)
@@ -327,7 +331,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           } else {
             try {
               await execPromise(`kill -9 ${spawn.pid}`)
-            } catch (e) {}
+            } catch {}
           }
         }
       }
@@ -394,7 +398,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })

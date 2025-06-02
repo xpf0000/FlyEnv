@@ -149,7 +149,7 @@
   import { AppHost, AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import { dirname, basename } from 'path-browserify'
   import { dialog } from '@/util/NodeFn'
 

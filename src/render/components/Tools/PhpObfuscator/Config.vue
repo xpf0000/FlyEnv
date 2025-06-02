@@ -50,7 +50,7 @@
     mounted() {
       if (!config) {
         const file = join(window.Server.Static!, 'tmpl/yakpro-po.default.cnf')
-        fs.readFile(file, 'utf-8').then((c) => {
+        fs.readFile(file).then((c) => {
           config = c
           this.config = this.customConfig || config
           nextTick().then(() => {
@@ -95,7 +95,7 @@
               MessageError(this.$t('base.fileBigErr'))
               return
             }
-            fs.readFile(file, 'utf-8').then((conf) => {
+            fs.readFile(file).then((conf) => {
               this.config = conf
               this.initEditor()
             })

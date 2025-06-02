@@ -3,14 +3,18 @@ import { createWriteStream, existsSync, unlinkSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
-import { chmod, copyFile, mkdirp, readFile, remove } from 'fs-extra'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  chmod,
+  copyFile,
+  mkdirp,
+  readFile,
+  remove
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 
@@ -65,7 +69,7 @@ class Composer extends Base {
         try {
           await handleComposer()
           success = true
-        } catch (e) {}
+        } catch {}
         if (success) {
           refresh()
           row.downState = 'success'
@@ -100,7 +104,7 @@ class Composer extends Base {
               if (existsSync(row.zip)) {
                 unlinkSync(row.zip)
               }
-            } catch (e) {}
+            } catch {}
             refresh()
             on(row)
             setTimeout(() => {
@@ -113,7 +117,7 @@ class Composer extends Base {
               if (existsSync(row.zip)) {
                 await handleComposer()
               }
-            } catch (e) {}
+            } catch {}
             refresh()
             on(row)
             resolve(true)
@@ -126,7 +130,7 @@ class Composer extends Base {
             if (existsSync(row.zip)) {
               unlinkSync(row.zip)
             }
-          } catch (e) {}
+          } catch {}
           refresh()
           on(row)
           setTimeout(() => {
@@ -153,7 +157,7 @@ class Composer extends Base {
             try {
               version = reg?.exec(str)?.[2]?.trim()
               reg!.lastIndex = 0
-            } catch (e) {}
+            } catch {}
             resolve({
               version
             })

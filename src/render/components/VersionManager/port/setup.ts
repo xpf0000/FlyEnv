@@ -200,7 +200,7 @@ export const Setup = (typeFlag: AllAppModule) => {
         )
       })
       arrs.unshift(`arch ${arch} sudo -S port -f deactivate libuuid`)
-      let content = await fs.readFile(sh, 'utf-8')
+      let content = await fs.readFile(sh)
       content = content.replace('##CONTENT##', arrs.join('\n'))
       await fs.writeFile(copyfile, content)
       await fs.chmod(copyfile, '0777')
@@ -215,7 +215,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       if (fn === 'uninstall') {
         fn = 'uninstall --follow-dependents'
       }
-      let content = await fs.readFile(sh, 'utf-8')
+      let content = await fs.readFile(sh)
       content = content
         .replace(new RegExp('##ARCH##', 'g'), arch)
         .replace(new RegExp('##ACTION##', 'g'), fn)

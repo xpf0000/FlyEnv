@@ -93,7 +93,7 @@
           })
       },
       getConfig() {
-        fs.readFile(this.configpath, 'utf-8')
+        fs.readFile(this.configpath)
           .then((conf) => {
             this.config = conf
             this.initEditor()

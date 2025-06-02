@@ -1,54 +1,61 @@
 import type { BuildOptions } from 'esbuild'
 import { BuildPlugin } from './plugs.build'
-const external = [
-  'electron',
-  'path',
-  'fs',
-  'node-pty',
-  'fsevents',
-  'mock-aws-s3',
-  'aws-sdk',
-  'nock',
-  'nodejieba',
-  'os',
-  'child_process',
-  'fs-extra',
-  'dns2',
-  'neoip',
-  'tangerine',
-  'lodash',
-  'axios',
-  'iconv-lite',
-  'compressing',
-  'fast-xml-parser',
-  'source-map',
-  'source-map-js',
-  'entities',
-  '@vue',
-  'vue',
-  'vue-i18n',
-  'estree-walker',
-  'serve-handler',
-  'electron-updater',
-  'js-yaml',
-  '@electron/remote',
-  'atomically',
-  'electron-log',
-  'jszip',
-  'pako',
-  'electron-devtools-installer',
-  'conf',
-  'node-forge',
-  '@ayonli/jsext'
-]
+// const external = [
+//   'electron',
+//   'path',
+//   'fs',
+//   'node-pty',
+//   'fsevents',
+//   'mock-aws-s3',
+//   'aws-sdk',
+//   'nock',
+//   'nodejieba',
+//   'os',
+//   'child_process',
+//   'fs-extra',
+//   'dns2',
+//   'neoip',
+//   'tangerine',
+//   'lodash',
+//   'axios',
+//   'iconv-lite',
+//   'compressing',
+//   'fast-xml-parser',
+//   'source-map',
+//   'source-map-js',
+//   'entities',
+//   '@vue',
+//   'vue',
+//   'vue-i18n',
+//   'estree-walker',
+//   'serve-handler',
+//   'electron-updater',
+//   'js-yaml',
+//   'atomically',
+//   'electron-log',
+//   'jszip',
+//   'pako',
+//   'electron-devtools-installer',
+//   'conf',
+//   'node-forge',
+//   '@ayonli/jsext',
+//   'electron-localshortcut',
+//   'electron-is',
+//   'hpagent',
+//   'node-machine-id',
+//   '@babel/core',
+//   'toml',
+//   'original-fs',
+//   'iconv-corefoundation'
+// ]
 
 const dev: BuildOptions = {
   platform: 'node',
   entryPoints: ['src/main/index.dev.ts'],
-  outfile: 'dist/electron/main.js',
+  outfile: 'dist/electron/main.mjs',
   minify: false,
   bundle: true,
-  external,
+  packages: 'external',
   format: 'esm',
   target: 'esnext',
   plugins: [BuildPlugin()]
@@ -57,10 +64,13 @@ const dev: BuildOptions = {
 const dist: BuildOptions = {
   platform: 'node',
   entryPoints: ['src/main/index.ts'],
-  outfile: 'dist/electron/main.js',
+  outfile: 'dist/electron/main.mjs',
   minify: true,
   bundle: true,
-  external,
+  packages: 'external',
+  loader: {
+    '.node': 'file'
+  },
   format: 'esm',
   target: 'esnext',
   plugins: [BuildPlugin()],
@@ -70,61 +80,46 @@ const dist: BuildOptions = {
 const devFork: BuildOptions = {
   platform: 'node',
   entryPoints: ['src/fork/index.ts'],
-  outfile: 'dist/electron/fork.js',
+  outfile: 'dist/electron/fork.mjs',
   minify: false,
   bundle: true,
-  external,
+  packages: 'external',
+  loader: {
+    '.node': 'file'
+  },
   format: 'esm',
   target: 'esnext',
   plugins: []
 }
 
-const dnsExternal = ['path', 'fs', 'os', 'child_process']
+// const dnsExternal = ['path', 'fs', 'os', 'child_process']
 
 const distFork: BuildOptions = {
   platform: 'node',
   entryPoints: ['src/fork/index.ts'],
-  outfile: 'dist/electron/fork.js',
+  outfile: 'dist/electron/fork.mjs',
   minify: true,
   bundle: true,
-  external,
+  packages: 'external',
+  loader: {
+    '.node': 'file'
+  },
   format: 'esm',
   target: 'esnext',
   plugins: [],
   drop: ['debugger', 'console']
 }
 
-const devDNSFork: BuildOptions = {
-  platform: 'node',
-  entryPoints: ['src/fork/dns.ts'],
-  outfile: 'dist/electron/dns.js',
-  minify: false,
-  bundle: true,
-  external: dnsExternal,
-  format: 'esm',
-  target: 'esnext',
-  plugins: []
-}
-
-const distDNSFork: BuildOptions = {
-  platform: 'node',
-  entryPoints: ['src/fork/dns.ts'],
-  outfile: 'dist/electron/dns.js',
-  minify: true,
-  bundle: true,
-  external: dnsExternal,
-  format: 'esm',
-  target: 'esnext',
-  plugins: []
-}
-
 const devHelper: BuildOptions = {
   platform: 'node',
   entryPoints: ['src/helper/index.ts'],
-  outfile: 'dist/helper/helper.js',
+  outfile: 'dist/helper/helper.mjs',
   minify: false,
   bundle: true,
-  external: [],
+  packages: 'external',
+  loader: {
+    '.node': 'file'
+  },
   format: 'esm',
   target: 'esnext',
   plugins: []
@@ -133,10 +128,13 @@ const devHelper: BuildOptions = {
 const distHelper: BuildOptions = {
   platform: 'node',
   entryPoints: ['src/helper/index.ts'],
-  outfile: 'dist/helper/helper.js',
+  outfile: 'dist/helper/helper.mjs',
   minify: true,
   bundle: true,
-  external: [],
+  packages: 'external',
+  loader: {
+    '.node': 'file'
+  },
   plugins: [],
   format: 'esm',
   target: 'esnext',
@@ -148,8 +146,6 @@ export default {
   dist,
   devFork,
   distFork,
-  devDNSFork,
-  distDNSFork,
   devHelper,
   distHelper
 }

@@ -1,6 +1,6 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join } from 'path'
-import { existsSync, mkdirp, writeFile, readFile, remove, chmod } from 'fs-extra'
+import { existsSync, mkdirp, writeFile, readFile, remove, chmod } from '../../Fn'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromise } from '../../util/Exec'
@@ -40,7 +40,7 @@ export class ServiceItemNode extends ServiceItem {
       if (existsSync(pid)) {
         try {
           await remove(pid)
-        } catch (e) {}
+        } catch {}
       }
 
       const opt = await getHostItemEnv(item)

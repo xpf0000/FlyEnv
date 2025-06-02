@@ -66,7 +66,7 @@
   const getConfig = () => {
     fs.existsSync(configpath.value).then((e) => {
       if (e) {
-        fs.readFile(configpath.value, 'utf-8').then((conf: string) => {
+        fs.readFile(configpath.value).then((conf: string) => {
           config.value = conf
           initEditor()
         })
@@ -74,7 +74,7 @@
         IPC.send('app-fork:host', 'initAllConf', JSON.parse(JSON.stringify(props.item.item))).then(
           (key: string) => {
             IPC.off(key)
-            fs.readFile(configpath.value, 'utf-8').then((conf: string) => {
+            fs.readFile(configpath.value).then((conf: string) => {
               config.value = conf
               initEditor()
             })

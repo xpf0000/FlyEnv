@@ -12,11 +12,13 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  chmod,
+  copyFile,
+  mkdirp
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { makeGlobalTomcatServerXML } from './service/ServiceItemJavaTomcat'
-import { chmod, copyFile, mkdirp } from 'fs-extra'
 import { I18nT } from '@lang/index'
 
 class Tomcat extends Base {
@@ -46,7 +48,7 @@ class Tomcat extends Base {
           dict[`tomcat-${a.version}`] = a
         })
         resolve(dict)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })

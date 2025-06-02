@@ -1,7 +1,6 @@
 import { join } from 'path'
-import { chmod, copyFile } from 'fs-extra'
 import { exec } from 'child_process'
-import { AppLogSend } from '../Fn'
+import { AppLogSend, chmod, copyFile } from '../Fn'
 import { promisify } from 'util'
 
 const execAsync = promisify(exec)

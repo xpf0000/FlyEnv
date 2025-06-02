@@ -104,7 +104,7 @@
     const file = join(props.item.path, 'package.json')
     const exists = await fs.existsSync(file)
     if (exists) {
-      const content = await fs.readFile(file, 'utf-8')
+      const content = await fs.readFile(file)
       try {
         return JSON.parse(content)
       } catch {
@@ -172,7 +172,7 @@
     const selectRows: Dependency[] = table.value!.getSelectionRows()
     const file = join(props.item.path, 'package.json')
     try {
-      const content = await fs.readFile(file, 'utf-8')
+      const content = await fs.readFile(file)
       const json = JSON.parse(content)
       for (const p in json.dependencies) {
         if (updateDict?.value?.[p] && selectRows.some((s) => s.name === p)) {

@@ -1,5 +1,5 @@
 import { createServer } from 'net'
-import { remove, existsSync } from 'fs-extra'
+import { remove, existsSync } from './util'
 import { exec } from 'child_process'
 import { dirChownFetch, waitTime } from './util'
 import type { TaskItem } from './type'
@@ -38,7 +38,7 @@ class AppHelper {
         try {
           const content = Buffer.concat(buffer).toString().trim()
           info = JSON.parse(content)
-        } catch (e) {}
+        } catch {}
         if (info) {
           buffer.splice(0)
 
@@ -143,7 +143,7 @@ class AppHelper {
         console.log('Client has disconnected')
         try {
           socket.destroySoon()
-        } catch (e) {}
+        } catch {}
       })
     })
 
@@ -160,7 +160,7 @@ class AppHelper {
       let rule = ''
       try {
         rule = await dirChownFetch(appDir)
-      } catch (e) {}
+      } catch {}
       if (!rule) {
         return
       }

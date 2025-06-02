@@ -1,6 +1,6 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join } from 'path'
-import { chmod, existsSync, mkdirp, readFile, remove, writeFile } from 'fs-extra'
+import { chmod, existsSync, mkdirp, readFile, remove, writeFile } from '../../Fn'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromise } from '../../util/Exec'
@@ -39,7 +39,7 @@ export class ServiceItemPython extends ServiceItem {
       if (existsSync(py3) && !existsSync(py)) {
         try {
           await Helper.send('tools', 'ln_s', py3, py)
-        } catch (e) {}
+        } catch {}
       }
 
       const javaDir = join(global.Server.BaseDir!, 'python')
@@ -49,7 +49,7 @@ export class ServiceItemPython extends ServiceItem {
       if (existsSync(pid)) {
         try {
           await remove(pid)
-        } catch (e) {}
+        } catch {}
       }
 
       const opt = await getHostItemEnv(item)

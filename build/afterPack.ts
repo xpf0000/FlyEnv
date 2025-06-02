@@ -1,16 +1,17 @@
-const { join, resolve } = require('path')
-const { mkdirp, writeFile, readFile } = require('fs-extra')
-const { exec } = require('child_process')
-const { promisify } = require('util')
+import { join, resolve } from 'path'
+import _fs from 'fs-extra'
+import { exec } from 'child_process'
+import { promisify } from 'util'
 
+const { mkdirp, writeFile, readFile } = _fs
 const execPromise = promisify(exec)
 
 /**
  * Handle the app store node-pty Python library linking issue
- * @param pack
+ * @param {Object} pack - Pack object containing build information
  * @returns {Promise<boolean>}
  */
-exports.default = async function after(pack) {
+export default async function after(pack) {
   if (pack.arch === 1) {
     const fromBinDir = resolve(pack.appOutDir, '../../build/bin/x86')
     const toBinDir = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/')
@@ -57,5 +58,5 @@ exports.default = async function after(pack) {
   await writeFile(shFile, content)
 
   console.log('afterPack handle end !!!!!!')
-  return true
+  return
 }

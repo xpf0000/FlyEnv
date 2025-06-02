@@ -1,6 +1,8 @@
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { basename, dirname, join, resolve as pathResolve } from 'path'
 import {
+  execPromise,
+  hostAlias,
   copyFile,
   existsSync,
   mkdirp,
@@ -9,8 +11,7 @@ import {
   realpathSync,
   remove,
   chmod
-} from 'fs-extra'
-import { execPromise, hostAlias } from '../../Fn'
+} from '../../Fn'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import { ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -265,7 +266,7 @@ export const makeGlobalTomcatServerXML = async (version: SoftInstalled) => {
   let hostAll: Array<AppHost> = []
   try {
     hostAll = await fetchHostList()
-  } catch (e) {}
+  } catch {}
   hostAll = hostAll.filter((h) => h.type === 'tomcat')
 
   const vhostDir = join(global.Server.BaseDir!, 'vhost/tomcat')
@@ -361,7 +362,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       if (existsSync(pid)) {
         try {
           await remove(pid)
-        } catch (e) {}
+        } catch {}
       }
 
       const env = {

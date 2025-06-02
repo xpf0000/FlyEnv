@@ -21,7 +21,7 @@
   import IPC from '@/util/IPC'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import Common from '@/components/Conf/common.vue'
   import { uuid } from '@/util/Index'
   import { join } from 'path-browserify'

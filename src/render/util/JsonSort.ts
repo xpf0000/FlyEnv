@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import * as _ from 'lodash-es'
 
 const copySymbolsToObj = (src: any, dest: any) => {
   const srcSymbols = Object.getOwnPropertySymbols(src)

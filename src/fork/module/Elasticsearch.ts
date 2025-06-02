@@ -11,10 +11,10 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readdir
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readdir } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 
@@ -86,7 +86,7 @@ export ES_PATH_CONF="${join(version.path, 'config')}"
           dict[`elasticsearch-${a.version}`] = a
         })
         resolve(dict)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })

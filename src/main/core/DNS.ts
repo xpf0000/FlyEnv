@@ -1,9 +1,9 @@
-import * as DNS2 from 'dns2'
-import { createServer, Packet } from 'dns2'
+import DNS2 from 'dns2'
 import Helper from '../../fork/Helper'
 import { address } from 'neoip'
 import Tangerine from 'tangerine'
 
+const { createServer, Packet } = DNS2
 const tangerine = new Tangerine()
 
 class Manager {
@@ -11,7 +11,7 @@ class Manager {
   lastTime = 0
   hosts: Record<string, string> = {}
   running = false
-  _callbak?: Function
+  _callbak?: (...args: any) => void
 
   constructor() {
     this.server = undefined
@@ -19,7 +19,7 @@ class Manager {
     this.hosts = {}
   }
 
-  onLog(fn: Function) {
+  onLog(fn: (...args: any) => void) {
     this._callbak = fn
   }
 
@@ -43,7 +43,7 @@ class Manager {
             })
           }
         })
-      } catch (e) {}
+      } catch {}
     }
   }
   start() {
@@ -55,7 +55,7 @@ class Manager {
           const response = Packet.createResponseFromRequest(request)
           const [question] = request.questions
           const { name } = question
-          await this.initHosts(LOCAL_IP)
+          await this.initHosts(LOCAL_IP!)
           if (this.hosts[name]) {
             const ip = this.hosts[name]
             const item = {
@@ -70,7 +70,7 @@ class Manager {
               ttl: 60,
               ip: ip
             }
-            this._callbak && this._callbak(json)
+            this._callbak?.(json)
             response.answers.push(item)
             send(response)
             return
@@ -95,12 +95,12 @@ class Manager {
                       ttl: item.ttl,
                       ip: item.address
                     }
-                    this._callbak && this._callbak(json)
+                    this._callbak?.(json)
                   })
                   send(response)
                 }
               })
-          } catch (e) {
+          } catch {
             send(response)
           }
         }
@@ -138,7 +138,7 @@ class Manager {
     })
   }
   close() {
-    this.server && this.server.close()
+    this?.server?.close()
     this.server = null
     this.running = false
   }

@@ -246,7 +246,7 @@
   import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import { ElMessageBox } from 'element-plus'
   import { Plus, Delete } from '@element-plus/icons-vue'
   import SSLTips from './SSLTips/index.vue'

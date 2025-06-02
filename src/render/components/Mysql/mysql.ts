@@ -28,7 +28,7 @@ export const MysqlStore = defineStore('mysqlGroup', {
         if (e) {
           const arr: Array<any> = []
           try {
-            const json = await fs.readFile(file, 'utf-8')
+            const json = await fs.readFile(file)
             const jsonArr: any = JSON.parse(json)
             jsonArr.forEach((j: any) => {
               delete j?.version?.fetching

@@ -1,10 +1,9 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join, basename } from 'path'
-import { chmod, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
-import { hostAlias } from '../../Fn'
+import { hostAlias, chmod, copyFile, mkdirp, readFile, remove, writeFile } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import Helper from '../../Helper'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
@@ -152,7 +151,7 @@ const handlePhpEnableConf = async (v: number) => {
       const content = tmplContent.replace('##VERSION##', `${v}`)
       await writeFile(confFile, content)
     }
-  } catch (e) {}
+  } catch {}
 }
 
 export const updateNginxConf = async (host: AppHost, old: AppHost) => {
@@ -190,25 +189,25 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
         let hasErr = false
         try {
           await copyFile(f.oldFile, f.newFile)
-        } catch (e) {
+        } catch {
           hasErr = true
         }
         if (hasErr) {
           try {
             const content = await Helper.send('tools', 'readFileByRoot', f.oldFile)
             await writeFile(f.newFile, content)
-          } catch (e) {}
+          } catch {}
         }
         hasErr = false
         try {
           await remove(f.oldFile)
-        } catch (e) {
+        } catch {
           hasErr = true
         }
         if (hasErr) {
           try {
             await Helper.send('tools', 'rm', f.oldFile)
-          } catch (e) {}
+          } catch {}
         }
       }
       if (existsSync(f.newFile)) {

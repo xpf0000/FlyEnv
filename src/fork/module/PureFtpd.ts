@@ -12,10 +12,14 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  chmod,
+  remove
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { execPromiseRoot } from '../util/Exec'
 
@@ -116,7 +120,7 @@ class Manager extends Base {
           const txt = await readFile(json, 'utf-8')
           const arr = JSON.parse(txt.toString())
           all.push(...arr)
-        } catch (e) {}
+        } catch {}
       }
       resolve(all)
     })
@@ -130,7 +134,7 @@ class Manager extends Base {
     const cammand = `./pure-pw userdel ${user} -f ${passwd} -F ${pdb} -m`
     try {
       await execPromise(cammand, { cwd })
-    } catch (e) {}
+    } catch {}
   }
 
   delFtp(item: FtpItem, version: SoftInstalled) {
@@ -149,7 +153,7 @@ class Manager extends Base {
           const txt = await readFile(json, 'utf-8')
           const arr = JSON.parse(txt.toString())
           all.push(...arr)
-        } catch (e) {}
+        } catch {}
       }
       const findOld = all.findIndex((a) => a.user === item.user)
       if (findOld >= 0) {
@@ -218,7 +222,7 @@ class Manager extends Base {
               const txt = await readFile(json, 'utf-8')
               const arr = JSON.parse(txt.toString())
               all.push(...arr)
-            } catch (e) {}
+            } catch {}
           }
           const findOld = all.findIndex((a) => a.user === item.user)
           if (findOld >= 0) {
@@ -252,7 +256,7 @@ class Manager extends Base {
             try {
               version = reg?.exec(str)?.[2]?.trim()
               reg!.lastIndex = 0
-            } catch (e) {}
+            } catch {}
             resolve({
               version
             })

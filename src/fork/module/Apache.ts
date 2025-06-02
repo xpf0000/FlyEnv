@@ -15,10 +15,12 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
 
@@ -66,7 +68,7 @@ class Apache extends Base {
       let file = ''
       try {
         file = reg?.exec?.(str)?.[2] ?? ''
-      } catch (e) {}
+      } catch {}
       file = file.trim()
       if (!file || !existsSync(file)) {
         on({
@@ -83,7 +85,7 @@ class Apache extends Base {
       let path = ''
       try {
         path = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) {}
+      } catch {}
       path = path.trim()
       if (!path) {
         reject(new Error(I18nT('fork.apacheLogPathErr')))
@@ -132,7 +134,7 @@ IncludeOptional "${vhost}*.conf"`
     let host: Array<AppHost> = []
     try {
       host = await fetchHostList()
-    } catch (e) {}
+    } catch {}
     if (host.length === 0) {
       return
     }
