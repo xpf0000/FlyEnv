@@ -88,7 +88,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     if (!index.value) {
       return true
     }
-    return !props?.value?.file || !fileExists
+    return !props?.value?.file || !fileExists.value
   })
 
   watch(
@@ -113,7 +113,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     if (!index.value) {
       return true
     }
-    return (!props?.value?.defaultFile || !defaultFileExists) && !props?.value.defaultConf
+    return (!props?.value?.defaultFile || !defaultFileExists.value) && !props?.value.defaultConf
   })
 
   watch(

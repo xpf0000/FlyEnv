@@ -13,7 +13,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
           I18nT('base.save')
@@ -34,7 +34,7 @@
             class="input"
             :placeholder="I18nT('host.placeholderComment')"
           />
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               v-model.trim="item.root"
               type="text"
@@ -54,7 +54,7 @@
 
         <div class="plant-title">{{ I18nT('host.port') }}</div>
         <div class="main">
-          <div class="port-set mb-20">
+          <div class="port-set mb-5">
             <div class="port-type"> Tomcat </div>
             <input
               v-model.number="item.port.tomcat"
@@ -77,7 +77,7 @@
           </div>
 
           <template v-if="item.useSSL && !item.autoSSL">
-            <div class="path-choose mt-20">
+            <div class="path-choose mt-5">
               <input
                 v-model.trim="item.ssl.cert"
                 type="text"
@@ -94,7 +94,7 @@
               </div>
             </div>
 
-            <div class="path-choose mt-20 mb-20">
+            <div class="path-choose my-5">
               <input
                 v-model.trim="item.ssl.key"
                 type="text"
@@ -113,10 +113,10 @@
           </template>
 
           <template v-if="item.useSSL">
-            <div class="ssl-switch mb-20 mt-20">
+            <div class="ssl-switch my-5">
               <span>Port</span>
             </div>
-            <div class="port-set port-ssl mb-20">
+            <div class="port-set port-ssl mb-5">
               <div class="port-type"> Tomcat </div>
               <input
                 v-model.number="item.port.tomcat_ssl"

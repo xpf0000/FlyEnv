@@ -10,7 +10,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ I18nT('base.configFile') }}</span>
+          <span class="ml-3">{{ I18nT('base.configFile') }}</span>
         </div>
       </div>
 

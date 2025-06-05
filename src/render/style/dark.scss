@@ -1,9 +1,94 @@
 html.dark {
   --main-panel-bg-color: #282b3d;
+  --base-bg-color: #1d2033;
+  --base-bg-color-1: #32364a;
+  --base-bg-color-2: #474b60;
+  --base-color-white-07: rgba(255,255,255,0.7);
+
+  #app {
+    background: var(--base-bg-color);
+
+    #container {
+      background: var(--base-bg-color);
+
+      .aside {
+        background: rgba(40, 43, 61, 1.0);
+        color: rgba(255,255,255,0.7);
+
+        .top-tool {
+          border-bottom: 1px solid #242737;
+
+          svg {
+            &:hover {
+              color: #fdab1f;
+            }
+          }
+        }
+
+        .top-menu {
+          > li {
+            padding: 0 15px;
+            border-radius: 6px;
+
+            &:hover {
+              background-color: var(--base-bg-color-2);
+              backdrop-filter: blur(5px);
+            }
+
+            &.active {
+              background-color: var(--base-bg-color);
+              backdrop-filter: blur(5px);
+
+              svg {
+                color: #fff;
+              }
+            }
+          }
+
+          svg {
+            color: var(--base-color-white-07);
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background-color: var(--base-bg-color-1);
+          }
+        }
+
+        .setup-menu {
+          border: none;
+          padding: 0 12px 8px 12px;
+
+          >li {
+            padding: 0 15px;
+            border-radius: 6px;
+
+            &:hover {
+              background-color: var(--base-bg-color-2);
+              backdrop-filter: blur(5px);
+            }
+
+            &.active {
+              background-color: var(--base-bg-color);
+              backdrop-filter: blur(5px);
+
+              svg {
+                color: #fff;
+              }
+            }
+          }
+
+          svg {
+            color: var(--base-color-white-07);
+          }
+        }
+      }
+    }
+  }
 
   .el-card {
     --el-card-bg-color: var(--main-panel-bg-color);
   }
+
   .el-table {
     --el-table-bg-color: var(--main-panel-bg-color);
     --el-table-tr-bg-color: var(--main-panel-bg-color);
@@ -24,9 +109,11 @@ html.dark {
       }
     }
   }
+
   .el-table-v2 {
     --el-bg-color: var(--main-panel-bg-color);
   }
+
   .el-drawer {
     background: #1d2033 !important;
     background-color: #1d2033 !important;
@@ -121,6 +208,7 @@ html.dark {
       }
     }
   }
+
   .el-message-box {
     &.confirm-del {
       background: #32364a;
@@ -298,27 +386,49 @@ html.dark {
       }
     }
   }
+
   .main-right-panel {
+    color: rgba(255,255,255,0.7);
+
     > .top-tab {
-      > li {
+      .el-button-group>.el-button:not(:last-child) {
+        margin-right: 0;
+      }
+
+      >li {
         &:not(.no-hover):hover {
-          background-color: #3e4257;
+          background-color: var(--base-bg-color-2);
+          backdrop-filter: blur(5px);
         }
         &.active {
-          background: #3e4257;
+          background: var(--base-bg-color);
+          backdrop-filter: blur(5px);
+          color: #fff;
         }
       }
     }
+
+    .php-versions-list {
+      &::-webkit-scrollbar-thumb {
+        background-color: var(--base-bg-color-1);
+      }
+      .http-serve-item {
+        background-color: var(--base-bg-color-1);
+        backdrop-filter: blur(5px);
+      }
+    }
+
     >.main-block {
-      >.php-versions-list {
-        .http-serve-item {
-          background: #32364a;
+      >.module-config {
+        >.block {
+          border: 1px solid var(--base-bg-color-2);
         }
       }
 
       .setup-common {
         .main {
-          background: #32364a;
+          background: var(--base-bg-color-1);
+          backdrop-filter: blur(5px);
         }
       }
 
@@ -333,7 +443,8 @@ html.dark {
           }
         }
         .main {
-          background: #32364a;
+          background: var(--base-bg-color-1);
+          backdrop-filter: blur(5px);
 
           .path-choose {
             .input {
@@ -358,14 +469,22 @@ html.dark {
     }
 
     >.http-serve-list {
+
+      > .empty {
+        > .wapper {
+          color: var(--base-color-white-07);
+        }
+      }
+
       .http-serve-item {
-        background: #32364a;
+        background-color: var(--base-bg-color-1);
+        backdrop-filter: blur(5px);
 
         .left {
           > .top {
             > .value {
               &:hover {
-                color: #fff;
+                color: #fdab1f;
               }
             }
           }
@@ -374,7 +493,7 @@ html.dark {
             > .url {
               color: #409eff;
               &.empty {
-                color: #fff;
+                color: var(--base-color-white-07);
               }
             }
           }
@@ -384,18 +503,30 @@ html.dark {
 
     >.tools-panel {
       > li {
-        background: #32364a;
+        background-color: var(--base-bg-color-1);
+        backdrop-filter: blur(5px);
+      }
+    }
+
+    &.dns-panel {
+      .top-tab {
+        svg {
+          color: var(--base-color-white-07);
+        }
       }
     }
   }
+
   .app-chat {
     .nav {
       background: #282b3d;
     }
   }
+
   .app-ai-tool {
     background: #32364a;
   }
+
   .password-prompt {
     background: #32364a !important;
     border: 1px solid #32364a !important;
@@ -405,6 +536,7 @@ html.dark {
       color: rgba(255, 255, 255, 0.7) !important;
     }
   }
+
   .about-dialog {
     background: #1d2033;
 
@@ -413,6 +545,7 @@ html.dark {
       color: #fff;
     }
   }
+
   .about-panel {
     .app-info {
       .app-version span {
@@ -508,6 +641,15 @@ html.dark {
     #app {
       #container {
         .aside {
+          .menu {
+            padding: 0;
+
+            >li {
+              padding: 0;
+              border-radius: 0;
+            }
+          }
+
           .setup-menu {
             border: none;
             padding: 0;

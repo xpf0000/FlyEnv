@@ -93,7 +93,7 @@
                   width="17"
                   height="17"
                 />
-                <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
+                <span class="ml-3">{{ I18nT('base.addToPath') }}</span>
               </li>
             </ul>
             <template #reference>

@@ -213,7 +213,12 @@ export class AppNodeFn {
 
   fs_stat(command: string, key: string, path: string) {
     stat(path, (err, stats) => {
-      this?.mainWindow?.webContents.send('command', command, key, err ? null : stats)
+      const obj: any = JSON.parse(JSON.stringify(stats))
+      obj.isDirectory = stats.isDirectory()
+      obj.isFile = stats.isFile()
+      obj.isSymbolicLink = stats.isSymbolicLink()
+      obj.isSocket = stats.isSocket()
+      this?.mainWindow?.webContents.send('command', command, key, err ? null : obj)
     })
   }
 
@@ -266,6 +271,7 @@ export class AppNodeFn {
 
   fs_watchFile(command: string, key: string, filePath: string) {
     const watcher = watch(filePath, (eventType) => {
+      console.log('fs_watchFile on watch: ', filePath, eventType)
       if (eventType === 'change') {
         this?.mainWindow?.webContents.send('command', command, key, {
           code: 200

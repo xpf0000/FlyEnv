@@ -152,6 +152,7 @@
     nginxRewriteFileExists,
     (v) => {
       if (v) {
+        readNginxRewriteFromFile()
         HostNginxRewriteSetup.initFileWatch(nginxRewriteFile.value, readNginxRewriteFromFile)
       }
     },
@@ -229,7 +230,6 @@
   onMounted(() => {
     nextTick().then(() => {
       initEditor()
-      readNginxRewriteFromFile()
     })
   })
   onUnmounted(() => {

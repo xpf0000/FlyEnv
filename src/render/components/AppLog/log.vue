@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ I18nT('aside.appLog') }}</span>
+          <span class="ml-3">{{ I18nT('aside.appLog') }}</span>
         </div>
       </div>
       <div class="main-wapper">

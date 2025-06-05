@@ -308,9 +308,12 @@ export default class Application extends EventEmitter {
 
   showPage(page: string) {
     const win = this.windowManager.openWindow(page)
+    if (this.mainWindow) {
+      return
+    }
     this.mainWindow = win
     AppNodeFnManager.mainWindow = win
-    console.log('AppNodeFnManager.mainWindow: ', AppNodeFnManager.mainWindow)
+    console.log('showPage checkBrewOrPort !!!')
     this.checkBrewOrPort()
     AppLog.init(this.mainWindow)
     this.windowManager.sendCommandTo(
@@ -749,7 +752,6 @@ export default class Application extends EventEmitter {
           const method: string = args.shift()
           const fn: keyof AppNodeFn = `${namespace}_${method}` as any
           console.log('App-Node-FN: ', fn)
-          console.log('AppNodeFnManager.mainWindow: ', AppNodeFnManager.mainWindow)
           try {
             if (typeof AppNodeFnManager[fn] === 'function') {
               const nodeFn = AppNodeFnManager[fn] as any
@@ -815,6 +817,7 @@ export default class Application extends EventEmitter {
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)
         break
       case 'app-check-brewport':
+        console.log('app-check-brewport checkBrewOrPort !!!')
         this.checkBrewOrPort()
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
         break

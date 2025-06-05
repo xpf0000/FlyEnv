@@ -176,27 +176,27 @@
           <EXT :item="scope.row" type="php">
             <li @click.stop="action(scope.row, scope.$index, 'open')">
               <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('base.open') }}</span>
+              <span class="ml-3">{{ I18nT('base.open') }}</span>
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'conf')">
               <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('php.editPhpIni') }}</span>
+              <span class="ml-3">{{ I18nT('php.editPhpIni') }}</span>
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'fpm-conf')">
               <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-              <span class="ml-15"> php-fpm.conf </span>
+              <span class="ml-3"> php-fpm.conf </span>
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'log-fpm')">
               <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('php.fpmLog') }}</span>
+              <span class="ml-3">{{ I18nT('php.fpmLog') }}</span>
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'log-slow')">
               <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('base.slowLog') }}</span>
+              <span class="ml-3">{{ I18nT('base.slowLog') }}</span>
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'extend')">
               <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('php.extensions') }}</span>
+              <span class="ml-3">{{ I18nT('php.extensions') }}</span>
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'groupstart')">
               <yb-icon

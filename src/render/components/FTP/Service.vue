@@ -23,7 +23,7 @@
               <span @click.stop="copyPass(linkIp)">{{ linkIp }}</span>
             </div>
           </template>
-          <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-30 w-52">
+          <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-7 w-52">
             <template v-for="(item, _index) in versions" :key="_index">
               <template v-if="!item?.version">
                 <el-popover popper-class="version-error-tips" width="auto" placement="top">

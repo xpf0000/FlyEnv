@@ -9,16 +9,16 @@
 
     <div class="main-wapper">
       <div class="main">
-        <div class="path-choose mt-20 mb-20" style="flex-direction: column; align-items: center">
+        <div class="path-choose my-5" style="flex-direction: column; align-items: center">
           <span>Current Unix Timestamp</span>
           <span
-            class="ml-30 current mt-20 mb-20"
+            class="ml-7 current my-5"
             style="font-size: 50px"
             @dblclick.stop="doCopy(current)"
             >{{ current }}</span
           >
         </div>
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <div class="left">
             <el-input v-model="timestamp0" placeholder="Unix Timestamp"></el-input>
             <el-select v-model="flag0" class="w-32 max-w-32">
@@ -36,7 +36,7 @@
             <el-input :value="datetime0" readonly placeholder="Date time string"></el-input>
           </div>
         </div>
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <div class="left">
             <el-date-picker
               v-model="timestamp1"

@@ -82,6 +82,7 @@ export const HostNginxRewriteSetup: {
     }
   },
   initFileWatch(file: string, fn: () => void) {
+    console.log('initFileWatch !!!', file)
     HostNginxRewriteSetup.fileWatcher?.close()
     HostNginxRewriteSetup.fileWatcher = markRaw(new FileWatcher(file, fn))
   },

@@ -117,52 +117,52 @@
               <slot name="operation" :row="scope.row as ProjectItem"></slot>
               <li @click.stop="showConfig(scope.row)">
                 <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                <span class="ml-15"> {{ I18nT('nodejs.projectEnvSet') }} </span>
+                <span class="ml-3"> {{ I18nT('nodejs.projectEnvSet') }} </span>
               </li>
               <li @click.stop="Project.copyPath(scope.row.path)">
                 <yb-icon :svg="import('@/svg/dirPath.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ I18nT('nodejs.copyDirPath') }}</span>
+                <span class="ml-3">{{ I18nT('nodejs.copyDirPath') }}</span>
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'Terminal')">
                 <yb-icon :svg="import('@/svg/terminal.svg?raw')" width="13" height="13" />
-                <span class="ml-15"
+                <span class="ml-3"
                   >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.Terminal') }}</span
                 >
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'VSCode')">
                 <yb-icon :svg="import('@/svg/vscode.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.VSCode') }}</span>
+                <span class="ml-3">{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.VSCode') }}</span>
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'PhpStorm')">
                 <yb-icon :svg="import('@/svg/phpstorm.svg?raw')" width="13" height="13" />
-                <span class="ml-15"
+                <span class="ml-3"
                   >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.PhpStorm') }}</span
                 >
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'WebStorm')">
                 <yb-icon :svg="import('@/svg/webstorm.svg?raw')" width="13" height="13" />
-                <span class="ml-15"
+                <span class="ml-3"
                   >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.WebStorm') }}</span
                 >
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'Sublime')">
                 <yb-icon :svg="import('@/svg/sublime.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ I18nT('nodejs.openIN') }} Sublime Text</span>
+                <span class="ml-3">{{ I18nT('nodejs.openIN') }} Sublime Text</span>
               </li>
               <li @click.stop="Project.openPath(scope.row.path, 'HBuilderX')">
                 <yb-icon :svg="import('@/svg/hbuilderx.svg?raw')" width="13" height="13" />
-                <span class="ml-15"
+                <span class="ml-3"
                   >{{ I18nT('nodejs.openIN') }} {{ I18nT('nodejs.HBuilderX') }}</span
                 >
               </li>
               <slot name="openin" :row="scope.row as ProjectItem"></slot>
               <li @click.stop="showSort($event, scope.row.id)">
                 <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ I18nT('host.sort') }}</span>
+                <span class="ml-3">{{ I18nT('host.sort') }}</span>
               </li>
               <li @click.stop="project.delProject(scope.$index)">
                 <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ I18nT('base.del') }}</span>
+                <span class="ml-3">{{ I18nT('base.del') }}</span>
               </li>
             </ul>
             <template #reference>

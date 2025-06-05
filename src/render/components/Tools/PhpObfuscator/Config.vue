@@ -3,7 +3,7 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">Php Obfuscator Config</span>
+        <span class="ml-3">Php Obfuscator Config</span>
       </div>
       <el-dropdown split-button type="primary" @click="doSave" @command="handleCommand">
         {{ $t('base.confirm') }}

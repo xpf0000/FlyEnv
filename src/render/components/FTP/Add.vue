@@ -10,7 +10,7 @@
     <template #default>
       <div class="main-wapper">
         <div class="main">
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               v-model.trim="form.user"
               type="text"
@@ -20,7 +20,7 @@
               placeholder="Username"
             />
           </div>
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               v-model.trim="form.pass"
               type="text"
@@ -38,7 +38,7 @@
               />
             </div>
           </div>
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               type="text"
               class="input"

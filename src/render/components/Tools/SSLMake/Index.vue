@@ -18,7 +18,7 @@
           :class="'input-textarea' + (errs['domains'] ? ' error' : '')"
           placeholder="Domains (Example: *.mydomain.tld), separated by line."
         ></textarea>
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <input
             type="text"
             :class="'input' + (errs['root'] ? ' error' : '')"
@@ -30,7 +30,7 @@
             <yb-icon :svg="import('@/svg/folder.svg?raw')" class="choose" width="18" height="18" />
           </div>
         </div>
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <input
             type="text"
             :class="'input' + (errs['savePath'] ? ' error' : '')"

@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ I18nT('php.phpExtensions') }}</span>
+          <span class="ml-3">{{ I18nT('php.phpExtensions') }}</span>
         </div>
         <el-button type="primary" class="shrink0" :disabled="!extensionDir" @click="openDir">{{
           I18nT('base.open')

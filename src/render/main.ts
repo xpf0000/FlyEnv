@@ -1,7 +1,7 @@
 import { VueExtend } from './core/VueExtend'
 import { AppI18n } from '@lang/index'
 import App from './App.vue'
-import '@/components/Theme/Index.scss'
+import './index.scss'
 import IPC from '@/util/IPC'
 import { AppStore } from '@/store/app'
 import { SiteSuckerStore } from '@/components/Tools/SiteSucker/store'

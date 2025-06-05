@@ -4,11 +4,11 @@
       <template v-for="(item, _index) in tabs" :key="_index">
         <template v-if="index === 5">
           <el-badge type="success" is-dot :hidden="!groupRun">
-            <el-radio-button :label="item" :value="index"></el-radio-button>
+            <el-radio-button :label="item" :value="_index"></el-radio-button>
           </el-badge>
         </template>
         <template v-else>
-          <el-radio-button :label="item" :value="index"></el-radio-button>
+          <el-radio-button :label="item" :value="_index"></el-radio-button>
         </template>
       </template>
     </el-radio-group>

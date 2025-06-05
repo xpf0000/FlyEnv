@@ -23,7 +23,7 @@
               </el-select>
             </div>
           </template>
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               v-model.trim="form.name"
               type="text"

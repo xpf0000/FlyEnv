@@ -24,7 +24,7 @@
 
     <div v-loading="data.loading" class="main-wapper">
       <div class="main">
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <input
             type="text"
             class="input"
@@ -45,8 +45,8 @@
           placeholder="Excludes (Example: node_modules), separated by line."
         ></textarea>
         <div class="block">
-          <div class="mt-20"> File Type </div>
-          <div class="mt-20">
+          <div class="mt-5"> File Type </div>
+          <div class="mt-5">
             <el-checkbox-group v-model="data.allowExt" :disabled="data.running">
               <template v-for="(item, i) in data.allExt" :key="i">
                 <el-checkbox :label="item.ext">{{ item.ext }}({{ item.count }})</el-checkbox>
@@ -55,13 +55,13 @@
           </div>
         </div>
         <template v-if="!data.running">
-          <el-progress class="mt-20" :text-inside="true" :stroke-width="20" :percentage="0">
+          <el-progress class="mt-5" :text-inside="true" :stroke-width="20" :percentage="0">
             <span>0 / {{ files.length }}</span>
           </el-progress>
         </template>
         <template v-else>
           <el-progress
-            class="mt-20"
+            class="mt-5"
             :text-inside="true"
             :stroke-width="20"
             :percentage="currentProgress"

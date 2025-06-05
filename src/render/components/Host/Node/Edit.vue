@@ -13,7 +13,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
           I18nT('base.save')
@@ -87,7 +87,7 @@
 
         <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
         <div class="main">
-          <div class="port-set mb-20">
+          <div class="port-set mb-5">
             <input
               v-model.number="item.projectPort"
               type="number"

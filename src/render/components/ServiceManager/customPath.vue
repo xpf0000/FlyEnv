@@ -20,7 +20,7 @@
       </div>
       <div class="main">
         <template v-for="(item, _index) in dirs" :key="_index">
-          <div class="path-choose mb-20">
+          <div class="path-choose mb-5">
             <input
               type="text"
               class="input"

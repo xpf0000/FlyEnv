@@ -10,7 +10,7 @@
     <template #default>
       <div class="main-wapper">
         <div class="main">
-          <div class="path-choose mt-20 mb-10">
+          <div class="path-choose mt-5 mb-10">
             <el-select
               v-model="form.path"
               class="w-p100"
@@ -22,7 +22,7 @@
               </template>
             </el-select>
           </div>
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               v-model.trim="form.port"
               type="text"
@@ -31,7 +31,7 @@
               placeholder="TCP Port"
             />
           </div>
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               type="text"
               class="input"

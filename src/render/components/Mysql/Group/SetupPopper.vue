@@ -8,22 +8,22 @@
   >
     <ul v-poper-fix class="host-list-menu">
       <li @click.stop="action('edit')">
-        <span class="ml-15">{{ I18nT('base.edit') }}</span>
+        <span class="ml-3">{{ I18nT('base.edit') }}</span>
       </li>
       <li @click.stop="action('socket')">
-        <span class="ml-15"> {{ I18nT('util.mysqlPopperSocket') }} </span>
+        <span class="ml-3"> {{ I18nT('util.mysqlPopperSocket') }} </span>
       </li>
       <li @click.stop="action('cnf')">
-        <span class="ml-15">{{ I18nT('base.configFile') }}</span>
+        <span class="ml-3">{{ I18nT('base.configFile') }}</span>
       </li>
       <li @click.stop="action('log')">
-        <span class="ml-15">{{ I18nT('base.log') }}</span>
+        <span class="ml-3">{{ I18nT('base.log') }}</span>
       </li>
       <li @click.stop="action('log-slow')">
-        <span class="ml-15">{{ I18nT('base.slowLog') }}</span>
+        <span class="ml-3">{{ I18nT('base.slowLog') }}</span>
       </li>
       <li @click.stop="action('del')">
-        <span class="ml-15">{{ I18nT('base.del') }}</span>
+        <span class="ml-3">{{ I18nT('base.del') }}</span>
       </li>
     </ul>
     <template #reference>

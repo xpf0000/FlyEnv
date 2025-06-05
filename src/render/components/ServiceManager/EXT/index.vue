@@ -27,11 +27,11 @@
             height="17"
           />
         </template>
-        <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
+        <span class="ml-3">{{ I18nT('base.addToPath') }}</span>
       </li>
       <li @click.stop="doSetAlias">
         <yb-icon class="current" :svg="import('@/svg/aliase.svg?raw')" width="17" height="17" />
-        <span class="ml-15">{{ I18nT('service.setaliase') }}</span>
+        <span class="ml-3">{{ I18nT('service.setaliase') }}</span>
       </li>
       <template v-if="type === 'postgresql'">
         <Extension :item="item" />

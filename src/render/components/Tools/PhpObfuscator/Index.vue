@@ -12,7 +12,7 @@
 
     <div class="main-wapper">
       <div class="main">
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <el-select
             v-model="item.phpversion"
             class="w-p100"
@@ -24,7 +24,7 @@
             </template>
           </el-select>
         </div>
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <input
             type="text"
             :class="'input' + (errs['src'] ? ' error' : '')"
@@ -36,7 +36,7 @@
             <yb-icon :svg="import('@/svg/folder.svg?raw')" class="choose" width="18" height="18" />
           </div>
         </div>
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <input
             type="text"
             :class="{
@@ -58,7 +58,7 @@
             <yb-icon :svg="import('@/svg/folder.svg?raw')" class="choose" width="18" height="18" />
           </div>
         </div>
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <el-button @click="showConfig = true">{{ $t('php.obfuscatorConfig') }}</el-button>
         </div>
       </div>

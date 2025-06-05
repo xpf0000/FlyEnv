@@ -56,9 +56,9 @@
   const props = withDefaults(
     defineProps<{
       typeFlag: AllAppModule
-      hasStatic: boolean
-      showBrewLib: boolean
-      showPortLib: boolean
+      hasStatic?: boolean
+      showBrewLib?: boolean
+      showPortLib?: boolean
     }>(),
     {
       hasStatic: false,

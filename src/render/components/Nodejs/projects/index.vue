@@ -3,7 +3,7 @@
     <template #operation="{ row }">
       <li @click.stop="showPackage(row)">
         <Reading width="13" height="13" />
-        <span class="ml-15">package.json</span>
+        <span class="ml-3">package.json</span>
       </li>
     </template>
   </ProjectIndex>

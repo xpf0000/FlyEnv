@@ -112,43 +112,43 @@
                   <ul v-poper-fix class="host-list-menu">
                     <li @click.stop="action(scope.row, scope.$index, 'open')">
                       <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.open') }}</span>
+                      <span class="ml-3">{{ I18nT('base.open') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'edit')">
                       <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.edit') }}</span>
+                      <span class="ml-3">{{ I18nT('base.edit') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'park')">
                       <yb-icon :svg="import('@/svg/shengcheng.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('host.park') }}</span>
+                      <span class="ml-3">{{ I18nT('host.park') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'link')">
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.links') }}</span>
+                      <span class="ml-3">{{ I18nT('base.links') }}</span>
                     </li>
                     <li @click.stop="showConfig({ flag: 'nginx', item: scope.row })">
                       <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.configFile') }} - Nginx</span>
+                      <span class="ml-3">{{ I18nT('base.configFile') }} - Nginx</span>
                     </li>
                     <li @click.stop="showConfig({ flag: 'caddy', item: scope.row })">
                       <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.configFile') }} - Caddy</span>
+                      <span class="ml-3">{{ I18nT('base.configFile') }} - Caddy</span>
                     </li>
                     <li @click.stop="showConfig({ flag: 'apache', item: scope.row })">
                       <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.configFile') }} - Apache</span>
+                      <span class="ml-3">{{ I18nT('base.configFile') }} - Apache</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'log')">
                       <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.log') }}</span>
+                      <span class="ml-3">{{ I18nT('base.log') }}</span>
                     </li>
                     <li @click.stop="showSort($event, scope.row.id)">
                       <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('host.sort') }}</span>
+                      <span class="ml-3">{{ I18nT('host.sort') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'del')">
                       <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.del') }}</span>
+                      <span class="ml-3">{{ I18nT('base.del') }}</span>
                     </li>
                   </ul>
 

@@ -19,10 +19,10 @@ export class FileWatcher {
     public file: string,
     callback: () => void
   ) {
-    IPC.send(`App-Node-FN`, 'fs', 'watchFile', file).then((key: string, code: any) => {
-      if (code === 0) {
+    IPC.send(`App-Node-FN`, 'fs', 'watchFile', file).then((key: string, res: any) => {
+      if (res.code === 0) {
         IPC.off(key)
-      } else if (code === 200) {
+      } else if (res.code === 200) {
         callback()
       }
     })
@@ -40,11 +40,11 @@ export class DirWatcher {
     public dir: string,
     callback: (file: string) => void
   ) {
-    IPC.send(`App-Node-FN`, 'fs', 'watchDir', dir).then((key: string, code: any) => {
-      if (code === 0) {
+    IPC.send(`App-Node-FN`, 'fs', 'watchDir', dir).then((key: string, res: any) => {
+      if (res.code === 0) {
         IPC.off(key)
-      } else if (code === 200) {
-        callback(code.file)
+      } else if (res.code === 200) {
+        callback(res.file)
       }
     })
   }
