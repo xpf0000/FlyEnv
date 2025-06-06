@@ -1,0 +1,10 @@
+{
+  "email": "Email",
+  "country": "Paese",
+  "message": "Messaggio",
+  "messagelengthErr": "La lunghezza del messaggio deve essere tra 5 e 1024 caratteri",
+  "sendMessage": "Invia Messaggio",
+  "anythingToSay": "Hai qualcosa da dire?",
+  "noSelected": "Nessuna selezione",
+  "inputFilter": "Inserisci per filtrare"
+}

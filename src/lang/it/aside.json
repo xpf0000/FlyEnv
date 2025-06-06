@@ -1,0 +1,15 @@
+{
+  "site": "Sito",
+  "webServer": "Server Web",
+  "dataBaseServer": "Server Database",
+  "emailServer": "Server Email",
+  "language": "Linguaggio e Runtime",
+  "dataQueue": "Cache e Memoria",
+  "searchEngine": "Motore di Ricerca",
+  "dnsServer": "Server DNS",
+  "ftpServer": "Server FTP",
+  "other": "Altro",
+  "appLog": "Log dell'Applicazione",
+  "ai": "Intelligenza Artificiale",
+  "objectStorage": "Archiviazione Oggetti"
+}

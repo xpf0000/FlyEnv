@@ -1,0 +1,15 @@
+{
+  "binNoFound": "Il file di avvio non esiste, operazione fallita.",
+  "confNoFound": "Il file di configurazione non esiste, avvio del server fallito",
+  "apacheLogPathErr": "Il percorso del log nel file di configurazione è errato, cambio fallito",
+  "versionError": "Versione errata, seleziona di nuovo",
+  "hostsFileNoFound": "Il file hosts non esiste",
+  "startFail": "Avvio fallito, controlla il file di log",
+  "command": "Comando",
+  "ExtensionInstallFail": "Installazione dell'estensione fallita",
+  "ExtensionInstallFailTips": "Installa l'estensione ed esegui il comando:\n{command}\nSe l'installazione fallisce, prova a copiare il comando ed eseguirlo manualmente\n",
+  "versionNoFound": "Recupero della versione del software fallito, operazione non riuscita.",
+  "postgresqlInit": "Servizio avviato con successo\nCartella dati: {dir}\nUtente iniziale: root, Password: root",
+  "downFileFail": "Download del file fallito!",
+  "trialEnd": "Il periodo di prova è terminato. Per continuare a usare questa funzionalità, richiedi una licenza"
+}
