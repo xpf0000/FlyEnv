@@ -10,7 +10,7 @@
       >
         <el-table-column :label="I18nT('host.site')">
           <template #header>
-            <div class="w-p100 name-cell">
+            <div class="w-full name-cell">
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
                 I18nT('host.site')
               }}</span>
@@ -56,7 +56,7 @@
             <template v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id">
               <el-select
                 v-model="quickEdit.phpVersion"
-                class="w-p100"
+                class="w-full"
                 :placeholder="I18nT('base.selectPhpVersion')"
               >
                 <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>

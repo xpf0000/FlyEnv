@@ -330,6 +330,7 @@
       }
       > .bottom-tool {
         border-top: 1px solid var(--base-bg-color-1);
+        color: #345;
       }
     }
   }

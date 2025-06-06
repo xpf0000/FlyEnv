@@ -11,6 +11,7 @@ import { resolve } from 'path'
 import ZH from '@lang/zh'
 import EN from '@lang/en'
 import { AppAllLang, AppI18n } from '@lang/index'
+import { createMarkdownRenderer } from '@/util/markdown/markdown'
 const require = createRequire(import.meta.url)
 
 const { pki } = require('node-forge')
@@ -149,8 +150,8 @@ export class AppNodeFn {
     this?.mainWindow?.webContents.send('command', command, key, true)
   }
 
-  exec_exec(command: string, key: string, cmd: string) {
-    exec(cmd, (error, stdout, stderr) => {
+  exec_exec(command: string, key: string, cmd: string, opt: any) {
+    exec(cmd, opt, (error, stdout, stderr) => {
       this?.mainWindow?.webContents.send('command', command, key, {
         error,
         stdout,
@@ -321,6 +322,17 @@ export class AppNodeFn {
       this.dirWatchers.delete(dirPath)
     }
     this?.mainWindow?.webContents.send('command', command, key, true)
+  }
+
+  md_render(command: string, key: string, content: string) {
+    createMarkdownRenderer()
+      .then((res) => {
+        const html = res.render(content)
+        this?.mainWindow?.webContents.send('command', command, key, html)
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, '')
+      })
   }
 
   async lang_initCustomerLang(command: string, key: string) {

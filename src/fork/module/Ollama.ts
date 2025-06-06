@@ -27,6 +27,8 @@ import { publicDecrypt } from 'crypto'
 import { EOL } from 'os'
 
 class Ollama extends Base {
+  chats: Record<string, AbortController> = {}
+
   constructor() {
     super()
     this.type = 'ollama'
@@ -244,7 +246,7 @@ class Ollama extends Base {
     })
   }
 
-  chat(param: any, t: number) {
+  chat(param: any, t: number, key: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       let isLock = false
       if (!global.Server.Licenses) {
@@ -288,21 +290,62 @@ class Ollama extends Base {
         return reject(new Error(msg))
       }
 
+      const controller = new AbortController()
+      this.chats[key] = controller
+
+      param.signal = controller.signal
+
       axios(param)
         .then((response) => {
           const reader = new TextDecoder()
-          response.data.on('data', (chunk: any) => {
-            const text = reader.decode(chunk)
-            const json = JSON.parse(text)
-            on(json)
-            if (json.done) {
-              resolve(true)
+
+          // 定义数据处理器
+          const onData = (chunk: any) => {
+            try {
+              const text = reader.decode(chunk)
+              const json = JSON.parse(text)
+              on(json)
+              if (json.done) {
+                cleanup() // 正常结束时清理
+                delete this?.chats?.[key]
+                resolve(true)
+              }
+            } catch (e: any) {
+              cleanup()
+              reject(e)
             }
+          }
+
+          const cleanup = () => {
+            response.data.off('data', onData)
+            response.data.destroy()
+            delete this?.chats?.[key]
+          }
+
+          response.data.on('data', onData)
+
+          // 监听取消信号（可选，AbortController 已绑定）
+          controller.signal.addEventListener('abort', () => {
+            cleanup()
+            resolve(true)
           })
         })
         .catch((e) => {
+          if (axios.isCancel(e)) {
+            // 取消请求的错误已由 abort 事件处理，此处可忽略
+            return
+          }
+          delete this?.chats?.[key]
           reject(e)
         })
+    })
+  }
+
+  stopOutput(chatKey: string) {
+    return new ForkPromise((resolve) => {
+      this.chats?.[chatKey]?.abort?.()
+      delete this?.chats?.[chatKey]
+      resolve(true)
     })
   }
 

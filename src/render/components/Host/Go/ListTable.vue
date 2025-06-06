@@ -10,7 +10,7 @@
       >
         <el-table-column :label="I18nT('host.site')">
           <template #header>
-            <div class="w-p100 name-cell">
+            <div class="w-full name-cell">
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
                 I18nT('host.site')
               }}</span>

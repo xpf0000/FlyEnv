@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref, onBeforeUnmount, computed, nextTick } from 'vue'
+  import { onMounted, ref, onBeforeUnmount, computed } from 'vue'
   import { ChatLineRound } from '@element-plus/icons-vue'
   import { AIStore } from '@/components/AI/store'
   import { CreateSiteTest } from '@/components/AI/Task/CreateSiteTest'
@@ -202,8 +202,8 @@
       if (e.altKey || e.ctrlKey || e.metaKey) {
         content.value += '\n'
       } else {
-        e?.stopPropagation && e?.stopPropagation()
-        e?.preventDefault && e?.preventDefault()
+        e?.stopPropagation?.()
+        e?.preventDefault?.()
         const value = content.value.trim()
         if (value) {
           aiStore.chatList.push({

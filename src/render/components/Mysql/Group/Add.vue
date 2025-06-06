@@ -13,7 +13,7 @@
           <div class="path-choose mt-5 mb-10">
             <el-select
               v-model="form.path"
-              class="w-p100"
+              class="w-full"
               :class="{ error: errs?.path }"
               placeholder="MySQL Version"
             >

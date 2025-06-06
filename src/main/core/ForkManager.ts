@@ -116,6 +116,8 @@ export class ForkManager {
   file: string
   forks: Array<ForkItem> = []
   serviceFork?: ForkItem
+  ollamaChatFork?: ForkItem
+
   _on: CallBack = () => {}
   constructor(file: string) {
     this.file = file
@@ -126,11 +128,20 @@ export class ForkManager {
   }
 
   send(...args: any) {
-    if (args?.[0] === 'service') {
+    const param = [...args]
+    const module = param.shift()
+    if (module === 'service') {
       if (!this.serviceFork) {
         this.serviceFork = new ForkItem(this.file, false)
       }
       return this.serviceFork!.send(...args)
+    }
+    const fn = param.shift()
+    if (module === 'ollama' && ['chat', 'stopOutput'].includes(fn)) {
+      if (!this.ollamaChatFork) {
+        this.ollamaChatFork = new ForkItem(this.file, true)
+      }
+      return this.ollamaChatFork!.send(...args)
     }
     /**
      * Find a thread with no tasks

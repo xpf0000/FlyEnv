@@ -40,7 +40,8 @@
           <div class="left">
             <el-date-picker
               v-model="timestamp1"
-              class="w-p100"
+              style="--el-date-editor-width: 100%"
+              class="w-full"
               type="datetime"
               value-format="x"
               placeholder="Date time"
@@ -94,7 +95,7 @@
           t = t * 1000
         }
         console.log('t: ', t)
-        let unixTimestamp = new Date(t)
+        const unixTimestamp = new Date(t)
         return unixTimestamp.toLocaleString()
       },
       timestamp1str() {

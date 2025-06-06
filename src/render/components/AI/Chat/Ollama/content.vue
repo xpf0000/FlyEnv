@@ -1,29 +1,29 @@
 <template>
-  <div class="vp-doc" :data-key="index" v-html="result"></div>
+  <div class="vp-doc" v-html="result"></div>
 </template>
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
-  import { createMarkdownRenderer, type MarkdownRenderer } from '@/util/markdown/markdown'
+  import { watch, nextTick } from 'vue'
+  import { asyncComputed } from '@vueuse/core'
   import '@/util/markdown/style/vars.css'
   import '@/util/markdown/style/vp-doc.css'
   import { escapeHtml } from '@/util/markdown/shared'
+  import { md } from '@/util/NodeFn'
 
-  const props = defineProps<{ content: string }>()
-  const index = ref(0)
-  let md: MarkdownRenderer | undefined
+  const props = defineProps<{ content: string; role: string }>()
 
-  const result = computed(() => {
-    if (!index.value) {
-      return ''
-    }
+  const emits = defineEmits(['onRender'])
+
+  const result = asyncComputed(async () => {
     const content = props.content
       .replace(/<think>/g, escapeHtml('<think>\n'))
       .replace(/<\/think>/g, escapeHtml('\n</think>\n'))
-    return md!.render(content)
+    return await md.render(content)
   })
 
-  createMarkdownRenderer().then((res) => {
-    md = res
-    index.value += 1
+  watch(result, () => {
+    emits('onRender', props.role, 'before')
+    nextTick(() => {
+      emits('onRender', props.role, 'after')
+    })
   })
 </script>

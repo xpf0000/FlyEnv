@@ -15,7 +15,7 @@
         <div class="path-choose my-5">
           <el-select
             v-model="item.phpversion"
-            class="w-p100"
+            class="w-full"
             :class="errs['phpversion'] ? ' error' : ''"
             :placeholder="$t('php.obfuscatorPhpVersion')"
           >

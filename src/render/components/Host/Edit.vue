@@ -84,7 +84,7 @@
           <div class="port-set">
             <el-select
               v-model="item.phpVersion"
-              class="w-p100"
+              class="w-full"
               :placeholder="I18nT('base.selectPhpVersion')"
             >
               <el-option :value="undefined" :label="I18nT('host.staticSite')"></el-option>

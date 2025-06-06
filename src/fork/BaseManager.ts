@@ -59,7 +59,7 @@ class BaseManager {
     const fn: string = commands.shift()
 
     const doRun = (module: any) => {
-      module.init && module.init()
+      module?.init?.()
       module
         .exec(fn, ...commands)
         ?.on(onData)

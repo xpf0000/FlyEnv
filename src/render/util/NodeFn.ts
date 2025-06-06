@@ -7,7 +7,6 @@ const createIPCCall = <T>(namespace: string, method: string) => {
   return (...args: any[]): Promise<T> =>
     new Promise((resolve) => {
       IPC.send(`App-Node-FN`, namespace, method, ...args).then((key: string, res: T) => {
-        console.log('App-Node-FN res: ', namespace, method, res)
         IPC.off(key)
         resolve(res)
       })
@@ -91,6 +90,10 @@ export const ip = {
 
 export const clipboard = {
   writeText: createIPCCall<void>('clipboard', 'writeText')
+}
+
+export const md = {
+  render: createIPCCall<string>('md', 'render')
 }
 
 export const nodeForge = {

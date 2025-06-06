@@ -1,5 +1,5 @@
 <template>
-  <div class="main-right-panel p-5 overflow-hidden">
+  <div class="main-right-panel p-5 overflow-hidden h-screen">
     <el-card class="h-full" body-class="h-full" style="--el-card-padding: 0px">
       <div class="flex h-full w-full relative overflow-hidden p-3">
         <div
