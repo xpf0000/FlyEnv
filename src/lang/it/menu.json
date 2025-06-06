@@ -1,0 +1,23 @@
+{
+  "about": "Informazioni",
+  "app": "FlyEnv",
+  "checkForUpdates": "Controlla aggiornamenti...",
+  "hide": "Nascondi FlyEnv",
+  "hideOthers": "Nascondi gli altri",
+  "unhide": "Mostra tutto",
+  "quit": "Esci da FlyEnv",
+  "edit": "Modifica",
+  "cut": "Taglia",
+  "copy": "Copia",
+  "paste": "Incolla",
+  "selectAll": "Seleziona tutto",
+  "window": "Finestra",
+  "close": "Chiudi",
+  "minimize": "Minimizza",
+  "zoom": "Zoom",
+  "fullscreen": "Schermo intero",
+  "front": "Porta FlyEnv in primo piano",
+  "dev": "Apri finestra di debug",
+  "needInstallHelper": "FlyEnv necessita di installare un programma ausiliario",
+  "waitHelper": "Il programma ausiliario si sta avviando, attendere"
+}

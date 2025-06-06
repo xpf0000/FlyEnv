@@ -1,0 +1,7 @@
+{
+  "Timeout": "Numero di secondi prima che l'invio e la ricezione vadano in timeout.",
+  "KeepAlive": "Se consentire o meno connessioni persistenti",
+  "KeepAliveTimeout": "Numero di secondi di attesa per la prossima richiesta dallo stesso client sulla stessa connessione.",
+  "MaxKeepAliveRequests": "Numero massimo di richieste consentite durante una connessione persistente.\nImposta a 0 per consentire richieste illimitate.\nSi consiglia di lasciare questo valore alto per ottenere le migliori prestazioni.",
+  "LimitRequestBody": "Byte. Limite di dimensione per il caricamento dei file. 0: nessun limite"
+}
