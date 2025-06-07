@@ -1,0 +1,13 @@
+{
+  "setaliase": "Definir Alias",
+  "env": "Env",
+  "alias": "Alias",
+  "envTips": "O caminho foi adicionado à variável de ambiente",
+  "aliasTips": "Alias usado no terminal",
+  "bundleinVersionDelTips": "Esta versão é uma versão integrada, confirmar não exibir?",
+  "customDirVersionDelTips": "Esta versão é uma versão de caminho personalizado, confirmar não exibir?",
+  "staticDelAlert": "Para garantir a segurança dos dados do usuário, não fornece mais a função de excluir automaticamente software instalado. Se você tem certeza de que deseja excluí-lo, clique em OK. Exclua manualmente o software na pasta aberta.",
+  "useSysPHP": "Usar versão PHP padrão",
+  "setByApp": "Variáveis de ambiente definidas pelo FlyEnv",
+  "setByNoApp": "Variáveis de ambiente não definidas pelo FlyEnv"
+}
