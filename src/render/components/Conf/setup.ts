@@ -48,7 +48,7 @@ const tab: any = localStorage.getItem('PWS-CONF-STORE')
 if (tab) {
   try {
     Object.assign(ConfStore, JSON.parse(tab))
-  } catch (e) {}
+  } catch {}
 }
 
 type ConfSetupProps = {

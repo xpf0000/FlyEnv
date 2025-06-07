@@ -2,14 +2,30 @@ import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync, unlinkSync } from 'fs'
 import path, { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { AppLog, execPromise, getAllFileAsync, moveChildDirToParent, uuid, waitTime } from '../Fn'
+import {
+  AppLog,
+  execPromise,
+  getAllFileAsync,
+  moveChildDirToParent,
+  uuid,
+  waitTime,
+  zipUnPack,
+  appendFile,
+  copyFile,
+  mkdirp,
+  readdir,
+  readFile,
+  remove,
+  writeFile
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { appendFile, copyFile, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
-import { zipUnPack } from '@shared/file'
 import axios from 'axios'
 import { ProcessListSearch, ProcessPidList, ProcessPidListByPid } from '../Process'
 import TaskQueue from '../TaskQueue'
-import { spawn } from 'child-process-promise'
+import { spawn } from 'node:child_process'
+import { promisify } from 'node:util'
+
+const spawnPromise = promisify(spawn)
 
 export class Base {
   type: string
@@ -115,7 +131,7 @@ export class Base {
           const str = pids.map((s) => `/pid ${s}`).join(' ')
           try {
             await execPromise(`taskkill /f /t ${str}`)
-          } catch (e) {}
+          } catch {}
         }
         on({
           'APP-Service-Stop-Success': true
@@ -136,7 +152,7 @@ export class Base {
           const str = pids.map((s) => `/pid ${s}`).join(' ')
           try {
             await execPromise(`taskkill /f /t ${str}`)
-          } catch (e) {}
+          } catch {}
         }
         on({
           'APP-Service-Stop-Success': true
@@ -172,7 +188,7 @@ export class Base {
         const str = all.map((s) => `/pid ${s.ProcessId}`).join(' ')
         try {
           await execPromise(`taskkill /f /t ${str}`)
-        } catch (e) {}
+        } catch {}
       }
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
@@ -235,7 +251,7 @@ export class Base {
         proxy.protocol = u.protocol.replace(':', '')
         proxy.host = u.hostname
         proxy.port = u.port
-      } catch (e) {
+      } catch {
         proxy = undefined
       }
     } else {
@@ -258,7 +274,7 @@ export class Base {
         proxy: this.getAxiosProxy()
       })
       list = res?.data?.data ?? []
-    } catch (e) {}
+    } catch {}
     return list
   }
 
@@ -358,7 +374,7 @@ export class Base {
             await waitTime(500)
             await remove(APPDIR)
             await remove(tmpDir)
-          } catch (e) {}
+          } catch {}
         }
         throw new Error('Python Install Fail')
       }
@@ -419,7 +435,7 @@ php "%~dp0composer.phar" %*`
         try {
           await copyFile(row.zip, row.bin)
           await waitTime(500)
-          await spawn(basename(row.bin), ['--version'], {
+          await spawnPromise(basename(row.bin), ['--version'], {
             shell: false,
             cwd: dirname(row.bin)
           })
@@ -551,7 +567,7 @@ php "%~dp0composer.phar" %*`
               if (existsSync(row.zip)) {
                 unlinkSync(row.zip)
               }
-            } catch (e) {}
+            } catch {}
             refresh()
             on(row)
             setTimeout(() => {
@@ -603,7 +619,7 @@ php "%~dp0composer.phar" %*`
             if (existsSync(row.zip)) {
               unlinkSync(row.zip)
             }
-          } catch (e) {}
+          } catch {}
           refresh()
           on(row)
           setTimeout(() => {

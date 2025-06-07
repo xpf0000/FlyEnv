@@ -74,7 +74,7 @@ export const loadCustomerLang = async () => {
     let json: any
     try {
       json = JSON.parse(content)
-    } catch (e) {}
+    } catch {}
     if (!json) {
       continue
     }
@@ -100,7 +100,7 @@ export const loadCustomerLang = async () => {
       let json: any
       try {
         json = JSON.parse(content)
-      } catch (e) {}
+      } catch {}
       if (!json) {
         continue
       }

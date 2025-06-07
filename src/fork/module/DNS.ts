@@ -1,13 +1,15 @@
 import { readFileSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import dns2 from 'dns2'
-import { Packet } from 'dns2'
-import * as ip from 'ip'
+import DNS2 from 'dns2'
 import { join } from 'path'
+import { address } from 'neoip'
+import { createRequire } from 'node:module'
 
-const Tangerine = require('@shared/Tangerine.js')
+const require = createRequire(import.meta.url)
+const Tangerine = require('tangerine')
 
+const { createServer, Packet } = DNS2
 const tangerine = new Tangerine()
 
 class Manager extends Base {
@@ -47,20 +49,20 @@ class Manager extends Base {
             })
           }
         })
-      } catch (e) {}
+      } catch {}
     }
   }
   start() {
     return new ForkPromise((resolve) => {
-      const LOCAL_IP = ip.address()
-      const server = dns2.createServer({
+      const LOCAL_IP = address()
+      const server = createServer({
         udp: true,
         handle: (request: any, send: any) => {
           const response = Packet.createResponseFromRequest(request)
           const [question] = request.questions
           const { name } = question
           console.log('question: ', question, name)
-          this.initHosts(LOCAL_IP)
+          this.initHosts(LOCAL_IP!)
           console.log('this.hosts: ', this.hosts)
           if (this.hosts[name]) {
             const ip = this.hosts[name]
@@ -116,7 +118,7 @@ class Manager extends Base {
                 console.log(`tangerine resolve error: ${e}`)
                 send(response)
               })
-          } catch (e) {
+          } catch {
             send(response)
           }
         }
@@ -153,7 +155,7 @@ class Manager extends Base {
     })
   }
   close() {
-    this.server && this.server.close()
+    this.server?.close?.()
     this.server = null
   }
 

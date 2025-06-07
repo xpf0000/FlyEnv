@@ -14,10 +14,14 @@ import {
   AppLog,
   execPromise,
   serviceStartExecCMD,
-  spawnPromise
+  spawnPromise,
+  mkdirp,
+  writeFile,
+  chmod,
+  remove,
+  readFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, writeFile, chmod, remove, readFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { EOL } from 'os'
 import { PItem, ProcessListSearch } from '../Process'
@@ -155,7 +159,7 @@ datadir="${dataDir}"`
         await mkdirp(dataDir)
         try {
           await chmod(dataDir, '0777')
-        } catch (e) {}
+        } catch {}
 
         const params = [
           `--defaults-file="${m}"`,
@@ -212,7 +216,7 @@ datadir="${dataDir}"`
       let all: PItem[] = []
       try {
         all = await ProcessListSearch(conf, false)
-      } catch (e) {}
+      } catch {}
 
       all.forEach((item) => arr.push(item.ProcessId))
 
@@ -263,7 +267,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           if (existsSync(p)) {
             try {
               await remove(p)
-            } catch (e) {}
+            } catch {}
           }
 
           const startLogFile = join(global.Server.MysqlDir!, `group/start.${id}.log`)
@@ -271,7 +275,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           if (existsSync(startErrLogFile)) {
             try {
               await remove(startErrLogFile)
-            } catch (e) {}
+            } catch {}
           }
           const params = [
             `--defaults-file="${m}"`,
@@ -410,7 +414,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })

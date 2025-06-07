@@ -45,7 +45,7 @@
       const content = readFileSync(file, 'utf-8')
       try {
         return JSON.parse(content)
-      } catch (e) {}
+      } catch {}
     }
     return {}
   })

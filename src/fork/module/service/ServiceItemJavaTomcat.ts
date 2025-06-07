@@ -1,11 +1,19 @@
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { basename, dirname, join, resolve as pathResolve } from 'path'
-import { copyFile, existsSync, mkdirp, readFile, writeFile, realpathSync } from 'fs-extra'
-import { hostAlias, waitTime } from '../../Fn'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import { ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromiseRoot } from '../../Fn'
+import {
+  execPromise,
+  copyFile,
+  existsSync,
+  mkdirp,
+  readFile,
+  writeFile,
+  realpathSync,
+  hostAlias,
+  waitTime
+} from '../../Fn'
 import { ProcessListSearch } from '../../Process'
 import { EOL } from 'os'
 import { fetchHostList } from '../host/HostFile'
@@ -260,7 +268,7 @@ export const makeGlobalTomcatServerXML = async (version: SoftInstalled) => {
   let hostAll: Array<AppHost> = []
   try {
     hostAll = await fetchHostList()
-  } catch (e) {}
+  } catch {}
   hostAll = hostAll.filter((h) => h.type === 'tomcat')
 
   const vhostDir = join(global.Server.BaseDir!, 'vhost/tomcat')
@@ -355,8 +363,8 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       const pid = join(javaDir, `${item.id}.pid`)
       if (existsSync(pid)) {
         try {
-          await execPromiseRoot(`del -Force ${pid}`)
-        } catch (e) {}
+          await execPromise(`del -Force ${pid}`)
+        } catch {}
       }
 
       const env = {
@@ -380,7 +388,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       await writeFile(sh, this.command)
       process.chdir(global.Server.Cache!)
       try {
-        await execPromiseRoot(
+        await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id"`
         )
         const cpid = await this.checkPid()
@@ -422,7 +430,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
     let all: any[] = []
     try {
       all = await ProcessListSearch(key, false)
-    } catch (e) {}
+    } catch {}
     return all.map((item) => item.ProcessId)
   }
 }

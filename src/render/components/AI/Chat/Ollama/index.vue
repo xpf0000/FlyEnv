@@ -255,7 +255,7 @@
           try {
             const content = await readFile(file, 'utf-8')
             currentChat.value!.content += `\n\`\`\`\n${content}\n\`\`\`\n`
-          } catch (e) {}
+          } catch {}
         }
       })
   }

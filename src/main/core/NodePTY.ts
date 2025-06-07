@@ -60,7 +60,7 @@ class NodePTY {
         process.kill(item?.pty?.pid)
       }
       item?.pty?.kill()
-    } catch (e) {}
+    } catch {}
     delete this.pty[key]
   }
 

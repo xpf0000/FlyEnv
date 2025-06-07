@@ -12,11 +12,16 @@ import {
   versionFixed,
   versionInitedApp,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  writeFile,
+  readFile,
+  remove,
+  mkdirp,
+  copyFile,
+  readdir,
+  zipUnPack
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, readFile, remove, mkdirp, copyFile, readdir } from 'fs-extra'
-import { zipUnPack } from '@shared/file'
 import TaskQueue from '../TaskQueue'
 import { ProcessListSearch } from '../Process'
 import axios from 'axios'
@@ -38,7 +43,7 @@ class Php extends Base {
         try {
           await mkdirp(dirname(capem))
           await copyFile(join(global.Server.Static!, 'tmpl/cacert.pem'), capem)
-        } catch (e) {}
+        } catch {}
       }
       resolve(true)
     })
@@ -160,7 +165,7 @@ class Php extends Base {
         const str = arr.map((s) => `/pid ${s}`).join(' ')
         try {
           await execPromise(`taskkill /f /t ${str}`)
-        } catch (e) {}
+        } catch {}
       }
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
@@ -508,7 +513,7 @@ xdebug.output_dir = "${output_dir}"
           proxy: this.getAxiosProxy()
         })
         list = res?.data?.data ?? []
-      } catch (e) {}
+      } catch {}
       resolve(list)
     })
   }
@@ -553,7 +558,7 @@ xdebug.output_dir = "${output_dir}"
               if (existsSync(zipFile)) {
                 try {
                   await zipUnPack(zipFile, cacheDir)
-                } catch (e) {}
+                } catch {}
                 if (existsSync(dll)) {
                   await copyFile(dll, file)
                   await handleImagick(cacheDir)
@@ -593,7 +598,7 @@ xdebug.output_dir = "${output_dir}"
                       if (existsSync(zipFile)) {
                         await remove(zipFile)
                       }
-                    } catch (e) {}
+                    } catch {}
                     reject(e)
                   })
                   stream.on('finish', async () => {

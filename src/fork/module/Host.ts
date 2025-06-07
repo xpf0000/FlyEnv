@@ -3,9 +3,18 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { getSubDir, hostAlias, uuid, execPromise } from '../Fn'
+import {
+  getSubDir,
+  hostAlias,
+  uuid,
+  execPromise,
+  readFile,
+  writeFile,
+  remove,
+  appendFile,
+  machineId
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, remove, appendFile } from 'fs-extra'
 import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
 import { setDirRole, updateAutoSSL, updateRootRule } from './host/Host'
 import { makeApacheConf, updateApacheConf } from './host/Apache'
@@ -13,7 +22,6 @@ import { autoFillNginxRewrite, makeNginxConf, updateNginxConf } from './host/Ngi
 import { makeCaddyConf, updateCaddyConf } from './host/Caddy'
 import { fetchHostList, saveHostList } from './host/HostFile'
 import { publicDecrypt } from 'crypto'
-import { machineId } from 'node-machine-id'
 
 class Host extends Base {
   hostsFile = join('c:/windows/system32/drivers/etc', 'hosts')
@@ -27,7 +35,7 @@ class Host extends Base {
       let host: AppHost[] = []
       try {
         host = await fetchHostList()
-      } catch (e) {}
+      } catch {}
       resolve({
         host
       })
@@ -155,13 +163,15 @@ class Host extends Base {
       let index: number
       switch (flag) {
         case 'add':
-          if (isMakeConf()) {
-            await this._addVhost(host)
-            await doPark()
+          {
+            if (isMakeConf()) {
+              await this._addVhost(host)
+              await doPark()
+            }
+            const topList = hostList.filter((h) => !!h?.isTop)
+            hostList.splice(topList.length, 0, host)
+            await writeHostFile()
           }
-          const topList = hostList.filter((h) => !!h?.isTop)
-          hostList.splice(topList.length, 0, host)
-          await writeHostFile()
           break
         case 'del':
           if (host?.name) {
@@ -241,7 +251,7 @@ class Host extends Base {
         if (existsSync(f)) {
           try {
             await remove(f)
-          } catch (e) {}
+          } catch {}
         }
       }
       resolve(true)
@@ -354,7 +364,7 @@ class Host extends Base {
       if (write) {
         try {
           this._initHost(appHost, true, ipv6)
-        } catch (e) {}
+        } catch {}
       } else {
         let hasErr = false
         let hosts = ''
@@ -376,11 +386,11 @@ class Host extends Base {
         }
         try {
           this._initHost(appHost, false, ipv6)
-        } catch (e) {}
+        } catch {}
       }
       try {
         await execPromise(`ipconfig /flushdns`)
-      } catch (e) {}
+      } catch {}
       resolve(true)
     })
   }

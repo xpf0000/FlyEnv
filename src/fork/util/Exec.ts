@@ -4,7 +4,96 @@ import { mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import { dirname, join } from 'path'
 import { waitPidFile } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { spawn } from 'child_process'
+import { spawn, exec } from 'child_process'
+import { merge } from 'lodash-es'
+
+export function fixEnv(): { [k: string]: any } {
+  let path = `C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;%SYSTEMROOT%\\System32\\WindowsPowerShell\\v1.0\\;${process.env['PATH']}`
+  path = Array.from(new Set(path.split(';'))).join(';')
+  const env = { ...process.env, PATH: path }
+  return env
+}
+
+export function execPromise(
+  cammand: string,
+  opt?: { [k: string]: any }
+): ForkPromise<{
+  stdout: string
+  stderr: string
+}> {
+  return new ForkPromise((resolve, reject) => {
+    try {
+      exec(
+        cammand,
+        merge(
+          {
+            encoding: 'utf-8',
+            env: fixEnv()
+          },
+          opt
+        ),
+        (error, stdout, stderr) => {
+          if (!error) {
+            resolve({
+              stdout,
+              stderr
+            })
+          } else {
+            reject(error)
+          }
+        }
+      )
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+export function spawnPromise(
+  cammand: string,
+  params: Array<any>,
+  opt?: { [k: string]: any }
+): ForkPromise<string> {
+  return new ForkPromise((resolve, reject, on) => {
+    const stdout: Array<Buffer> = []
+    const stderr: Array<Buffer> = []
+    const child = spawn(
+      cammand,
+      params,
+      merge(
+        {
+          encoding: 'utf-8',
+          env: fixEnv()
+        },
+        opt
+      )
+    )
+    const stdinFn = (txt: string) => {
+      child?.stdin?.write(`${txt}\n`)
+    }
+    let exit = false
+    const onEnd = (code: number | null) => {
+      if (exit) return
+      exit = true
+      if (!code) {
+        resolve(Buffer.concat(stdout).toString().trim())
+      } else {
+        reject(new Error(Buffer.concat(stderr).toString().trim()))
+      }
+    }
+
+    child?.stdout?.on('data', (data) => {
+      stdout.push(data)
+      on(data.toString(), stdinFn)
+    })
+    child?.stderr?.on('data', (err) => {
+      stderr.push(err)
+      on(err.toString(), stdinFn)
+    })
+    child.on('exit', onEnd)
+    child.on('close', onEnd)
+  })
+}
 
 function spawnAsyncPromise(
   cammand: string,
@@ -46,7 +135,7 @@ export async function customerServiceStartExec(
   if (pidPath && existsSync(pidPath)) {
     try {
       await remove(pidPath)
-    } catch (e) {}
+    } catch {}
   }
 
   const baseDir = join(global.Server.BaseDir!, 'module-customer')

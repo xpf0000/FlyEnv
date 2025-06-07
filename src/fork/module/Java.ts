@@ -52,7 +52,7 @@ class Java extends Base {
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
             const command = `${basename(item.bin)} -version`
-            const reg = /(")(\d+([\.|\d]+){1,4})(["_])/g
+            const reg = /(")(\d+([\\.|\d]+){1,4})(["_])/g
             return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
           return Promise.all(all)

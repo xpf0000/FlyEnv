@@ -1,8 +1,10 @@
 import { join } from 'path'
 import type { AppHost } from '@shared/app'
-import { existsSync } from 'fs'
-import { readFile, writeFile } from 'fs-extra'
-import NodeRSA from 'node-rsa'
+import { readFile, writeFile, existsSync } from '../../Fn'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const NodeRSA = require('node-rsa')
 
 const RSAPublickKey = `-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDOfO7Yt4oeDdrK5/maLWE0MjP5
@@ -46,7 +48,7 @@ export const fetchHostList = async () => {
       const key = new NodeRSA(RSAPublickKey)
       try {
         content = key.decryptPublic(content, 'utf8')
-      } catch (e) {}
+      } catch {}
     }
     try {
       hostList = JSON.parse(content)

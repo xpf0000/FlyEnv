@@ -1,10 +1,8 @@
 import { join } from 'path'
-import { chmod, readFile } from 'fs-extra'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import type { AppHost } from '@shared/app'
-import { hostAlias } from '../../Fn'
+import { hostAlias, chmod, readFile, existsSync } from '../../Fn'
 import { makeAutoSSL } from './SSL'
-import { existsSync } from 'fs'
 
 type VhostTmplType = {
   nginx: string

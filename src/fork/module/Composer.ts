@@ -1,11 +1,16 @@
 import { join } from 'path'
-import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { versionFilterSame, versionFixed, versionLocalFetch, versionSort } from '../Fn'
+import {
+  versionFilterSame,
+  versionFixed,
+  versionLocalFetch,
+  versionSort,
+  readFile,
+  existsSync
+} from '../Fn'
 import TaskQueue from '../TaskQueue'
-import { readFile } from 'fs-extra'
 
 class Composer extends Base {
   constructor() {
@@ -28,7 +33,7 @@ class Composer extends Base {
           a.type = 'composer'
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })
@@ -51,7 +56,7 @@ class Composer extends Base {
             try {
               version = reg?.exec(str)?.[2]?.trim()
               reg!.lastIndex = 0
-            } catch (e) {}
+            } catch {}
             resolve({
               version
             })

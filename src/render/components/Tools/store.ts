@@ -16,7 +16,7 @@ const getToolData = async () => {
     const json = await readFile(file, 'utf-8')
     try {
       obj = JSON.parse(json)
-    } catch (e) {}
+    } catch {}
   }
   return obj
 }

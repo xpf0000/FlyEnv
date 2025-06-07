@@ -107,7 +107,7 @@ class ForkItem {
       if (pid) {
         process.kill(pid)
       }
-    } catch (e) {}
+    } catch {}
   }
 }
 

@@ -1,7 +1,6 @@
 import type { AppHost } from '@shared/app'
-import { watch, existsSync, FSWatcher, readFile } from 'fs-extra'
 import { ForkPromise } from '@shared/ForkPromise'
-import { waitTime, execPromiseRoot } from '../../Fn'
+import { waitTime, execPromise, watch, existsSync, FSWatcher, readFile } from '../../Fn'
 
 export const getHostItemEnv = async (item: AppHost) => {
   if (item?.envVarType === 'none') {
@@ -66,7 +65,7 @@ export class ServiceItem {
   stop(exit = false) {
     return new ForkPromise(async (resolve) => {
       this.exit = exit
-      this.timer && clearInterval(this.timer)
+      clearInterval(this.timer)
       this.timer = undefined
       this.watcher?.close()
       this.watcher = undefined
@@ -75,13 +74,13 @@ export class ServiceItem {
       if (arr.length > 0) {
         const str = arr.map((s) => `/pid ${s}`).join(' ')
         try {
-          await execPromiseRoot(`taskkill /f /t ${str}`)
-        } catch (e) {}
+          await execPromise(`taskkill /f /t ${str}`)
+        } catch {}
       }
       if (this.pidFile && existsSync(this.pidFile)) {
         try {
-          await execPromiseRoot(`del -Force ${this.pidFile}`)
-        } catch (e) {}
+          await execPromise(`del -Force ${this.pidFile}`)
+        } catch {}
       }
       resolve({
         'APP-Service-Stop-PID': arr
@@ -89,7 +88,7 @@ export class ServiceItem {
     })
   }
   daemon() {
-    this.timer && clearInterval(this.timer)
+    clearInterval(this.timer)
     this.timer = setInterval(() => {
       this.checkState()
         .then((res) => {
@@ -115,7 +114,7 @@ export class ServiceItem {
             this.start(this.host!)
               .then(() => {})
               .catch()
-          } catch (e) {}
+          } catch {}
         }
       )
     }

@@ -227,7 +227,7 @@ export default class Application extends EventEmitter {
     let all: PItem[] = []
     try {
       all = await ProcessPidList()
-    } catch (e) {}
+    } catch {}
     for (const item of all) {
       if (!item.CommandLine || typeof item.CommandLine !== 'string') {
         continue

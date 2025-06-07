@@ -125,7 +125,7 @@ set "PLUGINS_DIR=${pluginsDir}"`
         if (pid) {
           await remove(join(mnesiaBaseDir, pid))
         }
-      } catch (e) {}
+      } catch {}
 
       const checkpid = async (time = 0) => {
         const all = readdirSync(mnesiaBaseDir)

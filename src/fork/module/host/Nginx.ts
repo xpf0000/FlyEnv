@@ -1,11 +1,17 @@
 import type { AppHost } from '@shared/app'
 import { basename, dirname, join } from 'path'
-import { copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
-import { hostAlias } from '../../Fn'
+import {
+  hostAlias,
+  copyFile,
+  mkdirp,
+  readFile,
+  remove,
+  writeFile,
+  existsSync,
+  pathFixedToUnix
+} from '../../Fn'
 import { vhostTmpl } from './Host'
-import { existsSync } from 'fs'
-import { isEqual } from 'lodash'
-import { pathFixedToUnix } from '@shared/utils'
+import { isEqual } from 'lodash-es'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -153,7 +159,7 @@ const handlePhpEnableConf = async (v: number) => {
       const content = tmplContent.replace('##VERSION##', `${v}`)
       await writeFile(confFile, content)
     }
-  } catch (e) {}
+  } catch {}
 }
 
 export const updateNginxConf = async (host: AppHost, old: AppHost) => {

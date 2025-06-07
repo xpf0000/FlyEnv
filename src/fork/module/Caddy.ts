@@ -1,5 +1,4 @@
 import { join, basename } from 'path'
-import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
@@ -11,10 +10,13 @@ import {
   versionFixed,
   versionInitedApp,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  existsSync
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
 import { I18nT } from '@lang/index'
@@ -64,7 +66,7 @@ class Caddy extends Base {
     const vhostDir = join(global.Server.BaseDir!, 'vhost/caddy')
     try {
       hostAll = await fetchHostList()
-    } catch (e) {}
+    } catch {}
     await mkdirp(vhostDir)
     let tmplContent = ''
     let tmplSSLContent = ''
@@ -176,7 +178,7 @@ class Caddy extends Base {
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })

@@ -174,7 +174,7 @@ class XTerm implements XTermType {
     try {
       this.fitaddon?.dispose()
       this.xterm?.dispose()
-    } catch (e) {}
+    } catch {}
     this.xterm = undefined
     this.fitaddon = undefined
     this.dom = undefined

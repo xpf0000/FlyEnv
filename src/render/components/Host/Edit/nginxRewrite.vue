@@ -128,7 +128,7 @@
         emits('update:modelValue', str)
         monacoInstance?.setValue?.(str)
       })
-    } catch (e) {}
+    } catch {}
   }
 
   watch(

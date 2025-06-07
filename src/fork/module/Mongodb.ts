@@ -10,15 +10,22 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  chmod,
+  remove,
+  zipUnPack
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { I18nT } from '@lang/index'
-import { zipUnPack } from '@shared/file'
 import axios from 'axios'
-import { spawn } from 'child-process-promise'
+import { spawn } from 'node:child_process'
+import { promisify } from 'node:util'
+
+const spawnPromise = promisify(spawn)
 
 class Manager extends Base {
   mongoshVersion = '2.5.0'
@@ -35,11 +42,11 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject, on) => {
       try {
         await this.initMongosh()
-      } catch (e) {}
+      } catch {}
       const mongosh = join(global.Server.AppDir!, 'mongosh', this.mongoshVersion, 'bin/mongosh.exe')
       if (existsSync(mongosh)) {
         try {
-          await spawn('mongosh.exe', ['--eval', `"db.shutdownServer()"`], {
+          await spawnPromise('mongosh.exe', ['--eval', `"db.shutdownServer()"`], {
             cwd: dirname(mongosh),
             shell: false
           })
@@ -139,7 +146,7 @@ class Manager extends Base {
             await zipUnPack(zip, appDir)
             await moveChildDirToParent(appDir)
             return existsSync(mongosh)
-          } catch (e) {
+          } catch {
             await remove(zip)
           }
         }
@@ -170,7 +177,7 @@ class Manager extends Base {
         writer.on('error', () => {
           resolve(false)
         })
-      } catch (error) {
+      } catch {
         resolve(false)
       }
     })
@@ -198,7 +205,7 @@ class Manager extends Base {
           a.installed = existsSync(dir) || existsSync(dirOld)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })

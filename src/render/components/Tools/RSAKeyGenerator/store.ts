@@ -42,7 +42,7 @@ const store = reactive({
         const { privateKey, publicKey } = await generateRawPairs({ bits: this.bits })
         this.privateKeyPem = pki.privateKeyToPem(privateKey)
         this.publicKeyPem = pki.publicKeyToPem(publicKey)
-      } catch (e) {}
+      } catch {}
       this.timer = undefined
     }, this.debounce) as any
   },

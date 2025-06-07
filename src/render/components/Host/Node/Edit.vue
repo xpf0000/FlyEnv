@@ -250,7 +250,7 @@
       try {
         json = JSON.parse(json)
         scripts.value = json?.scripts ?? {}
-      } catch (e) {}
+      } catch {}
     }
   )
 

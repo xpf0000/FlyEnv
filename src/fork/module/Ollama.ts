@@ -10,16 +10,18 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  machineId,
+  readFile,
+  writeFile,
+  mkdirp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 import axios from 'axios'
 import http from 'http'
 import https from 'https'
-import { machineId } from 'node-machine-id'
 import { publicDecrypt } from 'crypto'
 import { EOL } from 'os'
 
@@ -162,7 +164,7 @@ class Ollama extends Base {
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })
@@ -225,7 +227,7 @@ class Ollama extends Base {
           proxy: this.getAxiosProxy()
         })
         list = res?.data?.data ?? []
-      } catch (e) {}
+      } catch {}
       return resolve(list)
     })
   }

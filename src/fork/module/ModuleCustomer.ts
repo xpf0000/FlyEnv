@@ -27,7 +27,7 @@ class ModuleCustomer {
         const str = pids.map((s) => `/pid ${s}`).join(' ')
         try {
           await execPromise(`taskkill /f /t ${str}`)
-        } catch (e) {}
+        } catch {}
       }
 
       resolve({

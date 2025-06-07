@@ -70,7 +70,7 @@ class LinkTaskItem {
         const dir = dirname(saveFile)
         try {
           await mkdirp(dir)
-        } catch (e) {}
+        } catch {}
         const stream = createWriteStream(saveFile)
         const onError = () => {
           this.#retry(link)
@@ -97,7 +97,7 @@ class LinkTaskItem {
         const taskFail = () => {
           try {
             controller.abort()
-          } catch (e) {}
+          } catch {}
           onError()
         }
         timer = setTimeout(taskFail, Config.timeout)

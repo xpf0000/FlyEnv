@@ -9,10 +9,10 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  mkdirp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 
@@ -83,7 +83,7 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })

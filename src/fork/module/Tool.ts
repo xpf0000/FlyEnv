@@ -221,7 +221,7 @@ subjectAltName=@alt_names
       let list: PItem[] = []
       try {
         list = await ProcessListSearch(name, false)
-      } catch (e) {}
+      } catch {}
 
       const arrs: PItem[] = []
 
@@ -254,7 +254,7 @@ subjectAltName=@alt_names
       const str = pids.map((s) => `/pid ${s}`).join(' ')
       try {
         await execPromise(`taskkill /f /t ${str}`)
-      } catch (e) {}
+      } catch {}
       resolve(true)
     })
   }
@@ -265,7 +265,7 @@ subjectAltName=@alt_names
       let res: any
       try {
         res = await execPromise(command)
-      } catch (e) {}
+      } catch {}
       const lines = res?.stdout?.trim()?.split('\n') ?? []
       const list = lines
         .filter((s: string) => !s.includes(`findstr `))
@@ -335,7 +335,7 @@ subjectAltName=@alt_names
       let oldPath: string[] = []
       try {
         oldPath = await fetchRawPATH()
-      } catch (e) {}
+      } catch {}
       if (oldPath.length === 0) {
         reject(new Error('Fail'))
         return
@@ -420,7 +420,7 @@ subjectAltName=@alt_names
           }
           return s
         })
-      } catch (e) {}
+      } catch {}
       if (oldPath.length === 0) {
         reject(new Error('Fail'))
         return
@@ -550,7 +550,7 @@ php "%~dp0composer.phar" %*`
           const d = await execPromise(`echo %COMPOSER_HOME%\\Composer`)
           composer_bin_dir = d?.stdout?.trim()
           console.log('d: ', d)
-        } catch (e) {}
+        } catch {}
         if (composer_bin_dir && isAbsolute(composer_bin_dir)) {
           oldPath.push(`%COMPOSER_HOME%\\vendor\\bin`)
         } else {
@@ -558,7 +558,7 @@ php "%~dp0composer.phar" %*`
             const d = await execPromise(`echo %APPDATA%\\Composer`)
             composer_bin_dir = d?.stdout?.trim()
             console.log('d: ', d)
-          } catch (e) {}
+          } catch {}
           if (composer_bin_dir && isAbsolute(composer_bin_dir)) {
             oldPath.push(`%APPDATA%\\Composer\\vendor\\bin`)
           }
@@ -585,7 +585,7 @@ php "%~dp0composer.phar" %*`
           await execPromise(
             `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${f}'; & '${f}'"`
           )
-        } catch (e) {}
+        } catch {}
         await remove(f)
       }
 
@@ -599,7 +599,7 @@ php "%~dp0composer.phar" %*`
         const phpModule = (await import('./Php')).default
         try {
           await phpModule.getIniPath(item)
-        } catch (e) {}
+        } catch {}
       }
 
       const allPath = await this.fetchPATH()
@@ -661,7 +661,7 @@ chcp 65001>nul
 
       try {
         await execPromise(`setx /M FLYENV_ALIAS "${aliasDir}"`)
-      } catch (e) {}
+      } catch {}
 
       await addPath('%FLYENV_ALIAS%')
 
@@ -708,7 +708,7 @@ chcp 65001>nul
       let oldPath: string[] = []
       try {
         oldPath = await fetchRawPATH()
-      } catch (e) {}
+      } catch {}
       if (oldPath.length === 0) {
         reject(new Error('Fail'))
         return
@@ -1027,7 +1027,7 @@ chcp 65001>nul
         try {
           const content = await readFile(jsonFile, 'utf-8')
           json = JSON.parse(content)
-        } catch (e) {}
+        } catch {}
       }
       if (action === 'add') {
         if (!json.includes('dir')) {
@@ -1089,7 +1089,7 @@ chcp 65001>nul
 }`,
           { shell: 'powershell.exe' }
         )
-      } catch (e) {}
+      } catch {}
 
       resolve(true)
     })
@@ -1099,7 +1099,7 @@ chcp 65001>nul
     return new ForkPromise(async (resolve) => {
       try {
         await setDir777ToCurrentUser(dir)
-      } catch (e) {}
+      } catch {}
       resolve(true)
     })
   }

@@ -35,7 +35,7 @@ export const MysqlStore = defineStore('mysqlGroup', {
             delete j?.version?.running
           })
           arr.push(...jsonArr)
-        } catch (e) {}
+        } catch {}
         this.all.push(...arr)
       }
     },

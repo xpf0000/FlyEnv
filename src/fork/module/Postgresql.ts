@@ -13,10 +13,13 @@ import {
   versionFixed,
   versionLocalFetch,
   versionSort,
-  waitTime
+  waitTime,
+  copyFile,
+  mkdirp,
+  readFile,
+  writeFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
@@ -90,7 +93,7 @@ class Manager extends Base {
         await mkdirp(dbPath)
         try {
           await setDir777ToCurrentUser(dbPath)
-        } catch (e) {}
+        } catch {}
 
         const binDir = dirname(bin)
         const initDB = join(binDir, 'initdb.exe')
@@ -160,7 +163,7 @@ class Manager extends Base {
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })

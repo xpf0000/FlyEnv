@@ -1,14 +1,29 @@
 import { createServer } from 'vite'
 import { spawn, ChildProcess } from 'child_process'
 import { build } from 'esbuild'
-import _fs, { copySync } from 'fs-extra'
+import _fs from 'fs-extra'
 import _path from 'path'
 // @ts-ignore
 import _md5 from 'md5'
-import { exec } from 'child-process-promise'
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
 
 import viteConfig from '../configs/vite.config'
 import esbuildConfig from '../configs/esbuild.config'
+
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+
+global.require = require
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+const { copySync } = _fs
+
+const execPromise = promisify(exec)
+
 
 let restart = false
 let electronProcess: ChildProcess | null
@@ -20,7 +35,7 @@ async function killAllElectron() {
   const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath './electron-kill.ps1'; & './electron-kill.ps1'"`
   let res: any = null
   try {
-    res = await exec(command, {
+    res = await execPromise(command, {
       cwd: scriptDir
     })
   } catch (e) {
@@ -29,7 +44,7 @@ async function killAllElectron() {
   let all: any = []
   try {
     all = JSON.parse(res?.stdout?.trim() ?? '[]')
-  } catch (e) {}
+  } catch {}
   console.log('all: ', all)
   const arr: Array<string> = []
   if (all && !Array.isArray(all)) {
@@ -41,7 +56,7 @@ async function killAllElectron() {
   console.log('_stopServer arr: ', arr)
   if (arr.length > 0) {
     const str = arr.map((s) => `/pid ${s}`).join(' ')
-    await exec(`taskkill /f /t ${str}`)
+    await execPromise(`taskkill /f /t ${str}`)
   }
 }
 

@@ -9,10 +9,12 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  mkdirp,
+  readFile,
+  writeFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, readFile, writeFile } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 
@@ -99,7 +101,7 @@ class MeiliSearch extends Base {
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })

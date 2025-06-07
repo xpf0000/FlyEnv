@@ -1,13 +1,10 @@
 import { Base } from './Base'
-import { getMac } from '@lzwme/get-physical-address'
-import { machineId } from 'node-machine-id'
 import { ForkPromise } from '@shared/ForkPromise'
-import { cpus, arch } from 'os'
-import { execPromise, md5, uuid } from '../Fn'
+import { arch } from 'os'
+import { execPromise, uuid, appendFile, remove, writeFile, machineId } from '../Fn'
 import axios from 'axios'
 import { publicDecrypt } from 'crypto'
 import { join, resolve as PathResolve } from 'path'
-import { appendFile, remove, writeFile } from 'fs-extra'
 
 class App extends Base {
   constructor() {
@@ -33,12 +30,6 @@ class App extends Base {
     arr.push([a1, a4, a2, a1].join(''))
 
     return arr.join('\n')
-  }
-
-  private async getUUID() {
-    const mac = await getMac()
-    const cpu = cpus()?.pop()?.model ?? ''
-    return md5(`${mac}-${cpu}`)
   }
 
   private async handleWindowsDefenderExclusionPath() {
@@ -106,7 +97,7 @@ class App extends Base {
       }
 
       const uuid_new = await machineId()
-      const uuid = await this.getUUID()
+      const uuid = '#########'
       const os = `Windows ${arch()}`
 
       const data = {

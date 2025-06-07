@@ -223,7 +223,7 @@ class PageTaskItem {
     Store.LoadedUrl.push(page.url)
     try {
       await this.window!.loadURL(page.url)
-    } catch (e) {}
+    } catch {}
     clearTimeout(timer)
     await wait(1000)
     await this.onPageLoaded(page)
@@ -409,7 +409,7 @@ class PageTaskItem {
               const dir = dirname(saveFile)
               try {
                 await mkdirp(dir)
-              } catch (e) {}
+              } catch {}
               html = this.handlePageHtml(html, page)
               await writeFile(saveFile, html)
               page.state = 'success'

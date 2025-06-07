@@ -2,11 +2,20 @@ import type { AppHost, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { existsSync, readdirSync } from 'fs'
-import { copy, mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import { setDirRole } from './Host'
 import { I18nT } from '@lang/index'
-import { downFile, moveDirToDir, waitTime } from '../../Fn'
-import { zipUnPack } from '@shared/file'
+import {
+  downFile,
+  moveDirToDir,
+  waitTime,
+  copy,
+  mkdirp,
+  readdir,
+  readFile,
+  remove,
+  writeFile,
+  zipUnPack
+} from '../../Fn'
 import { fetchHostList } from './HostFile'
 
 export function TaskAddRandaSite(this: any, version?: SoftInstalled, write = true, ipv6 = true) {
@@ -98,7 +107,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
     let hostList: Array<AppHost> = []
     try {
       hostList = await fetchHostList()
-    } catch (e) {}
+    } catch {}
     const find = hostList.find((h) => h.name === 'phpmyadmin.test')
     if (find) {
       resolve(true)

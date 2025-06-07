@@ -1,35 +1,83 @@
-import { type ChildProcess, exec, execSync, spawn } from 'child_process'
-import { merge } from 'lodash'
 import {
-  chmodSync,
   createWriteStream,
   existsSync,
-  mkdirSync,
   readdirSync,
   realpathSync,
-  statSync
+  statSync,
+  type FSWatcher
 } from 'fs'
-import { dirname, isAbsolute, join, parse, basename, normalize } from 'path'
+import { dirname, isAbsolute, join, parse, normalize } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import {
-  appendFile,
-  copyFile,
-  mkdirp,
-  readdir,
-  readFile,
-  remove,
-  rename,
-  writeFile
-} from 'fs-extra'
+import _fs from 'fs-extra'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import sudoPrompt from '@shared/sudo'
 import { compareVersions } from 'compare-versions'
 import chardet from 'chardet'
 import iconv from 'iconv-lite'
-import { I18nT } from '@lang/index'
 import { userInfo, hostname } from 'os'
+import _node_machine_id from 'node-machine-id'
+import { execPromise, spawnPromise, customerServiceStartExec } from './util/Exec'
+import { zipUnPack } from './util/Zip'
+import {
+  serviceStartExec,
+  serviceStartExecCMD,
+  serviceStartExecGetPID,
+  waitPidFile
+} from './util/ServiceStart'
+
+const { machineId } = _node_machine_id
+
+export {
+  machineId,
+  execPromise,
+  spawnPromise,
+  customerServiceStartExec,
+  zipUnPack,
+  serviceStartExec,
+  serviceStartExecCMD,
+  serviceStartExecGetPID,
+  waitPidFile
+}
+
+const {
+  watch,
+  copy,
+  chmod,
+  copyFile,
+  unlink,
+  readdir,
+  writeFile,
+  realpath,
+  remove,
+  mkdirp,
+  readFile,
+  appendFile,
+  rename
+} = _fs
+
+export {
+  rename,
+  realpathSync,
+  FSWatcher,
+  watch,
+  copy,
+  chmod,
+  copyFile,
+  unlink,
+  readdir,
+  writeFile,
+  realpath,
+  remove,
+  mkdirp,
+  readFile,
+  existsSync,
+  appendFile
+}
+
+export function pathFixedToUnix(path: string) {
+  return path.split('\\').join('/')
+}
 
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -81,269 +129,9 @@ export function waitTime(time: number) {
   })
 }
 
-export function fixEnv(): { [k: string]: any } {
-  let path = `C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;%SYSTEMROOT%\\System32\\WindowsPowerShell\\v1.0\\;${process.env['PATH']}`
-  path = Array.from(new Set(path.split(';'))).join(';')
-  const env = { ...process.env, PATH: path }
-  return env
-}
-
-export function execSyncFix(cammand: string, opt?: { [k: string]: any }): string | undefined {
-  let res: any = undefined
-  try {
-    res = execSync(
-      cammand,
-      merge(
-        {
-          env: fixEnv()
-        },
-        opt
-      )
-    ).toString()
-  } catch (e) {
-    res = undefined
-  }
-  return res
-}
-
-export function execPromiseRoot(cammand: string): ForkPromise<{
-  stdout: string
-  stderr: string
-}> {
-  return new ForkPromise((resolve, reject) => {
-    try {
-      sudoPrompt(
-        cammand,
-        {
-          name: 'PhpWebStudy',
-          dir: global.Server.Cache!,
-          // dir: 'E:/test aaa/新建 文件夹',
-          debug: false
-        },
-        (error: any, stdout?: string, stderr?: string) => {
-          if (!error) {
-            resolve({
-              stdout: stdout?.toString() ?? '',
-              stderr: stderr?.toString() ?? ''
-            })
-          } else {
-            reject(error)
-          }
-        }
-      )
-    } catch (e) {
-      reject(e)
-    }
-  })
-}
-
-export function execPromise(
-  cammand: string,
-  opt?: { [k: string]: any }
-): ForkPromise<{
-  stdout: string
-  stderr: string
-}> {
-  return new ForkPromise((resolve, reject) => {
-    try {
-      exec(
-        cammand,
-        merge(
-          {
-            encoding: 'utf-8',
-            env: fixEnv()
-          },
-          opt
-        ),
-        (error, stdout, stderr) => {
-          if (!error) {
-            resolve({
-              stdout,
-              stderr
-            })
-          } else {
-            reject(error)
-          }
-        }
-      )
-    } catch (e) {
-      reject(e)
-    }
-  })
-}
-
-export function spawnPromise(
-  cammand: string,
-  params: Array<any>,
-  opt?: { [k: string]: any }
-): ForkPromise<string> {
-  return new ForkPromise((resolve, reject, on) => {
-    const stdout: Array<Buffer> = []
-    const stderr: Array<Buffer> = []
-    const child = spawn(
-      cammand,
-      params,
-      merge(
-        {
-          encoding: 'utf-8',
-          env: fixEnv()
-        },
-        opt
-      )
-    )
-    const stdinFn = (txt: string) => {
-      child?.stdin?.write(`${txt}\n`)
-    }
-    let exit = false
-    const onEnd = (code: number | null) => {
-      if (exit) return
-      exit = true
-      if (!code) {
-        resolve(Buffer.concat(stdout).toString().trim())
-      } else {
-        reject(new Error(Buffer.concat(stderr).toString().trim()))
-      }
-    }
-
-    child?.stdout?.on('data', (data) => {
-      stdout.push(data)
-      on(data.toString(), stdinFn)
-    })
-    child?.stderr?.on('data', (err) => {
-      stderr.push(err)
-      on(err.toString(), stdinFn)
-    })
-    child.on('exit', onEnd)
-    child.on('close', onEnd)
-  })
-}
-
-export function spawnPromiseMore(
-  cammand: string,
-  params: Array<any>,
-  opt?: { [k: string]: any }
-): {
-  promise?: ForkPromise<any>
-  spawn?: ChildProcess
-} {
-  const stdout: Array<Buffer> = []
-  const stderr: Array<Buffer> = []
-  let child: ChildProcess
-  try {
-    child = spawn(
-      cammand,
-      params,
-      merge(
-        {
-          env: fixEnv(),
-          windowsHide: true
-        },
-        opt
-      )
-    )
-  } catch (e) {
-    console.log('spawnPromiseMore err: ', e)
-    return {
-      promise: undefined,
-      spawn: undefined
-    }
-  }
-  const stdinFn = (txt: string) => {
-    child?.stdin?.write(`${txt}\n`)
-  }
-  const promise = new ForkPromise((resolve, reject, on) => {
-    let exit = false
-    const onEnd = (code: number | null) => {
-      if (exit) return
-      exit = true
-      if (!code) {
-        resolve(Buffer.concat(stdout).toString().trim())
-      } else {
-        reject(new Error(Buffer.concat(stderr).toString().trim()))
-      }
-    }
-    child?.stdout?.on('data', (data) => {
-      console.log('spawnPromiseMore stdout: ', data.toString())
-      stdout.push(data)
-      on(data.toString(), stdinFn)
-    })
-    child?.stderr?.on('data', (err) => {
-      console.log('spawnPromiseMore stderr: ', err.toString())
-      stderr.push(err)
-      on(err.toString(), stdinFn)
-    })
-    child.on('exit', onEnd)
-    child.on('close', onEnd)
-  })
-  return {
-    promise,
-    spawn: child
-  }
-}
-
-export function chmod(fp: string, mode: string) {
-  if (statSync(fp).isFile()) {
-    chmodSync(fp, mode)
-    return
-  }
-  const files = readdirSync(fp)
-  files.forEach(function (item) {
-    const fPath = join(fp, item)
-    chmodSync(fPath, mode)
-    const stat = statSync(fPath)
-    if (stat.isDirectory()) {
-      chmod(fPath, mode)
-    }
-  })
-}
-
-export function createFolder(fp: string) {
-  fp = fp.replace(/\\/g, '/')
-  if (existsSync(fp)) {
-    return true
-  }
-  const arr = fp.split('/')
-  let dir = '/'
-  for (const p of arr) {
-    dir = join(dir, p)
-    if (!existsSync(dir)) {
-      mkdirSync(dir)
-    }
-  }
-  return existsSync(fp)
-}
-
 export function md5(str: string) {
   const md5 = crypto.createHash('md5')
   return md5.update(str).digest('hex')
-}
-
-export function getAllFile(fp: string, fullpath = true, basePath: Array<string> = []) {
-  let arr: Array<string> = []
-  if (!existsSync(fp)) {
-    return arr
-  }
-  const state = statSync(fp)
-  if (state.isFile()) {
-    return [fp]
-  }
-  const files = readdirSync(fp)
-  files.forEach(function (item) {
-    const base = [...basePath]
-    base.push(item)
-    const fPath = join(fp, item)
-    if (existsSync(fPath)) {
-      const stat = statSync(fPath)
-      if (stat.isDirectory()) {
-        const sub = getAllFile(fPath, fullpath, base)
-        arr = arr.concat(sub)
-      }
-      if (stat.isFile()) {
-        arr.push(fullpath ? fPath : base.join('/'))
-      }
-    }
-  })
-  return arr
 }
 
 export function downFile(url: string, savepath: string) {
@@ -357,7 +145,7 @@ export function downFile(url: string, savepath: string) {
         proxy.protocol = u.protocol.replace(':', '')
         proxy.host = u.hostname
         proxy.port = u.port
-      } catch (e) {
+      } catch {
         proxy = undefined
       }
     } else {
@@ -375,9 +163,9 @@ export function downFile(url: string, savepath: string) {
         }
       }
     })
-      .then(function (response) {
+      .then(async (response) => {
         const base = dirname(savepath)
-        createFolder(base)
+        await mkdirp(base)
         const stream = createWriteStream(savepath)
         response.data.pipe(stream)
         stream.on('error', (err) => {
@@ -411,7 +199,7 @@ export function getSubDir(fp: string, fullpath = true) {
           }
         }
       })
-    } catch (e) {}
+    } catch {}
   }
   return arr
 }
@@ -539,7 +327,7 @@ export const versionBinVersion = (
       try {
         version = reg?.exec(str)?.[2]?.trim()
         reg!.lastIndex = 0
-      } catch (e) {}
+      } catch {}
       resolve({
         version
       })
@@ -778,7 +566,7 @@ export const addPath = async (dir: string) => {
   let allPath: string[] = []
   try {
     allPath = await fetchRawPATH()
-  } catch (e) {
+  } catch {
     return
   }
   const index = allPath.indexOf(dir)
@@ -792,7 +580,7 @@ export const addPath = async (dir: string) => {
   const savePath = handleWinPathArr(allPath)
   try {
     await writePath(savePath)
-  } catch (e) {}
+  } catch {}
 }
 
 /**
@@ -847,7 +635,7 @@ const NTFS: Record<string, boolean> = {}
 
 export async function isNTFS(fileOrDirPath: string) {
   const driveLetter = parse(fileOrDirPath).root.replace(/[:\\]/g, '')
-  if (NTFS.hasOwnProperty(driveLetter)) {
+  if (NTFS?.[driveLetter] !== undefined) {
     return NTFS[driveLetter]
   }
   try {
@@ -862,7 +650,7 @@ export async function isNTFS(fileOrDirPath: string) {
     const is = FileSystem === 'NTFS' || FileSystemType === 'NTFS'
     NTFS[driveLetter] = is
     return is
-  } catch (error) {
+  } catch {
     return false
   }
 }
@@ -887,7 +675,7 @@ export async function readFileAsUTF8(filePath: string): Promise<string> {
       let str = ''
       try {
         str = iconv.decode(buffer, detectedEncoding)
-      } catch (e) {}
+      } catch {}
       return str
     }
 
@@ -900,7 +688,7 @@ export async function readFileAsUTF8(filePath: string): Promise<string> {
       )
       return buffer.toString('utf-8')
     }
-  } catch (err: any) {
+  } catch {
     return ''
   }
 }
@@ -925,7 +713,7 @@ export function stringToUTF8(str: string): string {
       let str = ''
       try {
         str = iconv.decode(buffer, detectedEncoding)
-      } catch (e) {}
+      } catch {}
       return str
     }
 
@@ -938,7 +726,7 @@ export function stringToUTF8(str: string): string {
       )
       return buffer.toString('utf-8')
     }
-  } catch (err: any) {
+  } catch {
     return ''
   }
 }
@@ -975,385 +763,5 @@ export async function setDir777ToCurrentUser(folderPath: string) {
       join(global.Server.BaseDir!, 'debug.log'),
       `[setDir777ToCurrentUser][error]: ${e}\n`
     )
-  }
-}
-
-export async function waitPidFile(
-  pidFile: string,
-  time = 0,
-  maxTime = 20,
-  timeToWait = 500
-): Promise<
-  | {
-      pid?: string
-      error?: string
-    }
-  | false
-> {
-  let res:
-    | {
-        pid?: string
-        error?: string
-      }
-    | false = false
-  if (existsSync(pidFile)) {
-    const pid = (await readFile(pidFile, 'utf-8')).trim()
-    return {
-      pid
-    }
-  } else {
-    if (time < maxTime) {
-      await waitTime(timeToWait)
-      res = res || (await waitPidFile(pidFile, time + 1, maxTime, timeToWait))
-    } else {
-      res = false
-    }
-  }
-  console.log('waitPid: ', time, res)
-  return res
-}
-
-export async function serviceStartExec(
-  version: SoftInstalled,
-  pidPath: string,
-  baseDir: string,
-  bin: string,
-  execArgs: string,
-  execEnv: string,
-  on: Function,
-  maxTime = 20,
-  timeToWait = 500,
-  checkPidFile = true
-): Promise<{ 'APP-Service-Start-PID': string }> {
-  if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch (e) {}
-  }
-
-  const typeFlag = version.typeFlag
-  const versionStr = version.version!.trim()
-
-  const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
-  const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
-
-  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
-
-  psScript = psScript
-    .replace('#ENV#', execEnv)
-    .replace('#CWD#', dirname(bin))
-    .replace('#BIN#', bin)
-    .replace('#ARGS#', execArgs)
-    .replace('#OUTLOG#', outFile)
-    .replace('#ERRLOG#', errFile)
-
-  const psName = `${typeFlag}-${versionStr}-start.ps1`.split(' ').join('')
-  const psPath = join(baseDir, psName)
-  await writeFile(psPath, psScript)
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-  })
-
-  process.chdir(baseDir)
-  let res: any
-  try {
-    res = await spawnPromise(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-Command',
-        `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
-      ],
-      {
-        shell: 'powershell.exe',
-        cwd: baseDir
-      }
-    )
-  } catch (e) {
-    on({
-      'APP-On-Log': AppLog(
-        'error',
-        I18nT('appLog.execStartCommandFail', {
-          error: e,
-          service: `${version.typeFlag}-${version.version}`
-        })
-      )
-    })
-    throw e
-  }
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-  })
-  on({
-    'APP-Service-Start-Success': true
-  })
-
-  if (!checkPidFile) {
-    let pid = ''
-    const stdout = res.trim()
-    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
-    const match = regex.exec(stdout)
-    if (match) {
-      pid = match[1] // 捕获组 (\d+) 的内容
-    }
-    await writeFile(pidPath, pid)
-    on({
-      'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-    })
-    return {
-      'APP-Service-Start-PID': pid
-    }
-  }
-
-  res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
-  if (res) {
-    if (res?.pid) {
-      await writeFile(pidPath, res.pid)
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-      })
-      return {
-        'APP-Service-Start-PID': res.pid
-      }
-    }
-    on({
-      'APP-On-Log': AppLog(
-        'error',
-        I18nT('appLog.startServiceFail', {
-          error: res?.error ?? 'Start Fail',
-          service: `${version.typeFlag}-${version.version}`
-        })
-      )
-    })
-    throw new Error(res?.error ?? 'Start Fail')
-  }
-  let msg = 'Start Fail'
-  if (existsSync(errFile)) {
-    msg = (await readFileAsUTF8(errFile)) || 'Start Fail'
-  }
-  on({
-    'APP-On-Log': AppLog(
-      'error',
-      I18nT('appLog.startServiceFail', {
-        error: msg,
-        service: `${version.typeFlag}-${version.version}`
-      })
-    )
-  })
-  throw new Error(msg)
-}
-
-export async function serviceStartExecCMD(
-  version: SoftInstalled,
-  pidPath: string,
-  baseDir: string,
-  bin: string,
-  execArgs: string,
-  execEnv: string,
-  on: Function,
-  maxTime = 20,
-  timeToWait = 500,
-  checkPidFile = true
-): Promise<{ 'APP-Service-Start-PID': string }> {
-  if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch (e) {}
-  }
-
-  const typeFlag = version.typeFlag
-  const versionStr = version.version!.trim()
-
-  const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
-  const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
-
-  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.cmd'), 'utf8')
-
-  let execBin = basename(bin)
-  if (execBin.includes('.exe')) {
-    execBin = `./${execBin}`
-  }
-
-  psScript = psScript
-    .replace('#ENV#', execEnv)
-    .replace('#CWD#', dirname(bin))
-    .replace('#BIN#', execBin)
-    .replace('#ARGS#', execArgs)
-    .replace('#OUTLOG#', outFile)
-    .replace('#ERRLOG#', errFile)
-
-  const psName = `${typeFlag}-${versionStr}-start.cmd`.split(' ').join('')
-  const psPath = join(baseDir, psName)
-  await writeFile(psPath, psScript)
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-  })
-
-  process.chdir(baseDir)
-  let res: any
-  try {
-    res = await spawnPromise(psName, [], {
-      shell: 'cmd.exe',
-      cwd: baseDir
-    })
-  } catch (e) {
-    on({
-      'APP-On-Log': AppLog(
-        'error',
-        I18nT('appLog.execStartCommandFail', {
-          error: e,
-          service: `${version.typeFlag}-${version.version}`
-        })
-      )
-    })
-    throw e
-  }
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-  })
-  on({
-    'APP-Service-Start-Success': true
-  })
-
-  if (!checkPidFile) {
-    return {
-      'APP-Service-Start-PID': ''
-    }
-  }
-
-  res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
-  if (res) {
-    if (res?.pid) {
-      await writeFile(pidPath, res.pid)
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-      })
-      return {
-        'APP-Service-Start-PID': res.pid
-      }
-    }
-    on({
-      'APP-On-Log': AppLog(
-        'error',
-        I18nT('appLog.startServiceFail', {
-          error: res?.error ?? 'Start Fail',
-          service: `${version.typeFlag}-${version.version}`
-        })
-      )
-    })
-    throw new Error(res?.error ?? 'Start Fail')
-  }
-  let msg = 'Start Fail'
-  if (existsSync(errFile)) {
-    msg = (await readFileAsUTF8(errFile)) || 'Start Fail'
-  }
-  on({
-    'APP-On-Log': AppLog(
-      'error',
-      I18nT('appLog.startServiceFail', {
-        error: msg,
-        service: `${version.typeFlag}-${version.version}`
-      })
-    )
-  })
-  throw new Error(msg)
-}
-
-export async function serviceStartExecGetPID(
-  version: SoftInstalled,
-  pidPath: string,
-  baseDir: string,
-  cwdDir: string,
-  bin: string,
-  execArgs: string,
-  execEnv: string,
-  on: Function
-): Promise<{ 'APP-Service-Start-PID': string }> {
-  if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch (e) {}
-  }
-
-  const typeFlag = version.typeFlag
-  const versionStr = version.version!.trim()
-
-  const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
-  const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
-
-  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
-
-  psScript = psScript
-    .replace('#ENV#', execEnv)
-    .replace('#CWD#', cwdDir)
-    .replace('#BIN#', bin)
-    .replace('#ARGS#', execArgs)
-    .replace('#OUTLOG#', outFile)
-    .replace('#ERRLOG#', errFile)
-
-  const psName = `${typeFlag}-${versionStr}-start.ps1`.split(' ').join('')
-  const psPath = join(baseDir, psName)
-  await writeFile(psPath, psScript)
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-  })
-
-  process.chdir(baseDir)
-  let res: any
-  try {
-    res = await spawnPromise(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-Command',
-        `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
-      ],
-      {
-        shell: 'powershell.exe',
-        cwd: baseDir
-      }
-    )
-  } catch (e) {
-    on({
-      'APP-On-Log': AppLog(
-        'error',
-        I18nT('appLog.execStartCommandFail', {
-          error: e,
-          service: `${version.typeFlag}-${version.version}`
-        })
-      )
-    })
-    throw e
-  }
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-  })
-  on({
-    'APP-Service-Start-Success': true
-  })
-
-  let pid = ''
-  const stdout = res.trim()
-  const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
-  const match = regex.exec(stdout)
-  if (match) {
-    pid = match[1] // 捕获组 (\d+) 的内容
-  }
-  await writeFile(pidPath, pid)
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-  })
-  return {
-    'APP-Service-Start-PID': pid
   }
 }

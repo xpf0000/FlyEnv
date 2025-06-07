@@ -10,9 +10,13 @@ import {
   versionBinVersion,
   versionFilterSame,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  copyFile,
+  mkdirp,
+  remove,
+  writeFile,
+  readFile
 } from '../Fn'
-import { copyFile, mkdirp, remove, writeFile, readFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { I18nT } from '@lang/index'
 import axios from 'axios'
@@ -285,7 +289,7 @@ class Minio extends Base {
               if (existsSync(row.zip)) {
                 unlinkSync(row.zip)
               }
-            } catch (e) {}
+            } catch {}
             refresh()
             on(row)
             setTimeout(() => {
@@ -337,7 +341,7 @@ class Minio extends Base {
             if (existsSync(row.zip)) {
               unlinkSync(row.zip)
             }
-          } catch (e) {}
+          } catch {}
           refresh()
           on(row)
           setTimeout(() => {

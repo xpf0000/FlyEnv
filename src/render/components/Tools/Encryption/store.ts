@@ -20,7 +20,7 @@ const store = reactive({
       value = algos[this.decryptAlgo]
         .decrypt(this.decryptInput, this.decryptSecret)
         .toString(enc.Utf8)
-    } catch (e) {}
+    } catch {}
     return value
   }
 })

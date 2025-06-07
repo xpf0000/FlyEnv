@@ -12,10 +12,13 @@ import {
   versionFixed,
   versionSort,
   AppLog,
-  serviceStartExecCMD
+  serviceStartExecCMD,
+  writeFile,
+  mkdirp,
+  chmod,
+  remove
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { writeFile, mkdirp, chmod, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 
 class Manager extends Base {
@@ -205,7 +208,7 @@ datadir="${dataDir}"`
           a.installed = existsSync(dir) || existsSync(oldDir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })

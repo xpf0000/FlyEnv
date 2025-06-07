@@ -1,11 +1,17 @@
 import type { AppHost } from '@shared/app'
 import { join } from 'path'
-import { copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
-import { hostAlias } from '../../Fn'
+import {
+  copyFile,
+  mkdirp,
+  readFile,
+  remove,
+  writeFile,
+  hostAlias,
+  pathFixedToUnix,
+  existsSync
+} from '../../Fn'
 import { vhostTmpl } from './Host'
-import { existsSync } from 'fs'
-import { isEqual } from 'lodash'
-import { pathFixedToUnix } from '@shared/utils'
+import { isEqual } from 'lodash-es'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)

@@ -1,20 +1,18 @@
 import { ForkPromise } from '@shared/ForkPromise'
-import { hostAlias, execPromiseRoot } from '../../Fn'
+import { hostAlias, execPromise, copyFile, mkdirp, remove, writeFile, zipUnPack } from '../../Fn'
 import { dirname, join } from 'path'
 import { existsSync } from 'fs'
-import { copyFile, mkdirp, remove, writeFile } from 'fs-extra'
 import { EOL } from 'os'
 import type { AppHost } from '@shared/app'
-import { zipUnPack } from '@shared/file'
 
 const initCARoot = () => {
   return new Promise(async (resolve) => {
     const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
     const command = `certutil -addstore root "${CARoot}"`
     try {
-      const res = await execPromiseRoot(command)
+      const res = await execPromise(command)
       console.log('initCARoot res111: ', res)
-    } catch (e) {}
+    } catch {}
     resolve(true)
   })
 }
@@ -66,14 +64,14 @@ subjectAltName=@alt_names
       const caCSR = join(hostCADir, `${hostCAName}.csr`)
       let command = `openssl.exe req -new -newkey rsa:2048 -nodes -keyout "${caKey}" -out "${caCSR}" -sha256 -subj "/CN=${hostCAName}" -config "${opensslCnf}"`
       console.log('command: ', command)
-      await execPromiseRoot(command)
+      await execPromise(command)
 
       process.chdir(dirname(openssl))
       const caCRT = join(hostCADir, `${hostCAName}.crt`)
       const caEXT = join(hostCADir, `${hostCAName}.ext`)
       command = `openssl.exe x509 -req -in "${caCSR}" -out "${caCRT}" -extfile "${caEXT}" -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650`
       console.log('command: ', command)
-      await execPromiseRoot(command)
+      await execPromise(command)
 
       const crt = join(hostCADir, `${hostCAName}.crt`)
       if (!existsSync(crt)) {
@@ -84,7 +82,7 @@ subjectAltName=@alt_names
         crt,
         key: join(hostCADir, `${hostCAName}.key`)
       })
-    } catch (e) {
+    } catch {
       resolve(false)
     }
   })

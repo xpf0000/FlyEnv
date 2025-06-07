@@ -73,7 +73,7 @@ class Memcached extends Base {
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })

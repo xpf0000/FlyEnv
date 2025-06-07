@@ -150,49 +150,6 @@ export function readFileAsync(fp: string, encode = 'utf-8') {
   })
 }
 
-export function zipUnPack(fp: string, dist: string) {
-  console.log('zipUnPack start: ', fp, dist, global.Server.Static!)
-  return new Promise(async (resolve, reject) => {
-    const info = {
-      fp,
-      dist,
-      static: global.Server.Static,
-      isIncludes: fp.includes(global.Server.Static!)
-    }
-    await appendFile(
-      path.join(global.Server.BaseDir!, 'debug.log'),
-      `[zipUnPack][info]: ${JSON.stringify(info, undefined, 4)}\n`
-    )
-    if (fp.includes(global.Server.Static!)) {
-      const cacheFP = path.join(global.Server.Cache!, path.basename(fp))
-      if (!fs.existsSync(cacheFP)) {
-        try {
-          await copyFile(fp, cacheFP)
-        } catch (e) {
-          await appendFile(
-            path.join(global.Server.BaseDir!, 'debug.log'),
-            `[zipUnPack][copyFile][error]: ${e}\n`
-          )
-        }
-      }
-      fp = cacheFP
-      console.log('cacheFP: ', fp)
-    }
-    compressing.unpack(fp, dist, async (err: any, res: any) => {
-      console.log('zipUnPack end: ', err, res)
-      if (err) {
-        await appendFile(
-          path.join(global.Server.BaseDir!, 'debug.log'),
-          `[zipUnPack][unpack][error]: ${err}\n`
-        )
-        reject(err)
-        return
-      }
-      resolve(true)
-    })
-  })
-}
-
 // 读取文件并计算其MD5和SHA256
 export function getFileHashes(filePath: string, algorithm: 'sha1' | 'sha256' | 'md5' = 'sha256') {
   return new Promise((resolve, reject) => {

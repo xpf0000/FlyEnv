@@ -13,10 +13,12 @@ import {
   versionInitedApp,
   versionLocalFetch,
   versionSort,
-  serviceStartExecCMD
+  serviceStartExecCMD,
+  mkdirp,
+  readFile,
+  writeFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, readFile, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
 
@@ -41,7 +43,7 @@ class Apache extends Base {
         const reg = new RegExp('(Define SRVROOT ")([\\s\\S]*?)(")', 'g')
         try {
           srvroot = reg?.exec?.(content)?.[2] ?? ''
-        } catch (e) {}
+        } catch {}
         if (srvroot) {
           const srvrootReplace = version.path.split('\\').join('/')
           if (srvroot !== srvrootReplace) {
@@ -79,7 +81,7 @@ class Apache extends Base {
       let file = ''
       try {
         file = reg?.exec?.(str)?.[2] ?? ''
-      } catch (e) {}
+      } catch {}
       file = file.trim()
       file = join(version.path, file)
 
@@ -101,21 +103,21 @@ class Apache extends Base {
       let logPath = ''
       try {
         logPath = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) {}
+      } catch {}
       logPath = logPath.trim()
 
       reg = new RegExp('(ErrorLog ")([\\s\\S]*?)(")', 'g')
       let errLogPath = ''
       try {
         errLogPath = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) {}
+      } catch {}
       errLogPath = errLogPath.trim()
 
       let srvroot = ''
       reg = new RegExp('(Define SRVROOT ")([\\s\\S]*?)(")', 'g')
       try {
         srvroot = reg?.exec?.(content)?.[2] ?? ''
-      } catch (e) {}
+      } catch {}
 
       /**
        * LoadModule headers_module modules/mod_headers.so
@@ -177,7 +179,7 @@ IncludeOptional "${vhost}*.conf"`
     let host: Array<AppHost> = []
     try {
       host = await fetchHostList()
-    } catch (e) {}
+    } catch {}
     if (host.length === 0) {
       return
     }
@@ -304,7 +306,7 @@ IncludeOptional "${vhost}*.conf"`
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })

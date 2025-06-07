@@ -1,13 +1,13 @@
-module.exports = {
+export default {
   printWidth: 100,
   tabWidth: 2,
   useTabs: false,
-  semi: false, // 未尾逗号
+  semi: false, // No semicolon at the end
   vueIndentScriptAndStyle: true,
-  singleQuote: true, // 单引号
+  singleQuote: true, // Use single quotes
   quoteProps: 'as-needed',
   bracketSpacing: true,
-  trailingComma: 'none', // 未尾分号
+  trailingComma: 'none', // No trailing comma
   jsxBracketSameLine: false,
   jsxSingleQuote: false,
   arrowParens: 'always',
