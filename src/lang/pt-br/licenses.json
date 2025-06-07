@@ -1,0 +1,36 @@
+{
+  "title": "Descrição da Licença",
+  "description": "A licença é um reconhecimento e apoio ao trabalho árduo do FlyEnv e seus autores. Seu propósito não é restringir usuários, mas lembrá-los de respeitar os esforços dos desenvolvedores e cumprir os termos relevantes ao usar o software. Ao aderir à licença, os usuários não apenas apoiam o desenvolvimento contínuo do projeto, mas também contribuem para o espírito de confiança e colaboração dentro da comunidade de código aberto.",
+  "restrictions": {
+    "title": "Usuários sem licença estarão sujeitos às seguintes restrições:",
+    "items": {
+      "0": "Um máximo de três sites pode ser criado.",
+      "1": "O recurso de chat IA está disponível para um período de teste de apenas três dias.",
+      "2": "Restrições adicionais podem se aplicar a recursos futuros."
+    }
+  },
+  "licenseInfo": "A licença atual oferecida é uma licença perpétua, com uma licença correspondendo a um computador. Se você trocar de computador, precisará solicitar uma nova licença.",
+  "howToObtain": {
+    "title": "Como Obter uma Licença",
+    "description": "FlyEnv fornece maneiras flexíveis de obter uma licença. Os usuários podem escolher qualquer um dos seguintes métodos para aplicar:",
+    "methods": {
+      "0": {
+        "title": "Doar para o Projeto",
+        "description": "Não há valor fixo exigido para doações. Considerando as situações econômicas variadas dos usuários em diferentes países (ex: muitos usuários são estudantes), por favor escolha um valor que se adeque às suas circunstâncias."
+      },
+      "1": {
+        "title": "Contribuir para o Desenvolvimento",
+        "description": "Participe do projeto enviando um Pull Request. Independentemente da quantidade de código, desde que melhore positivamente o projeto (ex: corrigir um erro de tradução), qualifica."
+      },
+      "2": {
+        "title": "Promover o Projeto",
+        "description": "Promova o FlyEnv publicando artigos, vídeos, blogs, vlogs, ou introduzindo-o em comentários. O conteúdo pode ser em qualquer idioma e em qualquer plataforma, desde que seja publicamente acessível na internet."
+      }
+    }
+  },
+  "submitInfo": "Após completar qualquer um dos métodos acima, por favor preencha os resultados na caixa de entrada abaixo e clique no botão 'Solicitar Licença' para enviar sua aplicação. Solicitações de licença são revisadas manualmente, então por favor seja paciente. Elas são geralmente processadas prontamente.",
+  "messageLabel": "Mensagem",
+  "messagePlaceholder": "Por favor envie o doador, link de doação, ou ID do pedido ao escolher doar.\nPor favor envie o link do PR para aqueles que escolhem participar do desenvolvimento do projeto.\nPor favor envie link do artigo/vídeo se você escolher ajudar a promover o projeto",
+  "requestButton": "Solicitar Licença",
+  "refreshButton": "Atualizar Estado"
+}
