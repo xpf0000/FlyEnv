@@ -1,0 +1,14 @@
+{
+  "binNoFound": "O arquivo de inicialização não existe, operação falhou.",
+  "confNoFound": "O arquivo de configuração não existe, o servidor falhou ao iniciar",
+  "apacheLogPathErr": "O caminho do log do arquivo de configuração está errado, e a troca falha",
+  "hostsFileNoFound": "arquivo hosts não existe",
+  "startFail": "Falha ao iniciar, por favor verifique o arquivo de log",
+  "phpiniNoFound": "arquivo php.ini não encontrado",
+  "versionNoFound": "Falha ao obter versão do software, operação falhou.",
+  "postgresqlInit": "Serviço iniciado com sucesso\nDiretório de dados é {dir}\nUsuário inicial é root, Senha é root",
+  "downFileFail": "Download do arquivo falhou!",
+  "noEPMD": "O processo epmd não foi encontrado. Por favor, redefina as variáveis de ambiente do Erlang",
+  "licenseTips": "Não obteve licença, só pode criar três sites",
+  "trialEnd": "Período de teste expirou, se precisar continuar usando esta funcionalidade, por favor obtenha uma licença"
+}

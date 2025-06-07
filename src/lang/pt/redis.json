@@ -1,0 +1,8 @@
+{
+  "port": "Porta",
+  "timeout": "Timeout de conexão inativa, 0 indica abertura contínua",
+  "maxclients": "conexão máxima",
+  "databases": "Número de bancos de dados",
+  "requirepass": "Senha do Redis",
+  "maxmemory": "Byte, uso máximo de memória, 0 indica sem limite"
+}

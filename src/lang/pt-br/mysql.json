@@ -1,0 +1,14 @@
+{
+  "port": "Porta TCP (Padrão: 3306)",
+  "key_buffer_size": "Tamanho do buffer para indexação",
+  "query_cache_size": "Cache de consulta, por favor defina como 0 se não habilitado",
+  "tmp_table_size": "Tamanho do cache de tabela temporária",
+  "innodb_buffer_pool_size": "Tamanho do buffer InnoDB",
+  "innodb_log_buffer_size": "Tamanho do buffer de log InnoDB",
+  "sort_buffer_size": "Tamanho do buffer para ordenação de cada thread",
+  "read_buffer_size": "Tamanho do buffer de leitura",
+  "read_rnd_buffer_size": "Tamanho do buffer de leitura aleatória",
+  "thread_cache_size": "tamanho do pool de threads",
+  "table_open_cache": "Cache de Tabela",
+  "max_connections": "conexão máxima"
+}

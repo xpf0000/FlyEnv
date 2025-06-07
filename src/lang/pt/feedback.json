@@ -1,0 +1,10 @@
+{
+  "email": "Email",
+  "country": "País",
+  "message": "Mensagem",
+  "messagelengthErr": "O comprimento da mensagem é 5 - 1024",
+  "sendMessage": "Enviar Mensagem",
+  "anythingToSay": "Algo a dizer",
+  "noSelected": "Nenhum Selecionado",
+  "inputFilter": "Entrada para Filtrar"
+}

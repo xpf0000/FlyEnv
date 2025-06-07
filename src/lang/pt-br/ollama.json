@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Mostrar informações de debug adicionais (ex. OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "Endereço IP para o servidor ollama (padrão 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "A duração que os modelos permanecem carregados na memória (padrão \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Número máximo de modelos carregados por GPU",
+  "OLLAMA_MAX_QUEUE": "Número máximo de solicitações em fila",
+  "OLLAMA_MODELS": "O caminho para o diretório de modelos",
+  "OLLAMA_NUM_PARALLEL": "Número máximo de solicitações paralelas",
+  "OLLAMA_NOPRUNE": "Não podar blobs de modelo na inicialização",
+  "OLLAMA_ORIGINS": "Uma lista separada por vírgulas de origens permitidas",
+  "OLLAMA_SCHED_SPREAD": "Sempre agendar modelo em todas as GPUs",
+  "OLLAMA_FLASH_ATTENTION": "Atenção flash habilitada",
+  "OLLAMA_KV_CACHE_TYPE": "Tipo de quantização para o cache K/V (padrão: f16)",
+  "OLLAMA_LLM_LIBRARY": "Definir biblioteca LLM para contornar autodetecção",
+  "OLLAMA_GPU_OVERHEAD": "Reservar uma porção de VRAM por GPU (bytes)",
+  "OLLAMA_LOAD_TIMEOUT": "Quanto tempo permitir que carregamentos de modelo travem antes de desistir (padrão \"5m\")",
+  "needServiceRun": "Por favor, inicie o serviço Ollama primeiro",
+  "size": "Tamanho",
+  "model": "Modelos"
+}
