@@ -28,6 +28,7 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
   if (!inited) {
     inited = true
     const store = AppStore()
+    AppCustomerModule.init()
     store
       .initConfig()
       .then(() => {
@@ -37,7 +38,6 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
         app.mount('#app')
       })
       .catch()
-    AppCustomerModule.init()
     SiteSuckerStore().init()
     AppToolStore.init()
     SetupStore().init()

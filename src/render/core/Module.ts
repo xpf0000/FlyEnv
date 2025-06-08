@@ -144,6 +144,6 @@ export const AppCustomerModule: {
       AppCustomerModule.moduleCate.splice(findIndex, 1)
     }
     AppCustomerModule.saveModuleCate()
-    AppCustomerModule.saveModule
+    AppCustomerModule.saveModule().then().catch()
   }
 })

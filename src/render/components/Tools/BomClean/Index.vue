@@ -130,7 +130,6 @@
   import { extname } from 'path-browserify'
   import { dialog } from '@/util/NodeFn'
 
-  const emit = defineEmits(['doClose'])
   const data = computed(() => {
     return store.value
   })
@@ -173,9 +172,6 @@
     const progress = store.value.progress
     return Math.floor((progress.finish / progress.count) * 100.0)
   })
-  const doClose = () => {
-    emit('doClose')
-  }
   const chooseDir = () => {
     if (store.value.running && !store.value.end) {
       return

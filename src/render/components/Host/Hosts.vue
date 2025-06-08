@@ -39,7 +39,7 @@
       return new Promise(() => {
         let dom = document.createElement('div')
         document.body.appendChild(dom)
-        let vm = VueExtend(this, data)
+        const vm = VueExtend(this, data)
         const intance = vm.mount(dom)
         intance.onClosed = () => {
           dom?.remove()

@@ -103,7 +103,7 @@
     let port = '9000'
     const exists = await fs.existsSync(iniFile)
     if (exists) {
-      let content = await fs.readFile(iniFile)
+      const content = await fs.readFile(iniFile)
       const logStr = content.split('\n').find((s: string) => s.includes('MINIO_ADDRESS'))
       port =
         logStr?.trim()?.split('=')?.pop()?.split(':')?.pop()?.replace(`"`, '')?.replace(`'`, '') ??

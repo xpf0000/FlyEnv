@@ -70,7 +70,7 @@ export class CreateSite extends BaseTask {
             url = url.split('://').pop()!
             try {
               new URL(`https://${url}`)
-            } catch (e) {
+            } catch {
               reject(new Error(I18nT('ai.domainError')))
             }
             this.host.name = url

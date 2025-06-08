@@ -79,7 +79,7 @@
     watch: {
       item: {
         handler() {
-          for (let k in this.errs) {
+          for (const k in this.errs) {
             this.errs[k] = false
           }
         },
@@ -95,7 +95,7 @@
       },
       chooseRoot(flag, choosefile = false) {
         let opt = ['openDirectory', 'createDirectory']
-        let filters = []
+        const filters = []
         if (choosefile) {
           opt = ['openFile']
           filters.push({ name: 'ROOT CA Certificate', extensions: ['crt'] })
@@ -124,7 +124,7 @@
         this.errs.domains = this.item.domains.length === 0
         this.errs.savePath = this.item.savePath.length === 0
 
-        for (let k in this.errs) {
+        for (const k in this.errs) {
           if (this.errs[k]) {
             return false
           }
@@ -136,7 +136,7 @@
           return
         }
         this.running = true
-        let domains = this.item.domains
+        const domains = this.item.domains
           .split('\n')
           .map((item) => {
             return item.trim()
@@ -144,7 +144,7 @@
           .filter((item) => {
             return item && item.length > 0
           })
-        let saveName = uuid(6) + '.' + domains[0].replace('*.', '')
+        const saveName = uuid(6) + '.' + domains[0].replace('*.', '')
         let caFile = this.item.root
         let caFileName = basename(caFile)
         if (caFile.length === 0) {
@@ -153,7 +153,7 @@
         }
         caFile = caFile.replace('.crt', '')
         caFileName = caFileName.replace('.crt', '')
-        let opt = { cwd: this.item.savePath }
+        const opt = { cwd: this.item.savePath }
         let exists = await fs.existsSync(caFile + '.crt')
         if (!exists) {
           let command = `openssl genrsa -out ${caFileName}.key 2048;`

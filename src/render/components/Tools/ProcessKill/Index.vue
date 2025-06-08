@@ -113,7 +113,6 @@
           .catch(() => {})
       },
       handleSelectionChange(select) {
-        console.log(...arguments)
         this.select.splice(0)
         this.select.push(...select)
       },

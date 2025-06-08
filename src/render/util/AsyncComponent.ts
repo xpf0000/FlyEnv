@@ -1,5 +1,6 @@
 import { onMounted, ref } from 'vue'
 import { VueExtend } from '@/core/VueExtend'
+import type { CallBackFn } from '@shared/app'
 
 export const AsyncComponentShow = (compontent: any, data?: any) => {
   return new Promise((resolve) => {
@@ -7,30 +8,28 @@ export const AsyncComponentShow = (compontent: any, data?: any) => {
     document.body.appendChild(dom)
     const vm: any = VueExtend(compontent, data)
     const intance = vm.mount(dom)
-    intance?.onClosed &&
-      intance?.onClosed(() => {
-        vm.unmount()
-        intance?.$destroy && intance.$destroy()
-        vm?.$destroy && vm.$destroy()
-        dom && dom.remove()
-        dom = null
-      })
-    intance?.onSubmit &&
-      intance?.onSubmit((arg: any) => {
-        intance.show = false
-        resolve(arg)
-      })
+    intance?.onClosed?.(() => {
+      vm.unmount()
+      intance?.$destroy?.()
+      vm?.$destroy?.()
+      dom?.remove?.()
+      dom = null
+    })
+    intance?.onSubmit?.((arg: any) => {
+      intance.show = false
+      resolve(arg)
+    })
   })
 }
 
 export const AsyncComponentSetup = () => {
   const show = ref(false)
-  let closedFn: Function = () => {}
-  let callback: Function = () => {}
-  const onClosed = (fn: Function) => {
+  let closedFn: CallBackFn = () => {}
+  let callback: CallBackFn = () => {}
+  const onClosed = (fn: CallBackFn) => {
     closedFn = fn
   }
-  const onSubmit = (fn: Function) => {
+  const onSubmit = (fn: CallBackFn) => {
     callback = fn
   }
   onMounted(() => {

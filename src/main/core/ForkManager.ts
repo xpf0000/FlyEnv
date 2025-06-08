@@ -163,6 +163,8 @@ export class ForkManager {
   }
 
   destory() {
+    this?.serviceFork?.destory()
+    this?.ollamaChatFork?.destory()
     this.forks.forEach((fork) => {
       fork.destory()
     })

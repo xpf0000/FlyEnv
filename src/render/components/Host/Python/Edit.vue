@@ -227,7 +227,7 @@
       if (!name) {
         return
       }
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === name && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
@@ -280,7 +280,7 @@
     errs.value['root'] = item.value.root.length === 0
     errs.value['pythonDir'] = item.value.pythonDir.length === 0
     if (item.value.projectName) {
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === item.value.projectName && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
