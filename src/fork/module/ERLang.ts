@@ -11,7 +11,7 @@ class ERLang extends Base {
     this.type = 'erlang'
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('erlang')
@@ -27,7 +27,7 @@ class ERLang extends Base {
         })
         resolve(all)
       } catch (e) {
-        console.log('fetchAllOnLineVersion error: ', e)
+        console.log('fetchAllOnlineVersion error: ', e)
         resolve([])
       }
     })

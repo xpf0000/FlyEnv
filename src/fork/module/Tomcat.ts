@@ -29,8 +29,8 @@ class Tomcat extends Base {
     this.pidPath = join(global.Server.BaseDir!, 'tomcat/tomcat.pid')
   }
 
-  fetchAllOnLineVersion() {
-    console.log('Tomcat fetchAllOnLineVersion !!!')
+  fetchAllOnlineVersion() {
+    console.log('Tomcat fetchAllOnlineVersion !!!')
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('tomcat')
