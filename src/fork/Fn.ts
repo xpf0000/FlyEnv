@@ -345,7 +345,7 @@ export function getAllFile(fp: string, fullpath = true, basePath: Array<string> 
   return arr
 }
 
-export function downFile(url: string, savepath: string) {
+export function downloadFile(url: string, savepath: string) {
   return new ForkPromise((resolve, reject, on) => {
     const proxyUrl =
       Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''
