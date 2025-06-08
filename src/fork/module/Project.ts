@@ -18,17 +18,16 @@ class Manager extends Base {
         await PHPManager.getIniPath({ path: dirname(php) } as any)
       }
       if (framework === 'wordpress') {
-        const tmpl = `{
-  "require": {
-    "johnpbloch/wordpress": "${version}"
-  },
-  "config": {
-    "allow-plugins": {
-      "johnpbloch/wordpress-core-installer": true
-    }
-  }
-}
-`
+        const tmpl = JSON.stringify({
+          require: {
+            "johnpbloch/wordpress": version
+          },
+          config: {
+            "allow-plugins": {
+              "johnpbloch/wordpress-core-installer": true
+            }
+          }
+        }, null, 2)
         await writeFile(join(dir, 'composer.json'), tmpl)
 
         const command = ['@echo off', 'chcp 65001>nul', `cd /d "${dir}"`]
