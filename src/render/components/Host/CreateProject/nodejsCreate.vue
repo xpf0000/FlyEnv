@@ -20,7 +20,7 @@
                 type="text"
                 class="input"
                 placeholder="root path"
-                :readonly="loading || created ? true : null"
+                :readonly="loading || created ? true : undefined"
                 :value="ProjectSetup.form.NodeJS.dir"
               />
               <div class="icon-block" @click="chooseRoot()">
@@ -96,9 +96,9 @@
   import { Service } from '@/components/ServiceManager/service'
   import installedVersions from '@/util/InstalledVersions'
   import { BrewStore } from '@/store/brew'
+  import { dirname, join } from 'path-browserify'
+  import { dialog, shell } from '@/util/NodeFn'
 
-  const { dirname, join } = require('path')
-  const { dialog, shell } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -189,9 +189,9 @@
     const execXTerm = new XTerm()
     const item = app.value.list.find((f) => f.version === form.version)
     const command: string[] = []
-    if (global.Server.Proxy) {
-      for (const k in global.Server.Proxy) {
-        const v = global.Server.Proxy[k]
+    if (window.Server.Proxy) {
+      for (const k in window.Server.Proxy) {
+        const v = window.Server.Proxy[k]
         command.push(`$Env:${k}="${v}"`)
       }
     }
@@ -199,10 +199,10 @@
       command.push(`$Env:PATH = "${dirname(form.node)};" + $Env:PATH`)
       command.push(`$Env:npm_config_prefix="${dirname(form.node)}"`)
       command.push(
-        `$Env:npm_config_cache="${join(global.Server.UserHome!, 'AppData/Local/npm-cache')}"`
+        `$Env:npm_config_cache="${join(window.Server.UserHome!, 'AppData/Local/npm-cache')}"`
       )
       command.push(
-        `$Env:npm_config_cache="${join(global.Server.UserHome!, 'AppData/Local/npm-cache')}"`
+        `$Env:npm_config_cache="${join(window.Server.UserHome!, 'AppData/Local/npm-cache')}"`
       )
     }
     command.push(`cd "${form.dir}"`)

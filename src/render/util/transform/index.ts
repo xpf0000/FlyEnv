@@ -5,11 +5,11 @@ import XMLParse from './XMLParse'
 import YAML from 'yamljs'
 import { parse as TOMLParse, stringify as TOMLStringify } from '@iarna/toml'
 import JsonToTS from 'json-to-ts'
-import { JsonToGo, JsonToGoBson } from '@shared/transform/Go'
-import { JsonToJava, JsonToKotlin } from '@shared/transform/Java'
-import { JsonToJSDoc } from '@shared/transform/JSDoc'
-import { JsonToMySQL } from '@shared/transform/MySQL'
-import { JsonToRust } from '@shared/transform/Rust'
+import { JsonToGo, JsonToGoBson } from './Go'
+import { JsonToJava, JsonToKotlin } from './Java'
+import { JsonToJSDoc } from './JSDoc'
+import { JsonToMySQL } from './MySQL'
+import { JsonToRust } from './Rust'
 
 export const javascriptToJson = (str: string) => {
   return JSON5.parse(str)

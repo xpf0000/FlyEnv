@@ -20,9 +20,8 @@
   import { ElInput, ElButton, ElTooltip, ElProgress } from 'element-plus'
   import type { Column } from 'element-plus'
   import { MessageSuccess } from '@/util/Element'
-
-  const { clipboard } = require('@electron/remote')
-  const { join } = require('path')
+  import { join } from 'path-browserify'
+  import { clipboard } from '@/util/NodeFn'
 
   const { versionChange, installOrUninstall, tableData } = Setup()
 
@@ -58,7 +57,7 @@
           current: NodeDefaultSetup.current === row.version,
           'hover-yellow-500': !!row.installed
         }
-        const path = join(global.Server.AppDir, `nodejs/${row.version}/bin`)
+        const path = join(window.Server.AppDir, `nodejs/${row.version}/bin`)
         const tips = `export PATH="${path}:$PATH"`
         const disabled = !row.installed
         return (
@@ -150,7 +149,7 @@
               />
             </ElButton>
           )
-        } else if (NodeDefaultSetup.installing.hasOwnProperty(row.version)) {
+        } else if (NodeDefaultSetup.installing?.[row.version]) {
           return <ElProgress class="w-full" percentage={NodeDefaultSetup.installing[row.version]} />
         }
         return <span></span>

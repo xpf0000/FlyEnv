@@ -14,8 +14,7 @@
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import { AppStore } from '@/store/app'
-
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const appStore = AppStore()
 
@@ -29,6 +28,6 @@
       return ''
     }
     const vNum = currentVersion?.value?.version?.split('.')?.[0]
-    return join(global.Server.RedisDir, `redis-${vNum}.log`)
+    return join(window.Server.RedisDir, `redis-${vNum}.log`)
   })
 </script>

@@ -9,10 +9,7 @@ import {
   isNTFS,
   setDir777ToCurrentUser,
   uuid,
-  writePath
-} from '../Fn'
-import { ForkPromise } from '@shared/ForkPromise'
-import {
+  writePath,
   copyFile,
   existsSync,
   mkdirp,
@@ -21,17 +18,21 @@ import {
   realpathSync,
   remove,
   writeFile,
-  stat
-} from 'fs-extra'
+  stat,
+  zipUnPack
+} from '../Fn'
+import { ForkPromise } from '@shared/ForkPromise'
 import { TaskItem, TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
 import { basename, dirname, isAbsolute, join, resolve as PathResolve } from 'path'
-import { zipUnPack } from '@shared/file'
 import { EOL } from 'os'
 import type { SoftInstalled } from '@shared/app'
 import { PItem, ProcessListSearch, ProcessPidList } from '../Process'
-import { AppServiceAliasItem } from '@shared/app'
-import { exec } from 'child-process-promise'
-import RequestTimer from '@shared/requestTimer'
+import type { AppServiceAliasItem } from '@shared/app'
+import { exec } from 'child_process'
+import RequestTimer from '../util/RequestTimer'
+import { promisify } from 'node:util'
+
+const execAsync = promisify(exec)
 
 class BomCleanTask implements TaskItem {
   path = ''
@@ -131,13 +132,13 @@ class Manager extends Base {
 
   sslMake(param: { domains: string; root: string; savePath: string }) {
     return new ForkPromise(async (resolve, reject) => {
-      const openssl = join(global.Server.AppDir!, 'openssl/bin/openssl.exe')
+      const openssl = join(window.Server.AppDir!, 'openssl/bin/openssl.exe')
       if (!existsSync(openssl)) {
-        await zipUnPack(join(global.Server.Static!, `zip/openssl.7z`), global.Server.AppDir!)
+        await zipUnPack(join(window.Server.Static!, `zip/openssl.7z`), window.Server.AppDir!)
       }
-      const opensslCnf = join(global.Server.AppDir!, 'openssl/openssl.cnf')
+      const opensslCnf = join(window.Server.AppDir!, 'openssl/openssl.cnf')
       if (!existsSync(opensslCnf)) {
-        await copyFile(join(global.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
+        await copyFile(join(window.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
       }
       const domains = param.domains
         .split('\n')
@@ -317,7 +318,7 @@ subjectAltName=@alt_names
         .filter((f) => existsSync(f) && statSync(f).isDirectory())
       res.allPath = Array.from(new Set(allPath))
 
-      const dir = join(dirname(global.Server.AppDir!), 'env')
+      const dir = join(dirname(window.Server.AppDir!), 'env')
       if (existsSync(dir)) {
         let allFile = await readdir(dir)
         allFile = allFile
@@ -343,7 +344,7 @@ subjectAltName=@alt_names
 
       console.log('removePATH oldPath 0: ', oldPath)
 
-      const envDir = join(dirname(global.Server.AppDir!), 'env')
+      const envDir = join(dirname(window.Server.AppDir!), 'env')
       const flagDir = join(envDir, typeFlag)
       try {
         await execPromise(`rmdir /S /Q "${flagDir}"`)
@@ -365,7 +366,7 @@ subjectAltName=@alt_names
             if (realPath.includes(flagDir) || realPath.includes(item.path)) {
               res = false
             }
-          } catch (error) {}
+          } catch {}
         }
         return res
       })
@@ -434,7 +435,7 @@ subjectAltName=@alt_names
        * 删除标识文件夹
        * 如果原来没有 重新创建链接文件夹
        */
-      const envDir = join(dirname(global.Server.AppDir!), 'env')
+      const envDir = join(dirname(window.Server.AppDir!), 'env')
       if (!existsSync(envDir)) {
         await mkdirp(envDir)
       }
@@ -470,7 +471,7 @@ subjectAltName=@alt_names
           try {
             const rf = realpathSync(f)
             check = existsSync(rf) && statSync(rf).isDirectory()
-          } catch (e) {
+          } catch {
             check = false
           }
           return check
@@ -503,7 +504,7 @@ subjectAltName=@alt_names
               if (realPath.includes(envPath) || realPath.includes(rawEnvPath)) {
                 res = false
               }
-            } catch (error) {}
+            } catch {}
           }
           return res
         })
@@ -575,12 +576,12 @@ php "%~dp0composer.phar" %*`
         otherString = `"JAVA_HOME" = "${flagDir}"`
       } else if (typeFlag === 'erlang') {
         otherString = `"ERLANG_HOME" = "${flagDir}"`
-        const f = join(global.Server.Cache!, `${uuid()}.ps1`)
+        const f = join(window.Server.Cache!, `${uuid()}.ps1`)
         await writeFile(
           f,
           `New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force`
         )
-        process.chdir(global.Server.Cache!)
+        process.chdir(window.Server.Cache!)
         try {
           await execPromise(
             `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${f}'; & '${f}'"`
@@ -615,7 +616,7 @@ php "%~dp0composer.phar" %*`
   ) {
     return new ForkPromise(async (resolve) => {
       await this.initLocalApp(service, service.typeFlag)
-      const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
+      const aliasDir = PathResolve(window.Server.BaseDir!, '../alias')
       await mkdirp(aliasDir)
       if (old?.id) {
         const oldFile = join(aliasDir, `${old.name}.bat`)
@@ -673,7 +674,7 @@ chcp 65001>nul
 
   cleanAlias(alias: Record<string, AppServiceAliasItem[]>) {
     return new ForkPromise(async (resolve) => {
-      const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
+      const aliasDir = PathResolve(window.Server.BaseDir!, '../alias')
       for (const bin in alias) {
         const item = alias[bin]
         if (!existsSync(bin)) {
@@ -721,14 +722,14 @@ chcp 65001>nul
           try {
             raw = realpathSync(p)
             error = !existsSync(raw)
-          } catch (e) {
+          } catch {
             error = true
           }
         } else if (p.includes('%') || p.includes('$env:')) {
           try {
             raw = (await execPromise(`echo ${p}`))?.stdout?.trim() ?? ''
             error = !raw || !existsSync(raw)
-          } catch (e) {
+          } catch {
             error = true
           }
         }
@@ -747,14 +748,14 @@ chcp 65001>nul
       let cmdRes = ''
       let psRes = ''
       try {
-        cmdRes = (await exec(`set PATH`))?.stdout?.trim() ?? ''
+        cmdRes = (await execAsync(`set PATH`))?.stdout?.trim() ?? ''
       } catch (e) {
         cmdRes = `${e}`
       }
       try {
         psRes =
           (
-            await exec(`$env:PATH`, {
+            await execAsync(`$env:PATH`, {
               shell: 'powershell.exe'
             })
           )?.stdout?.trim() ?? ''
@@ -805,7 +806,7 @@ chcp 65001>nul
       command = JSON.stringify(command).slice(1, -1)
       console.log('command: ', command)
       try {
-        await exec(`start powershell -NoExit -Command "${command}"`)
+        await execAsync(`start powershell -NoExit -Command "${command}"`)
       } catch (e) {
         return reject(e)
       }
@@ -851,7 +852,7 @@ chcp 65001>nul
             for (const regPath of registryPaths) {
               try {
                 // 使用 /s 参数查询所有子项和值
-                const { stdout } = await exec(`reg query "${regPath}" /s`)
+                const { stdout } = await execAsync(`reg query "${regPath}" /s`)
                 const lines = stdout.split('\n').map((line: string) => line.trim())
 
                 let basePath = null
@@ -869,7 +870,7 @@ chcp 65001>nul
                 if (basePath) {
                   return formatExePath(basePath, ideName)
                 }
-              } catch (e) {
+              } catch {
                 continue
               }
             }
@@ -884,7 +885,7 @@ chcp 65001>nul
         const findToolboxIdePath = async (ideName: string) => {
           try {
             // 尝试获取 Toolbox 安装目录
-            const { stdout } = await exec(
+            const { stdout } = await execAsync(
               `reg query "HKCU\\SOFTWARE\\JetBrains\\Toolbox" /v "InstallDir"`
             )
             const match = stdout.match(/InstallDir\s+REG_SZ\s+(.+)/i)
@@ -894,7 +895,7 @@ chcp 65001>nul
             const appsPath = `${toolboxPath}\\apps\\${ideName}\\ch-0`
 
             // 获取最新版本目录（按修改时间倒序）
-            const { stdout: dirs } = await exec(`dir "${appsPath}" /AD /B /O-N`)
+            const { stdout: dirs } = await execAsync(`dir "${appsPath}" /AD /B /O-N`)
             const latestVersionDir = dirs.split('\r\n')[0].trim()
             if (!latestVersionDir) return null
 
@@ -942,7 +943,7 @@ chcp 65001>nul
               return false
             }
 
-            await exec(`"${idePath}" "${folderPath}"`)
+            await execAsync(`"${idePath}" "${folderPath}"`)
             console.log(`Opened ${folderPath} with ${ideName}`)
             return true
           } catch (error) {
@@ -961,7 +962,9 @@ chcp 65001>nul
         const getHBuilderXPath = async (): Promise<string | null> => {
           try {
             // 查询注册表
-            const { stdout } = await exec(`reg query "HKCR\\hbuilderx\\shell\\open\\command" /ve`)
+            const { stdout } = await execAsync(
+              `reg query "HKCR\\hbuilderx\\shell\\open\\command" /ve`
+            )
 
             // 提取路径（示例输出: "(Default) REG_SZ "D:\Program Files\HBuilderX\HBuilderX.exe" "%1""）
             const match = stdout.match(/"(.*?HBuilderX\.exe)"/i)
@@ -969,7 +972,7 @@ chcp 65001>nul
               return match[1] // 返回可执行文件完整路径
             }
             return null
-          } catch (error) {
+          } catch {
             return null
           }
         }
@@ -979,9 +982,9 @@ chcp 65001>nul
             if (!hbuilderxPath) {
               return false
             }
-            await exec(`"${hbuilderxPath}" "${targetPath}"`)
+            await execAsync(`"${hbuilderxPath}" "${targetPath}"`)
             return true
-          } catch (error) {
+          } catch {
             return false
           }
         }
@@ -1002,7 +1005,7 @@ chcp 65001>nul
         command = `start pwsh.exe -NoExit -Command "${command}"`
       }
       try {
-        await exec(command)
+        await execAsync(command)
       } catch (e) {
         return reject(e)
       }
@@ -1012,7 +1015,7 @@ chcp 65001>nul
 
   initAllowDir(json: string) {
     return new ForkPromise(async (resolve) => {
-      const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
+      const jsonFile = join(dirname(window.Server.AppDir!), 'bin/.flyenv.dir')
       await mkdirp(dirname(jsonFile))
       await writeFile(jsonFile, json)
       resolve(true)
@@ -1021,7 +1024,7 @@ chcp 65001>nul
 
   envAllowDirUpdate(dir: string, action: 'add' | 'del') {
     return new ForkPromise(async (resolve) => {
-      const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
+      const jsonFile = join(dirname(window.Server.AppDir!), 'bin/.flyenv.dir')
       let json: string[] = []
       if (existsSync(jsonFile)) {
         try {
@@ -1051,14 +1054,14 @@ chcp 65001>nul
         { name: 'PowerShell 7+', exe: 'pwsh.exe', profileType: 'CurrentUserAllHosts' }
       ]
 
-      const flyenvScriptPath = join(dirname(global.Server.AppDir!), 'bin/flyenv.ps1')
+      const flyenvScriptPath = join(dirname(window.Server.AppDir!), 'bin/flyenv.ps1')
       await mkdirp(dirname(flyenvScriptPath))
-      await copyFile(join(global.Server.Static!, 'sh/fly-env.ps1'), flyenvScriptPath)
+      await copyFile(join(window.Server.Static!, 'sh/fly-env.ps1'), flyenvScriptPath)
 
       for (const version of psVersions) {
         try {
           const profilePath = (
-            await exec(`$PROFILE.${version.profileType}`, { shell: version.exe })
+            await execAsync(`$PROFILE.${version.profileType}`, { shell: version.exe })
           ).stdout.trim()
 
           if (!profilePath || profilePath === '') continue
@@ -1083,7 +1086,7 @@ chcp 65001>nul
         }
       }
       try {
-        await exec(
+        await execAsync(
           `if ((Get-ExecutionPolicy -Scope CurrentUser) -eq 'Restricted') {
   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 }`,

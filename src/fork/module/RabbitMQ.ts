@@ -12,10 +12,14 @@ import {
   versionFixed,
   versionLocalFetch,
   versionSort,
-  waitTime
+  waitTime,
+  mkdirp,
+  readdir,
+  readFile,
+  remove,
+  writeFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { ProcessListSearch } from '../Process'
 
@@ -28,7 +32,7 @@ class RabbitMQ extends Base {
   }
 
   init() {
-    this.baseDir = join(global.Server.BaseDir!, 'rabbitmq')
+    this.baseDir = join(window.Server.BaseDir!, 'rabbitmq')
     this.pidPath = join(this.baseDir, 'rabbitmq.pid')
   }
 
@@ -193,19 +197,19 @@ set "PLUGINS_DIR=${pluginsDir}"`
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('rabbitmq')
         all.forEach((a: any) => {
           const dir = join(
-            global.Server.AppDir!,
+            window.Server.AppDir!,
             `rabbitmq-${a.version}`,
             'sbin/rabbitmq-server.bat'
           )
-          const zip = join(global.Server.Cache!, `rabbitmq-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `rabbitmq-${a.version}`)
+          const zip = join(window.Server.Cache!, `rabbitmq-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `rabbitmq-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })

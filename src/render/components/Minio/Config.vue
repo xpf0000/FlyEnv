@@ -19,11 +19,11 @@
   import IPC from '@/util/IPC'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
-  import { uuid } from '@shared/utils'
+  import { debounce } from 'lodash-es'
+  import { uuid } from '@/util/Index'
 
-  const { join } = require('path')
-  const { existsSync } = require('fs-extra')
+  import { join } from 'path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const conf = ref()
@@ -32,7 +32,7 @@
     if (index.value < 0) {
       return ''
     }
-    return join(global.Server.BaseDir, 'minio/minio.conf')
+    return join(window.Server.BaseDir, 'minio/minio.conf')
   })
 
   const names: CommonSetItem[] = [
@@ -374,7 +374,7 @@
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names].map((item) => {
       const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       const matchs =
@@ -416,11 +416,13 @@
     }
   }
 
-  if (!existsSync(file.value)) {
-    IPC.send('app-fork:minio', 'initConfig').then((key: string) => {
-      IPC.off(key)
-      index.value += 1
-      conf?.value?.update()
-    })
-  }
+  fs.existsSync(file.value).then((e) => {
+    if (!e) {
+      IPC.send('app-fork:minio', 'initConfig').then((key: string) => {
+        IPC.off(key)
+        index.value += 1
+        conf?.value?.update()
+      })
+    }
+  })
 </script>

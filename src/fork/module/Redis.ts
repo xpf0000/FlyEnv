@@ -11,10 +11,14 @@ import {
   versionFixed,
   versionInitedApp,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  chmod,
+  copyFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, copyFile } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { ProcessListSearch } from '../Process'
 import { I18nT } from '@lang/index'
@@ -26,7 +30,7 @@ class Redis extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.RedisDir!, 'redis.pid')
+    this.pidPath = join(window.Server.RedisDir!, 'redis.pid')
   }
 
   initConf(version: SoftInstalled) {
@@ -37,25 +41,25 @@ class Redis extends Base {
   _initConf(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, on) => {
       const v = version?.version?.split('.')?.[0] ?? ''
-      const confFile = join(global.Server.RedisDir!, `redis-${v}.conf`)
+      const confFile = join(window.Server.RedisDir!, `redis-${v}.conf`)
       if (!existsSync(confFile)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
         })
-        const tmplFile = join(global.Server.Static!, 'tmpl/redis.conf')
-        const dbDir = join(global.Server.RedisDir!, `db-${v}`)
+        const tmplFile = join(window.Server.Static!, 'tmpl/redis.conf')
+        const dbDir = join(window.Server.RedisDir!, `db-${v}`)
         await mkdirp(dbDir)
         chmod(dbDir, '0755')
         let content = await readFile(tmplFile, 'utf-8')
         content = content
-          .replace(/#PID_PATH#/g, join(global.Server.RedisDir!, 'redis.pid').split('\\').join('/'))
+          .replace(/#PID_PATH#/g, join(window.Server.RedisDir!, 'redis.pid').split('\\').join('/'))
           .replace(
             /#LOG_PATH#/g,
-            join(global.Server.RedisDir!, `redis-${v}.log`).split('\\').join('/')
+            join(window.Server.RedisDir!, `redis-${v}.log`).split('\\').join('/')
           )
           .replace(/#DB_PATH#/g, dbDir.split('\\').join('/'))
         await writeFile(confFile, content)
-        const defaultFile = join(global.Server.RedisDir!, `redis-${v}-default.conf`)
+        const defaultFile = join(window.Server.RedisDir!, `redis-${v}-default.conf`)
         await writeFile(defaultFile, content)
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: confFile }))
@@ -108,7 +112,7 @@ class Redis extends Base {
       const bin = version.bin
 
       const confName = `redis-${v}.conf`
-      const conf = join(global.Server.RedisDir!, confName)
+      const conf = join(window.Server.RedisDir!, confName)
       const appConfName = `pws-app-redis-${v}.conf`
       const runConf = join(dirname(bin), appConfName)
       await copyFile(conf, runConf)
@@ -119,7 +123,7 @@ class Redis extends Base {
         const res = await serviceStartExecCMD(
           version,
           this.pidPath,
-          global.Server.RedisDir!,
+          window.Server.RedisDir!,
           bin,
           execArgs,
           '',
@@ -140,20 +144,20 @@ class Redis extends Base {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('redis')
         all.forEach((a: any) => {
           const dir = join(
-            global.Server.AppDir!,
+            window.Server.AppDir!,
             `redis-${a.version}`,
             `Redis-${a.version}-Windows-x64-msys2`,
             'redis-server.exe'
           )
-          const zip = join(global.Server.Cache!, `redis-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `redis-${a.version}`)
+          const zip = join(window.Server.Cache!, `redis-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `redis-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })

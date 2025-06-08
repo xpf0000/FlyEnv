@@ -16,7 +16,7 @@
   import { BrewStore } from '@/store/brew'
   import { TomcatSetup } from '@/components/Tomcat/setup'
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const props = defineProps<{
     fileName: string
@@ -41,7 +41,7 @@
         baseDir = TomcatSetup.CATALINA_BASE[currentVersion.value.bin]
       } else {
         const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-        baseDir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+        baseDir = join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
       }
     } else {
       return ''
@@ -62,7 +62,7 @@
         baseDir = TomcatSetup.CATALINA_BASE[currentVersion.value.bin]
       } else {
         const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-        baseDir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+        baseDir = join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
       }
     } else {
       return ''

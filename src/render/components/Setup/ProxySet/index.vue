@@ -56,7 +56,8 @@
   import { defineComponent } from 'vue'
   import { AppStore } from '@/store/app'
   import { MessageSuccess } from '@/util/Element'
-  const { clipboard } = require('@electron/remote')
+  import { clipboard } from '@/util/NodeFn'
+
   export default defineComponent({
     components: {},
     props: {},
@@ -98,9 +99,9 @@
               const dict = s.split('=')
               proxyDict[dict[0]] = dict[1]
             })
-          global.Server.Proxy = proxyDict
+          window.Server.Proxy = proxyDict
         } else {
-          delete global.Server.Proxy
+          delete window.Server.Proxy
         }
       },
       fastSet() {

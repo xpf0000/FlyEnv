@@ -49,13 +49,11 @@
 
 <script lang="ts" setup>
   import { ref, computed } from 'vue'
-  import { SoftInstalled } from '@/store/brew'
+  import type { SoftInstalled } from '@shared/app'
   import { I18nT } from '@lang/index'
   import { PHPSetup } from '@/components/PHP/store'
-
-  const { shell } = require('@electron/remote')
-  const { existsSync } = require('fs-extra')
-  const { join } = require('path')
+  import { fs, shell } from '@/util/NodeFn'
+  import { join } from 'path-browserify'
 
   const props = defineProps<{
     version: SoftInstalled
@@ -106,8 +104,10 @@
       return
     }
     const dll = join(installExtensionDir?.value, `${item.name}.dll`)
-    if (existsSync(dll)) {
-      shell.showItemInFolder(dll)
-    }
+    fs.existsSync(dll).then((exists) => {
+      if (exists) {
+        shell.showItemInFolder(dll)
+      }
+    })
   }
 </script>

@@ -1,7 +1,7 @@
 <template>
   <div class="main-wapper">
     <div v-show="type === 'default'" ref="input" class="block"></div>
-    <template v-if="showCommond">
+    <template v-if="showCommond && commonSetting">
       <el-scrollbar v-if="type === 'common'" class="p-2">
         <Common :setting="commonSetting" />
       </el-scrollbar>
@@ -67,7 +67,7 @@
     fileExt: string
     typeFlag: AllAppModule
     showCommond: boolean
-    commonSetting: CommonSetItem[]
+    commonSetting?: CommonSetItem[]
   }>()
 
   const emit = defineEmits(['onTypeChange'])
@@ -86,7 +86,6 @@
   const {
     changed,
     update,
-    config,
     input,
     type,
     disabled,

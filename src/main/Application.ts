@@ -6,10 +6,9 @@ import WindowManager from './ui/WindowManager'
 import { join, resolve } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
-import { getLanguage } from './utils'
+import { getLanguage, mkdirp } from './utils'
 import { AppAllLang, AppI18n } from '@lang/index'
-import type { StaticHttpServe, PtyItem } from './type'
-import type { ServerResponse } from 'http'
+import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromise } from '../fork/Fn'
@@ -18,15 +17,15 @@ import UpdateManager from './core/UpdateManager'
 import { PItem, ProcessPidList, ProcessPidListByPids } from '../fork/Process'
 import NodePTY from './core/NodePTY'
 import ScreenManager from './core/ScreenManager'
+import HttpServer from './core/HttpServer'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+import AppNodeFnManager, { type AppNodeFn } from './core/AppNodeFn'
 
-const { createFolder } = require('../shared/file')
-const ServeHandler = require('serve-handler')
-const Http = require('http')
-const IP = require('ip')
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default class Application extends EventEmitter {
   isReady: boolean
-  httpServes: { [k: string]: StaticHttpServe }
   configManager: ConfigManager
   trayManager: TrayManager
   windowManager: WindowManager
@@ -44,9 +43,10 @@ export default class Application extends EventEmitter {
       Local: `${app.getLocale()}.UTF-8`
     }
     this.isReady = false
-    this.httpServes = {}
     this.configManager = new ConfigManager()
+    AppNodeFnManager.configManager = this.configManager
     this.initLang()
+    this.initServerDir()
     this.windowManager = new WindowManager({
       configManager: this.configManager
     })
@@ -55,7 +55,6 @@ export default class Application extends EventEmitter {
     this.trayManager = new TrayManager()
     this.initTrayManager()
     this.initUpdaterManager()
-    this.initServerDir()
     this.handleCommands()
     this.handleIpcMessages()
     this.initForkManager()
@@ -87,7 +86,7 @@ export default class Application extends EventEmitter {
     if (lang) {
       this.configManager.setConfig('setup.lang', lang)
       AppI18n(lang)
-      global.Server.Lang = lang
+      window.Server.Lang = lang
     }
   }
 
@@ -118,33 +117,33 @@ export default class Application extends EventEmitter {
     }
     console.log('userData: ', runpath)
     this.setProxy()
-    global.Server.UserHome = app.getPath('home')
-    console.log('global.Server.UserHome: ', global.Server.UserHome)
-    global.Server.BaseDir = join(runpath, 'server')
-    global.Server.AppDir = join(runpath, 'app')
-    createFolder(global.Server.BaseDir)
-    createFolder(global.Server.AppDir)
-    global.Server.NginxDir = join(runpath, 'server/nginx')
-    global.Server.PhpDir = join(runpath, 'server/php')
-    global.Server.MysqlDir = join(runpath, 'server/mysql')
-    global.Server.MariaDBDir = join(runpath, 'server/mariadb')
-    global.Server.ApacheDir = join(runpath, 'server/apache')
-    global.Server.MemcachedDir = join(runpath, 'server/memcached')
-    global.Server.RedisDir = join(runpath, 'server/redis')
-    global.Server.MongoDBDir = join(runpath, 'server/mongodb')
-    global.Server.FTPDir = join(runpath, 'server/ftp')
-    global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
-    createFolder(global.Server.NginxDir)
-    createFolder(global.Server.PhpDir)
-    createFolder(global.Server.MysqlDir)
-    createFolder(global.Server.MariaDBDir)
-    createFolder(global.Server.ApacheDir)
-    createFolder(global.Server.MemcachedDir)
-    createFolder(global.Server.RedisDir)
-    createFolder(global.Server.MongoDBDir)
-    global.Server.Cache = join(runpath, 'server/cache')
-    createFolder(global.Server.Cache)
-    global.Server.Static = __static
+    window.Server.UserHome = app.getPath('home')
+    console.log('window.Server.UserHome: ', window.Server.UserHome)
+    window.Server.BaseDir = join(runpath, 'server')
+    window.Server.AppDir = join(runpath, 'app')
+    mkdirp(window.Server.BaseDir).then().catch()
+    mkdirp(window.Server.AppDir).then().catch()
+    window.Server.NginxDir = join(runpath, 'server/nginx')
+    window.Server.PhpDir = join(runpath, 'server/php')
+    window.Server.MysqlDir = join(runpath, 'server/mysql')
+    window.Server.MariaDBDir = join(runpath, 'server/mariadb')
+    window.Server.ApacheDir = join(runpath, 'server/apache')
+    window.Server.MemcachedDir = join(runpath, 'server/memcached')
+    window.Server.RedisDir = join(runpath, 'server/redis')
+    window.Server.MongoDBDir = join(runpath, 'server/mongodb')
+    window.Server.FTPDir = join(runpath, 'server/ftp')
+    window.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
+    mkdirp(window.Server.NginxDir).then().catch()
+    mkdirp(window.Server.PhpDir).then().catch()
+    mkdirp(window.Server.MysqlDir).then().catch()
+    mkdirp(window.Server.MariaDBDir).then().catch()
+    mkdirp(window.Server.ApacheDir).then().catch()
+    mkdirp(window.Server.MemcachedDir).then().catch()
+    mkdirp(window.Server.RedisDir).then().catch()
+    mkdirp(window.Server.MongoDBDir).then().catch()
+    window.Server.Cache = join(runpath, 'server/cache')
+    mkdirp(window.Server.Cache).then().catch()
+    window.Server.Static = __static
   }
 
   initWindowManager() {
@@ -212,7 +211,7 @@ export default class Application extends EventEmitter {
     try {
       ScreenManager.destroy()
       SiteSuckerManager.destory()
-      this.forkManager?.destory()
+      this.forkManager?.destroy()
       this.trayManager?.destroy()
       await this.stopServer()
     } catch (e) {
@@ -426,9 +425,9 @@ export default class Application extends EventEmitter {
           const dict = s.split('=')
           proxyDict[dict[0]] = dict[1]
         })
-      global.Server.Proxy = proxyDict
+      window.Server.Proxy = proxyDict
     } else {
-      delete global.Server.Proxy
+      delete window.Server.Proxy
     }
   }
 
@@ -495,11 +494,11 @@ export default class Application extends EventEmitter {
       }
 
       this.setProxy()
-      global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
-      global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
-      global.Server.Licenses = this.configManager?.getConfig('setup.license')
-      if (!Object.keys(AppAllLang).includes(global.Server.Lang!)) {
-        global.Server.LangCustomer = this.customerLang[global.Server.Lang!]
+      window.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
+      window.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
+      window.Server.Licenses = this.configManager?.getConfig('setup.license')
+      if (!Object.keys(AppAllLang).includes(window.Server.Lang!)) {
+        window.Server.LangCustomer = this.customerLang[window.Server.Lang!]
       }
       this.forkManager
         ?.send(module, ...args)
@@ -508,6 +507,20 @@ export default class Application extends EventEmitter {
       return
     }
     switch (command) {
+      case 'App-Node-FN':
+        {
+          const namespace: string = args.shift()
+          const method: string = args.shift()
+          const fn: keyof AppNodeFn = `${namespace}_${method}` as any
+          console.log('App-Node-FN: ', fn)
+          try {
+            if (typeof AppNodeFnManager[fn] === 'function') {
+              const nodeFn = AppNodeFnManager[fn] as any
+              nodeFn.call(AppNodeFnManager, command, key, ...args)
+            }
+          } catch {}
+        }
+        break
       case 'Application:APP-Minimize':
         this.windowManager?.getFocusedWindow()?.minimize()
         break
@@ -548,55 +561,16 @@ export default class Application extends EventEmitter {
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)
         break
       case 'app-http-serve-run':
-        if (args && Array.isArray(args) && args.length > 0) {
-          const path = args[0]
-          const httpServe = this.httpServes[path]
-          if (httpServe) {
-            httpServe.server.close()
-            delete this.httpServes[path]
-          }
-          const server = Http.createServer((request: Request, response: ServerResponse) => {
-            response.setHeader('Access-Control-Allow-Origin', '*')
-            response.setHeader('Access-Control-Allow-Headers', '*')
-            response.setHeader('Access-Control-Allow-Methods', '*')
-            return ServeHandler(request, response, {
-              public: path
-            })
-          })
-          server.listen(0, () => {
-            console.log('server.address(): ', server.address())
-            const port = server.address().port
-            const host = [`http://localhost:${port}/`]
-            const ip = IP.address()
-            if (ip && typeof ip === 'string' && ip.includes('.')) {
-              host.push(`http://${ip}:${port}/`)
-            }
-            this.httpServes[path] = {
-              server,
-              port,
-              host
-            }
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-              path,
-              port,
-              host
-            })
-          })
-        }
+        HttpServer.start(args[0]).then((res) => {
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, res)
+        })
         break
       case 'app-http-serve-stop':
-        if (args && Array.isArray(args) && args.length > 0) {
-          const path1 = args[0]
-          const httpServe1 = this.httpServes[path1]
-          console.log('httpServe1: ', httpServe1)
-          if (httpServe1) {
-            httpServe1.server.close()
-            delete this.httpServes[path1]
-          }
+        HttpServer.stop(args[0]).then((res) => {
           this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-            path: path1
+            path: res
           })
-        }
+        })
         break
       case 'NodePty:init':
         NodePTY.initNodePty().then((res) => {
@@ -631,8 +605,10 @@ export default class Application extends EventEmitter {
         this?.mainWindow?.hide()
         break
       case 'app-sitesucker-setup':
-        const setup = this.configManager.getConfig('tools.siteSucker')
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, setup)
+        {
+          const setup = this.configManager.getConfig('tools.siteSucker')
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, setup)
+        }
         return
       case 'app-sitesucker-setup-save':
         if (args && Array.isArray(args) && args.length > 0) {
@@ -642,10 +618,12 @@ export default class Application extends EventEmitter {
         }
         return
       case 'app-customer-lang-update':
-        const langKey = args[0]
-        const langValue = args[1]
-        this.customerLang[langKey] = langValue
-        AppI18n().global.setLocaleMessage(langKey, langValue)
+        {
+          const langKey = args[0]
+          const langValue = args[1]
+          this.customerLang[langKey] = langValue
+          AppI18n().global.setLocaleMessage(langKey, langValue)
+        }
         return
     }
   }

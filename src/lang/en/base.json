@@ -101,5 +101,8 @@
   "noHide": "Unhide",
   "placeholderSearch": "Search",
   "projects": "Project",
-  "default": "Default"
+  "default": "Default",
+
+  "areYouSure": "Are you sure?",
+  "action": "Action"
 }

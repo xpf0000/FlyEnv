@@ -115,15 +115,13 @@
   import { Setup } from './setup'
   import { reactive } from 'vue'
   import { ArrayMoveItem } from '@shared/utils'
-
-  const { shell, clipboard } = require('@electron/remote')
-  const { existsSync } = require('fs-extra')
-  const { isAbsolute } = require('path')
+  import { shell, clipboard, fs } from '@/util/NodeFn'
+  import { isAbsolute } from 'path-browserify'
 
   Setup.fetchList()
 
-  const pathClick = (p: string) => {
-    if (isAbsolute(p) && existsSync(p)) {
+  const pathClick = async (p: string) => {
+    if (isAbsolute(p) && (await fs.existsSync(p))) {
       shell.openPath(p)
       return
     }

@@ -8,9 +8,7 @@ import { AllAppModule } from '@/core/type'
 import { HostStore } from '@/components/Host/store'
 import { AppServiceAliasItem } from '@shared/app'
 
-const { shell } = require('@electron/remote')
-const { getGlobal } = require('@electron/remote')
-const application = getGlobal('application')
+import { shell, app } from '@/util/NodeFn'
 
 export interface AppHost {
   id: number
@@ -58,7 +56,7 @@ export interface AppServerCurrent {
   isLocal7Z?: boolean
 }
 
-type AppShowItem = Partial<Record<AllAppModule, boolean>>
+type AppShowItem = Partial<Record<AllAppModule | string, boolean>>
 
 type ServerBase = Partial<
   Record<
@@ -246,8 +244,8 @@ export const AppStore = defineStore('app', {
       })
     },
     initConfig() {
-      return new Promise((resolve) => {
-        const config = application.configManager.getConfig()
+      return new Promise(async (resolve) => {
+        const config = await app.getConfig()
         const showItem = config.setup.common.showItem
         console.log('initConfig showItem: ', JSON.parse(JSON.stringify(showItem)))
         const fixed: { [key: string]: boolean } = {}

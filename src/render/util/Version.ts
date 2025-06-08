@@ -1,8 +1,6 @@
 import Base from '@/core/Base'
 import { I18nT } from '@lang/index'
-
-const { shell } = require('@electron/remote')
-const { existsSync } = require('fs')
+import { shell } from '@/util/NodeFn'
 
 export const staticVersionDel = (dir: string) => {
   Base._Confirm(I18nT('service.staticDelAlert'), undefined, {
@@ -10,9 +8,7 @@ export const staticVersionDel = (dir: string) => {
     type: 'warning'
   })
     .then(() => {
-      if (existsSync(dir)) {
-        shell.showItemInFolder(dir)
-      }
+      shell.showItemInFolder(dir)
     })
     .catch(() => {})
 }

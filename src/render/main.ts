@@ -1,6 +1,6 @@
 import { VueExtend } from './core/VueExtend'
 import App from './App.vue'
-import '@/components/Theme/Index.scss'
+import './index.scss'
 import IPC from '@/util/IPC'
 import { AppI18n } from '@lang/index'
 import { AppStore } from '@/store/app'
@@ -13,14 +13,13 @@ import { ThemeInit } from '@/util/Theme'
 import { AppToolStore } from '@/components/Tools/store'
 import { SetupStore } from '@/components/Setup/store'
 import { AppLogStore } from '@/components/AppLog/store'
-import { loadCustomerLang } from '@lang/loader'
 import { AppCustomerModule } from '@/core/Module'
+import { lang } from '@/util/NodeFn'
 
-const { getGlobal } = require('@electron/remote')
-global.Server = getGlobal('Server')
+window.Server = {} as any
 
 const app = VueExtend(App)
-loadCustomerLang().then().catch()
+lang.loadCustomerLang().then().catch()
 
 let inited = false
 IPC.on('APP-Ready-To-Show').then(() => {

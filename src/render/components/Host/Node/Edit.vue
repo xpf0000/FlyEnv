@@ -166,14 +166,12 @@
   import { AppHost, AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import { BrewStore } from '@/store/brew'
   import { Service } from '@/components/ServiceManager/service'
   import installedVersions from '@/util/InstalledVersions'
-
-  const { dialog } = require('@electron/remote')
-  const { existsSync, readFile } = require('fs-extra')
-  const { dirname, join } = require('path')
+  import { dirname, join } from 'path-browserify'
+  import { dialog, fs } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -239,14 +237,14 @@
   watch(
     () => item.value.bin,
     async (v) => {
-      if (!v || !existsSync(v)) {
+      if (!v || !(await fs.existsSync(v))) {
         return
       }
       const packageJson = join(dirname(v), 'package.json')
-      if (!existsSync(packageJson)) {
+      if (!(await fs.existsSync(packageJson))) {
         return
       }
-      let json: any = await readFile(packageJson, 'utf-8')
+      let json: any = await fs.readFile(packageJson, 'utf-8')
       try {
         json = JSON.parse(json)
         scripts.value = json?.scripts ?? {}
@@ -259,7 +257,7 @@
     (v) => {
       const dict: any = scripts?.value
       if (dict?.[v]) {
-        item.value.startCommand === `${item.value.nodeDir} ${dict[v]}`
+        item.value.startCommand = `${item.value.nodeDir} ${dict[v]}`
       }
     }
   )
@@ -284,7 +282,7 @@
       if (!name) {
         return
       }
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === name && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
@@ -337,7 +335,7 @@
     errs.value['nodeDir'] = item.value.nodeDir.length === 0
     errs.value['root'] = item.value.root.length === 0
     if (item.value.projectName) {
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === item.value.projectName && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break

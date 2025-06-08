@@ -1,8 +1,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { type SoftInstalled } from '@/store/brew'
-
-const { join } = require('path')
-const { exec } = require('child-process-promise')
+import { type SoftInstalled } from '@shared//app'
+import { join } from 'path-browserify'
+import { exec } from '@/util/NodeFn'
 
 export const LoadedSetup = reactive<{
   list: { [k: string]: any }
@@ -28,11 +27,12 @@ export const Setup = (version: SoftInstalled) => {
     LoadedSetup.fetching[version.bin] = true
     const bin = join(version?.path, 'php.exe')
     console.log('macport bin: ', bin)
-    exec('php.exe -m', {
-      cwd: version?.path
-    })
-      .then((res: any) => {
-        let phpModules = res.stdout.split(`[PHP Modules]\n`).pop()!.trim()!
+    exec
+      .exec('php.exe -m', {
+        cwd: version?.path
+      })
+      .then((res: string) => {
+        let phpModules = res.split(`[PHP Modules]\n`).pop()!.trim()!
         const arr = phpModules.split(`[Zend Modules]`)
         phpModules = arr.shift()!.trim()
         const zendModules = arr.pop()?.trim() ?? ''

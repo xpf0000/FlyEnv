@@ -4,8 +4,7 @@ import type { AllAppModule } from '@/core/type'
 import installedVersions from '@/util/InstalledVersions'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import { AppStore } from '@/store/app'
-
-const { shell } = require('@electron/remote')
+import { shell } from '@/util/NodeFn'
 
 export const LocalSetup = reactive<{
   fetching: Partial<Record<AllAppModule, boolean>>

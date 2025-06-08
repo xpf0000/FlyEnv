@@ -53,7 +53,7 @@ class Host extends Base {
       }
 
       let isLock = false
-      if (!global.Server.Licenses) {
+      if (!window.Server.Licenses) {
         isLock = hostList.length > 2
       } else {
         const getRSAKey = () => {
@@ -79,7 +79,7 @@ class Host extends Base {
         const uuid = await machineId()
         const uid = publicDecrypt(
           getRSAKey(),
-          Buffer.from(global.Server.Licenses!, 'base64') as any
+          Buffer.from(window.Server.Licenses!, 'base64') as any
         ).toString('utf-8')
         isLock = uid !== uuid
       }
@@ -185,9 +185,9 @@ class Host extends Base {
           break
         case 'edit':
           if (isMakeConf()) {
-            const nginxConfPath = join(global.Server.BaseDir!, 'vhost/nginx/', `${old?.name}.conf`)
+            const nginxConfPath = join(window.Server.BaseDir!, 'vhost/nginx/', `${old?.name}.conf`)
             const apacheConfPath = join(
-              global.Server.BaseDir!,
+              window.Server.BaseDir!,
               'vhost/apache/',
               `${old?.name}.conf`
             )
@@ -219,11 +219,11 @@ class Host extends Base {
 
   _delVhost(host: AppHost) {
     return new ForkPromise(async (resolve) => {
-      const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
-      const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
-      const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
-      const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
-      const logpath = join(global.Server.BaseDir!, 'vhost/logs')
+      const nginxvpath = join(window.Server.BaseDir!, 'vhost/nginx')
+      const apachevpath = join(window.Server.BaseDir!, 'vhost/apache')
+      const rewritepath = join(window.Server.BaseDir!, 'vhost/rewrite')
+      const caddyvpath = join(window.Server.BaseDir!, 'vhost/caddy')
+      const logpath = join(window.Server.BaseDir!, 'vhost/logs')
       const hostname = host.name
       const nvhost = join(nginxvpath, `${hostname}.conf`)
       const avhost = join(apachevpath, `${hostname}.conf`)
@@ -234,7 +234,7 @@ class Host extends Base {
       const accesslogap = join(logpath, `${hostname}-access_log`)
       const errorlogap = join(logpath, `${hostname}-error_log`)
       const caddylog = join(logpath, `${hostname}.caddy.log`)
-      const autoCA = join(global.Server.BaseDir!, `CA/${host.id}`)
+      const autoCA = join(window.Server.BaseDir!, `CA/${host.id}`)
       const arr = [
         nvhost,
         avhost,
@@ -310,7 +310,7 @@ class Host extends Base {
           }
         }
       })
-      await writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
+      await writeFile(join(window.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
       if (!writeToSystem) {
         resolve(true)
         return
@@ -372,7 +372,7 @@ class Host extends Base {
           hosts = await readFile(this.hostsFile, 'utf-8')
         } catch (e) {
           await appendFile(
-            join(global.Server.BaseDir!, 'debug.log'),
+            join(window.Server.BaseDir!, 'debug.log'),
             `[Host][writeHosts][readFile]: ${e}\n`
           )
           hasErr = true

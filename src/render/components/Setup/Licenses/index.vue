@@ -15,14 +15,14 @@
         <p>
           {{ I18nT('licenses.howToObtain.methods.0.description') }}
           <el-button type="primary" link @click.stop="toUrl('https://flyenv.com/sponsor.html')"
-          >https://flyenv.com/sponsor.html</el-button
+            >https://flyenv.com/sponsor.html</el-button
           >
         </p>
         <p>2. {{ I18nT('licenses.howToObtain.methods.1.title') }} </p>
         <p>
           {{ I18nT('licenses.howToObtain.methods.1.description') }}
           <el-button type="primary" link @click.stop="toUrl('https://github.com/xpf0000/FlyEnv')"
-          >https://github.com/xpf0000/FlyEnv</el-button
+            >https://github.com/xpf0000/FlyEnv</el-button
           ></p
         >
         <p> 3. {{ I18nT('licenses.howToObtain.methods.2.title') }} </p>
@@ -51,11 +51,11 @@
             :disabled="store.fetching || !store.message.trim()"
             type="primary"
             @click.stop="doRequest"
-          >{{ I18nT('licenses.requestButton') }}</el-button
+            >{{ I18nT('licenses.requestButton') }}</el-button
           >
           <el-button :loading="store.fetching" :disabled="store.fetching" @click.stop="doRefresh">{{
-              I18nT('licenses.refreshButton')
-            }}</el-button>
+            I18nT('licenses.refreshButton')
+          }}</el-button>
         </div>
       </div>
       <div v-else class="h-full min-h-[80vh] flex items-center justify-center">
@@ -65,20 +65,19 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { SetupStore } from '@/components/Setup/store'
-import { I18nT } from '@lang/index'
+  import { SetupStore } from '@/components/Setup/store'
+  import { I18nT } from '@lang/index'
+  import { shell } from '@/util/NodeFn'
 
-const { shell } = require('@electron/remote')
+  const store = SetupStore()
 
-const store = SetupStore()
-
-const toUrl = (url: string) => {
-  shell.openExternal(url)
-}
-const doRequest = () => {
-  store.postRequest()
-}
-const doRefresh = () => {
-  store.refreshState()
-}
+  const toUrl = (url: string) => {
+    shell.openExternal(url)
+  }
+  const doRequest = () => {
+    store.postRequest()
+  }
+  const doRefresh = () => {
+    store.refreshState()
+  }
 </script>

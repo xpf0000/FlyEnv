@@ -19,10 +19,10 @@ import {
   tomlToJson,
   xmlToJson,
   yamlToJson
-} from '@shared/transform'
-import { JSONSort } from '@shared/JsonSort'
+} from '@/util/transform'
+import { JSONSort } from '@/util/JsonSort'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-import { FormatHtml, FormatPHP, FormatTS, FormatYaml } from '@shared/FormatCode'
+import { FormatHtml, FormatPHP, FormatTS, FormatYaml } from '@/util/FormatCode'
 import { I18nT } from '@lang/index'
 
 export class JSONStoreTab {
@@ -131,7 +131,7 @@ export class JSONStoreTab {
       editor.setModelLanguage(model, 'typescript')
       value = jsonToTs(json)
       FormatTS(value)
-        .then((ts) => {
+        .then((ts: string) => {
           this.editor().setValue(ts)
         })
         .catch(() => {
@@ -185,7 +185,7 @@ export class JSONStoreTab {
     try {
       const u = new URL(this.value)
       const obj: any = {}
-      Object.entries(Object.fromEntries(u?.searchParams.entries() ?? [])).forEach(([k, v]) => {
+      Object.entries(Object.fromEntries(u?.searchParams?.entries() ?? [])).forEach(([k, v]) => {
         console.log('k: ', k, v)
         obj[k] = v
       })
@@ -201,7 +201,7 @@ export class JSONStoreTab {
       }
       console.log('this.json: ', this.json)
       type = 'JSON'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }
@@ -215,7 +215,7 @@ export class JSONStoreTab {
     try {
       this.json = javascriptToJson(this.value)
       type = 'JSON'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }
@@ -229,7 +229,7 @@ export class JSONStoreTab {
     try {
       this.json = phpToJson(this.value)
       type = 'PHP'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }
@@ -243,8 +243,7 @@ export class JSONStoreTab {
     try {
       this.json = plistToJson(this.value)
       type = 'PList'
-    } catch (e) {
-      console.log('e 222: ', e)
+    } catch {
       this.json = null
       type = ''
     }
@@ -258,7 +257,7 @@ export class JSONStoreTab {
     try {
       this.json = xmlToJson(this.value)
       type = 'XML'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }
@@ -272,7 +271,7 @@ export class JSONStoreTab {
     try {
       this.json = yamlToJson(this.value)
       type = 'YAML'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }
@@ -286,7 +285,7 @@ export class JSONStoreTab {
     try {
       this.json = tomlToJson(this.value)
       type = 'TOML'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }

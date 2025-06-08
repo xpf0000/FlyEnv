@@ -64,7 +64,7 @@
           </template>
         </template>
       </el-table-column>
-      <el-table-column :label="I18nT('base.action')" :prop="null" width="100px" align="center">
+      <el-table-column :label="I18nT('base.operation')" :prop="null" width="100px" align="center">
         <template #default="scope">
           <el-popover
             ref="popper"
@@ -187,7 +187,7 @@
         })
         break
       case 'del':
-        Base._Confirm(I18nT('base.areYouSure'), undefined, {
+        Base._Confirm(I18nT('base.delAlertContent'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })

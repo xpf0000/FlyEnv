@@ -19,8 +19,7 @@
   import { NVMSetup, Setup } from './setup'
   import { type Column, ElButton, ElInput, ElTooltip } from 'element-plus'
   import { MessageSuccess } from '@/util/Element'
-
-  const { clipboard } = require('@electron/remote')
+  import { clipboard } from '@/util/NodeFn'
 
   const { versionChange, installOrUninstall, tableData } = Setup()
 

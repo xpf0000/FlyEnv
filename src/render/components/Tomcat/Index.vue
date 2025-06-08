@@ -50,9 +50,8 @@
   import { chooseFolder } from '@/util/File'
   import { TomcatSetup } from '@/components/Tomcat/setup'
   import { Edit } from '@element-plus/icons-vue'
-
-  const { join } = require('path')
-  const { shell } = require('@electron/remote')
+  import { shell } from '@/util/NodeFn'
+  import { join } from 'path-browserify'
 
   const { tab, checkVersion } = AppModuleSetup('tomcat')
   const tabs = [
@@ -77,7 +76,7 @@
           return TomcatSetup.CATALINA_BASE[currentVersion.value.bin]
         }
         const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-        return join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+        return join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
       }
       return I18nT('base.needSelectVersion')
     },

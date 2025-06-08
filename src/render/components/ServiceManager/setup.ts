@@ -10,8 +10,7 @@ import { MysqlStore } from '@/components/Mysql/mysql'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { handleWriteHosts } from '@/util/Host'
 import type { AllAppModule } from '@/core/type'
-
-const { shell } = require('@electron/remote')
+import { shell } from '@/util/NodeFn'
 
 export const Setup = (typeFlag: AllAppModule) => {
   if (!Service[typeFlag]) {

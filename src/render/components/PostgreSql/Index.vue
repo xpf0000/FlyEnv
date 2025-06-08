@@ -43,9 +43,8 @@
   import { PostgreSqlSetup } from './setup'
   import { chooseFolder } from '@/util/File'
   import { Edit } from '@element-plus/icons-vue'
-
-  const { join } = require('path')
-  const { shell } = require('@electron/remote')
+  import { shell } from '@/util/NodeFn'
+  import { join } from 'path-browserify'
 
   const { tab, checkVersion } = AppModuleSetup('postgresql')
   const tabs = [
@@ -69,7 +68,7 @@
           return PostgreSqlSetup.dir[currentVersion.value.bin]
         }
         const versionTop = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-        const dir = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+        const dir = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
         return dir
       }
       return I18nT('base.needSelectVersion')

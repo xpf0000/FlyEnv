@@ -1,6 +1,6 @@
 import Config from './Config'
 import { basename, extname, join } from 'path'
-import { md5 } from '@shared/utils'
+import { md5 } from '../../utils'
 import { Store } from './Store'
 
 export const checkIsExcludeUrl = (url: string, isPage: boolean): boolean => {
@@ -42,7 +42,7 @@ export const urlToDir = (url: string, isPageUrl?: boolean) => {
         const ext = extname(pathDir)
         let newName = ''
         // 有扩展名的
-        if (!!ext) {
+        if (ext) {
           if (ext !== '.html') {
             newName = name.replace(ext, '.html')
           }

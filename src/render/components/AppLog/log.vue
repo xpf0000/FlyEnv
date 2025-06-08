@@ -110,7 +110,7 @@
   })
 
   onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
+    monacoInstance?.dispose?.()
     monacoInstance = null
   })
 

@@ -43,7 +43,7 @@
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
       try {
         await render(regexValue, svg)
-      } catch (_) {}
+      } catch {}
       if (visualizerSVG?.value?.shadow_root) {
         visualizer.appendChild(svg)
       }

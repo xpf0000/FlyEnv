@@ -23,9 +23,9 @@ class Maven extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('maven')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `maven-${a.version}`, 'bin/mvn.cmd')
-          const zip = join(global.Server.Cache!, `maven-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `maven-${a.version}`)
+          const dir = join(window.Server.AppDir!, `maven-${a.version}`, 'bin/mvn.cmd')
+          const zip = join(window.Server.Cache!, `maven-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `maven-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

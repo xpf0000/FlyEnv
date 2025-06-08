@@ -17,7 +17,7 @@
               :class="{ error: errs?.path }"
               placeholder="Mysql Version"
             >
-              <template v-for="(item, index) in mysqlVersion" :key="index">
+              <template v-for="(item, _index) in mysqlVersion" :key="_index">
                 <el-option :label="`${item.version}-${item.bin}`" :value="item.path"></el-option>
               </template>
             </el-select>
@@ -37,7 +37,7 @@
               class="input"
               :class="{ error: errs?.dataDir }"
               placeholder="Mysql Data Dir"
-              readonly=""
+              readonly="true"
               :value="form.dataDir"
             />
             <div class="icon-block" @click="chooseRoot()">
@@ -66,14 +66,14 @@
   import { computed, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { I18nT } from '@lang/index'
-  import { uuid } from '@shared/utils'
+  import { uuid } from '@/util/Index'
   import { BrewStore } from '@/store/brew'
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
   import { MysqlStore } from '@/components/Mysql/mysql'
+  import { join } from 'path-browserify'
+  import { dialog } from '@/util/NodeFn'
 
-  const { join } = require('path')
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -93,7 +93,7 @@
   Object.assign(form.value, props.item)
   form.value.path = props?.item?.version?.path ?? ''
   if (!form.value.dataDir) {
-    form.value.dataDir = join(global.Server.MysqlDir, `group/mysql-group-${form.value.id}`)
+    form.value.dataDir = join(window.Server.MysqlDir, `group/mysql-group-${form.value.id}`)
   }
 
   const errs = ref({

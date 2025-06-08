@@ -4,7 +4,7 @@
       <div class="card-header">
         <div class="left">
           <span> {{ title }} </span>
-          <el-button class="button" link @click="openURL(url)">
+          <el-button v-if="url" class="button" link @click="openURL(url)">
             <yb-icon
               style="width: 20px; height: 20px; margin-left: 10px"
               :svg="import('@/svg/http.svg?raw')"
@@ -83,7 +83,7 @@
   const props = defineProps<{
     typeFlag: AllAppModule
     title: string
-    url: string
+    url?: string
   }>()
 
   const { openURL, reGetData, fetching, tableData, handleOnlineVersion } = Setup(props.typeFlag)

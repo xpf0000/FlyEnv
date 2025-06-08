@@ -49,13 +49,13 @@
     <div class="grid grid-cols-3 2xl:grid-cols-4 gap-4">
       <template v-for="(i, _j) in item.sub" :key="_j">
         <div class="flex items-center justify-center w-full">
-          <ModuleShowHide :label="i.label" :type-flag="i.typeFlag">
+          <ModuleShowHide :label="i.label" :type-flag="i.typeFlag as any">
             <template #default>
               <div class="absolute top-0 left-0 right-0">
                 <el-button link class="absolute left-1 top-1" @click.stop="showAddModule(i)">
                   <Edit width="16" height="16"></Edit>
                 </el-button>
-                <el-button link class="absolute right-1 top-1" @click.stop="doDelModule(i, _j)">
+                <el-button link class="absolute right-1 top-1" @click.stop="doDelModule(i)">
                   <Delete width="16" height="16"></Delete>
                 </el-button>
               </div>

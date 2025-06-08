@@ -3,8 +3,8 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import IPC from './IPC'
 import { AppStore } from '@/store/app'
-
-const { nativeTheme, clipboard } = require('@electron/remote')
+import { nativeTheme, clipboard } from '@/util/NodeFn'
+import { CallBackFn } from '@shared/app'
 
 interface XTermType {
   xterm: Terminal | undefined
@@ -19,19 +19,20 @@ class XTerm implements XTermType {
   ptyKey: string = ''
   end = false
   resized = false
-  private resolve: Function | undefined = undefined
+  private resolve: CallBackFn | undefined = undefined
 
   constructor() {}
 
   mount(dom: HTMLElement) {
     this.dom = dom
     return new Promise((resolve) => {
-      const doMount = () => {
+      const doMount = async () => {
         const appStore = AppStore()
         const theme: { [k: string]: string } = {}
         let appTheme = ''
         if (!appStore?.config?.setup?.theme || appStore?.config?.setup?.theme === 'system') {
-          appTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+          const isDark = await nativeTheme.shouldUseDarkColors()
+          appTheme = isDark ? 'dark' : 'light'
         } else {
           appTheme = appStore?.config?.setup?.theme
         }
@@ -76,11 +77,10 @@ class XTerm implements XTermType {
           IPC.on(`NodePty:data:${this.ptyKey}`).then((key: string, data: string) => {
             this.write(data)
           })
-
-          doMount()
+          doMount().catch()
         })
       } else {
-        doMount()
+        doMount().catch()
       }
     })
   }
@@ -184,7 +184,7 @@ class XTerm implements XTermType {
     return new Promise((resolve) => {
       IPC.send('NodePty:stop', this.ptyKey).then((key: string) => {
         IPC.off(key)
-        this.resolve && this.resolve(true)
+        this?.resolve?.(true)
         this.resolve = undefined
         resolve(true)
       })

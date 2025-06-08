@@ -134,8 +134,6 @@
     typeFlag: AllAppModule
   }>()
 
-  const { fetching, tableData, openDir, isInEnv, isInAppEnv, appStore } = SetupAll(
-    props.typeFlag
-  )
+  const { fetching, tableData, openDir, isInEnv, isInAppEnv, appStore } = SetupAll(props.typeFlag)
   ServiceActionStore.fetchPath()
 </script>

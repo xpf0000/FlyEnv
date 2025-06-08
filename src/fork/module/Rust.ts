@@ -23,16 +23,16 @@ class Rust extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('rust')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `rust`, a.version, 'cargo/bin/cargo.exe')
-          const zip = join(global.Server.Cache!, `rust-${a.version}.tar.xz`)
-          a.appDir = join(global.Server.AppDir!, `rust`, a.version)
+          const dir = join(window.Server.AppDir!, `rust`, a.version, 'cargo/bin/cargo.exe')
+          const zip = join(window.Server.Cache!, `rust-${a.version}.tar.xz`)
+          a.appDir = join(window.Server.AppDir!, `rust`, a.version)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve({})
       }
     })

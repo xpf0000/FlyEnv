@@ -139,9 +139,8 @@
   import { AppHost, AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
-
-  const { dialog } = require('@electron/remote')
+  import { merge } from 'lodash-es'
+  import { dialog } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -202,7 +201,7 @@
   })
 
   watch(itemName, (name) => {
-    for (let h of hosts.value) {
+    for (const h of hosts.value) {
       if (h.name === name && h.id !== item.value.id) {
         errs.value['name'] = true
         break
@@ -212,7 +211,7 @@
 
   const chooseRoot = (flag: 'root' | 'certkey' | 'cert', choosefile = false) => {
     const options: any = {}
-    let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
+    const opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
     if (choosefile) {
       opt.push('openFile')
     }
@@ -260,7 +259,7 @@
       errs.value['cert'] = item.value.ssl.cert.length === 0
       errs.value['certkey'] = item.value.ssl.key.length === 0
     }
-    for (let h of hosts.value) {
+    for (const h of hosts.value) {
       if (h.name === item.value.name && h.id !== item.value.id) {
         errs.value['name'] = true
         break

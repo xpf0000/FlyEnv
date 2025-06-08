@@ -67,7 +67,6 @@
 
 <script lang="ts" setup>
   import { computed, nextTick, ref, watch, onMounted, onUnmounted } from 'vue'
-  import { readFileAsync } from '@shared/file'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { I18nT } from '@lang/index'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
@@ -75,12 +74,9 @@
   import { Project } from '@/util/Project'
   import { HostNginxRewriteSetup } from '@/components/Host/Edit/rewrite'
   import IPC from '@/util/IPC'
-  import { MessageSuccess } from '@/util/Element'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
-  const { readFile } = require('fs-extra')
-  const { existsSync } = require('fs')
+  import { join } from 'path-browserify'
+  import { fs, shell } from '@/util/NodeFn'
+  import { asyncComputed } from '@vueuse/core'
 
   const props = defineProps<{
     modelValue: string
@@ -91,7 +87,7 @@
 
   const input = ref()
 
-  const nginxRewriteTemplateDir = join(global.Server.BaseDir!, 'NginxRewriteTemplate')
+  const nginxRewriteTemplateDir = join(window.Server.BaseDir!, 'NginxRewriteTemplate')
 
   HostNginxRewriteSetup.initNginxRewrites()
   HostNginxRewriteSetup.initNginxRewriteCustomWatch()
@@ -110,10 +106,10 @@
 
   const rewriteKey = ref('')
 
-  const nginxRewriteFile = computed(() => {
-    const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
+  const nginxRewriteFile = asyncComputed(async () => {
+    const rewritepath = join(window.Server.BaseDir!, 'vhost/rewrite')
     const rewritep = join(rewritepath, `${props.itemName}.conf`)
-    if (existsSync(rewritep)) {
+    if (await fs.existsSync(rewritep)) {
       return rewritep
     }
     return null
@@ -124,7 +120,7 @@
       return
     }
     try {
-      readFile(nginxRewriteFile.value, 'utf-8').then((str: string) => {
+      fs.readFile(nginxRewriteFile.value, 'utf-8').then((str: string) => {
         emits('update:modelValue', str)
         monacoInstance?.setValue?.(str)
       })
@@ -181,7 +177,7 @@
     if (HostNginxRewriteSetup.nginxRewriteCustom[file]) {
       const item = HostNginxRewriteSetup.nginxRewriteCustom[file]
       if (!item.content) {
-        readFileAsync(file).then((content) => {
+        fs.readFile(file).then((content) => {
           item.content = content
           emits('update:modelValue', content)
           monacoInstance?.setValue(content)
@@ -196,7 +192,7 @@
     if (HostNginxRewriteSetup.nginxRewriteDefault[file]) {
       const item = HostNginxRewriteSetup.nginxRewriteDefault[file]
       if (!item.content) {
-        readFileAsync(file).then((content) => {
+        fs.readFile(file).then((content) => {
           item.content = content
           emits('update:modelValue', content)
           monacoInstance?.setValue(content)
@@ -223,7 +219,7 @@
     })
   })
   onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
+    monacoInstance?.dispose?.()
     monacoInstance = null
     HostNginxRewriteSetup.deinitFileWatch()
     HostNginxRewriteSetup.deinitNginxRewriteCustomWatch()

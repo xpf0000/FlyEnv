@@ -31,21 +31,24 @@
   import type { ProjectItem } from '@/components/PHP/projects/setup'
   import ScriptVM from './scripts/index.vue'
   import DependencieVM from './dependencies/index.vue'
-
-  const { join } = require('path')
-  const { existsSync, readFileSync } = require('fs')
+  import { join } from 'path-browserify'
+  import { fs } from '@/util/NodeFn'
+  import { asyncComputed } from '@vueuse/core'
 
   const props = defineProps<{
     item: ProjectItem
   }>()
 
-  const packageJson = computed(() => {
+  const packageJson = asyncComputed(async () => {
     const file = join(props.item.path, 'package.json')
-    if (existsSync(file)) {
-      const content = readFileSync(file, 'utf-8')
+    const exists = await fs.existsSync(file)
+    if (exists) {
+      const content = await fs.readFile(file)
       try {
         return JSON.parse(content)
-      } catch {}
+      } catch {
+        /* empty */
+      }
     }
     return {}
   })

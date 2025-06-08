@@ -157,12 +157,11 @@
   import { AppHost, AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import { BrewStore } from '@/store/brew'
   import installedVersions from '@/util/InstalledVersions'
-
-  const { dialog } = require('@electron/remote')
-  const { dirname, basename } = require('path')
+  import { dirname, basename } from 'path-browserify'
+  import { dialog } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -227,7 +226,7 @@
       if (!name) {
         return
       }
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === name && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
@@ -280,7 +279,7 @@
     errs.value['root'] = item.value.root.length === 0
     errs.value['pythonDir'] = item.value.pythonDir.length === 0
     if (item.value.projectName) {
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === item.value.projectName && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break

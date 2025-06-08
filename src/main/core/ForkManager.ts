@@ -1,28 +1,29 @@
 import { ChildProcess, fork } from 'child_process'
-import { uuid } from '../utils'
+import { uuid, appendFile } from '../utils'
 import { ForkPromise } from '@shared/ForkPromise'
-import { appendFile } from 'fs-extra'
 import { join } from 'path'
 import { cpus } from 'os'
+
+type CallBack = (...args: any) => void
 
 class ForkItem {
   forkFile: string
   child: ChildProcess
-  autoDestory: boolean
-  destoryTimer?: NodeJS.Timeout
+  autodestroy: boolean
+  destroyTimer?: NodeJS.Timeout
   taskFlag: Array<number> = []
-  _on: Function = () => {}
+  _on: CallBack = () => {}
   callback: {
     [k: string]: {
-      resolve: Function
-      on: Function
+      resolve: CallBack
+      on: CallBack
     }
   }
-  waitDestory() {
-    if (this.autoDestory && this.taskFlag.length === 0) {
-      this.destoryTimer = setTimeout(() => {
+  waitdestroy() {
+    if (this.autodestroy && this.taskFlag.length === 0) {
+      this.destroyTimer = setTimeout(() => {
         if (this.taskFlag.length === 0) {
-          this.destory()
+          this.destroy()
         }
       }, 10000)
     }
@@ -38,14 +39,14 @@ class ForkItem {
         fn.resolve(info)
         delete this.callback?.[key]
         this.taskFlag.pop()
-        this.waitDestory()
+        this.waitdestroy()
       } else if (info?.code === 200) {
         fn.on(info)
       }
     }
   }
   onError(err: Error) {
-    appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${err?.message}`).then()
+    appendFile(join(window.Server.BaseDir!, 'fork.error.txt'), `\n${err?.message}`).then()
     for (const k in this.callback) {
       const fn = this.callback?.[k]
       if (fn) {
@@ -57,12 +58,12 @@ class ForkItem {
       delete this.callback?.[k]
     }
     this.taskFlag.pop()
-    this.waitDestory()
+    this.waitdestroy()
   }
 
-  constructor(file: string, autoDestory: boolean) {
+  constructor(file: string, autodestroy: boolean) {
     this.forkFile = file
-    this.autoDestory = autoDestory
+    this.autodestroy = autodestroy
     this.callback = {}
     this.onMessage = this.onMessage.bind(this)
     this.onError = this.onError.bind(this)
@@ -79,7 +80,7 @@ class ForkItem {
 
   send(...args: any) {
     return new ForkPromise((resolve, reject, on) => {
-      this.destoryTimer && clearTimeout(this.destoryTimer)
+      clearTimeout(this.destroyTimer)
       this.taskFlag.push(1)
       const thenKey = uuid()
       this.callback[thenKey] = {
@@ -98,7 +99,7 @@ class ForkItem {
     })
   }
 
-  destory() {
+  destroy() {
     try {
       const pid = this?.child?.pid
       if (this?.child?.connected) {
@@ -117,36 +118,48 @@ export class ForkManager {
   ftpFork?: ForkItem
   dnsFork?: ForkItem
   serviceFork?: ForkItem
-  _on: Function = () => {}
+  ollamaChatFork?: ForkItem
+
+  _on: CallBack = () => {}
+
   constructor(file: string) {
     this.file = file
   }
 
-  on(fn: Function) {
+  on(fn: CallBack) {
     this._on = fn
   }
 
   send(...args: any) {
-    if (args?.[0] === 'service') {
+    const param = [...args]
+    const module = param.shift()
+    if (module === 'service') {
       if (!this.serviceFork) {
         this.serviceFork = new ForkItem(this.file, false)
-        this._on && (this.serviceFork._on = this._on)
+        this.serviceFork._on = this._on
       }
       return this.serviceFork!.send(...args)
     }
-    if (args?.[0] === 'pure-ftpd') {
+    if (module === 'pure-ftpd') {
       if (!this.ftpFork) {
         this.ftpFork = new ForkItem(this.file, false)
-        this._on && (this.ftpFork._on = this._on)
+        this.ftpFork._on = this._on
       }
       return this.ftpFork!.send(...args)
     }
-    if (args?.[0] === 'dns') {
+    if (module === 'dns') {
       if (!this.dnsFork) {
         this.dnsFork = new ForkItem(this.file, false)
-        this._on && (this.dnsFork._on = this._on)
+        this.dnsFork._on = this._on
       }
       return this.dnsFork!.send(...args)
+    }
+    const fn = param.shift()
+    if (module === 'ollama' && ['chat', 'stopOutput'].includes(fn)) {
+      if (!this.ollamaChatFork) {
+        this.ollamaChatFork = new ForkItem(this.file, true)
+      }
+      return this.ollamaChatFork!.send(...args)
     }
     /**
      * 找到没有任务的线程
@@ -156,7 +169,7 @@ export class ForkManager {
     if (!find) {
       if (this.forks.length < cpus().length) {
         find = new ForkItem(this.file, true)
-        this._on && (find._on = this._on)
+        find._on = this._on
         this.forks.push(find)
       } else {
         find = this.forks.shift()!
@@ -166,12 +179,13 @@ export class ForkManager {
     return find.send(...args)
   }
 
-  destory() {
-    this.serviceFork && this.serviceFork.destory()
-    this.ftpFork && this.ftpFork.destory()
-    this.dnsFork && this.dnsFork.destory()
+  destroy() {
+    this.serviceFork?.destroy()
+    this.ftpFork?.destroy()
+    this.dnsFork?.destroy()
+    this.ollamaChatFork?.destroy()
     this.forks.forEach((fork) => {
-      fork.destory()
+      fork.destroy()
     })
   }
 }

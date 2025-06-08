@@ -76,10 +76,8 @@
   import type { Column } from 'element-plus'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { ElInput } from 'element-plus'
+  import { shell } from '@/util/NodeFn'
 
-  const { shell } = require('@electron/remote')
-
-  const emit = defineEmits(['doClose'])
   const siteStore = SiteSuckerStore()
   siteStore.initSetup()
   const links = computed(() => {
@@ -259,10 +257,6 @@
       }
     }
   ]
-
-  const doClose = () => {
-    emit('doClose')
-  }
 
   const doRun = () => {
     if (task.value.state !== 'stop') {

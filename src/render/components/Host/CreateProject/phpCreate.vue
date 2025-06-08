@@ -121,10 +121,9 @@
   import XTerm from '@/util/XTerm'
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
+  import { join, dirname } from 'path-browserify'
+  import { dialog, fs } from '@/util/NodeFn'
 
-  const { writeFile } = require('fs-extra')
-  const { join, dirname } = require('path')
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -214,9 +213,9 @@
     const form = ProjectSetup.form.PHP
     const execXTerm = new XTerm()
     const command: string[] = []
-    if (global.Server.Proxy) {
-      for (const k in global.Server.Proxy) {
-        const v = global.Server.Proxy[k]
+    if (window.Server.Proxy) {
+      for (const k in window.Server.Proxy) {
+        const v = window.Server.Proxy[k]
         command.push(`$Env:${k}="${v}"`)
       }
     }
@@ -234,7 +233,7 @@
   }
 }
 `
-      await writeFile(join(form.dir, 'composer.json'), tmpl)
+      await fs.writeFile(join(form.dir, 'composer.json'), tmpl)
 
       if (form.php && form.composer) {
         command.push(`$Env:PATH = "${dirname(form.php)};" + $Env:PATH`)

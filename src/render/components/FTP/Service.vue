@@ -55,8 +55,7 @@
   import Base from '@/core/Base'
   import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
-
-  const { shell, clipboard } = require('@electron/remote')
+  import { shell, clipboard } from '@/util/NodeFn'
 
   const loading = ref(false)
   const ftpStore = FtpStore()

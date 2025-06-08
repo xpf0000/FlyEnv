@@ -34,13 +34,13 @@
   import Conf from '@/components/Conf/drawer.vue'
   import { type CommonSetItem, ConfStore } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import { SoftInstalled } from '@/store/brew'
   import IPC from '@/util/IPC'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { uuid } from '@shared/utils'
+  import { uuid } from '@/util/Index'
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const props = defineProps<{
     version: SoftInstalled
@@ -63,7 +63,7 @@
     }
     return `${file.value}.default`
   })
-  const cacert = join(global.Server.BaseDir!, 'CA/cacert.pem')
+  const cacert = join(window.Server.BaseDir!, 'CA/cacert.pem')
   const names: CommonSetItem[] = [
     {
       name: 'display_errors',
@@ -261,7 +261,7 @@
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names].map((item) => {
       const regex = new RegExp(
         `^[\\s\\n]?((?![#;])([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`,

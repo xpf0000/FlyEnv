@@ -3,12 +3,11 @@ import { BrewStore } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
 import installedVersions from '@/util/InstalledVersions'
 import { fetchVerion } from '@/util/Brew'
-import {MessageError, MessageSuccess} from '@/util/Element'
+import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
 import { staticVersionDel } from '@/util/Version'
-
-const { clipboard } = require('@electron/remote')
+import { clipboard } from '@/util/NodeFn'
 
 export const StaticSetup = reactive<{
   fetching: Partial<Record<AllAppModule, boolean>>
@@ -31,7 +30,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     }
     StaticSetup.fetching[typeFlag] = true
     fetchVerion(typeFlag)
-      .then((res: any) => {
+      .then(() => {
         StaticSetup.fetching[typeFlag] = false
       })
       .catch(() => {
@@ -82,20 +81,26 @@ export const Setup = (typeFlag: AllAppModule) => {
       row.downing = true
       row.type = typeFlag
       const all = brewStore.module(typeFlag).list
-      const find = all.find((r: any) => r.bin === row.bin && r.zip === row.zip)
-      find.downing = true
-      find.type = typeFlag
+      const find: any = all.find((r: any) => r.bin === row.bin && r.zip === row.zip)
+      if (find) {
+        find.downing = true
+        find.type = typeFlag
+      }
       IPC.send(`app-fork:${typeFlag}`, 'installSoft', JSON.parse(JSON.stringify(row))).then(
         (key: string, res: any) => {
           const findInstalling = brewStore.module(typeFlag).installing[row.bin]
           console.log('res: ', res)
           if (res?.code === 200) {
-            find && Object.assign(find, res.msg)
-            findInstalling && Object.assign(findInstalling, res.msg)
+            Object.assign(find, res.msg)
+            Object.assign(findInstalling, res.msg)
           } else if (res?.code === 0) {
             IPC.off(key)
-            find && (find.downing = false)
-            findInstalling && (findInstalling.downing = false)
+            if (find) {
+              find.downing = false
+            }
+            if (findInstalling) {
+              findInstalling.downing = false
+            }
             delete brewStore.module(typeFlag).installing[row.bin]
             if (res?.data === true) {
               fetchInstalled()

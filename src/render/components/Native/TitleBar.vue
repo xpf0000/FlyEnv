@@ -4,17 +4,7 @@
   </div>
 </template>
 
-<script>
-  export default {
-    name: 'MoTitleBar',
-    props: {},
-    data() {
-      return {}
-    },
-    computed: {},
-    methods: {}
-  }
-</script>
+<script lang="ts" setup></script>
 
 <style lang="scss">
   .title-bar {

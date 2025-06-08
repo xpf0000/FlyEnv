@@ -2,7 +2,7 @@
   <div class="module-config">
     <el-card>
       <div v-show="type === 'default'" ref="input" class="block"></div>
-      <template v-if="showCommond">
+      <template v-if="showCommond && commonSetting">
         <el-scrollbar v-if="type === 'common'" class="p-4">
           <Common :setting="commonSetting" />
         </el-scrollbar>
@@ -71,7 +71,7 @@
     fileExt: string
     typeFlag: AllAppModule
     showCommond: boolean
-    commonSetting: CommonSetItem[]
+    commonSetting?: CommonSetItem[]
   }>()
 
   const emit = defineEmits(['onTypeChange'])
@@ -90,7 +90,6 @@
   const {
     changed,
     update,
-    config,
     input,
     type,
     disabled,
@@ -107,7 +106,7 @@
 
   watch(
     watchFlag,
-    (v) => {
+    () => {
       if (!disabled.value && type.value === 'common') {
         emit('onTypeChange', type.value, getEditValue())
       }

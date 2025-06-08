@@ -21,7 +21,7 @@
     ext: string
   }>()
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const appStore = AppStore()
   const brewStore = BrewStore()

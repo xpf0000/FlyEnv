@@ -309,9 +309,8 @@
   import { Service } from '@/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '../ServiceManager/EXT/store'
-
-  const { shell } = require('@electron/remote')
-  const { dirname } = require('path')
+  import { dirname } from 'path-browserify'
+  import { shell } from '@/util/NodeFn'
 
   if (!Service.php) {
     Service.php = {

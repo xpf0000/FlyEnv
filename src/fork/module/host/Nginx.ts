@@ -103,9 +103,9 @@ export const makeNginxConf = async (host: AppHost) => {
     await handlePhpEnableConf(host?.phpVersion)
   }
 
-  const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
-  const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
-  const logpath = join(global.Server.BaseDir!, 'vhost/logs')
+  const nginxvpath = join(window.Server.BaseDir!, 'vhost/nginx')
+  const rewritepath = join(window.Server.BaseDir!, 'vhost/rewrite')
+  const logpath = join(window.Server.BaseDir!, 'vhost/logs')
 
   await mkdirp(nginxvpath)
   await mkdirp(rewritepath)
@@ -151,10 +151,10 @@ export const makeNginxConf = async (host: AppHost) => {
 const handlePhpEnableConf = async (v: number) => {
   try {
     const name = `enable-php-${v}.conf`
-    const confFile = join(global.Server.NginxDir!, 'common/conf/', name)
+    const confFile = join(window.Server.NginxDir!, 'common/conf/', name)
     if (!existsSync(confFile)) {
       await mkdirp(dirname(confFile))
-      const tmplFile = join(global.Server.Static!, 'tmpl/enable-php.conf')
+      const tmplFile = join(window.Server.Static!, 'tmpl/enable-php.conf')
       const tmplContent = await readFile(tmplFile, 'utf-8')
       const content = tmplContent.replace('##VERSION##', `${v}`)
       await writeFile(confFile, content)
@@ -166,9 +166,9 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   if (host?.phpVersion) {
     await handlePhpEnableConf(host?.phpVersion)
   }
-  const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx').split('\\').join('/')
-  const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite').split('\\').join('/')
-  const logpath = join(global.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
+  const nginxvpath = join(window.Server.BaseDir!, 'vhost/nginx').split('\\').join('/')
+  const rewritepath = join(window.Server.BaseDir!, 'vhost/rewrite').split('\\').join('/')
+  const logpath = join(window.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
 
   await mkdirp(nginxvpath)
   await mkdirp(rewritepath)

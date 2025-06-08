@@ -69,7 +69,7 @@
           <div class="plant-title">{{ I18nT('host.jdkPath') }}</div>
           <div class="main">
             <el-select v-model="item.jdkDir" class="w-full">
-              <template v-for="(item, index) in jdks" :key="index">
+              <template v-for="(item, _index) in jdks" :key="_index">
                 <el-option :label="`java${item.version}-${item.bin}`" :value="item.bin"></el-option>
               </template>
             </el-select>
@@ -174,7 +174,7 @@
             <div class="port-set port-ssl mb-20">
               <div class="port-type"> Tomcat </div>
               <el-select v-model="item.tomcatDir" class="w-full">
-                <template v-for="(item, index) in tomcats" :key="index">
+                <template v-for="(item, _index) in tomcats" :key="_index">
                   <el-option
                     :label="`tomcat${item.version}-${item.bin}`"
                     :value="item.bin"
@@ -185,7 +185,7 @@
             <div class="port-set port-ssl">
               <div class="port-type"> JDK </div>
               <el-select v-model="item.jdkDir" class="w-full">
-                <template v-for="(item, index) in jdks" :key="index">
+                <template v-for="(item, _index) in jdks" :key="_index">
                   <el-option
                     :label="`java${item.version}-${item.bin}`"
                     :value="item.bin"
@@ -285,10 +285,9 @@
   import { BrewStore } from '@/store/brew'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import installedVersions from '@/util/InstalledVersions'
-
-  const { dialog } = require('@electron/remote')
+  import { dialog } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -378,7 +377,7 @@
     if (!name) {
       return
     }
-    for (let h of hosts.value) {
+    for (const h of hosts.value) {
       if (h.name === name && h.id !== item.value.id) {
         errs.value['name'] = true
         break
@@ -392,7 +391,7 @@
       if (!name) {
         return
       }
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === name && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
@@ -455,7 +454,7 @@
       }
       errs.value['projectName'] = item.value.projectName.length === 0
       if (item.value.projectName) {
-        for (let h of hosts.value) {
+        for (const h of hosts.value) {
           if (h?.projectName === item.value.projectName && h.id !== item.value.id) {
             errs.value['projectName'] = true
             break
@@ -467,7 +466,7 @@
       errs.value['root'] = item.value.root.length === 0
       errs.value['name'] = item.value.name.length === 0
       if (item.value.name) {
-        for (let h of hosts.value) {
+        for (const h of hosts.value) {
           if (h.name === item.value.name && h.id !== item.value.id) {
             errs.value['name'] = true
             break

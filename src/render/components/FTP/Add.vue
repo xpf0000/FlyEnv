@@ -15,7 +15,7 @@
               v-model.trim="form.user"
               type="text"
               class="input"
-              :readonly="item?.user || running || null"
+              :readonly="!!item?.user || running || undefined"
               :class="{ error: errs?.user }"
               placeholder="username"
             />
@@ -24,7 +24,7 @@
             <input
               v-model.trim="form.pass"
               type="text"
-              :readonly="running || null"
+              :readonly="running || undefined"
               class="input"
               :class="{ error: errs?.pass }"
               placeholder="password"
@@ -44,7 +44,7 @@
               class="input"
               :class="{ error: errs?.dir }"
               placeholder="root path"
-              readonly=""
+              readonly="true"
               :value="form.dir"
             />
             <div class="icon-block" @click="chooseRoot()">
@@ -70,27 +70,22 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
-  import { computed, ref, watch } from 'vue'
+  import { ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import IPC from '@/util/IPC'
   import { I18nT } from '@lang/index'
   import type { FtpItem } from './ftp'
   import { FtpStore } from './ftp'
-  import { uuid } from '@shared/utils'
-  import { AppStore } from '@/store/app'
-  import { BrewStore } from '@/store/brew'
+  import { uuid } from '@/util/Index'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { dialog, fs } from '@/util/NodeFn'
 
-  const { existsSync } = require('fs')
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
     item: FtpItem
   }>()
 
-  const appStore = AppStore()
-  const brewStore = BrewStore()
   const ftpStore = FtpStore()
   const running = ref(false)
   const form = ref({
@@ -133,7 +128,7 @@
     (name) => {
       errs.value.user = false
       if (!props?.item?.user) {
-        for (let h of ftpStore.allFtp) {
+        for (const h of ftpStore.allFtp) {
           if (h.user === name.trim()) {
             errs.value.user = true
             break
@@ -148,7 +143,7 @@
 
   const checkItem = () => {
     if (!props?.item?.user) {
-      for (let h of ftpStore.allFtp) {
+      for (const h of ftpStore.allFtp) {
         if (h.user === form.value.user.trim()) {
           errs.value.user = true
           break
@@ -187,11 +182,11 @@
       })
   }
 
-  const doSave = () => {
+  const doSave = async () => {
     if (!checkItem() || running?.value) {
       return
     }
-    if (form.value.dir && !existsSync(form.value.dir)) {
+    if (form.value.dir && !(await fs.existsSync(form.value.dir))) {
       MessageError(I18nT('base.ftpDirNotExists'))
       errs.value.dir = true
       return

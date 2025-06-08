@@ -58,13 +58,9 @@
 </template>
 
 <script>
-  import { formatBytes } from '@shared/utils.ts'
-  import moment from 'moment'
-  import { getFileHashes } from '@shared/file.ts'
-
-  const { exec } = require('child-process-promise')
-  const { stat } = require('fs')
-  const { dialog } = require('@electron/remote')
+  import { formatBytes } from '@/util/Index.ts'
+  import { formatISO } from 'date-fns'
+  import { dialog, fs, exec } from '@/util/NodeFn'
 
   export default {
     name: 'MoToolsFileInfo',
@@ -98,12 +94,12 @@
       }
     },
     mounted() {
-      let selecter = document.getElementById('FileInfoDroper')
+      const selecter = document.getElementById('FileInfoDroper')
       selecter.addEventListener('drop', (e) => {
         e.preventDefault()
         e.stopPropagation()
-        // 获得拖拽的文件集合
-        let files = e.dataTransfer.files
+        // Get the collection of dragged files
+        const files = e.dataTransfer.files
         this.path = files[0].path
       })
       selecter.addEventListener('dragover', (e) => {
@@ -118,7 +114,7 @@
         this.$emit('doClose')
       },
       choosePath() {
-        let opt = ['openFile']
+        const opt = ['openFile']
         dialog
           .showOpenDialog({
             properties: opt
@@ -132,53 +128,52 @@
           })
       },
       getInfo() {
-        stat(this.path, (err, stats) => {
-          console.log(err)
-          console.log(stats)
-          if (!err) {
-            this.info.size = stats.size
-            this.info.size_str = formatBytes(stats.size)
-            this.info.atime = stats.atimeMs
-            this.info.atime_str = moment(stats.atimeMs).format()
-            this.info.btime = stats.birthtimeMs
-            this.info.btime_str = moment(stats.birthtimeMs).format()
-            this.info.ctime = stats.ctimeMs
-            this.info.ctime_str = moment(stats.ctimeMs).format()
-            this.info.mtime = stats.mtimeMs
-            this.info.mtime_str = moment(stats.mtimeMs).format()
-
-            if (stats.isFile()) {
-              getFileHashes(this.path, 'md5')
-                .then((res) => {
-                  this.info.md5 = res
-                })
-                .catch(() => {
-                  this.info.md5 = ''
-                })
-
-              getFileHashes(this.path, 'sha1')
-                .then((res) => {
-                  this.info.sha1 = res
-                })
-                .catch(() => {
-                  this.info.sha1 = ''
-                })
-
-              getFileHashes(this.path, 'sha256')
-                .then((res) => {
-                  this.info.sha256 = res
-                })
-                .catch(() => {
-                  this.info.sha256 = ''
-                })
-
-              this.$nextTick(() => {
-                let container = this.$el.querySelector('.main-wapper')
-                if (container) {
-                  this.scroll(container)
-                }
-              })
-            }
+        fs.stat(this.path).then((stats) => {
+          this.info.size = stats.size
+          this.info.size_str = formatBytes(stats.size)
+          this.info.atime = stats.atimeMs
+          this.info.atime_str = formatISO(stats.atimeMs)
+          this.info.btime = stats.birthtimeMs
+          this.info.btime_str = formatISO(stats.birthtimeMs)
+          this.info.ctime = stats.ctimeMs
+          this.info.ctime_str = formatISO(stats.ctimeMs)
+          this.info.mtime = stats.mtimeMs
+          this.info.mtime_str = formatISO(stats.mtimeMs)
+        })
+        exec
+          .exec(`md5 ${this.path}`)
+          .then((res) => {
+            console.log(res)
+            this.info.md5 = res.stdout.split(' = ')[1]
+            console.log(this.info.md5)
+          })
+          .catch(() => {
+            this.info.md5 = ''
+          })
+        exec
+          .exec(`shasum -a 1 ${this.path}`)
+          .then((res) => {
+            console.log(res)
+            this.info.sha1 = res.stdout.split(' ')[0]
+            console.log(this.info.sha1)
+          })
+          .catch(() => {
+            this.info.sha1 = ''
+          })
+        exec
+          .exec(`shasum -a 256 ${this.path}`)
+          .then((res) => {
+            console.log(res)
+            this.info.sha256 = res.stdout.split(' ')[0]
+            console.log(this.info.sha256)
+          })
+          .catch(() => {
+            this.info.sha256 = ''
+          })
+        this.$nextTick(() => {
+          const container = this.$el.querySelector('.main-wapper')
+          if (container) {
+            this.scroll(container)
           }
         })
       },

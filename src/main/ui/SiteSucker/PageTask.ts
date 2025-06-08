@@ -6,9 +6,8 @@ import Config from './Config'
 import { enable } from '@electron/remote/main'
 import { checkIsExcludeUrl, urlToDir } from './Fn'
 import { Store } from './Store'
-import { wait } from '../../utils'
+import { wait, mkdirp, writeFile } from '../../utils'
 import { dirname } from 'path'
-import { mkdirp, writeFile } from 'fs-extra'
 
 class PageTaskItem {
   private window?: BrowserWindow
@@ -259,7 +258,7 @@ class PageTaskItem {
             right = false
           }
         }
-      } catch (e) {
+      } catch {
         right = false
       }
       return right

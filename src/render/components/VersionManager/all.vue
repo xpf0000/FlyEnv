@@ -60,12 +60,8 @@
   import { SetupAll } from '@/components/VersionManager/setupAll'
   import type { AllAppModule } from '@/core/type'
   import { FolderAdd } from '@element-plus/icons-vue'
-  import { AppStore } from '@/store/app'
-  import type { SoftInstalled } from '@/store/brew'
   import StaticVM from '@/components/VersionManager/static/index.vue'
   import LocalVM from '@/components/VersionManager/local/index.vue'
-
-  const { dirname } = require('path')
 
   const props = defineProps<{
     typeFlag: AllAppModule
@@ -73,19 +69,6 @@
     url: string
   }>()
 
-  const appStore = AppStore()
-
-  const isInEnv = (item: SoftInstalled) => {
-    return ServiceActionStore.allPath.includes(dirname(item.bin))
-  }
-
-  const {
-    openURL,
-    openDir,
-    showCustomDir,
-    tableTab,
-    loading,
-    reFetch
-  } = SetupAll(props.typeFlag)
+  const { openURL, showCustomDir, tableTab, loading, reFetch } = SetupAll(props.typeFlag)
   ServiceActionStore.fetchPath()
 </script>

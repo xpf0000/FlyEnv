@@ -297,9 +297,7 @@
   import IPC from '@/util/IPC'
   import type { AllAppModule } from '@/core/type'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-
-  const { shell } = require('@electron/remote')
-  const { existsSync } = require('fs')
+  import { shell, fs } from '@/util/NodeFn'
 
   const props = defineProps<{
     typeFlag: AllAppModule
@@ -386,19 +384,19 @@
     reGetInstalled(props.typeFlag)
   }
 
-  const openDir = (dir: string, item: SoftInstalled) => {
-    if (existsSync(dir)) {
-      shell.openPath(dir)
+  const openDir = async (dir: string, item: SoftInstalled) => {
+    if (await fs.existsSync(dir)) {
+      shell.openPath(dir).then().catch()
     } else if (item?.isLocal7Z) {
       IPC.send(
         `app-fork:${props.typeFlag}`,
         'initLocalApp',
         JSON.parse(JSON.stringify(item)),
         props.typeFlag
-      ).then((key: string, res: any) => {
+      ).then(async (key: string, res: any) => {
         IPC.off(key)
-        if (existsSync(dir)) {
-          shell.openPath(dir)
+        if (await fs.existsSync(dir)) {
+          shell.openPath(dir).then().catch()
           return
         }
         MessageError(res?.msg ?? I18nT('base.fail'))

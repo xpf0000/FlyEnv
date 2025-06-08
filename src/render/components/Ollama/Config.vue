@@ -18,19 +18,19 @@
   import IPC from '@/util/IPC'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
-  import { uuid } from '@shared/utils'
+  import { debounce } from 'lodash-es'
+  import { uuid } from '@/util/Index'
 
-  const { join } = require('path')
-  const { existsSync } = require('fs-extra')
+  import { join } from 'path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const conf = ref()
   const file = computed(() => {
-    return join(global.Server.BaseDir, 'ollama/ollama.conf')
+    return join(window.Server.BaseDir, 'ollama/ollama.conf')
   })
   const defaultFile = computed(() => {
-    return join(global.Server.BaseDir, 'ollama/ollama.conf.default')
+    return join(window.Server.BaseDir, 'ollama/ollama.conf.default')
   })
 
   const names: CommonSetItem[] = [
@@ -183,7 +183,7 @@
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names].map((item) => {
       const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       const matchs =
@@ -218,15 +218,15 @@
     if (editConfig !== config || commonSetting.value.length === 0) {
       editConfig = config
       getCommonSetting()
-    } else if (commonSetting.value.length === 0) {
-      getCommonSetting()
     }
   }
 
-  if (!existsSync(file.value)) {
-    IPC.send('app-fork:ollama', 'initConfig').then((key: string) => {
-      IPC.off(key)
-      conf?.value?.update()
-    })
-  }
+  fs.existsSync(file.value).then((e) => {
+    if (!e) {
+      IPC.send('app-fork:ollama', 'initConfig').then((key: string) => {
+        IPC.off(key)
+        conf?.value?.update()
+      })
+    }
+  })
 </script>

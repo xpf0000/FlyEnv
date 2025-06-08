@@ -1,8 +1,7 @@
 import { join, dirname, basename } from 'path'
 import { Base } from './Base'
-import { AppLog, md5, moveDirToDir, spawnPromise, uuid } from '../Fn'
+import { AppLog, md5, moveDirToDir, spawnPromise, uuid, remove, writeFile } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { remove, writeFile } from 'fs-extra'
 import PHPManager from './Php'
 import { I18nT } from '@lang/index'
 import { existsSync } from 'fs'
@@ -49,13 +48,13 @@ class Manager extends Base {
           )
         })
 
-        const copyfile = join(global.Server.Cache!, `${uuid()}.cmd`)
+        const copyfile = join(window.Server.Cache!, `${uuid()}.cmd`)
         console.log('createProject copyfile: ', copyfile)
         await writeFile(copyfile, command.join('\n'))
         const params = [copyfile]
         console.log('params: ', params.join(' '))
         spawnPromise(`${basename(copyfile)}`, [], {
-          cwd: global.Server.Cache!
+          cwd: window.Server.Cache!
         })
           .on(on)
           .then(() => {
@@ -111,13 +110,13 @@ class Manager extends Base {
           )
         })
 
-        const copyfile = join(global.Server.Cache!, `${uuid()}.cmd`)
+        const copyfile = join(window.Server.Cache!, `${uuid()}.cmd`)
         console.log('createProject copyfile: ', copyfile)
         await writeFile(copyfile, command.join('\n'))
         const params = [copyfile]
         console.log('params: ', params.join(' '))
         spawnPromise(`${basename(copyfile)}`, [], {
-          cwd: global.Server.Cache!
+          cwd: window.Server.Cache!
         })
           .on(on)
           .then(async () => {

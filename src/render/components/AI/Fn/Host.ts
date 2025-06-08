@@ -11,8 +11,7 @@ import type { SoftInstalled } from '@shared/app'
 import { fetchInstalled } from '@/components/AI/Fn/Util'
 import { I18nT } from '@lang/index'
 import { handleWriteHosts } from '@/util/Host'
-
-const { shell } = require('@electron/remote')
+import { shell } from '@/util/NodeFn'
 
 export function addRandaSite(this: BaseTask) {
   return new Promise(async (resolve, reject) => {
@@ -31,12 +30,12 @@ export function addRandaSite(this: BaseTask) {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: `${I18nT('ai.成功创建站点')}
-${I18nT('ai.站点域名')}: ${item.host}
-${I18nT('ai.站点目录')}: <a href="javascript:void();" onclick="openDir('${item.dir}')">${
+            content: `${I18nT('ai.siteCreatedSuccessfully')}
+${I18nT('ai.siteDomain')}: ${item.host}
+${I18nT('ai.siteDirectory')}: <a href="javascript:void();" onclick="openDir('${item.dir}')">${
               item.dir
             }</a>
-${I18nT('ai.尝试开启服务')}`
+${I18nT('ai.tryingToStartService')}`
           })
           resolve({
             host: item.host,
@@ -83,11 +82,11 @@ export function openSiteBaseService(this: BaseTask, item: { host: string; php: S
         await startPhp.call(this, php as any)
       }
       const arr = [
-        I18nT('ai.服务启动成功'),
-        `${I18nT('ai.域名')}: <a href="javascript:void();" onclick="openUrl('${url}')">${url}</a>`
+        I18nT('ai.serviceStartedSuccessfully'),
+        `${I18nT('ai.domain')}: <a href="javascript:void();" onclick="openUrl('${url}')">${url}</a>`
       ]
       if (url) {
-        arr.push(I18nT('ai.已在浏览器中打开'))
+        arr.push(I18nT('ai.alreadyOpenInBrowser'))
       }
       const aiStore = AIStore()
       aiStore.chatList.push({
@@ -106,7 +105,7 @@ export function openSiteBaseService(this: BaseTask, item: { host: string; php: S
       const aiStore = AIStore()
       aiStore.chatList.push({
         user: 'ai',
-        content: I18nT('ai.服务启动失败', { err: e.toString() })
+        content: I18nT('ai.serviceStartFailed', { err: e.toString() })
       })
     }
   })

@@ -30,8 +30,7 @@
   import { computed } from 'vue'
   import Conf from '@/components/Conf/drawer.vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-
-  const { extname } = require('path')
+  import { extname } from 'path-browserify'
 
   const props = defineProps<{
     file: string

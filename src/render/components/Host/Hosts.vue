@@ -27,25 +27,23 @@
 </template>
 
 <script>
-  import { readFileAsync, writeFileAsync } from '@shared/file.ts'
   import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { nextTick } from 'vue'
   import IPC from '@/util/IPC.ts'
   import { VueExtend } from '@/core/VueExtend.ts'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor.ts'
   import { MessageError, MessageSuccess } from '@/util/Element.ts'
-
-  const { shell } = require('@electron/remote')
+  import { shell, fs } from '@/util/NodeFn.js'
 
   export default {
     show(data) {
       return new Promise(() => {
         let dom = document.createElement('div')
         document.body.appendChild(dom)
-        let vm = VueExtend(this, data)
+        const vm = VueExtend(this, data)
         const intance = vm.mount(dom)
         intance.onClosed = () => {
-          dom && dom.remove()
+          dom?.remove?.()
           dom = null
           console.log('intance.onClosed !!!!!!')
         }
@@ -73,7 +71,7 @@
       })
     },
     unmounted() {
-      this.monacoInstance && this.monacoInstance.dispose()
+      this.monacoInstance?.dispose?.()
       this.monacoInstance = null
     },
     methods: {
@@ -90,7 +88,7 @@
       },
       saveConfig() {
         const content = this.monacoInstance.getValue()
-        writeFileAsync(this.configpath, content)
+        fs.writeFile(this.configpath, content)
           .then(() => {
             MessageSuccess(this.$t('base.success'))
           })
@@ -99,7 +97,7 @@
           })
       },
       getConfig() {
-        readFileAsync(this.configpath)
+        fs.readFile(this.configpath)
           .then((conf) => {
             this.config = conf
             this.initEditor()

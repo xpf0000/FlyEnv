@@ -16,8 +16,7 @@
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
   import { BrewStore } from '@/store/brew'
-
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const appStore = AppStore()
   const brewStore = BrewStore()
@@ -36,7 +35,7 @@
       return ''
     }
     const v = currentVersion?.value?.version?.split('.')?.[0] ?? ''
-    return join(global.Server.BaseDir, 'rabbitmq', `rabbitmq-${v}-default.conf`)
+    return join(window.Server.BaseDir, 'rabbitmq', `rabbitmq-${v}-default.conf`)
   })
 
   watch(

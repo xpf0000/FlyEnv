@@ -6,7 +6,9 @@
         <slot name="like"></slot>
       </div>
       <template v-if="data.end">
-        <el-button type="primary" class="shrink0" @click="doEnd">{{ $t('util.ok') }}</el-button>
+        <el-button type="primary" class="shrink0" @click="doEnd">{{
+          $t('base.confirm')
+        }}</el-button>
       </template>
       <template v-else>
         <el-button
@@ -15,19 +17,19 @@
           :disabled="files.length === 0 || data.running"
           :loading="data.running"
           @click="doClean"
-          >{{ $t('util.clean') }}</el-button
+          >{{ $t('base.clean') }}</el-button
         >
       </template>
     </div>
 
     <div v-loading="data.loading" class="main-wapper">
       <div class="main">
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <input
             type="text"
             class="input"
-            readonly="readonly"
-            placeholder="choose dir or file"
+            readonly="true"
+            placeholder="Directory or file"
             :value="data.path"
           />
           <div class="icon-block" @click.stop="chooseDir">
@@ -36,30 +38,30 @@
         </div>
         <textarea
           v-model.trim="data.exclude"
-          :disabled="data.running ? 'disabled' : null"
-          :readonly="data.running ? 'readonly' : null"
+          :disabled="data.running ? 'true' : undefined"
+          :readonly="data.running ? 'true' : undefined"
           type="text"
           class="input-textarea"
-          placeholder="exclude eg: node_modules, One exclude string per line"
+          placeholder="Excludes (Example: node_modules), separated by line."
         ></textarea>
         <div class="block">
-          <div class="mt-20"> File Type </div>
-          <div class="mt-20">
+          <div class="mt-5"> File Type </div>
+          <div class="mt-5">
             <el-checkbox-group v-model="data.allowExt" :disabled="data.running">
-              <template v-for="(item, i) in data.allExt" :key="i">
+              <template v-for="(item, _i) in data.allExt" :key="_i">
                 <el-checkbox :label="item.ext">{{ item.ext }}({{ item.count }})</el-checkbox>
               </template>
             </el-checkbox-group>
           </div>
         </div>
         <template v-if="!data.running">
-          <el-progress class="mt-20" :text-inside="true" :stroke-width="20" :percentage="0">
+          <el-progress class="mt-5" :text-inside="true" :stroke-width="20" :percentage="0">
             <span>0 / {{ files.length }}</span>
           </el-progress>
         </template>
         <template v-else>
           <el-progress
-            class="mt-20"
+            class="mt-5"
             :text-inside="true"
             :stroke-width="20"
             :percentage="currentProgress"
@@ -83,7 +85,7 @@
                 </template>
                 <template #default>
                   <ul>
-                    <template v-for="(item, i) in data.progress.successTask" :key="i">
+                    <template v-for="(item, _i) in data.progress.successTask" :key="_i">
                       <li>{{ item.path }}</li>
                     </template>
                   </ul>
@@ -102,7 +104,7 @@
                 </template>
                 <template #default>
                   <ul>
-                    <template v-for="(item, i) in data.progress.failTask" :key="i">
+                    <template v-for="(item, _i) in data.progress.failTask" :key="_i">
                       <li>{{ item.path }}: {{ item.msg }}</li>
                     </template>
                   </ul>
@@ -125,8 +127,8 @@
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
   import { I18nT } from '@lang/index'
-  const { extname } = require('path')
-  const { dialog } = require('@electron/remote')
+  import { extname } from 'path-browserify'
+  import { dialog } from '@/util/NodeFn'
 
   const data = computed(() => {
     return store.value
@@ -170,7 +172,6 @@
     const progress = store.value.progress
     return Math.floor((progress.finish / progress.count) * 100.0)
   })
-
   const chooseDir = () => {
     if (store.value.running && !store.value.end) {
       return

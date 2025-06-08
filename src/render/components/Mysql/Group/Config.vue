@@ -36,11 +36,10 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import Conf from '@/components/Conf/drawer.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
-  import { debounce } from 'lodash'
-  import { uuid } from '@shared/utils'
-
-  const { existsSync, writeFile } = require('fs-extra')
-  const { join } = require('path')
+  import { debounce } from 'lodash-es'
+  import { uuid } from '@/util/Index'
+  import { join } from 'path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const props = defineProps<{
     item: MysqlGroupItem
@@ -52,7 +51,7 @@
 
   const file = computed(() => {
     const id = props.item.id
-    return join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
+    return join(window.Server.MysqlDir!, `group/my-group-${id}.cnf`)
   })
 
   const defaultConf = computed(() => {
@@ -62,15 +61,17 @@ bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION`
   })
 
-  if (!existsSync(file.value)) {
-    const str = `[mysqld]
+  fs.existsSync(file.value).then((e) => {
+    if (!e) {
+      const str = `[mysqld]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION`
-    writeFile(file.value, str).then(() => {
-      conf?.value?.update()
-    })
-  }
+      fs.writeFile(file.value, str).then(() => {
+        conf?.value?.update()
+      })
+    }
+  })
 
   const vm = computed(() => {
     return props?.item?.version?.version?.split('.')?.slice(0, 2)?.join('.')
@@ -207,7 +208,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names]
       .map((item) => {
         const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')

@@ -1,3 +1,10 @@
+*{
+  box-sizing: border-box;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
 html,
 body,
 #app {
@@ -40,6 +47,7 @@ body {
       color: #4096ff;
     }
   }
+
   .app-el-table-v2 {
     .el-table-v2__header-cell {
       padding: 0 12px;
@@ -117,6 +125,15 @@ body {
       transition: width 0.3s;
       width: 280px;
 
+      .swith-power{
+        &.on{
+          color: #01cc74;
+        }
+        &.disabled {
+          cursor: not-allowed !important;
+        }
+      }
+
       .menu {
         li {
           .left {
@@ -137,7 +154,10 @@ body {
     }
 
     >.main-right-panel {
-      padding: 0 14px;
+      padding: 8px 14px 0;
+      flex: 1;
+      font-size: 14px;
+      height: 100vh;
     }
   }
 }
@@ -157,39 +177,7 @@ body {
   line-height: 1.75;
   display: flex;
   flex-direction: column;
-  > .top-tab {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    padding: 0 18px 0 0;
-    > li {
-      user-select: none;
-      cursor: pointer;
-      min-width: 100px;
-      padding: 0 12px;
-      height: 36px;
-      margin-right: 20px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      white-space: nowrap;
 
-      > svg {
-        margin-left: 8px;
-        display: none;
-      }
-      &.active {
-        >svg {
-          display: flex;
-        }
-      }
-      &.grouprun {
-        color: #01cc74 !important;
-      }
-    }
-  }
   .main-block {
     flex: 1;
     width: 100%;
@@ -272,13 +260,14 @@ body {
   padding: 0 18px;
   display: flex;
   flex-direction: column;
+
   > .top-tab {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 26px;
-    margin-top: 50px;
+    margin-top: 24px;
     flex-shrink: 0;
 
     &.running {
@@ -294,6 +283,7 @@ body {
       margin-right: 20px;
     }
   }
+
   .main-block {
     flex: 1;
     width: 100%;
@@ -493,9 +483,13 @@ body {
   .main-wapper {
     flex: 1;
     width: 100%;
-    overflow: hidden;
+    overflow: auto;
     padding: 12px;
-
+    &::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
     .input {
       background: transparent;
       border-top: none;
@@ -935,25 +929,6 @@ body {
     font-size: 15px;
     textarea {
       height: 100%;
-    }
-  }
-  > .top-tab {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    flex-shrink: 0;
-    > li {
-      cursor: pointer;
-      padding: 0 20px;
-      height: 36px;
-      margin-right: 20px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-      white-space: nowrap;
     }
   }
   .tool {
@@ -1417,10 +1392,8 @@ body {
   }
 }
 .http-serve-list {
-  display: flex;
-  flex-direction: column;
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   padding: 20px 18px;
 
   .http-serve-item {
@@ -1433,7 +1406,6 @@ body {
     height: 120px;
     border-radius: 8px;
     margin-bottom: 30px;
-    box-shadow: var(--el-box-shadow-light);
 
     .left {
       height: 100%;
@@ -2045,7 +2017,6 @@ body {
     }
   }
 }
-
 .app-chat {
   background: #f0f0f0;
   display: flex;
@@ -2065,6 +2036,7 @@ body {
       display: flex;
       align-items: center;
       padding: 6px 0;
+      flex-shrink: 0;
 
       .top-back-icon {
         width: 24px;
@@ -2255,7 +2227,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 4px 15px 12px 15px;
+    padding: 30px 15px 12px 15px;
     list-style: none;
     flex-shrink: 0;
 
@@ -2708,6 +2680,7 @@ body {
 
   }
 }
+
 .el-button.status {
   svg {
     width: 22px;
@@ -2765,6 +2738,7 @@ body {
   }
 }
 .about-panel {
+
   .app-info {
     position: relative;
     margin: 8px 0;
@@ -2878,11 +2852,62 @@ body {
   html {
     #app {
       #container {
-        .aside {
+        >.aside {
+          width: 45px;
+
+          .top-tool {
+            padding: 30px 0 12px 0;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+          }
+
           .menu {
+            padding: 0;
+
+            &::-webkit-scrollbar {
+              display: none;
+            }
+
             .module-type {
               display: none;
             }
+
+            >li {
+              padding: 0;
+              border-radius: 0;
+
+              >.left {
+                justify-content: space-between;
+
+                .icon-block {
+                  width: 45px;
+                  justify-content: center;
+                }
+
+                >.title {
+                  display: none;
+                }
+              }
+
+              >.el-switch {
+                display: none;
+              }
+            }
+          }
+        }
+
+        .main-right-panel {
+          > .top-tab {
+            padding-left: 20px;
+          }
+          .custom-dir-tabs {
+            .el-radio-button__inner {
+              font-size: 13px;
+            }
+          }
+          >.el-radio-group {
+            padding-left: 20px;
           }
         }
       }
@@ -2894,16 +2919,6 @@ body {
   html {
     #app {
       #container {
-        .main-right-panel {
-          > .top-tab > li {
-            margin-right: 14px;
-          }
-          .custom-dir-tabs {
-            .el-radio-button__inner {
-              font-size: 13px;
-            }
-          }
-        }
       }
     }
     .el-drawer {

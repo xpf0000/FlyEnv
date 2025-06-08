@@ -16,7 +16,7 @@
 
       <Conf
         ref="conf"
-        type-flag="xxx"
+        type-flag="node"
         :default-file="defaultFile"
         :file="file"
         file-ext="vhost"
@@ -32,9 +32,8 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import Conf from '@/components/Conf/drawer.vue'
-
-  const { existsSync, copyFile, mkdirp } = require('fs-extra')
-  const { join, dirname } = require('path')
+  import { join, dirname } from 'path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const props = defineProps<{
     flag: 'apache' | 'apacheSSL' | 'nginx' | 'nginxSSL' | 'caddy' | 'caddySSL'
@@ -57,22 +56,22 @@
   })
 
   const file = computed(() => {
-    return join(global.Server.BaseDir!, `VhostTemplate/${props.flag}.vhost`)
+    return join(window.Server.BaseDir!, `VhostTemplate/${props.flag}.vhost`)
   })
 
   const files = {
-    apache: join(global.Server.Static!, 'tmpl/apache.vhost'),
-    apacheSSL: join(global.Server.Static!, 'tmpl/apacheSSL.vhost'),
-    nginx: join(global.Server.Static!, 'tmpl/nginx.vhost'),
-    nginxSSL: join(global.Server.Static!, 'tmpl/nginxSSL.vhost'),
-    caddy: join(global.Server.Static!, 'tmpl/CaddyfileVhost'),
-    caddySSL: join(global.Server.Static!, 'tmpl/CaddyfileVhostSSL')
+    apache: join(window.Server.Static!, 'tmpl/apache.vhost'),
+    apacheSSL: join(window.Server.Static!, 'tmpl/apacheSSL.vhost'),
+    nginx: join(window.Server.Static!, 'tmpl/nginx.vhost'),
+    nginxSSL: join(window.Server.Static!, 'tmpl/nginxSSL.vhost'),
+    caddy: join(window.Server.Static!, 'tmpl/CaddyfileVhost'),
+    caddySSL: join(window.Server.Static!, 'tmpl/CaddyfileVhostSSL')
   }
   const defaultFile = ref(files[props.flag])
 
-  if (!existsSync(file.value)) {
-    mkdirp(dirname(file.value))
-      .then(() => copyFile(defaultFile.value, file.value))
+  if (!fs.existsSync(file.value)) {
+    fs.mkdirp(dirname(file.value))
+      .then(() => fs.copy(defaultFile.value, file.value))
       .then(() => {
         conf?.value?.update()
       })

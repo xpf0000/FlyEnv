@@ -21,7 +21,13 @@
       <div class="main">
         <template v-for="(item, index) in dirs" :key="index">
           <div class="path-choose mb-20">
-            <input type="text" class="input" placeholder="root path" readonly="" :value="item" />
+            <input
+              type="text"
+              class="input"
+              placeholder="root path"
+              readonly="true"
+              :value="item"
+            />
             <div class="icon-block">
               <yb-icon
                 :svg="import('@/svg/folder.svg?raw')"
@@ -51,8 +57,8 @@
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import type { AllAppModule } from '@/core/type'
+  import { dialog } from '@/util/NodeFn'
 
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const props = defineProps<{

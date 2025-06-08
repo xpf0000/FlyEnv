@@ -9,38 +9,43 @@
       </li>
     </template>
     <template v-else>
-      <li v-for="(item, key) in service" :key="key" class="http-serve-item">
-        <div class="left">
-          <div class="top">
-            <span class="name"> {{ $t('base.path') }}:</span>
-            <span class="value" @click.stop="openDir(key)">{{ key }} </span>
-          </div>
-          <div class="bottom">
-            <span class="name">{{ $t('base.link') }}:</span>
-            <template v-if="!item.host">
-              <span class="url empty">{{ $t('base.none') }}</span>
-            </template>
-            <template v-else>
-              <template v-for="(url, index) in item.host" :key="index">
-                <QrcodePopper :url="url">
-                  <span class="url" @click="doJump(url)">{{ url }} </span>
-                </QrcodePopper>
+      <el-scrollbar>
+        <li v-for="(item, _key) in service" :key="_key" class="http-serve-item">
+          <div class="left">
+            <div class="top">
+              <span class="name"> {{ $t('base.path') }}:</span>
+              <span class="value" @click.stop="openDir(_key as any)">{{ _key }} </span>
+            </div>
+            <div class="bottom">
+              <span class="name">{{ $t('base.links') }}:</span>
+              <template v-if="!item.host">
+                <span class="url empty">{{ $t('base.none') }}</span>
               </template>
-            </template>
+              <template v-else>
+                <template v-for="(url, _index) in item.host" :key="_index">
+                  <QrcodePopper :url="url">
+                    <span class="url" @click="doJump(url)">{{ url }} </span>
+                  </QrcodePopper>
+                </template>
+              </template>
+            </div>
           </div>
-        </div>
-        <div class="right">
-          <div v-if="item.run" class="status running">
-            <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="doStop(key, item)" />
+          <div class="right">
+            <div v-if="item.run" class="status running">
+              <yb-icon
+                :svg="import('@/svg/stop2.svg?raw')"
+                @click.stop="doStop(_key as any, item)"
+              />
+            </div>
+            <div v-else class="status">
+              <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="doRun(_key as any, item)" />
+            </div>
+            <div class="del">
+              <yb-icon :svg="import('@/svg/delete.svg?raw')" @click.stop="doDel(_key as any)" />
+            </div>
           </div>
-          <div v-else class="status">
-            <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="doRun(key, item)" />
-          </div>
-          <div class="del">
-            <yb-icon :svg="import('@/svg/delete.svg?raw')" @click.stop="doDel(key)" />
-          </div>
-        </div>
-      </li>
+        </li>
+      </el-scrollbar>
     </template>
   </ul>
 </template>
@@ -51,9 +56,8 @@
   import { AppStore } from '@/store/app'
   import { MessageError } from '@/util/Element'
   import QrcodePopper from '@/components/Host/Qrcode/Index.vue'
+  import { dialog, shell, fs } from '@/util/NodeFn'
 
-  const { dialog, shell } = require('@electron/remote')
-  const { pathExistsSync, statSync } = require('fs-extra')
   export default defineComponent({
     components: { QrcodePopper },
     props: {},
@@ -103,7 +107,7 @@
     unmounted() {},
     methods: {
       choosePath() {
-        let opt = ['openDirectory']
+        const opt = ['openDirectory']
         dialog
           .showOpenDialog({
             properties: opt
@@ -117,12 +121,12 @@
           })
       },
       initDroper() {
-        let selecter: HTMLElement = this.$refs.fileDroper as HTMLElement
+        const selecter: HTMLElement = this.$refs.fileDroper as HTMLElement
         selecter.addEventListener('drop', (e: any) => {
           e.preventDefault()
           e.stopPropagation()
-          // 获得拖拽的文件集合
-          let files = e.dataTransfer.files
+          // Get the collection of dragged files
+          const files = e.dataTransfer.files
           const path = [...files].map((file) => {
             return file.path
           })[0]
@@ -152,17 +156,18 @@
           false
         )
       },
-      addPath(path: string) {
-        if (!pathExistsSync(path)) return
-        const stat = statSync(path)
-        if (!stat.isDirectory()) {
+      async addPath(path: string) {
+        const exists = await fs.existsSync(path)
+        if (!exists) return
+        const stat = await fs.stat(path)
+        if (!stat.isDirectory) {
           MessageError(this.$t('base.needSelectDir'))
           return
         }
         if (this.httpServe.includes(path)) {
           return
         }
-        this.httpServe.push(path)
+        this.httpServe.unshift(path)
         AppStore().saveConfig()
         this.$nextTick().then(() => {
           let item = this.service[path]
@@ -200,7 +205,7 @@
         })
       },
       doDel(path: string) {
-        this.$baseConfirm(this.$t('base.delAlertContent'), undefined, {
+        this.$baseConfirm(this.$t('base.areYouSure'), undefined, {
           customClass: 'confirm-del',
           type: 'warning'
         })

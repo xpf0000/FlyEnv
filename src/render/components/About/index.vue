@@ -92,43 +92,36 @@
   </el-card>
 </template>
 
-<script>
-  import { AppStore } from '@/store/app.ts'
-  import { AsyncComponentShow } from '@/util/AsyncComponent.ts'
+<script lang="ts" setup>
+  import { ref, computed } from 'vue'
+  import { AppStore } from '@/store/app'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { app, shell } from '@/util/NodeFn'
 
-  const { app, shell } = require('@electron/remote')
-  const version = app.getVersion()
-  export default {
-    name: 'MoTitleBar',
-    props: {},
-    data() {
-      return {
-        version
-      }
-    },
-    computed: {
-      lang() {
-        const app = AppStore()
-        return app.config.setup.lang
-      }
-    },
-    unmounted() {
-      console.log('about unmounted !!!')
-    },
-    methods: {
-      openUrl(e, u) {
-        e.preventDefault()
-        shell.openExternal(u)
-      },
-      toHome(e) {
-        e.preventDefault()
-        shell.openExternal('https://flyenv.com')
-      },
-      toFeedback() {
-        import('@/components/Feedback/index.vue').then((res) => {
-          AsyncComponentShow(res.default).then()
-        })
-      }
-    }
+  const appStore = AppStore()
+  const version = ref('')
+
+  const lang = computed(() => {
+    return appStore.config.setup.lang
+  })
+
+  app.getVersion().then((v: string) => {
+    version.value = v
+  })
+
+  const openUrl = (e: MouseEvent, u: string) => {
+    e?.preventDefault?.()
+    shell.openExternal(u)
+  }
+
+  const toHome = (e: MouseEvent) => {
+    e?.preventDefault?.()
+    shell.openExternal('https://flyenv.com')
+  }
+
+  const toFeedback = () => {
+    import('@/components/Feedback/index.vue').then((res) => {
+      AsyncComponentShow(res.default).then()
+    })
   }
 </script>

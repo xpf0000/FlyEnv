@@ -44,8 +44,8 @@ const handleReverseProxy = (host: AppHost, content: string) => {
 }
 
 export const makeApacheConf = async (host: AppHost) => {
-  const apachevpath = join(global.Server.BaseDir!, 'vhost/apache')
-  const logpath = join(global.Server.BaseDir!, 'vhost/logs')
+  const apachevpath = join(window.Server.BaseDir!, 'vhost/apache')
+  const logpath = join(window.Server.BaseDir!, 'vhost/logs')
 
   await mkdirp(apachevpath)
   await mkdirp(logpath)
@@ -90,8 +90,8 @@ export const makeApacheConf = async (host: AppHost) => {
 }
 
 export const updateApacheConf = async (host: AppHost, old: AppHost) => {
-  const apachevpath = join(global.Server.BaseDir!, 'vhost/apache').split('\\').join('/')
-  const logpath = join(global.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
+  const apachevpath = join(window.Server.BaseDir!, 'vhost/apache').split('\\').join('/')
+  const logpath = join(window.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
 
   await mkdirp(apachevpath)
   await mkdirp(logpath)

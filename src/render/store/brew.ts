@@ -1,4 +1,4 @@
-import { AllAppModule } from '@/core/type'
+import type { AllAppModule } from '@/core/type'
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
 import { AppStore } from '@/store/app'

@@ -28,7 +28,7 @@ class Nginx extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.NginxDir!, 'nginx.pid')
+    this.pidPath = join(window.Server.NginxDir!, 'nginx.pid')
   }
 
   async #handlePhpEnableConf() {
@@ -37,11 +37,11 @@ class Nginx extends Base {
       host = await fetchHostList()
     } catch {}
     const all = new Set(host.map((h: any) => h.phpVersion).filter((h: number | undefined) => !!h))
-    const tmplFile = join(global.Server.Static!, 'tmpl/enable-php.conf')
+    const tmplFile = join(window.Server.Static!, 'tmpl/enable-php.conf')
     let tmplContent = ''
     for (const v of all) {
       const name = `enable-php-${v}.conf`
-      const confFile = join(global.Server.NginxDir!, 'conf', name)
+      const confFile = join(window.Server.NginxDir!, 'conf', name)
       if (!existsSync(confFile)) {
         await mkdirp(dirname(confFile))
         if (!tmplContent) {
@@ -55,23 +55,23 @@ class Nginx extends Base {
 
   #initConfig() {
     return new ForkPromise((resolve, reject, on) => {
-      const conf = join(global.Server.NginxDir!, 'conf/nginx.conf')
+      const conf = join(window.Server.NginxDir!, 'conf/nginx.conf')
       if (!existsSync(conf)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
         })
-        zipUnPack(join(global.Server.Static!, 'zip/nginx.zip'), global.Server.NginxDir!)
+        zipUnPack(join(window.Server.Static!, 'zip/nginx.zip'), window.Server.NginxDir!)
           .then(() => {
             return readFile(conf, 'utf-8')
           })
           .then((content: string) => {
             content = content
-              .replace(/#PREFIX#/g, global.Server.NginxDir!.split('\\').join('/'))
+              .replace(/#PREFIX#/g, window.Server.NginxDir!.split('\\').join('/'))
               .replace(
                 '#VHostPath#',
-                join(global.Server.BaseDir!, 'vhost/nginx').split('\\').join('/')
+                join(window.Server.BaseDir!, 'vhost/nginx').split('\\').join('/')
               )
-            const defaultConf = join(global.Server.NginxDir!, 'conf/nginx.conf.default')
+            const defaultConf = join(window.Server.NginxDir!, 'conf/nginx.conf.default')
             return Promise.all([writeFile(conf, content), writeFile(defaultConf, content)])
           })
           .then(() => {
@@ -106,9 +106,9 @@ class Nginx extends Base {
       await this.#handlePhpEnableConf()
       console.log('_startServer: ', version)
       const bin = version.bin
-      const p = global.Server.NginxDir!
+      const p = window.Server.NginxDir!
 
-      const pid = join(global.Server.NginxDir!, 'logs/nginx.pid')
+      const pid = join(window.Server.NginxDir!, 'logs/nginx.pid')
 
       const execArgs = `-p "${p}"`
 
@@ -116,7 +116,7 @@ class Nginx extends Base {
         const res = await serviceStartExecCMD(
           version,
           pid,
-          global.Server.NginxDir!,
+          window.Server.NginxDir!,
           bin,
           execArgs,
           '',
@@ -137,13 +137,13 @@ class Nginx extends Base {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('nginx')
         all.forEach((a: any) => {
           const dir = join(
-            global.Server.AppDir!,
+            window.Server.AppDir!,
             `nginx-${a.version}`,
             `nginx-${a.version}`,
             'nginx.exe'
           )
-          const zip = join(global.Server.Cache!, `nginx-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `nginx-${a.version}`)
+          const zip = join(window.Server.Cache!, `nginx-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `nginx-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

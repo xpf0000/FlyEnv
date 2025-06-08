@@ -15,21 +15,23 @@
   import Conf from '@/components/Conf/index.vue'
   import IPC from '@/util/IPC'
 
-  const { join } = require('path')
-  const { existsSync } = require('fs-extra')
+  import { join } from 'path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const conf = ref()
   const file = computed(() => {
-    return join(global.Server.FTPDir, `pure-ftpd.conf`)
+    return join(window.Server.FTPDir, `pure-ftpd.conf`)
   })
   const defaultFile = computed(() => {
-    return join(global.Server.FTPDir, `pure-ftpd.conf.default`)
+    return join(window.Server.FTPDir, `pure-ftpd.conf.default`)
   })
 
-  if (!existsSync(file.value)) {
-    IPC.send('app-fork:pure-ftpd', 'initConf').then((key: string) => {
-      IPC.off(key)
-      conf?.value?.update()
-    })
-  }
+  fs.existsSync(file.value).then((e) => {
+    if (!e) {
+      IPC.send('app-fork:pure-ftpd', 'initConf').then((key: string) => {
+        IPC.off(key)
+        conf?.value?.update()
+      })
+    }
+  })
 </script>

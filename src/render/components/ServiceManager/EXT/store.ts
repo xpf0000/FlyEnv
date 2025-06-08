@@ -10,7 +10,7 @@ import { AllAppModule } from '@/core/type'
 import { staticVersionDel } from '@/util/Version'
 import { AppServiceAliasItem } from '@shared/app'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import localForage from 'localforage'
 
 type ServiceActionType = {

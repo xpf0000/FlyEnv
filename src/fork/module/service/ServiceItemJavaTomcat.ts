@@ -133,7 +133,7 @@ export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostA
 
   const handleVhost = (host: AppHost) => {
     const hostRoot = host.root.split('\\').join('/')
-    const logDir = join(global.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
+    const logDir = join(window.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
     let hosts = serverXML.Server.Service.Engine.Host
     if (!hosts) {
       const arr: string[] = []
@@ -271,7 +271,7 @@ export const makeGlobalTomcatServerXML = async (version: SoftInstalled) => {
   } catch {}
   hostAll = hostAll.filter((h) => h.type === 'tomcat')
 
-  const vhostDir = join(global.Server.BaseDir!, 'vhost/tomcat')
+  const vhostDir = join(window.Server.BaseDir!, 'vhost/tomcat')
   await mkdirp(vhostDir)
 
   const configFile = join(version.path, 'conf/server.xml')
@@ -294,7 +294,7 @@ export const makeCustomTomcatServerXML = async (host: AppHost) => {
     return
   }
 
-  const logDir = join(global.Server.BaseDir!, `tomcat/${host.id}/logs`)
+  const logDir = join(window.Server.BaseDir!, `tomcat/${host.id}/logs`)
   await mkdirp(logDir)
 
   const files = [
@@ -308,7 +308,7 @@ export const makeCustomTomcatServerXML = async (host: AppHost) => {
     'web.xml'
   ]
   const versionPath = pathResolve(tomcatDir, '../../conf')
-  const vhostPath = join(global.Server.BaseDir!, `tomcat/${host.id}/conf`)
+  const vhostPath = join(window.Server.BaseDir!, `tomcat/${host.id}/conf`)
   await mkdirp(vhostPath)
   for (const file of files) {
     const of = join(versionPath, file)
@@ -318,7 +318,7 @@ export const makeCustomTomcatServerXML = async (host: AppHost) => {
     }
   }
 
-  const configFile = join(global.Server.BaseDir!, `tomcat/${host.id}/conf/server.xml`)
+  const configFile = join(window.Server.BaseDir!, `tomcat/${host.id}/conf/server.xml`)
   let serverContent = ''
   if (existsSync(configFile)) {
     serverContent = await readFile(configFile, 'utf-8')
@@ -358,7 +358,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
         return
       }
 
-      const javaDir = join(global.Server.BaseDir!, 'tomcat')
+      const javaDir = join(window.Server.BaseDir!, 'tomcat')
       await mkdirp(javaDir)
       const pid = join(javaDir, `${item.id}.pid`)
       if (existsSync(pid)) {
@@ -369,7 +369,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
 
       const env = {
         JAVA_HOME: jdkDir,
-        CATALINA_BASE: join(global.Server.BaseDir!, `tomcat/${item.id}`),
+        CATALINA_BASE: join(window.Server.BaseDir!, `tomcat/${item.id}`),
         CATALINA_PID: pid
       }
       const commands: string[] = [
@@ -384,9 +384,9 @@ export class ServiceItemJavaTomcat extends ServiceItem {
 
       this.command = commands.join(EOL)
       console.log('command: ', this.command)
-      const sh = join(global.Server.Cache!, `service-${this.id}.cmd`)
+      const sh = join(window.Server.Cache!, `service-${this.id}.cmd`)
       await writeFile(sh, this.command)
-      process.chdir(global.Server.Cache!)
+      process.chdir(window.Server.Cache!)
       try {
         await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id"`
@@ -426,7 +426,7 @@ export class ServiceItemJavaTomcat extends ServiceItem {
     if (!id) {
       return []
     }
-    const key = join(global.Server.BaseDir!, `tomcat/${id}`)
+    const key = join(window.Server.BaseDir!, `tomcat/${id}`)
     let all: any[] = []
     try {
       all = await ProcessListSearch(key, false)

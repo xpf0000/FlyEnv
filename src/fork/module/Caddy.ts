@@ -28,23 +28,23 @@ class Caddy extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.BaseDir!, 'caddy/caddy.pid')
+    this.pidPath = join(window.Server.BaseDir!, 'caddy/caddy.pid')
   }
 
   initConfig() {
     return new ForkPromise(async (resolve, reject, on) => {
-      const baseDir = join(global.Server.BaseDir!, 'caddy')
+      const baseDir = join(window.Server.BaseDir!, 'caddy')
       const iniFile = join(baseDir, 'Caddyfile')
       if (!existsSync(iniFile)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
         })
-        const tmplFile = join(global.Server.Static!, 'tmpl/Caddyfile')
+        const tmplFile = join(window.Server.Static!, 'tmpl/Caddyfile')
         let content = await readFile(tmplFile, 'utf-8')
         const sslDir = join(baseDir, 'ssl')
         await mkdirp(sslDir)
         const logFile = join(baseDir, 'caddy.log')
-        const vhostDir = join(global.Server.BaseDir!, 'vhost/caddy')
+        const vhostDir = join(window.Server.BaseDir!, 'vhost/caddy')
         await mkdirp(sslDir)
         content = content
           .replace('##SSL_ROOT##', sslDir.split('\\').join('/'))
@@ -63,7 +63,7 @@ class Caddy extends Base {
 
   async #fixVHost() {
     let hostAll: Array<AppHost> = []
-    const vhostDir = join(global.Server.BaseDir!, 'vhost/caddy')
+    const vhostDir = join(window.Server.BaseDir!, 'vhost/caddy')
     try {
       hostAll = await fetchHostList()
     } catch {}
@@ -83,11 +83,11 @@ class Caddy extends Base {
         continue
       }
       if (!tmplContent) {
-        const tmplFile = join(global.Server.Static!, 'tmpl/CaddyfileVhost')
+        const tmplFile = join(window.Server.Static!, 'tmpl/CaddyfileVhost')
         tmplContent = await readFile(tmplFile, 'utf-8')
       }
       if (!tmplSSLContent) {
-        const tmplFile = join(global.Server.Static!, 'tmpl/CaddyfileVhostSSL')
+        const tmplFile = join(window.Server.Static!, 'tmpl/CaddyfileVhostSSL')
         tmplSSLContent = await readFile(tmplFile, 'utf-8')
       }
       const httpNames: string[] = []
@@ -108,7 +108,7 @@ class Caddy extends Base {
       const hostName = host.name
       const root = host.root
       const phpv = host.phpVersion
-      const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
+      const logFile = join(window.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
 
       const httpHostNameAll = httpNames.join(',\n')
       const content = tmplContent
@@ -149,7 +149,7 @@ class Caddy extends Base {
       await this.#fixVHost()
       const iniFile = await this.initConfig().on(on)
 
-      const baseDir = join(global.Server.BaseDir!, `caddy`)
+      const baseDir = join(window.Server.BaseDir!, `caddy`)
       await mkdirp(baseDir)
       const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
 
@@ -169,9 +169,9 @@ class Caddy extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('caddy')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `caddy-${a.version}`, 'caddy.exe')
-          const zip = join(global.Server.Cache!, `caddy-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `caddy-${a.version}`)
+          const dir = join(window.Server.AppDir!, `caddy-${a.version}`, 'caddy.exe')
+          const zip = join(window.Server.Cache!, `caddy-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `caddy-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

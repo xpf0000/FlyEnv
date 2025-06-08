@@ -17,13 +17,12 @@
   import Conf from '@/components/Conf/index.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
-  import { uuid } from '@shared/utils'
-
-  const { join } = require('path')
-  const { existsSync } = require('fs-extra')
+  import { uuid } from '@/util/Index'
+  import { join } from 'path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const appStore = AppStore()
   const conf = ref()
@@ -41,14 +40,14 @@
     if (!vm.value) {
       return ''
     }
-    return join(global.Server.RedisDir, `redis-${vm.value}.conf`)
+    return join(window.Server.RedisDir, `redis-${vm.value}.conf`)
   })
 
   const defaultFile = computed(() => {
     if (!vm.value) {
       return ''
     }
-    return join(global.Server.RedisDir, `redis-${vm.value}-default.conf`)
+    return join(window.Server.RedisDir, `redis-${vm.value}-default.conf`)
   })
 
   const names: CommonSetItem[] = [
@@ -132,7 +131,7 @@
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names]
       .map((item) => {
         const regex = new RegExp(
@@ -179,12 +178,16 @@
     }
   }
 
-  if (file.value && !existsSync(file.value)) {
-    IPC.send('app-fork:redis', 'initConf', {
-      version: currentVersion.value
-    }).then((key: string) => {
-      IPC.off(key)
-      conf?.value?.update()
+  if (file.value) {
+    fs.existsSync(file.value).then((e) => {
+      if (!e) {
+        IPC.send('app-fork:redis', 'initConf', {
+          version: currentVersion.value
+        }).then((key: string) => {
+          IPC.off(key)
+          conf?.value?.update()
+        })
+      }
     })
   }
 </script>

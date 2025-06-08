@@ -1,8 +1,8 @@
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
+import { clipboard } from '@/util/NodeFn'
 
-const { clipboard } = require('@electron/remote')
 export const Project = {
   copyPath(dir: string) {
     clipboard.writeText(dir)

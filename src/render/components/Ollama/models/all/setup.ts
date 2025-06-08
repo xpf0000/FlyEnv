@@ -5,9 +5,8 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { BrewStore } from '@/store/brew'
 import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'
-
-const { clipboard } = require('@electron/remote')
-const { dirname } = require('path')
+import { dirname } from 'path-browserify'
+import { clipboard } from '@/util/NodeFn'
 
 export type OllamaModelItem = {
   isRoot?: boolean
@@ -134,9 +133,9 @@ export const Setup = () => {
     OllamaAllModelsSetup.installing = true
     OllamaAllModelsSetup.installEnd = false
     const command: string[] = []
-    if (global.Server.Proxy) {
-      for (const k in global.Server.Proxy) {
-        const v = global.Server.Proxy[k]
+    if (window.Server.Proxy) {
+      for (const k in window.Server.Proxy) {
+        const v = window.Server.Proxy[k]
         command.push(`$Env:${k}="${v}"`)
       }
     }
@@ -163,7 +162,7 @@ export const Setup = () => {
   })
 
   onUnmounted(() => {
-    OllamaAllModelsSetup.xterm && OllamaAllModelsSetup.xterm.unmounted()
+    OllamaAllModelsSetup.xterm?.unmounted?.()
   })
 
   fetchData()

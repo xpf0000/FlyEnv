@@ -26,7 +26,7 @@ export class ServiceItemJavaSpring extends ServiceItem {
 
       this.host = item
       await this.stop()
-      const javaDir = join(global.Server.BaseDir!, 'java')
+      const javaDir = join(window.Server.BaseDir!, 'java')
       await mkdirp(javaDir)
       const pid = join(javaDir, `${item.id}.pid`)
       const log = join(javaDir, `${item.id}.log`)
@@ -55,9 +55,9 @@ export class ServiceItemJavaSpring extends ServiceItem {
       this.command = commands.join(EOL)
       console.log('command: ', this.command)
 
-      const sh = join(global.Server.Cache!, `service-${this.id}.cmd`)
+      const sh = join(window.Server.Cache!, `service-${this.id}.cmd`)
       await writeFile(sh, this.command)
-      process.chdir(global.Server.Cache!)
+      process.chdir(window.Server.Cache!)
       try {
         await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
@@ -78,7 +78,7 @@ export class ServiceItemJavaSpring extends ServiceItem {
     if (!id) {
       return []
     }
-    const baseDir = join(global.Server.BaseDir!, 'java')
+    const baseDir = join(window.Server.BaseDir!, 'java')
     const pidFile = join(baseDir, `${id}.pid`)
     this.pidFile = pidFile
     if (!existsSync(pidFile)) {

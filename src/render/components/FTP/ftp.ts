@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import IPC from '@/util/IPC'
-const IP = require('ip')
+import { ip } from '@/util/NodeFn'
 
 export interface FtpItem {
   user: string
@@ -31,7 +31,9 @@ export const FtpStore = defineStore('ftp', {
   getters: {},
   actions: {
     getIP() {
-      this.ip = IP.address()
+      ip.address().then((res) => {
+        this.ip = res
+      })
     },
     getPort() {
       IPC.send('app-fork:pure-ftpd', 'getPort').then((key: string, res?: any) => {

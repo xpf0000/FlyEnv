@@ -17,15 +17,15 @@
   import Conf from '@/components/Conf/index.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import { uuid } from '@/util/Index'
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const conf = ref()
   const file = computed(() => {
-    return join(global.Server.UserHome!, '.npmrc')
+    return join(window.Server.UserHome!, '.npmrc')
   })
 
   const baseOptions = [
@@ -228,7 +228,7 @@
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names].map((item) => {
       const regex = new RegExp(`^(?!\\s*#)\\s*${item.name}\\s*=(.*?)([^\\n])(\\n|$)`, 'gmu')
       const matchs =

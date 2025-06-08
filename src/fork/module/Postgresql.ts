@@ -40,13 +40,13 @@ class Manager extends Base {
       })
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
-      const dbPath = DATA_DIR ?? join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+      const dbPath = DATA_DIR ?? join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
       const confFile = join(dbPath, 'postgresql.conf')
       const pidFile = join(dbPath, 'postmaster.pid')
       const logFile = join(dbPath, 'pg.log')
       let sendUserPass = false
 
-      await mkdirp(global.Server.PostgreSqlDir!)
+      await mkdirp(window.Server.PostgreSqlDir!)
 
       const doRun = async () => {
         const execArgs = `-D "${dbPath}" -l "${logFile}" start`
@@ -55,7 +55,7 @@ class Manager extends Base {
           const res = await serviceStartExecCMD(
             version,
             pidFile,
-            global.Server.PostgreSqlDir!,
+            window.Server.PostgreSqlDir!,
             bin,
             execArgs,
             '',
@@ -86,10 +86,10 @@ class Manager extends Base {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.initDBDataDir'))
         })
-        process.env.LC_ALL = global.Server.Local!
-        process.env.LANG = global.Server.Local!
+        process.env.LC_ALL = window.Server.Local!
+        process.env.LANG = window.Server.Local!
 
-        console.log('global.Server.Local: ', global.Server.Local)
+        console.log('window.Server.Local: ', window.Server.Local)
         await mkdirp(dbPath)
         try {
           await setDir777ToCurrentUser(dbPath)
@@ -124,13 +124,13 @@ class Manager extends Base {
         })
         let conf = await readFile(confFile, 'utf-8')
         let find = conf.match(/lc_messages = '(.*?)'/g)
-        conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_messages = '${global.Server.Local}'`)
+        conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_messages = '${window.Server.Local}'`)
         find = conf.match(/lc_monetary = '(.*?)'/g)
-        conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_monetary = '${global.Server.Local}'`)
+        conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_monetary = '${window.Server.Local}'`)
         find = conf.match(/lc_numeric = '(.*?)'/g)
-        conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_numeric = '${global.Server.Local}'`)
+        conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_numeric = '${window.Server.Local}'`)
         find = conf.match(/lc_time = '(.*?)'/g)
-        conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_time = '${global.Server.Local}'`)
+        conf = conf.replace(find?.[0] ?? '###@@@&&&', `lc_time = '${window.Server.Local}'`)
 
         await writeFile(confFile, conf)
 
@@ -150,13 +150,13 @@ class Manager extends Base {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('postgresql')
         all.forEach((a: any) => {
           const dir = join(
-            global.Server.AppDir!,
+            window.Server.AppDir!,
             `postgresql-${a.version}`,
             `pgsql`,
             'bin/pg_ctl.exe'
           )
-          const zip = join(global.Server.Cache!, `postgresql-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `postgresql-${a.version}`)
+          const zip = join(window.Server.Cache!, `postgresql-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `postgresql-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

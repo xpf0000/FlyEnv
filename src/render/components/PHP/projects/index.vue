@@ -182,15 +182,14 @@
   import { FolderAdd, Lock, Refresh } from '@element-plus/icons-vue'
   import { BrewStore } from '@/store/brew'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import { isEqual } from 'lodash'
+  import { isEqual } from 'lodash-es'
   import { Project } from '@/util/Project'
   import type { AllAppModule } from '@/core/type'
   import { SetupStore } from '@/components/Setup/store'
   import Router from '@/router'
   import { AppStore } from '@/store/app'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
+  import { shell } from '@/util/NodeFn'
+  import { join } from 'path-browserify'
 
   const props = defineProps<{
     typeFlag: AllAppModule

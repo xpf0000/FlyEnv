@@ -184,12 +184,11 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
-  import { isEqual } from 'lodash'
+  import { isEqual } from 'lodash-es'
   import { HostStore } from '@/components/Host/store'
   import { MessageError, MessageSuccess } from '@/util/Element'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
+  import { join } from 'path-browserify'
+  import { shell } from '@/util/NodeFn'
 
   //nohup {project_cmd}{nohup_log} & echo $! > {pid_file}
 
@@ -236,7 +235,7 @@
         if (!h.name || h?.pid) {
           return false
         }
-        let name: any = h.name.split('.')
+        const name: any = h.name.split('.')
         let has = false
         while (!has && name.length > 0) {
           name.shift()
@@ -359,19 +358,21 @@
         }).then()
         break
       case 'log':
-        let logFile = ''
-        let customTitle = ''
-        if (item.subType === 'springboot') {
-          logFile = join(global.Server.BaseDir!, `java/${item.id}.log`)
-          customTitle = 'SpringBoot'
-        } else {
-          logFile = join(global.Server.BaseDir!, `tomcat/${item.id}/logs/catalina.out`)
-          customTitle = 'Tomcat'
+        {
+          let logFile = ''
+          let customTitle = ''
+          if (item.subType === 'springboot') {
+            logFile = join(window.Server.BaseDir!, `java/${item.id}.log`)
+            customTitle = 'SpringBoot'
+          } else {
+            logFile = join(window.Server.BaseDir!, `tomcat/${item.id}/logs/catalina.out`)
+            customTitle = 'Tomcat'
+          }
+          AsyncComponentShow(LogVM, {
+            logFile,
+            customTitle
+          }).then()
         }
-        AsyncComponentShow(LogVM, {
-          logFile,
-          customTitle
-        }).then()
         break
       case 'del':
         Base._Confirm(I18nT('base.delAlertContent'), undefined, {
@@ -413,7 +414,7 @@
   const showConfig = (item: AppHost) => {
     AsyncComponentShow(ConfigVM, {
       item,
-      file: join(global.Server.BaseDir!, `tomcat/${item.id}/conf/server.xml`)
+      file: join(window.Server.BaseDir!, `tomcat/${item.id}/conf/server.xml`)
     }).then()
   }
 

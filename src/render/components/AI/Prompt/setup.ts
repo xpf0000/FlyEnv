@@ -2,7 +2,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import IPC from '@/util/IPC'
 import { StorageGet, StorageSet } from '@/util/Storage'
 import { AppStore } from '@/store/app'
-import { uuid } from '@shared/utils'
+import { uuid } from '@/util/Index'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { AISetup } from '@/components/AI/setup'
 

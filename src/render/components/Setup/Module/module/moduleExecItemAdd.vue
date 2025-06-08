@@ -209,12 +209,11 @@
   import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import { uuid } from '@/util/Index'
   import type { CustomerModuleExecItem } from '@/core/Module'
   import { Delete, Plus } from '@element-plus/icons-vue'
-
-  const { dialog } = require('@electron/remote')
+  import { dialog } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
@@ -271,7 +270,7 @@
   }
 
   const chooseExecFile = (flag: 'commandFile' | 'pidPath' | { name: string; path: string }) => {
-    let filters: any = []
+    const filters: any = []
     if (flag === 'commandFile') {
       filters.push({
         name: 'Command File',

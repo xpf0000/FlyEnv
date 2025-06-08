@@ -262,7 +262,7 @@ export async function createMarkdownRenderer(): Promise<MarkdownRenderer> {
         '<mjx-container tabindex="0" '
       )
     }
-  } catch (error) {
+  } catch {
     throw new Error('You need to install `markdown-it-mathjax3` to use math support.')
   }
 

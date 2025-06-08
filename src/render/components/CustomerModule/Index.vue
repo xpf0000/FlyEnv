@@ -9,10 +9,10 @@
       <ListVM v-if="tab === 0"></ListVM>
       <template v-for="(item, index) in tabs" :key="index">
         <template v-if="item.isConfig">
-          <ConfigVM v-if="item.index === tab" :file="item.path" />
+          <ConfigVM v-if="item.index === tab" :file="item?.path ?? ''" />
         </template>
         <template v-if="item.isLog">
-          <LogsVM v-if="item.index === tab" :file="item.path" />
+          <LogsVM v-if="item.index === tab" :file="item?.path ?? ''" />
         </template>
       </template>
     </div>
@@ -22,32 +22,42 @@
 <script lang="ts" setup>
   import { AppCustomerModule, AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
-  import { computed } from 'vue'
+  import { computed, ComputedRef } from 'vue'
   import ListVM from './List.vue'
   import ConfigVM from './Config.vue'
   import LogsVM from './Logs.vue'
+  import type { ModuleCustomer } from '@/core/ModuleCustomer'
 
-  const current = computed(() => {
+  const current: ComputedRef<ModuleCustomer> = computed(() => {
     return AppCustomerModule.currentModule!
   })
 
   const tab = computed({
     get() {
-      return AppModuleSetup(current.value.id).tab.value
+      return AppModuleSetup(current.value.id as any).tab.value
     },
     set(v) {
-      AppModuleSetup(current.value.id).tab.value = v
+      AppModuleSetup(current.value.id as any).tab.value = v
     }
   })
 
-  const tabs = computed(() => {
-    const arr = [
+  const tabs: ComputedRef<
+    {
+      label: string
+      index?: number
+      isConfig?: boolean
+      isLog?: boolean
+      path?: string
+    }[]
+  > = computed(() => {
+    const arr: any = [
       {
         label: I18nT('base.service')
       }
     ]
     let index = 0
-    for (const c of current.value.configPath) {
+    const configPath: any = current.value.configPath
+    for (const c of configPath) {
       index += 1
       arr.push({
         index,
@@ -56,7 +66,8 @@
         path: c.path
       })
     }
-    for (const c of current.value.logPath) {
+    const logPath: any = current.value.logPath
+    for (const c of logPath) {
       index += 1
       arr.push({
         index,

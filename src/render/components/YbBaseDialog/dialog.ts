@@ -1,10 +1,11 @@
 import DialogView from './index.vue'
 import { VueExtend } from '@/core/VueExtend'
 import { markRaw, toRaw } from 'vue'
+import type { CallBackFn } from '@shared/app'
 class BaseDialog {
   private _component: any
-  private _resolve: Function | undefined
-  private _componentData: Object
+  private _resolve: CallBackFn | undefined
+  private _componentData: object
   private _dialogWidth: string
   private _dialogClassName: string
   private _dialogTitle: string
@@ -24,7 +25,7 @@ class BaseDialog {
    * @param d
    * @returns {Dialog}
    */
-  data(d: Object) {
+  data(d: object) {
     this._componentData = d
     return this
   }
@@ -105,7 +106,7 @@ class BaseDialog {
         if (close) {
           intance.close()
         }
-        this._resolve && this._resolve(toRaw(res))
+        this?._resolve?.(toRaw(res))
       }
     })
     return this
@@ -116,7 +117,7 @@ class BaseDialog {
    * @param callBack
    * @returns {Dialog}
    */
-  then(callBack: Function) {
+  then(callBack: CallBackFn) {
     this._resolve = callBack
     return this
   }

@@ -2,7 +2,7 @@ import { basename, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import { OnlineVersionItem, SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   versionBinVersion,
   versionFilterSame,
@@ -26,9 +26,9 @@ class Java extends Base {
           if (!a.type) {
             a.type = 'openjdk'
           }
-          const dir = join(global.Server.AppDir!, `${a.type}-${a.version}`, 'bin/java.exe')
-          const zip = join(global.Server.Cache!, `${a.type}-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `${a.type}-${a.version}`)
+          const dir = join(window.Server.AppDir!, `${a.type}-${a.version}`, 'bin/java.exe')
+          const zip = join(window.Server.Cache!, `${a.type}-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `${a.type}-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

@@ -28,12 +28,12 @@ class Minio extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.BaseDir!, 'minio/minio.pid')
+    this.pidPath = join(window.Server.BaseDir!, 'minio/minio.pid')
   }
 
   initConfig(): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
-      const baseDir = join(global.Server.BaseDir!, 'minio')
+      const baseDir = join(window.Server.BaseDir!, 'minio')
       if (!existsSync(baseDir)) {
         await mkdirp(baseDir)
       }
@@ -48,12 +48,12 @@ class Minio extends Base {
   fetchAllOnLineVersion() {
     console.log('Tomcat fetchAllOnLineVersion !!!')
     return new ForkPromise(async (resolve) => {
-      const bin = join(global.Server.AppDir!, `minio`, 'minio.exe')
-      const zip = join(global.Server.Cache!, 'minio.exe')
+      const bin = join(window.Server.AppDir!, `minio`, 'minio.exe')
+      const zip = join(window.Server.Cache!, 'minio.exe')
       const all: any[] = [
         {
           url: 'https://dl.min.io/server/minio/release/windows-amd64/minio.exe',
-          appDir: join(global.Server.AppDir!, `minio`),
+          appDir: join(window.Server.AppDir!, `minio`),
           bin,
           zip,
           downloaded: existsSync(zip),
@@ -118,7 +118,7 @@ class Minio extends Base {
       envs.push('')
 
       const bin = version.bin
-      const baseDir = join(global.Server.BaseDir!, 'minio')
+      const baseDir = join(window.Server.BaseDir!, 'minio')
       const dataDir = DATA_DIR ?? join(baseDir, 'data')
       await mkdirp(dataDir)
       let execArgs = `server \`"${dataDir}\`"`

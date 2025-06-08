@@ -20,7 +20,7 @@
           :placeholder="I18nT('feedback.inputFilter')"
         >
           <el-option :label="I18nT('feedback.noSelected')" value=""></el-option>
-          <template v-for="(item, index) in Country" :key="index">
+          <template v-for="(item, _index) in Country" :key="_index">
             <el-option :label="item.name" :value="item.name"></el-option>
           </template>
         </el-select>

@@ -15,10 +15,10 @@
     <div class="flex-1 overflow-hidden">
       <el-scrollbar>
         <el-collapse v-model="ProjectSetup.collapse.PHP">
-          <template v-for="(item, index) in list" :key="index">
+          <template v-for="(item, _index) in list" :key="_index">
             <el-collapse-item :title="item.key" :name="item.key">
               <div class="p-2 grid grid-cols-2 gap-4">
-                <template v-for="(p, i) in item.list" :key="i">
+                <template v-for="(p, _i) in item.list" :key="_i">
                   <div
                     class="p-3 flex flex-col bg-slate-100 rounded-md hover:shadow-lg relative dark:bg-gray-700 dark:hover:shadow-slate-600 group"
                     @click.stop="toCreate(p)"
@@ -54,8 +54,7 @@
   import Projects from './version'
   import { Search } from '@element-plus/icons-vue'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-
-  const { shell } = require('@electron/remote')
+  import { shell } from '@/util/NodeFn'
 
   const emit = defineEmits(['onMakeHost'])
 

@@ -7,7 +7,7 @@ import installedVersions from '@/util/InstalledVersions'
 import { BrewStore } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 
-const { join } = require('path')
+import { join } from 'path-browserify'
 
 export const NodeDefaultSetup = reactive<{
   installing: Record<string, number>
@@ -65,8 +65,8 @@ export const Setup = () => {
     NodeDefaultSetup.switching = true
     item.switching = true
     const param: any = {
-      bin: join(global.Server.AppDir!, `nodejs/v${item.version}/node.exe`),
-      path: join(global.Server.AppDir!, `nodejs/v${item.version}`)
+      bin: join(window.Server.AppDir!, `nodejs/v${item.version}/node.exe`),
+      path: join(window.Server.AppDir!, `nodejs/v${item.version}`)
     }
     ServiceActionStore.updatePath(param, 'node')
       .then(() => {

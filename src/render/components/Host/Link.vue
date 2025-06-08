@@ -8,7 +8,7 @@
     @closed="closedFn"
   >
     <div class="host-link">
-      <template v-for="(item, index) of hosts" :key="index">
+      <template v-for="(item, _index) of hosts" :key="_index">
         <el-input :model-value="item" readonly>
           <template #append>
             <el-button-group>
@@ -28,8 +28,7 @@
   import type { AppHost } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { MessageSuccess } from '@/util/Element'
-
-  const { shell, clipboard } = require('@electron/remote')
+  import { shell, clipboard } from '@/util/NodeFn'
 
   const props = defineProps<{
     host: AppHost

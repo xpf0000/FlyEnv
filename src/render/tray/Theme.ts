@@ -1,26 +1,29 @@
 import { AppStore } from './store/app'
-import { computed, watch, ref } from 'vue'
-
-const { nativeTheme } = require('@electron/remote')
+import { watch, ref } from 'vue'
+import { nativeTheme } from '@/util/NodeFn'
+import { asyncComputed } from '@vueuse/core'
 
 export const ThemeInit = () => {
   const store = AppStore()
   const index = ref(0)
-  const theme = computed(() => {
+  const theme = asyncComputed(async () => {
     if (index.value < 0) {
       return ''
     }
     const t = store?.theme
     console.log('theme: ', t)
     if (!t || t === 'system') {
-      return nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+      const isDark = await nativeTheme.shouldUseDarkColors()
+      return isDark ? 'dark' : 'light'
     }
-    return t
+    return t || 'light'
   })
   const resetHtmlThemeTag = () => {
     const html = document.documentElement
     html.classList.remove('dark', 'light')
-    html.classList.add(theme.value)
+    if (theme?.value) {
+      html.classList.add(theme?.value)
+    }
   }
   resetHtmlThemeTag()
 

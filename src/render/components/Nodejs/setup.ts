@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, ComputedRef } from 'vue'
 import { AppStore } from '@/store/app'
 import { FNMSetup } from '@/components/Nodejs/fnm/setup'
 import { NVMSetup } from '@/components/Nodejs/nvm/setup'
@@ -7,7 +7,7 @@ import { NodeDefaultSetup } from '@/components/Nodejs/default/setup'
 export const Setup = () => {
   const appStore = AppStore()
 
-  const currentTool = computed({
+  const currentTool: ComputedRef<'fnm' | 'nvm' | 'default'> = computed({
     get() {
       return appStore.config.setup.currentNodeTool || 'default'
     },

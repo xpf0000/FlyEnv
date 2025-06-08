@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { uuid } from '@shared/utils'
+import { uuid } from '@/util/Index'
 import { I18nT } from '@lang/index'
 import type { PromptItem } from '@/components/AI/Prompt/setup'
 import { AIOllama } from '@/components/AI/AIOllama'

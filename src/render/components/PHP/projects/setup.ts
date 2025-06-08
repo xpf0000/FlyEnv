@@ -2,15 +2,13 @@ import { reactive } from 'vue'
 import { I18nT } from '@lang/index'
 import localForage from 'localforage'
 import Base from '@/core/Base'
-import { uuid } from '@shared/utils'
+import { uuid } from '@/util/Index'
 import IPC from '@/util/IPC'
 import { MessageError } from '@/util/Element'
 import { AllAppModule } from '@/core/type'
 import { SetupStore } from '@/components/Setup/store'
-
-const { dialog } = require('@electron/remote')
-const { join } = require('path')
-const { writeFile, existsSync, readFile } = require('fs-extra')
+import { join } from 'path-browserify'
+import { dialog, fs } from '@/util/NodeFn'
 
 export type ProjectItem = {
   id: string
@@ -149,22 +147,27 @@ class Project {
     })
     try {
       const envFile = join(item.path, '.flyenv')
-      if (!existsSync(envFile)) {
+      if (!(await fs.existsSync(envFile))) {
         if (!item.binVersion) {
-          await writeFile(envFile, '')
+          await fs.writeFile(envFile, '')
         } else {
-          const arr = [item.binPath, join(item.binPath, 'bin'), join(item.binPath, 'sbin')].filter(
-            (s) => existsSync(s)
-          )
+          const arr: string[] = []
+          const list = [item.binPath, join(item.binPath, 'bin'), join(item.binPath, 'sbin')]
+          for (const s of list) {
+            const e = await fs.existsSync(s)
+            if (e) {
+              arr.push(s)
+            }
+          }
           if (arr.length) {
-            await writeFile(
+            await fs.writeFile(
               envFile,
               `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\n$env:PATH = "${arr.join(';')};" + $env:PATH #FlyEnv-ID-${item.id}`
             )
           }
         }
       } else {
-        const content = await readFile(envFile, 'utf-8')
+        const content = await fs.readFile(envFile, 'utf-8')
         const lines = content
           .trim()
           .split('\n')
@@ -173,14 +176,19 @@ class Project {
             return !!line && !line.includes(`#FlyEnv-ID-${item.id}`)
           })
         if (item.binVersion) {
-          const arr = [item.binPath, join(item.binPath, 'bin'), join(item.binPath, 'sbin')].filter(
-            (s) => existsSync(s)
-          )
+          const arr: string[] = []
+          const list = [item.binPath, join(item.binPath, 'bin'), join(item.binPath, 'sbin')]
+          for (const s of list) {
+            const e = await fs.existsSync(s)
+            if (e) {
+              arr.push(s)
+            }
+          }
           if (arr.length) {
             lines.push(`$env:PATH = "${arr.join(';')};" + $env:PATH #FlyEnv-ID-${item.id}`)
           }
         }
-        await writeFile(envFile, lines.join('\n'))
+        await fs.writeFile(envFile, lines.join('\n'))
       }
     } catch (e: any) {
       MessageError(e.toString())

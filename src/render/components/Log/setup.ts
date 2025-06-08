@@ -1,46 +1,64 @@
-import { nextTick, onMounted, onUnmounted, ref, watch, Ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch, Ref, markRaw } from 'vue'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
-import type { FSWatcher } from 'fs'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
 import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-
-const fsWatch = require('fs').watch
-const { shell } = require('@electron/remote')
-const { existsSync, writeFile, readFile } = require('fs-extra')
+import IPC from '@/util/IPC'
+import { shell, fs, FileWatcher } from '@/util/NodeFn'
 
 export const LogSetup = (file: Ref<string>) => {
   const logRef = ref()
   const log = ref('')
-  let watcher: FSWatcher | null
+  let watcher: FileWatcher | null
   let monacoInstance: editor.IStandaloneCodeEditor | null
 
+  const fileExists = ref(false)
   const isDisabled = () => {
-    return !file.value || !existsSync(file.value)
+    return !file.value || !fileExists.value
   }
+  watch(
+    () => file.value,
+    (v) => {
+      fs.existsSync(v).then((e: boolean) => {
+        fileExists.value = e
+      })
+    },
+    {
+      immediate: true
+    }
+  )
 
   const getLog = () => {
-    if (existsSync(file.value)) {
+    if (fileExists.value) {
       const watchLog = () => {
         if (watcher) {
           watcher.close()
           watcher = null
         }
         if (!watcher) {
-          watcher = fsWatch(file.value, () => {
-            read().then()
-          })
+          watcher = markRaw(
+            new FileWatcher(file.value, () => {
+              read().then()
+            })
+          )
         }
       }
+
       const read = () => {
         return new Promise((resolve) => {
-          readFile(file.value, 'utf-8')
+          fs.readFile(file.value)
             .then((str: string) => {
               log.value = str
               resolve(true)
             })
-            .catch((e: any) => {
-              MessageError(e.toString())
+            .catch(() => {
+              IPC.send(`app-fork:tools`, 'readFileByRoot', file.value).then(
+                (key: string, res: any) => {
+                  IPC.off(key)
+                  log.value = res?.data ?? ''
+                  resolve(true)
+                }
+              )
             })
         })
       }
@@ -53,7 +71,7 @@ export const LogSetup = (file: Ref<string>) => {
   }
 
   const logDo = (action: 'open' | 'refresh' | 'clean') => {
-    if (!existsSync(file.value)) {
+    if (!fileExists.value) {
       MessageError(I18nT('base.noFoundLogFile'))
       return
     }
@@ -65,13 +83,16 @@ export const LogSetup = (file: Ref<string>) => {
         getLog()
         break
       case 'clean':
-        writeFile(file.value, '')
+        fs.writeFile(file.value, '')
           .then(() => {
             log.value = ''
             MessageSuccess(I18nT('base.success'))
           })
-          .catch((e: any) => {
-            MessageError(`${e}`)
+          .catch(() => {
+            IPC.send(`app-fork:tools`, 'writeFileByRoot', file.value, '').then((key: string) => {
+              IPC.off(key)
+              MessageSuccess(I18nT('base.success'))
+            })
           })
         break
     }
@@ -102,7 +123,7 @@ export const LogSetup = (file: Ref<string>) => {
   })
 
   onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
+    monacoInstance?.dispose()
     monacoInstance = null
     if (watcher) {
       watcher.close()

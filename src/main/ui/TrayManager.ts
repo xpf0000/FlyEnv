@@ -31,7 +31,7 @@ export default class TrayManager extends EventEmitter {
   }
 
   handleTrayClick = (event: any) => {
-    event?.preventDefault && event?.preventDefault()
+    event?.preventDefault?.()
     const bounds = this.tray.getBounds()
     console.log('handleTrayClick: ', event, bounds)
     const screenWidth = screen.getPrimaryDisplay().workAreaSize.width

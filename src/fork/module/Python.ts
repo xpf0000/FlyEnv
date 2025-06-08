@@ -23,9 +23,9 @@ class Python extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('python')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `python-${a.version}`, 'python.exe')
-          const zip = join(global.Server.Cache!, `python-${a.version}.exe`)
-          a.appDir = join(global.Server.AppDir!, `python-${a.version}`)
+          const dir = join(window.Server.AppDir!, `python-${a.version}`, 'python.exe')
+          const zip = join(window.Server.Cache!, `python-${a.version}.exe`)
+          a.appDir = join(window.Server.AppDir!, `python-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

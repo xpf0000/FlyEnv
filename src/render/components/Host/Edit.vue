@@ -250,14 +250,13 @@
   import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import { ElMessageBox } from 'element-plus'
   import IPC from '@/util/IPC'
   import SSLTips from './SSLTips/index.vue'
   import { Plus, Delete } from '@element-plus/icons-vue'
   import NginxRewrite from './Edit/nginxRewrite.vue'
-
-  const { dialog } = require('@electron/remote')
+  import { dialog } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -366,7 +365,7 @@
   })
 
   watch(itemName, (name) => {
-    for (let h of hosts.value) {
+    for (const h of hosts.value) {
       if (h.name === name && h.id !== item.value.id) {
         errs.value['name'] = true
         break
@@ -461,7 +460,7 @@
       errs.value['cert'] = item.value.ssl.cert.length === 0
       errs.value['certkey'] = item.value.ssl.key.length === 0
     }
-    for (let h of hosts.value) {
+    for (const h of hosts.value) {
       if (h.name === item.value.name && h.id !== item.value.id) {
         errs.value['name'] = true
         break

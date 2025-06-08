@@ -49,11 +49,10 @@
 
 <script lang="ts" setup>
   import { ref, computed } from 'vue'
-  import { SoftInstalled } from '@/store/brew'
+  import type { SoftInstalled } from '@shared/app'
   import { I18nT } from '@lang/index'
   import { PHPSetup } from '@/components/PHP/store'
-
-  const { shell } = require('@electron/remote')
+  import { shell } from '@/util/NodeFn'
 
   const props = defineProps<{
     version: SoftInstalled

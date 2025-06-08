@@ -23,9 +23,7 @@ type StateBase = Partial<
   >
 >
 
-interface State extends StateBase {}
-
-const state: State = {
+const state: StateBase = {
   node: { NVM_DIR: '', btnTxt: '', getVersioning: false, isRunning: false, versions: [] },
   php: {
     currentExtend: '',
@@ -37,7 +35,7 @@ const state: State = {
 }
 
 export const TaskStore = defineStore('task', {
-  state: (): State => state,
+  state: (): StateBase => state,
   getters: {},
   actions: {
     module(flag: AllAppModule) {

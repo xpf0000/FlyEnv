@@ -2,7 +2,7 @@
   <div class="setup-common editor-config">
     <div class="main proxy-set">
       <el-form label-width="130px" label-position="left" @submit.prevent>
-        <el-form-item :label="$t('util.theme')">
+        <el-form-item :label="$t('base.theme')">
           <el-radio-group v-model="editorConfig.theme">
             <el-radio-button label="vs-dark" />
             <el-radio-button label="vs-light" />
@@ -29,10 +29,9 @@
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { EditorConfigMap } from '@/components/Setup/EditorConfig/store'
   import { EditorCreate } from '@/util/Editor'
-
-  const { readFile } = require('fs-extra')
-  const { join } = require('path')
-  const { nativeTheme } = require('@electron/remote')
+  import { join } from 'path-browserify'
+  import { fs, nativeTheme } from '@/util/NodeFn'
+  import { asyncComputed } from '@vueuse/core'
 
   const wapper = ref()
   const appStore = AppStore()
@@ -46,7 +45,7 @@
 
   const index = ref(1)
 
-  const currentTheme = computed(() => {
+  const currentTheme = asyncComputed(async () => {
     if (index.value < 0) {
       return 'vs-light'
     }
@@ -54,7 +53,7 @@
     if (theme === 'auto') {
       let appTheme = appStore?.config?.setup?.theme
       if (!appTheme || appTheme === 'system') {
-        appTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+        appTheme = (await nativeTheme.shouldUseDarkColors()) ? 'dark' : 'light'
       }
       if (appTheme === 'light') {
         theme = 'vs-light'
@@ -80,7 +79,7 @@
 
   onMounted(() => {
     if (!EditorConfigMap.text) {
-      readFile(join(global.Server.Static, 'tmpl/httpd.conf'), 'utf-8').then((text: string) => {
+      fs.readFile(join(window.Server.Static!, 'tmpl/httpd.conf')).then((text: string) => {
         EditorConfigMap.text = text
         initEditor()
       })

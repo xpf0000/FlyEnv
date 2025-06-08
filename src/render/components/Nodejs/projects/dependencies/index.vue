@@ -80,10 +80,9 @@
   import { ElMessage } from 'element-plus'
   import type { TableInstance } from 'element-plus'
   import { I18nT } from '@lang/index'
-
-  const { join } = require('path')
-  const { shell } = require('@electron/remote')
-  const { readFile, writeFile, existsSync, readFileSync } = require('fs-extra')
+  import { join } from 'path-browserify'
+  import { shell, fs } from '@/util/NodeFn'
+  import { asyncComputed } from '@vueuse/core'
 
   type Dependency = {
     name: string
@@ -98,16 +97,19 @@
   const table = ref<TableInstance>()
   const index = ref(1)
 
-  const packageJson = computed(() => {
+  const packageJson = asyncComputed(async () => {
     if (index.value < 0) {
       return {}
     }
     const file = join(props.item.path, 'package.json')
-    if (existsSync(file)) {
-      const content = readFileSync(file, 'utf-8')
+    const exists = await fs.existsSync(file)
+    if (exists) {
+      const content = await fs.readFile(file)
       try {
         return JSON.parse(content)
-      } catch {}
+      } catch {
+        /* empty */
+      }
     }
     return {}
   })
@@ -170,7 +172,7 @@
     const selectRows: Dependency[] = table.value!.getSelectionRows()
     const file = join(props.item.path, 'package.json')
     try {
-      const content = await readFile(file, 'utf-8')
+      const content = await fs.readFile(file)
       const json = JSON.parse(content)
       for (const p in json.dependencies) {
         if (updateDict?.value?.[p] && selectRows.some((s) => s.name === p)) {
@@ -184,7 +186,7 @@
           delete updateDict?.value?.[p]
         }
       }
-      await writeFile(file, JSON.stringify(json, null, 2))
+      await fs.writeFile(file, JSON.stringify(json, null, 2))
       index.value += 1
     } catch (e: any) {
       ElMessage.error(e.toString)

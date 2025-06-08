@@ -137,11 +137,10 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
-  import { isEqual } from 'lodash'
+  import { isEqual } from 'lodash-es'
   import { HostStore } from '@/components/Host/store'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
+  import { join } from 'path-browserify'
+  import { shell } from '@/util/NodeFn'
 
   const hostList = ref()
   const loading = ref(false)
@@ -181,7 +180,7 @@
         if (!h.name || h?.pid) {
           return false
         }
-        let name: any = h.name.split('.')
+        const name: any = h.name.split('.')
         let has = false
         while (!has && name.length > 0) {
           name.shift()
@@ -272,12 +271,14 @@
         }).then()
         break
       case 'log':
-        const logFile = join(global.Server.BaseDir!, `vhost/logs/${item.name}-tomcat_access_log`)
-        const customTitle = item.name
-        AsyncComponentShow(LogVM, {
-          logFile,
-          customTitle
-        }).then()
+        {
+          const logFile = join(window.Server.BaseDir!, `vhost/logs/${item.name}-tomcat_access_log`)
+          const customTitle = item.name
+          AsyncComponentShow(LogVM, {
+            logFile,
+            customTitle
+          }).then()
+        }
         break
       case 'del':
         Base._Confirm(I18nT('base.delAlertContent'), undefined, {

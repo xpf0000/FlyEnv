@@ -55,14 +55,14 @@
         }
       }
       const content = getExtractedSVG(svg, config)
-      let viewBoxReg = new RegExp('viewBox="(.*?) (.*?) (.*?) (.*?)"')
-      let viewBox = content.match(viewBoxReg)
-      let x = viewBox?.[1] ?? 0
-      let y = viewBox?.[2] ?? 0
-      let width = viewBox?.[3] ?? 1024
-      let height = viewBox?.[4] ?? 1024
-      let rawReg = new RegExp('<svg.*?>(.*?)</svg>')
-      let raw = content.match(rawReg)[1]
+      const viewBoxReg = new RegExp('viewBox="(.*?) (.*?) (.*?) (.*?)"')
+      const viewBox = content.match(viewBoxReg)
+      const x = viewBox?.[1] ?? 0
+      const y = viewBox?.[2] ?? 0
+      const width = viewBox?.[3] ?? 1024
+      const height = viewBox?.[4] ?? 1024
+      const rawReg = new RegExp('<svg.*?>(.*?)</svg>')
+      const raw = content.match(rawReg)[1]
       store.svgs[id.value] = {
         viewBox: `${x} ${y} ${width} ${height}`,
         raw

@@ -59,10 +59,10 @@
     opacity: 0
   }
 
-  let filterHosts: Ref<AppHost[]> = ref([])
+  const filterHosts: Ref<AppHost[]> = ref([])
   let hostBack = ''
 
-  let editHost: Ref<AppHost | undefined> = ref()
+  const editHost: Ref<AppHost | undefined> = ref()
 
   show.value = true
 
@@ -78,7 +78,7 @@
 
   const onHide = () => {
     delete editHost.value?.isSorting
-    closedFn && closedFn()
+    closedFn?.()
     const host = JSON.stringify(filterHosts.value)
     if (hostBack !== host) {
       console.log('has changed !!!')

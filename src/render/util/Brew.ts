@@ -5,7 +5,7 @@ import { reactive } from 'vue'
 import { AllAppModule } from '@/core/type'
 
 const { existsSync } = require('fs')
-const { join } = require('path')
+import { join } from 'path-browserify'
 
 export const fetchVerion = (typeFlag: AllAppModule): Promise<boolean> => {
   return new Promise((resolve) => {
@@ -25,26 +25,26 @@ export const fetchVerion = (typeFlag: AllAppModule): Promise<boolean> => {
         const dataDirName = 'PhpWebStudy-Data'
         const list: OnlineVersionItem[] = [...saved.data]
         list.forEach((item) => {
-          if (!item.appDir.includes(global.Server.AppDir!)) {
-            const current = global.Server.AppDir!.split(dataDirName).shift()! + dataDirName
+          if (!item.appDir.includes(window.Server.AppDir!)) {
+            const current = window.Server.AppDir!.split(dataDirName).shift()! + dataDirName
             item.appDir = current + item.appDir.split(dataDirName).pop()
             item.bin = current + item.bin.split(dataDirName).pop()
             item.zip = current + item.zip.split(dataDirName).pop()
           }
           item.downloaded = existsSync(item.zip)
           if (typeFlag === 'mariadb') {
-            item.bin = join(global.Server.AppDir!, `mariadb-${item.version}`, 'bin/mariadbd.exe')
+            item.bin = join(window.Server.AppDir!, `mariadb-${item.version}`, 'bin/mariadbd.exe')
             const oldBin = join(
-              global.Server.AppDir!,
+              window.Server.AppDir!,
               `mariadb-${item.version}`,
               `mariadb-${item.version}-winx64`,
               'bin/mariadbd.exe'
             )
             item.installed = existsSync(item.bin) || existsSync(oldBin)
           } else if (typeFlag === 'mongodb') {
-            item.bin = join(global.Server.AppDir!, `mongodb-${item.version}`, 'bin/mongod.exe')
+            item.bin = join(window.Server.AppDir!, `mongodb-${item.version}`, 'bin/mongod.exe')
             const oldBin = join(
-              global.Server.AppDir!,
+              window.Server.AppDir!,
               `mongodb-${item.version}`,
               `mongodb-win32-x86_64-windows-${item.version}`,
               'bin/mongodb.exe'

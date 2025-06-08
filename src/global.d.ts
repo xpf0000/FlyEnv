@@ -6,24 +6,24 @@ export interface ServerType {
   Password?: string
   Proxy?: { [key: string]: string }
   BrewHome?: string
-  Static?: string
-  Cache?: string
-  RedisDir?: string
-  MongoDBDir?: string
-  FTPDir?: string
-  PhpDir?: string
-  NginxDir?: string
-  MysqlDir?: string
-  PostgreSqlDir?: string
-  MariaDBDir?: string
-  MemcachedDir?: string
-  BaseDir?: string
-  ApacheDir?: string
+  Static: string
+  Cache: string
+  RedisDir: string
+  MongoDBDir: string
+  FTPDir: string
+  PhpDir: string
+  NginxDir: string
+  MysqlDir: string
+  PostgreSqlDir: string
+  MariaDBDir: string
+  MemcachedDir: string
+  BaseDir: string
+  ApacheDir: string
   Lang?: string
   Local?: string
   MacPorts?: string
   ForceStart?: boolean
-  AppDir?: string
+  AppDir: string
   Licenses?: string
   UserHome?: string
   LangCustomer?: any
@@ -38,5 +38,12 @@ declare global {
   var __static: string
   // eslint-disable-next-line no-var
   var launcher: Launcher
+
+  interface Window {
+    FlyEnvNodeAPI: {
+      ipcSendToMain: (...args: any[]) => void
+      ipcReceiveFromMain: (callback: (event: any, ...args: any[]) => void) => void
+    }
+  }
 }
 export {}

@@ -18,7 +18,7 @@
             <span
               class="truncate max-w-[320px] cursor-pointer hover:text-yellow-500 mr-4"
               @click.stop="editChat"
-            >{{ currentChat.title }}</span
+              >{{ currentChat.title }}</span
             >
             <PromptVM />
           </template>
@@ -42,72 +42,72 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
-import { AIStore } from '../store'
-import Tool from './tool.vue'
-import Main from './Main/index.vue'
-import ASideVM from './ASide/index.vue'
-import { AISetup } from '@/components/AI/setup'
-import OllamaVM from './Ollama/index.vue'
-import PromptVM from '../Prompt/index.vue'
-import { I18nT } from '@lang/index'
-import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+  import { AIStore } from '../store'
+  import Tool from './tool.vue'
+  import Main from './Main/index.vue'
+  import ASideVM from './ASide/index.vue'
+  import { AISetup } from '@/components/AI/setup'
+  import OllamaVM from './Ollama/index.vue'
+  import PromptVM from '../Prompt/index.vue'
+  import { I18nT } from '@lang/index'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
-const chat = ref()
-const toolRef = ref()
-const aiStore = AIStore()
-const currentShow = computed({
-  get() {
-    return AISetup.aiShow
-  },
-  set(v) {
-    AISetup.aiShow = v
+  const chat = ref()
+  const toolRef = ref()
+  const aiStore = AIStore()
+  const currentShow = computed({
+    get() {
+      return AISetup.aiShow
+    },
+    set(v) {
+      AISetup.aiShow = v
+    }
+  })
+
+  const currentChat = computed(() => {
+    return AISetup.modelChatList?.find((f) => f.id === AISetup.tab)
+  })
+
+  let EditVM: any
+  import('../ChatItemSetup/index.vue').then((res) => {
+    EditVM = res.default
+  })
+
+  const editChat = () => {
+    AsyncComponentShow(EditVM, {
+      item: currentChat.value
+    }).then(() => {})
   }
-})
 
-const currentChat = computed(() => {
-  return AISetup.modelChatList?.find((f) => f.id === AISetup.tab)
-})
-
-let EditVM: any
-import('../ChatItemSetup/index.vue').then((res) => {
-  EditVM = res.default
-})
-
-const editChat = () => {
-  AsyncComponentShow(EditVM, {
-    item: currentChat.value
-  }).then(() => {})
-}
-
-const show = () => {
-  if (currentShow.value) {
-    return
+  const show = () => {
+    if (currentShow.value) {
+      return
+    }
+    currentShow.value = true
   }
-  currentShow.value = true
-}
 
-const hide = () => {
-  if (!currentShow.value) {
-    return
+  const hide = () => {
+    if (!currentShow.value) {
+      return
+    }
+    currentShow.value = false
   }
-  currentShow.value = false
-}
 
-onMounted(() => {})
+  onMounted(() => {})
 
-onBeforeUnmount(() => {})
+  onBeforeUnmount(() => {})
 
-const doClean = () => {
-  if (AISetup.tab === 'flyenv') {
-    aiStore.chatList.splice(0)
-  } else {
-    currentChat?.value?.chatList?.splice(0)
-    AISetup.save()
+  const doClean = () => {
+    if (AISetup.tab === 'flyenv') {
+      aiStore.chatList.splice(0)
+    } else {
+      currentChat?.value?.chatList?.splice(0)
+      AISetup.save()
+    }
   }
-}
 
-defineExpose({
-  show
-})
+  defineExpose({
+    show
+  })
 </script>

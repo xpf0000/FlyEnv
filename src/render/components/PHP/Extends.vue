@@ -74,7 +74,7 @@
 
 <script lang="ts" setup>
   import { ref, computed, watch } from 'vue'
-  import { SoftInstalled } from '@/store/brew'
+  import type { SoftInstalled } from '@shared/app'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup, AsyncComponentShow } from '@/util/AsyncComponent'
   import { PHPSetup } from '@/components/PHP/store'
@@ -84,9 +84,7 @@
   import LocalVM from './Extension/Local/index.vue'
   import LibVM from './Extension/Lib/index.vue'
   import { LoadedSetup } from '@/components/PHP/Extension/Loaded/setup'
-
-  const { shell } = require('@electron/remote')
-  const { existsSync } = require('fs-extra')
+  import { fs, shell } from '@/util/NodeFn'
 
   const props = defineProps<{
     version: SoftInstalled
@@ -150,11 +148,13 @@
     if (!installExtensionDir?.value) {
       return
     }
-    if (existsSync(installExtensionDir?.value)) {
-      shell.openPath(installExtensionDir?.value)
-    } else {
-      MessageWarning(I18nT('php.noExtensionsDir'))
-    }
+    fs.existsSync(installExtensionDir.value).then((exists) => {
+      if (exists) {
+        shell.openPath(installExtensionDir?.value)
+      } else {
+        MessageWarning(I18nT('php.noExtensionsDir'))
+      }
+    })
   }
 
   let ConfVM: any

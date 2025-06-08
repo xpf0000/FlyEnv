@@ -1,8 +1,7 @@
 import { reactive } from 'vue'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
-
-const { clipboard } = require('@electron/remote')
+import { clipboard } from '@/util/NodeFn'
 
 const store = reactive({
   encodeInput: 'Hello world :)',

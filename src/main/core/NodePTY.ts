@@ -3,10 +3,12 @@ import { uuid } from '../utils'
 import type { IPty } from 'node-pty'
 import { spawn } from 'node-pty'
 
+type CallBack = (...args: any) => void
+
 class NodePTY {
   pty: Partial<Record<string, PtyItem>> = {}
-  private _callback: Function | undefined
-  onSendCommand(callback: Function) {
+  private _callback: CallBack | undefined
+  onSendCommand(callback: CallBack) {
     this._callback = callback
   }
 

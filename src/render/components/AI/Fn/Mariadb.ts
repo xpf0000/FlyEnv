@@ -18,7 +18,7 @@ export function startMariaDB(this: BaseTask) {
       mariadb = installed?.find((i) => !!i.path && !!i.version)
     }
     if (!mariadb || !mariadb?.version) {
-      reject(new Error(I18nT('ai.未发现可用版本')))
+      reject(new Error(I18nT('ai.noAvailableVersion')))
       return
     }
     const res = await startService('mariadb', mariadb)
@@ -26,7 +26,7 @@ export function startMariaDB(this: BaseTask) {
       const aiStore = AIStore()
       aiStore.chatList.push({
         user: 'ai',
-        content: I18nT('ai.MariaDB服务启动成功')
+        content: I18nT('ai.mariaDBServiceStarted')
       })
       resolve(true)
       return

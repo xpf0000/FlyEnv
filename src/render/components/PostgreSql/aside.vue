@@ -33,7 +33,7 @@
   import type { AllAppModule } from '@/core/type'
   import type { SoftInstalled } from '@/store/brew'
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const {
     showItem,
@@ -57,7 +57,7 @@
     return new Promise<any[]>((resolve) => {
       if (fn === 'startService') {
         const versionTop = version?.version?.split('.')?.shift() ?? ''
-        const dir = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+        const dir = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
         const p = PostgreSqlSetup.dir?.[version.bin] ?? dir
         resolve([p])
         return

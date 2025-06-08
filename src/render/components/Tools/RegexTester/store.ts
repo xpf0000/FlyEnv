@@ -45,14 +45,14 @@ const store = reactive({
     this.results = reactive([])
     try {
       this.results = reactive(matchRegex(this.regex, this.text, flags)) as any
-    } catch (_) {}
+    } catch {}
   },
   computedSample() {
     this.sample = ''
     try {
       const randexp = new RandExp(new RegExp(this.regex.replace(/\(\?\<[^\>]*\>/g, '(?:')))
       this.sample = randexp.gen()
-    } catch (_) {}
+    } catch {}
   }
 })
 

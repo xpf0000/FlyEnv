@@ -33,7 +33,7 @@
   import { type AllAppModule } from '@/core/type'
   import { type SoftInstalled } from '@/store/brew'
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const {
     showItem,
@@ -57,7 +57,7 @@
     return new Promise<any[]>((resolve) => {
       if (fn === 'startService') {
         const v = version.version?.split('.')?.shift() ?? ''
-        const dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+        const dir = join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
         const p = TomcatSetup.CATALINA_BASE?.[version.bin] ?? dir
         resolve([p])
         return

@@ -16,7 +16,7 @@
   import { AppStore } from '@/store/app'
   import { BrewStore, SoftInstalled } from '@/store/brew'
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const log = ref()
 

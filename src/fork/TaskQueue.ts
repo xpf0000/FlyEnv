@@ -5,8 +5,11 @@ interface TaskItem {
   param: any
   state: 'wait' | 'running'
 }
+
+type PromiseFn = (...args: any) => void
+
 class TaskQueue {
-  private callBack: WeakMap<TaskItem, { resolve: Function; reject: Function }> = new WeakMap()
+  private callBack: WeakMap<TaskItem, { resolve: PromiseFn; reject: PromiseFn }> = new WeakMap()
   #queue: Array<TaskItem> = []
   #runQueue: Array<TaskItem> = []
   #runSize = 4

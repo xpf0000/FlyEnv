@@ -17,7 +17,7 @@
   import { BrewStore } from '@/store/brew'
   import { PostgreSqlSetup } from '@/components/PostgreSql/setup'
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const appStore = AppStore()
   const brewStore = BrewStore()
@@ -43,7 +43,7 @@
         dbPath = PostgreSqlSetup.dir[currentVersion.value.bin]
       } else {
         const versionTop = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-        dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+        dbPath = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
       }
     } else {
       return ''

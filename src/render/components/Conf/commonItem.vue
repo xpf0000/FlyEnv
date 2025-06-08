@@ -1,6 +1,5 @@
 <template>
-  <el-card v-if="item.show !== false"
-           :header="item.name">
+  <el-card v-if="item.show !== false" :header="item.name">
     <template #header>
       <div class="flex items-center justify-between gap-2 overflow-hidden">
         <div class="flex-1 overflow-hidden flex items-center gap-0.5">
@@ -21,7 +20,7 @@
     <template #default>
       <template v-if="item.options">
         <el-select v-model="value" :disabled="!item.enable" class="w-full">
-          <template v-for="(option, j) in item.options" :key="j">
+          <template v-for="(option, _j) in item.options" :key="_j">
             <el-option :label="option.label" :value="option.value"></el-option>
           </template>
         </el-select>
@@ -43,8 +42,7 @@
   import { computed } from 'vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { Folder } from '@element-plus/icons-vue'
-
-  const { dialog } = require('@electron/remote')
+  import { dialog } from '@/util/NodeFn'
 
   const props = defineProps<{
     item: CommonSetItem
@@ -68,11 +66,11 @@
       const item: CommonSetItem = props.item
       const old = item.value
       item.value = v
-      item?.onChange && item.onChange(v, old)
+      item?.onChange?.(v, old)
     }
   })
 
-  const chooseFile = (isDir: boolean) => {
+  const chooseFile = (isDir?: boolean) => {
     const options: any = {}
     let opt = ['openFile', 'showHiddenFiles']
     if (isDir) {
@@ -88,7 +86,7 @@
       const item: CommonSetItem = props.item
       const old = item.value
       item.value = path
-      item?.onChange && item.onChange(path, old)
+      item?.onChange?.(path, old)
     })
   }
 </script>

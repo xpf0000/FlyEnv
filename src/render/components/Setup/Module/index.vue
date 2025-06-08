@@ -26,8 +26,8 @@
     const m = 'site'
     const sub = AppModules.filter((a) => a?.moduleType === m)
     sub.sort((a, b) => {
-      let lowerA = a.typeFlag.toLowerCase()
-      let lowerB = b.typeFlag.toLowerCase()
+      const lowerA = a.typeFlag.toLowerCase()
+      const lowerB = b.typeFlag.toLowerCase()
       if (lowerA < lowerB) return -1
       if (lowerA > lowerB) return 1
       return 0
@@ -43,8 +43,8 @@
     return AppModuleTypeList.filter((f) => f !== 'site').map((m) => {
       const sub = AppModules.filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
       sub.sort((a, b) => {
-        let lowerA = a.typeFlag.toLowerCase()
-        let lowerB = b.typeFlag.toLowerCase()
+        const lowerA = a.typeFlag.toLowerCase()
+        const lowerB = b.typeFlag.toLowerCase()
         if (lowerA < lowerB) return -1
         if (lowerA > lowerB) return 1
         return 0

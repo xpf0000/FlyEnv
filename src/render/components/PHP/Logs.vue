@@ -29,7 +29,7 @@
   import ToolVM from '@/components/Log/tool.vue'
   import type { SoftInstalled } from '@/store/brew'
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -45,7 +45,7 @@
   })
 
   const filepath = computed(() => {
-    return join(global.Server.PhpDir, `${props.version.num}`, `var/log/${props.type}.log`)
+    return join(window.Server.PhpDir, `${props.version.num}`, `var/log/${props.type}.log`)
   })
 
   const close = () => {

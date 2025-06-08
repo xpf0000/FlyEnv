@@ -8,7 +8,7 @@
     return Store.urlDict
   })
 
-  const urlObject: ComputedRef<URL> = computed(() => {
+  const urlObject: ComputedRef<any> = computed(() => {
     return Store.urlDict
   })
 

@@ -1,9 +1,17 @@
-const { dialog } = require('@electron/remote')
-const crypto = require('crypto')
+import MD5 from 'crypto-js/md5'
+import { dialog } from '@/util/NodeFn'
 
 export function md5(str: string) {
-  const md5 = crypto.createHash('md5')
-  return md5.update(str).digest('hex')
+  return MD5(str).toString()
+}
+
+export function formatBytes(bytes: number, decimals = 2) {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const dm = decimals < 0 ? 0 : decimals
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
 }
 
 export function parseTime(time: any, cFormat: string) {
@@ -145,8 +153,10 @@ export async function componentParse(component: any) {
       view = component.default
       break
     case '[object Promise]':
-      const res = await component
-      view = res.default
+      {
+        const res = await component
+        view = res.default
+      }
       break
     default:
       view = component

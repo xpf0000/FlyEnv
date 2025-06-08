@@ -32,12 +32,12 @@ class Ollama extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.BaseDir!, 'ollama/ollama.pid')
+    this.pidPath = join(window.Server.BaseDir!, 'ollama/ollama.pid')
   }
 
   initConfig(): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, on) => {
-      const baseDir = join(global.Server.BaseDir!, 'ollama')
+      const baseDir = join(window.Server.BaseDir!, 'ollama')
       if (!existsSync(baseDir)) {
         await mkdirp(baseDir)
       }
@@ -97,7 +97,7 @@ class Ollama extends Base {
       }
       envs.push('')
 
-      const baseDir = join(global.Server.BaseDir!, `ollama`)
+      const baseDir = join(window.Server.BaseDir!, `ollama`)
       await mkdirp(baseDir)
 
       const execEnv = envs.join(EOL)
@@ -155,9 +155,9 @@ class Ollama extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('ollama')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `ollama-${a.version}`, 'ollama.exe')
-          const zip = join(global.Server.Cache!, `ollama-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `ollama-${a.version}`)
+          const dir = join(window.Server.AppDir!, `ollama-${a.version}`, 'ollama.exe')
+          const zip = join(window.Server.Cache!, `ollama-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `ollama-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
@@ -235,7 +235,7 @@ class Ollama extends Base {
   chat(param: any, t: number) {
     return new ForkPromise(async (resolve, reject, on) => {
       let isLock = false
-      if (!global.Server.Licenses) {
+      if (!window.Server.Licenses) {
         isLock = true
       } else {
         const getRSAKey = () => {
@@ -261,7 +261,7 @@ class Ollama extends Base {
         const uuid = await machineId()
         const uid = publicDecrypt(
           getRSAKey(),
-          Buffer.from(global.Server.Licenses!, 'base64') as any
+          Buffer.from(window.Server.Licenses!, 'base64') as any
         ).toString('utf-8')
         isLock = uid !== uuid
       }

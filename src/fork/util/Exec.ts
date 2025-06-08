@@ -138,13 +138,13 @@ export async function customerServiceStartExec(
     } catch {}
   }
 
-  const baseDir = join(global.Server.BaseDir!, 'module-customer')
+  const baseDir = join(window.Server.BaseDir!, 'module-customer')
   await mkdirp(baseDir)
 
   const outFile = join(baseDir, `${version.id}.out.log`)
   const errFile = join(baseDir, `${version.id}.error.log`)
 
-  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-customer-exec.ps1'), 'utf8')
+  let psScript = await readFile(join(window.Server.Static!, 'sh/flyenv-customer-exec.ps1'), 'utf8')
 
   let bin = ''
   if (version.commandType === 'file') {

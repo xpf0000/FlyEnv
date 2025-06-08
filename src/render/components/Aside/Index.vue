@@ -74,6 +74,7 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { AppCustomerModule } from '@/core/Module'
   import CustomerModule from '@/components/CustomerModule/aside.vue'
+  import type { CallBackFn } from '@shared/app'
 
   let lastTray = ''
 
@@ -89,8 +90,8 @@
       (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
     )
     sub.sort((a, b) => {
-      let lowerA = a.typeFlag.toLowerCase()
-      let lowerB = b.typeFlag.toLowerCase()
+      const lowerA = a.typeFlag.toLowerCase()
+      const lowerB = b.typeFlag.toLowerCase()
       if (lowerA < lowerB) return -1
       if (lowerA > lowerB) return 1
       return 0
@@ -115,8 +116,8 @@
           (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
         ).filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
         sub.sort((a, b) => {
-          let lowerA = a.typeFlag.toLowerCase()
-          let lowerB = b.typeFlag.toLowerCase()
+          const lowerA = a.typeFlag.toLowerCase()
+          const lowerB = b.typeFlag.toLowerCase()
           if (lowerA < lowerB) return -1
           if (lowerA > lowerB) return 1
           return 0
@@ -399,15 +400,15 @@
       AppServiceModule.php?.switchChange()
       return
     }
-    const fns: { [k: string]: Function } = {
+    const fns: { [k: string]: CallBackFn } = {
       groupDo,
       switchChange
     }
-    fns[fn] && fns[fn](arg)
+    fns?.[fn]?.(arg)
   })
 
   let autoStarted = false
-  let helperInited = false
+  const helperInited = false
   watch(
     groupDisabled,
     (v) => {

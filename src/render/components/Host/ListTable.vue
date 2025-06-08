@@ -56,7 +56,7 @@
                 :placeholder="$t('base.selectPhpVersion')"
               >
                 <el-option :value="undefined" :label="$t('host.staticSite')"></el-option>
-                <template v-for="(v, i) in phpVersions" :key="i">
+                <template v-for="(v, _i) in phpVersions" :key="_i">
                   <el-option :value="v.num" :label="v.num"></el-option>
                 </template>
               </el-select>
@@ -175,10 +175,9 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
-  import { isEqual } from 'lodash'
+  import { isEqual } from 'lodash-es'
   import { HostStore } from '@/components/Host/store'
-
-  const { shell } = require('@electron/remote')
+  import { shell } from '@/util/NodeFn'
 
   const hostList = ref()
   const loading = ref(false)
@@ -237,7 +236,7 @@
         if (!h.name || h?.pid) {
           return false
         }
-        let name: any = h.name.split('.')
+        const name: any = h.name.split('.')
         let has = false
         while (!has && name.length > 0) {
           name.shift()

@@ -87,7 +87,7 @@
       closed() {
         this.callBack = null
         this.vmInstance = null
-        this.vm && this.vm.unmount()
+        this?.vm?.unmount?.()
         this.vm = null
         this.onClosed()
       },
@@ -98,7 +98,7 @@
        * 点击确定时的方法, 调用内部组件的onSubmit方法
        */
       onSubmit() {
-        this.vmInstance.onSubmit && this.vmInstance.onSubmit()
+        this?.vmInstance?.onSubmit?.()
       }
     }
   })

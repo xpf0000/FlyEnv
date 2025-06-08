@@ -101,5 +101,8 @@
   "noHide": "取消隐藏",
   "placeholderSearch": "搜索",
   "projects": "项目",
-  "default": "默认"
+  "default": "默认",
+
+  "areYouSure": "确定执行此操作?",
+  "action": "操作"
 }

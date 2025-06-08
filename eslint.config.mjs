@@ -660,6 +660,7 @@ export default defineConfig([
       'no-tabs': 0,
       'no-trailing-spaces': 'off',
       'no-whitespace-before-property': 'off',
+      'no-useless-escape': 'off',
       'nonblock-statement-body-position': 'off',
       'object-curly-newline': 'off',
       'object-curly-spacing': 'off',

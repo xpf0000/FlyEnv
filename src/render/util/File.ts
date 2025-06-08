@@ -1,4 +1,4 @@
-const { dialog } = require('@electron/remote')
+import { dialog } from '@/util/NodeFn'
 
 export function chooseFolder(): Promise<string> {
   return new Promise((resolve, reject) => {

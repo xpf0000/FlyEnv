@@ -8,8 +8,7 @@ import { fetchVerion } from '@/util/Brew'
 import { VersionManagerStore } from '@/components/VersionManager/store'
 import { MessageError } from '@/util/Element'
 import { I18nT } from '@lang/index'
-
-const { shell } = require('@electron/remote')
+import { shell } from '@/util/NodeFn'
 
 export const Setup = (typeFlag: AllAppModule) => {
   const brewStore = BrewStore()
@@ -76,12 +75,12 @@ export const Setup = (typeFlag: AllAppModule) => {
           console.log('res: ', res)
           const findInstalling = brewStore.module(typeFlag).installing[row.bin]
           if (res?.code === 200) {
-            find && Object.assign(find, res.msg)
-            findInstalling && Object.assign(findInstalling, res.msg)
+            Object.assign(find, res.msg)
+            Object.assign(findInstalling, res.msg)
           } else if (res?.code === 0) {
             IPC.off(key)
-            find && (find.downing = false)
-            findInstalling && (findInstalling.downing = false)
+            find.downing = false
+            findInstalling.downing = false
             delete brewStore.module(typeFlag).installing[row.bin]
             if (res?.data === true) {
               regetInstalled()

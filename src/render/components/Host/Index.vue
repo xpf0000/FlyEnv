@@ -110,7 +110,6 @@
   import List from './ListTable.vue'
   import IPC from '@/util/IPC'
   import { AppStore } from '@/store/app'
-  import { readFileAsync, writeFileAsync } from '@shared/file'
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { More, ArrowDown, Lock } from '@element-plus/icons-vue'
@@ -125,10 +124,8 @@
   import VhostTmpl from './VhostTmpl/index.vue'
   import { SetupStore } from '@/components/Setup/store'
   import Router from '@/router'
-
-  const { statSync, existsSync, copyFileSync } = require('fs')
-  const { dialog, clipboard, shell } = require('@electron/remote')
-  const { join, dirname } = require('path')
+  import { join, dirname } from 'path-browserify'
+  import { dialog, clipboard, shell, fs } from '@/util/NodeFn'
 
   const appStore = AppStore()
   const setupStore = SetupStore()
@@ -231,22 +228,26 @@
         openCreateProject()
         break
       case 'hostsCopy':
-        const host = []
-        for (const item of hosts.value) {
-          const alias = hostAlias(item as any)
-          host.push(`127.0.0.1     ${alias}`)
+        {
+          const host = []
+          for (const item of hosts.value) {
+            const alias = hostAlias(item as any)
+            host.push(`127.0.0.1     ${alias}`)
+          }
+          clipboard.writeText(host.join('\n'))
+          MessageSuccess(I18nT('base.copySuccess'))
         }
-        clipboard.writeText(host.join('\n'))
-        MessageSuccess(I18nT('base.copySuccess'))
         break
       case 'hostsOpen':
-        const file = join(global.Server.BaseDir, 'app.hosts.txt')
-        shell.showItemInFolder(file)
+        {
+          const file = join(window.Server.BaseDir, 'app.hosts.txt')
+          shell.showItemInFolder(file)
+        }
         break
     }
   }
   const doExport = () => {
-    let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
+    const opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
     dialog
       .showSaveDialog({
         properties: opt,
@@ -257,33 +258,35 @@
           }
         ]
       })
-      .then(({ canceled, filePath }: any) => {
+      .then(async ({ canceled, filePath }: any) => {
         if (canceled || !filePath) {
           return
         }
-        const nginxVPath = join(global.Server.BaseDir, 'vhost/nginx')
-        const apacheVPath = join(global.Server.BaseDir, 'vhost/apache')
-        const rewriteVPath = join(global.Server.BaseDir, 'vhost/rewrite')
-        writeFileAsync(filePath, JSON.stringify(hosts.value)).then(() => {
+        const nginxVPath = join(window.Server.BaseDir, 'vhost/nginx')
+        const apacheVPath = join(window.Server.BaseDir, 'vhost/apache')
+        const rewriteVPath = join(window.Server.BaseDir, 'vhost/rewrite')
+        fs.writeFile(filePath, JSON.stringify(hosts.value)).then(() => {
           const saveDir = dirname(filePath)
-          hosts.value.forEach((h) => {
+          for (const h of hosts.value) {
             const name = `${h.name}.conf`
             const dict: { [key: string]: string } = {}
             dict[join(apacheVPath, name)] = join(saveDir, `${h.name}.apache.conf`)
             dict[join(nginxVPath, name)] = join(saveDir, `${h.name}.nginx.conf`)
             dict[join(rewriteVPath, name)] = join(saveDir, `${h.name}.rewrite.conf`)
             for (const old in dict) {
-              if (existsSync(old)) {
-                copyFileSync(old, dict[old])
-              }
+              fs.existsSync(old).then((exists) => {
+                if (exists) {
+                  fs.copy(old, dict[old])
+                }
+              })
             }
-          })
+          }
           MessageSuccess(I18nT('base.success'))
         })
       })
   }
   const doImport = () => {
-    let opt = ['openFile', 'showHiddenFiles']
+    const opt = ['openFile', 'showHiddenFiles']
     dialog
       .showOpenDialog({
         properties: opt,
@@ -293,21 +296,21 @@
           }
         ]
       })
-      .then(({ canceled, filePaths }: any) => {
+      .then(async ({ canceled, filePaths }: any) => {
         if (canceled || filePaths.length === 0) {
           return
         }
         const file = filePaths[0]
-        const state = statSync(file)
+        const state: any = await fs.stat(file)
         if (state.size > 5 * 1024 * 1024) {
           MessageError(I18nT('base.fileBigErr'))
           return
         }
-        readFileAsync(file).then((conf) => {
+        fs.readFile(file).then(async (conf) => {
           let arr = []
           try {
             arr = JSON.parse(conf)
-          } catch (e) {
+          } catch {
             MessageError(I18nT('base.fail'))
             return
           }
@@ -323,11 +326,11 @@
           arr = arr.map((a: any) => reactive(a))
           hosts.value.splice(0)
           hosts.value.push(...arr)
-          writeFileAsync(join(global.Server.BaseDir, 'host.json'), conf)
+          await fs.writeFile(join(window.Server.BaseDir, 'host.json'), conf)
           const baseDir = dirname(file)
-          const nginxVPath = join(global.Server.BaseDir, 'vhost/nginx')
-          const apacheVPath = join(global.Server.BaseDir, 'vhost/apache')
-          const rewriteVPath = join(global.Server.BaseDir, 'vhost/rewrite')
+          const nginxVPath = join(window.Server.BaseDir, 'vhost/nginx')
+          const apacheVPath = join(window.Server.BaseDir, 'vhost/apache')
+          const rewriteVPath = join(window.Server.BaseDir, 'vhost/rewrite')
           arr.forEach((h: any) => {
             const name = `${h.name}.conf`
             const dict: { [key: string]: string } = {}
@@ -335,9 +338,11 @@
             dict[join(baseDir, `${h.name}.nginx.conf`)] = join(nginxVPath, name)
             dict[join(baseDir, `${h.name}.rewrite.conf`)] = join(rewriteVPath, name)
             for (const old in dict) {
-              if (existsSync(old)) {
-                copyFileSync(old, dict[old])
-              }
+              fs.existsSync(old).then((exists) => {
+                if (exists) {
+                  fs.copy(old, dict[old])
+                }
+              })
             }
           })
           hostsWrite()

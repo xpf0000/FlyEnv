@@ -24,7 +24,7 @@
       v-model="appLang"
       :loading="running"
       :disabled="running"
-      :placeholder="I18nT('base.changeLang')"
+      :placeholder="$t('base.changeLang')"
     >
       <template v-for="(label, value) in AppAllLang" :key="value">
         <el-option :label="label" :value="value"></el-option>
@@ -42,7 +42,7 @@
   import { AppStore } from '@/store/app'
   import { AppAllLang, AppI18n, I18nT } from '@lang/index'
   import { LangSetup } from '@/components/Setup/LangSet/setup'
-  import { CustomerLangs } from '@lang/loader'
+  import { CustomerLangs } from '@lang/customer'
 
   const appStore = AppStore()
   const running = ref(false)

@@ -28,12 +28,10 @@
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
   import { FolderOpened } from '@element-plus/icons-vue'
-  import { chooseFolder } from '@/util'
   import { MessageError } from '@/util/Element'
-
-  const { existsSync, realpathSync } = require('fs')
-  const { isAbsolute } = require('path')
-  const { exec } = require('child-process-promise')
+  import { isAbsolute } from 'path-browserify'
+  import { fs, exec } from '@/util/NodeFn'
+  import { chooseFolder } from '@/util/Index'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
@@ -51,12 +49,12 @@
     })
   }
 
-  const doSubmit = () => {
+  const doSubmit = async () => {
     if (loading.value) {
       return
     }
     loading.value = true
-    if (isAbsolute(path.value) && existsSync(path.value)) {
+    if (isAbsolute(path.value) && (await fs.existsSync(path.value))) {
       callback({
         path: path.value,
         raw: path.value,
@@ -65,13 +63,15 @@
       show.value = false
       return
     }
-    exec(`echo ${path.value}`)
-      .then((res) => {
-        const p = res?.stdout?.trim() ?? ''
-        if (isAbsolute(p) && existsSync(p)) {
+    exec
+      .exec(`echo ${path.value}`)
+      .then(async (res: string) => {
+        const p = res?.trim() ?? ''
+        if (isAbsolute(p) && (await fs.existsSync(p))) {
+          const real = await fs.realpath(p)
           callback({
             path: path.value,
-            raw: realpathSync(p),
+            raw: real,
             index: props.index
           })
           show.value = false

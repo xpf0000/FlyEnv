@@ -19,7 +19,7 @@ function base64ToText(str: string, { makeUrlSafe = false }: { makeUrlSafe?: bool
 
   try {
     return Base64.decode(cleanStr)
-  } catch (_) {
+  } catch {
     throw new Error('Incorrect base64 string')
   }
 }
@@ -40,7 +40,7 @@ function isValidBase64(str: string, { makeUrlSafe = false }: { makeUrlSafe?: boo
       return removePotentialPadding(reEncodedBase64) === cleanStr
     }
     return reEncodedBase64 === cleanStr.replace(/\s/g, '')
-  } catch (err) {
+  } catch {
     return false
   }
 }

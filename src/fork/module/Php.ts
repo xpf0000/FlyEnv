@@ -33,16 +33,16 @@ class Php extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.PhpDir!, 'php.pid')
+    this.pidPath = join(window.Server.PhpDir!, 'php.pid')
   }
 
   initCACertPEM() {
     return new ForkPromise(async (resolve) => {
-      const capem = join(global.Server.BaseDir!, 'CA/cacert.pem')
+      const capem = join(window.Server.BaseDir!, 'CA/cacert.pem')
       if (!existsSync(capem)) {
         try {
           await mkdirp(dirname(capem))
-          await copyFile(join(global.Server.Static!, 'tmpl/cacert.pem'), capem)
+          await copyFile(join(window.Server.Static!, 'tmpl/cacert.pem'), capem)
         } catch {}
       }
       resolve(true)
@@ -109,10 +109,10 @@ class Php extends Base {
         content = content + `\nextension=php_pdo_odbc.dll`
 
         // Set CA certificate path
-        const cacertpem = join(global.Server.BaseDir!, 'CA/cacert.pem').split('\\').join('/')
+        const cacertpem = join(window.Server.BaseDir!, 'CA/cacert.pem').split('\\').join('/')
         await mkdirp(dirname(cacertpem))
         if (!existsSync(cacertpem)) {
-          await copyFile(join(global.Server.Static!, 'tmpl/cacert.pem'), cacertpem)
+          await copyFile(join(window.Server.Static!, 'tmpl/cacert.pem'), cacertpem)
         }
         content = content.replace(';curl.cainfo =', `curl.cainfo = "${cacertpem}"`)
         content = content.replace(';openssl.cafile=', `openssl.cafile="${cacertpem}"`)
@@ -178,9 +178,9 @@ class Php extends Base {
 
   #initFPM() {
     return new Promise((resolve) => {
-      const fpm = join(global.Server.PhpDir!, 'php-cgi-spawner.exe')
+      const fpm = join(window.Server.PhpDir!, 'php-cgi-spawner.exe')
       if (!existsSync(fpm)) {
-        zipUnPack(join(global.Server.Static!, `zip/php_cgi_spawner.7z`), global.Server.PhpDir!)
+        zipUnPack(join(window.Server.Static!, `zip/php_cgi_spawner.7z`), window.Server.PhpDir!)
           .then(resolve)
           .catch(resolve)
         return
@@ -214,9 +214,9 @@ class Php extends Base {
   _resetEnablePhpConf(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
       const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
-      const confPath = join(global.Server.NginxDir!, 'conf/enable-php.conf')
-      await mkdirp(join(global.Server.NginxDir!, 'conf'))
-      const tmplPath = join(global.Server.Static!, 'tmpl/enable-php.conf')
+      const confPath = join(window.Server.NginxDir!, 'conf/enable-php.conf')
+      await mkdirp(join(window.Server.NginxDir!, 'conf'))
+      const tmplPath = join(window.Server.Static!, 'tmpl/enable-php.conf')
       if (existsSync(tmplPath)) {
         let content = await readFile(tmplPath, 'utf-8')
         content = content.replace('##VERSION##', v)
@@ -238,7 +238,7 @@ class Php extends Base {
       await this.getIniPath(version)
       if (!existsSync(join(version.path, 'php-cgi-spawner.exe'))) {
         await copyFile(
-          join(global.Server.PhpDir!, 'php-cgi-spawner.exe'),
+          join(window.Server.PhpDir!, 'php-cgi-spawner.exe'),
           join(version.path, 'php-cgi-spawner.exe')
         )
       }
@@ -251,14 +251,14 @@ class Php extends Base {
       await copyFile(ini, runIni)
 
       const bin = join(version.path, 'php-cgi-spawner.exe')
-      const pidPath = join(global.Server.PhpDir!, `php${version.num}.pid`)
+      const pidPath = join(window.Server.PhpDir!, `php${version.num}.pid`)
       const execArgs = `\`"php-cgi.exe -c php.phpwebstudy.90${version.num}.ini\`" 90${version.num} 4`
 
       try {
         const res = await serviceStartExec(
           version,
           pidPath,
-          global.Server.PhpDir!,
+          window.Server.PhpDir!,
           bin,
           execArgs,
           '',
@@ -279,10 +279,10 @@ class Php extends Base {
   doObfuscator(params: any) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const cacheDir = global.Server.Cache!
+        const cacheDir = window.Server.Cache!
         const obfuscatorDir = join(cacheDir, 'php-obfuscator')
         await remove(obfuscatorDir)
-        const zipFile = join(global.Server.Static!, 'zip/php-obfuscator.zip')
+        const zipFile = join(window.Server.Static!, 'zip/php-obfuscator.zip')
         await zipUnPack(zipFile, obfuscatorDir)
         const bin = join(obfuscatorDir, 'yakpro-po.php')
         let command = ''
@@ -308,9 +308,9 @@ class Php extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('php')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `php-${a.version}`, 'php.exe')
-          const zip = join(global.Server.Cache!, `php-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `php-${a.version}`)
+          const dir = join(window.Server.AppDir!, `php-${a.version}`, 'php.exe')
+          const zip = join(window.Server.Cache!, `php-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `php-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
@@ -406,7 +406,7 @@ class Php extends Base {
       } else {
         content += `\n${item.iniStr}`
         if (item.name === 'php_xdebug') {
-          const output_dir = join(global.Server.PhpDir!, 'xdebug')
+          const output_dir = join(window.Server.PhpDir!, 'xdebug')
           await mkdirp(output_dir)
           content += `\n;[FlyEnv-xdebug-ini-begin]
 xdebug.idekey = "PHPSTORM"
@@ -551,8 +551,8 @@ xdebug.output_dir = "${output_dir}"
           const install = () => {
             return new Promise(async (resolve, reject) => {
               const phpVersion = version.version!.split('.').slice(0, 2).join('.')
-              const zipFile = join(global.Server.Cache!, `${name}-php${phpVersion}.zip`)
-              const cacheDir = join(global.Server.Cache!, `${name}-php${phpVersion}-cache`)
+              const zipFile = join(window.Server.Cache!, `${name}-php${phpVersion}.zip`)
+              const cacheDir = join(window.Server.Cache!, `${name}-php${phpVersion}-cache`)
               const dll = join(cacheDir, `${name}.dll`)
 
               if (existsSync(zipFile)) {
@@ -638,7 +638,7 @@ xdebug.output_dir = "${output_dir}"
         }
         content += `\n${type}=${name}`
         if (name === 'php_xdebug') {
-          const output_dir = join(global.Server.PhpDir!, 'xdebug')
+          const output_dir = join(window.Server.PhpDir!, 'xdebug')
           await mkdirp(output_dir)
           content += `\n;[FlyEnv-xdebug-ini-begin]
 xdebug.idekey = "PHPSTORM"

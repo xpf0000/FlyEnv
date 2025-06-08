@@ -23,9 +23,9 @@ class GoLang extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('golang')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `static-go-${a.version}`, 'bin/go.exe')
-          const zip = join(global.Server.Cache!, `static-go-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `static-go-${a.version}`)
+          const dir = join(window.Server.AppDir!, `static-go-${a.version}`, 'bin/go.exe')
+          const zip = join(window.Server.Cache!, `static-go-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `static-go-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

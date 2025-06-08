@@ -1,9 +1,8 @@
 import { reactive } from 'vue'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
-import { textToBase64, base64ToText } from '@shared/base64'
-
-const { clipboard } = require('@electron/remote')
+import { textToBase64, base64ToText } from '@/util/Base64'
+import { clipboard } from '@/util/NodeFn'
 
 const store = reactive({
   encodeUrlSafe: false,
@@ -25,7 +24,7 @@ const store = reactive({
     this.base64Output = ''
     try {
       this.base64Output = base64ToText(this.base64Input, { makeUrlSafe: this.decodeUrlSafe })
-    } catch (e) {
+    } catch {
       this.error = true
     }
   },

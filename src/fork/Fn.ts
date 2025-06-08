@@ -53,10 +53,12 @@ const {
   mkdirp,
   readFile,
   appendFile,
-  rename
+  rename,
+  stat
 } = _fs
 
 export {
+  stat,
   rename,
   realpathSync,
   FSWatcher,
@@ -386,7 +388,7 @@ export const versionLocalFetch = async (
     return
   }
 
-  const base = global.Server.AppDir!
+  const base = window.Server.AppDir!
   const subDir = versionDirCache?.[base] ?? (await getSubDirAsync(base))
   if (!versionDirCache?.[base]) {
     versionDirCache[base] = subDir
@@ -423,7 +425,7 @@ export const versionLocalFetch = async (
 
 export const versionInitedApp = async (type: string, bin: string) => {
   const versions: SoftInstalled[] = []
-  const zipDir = join(global.Server.Static!, 'zip')
+  const zipDir = join(window.Server.Static!, 'zip')
   const allZip = versionDirCache?.[zipDir] ?? (await getAllFileAsync(zipDir, false))
   if (!versionDirCache?.[zipDir]) {
     versionDirCache[zipDir] = allZip
@@ -435,8 +437,8 @@ export const versionInitedApp = async (type: string, bin: string) => {
     const num = Number(v.split('.').slice(0, 2).join(''))
     versions.push({
       version: v,
-      bin: join(global.Server.AppDir!, `${type}-${v}`, bin),
-      path: join(global.Server.AppDir!, `${type}-${v}`),
+      bin: join(window.Server.AppDir!, `${type}-${v}`, bin),
+      path: join(window.Server.AppDir!, `${type}-${v}`),
       num: num,
       enable: true,
       error: undefined,
@@ -456,13 +458,13 @@ export const AppLog = (type: 'info' | 'error', msg: string) => {
 
 export const fetchRawPATH = (): ForkPromise<string[]> => {
   return new ForkPromise(async (resolve, reject) => {
-    const sh = join(global.Server.Static!, 'sh/path-get.ps1')
-    const copySh = join(global.Server.Cache!, 'path-get.ps1')
+    const sh = join(window.Server.Static!, 'sh/path-get.ps1')
+    const copySh = join(window.Server.Cache!, 'path-get.ps1')
     if (existsSync(copySh)) {
       await remove(copySh)
     }
     await copyFile(sh, copySh)
-    process.chdir(global.Server.Cache!)
+    process.chdir(window.Server.Cache!)
     let res: any
     try {
       res = await spawnPromise(
@@ -476,11 +478,11 @@ export const fetchRawPATH = (): ForkPromise<string[]> => {
         ],
         {
           shell: 'powershell.exe',
-          cwd: global.Server.Cache!
+          cwd: window.Server.Cache!
         }
       )
     } catch (e) {
-      await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[_fetchRawPATH][error]: ${e}\n`)
+      await appendFile(join(window.Server.BaseDir!, 'debug.log'), `[_fetchRawPATH][error]: ${e}\n`)
       return reject(e)
     }
 
@@ -542,8 +544,8 @@ export const handleWinPathArr = (paths: string[]) => {
 
 export const writePath = async (path: string[], other: string = '') => {
   console.log('writePath paths: ', path)
-  const sh = join(global.Server.Static!, 'sh/path-set.ps1')
-  const copySh = join(global.Server.Cache!, 'path-set.ps1')
+  const sh = join(window.Server.Static!, 'sh/path-set.ps1')
+  const copySh = join(window.Server.Cache!, 'path-set.ps1')
   if (existsSync(copySh)) {
     await remove(copySh)
   }
@@ -551,14 +553,14 @@ export const writePath = async (path: string[], other: string = '') => {
   let content = await readFile(sh, 'utf-8')
   content = content.replace('##NEW_PATH##', pathStr).replace('##OTHER##', other)
   await writeFile(copySh, content, 'utf-8')
-  process.chdir(global.Server.Cache!)
+  process.chdir(window.Server.Cache!)
   try {
     await execPromise(
       `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${copySh}'; & '${copySh}'"`
     )
   } catch (e) {
     console.log('writePath error: ', e)
-    await appendFile(join(global.Server.BaseDir!, 'debug.log'), `[writePath][error]: ${e}\n`)
+    await appendFile(join(window.Server.BaseDir!, 'debug.log'), `[writePath][error]: ${e}\n`)
   }
 }
 
@@ -750,7 +752,7 @@ export async function setDir777ToCurrentUser(folderPath: string) {
 
   console.log(`Executing: icacls ${args.join(' ')}`)
   await appendFile(
-    join(global.Server.BaseDir!, 'debug.log'),
+    join(window.Server.BaseDir!, 'debug.log'),
     `[setDir777ToCurrentUser][args]: icacls ${args.join(' ')}\n`
   )
   try {
@@ -760,7 +762,7 @@ export async function setDir777ToCurrentUser(folderPath: string) {
     })
   } catch (e) {
     await appendFile(
-      join(global.Server.BaseDir!, 'debug.log'),
+      join(window.Server.BaseDir!, 'debug.log'),
       `[setDir777ToCurrentUser][error]: ${e}\n`
     )
   }

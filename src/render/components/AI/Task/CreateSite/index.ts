@@ -4,8 +4,7 @@ import { AIStore } from '@/components/AI/store'
 import { handleHost } from '@/util/Host'
 import { openSiteBaseService } from '@/components/AI/Fn/Host'
 import { I18nT } from '@lang/index'
-
-const { existsSync } = require('fs-extra')
+import { fs } from '@/util/NodeFn'
 
 export class CreateSite extends BaseTask {
   host: any = {
@@ -39,15 +38,16 @@ export class CreateSite extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.请输入或选择站点目录'),
+            content: I18nT('ai.enterOrSelectSiteDirectory'),
             action: 'ChooseSiteRoot'
           })
         },
         needInput: true,
         run: (dir: string) => {
           return new Promise(async (resolve, reject) => {
-            if (!existsSync(dir)) {
-              reject(new Error(I18nT('ai.站点目录无效')))
+            const exists = await fs.existsSync(dir)
+            if (!exists) {
+              reject(new Error(I18nT('ai.siteDirectoryError')))
               return
             } else {
               this.host.root = dir
@@ -61,7 +61,7 @@ export class CreateSite extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.请输入站点域名')
+            content: I18nT('ai.enterSiteDomain')
           })
         },
         needInput: true,
@@ -70,8 +70,8 @@ export class CreateSite extends BaseTask {
             url = url.split('://').pop()!
             try {
               new URL(`https://${url}`)
-            } catch (e) {
-              reject(new Error(I18nT('ai.域名无效')))
+            } catch {
+              reject(new Error(I18nT('ai.domainError')))
             }
             this.host.name = url
             resolve(true)
@@ -83,13 +83,13 @@ export class CreateSite extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: I18nT('ai.创建站点中')
+            content: I18nT('ai.creatingSite')
           })
         },
         run: () => {
           return new Promise<any>((resolve, reject) => {
             const brewStore = BrewStore()
-            const php = brewStore.module('php')?.installed?.find((i) => !!i.path && !!i.version)
+            const php = brewStore.module('php').installed.find((i) => !!i.path && !!i.version)
             if (php?.num) {
               this.host.phpVersion = php.num
             }
@@ -98,12 +98,12 @@ export class CreateSite extends BaseTask {
                 const aiStore = AIStore()
                 aiStore.chatList.push({
                   user: 'ai',
-                  content: `${I18nT('ai.成功创建站点')}
-${I18nT('ai.站点域名')}: ${this.host.name}
-${I18nT('ai.站点目录')}: <a href="javascript:void();" onclick="openDir('${this.host.root}')">${
+                  content: `${I18nT('ai.siteCreatedSuccessfully')}
+${I18nT('ai.siteDomain')}: ${this.host.name}
+${I18nT('ai.siteDirectory')}: <a href="javascript:void();" onclick="openDir('${this.host.root}')">${
                     this.host.root
                   }</a>
-${I18nT('ai.尝试开启服务')}`
+${I18nT('ai.tryingToStartService')}`
                 })
                 resolve({
                   host: this.host.name,

@@ -18,10 +18,9 @@
   import Conf from '@/components/Conf/index.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
-  import { uuid } from '@shared/utils'
-
-  const { join } = require('path')
+  import { debounce } from 'lodash-es'
+  import { uuid } from '@/util/Index'
+  import { join } from 'path-browserify'
 
   const conf = ref()
   const commonSetting: Ref<CommonSetItem[]> = ref([])
@@ -33,13 +32,13 @@
     if (!version?.value || !version?.value?.bin) {
       return ''
     }
-    return join(global.Server.ApacheDir, `${version.value.version}.conf`)
+    return join(window.Server.ApacheDir, `${version.value.version}.conf`)
   })
   const defaultFile = computed(() => {
     if (!version?.value || !version?.value?.bin) {
       return ''
     }
-    return join(global.Server.ApacheDir, `${version.value.version}.default.conf`)
+    return join(window.Server.ApacheDir, `${version.value.version}.default.conf`)
   })
 
   const names: CommonSetItem[] = [
@@ -125,7 +124,7 @@
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names].map((item) => {
       const regex = new RegExp(
         `^[\\s\\n]?((?!#)([\\s]*?))${item.name}\\s+(.*?)([^\\n])(\\n|$)`,

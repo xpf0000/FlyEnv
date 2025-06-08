@@ -1,10 +1,6 @@
 import { reactive, markRaw } from 'vue'
-import { getAllFileAsync } from '@shared/file'
-import type { FSWatcher, WatchEventType } from 'fs'
-
-const { join } = require('path')
-const { existsSync, mkdirp } = require('fs-extra')
-const fsWatch = require('fs').watch
+import { join, basename } from 'path-browserify'
+import { DirWatcher, FileWatcher, fs } from '@/util/NodeFn'
 
 type NginxRewriteItem = {
   name: string
@@ -14,9 +10,9 @@ type NginxRewriteItem = {
 export const HostNginxRewriteSetup: {
   nginxRewriteDefault: Record<string, NginxRewriteItem>
   nginxRewriteCustom: Record<string, NginxRewriteItem>
-  fileWatcher: FSWatcher | null
-  templateWatcher: FSWatcher | null
-  initFileWatch: (file: string, fn: Function) => void
+  fileWatcher: FileWatcher | null
+  templateWatcher: DirWatcher | null
+  initFileWatch: (file: string, fn: () => void) => void
   deinitFileWatch: () => void
   initNginxRewrites: () => void
   deinitNginxRewriteCustomWatch: () => void
@@ -28,40 +24,31 @@ export const HostNginxRewriteSetup: {
   fileWatcher: null,
   templateWatcher: null,
   deinitNginxRewriteCustomWatch() {
-    HostNginxRewriteSetup.templateWatcher && HostNginxRewriteSetup.templateWatcher.close()
+    HostNginxRewriteSetup.templateWatcher?.close()
     HostNginxRewriteSetup.templateWatcher = null
   },
   initNginxRewriteCustomWatch() {
-    HostNginxRewriteSetup.templateWatcher && HostNginxRewriteSetup.templateWatcher.close()
-    const dir = join(global.Server.BaseDir!, 'NginxRewriteTemplate')
+    HostNginxRewriteSetup.templateWatcher?.close()
+    const dir = join(window.Server.BaseDir!, 'NginxRewriteTemplate')
     HostNginxRewriteSetup.templateWatcher = markRaw(
-      fsWatch(
-        dir,
-        {
-          recursive: true
-        },
-        (event: WatchEventType, filename: string) => {
-          console.log('event & filename: ', event, filename)
-          if (filename) {
-            const file = join(dir, filename)
-            const k = filename.split('.').shift()!
-            if (existsSync(file)) {
-              HostNginxRewriteSetup.nginxRewriteCustom[file] = reactive({
-                name: k,
-                content: ''
-              })
-            } else {
-              delete HostNginxRewriteSetup.nginxRewriteCustom[file]
-            }
-          }
+      new DirWatcher(dir, async (file: string) => {
+        const name = basename(file)
+        const exists = await fs.existsSync(file)
+        if (exists) {
+          HostNginxRewriteSetup.nginxRewriteCustom[file] = reactive({
+            name,
+            content: ''
+          })
+        } else {
+          delete HostNginxRewriteSetup.nginxRewriteCustom[file]
         }
-      )
+      })
     )
   },
   initNginxRewrites() {
     if (Object.keys(HostNginxRewriteSetup.nginxRewriteDefault).length === 0) {
-      const dir = join(global.Server.Static!, 'rewrite')
-      getAllFileAsync(dir, false).then((files) => {
+      const dir = join(window.Server.Static!, 'rewrite')
+      fs.readdir(dir, false).then((files) => {
         files = files.sort()
         for (const file of files) {
           const name = file.replace('.conf', '')
@@ -75,13 +62,14 @@ export const HostNginxRewriteSetup: {
     }
 
     if (Object.keys(HostNginxRewriteSetup.nginxRewriteCustom).length === 0) {
-      const dir = join(global.Server.BaseDir!, 'NginxRewriteTemplate')
-      mkdirp(dir).then().catch()
-      getAllFileAsync(dir, false).then((files) => {
+      const dir = join(window.Server.BaseDir!, 'NginxRewriteTemplate')
+      fs.mkdirp(dir).then().catch()
+      fs.readdir(dir, false).then(async (files) => {
         files = files.sort()
         for (const file of files) {
           const k = join(dir, file)
-          if (!existsSync(k)) {
+          const exists = await fs.existsSync(k)
+          if (!exists) {
             continue
           }
           const name = file.split('.').shift()!
@@ -93,12 +81,13 @@ export const HostNginxRewriteSetup: {
       })
     }
   },
-  initFileWatch(file: string, fn: Function) {
-    HostNginxRewriteSetup.fileWatcher && HostNginxRewriteSetup.fileWatcher.close()
-    HostNginxRewriteSetup.fileWatcher = markRaw(fsWatch(file, fn))
+  initFileWatch(file: string, fn: () => void) {
+    console.log('initFileWatch !!!', file)
+    HostNginxRewriteSetup.fileWatcher?.close()
+    HostNginxRewriteSetup.fileWatcher = markRaw(new FileWatcher(file, fn))
   },
   deinitFileWatch() {
-    HostNginxRewriteSetup.fileWatcher && HostNginxRewriteSetup.fileWatcher.close()
+    HostNginxRewriteSetup.fileWatcher?.close()
     HostNginxRewriteSetup.fileWatcher = null
   },
   save() {}

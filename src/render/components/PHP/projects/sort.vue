@@ -59,10 +59,10 @@
     opacity: 0
   }
 
-  let filterHosts: Ref<ProjectItem[]> = ref([])
+  const filterHosts: Ref<ProjectItem[]> = ref([])
   let hostBack = ''
 
-  let editHost: Ref<ProjectItem | undefined> = ref()
+  const editHost: Ref<ProjectItem | undefined> = ref()
 
   show.value = true
 
@@ -86,7 +86,7 @@
 
   const onHide = () => {
     delete editHost.value?.isSorting
-    closedFn && closedFn()
+    closedFn?.()
     const host = JSON.stringify(filterHosts.value)
     if (hostBack !== host) {
       console.log('has changed !!!')
@@ -127,7 +127,7 @@
       if (!editHost?.value) {
         return 0
       }
-      let list = filterHosts.value
+      const list = filterHosts.value
       return list.length - 1 - list.findIndex((h) => h.id === editHost?.value?.id)
     },
     set(v: number) {

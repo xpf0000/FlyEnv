@@ -4,8 +4,7 @@
   import { useEventListener } from '@vueuse/core'
   import { I18nT } from '@lang/index'
   import { MessageSuccess } from '@/util/Element'
-
-  const { clipboard } = require('@electron/remote')
+  import { clipboard } from '@/util/NodeFn'
 
   const event = ref<KeyboardEvent>()
 
@@ -83,7 +82,7 @@
           </div>
         </el-card>
 
-        <template v-for="({ label, value, placeholder }, i) of fields" :key="i">
+        <template v-for="({ label, value, placeholder }, _i) of fields" :key="_i">
           <el-input :model-value="value" readonly :placeholder="placeholder" class="mb-1">
             <template #prepend>
               <span class="w-14">{{ label }}</span>

@@ -66,8 +66,7 @@
   import { AllAppModule } from '@/core/type'
   import { stopService } from '@/util/Service'
   import { I18nT } from '@lang/index'
-
-  const { dirname } = require('path')
+  import { dirname } from 'path-browserify'
 
   const props = defineProps<{
     item: SoftInstalled

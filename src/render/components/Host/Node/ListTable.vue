@@ -178,12 +178,11 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
-  import { isEqual } from 'lodash'
+  import { isEqual } from 'lodash-es'
   import { HostStore } from '@/components/Host/store'
   import { MessageError, MessageSuccess } from '@/util/Element'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
+  import { join } from 'path-browserify'
+  import { shell } from '@/util/NodeFn'
 
   //nohup {project_cmd}{nohup_log} & echo $! > {pid_file}
 
@@ -230,7 +229,7 @@
         if (!h.name || h?.pid) {
           return false
         }
-        let name: any = h.name.split('.')
+        const name: any = h.name.split('.')
         let has = false
         while (!has && name.length > 0) {
           name.shift()
@@ -328,12 +327,14 @@
         }).then()
         break
       case 'log':
-        const logFile = join(global.Server.BaseDir!, `nodejs/${item.id}.log`)
-        const customTitle = item.projectName
-        AsyncComponentShow(LogVM, {
-          logFile,
-          customTitle
-        }).then()
+        {
+          const logFile = join(window.Server.BaseDir!, `nodejs/${item.id}.log`)
+          const customTitle = item.projectName
+          AsyncComponentShow(LogVM, {
+            logFile,
+            customTitle
+          }).then()
+        }
         break
       case 'del':
         Base._Confirm(I18nT('base.delAlertContent'), undefined, {

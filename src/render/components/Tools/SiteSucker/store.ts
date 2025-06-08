@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import IPC from '@/util/IPC'
 import { reactive } from 'vue'
-import { merge } from 'lodash'
+import { merge } from 'lodash-es'
 
 export type LinkState = 'wait' | 'running' | 'success' | 'fail' | 'replace'
 

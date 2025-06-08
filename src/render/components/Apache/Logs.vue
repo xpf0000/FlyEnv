@@ -14,8 +14,7 @@
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import { AppStore } from '@/store/app'
-
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const props = defineProps<{
     type: string
@@ -31,6 +30,6 @@
     if (!version?.value || !version?.value?.bin) {
       return ''
     }
-    return join(global.Server.ApacheDir, `${version.value.version}.${props.type}.log`)
+    return join(window.Server.ApacheDir, `${version.value.version}.${props.type}.log`)
   })
 </script>

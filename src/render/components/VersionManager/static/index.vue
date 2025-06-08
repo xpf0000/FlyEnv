@@ -13,10 +13,7 @@
         <span style="padding: 2px 12px 2px 24px; display: block">{{ I18nT('base.version') }}</span>
       </template>
       <template #default="scope">
-        <span
-          style="padding: 2px 12px 2px 24px; display: block"
-        >{{ scope.row.version }}</span
-        >
+        <span style="padding: 2px 12px 2px 24px; display: block">{{ scope.row.version }}</span>
       </template>
     </el-table-column>
     <el-table-column align="center" :label="I18nT('base.isInstalled')" width="120">
@@ -62,7 +59,7 @@
     typeFlag: AllAppModule
   }>()
 
-  const { fetching, tableData, handleVersion, fetchCommand, copyCommand } = Setup(props.typeFlag)
+  const { fetching, tableData, handleVersion } = Setup(props.typeFlag)
 </script>
 <style lang="scss">
   .app-html-block {

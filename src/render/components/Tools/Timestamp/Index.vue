@@ -2,7 +2,7 @@
   <div class="tool-timestamp tools host-edit">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ $t('util.toolTimestamp') }}</span>
+        <span class="text-xl">{{ I18nT('util.toolTimestamp') }}</span>
         <slot name="like"></slot>
       </div>
     </div>
@@ -21,9 +21,9 @@
         <div class="path-choose mt-20 mb-20">
           <div class="left">
             <el-input v-model="timestamp0" placeholder="Unix Timestamp"></el-input>
-            <el-select class="w-32" v-model="flag0">
-              <el-option :value="0" :label="$t('base.second')"></el-option>
-              <el-option :value="1" :label="$t('base.millisecond')"></el-option>
+            <el-select v-model="flag0" class="w-32">
+              <el-option :value="0" :label="I18nT('base.second')"></el-option>
+              <el-option :value="1" :label="I18nT('base.millisecond')"></el-option>
             </el-select>
           </div>
           <yb-icon
@@ -54,9 +54,9 @@
           />
           <div class="right">
             <el-input v-model="timestamp1str" readonly placeholder="Unix Timestamp"></el-input>
-            <el-select class="w-32" v-model="flag1">
-              <el-option :value="0" :label="$t('base.second')"></el-option>
-              <el-option :value="1" :label="$t('base.millisecond')"></el-option>
+            <el-select v-model="flag1" class="w-32">
+              <el-option :value="0" :label="I18nT('base.second')"></el-option>
+              <el-option :value="1" :label="I18nT('base.millisecond')"></el-option>
             </el-select>
           </div>
         </div>
@@ -65,71 +65,61 @@
   </div>
 </template>
 
-<script>
-  import { MessageSuccess } from '@/util/Element.ts'
+<script setup lang="ts">
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { MessageSuccess } from '@/util/Element'
   import { I18nT } from '@lang/index'
+  import { clipboard } from '@/util/NodeFn'
 
-  const { clipboard } = require('@electron/remote')
-  export default {
-    name: 'MoUnixTimestamp',
-    components: {},
-    props: {},
-    emits: ['doClose'],
-    data() {
-      return {
-        current: 0,
-        flag0: 0,
-        flag1: 0,
-        timestamp0: null,
-        timestamp1: null
-      }
-    },
-    computed: {
-      datetime0() {
-        if (!this.timestamp0) {
-          return ''
-        }
-        let t = parseInt(this.timestamp0)
-        if (this.flag0 === 0) {
-          t = t * 1000
-        }
-        console.log('t: ', t)
-        let unixTimestamp = new Date(t)
-        return unixTimestamp.toLocaleString()
-      },
-      timestamp1str() {
-        if (this.timestamp1 === null) {
-          return ''
-        }
-        let t = this.timestamp1
-        if (this.flag1 === 0) {
-          t = t / 1000
-        }
-        return t
-      }
-    },
-    watch: {},
-    created: function () {
-      this.getCurrent()
-      this.timer = setInterval(() => {
-        this.getCurrent()
-      }, 1000)
-    },
-    unmounted() {
-      console.log('timestamp destroyed !!!!!')
-      clearInterval(this.timer)
-    },
-    methods: {
-      doClose() {
-        this.$emit('doClose')
-      },
-      getCurrent() {
-        this.current = Math.round(new Date().getTime() / 1000)
-      },
-      doCopy(str) {
-        clipboard.writeText(`${str}`)
-        MessageSuccess(I18nT('base.copySuccess'))
-      }
+  const current = ref(0)
+  const flag0 = ref(0)
+  const flag1 = ref(0)
+  const timestamp0 = ref<string | null>(null)
+  const timestamp1 = ref<string | null>(null)
+  let timer: number | null = null
+
+  const datetime0 = computed(() => {
+    if (!timestamp0.value) {
+      return ''
     }
+    let t = parseInt(timestamp0.value)
+    if (flag0.value === 0) {
+      t = t * 1000
+    }
+    const unixTimestamp = new Date(t)
+    return unixTimestamp.toLocaleString()
+  })
+
+  const timestamp1str = computed(() => {
+    if (timestamp1.value === null) {
+      return ''
+    }
+    let t = parseInt(timestamp1.value)
+    if (flag1.value === 0) {
+      t = Math.floor(t / 1000)
+    }
+    return t.toString()
+  })
+
+  const getCurrent = () => {
+    current.value = Math.round(new Date().getTime() / 1000)
   }
+
+  const doCopy = (str: string | number) => {
+    clipboard.writeText(`${str}`)
+    MessageSuccess(I18nT('base.copySuccess'))
+  }
+
+  onMounted(() => {
+    getCurrent()
+    timer = setInterval(() => {
+      getCurrent()
+    }, 1000) as unknown as number
+  })
+
+  onUnmounted(() => {
+    if (timer) {
+      clearInterval(timer)
+    }
+  })
 </script>

@@ -30,13 +30,13 @@
 
           <el-form-item label="Digest encoding" label-position="top">
             <el-select v-model="Store.digest" class="mb-4 w-full">
-              <template v-for="(item, index) in Store.digestList" :key="index">
+              <template v-for="(item, _index) in Store.digestList" :key="_index">
                 <el-option :value="item.value" :label="item.label"></el-option>
               </template>
             </el-select>
           </el-form-item>
 
-          <div v-for="(item, algo) in Store.algoList" :key="algo" style="margin: 5px 0">
+          <div v-for="(_item, algo) in Store.algoList" :key="algo" style="margin: 5px 0">
             <el-input :model-value="Store.hashText(algo)">
               <template #prepend
                 ><div class="flex items-center w-16">{{ algo }}</div></template

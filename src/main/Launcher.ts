@@ -4,8 +4,7 @@ import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
 import { splitArgv } from './utils'
-
-app?.commandLine?.appendSwitch && app?.commandLine?.appendSwitch('no-sandbox')
+import { type CallBackFn } from '@shared/app'
 
 export default class Launcher extends EventEmitter {
   exceptionHandler?: ExceptionHandler
@@ -17,7 +16,7 @@ export default class Launcher extends EventEmitter {
     })
   }
 
-  makeSingleInstance(callback: Function) {
+  makeSingleInstance(callback: CallBackFn) {
     const gotSingleLock = app.requestSingleInstanceLock()
     if (!gotSingleLock) {
       app.quit()

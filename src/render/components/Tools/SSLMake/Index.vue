@@ -2,12 +2,12 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ $t('util.toolSSL') }}</span>
+        <span class="text-xl">{{ I18nT('util.toolSSL') }}</span>
         <slot name="like"></slot>
       </div>
-      <el-button type="primary" class="shrink0" :loading="running" @click="doSave">{{
-        $t('base.generate')
-      }}</el-button>
+      <el-button type="primary" class="shrink0" :loading="running" @click="doSave">
+        {{ I18nT('base.generate') }}
+      </el-button>
     </div>
 
     <div class="main-wapper">
@@ -15,14 +15,13 @@
         <textarea
           v-model.trim="item.domains"
           type="text"
-          :class="'input-textarea' + (errs['domains'] ? ' error' : '')"
+          :class="'input-textarea' + (errs.domains ? ' error' : '')"
           placeholder="domains eg: *.xxx.com, One domain name per line"
         ></textarea>
         <div class="path-choose mt-20 mb-20">
           <input
             type="text"
-            :class="'input' + (errs['root'] ? ' error' : '')"
-            readonly="readonly"
+            :class="'input' + (errs.root ? ' error' : '')"
             placeholder="Root CA certificate path, if not choose, will create new in SSL certificate save path"
             :value="item.root"
           />
@@ -33,8 +32,7 @@
         <div class="path-choose mt-20 mb-20">
           <input
             type="text"
-            :class="'input' + (errs['savePath'] ? ' error' : '')"
-            readonly="readonly"
+            :class="'input' + (errs.savePath ? ' error' : '')"
             placeholder="SSL certificate save path"
             :value="item.savePath"
           />
@@ -47,112 +45,89 @@
   </div>
 </template>
 
-<script>
-  import { MessageError, MessageSuccess } from '@/util/Element.ts'
+<script setup lang="ts">
+  import { ref, watch } from 'vue'
+  import { MessageError, MessageSuccess } from '@/util/Element'
   import IPC from '@/util/IPC'
   import { I18nT } from '@lang/index'
+  import { dialog, shell } from '@/util/NodeFn'
 
-  const { existsSync, writeFileSync } = require('fs')
-  const { execSync } = require('child_process')
-  const { join, basename } = require('path')
-  const { EOL } = require('os')
-  const { dialog, shell } = require('@electron/remote')
+  const emit = defineEmits(['doClose'])
 
-  export default {
-    name: 'MoSslMake',
-    components: {},
-    props: {},
-    data() {
-      return {
-        running: false,
-        item: {
-          domains: '',
-          root: '',
-          savePath: ''
-        },
-        edit: {},
-        errs: {
-          domains: false,
-          root: false,
-          savePath: false
-        }
+  const running = ref(false)
+  const item = ref({
+    domains: '',
+    root: '',
+    savePath: ''
+  })
+
+  const errs = ref<Record<string, boolean>>({
+    domains: false,
+    root: false,
+    savePath: false
+  })
+
+  watch(
+    item,
+    () => {
+      for (const k in errs.value) {
+        errs.value[k] = false
       }
     },
-    computed: {},
-    watch: {
-      item: {
-        handler() {
-          for (let k in this.errs) {
-            this.errs[k] = false
-          }
-        },
-        immediate: true,
-        deep: true
-      }
-    },
-    created: function () {},
-    unmounted() {},
-    methods: {
-      doClose() {
-        this.$emit('doClose')
-      },
-      chooseRoot(flag, choosefile = false) {
-        let opt = ['openDirectory', 'createDirectory']
-        let filters = []
-        if (choosefile) {
-          opt = ['openFile']
-          filters.push({ name: 'ROOT CA Certificate', extensions: ['crt'] })
-        }
-        dialog
-          .showOpenDialog({
-            properties: opt,
-            filters: filters
-          })
-          .then(({ canceled, filePaths }) => {
-            if (canceled || filePaths.length === 0) {
-              return
-            }
-            const [path] = filePaths
-            switch (flag) {
-              case 'root':
-                this.item.root = path
-                break
-              case 'save':
-                this.item.savePath = path
-                break
-            }
-          })
-      },
-      checkItem() {
-        this.errs.domains = this.item.domains.length === 0
-        this.errs.savePath = this.item.savePath.length === 0
+    { deep: true, immediate: true }
+  )
 
-        for (let k in this.errs) {
-          if (this.errs[k]) {
-            return false
-          }
-        }
-        return true
-      },
-      doSave() {
-        if (!this.checkItem()) {
-          return
-        }
-        this.running = true
-        IPC.send('app-fork:tools', 'sslMake', JSON.parse(JSON.stringify(this.item))).then(
-          (key, res) => {
-            IPC.off(key)
-            this.running = false
-            if (res?.code === 0) {
-              MessageSuccess(I18nT('base.success'))
-              shell.openPath(this.item.savePath)
-              this.doClose()
-            } else {
-              MessageError(this.$t('base.fail'))
-            }
-          }
-        )
-      }
+  const chooseRoot = (flag: string, choosefile = false) => {
+    let opt = ['openDirectory', 'createDirectory']
+    const filters = []
+    if (choosefile) {
+      opt = ['openFile']
+      filters.push({ name: 'ROOT CA Certificate', extensions: ['crt'] })
     }
+
+    dialog
+      .showOpenDialog({
+        properties: opt,
+        filters: filters
+      })
+      .then(({ canceled, filePaths }) => {
+        if (canceled || filePaths.length === 0) return
+
+        const [path] = filePaths
+        switch (flag) {
+          case 'root':
+            item.value.root = path
+            break
+          case 'save':
+            item.value.savePath = path
+            break
+        }
+      })
+  }
+
+  const checkItem = () => {
+    errs.value.domains = item.value.domains.length === 0
+    errs.value.savePath = item.value.savePath.length === 0
+
+    return !Object.values(errs.value).some(Boolean)
+  }
+
+  const doSave = () => {
+    if (!checkItem()) return
+
+    running.value = true
+    IPC.send('app-fork:tools', 'sslMake', JSON.parse(JSON.stringify(item.value))).then(
+      (key: string, res: any) => {
+        IPC.off(key)
+        running.value = false
+        if (res?.code === 0) {
+          MessageSuccess(I18nT('base.success'))
+          shell.openPath(item.value.savePath)
+          emit('doClose')
+        } else {
+          MessageError(I18nT('base.fail'))
+        }
+      }
+    )
   }
 </script>

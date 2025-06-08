@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia'
 import type { MysqlGroupItem } from '@shared/app'
 import IPC from '@/util/IPC'
-
-const { existsSync, readFile, writeFile, mkdirp } = require('fs-extra')
-const { join } = require('path')
+import { join } from 'path-browserify'
+import { fs } from '@/util/NodeFn'
 
 interface State {
   inited: boolean
@@ -24,11 +23,11 @@ export const MysqlStore = defineStore('mysqlGroup', {
         return
       }
       this.inited = true
-      const file = join(global.Server.MysqlDir, 'group/group.json')
-      if (existsSync(file)) {
+      const file = join(window.Server.MysqlDir, 'group/group.json')
+      if (await fs.existsSync(file)) {
         const arr: Array<any> = []
         try {
-          const json = await readFile(file, 'utf-8')
+          const json = await fs.readFile(file, 'utf-8')
           const jsonArr: any = JSON.parse(json)
           jsonArr.forEach((j: any) => {
             delete j?.version?.fetching
@@ -45,10 +44,10 @@ export const MysqlStore = defineStore('mysqlGroup', {
         delete j?.version?.fetching
         delete j?.version?.running
       })
-      const groupDir = join(global.Server.MysqlDir, 'group')
-      await mkdirp(groupDir)
+      const groupDir = join(window.Server.MysqlDir, 'group')
+      await fs.mkdirp(groupDir)
       const file = join(groupDir, 'group.json')
-      await writeFile(file, JSON.stringify(json))
+      await fs.writeFile(file, JSON.stringify(json))
     },
     start(item: MysqlGroupItem): Promise<true | string> {
       return new Promise((resolve) => {

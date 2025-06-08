@@ -41,9 +41,8 @@
   import type { MysqlGroupItem } from '@shared/app'
   import Base from '@/core/Base'
   import { MysqlStore } from '@/components/Mysql/mysql'
-
-  const { clipboard } = require('@electron/remote')
-  const { join } = require('path')
+  import { join } from 'path-browserify'
+  import { clipboard } from '@/util/NodeFn'
 
   const props = defineProps<{
     item: MysqlGroupItem
@@ -95,9 +94,11 @@
         }).then()
         break
       case 'socket':
-        const id = props.item.id
-        const sock = join(global.Server.MysqlDir!, `group/my-group-${id}.sock`)
-        copyString(sock)
+        {
+          const id = props.item.id
+          const sock = join(window.Server.MysqlDir!, `group/my-group-${id}.sock`)
+          copyString(sock)
+        }
         break
       case 'cnf':
         AsyncComponentShow(ConfigVM, {

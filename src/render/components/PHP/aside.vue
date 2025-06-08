@@ -59,7 +59,7 @@
         })
       }
       Promise.all(all).then((res) => {
-        let find = res.find((s) => typeof s === 'string')
+        const find = res.find((s) => typeof s === 'string')
         if (find) {
           MessageError(find)
         } else {

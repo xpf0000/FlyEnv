@@ -37,10 +37,8 @@
   import { I18nT } from '@lang/index'
   import { computed } from 'vue'
   import { BrewStore } from '@/store/brew'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
-  const { existsSync, readFile } = require('fs-extra')
+  import { join } from 'path-browserify'
+  import { shell, fs } from '@/util/NodeFn'
 
   const { tab, checkVersion } = AppModuleSetup('mailpit')
   const tabs = [
@@ -55,8 +53,8 @@
     return brewStore.module('mailpit').installed.some((m) => m.run)
   })
   const openURL = async () => {
-    const iniFile = join(global.Server.BaseDir!, 'mailpit/mailpit.conf')
-    if (existsSync(iniFile)) {
+    const iniFile = join(window.Server.BaseDir!, 'mailpit/mailpit.conf')
+    if (await fs.existsSync(iniFile)) {
       const content = await readFile(iniFile, 'utf-8')
       const logStr = content.split('\n').find((s: string) => s.includes('MP_UI_BIND_ADDR'))
       const port = logStr?.trim()?.split('=')?.pop()?.split(':')?.pop() ?? '8025'

@@ -77,7 +77,7 @@ const exec = (
     if (ServiceActionExtParam?.[typeFlag]) {
       try {
         params = await ServiceActionExtParam[typeFlag]!(typeFlag, fn, version)
-      } catch (e) {
+      } catch {
         handleResult(false)
         return resolve(true)
       }

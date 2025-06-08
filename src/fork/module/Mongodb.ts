@@ -35,7 +35,7 @@ class Manager extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.MongoDBDir!, 'mongodb.pid')
+    this.pidPath = join(window.Server.MongoDBDir!, 'mongodb.pid')
   }
 
   _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
@@ -43,7 +43,7 @@ class Manager extends Base {
       try {
         await this.initMongosh()
       } catch {}
-      const mongosh = join(global.Server.AppDir!, 'mongosh', this.mongoshVersion, 'bin/mongosh.exe')
+      const mongosh = join(window.Server.AppDir!, 'mongosh', this.mongoshVersion, 'bin/mongosh.exe')
       if (existsSync(mongosh)) {
         try {
           await spawnPromise('mongosh.exe', ['--eval', `"db.shutdownServer()"`], {
@@ -54,7 +54,7 @@ class Manager extends Base {
           console.log('mongosh shutdown error: ', e)
         }
         const pids = new Set<string>()
-        const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+        const appPidFile = join(window.Server.BaseDir!, `pid/${this.type}.pid`)
         if (existsSync(appPidFile)) {
           const pid = (await readFile(appPidFile, 'utf-8')).trim()
           pids.add(pid)
@@ -87,8 +87,8 @@ class Manager extends Base {
       })
       const bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-      const m = join(global.Server.MongoDBDir!, `mongodb-${v}.conf`)
-      const dataDir = join(global.Server.MongoDBDir!, `data-${v}`)
+      const m = join(window.Server.MongoDBDir!, `mongodb-${v}.conf`)
+      const dataDir = join(window.Server.MongoDBDir!, `data-${v}`)
       if (!existsSync(dataDir)) {
         await mkdirp(dataDir)
         await chmod(dataDir, '0777')
@@ -97,7 +97,7 @@ class Manager extends Base {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
         })
-        const tmpl = join(global.Server.Static!, 'tmpl/mongodb.conf')
+        const tmpl = join(window.Server.Static!, 'tmpl/mongodb.conf')
         let conf = await readFile(tmpl, 'utf-8')
         conf = conf.replace('##DB-PATH##', `"${dataDir.split('\\').join('/')}"`)
         await writeFile(m, conf)
@@ -105,7 +105,7 @@ class Manager extends Base {
           'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: m }))
         })
       }
-      const logPath = join(global.Server.MongoDBDir!, `mongodb-${v}.log`)
+      const logPath = join(window.Server.MongoDBDir!, `mongodb-${v}.log`)
 
       const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}"`
 
@@ -113,7 +113,7 @@ class Manager extends Base {
         const res = await serviceStartExecCMD(
           version,
           this.pidPath,
-          global.Server.MongoDBDir!,
+          window.Server.MongoDBDir!,
           bin,
           execArgs,
           '',
@@ -131,13 +131,13 @@ class Manager extends Base {
   initMongosh() {
     return new ForkPromise(async (resolve) => {
       const version = this.mongoshVersion
-      const mongosh = join(global.Server.AppDir!, 'mongosh', version, 'bin/mongosh.exe')
+      const mongosh = join(window.Server.AppDir!, 'mongosh', version, 'bin/mongosh.exe')
       if (existsSync(mongosh)) {
         return resolve(true)
       }
-      const appDir = join(global.Server.AppDir!, 'mongosh', version)
+      const appDir = join(window.Server.AppDir!, 'mongosh', version)
       const url = `https://downloads.mongodb.com/compass/mongosh-${version}-win32-x64.zip`
-      const zip = join(global.Server.Cache!, `mongosh-${version}.zip`)
+      const zip = join(window.Server.Cache!, `mongosh-${version}.zip`)
       const doInstall = async () => {
         if (existsSync(zip)) {
           try {
@@ -188,14 +188,14 @@ class Manager extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mongodb')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `mongodb-${a.version}`, 'bin/mongod.exe')
-          const zip = join(global.Server.Cache!, `mongodb-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `mongodb-${a.version}`)
+          const dir = join(window.Server.AppDir!, `mongodb-${a.version}`, 'bin/mongod.exe')
+          const zip = join(window.Server.Cache!, `mongodb-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, `mongodb-${a.version}`)
           a.zip = zip
           a.bin = dir
 
           const dirOld = join(
-            global.Server.AppDir!,
+            window.Server.AppDir!,
             `mongodb-${a.version}`,
             `mongodb-win32-x86_64-windows-${a.version}`,
             'bin/mongod.exe'

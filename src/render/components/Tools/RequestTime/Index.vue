@@ -50,7 +50,7 @@
     try {
       const u = new URL(url)
       console.log(u)
-    } catch (e) {
+    } catch {
       is = true
     }
     return is

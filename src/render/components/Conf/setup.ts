@@ -4,10 +4,8 @@ import { EditorConfigMake, EditorCreate } from '@/util/Editor'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import type { AllAppModule } from '@/core/type'
-
-const { dialog } = require('@electron/remote')
-const { shell } = require('@electron/remote')
-const { existsSync, writeFile, readFile, statSync } = require('fs-extra')
+import { dialog, shell, fs } from '@/util/NodeFn'
+import { asyncComputed } from '@vueuse/core'
 
 type CommonSetItemOption = {
   label: string
@@ -83,20 +81,19 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
     }
   })
 
-  const disabled = computed(() => {
+  const disabled = asyncComputed(async () => {
     if (!index.value) {
       return true
     }
-    console.log('disabled: ', props?.value?.file, existsSync(props.value.file))
-    return !props?.value?.file || !existsSync(props.value.file)
+    return !props?.value?.file || !(await fs.existsSync(props.value.file))
   })
 
-  const defaultDisabled = computed(() => {
+  const defaultDisabled = asyncComputed(async () => {
     if (!index.value) {
       return true
     }
     return (
-      (!props?.value?.defaultFile || !existsSync(props.value.defaultFile)) &&
+      (!props?.value?.defaultFile || !(await fs.existsSync(props.value.defaultFile))) &&
       !props?.value.defaultConf
     )
   })
@@ -106,7 +103,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       return
     }
     const content = monacoInstance?.getValue() ?? ''
-    writeFile(props.value.file, content).then(() => {
+    fs.writeFile(props.value.file, content).then(() => {
       config.value = content
       changed.value = false
       MessageSuccess(I18nT('base.success'))
@@ -141,7 +138,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
           return
         }
         const content = monacoInstance?.getValue() ?? ''
-        writeFile(filePath, content).then(() => {
+        fs.writeFile(filePath, content).then(() => {
           MessageSuccess(I18nT('base.success'))
         })
       })
@@ -192,7 +189,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       initEditor()
       return
     }
-    readFile(props.value.file, 'utf-8').then((conf: string) => {
+    fs.readFile(props.value.file, 'utf-8').then((conf: string) => {
       config.value = conf
       initEditor()
     })
@@ -209,7 +206,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       initEditor()
       return
     }
-    readFile(props.value.defaultFile, 'utf-8').then((conf: string) => {
+    fs.readFile(props.value.defaultFile, 'utf-8').then((conf: string) => {
       console.log('getDefault config.value === conf', config.value === conf)
       changed.value = conf !== config.value
       config.value = conf
@@ -223,17 +220,17 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       .showOpenDialog({
         properties: opt
       })
-      .then(({ canceled, filePaths }: any) => {
+      .then(async ({ canceled, filePaths }: any) => {
         if (canceled || filePaths.length === 0) {
           return
         }
         const file = filePaths[0]
-        const state = statSync(file)
+        const state: any = fs.stat(file)
         if (state.size > 5 * 1024 * 1024) {
           MessageError(I18nT('base.fileBigErr'))
           return
         }
-        readFile(file, 'utf-8').then((conf: string) => {
+        fs.readFile(file, 'utf-8').then((conf: string) => {
           changed.value = conf !== config.value
           config.value = conf
           initEditor()
@@ -259,7 +256,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   })
 
   onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
+    monacoInstance?.dispose?.()
     monacoInstance = null
   })
 

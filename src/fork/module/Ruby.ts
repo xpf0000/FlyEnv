@@ -23,16 +23,16 @@ class Ruby extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('ruby')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, 'ruby', `v${a.version}`, 'bin/ruby.exe')
-          const zip = join(global.Server.Cache!, `ruby-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, 'ruby', `v${a.version}`)
+          const dir = join(window.Server.AppDir!, 'ruby', `v${a.version}`, 'bin/ruby.exe')
+          const zip = join(window.Server.Cache!, `ruby-${a.version}.zip`)
+          a.appDir = join(window.Server.AppDir!, 'ruby', `v${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
         })
         resolve(all)
-      } catch (e) {
+      } catch {
         resolve([])
       }
     })

@@ -16,7 +16,7 @@
   import ToolVM from '@/components/Log/tool.vue'
   import { AppStore } from '@/store/app'
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const appStore = AppStore()
   const currentVersion = computed(() => {
@@ -29,6 +29,6 @@
       return ''
     }
     const v = currentVersion?.value?.split('.')?.slice(0, 2)?.join('.')
-    return join(global.Server.MongoDBDir, `mongodb-${v}.log`)
+    return join(window.Server.MongoDBDir, `mongodb-${v}.log`)
   })
 </script>

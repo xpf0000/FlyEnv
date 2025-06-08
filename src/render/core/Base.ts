@@ -3,7 +3,6 @@ import { nextTick, render, App } from 'vue'
 import { ElMessageBox as MessageBox } from 'element-plus'
 import { ElMessage as Message } from 'element-plus'
 import BaseDialog from '../components/YbBaseDialog/dialog'
-import { EventBus } from '@/global'
 import { I18nT } from '@lang/index'
 
 let loading: any
@@ -17,7 +16,6 @@ class Base {
         _vnode: this.$.vnode
       })
     }
-    app.config.globalProperties.$baseEventBus = EventBus
     app.config.globalProperties.$baseLoadingClose = this.LoadingClose
     app.config.globalProperties.$baseLoadingText = this.LoadingText
     app.config.globalProperties.$baseLoading = this.Loading
@@ -42,7 +40,7 @@ class Base {
   }
 
   LoadingClose() {
-    loading && loading.close()
+    loading?.close?.()
     loadingTxtDom = null
   }
 
@@ -53,7 +51,7 @@ class Base {
   }
 
   Loading(text?: string, index?: number) {
-    loading && loading.close()
+    loading?.close?.()
     if (!index) {
       loading = Loading.service({
         lock: true,
@@ -80,6 +78,7 @@ class Base {
   _Message(message: string, type = 'success') {
     return new Promise((resolve) => {
       Message({
+        // @ts-ignore
         offset: 60,
         showClose: true,
         message: message,

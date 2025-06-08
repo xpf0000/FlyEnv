@@ -13,7 +13,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ $t('base.vhostConTitle') }}</span>
+          <span class="ml-3">{{ $t('base.vhostConTitle') }}</span>
         </div>
       </div>
 
@@ -30,7 +30,6 @@
 </template>
 
 <script lang="ts" setup>
-  import { readFileAsync, writeFileAsync } from '@shared/file'
   import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
   import { I18nT } from '@lang/index'
@@ -39,14 +38,13 @@
   import { MessageSuccess } from '@/util/Element'
   import { reloadWebServer } from '@/util/Service'
   import IPC from '@/util/IPC'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
-  const { existsSync } = require('fs-extra')
+  import { join } from 'path-browserify'
+  import { shell, fs } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
   const props = defineProps<{
     item: any
+    file?: string
   }>()
   const config = ref('')
   const configpath = ref('')
@@ -59,29 +57,31 @@
 
   const saveConfig = () => {
     const content = monacoInstance?.getValue() ?? ''
-    writeFileAsync(configpath.value, content).then(() => {
+    fs.writeFile(configpath.value, content).then(() => {
       MessageSuccess(I18nT('base.success'))
       reloadWebServer()
     })
   }
 
   const getConfig = () => {
-    if (!existsSync(configpath.value)) {
-      IPC.send('app-fork:host', 'initAllConf', JSON.parse(JSON.stringify(props.item.item))).then(
-        (key: string) => {
-          IPC.off(key)
-          readFileAsync(configpath.value).then((conf) => {
-            config.value = conf
-            initEditor()
-          })
-        }
-      )
-    } else {
-      readFileAsync(configpath.value).then((conf) => {
-        config.value = conf
-        initEditor()
-      })
-    }
+    fs.existsSync(configpath.value).then((e) => {
+      if (e) {
+        fs.readFile(configpath.value).then((conf: string) => {
+          config.value = conf
+          initEditor()
+        })
+      } else {
+        IPC.send('app-fork:host', 'initAllConf', JSON.parse(JSON.stringify(props.item.item))).then(
+          (key: string) => {
+            IPC.off(key)
+            fs.readFile(configpath.value).then((conf: string) => {
+              config.value = conf
+              initEditor()
+            })
+          }
+        )
+      }
+    })
   }
   const initEditor = () => {
     if (!monacoInstance) {
@@ -102,8 +102,9 @@
     }
   }
 
-  const baseDir = global.Server.BaseDir
-  configpath.value = join(baseDir, 'vhost', props.item.flag, `${props.item.item.name}.conf`)
+  const baseDir = window.Server.BaseDir!
+  configpath.value =
+    props?.file ?? join(baseDir, 'vhost', props.item.flag, `${props.item.item.name}.conf`)
   getConfig()
 
   onMounted(() => {
@@ -113,7 +114,7 @@
   })
 
   onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
+    monacoInstance?.dispose()
     monacoInstance = null
   })
 

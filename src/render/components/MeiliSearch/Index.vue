@@ -51,10 +51,8 @@
   import { MeiliSearchSetup } from './setup'
   import { chooseFolder } from '@/util/File'
   import { Edit } from '@element-plus/icons-vue'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
-  const { existsSync, readFile } = require('fs-extra')
+  import { join } from 'path-browserify'
+  import { shell, fs } from '@/util/NodeFn'
 
   const { tab, checkVersion } = AppModuleSetup('meilisearch')
   const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('base.configFile')]
@@ -74,7 +72,7 @@
         if (MeiliSearchSetup.dir[currentVersion.value.bin]) {
           return MeiliSearchSetup.dir[currentVersion.value.bin]
         }
-        return join(global.Server.BaseDir!, `meilisearch`)
+        return join(window.Server.BaseDir!, `meilisearch`)
       }
       return I18nT('base.needSelectVersion')
     },
@@ -96,9 +94,9 @@
   }
 
   const openURL = async () => {
-    const iniFile = join(global.Server.BaseDir!, 'meilisearch/meilisearch.toml')
-    if (existsSync(iniFile)) {
-      const content = await readFile(iniFile, 'utf-8')
+    const iniFile = join(window.Server.BaseDir!, 'meilisearch/meilisearch.toml')
+    if (await fs.existsSync(iniFile)) {
+      const content = await fs.readFile(iniFile)
       const logStr = content.split('\n').find((s: string) => s.includes('http_addr'))
       const port = logStr?.trim()?.split('=')?.pop()?.split(':')?.pop()?.replace('"', '') ?? '7700'
       shell.openExternal(`http://127.0.0.1:${port}/`).then().catch()

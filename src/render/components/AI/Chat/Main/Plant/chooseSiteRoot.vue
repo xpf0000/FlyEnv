@@ -12,8 +12,7 @@
 <script lang="ts" setup>
   import { AIStore } from '@/components/AI/store'
   import type { AIChatItem } from '@shared/app'
-
-  const { dialog } = require('@electron/remote')
+  import { dialog } from '@/util/NodeFn'
 
   const props = defineProps<{
     item: AIChatItem
@@ -21,7 +20,7 @@
 
   const aiStore = AIStore()
   const chooseDir = () => {
-    let opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
+    const opt = ['openDirectory', 'createDirectory', 'showHiddenFiles']
     dialog
       .showOpenDialog({
         properties: opt

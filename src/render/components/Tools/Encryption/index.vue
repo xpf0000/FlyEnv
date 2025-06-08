@@ -33,7 +33,7 @@
                 </el-form-item>
                 <el-form-item label-position="top" label="Encryption algorithm:">
                   <el-select v-model="Store.cypherAlgo" class="w-full">
-                    <template v-for="(item, key) in Store.algos" :key="key">
+                    <template v-for="(_item, key) in Store.algos" :key="key">
                       <el-option :value="key" :label="key"></el-option>
                     </template>
                   </el-select>
@@ -69,7 +69,7 @@
                 </el-form-item>
                 <el-form-item label-position="top" label="Encryption algorithm:">
                   <el-select v-model="Store.decryptAlgo" class="w-full">
-                    <template v-for="(item, key) in Store.algos" :key="key">
+                    <template v-for="(_item, key) in Store.algos" :key="key">
                       <el-option :value="key" :label="key"></el-option>
                     </template>
                   </el-select>

@@ -2,12 +2,13 @@ import IPC from '@/util/IPC.js'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import { AppStore } from '@/store/app'
 import { reactive } from 'vue'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import { AllAppModule, AppModuleEnum } from '@/core/type'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+import type { CallBackFn } from '@shared/app'
 
 class InstalledVersions {
-  _cb: Array<Function>
+  _cb: Array<CallBackFn>
   taskRunning: boolean
   runningFlags: Array<Array<AllAppModule>>
   constructor() {
@@ -90,7 +91,7 @@ class InstalledVersions {
                 flag: flag,
                 data: JSON.parse(JSON.stringify(find ?? {}))
               })
-              if (!!find) {
+              if (find) {
                 needSaveConfig = true
               }
             }

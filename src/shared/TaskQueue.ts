@@ -1,3 +1,5 @@
+import type { CallBackFn } from '@shared/app'
+
 export interface TaskItem {
   run: () => Promise<boolean>
   msg?: string
@@ -22,8 +24,8 @@ export class TaskQueue {
     success: 0,
     successTask: []
   }
-  #progressFn: Function | undefined = undefined
-  #endFn: Function | undefined = undefined
+  #progressFn: CallBackFn | undefined = undefined
+  #endFn: CallBackFn | undefined = undefined
 
   constructor(size = 4) {
     this.#runSize = size
@@ -34,7 +36,9 @@ export class TaskQueue {
       const task = this.#queue.shift()!
       this.#runQueue.push(task)
       const next = () => {
-        this.#progressFn && this.#progressFn(this.#_progress)
+        if (this.#progressFn) {
+          this.#progressFn?.(this.#_progress)
+        }
         this.#runQueue.splice(this.#runQueue.indexOf(task), 1)
         this.#_handle()
       }
@@ -58,7 +62,9 @@ export class TaskQueue {
         })
     }
     if (this.#queue.length === 0 && this.#runQueue.length === 0) {
-      this.#endFn && this.#endFn()
+      if (this.#endFn) {
+        this.#endFn()
+      }
     }
   }
 
@@ -67,12 +73,12 @@ export class TaskQueue {
     return this
   }
 
-  progress(fn: Function) {
+  progress(fn: CallBackFn) {
     this.#progressFn = fn
     return this
   }
 
-  end(fn: Function) {
+  end(fn: CallBackFn) {
     this.#endFn = fn
     return this
   }

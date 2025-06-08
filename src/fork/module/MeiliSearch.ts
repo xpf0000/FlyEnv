@@ -25,19 +25,19 @@ class MeiliSearch extends Base {
   }
 
   init() {
-    this.pidPath = join(global.Server.BaseDir!, 'meilisearch/meilisearch.pid')
+    this.pidPath = join(window.Server.BaseDir!, 'meilisearch/meilisearch.pid')
   }
 
   initConfig(): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, on) => {
-      const baseDir = join(global.Server.BaseDir!, 'meilisearch')
+      const baseDir = join(window.Server.BaseDir!, 'meilisearch')
       await mkdirp(baseDir)
       const iniFile = join(baseDir, 'meilisearch.toml')
       if (!existsSync(iniFile)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
         })
-        const tmplFile = join(global.Server.Static!, 'tmpl/meilisearch.toml')
+        const tmplFile = join(window.Server.Static!, 'tmpl/meilisearch.toml')
         const content = await readFile(tmplFile, 'utf-8')
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'meilisearch.default.toml')
@@ -62,7 +62,7 @@ class MeiliSearch extends Base {
       const iniFile = await this.initConfig().on(on)
 
       const bin = version.bin
-      const baseDir = join(global.Server.BaseDir!, 'meilisearch')
+      const baseDir = join(window.Server.BaseDir!, 'meilisearch')
       const execArgs = `--config-file-path \`"${iniFile}\`"`
       const execEnv = ``
       const working_dir = WORKING_DIR ?? baseDir
@@ -92,9 +92,9 @@ class MeiliSearch extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('meilisearch')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `meilisearch`, a.version, 'meilisearch.exe')
-          const zip = join(global.Server.Cache!, `meilisearch-${a.version}.exe`)
-          a.appDir = join(global.Server.AppDir!, `meilisearch`, a.version)
+          const dir = join(window.Server.AppDir!, `meilisearch`, a.version, 'meilisearch.exe')
+          const zip = join(window.Server.Cache!, `meilisearch-${a.version}.exe`)
+          a.appDir = join(window.Server.AppDir!, `meilisearch`, a.version)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

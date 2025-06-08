@@ -14,12 +14,12 @@
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
 
-  const { join } = require('path')
+  import { join } from 'path-browserify'
 
   const props = defineProps<{
     type: string
   }>()
 
   const log = ref()
-  const filepath = ref(join(global.Server.MysqlDir, `${props.type}.log`))
+  const filepath = ref(join(window.Server.MysqlDir, `${props.type}.log`))
 </script>

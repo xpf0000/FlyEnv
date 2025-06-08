@@ -14,9 +14,8 @@
   import { computed, ref, watch } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import { AppStore } from '@/store/app'
-
-  const { join } = require('path')
-  const { readFile } = require('fs-extra')
+  import { join } from 'path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const appStore = AppStore()
 
@@ -34,13 +33,13 @@
     if (!vm.value) {
       return ''
     }
-    return join(global.Server.MongoDBDir, `mongodb-${vm.value}.conf`)
+    return join(window.Server.MongoDBDir, `mongodb-${vm.value}.conf`)
   })
 
   const getDefault = () => {
-    const tmpl = join(global.Server.Static, 'tmpl/mongodb.conf')
-    const dataDir = join(global.Server.MongoDBDir, `data-${vm.value}`)
-    readFile(tmpl, 'utf-8').then((conf: string) => {
+    const tmpl = join(window.Server.Static, 'tmpl/mongodb.conf')
+    const dataDir = join(window.Server.MongoDBDir, `data-${vm.value}`)
+    fs.readFile(tmpl, 'utf-8').then((conf: string) => {
       defaultConf.value = conf.replace('##DB-PATH##', dataDir)
     })
   }
