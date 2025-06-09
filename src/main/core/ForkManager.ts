@@ -46,7 +46,7 @@ class ForkItem {
     }
   }
   onError(err: Error) {
-    appendFile(join(window.Server.BaseDir!, 'fork.error.txt'), `\n${err?.message}`).then()
+    appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${err?.message}`).then()
     for (const k in this.callback) {
       const fn = this.callback?.[k]
       if (fn) {

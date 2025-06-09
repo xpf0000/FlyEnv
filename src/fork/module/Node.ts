@@ -27,7 +27,7 @@ import { dirname, join, isAbsolute, basename } from 'path'
 import { compareVersions } from 'compare-versions'
 import { createWriteStream, existsSync } from 'fs'
 import axios from 'axios'
-import { type SoftInstalled } from '@shared/app'
+import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../TaskQueue'
 import ncu from 'npm-check-updates'
 import { promisify } from 'node:util'
@@ -66,13 +66,13 @@ class Manager extends Base {
         return
       }
 
-      const local = join(window.Server.AppDir!, 'nvm/nvm.exe')
-      await zipUnPack(join(window.Server.Static!, `zip/nvm.7z`), window.Server.AppDir!)
-      const installcmd = join(window.Server.AppDir!, 'nvm/install.cmd')
+      const local = join(global.Server.AppDir!, 'nvm/nvm.exe')
+      await zipUnPack(join(global.Server.Static!, `zip/nvm.7z`), global.Server.AppDir!)
+      const installcmd = join(global.Server.AppDir!, 'nvm/install.cmd')
       await remove(installcmd)
-      await copyFile(join(window.Server.Static!, 'sh/install-nvm.cmd'), installcmd)
-      const nvmDir = join(window.Server.AppDir!, 'nvm')
-      const linkDir = join(window.Server.AppDir!, 'nvm/nodejs-link')
+      await copyFile(join(global.Server.Static!, 'sh/install-nvm.cmd'), installcmd)
+      const nvmDir = join(global.Server.AppDir!, 'nvm')
+      const linkDir = join(global.Server.AppDir!, 'nvm/nodejs-link')
       let content = await readFile(installcmd, 'utf-8')
       content = content
         .replace(new RegExp('##NVM_PATH##', 'g'), nvmDir)
@@ -122,13 +122,13 @@ class Manager extends Base {
         return
       }
 
-      const local = join(window.Server.AppDir!, 'fnm/fnm.exe')
-      await zipUnPack(join(window.Server.Static!, `zip/fnm.7z`), window.Server.AppDir!)
-      const installcmd = join(window.Server.AppDir!, 'fnm/install.cmd')
+      const local = join(global.Server.AppDir!, 'fnm/fnm.exe')
+      await zipUnPack(join(global.Server.Static!, `zip/fnm.7z`), global.Server.AppDir!)
+      const installcmd = join(global.Server.AppDir!, 'fnm/install.cmd')
       await remove(installcmd)
-      await copyFile(join(window.Server.Static!, 'sh/install-fnm.cmd'), installcmd)
-      const nvmDir = join(window.Server.AppDir!, 'fnm')
-      const linkDir = join(window.Server.AppDir!, 'fnm/nodejs-link')
+      await copyFile(join(global.Server.Static!, 'sh/install-fnm.cmd'), installcmd)
+      const nvmDir = join(global.Server.AppDir!, 'fnm')
+      const linkDir = join(global.Server.AppDir!, 'fnm/nodejs-link')
       let content = await readFile(installcmd, 'utf-8')
       content = content
         .replace(new RegExp('##FNM_PATH##', 'g'), nvmDir)
@@ -213,7 +213,7 @@ class Manager extends Base {
   localVersion(tool: 'fnm' | 'nvm' | 'default') {
     return new ForkPromise(async (resolve) => {
       if (tool === 'default') {
-        const dir = join(window.Server.AppDir!, 'nodejs')
+        const dir = join(global.Server.AppDir!, 'nodejs')
         if (!existsSync(dir)) {
           return resolve({
             versions: [],
@@ -225,7 +225,7 @@ class Manager extends Base {
         const versions = dirs
           .filter((s: string) => s.startsWith('v') && existsSync(join(dir, s, 'node.exe')))
           .map((s: string) => s.replace('v', '').trim())
-        const envDir = join(dirname(window.Server.AppDir!), 'env')
+        const envDir = join(dirname(global.Server.AppDir!), 'env')
         const currentDir = join(envDir, 'node')
         let current = ''
         if (existsSync(currentDir) && existsSync(join(currentDir, 'node.exe'))) {
@@ -327,14 +327,14 @@ class Manager extends Base {
       ?.replace('SET FNM_MULTISHELL_PATH=', '')
       ?.trim()
     if (find) {
-      const linkDir = join(window.Server.AppDir!, 'fnm/nodejs-link')
+      const linkDir = join(global.Server.AppDir!, 'fnm/nodejs-link')
       await remove(linkDir)
       await execPromise(`mklink /J "${linkDir}" "${find}"`)
     }
   }
 
   async _resortToolInPath(tool: 'fnm' | 'nvm') {
-    const link = existsSync(join(window.Server.AppDir!, `${tool}/nodejs-link`))
+    const link = existsSync(join(global.Server.AppDir!, `${tool}/nodejs-link`))
     let allPath: string[] = []
     try {
       allPath = await fetchRawPATH()
@@ -413,7 +413,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject, on) => {
       if (tool === 'default') {
         if (action === 'uninstall') {
-          const dir = join(window.Server.AppDir!, `nodejs/v${version}`)
+          const dir = join(global.Server.AppDir!, `nodejs/v${version}`)
           if (existsSync(dir)) {
             try {
               await remove(dir)
@@ -429,7 +429,7 @@ class Manager extends Base {
           })
         } else {
           const url = `https://nodejs.org/dist/v${version}/node-v${version}-win-x64.7z`
-          const destDir = join(window.Server.AppDir!, `nodejs/v${version}`)
+          const destDir = join(global.Server.AppDir!, `nodejs/v${version}`)
           if (existsSync(destDir)) {
             try {
               await remove(destDir)
@@ -437,7 +437,7 @@ class Manager extends Base {
           }
           await mkdirp(destDir)
 
-          const zip = join(window.Server.Cache!, `node-v${version}.7z`)
+          const zip = join(global.Server.Cache!, `node-v${version}.7z`)
 
           const unpack = async () => {
             try {
@@ -454,7 +454,7 @@ class Manager extends Base {
             if (res === true) {
               const { versions, current }: { versions: Array<string>; current: string } =
                 (await this.localVersion(tool)) as any
-              const envDir = join(dirname(window.Server.AppDir!), 'env')
+              const envDir = join(dirname(global.Server.AppDir!), 'env')
               const currentDir = join(envDir, 'node')
               resolve({
                 versions,

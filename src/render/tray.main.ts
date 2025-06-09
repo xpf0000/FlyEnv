@@ -1,6 +1,6 @@
 import { VueExtend } from './core/VueExtend'
 import App from './tray/App.vue'
-import '@/components/Theme/Index.scss'
+import './index.scss'
 import { createPinia } from 'pinia'
 import IPC from './util/IPC'
 import { AppStore } from './tray/store/app'

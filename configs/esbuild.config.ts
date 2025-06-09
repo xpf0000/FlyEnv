@@ -8,6 +8,8 @@ const dev: BuildOptions = {
   minify: false,
   bundle: true,
   packages: 'external',
+  format: 'esm',
+  target: 'esnext',
   plugins: [BuildPlugin()]
 }
 
@@ -18,6 +20,8 @@ const dist: BuildOptions = {
   minify: true,
   bundle: true,
   packages: 'external',
+  format: 'esm',
+  target: 'esnext',
   plugins: [BuildPlugin()],
   drop: ['debugger', 'console']
 }
@@ -29,6 +33,8 @@ const devFork: BuildOptions = {
   minify: false,
   bundle: true,
   packages: 'external',
+  format: 'esm',
+  target: 'esnext',
   plugins: [BuildPlugin()]
 }
 
@@ -39,6 +45,8 @@ const distFork: BuildOptions = {
   minify: true,
   bundle: true,
   packages: 'external',
+  format: 'esm',
+  target: 'esnext',
   plugins: [BuildPlugin()],
   drop: ['debugger', 'console']
 }

@@ -18,38 +18,38 @@ export const vhostTmpl = async () => {
   if (_tmpl) {
     return _tmpl
   }
-  let nginxtmpl = join(window.Server.Static!, 'tmpl/nginx.vhost')
-  let custom = join(window.Server.BaseDir!, 'VhostTemplate/nginx.vhost')
+  let nginxtmpl = join(global.Server.Static!, 'tmpl/nginx.vhost')
+  let custom = join(global.Server.BaseDir!, 'VhostTemplate/nginx.vhost')
   if (existsSync(custom)) {
     nginxtmpl = custom
   }
 
-  let nginxSSLtmpl = join(window.Server.Static!, 'tmpl/nginxSSL.vhost')
-  custom = join(window.Server.BaseDir!, 'VhostTemplate/nginxSSL.vhost')
+  let nginxSSLtmpl = join(global.Server.Static!, 'tmpl/nginxSSL.vhost')
+  custom = join(global.Server.BaseDir!, 'VhostTemplate/nginxSSL.vhost')
   if (existsSync(custom)) {
     nginxSSLtmpl = custom
   }
 
-  let apachetmpl = join(window.Server.Static!, 'tmpl/apache.vhost')
-  custom = join(window.Server.BaseDir!, 'VhostTemplate/apache.vhost')
+  let apachetmpl = join(global.Server.Static!, 'tmpl/apache.vhost')
+  custom = join(global.Server.BaseDir!, 'VhostTemplate/apache.vhost')
   if (existsSync(custom)) {
     apachetmpl = custom
   }
 
-  let apacheSSLtmpl = join(window.Server.Static!, 'tmpl/apacheSSL.vhost')
-  custom = join(window.Server.BaseDir!, 'VhostTemplate/apacheSSL.vhost')
+  let apacheSSLtmpl = join(global.Server.Static!, 'tmpl/apacheSSL.vhost')
+  custom = join(global.Server.BaseDir!, 'VhostTemplate/apacheSSL.vhost')
   if (existsSync(custom)) {
     apacheSSLtmpl = custom
   }
 
-  let caddytmpl = join(window.Server.Static!, 'tmpl/CaddyfileVhost')
-  custom = join(window.Server.BaseDir!, 'VhostTemplate/caddy.vhost')
+  let caddytmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhost')
+  custom = join(global.Server.BaseDir!, 'VhostTemplate/caddy.vhost')
   if (existsSync(custom)) {
     caddytmpl = custom
   }
 
-  let caddySSLtmpl = join(window.Server.Static!, 'tmpl/CaddyfileVhostSSL')
-  custom = join(window.Server.BaseDir!, 'VhostTemplate/caddySSL.vhost')
+  let caddySSLtmpl = join(global.Server.Static!, 'tmpl/CaddyfileVhostSSL')
+  custom = join(global.Server.BaseDir!, 'VhostTemplate/caddySSL.vhost')
   if (existsSync(custom)) {
     caddySSLtmpl = custom
   }

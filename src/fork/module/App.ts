@@ -34,14 +34,14 @@ class App extends Base {
 
   private async handleWindowsDefenderExclusionPath() {
     const dirs = [
-      PathResolve(window.Server.BaseDir!, '../'),
-      PathResolve(window.Server.BaseDir!, '../../PhpWebStudy')
+      PathResolve(global.Server.BaseDir!, '../'),
+      PathResolve(global.Server.BaseDir!, '../../PhpWebStudy')
     ]
     const allPath: string[] = []
     const command = `(Get-MpPreference).ExclusionPath`
-    const shFile = join(window.Server.Cache!, `${uuid()}.ps1`)
+    const shFile = join(global.Server.Cache!, `${uuid()}.ps1`)
     await writeFile(shFile, command)
-    process.chdir(window.Server.Cache!)
+    process.chdir(global.Server.Cache!)
     try {
       const res = await execPromise(
         `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${shFile}'; & '${shFile}'"`
@@ -57,7 +57,7 @@ class App extends Base {
     } catch (e) {
       const key = '[handleWindowsDefenderExclusionPath][Get-MpPreference][error]'
       console.log(`${key}: `, e)
-      await appendFile(join(window.Server.BaseDir!, 'debug.log'), `${key}: ${e}\n`)
+      await appendFile(join(global.Server.BaseDir!, 'debug.log'), `${key}: ${e}\n`)
     }
     await remove(shFile)
     const needAdd: string[] = []
@@ -71,9 +71,9 @@ class App extends Base {
       const str = needAdd.map((s) => `"${s}"`).join(',')
       const command = `Add-MpPreference -ExclusionPath ${str}`
       console.log('Add-MpPreference command: ', command)
-      const shFile = join(window.Server.Cache!, `${uuid()}.ps1`)
+      const shFile = join(global.Server.Cache!, `${uuid()}.ps1`)
       await writeFile(shFile, command)
-      process.chdir(window.Server.Cache!)
+      process.chdir(global.Server.Cache!)
       try {
         const res = await execPromise(
           `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${shFile}'; & '${shFile}'"`
@@ -82,7 +82,7 @@ class App extends Base {
       } catch (e) {
         const key = '[handleWindowsDefenderExclusionPath][Add-MpPreference][error]'
         console.log(`${key}: `, e)
-        await appendFile(join(window.Server.BaseDir!, 'debug.log'), `${key}: ${e}\n`)
+        await appendFile(join(global.Server.BaseDir!, 'debug.log'), `${key}: ${e}\n`)
       }
       await remove(shFile)
     }
@@ -162,12 +162,12 @@ class App extends Base {
         activeCode: '',
         isActive: false
       }
-      if (!window.Server.Licenses) {
+      if (!global.Server.Licenses) {
         const res: any = await this.licensesState()
         console.log('licensesInit licensesState: ', res)
         Object.assign(data, res)
       } else {
-        data.activeCode = window.Server.Licenses
+        data.activeCode = global.Server.Licenses
         const uid = publicDecrypt(
           this.getRSAKey(),
           Buffer.from(data.activeCode, 'base64') as any

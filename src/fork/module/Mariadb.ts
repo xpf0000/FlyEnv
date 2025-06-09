@@ -28,7 +28,7 @@ class Manager extends Base {
   }
 
   init() {
-    this.pidPath = join(window.Server.MariaDBDir!, 'mariadb.pid')
+    this.pidPath = join(global.Server.MariaDBDir!, 'mariadb.pid')
   }
 
   _initPassword(version: SoftInstalled) {
@@ -38,7 +38,7 @@ class Manager extends Base {
       })
       const bin = join(dirname(version.bin), 'mariadb-admin.exe')
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-      const m = join(window.Server.MariaDBDir!, `my-${v}.cnf`)
+      const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
 
       execPromise(`${basename(bin)} --defaults-file="${m}" --port=3306 -uroot password "root"`, {
         cwd: dirname(bin)
@@ -73,8 +73,8 @@ class Manager extends Base {
       })
       const bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-      const m = join(window.Server.MariaDBDir!, `my-${v}.cnf`)
-      const dataDir = join(window.Server.MariaDBDir!, `data-${v}`).split('\\').join('/')
+      const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
+      const dataDir = join(global.Server.MariaDBDir!, `data-${v}`).split('\\').join('/')
       if (!existsSync(m)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
@@ -91,9 +91,9 @@ datadir="${dataDir}"`
         })
       }
 
-      const p = join(window.Server.MariaDBDir!, 'mariadb.pid')
-      const s = join(window.Server.MariaDBDir!, 'slow.log')
-      const e = join(window.Server.MariaDBDir!, 'error.log')
+      const p = join(global.Server.MariaDBDir!, 'mariadb.pid')
+      const s = join(global.Server.MariaDBDir!, 'slow.log')
+      const e = join(global.Server.MariaDBDir!, 'error.log')
       let command = ''
 
       const unlinkDirOnFail = async () => {
@@ -107,7 +107,7 @@ datadir="${dataDir}"`
 
       const doStart = () => {
         return new Promise(async (resolve, reject) => {
-          const baseDir = window.Server.MariaDBDir!
+          const baseDir = global.Server.MariaDBDir!
           await mkdirp(baseDir)
           const params = [
             `--defaults-file="${m}"`,
@@ -193,14 +193,14 @@ datadir="${dataDir}"`
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mariadb')
         all.forEach((a: any) => {
-          const dir = join(window.Server.AppDir!, `mariadb-${a.version}`, 'bin/mariadbd.exe')
-          const zip = join(window.Server.Cache!, `mariadb-${a.version}.zip`)
-          a.appDir = join(window.Server.AppDir!, `mariadb-${a.version}`)
+          const dir = join(global.Server.AppDir!, `mariadb-${a.version}`, 'bin/mariadbd.exe')
+          const zip = join(global.Server.Cache!, `mariadb-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `mariadb-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           const oldDir = join(
-            window.Server.AppDir!,
+            global.Server.AppDir!,
             `mariadb-${a.version}`,
             `mariadb-${a.version}-winx64`,
             'bin/mariadbd.exe'

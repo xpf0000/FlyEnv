@@ -317,9 +317,9 @@ export class AppNodeFn {
   }
 
   async lang_initCustomerLang(command: string, key: string) {
-    const langDir = resolve(window.Server.BaseDir!, '../lang')
+    const langDir = resolve(global.Server.BaseDir!, '../lang')
     await mkdirp(langDir)
-    const currentLang = window.Server.Lang!
+    const currentLang = global.Server.Lang!
     await mkdirp(join(langDir, currentLang))
     const lang: any = currentLang === 'zh' ? ZH.zh : EN.en
     for (const k in lang) {
@@ -345,7 +345,7 @@ export class AppNodeFn {
   }
 
   async lang_loadCustomerLang(command: string, key: string) {
-    const langDir = resolve(window.Server.BaseDir!, '../lang')
+    const langDir = resolve(global.Server.BaseDir!, '../lang')
     if (!existsSync(langDir)) {
       return
     }

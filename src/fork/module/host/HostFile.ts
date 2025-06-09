@@ -31,7 +31,7 @@ z5MAQJ18Womv0CVnMZoDkn80JVA2qnOwsD/K6GSkFxJJ
 `
 
 export const fetchHostList = async () => {
-  const hostfile = join(window.Server.BaseDir!, 'host.json')
+  const hostfile = join(global.Server.BaseDir!, 'host.json')
   let hostList: Array<AppHost> = []
   if (existsSync(hostfile)) {
     let content = (await readFile(hostfile, 'utf-8')).trim()
@@ -55,7 +55,7 @@ export const fetchHostList = async () => {
     } catch (e) {
       console.log(e)
       if (content.length > 0) {
-        const hostBackFile = join(window.Server.BaseDir!, 'host.back.json')
+        const hostBackFile = join(global.Server.BaseDir!, 'host.back.json')
         await writeFile(hostBackFile, content)
       }
       throw e
@@ -65,7 +65,7 @@ export const fetchHostList = async () => {
 }
 
 export const saveHostList = async (list: any) => {
-  const hostfile = join(window.Server.BaseDir!, 'host.json')
+  const hostfile = join(global.Server.BaseDir!, 'host.json')
   list.forEach((h: any) => {
     if (!h.type) {
       h.type = 'php'

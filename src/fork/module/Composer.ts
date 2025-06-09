@@ -23,9 +23,9 @@ class Composer extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('composer')
         all.forEach((a: any) => {
-          const dir = join(window.Server.AppDir!, `composer-${a.version}`, 'composer.phar')
-          const zip = join(window.Server.Cache!, `composer-${a.version}.phar`)
-          a.appDir = join(window.Server.AppDir!, `composer-${a.version}`)
+          const dir = join(global.Server.AppDir!, `composer-${a.version}`, 'composer.phar')
+          const zip = join(global.Server.Cache!, `composer-${a.version}.phar`)
+          a.appDir = join(global.Server.AppDir!, `composer-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

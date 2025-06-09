@@ -8,7 +8,7 @@ import {
   spawnPromise,
   readFileAsUTF8
 } from '../Fn'
-import { type SoftInstalled } from '@shared/app'
+import type { SoftInstalled } from '@shared/app'
 import { join, dirname, basename } from 'path'
 import { I18nT } from '@lang/index'
 
@@ -71,7 +71,7 @@ export async function serviceStartExec(
   const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
   const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
 
-  let psScript = await readFile(join(window.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
 
   psScript = psScript
     .replace('#ENV#', execEnv)
@@ -205,7 +205,7 @@ export async function serviceStartExecCMD(
   const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
   const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
 
-  let psScript = await readFile(join(window.Server.Static!, 'sh/flyenv-async-exec.cmd'), 'utf8')
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.cmd'), 'utf8')
 
   let execBin = basename(bin)
   if (execBin.includes('.exe')) {
@@ -321,7 +321,7 @@ export async function serviceStartExecGetPID(
   const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
   const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
 
-  let psScript = await readFile(join(window.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
 
   psScript = psScript
     .replace('#ENV#', execEnv)

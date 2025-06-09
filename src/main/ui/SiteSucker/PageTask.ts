@@ -3,7 +3,6 @@ import { BrowserWindow } from 'electron'
 import request from '@shared/request'
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent'
 import Config from './Config'
-import { enable } from '@electron/remote/main'
 import { checkIsExcludeUrl, urlToDir } from './Fn'
 import { Store } from './Store'
 import { wait, mkdirp, writeFile } from '../../utils'
@@ -26,7 +25,6 @@ class PageTaskItem {
         webSecurity: false
       }
     })
-    enable(this.window.webContents)
     this.window.webContents.session.webRequest.onBeforeRequest((details, callback) => {
       if (checkIsExcludeUrl(details.url, false)) {
         callback({

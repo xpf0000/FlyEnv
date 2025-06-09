@@ -48,13 +48,13 @@ class Manager extends Base {
           )
         })
 
-        const copyfile = join(window.Server.Cache!, `${uuid()}.cmd`)
+        const copyfile = join(global.Server.Cache!, `${uuid()}.cmd`)
         console.log('createProject copyfile: ', copyfile)
         await writeFile(copyfile, command.join('\n'))
         const params = [copyfile]
         console.log('params: ', params.join(' '))
         spawnPromise(`${basename(copyfile)}`, [], {
-          cwd: window.Server.Cache!
+          cwd: global.Server.Cache!
         })
           .on(on)
           .then(() => {
@@ -110,13 +110,13 @@ class Manager extends Base {
           )
         })
 
-        const copyfile = join(window.Server.Cache!, `${uuid()}.cmd`)
+        const copyfile = join(global.Server.Cache!, `${uuid()}.cmd`)
         console.log('createProject copyfile: ', copyfile)
         await writeFile(copyfile, command.join('\n'))
         const params = [copyfile]
         console.log('params: ', params.join(' '))
         spawnPromise(`${basename(copyfile)}`, [], {
-          cwd: window.Server.Cache!
+          cwd: global.Server.Cache!
         })
           .on(on)
           .then(async () => {

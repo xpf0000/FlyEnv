@@ -32,7 +32,7 @@ export class ServiceItemNode extends ServiceItem {
         return
       }
 
-      const javaDir = join(window.Server.BaseDir!, 'nodejs')
+      const javaDir = join(global.Server.BaseDir!, 'nodejs')
       await mkdirp(javaDir)
       const pid = join(javaDir, `${item.id}.pid`)
       const log = join(javaDir, `${item.id}.log`)
@@ -59,9 +59,9 @@ export class ServiceItemNode extends ServiceItem {
       commands.push(`start /B ${item.startCommand} > "${log}" 2>&1 &`)
       this.command = commands.join(EOL)
       console.log('command: ', this.command)
-      const sh = join(window.Server.Cache!, `service-${this.id}.cmd`)
+      const sh = join(global.Server.Cache!, `service-${this.id}.cmd`)
       await writeFile(sh, this.command)
-      process.chdir(window.Server.Cache!)
+      process.chdir(global.Server.Cache!)
       try {
         await execPromise(
           `powershell.exe -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
@@ -83,7 +83,7 @@ export class ServiceItemNode extends ServiceItem {
     if (!id) {
       return []
     }
-    const baseDir = join(window.Server.BaseDir!, 'nodejs')
+    const baseDir = join(global.Server.BaseDir!, 'nodejs')
     const pidFile = join(baseDir, `${id}.pid`)
     this.pidFile = pidFile
     if (!existsSync(pidFile)) {

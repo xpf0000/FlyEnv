@@ -1,4 +1,4 @@
-import { type CallBackFn } from '@shared/app'
+import type { CallBackFn } from '@shared/app.d'
 
 const NoticeDict: { [k: string]: number } = {}
 

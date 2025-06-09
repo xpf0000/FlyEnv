@@ -4,7 +4,7 @@ import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
 import { splitArgv } from './utils'
-import { type CallBackFn } from '@shared/app'
+import type { CallBackFn } from '@shared/app.d'
 
 export default class Launcher extends EventEmitter {
   exceptionHandler?: ExceptionHandler

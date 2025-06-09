@@ -29,13 +29,13 @@ class Apache extends Base {
   }
 
   init() {
-    this.pidPath = join(window.Server.ApacheDir!, 'httpd.pid')
+    this.pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
   }
 
   #resetConf(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      const defaultFile = join(window.Server.ApacheDir!, `${version.version}.conf`)
-      const defaultFileBack = join(window.Server.ApacheDir!, `${version.version}.default.conf`)
+      const defaultFile = join(global.Server.ApacheDir!, `${version.version}.conf`)
+      const defaultFileBack = join(global.Server.ApacheDir!, `${version.version}.default.conf`)
       const bin = version.bin
       if (existsSync(defaultFile)) {
         let content = await readFile(defaultFile, 'utf-8')
@@ -133,14 +133,14 @@ class Apache extends Base {
         .replace('#ServerName www.', 'ServerName www.')
 
       if (logPath) {
-        const logPathReplace = join(window.Server.ApacheDir!, `${version.version}.access.log`)
+        const logPathReplace = join(global.Server.ApacheDir!, `${version.version}.access.log`)
           .split('\\')
           .join('/')
         content = content.replace(`CustomLog "${logPath}"`, `CustomLog "${logPathReplace}"`)
       }
 
       if (errLogPath) {
-        const errLogPathReplace = join(window.Server.ApacheDir!, `${version.version}.error.log`)
+        const errLogPathReplace = join(global.Server.ApacheDir!, `${version.version}.error.log`)
           .split('\\')
           .join('/')
         content = content.replace(`ErrorLog "${errLogPath}"`, `ErrorLog "${errLogPathReplace}"`)
@@ -159,8 +159,8 @@ class Apache extends Base {
       find = content.match(/\nGroup _www(.*?)\n/g)
       content = content.replace(find?.[0] ?? '###@@@&&&', '\n#Group _www\n')
 
-      const pidPath = join(window.Server.ApacheDir!, 'httpd.pid').split('\\').join('/')
-      let vhost = join(window.Server.BaseDir!, 'vhost/apache/')
+      const pidPath = join(global.Server.ApacheDir!, 'httpd.pid').split('\\').join('/')
+      let vhost = join(global.Server.BaseDir!, 'vhost/apache/')
       await mkdirp(vhost)
       vhost = vhost.split('\\').join('/')
 
@@ -196,7 +196,7 @@ IncludeOptional "${vhost}*.conf"`
     })
     const portRegex = /<VirtualHost\s+\*:(\d+)>/g
     const regex = /([\s\n]?[^\n]*)Listen\s+\d+(.*?)([^\n])(\n|$)/g
-    const allVhostFile = await getAllFileAsync(join(window.Server.BaseDir!, 'vhost/apache'))
+    const allVhostFile = await getAllFileAsync(join(global.Server.BaseDir!, 'vhost/apache'))
     for (const file of allVhostFile) {
       portRegex.lastIndex = 0
       regex.lastIndex = 0
@@ -217,7 +217,7 @@ IncludeOptional "${vhost}*.conf"`
       }
     }
     console.log('allNeedPort: ', allNeedPort)
-    const configpath = join(window.Server.ApacheDir!, `${version.version}.conf`)
+    const configpath = join(global.Server.ApacheDir!, `${version.version}.conf`)
     let confContent = await readFile(configpath, 'utf-8')
     regex.lastIndex = 0
     if (regex.test(confContent)) {
@@ -260,7 +260,7 @@ IncludeOptional "${vhost}*.conf"`
         reject(new Error(I18nT('fork.binNoFound')))
         return
       }
-      const conf = join(window.Server.ApacheDir!, `${version.version}.conf`)
+      const conf = join(global.Server.ApacheDir!, `${version.version}.conf`)
       if (!existsSync(conf)) {
         on({
           'APP-On-Log': AppLog('error', I18nT('fork.confNoFound'))
@@ -269,14 +269,14 @@ IncludeOptional "${vhost}*.conf"`
         return
       }
 
-      const pidPath = join(window.Server.ApacheDir!, 'httpd.pid')
+      const pidPath = join(global.Server.ApacheDir!, 'httpd.pid')
       const execArgs = `-f "${conf}"`
 
       try {
         const res = await serviceStartExecCMD(
           version,
           pidPath,
-          window.Server.ApacheDir!,
+          global.Server.ApacheDir!,
           bin,
           execArgs,
           '',
@@ -297,9 +297,9 @@ IncludeOptional "${vhost}*.conf"`
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('apache')
         all.forEach((a: any) => {
           const subDir = `Apache${a.mVersion.split('.').join('')}`
-          const dir = join(window.Server.AppDir!, `apache-${a.version}`, subDir, 'bin/httpd.exe')
-          const zip = join(window.Server.Cache!, `apache-${a.version}.zip`)
-          a.appDir = join(window.Server.AppDir!, `apache-${a.version}`)
+          const dir = join(global.Server.AppDir!, `apache-${a.version}`, subDir, 'bin/httpd.exe')
+          const zip = join(global.Server.Cache!, `apache-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `apache-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

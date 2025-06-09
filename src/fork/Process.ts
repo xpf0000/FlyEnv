@@ -17,7 +17,7 @@ export type PItem = {
 export const ProcessPidList = async (): Promise<PItem[]> => {
   console.log('ProcessPidList !!!')
   const all: PItem[] = []
-  const json = join(window.Server.Cache!, `${uuid()}.json`)
+  const json = join(global.Server.Cache!, `${uuid()}.json`)
   const command = `powershell.exe -NoProfile -WindowStyle Hidden -command "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;[Console]::InputEncoding = [System.Text.Encoding]::UTF8;Get-CimInstance Win32_Process | Select-Object CommandLine,ProcessId,ParentProcessId | ConvertTo-Json | Out-File -FilePath '${json}' -Encoding utf8"`
   try {
     await execAsync(command)

@@ -7,7 +7,7 @@ import type { AppHost } from '@shared/app'
 
 const initCARoot = () => {
   return new Promise(async (resolve) => {
-    const CARoot = join(window.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+    const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
     const command = `certutil -addstore root "${CARoot}"`
     try {
       const res = await execPromise(command)
@@ -21,17 +21,17 @@ export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: stri
   return new ForkPromise(async (resolve) => {
     try {
       const alias = hostAlias(host)
-      const CARoot = join(window.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+      const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
       const CADir = dirname(CARoot)
       if (!existsSync(CARoot)) {
         await mkdirp(CADir)
-        await zipUnPack(join(window.Server.Static!, `zip/CA.7z`), CADir)
+        await zipUnPack(join(global.Server.Static!, `zip/CA.7z`), CADir)
         await initCARoot()
       }
 
-      const openssl = join(window.Server.AppDir!, 'openssl/bin/openssl.exe')
+      const openssl = join(global.Server.AppDir!, 'openssl/bin/openssl.exe')
       if (!existsSync(openssl)) {
-        await zipUnPack(join(window.Server.Static!, `zip/openssl.7z`), window.Server.AppDir!)
+        await zipUnPack(join(global.Server.Static!, `zip/openssl.7z`), global.Server.AppDir!)
       }
 
       const hostCAName = `CA-${host.id}`
@@ -54,9 +54,9 @@ subjectAltName=@alt_names
 
       const rootCA = join(CADir, 'PhpWebStudy-Root-CA')
 
-      const opensslCnf = join(window.Server.AppDir!, 'openssl/openssl.cnf')
+      const opensslCnf = join(global.Server.AppDir!, 'openssl/openssl.cnf')
       if (!existsSync(opensslCnf)) {
-        await copyFile(join(window.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
+        await copyFile(join(global.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
       }
 
       process.chdir(dirname(openssl))

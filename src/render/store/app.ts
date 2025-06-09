@@ -6,7 +6,7 @@ import EditorBaseConfig, { EditorConfig } from '@/store/module/EditorConfig'
 import { MessageError } from '@/util/Element'
 import { AllAppModule } from '@/core/type'
 import { HostStore } from '@/components/Host/store'
-import { AppServiceAliasItem } from '@shared/app'
+import type { AppServiceAliasItem } from '@shared/app'
 
 import { shell, app } from '@/util/NodeFn'
 

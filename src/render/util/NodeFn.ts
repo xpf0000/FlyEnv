@@ -123,11 +123,11 @@ export const nativeTheme = {
   }
 }
 
-IPC.on('App-Native-Theme-Update').then(() => {
-  nativeTheme.updateFn.forEach((fn: () => void) => {
-    fn()
-  })
-})
+// IPC.on('App-Native-Theme-Update').then(() => {
+//   nativeTheme.updateFn.forEach((fn: () => void) => {
+//     fn()
+//   })
+// })
 
 export const app = {
   getPath: createIPCCall<string>('app', 'getPath'),

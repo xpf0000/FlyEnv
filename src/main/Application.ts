@@ -41,7 +41,7 @@ export default class Application extends EventEmitter {
     super()
     global.Server = {
       Local: `${app.getLocale()}.UTF-8`
-    }
+    } as any
     this.isReady = false
     this.configManager = new ConfigManager()
     AppNodeFnManager.configManager = this.configManager
@@ -86,12 +86,12 @@ export default class Application extends EventEmitter {
     if (lang) {
       this.configManager.setConfig('setup.lang', lang)
       AppI18n(lang)
-      window.Server.Lang = lang
+      global.Server.Lang = lang
     }
   }
 
   initForkManager() {
-    this.forkManager = new ForkManager(resolve(__dirname, './fork.js'))
+    this.forkManager = new ForkManager(resolve(__dirname, './fork.mjs'))
     this.forkManager.on(({ key, info }: { key: string; info: any }) => {
       this.windowManager.sendCommandTo(this.mainWindow!, key, key, info)
     })
@@ -117,33 +117,33 @@ export default class Application extends EventEmitter {
     }
     console.log('userData: ', runpath)
     this.setProxy()
-    window.Server.UserHome = app.getPath('home')
-    console.log('window.Server.UserHome: ', window.Server.UserHome)
-    window.Server.BaseDir = join(runpath, 'server')
-    window.Server.AppDir = join(runpath, 'app')
-    mkdirp(window.Server.BaseDir).then().catch()
-    mkdirp(window.Server.AppDir).then().catch()
-    window.Server.NginxDir = join(runpath, 'server/nginx')
-    window.Server.PhpDir = join(runpath, 'server/php')
-    window.Server.MysqlDir = join(runpath, 'server/mysql')
-    window.Server.MariaDBDir = join(runpath, 'server/mariadb')
-    window.Server.ApacheDir = join(runpath, 'server/apache')
-    window.Server.MemcachedDir = join(runpath, 'server/memcached')
-    window.Server.RedisDir = join(runpath, 'server/redis')
-    window.Server.MongoDBDir = join(runpath, 'server/mongodb')
-    window.Server.FTPDir = join(runpath, 'server/ftp')
-    window.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
-    mkdirp(window.Server.NginxDir).then().catch()
-    mkdirp(window.Server.PhpDir).then().catch()
-    mkdirp(window.Server.MysqlDir).then().catch()
-    mkdirp(window.Server.MariaDBDir).then().catch()
-    mkdirp(window.Server.ApacheDir).then().catch()
-    mkdirp(window.Server.MemcachedDir).then().catch()
-    mkdirp(window.Server.RedisDir).then().catch()
-    mkdirp(window.Server.MongoDBDir).then().catch()
-    window.Server.Cache = join(runpath, 'server/cache')
-    mkdirp(window.Server.Cache).then().catch()
-    window.Server.Static = __static
+    global.Server.UserHome = app.getPath('home')
+    console.log('global.Server.UserHome: ', global.Server.UserHome)
+    global.Server.BaseDir = join(runpath, 'server')
+    global.Server.AppDir = join(runpath, 'app')
+    mkdirp(global.Server.BaseDir).then().catch()
+    mkdirp(global.Server.AppDir).then().catch()
+    global.Server.NginxDir = join(runpath, 'server/nginx')
+    global.Server.PhpDir = join(runpath, 'server/php')
+    global.Server.MysqlDir = join(runpath, 'server/mysql')
+    global.Server.MariaDBDir = join(runpath, 'server/mariadb')
+    global.Server.ApacheDir = join(runpath, 'server/apache')
+    global.Server.MemcachedDir = join(runpath, 'server/memcached')
+    global.Server.RedisDir = join(runpath, 'server/redis')
+    global.Server.MongoDBDir = join(runpath, 'server/mongodb')
+    global.Server.FTPDir = join(runpath, 'server/ftp')
+    global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
+    mkdirp(global.Server.NginxDir).then().catch()
+    mkdirp(global.Server.PhpDir).then().catch()
+    mkdirp(global.Server.MysqlDir).then().catch()
+    mkdirp(global.Server.MariaDBDir).then().catch()
+    mkdirp(global.Server.ApacheDir).then().catch()
+    mkdirp(global.Server.MemcachedDir).then().catch()
+    mkdirp(global.Server.RedisDir).then().catch()
+    mkdirp(global.Server.MongoDBDir).then().catch()
+    global.Server.Cache = join(runpath, 'server/cache')
+    mkdirp(global.Server.Cache).then().catch()
+    global.Server.Static = __static
   }
 
   initWindowManager() {
@@ -425,9 +425,9 @@ export default class Application extends EventEmitter {
           const dict = s.split('=')
           proxyDict[dict[0]] = dict[1]
         })
-      window.Server.Proxy = proxyDict
+      global.Server.Proxy = proxyDict
     } else {
-      delete window.Server.Proxy
+      delete global.Server.Proxy
     }
   }
 
@@ -494,11 +494,11 @@ export default class Application extends EventEmitter {
       }
 
       this.setProxy()
-      window.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
-      window.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
-      window.Server.Licenses = this.configManager?.getConfig('setup.license')
-      if (!Object.keys(AppAllLang).includes(window.Server.Lang!)) {
-        window.Server.LangCustomer = this.customerLang[window.Server.Lang!]
+      global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
+      global.Server.ForceStart = this.configManager?.getConfig('setup.forceStart')
+      global.Server.Licenses = this.configManager?.getConfig('setup.license')
+      if (!Object.keys(AppAllLang).includes(global.Server.Lang!)) {
+        global.Server.LangCustomer = this.customerLang[global.Server.Lang!]
       }
       this.forkManager
         ?.send(module, ...args)

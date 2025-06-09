@@ -20,7 +20,7 @@ import { fetchHostList } from './HostFile'
 
 export function TaskAddRandaSite(this: any, version?: SoftInstalled, write = true, ipv6 = true) {
   return new ForkPromise(async (resolve, reject) => {
-    const baseName = join(window.Server.BaseDir!, 'www')
+    const baseName = join(global.Server.BaseDir!, 'www')
     let host = `www.test.com`
     let i = 0
     let dir = `${baseName}/${host}`
@@ -102,8 +102,8 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled, write = tru
 
 export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = true, ipv6 = true) {
   return new ForkPromise(async (resolve, reject, on) => {
-    const zipFile = join(window.Server.Cache!, 'phpMyAdmin.zip')
-    const siteDir = join(window.Server.BaseDir!, 'www/phpMyAdmin')
+    const zipFile = join(global.Server.Cache!, 'phpMyAdmin.zip')
+    const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin')
     let hostList: Array<AppHost> = []
     try {
       hostList = await fetchHostList()
@@ -124,7 +124,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
           await remove(siteDir)
         }
         await mkdirp(siteDir)
-        const tmplDir = join(window.Server.Cache!, 'phpMyAdmin-tmpl')
+        const tmplDir = join(global.Server.Cache!, 'phpMyAdmin-tmpl')
         try {
           await zipUnPack(zipFile, tmplDir)
           const subDirs = await readdir(tmplDir)
@@ -157,7 +157,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
 
       let useSSL = false
       let autoSSL = false
-      const CARoot = join(window.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+      const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
       if (existsSync(CARoot)) {
         useSSL = true
         autoSSL = true
@@ -206,7 +206,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
       return
     }
 
-    const zipTmpFile = join(window.Server.Cache!, 'phpMyAdmin-Cache')
+    const zipTmpFile = join(global.Server.Cache!, 'phpMyAdmin-Cache')
     if (existsSync(zipTmpFile)) {
       await remove(zipTmpFile)
     }

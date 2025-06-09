@@ -26,9 +26,9 @@ class Java extends Base {
           if (!a.type) {
             a.type = 'openjdk'
           }
-          const dir = join(window.Server.AppDir!, `${a.type}-${a.version}`, 'bin/java.exe')
-          const zip = join(window.Server.Cache!, `${a.type}-${a.version}.zip`)
-          a.appDir = join(window.Server.AppDir!, `${a.type}-${a.version}`)
+          const dir = join(global.Server.AppDir!, `${a.type}-${a.version}`, 'bin/java.exe')
+          const zip = join(global.Server.Cache!, `${a.type}-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `${a.type}-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

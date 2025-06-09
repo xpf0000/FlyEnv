@@ -43,12 +43,12 @@ export class Base {
 
   initLocalApp(version: SoftInstalled, flag: string) {
     return new ForkPromise((resolve, reject, on) => {
-      console.log('initLocalApp: ', version.bin, window.Server.AppDir)
+      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
       if (
         !existsSync(version.bin) &&
-        version.bin.includes(join(window.Server.AppDir!, `${flag}-${version.version}`))
+        version.bin.includes(join(global.Server.AppDir!, `${flag}-${version.version}`))
       ) {
-        const local7ZFile = join(window.Server.Static!, `zip/${flag}-${version.version}.7z`)
+        const local7ZFile = join(global.Server.Static!, `zip/${flag}-${version.version}.7z`)
         if (existsSync(local7ZFile)) {
           on({
             'APP-On-Log': AppLog(
@@ -57,8 +57,8 @@ export class Base {
             )
           })
           zipUnPack(
-            join(window.Server.Static!, `zip/${flag}-${version.version}.7z`),
-            window.Server.AppDir!
+            join(global.Server.Static!, `zip/${flag}-${version.version}.7z`),
+            global.Server.AppDir!
           )
             .then(() => {
               on({
@@ -105,7 +105,7 @@ export class Base {
         const res = await this._startServer(version, ...args).on(on)
         if (res?.['APP-Service-Start-PID']) {
           const pid = res['APP-Service-Start-PID']
-          const appPidFile = join(window.Server.BaseDir!, `pid/${this.type}.pid`)
+          const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
           await mkdirp(dirname(appPidFile))
           await writeFile(appPidFile, `${pid}`.trim())
         }
@@ -122,7 +122,7 @@ export class Base {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
-      const appPidFile = join(window.Server.BaseDir!, `pid/${this.type}.pid`)
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       if (existsSync(appPidFile)) {
         const pid = (await readFile(appPidFile, 'utf-8')).trim()
         const pids = await ProcessPidListByPid(pid)
@@ -290,17 +290,17 @@ export class Base {
       }
 
       const handlePython = async () => {
-        const tmpDir = join(window.Server.Cache!, `python-${row.version}-tmp`)
+        const tmpDir = join(global.Server.Cache!, `python-${row.version}-tmp`)
         if (existsSync(tmpDir)) {
           await execPromise(`rmdir /S /Q ${tmpDir}`)
         }
-        const dark = join(window.Server.Cache!, 'dark/dark.exe')
-        const darkDir = join(window.Server.Cache!, 'dark')
+        const dark = join(global.Server.Cache!, 'dark/dark.exe')
+        const darkDir = join(global.Server.Cache!, 'dark')
         if (!existsSync(dark)) {
-          const darkZip = join(window.Server.Static!, 'zip/dark.zip')
+          const darkZip = join(global.Server.Static!, 'zip/dark.zip')
           await zipUnPack(darkZip, dirname(dark))
         }
-        const pythonSH = join(window.Server.Static!, 'sh/python.ps1')
+        const pythonSH = join(global.Server.Static!, 'sh/python.ps1')
         let content = await readFile(pythonSH, 'utf-8')
         const TMPL = tmpDir
         const EXE = row.zip
@@ -312,10 +312,10 @@ export class Base {
           .replace(new RegExp(`#EXE#`, 'g'), EXE)
           .replace(new RegExp(`#APPDIR#`, 'g'), APPDIR)
 
-        let sh = join(window.Server.Cache!, `python-install-${uuid()}.ps1`)
+        let sh = join(global.Server.Cache!, `python-install-${uuid()}.ps1`)
         await writeFile(sh, content)
 
-        process.chdir(window.Server.Cache!)
+        process.chdir(global.Server.Cache!)
         try {
           await execPromise(
             `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${sh}'; & '${sh}'"`
@@ -323,7 +323,7 @@ export class Base {
         } catch (e) {
           console.log('[python-install][error]: ', e)
           await appendFile(
-            join(window.Server.BaseDir!, 'debug.log'),
+            join(global.Server.BaseDir!, 'debug.log'),
             `[python][python-install][error]: ${e}\n`
           )
         }
@@ -350,18 +350,18 @@ export class Base {
         const res = await checkState()
         if (res) {
           await waitTime(1000)
-          sh = join(window.Server.Cache!, `pip-install-${uuid()}.ps1`)
-          let content = await readFile(join(window.Server.Static!, 'sh/pip.ps1'), 'utf-8')
+          sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
+          let content = await readFile(join(global.Server.Static!, 'sh/pip.ps1'), 'utf-8')
           content = content.replace('#APPDIR#', APPDIR)
           await writeFile(sh, content)
-          process.chdir(window.Server.Cache!)
+          process.chdir(global.Server.Cache!)
           try {
             await execPromise(
               `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${sh}'; & '${sh}'"`
             )
           } catch (e) {
             await appendFile(
-              join(window.Server.BaseDir!, 'debug.log'),
+              join(global.Server.BaseDir!, 'debug.log'),
               `[python][pip-install][error]: ${e}\n`
             )
           }
@@ -380,7 +380,7 @@ export class Base {
       }
 
       const handleMemcached = async () => {
-        const tmpDir = join(window.Server.Cache!, `memcached-${row.version}-tmp`)
+        const tmpDir = join(global.Server.Cache!, `memcached-${row.version}-tmp`)
         if (existsSync(tmpDir)) {
           await remove(tmpDir)
         }
@@ -444,7 +444,7 @@ php "%~dp0composer.phar" %*`
             await remove(row.bin)
           }
           await appendFile(
-            path.join(window.Server.BaseDir!, 'debug.log'),
+            path.join(global.Server.BaseDir!, 'debug.log'),
             `[handleMeilisearch][error]: ${e.toString()}\n`
           )
           throw e
@@ -454,7 +454,7 @@ php "%~dp0composer.phar" %*`
       const handleRust = async () => {
         await remove(row.appDir)
         await mkdirp(row.appDir)
-        const cacheDir = join(window.Server.Cache!, uuid())
+        const cacheDir = join(global.Server.Cache!, uuid())
         await mkdirp(cacheDir)
         await zipUnPack(row.zip, cacheDir)
         const files = await readdir(cacheDir)

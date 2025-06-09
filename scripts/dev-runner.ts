@@ -95,7 +95,7 @@ function logPrinter(data: string[]) {
 }
 
 function runElectronApp() {
-  const args = ['--inspect=5858', 'dist/electron/main.js']
+  const args = ['--inspect=5858', 'dist/electron/main.mjs']
   electronProcess = spawn('electron', args, {
     stdio: 'pipe',
     shell: process.platform === 'win32'

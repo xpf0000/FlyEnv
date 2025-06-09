@@ -132,13 +132,13 @@ class Manager extends Base {
 
   sslMake(param: { domains: string; root: string; savePath: string }) {
     return new ForkPromise(async (resolve, reject) => {
-      const openssl = join(window.Server.AppDir!, 'openssl/bin/openssl.exe')
+      const openssl = join(global.Server.AppDir!, 'openssl/bin/openssl.exe')
       if (!existsSync(openssl)) {
-        await zipUnPack(join(window.Server.Static!, `zip/openssl.7z`), window.Server.AppDir!)
+        await zipUnPack(join(global.Server.Static!, `zip/openssl.7z`), global.Server.AppDir!)
       }
-      const opensslCnf = join(window.Server.AppDir!, 'openssl/openssl.cnf')
+      const opensslCnf = join(global.Server.AppDir!, 'openssl/openssl.cnf')
       if (!existsSync(opensslCnf)) {
-        await copyFile(join(window.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
+        await copyFile(join(global.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
       }
       const domains = param.domains
         .split('\n')
@@ -318,7 +318,7 @@ subjectAltName=@alt_names
         .filter((f) => existsSync(f) && statSync(f).isDirectory())
       res.allPath = Array.from(new Set(allPath))
 
-      const dir = join(dirname(window.Server.AppDir!), 'env')
+      const dir = join(dirname(global.Server.AppDir!), 'env')
       if (existsSync(dir)) {
         let allFile = await readdir(dir)
         allFile = allFile
@@ -344,7 +344,7 @@ subjectAltName=@alt_names
 
       console.log('removePATH oldPath 0: ', oldPath)
 
-      const envDir = join(dirname(window.Server.AppDir!), 'env')
+      const envDir = join(dirname(global.Server.AppDir!), 'env')
       const flagDir = join(envDir, typeFlag)
       try {
         await execPromise(`rmdir /S /Q "${flagDir}"`)
@@ -435,7 +435,7 @@ subjectAltName=@alt_names
        * 删除标识文件夹
        * 如果原来没有 重新创建链接文件夹
        */
-      const envDir = join(dirname(window.Server.AppDir!), 'env')
+      const envDir = join(dirname(global.Server.AppDir!), 'env')
       if (!existsSync(envDir)) {
         await mkdirp(envDir)
       }
@@ -576,12 +576,12 @@ php "%~dp0composer.phar" %*`
         otherString = `"JAVA_HOME" = "${flagDir}"`
       } else if (typeFlag === 'erlang') {
         otherString = `"ERLANG_HOME" = "${flagDir}"`
-        const f = join(window.Server.Cache!, `${uuid()}.ps1`)
+        const f = join(global.Server.Cache!, `${uuid()}.ps1`)
         await writeFile(
           f,
           `New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force`
         )
-        process.chdir(window.Server.Cache!)
+        process.chdir(global.Server.Cache!)
         try {
           await execPromise(
             `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${f}'; & '${f}'"`
@@ -616,7 +616,7 @@ php "%~dp0composer.phar" %*`
   ) {
     return new ForkPromise(async (resolve) => {
       await this.initLocalApp(service, service.typeFlag)
-      const aliasDir = PathResolve(window.Server.BaseDir!, '../alias')
+      const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
       await mkdirp(aliasDir)
       if (old?.id) {
         const oldFile = join(aliasDir, `${old.name}.bat`)
@@ -674,7 +674,7 @@ chcp 65001>nul
 
   cleanAlias(alias: Record<string, AppServiceAliasItem[]>) {
     return new ForkPromise(async (resolve) => {
-      const aliasDir = PathResolve(window.Server.BaseDir!, '../alias')
+      const aliasDir = PathResolve(global.Server.BaseDir!, '../alias')
       for (const bin in alias) {
         const item = alias[bin]
         if (!existsSync(bin)) {
@@ -1015,7 +1015,7 @@ chcp 65001>nul
 
   initAllowDir(json: string) {
     return new ForkPromise(async (resolve) => {
-      const jsonFile = join(dirname(window.Server.AppDir!), 'bin/.flyenv.dir')
+      const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
       await mkdirp(dirname(jsonFile))
       await writeFile(jsonFile, json)
       resolve(true)
@@ -1024,7 +1024,7 @@ chcp 65001>nul
 
   envAllowDirUpdate(dir: string, action: 'add' | 'del') {
     return new ForkPromise(async (resolve) => {
-      const jsonFile = join(dirname(window.Server.AppDir!), 'bin/.flyenv.dir')
+      const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
       let json: string[] = []
       if (existsSync(jsonFile)) {
         try {
@@ -1054,9 +1054,9 @@ chcp 65001>nul
         { name: 'PowerShell 7+', exe: 'pwsh.exe', profileType: 'CurrentUserAllHosts' }
       ]
 
-      const flyenvScriptPath = join(dirname(window.Server.AppDir!), 'bin/flyenv.ps1')
+      const flyenvScriptPath = join(dirname(global.Server.AppDir!), 'bin/flyenv.ps1')
       await mkdirp(dirname(flyenvScriptPath))
-      await copyFile(join(window.Server.Static!, 'sh/fly-env.ps1'), flyenvScriptPath)
+      await copyFile(join(global.Server.Static!, 'sh/fly-env.ps1'), flyenvScriptPath)
 
       for (const version of psVersions) {
         try {

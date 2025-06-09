@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { SoftInstalled } from '@shared/app'
+import type { SoftInstalled } from '@shared/app'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'

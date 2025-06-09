@@ -52,7 +52,7 @@
   import { I18nT } from '@lang/index'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import { AppServiceAliasItem, SoftInstalled } from '@shared/app'
+  import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
   import { AllAppModule } from '@/core/type'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 

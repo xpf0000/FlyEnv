@@ -82,7 +82,7 @@ export default class WindowManager extends EventEmitter {
       return window
     }
     const pageOptions = this.getPageOptions(page)
-    trayBrowserOptions.webPreferences!.preload = join(window.Server.Static!, 'preload/preload.js')
+    trayBrowserOptions.webPreferences!.preload = join(global.Server.Static!, 'preload/preload.js')
     window = new BrowserWindow(trayBrowserOptions)
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
@@ -117,15 +117,14 @@ export default class WindowManager extends EventEmitter {
       window.focus()
       return window
     }
-
+    defaultBrowserOptions.webPreferences!.preload = join(
+      global.Server.Static!,
+      'preload/preload.js'
+    )
     window = new BrowserWindow({
       ...defaultBrowserOptions,
       ...pageOptions.attrs
     })
-    defaultBrowserOptions.webPreferences!.preload = join(
-      window.Server.Static!,
-      'preload/preload.js'
-    )
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
         event.preventDefault()

@@ -4,7 +4,7 @@ import { FitAddon } from '@xterm/addon-fit'
 import IPC from './IPC'
 import { AppStore } from '@/store/app'
 import { nativeTheme, clipboard } from '@/util/NodeFn'
-import { CallBackFn } from '@shared/app'
+import type { CallBackFn } from '@shared/app'
 
 interface XTermType {
   xterm: Terminal | undefined

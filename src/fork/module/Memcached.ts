@@ -22,7 +22,7 @@ class Memcached extends Base {
   }
 
   init() {
-    this.pidPath = join(window.Server.MemcachedDir!, 'memcached.pid')
+    this.pidPath = join(global.Server.MemcachedDir!, 'memcached.pid')
   }
 
   _startServer(version: SoftInstalled) {
@@ -41,7 +41,7 @@ class Memcached extends Base {
         const res = await serviceStartExec(
           version,
           this.pidPath,
-          window.Server.MemcachedDir!,
+          global.Server.MemcachedDir!,
           bin,
           execArgs,
           '',
@@ -64,9 +64,9 @@ class Memcached extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('memcached')
         all.forEach((a: any) => {
-          const dir = join(window.Server.AppDir!, `memcached-${a.version}`, 'memcached.exe')
-          const zip = join(window.Server.Cache!, `memcached-${a.version}.zip`)
-          a.appDir = join(window.Server.AppDir!, `memcached-${a.version}`)
+          const dir = join(global.Server.AppDir!, `memcached-${a.version}`, 'memcached.exe')
+          const zip = join(global.Server.Cache!, `memcached-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `memcached-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

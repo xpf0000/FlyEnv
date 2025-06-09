@@ -57,7 +57,7 @@ class Manager extends Base {
           if (error) console.error('Upload failed:', error)
         })
 
-        const json = join(window.Server.FTPDir!, 'pureftpd.json')
+        const json = join(global.Server.FTPDir!, 'pureftpd.json')
         const all: Array<any> = []
         if (existsSync(json)) {
           try {
@@ -102,7 +102,7 @@ class Manager extends Base {
 
   getAllFtp() {
     return new ForkPromise(async (resolve) => {
-      const json = join(window.Server.FTPDir!, 'pureftpd.json')
+      const json = join(global.Server.FTPDir!, 'pureftpd.json')
       const all = []
       if (existsSync(json)) {
         try {
@@ -122,7 +122,7 @@ class Manager extends Base {
         const id = find.id
         this.server?.disconnectClient(id)
       }
-      const json = join(window.Server.FTPDir!, 'pureftpd.json')
+      const json = join(global.Server.FTPDir!, 'pureftpd.json')
       const all = []
       if (existsSync(json)) {
         try {
@@ -135,7 +135,7 @@ class Manager extends Base {
       if (findOld >= 0) {
         all.splice(findOld, 1)
       }
-      await mkdirp(window.Server.FTPDir!)
+      await mkdirp(global.Server.FTPDir!)
       await writeFile(json, JSON.stringify(all))
       resolve(true)
     })
@@ -149,7 +149,7 @@ class Manager extends Base {
         } catch {}
       }
 
-      const json = join(window.Server.FTPDir!, 'pureftpd.json')
+      const json = join(global.Server.FTPDir!, 'pureftpd.json')
       const all = []
       if (existsSync(json)) {
         try {
@@ -164,7 +164,7 @@ class Manager extends Base {
       } else {
         all.unshift(item)
       }
-      await mkdirp(window.Server.FTPDir!)
+      await mkdirp(global.Server.FTPDir!)
       await writeFile(json, JSON.stringify(all))
       resolve(true)
     })

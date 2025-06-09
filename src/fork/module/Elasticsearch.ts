@@ -23,7 +23,7 @@ class Elasticsearch extends Base {
   }
 
   init() {
-    this.pidPath = join(window.Server.BaseDir!, 'elasticsearch/elasticsearch.pid')
+    this.pidPath = join(global.Server.BaseDir!, 'elasticsearch/elasticsearch.pid')
   }
 
   _startServer(version: SoftInstalled) {
@@ -36,7 +36,7 @@ class Elasticsearch extends Base {
       })
       const bin = version.bin
 
-      const baseDir = join(window.Server.BaseDir!, `elasticsearch`)
+      const baseDir = join(global.Server.BaseDir!, `elasticsearch`)
       await mkdirp(baseDir)
       const execEnv = `set "ES_HOME=${version.path}"
 set "ES_PATH_CONF=${join(version.path, 'config')}"
@@ -70,13 +70,13 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('elasticsearch')
         all.forEach((a: any) => {
           const dir = join(
-            window.Server.AppDir!,
+            global.Server.AppDir!,
             'elasticsearch',
             `v${a.version}`,
             'bin/elasticsearch.bat'
           )
-          const zip = join(window.Server.Cache!, `elasticsearch-${a.version}.zip`)
-          a.appDir = join(window.Server.AppDir!, 'elasticsearch', `v${a.version}`)
+          const zip = join(global.Server.Cache!, `elasticsearch-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, 'elasticsearch', `v${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

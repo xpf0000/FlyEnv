@@ -1,5 +1,5 @@
 import BaseDialog from '@/components/YbBaseDialog/dialog'
-import { CallBackFn } from '@shared/app'
+import type { CallBackFn } from '@shared/app'
 export {}
 declare module 'vue' {
   interface ComponentCustomProperties {

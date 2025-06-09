@@ -1,8 +1,7 @@
 import type { ModuleExecItem } from '@shared/app'
 import { existsSync } from 'fs'
-import { mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import { dirname, join } from 'path'
-import { waitPidFile } from '../Fn'
+import { waitPidFile, mkdirp, readFile, remove, writeFile } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { spawn, exec } from 'child_process'
 import { merge } from 'lodash-es'
@@ -138,13 +137,13 @@ export async function customerServiceStartExec(
     } catch {}
   }
 
-  const baseDir = join(window.Server.BaseDir!, 'module-customer')
+  const baseDir = join(global.Server.BaseDir!, 'module-customer')
   await mkdirp(baseDir)
 
   const outFile = join(baseDir, `${version.id}.out.log`)
   const errFile = join(baseDir, `${version.id}.error.log`)
 
-  let psScript = await readFile(join(window.Server.Static!, 'sh/flyenv-customer-exec.ps1'), 'utf8')
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-customer-exec.ps1'), 'utf8')
 
   let bin = ''
   if (version.commandType === 'file') {

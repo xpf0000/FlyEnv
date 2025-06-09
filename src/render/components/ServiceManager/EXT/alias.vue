@@ -66,7 +66,7 @@
   import { AsyncComponentSetup, AsyncComponentShow } from '@/util/AsyncComponent'
   import { I18nT } from '@lang/index'
   import { MessageSuccess } from '@/util/Element'
-  import { SoftInstalled } from '@shared/app'
+  import type { SoftInstalled } from '@shared/app'
   import { AppStore } from '@/store/app'
   import { Edit, Delete, Plus } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'

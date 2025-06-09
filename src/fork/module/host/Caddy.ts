@@ -40,7 +40,7 @@ const handleReverseProxy = (host: AppHost, content: string) => {
 }
 
 export const makeCaddyConf = async (host: AppHost) => {
-  const caddyvpath = join(window.Server.BaseDir!, 'vhost/caddy')
+  const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy')
   await mkdirp(caddyvpath)
   const httpNames: string[] = []
   const httpsNames: string[] = []
@@ -62,7 +62,7 @@ export const makeCaddyConf = async (host: AppHost) => {
   const hostName = host.name
   const root = host.root
   const phpv = host?.phpVersion
-  const logFile = join(window.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
+  const logFile = join(global.Server.BaseDir!, `vhost/logs/${hostName}.caddy.log`)
 
   const httpHostNameAll = httpNames.join(',\n')
   let content = tmpl.caddy
@@ -103,8 +103,8 @@ export const makeCaddyConf = async (host: AppHost) => {
 }
 
 export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
-  const logpath = join(window.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
-  const caddyvpath = join(window.Server.BaseDir!, 'vhost/caddy').split('\\').join('/')
+  const logpath = join(global.Server.BaseDir!, 'vhost/logs').split('\\').join('/')
+  const caddyvpath = join(global.Server.BaseDir!, 'vhost/caddy').split('\\').join('/')
   await mkdirp(caddyvpath)
   await mkdirp(logpath)
 
@@ -135,7 +135,7 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
   const replace: Array<string> = []
   if (host.name !== old.name) {
     hasChanged = true
-    const logFile = join(window.Server.BaseDir!, `vhost/logs/${host.name}.caddy.log`)
+    const logFile = join(global.Server.BaseDir!, `vhost/logs/${host.name}.caddy.log`)
       .split('\\')
       .join('/')
     find.push(`import set-log (.*?)\\r\\n`)

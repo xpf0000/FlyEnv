@@ -29,7 +29,7 @@ class Tomcat extends Base {
   }
 
   init() {
-    this.pidPath = join(window.Server.BaseDir!, 'tomcat/tomcat.pid')
+    this.pidPath = join(global.Server.BaseDir!, 'tomcat/tomcat.pid')
   }
 
   fetchAllOnLineVersion() {
@@ -38,9 +38,9 @@ class Tomcat extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('tomcat')
         all.forEach((a: any) => {
-          const dir = join(window.Server.AppDir!, `tomcat-${a.version}`, 'bin/catalina.bat')
-          const zip = join(window.Server.Cache!, `tomcat-${a.version}.zip`)
-          a.appDir = join(window.Server.AppDir!, `tomcat-${a.version}`)
+          const dir = join(global.Server.AppDir!, `tomcat-${a.version}`, 'bin/catalina.bat')
+          const zip = join(global.Server.Cache!, `tomcat-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `tomcat-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
@@ -73,7 +73,7 @@ class Tomcat extends Base {
         dir = baseDir
       } else {
         const v = version?.version?.split('.')?.shift() ?? ''
-        dir = join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
+        dir = join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
       }
       if (existsSync(dir) && existsSync(join(dir, 'conf/server.xml'))) {
         resolve(dir)
@@ -129,7 +129,7 @@ class Tomcat extends Base {
 
       await mkdirp(join(baseDir, 'logs'))
 
-      const tomcatDir = join(window.Server.BaseDir!, 'tomcat')
+      const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
       const execEnv = `set "CATALINA_BASE=${baseDir}"`
       const execArgs = ``
 

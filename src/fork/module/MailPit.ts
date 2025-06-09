@@ -26,12 +26,12 @@ class MailPit extends Base {
   }
 
   init() {
-    this.pidPath = join(window.Server.BaseDir!, 'mailpit/mailpit.pid')
+    this.pidPath = join(global.Server.BaseDir!, 'mailpit/mailpit.pid')
   }
 
   initConfig(): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, on) => {
-      const baseDir = join(window.Server.BaseDir!, 'mailpit')
+      const baseDir = join(global.Server.BaseDir!, 'mailpit')
       if (!existsSync(baseDir)) {
         await mkdirp(baseDir)
       }
@@ -40,7 +40,7 @@ class MailPit extends Base {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
         })
-        const tmplFile = join(window.Server.Static!, 'tmpl/mailpit.conf')
+        const tmplFile = join(global.Server.Static!, 'tmpl/mailpit.conf')
         let content = await readFile(tmplFile, 'utf-8')
         const logFile = join(baseDir, 'mailpit.log')
         content = content.replace('##LOG_FILE##', logFile)
@@ -57,7 +57,7 @@ class MailPit extends Base {
 
   fetchLogPath() {
     return new ForkPromise(async (resolve) => {
-      const baseDir = join(window.Server.BaseDir!, 'mailpit')
+      const baseDir = join(global.Server.BaseDir!, 'mailpit')
       const iniFile = join(baseDir, 'mailpit.conf')
       if (!existsSync(iniFile)) {
         resolve('')
@@ -114,7 +114,7 @@ class MailPit extends Base {
       }
       envs.push('')
 
-      const baseDir = join(window.Server.BaseDir!, `mailpit`)
+      const baseDir = join(global.Server.BaseDir!, `mailpit`)
       await mkdirp(baseDir)
 
       const execEnv = envs.join(EOL)
@@ -147,9 +147,9 @@ class MailPit extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mailpit')
         all.forEach((a: any) => {
-          const dir = join(window.Server.AppDir!, `mailpit-${a.version}`, 'mailpit.exe')
-          const zip = join(window.Server.Cache!, `mailpit-${a.version}.zip`)
-          a.appDir = join(window.Server.AppDir!, `mailpit-${a.version}`)
+          const dir = join(global.Server.AppDir!, `mailpit-${a.version}`, 'mailpit.exe')
+          const zip = join(global.Server.Cache!, `mailpit-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `mailpit-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)

@@ -33,7 +33,7 @@ class Mysql extends Base {
   }
 
   init() {
-    this.pidPath = join(window.Server.MysqlDir!, 'mysql.pid')
+    this.pidPath = join(global.Server.MysqlDir!, 'mysql.pid')
   }
 
   _initPassword(version: SoftInstalled) {
@@ -83,8 +83,8 @@ class Mysql extends Base {
       await this.initLocalApp(version, 'mysql').on(on)
       const bin = version.bin
       const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-      const m = join(window.Server.MysqlDir!, `my-${v}.cnf`)
-      const dataDir = join(window.Server.MysqlDir!, `data-${v}`).split('\\').join('/')
+      const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
+      const dataDir = join(global.Server.MysqlDir!, `data-${v}`).split('\\').join('/')
       if (!existsSync(m)) {
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInit'))
@@ -100,9 +100,9 @@ datadir="${dataDir}"`
         })
       }
 
-      const p = join(window.Server.MysqlDir!, 'mysql.pid')
-      const s = join(window.Server.MysqlDir!, 'slow.log')
-      const e = join(window.Server.MysqlDir!, 'error.log')
+      const p = join(global.Server.MysqlDir!, 'mysql.pid')
+      const s = join(global.Server.MysqlDir!, 'slow.log')
+      const e = join(global.Server.MysqlDir!, 'error.log')
       let command = ''
 
       const unlinkDirOnFail = async () => {
@@ -116,7 +116,7 @@ datadir="${dataDir}"`
 
       const doStart = () => {
         return new Promise(async (resolve, reject) => {
-          const baseDir = window.Server.MysqlDir!
+          const baseDir = global.Server.MysqlDir!
           await mkdirp(baseDir)
           const params = [
             `--defaults-file="${m}"`,
@@ -211,7 +211,7 @@ datadir="${dataDir}"`
       const id = version?.id ?? ''
       const conf =
         'PhpWebStudy-Data' +
-        join(window.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
+        join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`).split('PhpWebStudy-Data').pop()
       const arr: Array<number> = []
       let all: PItem[] = []
       try {
@@ -237,7 +237,7 @@ datadir="${dataDir}"`
       await this.stopGroupService(version)
       const bin = version.version.bin
       const id = version?.id ?? ''
-      const m = join(window.Server.MysqlDir!, `group/my-group-${id}.cnf`)
+      const m = join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
       await mkdirp(dirname(m))
       const dataDir = version.dataDir
       if (!existsSync(m)) {
@@ -248,10 +248,10 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         await writeFile(m, conf)
       }
 
-      const p = join(window.Server.MysqlDir!, `group/my-group-${id}.pid`)
-      const s = join(window.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
-      const e = join(window.Server.MysqlDir!, `group/my-group-${id}-error.log`)
-      const sock = join(window.Server.MysqlDir!, `group/my-group-${id}.sock`)
+      const p = join(global.Server.MysqlDir!, `group/my-group-${id}.pid`)
+      const s = join(global.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
+      const e = join(global.Server.MysqlDir!, `group/my-group-${id}-error.log`)
+      const sock = join(global.Server.MysqlDir!, `group/my-group-${id}.sock`)
 
       const unlinkDirOnFail = async () => {
         if (existsSync(dataDir)) {
@@ -270,8 +270,8 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
             } catch {}
           }
 
-          const startLogFile = join(window.Server.MysqlDir!, `group/start.${id}.log`)
-          const startErrLogFile = join(window.Server.MysqlDir!, `start.error.${id}.log`)
+          const startLogFile = join(global.Server.MysqlDir!, `group/start.${id}.log`)
+          const startErrLogFile = join(global.Server.MysqlDir!, `start.error.${id}.log`)
           if (existsSync(startErrLogFile)) {
             try {
               await remove(startErrLogFile)
@@ -301,14 +301,14 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           console.log('command: ', command)
 
           const cmdName = `start-${id}.cmd`
-          const sh = join(window.Server.MysqlDir!, cmdName)
+          const sh = join(global.Server.MysqlDir!, cmdName)
           await writeFile(sh, command)
 
-          process.chdir(window.Server.MysqlDir!)
+          process.chdir(global.Server.MysqlDir!)
           try {
             await spawnPromise(cmdName, [], {
               shell: 'cmd.exe',
-              cwd: window.Server.MysqlDir!
+              cwd: global.Server.MysqlDir!
             })
           } catch (e: any) {
             console.log('-k start err: ', e)
@@ -401,13 +401,13 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mysql')
         all.forEach((a: any) => {
           const dir = join(
-            window.Server.AppDir!,
+            global.Server.AppDir!,
             `mysql-${a.version}`,
             `mysql-${a.version}-winx64`,
             'bin/mysqld.exe'
           )
-          const zip = join(window.Server.Cache!, `mysql-${a.version}.zip`)
-          a.appDir = join(window.Server.AppDir!, `mysql-${a.version}`)
+          const zip = join(global.Server.Cache!, `mysql-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `mysql-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
