@@ -24,7 +24,6 @@ const { copySync } = _fs
 
 const execPromise = promisify(exec)
 
-
 let restart = false
 let electronProcess: ChildProcess | null
 
