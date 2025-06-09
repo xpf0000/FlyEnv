@@ -123,12 +123,6 @@ export const nativeTheme = {
   }
 }
 
-IPC.on('App-Native-Theme-Update').then(() => {
-  nativeTheme.updateFn.forEach((fn: () => void) => {
-    fn()
-  })
-})
-
 export const app = {
   getConfig: createIPCCall<any>('app', 'getConfig'),
   setLoginItemSettings: createIPCCall<string>('app', 'setLoginItemSettings'),

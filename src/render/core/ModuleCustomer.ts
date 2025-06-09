@@ -130,7 +130,7 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
                     AppStore()
                       .initConfig()
                       .then(() => {
-                        done && done()
+                        done()
                         doRun()
                       })
                   } else {

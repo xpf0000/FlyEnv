@@ -175,7 +175,9 @@ export const AppStore = defineStore('app', {
     }
   },
   actions: {
-    serverCurrent(flag: AllAppModule) {
+    serverCurrent(flag: AllAppModule): {
+      current: AppServerCurrent
+    } {
       if (!this.config.server?.[flag]) {
         this.config.server[flag] = reactive({
           current: {}

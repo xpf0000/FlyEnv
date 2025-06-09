@@ -250,7 +250,7 @@
     }
   }
   const doExport = () => {
-    let opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
+    const opt = ['showHiddenFiles', 'createDirectory', 'showOverwriteConfirmation']
     dialog
       .showSaveDialog({
         properties: opt,
@@ -289,7 +289,7 @@
       })
   }
   const doImport = () => {
-    let opt = ['openFile', 'showHiddenFiles']
+    const opt = ['openFile', 'showHiddenFiles']
     dialog
       .showOpenDialog({
         properties: opt,
@@ -354,7 +354,7 @@
   }
   const openHosts = () => {
     import('./Hosts.vue').then((res) => {
-      res.default.show().then()
+      AsyncComponentShow(res.default).then()
     })
   }
   let EditVM: any

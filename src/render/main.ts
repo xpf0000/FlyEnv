@@ -14,7 +14,7 @@ import { SetupStore } from '@/components/Setup/store'
 import { AppLogStore } from '@/components/AppLog/store'
 import { EventBus } from '@/global'
 import { AppCustomerModule } from '@/core/Module'
-import { lang } from '@/util/NodeFn'
+import { lang, nativeTheme } from '@/util/NodeFn'
 
 window.Server = {}
 
@@ -46,6 +46,11 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
   } else {
     console.log('has inited !!!!')
   }
+})
+IPC.on('App-Native-Theme-Update').then(() => {
+  nativeTheme.updateFn.forEach((fn: () => void) => {
+    fn()
+  })
 })
 IPC.on('APP-Update-Global-Server').then((key: string, res: any) => {
   console.log('APP-Update-Global-Server: ', key, res)

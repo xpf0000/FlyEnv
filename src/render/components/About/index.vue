@@ -92,47 +92,40 @@
   </el-card>
 </template>
 
-<script>
-  import { AppStore } from '@/store/app.ts'
-  import { AsyncComponentShow } from '@/util/AsyncComponent.ts'
+<script setup lang="ts">
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { AppStore } from '@/store/app'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { app, shell } from '@/util/NodeFn'
 
-  export default {
-    name: 'MoTitleBar',
-    props: {},
-    data() {
-      return {
-        version: ''
-      }
-    },
-    computed: {
-      lang() {
-        const app = AppStore()
-        return app.config.setup.lang
-      }
-    },
-    created() {
-      app.getVersion().then((v) => {
-        this.version = v
-      })
-    },
-    unmounted() {
-      console.log('about unmounted !!!')
-    },
-    methods: {
-      openUrl(e, u) {
-        e.preventDefault()
-        shell.openExternal(u)
-      },
-      toHome(e) {
-        e.preventDefault()
-        shell.openExternal('https://flyenv.com')
-      },
-      toFeedback() {
-        import('@/components/Feedback/index.vue').then((res) => {
-          AsyncComponentShow(res.default).then()
-        })
-      }
-    }
+  const version = ref('')
+  const appStore = AppStore()
+
+  const lang = computed(() => appStore.config.setup.lang)
+
+  const openUrl = (e: Event, url: string) => {
+    e.preventDefault()
+    shell.openExternal(url)
   }
+
+  const toHome = (e: Event) => {
+    e.preventDefault()
+    shell.openExternal('https://flyenv.com')
+  }
+
+  const toFeedback = () => {
+    import('@/components/Feedback/index.vue').then((res) => {
+      AsyncComponentShow(res.default).then()
+    })
+  }
+
+  onMounted(() => {
+    app.getVersion().then((v: string) => {
+      version.value = v
+    })
+  })
+
+  onUnmounted(() => {
+    console.log('about unmounted !!!')
+  })
 </script>

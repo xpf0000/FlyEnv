@@ -5,15 +5,6 @@
   </el-container>
 </template>
 
-<script>
+<script lang="ts" setup>
   import Aside from '@/components/Aside/Index.vue'
-
-  export default {
-    name: 'MoMain',
-    components: {
-      Aside
-    },
-    computed: {},
-    methods: {}
-  }
 </script>

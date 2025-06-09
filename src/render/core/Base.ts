@@ -42,7 +42,7 @@ class Base {
   }
 
   LoadingClose() {
-    loading && loading.close()
+    loading?.close?.()
     loadingTxtDom = null
   }
 
@@ -53,7 +53,7 @@ class Base {
   }
 
   Loading(text?: string, index?: number) {
-    loading && loading.close()
+    loading?.close?.()
     if (!index) {
       loading = Loading.service({
         lock: true,
@@ -80,6 +80,7 @@ class Base {
   _Message(message: string, type = 'success') {
     return new Promise((resolve) => {
       Message({
+        // @ts-ignore
         offset: 60,
         showClose: true,
         message: message,
