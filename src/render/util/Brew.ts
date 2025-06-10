@@ -66,7 +66,7 @@ export const passwordCheck = () => {
   })
 }
 
-export function brewInfo(key: string): Promise<{ [key: string]: OnlineVersionItem }> {
+export function brewInfo(key: string): Promise<OnlineVersionItem[]> {
   return new Promise((resolve, reject) => {
     IPC.send(`app-fork:${key}`, 'brewinfo', key).then((key: string, res: any) => {
       if (res.code === 0) {
@@ -80,7 +80,7 @@ export function brewInfo(key: string): Promise<{ [key: string]: OnlineVersionIte
   })
 }
 
-export function portInfo(flag: string): Promise<{ [key: string]: OnlineVersionItem }> {
+export function portInfo(flag: string): Promise<OnlineVersionItem[]> {
   return new Promise((resolve, reject) => {
     IPC.send(`app-fork:${flag}`, 'portinfo', flag).then((key: string, res: any) => {
       if (res.code === 0) {
@@ -94,23 +94,22 @@ export function portInfo(flag: string): Promise<{ [key: string]: OnlineVersionIt
   })
 }
 
-export const fetchVerion = (
-  typeFlag: AllAppModule
-): Promise<{ [key: string]: OnlineVersionItem }> => {
+export const fetchVerion = (typeFlag: AllAppModule): Promise<OnlineVersionItem[]> => {
   return new Promise(async (resolve) => {
     let saved: any = localStorage.getItem(`fetchVerion-${typeFlag}`)
     if (saved) {
       saved = JSON.parse(saved)
       const time = Math.round(new Date().getTime() / 1000)
       if (time < saved.expire) {
-        const list: { [key: string]: OnlineVersionItem } = { ...saved.data }
-        for (const k in list) {
-          const item = list[k]
-          item.downloaded = await fs.existsSync(item.zip)
-          item.installed = await fs.existsSync(item.bin)
+        const list: OnlineVersionItem[] = { ...saved.data }
+        if (Array.isArray(list)) {
+          for (const item of list) {
+            item.downloaded = await fs.existsSync(item.zip)
+            item.installed = await fs.existsSync(item.bin)
+          }
+          resolve(list)
+          return
         }
-        resolve(list)
-        return
       }
     }
     IPC.send(`app-fork:${typeFlag}`, 'fetchAllOnLineVersion').then((key: string, res: any) => {
@@ -129,7 +128,7 @@ export const fetchVerion = (
         resolve(list)
       } else if (res.code === 1) {
         MessageError(res.msg)
-        resolve({})
+        resolve([])
       }
     })
   })

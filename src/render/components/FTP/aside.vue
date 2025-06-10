@@ -75,7 +75,7 @@
                     AppStore()
                       .initConfig()
                       .then(() => {
-                        done && done()
+                        done()
                         resolve([])
                       })
                   } else {

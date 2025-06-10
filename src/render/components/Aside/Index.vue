@@ -90,8 +90,8 @@
       (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
     )
     sub.sort((a, b) => {
-      let lowerA = a.typeFlag.toLowerCase()
-      let lowerB = b.typeFlag.toLowerCase()
+      const lowerA = a.typeFlag.toLowerCase()
+      const lowerB = b.typeFlag.toLowerCase()
       if (lowerA < lowerB) return -1
       if (lowerA > lowerB) return 1
       return 0
@@ -116,8 +116,8 @@
           (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
         ).filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
         sub.sort((a, b) => {
-          let lowerA = a.typeFlag.toLowerCase()
-          let lowerB = b.typeFlag.toLowerCase()
+          const lowerA = a.typeFlag.toLowerCase()
+          const lowerB = b.typeFlag.toLowerCase()
           if (lowerA < lowerB) return -1
           if (lowerA > lowerB) return 1
           return 0
@@ -232,6 +232,7 @@
     const modules = Object.values(AppServiceModule)
     const allDisabled = modules.every((m) => !!m?.serviceDisabled)
     const running = modules.some((m) => !!m?.serviceFetching)
+    console.log('groupDisabled', allDisabled, running, appStore.versionInited)
     return (
       allDisabled ||
       running ||

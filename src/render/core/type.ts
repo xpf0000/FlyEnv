@@ -102,6 +102,8 @@ export type AppModuleItem = {
    * If module show in tray window
    */
   isTray?: boolean
+
+  isOnlyRunOne?: boolean
 }
 
 type ToolType =

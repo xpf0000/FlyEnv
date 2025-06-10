@@ -50,16 +50,16 @@ export const AsideSetup = (flag: AllAppModule) => {
     if (!current) {
       return undefined
     }
-    const installed = brewStore.module(flag).installed
+    const module = brewStore.module(flag)
+    const installed = module.installed
     return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
   const serviceDisabled = computed(() => {
-    return (
-      !currentVersion?.value?.version ||
-      brewStore.module(flag).installed.some((v) => v.running) ||
-      !appStore.versionInited
-    )
+    const a = !currentVersion?.value?.version
+    const b = brewStore.module(flag).installed.some((v) => v.running)
+    const c = !appStore.versionInited
+    return a || b || c
   })
 
   const serviceRunning = computed(() => {

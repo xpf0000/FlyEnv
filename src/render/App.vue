@@ -6,21 +6,20 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+  import { computed, onMounted, onUnmounted, reactive, watch } from 'vue'
   import TitleBar from './components/Native/TitleBar.vue'
   import IPC from '@/util/IPC'
-  import installedVersions from '@/util/InstalledVersions'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
   import { MessageSuccess } from '@/util/Element'
   import FloatButton from '@/components/FloatBtn/index.vue'
-  import { type AllAppModule, AppModuleEnum } from '@/core/type'
   import { AppModules } from '@/core/App'
   import VueSvg from '@/components/VueSvgIcon/svg.vue'
+  import { Module } from '@/core/Module/Module'
+  import type { AllAppModule, AppModuleEnum } from '@/core/type'
 
-  const inited = ref(false)
   const appStore = AppStore()
   const brewStore = BrewStore()
 
@@ -34,21 +33,20 @@
 
   const allService = AppModules.filter((m) => m.isService).map((m) => m.typeFlag)
 
-  const needFetch: number[] = []
-
-  const onShowItemChange = () => {
-    if (!inited.value) {
-      needFetch.push(1)
-      return
-    }
-    let k: AllAppModule
-    for (k of allService) {
-      const module = brewStore.module(k)
-      if (showItem?.value?.[k] !== false && !module.installedInited) {
-        const flags = [k]
-        installedVersions.allInstalledVersions(flags)
-      }
-    }
+  for (const item of AppModules) {
+    const module = reactive(new Module())
+    module.typeFlag = item.typeFlag
+    module.isService = item?.isService ?? false
+    module.isOnlyRunOne = item?.isOnlyRunOne !== false
+    module.fetchInstalled = module.fetchInstalled.bind(module)
+    module.onItemStart = module.onItemStart.bind(module)
+    module.fetchBrew = module.fetchBrew.bind(module)
+    module.fetchPort = module.fetchPort.bind(module)
+    module.fetchStatic = module.fetchStatic.bind(module)
+    module.start = module.start.bind(module)
+    module.stop = module.stop.bind(module)
+    module.watchShowHide = module.watchShowHide.bind(module)
+    brewStore.modules[module.typeFlag] = module
   }
 
   const showAbout = () => {
@@ -67,19 +65,26 @@
     ) as Array<keyof typeof AppModuleEnum>
     if (flags.length === 0) {
       appStore.versionInited = true
-      inited.value = true
-      if (needFetch.length > 0) {
-        needFetch.pop()
-        onShowItemChange()
+      for (const typeFlag in brewStore.modules) {
+        const moduleKey = typeFlag as AllAppModule
+        const module = brewStore.modules[moduleKey]
+        module?.watchShowHide?.()
       }
       return
     }
-    installedVersions.allInstalledVersions(flags).then(() => {
+    const modules = Object.values(brewStore.modules)
+    const all: Promise<boolean>[] = modules
+      .filter((f) => flags.includes(f.typeFlag))
+      .map((i) => {
+        return i.fetchInstalled()
+      })
+    Promise.all(all).then(() => {
       appStore.versionInited = true
-      inited.value = true
-      if (needFetch.length > 0) {
-        needFetch.pop()
-        onShowItemChange()
+      console.log('appStore.versionInited true !!!')
+      for (const typeFlag in brewStore.modules) {
+        const moduleKey = typeFlag as AllAppModule
+        const module = brewStore.modules[moduleKey]
+        module?.watchShowHide?.()
       }
     })
     if (appStore.hosts.length === 0) {
@@ -128,16 +133,6 @@
     },
     {
       immediate: true
-    }
-  )
-
-  watch(
-    showItem,
-    () => {
-      onShowItemChange()
-    },
-    {
-      deep: true
     }
   )
 
