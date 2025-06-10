@@ -1,7 +1,6 @@
 import type { PtyItem } from '../type'
 import { uuid } from '../utils'
-import type { IPty } from 'node-pty'
-import { spawn } from 'node-pty'
+import type { spawn, IPty } from '@lydell/node-pty'
 
 class NodePTY {
   pty: Partial<Record<string, PtyItem>> = {}
