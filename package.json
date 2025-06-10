@@ -8,13 +8,10 @@
   },
   "copyright": "Copyright© pengfei xu",
   "scripts": {
-    "build-dev-runner": "npx esbuild --platform=node --bundle --external:vite --external:esbuild --external:consolidate --external:@vue/compiler-sfc scripts/dev-runner.ts --outfile=electron/dev-runner.js",
-    "web": "vite -c web/vite.config.ts",
-    "web-build": "vite -c web/vite.config.ts build",
-    "dev": "npm run build-dev-runner && cross-env NODE_ENV=development TEST=electron node electron/dev-runner.js",
+    "dev": "cross-env NODE_ENV=development TEST=electron tsx scripts/dev-runner.ts",
     "clean": "rd /s /q dist",
-    "build": "npx esbuild --platform=node --bundle --external:vite --external:esbuild --external:electron-builder --external:consolidate --external:@vue/compiler-sfc scripts/app-builder.ts --outfile=electron/app-builder.js && cross-env NODE_ENV=production node electron/app-builder.js",
-    "postinstall": "electron-builder install-app-deps"
+    "build": "cross-env NODE_ENV=production tsx electron/app-builder.ts",
+    "postinstall": "electron-builder install-app-deps",
   },
   "main": "./dist/electron/main.js",
   "optionalDependencies": {
@@ -154,6 +151,7 @@
     "terser": "^5.16.5",
     "terser-webpack-plugin": "^5.3.0",
     "tiny-emitter": "^2.1.0",
+    "tsx": "^4.19.4",
     "typescript": "^4.9.5",
     "vite": "^4.5.5",
     "vite-plugin-monaco-editor": "^1.1.0",
