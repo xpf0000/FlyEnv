@@ -17,7 +17,6 @@ exports.default = async function after(pack) {
     ] = `/opt:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:${optdefault.env['PATH']}`
   }
   execSync('asar e app.asar app', optdefault)
-  execSync('rm -rf app/node_modules/node-pty/build/node_gyp_bins', optdefault)
   execSync('rm -rf app.asar', optdefault)
   execSync('asar pack app app.asar', optdefault)
   execSync('rm -rf app', optdefault)

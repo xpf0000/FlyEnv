@@ -4,7 +4,7 @@ const external = [
   'electron',
   'path',
   'fs',
-  'node-pty',
+  '@lydell/node-pty',
   'fsevents',
   'mock-aws-s3',
   'aws-sdk',
