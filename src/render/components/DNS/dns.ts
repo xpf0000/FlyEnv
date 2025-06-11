@@ -78,7 +78,7 @@ export const DnsStore = defineStore('dns', {
           console.log('resres: ', res)
           if (typeof res?.data === 'string') {
             MessageError(res.data)
-          } else if (!!res?.data) {
+          } else if (res?.data) {
             this.running = true
             MessageSuccess(I18nT('base.success'))
             resolve(true)

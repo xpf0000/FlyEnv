@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
     "target": "esnext",
     "useDefineForClassFields": true,
     "module": "esnext",
@@ -18,7 +19,6 @@
     "noImplicitAny": true,
     "allowJs": false,
     "noEmit": true,
-    "baseUrl": "./",
     "paths": {
       "@/*": [
         "src/render/*"

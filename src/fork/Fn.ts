@@ -11,7 +11,6 @@ import {
 } from 'fs'
 import { dirname, isAbsolute, join, parse, basename, normalize } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
-import crypto from 'crypto'
 import axios from 'axios'
 import {
   appendFile,

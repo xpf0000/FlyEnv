@@ -42,7 +42,7 @@ export const urlToDir = (url: string, isPageUrl?: boolean) => {
         const ext = extname(pathDir)
         let newName = ''
         // 有扩展名的
-        if (!!ext) {
+        if (ext) {
           if (ext !== '.html') {
             newName = name.replace(ext, '.html')
           }
