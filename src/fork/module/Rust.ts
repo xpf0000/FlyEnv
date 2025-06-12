@@ -23,7 +23,6 @@ class Rust extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('rust')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `rust-${a.version}`, 'bin/cargo')
           const zip = join(global.Server.Cache!, `rust-${a.version}.tar.xz`)
@@ -32,10 +31,10 @@ class Rust extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`rust-${a.version}`] = a
+          a.name = `Rust-${a.version}`
         })
-        resolve(dict)
-      } catch (e) {
+        resolve(all)
+      } catch {
         resolve({})
       }
     })

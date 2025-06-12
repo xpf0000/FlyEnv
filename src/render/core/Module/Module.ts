@@ -1,6 +1,6 @@
 import { computed, reactive, watch } from 'vue'
 import type { AllAppModule, AppModuleEnum } from '@/core/type'
-import type { SoftInstalled } from '@shared/app'
+import type { CallBackFn, SoftInstalled } from '@shared/app'
 import { AppStore } from '@/store/app'
 import IPC from '@/util/IPC'
 import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
@@ -62,11 +62,16 @@ export class Module {
     })
   }
 
+  private _fetchInstalledResolves: CallBackFn[] = []
+
   fetchInstalled(): Promise<boolean> {
     return new Promise((resolve) => {
-      if (this.installedFetched || this.fetchInstalleding) {
-        console.log('fetchInstalled exit: ', this.typeFlag)
+      if (this.installedFetched) {
         resolve(true)
+        return
+      }
+      if (this.fetchInstalleding) {
+        this._fetchInstalledResolves.push(resolve)
         return
       }
       console.log('fetchInstalled run: ', this.typeFlag)
@@ -75,7 +80,6 @@ export class Module {
       const setup = JSON.parse(JSON.stringify(appStore.config.setup))
       IPC.send('app-fork:version', 'allInstalledVersions', [this.typeFlag], setup).then(
         (key: string, res: any) => {
-          console.log('Module allInstalledVersions: ', res)
           IPC.off(key)
           const versions: { [key in AppModuleEnum]: Array<SoftInstalled> } = res?.data ?? {}
           let needSaveConfig = false
@@ -130,6 +134,8 @@ export class Module {
           }
           this.installedFetched = true
           this.fetchInstalleding = false
+          this._fetchInstalledResolves.forEach((f) => f(true))
+          this._fetchInstalledResolves.splice(0)
           resolve(true)
         }
       )

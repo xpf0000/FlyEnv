@@ -682,7 +682,7 @@ export const versionMacportsFetch = async (bins: string[]): Promise<Array<SoftIn
 }
 
 export const brewInfoJson = async (names: string[]) => {
-  const info: any = {}
+  const info: any = []
   const cammand = ['brew', 'info', ...names, '--json', '--formula'].join(' ')
   console.log('brewinfo doRun: ', cammand)
   try {
@@ -693,12 +693,12 @@ export const brewInfoJson = async (names: string[]) => {
     })
     const arr = JSON.parse(res.stdout)
     arr.forEach((item: any) => {
-      info[item.full_name] = {
+      info.push({
         version: item?.versions?.stable ?? '',
         installed: item?.installed?.length > 0,
         name: item.full_name,
         flag: 'brew'
-      }
+      })
     })
   } catch {}
   return info
@@ -736,7 +736,6 @@ export const portSearch = async (
   filter: (f: string) => boolean,
   isInstalled: (name: string, version?: string) => boolean
 ) => {
-  const Info: { [k: string]: any } = {}
   try {
     let arr = []
     const info = await spawnPromise('port', ['search', '--name', '--line', '--regex', reg])
@@ -755,11 +754,9 @@ export const portSearch = async (
           flag: 'port'
         }
       })
-    arr.forEach((item: any) => {
-      Info[item.name] = item
-    })
+    return arr
   } catch {}
-  return Info
+  return []
 }
 
 export const writeFileByRoot = async (file: string, content: string) => {

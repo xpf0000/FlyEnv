@@ -139,7 +139,6 @@ echo "##FlyEnv-Process-ID$!FlyEnv-Process-ID##"`
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('meilisearch')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `meilisearch-${a.version}`, 'meilisearch')
           const zip = join(global.Server.Cache!, `meilisearch-${a.version}`)
@@ -148,9 +147,9 @@ echo "##FlyEnv-Process-ID$!FlyEnv-Process-ID##"`
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`meilisearch-${a.version}`] = a
+          a.name = `MeiliSearch-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch {
         resolve({})
       }

@@ -146,7 +146,6 @@ class MailPit extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mailpit')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-mailpit-${a.version}`, 'mailpit')
           const zip = join(global.Server.Cache!, `static-mailpit-${a.version}.tar.gz`)
@@ -155,9 +154,9 @@ class MailPit extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`mailpit-${a.version}`] = a
+          a.name = `Mailpit-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch {
         resolve({})
       }

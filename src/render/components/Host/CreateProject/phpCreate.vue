@@ -111,7 +111,6 @@
   import { I18nT } from '@lang/index'
   import { BrewStore } from '@/store/brew'
   import AppVersions from './version'
-  import installedVersions from '@/util/InstalledVersions'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
   import { join } from 'path-browserify'
@@ -165,12 +164,8 @@
     return brewStore.module('composer').installed
   })
 
-  if (!brewStore.module('php').installedInited) {
-    installedVersions.allInstalledVersions(['php']).then().catch()
-  }
-  if (!brewStore.module('composer').installedInited) {
-    installedVersions.allInstalledVersions(['composer']).then().catch()
-  }
+  brewStore.module('php').fetchInstalled().catch()
+  brewStore.module('composer').fetchInstalled().catch()
 
   const chooseRoot = () => {
     if (loading.value || created.value) {

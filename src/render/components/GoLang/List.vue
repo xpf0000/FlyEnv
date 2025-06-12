@@ -18,16 +18,16 @@
             </template>
           </el-popover>
         </div>
-        <el-button class="button" :disabled="service?.fetching" link @click="resetData">
+        <el-button class="button" :disabled="fetching" link @click="resetData">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="refresh-icon"
-            :class="{ 'fa-spin': service?.fetching }"
+            :class="{ 'fa-spin': fetching }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
-    <el-table v-loading="service?.fetching" class="service-table" :data="versions">
+    <el-table v-loading="fetching" class="service-table" :data="versions">
       <el-table-column prop="version" width="140px">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{
@@ -109,24 +109,15 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed } from 'vue'
-  import installedVersions from '@/util/InstalledVersions'
+  import { computed } from 'vue'
   import { BrewStore, SoftInstalled } from '@/store/brew'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import { Service } from '@/components/ServiceManager/service'
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
   import { I18nT } from '@lang/index'
   import { dirname } from 'path-browserify'
   import { shell } from '@/util/NodeFn'
 
-  if (!Service.golang) {
-    Service.golang = {
-      fetching: false
-    }
-  }
-
-  const initing = ref(false)
   const brewStore = BrewStore()
 
   const onPoperShow = () => {
@@ -153,45 +144,29 @@
     return ServiceActionStore.allPath.includes(dirname(item.bin))
   }
 
-  const service = computed(() => {
-    return Service.golang
-  })
-
-  const golang = computed(() => {
-    return brewStore.module('golang')
-  })
   const versions = computed(() => {
     return brewStore.module('golang').installed
   })
 
+  const fetching = computed(() => {
+    return brewStore.module('golang').fetchInstalleding
+  })
+
   const init = () => {
-    if (initing.value) {
-      return
-    }
-    initing.value = true
-    service.value.fetching = true
-    installedVersions.allInstalledVersions(['golang']).then(() => {
-      initing.value = false
-      service.value.fetching = false
-    })
+    const module = brewStore.module('golang')
+    module.fetchInstalled().catch()
   }
 
   const reinit = () => {
-    const data = golang.value
-    data.installedInited = false
+    const module = brewStore.module('golang')
+    module.installedFetched = false
     init()
   }
 
   const resetData = () => {
-    if (service?.value?.fetching) {
-      return
-    }
-    service.value.fetching = true
-    const data = brewStore.module('golang')
-    data.installedInited = false
-    installedVersions.allInstalledVersions(['golang']).then(() => {
-      service.value.fetching = false
-    })
+    const module = brewStore.module('golang')
+    module.installedFetched = false
+    module.fetchInstalled().catch()
   }
 
   const openDir = (dir: string) => {

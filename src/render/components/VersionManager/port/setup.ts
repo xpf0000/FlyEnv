@@ -4,8 +4,6 @@ import { BrewStore } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
 import type { AllAppModule } from '@/core/type'
-import installedVersions from '@/util/InstalledVersions'
-import { portInfo } from '@/util/Brew'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { join } from 'path-browserify'
@@ -14,14 +12,12 @@ import { clipboard, fs } from '@/util/NodeFn'
 export const MacPortsSetup = reactive<{
   installEnd: boolean
   installing: boolean
-  fetching: Partial<Record<AllAppModule, boolean>>
   xterm: XTerm | undefined
   checkMacPorts: () => void
   reFetch: () => void
 }>({
   installEnd: false,
   installing: false,
-  fetching: {},
   xterm: undefined,
   reFetch: () => 0,
   checkMacPorts() {
@@ -55,49 +51,31 @@ export const Setup = (typeFlag: AllAppModule) => {
   })
 
   const fetching = computed(() => {
-    return MacPortsSetup.fetching?.[typeFlag] ?? false
+    const module = brewStore.module(typeFlag)
+    return module.portFetching
   })
 
-  const fetchData = (src: 'port') => {
-    if (fetching.value) {
+  const fetchData = () => {
+    const module = brewStore.module(typeFlag)
+    if (module.portFetching) {
       return
     }
-    MacPortsSetup.fetching[typeFlag] = true
-    const currentItem = brewStore.module(typeFlag)
-    const list = currentItem.list?.[src] ?? {}
-    portInfo(typeFlag)
-      .then((res: any) => {
-        for (const k in list) {
-          delete list?.[k]
-        }
-        for (const name in res) {
-          list[name] = reactive(res[name])
-        }
-        MacPortsSetup.fetching[typeFlag] = false
-      })
-      .catch(() => {
-        MacPortsSetup.fetching[typeFlag] = false
-      })
+    module.fetchPort()
   }
   const getData = () => {
     if (!checkMacPorts.value || fetching.value) {
       console.log('getData exit: ', checkMacPorts.value, fetching.value)
       return
     }
-    const currentItem = brewStore.module(typeFlag)
-    const src = 'port'
-    const list = currentItem.list?.[src]
-    if (list && Object.keys(list).length === 0) {
-      fetchData(src)
+    const module = brewStore.module(typeFlag)
+    if (module.port.length === 0) {
+      fetchData()
     }
   }
 
   const reGetData = () => {
     console.log('reGetData !!!')
-    const list = brewStore.module(typeFlag).list?.['port']
-    for (const k in list) {
-      delete list[k]
-    }
+    brewStore.module(typeFlag).port.splice(0)
     getData()
   }
 
@@ -105,8 +83,9 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const regetInstalled = () => {
     reGetData()
-    brewStore.module(typeFlag).installedInited = false
-    installedVersions.allInstalledVersions([typeFlag]).then()
+    const module = brewStore.module(typeFlag)
+    module.installedFetched = false
+    module.fetchInstalled().catch()
   }
 
   const fetchCommand = (row: any) => {
@@ -239,9 +218,8 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const tableData = computed(() => {
     const arr = []
-    const list = brewStore.module(typeFlag).list?.['port']
-    for (const name in list) {
-      const value = list[name]
+    const list = brewStore.module(typeFlag).port
+    for (const value of list) {
       const nums = value.version.split('.').map((n: string, i: number) => {
         if (i > 0) {
           const num = parseInt(n)
@@ -257,15 +235,13 @@ export const Setup = (typeFlag: AllAppModule) => {
       })
       const num = parseInt(nums.join(''))
       Object.assign(value, {
-        name,
         version: value.version,
         installed: value.installed,
-        num,
-        flag: value.flag
+        num
       })
       arr.push(value)
     }
-    arr.sort((a, b) => {
+    arr.sort((a: any, b: any) => {
       return b.num - a.num
     })
     return arr

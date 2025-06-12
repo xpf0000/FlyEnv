@@ -3,8 +3,6 @@ import { BrewStore, type SoftInstalled } from '@/store/brew'
 import { type AppHost, AppStore } from '@/store/app'
 import { TaskStore } from '@/store/task'
 import { I18nT } from '@lang/index'
-import { Service } from '@/components/ServiceManager/service'
-import installedVersions from '@/util/InstalledVersions'
 import type { AllAppModule } from '@/core/type'
 
 type ServiceActionExtParamFN = (
@@ -135,7 +133,7 @@ const exec = (
     if (ServiceActionExtParam?.[typeFlag]) {
       try {
         params = await ServiceActionExtParam[typeFlag](typeFlag, fn, version)
-      } catch (e) {
+      } catch {
         handleTaskFailed()
         return resolve(true)
       }
@@ -287,22 +285,4 @@ export const reloadWebServer = (hosts?: Array<AppHost>) => {
       }
     }
   }
-}
-
-export const reGetInstalled = (type: AllAppModule) => {
-  return new Promise((resolve) => {
-    const service = Service[type]
-    if (service?.fetching) {
-      resolve(true)
-      return
-    }
-    service.fetching = true
-    const brewStore = BrewStore()
-    const data = brewStore.module(type)
-    data!.installedInited = false
-    installedVersions.allInstalledVersions([type]).then(() => {
-      service.fetching = false
-      resolve(true)
-    })
-  })
 }

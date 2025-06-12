@@ -104,14 +104,15 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
   }
 
   const loading = computed(() => {
+    const module = brewStore.module(typeFlag)
     if (libSrc.value === 'brew') {
-      return BrewSetup.fetching[typeFlag] || BrewSetup.installing
+      return module.brewFetching || BrewSetup.installing
     }
     if (libSrc.value === 'port') {
-      return MacPortsSetup.fetching[typeFlag] || MacPortsSetup.installing
+      return module.portFetching || MacPortsSetup.installing
     }
     if (libSrc.value === 'static') {
-      return StaticSetup.fetching[typeFlag]
+      return module.staticFetching
     }
     return false
   })

@@ -24,7 +24,6 @@ class Maven extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('maven')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `maven-${a.version}`, 'bin/mvn')
           const zip = join(global.Server.Cache!, `maven-${a.version}.tar.gz`)
@@ -34,9 +33,9 @@ class Maven extends Base {
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
           a.type = 'maven'
-          dict[`maven-${a.version}`] = a
+          a.name = `Maven-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch (e) {
         console.log('fetchAllOnLineVersion error: ', e)
         resolve([])

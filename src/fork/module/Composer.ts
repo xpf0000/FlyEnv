@@ -28,7 +28,6 @@ class Composer extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('composer')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `composer-${a.version}`, 'composer')
           const zip = join(global.Server.Cache!, `composer-${a.version}.phar`)
@@ -38,9 +37,9 @@ class Composer extends Base {
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
           a.type = 'composer'
-          dict[`composer-${a.version}`] = a
+          a.name = `Composer-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch (e) {
         console.log('fetchAllOnLineVersion error: ', e)
         resolve([])

@@ -26,7 +26,6 @@ class Java extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('java')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(
             global.Server.AppDir!,
@@ -39,10 +38,10 @@ class Java extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`${a.type}-${a.version}`] = a
+          a.name = `${a.type}-${a.version}`
         })
-        resolve(dict)
-      } catch (e) {
+        resolve(all)
+      } catch {
         resolve({})
       }
     })

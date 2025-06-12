@@ -185,7 +185,6 @@ class Nginx extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('nginx')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `nginx-${a.version}`, 'sbin/nginx')
           const zip = join(global.Server.Cache!, `static-nginx-${a.version}.tar.xz`)
@@ -194,9 +193,9 @@ class Nginx extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`nginx-${a.version}`] = a
+          a.name = `Nginx-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch {
         resolve({})
       }

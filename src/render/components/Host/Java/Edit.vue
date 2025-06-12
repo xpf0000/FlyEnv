@@ -287,7 +287,6 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash-es'
-  import installedVersions from '@/util/InstalledVersions'
   import { dialog } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
@@ -378,7 +377,7 @@
     if (!name) {
       return
     }
-    for (let h of hosts.value) {
+    for (const h of hosts.value) {
       if (h.name === name && h.id !== item.value.id) {
         errs.value['name'] = true
         break
@@ -392,7 +391,7 @@
       if (!name) {
         return
       }
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === name && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
@@ -455,7 +454,7 @@
       }
       errs.value['projectName'] = item.value.projectName.length === 0
       if (item.value.projectName) {
-        for (let h of hosts.value) {
+        for (const h of hosts.value) {
           if (h?.projectName === item.value.projectName && h.id !== item.value.id) {
             errs.value['projectName'] = true
             break
@@ -467,7 +466,7 @@
       errs.value['root'] = item.value.root.length === 0
       errs.value['name'] = item.value.name.length === 0
       if (item.value.name) {
-        for (let h of hosts.value) {
+        for (const h of hosts.value) {
           if (h.name === item.value.name && h.id !== item.value.id) {
             errs.value['name'] = true
             break
@@ -520,8 +519,9 @@
   }
 
   if (jdks.value.length === 0) {
-    brewStore.module('java').installedInited = false
-    installedVersions.allInstalledVersions(['java']).then(() => {
+    const module = brewStore.module('java')
+    module.installedFetched = false
+    module.fetchInstalled().then(() => {
       if (!item.value.jdkDir && jdks.value.length > 0) {
         const jdk = jdks.value[0]
         item.value.jdkDir = jdk.bin
@@ -533,8 +533,9 @@
   }
 
   if (tomcats.value.length === 0) {
-    brewStore.module('tomcat').installedInited = false
-    installedVersions.allInstalledVersions(['tomcat']).then(() => {
+    const module = brewStore.module('tomcat')
+    module.installedFetched = false
+    module.fetchInstalled().then(() => {
       if (!item.value.tomcatDir && tomcats.value.length > 0) {
         const tomcat = tomcats.value[0]
         item.value.tomcatDir = tomcat.bin

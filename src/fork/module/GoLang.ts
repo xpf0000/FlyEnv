@@ -25,7 +25,6 @@ class GoLang extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('golang')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-go-${a.version}`, 'bin/go')
           const zip = join(global.Server.Cache!, `static-go-${a.version}.tar.gz`)
@@ -34,10 +33,10 @@ class GoLang extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`Go-${a.version}`] = a
+          a.name = `Go-${a.version}`
         })
-        resolve(dict)
-      } catch (e) {
+        resolve(all)
+      } catch {
         resolve({})
       }
     })

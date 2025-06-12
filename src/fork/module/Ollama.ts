@@ -152,7 +152,6 @@ class Ollama extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('ollama')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-ollama-${a.version}`, 'ollama')
           const zip = join(global.Server.Cache!, `static-ollama-${a.version}.tgz`)
@@ -161,9 +160,9 @@ class Ollama extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`ollama-${a.version}`] = a
+          a.name = `Ollama-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch {
         resolve({})
       }

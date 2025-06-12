@@ -117,3 +117,5 @@ export type ModuleExecItem = {
   isSudo?: boolean
   pidPath?: string
 }
+
+export type CallBackFn = (...args: any) => void

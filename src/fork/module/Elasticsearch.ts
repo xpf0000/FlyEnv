@@ -69,7 +69,6 @@ export ES_PATH_CONF="${join(version.path, 'config')}"
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('elasticsearch')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(
             global.Server.AppDir!,
@@ -83,9 +82,9 @@ export ES_PATH_CONF="${join(version.path, 'config')}"
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`elasticsearch-${a.version}`] = a
+          a.name = `Elasticsearch-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch {
         resolve({})
       }

@@ -93,8 +93,6 @@
   import AppVersions from './version_nodejs'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
-  import { Service } from '@/components/ServiceManager/service'
-  import installedVersions from '@/util/InstalledVersions'
   import { BrewStore } from '@/store/brew'
   import { dirname, join } from 'path-browserify'
   import { dialog, shell } from '@/util/NodeFn'
@@ -139,25 +137,18 @@
     return brewStore.module('node')?.installed ?? []
   })
 
-  const service = computed(() => {
-    return Service?.['node']
-  })
+  const nodeModule = brewStore.module('node')
 
-  if (nodes.value.length === 0 && !service?.value?.fetching) {
-    if (!service?.value) {
-      Service['node'] = {
-        fetching: true
-      }
-    }
-    service.value.fetching = true
-    installedVersions.allInstalledVersions(['node']).then(() => {
-      service.value.fetching = false
-
+  if (nodes.value.length === 0 && !nodeModule.fetchInstalleding && !nodeModule.installedFetched) {
+    nodeModule.fetchInstalled().then(() => {
       if (!ProjectSetup.form.NodeJS.node && nodes.value.length > 0) {
         const v: any = nodes.value[0]
         ProjectSetup.form.NodeJS.node = v.bin
       }
     })
+  } else if (nodes.value.length > 0 && !ProjectSetup.form.NodeJS.node) {
+    const v: any = nodes.value[0]
+    ProjectSetup.form.NodeJS.node = v.bin
   }
 
   const chooseRoot = () => {

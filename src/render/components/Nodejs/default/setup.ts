@@ -3,7 +3,6 @@ import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
-import installedVersions from '@/util/InstalledVersions'
 import { BrewStore } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import { join } from 'path-browserify'
@@ -94,8 +93,9 @@ export const Setup = () => {
           if (res?.data?.setEnv) {
             versionChange(item)
           }
-          brewStore.module('node').installedInited = false
-          installedVersions.allInstalledVersions(['node']).then()
+          const nodeModule = brewStore.module('node')
+          nodeModule.installedFetched = false
+          nodeModule.fetchInstalled().catch()
           MessageSuccess(I18nT('base.success'))
         } else if (res?.code === 1) {
           IPC.off(key)

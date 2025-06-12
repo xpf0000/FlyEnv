@@ -36,7 +36,6 @@ class Tomcat extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('tomcat')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-tomcat-${a.version}`, 'bin/catalina.sh')
           const zip = join(global.Server.Cache!, `static-tomcat-${a.version}.tar.gz`)
@@ -45,9 +44,9 @@ class Tomcat extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`tomcat-${a.version}`] = a
+          a.name = `Tomcat-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch {
         resolve({})
       }

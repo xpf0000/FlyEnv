@@ -4,8 +4,6 @@ import { BrewStore } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
 import type { AllAppModule } from '@/core/type'
-import installedVersions from '@/util/InstalledVersions'
-import { brewInfo } from '@/util/Brew'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { join, basename, dirname } from 'path-browserify'
@@ -14,14 +12,12 @@ import { clipboard, fs } from '@/util/NodeFn'
 export const BrewSetup = reactive<{
   installEnd: boolean
   installing: boolean
-  fetching: Partial<Record<AllAppModule, boolean>>
   xterm: XTerm | undefined
   checkBrew: () => void
   reFetch: () => void
 }>({
   installEnd: false,
   installing: false,
-  fetching: {},
   xterm: undefined,
   reFetch: () => 0,
   checkBrew() {
@@ -70,41 +66,26 @@ export const Setup = (typeFlag: AllAppModule) => {
   })
 
   const fetching = computed(() => {
-    return BrewSetup.fetching?.[typeFlag] ?? false
+    const module = brewStore.module(typeFlag)
+    return module.brewFetching
   })
 
-  const fetchData = (src: 'brew') => {
-    if (fetching.value) {
+  const fetchData = () => {
+    const module = brewStore.module(typeFlag)
+    if (module.brewFetching) {
       return
     }
-    BrewSetup.fetching[typeFlag] = true
-    const currentItem = brewStore.module(typeFlag)
-    const list = currentItem.list?.[src] ?? {}
-    brewInfo(typeFlag)
-      .then((res: any) => {
-        for (const k in list) {
-          delete list?.[k]
-        }
-        for (const name in res) {
-          list[name] = reactive(res[name])
-        }
-        BrewSetup.fetching[typeFlag] = false
-      })
-      .catch(() => {
-        BrewSetup.fetching[typeFlag] = false
-      })
+    module.fetchBrew()
   }
   const getData = () => {
     if (!checkBrew.value || fetching.value) {
       console.log('getData exit: ', checkBrew.value, fetching.value)
       return
     }
-    const currentItem = brewStore.module(typeFlag)
-    const src = 'brew'
-    const list = currentItem.list?.[src]
-    if (list && Object.keys(list).length === 0) {
+    const module = brewStore.module(typeFlag)
+    if (module.brew.length === 0) {
       if (typeFlag === 'php') {
-        if (src === 'brew' && !appStore?.config?.setup?.phpBrewInited) {
+        if (!appStore?.config?.setup?.phpBrewInited) {
           /**
            * First, fetch the installed PHP versions, and simultaneously install the shivammathur/php repository.
            * After a successful installation, refresh the data.
@@ -114,34 +95,29 @@ export const Setup = (typeFlag: AllAppModule) => {
           IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string, res: any) => {
             IPC.off(key)
             appStore.config.setup.phpBrewInited = true
-            appStore.saveConfig()
+            appStore.saveConfig().catch()
             if (res?.data === 2) {
-              fetchData('brew')
+              fetchData()
             }
           })
         }
       } else if (typeFlag === 'mongodb' && !appStore?.config?.setup?.mongodbBrewInited) {
-        if (src === 'brew') {
-          IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string, res: any) => {
-            IPC.off(key)
-            appStore.config.setup.mongodbBrewInited = true
-            appStore.saveConfig()
-            if (res?.data === 2) {
-              fetchData('brew')
-            }
-          })
-        }
+        IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string, res: any) => {
+          IPC.off(key)
+          appStore.config.setup.mongodbBrewInited = true
+          appStore.saveConfig().catch()
+          if (res?.data === 2) {
+            fetchData()
+          }
+        })
       }
-      fetchData(src)
+      fetchData()
     }
   }
 
   const reGetData = () => {
     console.log('reGetData !!!')
-    const list = brewStore.module(typeFlag).list?.['brew']
-    for (const k in list) {
-      delete list[k]
-    }
+    brewStore.module(typeFlag).brew.splice(0)
     getData()
   }
 
@@ -149,8 +125,9 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const regetInstalled = () => {
     reGetData()
-    brewStore.module(typeFlag).installedInited = false
-    installedVersions.allInstalledVersions([typeFlag]).then()
+    const module = brewStore.module(typeFlag)
+    module.installedFetched = false
+    module.fetchInstalled().catch()
   }
 
   const fetchCommand = (row: any) => {
@@ -207,9 +184,8 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const tableData = computed(() => {
     const arr = []
-    const list = brewStore.module(typeFlag).list?.['brew']
-    for (const name in list) {
-      const value = list[name]
+    const list = brewStore.module(typeFlag).brew
+    for (const value of list) {
       const nums = value.version.split('.').map((n: string, i: number) => {
         if (i > 0) {
           const num = parseInt(n)
@@ -225,15 +201,13 @@ export const Setup = (typeFlag: AllAppModule) => {
       })
       const num = parseInt(nums.join(''))
       Object.assign(value, {
-        name,
         version: value.version,
         installed: value.installed,
-        num,
-        flag: value.flag
+        num
       })
       arr.push(value)
     }
-    arr.sort((a, b) => {
+    arr.sort((a: any, b: any) => {
       return b.num - a.num
     })
     return arr

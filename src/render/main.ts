@@ -28,6 +28,7 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
   if (!inited) {
     inited = true
     const store = AppStore()
+    store.envIndex += 1
     AppCustomerModule.init()
     store
       .initConfig()

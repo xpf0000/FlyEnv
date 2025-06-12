@@ -701,7 +701,6 @@ xdebug.output_dir = "${output_dir}"
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('php')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-php-${a.version}`, 'sbin/php-fpm')
           const zip = join(global.Server.Cache!, `static-php-${a.version}.tar.gz`)
@@ -710,9 +709,9 @@ xdebug.output_dir = "${output_dir}"
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`php-${a.version}`] = a
+          a.name = `PHP-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch {
         resolve({})
       }

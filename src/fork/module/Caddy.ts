@@ -174,7 +174,6 @@ class Caddy extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('caddy')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-caddy-${a.version}`, 'caddy')
           const zip = join(global.Server.Cache!, `static-caddy-${a.version}.tar.gz`)
@@ -183,9 +182,9 @@ class Caddy extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`caddy-${a.version}`] = a
+          a.name = `Caddy-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch {
         resolve({})
       }

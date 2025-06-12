@@ -160,7 +160,6 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash-es'
   import { BrewStore } from '@/store/brew'
-  import installedVersions from '@/util/InstalledVersions'
   import { dirname, basename } from 'path-browserify'
   import { dialog } from '@/util/NodeFn'
 
@@ -316,8 +315,9 @@
   }
 
   if (pythons.value.length === 0) {
-    brewStore.module('python').installedInited = false
-    installedVersions.allInstalledVersions(['python']).then(() => {
+    const module = brewStore.module('python')
+    module.installedFetched = false
+    module.fetchInstalled().then(() => {
       if (!item.value.pythonDir && pythons.value.length > 0) {
         const jdk = pythons.value[0]
         item.value.pythonDir = jdk.bin

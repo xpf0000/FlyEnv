@@ -166,7 +166,6 @@ PLUGINS_DIR="${pluginsDir}"`
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('rabbitmq')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(
             global.Server.AppDir!,
@@ -179,9 +178,9 @@ PLUGINS_DIR="${pluginsDir}"`
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`rabbitmq-${a.version}`] = a
+          a.name = `RabbitMQ-${a.version}`
         })
-        resolve(dict)
+        resolve(all)
       } catch {
         resolve({})
       }

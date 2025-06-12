@@ -657,6 +657,7 @@ export default defineConfig([
       'no-mixed-spaces-and-tabs': 'off',
       'no-multi-spaces': 'off',
       'no-multiple-empty-lines': 'off',
+      'no-useless-escape': 'warn',
       'no-tabs': 0,
       'no-trailing-spaces': 'off',
       'no-whitespace-before-property': 'off',

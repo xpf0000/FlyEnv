@@ -54,7 +54,6 @@ class Minio extends Base {
       const bin = join(global.Server.AppDir!, `minio`, 'minio')
       const zip = join(global.Server.Cache!, 'minio')
       const arch = global.Server.isAppleSilicon ? 'arm64' : 'amd64'
-      const dict: any = {}
       const all: any[] = [
         {
           url: `https://dl.min.io/server/minio/release/darwin-${arch}/minio`,
@@ -63,13 +62,11 @@ class Minio extends Base {
           zip,
           downloaded: existsSync(zip),
           installed: existsSync(bin),
-          version: 'lasted'
+          version: 'lasted',
+          name: `Minio-lasted`
         }
       ]
-      all.forEach((a: any) => {
-        dict[`${a.version}`] = a
-      })
-      resolve(dict)
+      resolve(all)
     })
   }
 

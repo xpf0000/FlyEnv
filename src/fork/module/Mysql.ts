@@ -2,7 +2,7 @@ import { join, basename, dirname } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
-import type { MysqlGroupItem, OnlineVersionItem, SoftInstalled } from '@shared/app'
+import type { MysqlGroupItem, SoftInstalled } from '@shared/app'
 import {
   spawnPromiseMore,
   execPromise,
@@ -376,31 +376,6 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           }
           reject(err)
         })
-    })
-  }
-
-  fetchAllOnLineVersion() {
-    return new ForkPromise(async (resolve) => {
-      try {
-        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mysql')
-        all.forEach((a: any) => {
-          const dir = join(
-            global.Server.AppDir!,
-            `mysql-${a.version}`,
-            `mysql-${a.version}-winx64`,
-            'bin/mysqld.exe'
-          )
-          const zip = join(global.Server.Cache!, `mysql-${a.version}.zip`)
-          a.appDir = join(global.Server.AppDir!, `mysql-${a.version}`)
-          a.zip = zip
-          a.bin = dir
-          a.downloaded = existsSync(zip)
-          a.installed = existsSync(dir)
-        })
-        resolve(all)
-      } catch {
-        resolve([])
-      }
     })
   }
 

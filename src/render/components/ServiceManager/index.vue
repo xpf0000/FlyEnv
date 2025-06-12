@@ -48,16 +48,16 @@
           </template>
           <slot name="tool-left"></slot>
         </div>
-        <el-button class="button" :disabled="service?.fetching" link @click="resetData">
+        <el-button class="button" :disabled="fetching" link @click="resetData">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="refresh-icon"
-            :class="{ 'fa-spin': service?.fetching }"
+            :class="{ 'fa-spin': fetching }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
-    <el-table v-loading="service?.fetching" class="service-table" :data="versions">
+    <el-table v-loading="fetching" class="service-table" :data="versions">
       <el-table-column prop="version" width="140px">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{
@@ -262,8 +262,8 @@
   }>()
 
   const {
+    fetching,
     appStore,
-    service,
     versions,
     versionRunning,
     isInEnv,

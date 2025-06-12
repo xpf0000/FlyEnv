@@ -169,8 +169,6 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash-es'
   import { BrewStore } from '@/store/brew'
-  import { Service } from '@/components/ServiceManager/service'
-  import installedVersions from '@/util/InstalledVersions'
   import { dirname, join } from 'path-browserify'
   import { dialog, fs } from '@/util/NodeFn'
 
@@ -219,21 +217,8 @@
     return brewStore.module('node')?.installed ?? []
   })
 
-  const service = computed(() => {
-    return Service?.['node']
-  })
-
-  if (nodes.value.length === 0 && !service?.value?.fetching) {
-    if (!service?.value) {
-      Service['node'] = {
-        fetching: true
-      }
-    }
-    service.value.fetching = true
-    installedVersions.allInstalledVersions(['node']).then(() => {
-      service.value.fetching = false
-    })
-  }
+  const module = brewStore.module('node')
+  module.fetchInstalled().catch()
 
   watch(
     () => item.value.bin,
@@ -286,7 +271,7 @@
       if (!name) {
         return
       }
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === name && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
@@ -339,7 +324,7 @@
     errs.value['nodeDir'] = item.value.nodeDir.length === 0
     errs.value['root'] = item.value.root.length === 0
     if (item.value.projectName) {
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === item.value.projectName && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
