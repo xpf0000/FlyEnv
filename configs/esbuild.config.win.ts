@@ -20,9 +20,6 @@ const dist: BuildOptions = {
   minify: true,
   bundle: true,
   packages: 'external',
-  loader: {
-    '.node': 'file'
-  },
   format: 'esm',
   target: 'esnext',
   plugins: [BuildPlugin()],
@@ -36,12 +33,9 @@ const devFork: BuildOptions = {
   minify: false,
   bundle: true,
   packages: 'external',
-  loader: {
-    '.node': 'file'
-  },
   format: 'esm',
   target: 'esnext',
-  plugins: []
+  plugins: [BuildPlugin()]
 }
 
 const distFork: BuildOptions = {
@@ -51,43 +45,9 @@ const distFork: BuildOptions = {
   minify: true,
   bundle: true,
   packages: 'external',
-  loader: {
-    '.node': 'file'
-  },
   format: 'esm',
   target: 'esnext',
-  plugins: [],
-  drop: ['debugger', 'console']
-}
-
-const devHelper: BuildOptions = {
-  platform: 'node',
-  entryPoints: ['src/helper/index.ts'],
-  outfile: 'dist/helper/helper.mjs',
-  minify: false,
-  bundle: true,
-  packages: 'external',
-  loader: {
-    '.node': 'file'
-  },
-  format: 'esm',
-  target: 'esnext',
-  plugins: []
-}
-
-const distHelper: BuildOptions = {
-  platform: 'node',
-  entryPoints: ['src/helper/index.ts'],
-  outfile: 'dist/helper/helper.mjs',
-  minify: true,
-  bundle: true,
-  packages: 'external',
-  loader: {
-    '.node': 'file'
-  },
-  plugins: [],
-  format: 'esm',
-  target: 'esnext',
+  plugins: [BuildPlugin()],
   drop: ['debugger', 'console']
 }
 
@@ -95,7 +55,5 @@ export default {
   dev,
   dist,
   devFork,
-  distFork,
-  devHelper,
-  distHelper
+  distFork
 }

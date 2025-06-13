@@ -3,15 +3,14 @@ import { spawn, ChildProcess } from 'child_process'
 import { build } from 'esbuild'
 import _fs from 'fs-extra'
 import _path from 'path'
-// @ts-ignore
 import _md5 from 'md5'
 
 import viteConfig from '../configs/vite.config'
-import esbuildConfig from '../configs/esbuild.config'
 import { DoFix } from './fix'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
 import { createRequire } from 'node:module'
+import { ElectronKill, ElectronKillWin } from './electron-process-kill'
 const require = createRequire(import.meta.url)
 
 global.require = require
@@ -35,35 +34,27 @@ async function launchViteDevServer(openInBrowser = false) {
 function buildMainProcess() {
   return new Promise(async (resolve, reject) => {
     await DoFix()
-    Promise.all([
-      build(esbuildConfig.dev),
-      build(esbuildConfig.devFork),
-      build(esbuildConfig.devHelper)
-    ])
-      .then(
-        () => {
-          try {
-            if (electronProcess && !electronProcess.killed) {
-              electronProcess.kill('SIGINT')
-              if (electronProcess.pid) {
-                process.kill(electronProcess.pid, 'SIGINT')
-              }
-              electronProcess = null
-            }
-          } catch (e) {
-            console.log('close err: ', e)
-          }
-          resolve(true)
-          console.log('buildMainProcess !!!!!!')
-        },
-        (err) => {
-          console.log(err)
-        }
-      )
-      .catch((e) => {
-        console.log(e)
-        reject(e)
-      })
+    let promise: Promise<any> | undefined
+    if (process.env.PLATFORM === 'macOS') {
+      const config = (await import('../configs/esbuild.config')).default
+      promise = Promise.all([
+        build(config.dev),
+        build(config.devFork),
+        build(config.devHelper),
+        ElectronKill(electronProcess)
+      ])
+    } else if (process.env.PLATFORM === 'Windows') {
+      const config = (await import('../configs/esbuild.config.win')).default
+      promise = Promise.all([build(config.dev), build(config.devFork), ElectronKillWin()])
+    }
+    if (!promise) {
+      reject(new Error('No PLATFORM provided'))
+      return
+    }
+    promise.then(resolve).catch((e) => {
+      console.log('buildMainProcess error', e)
+      reject(e)
+    })
   })
 }
 
@@ -100,21 +91,13 @@ function runElectronApp() {
   })
 }
 
-if (process.env.TEST === 'electron') {
-  Promise.all([launchViteDevServer(), buildMainProcess()])
-    .then(() => {
-      runElectronApp()
-    })
-    .catch((err) => {
-      console.error(err)
-    })
-}
-
-if (process.env.TEST === 'browser') {
-  launchViteDevServer(true).then(() => {
-    console.log('Vite Dev Server Start !!!')
+Promise.all([launchViteDevServer(), buildMainProcess()])
+  .then(() => {
+    runElectronApp()
   })
-}
+  .catch((err) => {
+    console.error(err)
+  })
 
 // Watch for changes in main files
 let preveMd5 = ''

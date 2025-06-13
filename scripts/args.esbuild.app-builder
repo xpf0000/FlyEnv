@@ -1,7 +1,0 @@
---platform=node
---bundle
---packages=external
---inject:scripts/shim-dynamic-require.mjs
---format=esm
-scripts/app-builder.ts
---outfile=electron/app-builder.mjs
