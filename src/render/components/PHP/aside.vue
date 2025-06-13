@@ -18,7 +18,6 @@
 
 <script lang="ts" setup>
   import { computed } from 'vue'
-  import { startService, stopService } from '@/util/Service'
   import { passwordCheck } from '@/util/Brew'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
@@ -48,19 +47,19 @@
             if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
               if (!runNum.has(v.num!)) {
                 runNum.add(v.num!)
-                all.push(startService('php', v))
+                all.push(v.start())
               }
             }
           })
         } else {
           phpVersions?.value?.forEach((v) => {
             if (v?.version && v?.run) {
-              all.push(stopService('php', v))
+              all.push(v.stop())
             }
           })
         }
         Promise.all(all).then((res) => {
-          let find = res.find((s) => typeof s === 'string')
+          const find = res.find((s) => typeof s === 'string')
           if (find) {
             MessageError(find)
           } else {
@@ -89,7 +88,8 @@
       if (showItem?.value) {
         phpVersions?.value?.forEach((v) => {
           if (v?.version && v?.run) {
-            all.push(stopService('php', v))
+            const module = brewStore.module('php')
+            all.push(module.stop())
           }
         })
       }
@@ -100,7 +100,8 @@
           if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
             if (!runNum.has(v.num!)) {
               runNum.add(v.num!)
-              all.push(startService('php', v))
+              const module = brewStore.module('php')
+              all.push(module.start())
             }
           }
         })

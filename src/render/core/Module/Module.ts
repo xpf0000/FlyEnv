@@ -36,6 +36,7 @@ export class Module {
   onItemStart(item: ModuleInstalledItem): Promise<Module> {
     return new Promise((resolve) => {
       if (!this.isOnlyRunOne) {
+        console.log('onItemStart exit: ', this.typeFlag)
         resolve(this)
         return
       }
@@ -220,12 +221,13 @@ export class Module {
       })
   }
 
-  start() {
+  start(): Promise<string | boolean> {
     return new Promise((resolve) => {
       if (this.installed.length === 0) {
         resolve(true)
         return
       }
+      console.log('start: ', this, this.typeFlag, this.isOnlyRunOne)
       if (!this.isOnlyRunOne) {
         Promise.all(this.installed.map((a) => a.start()))
           .then((arrs) => {
@@ -270,7 +272,7 @@ export class Module {
     })
   }
 
-  stop() {
+  stop(): Promise<string | boolean> {
     return new Promise((resolve) => {
       if (!this.installed.length) {
         resolve(true)

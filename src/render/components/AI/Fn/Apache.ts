@@ -1,7 +1,6 @@
 import type BaseTask from '@/components/AI/Task/BaseTask'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
-import { startService } from '@/util/Service'
 import { AIStore } from '@/components/AI/store'
 import { killPort } from '@/components/AI/Fn/Util'
 import { I18nT } from '@lang/index'
@@ -21,7 +20,7 @@ export function startApache(this: BaseTask) {
       reject(new Error(I18nT('ai.noAvailableVersion')))
       return
     }
-    const res = await startService('apache', apache)
+    const res = await brewStore.module('apache').start()
     if (res === true) {
       const aiStore = AIStore()
       aiStore.chatList.push({

@@ -24,10 +24,10 @@
 
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
-  import { startService, stopService } from '@/util/Service'
   import { AppStore } from '@/store/app'
   import { MysqlStore } from '@/components/Mysql/mysql'
   import { computed } from 'vue'
+  import { BrewStore } from '@/store/brew'
 
   const {
     showItem,
@@ -42,6 +42,7 @@
   } = AsideSetup('mysql')
 
   const appStore = AppStore()
+  const brewStore = BrewStore()
   const mysqlStore = MysqlStore()
 
   const groupRun = computed(() => {
@@ -52,7 +53,8 @@
     const all: Array<Promise<string | boolean>> = []
     if (isRunning) {
       if (showItem?.value && serviceRunning?.value && currentVersion?.value?.version) {
-        all.push(stopService('mysql', currentVersion?.value))
+        const module = brewStore.module('mysql')
+        all.push(module.stop())
         if (groupRun?.value) {
           all.push(mysqlStore.groupStop())
         }
@@ -62,7 +64,8 @@
         return all
       }
       if (showItem?.value && currentVersion?.value?.version) {
-        all.push(startService('mysql', currentVersion?.value))
+        const module = brewStore.module('mysql')
+        all.push(module.start())
         if (!groupRun?.value) {
           all.push(mysqlStore.groupStart())
         }

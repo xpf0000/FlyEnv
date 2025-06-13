@@ -1,7 +1,6 @@
 import type BaseTask from '@/components/AI/Task/BaseTask'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
-import { startService } from '@/util/Service'
 import { AIStore } from '@/components/AI/store'
 import { I18nT } from '@lang/index'
 
@@ -20,7 +19,7 @@ export function startMysql(this: BaseTask) {
       reject(new Error(I18nT('ai.noAvailableVersion')))
       return
     }
-    const res = await startService('mysql', mysql)
+    const res = await brewStore.module('mysql').start()
     if (res === true) {
       const aiStore = AIStore()
       aiStore.chatList.push({

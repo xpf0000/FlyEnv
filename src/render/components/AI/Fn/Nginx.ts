@@ -1,7 +1,6 @@
 import type BaseTask from '@/components/AI/Task/BaseTask'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
-import { startService } from '@/util/Service'
 import { AIStore } from '@/components/AI/store'
 import { killPort } from './Util'
 import { I18nT } from '@lang/index'
@@ -21,7 +20,7 @@ export function startNginx(this: BaseTask) {
       reject(new Error(I18nT('ai.noAvailableVersion')))
       return
     }
-    const res = await startService('nginx', nginx)
+    const res = await brewStore.module('nginx').start()
     if (res === true) {
       const aiStore = AIStore()
       aiStore.chatList.push({

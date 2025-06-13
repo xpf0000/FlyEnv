@@ -2,13 +2,13 @@ import { computed, ComputedRef, reactive } from 'vue'
 import { AppHost, AppStore } from '@/store/app'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-import { startService, stopService } from '@/util/Service'
 import { MessageError } from '@/util/Element'
 import { MysqlStore } from '@/components/Mysql/mysql'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { handleWriteHosts } from '@/util/Host'
 import type { AllAppModule } from '@/core/type'
 import { shell } from '@/util/NodeFn'
+import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 
 export const Setup = (typeFlag: AllAppModule) => {
   const appStore = AppStore()
@@ -67,18 +67,18 @@ export const Setup = (typeFlag: AllAppModule) => {
     shell.openPath(dir)
   }
 
-  const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: SoftInstalled) => {
+  const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: ModuleInstalledItem) => {
     if (!item?.version || !item?.path) {
       return
     }
     let action: any
     switch (flag) {
       case 'stop':
-        action = stopService(typeFlag, item)
+        action = item.stop()
         break
       case 'start':
       case 'restart':
-        action = startService(typeFlag, item)
+        action = item.start()
         break
     }
     action.then((res: any) => {

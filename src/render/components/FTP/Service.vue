@@ -77,7 +77,6 @@
   import { FtpStore } from './ftp'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import { startService, stopService } from '@/util/Service'
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { Edit, Delete } from '@element-plus/icons-vue'
@@ -157,14 +156,15 @@
     if (ftpDisabled?.value) {
       return
     }
+    const module = brewStore.module('pure-ftpd')
     let action: any
     switch (flag) {
       case 'stop':
-        action = stopService('pure-ftpd', ftpVersion.value!)
+        action = module.stop()
         break
       case 'start':
       case 'restart':
-        action = startService('pure-ftpd', ftpVersion.value!)
+        action = module.start()
         break
     }
     action.then((res: any) => {

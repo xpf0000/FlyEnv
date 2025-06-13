@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { AllAppModule } from '@/core/type'
 import { AppStore } from '@/store/app'
 import type { Module } from '@/core/Module/Module'
+import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 
 export interface SoftInstalled {
   version: string | null
@@ -59,13 +60,22 @@ export const BrewStore = defineStore('brew', {
     module(flag: AllAppModule): Module {
       return this.modules[flag] as any
     },
-    currentVersion(flag: AllAppModule): SoftInstalled | undefined {
+    currentVersion(flag: AllAppModule): ModuleInstalledItem | undefined {
       const appStore = AppStore()
       const current = appStore.config.server?.[flag]?.current
-      if (!current) {
-        return undefined
-      }
       const installed = this.module(flag).installed
+      if (!current) {
+        if (!installed.length) {
+          return undefined
+        }
+        const find = installed[0]
+        appStore.UPDATE_SERVER_CURRENT({
+          flag,
+          data: JSON.parse(JSON.stringify(find))
+        })
+        appStore.saveConfig().catch()
+        return find
+      }
       return installed?.find((i) => i.path === current?.path && i.version === current?.version)
     }
   }

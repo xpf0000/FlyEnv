@@ -1,12 +1,13 @@
 import type BaseTask from '@/components/AI/Task/BaseTask'
-import { startService } from '@/util/Service'
 import { AIStore } from '@/components/AI/store'
 import type { SoftInstalled } from '@shared/app'
 import { I18nT } from '@lang/index'
+import { BrewStore } from '@/store/brew'
 
 export function startPhp(this: BaseTask, version: SoftInstalled) {
   return new Promise(async (resolve, reject) => {
-    const res = await startService('php', version)
+    const brewStore = BrewStore()
+    const res = await brewStore.module('php').start()
     if (res === true) {
       const aiStore = AIStore()
       aiStore.chatList.push({
