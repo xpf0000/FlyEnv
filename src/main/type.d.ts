@@ -1,5 +1,5 @@
 import { Server } from 'http'
-import type { IPty } from 'node-pty'
+import type { IPty } from '@lydell/node-pty'
 
 export interface StaticHttpServe {
   server: Server
