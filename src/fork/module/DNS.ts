@@ -5,10 +5,18 @@ import dns2 from 'dns2'
 import { Packet } from 'dns2'
 import * as ip from 'ip'
 import { join } from 'path'
+import Tangerine from 'tangerine';
 
-const Tangerine = require('@shared/Tangerine.js')
-
-const tangerine = new Tangerine()
+const tangerine = new Tangerine({
+  servers: new Set([
+    '1.1.1.1',
+    '1.0.0.1',
+    '8.8.8.8',
+    '119.28.28.28',
+    '223.5.5.5',
+    '114.114.114.114'
+  ]),
+})
 
 class Manager extends Base {
   server: any
