@@ -11,7 +11,7 @@
     "dev": "cross-env NODE_ENV=development TEST=electron tsx scripts/dev-runner.ts",
     "clean": "rd /s /q dist",
     "build": "cross-env NODE_ENV=production tsx electron/app-builder.ts",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "electron-builder install-app-deps"
   },
   "main": "./dist/electron/main.js",
   "optionalDependencies": {
