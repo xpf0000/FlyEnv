@@ -12,6 +12,7 @@ import ZH from '@lang/zh'
 import EN from '@lang/en'
 import { AppAllLang, AppI18n } from '@lang/index'
 import { createMarkdownRenderer } from '@/util/markdown/markdown'
+import { isLinux, isMacOS } from '@shared/utils'
 const require = createRequire(import.meta.url)
 
 const { pki } = require('node-forge')
@@ -179,13 +180,17 @@ export class AppNodeFn {
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
       .catch(() => {
-        Helper.send('tools', 'writeFileByRoot', path, data)
-          .then(() => {
-            this?.mainWindow?.webContents.send('command', command, key, true)
-          })
-          .catch(() => {
-            this?.mainWindow?.webContents.send('command', command, key, false)
-          })
+        if (isMacOS() || isLinux()) {
+          Helper.send('tools', 'writeFileByRoot', path, data)
+            .then(() => {
+              this?.mainWindow?.webContents.send('command', command, key, true)
+            })
+            .catch(() => {
+              this?.mainWindow?.webContents.send('command', command, key, false)
+            })
+        } else {
+          this?.mainWindow?.webContents.send('command', command, key, false)
+        }
       })
   }
 
@@ -244,13 +249,17 @@ export class AppNodeFn {
         this?.mainWindow?.webContents.send('command', command, key, data)
       })
       .catch(() => {
-        Helper.send('tools', 'readFileByRoot', path)
-          .then((data) => {
-            this?.mainWindow?.webContents.send('command', command, key, data)
-          })
-          .catch(() => {
-            this?.mainWindow?.webContents.send('command', command, key, '')
-          })
+        if (isMacOS() || isLinux()) {
+          Helper.send('tools', 'readFileByRoot', path)
+            .then((data) => {
+              this?.mainWindow?.webContents.send('command', command, key, data)
+            })
+            .catch(() => {
+              this?.mainWindow?.webContents.send('command', command, key, '')
+            })
+        } else {
+          this?.mainWindow?.webContents.send('command', command, key, '')
+        }
       })
   }
 
@@ -260,13 +269,17 @@ export class AppNodeFn {
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
       .catch(() => {
-        Helper.send('tools', 'writeFileByRoot', path, data)
-          .then(() => {
-            this?.mainWindow?.webContents.send('command', command, key, true)
-          })
-          .catch(() => {
-            this?.mainWindow?.webContents.send('command', command, key, false)
-          })
+        if (isMacOS() || isLinux()) {
+          Helper.send('tools', 'writeFileByRoot', path, data)
+            .then(() => {
+              this?.mainWindow?.webContents.send('command', command, key, true)
+            })
+            .catch(() => {
+              this?.mainWindow?.webContents.send('command', command, key, false)
+            })
+        } else {
+          this?.mainWindow?.webContents.send('command', command, key, false)
+        }
       })
   }
 

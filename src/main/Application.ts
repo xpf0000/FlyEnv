@@ -11,12 +11,11 @@ import { existsSync, readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
 import { getLanguage, isAppleSilicon, mkdirp, readFile, writeFile } from './utils'
 import { AppI18n, I18nT, AppAllLang } from '@lang/index'
-import DnsServerManager from './core/DNS'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
 import { execPromiseRoot, spawnAsync } from './core/Exec'
-import { arch } from 'os'
+import { arch } from 'node:os'
 import { PItem, ProcessListByPid } from '@shared/Process'
 import NodePTY from './core/NodePTY'
 import HttpServer from './core/HttpServer'
@@ -88,9 +87,6 @@ export default class Application extends EventEmitter {
         link
       )
     })
-    DnsServerManager.onLog((msg: any) => {
-      this.windowManager.sendCommandTo(this.mainWindow!, 'App_DNS_Log', 'App_DNS_Log', msg)
-    })
     if (!is.dev()) {
       this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
     }
@@ -117,9 +113,9 @@ export default class Application extends EventEmitter {
   }
 
   initTrayManager() {
-    this.trayManager.on('click', (x, poperX) => {
+    this.trayManager.on('click', (x, y, poperX) => {
       if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
-        this?.trayWindow?.setPosition(Math.round(x), 0)
+        this?.trayWindow?.setPosition(Math.round(x), Math.round(y))
         this?.trayWindow?.setOpacity(1.0)
         this?.trayWindow?.show()
         this.windowManager.sendCommandTo(
@@ -132,6 +128,10 @@ export default class Application extends EventEmitter {
       } else {
         this?.trayWindow?.hide()
       }
+    })
+
+    this.trayManager.on('double-click', () => {
+      this.show('index')
     })
   }
 
@@ -362,7 +362,6 @@ export default class Application extends EventEmitter {
     logger.info('[PhpWebStudy] application stop !!!')
     try {
       ScreenManager.destroy()
-      DnsServerManager.close()
       SiteSuckerManager.destory()
       this.forkManager?.destory()
       await this.stopServer()
@@ -855,23 +854,6 @@ export default class Application extends EventEmitter {
       case 'NodePty:stop':
         NodePTY.stop(args[0])
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0 })
-        break
-      case 'DNS:start':
-        if (DnsServerManager.running) {
-          this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-          return
-        }
-        DnsServerManager.start()
-          .then(() => {
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-          })
-          .catch((e) => {
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, e.toString())
-          })
-        break
-      case 'DNS:stop':
-        DnsServerManager.close()
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
         break
       case 'app-sitesucker-run':
         {

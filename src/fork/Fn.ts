@@ -8,7 +8,7 @@ import {
   statSync,
   type FSWatcher
 } from 'fs'
-import path, { basename, dirname, join } from 'path'
+import path, { basename, dirname, join, normalize } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -20,7 +20,7 @@ import Helper from './Helper'
 import { I18nT } from '@lang/index'
 import { format } from 'date-fns'
 import EnvSync from './util/EnvSync'
-import { userInfo } from 'os'
+import { hostname, userInfo } from 'os'
 import _node_machine_id from 'node-machine-id'
 
 const { machineId } = _node_machine_id
@@ -120,6 +120,34 @@ export function waitTime(time: number) {
       resolve(true)
     }, time)
   })
+}
+
+export async function setDir777ToCurrentUser(folderPath: string) {
+  if (!existsSync(folderPath)) {
+    return
+  }
+  const username = userInfo().username
+  const domain = hostname()
+  const identity = `"${domain}\\${username}"`
+
+  const args = [`"${normalize(folderPath)}"`, '/grant', `${identity}:(F)`, '/t', '/c', '/q']
+
+  console.log(`Executing: icacls ${args.join(' ')}`)
+  await appendFile(
+    join(global.Server.BaseDir!, 'debug.log'),
+    `[setDir777ToCurrentUser][args]: icacls ${args.join(' ')}\n`
+  )
+  try {
+    await spawnPromise('icacls', args, {
+      shell: true,
+      windowsHide: true
+    })
+  } catch (e) {
+    await appendFile(
+      join(global.Server.BaseDir!, 'debug.log'),
+      `[setDir777ToCurrentUser][error]: ${e}\n`
+    )
+  }
 }
 
 export function spawnPromise(

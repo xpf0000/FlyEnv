@@ -1,8 +1,10 @@
 import { EventEmitter } from 'events'
-import { app } from 'electron'
+import { app, Menu } from 'electron'
 import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
+import type { CallBackFn } from '@shared/app.d'
+import { isMacOS, isWindows } from '@shared/utils'
 
 export default class Launcher extends EventEmitter {
   exceptionHandler?: ExceptionHandler
@@ -14,7 +16,7 @@ export default class Launcher extends EventEmitter {
     })
   }
 
-  makeSingleInstance(callback: Function) {
+  makeSingleInstance(callback: CallBackFn) {
     const gotSingleLock = app.requestSingleInstanceLock()
     if (!gotSingleLock) {
       app.quit()
@@ -22,7 +24,9 @@ export default class Launcher extends EventEmitter {
       app.on('second-instance', (event, argv, workingDirectory) => {
         logger.warn('second-instance====>', argv, workingDirectory)
         global.application.showPage('index')
-        app.dock.show().then()
+        if (isMacOS()) {
+          app.dock?.show()?.catch()
+        }
       })
       callback()
     }
@@ -44,25 +48,30 @@ export default class Launcher extends EventEmitter {
       global.application = new Application()
       global.application.start('index')
       global.application.on('ready', () => {})
+      if (isWindows()) {
+        Menu.setApplicationMenu(null)
+      }
     })
 
     app.on('activate', () => {
       console.log('app on activate !!!!!!')
       if (global.application) {
-        logger.info('[PhpWebStudy] activate')
+        logger.info('[FlyEnv] activate')
         global.application.showPage('index')
-        app.dock.show().then()
+        if (isMacOS()) {
+          app.dock?.show()?.catch()
+        }
       }
     })
   }
 
   handleAppWillQuit() {
     app.on('will-quit', () => {
-      logger.info('[PhpWebStudy] will-quit')
+      logger.info('[FlyEnv] will-quit')
       if (global.application) {
         global.application.stop()
       } else {
-        logger.info('[PhpWebStudy] global.application is null !!!')
+        logger.info('[FlyEnv] global.application is null !!!')
       }
     })
   }

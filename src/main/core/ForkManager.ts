@@ -115,6 +115,8 @@ class ForkItem {
 export class ForkManager {
   file: string
   forks: Array<ForkItem> = []
+  ftpsrvFork?: ForkItem
+  dnsFork?: ForkItem
   serviceFork?: ForkItem
   ollamaChatFork?: ForkItem
 
@@ -130,6 +132,20 @@ export class ForkManager {
   send(...args: any) {
     const param = [...args]
     const module = param.shift()
+    if (module === 'ftp-srv') {
+      if (!this.ftpsrvFork) {
+        this.ftpsrvFork = new ForkItem(this.file, false)
+        this.ftpsrvFork._on = this._on
+      }
+      return this.ftpsrvFork!.send(...args)
+    }
+    if (module === 'dns') {
+      if (!this.dnsFork) {
+        this.dnsFork = new ForkItem(this.file, false)
+        this.dnsFork._on = this._on
+      }
+      return this.dnsFork!.send(...args)
+    }
     if (module === 'service') {
       if (!this.serviceFork) {
         this.serviceFork = new ForkItem(this.file, false)

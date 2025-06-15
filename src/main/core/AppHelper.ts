@@ -20,7 +20,7 @@ class AppHelper {
         client.end()
         try {
           client.destroySoon()
-        } catch (e) {}
+        } catch {}
         resolve(true)
         console.timeEnd('AppHelper check')
       })
@@ -36,7 +36,7 @@ class AppHelper {
       client.on('error', () => {
         try {
           client.destroySoon()
-        } catch (e) {}
+        } catch {}
         reject(new Error('Connect helper failed'))
         console.timeEnd('AppHelper check')
       })
@@ -63,17 +63,17 @@ class AppHelper {
               Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${vhostLogs}"`)
                 .then()
                 .catch()
-            } catch (e) {}
+            } catch {}
             try {
               Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${nginxLogs}"`)
                 .then()
                 .catch()
-            } catch (e) {}
+            } catch {}
             try {
               Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${apacheLogs}"`)
                 .then()
                 .catch()
-            } catch (e) {}
+            } catch {}
             logger.info('[FlyEnv][initHelper][doChech] time: ', time)
             this.state = 'normal'
             resolve(true)

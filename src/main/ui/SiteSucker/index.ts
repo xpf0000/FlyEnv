@@ -6,6 +6,7 @@ import { Store } from './Store'
 import { urlToDir } from './Fn'
 import { CallBack, LinkItem, type PageLink } from './LinkItem'
 import { cpus } from 'os'
+import type { CallBackFn } from '@shared/app'
 
 const CPU_Count = cpus().length
 
@@ -14,7 +15,7 @@ type RunParams = {
   config: RunConfig
 }
 class SiteSucker {
-  setCallBack(fn: Function) {
+  setCallBack(fn: CallBackFn) {
     CallBack.fn = fn
   }
   show(item: RunParams) {

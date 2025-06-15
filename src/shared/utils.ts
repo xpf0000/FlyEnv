@@ -5,6 +5,7 @@ import { cpus } from 'os'
 import { join } from 'path'
 import _fs from 'fs-extra'
 import { promisify } from 'util'
+import { platform } from 'node:os'
 
 const { chmod, copyFile, appendFile } = _fs
 const execPromise = promisify(exec)
@@ -126,4 +127,18 @@ export function isAppleSilicon() {
 export function md5(str: string) {
   const md5 = crypto.createHash('md5')
   return md5.update(str).digest('hex')
+}
+
+const os = platform()
+
+export function isWindows() {
+  return os === 'win32'
+}
+
+export function isMacOS() {
+  return os === 'darwin'
+}
+
+export function isLinux() {
+  return os === 'linux'
 }

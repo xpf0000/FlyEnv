@@ -5,9 +5,11 @@ import { debounce } from 'lodash-es'
 import Event = Electron.Main.Event
 import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions
 import { join } from 'path'
+import { isMacOS, isWindows } from '@shared/utils'
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
+  autoHideMenuBar: isWindows(),
   show: false,
   width: 1200,
   height: 800,
@@ -226,7 +228,9 @@ export default class WindowManager extends EventEmitter {
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
         window.hide()
-        app.dock.hide()
+        if (isMacOS()) {
+          app.dock?.hide?.()
+        }
       }
       const bounds = window.getBounds()
       this.emit('window-closed', { page, bounds })
@@ -239,7 +243,9 @@ export default class WindowManager extends EventEmitter {
       return
     }
     window.show()
-    app.dock.show().then()
+    if (isMacOS()) {
+      app.dock?.show?.()?.catch()
+    }
   }
 
   hideWindow(page: string) {
