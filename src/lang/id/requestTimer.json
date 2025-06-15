@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "Pencarian DNS",
+  "tcpConnect": "Koneksi TCP",
+  "tlsHandshake": "Proses TLS Handshake",
+  "requestProcessing": "Pemrosesan Permintaan",
+  "ttfb": "Waktu ke Byte Pertama (TTFB)",
+  "contentDownload": "Unduh Konten",
+  "downloadSpeed": "Kecepatan Unduh",
+  "dataSize": "Ukuran Data",
+  "httpVersion": "Versi HTTP",
+  "statusCode": "Kode Status",
+  "usingProxy": "Menggunakan Proxy",
+  "totalTime": "Total Waktu",
+  "skippedForProxy": "Dilewati untuk proxy",
+  "metric": "Metrik",
+  "value": "Nilai"
+}

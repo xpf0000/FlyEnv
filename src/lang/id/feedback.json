@@ -1,0 +1,10 @@
+{
+  "email": "Email",
+  "country": "Negara",
+  "message": "Pesan",
+  "messagelengthErr": "Panjang pesan adalah 5 - 1024 karakter",
+  "sendMessage": "Kirim Pesan",
+  "anythingToSay": "Ada yang ingin disampaikan?",
+  "noSelected": "Tidak Ada yang Dipilih",
+  "inputFilter": "Masukkan untuk Filter"
+}

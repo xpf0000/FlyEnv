@@ -1,0 +1,10 @@
+{
+  "gzip": "Mengaktifkan kompresi GZIP untuk transmisi",
+  "gzip_min_length": "Ukuran file minimum yang akan dikompresi",
+  "gzip_comp_level": "Tingkat kompresi",
+  "client_max_body_size": "Ukuran file unggahan maksimum",
+  "server_names_hash_max_size": "Ukuran maksimum tabel hash untuk nama server",
+  "server_names_hash_bucket_size": "Ukuran bucket tabel hash untuk nama server",
+  "client_header_buffer_size": "Ukuran buffer header permintaan dari klien",
+  "client_body_buffer_size": "Ukuran buffer body permintaan"
+}

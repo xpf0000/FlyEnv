@@ -1,0 +1,15 @@
+{
+  "binNoFound": "File startup tidak ada, operasi gagal.",
+  "confNoFound": "File konfigurasi tidak ada, server gagal untuk dimulai.",
+  "apacheLogPathErr": "Path log pada file konfigurasi salah, dan pengalihan gagal.",
+  "versionError": "Versi salah, silakan pilih lagi.",
+  "hostsFileNoFound": "File hosts tidak ditemukan.",
+  "startFail": "Gagal untuk memulai, silakan periksa file log.",
+  "command": "Perintah",
+  "ExtensionInstallFail": "Pemasangan ekstensi gagal.",
+  "ExtensionInstallFailTips": "Pasang ekstensi dan jalankan perintah:\n{command}\nJika pemasangan gagal, Anda bisa mencoba menyalin perintah dan mencoba memasangnya sendiri.",
+  "versionNoFound": "Gagal mendapatkan versi perangkat lunak, operasi gagal.",
+  "postgresqlInit": "Layanan berhasil dimulai\nDirektori Data adalah {dir}\nPengguna Awal adalah root, Kata Sandi adalah root.",
+  "downFileFail": "Gagal mengunduh file!",
+  "trialEnd": "Masa percobaan telah berakhir. Untuk terus menggunakan fitur ini, silakan dapatkan lisensi."
+}
