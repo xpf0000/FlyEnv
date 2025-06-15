@@ -1,0 +1,21 @@
+{
+  "startServiceBegin": "Avvio del servizio {service} in corso...",
+  "confInit": "Il file di configurazione non esiste. Generazione di un nuovo file di configurazione",
+  "confInitSuccess": "File di configurazione generato con successo, percorso file: {file}",
+  "confInitFail": "Generazione del file di configurazione fallita, motivo: {error}",
+  "apachePortHandleBegin": "Inizio acquisizione di tutte le porte di ascolto Apache dai siti",
+  "apachePortHandleEnd": "Acquisizione delle porte di ascolto Apache completata, scrittura del file di configurazione riuscita",
+  "execStartCommand": "Inizio esecuzione del comando di avvio",
+  "execStartCommandSuccess": "Comando di avvio eseguito con successo, verifica dell’avvio in corso",
+  "execStartCommandFail": "Esecuzione del comando di avvio fallita, motivo: {error}, avvio del servizio {service} non riuscito",
+  "startServiceSuccess": "Servizio {service} avviato con successo, pid: {pid}",
+  "startServiceFail": "Avvio del servizio {service} fallito, motivo: {error}",
+  "stopServiceBegin": "Arresto del servizio {service} in corso",
+  "stopServiceEnd": "Servizio {service} arrestato con successo",
+  "initDBPass": "Inizio inizializzazione della password del database",
+  "initDBPassSuccess": "Password del database inizializzata con successo, credenziali: {user} {pass}",
+  "initDBPassFail": "Inizializzazione della password del database fallita, motivo: {error}",
+  "initDBDataDir": "Cartella dati non trovata, avvio inizializzazione della cartella dati",
+  "initDBDataDirSuccess": "Cartella dati inizializzata con successo, percorso: {dir}",
+  "initDBDataDirFail": "Inizializzazione della cartella dati fallita, motivo: {error}"
+}

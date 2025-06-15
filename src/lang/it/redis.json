@@ -1,0 +1,6 @@
+{
+  "timeout": "Timeout per connessioni inattive, 0 indica apertura continua",
+  "databases": "Numero di database",
+  "requirepass": "Password di Redis",
+  "maxmemory": "Byte, utilizzo massimo della memoria, 0 indica nessun limite"
+}

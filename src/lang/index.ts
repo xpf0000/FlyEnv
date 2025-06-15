@@ -39,6 +39,7 @@ import VI from './vi/index'
 import FR from './fr/index'
 import PT from './pt/index'
 import PTBR from './pt-br/index'
+import IT from './it/index'
 
 type AppendStringToKeys<T extends object, Prefix extends string = ''> = {
   [K in keyof T]: K extends string
@@ -91,7 +92,8 @@ export const AppAllLang = {
   vi: 'Tiếng Việt',
   fr: 'Français',
   pt: 'Português',
-  'pt-br': 'Português (Brasil)'
+  'pt-br': 'Português (Brasil)',
+  it: 'Italiano',
 }
 
 const lang = {
@@ -100,7 +102,8 @@ const lang = {
   ...VI,
   ...FR,
   ...PT,
-  ...PTBR
+  ...PTBR,
+  ...IT,
 }
 
 let i18n: I18n
