@@ -1,0 +1,43 @@
+{
+  "Licenses": "Licença",
+  "requestedTips": "A solicitação de licença foi enviada, por favor seja paciente e aguarde. Se precisar modificar as informações, pode reenviar",
+  "licenseActivated": "Licença Ativada",
+  "autoStartService": "Iniciar Serviços Automaticamente",
+  "autoStartServiceTips": "Se deve iniciar automaticamente os serviços quando a App é iniciada",
+  "autoHide": "Ocultar Interface Automaticamente",
+  "autoHideTips": "Se deve ocultar a interface principal e manter apenas o ícone da bandeja após iniciar automaticamente o serviço",
+  "autoLunach": "Iniciar Automaticamente na Inicialização",
+  "autoLunachTips": "Se deve iniciar automaticamente a App quando o computador inicializa",
+  "langTips": "Carregar pacotes de idioma definidos pelo utilizador. Ao mesmo tempo, um pacote de idioma padrão será inicializado para facilitar aos utilizadores a tradução para outros idiomas",
+  "openLangDir": "Abrir a pasta do pacote de idioma",
+
+  "moduleCateAddTips": "Adicionar Categoria de Módulo",
+  "moduleCateName": "Nome da Categoria do Módulo",
+  "moduleAdd": "Adicionar Módulo",
+  "moduleCateDelTips": "Módulos sob esta categoria também serão excluídos. Confirmar exclusão?",
+
+  "moduleTitle": "Módulo",
+  "moduleName": "Nome do Módulo",
+  "moduleIcon": "Ícone do Módulo",
+  "moduleIsService": "O Módulo é um Serviço?",
+  "moduleIsOnlyRunOne": "Apenas um serviço pode executar por vez",
+  "moduleExecItem": "Item de Execução do Módulo",
+
+  "module": {
+    "name": "Nome",
+    "path": "Caminho do Ficheiro",
+    "comment": "Comentário",
+    "exec": "Executar",
+    "command": "Comando",
+    "commandFile": "Ficheiro",
+    "isSudo": "Executar com sudo?",
+    "pidPath": "Caminho do Ficheiro PID",
+    "configPath": "Ficheiro de Configuração",
+    "logPath": "Ficheiro de Log",
+    "needPasswordToStart": "Direitos de administrador necessários. Digite a sua palavra-passe (ela será guardada para uso futuro). Alternativamente, digite manualmente no terminal, mas este prompt pode reaparecer.",
+    "hadOpenInTerminal": "Já a executar no terminal—resultados indisponíveis.",
+    "licenseTips": "Nenhuma licença encontrada. Apenas 3 módulos/itens de execução podem ser criados.",
+    "commandTips": "Por favor digite um comando PowerShell ou CMD",
+    "commandFileTips": "Selecione um ficheiro PowerShell, CMD ou BAT"
+  }
+}
