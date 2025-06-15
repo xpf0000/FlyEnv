@@ -15,6 +15,7 @@
     "clean": "rd /s /q dist",
     "build": "npx esbuild --platform=node --bundle --external:vite --external:esbuild --external:electron-builder --external:consolidate --external:@vue/compiler-sfc scripts/app-builder.ts --outfile=electron/app-builder.js && cross-env NODE_ENV=production node electron/app-builder.js",
     "postinstall": "electron-builder install-app-deps"
+    "test": "npx tsc --noEmit && npx eslint --ext .ts,.tsx,.vue src"
   },
   "main": "./dist/electron/main.js",
   "optionalDependencies": {
@@ -154,7 +155,7 @@
     "terser": "^5.16.5",
     "terser-webpack-plugin": "^5.3.0",
     "tiny-emitter": "^2.1.0",
-    "typescript": "^4.9.5",
+    "typescript": "^5.8.3",
     "vite": "^4.5.5",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vite-plugin-wasm": "^3.3.0",
