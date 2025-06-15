@@ -1,7 +1,7 @@
 {
   "clean": "Xoá",
   "ok": "OK",
-  "versionNoFound": "Failed to get software version, operation failed.",
+  "versionNoFound": "Không nhận được phiên bản phần mềm, hoạt động không thành công.",
   "setup": "Cài đặt",
   "savePath": "Thư mục lưu",
   "saveAs": "Lưu trang web: Lưu thư mục/Máy chủ trang web",
