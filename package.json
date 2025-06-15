@@ -9,7 +9,6 @@
   "copyright": "Copyright © Pengfei Xu",
   "scripts": {
     "clean:dev": "npx rimraf dist",
-    "clean": "npx rimraf node_modules/node-pty/build",
     "build-dev-runner": "npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/dev-runner.ts --outfile=electron/dev-runner.mjs",
     "dev": "yarn run clean:dev && yarn run build-dev-runner && cross-env NODE_ENV=development node electron/dev-runner.mjs",
     "build": "yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production PLATFORM=macOS npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder.ts --outfile=electron/app-builder.mjs && cross-env NODE_ENV=production PLATFORM=macOS node electron/app-builder.mjs",
@@ -24,6 +23,7 @@
   "dependencies": {
     "7zip-min-electron": "^1.4.4",
     "@ayonli/jsext": "^1.7.3",
+    "@lydell/node-pty": "^1.1.0",
     "@regexper/render": "^1.0.0",
     "axios": "^1.9.0",
     "chardet": "^2.1.0",
@@ -45,7 +45,6 @@
     "neoip": "^3.0.1",
     "node-forge": "^1.3.1",
     "node-machine-id": "^1.1.12",
-    "node-pty": "^1.1.0-beta34",
     "node-rsa": "^1.1.1",
     "normalize.css": "^8.0.1",
     "npm-check-updates": "^18.0.1",
