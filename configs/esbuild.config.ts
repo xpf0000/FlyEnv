@@ -1,12 +1,19 @@
 import type { BuildOptions } from 'esbuild'
 import { BuildPlugin } from './plugs.build'
 const external = [
+  '@electron/remote',
+  '@lzwme/get-physical-address',
+  '@vue',
+  'axios',
+  'child_process',
+  'compressing',
+  'dns2',
+  'dohdec',
   'electron',
   'path',
   'fs',
   '@lydell/node-pty',
   'fsevents',
-  'mock-aws-s3',
   'aws-sdk',
   'nock',
   '7zip-min-electron',

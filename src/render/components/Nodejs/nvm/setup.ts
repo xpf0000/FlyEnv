@@ -3,7 +3,6 @@ import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
-import { AppStore } from '@/store/app'
 
 export const NVMSetup = reactive<{
   fetching: boolean

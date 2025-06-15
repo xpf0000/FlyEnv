@@ -53,8 +53,6 @@
   import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
   import IPC from '@/util/IPC'
 
-  const { execSync } = require('child_process')
-
   const SearchIcon = markRaw(Search)
   export default defineComponent({
     name: 'MoPortKill',

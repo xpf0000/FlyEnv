@@ -16,17 +16,17 @@ const STRICT_KEY_PATTERN = /['"`]([a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-.]+)['"`]/g
 function diffKey() {
   const FILE_EXTENSION = '.json'
   function detectLanguageDifferences() {
-    // 1. 获取所有语言包
+    // 1. Get all language packs
     const languagePacks = fs
       .readdirSync(LANG_DIR)
       .filter((file) => fs.statSync(path.join(LANG_DIR, file)).isDirectory())
 
     if (languagePacks.length < 2) {
-      console.log('需要至少2个语言包进行比较')
+      console.log('At least 2 language packs are required for comparison')
       return
     }
 
-    // 2. 收集所有JSON文件（跨所有语言包）
+    // 2. Collect all JSON files (across all language packs)
     const allFiles = new Set()
     const fileMap = {}
 
@@ -42,13 +42,13 @@ function diffKey() {
       })
     })
 
-    // 3. 分析差异
+    // 3. Analyze differences
     const results = {
       missingFiles: {},
       keyDifferences: {}
     }
 
-    // 3.1 检查文件缺失情况
+    // 3.1 Check for missing files
     Array.from(allFiles).forEach((file) => {
       const missingPacks = languagePacks.filter((pack) => !fileMap[file].includes(pack))
       if (missingPacks.length > 0) {
@@ -56,14 +56,14 @@ function diffKey() {
       }
     })
 
-    // 3.2 检查键差异（对每个文件）
+    // 3.2 Check key differences (for each file)
     Array.from(allFiles).forEach((file) => {
       const fileResults = {
         allKeys: new Set(),
         packKeys: {}
       }
 
-      // 收集所有语言包的键
+      // Collect keys from all language packs
       fileMap[file].forEach((pack) => {
         const content = require(path.join(LANG_DIR, pack, file))
         const keys = getFlattenedKeys(content)
@@ -71,7 +71,7 @@ function diffKey() {
         keys.forEach((key) => fileResults.allKeys.add(key))
       })
 
-      // 找出每个包的缺失键
+      // Find missing keys for each pack
       const allKeysArray = Array.from(fileResults.allKeys)
       fileResults.missingKeys = {}
 
@@ -92,30 +92,30 @@ function diffKey() {
       }
     })
 
-    // 4. 输出结果
-    console.log('\n=== 语言包全面差异报告 ===\n')
+    // 4. Output results
+    console.log('\n=== Full Language Pack Difference Report ===\n')
 
-    // 4.1 输出缺失文件
+    // 4.1 Output missing files
     if (Object.keys(results.missingFiles).length > 0) {
-      console.log('缺失文件报告:')
+      console.log('Missing file report:')
       Object.entries(results.missingFiles).forEach(([file, packs]) => {
-        console.log(`[${file}] 缺失于: ${packs.join(', ')}`)
+        console.log(`[${file}] missing in: ${packs.join(', ')}`)
       })
       console.log('\n')
     } else {
-      console.log('✅ 所有语言包文件结构一致\n')
+      console.log('✅ All language pack file structures are consistent\n')
     }
 
     const contents = {}
 
-    // 4.2 输出键差异
+    // 4.2 Output key differences
     let hasKeyDifferences = false
     Object.entries(results.keyDifferences).forEach(([file, diff]) => {
       if (Object.keys(diff.missingKeys).length > 0) {
         hasKeyDifferences = true
-        console.log(`\n文件 [${file}] 键差异:`)
+        console.log(`\nFile [${file}] key differences:`)
         Object.entries(diff.missingKeys).forEach(([key, packs]) => {
-          console.log(`  Key "${key}" 缺失于: ${packs.join(', ')}`)
+          console.log(`  Key "${key}" missing in: ${packs.join(', ')}`)
           const has = !packs.includes('zh') ? 'zh' : languagePacks.find((n) => !packs.includes(n))
           const filePath = path.join(LANG_DIR, has, file)
           if (fs.existsSync(filePath)) {
@@ -147,11 +147,11 @@ function diffKey() {
     }
 
     if (!hasKeyDifferences) {
-      console.log('✅ 所有语言包键完全一致')
+      console.log('✅ All language pack keys are fully consistent')
     }
   }
 
-  // 获取嵌套键（保持原样）
+  // Get flattened keys (keep original structure)
   function getFlattenedKeys(obj, prefix = '') {
     let keys = []
     for (const key in obj) {
@@ -165,7 +165,7 @@ function diffKey() {
     return keys
   }
 
-  // 执行检测
+  // Run detection
   detectLanguageDifferences()
 }
 
@@ -173,9 +173,9 @@ function checkNoUseKey() {
   const excludeLangFile = ['menu', 'aside', 'toolType']
 
   const allLangFile = new Set()
-  const allKeys = new Map() // 格式: { '文件名.key': Set(包含此键的语言包) }
+  const allKeys = new Map() // Format: { 'filename.key': Set(language packs containing this key) }
   const usedKeys = new Set()
-  // 1. 收集所有语言键
+  // 1. Collect all language keys
   function collectAllLanguageKeys() {
     const languagePacks = fs
       .readdirSync(LANG_DIR)
@@ -203,7 +203,7 @@ function checkNoUseKey() {
     })
   }
 
-  // 2. 扫描项目中的键使用情况（严格模式）
+  // 2. Scan key usage in project (strict mode)
   function scanKeyUsageStrict() {
     const filePatterns = FILE_EXTENSIONS.map((ext) => path.join(PROJECT_ROOT, '**', '*' + ext))
 
@@ -213,7 +213,7 @@ function checkNoUseKey() {
         let match
 
         while ((match = STRICT_KEY_PATTERN.exec(content)) !== null) {
-          // 只匹配符合 json文件名.key 格式的字符串
+          // Only match strings in the format filename.key
           if (isValidKeyFormat(match[1])) {
             usedKeys.add(match[1])
           }
@@ -222,17 +222,17 @@ function checkNoUseKey() {
     })
   }
 
-  // 验证键格式是否为 json文件名.key
+  // Validate key format as filename.key
   function isValidKeyFormat(key) {
     const parts = key.split('.')
     if (parts.length < 2) return false
 
-    // 第一部分应该是json文件名（不含扩展名）
+    // The first part should be the json filename (without extension)
     const fileName = parts[0]
     return allLangFile.has(fileName)
   }
 
-  // 3. 获取嵌套键（保持原样）
+  // 3. Get flattened keys (keep original structure)
   function getFlattenedKeys(obj, prefix = '') {
     let keys = []
     for (const key in obj) {
@@ -246,19 +246,19 @@ function checkNoUseKey() {
     return keys
   }
 
-  // 4. 主函数
+  // 4. Main function
   function findUnusedKeys() {
-    console.log('🔍 开始检测未使用的国际化键（严格模式）...\n')
+    console.log('🔍 Start detecting unused i18n keys (strict mode)...\n')
 
-    // 收集所有键
+    // Collect all keys
     collectAllLanguageKeys()
-    console.log(`✅ 共发现 ${allKeys.size} 个国际化键`)
+    console.log(`✅ Found ${allKeys.size} i18n keys in total`)
 
-    // 扫描使用的键
+    // Scan used keys
     scanKeyUsageStrict()
-    console.log(`✅ 共发现 ${usedKeys.size} 个被使用的键\n`)
+    console.log(`✅ Found ${usedKeys.size} used keys\n`)
 
-    // 找出未使用的键
+    // Find unused keys
     const unusedKeys = new Map()
     allKeys.forEach((packs, key) => {
       if (!usedKeys.has(key)) {
@@ -266,9 +266,9 @@ function checkNoUseKey() {
       }
     })
 
-    // 输出结果
+    // Output results
     if (unusedKeys.size === 0) {
-      console.log('🎉 没有发现未使用的国际化键！')
+      console.log('🎉 No unused i18n keys found!')
       return
     }
 
@@ -278,9 +278,9 @@ function checkNoUseKey() {
 
     const contents = {}
 
-    console.log(`⚠️ 发现 ${unusedKeys.size} 个未使用的键:\n`)
+    console.log(`⚠️ Found ${unusedKeys.size} unused keys:\n`)
     unusedKeys.forEach((packs, key) => {
-      console.log(`• ${key} (存在于: ${Array.from(packs).join(', ')})`)
+      console.log(`• ${key} (exists in: ${Array.from(packs).join(', ')})`)
       const arr = key.split('.')
       const fileName = arr.shift()
       if (arr.length === 1) {
@@ -294,7 +294,7 @@ function checkNoUseKey() {
               contents[file] = content
             }
             delete content?.[langKey]
-            console.log(`• ${key} 已从 ${enDir}/${fileName}.json 中删除`)
+            console.log(`• ${key} has been deleted from ${enDir}/${fileName}.json`)
           }
         }
       }
@@ -305,12 +305,12 @@ function checkNoUseKey() {
       fs.writeFileSync(file, JSON.stringify(content, null, 2))
     }
 
-    console.log('\n💡 建议：')
-    console.log('1. 这些键可能是废弃键，可以考虑移除')
-    console.log('2. 如果是动态生成的键，请确保其格式为 json文件名.key')
+    console.log('\n💡 Suggestion:')
+    console.log('1. These keys may be deprecated and can be considered for removal')
+    console.log('2. If they are dynamically generated keys, please ensure their format is filename.key')
   }
 
-  // 运行检测
+  // Run detection
   findUnusedKeys()
 }
 

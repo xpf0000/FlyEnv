@@ -15,7 +15,7 @@ import localForage from 'localforage'
 
 type ServiceActionType = {
   versionDeling: Record<string, boolean>
-  pathSeting: Record<string, boolean>
+  pathSetting: Record<string, boolean>
   allPath: string[]
   appPath: string[]
   fetchPathing: boolean
@@ -35,7 +35,7 @@ let time = 0
 
 export const ServiceActionStore: ServiceActionType = reactive({
   versionDeling: {},
-  pathSeting: {},
+  pathSetting: {},
   allPath: [],
   appPath: [],
   fetchPathing: false,
@@ -125,16 +125,16 @@ export const ServiceActionStore: ServiceActionType = reactive({
   },
   updatePath(item: SoftInstalled, typeFlag: string) {
     return new Promise((resolve, reject) => {
-      if (ServiceActionStore.pathSeting?.[item.bin]) {
+      if (ServiceActionStore.pathSetting?.[item.bin]) {
         return resolve(true)
       }
-      ServiceActionStore.pathSeting[item.bin] = true
+      ServiceActionStore.pathSetting[item.bin] = true
 
       const action = ServiceActionStore.appPath.includes(item.path) ? 'removePATH' : 'updatePATH'
       IPC.send('app-fork:tools', action, JSON.parse(JSON.stringify(item)), typeFlag).then(
         (key: string, res: any) => {
           IPC.off(key)
-          delete ServiceActionStore.pathSeting?.[item.bin]
+          delete ServiceActionStore.pathSetting?.[item.bin]
           if (res?.code === 0) {
             const all = res?.data?.allPath ?? []
             const app = res?.data?.appPath ?? []

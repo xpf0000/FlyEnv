@@ -53,7 +53,6 @@
   import { ConfSetup } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import Common from '@/components/Conf/common.vue'
 
   const props = defineProps<{
     file: string

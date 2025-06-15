@@ -18,7 +18,7 @@ class GoLang extends Base {
     this.type = 'golang'
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('golang')

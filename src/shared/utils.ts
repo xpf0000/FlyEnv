@@ -1,5 +1,3 @@
-import crypto from 'crypto'
-
 export function uuid(length = 32) {
   const num = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
   let str = ''

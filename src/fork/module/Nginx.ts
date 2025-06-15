@@ -129,7 +129,7 @@ class Nginx extends Base {
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('nginx')

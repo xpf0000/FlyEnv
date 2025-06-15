@@ -75,7 +75,6 @@
   import { Project } from '@/util/Project'
   import { HostNginxRewriteSetup } from '@/components/Host/Edit/rewrite'
   import IPC from '@/util/IPC'
-  import { MessageSuccess } from '@/util/Element'
 
   const { shell } = require('@electron/remote')
   const { join } = require('path')

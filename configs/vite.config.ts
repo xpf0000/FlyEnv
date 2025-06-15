@@ -15,7 +15,12 @@ console.log('sharePath: ', sharePath)
 
 const config: UserConfig = {
   base: './',
-  plugins: [monacoEditorPlugin({}), wasm(), vue(), vueJsx()],
+  plugins: [
+    monacoEditorPlugin({}),
+    wasm(),
+    vue(),
+    vueJsx()
+  ],
   assetsInclude: ['**/*.node'],
   optimizeDeps: {
     esbuildOptions: {
@@ -30,8 +35,6 @@ const config: UserConfig = {
       'fs',
       '@lydell/node-pty',
       'fsevents',
-      'mock-aws-s3',
-      'aws-sdk',
       'nock',
       '7zip-min-electron',
       'tangerine',
@@ -51,11 +54,11 @@ const config: UserConfig = {
     }
   },
   css: {
-    // css预处理器
+    // CSS preprocessor options
     preprocessorOptions: {
       scss: {
-        // 引入 var.scss 这样就可以在全局中使用 var.scss中预定义的变量了
-        // 给导入的路径最后加上 ;
+      // Import Variables.scss so that predefined variables can be used globally
+      // Add ; at the end of the import path
         additionalData: '@import "@/components/Theme/Variables.scss";'
       }
     }

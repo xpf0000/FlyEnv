@@ -1,9 +1,6 @@
 import { build as viteBuild } from 'vite'
 import { build as esbuild } from 'esbuild'
 import { build as electronBuild, Platform, CliOptions } from 'electron-builder'
-import { copy } from 'fs-extra'
-import { resolve } from 'path'
-
 import esbuildConfig from '../configs/esbuild.config'
 import viteConfig from '../configs/vite.config'
 import electronBuilderConfig from '../configs/electron-builder'

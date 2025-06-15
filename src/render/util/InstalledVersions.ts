@@ -90,7 +90,7 @@ class InstalledVersions {
                 flag: flag,
                 data: JSON.parse(JSON.stringify(find ?? {}))
               })
-              if (!!find) {
+              if (find) {
                 needSaveConfig = true
               }
             }

@@ -41,8 +41,8 @@ class Minio extends Base {
     })
   }
 
-  fetchAllOnLineVersion() {
-    console.log('Tomcat fetchAllOnLineVersion !!!')
+  fetchAllOnlineVersion() {
+    console.log('Tomcat fetchAllOnlineVersion !!!')
     return new ForkPromise(async (resolve) => {
       const bin = join(global.Server.AppDir!, `minio`, 'minio.exe')
       const zip = join(global.Server.Cache!, 'minio.exe')

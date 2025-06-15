@@ -62,7 +62,7 @@
     typeFlag: AllAppModule
   }>()
 
-  const { fetching, tableData, handleVersion, fetchCommand, copyCommand } = Setup(props.typeFlag)
+  const { fetching, tableData, handleVersion } = Setup(props.typeFlag)
 </script>
 <style lang="scss">
   .app-html-block {

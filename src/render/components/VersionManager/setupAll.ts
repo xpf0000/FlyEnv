@@ -4,8 +4,8 @@ import type { AllAppModule } from '@/core/type'
 import installedVersions from '@/util/InstalledVersions'
 import { VersionManagerStore } from '@/components/VersionManager/store'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
-import {StaticSetup} from "@/components/VersionManager/static/setup";
-import {LocalSetup} from "@/components/VersionManager/local/setup";
+import {StaticSetup} from '@/components/VersionManager/static/setup';
+import {LocalSetup} from '@/components/VersionManager/local/setup';
 
 const { shell } = require('@electron/remote')
 
