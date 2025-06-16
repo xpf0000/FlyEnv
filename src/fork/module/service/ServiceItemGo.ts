@@ -6,6 +6,9 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { execPromise } from '../../util/Exec'
 import Helper from '../../Helper'
 import { ProcessPidsByPid } from '@shared/Process'
+import { isMacOS, isWindows } from '@shared/utils'
+import { EOL } from 'os'
+import { ProcessPidListByPid } from '@shared/Process.win'
 
 export class ServiceItemGo extends ServiceItem {
   start(item: AppHost) {
@@ -38,33 +41,63 @@ export class ServiceItemGo extends ServiceItem {
       }
 
       const opt = await getHostItemEnv(item)
-      const commands: string[] = ['#!/bin/zsh']
-      if (opt && opt?.env) {
-        for (const k in opt.env) {
-          const v = opt.env[k]
-          if (v.includes(' ')) {
-            commands.push(`export ${k}="${v}"`)
-          } else {
-            commands.push(`export ${k}=${v}`)
+      const commands: string[] = []
+      if (isMacOS()) {
+        commands.push('#!/bin/zsh')
+        if (opt && opt?.env) {
+          for (const k in opt.env) {
+            const v = opt.env[k]
+            if (v.includes(' ')) {
+              commands.push(`export ${k}="${v}"`)
+            } else {
+              commands.push(`export ${k}=${v}`)
+            }
           }
         }
+        commands.push(`cd "${item.root}"`)
+        commands.push(`nohup ${item?.startCommand} &>> ${log} &`)
+        commands.push(`echo $! > ${pid}`)
+      } else if (isWindows()) {
+        commands.push('@echo off')
+        commands.push('chcp 65001>nul')
+        if (opt && opt?.env) {
+          for (const k in opt.env) {
+            const v = opt.env[k]
+            if (v.includes(' ')) {
+              commands.push(`set "${k}=${v}"`)
+            } else {
+              commands.push(`set ${k}=${v}`)
+            }
+          }
+        }
+        commands.push(`start /B ${item.startCommand} > "${log}" 2>&1 &`)
       }
-      commands.push(`cd "${item.root}"`)
-      commands.push(`nohup ${item?.startCommand} &>> ${log} &`)
-      commands.push(`echo $! > ${pid}`)
 
-      this.command = commands.join('\n')
+      this.command = commands.join(EOL)
       console.log('command: ', this.command)
-      const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
+      let sh = ''
+      if (isWindows()) {
+        sh = join(global.Server.Cache!, `service-${this.id}.cmd`)
+      } else {
+        sh = join(global.Server.Cache!, `service-${this.id}.sh`)
+      }
       await writeFile(sh, this.command)
       await chmod(sh, '0777')
+      process.chdir(global.Server.Cache!)
       try {
-        const res = await execPromise(`zsh "${sh}"`, opt)
-        console.log('start res: ', res)
-        const pid = await this.checkPid()
+        if (isMacOS()) {
+          const res = await execPromise(`zsh "${sh}"`, opt)
+          console.log('start res: ', res)
+        } else if (isWindows()) {
+          await execPromise(
+            `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
+          )
+        }
+
+        const resPid = await this.checkPid()
         this.daemon()
         resolve({
-          'APP-Service-Start-PID': pid
+          'APP-Service-Start-PID': resPid
         })
       } catch (e) {
         console.log('start e: ', e)
@@ -84,7 +117,11 @@ export class ServiceItemGo extends ServiceItem {
       return []
     }
     const pid = (await readFile(pidFile, 'utf-8')).trim()
-    const plist: any = await Helper.send('tools', 'processList')
-    return ProcessPidsByPid(pid, plist)
+    if (isWindows()) {
+      return await ProcessPidListByPid(pid)
+    } else {
+      const plist: any = await Helper.send('tools', 'processList')
+      return ProcessPidsByPid(pid, plist)
+    }
   }
 }

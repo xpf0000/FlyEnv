@@ -18,6 +18,9 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { fetchHostList } from '../host/HostFile'
 import Helper from '../../Helper'
 import { ProcessPidsByPid } from '@shared/Process'
+import { isMacOS, isWindows } from '@shared/utils'
+import { ProcessPidListByPid } from '@shared/Process.win'
+import { EOL } from 'os'
 
 export const makeTomcatServerXML = (cnfDir: string, serverContent: string, hostAll: AppHost[]) => {
   const parser = new XMLParser({
@@ -370,27 +373,53 @@ export class ServiceItemJavaTomcat extends ServiceItem {
         CATALINA_BASE: join(global.Server.BaseDir!, `tomcat/${item.id}`),
         CATALINA_PID: pid
       }
-      const commands: string[] = [
-        '#!/bin/zsh',
-        `export JAVA_HOME=${env.JAVA_HOME}`,
-        `export CATALINA_BASE=${env.CATALINA_BASE}`,
-        `export CATALINA_PID=${pid}`,
-        `cd "${dirname(bin)}"`,
-        `./${basename(bin)}`
-      ]
+      let commands: string[] = []
+      if (isMacOS()) {
+        commands = [
+          '#!/bin/zsh',
+          `export JAVA_HOME=${env.JAVA_HOME}`,
+          `export CATALINA_BASE=${env.CATALINA_BASE}`,
+          `export CATALINA_PID=${pid}`,
+          `cd "${dirname(bin)}"`,
+          `./${basename(bin)}`
+        ]
+      } else if (isWindows()) {
+        commands = [
+          '@echo off',
+          'chcp 65001>nul',
+          `set "JAVA_HOME=${env.JAVA_HOME}"`,
+          `set "CATALINA_BASE=${env.CATALINA_BASE}"`,
+          `set "CATALINA_PID=${pid}"`,
+          `cd /d "${dirname(bin)}"`,
+          `start /B ${basename(bin)} > NUL 2>&1 &`
+        ]
+      }
 
-      this.command = commands.join('\n')
+      this.command = commands.join(EOL)
       console.log('command: ', this.command)
-      const sh = join(global.Server.Cache!, `service-${this.id}.sh`)
+      let sh = ''
+      if (isWindows()) {
+        sh = join(global.Server.Cache!, `service-${this.id}.cmd`)
+      } else {
+        sh = join(global.Server.Cache!, `service-${this.id}.sh`)
+      }
       await writeFile(sh, this.command)
       await chmod(sh, '0777')
+      process.chdir(global.Server.Cache!)
       try {
-        const res = await execPromise(`${sh}`, { env })
-        console.log('start res: ', res)
-        const pid = await this.checkPid()
+        if (isMacOS()) {
+          const res = await execPromise(`zsh "${sh}"`, { env })
+          console.log('start res: ', res)
+        } else if (isWindows()) {
+          await execPromise(
+            `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
+          )
+        }
+
+        const resPid = await this.checkPid()
         this.daemon()
         resolve({
-          'APP-Service-Start-PID': pid
+          'APP-Service-Start-PID': resPid
         })
       } catch (e) {
         console.log('start e: ', e)
@@ -410,7 +439,11 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       return []
     }
     const pid = (await readFile(pidFile, 'utf-8')).trim()
-    const plist: any = await Helper.send('tools', 'processList')
-    return ProcessPidsByPid(pid, plist)
+    if (isWindows()) {
+      return await ProcessPidListByPid(pid)
+    } else {
+      const plist: any = await Helper.send('tools', 'processList')
+      return ProcessPidsByPid(pid, plist)
+    }
   }
 }

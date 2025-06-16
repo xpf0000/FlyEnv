@@ -4,6 +4,7 @@ import type { AppHost } from '@shared/app'
 import { hostAlias, chmod, readFile } from '../../Fn'
 import { makeAutoSSL } from './SSL'
 import { existsSync } from 'fs'
+import { isWindows } from '@shared/utils'
 
 type VhostTmplType = {
   nginx: string
@@ -92,6 +93,9 @@ export const updateAutoSSL = async (host: AppHost, old: AppHost) => {
 
 export const setDirRole = async (dir: string, depth = 0) => {
   console.log('#setDirRole: ', dir, depth)
+  if (isWindows()) {
+    return
+  }
   if (!dir || dir === '/') {
     return
   }

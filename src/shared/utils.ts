@@ -128,6 +128,10 @@ export function md5(str: string) {
   return md5.update(str).digest('hex')
 }
 
+export function pathFixedToUnix(path: string) {
+  return path.split('\\').join('/')
+}
+
 export const HostsFileMacOS = '/private/etc/hosts'
 export const HostsFileWindows = 'c:/windows/system32/drivers/etc/hosts'
 
