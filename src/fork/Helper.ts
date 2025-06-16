@@ -61,7 +61,7 @@ class Helper {
         try {
           const content = Buffer.concat(buffer).toString().trim()
           res = JSON.parse(content)
-        } catch (e) {}
+        } catch {}
         if (res && res?.key && res?.key === key) {
           console.log('helper response: ', res)
           buffer.splice(0)
@@ -79,13 +79,13 @@ class Helper {
         console.log('Disconnected from server')
         try {
           client.destroySoon()
-        } catch (e) {}
+        } catch {}
       })
 
       client.on('error', () => {
         try {
           client.destroySoon()
-        } catch (e) {}
+        } catch {}
         reject(new Error('connect failed'))
       })
     })

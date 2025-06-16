@@ -2,11 +2,10 @@ import { readFileSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import DNS2 from 'dns2'
-import { join } from 'path'
 import { address } from 'neoip'
 import { createRequire } from 'node:module'
 import Helper from '../Helper'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { HostsFileMacOS, HostsFileWindows, isLinux, isMacOS, isWindows } from '@shared/utils'
 
 const require = createRequire(import.meta.url)
 const Tangerine = require('tangerine')
@@ -33,10 +32,10 @@ class Manager extends Base {
   async initHosts(LOCAL_IP: string) {
     let hostFile = ''
     if (isWindows()) {
-      hostFile = join('c:/windows/system32/drivers/etc', 'hosts')
+      hostFile = HostsFileWindows
     } else if (isLinux()) {
     } else if (isMacOS()) {
-      hostFile = '/private/etc/hosts'
+      hostFile = HostsFileMacOS
     }
     const time = new Date().getTime()
     if (time - this.lastTime > 60000) {

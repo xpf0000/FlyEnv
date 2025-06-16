@@ -31,6 +31,9 @@ export interface ServerType {
   UserHome?: string
   Licenses?: string
   LangCustomer?: any
+  isMacOS?: boolean
+  isLinux?: boolean
+  isWindows?: boolean
 }
 
 declare global {

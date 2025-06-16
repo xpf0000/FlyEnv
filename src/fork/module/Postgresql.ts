@@ -1,4 +1,4 @@
-import { join, dirname } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
@@ -22,11 +22,14 @@ import {
   copyFile,
   readFile,
   unlink,
-  writeFile
+  writeFile,
+  remove
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import TaskQueue from '../TaskQueue'
+import { isWindows } from '@shared/utils'
+import { spawnPromise } from '@shared/child-process'
 
 class Manager extends Base {
   constructor() {
@@ -36,7 +39,52 @@ class Manager extends Base {
 
   init() {}
 
-  _startServer(version: SoftInstalled) {
+  _stopServer(
+    version: SoftInstalled,
+    DATA_DIR?: string
+  ): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
+    if (!isWindows()) {
+      return super._stopServer(version) as any
+    }
+
+    return new ForkPromise(async (resolve, reject, on) => {
+      const bin = version.bin
+      const versionTop = version?.version?.split('.')?.shift() ?? ''
+      const dbPath = DATA_DIR ?? join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+      const logFile = join(dbPath, 'pg.log')
+
+      try {
+        await spawnPromise(basename(bin), ['stop', '-D', `"${dbPath}"`, '-l', `"${logFile}"`], {
+          cwd: dirname(bin),
+          shell: false
+        })
+      } catch (e) {
+        console.log('mongosh shutdown error: ', e)
+      }
+
+      const pids = new Set<string>()
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      if (existsSync(appPidFile)) {
+        const pid = (await readFile(appPidFile, 'utf-8')).trim()
+        pids.add(pid)
+        TaskQueue.run(remove, appPidFile).then().catch()
+      }
+      if (version?.pid) {
+        pids.add(`${version.pid}`)
+      }
+      on({
+        'APP-Service-Stop-Success': true
+      })
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+      })
+      return resolve({
+        'APP-Service-Stop-PID': [...pids].map((p) => Number(p))
+      })
+    })
+  }
+
+  _startServer(version: SoftInstalled, DATA_DIR?: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog(
@@ -46,7 +94,7 @@ class Manager extends Base {
       })
       const bin = version.bin
       const versionTop = version?.version?.split('.')?.shift() ?? ''
-      const dbPath = join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
+      const dbPath = DATA_DIR ?? join(global.Server.PostgreSqlDir!, `postgresql${versionTop}`)
       const confFile = join(dbPath, 'postgresql.conf')
       const pidFile = join(dbPath, 'postmaster.pid')
       const logFile = join(dbPath, 'pg.log')

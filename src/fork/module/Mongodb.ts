@@ -1,5 +1,5 @@
-import { join } from 'path'
-import { existsSync } from 'fs'
+import { join, dirname } from 'node:path'
+import { existsSync } from 'node:fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
 import type { SoftInstalled } from '@shared/app'
@@ -18,11 +18,21 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  chmod
+  chmod,
+  remove,
+  zipUnPack,
+  moveChildDirToParent,
+  createWriteStream
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../TaskQueue'
+import axios from 'axios'
+import { isWindows } from '@shared/utils'
+import { spawnPromise } from '@shared/child-process'
+
 class Manager extends Base {
+  mongoshVersion = '2.5.2'
+
   constructor() {
     super()
     this.type = 'mongodb'
@@ -30,6 +40,103 @@ class Manager extends Base {
 
   init() {
     this.pidPath = join(global.Server.MongoDBDir!, 'mongodb.pid')
+  }
+
+  initMongosh() {
+    return new ForkPromise(async (resolve) => {
+      const version = this.mongoshVersion
+      const mongosh = join(global.Server.AppDir!, 'mongosh', version, 'bin/mongosh.exe')
+      if (existsSync(mongosh)) {
+        return resolve(true)
+      }
+      const appDir = join(global.Server.AppDir!, 'mongosh', version)
+      const url = `https://downloads.mongodb.com/compass/mongosh-${version}-win32-x64.zip`
+      const zip = join(global.Server.Cache!, `mongosh-${version}.zip`)
+      const doInstall = async () => {
+        if (existsSync(zip)) {
+          try {
+            await remove(appDir)
+            await mkdirp(appDir)
+            await zipUnPack(zip, appDir)
+            await moveChildDirToParent(appDir)
+            return existsSync(mongosh)
+          } catch {
+            await remove(zip)
+          }
+        }
+        return false
+      }
+
+      const installRes = await doInstall()
+      if (installRes) {
+        return resolve(true)
+      }
+
+      try {
+        const response = await axios({
+          method: 'get',
+          url: url,
+          responseType: 'stream'
+        })
+
+        const writer = createWriteStream(zip)
+        response.data.pipe(writer)
+        writer.on('finish', async () => {
+          const installRes = await doInstall()
+          if (installRes) {
+            return resolve(true)
+          }
+          return resolve(false)
+        })
+        writer.on('error', () => {
+          resolve(false)
+        })
+      } catch {
+        resolve(false)
+      }
+    })
+  }
+
+  _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': number[] }> {
+    if (!isWindows()) {
+      return super._stopServer(version) as any
+    }
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        await this.initMongosh()
+      } catch {}
+      const mongosh = join(global.Server.AppDir!, 'mongosh', this.mongoshVersion, 'bin/mongosh.exe')
+      if (existsSync(mongosh)) {
+        try {
+          await spawnPromise('mongosh.exe', ['--eval', `"db.shutdownServer()"`], {
+            cwd: dirname(mongosh),
+            shell: false
+          })
+        } catch (e) {
+          console.log('mongosh shutdown error: ', e)
+        }
+        const pids = new Set<string>()
+        const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+        if (existsSync(appPidFile)) {
+          const pid = (await readFile(appPidFile, 'utf-8')).trim()
+          pids.add(pid)
+          TaskQueue.run(remove, appPidFile).then().catch()
+        }
+        if (version?.pid) {
+          pids.add(`${version.pid}`)
+        }
+        on({
+          'APP-Service-Stop-Success': true
+        })
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+        })
+        return resolve({
+          'APP-Service-Stop-PID': [...pids].map((p) => Number(p))
+        })
+      }
+      super._stopServer(version).on(on).then(resolve).catch(reject)
+    })
   }
 
   _startServer(version: SoftInstalled) {

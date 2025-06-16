@@ -1,18 +1,11 @@
 import { type ChildProcess, spawn } from 'child_process'
 import { merge } from 'lodash-es'
-import {
-  createWriteStream,
-  mkdirSync,
-  readdirSync,
-  realpathSync,
-  statSync,
-  type FSWatcher
-} from 'fs'
-import path, { basename, dirname, join, normalize } from 'path'
+import { createWriteStream, realpathSync, statSync } from 'node:fs'
+import type { FSWatcher } from 'node:fs'
+import { basename, dirname, join, normalize } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import _fs from 'fs-extra'
 import type { AppHost, ModuleExecItem, SoftInstalled } from '@shared/app'
 import { compareVersions } from 'compare-versions'
 import { execPromise, execPromiseRoot } from './util/Exec'
@@ -22,12 +15,10 @@ import { format } from 'date-fns'
 import EnvSync from './util/EnvSync'
 import { hostname, userInfo } from 'os'
 import _node_machine_id from 'node-machine-id'
+import { zipUnPack } from './util/Zip'
+import { moveDirToDir, getSubDirAsync, getAllFileAsync, moveChildDirToParent } from './util/Dir'
 
-const { machineId } = _node_machine_id
-
-export { machineId }
-
-const {
+import {
   watch,
   copy,
   chmod,
@@ -40,10 +31,16 @@ const {
   mkdirp,
   readFile,
   existsSync,
-  appendFile
-} = _fs
+  appendFile,
+  rename
+} from '@shared/fs-extra'
+
+const { machineId } = _node_machine_id
+
+export { machineId, zipUnPack, moveDirToDir, getSubDirAsync, getAllFileAsync, moveChildDirToParent }
 
 export {
+  createWriteStream,
   realpathSync,
   FSWatcher,
   watch,
@@ -58,7 +55,8 @@ export {
   mkdirp,
   readFile,
   existsSync,
-  appendFile
+  appendFile,
+  rename
 }
 
 export { execPromise, execPromiseRoot }
@@ -254,53 +252,9 @@ export async function spawnPromiseMore(
   }
 }
 
-export function createFolder(fp: string) {
-  fp = fp.replace(/\\/g, '/')
-  if (existsSync(fp)) {
-    return true
-  }
-  const arr = fp.split('/')
-  let dir = '/'
-  for (const p of arr) {
-    dir = join(dir, p)
-    if (!existsSync(dir)) {
-      mkdirSync(dir)
-    }
-  }
-  return existsSync(fp)
-}
-
 export function md5(str: string) {
   const md5 = crypto.createHash('md5')
   return md5.update(str).digest('hex')
-}
-
-export function getAllFile(fp: string, fullpath = true, basePath: Array<string> = []) {
-  let arr: Array<string> = []
-  if (!existsSync(fp)) {
-    return arr
-  }
-  const state = statSync(fp)
-  if (state.isFile()) {
-    return [fp]
-  }
-  const files = readdirSync(fp)
-  files.forEach(function (item) {
-    const base = [...basePath]
-    base.push(item)
-    const fPath = join(fp, item)
-    if (existsSync(fPath)) {
-      const stat = statSync(fPath)
-      if (stat.isDirectory()) {
-        const sub = getAllFile(fPath, fullpath, base)
-        arr = arr.concat(sub)
-      }
-      if (stat.isFile()) {
-        arr.push(fullpath ? fPath : base.join('/'))
-      }
-    }
-  })
-  return arr
 }
 
 export function downFile(url: string, savepath: string) {
@@ -332,9 +286,9 @@ export function downFile(url: string, savepath: string) {
         }
       }
     })
-      .then(function (response) {
+      .then(async (response) => {
         const base = dirname(savepath)
-        createFolder(base)
+        await mkdirp(base)
         const stream = createWriteStream(savepath)
         response.data.pipe(stream)
         stream.on('error', (err) => {
@@ -348,78 +302,6 @@ export function downFile(url: string, savepath: string) {
         reject(err)
       })
   })
-}
-
-export function getSubDir(fp: string, fullpath = true) {
-  const arr: Array<string> = []
-  if (!existsSync(fp)) {
-    return arr
-  }
-  const stat = statSync(fp)
-  if (stat.isDirectory() && !stat.isSymbolicLink()) {
-    try {
-      const files = readdirSync(fp)
-      files.forEach(function (item) {
-        const fPath = join(fp, item)
-        if (existsSync(fPath)) {
-          const stat = statSync(fPath)
-          if (stat.isDirectory() && !stat.isSymbolicLink()) {
-            arr.push(fullpath ? fPath : item)
-          }
-        }
-      })
-    } catch {
-      /* empty */
-    }
-  }
-  return arr
-}
-
-export const getAllFileAsync = async (
-  dirPath: string,
-  fullpath = true,
-  basePath: Array<string> = []
-): Promise<string[]> => {
-  if (!existsSync(dirPath)) {
-    return []
-  }
-  const list: Array<string> = []
-  const files = await readdir(dirPath, { withFileTypes: true })
-  for (const file of files) {
-    const arr = [...basePath]
-    arr.push(file.name)
-    const childPath = path.join(dirPath, file.name)
-    if (file.isDirectory()) {
-      const sub = await getAllFileAsync(childPath, fullpath, arr)
-      list.push(...sub)
-    } else if (file.isFile()) {
-      const name = fullpath ? childPath : arr.join('/')
-      list.push(name)
-    }
-  }
-  return list
-}
-
-export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<string[]> => {
-  if (!existsSync(dirPath)) {
-    return []
-  }
-  const list: Array<string> = []
-  const files = await readdir(dirPath, { withFileTypes: true })
-  for (const file of files) {
-    const childPath = path.join(dirPath, file.name)
-    if (!existsSync(childPath)) {
-      continue
-    }
-    if (
-      file.isDirectory() ||
-      (file.isSymbolicLink() && statSync(realpathSync(childPath)).isDirectory())
-    ) {
-      const name = fullpath ? childPath : file.name
-      list.push(name)
-    }
-  }
-  return list
 }
 
 export const hostAlias = (item: AppHost) => {

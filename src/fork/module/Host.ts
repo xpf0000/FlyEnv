@@ -3,7 +3,7 @@ import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
 import type { AppHost, SoftInstalled } from '@shared/app'
-import { getSubDir, hostAlias, uuid, remove, writeFile, machineId } from '../Fn'
+import { hostAlias, uuid, remove, writeFile, machineId, readdir } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { makeCaddyConf, updateCaddyConf } from './host/Caddy'
 import { makeApacheConf, updateApacheConf } from './host/Apache'
@@ -54,13 +54,13 @@ export class Host extends Base {
 
       const doPark = () => {
         console.log('doPark !!!')
-        return new ForkPromise((resolve) => {
+        return new ForkPromise(async (resolve) => {
           if (!park || !host || !host.root) {
             resolve(0)
             return
           }
           const root = host.root
-          const subDir = getSubDir(root, false)
+          const subDir = await readdir(root)
           if (subDir.length === 0) {
             resolve(0)
             return

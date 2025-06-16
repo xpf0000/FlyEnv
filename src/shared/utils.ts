@@ -3,11 +3,10 @@ import { merge } from 'lodash-es'
 import { spawn, exec } from 'child_process'
 import { cpus } from 'os'
 import { join } from 'path'
-import _fs from 'fs-extra'
 import { promisify } from 'util'
 import { platform } from 'node:os'
+import { chmod, copyFile, appendFile } from './fs-extra'
 
-const { chmod, copyFile, appendFile } = _fs
 const execPromise = promisify(exec)
 
 export async function appDebugLog(flag: string, info: string) {
@@ -128,6 +127,9 @@ export function md5(str: string) {
   const md5 = crypto.createHash('md5')
   return md5.update(str).digest('hex')
 }
+
+export const HostsFileMacOS = '/private/etc/hosts'
+export const HostsFileWindows = 'c:/windows/system32/drivers/etc/hosts'
 
 const os = platform()
 

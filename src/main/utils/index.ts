@@ -1,8 +1,6 @@
 import { app } from 'electron'
 import { cpus } from 'os'
-import _fs from 'fs-extra'
-
-const {
+import {
   createWriteStream,
   removeSync,
   stat,
@@ -14,7 +12,7 @@ const {
   mkdirp,
   readFile,
   writeFile
-} = _fs
+} from '@shared/fs-extra'
 
 export {
   createWriteStream,
