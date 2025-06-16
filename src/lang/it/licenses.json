@@ -1,0 +1,36 @@
+{
+  "title": "Descrizione della Licenza",
+  "description": "La licenza è un riconoscimento e un supporto al lavoro svolto da FlyEnv e dai suoi autori. Il suo scopo non è limitare gli utenti, ma ricordare loro di rispettare il lavoro degli sviluppatori e di attenersi ai termini previsti durante l'utilizzo del software. Rispettando la licenza, gli utenti non solo sostengono lo sviluppo continuo del progetto, ma contribuiscono anche allo spirito di fiducia e collaborazione nella comunità open-source.",
+  "restrictions": {
+    "title": "Gli utenti senza licenza saranno soggetti alle seguenti limitazioni:",
+    "items": {
+      "0": "È possibile creare un massimo di tre siti.",
+      "1": "La funzione di chat AI è disponibile solo per un periodo di prova di tre giorni.",
+      "2": "Potrebbero essere applicate ulteriori restrizioni a funzionalità future."
+    }
+  },
+  "licenseInfo": "La licenza attualmente offerta è una licenza perpetua, valida per un solo computer. In caso di cambio dispositivo, sarà necessario richiedere una nuova licenza.",
+  "howToObtain": {
+    "title": "Come Ottenere una Licenza",
+    "description": "FlyEnv offre diverse modalità flessibili per ottenere una licenza. Gli utenti possono scegliere uno dei seguenti metodi per fare richiesta:",
+    "methods": {
+      "0": {
+        "title": "Fai una Donazione al Progetto",
+        "description": "Non è richiesto un importo fisso per le donazioni. Considerando le diverse situazioni economiche degli utenti (es. studenti), ti invitiamo a scegliere un importo in base alle tue possibilità."
+      },
+      "1": {
+        "title": "Contribuisci allo Sviluppo",
+        "description": "Partecipa al progetto inviando una Pull Request. Qualsiasi contributo positivo (anche una correzione di una traduzione) è valido, indipendentemente dalla quantità di codice."
+      },
+      "2": {
+        "title": "Promuovi il Progetto",
+        "description": "Promuovi FlyEnv condividendo la tua esperienza tramite articoli, video, blog, vlog o commenti. È preferita una testimonianza autentica. Il contenuto può essere in qualsiasi lingua e su qualsiasi piattaforma, purché sia pubblico."
+      }
+    }
+  },
+  "submitInfo": "Dopo aver completato uno dei metodi sopra elencati, inserisci i dettagli nel campo sottostante e clicca sul pulsante 'Richiedi Licenza' per inviare la tua richiesta. Le richieste vengono esaminate manualmente, quindi ti chiediamo di avere un po' di pazienza. Di solito vengono gestite rapidamente.",
+  "messageLabel": "Messaggio",
+  "messagePlaceholder": "Se hai scelto di donare, inserisci il nome, il link della donazione o l'ID dell'ordine.\nSe hai contribuito allo sviluppo, inserisci il link della Pull Request.\nSe hai promosso il progetto, inserisci il link all’articolo/video.",
+  "requestButton": "Richiedi Licenza",
+  "refreshButton": "Aggiorna Stato"
+}

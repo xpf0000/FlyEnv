@@ -1,0 +1,5 @@
+{
+  "Local": "Lokal",
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> tidak ditemukan\nUntuk menginstal Homebrew, klik tombol instal untuk melanjutkan\nAnda juga dapat mengklik tautan ini\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/zh/help-4-2.html')\">https://flyenv.com/zh/help-4-2.html</a>\nIkuti dokumentasi untuk menginstal.",
+  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> tidak ditemukan.\nInstal Macports, Anda dapat mengklik tautan ini\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nIkuti dokumentasi untuk menginstal."
+}

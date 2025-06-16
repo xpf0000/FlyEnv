@@ -1,0 +1,11 @@
+{
+  "setaliase": "Imposta Alias",
+  "env": "Ambiente",
+  "alias": "Alias",
+  "envTips": "Il percorso è stato aggiunto alla variabile d’ambiente?",
+  "aliasTips": "Alias utilizzato nel terminale",
+  "useSysPHP": "Usa la versione PHP predefinita",
+  "setByApp": "Variabili d’ambiente impostate da FlyEnv",
+  "setByNoApp": "Variabili d’ambiente non impostate da FlyEnv",
+  "ftpdNeedPasswordToStart": "Pure-FTPd richiede privilegi sudo per essere avviato. Inserisci la password del tuo utente. La password verrà salvata per l’inserimento automatico in futuro. Oppure puoi cliccare il pulsante qui sotto per inserirla manualmente nel terminale, ma questo avviso potrebbe riapparire."
+}

@@ -1,0 +1,15 @@
+{
+  "site": "Situs",
+  "webServer": "Web Server",
+  "dataBaseServer": "Database Server",
+  "emailServer": "Email Server",
+  "language": "Bahasa & Runtime",
+  "dataQueue": "Cache & Penyimpanan Memori",
+  "searchEngine": "Search Engine",
+  "dnsServer": "DNS Server",
+  "ftpServer": "FTP Server",
+  "other": "Lainnya",
+  "appLog": "Log Aplikasi",
+  "ai": "Kecerdasan Buatan (AI)",
+  "objectStorage": "Penyimpanan Objek"
+}
