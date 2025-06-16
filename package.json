@@ -95,6 +95,7 @@
     "@vitejs/plugin-vue": "^2.0.0",
     "@vitejs/plugin-vue-jsx": "^3.0.2",
     "@vscode/sudo-prompt": "^9.3.1",
+    "@vue/eslint-config-typescript": "^14.5.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
     "autoprefixer": "^10.0.1",

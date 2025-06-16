@@ -41,11 +41,12 @@
     "src/**/*.vue",
     "src/**/*.jsx",
     "src/**/*.js",
-    "web/**/*.ts",
-    "web/**/*.d.ts",
-    "web/**/*.tsx",
-    "web/**/*.vue",
-    "web/**/*.jsx",
-    "web/**/*.js"
+    "configs/**/*.ts",
+    "scripts/**/*.ts",
+    "test/**/*.ts",
+    "electron/**/*.ts",
+    "*.ts",
+    "*.tsx",
+    "*.vue"
   ]
 }
