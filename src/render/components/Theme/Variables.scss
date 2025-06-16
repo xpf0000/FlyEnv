@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 /* Element Chalk Variables */
 
 // Special comment for theme configurator
@@ -21,15 +23,15 @@ $--color-primary: #5b5bfa !default;
 $--color-white: #FFFFFF !default;
 /// color|1|Background Color|4
 $--color-black: #000000 !default;
-$--color-primary-light-1: mix($--color-white, $--color-primary, 10%) !default; /* 53a8ff */
-$--color-primary-light-2: mix($--color-white, $--color-primary, 20%) !default; /* 66b1ff */
-$--color-primary-light-3: mix($--color-white, $--color-primary, 30%) !default; /* 79bbff */
-$--color-primary-light-4: mix($--color-white, $--color-primary, 40%) !default; /* 8cc5ff */
-$--color-primary-light-5: mix($--color-white, $--color-primary, 50%) !default; /* a0cfff */
-$--color-primary-light-6: mix($--color-white, $--color-primary, 60%) !default; /* b3d8ff */
-$--color-primary-light-7: mix($--color-white, $--color-primary, 70%) !default; /* c6e2ff */
-$--color-primary-light-8: mix($--color-white, $--color-primary, 80%) !default; /* d9ecff */
-$--color-primary-light-9: mix($--color-white, $--color-primary, 90%) !default; /* ecf5ff */
+$--color-primary-light-1: color.mix($--color-white, $--color-primary, 10%) !default; /* 53a8ff */
+$--color-primary-light-2: color.mix($--color-white, $--color-primary, 20%) !default; /* 66b1ff */
+$--color-primary-light-3: color.mix($--color-white, $--color-primary, 30%) !default; /* 79bbff */
+$--color-primary-light-4: color.mix($--color-white, $--color-primary, 40%) !default; /* 8cc5ff */
+$--color-primary-light-5: color.mix($--color-white, $--color-primary, 50%) !default; /* a0cfff */
+$--color-primary-light-6: color.mix($--color-white, $--color-primary, 60%) !default; /* b3d8ff */
+$--color-primary-light-7: color.mix($--color-white, $--color-primary, 70%) !default; /* c6e2ff */
+$--color-primary-light-8: color.mix($--color-white, $--color-primary, 80%) !default; /* d9ecff */
+$--color-primary-light-9: color.mix($--color-white, $--color-primary, 90%) !default; /* ecf5ff */
 /// color|1|Functional Color|1
 $--color-success: #67C23A !default;
 /// color|1|Functional Color|1
@@ -39,15 +41,15 @@ $--color-danger: #F56C6C !default;
 /// color|1|Functional Color|1
 $--color-info: #909399 !default;
 
-$--color-success-light: mix($--color-white, $--color-success, 80%) !default;
-$--color-warning-light: mix($--color-white, $--color-warning, 80%) !default;
-$--color-danger-light: mix($--color-white, $--color-danger, 80%) !default;
-$--color-info-light: mix($--color-white, $--color-info, 80%) !default;
+$--color-success-light: color.mix($--color-white, $--color-success, 80%) !default;
+$--color-warning-light: color.mix($--color-white, $--color-warning, 80%) !default;
+$--color-danger-light: color.mix($--color-white, $--color-danger, 80%) !default;
+$--color-info-light: color.mix($--color-white, $--color-info, 80%) !default;
 
-$--color-success-lighter: mix($--color-white, $--color-success, 90%) !default;
-$--color-warning-lighter: mix($--color-white, $--color-warning, 90%) !default;
-$--color-danger-lighter: mix($--color-white, $--color-danger, 90%) !default;
-$--color-info-lighter: mix($--color-white, $--color-info, 90%) !default;
+$--color-success-lighter: color.mix($--color-white, $--color-success, 90%) !default;
+$--color-warning-lighter: color.mix($--color-white, $--color-warning, 90%) !default;
+$--color-danger-lighter: color.mix($--color-white, $--color-danger, 90%) !default;
+$--color-info-lighter: color.mix($--color-white, $--color-info, 90%) !default;
 /// color|1|Font Color|2
 $--color-text-primary: #303133 !default;
 /// color|1|Font Color|2
@@ -758,7 +760,7 @@ $--card-padding: 20px !default;
 $--slider-main-background-color: $--color-primary !default;
 /// color||Color|0
 $--slider-runway-background-color: $--border-color-light !default;
-$--slider-button-hover-color: mix($--color-primary, black, 97%) !default;
+$--slider-button-hover-color: color.mix($--color-primary, black, 97%) !default;
 $--slider-stop-background-color: $--color-white !default;
 $--slider-disable-color: $--color-text-placeholder !default;
 $--slider-margin: 16px 0 !default;
