@@ -153,7 +153,7 @@
     "tiny-emitter": "^2.1.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
-    "vite": "^4.5.9",
+    "vite": "^4.5.14",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vite-plugin-wasm": "^3.3.0",
     "vue-router": "^4.1.6",
