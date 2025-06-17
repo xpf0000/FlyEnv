@@ -23,7 +23,7 @@ export interface ServerType {
   MariaDBDir?: string
   MemcachedDir?: string
   BaseDir?: string
-  ApacheDir?: string
+  ApacheDir: string
   Lang?: string
   Local?: string
   MacPorts?: string

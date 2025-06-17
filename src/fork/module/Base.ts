@@ -12,7 +12,8 @@ import {
   mkdirp,
   readdir,
   copyFile,
-  chmod
+  chmod,
+  zipUnPack
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
@@ -249,6 +250,52 @@ export class Base {
     }
     console.log('waitPid: ', time, res)
     return res
+  }
+
+  /**
+   * Windows Only
+   * @param version
+   * @param flag
+   */
+  initLocalApp(version: SoftInstalled, flag: string) {
+    return new ForkPromise((resolve, reject, on) => {
+      console.log('initLocalApp: ', version.bin, global.Server.AppDir)
+      if (
+        !existsSync(version.bin) &&
+        version.bin.includes(join(global.Server.AppDir!, `${flag}-${version.version}`))
+      ) {
+        const local7ZFile = join(global.Server.Static!, `zip/${flag}-${version.version}.7z`)
+        if (existsSync(local7ZFile)) {
+          on({
+            'APP-On-Log': AppLog(
+              'info',
+              I18nT('appLog.serviceUseBundle', { service: `${flag}-${version.version}` })
+            )
+          })
+          zipUnPack(
+            join(global.Server.Static!, `zip/${flag}-${version.version}.7z`),
+            global.Server.AppDir!
+          )
+            .then(() => {
+              on({
+                'APP-On-Log': AppLog(
+                  'info',
+                  I18nT('appLog.bundleUnzipSuccess', { appDir: version.path })
+                )
+              })
+              resolve(true)
+            })
+            .catch((e) => {
+              on({
+                'APP-On-Log': AppLog('error', I18nT('appLog.bundleUnzipFail', { error: e }))
+              })
+              reject(e)
+            })
+          return
+        }
+      }
+      resolve(true)
+    })
   }
 
   getAxiosProxy() {

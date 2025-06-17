@@ -17,5 +17,9 @@
   "initDBPassFail": "初始化数据库密码失败, 原因: {error}",
   "initDBDataDir": "未找到数据文件夹, 开始初始化数据文件夹",
   "initDBDataDirSuccess": "初始化数据文件夹成功, 数据文件夹路径: {dir}",
-  "initDBDataDirFail": "初始化数据文件夹失败, 原因: {error}"
+  "initDBDataDirFail": "初始化数据文件夹失败, 原因: {error}",
+
+  "serviceUseBundle": "使用了内置版本, 开始解压安装{service}",
+  "bundleUnzipSuccess": "解压安装完毕, 安装位置: {appDir}",
+  "bundleUnzipFail": "解压安装失败, 原因: {error}"
 }
