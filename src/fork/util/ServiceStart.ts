@@ -15,23 +15,41 @@ import {
   execPromiseSudo
 } from '../Fn'
 
+export type ServiceStartParams = {
+  version: SoftInstalled
+  pidPath?: string
+  baseDir: string
+  bin: string
+  execArgs?: string
+  execEnv?: string
+  on: (...args: any) => void
+  maxTime?: number
+  timeToWait?: number
+  checkPidFile?: boolean
+  cwd?: string
+}
+
 export async function serviceStartExec(
-  version: SoftInstalled,
-  pidPath: string,
-  baseDir: string,
-  bin: string,
-  execArgs: string,
-  execEnv: string,
-  on: (...args: any) => void,
-  maxTime = 20,
-  timeToWait = 500,
-  checkPidFile = true
+  param: ServiceStartParams
 ): Promise<{ 'APP-Service-Start-PID': string }> {
+  const baseDir = param.baseDir
+  const version = param.version
+  const execEnv = param?.execEnv ?? ''
+  const cwd = param?.cwd ?? dirname(param.bin)
+  const bin = basename(param.bin)
+  const execArgs = param?.execArgs ?? ''
+  const on = param.on
+  const checkPidFile = param.checkPidFile
+  const pidPath = param?.pidPath ?? ''
+  const maxTime = param?.maxTime ?? 20
+  const timeToWait = param?.timeToWait ?? 500
+
   if (pidPath && existsSync(pidPath)) {
     try {
       await remove(pidPath)
     } catch {}
   }
+
   await mkdirp(baseDir)
   const outFile = join(baseDir, `start.${version.version}.out.log`)
   const errFile = join(baseDir, `start.${version.version}.error.log`)
@@ -40,8 +58,8 @@ export async function serviceStartExec(
 
   psScript = psScript
     .replace('#ENV#', execEnv)
-    .replace('#CWD#', dirname(bin))
-    .replace('#BIN#', basename(bin))
+    .replace('#CWD#', cwd)
+    .replace('#BIN#', bin)
     .replace('#ARGS#', execArgs)
     .replace('#OUTLOG#', outFile)
     .replace('#ERRLOG#', errFile)

@@ -1,8 +1,7 @@
 import { join } from 'path'
-import { createWriteStream, existsSync, unlinkSync } from 'fs'
+import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import axios from 'axios'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
@@ -14,9 +13,11 @@ import {
   copyFile,
   mkdirp,
   readFile,
-  remove
+  writeFile,
+  versionLocalFetchWin
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class Composer extends Base {
   constructor() {
@@ -47,96 +48,25 @@ class Composer extends Base {
     })
   }
 
-  installSoft(row: any) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      const refresh = () => {
-        row.downloaded = existsSync(row.zip)
-        row.installed = existsSync(row.bin)
+  async _installSoftHandle(row: any): Promise<void> {
+    if (isMacOS()) {
+      if (!existsSync(row.appDir)) {
+        await mkdirp(row.appDir)
       }
-
-      const handleComposer = async () => {
-        if (!existsSync(row.appDir)) {
-          await mkdirp(row.appDir)
-        }
-        const bin = join(row.appDir, 'composer')
-        await copyFile(row.zip, bin)
-        await chmod(bin, '0777')
+      const bin = join(row.appDir, 'composer')
+      await copyFile(row.zip, bin)
+      await chmod(bin, '0777')
+    } else if (isWindows()) {
+      if (!existsSync(row.appDir)) {
+        await mkdirp(row.appDir)
       }
-
-      if (existsSync(row.zip)) {
-        let success = false
-        try {
-          await handleComposer()
-          success = true
-        } catch {}
-        if (success) {
-          refresh()
-          row.downState = 'success'
-          row.progress = 100
-          on(row)
-          resolve(true)
-          return
-        }
-        await remove(row.zip)
-      }
-
-      axios({
-        method: 'get',
-        url: row.url,
-        proxy: this.getAxiosProxy(),
-        responseType: 'stream',
-        onDownloadProgress: (progress) => {
-          if (progress.total) {
-            const percent = Math.round((progress.loaded * 100.0) / progress.total)
-            row.progress = percent
-            on(row)
-          }
-        }
-      })
-        .then(function (response) {
-          const stream = createWriteStream(row.zip)
-          response.data.pipe(stream)
-          stream.on('error', (err: any) => {
-            console.log('stream error: ', err)
-            row.downState = 'exception'
-            try {
-              if (existsSync(row.zip)) {
-                unlinkSync(row.zip)
-              }
-            } catch {}
-            refresh()
-            on(row)
-            setTimeout(() => {
-              resolve(false)
-            }, 1500)
-          })
-          stream.on('finish', async () => {
-            row.downState = 'success'
-            try {
-              if (existsSync(row.zip)) {
-                await handleComposer()
-              }
-            } catch {}
-            refresh()
-            on(row)
-            resolve(true)
-          })
-        })
-        .catch((err) => {
-          console.log('down error: ', err)
-          row.downState = 'exception'
-          try {
-            if (existsSync(row.zip)) {
-              unlinkSync(row.zip)
-            }
-          } catch {}
-          refresh()
-          on(row)
-          setTimeout(() => {
-            resolve(false)
-          }, 1500)
-        })
-    })
+      await copyFile(row.zip, join(row.appDir, 'composer.phar'))
+      await writeFile(
+        join(row.appDir, 'composer.bat'),
+        `@echo off
+php "%~dp0composer.phar" %*`
+      )
+    }
   }
 
   allInstalledVersions(setup: any) {
@@ -173,7 +103,13 @@ class Composer extends Base {
         })
       }
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.composer?.dirs ?? [], 'composer', 'composer')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [versionLocalFetch(setup?.composer?.dirs ?? [], 'composer', 'composer')]
+      } else if (isWindows()) {
+        all = [versionLocalFetchWin(setup?.composer?.dirs ?? [], 'composer.phar')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)

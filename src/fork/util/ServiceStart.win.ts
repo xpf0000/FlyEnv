@@ -1,4 +1,3 @@
-import type { SoftInstalled } from '@shared/app'
 import { basename, dirname, join } from 'path'
 import { I18nT } from '@lang/index'
 import {
@@ -12,6 +11,7 @@ import {
 } from '../Fn'
 import chardet from 'chardet'
 import iconv from 'iconv-lite'
+import { ServiceStartParams } from './ServiceStart'
 
 export async function readFileAsUTF8(filePath: string): Promise<string> {
   try {
@@ -52,17 +52,20 @@ export async function readFileAsUTF8(filePath: string): Promise<string> {
 }
 
 export async function serviceStartExec(
-  version: SoftInstalled,
-  pidPath: string,
-  baseDir: string,
-  bin: string,
-  execArgs: string,
-  execEnv: string,
-  on: (...args: any) => void,
-  maxTime = 20,
-  timeToWait = 500,
-  checkPidFile = true
+  param: ServiceStartParams
 ): Promise<{ 'APP-Service-Start-PID': string }> {
+  const baseDir = param.baseDir
+  const version = param.version
+  const execEnv = param?.execEnv ?? ''
+  const cwd = param?.cwd ?? dirname(param.bin)
+  const bin = param.bin
+  const execArgs = param?.execArgs ?? ''
+  const on = param.on
+  const checkPidFile = param.checkPidFile
+  const pidPath = param?.pidPath ?? ''
+  const maxTime = param?.maxTime ?? 20
+  const timeToWait = param?.timeToWait ?? 500
+
   if (pidPath && existsSync(pidPath)) {
     try {
       await remove(pidPath)
@@ -79,7 +82,7 @@ export async function serviceStartExec(
 
   psScript = psScript
     .replace('#ENV#', execEnv)
-    .replace('#CWD#', dirname(bin))
+    .replace('#CWD#', cwd)
     .replace('#BIN#', bin)
     .replace('#ARGS#', execArgs)
     .replace('#OUTLOG#', outFile)
@@ -186,17 +189,20 @@ export async function serviceStartExec(
 }
 
 export async function serviceStartExecCMD(
-  version: SoftInstalled,
-  pidPath: string,
-  baseDir: string,
-  bin: string,
-  execArgs: string,
-  execEnv: string,
-  on: (...args: any) => void,
-  maxTime = 20,
-  timeToWait = 500,
-  checkPidFile = true
+  param: ServiceStartParams
 ): Promise<{ 'APP-Service-Start-PID': string }> {
+  const baseDir = param.baseDir
+  const version = param.version
+  const execEnv = param?.execEnv ?? ''
+  const cwd = param?.cwd ?? dirname(param.bin)
+  const bin = param.bin
+  const execArgs = param?.execArgs ?? ''
+  const on = param.on
+  const checkPidFile = param.checkPidFile
+  const pidPath = param?.pidPath ?? ''
+  const maxTime = param?.maxTime ?? 20
+  const timeToWait = param?.timeToWait ?? 500
+
   if (pidPath && existsSync(pidPath)) {
     try {
       await remove(pidPath)
@@ -218,7 +224,7 @@ export async function serviceStartExecCMD(
 
   psScript = psScript
     .replace('#ENV#', execEnv)
-    .replace('#CWD#', dirname(bin))
+    .replace('#CWD#', cwd)
     .replace('#BIN#', execBin)
     .replace('#ARGS#', execArgs)
     .replace('#OUTLOG#', outFile)
@@ -301,97 +307,4 @@ export async function serviceStartExecCMD(
     )
   })
   throw new Error(msg)
-}
-
-export async function serviceStartExecGetPID(
-  version: SoftInstalled,
-  pidPath: string,
-  baseDir: string,
-  cwdDir: string,
-  bin: string,
-  execArgs: string,
-  execEnv: string,
-  on: (...args: any) => void
-): Promise<{ 'APP-Service-Start-PID': string }> {
-  if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch {}
-  }
-
-  const typeFlag = version.typeFlag
-  const versionStr = version.version!.trim()
-
-  const outFile = join(baseDir, `${typeFlag}-${versionStr}-start-out.log`.split(' ').join(''))
-  const errFile = join(baseDir, `${typeFlag}-${versionStr}-start-error.log`.split(' ').join(''))
-
-  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.ps1'), 'utf8')
-
-  psScript = psScript
-    .replace('#ENV#', execEnv)
-    .replace('#CWD#', cwdDir)
-    .replace('#BIN#', bin)
-    .replace('#ARGS#', execArgs)
-    .replace('#OUTLOG#', outFile)
-    .replace('#ERRLOG#', errFile)
-
-  const psName = `${typeFlag}-${versionStr}-start.ps1`.split(' ').join('')
-  const psPath = join(baseDir, psName)
-  await writeFile(psPath, psScript)
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-  })
-
-  process.chdir(baseDir)
-  let res: any
-  try {
-    res = await spawnPromiseWithEnv(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-Command',
-        `"Unblock-File -LiteralPath './${psName}'; & './${psName}'"`
-      ],
-      {
-        shell: 'powershell.exe',
-        cwd: baseDir
-      }
-    )
-  } catch (e) {
-    on({
-      'APP-On-Log': AppLog(
-        'error',
-        I18nT('appLog.execStartCommandFail', {
-          error: e,
-          service: `${version.typeFlag}-${version.version}`
-        })
-      )
-    })
-    throw e
-  }
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-  })
-  on({
-    'APP-Service-Start-Success': true
-  })
-
-  let pid = ''
-  const stdout = res.trim()
-  const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
-  const match = regex.exec(stdout)
-  if (match) {
-    pid = match[1] // 捕获组 (\d+) 的内容
-  }
-  await writeFile(pidPath, pid)
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-  })
-  return {
-    'APP-Service-Start-PID': pid
-  }
 }

@@ -17,7 +17,8 @@ import {
   writeFile,
   mkdirp,
   serviceStartExecCMD,
-  versionLocalFetchWin
+  versionLocalFetchWin,
+  versionInitedApp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
@@ -163,15 +164,15 @@ class Caddy extends Base {
       if (isWindows()) {
         const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
         try {
-          const res = await serviceStartExecCMD(
+          const res = await serviceStartExecCMD({
             version,
-            this.pidPath,
+            pidPath: this.pidPath,
             baseDir,
             bin,
             execArgs,
-            '',
+            execEnv: '',
             on
-          )
+          })
           resolve(res)
         } catch (e: any) {
           console.log('-k start err: ', e)
@@ -182,15 +183,15 @@ class Caddy extends Base {
         const execEnv = ``
         const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
         try {
-          const res = await serviceStartExec(
+          const res = await serviceStartExec({
             version,
-            this.pidPath,
+            pidPath: this.pidPath,
             baseDir,
             bin,
             execArgs,
             execEnv,
             on
-          )
+          })
           resolve(res)
         } catch (e: any) {
           console.log('-k start err: ', e)
@@ -250,7 +251,7 @@ class Caddy extends Base {
           })
           return Promise.all(all)
         })
-        .then((list) => {
+        .then(async (list) => {
           list.forEach((v, i) => {
             const { error, version } = v
             const num = version

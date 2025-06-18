@@ -390,7 +390,13 @@ export class Base {
   }
 
   async _installSoftHandle(row: any) {
-    console.log('row: ', row)
+    if (isWindows()) {
+      await zipUnPack(row.zip, row.appDir)
+    } else if (isMacOS()) {
+      const dir = row.appDir
+      await mkdirp(dir)
+      await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
+    }
   }
 
   installSoft(row: any) {

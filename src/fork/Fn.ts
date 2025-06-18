@@ -15,7 +15,6 @@ import { serviceStartExec, customerServiceStartExec } from './util/ServiceStart'
 import {
   serviceStartExec as serviceStartExecWin,
   serviceStartExecCMD,
-  serviceStartExecGetPID,
   readFileAsUTF8
 } from './util/ServiceStart.win'
 import {
@@ -89,7 +88,6 @@ export {
   customerServiceStartExec,
   serviceStartExecWin,
   serviceStartExecCMD,
-  serviceStartExecGetPID,
   readFileAsUTF8
 }
 

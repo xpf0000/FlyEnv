@@ -1,18 +1,27 @@
-import { join } from 'path'
+import { basename, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
+  execPromise,
+  mkdirp,
+  moveChildDirToParent,
   portSearch,
+  readdir,
+  remove,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionLocalFetchWin,
+  versionSort,
+  waitTime,
+  zipUnPack
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class Maven extends Base {
   constructor() {
@@ -25,9 +34,18 @@ class Maven extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('maven')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `maven-${a.version}`, 'bin/mvn')
-          const zip = join(global.Server.Cache!, `maven-${a.version}.tar.gz`)
-          a.appDir = join(global.Server.AppDir!, `maven-${a.version}`)
+          let dir = ''
+          let zip = ''
+          if (isMacOS()) {
+            dir = join(global.Server.AppDir!, `maven-${a.version}`, 'bin/mvn')
+            zip = join(global.Server.Cache!, `maven-${a.version}.tar.gz`)
+            a.appDir = join(global.Server.AppDir!, `maven-${a.version}`)
+          } else if (isWindows()) {
+            dir = join(global.Server.AppDir!, `maven-${a.version}`, 'bin/mvn.cmd')
+            zip = join(global.Server.Cache!, `maven-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `maven-${a.version}`)
+          }
+
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
@@ -46,14 +64,22 @@ class Maven extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      const dirs = setup?.maven?.dirs ?? []
-      Promise.all([versionLocalFetch([...dirs, '/opt/local/share/java/'], 'mvn', 'maven')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        const dirs = setup?.maven?.dirs ?? []
+        all = [versionLocalFetch([...dirs, '/opt/local/share/java/'], 'mvn', 'maven')]
+      } else if (isWindows()) {
+        all = [versionLocalFetchWin(setup?.maven?.dirs ?? [], 'mvn.cmd')]
+      }
+
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
           const reg = /(Apache Maven )(.*?)( )/g
           const all = versions.map((item) => {
-            return TaskQueue.run(versionBinVersion, `${item.bin} --version`, reg)
+            const command = `${basename(item.bin)} --version`
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
           return Promise.all(all)
         })
@@ -76,6 +102,25 @@ class Maven extends Base {
           resolve([])
         })
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    if (isMacOS()) {
+      const dir = row.appDir
+      await super._installSoftHandle(row)
+      const subDirs = await readdir(dir)
+      const subDir = subDirs.pop()
+      if (subDir) {
+        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
+        await waitTime(300)
+        await remove(subDir)
+      }
+    } else if (isWindows()) {
+      await remove(row.appDir)
+      await mkdirp(row.appDir)
+      await zipUnPack(row.zip, row.appDir)
+      await moveChildDirToParent(row.appDir)
+    }
   }
 
   brewinfo() {
