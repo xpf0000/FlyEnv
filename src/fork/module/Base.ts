@@ -389,6 +389,10 @@ export class Base {
     return list
   }
 
+  async _installSoftHandle(row: any) {
+    console.log('row: ', row)
+  }
+
   installSoft(row: any) {
     return new ForkPromise(async (resolve, reject, on) => {
       const service = basename(row.appDir)
