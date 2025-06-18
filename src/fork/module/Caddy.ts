@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { AppHost, OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -15,13 +15,16 @@ import {
   versionSort,
   readFile,
   writeFile,
-  mkdirp
+  mkdirp,
+  serviceStartExecCMD,
+  versionLocalFetchWin
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
 import Helper from '../Helper'
+import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 
 class Caddy extends Base {
   constructor() {
@@ -49,9 +52,9 @@ class Caddy extends Base {
         const vhostDir = join(global.Server.BaseDir!, 'vhost/caddy')
         await mkdirp(sslDir)
         content = content
-          .replace('##SSL_ROOT##', sslDir)
-          .replace('##LOG_FILE##', logFile)
-          .replace('##VHOST-DIR##', vhostDir)
+          .replace('##SSL_ROOT##', pathFixedToUnix(sslDir))
+          .replace('##LOG_FILE##', pathFixedToUnix(logFile))
+          .replace('##VHOST-DIR##', pathFixedToUnix(vhostDir))
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'Caddyfile.default')
         await writeFile(defaultIniFile, content)
@@ -109,22 +112,22 @@ class Caddy extends Base {
       const httpHostNameAll = httpNames.join(',\n')
       const content = tmplContent
         .replace('##HOST-ALL##', httpHostNameAll)
-        .replace('##LOG-PATH##', logFile)
-        .replace('##ROOT##', root)
+        .replace('##LOG-PATH##', pathFixedToUnix(logFile))
+        .replace('##ROOT##', pathFixedToUnix(root))
         .replace('##PHP-VERSION##', `${phpv}`)
       contentList.push(content)
 
       if (host.useSSL) {
         let tls = 'internal'
         if (host.ssl.cert && host.ssl.key) {
-          tls = `${host.ssl.cert} ${host.ssl.key}`
+          tls = `${pathFixedToUnix(host.ssl.cert)} ${pathFixedToUnix(host.ssl.key)}`
         }
         const httpHostNameAll = httpsNames.join(',\n')
         const content = tmplSSLContent
           .replace('##HOST-ALL##', httpHostNameAll)
-          .replace('##LOG-PATH##', logFile)
+          .replace('##LOG-PATH##', pathFixedToUnix(logFile))
           .replace('##SSL##', tls)
-          .replace('##ROOT##', root)
+          .replace('##ROOT##', pathFixedToUnix(root))
           .replace('##PHP-VERSION##', `${phpv}`)
         contentList.push(content)
       }
@@ -140,32 +143,60 @@ class Caddy extends Base {
           I18nT('appLog.startServiceBegin', { service: `caddy-${version.version}` })
         )
       })
+
+      if (isWindows()) {
+        await this.initLocalApp(version, 'caddy').on(on)
+      }
+
       await this.#fixVHost()
       const iniFile = await this.initConfig().on(on)
 
-      const sslDir = join(global.Server.BaseDir!, 'caddy/ssl')
-      await Helper.send('caddy', 'sslDirFixed', sslDir)
+      if (isMacOS()) {
+        const sslDir = join(global.Server.BaseDir!, 'caddy/ssl')
+        await Helper.send('caddy', 'sslDirFixed', sslDir)
+      }
 
       const bin = version.bin
       const baseDir = join(global.Server.BaseDir!, 'caddy')
-      const execEnv = ``
-      const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
+      await mkdirp(baseDir)
 
-      try {
-        const res = await serviceStartExec(
-          version,
-          this.pidPath,
-          baseDir,
-          bin,
-          execArgs,
-          execEnv,
-          on
-        )
-        resolve(res)
-      } catch (e: any) {
-        console.log('-k start err: ', e)
-        reject(e)
-        return
+      if (isWindows()) {
+        const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
+        try {
+          const res = await serviceStartExecCMD(
+            version,
+            this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            '',
+            on
+          )
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else if (isMacOS()) {
+        const execEnv = ``
+        const execArgs = `start --config "${iniFile}" --pidfile "${this.pidPath}" --watch`
+        try {
+          const res = await serviceStartExec(
+            version,
+            this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on
+          )
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
       }
     })
   }
@@ -175,9 +206,17 @@ class Caddy extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('caddy')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `static-caddy-${a.version}`, 'caddy')
-          const zip = join(global.Server.Cache!, `static-caddy-${a.version}.tar.gz`)
-          a.appDir = join(global.Server.AppDir!, `static-caddy-${a.version}`)
+          let dir = ''
+          let zip = ''
+          if (isMacOS()) {
+            dir = join(global.Server.AppDir!, `static-caddy-${a.version}`, 'caddy')
+            zip = join(global.Server.Cache!, `static-caddy-${a.version}.tar.gz`)
+            a.appDir = join(global.Server.AppDir!, `static-caddy-${a.version}`)
+          } else if (isWindows()) {
+            dir = join(global.Server.AppDir!, `caddy-${a.version}`, 'caddy.exe')
+            zip = join(global.Server.Cache!, `caddy-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `caddy-${a.version}`)
+          }
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
@@ -194,13 +233,21 @@ class Caddy extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.caddy?.dirs ?? [], 'caddy', 'caddy')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [versionLocalFetch(setup?.caddy?.dirs ?? [], 'caddy', 'caddy')]
+      } else if (isWindows()) {
+        all = [versionLocalFetchWin(setup?.caddy?.dirs ?? [], 'caddy.exe')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          const all = versions.map((item) =>
-            TaskQueue.run(versionBinVersion, `${item.bin} version`, /(v)(\d+(\.\d+){1,4})(.*?)/g)
-          )
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} version`
+            const reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
           return Promise.all(all)
         })
         .then((list) => {
@@ -216,6 +263,10 @@ class Caddy extends Base {
               error
             })
           })
+          if (isWindows()) {
+            const appInited = await versionInitedApp('caddy', 'caddy.exe')
+            versions.push(...appInited.filter((a) => !versions.find((v) => v.bin === a.bin)))
+          }
           resolve(versionSort(versions))
         })
         .catch(() => {

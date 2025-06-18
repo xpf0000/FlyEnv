@@ -1,7 +1,6 @@
 import type { AppHost, SoftInstalled } from '@shared/app'
 import { basename, dirname, join, resolve as pathResolve } from 'path'
 import {
-  execPromise,
   hostAlias,
   copyFile,
   existsSync,
@@ -10,7 +9,8 @@ import {
   writeFile,
   realpathSync,
   remove,
-  chmod
+  chmod,
+  execPromiseWithEnv
 } from '../../Fn'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import { ServiceItem } from './ServiceItem'
@@ -408,10 +408,10 @@ export class ServiceItemJavaTomcat extends ServiceItem {
       process.chdir(global.Server.Cache!)
       try {
         if (isMacOS()) {
-          const res = await execPromise(`zsh "${sh}"`, { env })
+          const res = await execPromiseWithEnv(`zsh "${sh}"`, { env })
           console.log('start res: ', res)
         } else if (isWindows()) {
-          await execPromise(
+          await execPromiseWithEnv(
             `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
           )
         }

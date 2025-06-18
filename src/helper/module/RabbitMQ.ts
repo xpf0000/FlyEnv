@@ -1,14 +1,11 @@
 import { BaseManager } from './Base'
-import { exec } from 'child_process'
-import { promisify } from 'util'
-
-const execAsync = promisify(exec)
+import { execPromise } from '@shared/child-process'
 
 class Manager extends BaseManager {
   initPlugin(cwd: string): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
       try {
-        await execAsync(`./rabbitmq-plugins enable rabbitmq_management`, {
+        await execPromise(`./rabbitmq-plugins enable rabbitmq_management`, {
           cwd
         })
       } catch (e) {

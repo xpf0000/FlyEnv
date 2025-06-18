@@ -1,9 +1,16 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join } from 'path'
-import { existsSync, mkdirp, writeFile, readFile, remove, chmod } from '../../Fn'
+import {
+  existsSync,
+  mkdirp,
+  writeFile,
+  readFile,
+  remove,
+  chmod,
+  execPromiseWithEnv
+} from '../../Fn'
 import { getHostItemEnv, ServiceItem } from './ServiceItem'
 import { ForkPromise } from '@shared/ForkPromise'
-import { execPromise } from '../../util/Exec'
 import { ProcessPidsByPid } from '@shared/Process'
 import Helper from '../../Helper'
 import { isMacOS, isWindows } from '@shared/utils'
@@ -98,9 +105,9 @@ export class ServiceItemNode extends ServiceItem {
       process.chdir(global.Server.Cache!)
       try {
         if (isMacOS()) {
-          await execPromise(`zsh "${sh}"`, opt)
+          await execPromiseWithEnv(`zsh "${sh}"`, opt)
         } else if (isWindows()) {
-          await execPromise(
+          await execPromiseWithEnv(
             `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "(Start-Process -FilePath ./service-${this.id}.cmd -PassThru -WindowStyle Hidden).Id" > "${pid}"`
           )
         }

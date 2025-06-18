@@ -1,12 +1,8 @@
 import { createServer } from 'net'
 import { remove, existsSync } from './util'
-import { exec } from 'child_process'
 import { dirChownFetch, waitTime } from './util'
 import type { TaskItem } from './type'
-
-import { promisify } from 'util'
-
-const execAsync = promisify(exec)
+import { execPromise } from '@shared/child-process'
 
 // Path to the socket file
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
@@ -165,7 +161,7 @@ class AppHelper {
         return
       }
       if (existsSync(SOCKET_PATH)) {
-        await execAsync(`chown ${rule} "${SOCKET_PATH}"`)
+        await execPromise(`chown ${rule} "${SOCKET_PATH}"`)
       }
     })
 

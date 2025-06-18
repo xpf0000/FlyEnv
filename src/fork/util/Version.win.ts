@@ -1,47 +1,9 @@
-import { statSync } from 'fs'
-import { dirname, join } from 'path'
-import { execPromise } from '../Fn'
+import { join } from 'path'
+import { existsSync, realpathSync, fetchPathByBin, getSubDirAsync, getAllFileAsync } from '../Fn'
+import type { SoftInstalled } from '@shared/app'
+import { versionCheckBin, versionDirCache } from './Version'
 
-export const versionBinVersion = (
-  bin: string,
-  command: string,
-  reg: RegExp
-): Promise<{ version?: string; error?: string }> => {
-  return new Promise(async (resolve) => {
-    const handleCatch = (err: any) => {
-      resolve({
-        error: command + '<br/>' + err.toString().trim().replace(new RegExp('\n', 'g'), '<br/>'),
-        version: undefined
-      })
-    }
-    const handleThen = (res: any) => {
-      let str = res.stdout + res.stderr
-      str = str.replace(new RegExp(`\r\n`, 'g'), `\n`)
-      let version: string | undefined = ''
-      try {
-        version = reg?.exec(str)?.[2]?.trim()
-        reg!.lastIndex = 0
-      } catch {}
-      resolve({
-        version
-      })
-    }
-    try {
-      const res = await execPromise(command, {
-        cwd: dirname(bin)
-      })
-      console.log('versionBinVersion: ', command, reg, res)
-      handleThen(res)
-    } catch (e) {
-      console.log('versionBinVersion err: ', e)
-      handleCatch(e)
-    }
-  })
-}
-
-export const versionDirCache: Record<string, string[]> = {}
-
-export const versionLocalFetch = async (
+export const versionLocalFetchWin = async (
   customDirs: string[],
   binName: string
 ): Promise<Array<SoftInstalled>> => {

@@ -16,6 +16,7 @@ export interface SoftInstalled {
   phpize?: string
   flag?: string
   pid?: string
+  isLocal7Z?: boolean
 }
 
 export interface AppHostReverseProxyItem {

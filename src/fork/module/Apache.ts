@@ -15,19 +15,19 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
+  versionLocalFetchWin,
   versionSort,
   readFile,
   writeFile,
   mkdirp,
-  copy,
-  remove,
-  serviceStartExecCMD
+  serviceStartExecCMD,
+  versionInitedApp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
 import { basename } from 'path-browserify'
-import { isWindows, pathFixedToUnix } from '@shared/utils'
+import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 
 class Apache extends Base {
   constructor() {
@@ -41,22 +41,17 @@ class Apache extends Base {
 
   #resetConf(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
-      const defaultFileOld = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
-      const defaultFileBackOld = join(
-        global.Server.ApacheDir!,
-        `common/conf/${md5(version.bin)}.default.conf`
-      )
-
-      const defaultFile = join(global.Server.ApacheDir!, `${version.version}.conf`)
-      const defaultFileBack = join(global.Server.ApacheDir!, `${version.version}.default.conf`)
-
-      if (existsSync(defaultFileOld) && !existsSync(defaultFile)) {
-        await copy(defaultFileOld, defaultFile)
-        await remove(defaultFileOld)
-      }
-      if (existsSync(defaultFileBackOld) && !existsSync(defaultFileBack)) {
-        await copy(defaultFileBackOld, defaultFileBack)
-        await remove(defaultFileBackOld)
+      let defaultFile = ''
+      let defaultFileBack = ''
+      if (isMacOS()) {
+        defaultFile = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
+        defaultFileBack = join(
+          global.Server.ApacheDir!,
+          `common/conf/${md5(version.bin)}.default.conf`
+        )
+      } else if (isWindows()) {
+        defaultFile = join(global.Server.ApacheDir!, `${version.version}.conf`)
+        defaultFileBack = join(global.Server.ApacheDir!, `${version.version}.default.conf`)
       }
 
       const logs = join(global.Server.ApacheDir!, 'common/logs')
@@ -309,7 +304,14 @@ IncludeOptional "${vhost}*.conf"`
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.apachePortHandleEnd'))
       })
-      const conf = join(global.Server.ApacheDir!, `${version.version}.conf`)
+
+      let conf = ''
+      if (isMacOS()) {
+        conf = join(global.Server.ApacheDir!, `common/conf/${md5(version.bin)}.conf`)
+      } else if (isWindows()) {
+        conf = join(global.Server.ApacheDir!, `${version.version}.conf`)
+      }
+
       if (!existsSync(conf)) {
         on({
           'APP-On-Log': AppLog('error', I18nT('fork.confNoFound'))
@@ -380,16 +382,24 @@ IncludeOptional "${vhost}*.conf"`
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.apache?.dirs ?? [], 'apachectl', 'httpd')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [versionLocalFetch(setup?.apache?.dirs ?? [], 'apachectl', 'httpd')]
+      } else if (isWindows()) {
+        all = [versionLocalFetchWin(setup?.apache?.dirs ?? [], 'httpd.exe')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          const all = versions.map((item) =>
-            TaskQueue.run(versionBinVersion, `${item.bin} -v`, /(Apache\/)(\d+(\.\d+){1,4})( )/g)
-          )
+          const all = versions.map((item) => {
+            const command = `${basename(item.bin)} -v`
+            const reg = /(Apache\/)(\d+(\.\d+){1,4})( )/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
           return Promise.all(all)
         })
-        .then((list) => {
+        .then(async (list) => {
           list.forEach((v, i) => {
             const { error, version } = v
             const num = version
@@ -402,6 +412,10 @@ IncludeOptional "${vhost}*.conf"`
               error
             })
           })
+          if (isWindows()) {
+            const appInited = await versionInitedApp('apache', 'bin/httpd.exe')
+            versions.push(...appInited.filter((a) => !versions.find((v) => v.bin === a.bin)))
+          }
           resolve(versionSort(versions))
         })
         .catch(() => {

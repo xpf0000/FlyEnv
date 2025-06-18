@@ -1,7 +1,15 @@
 import type { SoftInstalled } from '@shared/app'
 import { basename, dirname, join } from 'path'
 import { I18nT } from '@lang/index'
-import { AppLog, spawnPromise, waitPidFile, existsSync, remove, readFile, writeFile } from '../Fn'
+import {
+  AppLog,
+  spawnPromiseWithEnv,
+  waitPidFile,
+  existsSync,
+  remove,
+  readFile,
+  writeFile
+} from '../Fn'
 import chardet from 'chardet'
 import iconv from 'iconv-lite'
 
@@ -88,7 +96,7 @@ export async function serviceStartExec(
   process.chdir(baseDir)
   let res: any
   try {
-    res = await spawnPromise(
+    res = await spawnPromiseWithEnv(
       'powershell.exe',
       [
         '-NoProfile',
@@ -227,7 +235,7 @@ export async function serviceStartExecCMD(
   process.chdir(baseDir)
   let res: any
   try {
-    res = await spawnPromise(psName, [], {
+    res = await spawnPromiseWithEnv(psName, [], {
       shell: 'cmd.exe',
       cwd: baseDir
     })
@@ -338,7 +346,7 @@ export async function serviceStartExecGetPID(
   process.chdir(baseDir)
   let res: any
   try {
-    res = await spawnPromise(
+    res = await spawnPromiseWithEnv(
       'powershell.exe',
       [
         '-NoProfile',

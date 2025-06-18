@@ -5,7 +5,7 @@ import { spawn } from 'node-pty'
 import { basename, join } from 'path'
 import { chmod, remove, writeFile } from '../utils'
 import { existsSync } from 'fs'
-import EnvSync from './EnvSync'
+import EnvSync from '@shared/EnvSync'
 import type { CallBackFn } from '@shared/app'
 import { isMacOS, isWindows } from '@shared/utils'
 

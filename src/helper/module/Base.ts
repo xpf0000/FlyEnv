@@ -1,7 +1,4 @@
-import { exec } from 'child_process'
-import { promisify } from 'util'
-
-const execAsync = promisify(exec)
+import { execPromise } from '@shared/child-process'
 
 export class BaseManager {
   exec(fnName: keyof typeof this, ...args: any) {
@@ -16,7 +13,7 @@ export class BaseManager {
   startService(command: string, options: any = {}): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
       try {
-        await execAsync(command, options)
+        await execPromise(command, options)
       } catch (e) {
         reject(e)
         return

@@ -1,17 +1,12 @@
-import { type ChildProcess, spawn } from 'child_process'
-import { merge } from 'lodash-es'
-import { createWriteStream, realpathSync, statSync } from 'node:fs'
+import { createWriteStream, realpathSync } from 'node:fs'
 import type { FSWatcher } from 'node:fs'
 import { dirname, join, normalize } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import type { AppHost, SoftInstalled } from '@shared/app'
-import { compareVersions } from 'compare-versions'
-import { execPromise, execPromiseRoot } from './util/Exec'
+import type { AppHost } from '@shared/app'
 import Helper from './Helper'
 import { format } from 'date-fns'
-import EnvSync from './util/EnvSync'
 import { hostname, userInfo } from 'os'
 import _node_machine_id from 'node-machine-id'
 import { zipUnPack } from './util/Zip'
@@ -23,6 +18,46 @@ import {
   serviceStartExecGetPID,
   readFileAsUTF8
 } from './util/ServiceStart.win'
+import {
+  execPromise,
+  execPromiseSudo,
+  execPromiseWithEnv,
+  spawnPromiseWithEnv,
+  spawnPromise,
+  spawnPromiseWithStdin
+} from '@shared/child-process'
+
+import {
+  versionBinVersion,
+  versionCheckBin,
+  brewInfoJson,
+  brewSearch,
+  portSearch,
+  versionFixed,
+  versionDirCache,
+  versionFilterSame,
+  versionLocalFetch,
+  versionMacportsFetch,
+  versionSort
+} from './util/Version'
+
+import { versionLocalFetchWin, versionInitedApp } from './util/Version.win'
+
+export {
+  versionBinVersion,
+  versionCheckBin,
+  brewInfoJson,
+  brewSearch,
+  portSearch,
+  versionFixed,
+  versionDirCache,
+  versionFilterSame,
+  versionLocalFetch,
+  versionMacportsFetch,
+  versionSort,
+  versionLocalFetchWin,
+  versionInitedApp
+}
 
 import {
   watch,
@@ -78,7 +113,14 @@ export {
   rename
 }
 
-export { execPromise, execPromiseRoot }
+export {
+  execPromise,
+  execPromiseSudo,
+  execPromiseWithEnv,
+  spawnPromiseWithEnv,
+  spawnPromise,
+  spawnPromiseWithStdin
+}
 
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -164,110 +206,6 @@ export async function setDir777ToCurrentUser(folderPath: string) {
       join(global.Server.BaseDir!, 'debug.log'),
       `[setDir777ToCurrentUser][error]: ${e}\n`
     )
-  }
-}
-
-export function spawnPromise(
-  cammand: string,
-  params: Array<any>,
-  opt?: { [k: string]: any }
-): ForkPromise<any> {
-  return new ForkPromise(async (resolve, reject, on) => {
-    const stdout: Array<Uint8Array> = []
-    const stderr: Array<Uint8Array> = []
-    const env = await EnvSync.sync()
-    let child: ChildProcess
-    try {
-      child = spawn(
-        cammand,
-        params,
-        merge(
-          {
-            env
-          },
-          opt
-        )
-      )
-    } catch (e) {
-      reject(e)
-      return
-    }
-    const stdinFn = (txt: string) => {
-      child?.stdin?.write(`${txt}\n`)
-    }
-    let exit = false
-    const onEnd = (code: number | null) => {
-      if (exit) return
-      exit = true
-      console.log('onEnd code: ', code)
-      if (!code) {
-        resolve(Buffer.concat(stdout).toString().trim())
-      } else {
-        reject(new Error(Buffer.concat(stderr).toString().trim()))
-      }
-    }
-    child?.stdout?.on('data', (data) => {
-      stdout.push(data)
-      on(data.toString(), stdinFn)
-    })
-    child?.stderr?.on('data', (err) => {
-      stderr.push(err)
-      on(err.toString(), stdinFn)
-    })
-    child.on('exit', onEnd)
-    child.on('close', onEnd)
-  })
-}
-
-export async function spawnPromiseMore(
-  cammand: string,
-  params: Array<any>,
-  opt?: { [k: string]: any }
-): Promise<{
-  promise: ForkPromise<any>
-  spawn: ChildProcess
-}> {
-  const stdout: Array<Uint8Array> = []
-  const stderr: Array<Uint8Array> = []
-  const env = await EnvSync.sync()
-  const child = spawn(
-    cammand,
-    params,
-    merge(
-      {
-        env
-      },
-      opt
-    )
-  )
-  const stdinFn = (txt: string) => {
-    child?.stdin?.write(`${txt}\n`)
-  }
-  const promise = new ForkPromise((resolve, reject, on) => {
-    let exit = false
-    const onEnd = (code: number | null) => {
-      if (exit) return
-      exit = true
-      if (!code) {
-        resolve(Buffer.concat(stdout).toString().trim())
-      } else {
-        reject(new Error(Buffer.concat(stderr).toString().trim()))
-      }
-    }
-    child.stdout.on('data', (data) => {
-      stdout.push(data)
-      on(data.toString(), stdinFn)
-    })
-    child.stderr.on('data', (err) => {
-      stderr.push(err)
-      on(err.toString(), stdinFn)
-    })
-    child.on('exit', onEnd)
-    child.on('close', onEnd)
-  })
-  return {
-    promise,
-    spawn: child
   }
 }
 
@@ -420,4 +358,19 @@ export async function waitPidFile(
   }
   console.log('waitPid: ', time, res)
   return res
+}
+
+export function fetchPathByBin(bin: string) {
+  let path = dirname(bin)
+  const paths = bin.split(`\\`)
+  let isBin = paths.pop()
+  while (isBin) {
+    if (['bin', 'sbin'].includes(isBin)) {
+      path = paths.join(`\\`)
+      isBin = undefined
+      break
+    }
+    isBin = paths.pop()
+  }
+  return path
 }

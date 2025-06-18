@@ -3,7 +3,17 @@ import { basename, dirname, join } from 'path'
 import { I18nT } from '@lang/index'
 import Helper from '../Helper'
 import { userInfo } from 'os'
-import { AppLog, spawnPromise, waitPidFile } from '../Fn'
+import {
+  AppLog,
+  spawnPromiseWithEnv,
+  waitPidFile,
+  existsSync,
+  remove,
+  mkdirp,
+  readFile,
+  writeFile,
+  execPromiseSudo
+} from '../Fn'
 
 export async function serviceStartExec(
   version: SoftInstalled,
@@ -48,7 +58,7 @@ export async function serviceStartExec(
   let res: any
   let error: any
   try {
-    res = await spawnPromise('zsh', [psName], {
+    res = await spawnPromiseWithEnv('zsh', [psName], {
       cwd: baseDir
     })
   } catch (e) {
@@ -191,12 +201,12 @@ export async function customerServiceStartExec(
   let error: any
   try {
     if (version.isSudo) {
-      const execRes = await execPromiseRoot(['zsh', psName], {
+      const execRes = await execPromiseSudo(['zsh', psName], {
         cwd: baseDir
       })
       res = (execRes.stdout + '\n' + execRes.stderr).trim()
     } else {
-      res = await spawnPromise('zsh', [psName], {
+      res = await spawnPromiseWithEnv('zsh', [psName], {
         cwd: baseDir,
         shell: '/bin/zsh'
       })

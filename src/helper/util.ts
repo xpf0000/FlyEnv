@@ -1,12 +1,7 @@
-import { exec } from 'child_process'
-import { promisify } from 'util'
-import _fs from 'fs-extra'
-
-const { mkdirp, remove, existsSync, readFile, writeFile } = _fs
+import { mkdirp, remove, existsSync, readFile, writeFile } from '@shared/fs-extra'
+import { execPromise } from '@shared/child-process'
 
 export { mkdirp, remove, existsSync, readFile, writeFile }
-
-const execAsync = promisify(exec)
 
 export function waitTime(time: number) {
   return new Promise((resolve) => {
@@ -26,7 +21,7 @@ export function uuid(length = 32) {
 }
 
 export async function dirChownFetch(dir: string) {
-  const res = await execAsync(`ls -al "${dir}"`)
+  const res = await execPromise(`ls -al "${dir}"`)
 
   const arr =
     res?.stdout

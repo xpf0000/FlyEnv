@@ -2,7 +2,14 @@ import { statSync } from 'node:fs'
 import type { SoftInstalled } from '@shared/app'
 import { compareVersions } from 'compare-versions'
 import { dirname, join } from 'path'
-import { spawnPromise, existsSync, realpathSync, execPromise } from '../Fn'
+import {
+  spawnPromiseWithEnv,
+  existsSync,
+  realpathSync,
+  execPromiseWithEnv,
+  getSubDirAsync,
+  execPromise
+} from '../Fn'
 
 export function versionFixed(version?: string | null) {
   return (
@@ -60,6 +67,7 @@ export const versionFilterSame = (versions: SoftInstalled[]) => {
 }
 
 export const versionBinVersion = (
+  bin: string,
   command: string,
   reg: RegExp
 ): Promise<{ version?: string; error?: string }> => {
@@ -71,7 +79,8 @@ export const versionBinVersion = (
       })
     }
     const handleThen = (res: any) => {
-      const str = res.stdout + res.stderr
+      let str = res.stdout + res.stderr
+      str = str.replace(new RegExp(`\r\n`, 'g'), `\n`)
       let version: string | undefined = ''
       try {
         version = reg?.exec(str)?.[2]?.trim()
@@ -82,11 +91,10 @@ export const versionBinVersion = (
       })
     }
     try {
-      const res = await execPromise(command)
-      console.log('versionBinVersion: ', command, {
-        stdout: res.stdout,
-        stderr: res.stderr
+      const res = await execPromise(command, {
+        cwd: dirname(bin)
       })
+      console.log('versionBinVersion: ', command, reg, res)
       handleThen(res)
     } catch (e) {
       console.log('versionBinVersion err: ', e)
@@ -241,7 +249,7 @@ export const brewInfoJson = async (names: string[]) => {
   const cammand = ['brew', 'info', ...names, '--json', '--formula'].join(' ')
   console.log('brewinfo doRun: ', cammand)
   try {
-    const res = await execPromise(cammand, {
+    const res = await execPromiseWithEnv(cammand, {
       env: {
         HOMEBREW_NO_INSTALL_FROM_API: 1
       }
@@ -265,7 +273,7 @@ export const brewSearch = async (
   handleContent?: (content: string) => string
 ) => {
   try {
-    const res = await execPromise(cammand, {
+    const res = await execPromiseWithEnv(cammand, {
       env: {
         HOMEBREW_NO_INSTALL_FROM_API: 1
       }
@@ -293,8 +301,8 @@ export const portSearch = async (
 ) => {
   try {
     let arr = []
-    const info = await spawnPromise('port', ['search', '--name', '--line', '--regex', reg])
-    arr = info
+    const info = await spawnPromiseWithEnv('port', ['search', '--name', '--line', '--regex', reg])
+    arr = info.stdout
       .split('\n')
       .filter(filter)
       .map((m: string) => {

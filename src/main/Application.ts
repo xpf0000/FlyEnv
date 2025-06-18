@@ -13,7 +13,7 @@ import { AppI18n, I18nT, AppAllLang } from '@lang/index'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
-import { execPromiseRoot, spawnAsync } from './core/Exec'
+import { execPromiseSudo, spawnPromiseWithEnv } from '@shared/child-process'
 import { arch } from 'node:os'
 import NodePTY from './core/NodePTY'
 import HttpServer from './core/HttpServer'
@@ -49,7 +49,7 @@ export default class Application extends EventEmitter {
     AppNodeFnManager.nativeTheme_watch()
     global.Server = {
       Local: `${app.getLocale()}.UTF-8`
-    }
+    } as any
     this.isReady = false
     this.configManager = new ConfigManager()
     AppNodeFnManager.configManager = this.configManager
@@ -151,16 +151,16 @@ export default class Application extends EventEmitter {
           JSON.parse(JSON.stringify(global.Server))
         )
       }
-      spawnAsync('which', ['brew'])
+      spawnPromiseWithEnv('which', ['brew'])
         .then((res) => {
           console.log('which brew: ', res)
-          spawnAsync('brew', ['--repo'])
+          spawnPromiseWithEnv('brew', ['--repo'])
             .then((res) => {
               console.log('brew --repo: ', res)
               const dir = res.stdout
               global.Server.BrewHome = dir
               handleBrewCheck()
-              spawnAsync('git', [
+              spawnPromiseWithEnv('git', [
                 'config',
                 '--global',
                 '--add',
@@ -168,7 +168,7 @@ export default class Application extends EventEmitter {
                 join(dir, 'Library/Taps/homebrew/homebrew-core')
               ])
                 .then(() => {
-                  return spawnAsync('git', [
+                  return spawnPromiseWithEnv('git', [
                     'config',
                     '--global',
                     '--add',
@@ -184,7 +184,7 @@ export default class Application extends EventEmitter {
               AppLog.debug(`[checkBrewOrPort][brew --repo][error]: ${e.toString()}`)
               console.log('brew --repo err: ', e)
             })
-          spawnAsync('brew', ['--cellar'])
+          spawnPromiseWithEnv('brew', ['--cellar'])
             .then((res) => {
               const dir = res.stdout
               console.log('brew --cellar: ', res)
@@ -203,7 +203,7 @@ export default class Application extends EventEmitter {
           console.log('which brew e: ', e)
         })
 
-      spawnAsync('which', ['port'])
+      spawnPromiseWithEnv('which', ['port'])
         .then((res) => {
           global.Server.MacPorts = res.stdout
           this.windowManager.sendCommandTo(
@@ -715,7 +715,7 @@ export default class Application extends EventEmitter {
       case 'app:password-check':
         {
           const pass = args?.[0] ?? ''
-          execPromiseRoot([`-k`, 'echo', 'PhpWebStudy'], undefined, pass)
+          execPromiseSudo([`-k`, 'echo', 'PhpWebStudy'], undefined, pass)
             .then(() => {
               this.configManager.setConfig('password', pass)
               global.Server.Password = pass
