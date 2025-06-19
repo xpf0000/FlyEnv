@@ -101,4 +101,9 @@
   const doChange = () => {
     ServiceActionStore.updatePath(props.item, props.type)
   }
+
+  defineExpose({
+    doSetAlias,
+    doChange
+  })
 </script>

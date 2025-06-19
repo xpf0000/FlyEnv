@@ -18,12 +18,20 @@ require('electron').app.on('ready', () => {
     console.log('electron ready !!!!!!')
   let installExtension = require('electron-devtools-installer')
     const vue_devtools_beta = { id: "ljjemllljcmogpfapbkkighbhhppjdbg", electron: ">=1.2.1" }
+
+    // 添加超时机制，避免阻塞启动
+    const installTimeout = setTimeout(() => {
+      console.log('Vue DevTools installation timeout, continuing without it...')
+    }, 5000)
+
     installExtension.default(vue_devtools_beta)
     .then(() => {
+        clearTimeout(installTimeout)
         console.log('VUEJS_DEVTOOLS !!!')
     })
     .catch((err: Error) => {
-      console.log('Unable to install `vue-devtools`: \n', err)
+      clearTimeout(installTimeout)
+      console.log('Unable to install `vue-devtools`, continuing without it: \n', err.message)
     })
 })
 

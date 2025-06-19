@@ -104,6 +104,19 @@
           </template>
         </template>
       </el-table-column>
+      <el-table-column :label="I18nT('base.port')" :prop="null" width="80px" align="center">
+        <template #header>
+          <span class="truncate">{{ I18nT('base.port') }}</span>
+        </template>
+        <template #default="scope">
+          <template v-if="scope.row.run">
+            <span class="port-text">{{ getServicePort(typeFlag) }}</span>
+          </template>
+          <template v-else>
+            <span class="port-text disabled">-</span>
+          </template>
+        </template>
+      </el-table-column>
       <el-table-column :label="I18nT('php.quickStart')" :prop="null" width="100px" align="center">
         <template #header>
           <span class="truncate">{{ I18nT('php.quickStart') }}</span>
@@ -276,4 +289,40 @@
     currentVersion,
     resetData
   } = Setup(props.typeFlag)
+
+  // 获取服务默认端口的函数
+  const getServicePort = (serviceType: AllAppModule): string => {
+    const portMap: { [key in AllAppModule]?: string } = {
+      mysql: '3306',
+      mariadb: '3306',
+      redis: '6379',
+      mongodb: '27017',
+      memcached: '11211',
+      postgresql: '5432',
+      nginx: '80',
+      apache: '80',
+      caddy: '80',
+      'pure-ftpd': '21',
+      mailpit: '8025',
+      rabbitmq: '5672',
+      elasticsearch: '9200',
+      meilisearch: '7700',
+      minio: '9000',
+      ollama: '11434'
+    }
+    return portMap[serviceType] || '-'
+  }
 </script>
+
+<style lang="scss" scoped>
+.port-text {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  color: #409eff;
+  font-weight: 500;
+
+  &.disabled {
+    color: #c0c4cc;
+  }
+}
+</style>

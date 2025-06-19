@@ -35,6 +35,7 @@
   "slowLog": "Yavaş Günlük",
   "httpServerTips": "Dosya yüklemek için tıklayın veya boş alana sürükleyin",
   "path": "Yol",
+  "port": "Port",
   "generate": "Oluştur",
   "fileInfoTips": "Dosyayı buraya sürükleyin veya dosya seçmek için tıklayın",
   "cleanSelect": "Seçimi Temizle",
