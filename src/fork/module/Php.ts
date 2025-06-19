@@ -370,7 +370,15 @@ xdebug.output_dir = "${output_dir}"
       const execArgs = `-p "${varPath}" -y "${phpFpmConf}" -g "${pid}"`
 
       try {
-        const res = await serviceStartExec(version, pid, baseDir, bin, execArgs, execEnv, on)
+        const res = await serviceStartExec({
+          version,
+          pidPath: pid,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on
+        })
         resolve(res)
       } catch (e: any) {
         console.log('-k start err: ', e)

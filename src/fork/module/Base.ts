@@ -27,7 +27,7 @@ import * as https from 'https'
 import { ProcessPidsByPid, ProcessSearch } from '@shared/Process'
 import Helper from '../Helper'
 import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
-import { ProcessListSearch, ProcessPidListByPid, ProcessPidList } from '@shared/Process.win'
+import { ProcessListSearch, ProcessPidListByPid } from '@shared/Process.win'
 
 export class Base {
   type: string
@@ -486,89 +486,7 @@ export class Base {
       }
 
       const handleWin = async () => {
-        const handlePython = async () => {
-          const tmpDir = join(global.Server.Cache!, `python-${row.version}-tmp`)
-          if (existsSync(tmpDir)) {
-            await execPromise(`rmdir /S /Q ${tmpDir}`)
-          }
-          const dark = join(global.Server.Cache!, 'dark/dark.exe')
-          const darkDir = join(global.Server.Cache!, 'dark')
-          if (!existsSync(dark)) {
-            const darkZip = join(global.Server.Static!, 'zip/dark.zip')
-            await zipUnPack(darkZip, dirname(dark))
-          }
-          const pythonSH = join(global.Server.Static!, 'sh/python.ps1')
-          let content = await readFile(pythonSH, 'utf-8')
-          const TMPL = tmpDir
-          const EXE = row.zip
-          const APPDIR = row.appDir
-
-          content = content
-            .replace(new RegExp(`#DARKDIR#`, 'g'), darkDir)
-            .replace(new RegExp(`#TMPL#`, 'g'), TMPL)
-            .replace(new RegExp(`#EXE#`, 'g'), EXE)
-            .replace(new RegExp(`#APPDIR#`, 'g'), APPDIR)
-
-          let sh = join(global.Server.Cache!, `python-install-${uuid()}.ps1`)
-          await writeFile(sh, content)
-
-          process.chdir(global.Server.Cache!)
-          try {
-            await execPromise(
-              `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${sh}'; & '${sh}'"`
-            )
-          } catch (e: any) {
-            console.log('[python-install][error]: ', e)
-            await appDebugLog('[python][python-install][error]', e.toString())
-          }
-          // await remove(sh)
-
-          const checkState = async (time = 0): Promise<boolean> => {
-            let res = false
-            const allProcess = await ProcessPidList()
-            const find = allProcess.find(
-              (p) => p?.CommandLine?.includes('msiexec.exe') && p?.CommandLine?.includes(APPDIR)
-            )
-            console.log('python checkState find: ', find)
-            const bin = row.bin
-            if (existsSync(bin) && !find) {
-              res = true
-            } else {
-              if (time < 20) {
-                await waitTime(1000)
-                res = res || (await checkState(time + 1))
-              }
-            }
-            return res
-          }
-          const res = await checkState()
-          if (res) {
-            await waitTime(1000)
-            sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
-            let content = await readFile(join(global.Server.Static!, 'sh/pip.ps1'), 'utf-8')
-            content = content.replace('#APPDIR#', APPDIR)
-            await writeFile(sh, content)
-            process.chdir(global.Server.Cache!)
-            try {
-              await execPromise(
-                `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${sh}'; & '${sh}'"`
-              )
-            } catch (e: any) {
-              await appDebugLog('[python][pip-install][error]', e.toString())
-            }
-            // await remove(sh)
-            await waitTime(1000)
-            await remove(tmpDir)
-            return
-          } else {
-            try {
-              await waitTime(500)
-              await remove(APPDIR)
-              await remove(tmpDir)
-            } catch {}
-          }
-          throw new Error('Python Install Fail')
-        }
+        const handlePython = async () => {}
 
         const handleMemcached = async () => {
           const tmpDir = join(global.Server.Cache!, `memcached-${row.version}-tmp`)

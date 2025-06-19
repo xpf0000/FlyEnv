@@ -15,7 +15,8 @@ import { serviceStartExec, customerServiceStartExec } from './util/ServiceStart'
 import {
   serviceStartExec as serviceStartExecWin,
   serviceStartExecCMD,
-  readFileAsUTF8
+  readFileAsUTF8,
+  customerServiceStartExec as customerServiceStartExecWin
 } from './util/ServiceStart.win'
 import {
   execPromise,
@@ -25,7 +26,6 @@ import {
   spawnPromise,
   spawnPromiseWithStdin
 } from '@shared/child-process'
-
 import {
   versionBinVersion,
   versionCheckBin,
@@ -39,8 +39,26 @@ import {
   versionMacportsFetch,
   versionSort
 } from './util/Version'
-
 import { versionLocalFetchWin, versionInitedApp } from './util/Version.win'
+import {
+  watch,
+  copy,
+  chmod,
+  copyFile,
+  unlink,
+  readdir,
+  writeFile,
+  realpath,
+  remove,
+  mkdirp,
+  readFile,
+  existsSync,
+  appendFile,
+  rename
+} from '@shared/fs-extra'
+import { addPath, fetchRawPATH, handleWinPathArr, writePath } from './util/PATH.win'
+
+export { addPath, fetchRawPATH, handleWinPathArr, writePath }
 
 export {
   versionBinVersion,
@@ -58,23 +76,6 @@ export {
   versionInitedApp
 }
 
-import {
-  watch,
-  copy,
-  chmod,
-  copyFile,
-  unlink,
-  readdir,
-  writeFile,
-  realpath,
-  remove,
-  mkdirp,
-  readFile,
-  existsSync,
-  appendFile,
-  rename
-} from '@shared/fs-extra'
-
 const { machineId } = _node_machine_id
 
 export {
@@ -88,7 +89,8 @@ export {
   customerServiceStartExec,
   serviceStartExecWin,
   serviceStartExecCMD,
-  readFileAsUTF8
+  readFileAsUTF8,
+  customerServiceStartExecWin
 }
 
 export {

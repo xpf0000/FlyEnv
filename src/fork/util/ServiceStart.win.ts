@@ -7,11 +7,13 @@ import {
   existsSync,
   remove,
   readFile,
-  writeFile
+  writeFile,
+  mkdirp
 } from '../Fn'
 import chardet from 'chardet'
 import iconv from 'iconv-lite'
 import { ServiceStartParams } from './ServiceStart'
+import type { ModuleExecItem } from '@shared/app'
 
 export async function readFileAsUTF8(filePath: string): Promise<string> {
   try {
@@ -306,5 +308,111 @@ export async function serviceStartExecCMD(
       })
     )
   })
+  throw new Error(msg)
+}
+
+export async function customerServiceStartExec(
+  version: ModuleExecItem,
+  isService: boolean
+): Promise<{ 'APP-Service-Start-PID': string }> {
+  const pidPath = version?.pidPath ?? ''
+  if (pidPath && existsSync(pidPath)) {
+    try {
+      await remove(pidPath)
+    } catch {}
+  }
+
+  const baseDir = join(global.Server.BaseDir!, 'module-customer')
+  await mkdirp(baseDir)
+
+  const outFile = join(baseDir, `${version.id}.out.log`)
+  const errFile = join(baseDir, `${version.id}.error.log`)
+
+  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-customer-exec.ps1'), 'utf8')
+
+  let bin = ''
+  if (version.commandType === 'file') {
+    bin = version.commandFile
+  } else {
+    bin = join(baseDir, `${version.id}.start.ps1`)
+    await writeFile(bin, version.command)
+  }
+
+  psScript = psScript
+    .replace('#CWD#', dirname(bin))
+    .replace('#BIN#', bin)
+    .replace('#OUTLOG#', outFile)
+    .replace('#ERRLOG#', errFile)
+
+  const psName = `start-${version.id.trim()}.ps1`.split(' ').join('')
+  const psPath = join(baseDir, psName)
+  await writeFile(psPath, psScript)
+
+  process.chdir(baseDir)
+  let res: any
+  let error: any
+  try {
+    res = await spawnPromiseWithEnv(
+      'powershell.exe',
+      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', `\`"${psPath}\`"`],
+      {
+        shell: 'powershell.exe',
+        cwd: baseDir
+      }
+    )
+  } catch (e) {
+    error = e
+    if (!isService || !version.pidPath) {
+      throw e
+    }
+  }
+
+  await waitPidFile(errFile, 0, 6, 500)
+
+  if (!isService) {
+    let msg = ''
+    if (existsSync(errFile)) {
+      msg = await readFile(errFile, 'utf-8')
+    }
+    if (msg) {
+      throw new Error(msg)
+    }
+    return {
+      'APP-Service-Start-PID': '-1'
+    }
+  }
+
+  if (!version.pidPath) {
+    let pid = ''
+    const stdout = res.stdout.trim() + '\n' + res.stderr.trim()
+    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
+    const match = regex.exec(stdout)
+    if (match) {
+      pid = match[1]
+    }
+    if (pid) {
+      return {
+        'APP-Service-Start-PID': pid
+      }
+    } else {
+      throw new Error(stdout)
+    }
+  }
+
+  res = await waitPidFile(pidPath, 0, 20, 500)
+  if (res) {
+    if (res?.pid) {
+      return {
+        'APP-Service-Start-PID': res.pid
+      }
+    }
+  }
+  let msg = 'Start Fail: '
+  if (error && error?.toString) {
+    msg += '\n' + (error?.toString() ?? '')
+  }
+  if (existsSync(errFile)) {
+    msg += '\n' + (await readFile(errFile, 'utf-8'))
+  }
   throw new Error(msg)
 }

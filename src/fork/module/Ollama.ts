@@ -15,7 +15,9 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  machineId
+  machineId,
+  serviceStartExecWin,
+  versionLocalFetchWin
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
@@ -25,6 +27,7 @@ import http from 'http'
 import https from 'https'
 import { publicDecrypt } from 'crypto'
 import { EOL } from 'os'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class Ollama extends Base {
   chats: Record<string, AbortController> = {}
@@ -70,6 +73,9 @@ class Ollama extends Base {
       })
       const bin = version.bin
       const iniFile = await this.initConfig().on(on)
+      const baseDir = join(global.Server.BaseDir!, 'ollama')
+      await mkdirp(baseDir)
+      const execArgs = `serve`
 
       const getConfEnv = async () => {
         const content = await readFile(iniFile, 'utf-8')
@@ -94,45 +100,75 @@ class Ollama extends Base {
 
       const opt = await getConfEnv()
 
-      const envs: string[] = []
-      for (const k in opt) {
-        const v = opt[k]
-        envs.push(`export ${k}="${v}"`)
-      }
-      envs.push('')
+      if (isMacOS()) {
+        const envs: string[] = []
+        for (const k in opt) {
+          const v = opt[k]
+          envs.push(`export ${k}="${v}"`)
+        }
+        envs.push('')
 
-      const baseDir = join(global.Server.BaseDir!, 'ollama')
-      const execEnv = envs.join(EOL)
-      const execArgs = `serve`
+        const execEnv = envs.join(EOL)
 
-      try {
-        const res = await serviceStartExec(
-          version,
-          this.pidPath,
-          baseDir,
-          bin,
-          execArgs,
-          execEnv,
-          on,
-          20,
-          500,
-          false
-        )
-        resolve(res)
-      } catch (e: any) {
-        console.log('-k start err: ', e)
-        reject(e)
-        return
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else if (isWindows()) {
+        const envs: string[] = []
+        for (const k in opt) {
+          const v = opt[k]
+          envs.push(`$env:${k}="${v}"`)
+        }
+        envs.push('')
+        const execEnv = envs.join(EOL)
+        try {
+          const res = await serviceStartExecWin({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
       }
     })
   }
 
   allModel(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
-      const command = `cd "${dirname(version.bin)}" && ./ollama list`
+      let command = ''
+      if (isMacOS()) {
+        command = `cd "${dirname(version.bin)}" && ./ollama list`
+      } else if (isWindows()) {
+        command = `ollama.exe list`
+      }
       let res: any
       try {
-        res = await execPromise(command)
+        res = await execPromise(command, {
+          cwd: dirname(version.bin)
+        })
       } catch {}
       const arr = res?.stdout?.split('\n')?.filter((s: string) => !!s.trim()) ?? []
       const list: any = []
@@ -153,9 +189,18 @@ class Ollama extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('ollama')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `static-ollama-${a.version}`, 'ollama')
-          const zip = join(global.Server.Cache!, `static-ollama-${a.version}.tgz`)
-          a.appDir = join(global.Server.AppDir!, `static-ollama-${a.version}`)
+          let dir = ''
+          let zip = ''
+          if (isMacOS()) {
+            dir = join(global.Server.AppDir!, `static-ollama-${a.version}`, 'ollama')
+            zip = join(global.Server.Cache!, `static-ollama-${a.version}.tgz`)
+            a.appDir = join(global.Server.AppDir!, `static-ollama-${a.version}`)
+          } else if (isWindows()) {
+            dir = join(global.Server.AppDir!, `ollama-${a.version}`, 'ollama.exe')
+            zip = join(global.Server.Cache!, `ollama-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `ollama-${a.version}`)
+          }
+
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
@@ -172,7 +217,13 @@ class Ollama extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.ollama?.dirs ?? [], 'ollama', 'ollama')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [versionLocalFetch(setup?.ollama?.dirs ?? [], 'ollama', 'ollama')]
+      } else if (isWindows()) {
+        all = [versionLocalFetchWin(setup?.ollama?.dirs ?? [], 'ollama.exe')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)

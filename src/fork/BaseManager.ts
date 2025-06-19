@@ -1,4 +1,5 @@
 import { ProcessSendError, ProcessSendLog, ProcessSendSuccess } from './Fn'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class BaseManager {
   Apache: any
@@ -15,7 +16,6 @@ class BaseManager {
   Node: any
   Brew: any
   Version: any
-  Project: any
   Tool: any
   MacPorts: any
   Caddy: any
@@ -135,8 +135,13 @@ class BaseManager {
       doRun(this.PureFtpd)
     } else if (module === 'node') {
       if (!this.Node) {
-        const res = await import('./module/Node')
-        this.Node = res.default
+        if (isMacOS()) {
+          const res = await import('./module/Node')
+          this.Node = res.default
+        } else if (isWindows()) {
+          const res = await import('./module/Node.win')
+          this.Node = res.default
+        }
       }
       doRun(this.Node)
     } else if (module === 'brew') {
@@ -151,12 +156,6 @@ class BaseManager {
         this.Version = res.default
       }
       doRun(this.Version)
-    } else if (module === 'project') {
-      if (!this.Project) {
-        const res = await import('./module/Project')
-        this.Project = res.default
-      }
-      doRun(this.Project)
     } else if (module === 'tools') {
       if (!this.Tool) {
         const res = await import('./module/Tool')

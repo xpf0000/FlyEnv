@@ -2,7 +2,7 @@ import { join, dirname } from 'node:path'
 import { existsSync } from 'node:fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
-import type { SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
@@ -22,13 +22,17 @@ import {
   remove,
   zipUnPack,
   moveChildDirToParent,
-  createWriteStream
+  createWriteStream,
+  serviceStartExecCMD,
+  versionLocalFetchWin,
+  waitTime
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../TaskQueue'
 import axios from 'axios'
-import { isWindows } from '@shared/utils'
+import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
+import { basename } from 'path'
 
 class Manager extends Base {
   mongoshVersion = '2.5.2'
@@ -161,7 +165,7 @@ class Manager extends Base {
         })
         const tmpl = join(global.Server.Static!, 'tmpl/mongodb.conf')
         let conf = await readFile(tmpl, 'utf-8')
-        conf = conf.replace('##DB-PATH##', dataDir)
+        conf = conf.replace('##DB-PATH##', pathFixedToUnix(dataDir))
         await writeFile(m, conf)
         on({
           'APP-On-Log': AppLog('info', I18nT('appLog.confInitSuccess', { file: m }))
@@ -171,23 +175,71 @@ class Manager extends Base {
 
       const baseDir = global.Server.MongoDBDir!
       const execEnv = ''
-      const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}" --fork`
+      if (isMacOS()) {
+        const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}" --fork`
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else if (isWindows()) {
+        const execArgs = `--config "${m}" --logpath "${logPath}" --pidfilepath "${this.pidPath}"`
 
+        try {
+          const res = await serviceStartExecCMD({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      }
+    })
+  }
+
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
       try {
-        const res = await serviceStartExec(
-          version,
-          this.pidPath,
-          baseDir,
-          bin,
-          execArgs,
-          execEnv,
-          on
-        )
-        resolve(res)
-      } catch (e: any) {
-        console.log('-k start err: ', e)
-        reject(e)
-        return
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mongodb')
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `mongodb-${a.version}`, 'bin/mongod.exe')
+          const zip = join(global.Server.Cache!, `mongodb-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `mongodb-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+
+          const dirOld = join(
+            global.Server.AppDir!,
+            `mongodb-${a.version}`,
+            `mongodb-win32-x86_64-windows-${a.version}`,
+            'bin/mongod.exe'
+          )
+
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir) || existsSync(dirOld)
+        })
+        resolve(all)
+      } catch {
+        resolve([])
       }
     })
   }
@@ -195,17 +247,24 @@ class Manager extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([
-        versionLocalFetch(setup?.mongodb?.dirs ?? [], 'mongod', 'mongodb-'),
-        versionMacportsFetch(['bin/mongod', 'sbin/mongod'])
-      ])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [
+          versionLocalFetch(setup?.mongodb?.dirs ?? [], 'mongod', 'mongodb-'),
+          versionMacportsFetch(['bin/mongod', 'sbin/mongod'])
+        ]
+      } else if (isWindows()) {
+        all = [versionLocalFetchWin(setup?.mongodb?.dirs ?? [], 'mongod.exe')]
+      }
+
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
-            const command = `${item.bin} --version`
+            const command = `${basename(item.bin)} --version`
             const reg = /(v)(\d+(\.\d+){1,4})(.*?)/g
-            return TaskQueue.run(versionBinVersion, command, reg)
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
           return Promise.all(all)
         })
@@ -228,6 +287,17 @@ class Manager extends Base {
           resolve([])
         })
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    if (isWindows()) {
+      await remove(row.appDir)
+      await mkdirp(row.appDir)
+      await zipUnPack(row.zip, row.appDir)
+      await moveChildDirToParent(row.appDir)
+      await waitTime(1000)
+      await this.initMongosh()
+    }
   }
 
   brewinfo() {

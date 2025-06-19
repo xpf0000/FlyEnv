@@ -2,6 +2,7 @@ import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { versionDirCache } from '../Fn'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class Manager extends Base {
   Apache: any
@@ -171,8 +172,13 @@ class Manager extends Base {
           versions.ruby = this.Ruby.allInstalledVersions(setup)
         } else if (type === 'node') {
           if (!this.Node) {
-            const res = await import('./Node')
-            this.Node = res.default
+            if (isMacOS()) {
+              const res = await import('./Node')
+              this.Node = res.default
+            } else if (isWindows()) {
+              const res = await import('./Node.win')
+              this.Node = res.default
+            }
           }
           versions.node = this.Node.allInstalledVersions(setup)
         } else if (type === 'elasticsearch') {

@@ -11,5 +11,7 @@
   "versionNoFound": "Failed to get software version, operation failed.",
   "postgresqlInit": "Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root",
   "downFileFail": "Download file failed!",
-  "trialEnd": "The trial has expired. To continue using this feature, please obtain a license"
+  "trialEnd": "The trial has expired. To continue using this feature, please obtain a license",
+  "phpiniNoFound": "php.ini file not found",
+  "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }
