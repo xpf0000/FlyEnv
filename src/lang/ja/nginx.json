@@ -1,0 +1,10 @@
+{
+  "gzip": "GZIP圧縮転送を有効にする",
+  "gzip_min_length": "最小圧縮ファイル",
+  "gzip_comp_level": "圧縮率",
+  "client_max_body_size": "最大アップロードファイルサイズ",
+  "server_names_hash_max_size": "サーバー名のハッシュテーブル最大サイズ",
+  "server_names_hash_bucket_size": "サーバー名のハッシュテーブルサイズ",
+  "client_header_buffer_size": "クライアントリクエストヘッダーバッファサイズ",
+  "client_body_buffer_size": "リクエストボディバッファサイズ"
+}

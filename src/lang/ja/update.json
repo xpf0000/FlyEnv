@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "更新をチェック",
+  "update-available-message": "FlyEnvの新しいバージョンが利用可能です。今すぐ更新しますか？",
+  "update-not-available-message": "最新版です！",
+  "update-downloaded-message": "インストール準備完了...",
+  "update-error-message": "更新エラー",
+  "yes": "はい",
+  "no": "いいえ"
+}

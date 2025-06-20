@@ -1,0 +1,14 @@
+{
+  "port": "TCPポート（デフォルト：3306）",
+  "key_buffer_size": "インデックス用バッファサイズ",
+  "query_cache_size": "クエリキャッシュ、有効でない場合は0に設定してください",
+  "tmp_table_size": "一時テーブルキャッシュサイズ",
+  "innodb_buffer_pool_size": "InnoDBバッファサイズ",
+  "innodb_log_buffer_size": "InnoDBログバッファサイズ",
+  "sort_buffer_size": "各スレッドのソート用バッファサイズ",
+  "read_buffer_size": "読み込みバッファサイズ",
+  "read_rnd_buffer_size": "ランダム読み込みバッファサイズ",
+  "thread_cache_size": "プールスレッドサイズ",
+  "table_open_cache": "テーブルキャッシュ",
+  "max_connections": "最大接続数"
+}
