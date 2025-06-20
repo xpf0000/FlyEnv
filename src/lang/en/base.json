@@ -35,7 +35,6 @@
   "slowLog": "Slow Log",
   "httpServerTips": "Click to upload files or drag to the blank space to upload files",
   "path": "Path",
-  "port": "Port",
   "generate": "Generate",
   "fileInfoTips": "Drag the file here, or click to select the file",
   "cleanSelect": "Clean Select",

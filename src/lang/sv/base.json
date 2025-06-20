@@ -34,7 +34,6 @@
   "slowLog": "Långsam logg",
   "httpServerTips": "Klicka för att ladda upp filer eller dra till det tomma utrymmet för att ladda upp filer.",
   "path": "Sökväg",
-  "port": "Port",
   "generate": "Generera",
   "fileInfoTips": "Dra filen hit, eller klicka för att välja fil.",
   "cleanSelect": "Rensa val",

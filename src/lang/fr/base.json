@@ -35,7 +35,6 @@
   "slowLog": "Journal lent",
   "httpServerTips": "Cliquez pour télécharger des fichiers ou faites glisser dans l'espace vide pour télécharger des fichiers",
   "path": "Chemin",
-  "port": "Port",
   "generate": "Générer",
   "fileInfoTips": "Faites glisser le fichier ici, ou cliquez pour sélectionner le fichier",
   "cleanSelect": "Nettoyer la sélection",

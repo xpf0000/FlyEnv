@@ -34,7 +34,6 @@
   "slowLog": "慢日志",
   "httpServerTips": "点击上传文件 or 拖拽到空白处上传文件",
   "path": "路径",
-  "port": "端口",
   "generate": "生成",
   "fileInfoTips": "将文件拖到此处,或点击选择文件",
   "cleanSelect": "清除选择",

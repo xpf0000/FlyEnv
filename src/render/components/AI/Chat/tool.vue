@@ -9,10 +9,7 @@
       :fetch-suggestions="querySearch"
       resize="none"
     ></el-autocomplete>
-    <el-button v-if="!taskRunning" round :icon="ChatLineRound" @click.stop="submit"></el-button>
-    <el-button v-else round type="danger" @click.stop="stopTask">
-      <yb-icon :svg="import('@/svg/stop.svg?raw')" width="16" height="16" />
-    </el-button>
+    <el-button round :icon="ChatLineRound" @click.stop="submit"></el-button>
   </div>
 </template>
 
@@ -224,17 +221,6 @@
     keyEvent({
       key: 'Enter'
     } as any)
-  }
-
-  const stopTask = () => {
-    if (aiStore?.currentTask) {
-      aiStore.currentTask.state = 'failed'
-      aiStore.currentTask = undefined
-      aiStore.chatList.push({
-        user: 'ai',
-        content: I18nT('ai.tasksAborted')
-      })
-    }
   }
 
   onMounted(() => {
