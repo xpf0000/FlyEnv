@@ -1,0 +1,15 @@
+{
+  "site": "サイト",
+  "webServer": "Webサーバー",
+  "dataBaseServer": "データベースサーバー",
+  "emailServer": "メールサーバー",
+  "language": "言語&ランタイム",
+  "dataQueue": "キャッシュ&メモリストレージ",
+  "searchEngine": "検索エンジン",
+  "dnsServer": "DNSサーバー",
+  "ftpServer": "FTPサーバー",
+  "other": "その他",
+  "appLog": "Appログ",
+  "ai": "AI",
+  "objectStorage": "オブジェクトストレージ"
+}

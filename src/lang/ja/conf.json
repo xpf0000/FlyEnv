@@ -1,0 +1,9 @@
+{
+  "rawFile": "生ファイル",
+  "CommonSetting": "共通設定",
+  "open": "ファイルを開く",
+  "save": "ファイルを保存 Ctrl + s",
+  "loadDefault": "デフォルトファイルを読み込み",
+  "saveCustom": "カスタムファイルとして保存",
+  "loadCustom": "カスタムファイルを読み込み"
+}

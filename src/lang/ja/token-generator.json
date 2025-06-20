@@ -1,0 +1,13 @@
+{
+  "title": "トークンジェネレーター",
+  "uppercase": "大文字（ABC...）",
+  "lowercase": "小文字（abc...）",
+  "numbers": "数字（123...）",
+  "symbols": "記号（!-;...）",
+  "length": "長さ",
+  "tokenPlaceholder": "トークン...",
+  "button": {
+    "copy": "コピー",
+    "refresh": "更新"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "startServiceBegin": "{service}サービスを開始しています...",
+  "confInit": "設定ファイルが存在しません。新しい設定ファイルを生成しています",
+  "confInitSuccess": "設定ファイルが正常に生成されました。ファイルパス：{file}",
+  "confInitFail": "設定ファイルの生成に失敗しました。理由：{error}",
+  "apachePortHandleBegin": "サイトからすべてのApacheリスニングポートの取得を開始",
+  "apachePortHandleEnd": "Apacheリスニングポートの取得が完了し、設定ファイルの書き込みに成功しました",
+  "execStartCommand": "起動コマンドの実行を開始",
+  "execStartCommandSuccess": "起動コマンドが正常に実行されました。起動が成功したかどうかのチェックを開始",
+  "execStartCommandFail": "起動コマンドの実行に失敗しました。理由：{error}、{service}サービスの起動に失敗しました",
+  "startServiceSuccess": "{service}サービスが正常に起動しました。pid：{pid}",
+  "startServiceFail": "{service}サービスの起動に失敗しました。理由：{error}",
+  "stopServiceBegin": "{service}サービスの停止を開始",
+  "stopServiceEnd": "{service}サービスが正常に停止しました",
+  "initDBPass": "データベースパスワードの初期化を開始",
+  "initDBPassSuccess": "データベースパスワードの初期化が成功しました。アカウントパスワード：{user} {pass}",
+  "initDBPassFail": "データベースパスワードの初期化に失敗しました。理由：{error}",
+  "initDBDataDir": "データフォルダが見つかりません。データフォルダの初期化を開始",
+  "initDBDataDirSuccess": "データフォルダの初期化が成功しました。データフォルダパス：{dir}",
+  "initDBDataDirFail": "データフォルダの初期化に失敗しました。理由：{error}"
+}
