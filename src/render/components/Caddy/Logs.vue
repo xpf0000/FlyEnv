@@ -13,7 +13,7 @@
   import { ref } from 'vue'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
 
   const log = ref()
   const filepath = ref(join(window.Server.BaseDir!, `caddy/caddy.log`))

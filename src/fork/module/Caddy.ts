@@ -17,7 +17,6 @@ import {
   writeFile,
   mkdirp,
   serviceStartExecCMD,
-  versionLocalFetchWin,
   versionInitedApp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -238,7 +237,7 @@ class Caddy extends Base {
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.caddy?.dirs ?? [], 'caddy', 'caddy')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.caddy?.dirs ?? [], 'caddy.exe')]
+        all = [versionLocalFetch(setup?.caddy?.dirs ?? [], 'caddy.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

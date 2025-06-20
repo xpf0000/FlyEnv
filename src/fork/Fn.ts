@@ -1,6 +1,6 @@
 import { createWriteStream, realpathSync } from 'node:fs'
 import type { FSWatcher } from 'node:fs'
-import { dirname, join, normalize } from 'path'
+import { dirname, join, normalize, parse } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
@@ -39,7 +39,7 @@ import {
   versionMacportsFetch,
   versionSort
 } from './util/Version'
-import { versionLocalFetchWin, versionInitedApp } from './util/Version.win'
+import { versionInitedApp } from './util/Version.win'
 import {
   watch,
   copy,
@@ -54,9 +54,11 @@ import {
   readFile,
   existsSync,
   appendFile,
-  rename
+  rename,
+  stat
 } from '@shared/fs-extra'
 import { addPath, fetchRawPATH, handleWinPathArr, writePath } from './util/PATH.win'
+import { isWindows } from '@shared/utils'
 
 export { addPath, fetchRawPATH, handleWinPathArr, writePath }
 
@@ -72,7 +74,6 @@ export {
   versionLocalFetch,
   versionMacportsFetch,
   versionSort,
-  versionLocalFetchWin,
   versionInitedApp
 }
 
@@ -110,7 +111,8 @@ export {
   readFile,
   existsSync,
   appendFile,
-  rename
+  rename,
+  stat
 }
 
 export {
@@ -362,15 +364,40 @@ export async function waitPidFile(
 
 export function fetchPathByBin(bin: string) {
   let path = dirname(bin)
-  const paths = bin.split(`\\`)
+  const spliteKey = isWindows() ? '\\' : '/'
+  const paths = bin.split(spliteKey)
   let isBin = paths.pop()
   while (isBin) {
     if (['bin', 'sbin'].includes(isBin)) {
-      path = paths.join(`\\`)
+      path = paths.join(spliteKey)
       isBin = undefined
       break
     }
     isBin = paths.pop()
   }
   return path
+}
+
+const NTFS: Record<string, boolean> = {}
+
+export async function isNTFS(fileOrDirPath: string) {
+  const driveLetter = parse(fileOrDirPath).root.replace(/[:\\]/g, '')
+  if (NTFS?.[driveLetter] !== undefined) {
+    return NTFS[driveLetter]
+  }
+  try {
+    const jsonResult =
+      (
+        await execPromise(
+          `powershell -command "Get-Volume -DriveLetter ${driveLetter} | ConvertTo-Json"`,
+          { encoding: 'utf-8' }
+        )
+      )?.stdout ?? ''
+    const { FileSystem, FileSystemType } = JSON.parse(jsonResult)
+    const is = FileSystem === 'NTFS' || FileSystemType === 'NTFS'
+    NTFS[driveLetter] = is
+    return is
+  } catch {
+    return false
+  }
 }

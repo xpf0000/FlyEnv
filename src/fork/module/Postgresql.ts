@@ -25,8 +25,7 @@ import {
   writeFile,
   remove,
   serviceStartExecCMD,
-  mkdirp,
-  versionLocalFetchWin
+  mkdirp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
@@ -329,7 +328,7 @@ export LANG="${global.Server.Local!}"
           versionMacportsFetch(fpms)
         ]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.postgresql?.dirs ?? [], 'pg_ctl.exe')]
+        all = [versionLocalFetch(setup?.postgresql?.dirs ?? [], 'pg_ctl.exe')]
       }
 
       Promise.all(all)

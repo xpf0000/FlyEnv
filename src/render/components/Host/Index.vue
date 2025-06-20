@@ -119,7 +119,7 @@
   import VhostTmpl from './VhostTmpl/index.vue'
   import { SetupStore } from '@/components/Setup/store'
   import Router from '@/router'
-  import { join, dirname } from 'path-browserify'
+  import { join, dirname } from '@/util/path-browserify'
   import { dialog, clipboard, shell, fs } from '@/util/NodeFn'
 
   const appStore = AppStore()

@@ -23,7 +23,6 @@ import {
   chmod,
   remove,
   serviceStartExecCMD,
-  versionLocalFetchWin,
   zipUnPack,
   moveChildDirToParent
 } from '../Fn'
@@ -317,7 +316,7 @@ datadir=${dataDir}`
           versionMacportsFetch(fpms)
         ]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.mariadb?.dirs ?? [], 'mariadbd.exe')]
+        all = [versionLocalFetch(setup?.mariadb?.dirs ?? [], 'mariadbd.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

@@ -80,7 +80,7 @@
   import { ElMessage } from 'element-plus'
   import type { TableInstance } from 'element-plus'
   import { I18nT } from '@lang/index'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { shell, fs } from '@/util/NodeFn'
   import { asyncComputed } from '@vueuse/core'
 

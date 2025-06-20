@@ -158,8 +158,13 @@ class BaseManager {
       doRun(this.Version)
     } else if (module === 'tools') {
       if (!this.Tool) {
-        const res = await import('./module/Tool')
-        this.Tool = res.default
+        if (isMacOS()) {
+          const res = await import('./module/Tool')
+          this.Tool = res.default
+        } else if (isWindows()) {
+          const res = await import('./module/Tool.win')
+          this.Tool = res.default
+        }
       }
       doRun(this.Tool)
     } else if (module === 'macports') {

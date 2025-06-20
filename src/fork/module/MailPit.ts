@@ -14,8 +14,7 @@ import {
   readFile,
   writeFile,
   mkdirp,
-  serviceStartExecWin,
-  versionLocalFetchWin
+  serviceStartExecWin
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../TaskQueue'
@@ -213,7 +212,7 @@ class MailPit extends Base {
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.mailpit?.dirs ?? [], 'mailpit', 'mailpit')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.mailpit?.dirs ?? [], 'mailpit.exe')]
+        all = [versionLocalFetch(setup?.mailpit?.dirs ?? [], 'mailpit.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
-import { join } from 'path-browserify'
+import { join } from '@/util/path-browserify'
 import { shell, fs } from '@/util/NodeFn'
 
 type AppLogType = {

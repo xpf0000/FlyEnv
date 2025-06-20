@@ -8,7 +8,7 @@ const parser = new PhpParser.Engine({
 
 const parseValue = (expr: any): any => {
   switch (expr?.kind) {
-    case 'array':
+    case 'array': {
       if (expr.items.length === 0) {
         return []
       }
@@ -18,6 +18,7 @@ const parseValue = (expr: any): any => {
         items = items.reduce((acc: any, val: any) => Object.assign({}, acc, val), {})
       }
       return items
+    }
     case 'entry':
       if (expr.key) {
         return { [parseKey(expr.key)]: parseValue(expr.value) }

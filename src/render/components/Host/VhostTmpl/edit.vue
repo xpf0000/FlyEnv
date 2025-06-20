@@ -32,7 +32,7 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import Conf from '@/components/Conf/drawer.vue'
-  import { join, dirname } from 'path-browserify'
+  import { join, dirname } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
   const props = defineProps<{

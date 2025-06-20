@@ -17,7 +17,6 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionLocalFetchWin,
   versionSort,
   zipUnPack
 } from '../Fn'
@@ -116,7 +115,7 @@ class Memcached extends Base {
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.memcached?.dirs ?? [], 'memcached', 'memcached')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.memcached?.dirs ?? [], 'memcached.exe')]
+        all = [versionLocalFetch(setup?.memcached?.dirs ?? [], 'memcached.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

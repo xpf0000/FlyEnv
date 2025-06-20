@@ -185,7 +185,7 @@
   import { isEqual } from 'lodash-es'
   import { HostStore } from '@/components/Host/store'
   import { MessageError, MessageSuccess } from '@/util/Element'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { shell } from '@/util/NodeFn'
 
   const hostList = ref()

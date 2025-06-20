@@ -20,7 +20,7 @@
   import { ElInput, ElButton, ElTooltip, ElProgress } from 'element-plus'
   import type { Column } from 'element-plus'
   import { MessageSuccess } from '@/util/Element'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { clipboard } from '@/util/NodeFn'
 
   const { versionChange, installOrUninstall, tableData } = Setup()

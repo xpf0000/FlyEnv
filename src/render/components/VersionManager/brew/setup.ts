@@ -6,7 +6,7 @@ import IPC from '@/util/IPC'
 import type { AllAppModule } from '@/core/type'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
-import { join, basename, dirname } from 'path-browserify'
+import { join, basename, dirname } from '@/util/path-browserify'
 import { clipboard, fs } from '@/util/NodeFn'
 
 export const BrewSetup = reactive<{

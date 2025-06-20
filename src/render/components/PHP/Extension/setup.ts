@@ -3,7 +3,7 @@ import { type SoftInstalled } from '@/store/brew'
 import { BrewSetup } from '@/components/PHP/Extension/Homebrew/setup'
 import { LoadedSetup } from '@/components/PHP/Extension/Loaded/setup'
 import { MacPortsSetup } from '@/components/PHP/Extension/Macports/setup'
-import { join } from 'path-browserify'
+import { join } from '@/util/path-browserify'
 import { shell, fs, exec } from '@/util/NodeFn'
 
 export const ExtensionSetup = reactive<{

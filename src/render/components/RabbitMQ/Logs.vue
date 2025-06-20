@@ -15,7 +15,7 @@
   import ToolVM from '@/components/Log/tool.vue'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
   const appStore = AppStore()

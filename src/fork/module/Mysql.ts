@@ -25,7 +25,6 @@ import {
   serviceStartExecCMD,
   spawnPromise,
   readFile,
-  versionLocalFetchWin,
   versionInitedApp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -711,7 +710,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           versionMacportsFetch(fpms)
         ]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.mysql?.dirs ?? [], 'mysqld.exe')]
+        all = [versionLocalFetch(setup?.mysql?.dirs ?? [], 'mysqld.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

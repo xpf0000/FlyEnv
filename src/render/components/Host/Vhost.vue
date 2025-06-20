@@ -38,7 +38,7 @@
   import { MessageSuccess } from '@/util/Element'
   import { reloadWebServer } from '@/util/Service'
   import IPC from '@/util/IPC'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { shell, fs } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()

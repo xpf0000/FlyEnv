@@ -1,4 +1,4 @@
-import { dirname, join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -16,8 +16,7 @@ import {
   writeFile,
   mkdirp,
   machineId,
-  serviceStartExecWin,
-  versionLocalFetchWin
+  serviceStartExecWin
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/index'
@@ -221,14 +220,19 @@ class Ollama extends Base {
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.ollama?.dirs ?? [], 'ollama', 'ollama')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.ollama?.dirs ?? [], 'ollama.exe')]
+        all = [versionLocalFetch(setup?.ollama?.dirs ?? [], 'ollama.exe')]
       }
       Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) =>
-            TaskQueue.run(versionBinVersion, `${item.bin} -v`, /( )(\d+(\.\d+){1,4})(.*?)/g)
+            TaskQueue.run(
+              versionBinVersion,
+              item.bin,
+              `${basename(item.bin)} -v`,
+              /( )(\d+(\.\d+){1,4})(.*?)/g
+            )
           )
           return Promise.all(all)
         })

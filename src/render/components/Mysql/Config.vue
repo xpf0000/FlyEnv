@@ -23,7 +23,7 @@
   import { debounce } from 'lodash-es'
   import { AppStore } from '@/store/app'
   import { uuid } from '@/util/Index'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
 
   const appStore = AppStore()
   const conf = ref()

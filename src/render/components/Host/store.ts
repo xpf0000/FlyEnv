@@ -1,7 +1,7 @@
 import { reactive, watch } from 'vue'
 import type { AppHost } from '@/store/app'
 import { AppStore } from '@/store/app'
-import { join } from 'path-browserify'
+import { join } from '@/util/path-browserify'
 import { fs } from '@/util/NodeFn'
 
 export const RewriteAll: { [key: string]: any } = {}

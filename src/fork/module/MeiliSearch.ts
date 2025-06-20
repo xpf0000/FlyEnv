@@ -16,7 +16,6 @@ import {
   remove,
   writeFile,
   serviceStartExec,
-  versionLocalFetchWin,
   copyFile,
   chmod,
   waitTime,
@@ -161,7 +160,7 @@ class MeiliSearch extends Base {
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.meilisearch?.dirs ?? [], 'meilisearch', 'meilisearch')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.meilisearch?.dirs ?? [], 'meilisearch.exe')]
+        all = [versionLocalFetch(setup?.meilisearch?.dirs ?? [], 'meilisearch.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

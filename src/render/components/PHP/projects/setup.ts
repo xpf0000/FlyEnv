@@ -7,7 +7,7 @@ import IPC from '@/util/IPC'
 import { MessageError } from '@/util/Element'
 import { AllAppModule } from '@/core/type'
 import { SetupStore } from '@/components/Setup/store'
-import { join } from 'path-browserify'
+import { join } from '@/util/path-browserify'
 import { dialog, fs } from '@/util/NodeFn'
 
 export type ProjectItem = {

@@ -16,7 +16,7 @@
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
   import { BrewStore } from '@/store/brew'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
 
   const appStore = AppStore()
   const brewStore = BrewStore()

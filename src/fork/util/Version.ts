@@ -8,8 +8,10 @@ import {
   realpathSync,
   execPromiseWithEnv,
   getSubDirAsync,
-  execPromise
+  execPromise,
+  fetchPathByBin
 } from '../Fn'
+import { isMacOS, isWindows } from '@shared/utils'
 
 export function versionFixed(version?: string | null) {
   return (
@@ -108,38 +110,69 @@ export const versionDirCache: Record<string, string[]> = {}
 export const versionLocalFetch = async (
   customDirs: string[],
   binName: string,
-  searchName: string
+  searchName?: string,
+  binPaths?: string[]
 ): Promise<Array<SoftInstalled>> => {
   const installed: Set<string> = new Set()
-  const systemDirs = ['/', '/opt', '/usr', global.Server.AppDir!, ...customDirs]
+  let searchDepth1Dir: string[] = []
+  let searchDepth2Dir: string[] = []
+  if (isMacOS()) {
+    searchDepth1Dir = ['/', '/opt', '/usr', ...customDirs]
+    searchDepth2Dir = [global.Server.AppDir!]
+    if (searchName) {
+      const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
+      for (const b of base) {
+        const subDir = versionDirCache?.[b] ?? (await getSubDirAsync(b))
+        if (!versionDirCache?.[b]) {
+          versionDirCache[b] = subDir
+        }
+        const subDirFilter = subDir.filter((f) => {
+          return f.includes(searchName)
+        })
+        for (const f of subDirFilter) {
+          const subDir1 = versionDirCache?.[f] ?? (await getSubDirAsync(f))
+          if (!versionDirCache?.[f]) {
+            versionDirCache[f] = subDir1
+          }
+          for (const s of subDir1) {
+            searchDepth2Dir.push(s)
+          }
+        }
+      }
+    }
+  } else if (isWindows()) {
+    searchDepth1Dir = [...customDirs]
+    searchDepth2Dir = [global.Server.AppDir!]
+  }
 
-  const realDirDict: { [k: string]: string } = {}
   const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
     if (!existsSync(dir)) {
       return
     }
     dir = realpathSync(dir)
-    console.log('findInstalled dir: ', dir)
     let binPath = versionCheckBin(join(dir, `${binName}`))
-    console.log('binPath 0: ', binPath)
     if (binPath) {
-      realDirDict[binPath] = join(dir, `${binName}`)
       installed.add(binPath)
       return
     }
     binPath = versionCheckBin(join(dir, `bin/${binName}`))
-    console.log('binPath 1: ', binPath)
     if (binPath) {
-      realDirDict[binPath] = join(dir, `bin/${binName}`)
       installed.add(binPath)
       return
     }
     binPath = versionCheckBin(join(dir, `sbin/${binName}`))
-    console.log('binPath 2: ', binPath)
     if (binPath) {
-      realDirDict[binPath] = join(dir, `sbin/${binName}`)
       installed.add(binPath)
       return
+    }
+    if (binPaths) {
+      for (const p of binPaths) {
+        binPath = versionCheckBin(join(dir, p))
+        if (binPath) {
+          installed.add(binPath)
+          return
+        }
+      }
     }
     if (depth >= maxDepth) {
       return
@@ -148,35 +181,19 @@ export const versionLocalFetch = async (
     if (!versionDirCache?.[dir]) {
       versionDirCache[dir] = sub
     }
-    console.log('sub: ', sub)
     for (const s of sub) {
       await findInstalled(s, depth + 1, maxDepth)
     }
   }
 
-  for (const s of systemDirs) {
+  for (const s of searchDepth1Dir) {
     await findInstalled(s, 0, 1)
   }
 
-  const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
-  for (const b of base) {
-    const subDir = versionDirCache?.[b] ?? (await getSubDirAsync(b))
-    if (!versionDirCache?.[b]) {
-      versionDirCache[b] = subDir
-    }
-    const subDirFilter = subDir.filter((f) => {
-      return f.includes(searchName)
-    })
-    for (const f of subDirFilter) {
-      const subDir1 = versionDirCache?.[f] ?? (await getSubDirAsync(f))
-      if (!versionDirCache?.[f]) {
-        versionDirCache[f] = subDir1
-      }
-      for (const s of subDir1) {
-        await findInstalled(s)
-      }
-    }
+  for (const s of searchDepth2Dir) {
+    await findInstalled(s)
   }
+
   const count = installed.size
   if (count === 0) {
     return []
@@ -185,19 +202,10 @@ export const versionLocalFetch = async (
   const list: Array<SoftInstalled> = []
   const installedList: Array<string> = Array.from(installed)
   for (const i of installedList) {
-    let path = i
-    if (path.includes('/sbin/') || path.includes('/bin/')) {
-      path = path
-        .replace(`/sbin/`, '/##SPLIT##/')
-        .replace(`/bin/`, '/##SPLIT##/')
-        .split('/##SPLIT##/')
-        .shift()!
-    } else {
-      path = dirname(path)
-    }
+    const path = fetchPathByBin(i)
     const item = {
       bin: i,
-      path: `${path}/`,
+      path,
       run: false,
       running: false
     }

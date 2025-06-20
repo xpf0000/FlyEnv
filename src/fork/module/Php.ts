@@ -892,9 +892,9 @@ xdebug.output_dir = "${output_dir}"
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
-            const command = `${item.bin} -n -v`
+            const command = `./${basename(item.bin)} -n -v`
             const reg = /(\s)(\d+(\.\d+){1,4})([-\s])/g
-            return TaskQueue.run(versionBinVersion, command, reg)
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
           return Promise.all(all)
         })

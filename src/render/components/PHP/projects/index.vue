@@ -190,7 +190,7 @@
   import { SetupStore } from '@/components/Setup/store'
   import Router from '@/router'
   import { AppStore } from '@/store/app'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { shell } from '@/util/NodeFn'
 
   const props = defineProps<{

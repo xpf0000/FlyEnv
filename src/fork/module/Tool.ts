@@ -1,4 +1,4 @@
-import { createReadStream, readFileSync, realpathSync, statSync } from 'fs'
+import { realpathSync, statSync } from 'fs'
 import { Base } from './Base'
 import {
   getAllFileAsync,
@@ -18,7 +18,7 @@ import {
   writeFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
+import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
 import { join, dirname, resolve as PathResolve, basename } from 'path'
 import { I18nT } from '@lang/index'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
@@ -27,63 +27,7 @@ import { ProcessSearch } from '@shared/Process'
 import RequestTimer from '@shared/requestTimer'
 import { spawn } from 'child_process'
 import { userInfo } from 'os'
-
-class BomCleanTask implements TaskItem {
-  path = ''
-  constructor(path: string) {
-    this.path = path
-  }
-  run(): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      const path = this.path
-      try {
-        let handled = false
-        const stream = createReadStream(path, {
-          start: 0,
-          end: 3
-        })
-        stream.on('data', (chunk) => {
-          handled = true
-          stream.close()
-          let buff: any = chunk
-          if (
-            buff &&
-            buff.length >= 3 &&
-            buff[0].toString(16).toLowerCase() === 'ef' &&
-            buff[1].toString(16).toLowerCase() === 'bb' &&
-            buff[2].toString(16).toLowerCase() === 'bf'
-          ) {
-            buff = readFileSync(path)
-            buff = buff.slice(3)
-            writeFile(path, buff, 'binary', (err) => {
-              buff = null
-              if (err) {
-                reject(err)
-              } else {
-                resolve(true)
-              }
-            })
-          } else {
-            resolve(false)
-          }
-        })
-        stream.on('error', (err) => {
-          handled = true
-          stream.close()
-          reject(err)
-        })
-        stream.on('close', () => {
-          if (!handled) {
-            handled = true
-            resolve(false)
-          }
-        })
-      } catch (err) {
-        reject(err)
-      }
-    })
-  }
-}
+import { BomCleanTask } from '../util/BomCleanTask'
 
 class Manager extends Base {
   jiebaLoad = false
@@ -551,31 +495,6 @@ class Manager extends Base {
         arr = ProcessSearch(key, false, plist)
       } catch {}
       resolve(arr)
-    })
-  }
-
-  writeFileAndChmod777ByRoot(file: string, content: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      try {
-        await Helper.send('tools', 'writeFileByRoot', file, content)
-        await Helper.send('tools', 'chmod', file, '777')
-      } catch (e) {
-        return reject(e)
-      }
-      resolve(true)
-    })
-  }
-
-  readFileAndChmod777ByRoot(file: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      let content = ''
-      try {
-        content = (await Helper.send('tools', 'readFileByRoot', file)) as any
-        await Helper.send('tools', 'chmod', file, '777')
-      } catch (e) {
-        return reject(e)
-      }
-      resolve(content)
     })
   }
 

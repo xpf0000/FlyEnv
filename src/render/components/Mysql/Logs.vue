@@ -13,7 +13,7 @@
   import { ref } from 'vue'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
 
   const props = defineProps<{
     type: string

@@ -169,7 +169,7 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { merge } from 'lodash-es'
   import { BrewStore } from '@/store/brew'
-  import { dirname, join } from 'path-browserify'
+  import { dirname, join } from '@/util/path-browserify'
   import { dialog, fs } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()

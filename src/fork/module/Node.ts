@@ -461,7 +461,12 @@ class Manager extends Base {
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) =>
-            TaskQueue.run(versionBinVersion, `${item.bin} -v`, /(v)(\d+(\.\d+){1,4})(.*?)$/gm)
+            TaskQueue.run(
+              versionBinVersion,
+              item.bin,
+              `./${basename(item.bin)} -v`,
+              /(v)(\d+(\.\d+){1,4})(.*?)$/gm
+            )
           )
           if (all.length === 0) {
             return Promise.resolve([])

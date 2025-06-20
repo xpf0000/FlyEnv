@@ -38,7 +38,7 @@
   import { I18nT } from '@lang/index'
   import { computed } from 'vue'
   import { BrewStore } from '@/store/brew'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { shell, fs } from '@/util/NodeFn'
 
   const { tab, checkVersion } = AppModuleSetup('mailpit')

@@ -15,7 +15,6 @@ import {
   readdir,
   mkdirp,
   serviceStartExecCMD,
-  versionLocalFetchWin,
   execPromise,
   waitTime,
   remove,
@@ -144,7 +143,7 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
           versionLocalFetch(setup?.elasticsearch?.dirs ?? [], 'elasticsearch', 'elasticsearch')
         ]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.elasticsearch?.dirs ?? [], 'elasticsearch.bat')]
+        all = [versionLocalFetch(setup?.elasticsearch?.dirs ?? [], 'elasticsearch.bat')]
       }
       Promise.all(all)
         .then(async (list) => {

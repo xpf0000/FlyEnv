@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import type { MysqlGroupItem } from '@shared/app'
 import IPC from '@/util/IPC'
-import { join } from 'path-browserify'
+import { join } from '@/util/path-browserify'
 import { fs } from '@/util/NodeFn'
 
 interface State {

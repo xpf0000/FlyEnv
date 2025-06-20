@@ -11,7 +11,6 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionLocalFetchWin,
   versionSort
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
@@ -53,7 +52,7 @@ class Erlang extends Base {
         const dir = [...(setup?.erlang?.dirs ?? []), '/opt/local/lib']
         all = [versionLocalFetch(dir, 'erl', 'erlang')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.erlang?.dirs ?? [], 'erl.exe')]
+        all = [versionLocalFetch(setup?.erlang?.dirs ?? [], 'erl.exe')]
       }
 
       Promise.all(all)

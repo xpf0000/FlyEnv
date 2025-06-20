@@ -13,7 +13,7 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import Conf from '@/components/Conf/index.vue'
-  import { extname } from 'path-browserify'
+  import { extname } from '@/util/path-browserify'
 
   const props = defineProps<{
     file: string

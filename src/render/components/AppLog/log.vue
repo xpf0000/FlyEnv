@@ -40,7 +40,7 @@
   import { AppLogStore } from '@/components/AppLog/store'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()

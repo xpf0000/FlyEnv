@@ -1,7 +1,7 @@
 import { clipboard, fs } from '@/util/NodeFn'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
-import { join } from 'path-browserify'
+import { join } from '@/util/path-browserify'
 import { nextTick } from 'vue'
 import XTerm from '@/util/XTerm'
 import { BrewSetup } from '@/components/VersionManager/brew/setup'

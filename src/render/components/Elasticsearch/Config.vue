@@ -15,7 +15,7 @@
   import Conf from '@/components/Conf/index.vue'
   import { BrewStore, SoftInstalled } from '@/store/brew'
   import { AppStore } from '@/store/app'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
 
   const props = defineProps<{
     name: string

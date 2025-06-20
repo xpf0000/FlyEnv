@@ -41,7 +41,7 @@
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { debounce } from 'lodash-es'
   import { uuid } from '@/util/Index'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
   const props = defineProps<{

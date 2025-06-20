@@ -1,4 +1,4 @@
-import { dirname, join } from 'path'
+import { dirname, join, basename } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
@@ -15,7 +15,6 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionLocalFetchWin,
   versionSort,
   readFile,
   writeFile,
@@ -26,7 +25,6 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../TaskQueue'
 import { fetchHostList } from './host/HostFile'
-import { basename } from 'path-browserify'
 import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
 
 class Apache extends Base {
@@ -325,15 +323,15 @@ IncludeOptional "${vhost}*.conf"`
       if (isWindows()) {
         const execArgs = `-f "${conf}"`
         try {
-          const res = await serviceStartExecCMD(
+          const res = await serviceStartExecCMD({
             version,
-            pidFile,
-            global.Server.ApacheDir!,
+            pidPath: pidFile,
+            baseDir: global.Server.ApacheDir!,
             bin,
             execArgs,
-            '',
+            execEnv: '',
             on
-          )
+          })
           resolve(res)
         } catch (e: any) {
           console.log('-k start err: ', e)
@@ -347,7 +345,15 @@ IncludeOptional "${vhost}*.conf"`
         const execArgs = `-f "${conf}" -c "PidFile \"${pidFile}\"" -c "CustomLog \"${logFile}\" common" -k start`
 
         try {
-          const res = await serviceStartExec(version, pidFile, baseDir, bin, execArgs, execEnv, on)
+          const res = await serviceStartExec({
+            version,
+            pidPath: pidFile,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on
+          })
           resolve(res)
         } catch (e: any) {
           console.log('-k start err: ', e)
@@ -386,7 +392,7 @@ IncludeOptional "${vhost}*.conf"`
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.apache?.dirs ?? [], 'apachectl', 'httpd')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.apache?.dirs ?? [], 'httpd.exe')]
+        all = [versionLocalFetch(setup?.apache?.dirs ?? [], 'httpd.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

@@ -15,7 +15,7 @@
   import ToolVM from '@/components/Log/tool.vue'
   import { AppStore } from '@/store/app'
   import { BrewStore, SoftInstalled } from '@/store/brew'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
 
   const log = ref()
 

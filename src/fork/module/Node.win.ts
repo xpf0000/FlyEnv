@@ -20,7 +20,7 @@ import {
   fetchRawPATH,
   handleWinPathArr,
   writePath,
-  versionLocalFetchWin
+  versionLocalFetch
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { dirname, join, isAbsolute, basename } from 'path'
@@ -660,7 +660,7 @@ class Manager extends Base {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
       const dir = [...(setup?.node?.dirs ?? [])]
-      Promise.all([versionLocalFetchWin(dir, 'node.exe')])
+      Promise.all([versionLocalFetch(dir, 'node.exe')])
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)

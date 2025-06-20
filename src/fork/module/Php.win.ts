@@ -19,7 +19,7 @@ import {
   copyFile,
   readdir,
   zipUnPack,
-  versionLocalFetchWin
+  versionLocalFetch
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../TaskQueue'
@@ -324,7 +324,7 @@ class Php extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetchWin(setup?.php?.dirs ?? [], 'php-cgi.exe')])
+      Promise.all([versionLocalFetch(setup?.php?.dirs ?? [], 'php-cgi.exe')])
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)

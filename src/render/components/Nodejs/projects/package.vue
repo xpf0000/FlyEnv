@@ -31,7 +31,7 @@
   import type { ProjectItem } from '@/components/PHP/projects/setup'
   import ScriptVM from './scripts/index.vue'
   import DependencieVM from './dependencies/index.vue'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
   import { asyncComputed } from '@vueuse/core'
 

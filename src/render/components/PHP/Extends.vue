@@ -85,7 +85,7 @@
   import LoadedVM from './Extension/Loaded/index.vue'
   import PortsVM from './Extension/Macports/index.vue'
   import { Setup } from '@/components/PHP/Extension/setup'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
   const props = defineProps<{

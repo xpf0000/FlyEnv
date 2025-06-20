@@ -41,7 +41,7 @@
   import type { MysqlGroupItem } from '@shared/app'
   import Base from '@/core/Base'
   import { MysqlStore } from '../mysql'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { clipboard } from '@/util/NodeFn'
 
   const props = defineProps<{

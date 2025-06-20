@@ -24,7 +24,7 @@
 <script lang="ts" setup>
   import { I18nT } from '@lang/index'
   import { MessageSuccess } from '@/util/Element'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { shell, clipboard } from '@/util/NodeFn'
 
   const copyCommand = () => {

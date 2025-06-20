@@ -54,5 +54,6 @@
   "toolSaveConfirm": "确定保存?",
   "auto": "自动",
   "noVerionsFoundInLib": "无可用版本",
-  "showToolBtn": "显示工具浮动按钮"
+  "showToolBtn": "显示工具浮动按钮",
+  "inputSearchKey": "搜索关键词"
 }

@@ -82,7 +82,7 @@
   import Config from './Config.vue'
   import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { dialog, shell, fs } from '@/util/NodeFn'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { I18nT } from '@lang/index'

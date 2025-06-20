@@ -3,7 +3,7 @@ import { AppStore } from '@/store/app'
 import { SoftInstalled } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
-import { join, dirname } from 'path-browserify'
+import { join, dirname } from '@/util/path-browserify'
 import { fs } from '@/util/NodeFn'
 
 export const PgsqlExtensionSetup = reactive<{

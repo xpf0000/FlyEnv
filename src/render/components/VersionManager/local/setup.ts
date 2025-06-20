@@ -3,7 +3,7 @@ import { BrewStore, SoftInstalled } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import { AppStore } from '@/store/app'
-import { dirname } from 'path-browserify'
+import { dirname } from '@/util/path-browserify'
 import { shell } from '@/util/NodeFn'
 
 export const LocalSetup = reactive<{

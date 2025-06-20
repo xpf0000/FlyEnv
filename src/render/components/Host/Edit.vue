@@ -251,7 +251,7 @@
   import { Plus, Delete } from '@element-plus/icons-vue'
   import SSLTips from './SSLTips/index.vue'
   import NginxRewrite from './Edit/nginxRewrite.vue'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { dialog, fs } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()

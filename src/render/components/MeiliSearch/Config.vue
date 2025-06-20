@@ -24,7 +24,7 @@
   import { debounce } from 'lodash-es'
   import Common from '@/components/Conf/common.vue'
   import { uuid } from '@/util/Index'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
   const commonSetting: Ref<CommonSetItem[]> = ref([])

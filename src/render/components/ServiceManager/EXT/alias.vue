@@ -70,7 +70,7 @@
   import { Edit, Delete, Plus } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
   import type { SoftInstalled } from '@/store/brew'
-  import { join, resolve } from 'path-browserify'
+  import { join, resolve } from '@/util/path-browserify'
   import { shell, clipboard } from '@/util/NodeFn'
 
   const props = defineProps<{

@@ -29,7 +29,7 @@
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { EditorConfigMap } from '@/components/Setup/EditorConfig/store'
   import { EditorCreate } from '@/util/Editor'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs, nativeTheme } from '@/util/NodeFn'
   import { asyncComputed } from '@vueuse/core'
 

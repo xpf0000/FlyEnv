@@ -21,7 +21,6 @@ import {
   readFile,
   execPromise,
   serviceStartExecCMD,
-  versionLocalFetchWin,
   readdir,
   remove,
   zipUnPack,
@@ -289,7 +288,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.rabbitmq?.dirs ?? [], 'rabbitmq-server', 'rabbitmq')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.rabbitmq?.dirs ?? [], 'rabbitmq-server.bat')]
+        all = [versionLocalFetch(setup?.rabbitmq?.dirs ?? [], 'rabbitmq-server.bat')]
       }
       Promise.all(all)
         .then(async (list) => {

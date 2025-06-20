@@ -17,8 +17,7 @@ import {
   mkdirp,
   readFile,
   writeFile,
-  serviceStartExecWin,
-  versionLocalFetchWin
+  serviceStartExecWin
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { I18nT } from '@lang/index'
@@ -230,7 +229,7 @@ class Minio extends Base {
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.minio?.dirs ?? [], 'minio', 'minio')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.minio?.dirs ?? [], 'minio.exe')]
+        all = [versionLocalFetch(setup?.minio?.dirs ?? [], 'minio.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

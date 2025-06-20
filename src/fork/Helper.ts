@@ -63,7 +63,6 @@ class Helper {
           res = JSON.parse(content)
         } catch {}
         if (res && res?.key && res?.key === key) {
-          console.log('helper response: ', res)
           buffer.splice(0)
           if (res?.code === 0) {
             resolve(res?.data)

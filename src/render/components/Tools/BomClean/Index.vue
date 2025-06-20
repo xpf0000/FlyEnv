@@ -127,7 +127,7 @@
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
   import { I18nT } from '@lang/index'
-  import { extname } from 'path-browserify'
+  import { extname } from '@/util/path-browserify'
   import { dialog } from '@/util/NodeFn'
 
   const data = computed(() => {

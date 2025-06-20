@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
   import { ref, watch } from 'vue'
-  import { join, basename } from 'path-browserify'
+  import { join, basename } from '@/util/path-browserify'
   import { uuid } from '@/util/Index'
   import { MessageError } from '@/util/Element'
   import { dialog, shell, fs, exec } from '@/util/NodeFn'

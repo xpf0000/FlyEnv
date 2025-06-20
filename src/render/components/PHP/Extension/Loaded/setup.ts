@@ -1,6 +1,6 @@
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { type SoftInstalled } from '@/store/brew'
-import { join } from 'path-browserify'
+import { join } from '@/util/path-browserify'
 import { exec } from '@/util/NodeFn'
 
 export const LoadedSetup = reactive<{

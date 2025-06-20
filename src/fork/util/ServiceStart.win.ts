@@ -63,7 +63,7 @@ export async function serviceStartExec(
   const bin = param.bin
   const execArgs = param?.execArgs ?? ''
   const on = param.on
-  const checkPidFile = param.checkPidFile
+  const checkPidFile = param?.checkPidFile ?? true
   const pidPath = param?.pidPath ?? ''
   const maxTime = param?.maxTime ?? 20
   const timeToWait = param?.timeToWait ?? 500
@@ -137,7 +137,7 @@ export async function serviceStartExec(
 
   if (!checkPidFile) {
     let pid = ''
-    const stdout = res.trim()
+    const stdout = res.stdout.trim() + '\n' + res.stderr.trim()
     const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
     const match = regex.exec(stdout)
     if (match) {
@@ -200,7 +200,7 @@ export async function serviceStartExecCMD(
   const bin = param.bin
   const execArgs = param?.execArgs ?? ''
   const on = param.on
-  const checkPidFile = param.checkPidFile
+  const checkPidFile = param?.checkPidFile ?? true
   const pidPath = param?.pidPath ?? ''
   const maxTime = param?.maxTime ?? 20
   const timeToWait = param?.timeToWait ?? 500

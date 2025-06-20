@@ -24,7 +24,6 @@ import {
   moveChildDirToParent,
   createWriteStream,
   serviceStartExecCMD,
-  versionLocalFetchWin,
   waitTime
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -254,7 +253,7 @@ class Manager extends Base {
           versionMacportsFetch(['bin/mongod', 'sbin/mongod'])
         ]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.mongodb?.dirs ?? [], 'mongod.exe')]
+        all = [versionLocalFetch(setup?.mongodb?.dirs ?? [], 'mongod.exe')]
       }
 
       Promise.all(all)

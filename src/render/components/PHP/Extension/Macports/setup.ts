@@ -7,7 +7,7 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import Base from '@/core/Base'
 import { ExtensionSetup } from '@/components/PHP/Extension/setup'
-import { join } from 'path-browserify'
+import { join } from '@/util/path-browserify'
 import { clipboard, fs } from '@/util/NodeFn'
 
 export const MacPortsSetup = reactive<{

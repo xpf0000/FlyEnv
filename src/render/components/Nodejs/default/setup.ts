@@ -5,7 +5,7 @@ import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
 import { BrewStore } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-import { join } from 'path-browserify'
+import { join } from '@/util/path-browserify'
 
 export const NodeDefaultSetup = reactive<{
   installing: Record<string, number>

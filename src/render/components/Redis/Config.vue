@@ -24,7 +24,7 @@
   import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
   import { uuid } from '@/util/Index'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
   const appStore = AppStore()

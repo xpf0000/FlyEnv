@@ -18,7 +18,6 @@ import {
   mkdirp,
   zipUnPack,
   serviceStartExecCMD,
-  versionLocalFetchWin,
   versionInitedApp,
   readdir,
   execPromise,
@@ -251,7 +250,7 @@ class Nginx extends Base {
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.nginx?.dirs ?? [], 'nginx', 'nginx')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.nginx?.dirs ?? [], 'nginx.exe')]
+        all = [versionLocalFetch(setup?.nginx?.dirs ?? [], 'nginx.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

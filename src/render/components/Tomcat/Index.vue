@@ -50,7 +50,7 @@
   import { BrewStore } from '@/store/brew'
   import { TomcatSetup } from '@/components/Tomcat/setup'
   import { chooseFolder } from '@/util/File'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { shell } from '@/util/NodeFn'
 
   const { tab, checkVersion } = AppModuleSetup('tomcat')

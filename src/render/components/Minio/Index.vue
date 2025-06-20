@@ -54,7 +54,7 @@
   import { MinioSetup } from './setup'
   import { Edit } from '@element-plus/icons-vue'
   import Config from './Config.vue'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { shell, fs } from '@/util/NodeFn'
 
   const { tab, checkVersion } = AppModuleSetup('minio')

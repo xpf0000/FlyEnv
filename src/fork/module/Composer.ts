@@ -13,8 +13,7 @@ import {
   copyFile,
   mkdirp,
   readFile,
-  writeFile,
-  versionLocalFetchWin
+  writeFile
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
@@ -107,7 +106,7 @@ php "%~dp0composer.phar" %*`
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.composer?.dirs ?? [], 'composer', 'composer')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.composer?.dirs ?? [], 'composer.phar')]
+        all = [versionLocalFetch(setup?.composer?.dirs ?? [], 'composer.phar')]
       }
       Promise.all(all)
         .then(async (list) => {

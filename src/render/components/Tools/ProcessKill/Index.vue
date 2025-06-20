@@ -54,10 +54,10 @@
 <script setup lang="ts">
   import { ref } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { MessageSuccess, MessageWarning } from '@/util/Element.ts'
-  import IPC from '@/util/IPC.ts'
+  import { MessageSuccess, MessageWarning } from '@/util/Element'
+  import IPC from '@/util/IPC'
   import { I18nT } from '@lang/index'
-  import Base from '@/core/Base.ts'
+  import Base from '@/core/Base'
 
   interface ProcessItem {
     PID: string
@@ -72,7 +72,7 @@
   const select = ref<ProcessItem[]>([])
 
   const cleanSelect = () => {
-    Base._Confirm(I18nT('base.killProcessConfirm'), null, {
+    Base._Confirm(I18nT('base.killProcessConfirm'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })
@@ -88,7 +88,7 @@
   }
 
   const cleanAll = () => {
-    Base._Confirm(I18nT('base.killAllProcessConfirm'), null, {
+    Base._Confirm(I18nT('base.killAllProcessConfirm'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })
@@ -130,10 +130,12 @@
         const current = processMap.get(item.PID)
         if (item.PPID && processMap.has(item.PPID)) {
           const parent = processMap.get(item.PPID)
-          if (!parent.children) {
-            parent.children = []
+          if (parent) {
+            if (!parent.children) {
+              parent.children = []
+            }
+            parent.children.push(current!)
           }
-          parent.children.push(current!)
         } else {
           rootProcesses.push(current!)
         }

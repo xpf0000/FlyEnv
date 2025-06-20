@@ -6,7 +6,7 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { BrewStore } from '@/store/brew'
 import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'
-import { dirname } from 'path-browserify'
+import { dirname } from '@/util/path-browserify'
 import { clipboard } from '@/util/NodeFn'
 
 export type OllamaModelItem = {

@@ -113,7 +113,7 @@
   import AppVersions from './version'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { dialog, fs } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()

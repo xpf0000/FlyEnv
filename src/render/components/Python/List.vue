@@ -115,7 +115,7 @@
   import { FolderAdd } from '@element-plus/icons-vue'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
   import { I18nT } from '@lang/index'
-  import { dirname } from 'path-browserify'
+  import { dirname } from '@/util/path-browserify'
   import { shell } from '@/util/NodeFn'
 
   const brewStore = BrewStore()

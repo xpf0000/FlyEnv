@@ -79,7 +79,7 @@
   import { FolderOpened } from '@element-plus/icons-vue'
   import { Project } from '@/util/Project'
   import { HostNginxRewriteSetup } from '@/components/Host/Edit/rewrite'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs, shell } from '@/util/NodeFn'
 
   const props = defineProps<{

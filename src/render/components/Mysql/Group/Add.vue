@@ -71,7 +71,7 @@
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
   import { MysqlStore } from '../mysql'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { dialog } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()

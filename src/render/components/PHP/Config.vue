@@ -42,7 +42,7 @@
   import IPC from '@/util/IPC'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { uuid } from '@/util/Index'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
   const props = defineProps<{

@@ -1,7 +1,7 @@
 import type { AppToolModuleItem } from '@/core/type'
 import { reactive } from 'vue'
 import { uuid } from '@/util/Index'
-import { join } from 'path-browserify'
+import { join } from '@/util/path-browserify'
 import { shell, fs } from '@/util/NodeFn'
 
 const getToolData = async () => {

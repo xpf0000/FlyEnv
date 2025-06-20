@@ -5,7 +5,7 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
 import { AppStore } from '@/store/app'
-import { dirname, join } from 'path-browserify'
+import { dirname, join } from '@/util/path-browserify'
 import { fs } from '@/util/NodeFn'
 
 export const NVMSetup = reactive<{

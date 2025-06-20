@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 import { lang } from '@/util/NodeFn'
-import { resolve } from 'path-browserify'
+import { resolve } from '@/util/path-browserify'
 import { shell } from '@/util/NodeFn'
 
 export const LangSetup = reactive({

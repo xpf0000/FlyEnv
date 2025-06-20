@@ -11,7 +11,7 @@ class Manager extends BaseManager {
           if (res.stdout.includes(' root ')) {
             await execPromise(['rm', '-rf', sslDir].join(' '))
           }
-        } catch (e) {}
+        } catch {}
       }
       resolve(true)
     })

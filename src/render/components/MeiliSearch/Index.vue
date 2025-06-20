@@ -50,7 +50,7 @@
   import { MeiliSearchSetup } from './setup'
   import { chooseFolder } from '@/util/File'
   import { Edit } from '@element-plus/icons-vue'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { shell, fs } from '@/util/NodeFn'
 
   const { tab, checkVersion } = AppModuleSetup('meilisearch')

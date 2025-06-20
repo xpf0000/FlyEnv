@@ -1,5 +1,5 @@
 import { basename, dirname, join } from 'path'
-import { existsSync, realpathSync } from 'fs'
+import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -7,16 +7,14 @@ import {
   brewInfoJson,
   brewSearch,
   execPromise,
-  getSubDirAsync,
   portSearch,
   readFile,
   remove,
   uuid,
   versionBinVersion,
-  versionCheckBin,
   versionFilterSame,
   versionFixed,
-  versionLocalFetchWin,
+  versionLocalFetch,
   versionSort,
   waitTime,
   writeFile,
@@ -56,110 +54,22 @@ class Python extends Base {
 
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
-      const versionLocalFetch = async (
-        customDirs: string[],
-        binName: string,
-        searchName: string
-      ): Promise<Array<SoftInstalled>> => {
-        const installed: Set<string> = new Set()
-        const systemDirs = [
-          '/',
-          '/opt',
-          '/usr',
-          global.Server.AppDir!,
-          ...customDirs,
-          '/opt/local/Library/Frameworks/Python.framework/Versions'
-        ]
-
-        const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
-          if (!existsSync(dir)) {
-            return
-          }
-          dir = realpathSync(dir)
-          console.log('findInstalled dir: ', dir)
-          let binPath = versionCheckBin(join(dir, `bin/${binName}`))
-          if (binPath) {
-            installed.add(binPath)
-            return
-          }
-          binPath = versionCheckBin(join(dir, `sbin/${binName}`))
-          if (binPath) {
-            installed.add(binPath)
-            return
-          }
-          binPath = versionCheckBin(join(dir, `libexec/bin/python`))
-          if (binPath) {
-            installed.add(binPath)
-            return
-          }
-          binPath = versionCheckBin(join(dir, `bin/python3`))
-          if (binPath) {
-            installed.add(binPath)
-            return
-          }
-          if (depth >= maxDepth) {
-            return
-          }
-          const sub = await getSubDirAsync(dir)
-          console.log('sub: ', sub)
-          for (const s of sub) {
-            await findInstalled(s, depth + 1, maxDepth)
-          }
-        }
-
-        for (const s of systemDirs) {
-          await findInstalled(s, 0, 1)
-        }
-
-        const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
-        for (const b of base) {
-          const subDir = await getSubDirAsync(b)
-          const subDirFilter = subDir.filter((f) => {
-            return f.includes(searchName)
-          })
-          for (const f of subDirFilter) {
-            const subDir1 = await getSubDirAsync(f)
-            for (const s of subDir1) {
-              await findInstalled(s)
-            }
-          }
-        }
-        const count = installed.size
-        if (count === 0) {
-          return []
-        }
-
-        const list: Array<SoftInstalled> = []
-        const installedList: Array<string> = Array.from(installed)
-        for (const i of installedList) {
-          let path = i
-          if (path.includes('/sbin/') || path.includes('/bin/')) {
-            path = path
-              .replace(`/sbin/`, '/##SPLIT##/')
-              .replace(`/bin/`, '/##SPLIT##/')
-              .split('/##SPLIT##/')
-              .shift()!
-          } else {
-            path = dirname(path)
-          }
-          const item = {
-            bin: i,
-            path: `${path}/`,
-            run: false,
-            running: false
-          }
-          if (!list.find((f) => f.path === item.path && f.bin === item.bin)) {
-            list.push(item as any)
-          }
-        }
-        return list
-      }
       let versions: SoftInstalled[] = []
       let all: Promise<SoftInstalled[]>[] = []
       if (isMacOS()) {
-        all = [versionLocalFetch(setup?.python?.dirs ?? [], 'python', 'python')]
+        all = [
+          versionLocalFetch(
+            [
+              ...(setup?.python?.dirs ?? []),
+              '/opt/local/Library/Frameworks/Python.framework/Versions'
+            ],
+            'python',
+            'python',
+            ['libexec/bin/python', 'bin/python3']
+          )
+        ]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.python?.dirs ?? [], 'python.exe')]
+        all = [versionLocalFetch(setup?.python?.dirs ?? [], 'python.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

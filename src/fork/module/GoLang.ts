@@ -16,7 +16,6 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionLocalFetchWin,
   versionSort,
   waitTime,
   zipUnPack
@@ -65,7 +64,7 @@ class GoLang extends Base {
       if (isMacOS()) {
         all = [versionLocalFetch(setup?.golang?.dirs ?? [], 'gofmt', 'go')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.golang?.dirs ?? [], 'go.exe')]
+        all = [versionLocalFetch(setup?.golang?.dirs ?? [], 'go.exe')]
       }
       Promise.all(all)
         .then(async (list) => {

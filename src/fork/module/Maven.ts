@@ -15,7 +15,6 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionLocalFetchWin,
   versionSort,
   waitTime,
   zipUnPack
@@ -69,7 +68,7 @@ class Maven extends Base {
         const dirs = setup?.maven?.dirs ?? []
         all = [versionLocalFetch([...dirs, '/opt/local/share/java/'], 'mvn', 'maven')]
       } else if (isWindows()) {
-        all = [versionLocalFetchWin(setup?.maven?.dirs ?? [], 'mvn.cmd')]
+        all = [versionLocalFetch(setup?.maven?.dirs ?? [], 'mvn.cmd')]
       }
 
       Promise.all(all)

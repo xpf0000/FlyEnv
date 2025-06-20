@@ -28,7 +28,7 @@
   import type { MysqlGroupItem } from '@shared/app'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 

@@ -14,7 +14,7 @@
   import { computed, ref, watch } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import { AppStore } from '@/store/app'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
   const appStore = AppStore()

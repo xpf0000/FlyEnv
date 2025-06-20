@@ -1,5 +1,5 @@
 import { reactive, markRaw } from 'vue'
-import { join, basename } from 'path-browserify'
+import { join, basename } from '@/util/path-browserify'
 import { DirWatcher, FileWatcher, fs } from '@/util/NodeFn'
 
 type NginxRewriteItem = {

@@ -22,7 +22,7 @@
   import { I18nT } from '@lang/index'
   import { debounce } from 'lodash-es'
   import { uuid } from '@/util/Index'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
 
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const conf = ref()

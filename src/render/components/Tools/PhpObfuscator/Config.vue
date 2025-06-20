@@ -26,7 +26,7 @@
   import { ref, onMounted, onUnmounted, nextTick } from 'vue'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
   import { dialog, fs } from '@/util/NodeFn'
   import { I18nT } from '@lang/index'
 

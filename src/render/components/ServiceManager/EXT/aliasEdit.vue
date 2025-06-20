@@ -55,7 +55,7 @@
   import type { AppServiceAliasItem, SoftInstalled } from '@shared/app.d.ts'
   import { AllAppModule } from '@/core/type'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-  import { join } from 'path-browserify'
+  import { join } from '@/util/path-browserify'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
