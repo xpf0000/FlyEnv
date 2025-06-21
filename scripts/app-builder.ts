@@ -4,16 +4,18 @@ import { build as electronBuild, Platform } from 'electron-builder'
 
 import viteConfig from '../configs/vite.config'
 import { DoFix } from './fix'
+import { isMacOS, isWindows } from '../src/shared/utils'
 
 async function packMain() {
   try {
     await DoFix()
-    if (process.env.PLATFORM === 'macOS') {
+    if (isMacOS()) {
       const config = (await import('../configs/esbuild.config')).default
       await esbuild(config.dist)
       await esbuild(config.distFork)
       await esbuild(config.distHelper)
-    } else if (process.env.PLATFORM === 'Windows') {
+    } else if (isWindows()) {
+      console.log('isWindows !!!')
       const config = (await import('../configs/esbuild.config.win')).default
       await esbuild(config.dist)
       await esbuild(config.distFork)
@@ -42,10 +44,10 @@ Promise.all([packMain(), packRenderer()])
     const options: any = {
       targets: Platform.current().createTarget()
     }
-    if (process.env.PLATFORM === 'macOS') {
+    if (isMacOS()) {
       const config = (await import('../configs/electron-builder')).default
       options.config = config as any
-    } else if (process.env.PLATFORM === 'Windows') {
+    } else if (isWindows()) {
       const config = (await import('../configs/electron-builder.win')).default
       options.config = config as any
     }

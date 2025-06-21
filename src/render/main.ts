@@ -1,3 +1,4 @@
+import { reactive } from 'vue'
 import { VueExtend } from './core/VueExtend'
 import { AppI18n } from '@lang/index'
 import App from './App.vue'
@@ -16,7 +17,7 @@ import { EventBus } from '@/global'
 import { AppCustomerModule } from '@/core/Module'
 import { lang, nativeTheme } from '@/util/NodeFn'
 
-window.Server = {}
+window.Server = reactive({}) as any
 
 const app = VueExtend(App)
 lang.loadCustomerLang().then().catch()

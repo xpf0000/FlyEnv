@@ -11,6 +11,8 @@ import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
 import { createRequire } from 'node:module'
 import { ElectronKill, ElectronKillWin } from './electron-process-kill'
+import { isMacOS, isWindows } from '../src/shared/utils'
+
 const require = createRequire(import.meta.url)
 
 global.require = require
@@ -35,7 +37,8 @@ function buildMainProcess() {
   return new Promise(async (resolve, reject) => {
     await DoFix()
     let promise: Promise<any> | undefined
-    if (process.env.PLATFORM === 'macOS') {
+    if (isMacOS()) {
+      console.log('isMacOS !!!')
       const config = (await import('../configs/esbuild.config')).default
       promise = Promise.all([
         build(config.dev),
@@ -43,7 +46,8 @@ function buildMainProcess() {
         build(config.devHelper),
         ElectronKill(electronProcess)
       ])
-    } else if (process.env.PLATFORM === 'Windows') {
+    } else if (isWindows()) {
+      console.log('isWindows !!!')
       const config = (await import('../configs/esbuild.config.win')).default
       promise = Promise.all([build(config.dev), build(config.devFork), ElectronKillWin()])
     }
@@ -73,13 +77,22 @@ function logPrinter(data: string[]) {
 
 function runElectronApp() {
   const args = ['--inspect=5858', 'dist/electron/main.mjs']
-  electronProcess = spawn('electron', args)
+  electronProcess = spawn('electron', args, {
+    stdio: 'pipe',
+    shell: isWindows()
+  })
   electronProcess?.stderr?.on('data', (data) => {
+    console.log('electronProcess error', data.toString())
     logPrinter(data)
   })
 
   electronProcess?.stdout?.on('data', (data) => {
     logPrinter(data)
+  })
+
+  electronProcess.on('error', (err) => {
+    console.error('electronProcess error: ')
+    console.error(err)
   })
 
   electronProcess.on('close', () => {
@@ -96,6 +109,7 @@ Promise.all([launchViteDevServer(), buildMainProcess()])
     runElectronApp()
   })
   .catch((err) => {
+    console.log('vite or build error: ')
     console.error(err)
   })
 

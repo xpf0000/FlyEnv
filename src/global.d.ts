@@ -37,13 +37,12 @@ export interface ServerType {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var Server: ServerType
-  // eslint-disable-next-line no-var
+
   var application: any
-  // eslint-disable-next-line no-var
+
   var __static: string
-  // eslint-disable-next-line no-var
+
   var launcher: Launcher
 
   interface Window {

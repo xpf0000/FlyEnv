@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { reactive } from 'vue'
 
 interface SVG {
   viewBox: string
@@ -11,12 +11,10 @@ interface State {
   }
 }
 
-const state: State = {
+const state: State = reactive({
   svgs: {}
-}
-
-export const SVGStore = defineStore('svgStore', {
-  state: (): State => state,
-  getters: {},
-  actions: {}
 })
+
+export const SVGStore = () => {
+  return state
+}

@@ -1,4 +1,4 @@
 import _path from 'path-browserify'
-const { join, basename, dirname, extname } = _path
+const { join, basename, dirname, extname, resolve } = _path
 
-export { join, basename, dirname, extname }
+export { join, basename, dirname, extname, resolve }

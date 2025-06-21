@@ -260,6 +260,9 @@ export default class Application extends EventEmitter {
     global.Server.Static = __static
     global.Server.Arch = arch() === 'arm64' ? 'arm64' : 'x86_64'
     global.Server.Password = this.configManager.getConfig('password')
+    global.Server.isMacOS = isMacOS()
+    global.Server.isLinux = isLinux()
+    global.Server.isWindows = isWindows()
     console.log('global.Server.Password: ', global.Server.Password)
 
     if (isMacOS()) {
