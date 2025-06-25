@@ -10,6 +10,7 @@
   "del": "Radera",
   "version": "Version",
   "commonTemplates": "Vanliga mallar",
+  "customConf": "Anpassad *.conf",
   "save": "Spara",
   "lang": "Språk",
   "changeLang": "Byt språk",

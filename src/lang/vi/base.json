@@ -9,6 +9,7 @@
   "del": "Xóa",
   "version": "Phiên bản",
   "commonTemplates": "Các mẫu chung",
+  "customConf": "*.conf tùy chỉnh",
   "save": "Lưu",
   "lang": "Ngôn ngữ",
   "changeLang": "Thay đổi ngôn ngữ",

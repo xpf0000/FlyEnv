@@ -10,6 +10,7 @@
   "del": "Hapus",
   "version": "Versi",
   "commonTemplates": "Template Umum",
+  "customConf": "*.conf Kustom",
   "save": "Simpan",
   "lang": "Bahasa",
   "changeLang": "Ganti Bahasa",

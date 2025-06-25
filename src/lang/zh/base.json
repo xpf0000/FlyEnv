@@ -10,6 +10,7 @@
   "del": "删除",
   "version": "版本",
   "commonTemplates": "常用模板",
+  "customConf": "自定义 *.conf",
   "save": "保存",
   "lang": "语言",
   "changeLang": "更改语言",

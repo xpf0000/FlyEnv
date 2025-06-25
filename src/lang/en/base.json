@@ -10,6 +10,7 @@
   "del": "Delete",
   "version": "Version",
   "commonTemplates": "Common Templates",
+  "customConf": "Custom *.conf",
   "save": "Save",
   "lang": "Language",
   "changeLang": "Change Language",
