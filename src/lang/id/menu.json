@@ -1,0 +1,23 @@
+{
+  "about": "Tentang",
+  "app": "FlyEnv",
+  "checkForUpdates": "Periksa Pembaruan...",
+  "hide": "Sembunyikan FlyEnv",
+  "hideOthers": "Sembunyikan Aplikasi Lain",
+  "unhide": "Tampilkan Semua",
+  "quit": "Keluar dari FlyEnv",
+  "edit": "Edit",
+  "cut": "Potong",
+  "copy": "Salin",
+  "paste": "Tempel",
+  "selectAll": "Pilih Semua",
+  "window": "Jendela",
+  "close": "Tutup",
+  "minimize": "Minimalkan",
+  "zoom": "Perbesar",
+  "fullscreen": "Masuk ke Layar Penuh",
+  "front": "Tampilkan FlyEnv di Depan",
+  "dev": "Buka Jendela Debug",
+  "needInstallHelper": "FlyEnv perlu menginstal program pembantu",
+  "waitHelper": "Program pembantu sedang mulai, harap tunggu"
+}

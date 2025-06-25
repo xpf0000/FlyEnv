@@ -1,0 +1,6 @@
+{
+  "timeout": "Waktu tunggu koneksi yang tidak aktif, 0 berarti tetap terbuka terus-menerus",
+  "databases": "Jumlah database",
+  "requirepass": "Password Redis",
+  "maxmemory": "Byte, penggunaan memori maksimum, 0 berarti tanpa batas"
+}

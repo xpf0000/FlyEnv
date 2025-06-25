@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "Tampilkan informasi debug tambahan (misalnya OLLAMA_DEBUG=1)",
+  "OLLAMA_HOST": "Alamat IP untuk server ollama (default 127.0.0.1:11434)",
+  "OLLAMA_KEEP_ALIVE": "Durasi model tetap dimuat di memori (default \"5m\")",
+  "OLLAMA_MAX_LOADED_MODELS": "Jumlah maksimum model yang dimuat per GPU",
+  "OLLAMA_MAX_QUEUE": "Jumlah maksimum permintaan yang antri",
+  "OLLAMA_MODELS": "Path ke direktori model",
+  "OLLAMA_NUM_PARALLEL": "Jumlah maksimum permintaan paralel",
+  "OLLAMA_NOPRUNE": "Jangan pangkas blob model saat startup",
+  "OLLAMA_ORIGINS": "Daftar asal yang diizinkan, dipisahkan koma",
+  "OLLAMA_SCHED_SPREAD": "Selalu jadwalkan model di semua GPU",
+  "OLLAMA_FLASH_ATTENTION": "Aktifkan perhatian kilat",
+  "OLLAMA_KV_CACHE_TYPE": "Jenis kuantisasi untuk cache K/V (default: f16)",
+  "OLLAMA_LLM_LIBRARY": "Atur perpustakaan LLM untuk melewati deteksi otomatis",
+  "OLLAMA_GPU_OVERHEAD": "Cadangkan sebagian VRAM per GPU (dalam byte)",
+  "OLLAMA_LOAD_TIMEOUT": "Berapa lama untuk membiarkan pemuatan model terhenti sebelum menyerah (default \"5m\")",
+  "needServiceRun": "Harap mulai layanan Olama terlebih dahulu",
+  "size": "Ukuran",
+  "model": "Model"
+}

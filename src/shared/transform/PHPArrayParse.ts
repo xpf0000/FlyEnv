@@ -1,7 +1,7 @@
-import './php-parser.min.js'
+import engine from 'php-parser'
 
 // @ts-ignore
-const parser = new PhpParser.Engine({
+const parser = new engine({
   parser: { extractDoc: true },
   ast: { withPositions: true }
 })

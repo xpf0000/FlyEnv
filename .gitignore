@@ -20,3 +20,4 @@ latest-mac.yml
 yarn-error.log
 /test
 /data
+/package-lock.json
