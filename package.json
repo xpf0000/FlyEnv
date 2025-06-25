@@ -9,9 +9,8 @@
   "copyright": "Copyright © Pengfei Xu",
   "scripts": {
     "clean:dev": "npx rimraf dist",
-    "build-dev-runner": "npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/dev-runner.ts --outfile=electron/dev-runner.mjs",
-    "dev": "yarn run clean:dev && yarn run build-dev-runner && cross-env NODE_ENV=development node electron/dev-runner.mjs",
-    "build": "yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production PLATFORM=macOS npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder.ts --outfile=electron/app-builder.mjs && cross-env NODE_ENV=production PLATFORM=macOS node electron/app-builder.mjs",
+    "dev": "cross-env NODE_ENV=development TEST=electron tsx scripts/dev-runner.ts",
+    "build": "cross-env NODE_ENV=production tsx scripts/app-builder.ts",
     "postinstall": "electron-builder install-app-deps"
   },
   "type": "module",
@@ -184,6 +183,7 @@
     "terser-webpack-plugin": "^5.3.14",
     "tiny-emitter": "^2.1.0",
     "toml": "^3.0.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.33.0",
     "vite": "^6.3.5",
