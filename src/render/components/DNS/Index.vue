@@ -6,7 +6,7 @@
       <el-popover popper-class="dns-tips-popper" :show-after="800" width="auto">
         <template #default>
           <div>
-            {{ $t('host.dnsInfo', { ip: `@${ip}` }) }}
+            {{ I18nT('host.dnsInfo', { ip: `@${ip}` }) }}
           </div>
         </template>
         <template #reference>
@@ -39,7 +39,7 @@
                 </div>
               </template>
             </div>
-            <el-button @click.stop="cleanLog">{{ $t('base.clean') }}</el-button>
+            <el-button @click.stop="cleanLog">{{ I18nT('base.clean') }}</el-button>
           </div>
         </template>
         <el-auto-resizer>
@@ -62,9 +62,10 @@
 </template>
 
 <script lang="tsx" setup>
+  import { computed } from 'vue'
   import { DnsStore } from './dns'
-  import { computed, onUnmounted } from 'vue'
   import type { Column } from 'element-plus'
+  import { I18nT } from '@lang/index'
 
   const dnsStore = DnsStore()
   dnsStore.init()
@@ -79,9 +80,9 @@
     return dnsStore.fetching
   })
   const links = computed(() => {
-    return dnsStore.log
+    return []
   })
-  const columns: Column<any>[] = [
+  const columns: Column[] = [
     {
       key: 'host',
       title: 'Host',
@@ -89,13 +90,11 @@
       class: 'host-column',
       headerClass: 'host-column',
       width: 300,
-      headerCellRenderer: () => {
-        return (
-          <span style="padding-left: 24px;" class="flex items-center">
-            host
-          </span>
-        )
-      },
+      headerCellRenderer: () => (
+        <span style="padding-left: 24px;" class="flex items-center">
+          host
+        </span>
+      ),
       cellRenderer: ({ cellData: host }) => <span style="padding-left: 24px;">{host}</span>
     },
     {
@@ -115,7 +114,11 @@
     links.value.splice(0)
   }
 
-  onUnmounted(() => {
-    dnsStore.deinit()
-  })
+  // onUnmounted(() => {
+  //   dnsStore.deinit()
+  // })
+  //
+  // defineExpose({
+  //   ip
+  // })
 </script>

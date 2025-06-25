@@ -126,11 +126,11 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
                 IPC.send('app:password-check', pass).then((key: string, res: any) => {
                   IPC.off(key)
                   if (res?.code === 0) {
-                    global.Server.Password = res?.data ?? pass
+                    window.Server.Password = res?.data ?? pass
                     AppStore()
                       .initConfig()
                       .then(() => {
-                        done && done()
+                        done()
                         doRun()
                       })
                   } else {
@@ -150,7 +150,7 @@ class ModuleCustomerExecItem implements CustomerModuleExecItem {
           .then()
           .catch()
       }
-      if (this.isSudo && !global.Server.Password) {
+      if (this.isSudo && !window.Server.Password) {
         showPasswordTips()
       } else {
         doRun()

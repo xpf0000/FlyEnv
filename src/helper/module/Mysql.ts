@@ -1,5 +1,5 @@
-import { exec } from 'child-process-promise'
 import { BaseManager } from './Base'
+import { execPromise } from '@shared/child-process'
 
 class Manager extends BaseManager {
   macportsDirFixed(
@@ -10,11 +10,11 @@ class Manager extends BaseManager {
   ): Promise<boolean> {
     return new Promise(async (resolve) => {
       try {
-        await exec(`mkdir -p "${enDir}"`)
-        await exec(`cp -R "${shareDir}/*" "${enDir}"`)
-        await exec(`mkdir -p "${langDir}"`)
-        await exec(`cp -R "${langEnDir}" "${langDir}"`)
-      } catch (e) {}
+        await execPromise(`mkdir -p "${enDir}"`)
+        await execPromise(`cp -R "${shareDir}/*" "${enDir}"`)
+        await execPromise(`mkdir -p "${langDir}"`)
+        await execPromise(`cp -R "${langEnDir}" "${langDir}"`)
+      } catch {}
       resolve(true)
     })
   }

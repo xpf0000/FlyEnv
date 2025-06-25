@@ -1,5 +1,4 @@
 {
-  "menuShowHide": "Afficher/Masquer le menu",
   "tsinghua": "Source de téléchargement de l'Université Tsinghua",
   "bfsu": "Source de téléchargement de l'Université des Études Étrangères de Pékin",
   "tencent": "Source de téléchargement Tencent",
@@ -35,7 +34,6 @@
     "path": "Chemin du fichier",
     "comment": "Commentaire",
     "exec": "Exécuter",
-    "command": "Commande",
     "commandFile": "Fichier",
     "isSudo": "Exécuter avec sudo?",
     "pidPath": "Chemin du fichier PID",

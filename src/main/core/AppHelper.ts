@@ -20,7 +20,7 @@ class AppHelper {
         client.end()
         try {
           client.destroySoon()
-        } catch (e) {}
+        } catch {}
         resolve(true)
         console.timeEnd('AppHelper check')
       })
@@ -36,7 +36,7 @@ class AppHelper {
       client.on('error', () => {
         try {
           client.destroySoon()
-        } catch (e) {}
+        } catch {}
         reject(new Error('Connect helper failed'))
         console.timeEnd('AppHelper check')
       })
@@ -63,17 +63,17 @@ class AppHelper {
               Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${vhostLogs}"`)
                 .then()
                 .catch()
-            } catch (e) {}
+            } catch {}
             try {
               Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${nginxLogs}"`)
                 .then()
                 .catch()
-            } catch (e) {}
+            } catch {}
             try {
               Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${apacheLogs}"`)
                 .then()
                 .catch()
-            } catch (e) {}
+            } catch {}
             logger.info('[FlyEnv][initHelper][doChech] time: ', time)
             this.state = 'normal'
             resolve(true)
@@ -92,7 +92,7 @@ class AppHelper {
         const binDir = PathResolve(global.Server.Static!, '../../../../')
         const plist = join(binDir, 'plist/com.flyenv.helper.plist')
         const bin = join(binDir, 'helper/flyenv-helper')
-        const script = join(binDir, 'helper/helper.js')
+        const script = join(binDir, 'helper/helper.mjs')
         command = `cd "${join(binDir, 'helper')}" && sudo ./postinstall.sh "${plist}" "${bin}" "${script}"`
         icns = join(binDir, 'icon.icns')
       } else {
@@ -104,7 +104,7 @@ class AppHelper {
           global.Server.isAppleSilicon ? 'arm' : 'x86',
           'flyenv-helper'
         )
-        const script = PathResolve(global.Server.Static!, '../../helper/helper.js')
+        const script = PathResolve(global.Server.Static!, '../../helper/helper.mjs')
         command = `cd "${dirname(bin)}" && sudo ./postinstall.sh "${plist}" "${bin}" "${script}"`
         icns = join(binDir, 'icon.icns')
       }

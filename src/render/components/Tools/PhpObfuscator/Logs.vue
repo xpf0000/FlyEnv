@@ -5,13 +5,13 @@
     :destroy-on-close="true"
     :with-header="false"
     :close-on-click-modal="false"
-    @closed="onDrawerClosed"
+    @closed="closedFn"
   >
     <div class="host-vhost">
       <div class="nav">
-        <div class="left" @click="close">
+        <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ $t('base.errorLog') }}</span>
+          <span class="ml-3">{{ I18nT('base.errorLog') }}</span>
         </div>
       </div>
 
@@ -22,64 +22,42 @@
   </el-drawer>
 </template>
 
-<script lang="ts">
-  import { VueExtend } from '@/core/VueExtend'
-  import { nextTick, defineComponent } from 'vue'
+<script setup lang="ts">
+  import { ref, onMounted, nextTick } from 'vue'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+  import { I18nT } from '@lang/index'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
 
-  export default defineComponent({
-    show(data: any) {
-      return new Promise(() => {
-        let dom: HTMLElement | null = document.createElement('div')
-        document.body.appendChild(dom)
-        let vm = VueExtend(this, data)
-        const intance = vm.mount(dom)
-        intance.onClosed = () => {
-          dom && dom.remove()
-          dom = null
-        }
-      })
-    },
-    components: {},
-    props: {
-      content: {
-        type: String,
-        default: ''
-      }
-    },
-    data() {
-      return {
-        show: true
-      }
-    },
-    computed: {},
-    mounted() {
-      nextTick().then(() => {
-        this.initEditor()
-      })
-    },
-    methods: {
-      close() {
-        this.show = false
-        this.$destroy()
-        this.onClosed()
-      },
-      onDrawerClosed() {
-        this.onClosed()
-      },
-      initEditor() {
-        if (!this.monacoInstance) {
-          const input: HTMLElement = this?.$refs?.input as HTMLElement
-          if (!input || !input?.style) {
-            return
-          }
-          const editorConfig = EditorConfigMake(this.content, true, 'on')
-          editorConfig.language = 'javascript'
-          this.monacoInstance = EditorCreate(input, editorConfig)
-        } else {
-          this.monacoInstance.setValue(this.content)
-        }
-      }
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+
+  const props = defineProps({
+    content: {
+      type: String,
+      default: ''
     }
   })
+
+  const input = ref<HTMLElement | null>(null)
+  const monacoInstance = ref<any>(null)
+
+  const initEditor = () => {
+    if (!monacoInstance.value) {
+      if (!input.value || !input.value?.style) {
+        return
+      }
+      const editorConfig = EditorConfigMake(props.content, true, 'on')
+      editorConfig.language = 'javascript'
+      monacoInstance.value = EditorCreate(input.value, editorConfig)
+    } else {
+      monacoInstance.value.setValue(props.content)
+    }
+  }
+
+  onMounted(() => {
+    nextTick().then(() => {
+      initEditor()
+    })
+  })
+
+  defineExpose({ show, onClosed, onSubmit, closedFn })
 </script>

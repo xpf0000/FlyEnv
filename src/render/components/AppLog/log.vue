@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ I18nT('aside.appLog') }}</span>
+          <span class="ml-3">{{ I18nT('aside.appLog') }}</span>
         </div>
       </div>
       <div class="main-wapper">
@@ -19,20 +19,12 @@
       </div>
       <div class="tool">
         <el-tooltip :show-after="600" :content="I18nT('base.open')" placement="top">
-          <el-button
-            class="shrink0"
-            :disabled="!AppLogStore.checkLogFile()"
-            @click="AppLogStore.open()"
-          >
+          <el-button class="shrink0" :disabled="!fileExists" @click="AppLogStore.open()">
             <FolderOpened class="w-5 h-5 p-0.5" />
           </el-button>
         </el-tooltip>
         <el-tooltip :show-after="600" :content="I18nT('base.clean')" placement="top">
-          <el-button
-            class="shrink0"
-            :disabled="!AppLogStore.checkLogFile()"
-            @click="AppLogStore.clean()"
-          >
+          <el-button class="shrink0" :disabled="!fileExists" @click="AppLogStore.clean()">
             <Notebook class="w-5 h-5 p-0.5" />
           </el-button>
         </el-tooltip>
@@ -48,6 +40,8 @@
   import { AppLogStore } from '@/components/AppLog/store'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import { join } from '@/util/path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -56,6 +50,24 @@
   const logs = computed(() => {
     return AppLogStore.log.join('\n')
   })
+
+  const file = computed(() => {
+    return join(window.Server.BaseDir!, 'app.log')
+  })
+
+  const fileExists = ref(false)
+
+  watch(
+    () => AppLogStore.index,
+    () => {
+      fs.existsSync(file.value).then((e) => {
+        fileExists.value = e
+      })
+    },
+    {
+      immediate: true
+    }
+  )
 
   let isBottom = false
   let monacoInstance: editor.IStandaloneCodeEditor | null
@@ -110,7 +122,7 @@
   })
 
   onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
+    monacoInstance?.dispose()
     monacoInstance = null
   })
 

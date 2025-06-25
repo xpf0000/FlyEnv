@@ -5,10 +5,8 @@ import { BrewSetup } from '@/components/VersionManager/brew/setup'
 import { MacPortsSetup } from '@/components/VersionManager/port/setup'
 import { StaticSetup } from '@/components/VersionManager/static/setup'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
-import installedVersions from '@/util/InstalledVersions'
 import { LocalSetup } from '@/components/VersionManager/local/setup'
-
-const { shell } = require('@electron/remote')
+import { shell } from '@/util/NodeFn'
 
 export const SetupAll = (typeFlag: AllAppModule) => {
   const brewStore = BrewStore()
@@ -90,17 +88,18 @@ export const SetupAll = (typeFlag: AllAppModule) => {
   }
 
   const loading = computed(() => {
+    const module = brewStore.module(typeFlag)
     if (libSrc.value === 'brew') {
-      return BrewSetup.fetching[typeFlag] || BrewSetup.installing
+      return module.brewFetching || BrewSetup.installing
     }
     if (libSrc.value === 'port') {
-      return MacPortsSetup.fetching[typeFlag] || MacPortsSetup.installing
+      return module.portFetching || MacPortsSetup.installing
     }
     if (libSrc.value === 'static') {
-      return StaticSetup.fetching[typeFlag]
+      return module.staticFetching
     }
     if (libSrc.value === 'local') {
-      return LocalSetup.fetching[typeFlag]
+      return module.fetchInstalleding
     }
     return false
   })
@@ -140,8 +139,8 @@ export const SetupAll = (typeFlag: AllAppModule) => {
         console.log('showCustomDir chagned !!!')
         LocalSetup.fetching[typeFlag] = true
         const data = brewStore.module(typeFlag)
-        data.installedInited = false
-        installedVersions.allInstalledVersions([typeFlag]).finally(() => {
+        data.installedFetched = false
+        data.fetchInstalled().finally(() => {
           LocalSetup.fetching[typeFlag] = false
         })
       }

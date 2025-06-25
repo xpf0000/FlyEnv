@@ -27,8 +27,7 @@
   import { ServiceActionExtParam } from '@/util/Service'
   import { type AllAppModule } from '@/core/type'
   import { type SoftInstalled } from '@/store/brew'
-
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
 
   const {
     showItem,
@@ -47,7 +46,7 @@
   ServiceActionExtParam['minio'] = (typeFlag: AllAppModule, fn: string, version: SoftInstalled) => {
     return new Promise<any[]>((resolve) => {
       if (fn === 'startService') {
-        const dir = join(global.Server.BaseDir!, `minio/data`)
+        const dir = join(window.Server.BaseDir!, `minio/data`)
         const p = MinioSetup.dir?.[version.bin] ?? dir
         resolve([p])
         return

@@ -61,7 +61,12 @@ export enum AppModuleEnum {
   ollama = 'ollama',
   minio = 'minio',
   rust = 'rust',
-  meilisearch = 'meilisearch'
+  meilisearch = 'meilisearch',
+  'ftp-srv' = 'ftp-srv',
+  'etcd' = 'etcd',
+  'deno' = 'deno',
+  'bun' = 'bun',
+  'perl' = 'perl'
 }
 
 export type AllAppModule = keyof typeof AppModuleEnum
@@ -102,6 +107,10 @@ export type AppModuleItem = {
    * If module show in tray window
    */
   isTray?: boolean
+
+  isOnlyRunOne?: boolean
+
+  platform?: Array<'macOS' | 'Windows' | 'Linux'>
 }
 
 type ToolType =

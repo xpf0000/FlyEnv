@@ -1,7 +1,7 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="store.tab" class="mt-3">
-      <template v-for="(item, index) in tabs" :key="index">
+      <template v-for="(item, _index) in tabs" :key="_index">
         <el-radio-button :label="item.label" :value="item.value"></el-radio-button>
       </template>
     </el-radio-group>

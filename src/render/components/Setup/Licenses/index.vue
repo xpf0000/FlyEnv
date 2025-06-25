@@ -67,8 +67,7 @@
 <script lang="ts" setup>
   import { SetupStore } from '@/components/Setup/store'
   import { I18nT } from '@lang/index'
-
-  const { shell } = require('@electron/remote')
+  import { shell } from '@/util/NodeFn'
 
   const store = SetupStore()
 

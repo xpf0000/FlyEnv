@@ -4,11 +4,18 @@ import * as path from 'path'
 import { ViteDevPort } from './vite.port'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import wasm from 'vite-plugin-wasm'
-import monacoEditorPlugin from 'vite-plugin-monaco-editor'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const renderPath = path.resolve(__dirname, '../src/render/')
 const sharePath = path.resolve(__dirname, '../src/shared/')
 const langPath = path.resolve(__dirname, '../src/lang/')
+
+const monacoEditorPlugin = require('vite-plugin-monaco-editor').default
 
 const config: UserConfig = {
   base: './',
@@ -18,32 +25,27 @@ const config: UserConfig = {
     vue({
       include: [/\.vue$/, /\.md$/] // <-- allows Vue to compile Markdown files
     }),
-    vueJsx()
+    vueJsx({
+      transformOn: true,
+      mergeProps: true
+    })
   ],
+  esbuild: {
+    jsx: 'preserve',
+    target: 'esnext',
+    supported: {
+      'top-level-await': true
+    }
+  },
   assetsInclude: ['**/*.node'],
   optimizeDeps: {
     esbuildOptions: {
+      jsx: 'preserve',
       target: 'esnext',
       supported: {
         'top-level-await': true
       }
-    },
-    exclude: [
-      'electron',
-      'path',
-      'fs',
-      'node-pty',
-      'fsevents',
-      'mock-aws-s3',
-      'aws-sdk',
-      'nock',
-      'nodejieba',
-      'os',
-      'child_process',
-      'child-process-promise',
-      'fs-extra',
-      'node-forge'
-    ]
+    }
   },
   root: renderPath,
   resolve: {
@@ -56,11 +58,7 @@ const config: UserConfig = {
   css: {
     // CSS preprocessor
     preprocessorOptions: {
-      scss: {
-      // Import var.scss so that the predefined variables in var.scss can be used globally
-      // Add a semicolon at the end of the imported path
-        additionalData: '@import "@/components/Theme/Variables.scss";'
-      }
+      scss: {}
     }
   }
 }
@@ -87,8 +85,12 @@ const buildConfig: UserConfig = {
   build: {
     outDir: '../../dist/render',
     assetsDir: 'static',
-    target: 'esnext',
+    commonjsOptions: {
+      transformMixedEsModules: true,
+      ignoreDynamicRequires: true
+    },
     rollupOptions: {
+      external: [],
       input: {
         main: path.resolve(__dirname, '../src/render/index.html'),
         tray: path.resolve(__dirname, '../src/render/tray.html')

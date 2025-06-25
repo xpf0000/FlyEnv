@@ -5,11 +5,11 @@
   "versionError": "Phiên bản không đúng, vui lòng chọn lại",
   "hostsFileNoFound": "Tệp hosts không tồn tại",
   "startFail": "Khởi động không thành công, vui lòng kiểm tra tệp nhật ký",
-  "command": "Lệnh",
-  "ExtensionInstallFail": "Cài đặt tiện ích mở rộng không thành công",
-  "ExtensionInstallFailTips": "Cài đặt tiện ích mở rộng và thực thi lệnh:\n{command}\nNếu cài đặt không thành công, bạn có thể thử sao chép lệnh và tự cài đặt\n",
   "versionNoFound": "Không lấy được phiên bản phần mềm, thao tác không thành công.",
   "postgresqlInit": "Dịch vụ đã khởi động thành công\nData Dir là {dir}\nNgười dùng ban đầu là root, Mật khẩu là root",
   "downFileFail": "Tải xuống tệp không thành công!",
-  "trialEnd": "Thời gian dùng thử đã hết. Để tiếp tục sử dụng tính năng này, vui lòng mua giấy phép"
+  "trialEnd": "Thời gian dùng thử đã hết. Để tiếp tục sử dụng tính năng này, vui lòng mua giấy phép",
+
+  "phpiniNoFound": "php.ini file not found",
+  "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

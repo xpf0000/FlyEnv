@@ -1,4 +1,5 @@
 import { ProcessSendError, ProcessSendLog, ProcessSendSuccess } from './Fn'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class BaseManager {
   Apache: any
@@ -15,7 +16,6 @@ class BaseManager {
   Node: any
   Brew: any
   Version: any
-  Project: any
   Tool: any
   MacPorts: any
   Caddy: any
@@ -38,6 +38,11 @@ class BaseManager {
   Rust: any
   MeiliSearch: any
   ModuleCustomer: any
+  FTPSrv: any
+  ETCD: any
+  Deno: any
+  Bun: any
+  Perl: any
 
   constructor() {}
 
@@ -59,7 +64,7 @@ class BaseManager {
     const fn: string = commands.shift()
 
     const doRun = (module: any) => {
-      module.init && module.init()
+      module?.init?.()
       module
         .exec(fn, ...commands)
         ?.on(onData)
@@ -81,8 +86,13 @@ class BaseManager {
       doRun(this.Nginx)
     } else if (module === 'php') {
       if (!this.Php) {
-        const res = await import('./module/Php')
-        this.Php = res.default
+        if (isMacOS()) {
+          const res = await import('./module/Php')
+          this.Php = res.default
+        } else if (isWindows()) {
+          const res = await import('./module/Php.win')
+          this.Php = res.default
+        }
       }
       doRun(this.Php)
     } else if (module === 'host') {
@@ -135,8 +145,13 @@ class BaseManager {
       doRun(this.PureFtpd)
     } else if (module === 'node') {
       if (!this.Node) {
-        const res = await import('./module/Node')
-        this.Node = res.default
+        if (isMacOS()) {
+          const res = await import('./module/Node')
+          this.Node = res.default
+        } else if (isWindows()) {
+          const res = await import('./module/Node.win')
+          this.Node = res.default
+        }
       }
       doRun(this.Node)
     } else if (module === 'brew') {
@@ -151,16 +166,15 @@ class BaseManager {
         this.Version = res.default
       }
       doRun(this.Version)
-    } else if (module === 'project') {
-      if (!this.Project) {
-        const res = await import('./module/Project')
-        this.Project = res.default
-      }
-      doRun(this.Project)
     } else if (module === 'tools') {
       if (!this.Tool) {
-        const res = await import('./module/Tool')
-        this.Tool = res.default
+        if (isMacOS()) {
+          const res = await import('./module/Tool')
+          this.Tool = res.default
+        } else if (isWindows()) {
+          const res = await import('./module/Tool.win')
+          this.Tool = res.default
+        }
       }
       doRun(this.Tool)
     } else if (module === 'macports') {
@@ -289,6 +303,36 @@ class BaseManager {
         this.ModuleCustomer = res.default
       }
       doRun(this.ModuleCustomer)
+    } else if (module === 'ftp-srv') {
+      if (!this.FTPSrv) {
+        const res = await import('./module/FTPSrv')
+        this.FTPSrv = res.default
+      }
+      doRun(this.FTPSrv)
+    } else if (module === 'etcd') {
+      if (!this.ETCD) {
+        const res = await import('./module/Etcd')
+        this.ETCD = res.default
+      }
+      doRun(this.ETCD)
+    } else if (module === 'deno') {
+      if (!this.Deno) {
+        const res = await import('./module/Deno')
+        this.Deno = res.default
+      }
+      doRun(this.Deno)
+    } else if (module === 'bun') {
+      if (!this.Bun) {
+        const res = await import('./module/Bun')
+        this.Bun = res.default
+      }
+      doRun(this.Bun)
+    } else if (module === 'perl') {
+      if (!this.Perl) {
+        const res = await import('./module/Perl')
+        this.Perl = res.default
+      }
+      doRun(this.Perl)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

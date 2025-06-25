@@ -3,16 +3,12 @@ import { AppStore } from '@/store/app'
 import { SoftInstalled } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
-import { getAllFileAsync } from '@shared/file'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import Base from '@/core/Base'
 import { ExtensionSetup } from '@/components/PHP/Extension/setup'
-
-const { clipboard } = require('@electron/remote')
-const { join, basename } = require('path')
-const { existsSync, unlinkSync, copyFileSync } = require('fs')
-const { copyFile, mkdirp, chmod } = require('fs-extra')
+import { join, basename } from '@/util/path-browserify'
+import { clipboard, fs } from '@/util/NodeFn'
 
 export const BrewSetup = reactive<{
   installEnd: boolean
@@ -89,16 +85,17 @@ export const Setup = (version: SoftInstalled) => {
     BrewSetup.installing = true
     BrewSetup.installEnd = false
     const fn = row?.status ? 'uninstall' : 'install'
-    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const arch = window.Server.isAppleSilicon ? '-arm64' : '-x86_64'
     const name = row.libName
     let params = []
-    const sh = join(global.Server.Static!, 'sh/brew-cmd.sh')
-    const copyfile = join(global.Server.Cache!, 'brew-cmd.sh')
-    if (existsSync(copyfile)) {
-      unlinkSync(copyfile)
+    const sh = join(window.Server.Static!, 'sh/brew-cmd.sh')
+    const copyfile = join(window.Server.Cache!, 'brew-cmd.sh')
+    const exists = await fs.existsSync(copyfile)
+    if (exists) {
+      await fs.remove(copyfile)
     }
-    copyFileSync(sh, copyfile)
-    await chmod(copyfile, '0777')
+    await fs.copy(sh, copyfile)
+    await fs.chmod(copyfile, '0777')
     params = [`${copyfile} ${arch} ${fn} ${name};`]
     if (proxyStr?.value) {
       params.unshift(proxyStr?.value)
@@ -111,13 +108,13 @@ export const Setup = (version: SoftInstalled) => {
 
     const extensionDir = ExtensionSetup.dir?.[version.bin] ?? ''
     const baseDir = row.libName.split('/').pop()
-    const dir = join(global.Server.BrewCellar!, baseDir)
-    const allFile = await getAllFileAsync(dir)
+    const dir = join(window.Server.BrewCellar!, baseDir)
+    const allFile = await fs.readdir(dir)
     const so = allFile.filter((f) => f.endsWith('.so')).pop()
     if (so) {
       const destSo = join(extensionDir, basename(so))
-      await mkdirp(extensionDir)
-      await copyFile(so, destSo)
+      await fs.mkdirp(extensionDir)
+      await fs.copy(so, destSo)
     }
     ExtensionSetup.reFetch()
     reGetData()
@@ -172,7 +169,7 @@ export const Setup = (version: SoftInstalled) => {
   }
 
   const copyXDebugTmpl = (row: any) => {
-    const output_dir = join(global.Server.PhpDir!, 'xdebug')
+    const output_dir = join(window.Server.PhpDir!, 'xdebug')
     const txt = `zend_extension = "${row.soname}"
 ;[FlyEnv-xdebug-ini-begin]
 [xdebug]
@@ -195,11 +192,12 @@ xdebug.output_dir = "${output_dir}"
       customClass: 'confirm-del',
       type: 'warning'
     })
-      .then(() => {
+      .then(async () => {
         console.log('row: ', row)
         const dir = ExtensionSetup.dir[version.bin]!
         const soPath = join(dir, row.soname)
-        if (soPath && existsSync(soPath)) {
+        const exists = await fs.existsSync(soPath)
+        if (soPath && exists) {
           IPC.send('app-fork:php', 'unInstallExtends', soPath).then((key: string, res: any) => {
             IPC.off(key)
             if (res.code === 0) {
@@ -233,7 +231,7 @@ xdebug.output_dir = "${output_dir}"
   })
 
   onUnmounted(() => {
-    BrewSetup.xterm && BrewSetup.xterm.unmounted()
+    BrewSetup.xterm?.unmounted()
   })
 
   return {

@@ -2,9 +2,7 @@ import { reactive } from 'vue'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
-
-const { app } = require('@electron/remote')
-const version = app.getVersion()
+import { app } from '@/util/NodeFn'
 
 export const FeedbackStore = reactive({
   email: '',
@@ -39,7 +37,7 @@ export const FeedbackStore = reactive({
     }
   },
   send() {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (this.time > 0 || this.loading) {
         reject(new Error('Wait'))
         return
@@ -50,6 +48,7 @@ export const FeedbackStore = reactive({
         return
       }
       this.loading = true
+      const version = await app.getVersion()
       const data = {
         email: this.email,
         country: this.country,

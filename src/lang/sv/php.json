@@ -9,8 +9,6 @@
   "obfuscatorSrc": "PHP-fil eller mapp som ska förvrängas",
   "obfuscatorDesc": "Spara filen eller mappen, duplicera inte källfilen eller mappen",
   "obfuscatorConfig": "Avancerad inställning",
-  "groupStartOff": "Stäng av gruppsnabbstart",
-  "groupStartOn": "Slå på gruppsnabbstart",
   "quickStart": "Gruppstart",
   "display_errors": "Om detaljerad felinformation ska visas",
   "short_open_tag": "Stöd för korta taggar",

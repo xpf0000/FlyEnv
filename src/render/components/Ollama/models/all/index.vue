@@ -25,7 +25,7 @@
       </template>
       <el-table-column prop="name">
         <template #header>
-          <div class="w-p100 name-cell">
+          <div class="w-full name-cell">
             <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
               I18nT('base.Library')
             }}</span>

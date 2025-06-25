@@ -20,8 +20,7 @@
       <template v-if="lang === 'zh'">
         <el-row style="padding: 0 20px; margin-top: 30px">
           <el-col>
-            感谢使用FlyEnv. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub
-            Issues
+            感谢使用FlyEnv. 使用中的任何问题和建议. 都可以加入社群进行讨论. 也可以提交 GitHub Issues
           </el-col>
           <el-col style="margin-top: 12px">
             如果FlyEnv有帮助到你. 为了项目更好的发展, 烦请star和赞助. 感谢
@@ -86,50 +85,47 @@
       <div style="margin: 20px 20px 0">
         <span style="margin-right: 12px">{{ $t('feedback.anythingToSay') }}</span>
         <el-button type="primary" @click.stop="toFeedback">{{
-            $t('feedback.sendMessage')
-          }}</el-button>
+          $t('feedback.sendMessage')
+        }}</el-button>
       </div>
     </div>
   </el-card>
 </template>
 
-<script>
-  import { AppStore } from '@/store/app.ts'
-  import { AsyncComponentShow } from '@/util/AsyncComponent.ts'
+<script setup lang="ts">
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { AppStore } from '@/store/app'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { app, shell } from '@/util/NodeFn'
 
-  const { app, shell } = require('@electron/remote')
-  const version = app.getVersion()
-  export default {
-    name: 'MoTitleBar',
-    props: {},
-    data() {
-      return {
-        version
-      }
-    },
-    computed: {
-      lang() {
-        const app = AppStore()
-        return app.config.setup.lang
-      }
-    },
-    unmounted() {
-      console.log('about unmounted !!!')
-    },
-    methods: {
-      openUrl(e, u) {
-        e.preventDefault()
-        shell.openExternal(u)
-      },
-      toHome(e) {
-        e.preventDefault()
-        shell.openExternal('https://flyenv.com')
-      },
-      toFeedback() {
-        import('@/components/Feedback/index.vue').then((res) => {
-          AsyncComponentShow(res.default).then()
-        })
-      }
-    }
+  const version = ref('')
+  const appStore = AppStore()
+
+  const lang = computed(() => appStore.config.setup.lang)
+
+  const openUrl = (e: Event, url: string) => {
+    e.preventDefault()
+    shell.openExternal(url)
   }
+
+  const toHome = (e: Event) => {
+    e.preventDefault()
+    shell.openExternal('https://flyenv.com')
+  }
+
+  const toFeedback = () => {
+    import('@/components/Feedback/index.vue').then((res) => {
+      AsyncComponentShow(res.default).then()
+    })
+  }
+
+  onMounted(() => {
+    app.getVersion().then((v: string) => {
+      version.value = v
+    })
+  })
+
+  onUnmounted(() => {
+    console.log('about unmounted !!!')
+  })
 </script>

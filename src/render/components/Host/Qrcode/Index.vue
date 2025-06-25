@@ -27,8 +27,7 @@
   import QRCode from 'qrcode'
   import { ref } from 'vue'
   import { MessageError } from '@/util/Element'
-  const { dialog, shell } = require('@electron/remote')
-  const { writeFile } = require('fs')
+  import { dialog, shell, fs } from '@/util/NodeFn'
 
   const props = defineProps<{
     url: string
@@ -46,8 +45,8 @@
           return
         }
         const base64 = url.replace(/^data:image\/\w+;base64,/, '')
-        const dataBuffer = new Buffer(base64, 'base64')
-        writeFile(filePath, dataBuffer, function (err: Error | null) {
+        // const dataBuffer = new Buffer(base64, 'base64')
+        fs.writeBufferBase64(filePath, base64, function (err: Error | null) {
           if (err) {
             MessageError(err.message)
             return

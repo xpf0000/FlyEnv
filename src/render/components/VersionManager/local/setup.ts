@@ -1,12 +1,10 @@
 import { computed, reactive } from 'vue'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
-import installedVersions from '@/util/InstalledVersions'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import { AppStore } from '@/store/app'
-
-const { shell } = require('@electron/remote')
-const { dirname } = require('path')
+import { dirname } from '@/util/path-browserify'
+import { shell } from '@/util/NodeFn'
 
 export const LocalSetup = reactive<{
   fetching: Partial<Record<AllAppModule, boolean>>
@@ -30,29 +28,19 @@ export const SetupAll = (typeFlag: AllAppModule) => {
   })
 
   const fetchInstalled = () => {
-    const data = brewStore.module(typeFlag)
-    data.installedInited = false
-    return installedVersions.allInstalledVersions([typeFlag])
+    const module = brewStore.module(typeFlag)
+    module.installedFetched = false
+    module.fetchInstalled().catch()
   }
 
   const fetching = computed(() => {
-    return LocalSetup.fetching?.[typeFlag] ?? false
+    const module = brewStore.module(typeFlag)
+    return module.fetchInstalleding
   })
 
-  const fetchDataAll = () => {
-    if (fetching.value) {
-      return
-    }
-    LocalSetup.fetching[typeFlag] = true
-    fetchInstalled().finally(() => {
-      LocalSetup.fetching[typeFlag] = false
-    })
-  }
-
   const getData = () => {
-    const list = tableData?.value ?? []
-    if (Object.keys(list).length === 0) {
-      fetchDataAll()
+    if (brewStore.module(typeFlag).installed.length === 0) {
+      fetchInstalled()
     }
   }
 

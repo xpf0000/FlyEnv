@@ -79,148 +79,6 @@ html.light {
           }
         }
       }
-
-      .main-right-panel {
-        background: var(--main-bg-color);
-        color: #345;
-
-        > .top-tab {
-          .el-button-group>.el-button:not(:last-child) {
-            margin-right: 0;
-          }
-
-          >li {
-            &:not(.no-hover):hover {
-              background-color: var(--base-bg-color-2);
-              backdrop-filter: blur(5px);
-            }
-            &.active {
-              background: var(--base-bg-color);
-              backdrop-filter: blur(5px);
-              color: #fff;
-            }
-          }
-        }
-
-        >.host-list {
-          .el-table__header {
-            thead {
-              tr {
-                background: #fff;
-                th.el-table__cell {
-                  background: #fff;
-                }
-              }
-            }
-          }
-        }
-
-        .php-versions-list {
-          &::-webkit-scrollbar-thumb {
-            background-color: var(--base-bg-color-1);
-          }
-          .http-serve-item {
-            background-color: var(--base-bg-color-1);
-            backdrop-filter: blur(5px);
-          }
-        }
-
-        >.main-block {
-          >.module-config {
-            >.block {
-              border: 1px solid var(--base-bg-color-2);
-            }
-          }
-
-          .setup-common {
-            &::-webkit-scrollbar-thumb {
-              background-color: var(--base-bg-color-1);
-            }
-            .main {
-              background: var(--base-bg-color-1);
-              backdrop-filter: blur(5px);
-            }
-          }
-
-          >.setup-config {
-            .main {
-              background: var(--base-bg-color-1);
-              backdrop-filter: blur(5px);
-
-              .path-choose {
-                .input {
-                  color: #345;
-                  border-bottom: 1px solid rgba(51, 68, 85, 0.4);
-
-                  &::-webkit-input-placeholder {
-                    color: rgba(51, 68, 85, 0.7);
-                  }
-                  &:hover {
-                    border-bottom: 2px solid rgba(51, 68, 85, 0.4);
-                  }
-                  &:focus {
-                    border-bottom: 2px solid #01cc74;
-                  }
-                  &.error {
-                    border-bottom: 2px solid #cc5441;
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        >.http-serve-list {
-          &::-webkit-scrollbar-thumb {
-            background-color: var(--base-bg-color-1);
-          }
-
-          > .empty {
-            > .wapper {
-              color: #345;
-            }
-          }
-
-          .http-serve-item {
-            background-color: var(--base-bg-color-1);
-            backdrop-filter: blur(5px);
-
-            .left {
-              > .top {
-                > .value {
-                  &:hover {
-                    color: #fdab1f;
-                  }
-                }
-              }
-
-              > .bottom {
-                > .url {
-                  color: #409eff;
-                  &.empty {
-                    color: #345;
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        >.tools-panel {
-          > li {
-            background-color: var(--base-bg-color-1);
-            backdrop-filter: blur(5px);
-          }
-        }
-
-        &.dns-panel {
-          .top-tab {
-            svg {
-              color: #345;
-            }
-          }
-        }
-      }
     }
   }
 
@@ -325,6 +183,148 @@ html.light {
               }
             }
           }
+        }
+      }
+    }
+  }
+
+  .main-right-panel {
+    background: var(--main-bg-color);
+    color: #345;
+
+    > .top-tab {
+      .el-button-group>.el-button:not(:last-child) {
+        margin-right: 0;
+      }
+
+      >li {
+        &:not(.no-hover):hover {
+          background-color: var(--base-bg-color-2);
+          backdrop-filter: blur(5px);
+        }
+        &.active {
+          background: var(--base-bg-color);
+          backdrop-filter: blur(5px);
+          color: #fff;
+        }
+      }
+    }
+
+    >.host-list {
+      .el-table__header {
+        thead {
+          tr {
+            background: #fff;
+            th.el-table__cell {
+              background: #fff;
+            }
+          }
+        }
+      }
+    }
+
+    .php-versions-list {
+      &::-webkit-scrollbar-thumb {
+        background-color: var(--base-bg-color-1);
+      }
+      .http-serve-item {
+        background-color: var(--base-bg-color-1);
+        backdrop-filter: blur(5px);
+      }
+    }
+
+    >.main-block {
+      >.module-config {
+        >.block {
+          border: 1px solid var(--base-bg-color-2);
+        }
+      }
+
+      .setup-common {
+        &::-webkit-scrollbar-thumb {
+          background-color: var(--base-bg-color-1);
+        }
+        .main {
+          background: var(--base-bg-color-1);
+          backdrop-filter: blur(5px);
+        }
+      }
+
+      >.setup-config {
+        .main {
+          background: var(--base-bg-color-1);
+          backdrop-filter: blur(5px);
+
+          .path-choose {
+            .input {
+              color: #345;
+              border-bottom: 1px solid rgba(51, 68, 85, 0.4);
+
+              &::-webkit-input-placeholder {
+                color: rgba(51, 68, 85, 0.7);
+              }
+              &:hover {
+                border-bottom: 2px solid rgba(51, 68, 85, 0.4);
+              }
+              &:focus {
+                border-bottom: 2px solid #01cc74;
+              }
+              &.error {
+                border-bottom: 2px solid #cc5441;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    >.http-serve-list {
+      &::-webkit-scrollbar-thumb {
+        background-color: var(--base-bg-color-1);
+      }
+
+      > .empty {
+        > .wapper {
+          color: #345;
+        }
+      }
+
+      .http-serve-item {
+        background-color: var(--base-bg-color-1);
+        backdrop-filter: blur(5px);
+
+        .left {
+          > .top {
+            > .value {
+              &:hover {
+                color: #fdab1f;
+              }
+            }
+          }
+
+          > .bottom {
+            > .url {
+              color: #409eff;
+              &.empty {
+                color: #345;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    >.tools-panel {
+      > li {
+        background-color: var(--base-bg-color-1);
+        backdrop-filter: blur(5px);
+      }
+    }
+
+    &.dns-panel {
+      .top-tab {
+        svg {
+          color: #345;
         }
       }
     }
@@ -509,6 +509,7 @@ html.light {
       background: #fff;
     }
   }
+
   .app-ai-tool {
     background: #fff;
   }

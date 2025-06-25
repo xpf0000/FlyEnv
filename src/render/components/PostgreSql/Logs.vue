@@ -15,8 +15,7 @@
   import ToolVM from '@/components/Log/tool.vue'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
 
   const appStore = AppStore()
   const brewStore = BrewStore()
@@ -37,7 +36,7 @@
     }
     const version = currentVersion.value?.version
     const versionTop = version?.split('.')?.shift()
-    const dbPath = join(global.Server.PostgreSqlDir, `postgresql${versionTop}`)
+    const dbPath = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
     return join(dbPath, 'pg.log')
   })
 </script>

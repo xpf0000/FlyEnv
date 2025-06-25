@@ -5,9 +5,8 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
 import { AppStore } from '@/store/app'
-
-const { dirname, join } = require('path')
-const { writeFile, chmod, remove } = require('fs-extra')
+import { dirname, join } from '@/util/path-browserify'
+import { fs } from '@/util/NodeFn'
 
 export const FNMSetup = reactive<{
   installed: boolean
@@ -41,8 +40,8 @@ export const Setup = () => {
 
   const xtermDom = ref<HTMLElement>()
 
-  const hasBrew = !!global.Server.BrewCellar
-  const hasPort = !!global.Server.MacPorts
+  const hasBrew = !!window.Server.BrewCellar
+  const hasPort = !!window.Server.MacPorts
 
   const fetchLocal = () => {
     if (FNMSetup.local.length > 0 || FNMSetup.fetching) {
@@ -141,6 +140,9 @@ export const Setup = () => {
   })
 
   const showInstall = computed(() => {
+    if (window.Server.isWindows) {
+      return false
+    }
     return !store.checking && (!store.tool || store.tool === 'nvm')
   })
 
@@ -161,7 +163,7 @@ export const Setup = () => {
     FNMSetup.installEnd = false
     FNMSetup.installing = true
     await nextTick()
-    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const arch = window.Server.isAppleSilicon ? '-arm64' : '-x86_64'
     const params = []
     if (proxyStr?.value) {
       params.unshift(proxyStr?.value)
@@ -188,16 +190,16 @@ ${params.join('\n')}`
 
     console.log('content: ', content)
 
-    const file = join(global.Server.Cache!, `fnm-install.sh`)
-    await writeFile(file, content)
-    await chmod(file, '0777')
+    const file = join(window.Server.Cache!, `fnm-install.sh`)
+    await fs.writeFile(file, content)
+    await fs.chmod(file, '0777')
     await nextTick()
     const execXTerm = new XTerm()
     FNMSetup.xterm = execXTerm
     await execXTerm.mount(xtermDom.value!)
     await execXTerm.send([`cd "${dirname(file)}"`, `./fnm-install.sh`])
     FNMSetup.installEnd = true
-    await remove(file)
+    await fs.remove(file)
     store.chekTool()?.then()?.catch()
   }
 
@@ -213,7 +215,7 @@ ${params.join('\n')}`
   })
 
   onUnmounted(() => {
-    FNMSetup.xterm && FNMSetup.xterm.unmounted()
+    FNMSetup?.xterm?.unmounted()
   })
 
   fetchLocal()

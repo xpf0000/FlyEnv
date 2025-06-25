@@ -1,18 +1,25 @@
 import { build as viteBuild } from 'vite'
 import { build as esbuild } from 'esbuild'
-import { build as electronBuild, Platform, CliOptions } from 'electron-builder'
+import { build as electronBuild, Platform } from 'electron-builder'
 
-import esbuildConfig from '../configs/esbuild.config'
 import viteConfig from '../configs/vite.config'
-import electronBuilderConfig from '../configs/electron-builder'
 import { DoFix } from './fix'
+import { isMacOS, isWindows } from '../src/shared/utils'
 
 async function packMain() {
   try {
     await DoFix()
-    await esbuild(esbuildConfig.dist)
-    await esbuild(esbuildConfig.distFork)
-    await esbuild(esbuildConfig.distHelper)
+    if (isMacOS()) {
+      const config = (await import('../configs/esbuild.config')).default
+      await esbuild(config.dist)
+      await esbuild(config.distFork)
+      await esbuild(config.distHelper)
+    } else if (isWindows()) {
+      console.log('isWindows !!!')
+      const config = (await import('../configs/esbuild.config.win')).default
+      await esbuild(config.dist)
+      await esbuild(config.distFork)
+    }
   } catch (err) {
     console.log('\nfailed to build main process')
     console.error(`\n${err}\n`)
@@ -33,10 +40,16 @@ async function packRenderer() {
 const buildStart = Date.now()
 
 Promise.all([packMain(), packRenderer()])
-  .then(() => {
-    const options: CliOptions = {
-      targets: Platform.current().createTarget(),
-      config: electronBuilderConfig
+  .then(async () => {
+    const options: any = {
+      targets: Platform.current().createTarget()
+    }
+    if (isMacOS()) {
+      const config = (await import('../configs/electron-builder')).default
+      options.config = config as any
+    } else if (isWindows()) {
+      const config = (await import('../configs/electron-builder.win')).default
+      options.config = config as any
     }
 
     electronBuild(options)

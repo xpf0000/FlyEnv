@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref, onBeforeUnmount, computed, nextTick } from 'vue'
+  import { onMounted, ref, onBeforeUnmount, computed } from 'vue'
   import { ChatLineRound } from '@element-plus/icons-vue'
   import { AIStore } from '@/components/AI/store'
   import { CreateSiteTest } from '@/components/AI/Task/CreateSiteTest'
@@ -57,7 +57,7 @@
 
   const querySearch = (queryString: string, cb: any) => {
     console.log('querySearch: ', queryString)
-    const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys : AIKeysEN
+    const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys() : AIKeysEN()
     const find = ALLKeys.find((a) => a.txt === queryString.trim())
     if (find) {
       cb([
@@ -107,7 +107,7 @@
   }
 
   const checkContent = (v: string) => {
-    const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys : AIKeysEN
+    const ALLKeys = appStore.config.setup.lang === 'zh' ? AIKeys() : AIKeysEN()
     const find = ALLKeys.find((a) => a.txt === v)
     if (find?.task === 'StopTask' && aiStore?.currentTask) {
       aiStore.currentTask.state = 'failed'
@@ -202,8 +202,8 @@
       if (e.altKey || e.ctrlKey || e.metaKey) {
         content.value += '\n'
       } else {
-        e?.stopPropagation && e?.stopPropagation()
-        e?.preventDefault && e?.preventDefault()
+        e?.stopPropagation?.()
+        e?.preventDefault?.()
         const value = content.value.trim()
         if (value) {
           aiStore.chatList.push({

@@ -6,9 +6,8 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { BrewStore } from '@/store/brew'
 import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'
-
-const { clipboard } = require('@electron/remote')
-const { dirname } = require('path')
+import { dirname } from '@/util/path-browserify'
+import { clipboard } from '@/util/NodeFn'
 
 export type OllamaModelItem = {
   isRoot?: boolean
@@ -172,7 +171,7 @@ export const Setup = () => {
   })
 
   onUnmounted(() => {
-    OllamaAllModelsSetup.xterm && OllamaAllModelsSetup.xterm.unmounted()
+    OllamaAllModelsSetup?.xterm?.unmounted()
   })
 
   fetchData()

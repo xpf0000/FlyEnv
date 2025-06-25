@@ -18,16 +18,16 @@
             </template>
           </el-popover>
         </div>
-        <el-button class="button" :disabled="service?.fetching" link @click="resetData">
+        <el-button class="button" :disabled="fetching" link @click="resetData">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="refresh-icon"
-            :class="{ 'fa-spin': service?.fetching }"
+            :class="{ 'fa-spin': fetching }"
           ></yb-icon>
         </el-button>
       </div>
     </template>
-    <el-table v-loading="service?.fetching" class="service-table" :data="versions">
+    <el-table v-loading="fetching" class="service-table" :data="versions">
       <el-table-column prop="version" width="140px">
         <template #header>
           <span style="padding: 2px 12px 2px 24px; display: block">{{
@@ -175,42 +175,30 @@
         <template #default="scope">
           <EXT :item="scope.row" type="php">
             <li @click.stop="action(scope.row, scope.$index, 'open')">
-              <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('base.open') }}</span>
+              <yb-icon :svg="import('@/svg/folder.svg?raw')" width="17" height="17" />
+              <span class="ml-3">{{ I18nT('base.open') }}</span>
             </li>
             <li @click.stop="action(scope.row, scope.$index, 'conf')">
-              <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('php.editPhpIni') }}</span>
+              <yb-icon :svg="import('@/svg/config.svg?raw')" width="17" height="17" />
+              <span class="ml-3">{{ I18nT('php.editPhpIni') }}</span>
             </li>
-            <li @click.stop="action(scope.row, scope.$index, 'fpm-conf')">
-              <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-              <span class="ml-15"> php-fpm.conf </span>
-            </li>
-            <li @click.stop="action(scope.row, scope.$index, 'log-fpm')">
-              <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('php.fpmLog') }}</span>
-            </li>
-            <li @click.stop="action(scope.row, scope.$index, 'log-slow')">
-              <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('base.slowLog') }}</span>
-            </li>
+            <template v-if="!isWindows">
+              <li @click.stop="action(scope.row, scope.$index, 'fpm-conf')">
+                <yb-icon :svg="import('@/svg/config.svg?raw')" width="17" height="17" />
+                <span class="ml-3"> php-fpm.conf </span>
+              </li>
+              <li @click.stop="action(scope.row, scope.$index, 'log-fpm')">
+                <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
+                <span class="ml-3">{{ I18nT('php.fpmLog') }}</span>
+              </li>
+              <li @click.stop="action(scope.row, scope.$index, 'log-slow')">
+                <yb-icon :svg="import('@/svg/log.svg?raw')" width="17" height="17" />
+                <span class="ml-3">{{ I18nT('base.slowLog') }}</span>
+              </li>
+            </template>
             <li @click.stop="action(scope.row, scope.$index, 'extend')">
-              <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-              <span class="ml-15">{{ I18nT('php.extensions') }}</span>
-            </li>
-            <li @click.stop="action(scope.row, scope.$index, 'groupstart')">
-              <yb-icon
-                style="padding: 0"
-                :svg="import('@/svg/nogroupstart.svg?raw')"
-                width="18"
-                height="18"
-              />
-              <template v-if="appStore?.phpGroupStart?.[scope.row.bin] === false">
-                <span class="ml-10">{{ I18nT('php.groupStartOn') }}</span>
-              </template>
-              <template v-else>
-                <span class="ml-10">{{ I18nT('php.groupStartOff') }}</span>
-              </template>
+              <yb-icon :svg="import('@/svg/extend.svg?raw')" width="17" height="17" />
+              <span class="ml-3">{{ I18nT('php.extensions') }}</span>
             </li>
           </EXT>
         </template>
@@ -220,6 +208,7 @@
 </template>
 
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import type { SoftInstalled } from '@/store/brew'
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
@@ -227,12 +216,14 @@
   import EXT from '@/components/ServiceManager/EXT/index.vue'
   import { Setup } from '@/components/ServiceManager/setup'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+  import { shell } from '@/util/NodeFn'
 
-  const { shell } = require('@electron/remote')
+  const isWindows = computed(() => {
+    return window.Server.isWindows
+  })
 
   const {
     appStore,
-    service,
     versions,
     isInEnv,
     isInAppEnv,
@@ -240,7 +231,8 @@
     openDir,
     serviceDo,
     showCustomDir,
-    resetData
+    resetData,
+    fetching
   } = Setup('php')
 
   let ExtensionsVM: any

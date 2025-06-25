@@ -1,8 +1,8 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="tab" class="mt-3">
-      <template v-for="(item, index) in tabs" :key="index">
-        <el-radio-button :label="item" :value="index"></el-radio-button>
+      <template v-for="(item, _index) in tabs" :key="_index">
+        <el-radio-button :label="item" :value="_index"></el-radio-button>
       </template>
     </el-radio-group>
     <div class="main-block">
@@ -12,7 +12,13 @@
         type-flag="erlang"
         :fetch-data-when-create="true"
       ></Service>
-      <Manager v-else-if="tab === 1" type-flag="erlang" :has-static="false"></Manager>
+      <Manager
+        v-else-if="tab === 1"
+        type-flag="erlang"
+        :has-static="false"
+        title="Erlang"
+        url="https://github.com/erlang/otp/releases/"
+      ></Manager>
       <ProjectIndex
         v-else-if="tab === 2"
         :title="`Erlang ${I18nT('base.projects')}`"
@@ -28,7 +34,7 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
-  import ProjectIndex from '@/components/PHP/projects/index.vue'
+  import ProjectIndex from '@/components/LanguageProjects/index.vue'
 
   const { tab } = AppModuleSetup('erlang')
   const tabs = [

@@ -12,8 +12,6 @@
   "obfuscatorSrc": "PHP file or folder to be obfuscated",
   "obfuscatorDesc": "Save the file or folder, not duplicate the source file or folder",
   "obfuscatorConfig": "Advanced Settings",
-  "groupStartOff": "Turn off group quickstart",
-  "groupStartOn": "Turn on group quickstart",
   "quickStart": "GroupStart",
   "display_errors": "Whether to output detailed error information",
   "short_open_tag": "Short tag support",

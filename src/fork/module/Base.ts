@@ -2,14 +2,25 @@ import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
-import { AppLog, execPromise, waitTime } from '../Fn'
+import {
+  AppLog,
+  execPromise,
+  execPromiseWithEnv,
+  waitTime,
+  readFile,
+  writeFile,
+  remove,
+  mkdirp,
+  zipUnPack
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, remove, mkdirp, readdir, copyFile, chmod } from 'fs-extra'
 import axios from 'axios'
 import * as http from 'http'
 import * as https from 'https'
 import { ProcessPidsByPid, ProcessSearch } from '@shared/Process'
 import Helper from '../Helper'
+import { isMacOS, isWindows } from '@shared/utils'
+import { ProcessListSearch, ProcessPidListByPid } from '@shared/Process.win'
 
 export class Base {
   type: string
@@ -26,7 +37,7 @@ export class Base {
       return fn.call(this, ...args)
     }
     return new ForkPromise((resolve, reject) => {
-      reject(new Error('No Found Function'))
+      reject(new Error(`No Found Function: ${fnName}`))
     })
   }
 
@@ -40,6 +51,9 @@ export class Base {
 
   _linkVersion(version: SoftInstalled): ForkPromise<any> {
     return new ForkPromise(async (resolve) => {
+      if (isWindows()) {
+        resolve(true)
+      }
       if (version && version?.bin) {
         try {
           const v = version.bin
@@ -49,7 +63,7 @@ export class Base {
           if (v) {
             const command = `brew unlink ${v} && brew link --overwrite --force ${v}`
             console.log('_linkVersion: ', command)
-            execPromise(command, {
+            execPromiseWithEnv(command, {
               env: {
                 HOMEBREW_NO_INSTALL_FROM_API: 1
               }
@@ -75,7 +89,7 @@ export class Base {
 
   startService(version: SoftInstalled, ...args: any) {
     return new ForkPromise(async (resolve, reject, on) => {
-      if (!existsSync(version?.bin)) {
+      if (!isWindows() && !existsSync(version?.bin) && version.typeFlag !== 'ftp-srv') {
         reject(new Error(I18nT('fork.binNoFound')))
         return
       }
@@ -85,7 +99,7 @@ export class Base {
       }
       try {
         this._linkVersion(version)
-      } catch (e) {}
+      } catch {}
       try {
         await this._stopServer(version).on(on)
         const res = await this._startServer(version, ...args).on(on)
@@ -112,15 +126,29 @@ export class Base {
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       if (existsSync(appPidFile)) {
         const pid = (await readFile(appPidFile, 'utf-8')).trim()
-        const plist: any = await Helper.send('tools', 'processList')
-        const pids = ProcessPidsByPid(pid, plist)
+        allPid.push(pid)
+        let pids: string[] = []
+        if (isMacOS()) {
+          const plist: any = await Helper.send('tools', 'processList')
+          pids = ProcessPidsByPid(pid, plist)
+        } else if (isWindows()) {
+          pids = (await ProcessPidListByPid(pid)).map((n) => `${n}`)
+        }
+        console.log('_stopServer appPidFile pids: ', pids)
         allPid.push(...pids)
         on({
           'APP-Service-Stop-Success': true
         })
       } else if (version?.pid) {
+        allPid.push(version.pid)
         const plist: any = await Helper.send('tools', 'processList')
-        const pids = ProcessPidsByPid(version.pid.trim(), plist)
+        let pids: string[] = []
+        if (isMacOS()) {
+          pids = ProcessPidsByPid(version.pid.trim(), plist)
+        } else if (isWindows()) {
+          pids = (await ProcessPidListByPid(`${version.pid}`.trim())).map((n) => `${n}`)
+        }
+        console.log('_stopServer version?.pid pids: ', pids)
         allPid.push(...pids)
         on({
           'APP-Service-Stop-Success': true
@@ -133,56 +161,76 @@ export class Base {
           mysql: 'mysqld',
           mariadb: 'mariadbd',
           memcached: 'memcached',
-          redis: 'redis-server',
           mongodb: 'mongod',
           postgresql: 'postgres',
           'pure-ftpd': 'pure-ftpd',
           tomcat: 'org.apache.catalina.startup.Bootstrap',
           rabbitmq: 'rabbit',
-          elasticsearch: 'org.elasticsearch.server/org.elasticsearch.bootstrap.Elasticsearch'
+          elasticsearch: 'org.elasticsearch.server/org.elasticsearch.bootstrap.Elasticsearch',
+          ollama: 'ollama'
         }
         const serverName = dis?.[this.type]
         if (serverName) {
-          const plist: any = await Helper.send('tools', 'processList')
-          const pids = ProcessSearch(serverName, false, plist)
-            .filter((p) => {
-              return (
-                (p.COMMAND.includes(global.Server.BaseDir!) ||
-                  p.COMMAND.includes(global.Server.AppDir!)) &&
-                !p.COMMAND.includes(' grep ') &&
-                !p.COMMAND.includes(' /bin/sh -c') &&
-                !p.COMMAND.includes('/Contents/MacOS/') &&
-                !p.COMMAND.startsWith('/bin/bash ') &&
-                !p.COMMAND.includes('brew.rb ') &&
-                !p.COMMAND.includes(' install ') &&
-                !p.COMMAND.includes(' uninstall ') &&
-                !p.COMMAND.includes(' link ') &&
-                !p.COMMAND.includes(' unlink ')
-              )
-            })
-            .map((p) => p.PID)
-          allPid.push(...pids)
+          if (isMacOS()) {
+            const plist: any = await Helper.send('tools', 'processList')
+            const pids = ProcessSearch(serverName, false, plist)
+              .filter((p) => {
+                return (
+                  (p.COMMAND.includes(global.Server.BaseDir!) ||
+                    p.COMMAND.includes(global.Server.AppDir!)) &&
+                  !p.COMMAND.includes(' grep ') &&
+                  !p.COMMAND.includes(' /bin/sh -c') &&
+                  !p.COMMAND.includes('/Contents/MacOS/') &&
+                  !p.COMMAND.startsWith('/bin/bash ') &&
+                  !p.COMMAND.includes('brew.rb ') &&
+                  !p.COMMAND.includes(' install ') &&
+                  !p.COMMAND.includes(' uninstall ') &&
+                  !p.COMMAND.includes(' link ') &&
+                  !p.COMMAND.includes(' unlink ')
+                )
+              })
+              .map((p) => p.PID)
+            allPid.push(...pids)
+          } else if (isWindows()) {
+            const pids = await ProcessListSearch(serverName, false)
+            const all = pids
+              .filter((item) => item.COMMAND.includes('PhpWebStudy-Data'))
+              .map((m) => `${m.PID}`)
+            allPid.push(...all)
+          }
         }
+
+        console.log('_stopServer searchName pids: ', serverName, [...allPid])
       }
       const arr: string[] = Array.from(new Set(allPid))
-      if (arr.length > 0) {
-        let sig = ''
-        switch (this.type) {
-          case 'mysql':
-          case 'mariadb':
-          case 'mongodb':
-          case 'tomcat':
-          case 'rabbitmq':
-          case 'elasticsearch':
-            sig = '-TERM'
-            break
-          default:
-            sig = '-INT'
-            break
+      if (isMacOS()) {
+        if (arr.length > 0) {
+          let sig = ''
+          switch (this.type) {
+            case 'mysql':
+            case 'mariadb':
+            case 'mongodb':
+            case 'tomcat':
+            case 'rabbitmq':
+            case 'elasticsearch':
+            case 'etcd':
+              sig = '-TERM'
+              break
+            default:
+              sig = '-INT'
+              break
+          }
+          try {
+            await Helper.send('tools', 'kill', sig, arr)
+          } catch {}
         }
-        try {
-          await Helper.send('tools', 'kill', sig, arr)
-        } catch (e) {}
+      } else if (isWindows()) {
+        if (arr.length > 0) {
+          const str = arr.map((s) => `/pid ${s}`).join(' ')
+          try {
+            await execPromise(`taskkill /f /t ${str}`)
+          } catch {}
+        }
       }
       if (existsSync(appPidFile)) {
         await remove(appPidFile)
@@ -251,7 +299,7 @@ export class Base {
         proxy.protocol = u.protocol.replace(':', '')
         proxy.host = u.hostname
         proxy.port = u.port
-      } catch (e) {
+      } catch {
         proxy = undefined
       }
     } else {
@@ -264,14 +312,24 @@ export class Base {
   async _fetchOnlineVersion(app: string): Promise<OnlineVersionItem[]> {
     let list: OnlineVersionItem[] = []
     try {
-      const res = await axios({
-        url: 'https://api.one-env.com/api/version/fetch',
-        method: 'post',
-        data: {
+      let data: any = {}
+      if (isMacOS()) {
+        data = {
           app,
           os: 'mac',
           arch: global.Server.Arch === 'x86_64' ? 'x86' : 'arm'
-        },
+        }
+      } else if (isWindows()) {
+        data = {
+          app,
+          os: 'win',
+          arch: 'x86'
+        }
+      }
+      const res = await axios({
+        url: 'https://api.one-env.com/api/version/fetch',
+        method: 'post',
+        data,
         timeout: 30000,
         withCredentials: false,
         httpAgent: new http.Agent({ keepAlive: false }),
@@ -285,8 +343,22 @@ export class Base {
     return list
   }
 
+  async _installSoftHandle(row: any) {
+    if (isWindows()) {
+      await zipUnPack(row.zip, row.appDir)
+    } else if (isMacOS()) {
+      const dir = row.appDir
+      await mkdirp(dir)
+      await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
+    }
+  }
+
   installSoft(row: any) {
     return new ForkPromise(async (resolve, reject, on) => {
+      const service = basename(row.appDir)
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.startInstall', { service }))
+      })
       const refresh = () => {
         row.downloaded = existsSync(row.zip)
         row.installed = existsSync(row.bin)
@@ -309,82 +381,27 @@ export class Base {
         try {
           await remove(row.zip)
           await remove(row.appDir)
-        } catch (e) {}
-      }
-
-      const unpack = async () => {
-        if (this.type === 'meilisearch') {
-          const command = `cd "${dirname(row.bin)}" && ./${basename(row.bin)} --version`
-          console.log('command: ', command)
-          try {
-            await mkdirp(dirname(row.bin))
-            await copyFile(row.zip, row.bin)
-            await chmod(row.bin, '0777')
-            await waitTime(500)
-            await execPromise(command)
-          } catch (e) {
-            console.log('eeeee: ', e)
-            await fail()
-          }
-          return
-        }
-        try {
-          const dir = row.appDir
-          await mkdirp(dir)
-          await execPromise(`tar -xzf ${row.zip} -C ${dir}`)
-          if (
-            ['java', 'tomcat', 'golang', 'maven', 'elasticsearch', 'nginx', 'rust'].includes(
-              this.type
-            )
-          ) {
-            const subDirs = await readdir(dir)
-            const subDir = subDirs.pop()
-            if (subDir) {
-              await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
-              await waitTime(300)
-              await remove(subDir)
-            }
-          }
-          if (this.type === 'rust') {
-            const appBinDir = join(row.appDir, 'bin')
-            await mkdirp(appBinDir)
-            const subDirs = await readdir(row.appDir)
-            for (const d of subDirs) {
-              const binDir = join(row.appDir, d, 'bin')
-              if (existsSync(binDir)) {
-                const binFiles = await readdir(binDir)
-                for (const bin of binFiles) {
-                  const srcFile = join(binDir, bin)
-                  const destFile = join(appBinDir, basename(bin))
-                  if (!existsSync(destFile) && existsSync(srcFile)) {
-                    try {
-                      await execPromise(['ln', '-s', `"${srcFile}"`, `"${destFile}"`].join(' '))
-                    } catch (e) {}
-                  }
-                }
-              }
-            }
-          }
-          if (this.type === 'nginx' && existsSync(row.bin)) {
-            await Helper.send('mailpit', 'binFixed', row.bin)
-          }
-        } catch (e) {
-          await fail()
-          return
-        }
-        if (this.type === 'mailpit') {
-          try {
-            await Helper.send('mailpit', 'binFixed', row.bin)
-          } catch (e) {}
-        }
+        } catch {}
       }
 
       if (existsSync(row.zip)) {
         row.progress = 100
         on(row)
-        await unpack()
-        end()
-        return
+        let success = false
+        try {
+          await this._installSoftHandle(row)
+          success = true
+          refresh()
+        } catch {
+          refresh()
+        }
+        if (success) {
+          row.downState = 'success'
+          row.progress = 100
+          resolve(true)
+          return
+        }
+        await fail()
       }
 
       axios({
@@ -399,7 +416,7 @@ export class Base {
           }
         }
       })
-        .then(function (response) {
+        .then((response) => {
           const stream = createWriteStream(row.zip)
           response.data.pipe(stream)
           stream.on('error', async (err: any) => {
@@ -408,7 +425,16 @@ export class Base {
             end()
           })
           stream.on('finish', async () => {
-            await unpack()
+            row.downState = 'success'
+            try {
+              if (existsSync(row.zip)) {
+                await this._installSoftHandle(row)
+              }
+              refresh()
+            } catch {
+              refresh()
+            }
+            on(row)
             end()
           })
         })

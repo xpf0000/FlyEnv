@@ -18,31 +18,87 @@
 <script lang="ts" setup>
   import { computed } from 'vue'
   import { AppStore } from '@/store/app'
+  import { app, fs, exec } from '@/util/NodeFn'
+  import { join } from '@/util/path-browserify'
+  import { MessageError } from '@/util/Element'
 
-  const { app } = require('@electron/remote')
+  const isMacOS = computed(() => {
+    return window.Server.isMacOS
+  })
+  const isWindows = computed(() => {
+    return window.Server.isWindows
+  })
+  const isLinux = computed(() => {
+    return window.Server.isLinux
+  })
 
   const store = AppStore()
+
+  async function setAutoStart(enable: boolean) {
+    const exePath = (await app.getPath('exe')).replace(/"/g, '\\"')
+    const taskName = 'FlyEnvStartup'
+    if (enable) {
+      const tmpl = await fs.readFile(
+        join(window.Server.Static!, 'sh/flyenv-auto-start.ps1'),
+        'utf-8'
+      )
+      const content = tmpl.replace('#EXECPATH#', exePath)
+      try {
+        await fs.mkdirp(window.Server.Cache!)
+        const file = join(window.Server.Cache!, 'flyenv-auto-start.ps1')
+        await fs.writeFile(file, content)
+        const res = await exec.exec(
+          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${file}'; & '${file}'"`,
+          { shell: true }
+        )
+        console.log('file: ', file)
+        console.log('res: ', res.stdout, res.stderr)
+        await fs.remove(file)
+        return true
+      } catch (e: any) {
+        MessageError(`${e.toString()}`)
+        throw e
+      }
+    } else {
+      try {
+        await exec.exec(`schtasks /delete /tn "${taskName}" /f`)
+      } catch {}
+      return true
+    }
+  }
 
   const autoLaunch = computed({
     get() {
       return store.config.setup?.autoLaunch ?? false
     },
     set(v) {
-      store.config.setup.autoLaunch = v
-      app.setLoginItemSettings({
-        openAtLogin: v
-      })
-      store.saveConfig()
+      if (isMacOS.value) {
+        store.config.setup.autoLaunch = v
+        app.setLoginItemSettings({
+          openAtLogin: v
+        })
+        store.saveConfig()
+        return
+      }
+      if (isWindows.value) {
+        setAutoStart(v)
+          .then(() => {
+            store.config.setup.autoLaunch = v
+            store.saveConfig()
+          })
+          .catch()
+      }
     }
   })
 
   const sysnAutoLunach = () => {
-    const setting = app.getLoginItemSettings()
+    const setting: any = app.getLoginItemSettings()
     console.log('setting: ', setting)
     if (store.config.setup?.autoLaunch !== setting.openAtLogin) {
       store.config.setup.autoLaunch = setting.openAtLogin
     }
   }
-
-  sysnAutoLunach()
+  if (isMacOS.value) {
+    sysnAutoLunach()
+  }
 </script>

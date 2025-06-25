@@ -10,14 +10,16 @@
         </div>
       </div>
       <ProxySet />
-      <div class="row-2">
-        <div class="col">
-          <BrewSrc />
+      <template v-if="isMacOS">
+        <div class="row-2">
+          <div class="col">
+            <BrewSrc />
+          </div>
+          <div class="col">
+            <MacPortsSrc />
+          </div>
         </div>
-        <div class="col">
-          <MacPortsSrc />
-        </div>
-      </div>
+      </template>
       <div class="row-2">
         <div class="col">
           <ForceStart />
@@ -36,19 +38,20 @@
       </div>
       <div class="row-2">
         <div class="col">
-          <RestPassword />
+          <AutoLanch />
         </div>
         <div class="col">
-          <AutoLanch />
+          <AutoStartService />
         </div>
       </div>
       <div class="row-2">
         <div class="col">
-          <AutoStartService />
-        </div>
-        <div class="col">
           <AutoHide />
         </div>
+        <div v-if="!isWindows" class="col">
+          <RestPassword />
+        </div>
+        <div v-else class="col opacity-0"></div>
       </div>
     </div>
   </el-scrollbar>
@@ -66,14 +69,20 @@
   import ShowAI from './AI/index.vue'
   import MacPortsSrc from './MacPortsSrc/index.vue'
   import ThemeSet from './Theme/index.vue'
-  import Base from '@/core/Base'
-  import { I18nT } from '@lang/index'
   import Tool from './Tool/index.vue'
-  import { AppModules } from '@/core/App'
-  import ModuleShowHide from './ModuleShowHide/index.vue'
   import AutoLanch from './AutoLanch/index.vue'
   import AutoHide from './AutoHide/index.vue'
   import AutoStartService from './AutoStartService/index.vue'
+
+  const isMacOS = computed(() => {
+    return window.Server.isMacOS
+  })
+  const isWindows = computed(() => {
+    return window.Server.isWindows
+  })
+  const isLinux = computed(() => {
+    return window.Server.isLinux
+  })
 
   const appStore = AppStore()
 
@@ -90,13 +99,4 @@
       deep: true
     }
   )
-
-  const showAbout = () => {
-    Base.Dialog(import('@/components/About/index.vue'))
-      .className('about-dialog')
-      .title(I18nT('base.about'))
-      .width('665px')
-      .noFooter()
-      .show()
-  }
 </script>

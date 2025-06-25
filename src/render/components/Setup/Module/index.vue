@@ -3,11 +3,11 @@
     <el-scrollbar>
       <ul class="menu top-menu">
         <ModuleItem :item="firstItem" :index="0" />
-        <template v-for="(item, index) in customerList" :key="item.id">
-          <ModuleItemCustomer :is-customer="true" :item="item" :index="index + 1" />
+        <template v-for="(item, _index) in customerList" :key="item.id">
+          <ModuleItemCustomer :is-customer="true" :item="item" :index="_index + 1" />
         </template>
-        <template v-for="(item, index) in allList" :key="index">
-          <ModuleItem :item="item" :index="index + 1" />
+        <template v-for="(item, _index) in allList" :key="_index">
+          <ModuleItem :item="item" :index="_index + 1" />
         </template>
       </ul>
     </el-scrollbar>
@@ -17,20 +17,17 @@
   import { computed } from 'vue'
   import { AppModuleTypeList } from '@/core/type'
   import { AppModules } from '@/core/App'
-  import { AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import ModuleItem from './moduleItem.vue'
   import { AppCustomerModule } from '@/core/Module'
   import ModuleItemCustomer from './moduleItemCustomer.vue'
 
-  const appStore = AppStore()
-
   const firstItem = computed(() => {
     const m = 'site'
     const sub = AppModules.filter((a) => a?.moduleType === m)
     sub.sort((a, b) => {
-      let lowerA = a.typeFlag.toLowerCase()
-      let lowerB = b.typeFlag.toLowerCase()
+      const lowerA = a.typeFlag.toLowerCase()
+      const lowerB = b.typeFlag.toLowerCase()
       if (lowerA < lowerB) return -1
       if (lowerA > lowerB) return 1
       return 0
@@ -46,8 +43,8 @@
     return AppModuleTypeList.filter((f) => f !== 'site').map((m) => {
       const sub = AppModules.filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
       sub.sort((a, b) => {
-        let lowerA = a.typeFlag.toLowerCase()
-        let lowerB = b.typeFlag.toLowerCase()
+        const lowerA = a.typeFlag.toLowerCase()
+        const lowerB = b.typeFlag.toLowerCase()
         if (lowerA < lowerB) return -1
         if (lowerA > lowerB) return 1
         return 0

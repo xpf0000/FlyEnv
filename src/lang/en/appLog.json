@@ -1,6 +1,7 @@
 {
+  "startInstall": "Start installing {service}",
   "startServiceBegin": "Start the {service} service...",
-  "confInit": "The configuration file does not exist. Generating new configuration file",
+  "confInit": "The configuration file does not exist, generate configuration file",
   "confInitSuccess": "Configuration file generated successfully, file path: {file}",
   "confInitFail": "Configuration file generation failed, reason: {error}",
   "apachePortHandleBegin": "Start obtaining all Apache listening ports from the site",

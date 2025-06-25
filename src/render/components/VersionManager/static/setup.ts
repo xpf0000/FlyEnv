@@ -1,20 +1,15 @@
 import { computed, onMounted, onUnmounted, reactive } from 'vue'
 import { BrewStore } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
-import installedVersions from '@/util/InstalledVersions'
-import { fetchVerion } from '@/util/Brew'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
 import { staticVersionDel } from '@/util/Version'
-
-const { clipboard } = require('@electron/remote')
+import { clipboard } from '@/util/NodeFn'
 
 export const StaticSetup = reactive<{
-  fetching: Partial<Record<AllAppModule, boolean>>
   reFetch: () => void
 }>({
-  fetching: {},
   reFetch: () => 0
 })
 
@@ -22,48 +17,30 @@ export const Setup = (typeFlag: AllAppModule) => {
   const brewStore = BrewStore()
 
   const fetching = computed(() => {
-    return StaticSetup.fetching?.[typeFlag] ?? false
+    const module = brewStore.module(typeFlag)
+    return module.staticFetching
   })
 
-  const fetchData = (src: 'static') => {
-    if (fetching.value) {
+  const fetchData = () => {
+    const module = brewStore.module(typeFlag)
+    if (module.staticFetching) {
       return
     }
-    StaticSetup.fetching[typeFlag] = true
-    const currentItem = brewStore.module(typeFlag)
-    const list = currentItem.list?.[src] ?? {}
-    fetchVerion(typeFlag)
-      .then((res: any) => {
-        for (const k in list) {
-          delete list?.[k]
-        }
-        for (const name in res) {
-          list[name] = reactive(res[name])
-        }
-        StaticSetup.fetching[typeFlag] = false
-      })
-      .catch(() => {
-        StaticSetup.fetching[typeFlag] = false
-      })
+    module.fetchStatic()
   }
   const getData = () => {
-    if (fetching.value) {
+    const module = brewStore.module(typeFlag)
+    if (module.staticFetching) {
       return
     }
-    const currentItem = brewStore.module(typeFlag)
-    const src = 'static'
-    const list = currentItem.list?.[src]
-    if (list && Object.keys(list).length === 0) {
-      fetchData(src)
+    if (module.static.length === 0) {
+      fetchData()
     }
   }
 
   const reGetData = () => {
     console.log('reGetData !!!')
-    const list = brewStore.module(typeFlag).list?.['static']
-    for (const k in list) {
-      delete list[k]
-    }
+    brewStore.module(typeFlag).static.splice(0)
     getData()
   }
 
@@ -71,8 +48,9 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const regetInstalled = () => {
     reGetData()
-    brewStore.module(typeFlag).installedInited = false
-    installedVersions.allInstalledVersions([typeFlag]).then()
+    const module = brewStore.module(typeFlag)
+    module.installedFetched = false
+    module.fetchInstalled().catch()
   }
 
   const fetchCommand = (row: any) => {
@@ -90,8 +68,8 @@ export const Setup = (typeFlag: AllAppModule) => {
       if (row.downing) {
         return
       }
-      const all = Object.values(brewStore.module(typeFlag).list.static ?? {})
-      const find: any = all.find((r) => r.bin === row.bin && r.zip === row.zip)!
+      const all = brewStore.module(typeFlag).static
+      const find: any = all.find((r: any) => r.bin === row.bin && r.zip === row.zip)!
       row.downing = true
       row.type = typeFlag
       find.downing = true
@@ -100,13 +78,17 @@ export const Setup = (typeFlag: AllAppModule) => {
         (key: string, res: any) => {
           console.log('res: ', res)
           if (res?.code === 200) {
-            find && Object.assign(find, res.msg)
+            if (find) {
+              Object.assign(find, res.msg)
+            }
           } else if (res?.code === 0) {
             IPC.off(key)
             if (res?.data) {
               regetInstalled()
             }
-            find && (find.downing = false)
+            if (find) {
+              find.downing = false
+            }
           } else {
             IPC.off(key)
           }
@@ -119,9 +101,8 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const tableData = computed(() => {
     const arr = []
-    const list = brewStore.module(typeFlag).list?.['static']
-    for (const name in list) {
-      const value = list[name]
+    const list = brewStore.module(typeFlag).static
+    for (const value of list) {
       const nums = value.version.split('.').map((n: string, i: number) => {
         if (i > 0) {
           const num = parseInt(n)
@@ -137,7 +118,6 @@ export const Setup = (typeFlag: AllAppModule) => {
       })
       const num = parseInt(nums.join(''))
       Object.assign(value, {
-        name,
         version: value.version,
         installed: value.installed,
         num

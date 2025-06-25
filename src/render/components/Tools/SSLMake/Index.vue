@@ -2,11 +2,11 @@
   <div class="host-edit tools">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ $t('util.toolSSL') }}</span>
+        <span class="text-xl">{{ I18nT('util.toolSSL') }}</span>
         <slot name="like"></slot>
       </div>
       <el-button type="primary" class="shrink0" :loading="running" @click="doSave">{{
-        $t('base.generate')
+        I18nT('base.generate')
       }}</el-button>
     </div>
 
@@ -18,11 +18,11 @@
           :class="'input-textarea' + (errs['domains'] ? ' error' : '')"
           placeholder="Domains (Example: *.mydomain.tld), separated by line."
         ></textarea>
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <input
             type="text"
             :class="'input' + (errs['root'] ? ' error' : '')"
-            readonly="readonly"
+            readonly="true"
             placeholder="Root CA certificate path, if not choose, will create new in SSL certificate save path"
             :value="item.root"
           />
@@ -30,11 +30,11 @@
             <yb-icon :svg="import('@/svg/folder.svg?raw')" class="choose" width="18" height="18" />
           </div>
         </div>
-        <div class="path-choose mt-20 mb-20">
+        <div class="path-choose my-5">
           <input
             type="text"
             :class="'input' + (errs['savePath'] ? ' error' : '')"
-            readonly="readonly"
+            readonly="true"
             placeholder="SSL certificate save path"
             :value="item.savePath"
           />
@@ -47,150 +47,161 @@
   </div>
 </template>
 
-<script>
-  import { uuid } from '@shared/utils.ts'
-  import { MessageError } from '@/util/Element.ts'
+<script setup lang="ts">
+  import { ref, watch } from 'vue'
+  import { join, basename } from '@/util/path-browserify'
+  import { uuid } from '@/util/Index'
+  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { dialog, shell, fs, exec } from '@/util/NodeFn'
+  import { I18nT } from '@lang/index'
+  import Base from '@/core/Base'
+  import IPC from '@/util/IPC'
 
-  const { existsSync, writeFileSync } = require('fs')
-  const { execSync } = require('child_process')
-  const { join, basename } = require('path')
-  const { EOL } = require('os')
-  const { dialog, shell } = require('@electron/remote')
+  interface SSLItem {
+    domains: string
+    root: string
+    savePath: string
+  }
 
-  export default {
-    name: 'MoSslMake',
-    components: {},
-    props: {},
-    data() {
-      return {
-        running: false,
-        item: {
-          domains: '',
-          root: '',
-          savePath: ''
-        },
-        edit: {},
-        errs: {
-          domains: false,
-          root: false,
-          savePath: false
-        }
+  interface Errors {
+    domains: boolean
+    root: boolean
+    savePath: boolean
+  }
+
+  const EOL = '\n'
+
+  // Reactive state
+  const running = ref(false)
+  const item = ref<SSLItem>({
+    domains: '',
+    root: '',
+    savePath: ''
+  })
+  const errs = ref<Errors>({
+    domains: false,
+    root: false,
+    savePath: false
+  })
+
+  // Watch for changes to reset errors
+  watch(
+    item,
+    () => {
+      for (const k in errs.value) {
+        errs.value[k as keyof Errors] = false
       }
     },
-    computed: {},
-    watch: {
-      item: {
-        handler() {
-          for (let k in this.errs) {
-            this.errs[k] = false
-          }
-        },
-        immediate: true,
-        deep: true
-      }
-    },
-    created: function () {},
-    unmounted() {},
-    methods: {
-      doClose() {
-        this.$emit('doClose')
-      },
-      chooseRoot(flag, choosefile = false) {
-        let opt = ['openDirectory', 'createDirectory']
-        let filters = []
-        if (choosefile) {
-          opt = ['openFile']
-          filters.push({ name: 'ROOT CA Certificate', extensions: ['crt'] })
-        }
-        dialog
-          .showOpenDialog({
-            properties: opt,
-            filters: filters
-          })
-          .then(({ canceled, filePaths }) => {
-            if (canceled || filePaths.length === 0) {
-              return
-            }
-            const [path] = filePaths
-            switch (flag) {
-              case 'root':
-                this.item.root = path
-                break
-              case 'save':
-                this.item.savePath = path
-                break
-            }
-          })
-      },
-      checkItem() {
-        this.errs.domains = this.item.domains.length === 0
-        this.errs.savePath = this.item.savePath.length === 0
+    { deep: true, immediate: true }
+  )
 
-        for (let k in this.errs) {
-          if (this.errs[k]) {
-            return false
+  const chooseRoot = async (flag: 'root' | 'save', choosefile = false) => {
+    let opt = ['openDirectory', 'createDirectory']
+    const filters = []
+    if (choosefile) {
+      opt = ['openFile']
+      filters.push({ name: 'ROOT CA Certificate', extensions: ['crt'] })
+    }
+
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: opt,
+      filters: filters.length ? filters : undefined
+    })
+
+    if (canceled || filePaths.length === 0) return
+
+    const [path] = filePaths
+    if (flag === 'root') {
+      item.value.root = path
+    } else if (flag === 'save') {
+      item.value.savePath = path
+    }
+  }
+
+  const checkItem = (): boolean => {
+    errs.value.domains = item.value.domains.length === 0
+    errs.value.savePath = item.value.savePath.length === 0
+
+    return !Object.values(errs.value).some((error) => error)
+  }
+
+  const doSave = async () => {
+    if (!checkItem()) return
+    running.value = true
+    if (window.Server.isWindows) {
+      IPC.send('app-fork:tools', 'sslMake', JSON.parse(JSON.stringify(item.value))).then(
+        (key: string, res: any) => {
+          IPC.off(key)
+          running.value = false
+          if (res?.code === 0) {
+            MessageSuccess(I18nT('base.success'))
+            shell.openPath(item.value.savePath)
+          } else {
+            MessageError(I18nT('base.fail'))
           }
         }
-        return true
-      },
-      doSave() {
-        if (!this.checkItem()) {
-          return
-        }
-        this.running = true
-        let domains = this.item.domains
-          .split('\n')
-          .map((item) => {
-            return item.trim()
-          })
-          .filter((item) => {
-            return item && item.length > 0
-          })
-        let saveName = uuid(6) + '.' + domains[0].replace('*.', '')
-        let caFile = this.item.root
-        let caFileName = basename(caFile)
-        if (caFile.length === 0) {
-          caFile = join(this.item.savePath, uuid(6) + '.RootCA.crt')
-          caFileName = basename(caFile)
-        }
-        caFile = caFile.replace('.crt', '')
-        caFileName = caFileName.replace('.crt', '')
-        let opt = { cwd: this.item.savePath }
-        if (!existsSync(caFile + '.crt')) {
-          let command = `openssl genrsa -out ${caFileName}.key 2048;`
-          command += `openssl req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=Dev Root CA ${caFileName}";`
-          command += `echo "basicConstraints=CA:true" > ${caFileName}.cnf;`
-          command += `openssl x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650;`
-          execSync(command, opt)
-        }
-        let ext = `authorityKeyIdentifier=keyid,issuer
+      )
+      return
+    }
+    try {
+      const domains = item.value.domains
+        .split('\n')
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0)
+
+      const saveName = uuid(6) + '.' + domains[0].replace('*.', '')
+      let caFile = item.value.root
+      let caFileName = basename(caFile)
+
+      if (caFile.length === 0) {
+        caFile = join(item.value.savePath, uuid(6) + '.RootCA.crt')
+        caFileName = basename(caFile)
+      }
+
+      caFile = caFile.replace('.crt', '')
+      caFileName = caFileName.replace('.crt', '')
+      const opt = { cwd: item.value.savePath }
+
+      let exists = await fs.existsSync(caFile + '.crt')
+      if (!exists) {
+        let command = `openssl genrsa -out "${caFileName}.key" 2048;`
+        command += `openssl req -new -key "${caFileName}.key" -out "${caFileName}.csr" -sha256 -subj "/CN=Dev Root CA ${caFileName}";`
+        command += `echo "basicConstraints=CA:true" > "${caFileName}.cnf";`
+        command += `openssl x509 -req -in "${caFileName}.csr" -signkey "${caFileName}.key" -out "${caFileName}.crt" -extfile "${caFileName}.cnf" -sha256 -days 3650;`
+        await exec.exec(command, opt)
+      }
+
+      let ext = `authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
 keyUsage=digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
 subjectAltName=@alt_names
 
 [alt_names]${EOL}`
-        domains.forEach((item, index) => {
-          ext += `DNS.${index + 1} = ${item}${EOL}`
-        })
-        ext += `IP.1 = 127.0.0.1${EOL}`
-        writeFileSync(join(this.item.savePath, `${saveName}.ext`), ext)
+      domains.forEach((item, index) => {
+        ext += `DNS.${index + 1} = ${item}${EOL}`
+      })
+      ext += `IP.1 = 127.0.0.1${EOL}`
+      await fs.writeFile(join(item.value.savePath, `${saveName}.ext`), ext)
 
-        let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${saveName}.key -out ${saveName}.csr -sha256 -subj "/CN=${saveName}";`
-        command += `openssl x509 -req -in ${saveName}.csr -out ${saveName}.crt -extfile ${saveName}.ext -CA "${caFile}.crt" -CAkey "${caFile}.key" -CAcreateserial -sha256 -days 3650;`
-        execSync(command, opt)
-        if (existsSync(join(this.item.savePath, `${saveName}.crt`))) {
-          this.$alert(this.$t('base.sslMakeAlert', { caFileName }), this.$t('base.prompt'), {
-            confirmButtonText: this.$t('base.confirm'),
-            callback: () => {
-              this.doClose()
-              shell.showItemInFolder(`${caFile}.crt`)
-            }
+      let command = `openssl req -new -newkey rsa:2048 -nodes -keyout "${saveName}.key" -out "${saveName}.csr" -sha256 -subj "/CN=${saveName}";`
+      command += `openssl x509 -req -in "${saveName}.csr" -out "${saveName}.crt" -extfile "${saveName}.ext" -CA "${caFile}.crt" -CAkey "${caFile}.key" -CAcreateserial -sha256 -days 3650;`
+      await exec.exec(command, opt)
+
+      exists = await fs.existsSync(join(item.value.savePath, `${saveName}.crt`))
+      if (exists) {
+        Base.Alert(I18nT('base.sslMakeAlert', { caFileName }), I18nT('base.prompt'))
+          .then(() => {
+            shell.showItemInFolder(`${caFile}.crt`)
           })
-        } else {
-          this.running = false
-          MessageError(this.$t('base.fail'))
-        }
+          .catch()
+      } else {
+        MessageError(I18nT('base.fail'))
       }
+    } catch (error) {
+      console.error('Error generating SSL:', error)
+      MessageError(I18nT('base.fail'))
+    } finally {
+      running.value = false
     }
   }
 </script>

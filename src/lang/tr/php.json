@@ -12,8 +12,6 @@
   "obfuscatorSrc": "Gizlenecek PHP dosyası veya klasörü",
   "obfuscatorDesc": "Kaynak dosya veya klasörü kopyalamadan kaydet",
   "obfuscatorConfig": "Gelişmiş Ayarlar",
-  "groupStartOff": "Grup hızlı başlatmayı kapat",
-  "groupStartOn": "Grup hızlı başlatmayı aç",
   "quickStart": "GrupBaşlat",
   "display_errors": "Detaylı hata bilgisi gösterilsin mi",
   "short_open_tag": "Kısa etiket desteği",

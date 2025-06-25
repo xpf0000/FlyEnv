@@ -7,19 +7,25 @@ import {
   versionFixed,
   versionLocalFetch,
   versionSort,
-  writeFileByRoot
+  writeFileByRoot,
+  chmod,
+  copyFile,
+  unlink,
+  readdir,
+  writeFile,
+  realpath,
+  remove,
+  mkdirp
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { basename, dirname, join } from 'path'
 import { compareVersions } from 'compare-versions'
-import { exec } from 'child-process-promise'
 import { createWriteStream, existsSync } from 'fs'
-import { chmod, copyFile, unlink, readdir, writeFile, realpath, remove, mkdirp } from 'fs-extra'
 import axios from 'axios'
 import type { SoftInstalled } from '@shared/app'
 import TaskQueue from '../TaskQueue'
 import ncu from 'npm-check-updates'
-import EnvSync from '../util/EnvSync'
+
 class Manager extends Base {
   constructor() {
     super()
@@ -34,7 +40,7 @@ class Manager extends Base {
         proxy: this.getAxiosProxy()
       })
       const html = res.data
-      const regex = /href="v([\d\.]+?)\/"/g
+      const regex = /href="v([\d.]+?)\/"/g
       let result
       let links = []
       while ((result = regex.exec(html)) != null) {
@@ -94,10 +100,7 @@ class Manager extends Base {
         command = 'unset PREFIX;[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ls'
       }
       try {
-        const env = await EnvSync.sync()
-        const res = await exec(command, {
-          env
-        })
+        const res = await execPromise(command)
         const stdout = res?.stdout ?? ''
         let localVersions: Array<string> = []
         let current = ''
@@ -140,7 +143,7 @@ class Manager extends Base {
       if (!existsSync(file)) {
         try {
           await writeFile(file, '')
-        } catch (e) {}
+        } catch {}
       }
       if (!existsSync(file)) {
         resolve(true)
@@ -149,7 +152,7 @@ class Manager extends Base {
       let content = ''
       try {
         content = await readFileByRoot(file)
-      } catch (e) {
+      } catch {
         resolve(true)
         return
       }
@@ -189,7 +192,7 @@ class Manager extends Base {
       content = newLines.join('\n')
       try {
         await writeFileByRoot(file, content)
-      } catch (e) {
+      } catch {
         resolve(true)
         return
       }
@@ -206,10 +209,7 @@ class Manager extends Base {
         command = `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm alias default ${select}`
       }
       try {
-        const env = await EnvSync.sync()
-        await exec(command, {
-          env
-        })
+        await execPromise(command)
         const { current }: any = await this.localVersion(tool)
         if (current === select) {
           await this.resetEnv(tool)
@@ -252,7 +252,7 @@ class Manager extends Base {
           if (existsSync(destDir)) {
             try {
               await remove(destDir)
-            } catch (e) {}
+            } catch {}
           }
           await mkdirp(destDir)
 
@@ -301,7 +301,7 @@ class Manager extends Base {
             try {
               await remove(zip)
               await remove(destDir)
-            } catch (e) {}
+            } catch {}
           }
 
           axios({
@@ -349,10 +349,7 @@ class Manager extends Base {
         command = `unset PREFIX;export NVM_DIR="\${HOME}/.nvm";[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh";nvm ${action} ${version}`
       }
       try {
-        const env = await EnvSync.sync()
-        await exec(command, {
-          env
-        })
+        await execPromise(command)
         const { versions, current }: { versions: Array<string>; current: string } =
           (await this.localVersion(tool)) as any
         if (
@@ -403,14 +400,14 @@ class Manager extends Base {
       let fnmDir = ''
       try {
         fnmDir = (await execPromise(`echo $FNM_DIR`)).stdout.trim()
-      } catch (e) {}
+      } catch {}
       if (fnmDir && existsSync(fnmDir)) {
         fnmDir = join(fnmDir, 'node-versions')
         if (existsSync(fnmDir)) {
           let allFnm: any[] = []
           try {
             allFnm = await readdir(fnmDir)
-          } catch (e) {}
+          } catch {}
           allFnm = allFnm
             .filter(
               (f) => f.startsWith('v') && existsSync(join(fnmDir, f, 'installation/bin/node'))
@@ -430,14 +427,14 @@ class Manager extends Base {
       let nvmDir = ''
       try {
         nvmDir = (await execPromise(`echo $NVM_DIR`)).stdout.trim()
-      } catch (e) {}
+      } catch {}
       if (nvmDir && existsSync(nvmDir)) {
         nvmDir = join(nvmDir, 'versions/node')
         if (existsSync(nvmDir)) {
           let allNVM: any[] = []
           try {
             allNVM = await readdir(nvmDir)
-          } catch (e) {}
+          } catch {}
           allNVM = allNVM
             .filter((f) => f.startsWith('v') && existsSync(join(nvmDir, f, 'bin/node')))
             .map((f) => {
@@ -464,7 +461,12 @@ class Manager extends Base {
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) =>
-            TaskQueue.run(versionBinVersion, `${item.bin} -v`, /(v)(\d+(\.\d+){1,4})(.*?)$/gm)
+            TaskQueue.run(
+              versionBinVersion,
+              item.bin,
+              `./${basename(item.bin)} -v`,
+              /(v)(\d+(\.\d+){1,4})(.*?)$/gm
+            )
           )
           if (all.length === 0) {
             return Promise.resolve([])
@@ -511,7 +513,7 @@ class Manager extends Base {
                 enable: true
               })
             })
-          } catch (e) {}
+          } catch {}
 
           const dir = join(global.Server.AppDir!, 'nodejs')
           if (existsSync(dir)) {

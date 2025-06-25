@@ -32,5 +32,10 @@
   "url-encode-title": "Mã hóa/Giải mã URL",
   "url-parse-title": "Trình phân tích cú pháp URL",
   "wifi-qr-code-generator-title": "Trình tạo mã QR WiFi",
-  "URLTimingAnalyzer": "Phân Tích Thời Gian URL"
+  "URLTimingAnalyzer": "Phân Tích Thời Gian URL",
+
+  "envValue": "Value",
+  "rawEnvPath": "Actual Path",
+  "envValueErrorTips": "The path does not exist. You can click to copy the command and test it in Command Prompt.",
+  "invalidPath": "Invalid Path"
 }

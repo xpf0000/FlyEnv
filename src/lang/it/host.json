@@ -64,5 +64,9 @@
   "copyCommand": "Copia Comando",
   "showFile": "Mostra File",
   "sticky": "Fissa in alto",
-  "dbclickRowToEdit": "Fai doppio clic su questa riga per modificare"
+  "dbclickRowToEdit": "Fai doppio clic su questa riga per modificare",
+
+  "projectDeno": "Deno Projects",
+  "projectBun": "Bun Projects",
+  "projectPerl": "Perl Projects"
 }

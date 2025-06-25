@@ -1,5 +1,4 @@
 {
-  "menuShowHide": "Meny visa/dölj",
   "tsinghua": "Tsinghua University nedladdningskälla",
   "bfsu": "Beijing Foreign Studies University nedladdningskälla",
   "tencent": "Tencent nedladdningskälla",
@@ -35,7 +34,6 @@
     "path": "Filsökväg",
     "comment": "Kommentar",
     "exec": "Kör",
-    "command": "Kommando",
     "commandFile": "Fil",
     "isSudo": "Kör med sudo?",
     "pidPath": "PID-filsökväg",
@@ -43,6 +41,9 @@
     "logPath": "Loggfil",
     "needPasswordToStart": "Adminrättigheter krävs. Ange lösenord (sparas för framtida bruk). Eller ange manuellt i terminalen, men denna prompt kan dyka upp igen.",
     "hadOpenInTerminal": "Körs redan i terminalen—resultat ej tillgängliga.",
-    "licenseTips": "Ingen licens hittades. Endast 3 moduler/utföringsobjekt kan skapas."
+    "licenseTips": "Ingen licens hittades. Endast 3 moduler/utföringsobjekt kan skapas.",
+
+    "outputLog": "Output Log",
+    "errorLog": "Error Log"
   }
 }

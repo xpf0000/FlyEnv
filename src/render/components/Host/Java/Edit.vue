@@ -13,7 +13,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
           I18nT('base.save')
@@ -69,7 +69,7 @@
           <div class="plant-title">{{ I18nT('host.jdkPath') }}</div>
           <div class="main">
             <el-select v-model="item.jdkDir" class="w-full">
-              <template v-for="(item, index) in jdks" :key="index">
+              <template v-for="(item, _index) in jdks" :key="_index">
                 <el-option :label="`java${item.version}-${item.bin}`" :value="item.bin"></el-option>
               </template>
             </el-select>
@@ -77,7 +77,7 @@
 
           <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
           <div class="main">
-            <div class="port-set mb-20">
+            <div class="port-set mb-5">
               <input
                 v-model.number="item.projectPort"
                 type="number"
@@ -151,7 +151,7 @@
               class="input"
               :placeholder="I18nT('host.placeholderComment')"
             />
-            <div class="path-choose mt-20 mb-20">
+            <div class="path-choose my-5">
               <input
                 v-model="item.root"
                 type="text"
@@ -171,10 +171,10 @@
 
           <div class="plant-title">{{ I18nT('host.customJDKAndTomcat') }}</div>
           <div class="main">
-            <div class="port-set port-ssl mb-20">
+            <div class="port-set port-ssl mb-5">
               <div class="port-type"> Tomcat </div>
               <el-select v-model="item.tomcatDir" class="w-full">
-                <template v-for="(item, index) in tomcats" :key="index">
+                <template v-for="(item, _index) in tomcats" :key="_index">
                   <el-option
                     :label="`tomcat${item.version}-${item.bin}`"
                     :value="item.bin"
@@ -185,7 +185,7 @@
             <div class="port-set port-ssl">
               <div class="port-type"> JDK </div>
               <el-select v-model="item.jdkDir" class="w-full">
-                <template v-for="(item, index) in jdks" :key="index">
+                <template v-for="(item, _index) in jdks" :key="_index">
                   <el-option
                     :label="`java${item.version}-${item.bin}`"
                     :value="item.bin"
@@ -221,7 +221,7 @@
             </div>
 
             <template v-if="item.useSSL && !item.autoSSL">
-              <div class="path-choose mt-20">
+              <div class="path-choose mt-5">
                 <input
                   v-model="item.ssl.cert"
                   type="text"
@@ -238,7 +238,7 @@
                 </div>
               </div>
 
-              <div class="path-choose mt-20 mb-20">
+              <div class="path-choose my-5">
                 <input
                   v-model="item.ssl.key"
                   type="text"
@@ -257,10 +257,10 @@
             </template>
 
             <template v-if="item.useSSL">
-              <div class="ssl-switch mb-20 mt-20">
+              <div class="ssl-switch my-5">
                 <span>{{ I18nT('host.port') }}</span>
               </div>
-              <div class="port-set port-ssl mb-20">
+              <div class="port-set port-ssl mb-5">
                 <div class="port-type"> Tomcat </div>
                 <input
                   v-model.number="item.port.tomcat_ssl"
@@ -286,10 +286,8 @@
   import { BrewStore } from '@/store/brew'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
-  import installedVersions from '@/util/InstalledVersions'
-
-  const { dialog } = require('@electron/remote')
+  import { merge } from 'lodash-es'
+  import { dialog } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -379,7 +377,7 @@
     if (!name) {
       return
     }
-    for (let h of hosts.value) {
+    for (const h of hosts.value) {
       if (h.name === name && h.id !== item.value.id) {
         errs.value['name'] = true
         break
@@ -393,7 +391,7 @@
       if (!name) {
         return
       }
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === name && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
@@ -456,7 +454,7 @@
       }
       errs.value['projectName'] = item.value.projectName.length === 0
       if (item.value.projectName) {
-        for (let h of hosts.value) {
+        for (const h of hosts.value) {
           if (h?.projectName === item.value.projectName && h.id !== item.value.id) {
             errs.value['projectName'] = true
             break
@@ -468,7 +466,7 @@
       errs.value['root'] = item.value.root.length === 0
       errs.value['name'] = item.value.name.length === 0
       if (item.value.name) {
-        for (let h of hosts.value) {
+        for (const h of hosts.value) {
           if (h.name === item.value.name && h.id !== item.value.id) {
             errs.value['name'] = true
             break
@@ -521,8 +519,9 @@
   }
 
   if (jdks.value.length === 0) {
-    brewStore.module('java').installedInited = false
-    installedVersions.allInstalledVersions(['java']).then(() => {
+    const module = brewStore.module('java')
+    module.installedFetched = false
+    module.fetchInstalled().then(() => {
       if (!item.value.jdkDir && jdks.value.length > 0) {
         const jdk = jdks.value[0]
         item.value.jdkDir = jdk.bin
@@ -534,8 +533,9 @@
   }
 
   if (tomcats.value.length === 0) {
-    brewStore.module('tomcat').installedInited = false
-    installedVersions.allInstalledVersions(['tomcat']).then(() => {
+    const module = brewStore.module('tomcat')
+    module.installedFetched = false
+    module.fetchInstalled().then(() => {
       if (!item.value.tomcatDir && tomcats.value.length > 0) {
         const tomcat = tomcats.value[0]
         item.value.tomcatDir = tomcat.bin

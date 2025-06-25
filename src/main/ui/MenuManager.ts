@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 import { Menu } from 'electron'
 import { flattenMenuItems, translateTemplate, updateStates } from '../utils/menu'
 import MenuDarwin from '../menus/darwin.json'
+import { isWindows } from '@shared/utils'
 
 export default class MenuManager extends EventEmitter {
   items: { [key: string]: any }
@@ -10,6 +11,9 @@ export default class MenuManager extends EventEmitter {
     super()
     this.items = {}
     this.template = {}
+    if (isWindows()) {
+      return
+    }
     this.load()
     this.setup()
   }
@@ -27,6 +31,9 @@ export default class MenuManager extends EventEmitter {
   }
 
   setup() {
+    if (isWindows()) {
+      return
+    }
     const menu = this.build()
     Menu.setApplicationMenu(menu)
     this.items = flattenMenuItems(menu)
@@ -37,6 +44,9 @@ export default class MenuManager extends EventEmitter {
   }
 
   updateMenuStates(visibleStates: any, enabledStates: any, checkedStates: any) {
+    if (isWindows()) {
+      return
+    }
     updateStates(this.items, visibleStates, enabledStates, checkedStates)
   }
 

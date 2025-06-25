@@ -23,7 +23,7 @@ export interface ServerType {
   MariaDBDir?: string
   MemcachedDir?: string
   BaseDir?: string
-  ApacheDir?: string
+  ApacheDir: string
   Lang?: string
   Local?: string
   MacPorts?: string
@@ -31,16 +31,25 @@ export interface ServerType {
   UserHome?: string
   Licenses?: string
   LangCustomer?: any
+  isMacOS?: boolean
+  isLinux?: boolean
+  isWindows?: boolean
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var Server: ServerType
-  // eslint-disable-next-line no-var
+
   var application: any
-  // eslint-disable-next-line no-var
+
   var __static: string
-  // eslint-disable-next-line no-var
+
   var launcher: Launcher
+
+  interface Window {
+    FlyEnvNodeAPI: {
+      ipcSendToMain: (...args: any[]) => void
+      ipcReceiveFromMain: (callback: (event: any, ...args: any[]) => void) => void
+    }
+  }
 }
 export {}

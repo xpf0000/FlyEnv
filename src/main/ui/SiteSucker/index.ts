@@ -5,17 +5,17 @@ import { join } from 'path'
 import { Store } from './Store'
 import { urlToDir } from './Fn'
 import { CallBack, LinkItem, type PageLink } from './LinkItem'
+import { cpus } from 'os'
+import type { CallBackFn } from '@shared/app'
 
-const os = require('os')
-
-const CPU_Count = os.cpus().length
+const CPU_Count = cpus().length
 
 type RunParams = {
   url: string
   config: RunConfig
 }
 class SiteSucker {
-  setCallBack(fn: Function) {
+  setCallBack(fn: CallBackFn) {
     CallBack.fn = fn
   }
   show(item: RunParams) {

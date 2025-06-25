@@ -4,31 +4,24 @@ import { BrewStore } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
 import type { AllAppModule } from '@/core/type'
-import installedVersions from '@/util/InstalledVersions'
-import { brewInfo } from '@/util/Brew'
-import { chmod } from '@shared/file'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
-
-const { clipboard } = require('@electron/remote')
-const { join, basename, dirname } = require('path')
-const { existsSync, unlinkSync, copyFileSync } = require('fs')
+import { join, basename, dirname } from '@/util/path-browserify'
+import { clipboard, fs } from '@/util/NodeFn'
 
 export const BrewSetup = reactive<{
   installEnd: boolean
   installing: boolean
-  fetching: Partial<Record<AllAppModule, boolean>>
   xterm: XTerm | undefined
   checkBrew: () => void
   reFetch: () => void
 }>({
   installEnd: false,
   installing: false,
-  fetching: {},
   xterm: undefined,
   reFetch: () => 0,
   checkBrew() {
-    if (!global.Server.BrewCellar) {
+    if (!window.Server.BrewCellar) {
       IPC.send('app-check-brewport').then((key: string) => {
         IPC.off(key)
       })
@@ -54,60 +47,45 @@ export const Setup = (typeFlag: AllAppModule) => {
     if (!appStore.envIndex) {
       return false
     }
-    return !!global.Server.BrewCellar
+    return !!window.Server.BrewCellar
   })
 
   const showBrewError = computed(() => {
     if (!appStore.envIndex) {
       return false
     }
-    return global?.Server?.BrewBin && global?.Server?.BrewError
+    return window?.Server?.BrewBin && window?.Server?.BrewError
   })
 
   const brewBin = computed(() => {
-    return global?.Server?.BrewBin ?? ''
+    return window?.Server?.BrewBin ?? ''
   })
 
   const brewError = computed(() => {
-    return global?.Server?.BrewError ?? ''
+    return window?.Server?.BrewError ?? ''
   })
 
   const fetching = computed(() => {
-    return BrewSetup.fetching?.[typeFlag] ?? false
+    const module = brewStore.module(typeFlag)
+    return module.brewFetching
   })
 
-  const fetchData = (src: 'brew') => {
-    if (fetching.value) {
+  const fetchData = () => {
+    const module = brewStore.module(typeFlag)
+    if (module.brewFetching) {
       return
     }
-    BrewSetup.fetching[typeFlag] = true
-    const currentItem = brewStore.module(typeFlag)
-    const list = currentItem.list?.[src] ?? {}
-    brewInfo(typeFlag)
-      .then((res: any) => {
-        for (const k in list) {
-          delete list?.[k]
-        }
-        for (const name in res) {
-          list[name] = reactive(res[name])
-        }
-        BrewSetup.fetching[typeFlag] = false
-      })
-      .catch(() => {
-        BrewSetup.fetching[typeFlag] = false
-      })
+    module.fetchBrew()
   }
   const getData = () => {
     if (!checkBrew.value || fetching.value) {
       console.log('getData exit: ', checkBrew.value, fetching.value)
       return
     }
-    const currentItem = brewStore.module(typeFlag)
-    const src = 'brew'
-    const list = currentItem.list?.[src]
-    if (list && Object.keys(list).length === 0) {
+    const module = brewStore.module(typeFlag)
+    if (module.brew.length === 0) {
       if (typeFlag === 'php') {
-        if (src === 'brew' && !appStore?.config?.setup?.phpBrewInited) {
+        if (!appStore?.config?.setup?.phpBrewInited) {
           /**
            * First, fetch the installed PHP versions, and simultaneously install the shivammathur/php repository.
            * After a successful installation, refresh the data.
@@ -117,34 +95,29 @@ export const Setup = (typeFlag: AllAppModule) => {
           IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string, res: any) => {
             IPC.off(key)
             appStore.config.setup.phpBrewInited = true
-            appStore.saveConfig()
+            appStore.saveConfig().catch()
             if (res?.data === 2) {
-              fetchData('brew')
+              fetchData()
             }
           })
         }
       } else if (typeFlag === 'mongodb' && !appStore?.config?.setup?.mongodbBrewInited) {
-        if (src === 'brew') {
-          IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string, res: any) => {
-            IPC.off(key)
-            appStore.config.setup.mongodbBrewInited = true
-            appStore.saveConfig()
-            if (res?.data === 2) {
-              fetchData('brew')
-            }
-          })
-        }
+        IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string, res: any) => {
+          IPC.off(key)
+          appStore.config.setup.mongodbBrewInited = true
+          appStore.saveConfig().catch()
+          if (res?.data === 2) {
+            fetchData()
+          }
+        })
       }
-      fetchData(src)
+      fetchData()
     }
   }
 
   const reGetData = () => {
     console.log('reGetData !!!')
-    const list = brewStore.module(typeFlag).list?.['brew']
-    for (const k in list) {
-      delete list[k]
-    }
+    brewStore.module(typeFlag).brew.splice(0)
     getData()
   }
 
@@ -152,8 +125,9 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const regetInstalled = () => {
     reGetData()
-    brewStore.module(typeFlag).installedInited = false
-    installedVersions.allInstalledVersions([typeFlag]).then()
+    const module = brewStore.module(typeFlag)
+    module.installedFetched = false
+    module.fetchInstalled().catch()
   }
 
   const fetchCommand = (row: any) => {
@@ -184,16 +158,17 @@ export const Setup = (typeFlag: AllAppModule) => {
     } else {
       fn = 'install'
     }
-    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const arch = window.Server.isAppleSilicon ? '-arm64' : '-x86_64'
     const name = row.name
     let params = []
-    const sh = join(global.Server.Static!, 'sh/brew-cmd.sh')
-    const copyfile = join(global.Server.Cache!, 'brew-cmd.sh')
-    if (existsSync(copyfile)) {
-      unlinkSync(copyfile)
+    const sh = join(window.Server.Static!, 'sh/brew-cmd.sh')
+    const copyfile = join(window.Server.Cache!, 'brew-cmd.sh')
+    const exists = await fs.existsSync(copyfile)
+    if (exists) {
+      await fs.remove(copyfile)
     }
-    copyFileSync(sh, copyfile)
-    chmod(copyfile, '0777')
+    await fs.copy(sh, copyfile)
+    await fs.chmod(copyfile, '0777')
     params = [`${copyfile} ${arch} ${fn} ${name};`]
     if (proxyStr?.value) {
       params.unshift(proxyStr?.value)
@@ -209,9 +184,8 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const tableData = computed(() => {
     const arr = []
-    const list = brewStore.module(typeFlag).list?.['brew']
-    for (const name in list) {
-      const value = list[name]
+    const list = brewStore.module(typeFlag).brew
+    for (const value of list) {
       const nums = value.version.split('.').map((n: string, i: number) => {
         if (i > 0) {
           const num = parseInt(n)
@@ -227,15 +201,13 @@ export const Setup = (typeFlag: AllAppModule) => {
       })
       const num = parseInt(nums.join(''))
       Object.assign(value, {
-        name,
         version: value.version,
         installed: value.installed,
-        num,
-        flag: value.flag
+        num
       })
       arr.push(value)
     }
-    arr.sort((a, b) => {
+    arr.sort((a: any, b: any) => {
       return b.num - a.num
     })
     return arr
@@ -252,10 +224,10 @@ export const Setup = (typeFlag: AllAppModule) => {
     await nextTick()
     const file =
       appStore.config.setup.lang === 'zh'
-        ? join(global.Server.Static!, 'sh/brew-install.sh')
-        : join(global.Server.Static!, 'sh/brew-install-en.sh')
-    const copyFile = join(global.Server.Cache!, basename(file))
-    copyFileSync(file, copyFile)
+        ? join(window.Server.Static!, 'sh/brew-install.sh')
+        : join(window.Server.Static!, 'sh/brew-install-en.sh')
+    const copyFile = join(window.Server.Cache!, basename(file))
+    await fs.copy(file, copyFile)
     const execXTerm = new XTerm()
     BrewSetup.xterm = execXTerm
     console.log('xtermDom.value: ', xtermDom.value)
@@ -285,7 +257,7 @@ export const Setup = (typeFlag: AllAppModule) => {
   })
 
   onUnmounted(() => {
-    BrewSetup.xterm && BrewSetup.xterm.unmounted()
+    BrewSetup?.xterm?.unmounted?.()
   })
 
   return {

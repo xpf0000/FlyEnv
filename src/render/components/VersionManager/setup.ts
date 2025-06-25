@@ -5,6 +5,7 @@ import type { AllAppModule } from '@/core/type'
 import { BrewSetup } from '@/components/VersionManager/brew/setup'
 import { MacPortsSetup } from '@/components/VersionManager/port/setup'
 import { StaticSetup } from '@/components/VersionManager/static/setup'
+import { shell } from '@/util/NodeFn'
 
 export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
   const appStore = AppStore()
@@ -14,14 +15,14 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (!appStore.envIndex) {
       return false
     }
-    return !!global.Server.BrewCellar
+    return !!window.Server.BrewCellar
   })
 
   const checkPort = computed(() => {
     if (!appStore.envIndex) {
       return false
     }
-    return !!global.Server.MacPorts
+    return !!window.Server.MacPorts
   })
 
   const libSrc = computed({
@@ -104,14 +105,15 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
   }
 
   const loading = computed(() => {
+    const module = brewStore.module(typeFlag)
     if (libSrc.value === 'brew') {
-      return BrewSetup.fetching[typeFlag] || BrewSetup.installing
+      return module.brewFetching || BrewSetup.installing
     }
     if (libSrc.value === 'port') {
-      return MacPortsSetup.fetching[typeFlag] || MacPortsSetup.installing
+      return module.portFetching || MacPortsSetup.installing
     }
     if (libSrc.value === 'static') {
-      return StaticSetup.fetching[typeFlag]
+      return module.staticFetching
     }
     return false
   })
@@ -131,6 +133,10 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     }
   }
 
+  const openURL = (url: string) => {
+    shell.openExternal(url).then().catch()
+  }
+
   return {
     libSrc,
     checkBrew,
@@ -140,6 +146,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     taskConfirm,
     taskCancel,
     loading,
-    reFetch
+    reFetch,
+    openURL
   }
 }

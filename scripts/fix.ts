@@ -1,6 +1,10 @@
 import { resolve } from 'path'
-import { existsSync, readFile, writeFile } from 'fs-extra'
+import _fs from 'fs-extra'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
+const { existsSync, readFile, writeFile } = _fs
 const dnsFix = async () => {
   const file = resolve(__dirname, '../node_modules/dohdec/lib/doh.js')
   if (!existsSync(file)) {

@@ -5,7 +5,8 @@ import { AppStore } from '@/store/app'
 import { I18nT } from '@lang/index'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { HostStore } from '@/components/Host/store'
-const { shell } = require('@electron/remote')
+import { shell } from '@/util/NodeFn'
+
 const handleHostEnd = (arr: Array<AppHost>, isAdd?: boolean) => {
   const appStore = AppStore()
 

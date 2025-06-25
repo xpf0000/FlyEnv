@@ -98,7 +98,6 @@ export const AppAllLang = {
   fr: 'Français',
   it: 'Italiano',
   ja: '日本語'
-
 }
 
 const lang = {

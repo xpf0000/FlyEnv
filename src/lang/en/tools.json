@@ -15,6 +15,11 @@
   "addTool": "Add Tool",
   "editTool": "Edit Tool",
 
+  "envValue": "Value",
+  "rawEnvPath": "Actual Path",
+  "envValueErrorTips": "The path does not exist. You can click to copy the command and test it in Command Prompt.",
+  "invalidPath": "Invalid Path",
+
   "base64-file-converter-title": "Base64 File Converter",
   "base64-string-converter-title": "Base64 String Encoder/Decoder",
   "chmod-calculator-title": "Chmod Calculator",

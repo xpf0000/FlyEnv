@@ -10,11 +10,15 @@
       >
         <el-table-column :label="I18nT('host.site')">
           <template #header>
-            <div class="w-p100 name-cell">
+            <div class="w-full name-cell">
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
                 I18nT('host.site')
               }}</span>
-              <el-input v-model.trim="search" :placeholder="I18nT('base.placeholderSearch')" clearable></el-input>
+              <el-input
+                v-model.trim="search"
+                :placeholder="I18nT('base.placeholderSearch')"
+                clearable
+              ></el-input>
             </div>
           </template>
           <template #default="scope">
@@ -80,27 +84,27 @@
                   <ul v-poper-fix class="host-list-menu">
                     <li @click.stop="action(scope.row, scope.$index, 'open')">
                       <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.open') }}</span>
+                      <span class="ml-3">{{ I18nT('base.open') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'edit')">
                       <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.edit') }}</span>
+                      <span class="ml-3">{{ I18nT('base.edit') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'link')">
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.links') }}</span>
+                      <span class="ml-3">{{ I18nT('base.links') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'log')">
                       <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.log') }}</span>
+                      <span class="ml-3">{{ I18nT('base.log') }}</span>
                     </li>
                     <li @click.stop="showSort($event, scope.row.id)">
                       <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('host.sort') }}</span>
+                      <span class="ml-3">{{ I18nT('host.sort') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'del')">
                       <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.del') }}</span>
+                      <span class="ml-3">{{ I18nT('base.del') }}</span>
                     </li>
                   </ul>
 
@@ -137,11 +141,10 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
-  import { isEqual } from 'lodash'
+  import { isEqual } from 'lodash-es'
   import { HostStore } from '@/components/Host/store'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
+  import { shell } from '@/util/NodeFn'
 
   const hostList = ref()
   const loading = ref(false)
@@ -272,12 +275,14 @@
         }).then()
         break
       case 'log':
-        const logFile = join(global.Server.BaseDir!, `vhost/logs/${item.name}-tomcat_access_log`)
-        const customTitle = item.name
-        AsyncComponentShow(LogVM, {
-          logFile,
-          customTitle
-        }).then()
+        {
+          const logFile = join(window.Server.BaseDir!, `vhost/logs/${item.name}-tomcat_access_log`)
+          const customTitle = item.name
+          AsyncComponentShow(LogVM, {
+            logFile,
+            customTitle
+          }).then()
+        }
         break
       case 'del':
         Base._Confirm(I18nT('base.areYouSure'), undefined, {

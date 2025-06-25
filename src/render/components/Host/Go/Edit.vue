@@ -13,7 +13,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
           I18nT('base.save')
@@ -78,7 +78,7 @@
 
         <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
         <div class="main">
-          <div class="port-set mb-20">
+          <div class="port-set mb-5">
             <input
               v-model.number="item.projectPort"
               type="number"
@@ -149,10 +149,9 @@
   import { AppHost, AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
-
-  const { dialog } = require('@electron/remote')
-  const { dirname, basename } = require('path')
+  import { merge } from 'lodash-es'
+  import { dirname, basename } from '@/util/path-browserify'
+  import { dialog } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -210,7 +209,7 @@
       if (!name) {
         return
       }
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === name && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
@@ -262,7 +261,7 @@
     errs.value['bin'] = item.value.bin.length === 0
     errs.value['root'] = item.value.root.length === 0
     if (item.value.projectName) {
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === item.value.projectName && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break

@@ -11,7 +11,7 @@ export class MacportInstall extends BaseTask {
           const aiStore = AIStore()
           aiStore.chatList.push({
             user: 'ai',
-            content: global.Server.MacPorts
+            content: window.Server.MacPorts
               ? I18nT('ai.macportsHasInstall')
               : I18nT('ai.macportsNotInstall')
           })

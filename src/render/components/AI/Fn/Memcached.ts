@@ -1,16 +1,14 @@
 import type BaseTask from '@/components/AI/Task/BaseTask'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
-import { startService } from '@/util/Service'
 import { AIStore } from '@/components/AI/store'
-import { fetchInstalled } from '@/components/AI/Fn/Util'
 import { I18nT } from '@lang/index'
 
 export function startMemcached(this: BaseTask) {
   return new Promise(async (resolve, reject) => {
-    await fetchInstalled(['memcached'])
     const appStore = AppStore()
     const brewStore = BrewStore()
+    await brewStore.module('memcached').fetchInstalled()
     const current = appStore.config.server?.memcached?.current
     const installed = brewStore.module('memcached').installed
     let memcached = installed?.find(
@@ -23,7 +21,7 @@ export function startMemcached(this: BaseTask) {
       reject(new Error(I18nT('ai.noAvailableVersion')))
       return
     }
-    const res = await startService('memcached', memcached)
+    const res = await brewStore.module('memcached').start()
     if (res === true) {
       const aiStore = AIStore()
       aiStore.chatList.push({

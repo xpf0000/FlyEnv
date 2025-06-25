@@ -1,18 +1,18 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="tab" class="mt-3">
-      <template v-for="(item, index) in tabs" :key="index">
-        <el-radio-button :label="item.label" :value="index"></el-radio-button>
+      <template v-for="(item, _index) in tabs" :key="_index">
+        <el-radio-button :label="item.label" :value="_index"></el-radio-button>
       </template>
     </el-radio-group>
     <div class="main-block">
       <ListVM v-if="tab === 0"></ListVM>
-      <template v-for="(item, index) in tabs" :key="index">
+      <template v-for="(item, _index) in tabs" :key="_index">
         <template v-if="item.isConfig">
-          <ConfigVM v-if="item.index === tab" :file="item.path" />
+          <ConfigVM v-if="item._index === tab" :file="item.path" />
         </template>
         <template v-if="item.isLog">
-          <LogsVM v-if="item.index === tab" :file="item.path" />
+          <LogsVM v-if="item._index === tab" :file="item.path" />
         </template>
       </template>
     </div>
@@ -33,15 +33,15 @@
 
   const tab = computed({
     get() {
-      return AppModuleSetup(current.value.id).tab.value
+      return AppModuleSetup(current.value.id as any).tab.value
     },
     set(v) {
-      AppModuleSetup(current.value.id).tab.value = v
+      AppModuleSetup(current.value.id as any).tab.value = v
     }
   })
 
   const tabs = computed(() => {
-    const arr = [
+    const arr: any = [
       {
         label: I18nT('base.service')
       }

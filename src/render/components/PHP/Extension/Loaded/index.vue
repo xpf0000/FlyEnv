@@ -2,7 +2,7 @@
   <el-table v-loading="fetching" height="100%" :data="tableData" style="width: 100%">
     <el-table-column prop="name" class-name="name-cell-td" :label="I18nT('base.name')">
       <template #header>
-        <div class="w-p100 name-cell">
+        <div class="w-full name-cell">
           <span style="display: inline-flex; padding: 2px 0">{{ I18nT('base.name') }}</span>
           <el-input v-model.trim="search" :placeholder="I18nT('base.placeholderSearch')" clearable></el-input>
         </div>

@@ -1,11 +1,11 @@
 import type { AppHost } from '@shared/app'
 import { join } from 'path'
-import { chmod, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
-import { hostAlias } from '../../Fn'
+import { hostAlias, chmod, copyFile, mkdirp, readFile, remove, writeFile } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import Helper from '../../Helper'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -61,8 +61,8 @@ export const makeCaddyConf = async (host: AppHost) => {
   const httpHostNameAll = httpNames.join(',\n')
   let content = tmpl.caddy
     .replace('##HOST-ALL##', httpHostNameAll)
-    .replace('##LOG-PATH##', logFile)
-    .replace('##ROOT##', root)
+    .replace('##LOG-PATH##', pathFixedToUnix(logFile))
+    .replace('##ROOT##', pathFixedToUnix(root))
   if (phpv) {
     content = content.replace('##PHP-VERSION##', `${phpv}`)
   } else {
@@ -74,14 +74,14 @@ export const makeCaddyConf = async (host: AppHost) => {
   if (host.useSSL) {
     let tls = 'internal'
     if (host.ssl.cert && host.ssl.key) {
-      tls = `"${host.ssl.cert}" "${host.ssl.key}"`
+      tls = `"${pathFixedToUnix(host.ssl.cert)}" "${pathFixedToUnix(host.ssl.key)}"`
     }
     const httpHostNameAll = httpsNames.join(',\n')
     let content = tmpl.caddySSL
       .replace('##HOST-ALL##', httpHostNameAll)
-      .replace('##LOG-PATH##', logFile)
+      .replace('##LOG-PATH##', pathFixedToUnix(logFile))
       .replace('##SSL##', tls)
-      .replace('##ROOT##', root)
+      .replace('##ROOT##', pathFixedToUnix(root))
     if (phpv) {
       content = content.replace('##PHP-VERSION##', `${phpv}`)
     } else {
@@ -108,33 +108,40 @@ export const updateCaddyConf = async (host: AppHost, old: AppHost) => {
     }
     const arr = [cvhost]
     for (const f of arr) {
-      if (existsSync(f.oldFile)) {
-        let hasErr = false
-        try {
+      if (isWindows()) {
+        if (existsSync(f.oldFile)) {
           await copyFile(f.oldFile, f.newFile)
-        } catch (e) {
-          hasErr = true
-        }
-        if (hasErr) {
-          try {
-            const content = await Helper.send('tools', 'readFileByRoot', f.oldFile)
-            await writeFile(f.newFile, content)
-          } catch (e) {}
-        }
-        hasErr = false
-        try {
           await remove(f.oldFile)
-        } catch (e) {
-          hasErr = true
         }
-        if (hasErr) {
+      } else {
+        if (existsSync(f.oldFile)) {
+          let hasErr = false
           try {
-            await Helper.send('tools', 'rm', f.oldFile)
-          } catch (e) {}
+            await copyFile(f.oldFile, f.newFile)
+          } catch {
+            hasErr = true
+          }
+          if (hasErr) {
+            try {
+              const content = await Helper.send('tools', 'readFileByRoot', f.oldFile)
+              await writeFile(f.newFile, content)
+            } catch {}
+          }
+          hasErr = false
+          try {
+            await remove(f.oldFile)
+          } catch {
+            hasErr = true
+          }
+          if (hasErr) {
+            try {
+              await Helper.send('tools', 'rm', f.oldFile)
+            } catch {}
+          }
         }
-      }
-      if (existsSync(f.newFile)) {
-        await chmod(f.newFile, '0777')
+        if (existsSync(f.newFile)) {
+          await chmod(f.newFile, '0777')
+        }
       }
     }
   }

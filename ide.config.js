@@ -4,6 +4,7 @@ const resolve = (dir) => {
   return path.join(__dirname, dir)
 }
 module.exports = {
+  module: 'esnext',
   resolve: {
     alias: {
       '@': resolve('src/render'),

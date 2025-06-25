@@ -1,8 +1,7 @@
 import { computed, reactive } from 'vue'
 import { OllamaAllModelsSetup } from './all/setup'
 import { OllamaLocalModelsSetup } from '@/components/Ollama/models/local/setup'
-
-const { shell } = require('@electron/remote')
+import { shell } from '@/util/NodeFn'
 
 export const OllamaModelsSetup = reactive<{
   tab: 'local' | 'all'

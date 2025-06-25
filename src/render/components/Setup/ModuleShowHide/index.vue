@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative flex justify-center items-center py-5 bg-gray-200 w-full rounded-md dark:bg-gray-700"
+    class="relative flex justify-center items-center py-5 bg-[#33445526] w-full rounded-md dark:bg-[#32364A]"
   >
     <div class="flex items-center">
       <div class="w-[100px]">{{ title }}</div>

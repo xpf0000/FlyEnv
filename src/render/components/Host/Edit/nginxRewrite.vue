@@ -65,9 +65,7 @@
       <el-button
         :icon="FolderOpened"
         @click.stop="shell.openPath(nginxRewriteTemplateDir)"
-      >
-        {{ I18nT('base.customConf') }}
-      </el-button>
+      ></el-button>
     </div>
     <div ref="input" class="input-textarea nginx-rewrite"></div>
   </div>
@@ -75,18 +73,14 @@
 
 <script lang="ts" setup>
   import { computed, nextTick, ref, watch, onMounted, onUnmounted } from 'vue'
-  import { readFileAsync } from '@shared/file'
   import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { I18nT } from '@lang/index'
   import { EditorConfigMake, EditorCreate } from '@/util/Editor'
   import { FolderOpened } from '@element-plus/icons-vue'
   import { Project } from '@/util/Project'
   import { HostNginxRewriteSetup } from '@/components/Host/Edit/rewrite'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
-  const { readFile } = require('fs-extra')
-  const { existsSync } = require('fs')
+  import { join } from '@/util/path-browserify'
+  import { fs, shell } from '@/util/NodeFn'
 
   const props = defineProps<{
     modelValue: string
@@ -97,7 +91,7 @@
 
   const input = ref()
 
-  const nginxRewriteTemplateDir = join(global.Server.BaseDir!, 'NginxRewriteTemplate')
+  const nginxRewriteTemplateDir = join(window.Server.BaseDir!, 'NginxRewriteTemplate')
 
   HostNginxRewriteSetup.initNginxRewrites()
   HostNginxRewriteSetup.initNginxRewriteCustomWatch()
@@ -116,32 +110,50 @@
 
   const rewriteKey = ref('')
 
-  const nginxRewriteFile = computed(() => {
-    const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
-    const rewritep = join(rewritepath, `${props.itemName}.conf`)
-    if (existsSync(rewritep)) {
-      return rewritep
-    }
-    return null
-  })
+  const nginxRewriteFileExists = ref(false)
 
-  const readNginxRewriteFromFile = () => {
-    if (!nginxRewriteFile.value) {
-      return
-    }
-    try {
-      readFile(nginxRewriteFile.value, 'utf-8').then((str: string) => {
-        emits('update:modelValue', str)
-        monacoInstance?.setValue?.(str)
-      })
-    } catch (e) {}
-  }
+  const nginxRewriteFile = computed(() => {
+    const rewritepath = join(window.Server.BaseDir!, 'vhost/rewrite')
+    const rewritep = join(rewritepath, `${props.itemName}.conf`)
+    return rewritep
+  })
 
   watch(
     nginxRewriteFile,
     (v) => {
       if (v) {
-        HostNginxRewriteSetup.initFileWatch(v, readNginxRewriteFromFile)
+        fs.existsSync(v).then((exists: boolean) => {
+          nginxRewriteFileExists.value = exists
+        })
+      } else {
+        nginxRewriteFileExists.value = false
+      }
+    },
+    {
+      immediate: true
+    }
+  )
+
+  const readNginxRewriteFromFile = () => {
+    if (!nginxRewriteFileExists.value) {
+      return
+    }
+    try {
+      fs.readFile(nginxRewriteFile.value).then((str: string) => {
+        emits('update:modelValue', str)
+        monacoInstance?.setValue?.(str)
+      })
+    } catch {
+      /* empty */
+    }
+  }
+
+  watch(
+    nginxRewriteFileExists,
+    (v) => {
+      if (v) {
+        readNginxRewriteFromFile()
+        HostNginxRewriteSetup.initFileWatch(nginxRewriteFile.value, readNginxRewriteFromFile)
       }
     },
     {
@@ -187,7 +199,7 @@
     if (HostNginxRewriteSetup.nginxRewriteCustom[file]) {
       const item = HostNginxRewriteSetup.nginxRewriteCustom[file]
       if (!item.content) {
-        readFileAsync(file).then((content) => {
+        fs.readFile(file).then((content) => {
           item.content = content
           emits('update:modelValue', content)
           monacoInstance?.setValue(content)
@@ -202,7 +214,7 @@
     if (HostNginxRewriteSetup.nginxRewriteDefault[file]) {
       const item = HostNginxRewriteSetup.nginxRewriteDefault[file]
       if (!item.content) {
-        readFileAsync(file).then((content) => {
+        fs.readFile(file).then((content) => {
           item.content = content
           emits('update:modelValue', content)
           monacoInstance?.setValue(content)
@@ -218,11 +230,10 @@
   onMounted(() => {
     nextTick().then(() => {
       initEditor()
-      readNginxRewriteFromFile()
     })
   })
   onUnmounted(() => {
-    monacoInstance && monacoInstance.dispose()
+    monacoInstance?.dispose()
     monacoInstance = null
     HostNginxRewriteSetup.deinitFileWatch()
     HostNginxRewriteSetup.deinitNginxRewriteCustomWatch()

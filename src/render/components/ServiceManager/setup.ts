@@ -1,31 +1,18 @@
 import { computed, ComputedRef, reactive } from 'vue'
-import { Service } from '@/components/ServiceManager/service'
 import { AppHost, AppStore } from '@/store/app'
 import { BrewStore, SoftInstalled } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-import installedVersions from '@/util/InstalledVersions'
-import { startService, stopService } from '@/util/Service'
 import { MessageError } from '@/util/Element'
 import { MysqlStore } from '@/components/Mysql/mysql'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { handleWriteHosts } from '@/util/Host'
 import type { AllAppModule } from '@/core/type'
-
-const { shell } = require('@electron/remote')
+import { shell } from '@/util/NodeFn'
+import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 
 export const Setup = (typeFlag: AllAppModule) => {
-  if (!Service[typeFlag]) {
-    Service[typeFlag] = {
-      fetching: false
-    }
-  }
-
   const appStore = AppStore()
   const brewStore = BrewStore()
-
-  const service = computed(() => {
-    return Service[typeFlag]
-  })
 
   const versions = computed(() => {
     return brewStore.module(typeFlag).installed
@@ -71,33 +58,27 @@ export const Setup = (typeFlag: AllAppModule) => {
   }
 
   const resetData = () => {
-    if (service?.value?.fetching) {
-      return
-    }
-    service.value.fetching = true
     const data = brewStore.module(typeFlag)
-    data.installedInited = false
-    installedVersions.allInstalledVersions([typeFlag]).then(() => {
-      service.value.fetching = false
-    })
+    data.installedFetched = false
+    data.fetchInstalled().catch()
   }
 
   const openDir = (dir: string) => {
     shell.openPath(dir)
   }
 
-  const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: SoftInstalled) => {
+  const serviceDo = (flag: 'stop' | 'start' | 'restart' | 'reload', item: ModuleInstalledItem) => {
     if (!item?.version || !item?.path) {
       return
     }
     let action: any
     switch (flag) {
       case 'stop':
-        action = stopService(typeFlag, item)
+        action = item.stop()
         break
       case 'start':
       case 'restart':
-        action = startService(typeFlag, item)
+        action = item.start()
         break
     }
     action.then((res: any) => {
@@ -207,20 +188,18 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const fetchData = () => {
     const data = brewStore.module(typeFlag)
-    if (service?.value?.fetching || data.installedInited) {
-      return
-    }
-    service.value.fetching = true
-    installedVersions.allInstalledVersions([typeFlag]).then(() => {
-      service.value.fetching = false
-    })
+    data.fetchInstalled().catch()
   }
+
+  const fetching = computed(() => {
+    const module = brewStore.module(typeFlag)
+    return module.fetchInstalleding
+  })
 
   ServiceActionStore.fetchPath()
 
   return {
     appStore,
-    service,
     versions,
     versionRunning,
     isInEnv,
@@ -232,6 +211,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     toPhpMyAdmin,
     currentVersion,
     resetData,
-    fetchData
+    fetchData,
+    fetching
   }
 }

@@ -1,4 +1,5 @@
 {
+  "startInstall": "开始安装{service}",
   "startServiceBegin": "开始启动{service}服务",
   "confInit": "配置文件不存在, 生成配置文件",
   "confInitSuccess": "配置文件生成成功, 文件路径: {file}",

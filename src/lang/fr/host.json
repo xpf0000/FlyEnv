@@ -64,5 +64,9 @@
   "copyCommand": "Copier la commande",
   "showFile": "Afficher le fichier",
   "sticky": "Épinglé",
-  "dbclickRowToEdit": "Double-cliquez sur cette ligne pour modifier"
+  "dbclickRowToEdit": "Double-cliquez sur cette ligne pour modifier",
+
+  "projectDeno": "Deno Projects",
+  "projectBun": "Bun Projects",
+  "projectPerl": "Perl Projects"
 }

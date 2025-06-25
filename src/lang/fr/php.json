@@ -12,8 +12,6 @@
   "obfuscatorSrc": "Fichier ou dossier PHP à obfusquer",
   "obfuscatorDesc": "Enregistrer le fichier ou le dossier, ne pas dupliquer le fichier ou le dossier source",
   "obfuscatorConfig": "Paramètres avancés",
-  "groupStartOff": "Désactiver le démarrage rapide du groupe",
-  "groupStartOn": "Activer le démarrage rapide du groupe",
   "quickStart": "Démarrage rapide",
   "display_errors": "Afficher les informations détaillées sur les erreurs",
   "short_open_tag": "Support des balises courtes",

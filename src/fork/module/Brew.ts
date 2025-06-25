@@ -1,54 +1,20 @@
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
-import { execPromise, spawnPromise } from '../Fn'
+import { execPromiseWithEnv, spawnPromiseWithEnv, copyFile, unlink, chmod } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { copyFile, unlink, chmod } from 'fs-extra'
+
 class Brew extends Base {
   constructor() {
     super()
   }
 
-  installBrew() {
-    return new ForkPromise(async (resolve, reject) => {
-      if (!global.Server.BrewCellar) {
-        try {
-          await execPromise('which brew')
-          let res = await execPromise('brew --repo')
-          const p = res.stdout
-          global.Server.BrewHome = p
-          await execPromise(
-            `git config --global --add safe.directory ${join(
-              p,
-              'Library/Taps/homebrew/homebrew-core'
-            )}`
-          )
-          await execPromise(
-            `git config --global --add safe.directory ${join(
-              p,
-              'Library/Taps/homebrew/homebrew-cask'
-            )}`
-          )
-          res = await execPromise('brew --cellar')
-          const c = res.stdout
-          console.log('brew --cellar: ', c)
-          global.Server.BrewCellar = c
-          resolve(global.Server)
-        } catch (e) {
-          reject(e)
-        }
-      } else {
-        resolve(global.Server)
-      }
-    })
-  }
-
   addTap(name: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const stdout = await spawnPromise('brew', ['tap'])
+        const stdout = (await spawnPromiseWithEnv('brew', ['tap'])).stdout
         if (!stdout.includes(name)) {
-          await spawnPromise('brew', ['tap', name])
+          await spawnPromiseWithEnv('brew', ['tap', name])
           resolve(2)
         } else {
           resolve(1)
@@ -62,9 +28,11 @@ class Brew extends Base {
   currentSrc() {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const src = await spawnPromise('git', ['remote', '-v'], {
-          cwd: global.Server.BrewHome
-        })
+        const src = (
+          await spawnPromiseWithEnv('git', ['remote', '-v'], {
+            cwd: global.Server.BrewHome
+          })
+        ).stdout
         let value = 'default'
         if (src.includes('tsinghua.edu.cn')) {
           value = 'tsinghua'
@@ -94,7 +62,7 @@ class Brew extends Base {
         }
         await copyFile(sh, copyfile)
         await chmod(copyfile, '0777')
-        await execPromise(`source brew-src.sh ${srcFlag} ${global.Server.BrewHome}`, {
+        await execPromiseWithEnv(`source brew-src.sh ${srcFlag} ${global.Server.BrewHome}`, {
           cwd: global.Server.Cache
         })
         resolve(true)
@@ -114,12 +82,12 @@ class Brew extends Base {
       }
       const zend = ['xdebug']
       try {
-        const allTap = await execPromise('brew tap')
+        const allTap = await execPromiseWithEnv('brew tap')
         if (!allTap.stdout.includes('shivammathur/extensions')) {
-          await execPromise('brew tap shivammathur/extensions')
+          await execPromiseWithEnv('brew tap shivammathur/extensions')
         }
         const cammand = `brew search --formula "/shivammathur\\/extensions\\/[\\s\\S]+${num}$/"`
-        let content: any = await execPromise(cammand, {
+        let content: any = await execPromiseWithEnv(cammand, {
           env: {
             HOMEBREW_NO_INSTALL_FROM_API: 1
           }
@@ -165,7 +133,7 @@ class Brew extends Base {
         const numStr = `${num}`.split('.').join('')
         const cammand = `port search --name --line php${numStr}-`
         console.log('cammand: ', cammand)
-        let res: any = await execPromise(cammand)
+        let res: any = await execPromiseWithEnv(cammand)
         res = res?.stdout.toString() ?? ''
         const arr = res
           .split('\n')

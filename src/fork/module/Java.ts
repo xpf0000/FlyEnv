@@ -1,20 +1,27 @@
-import { dirname, join } from 'path'
-import { existsSync, realpathSync } from 'fs'
+import { join } from 'path'
+import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
   brewSearch,
-  getSubDirAsync,
+  execPromise,
+  mkdirp,
+  moveChildDirToParent,
   portSearch,
+  readdir,
+  remove,
   versionBinVersion,
-  versionCheckBin,
   versionFilterSame,
   versionFixed,
-  versionSort
+  versionLocalFetch,
+  versionSort,
+  waitTime,
+  zipUnPack
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class Java extends Base {
   constructor() {
@@ -26,23 +33,30 @@ class Java extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('java')
-        const dict: any = {}
         all.forEach((a: any) => {
-          const dir = join(
-            global.Server.AppDir!,
-            `static-${a.type}-${a.version}`,
-            'Contents/Home/bin/java'
-          )
-          const zip = join(global.Server.Cache!, `static-${a.type}-${a.version}.tar.gz`)
-          a.appDir = join(global.Server.AppDir!, `static-${a.type}-${a.version}`)
+          let dir = ''
+          let zip = ''
+          if (isMacOS()) {
+            dir = join(
+              global.Server.AppDir!,
+              `static-${a.type}-${a.version}`,
+              'Contents/Home/bin/java'
+            )
+            zip = join(global.Server.Cache!, `static-${a.type}-${a.version}.tar.gz`)
+            a.appDir = join(global.Server.AppDir!, `static-${a.type}-${a.version}`)
+          } else if (isWindows()) {
+            dir = join(global.Server.AppDir!, `${a.type}-${a.version}`, 'bin/java.exe')
+            zip = join(global.Server.Cache!, `${a.type}-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `${a.type}-${a.version}`)
+          }
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`${a.type}-${a.version}`] = a
+          a.name = `${a.type}-${a.version}`
         })
-        resolve(dict)
-      } catch (e) {
+        resolve(all)
+      } catch {
         resolve({})
       }
     })
@@ -50,121 +64,29 @@ class Java extends Base {
 
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
-      const versionLocalFetch = async (
-        customDirs: string[],
-        binName: string,
-        searchName: string
-      ): Promise<Array<SoftInstalled>> => {
-        const installed: Set<string> = new Set()
-        const systemDirs = [
-          '/',
-          '/opt',
-          '/usr',
-          global.Server.AppDir!,
-          ...customDirs,
-          '/Library/Java/JavaVirtualMachines'
-        ]
-
-        const realDirDict: { [k: string]: string } = {}
-        const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
-          if (!existsSync(dir)) {
-            return
-          }
-          dir = realpathSync(dir)
-          console.log('findInstalled dir: ', dir)
-          let binPath = versionCheckBin(join(dir, `${binName}`))
-          if (binPath) {
-            realDirDict[binPath] = join(dir, `${binName}`)
-            installed.add(binPath)
-            return
-          }
-          binPath = versionCheckBin(join(dir, `bin/${binName}`))
-          if (binPath) {
-            realDirDict[binPath] = join(dir, `bin/${binName}`)
-            installed.add(binPath)
-            return
-          }
-          binPath = versionCheckBin(join(dir, `sbin/${binName}`))
-          if (binPath) {
-            realDirDict[binPath] = join(dir, `sbin/${binName}`)
-            installed.add(binPath)
-            return
-          }
-          binPath = versionCheckBin(join(dir, `Contents/Home/bin/java`))
-          if (binPath) {
-            realDirDict[binPath] = join(dir, `Contents/Home/bin/java`)
-            installed.add(binPath)
-            return
-          }
-          if (depth >= maxDepth) {
-            return
-          }
-          const sub = await getSubDirAsync(dir)
-          console.log('sub: ', sub)
-          for (const s of sub) {
-            await findInstalled(s, depth + 1, maxDepth)
-          }
-        }
-
-        for (const s of systemDirs) {
-          await findInstalled(s, 0, 1)
-        }
-
-        const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
-        for (const b of base) {
-          const subDir = await getSubDirAsync(b)
-          const subDirFilter = subDir.filter((f) => {
-            return f.includes(searchName)
-          })
-          for (const f of subDirFilter) {
-            const subDir1 = await getSubDirAsync(f)
-            for (const s of subDir1) {
-              await findInstalled(s)
-            }
-          }
-        }
-        const count = installed.size
-        if (count === 0) {
-          return []
-        }
-
-        const list: Array<SoftInstalled> = []
-        const installedList: Array<string> = Array.from(installed)
-        for (const i of installedList) {
-          let path = i
-          if (path.includes('/sbin/') || path.includes('/bin/')) {
-            path = path
-              .replace(`/sbin/`, '/##SPLIT##/')
-              .replace(`/bin/`, '/##SPLIT##/')
-              .split('/##SPLIT##/')
-              .shift()!
-          } else {
-            path = dirname(path)
-          }
-          const item = {
-            bin: i,
-            path: `${path}/`,
-            run: false,
-            running: false
-          }
-          if (!list.find((f) => f.path === item.path && f.bin === item.bin)) {
-            list.push(item as any)
-          }
-        }
-        return list
-      }
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.java?.dirs ?? [], 'java', 'jdk')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [
+          versionLocalFetch(
+            [...(setup?.java?.dirs ?? []), '/Library/Java/JavaVirtualMachines'],
+            'java',
+            'jdk',
+            ['Contents/Home/bin/java']
+          )
+        ]
+      } else if (isWindows()) {
+        all = [versionLocalFetch(setup?.java?.dirs ?? [], 'java.exe')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          const all = versions.map((item) =>
-            TaskQueue.run(
-              versionBinVersion,
-              `${item.bin} -version`,
-              /(")(\d+([\.|\d]+){1,4})(["_])/g
-            )
-          )
+          const all = versions.map((item) => {
+            const command = `"${item.bin}" -version`
+            const reg = /(")(\d+([\\.|\d]+){1,4})(["_])/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
           return Promise.all(all)
         })
         .then((list) => {
@@ -186,6 +108,25 @@ class Java extends Base {
           resolve([])
         })
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    if (isMacOS()) {
+      const dir = row.appDir
+      await super._installSoftHandle(row)
+      const subDirs = await readdir(dir)
+      const subDir = subDirs.pop()
+      if (subDir) {
+        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
+        await waitTime(300)
+        await remove(join(dir, subDir))
+      }
+    } else if (isWindows()) {
+      await remove(row.appDir)
+      await mkdirp(row.appDir)
+      await zipUnPack(row.zip, row.appDir)
+      await moveChildDirToParent(row.appDir)
+    }
   }
 
   brewinfo() {

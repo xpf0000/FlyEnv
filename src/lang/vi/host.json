@@ -65,5 +65,9 @@
   "comment": "Bình luận",
   "frameworkVersion": "Phiên bản Framework",
   "placeholderComment": "Bình luận",
-  "tcpPort": "Cổng TCP"
+  "tcpPort": "Cổng TCP",
+
+  "projectDeno": "Deno Projects",
+  "projectBun": "Bun Projects",
+  "projectPerl": "Perl Projects"
 }

@@ -1,16 +1,15 @@
 import type BaseTask from '@/components/AI/Task/BaseTask'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
-import { startService } from '@/util/Service'
 import { AIStore } from '@/components/AI/store'
-import { fetchInstalled, killPort } from '@/components/AI/Fn/Util'
+import { killPort } from '@/components/AI/Fn/Util'
 import { I18nT } from '@lang/index'
 
 export function startApache(this: BaseTask) {
   return new Promise(async (resolve, reject) => {
-    await fetchInstalled(['apache'])
     const appStore = AppStore()
     const brewStore = BrewStore()
+    await brewStore.module('apache').fetchInstalled()
     const current = appStore.config.server?.apache?.current
     const installed = brewStore.module('apache').installed
     let apache = installed?.find((i) => i.path === current?.path && i.version === current?.version)
@@ -21,7 +20,7 @@ export function startApache(this: BaseTask) {
       reject(new Error(I18nT('ai.noAvailableVersion')))
       return
     }
-    const res = await startService('apache', apache)
+    const res = await brewStore.module('apache').start()
     if (res === true) {
       const aiStore = AIStore()
       aiStore.chatList.push({
@@ -33,6 +32,7 @@ export function startApache(this: BaseTask) {
     }
     if (typeof res === 'string') {
       const regex =
+        // @ts-ignore
         /\(48\)Address already in use: AH00072: make_sock: could not bind to address ([\d\.\[:\]]*):(\d+)/g
       if (regex.test(res)) {
         const aiStore = AIStore()

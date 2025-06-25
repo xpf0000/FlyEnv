@@ -1,4 +1,32 @@
 import { app } from 'electron'
+import { cpus } from 'os'
+import {
+  createWriteStream,
+  removeSync,
+  stat,
+  existsSync,
+  copyFile,
+  appendFile,
+  chmod,
+  remove,
+  mkdirp,
+  readFile,
+  writeFile
+} from '@shared/fs-extra'
+
+export {
+  createWriteStream,
+  removeSync,
+  stat,
+  existsSync,
+  copyFile,
+  appendFile,
+  chmod,
+  remove,
+  mkdirp,
+  readFile,
+  writeFile
+}
 
 export function uuid(length = 32) {
   const num = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
@@ -22,4 +50,9 @@ export const wait = (time = 2000) => {
       resolve(true)
     }, time)
   })
+}
+
+export function isAppleSilicon() {
+  const cpuCore = cpus()
+  return cpuCore[0].model.includes('Apple')
 }

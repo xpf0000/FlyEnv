@@ -3,12 +3,10 @@ import { BrowserWindow } from 'electron'
 import request from '@shared/request'
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent'
 import Config from './Config'
-import { enable } from '@electron/remote/main'
 import { checkIsExcludeUrl, urlToDir } from './Fn'
 import { Store } from './Store'
-import { wait } from '../../utils'
+import { wait, mkdirp, writeFile } from '../../utils'
 import { dirname } from 'path'
-import { mkdirp, writeFile } from 'fs-extra'
 
 class PageTaskItem {
   private window?: BrowserWindow
@@ -22,11 +20,10 @@ class PageTaskItem {
       height: 960,
       webPreferences: {
         nodeIntegration: false,
-        contextIsolation: false,
+        contextIsolation: true,
         webSecurity: false
       }
     })
-    enable(this.window.webContents)
     this.window.webContents.session.webRequest.onBeforeRequest((details, callback) => {
       if (checkIsExcludeUrl(details.url, false)) {
         callback({
@@ -221,7 +218,9 @@ class PageTaskItem {
     Store.LoadedUrl.push(page.url)
     try {
       await this.window!.loadURL(page.url)
-    } catch (e) {}
+    } catch {
+      /* empty */
+    }
     clearTimeout(timer)
     await wait(1000)
     await this.onPageLoaded(page)
@@ -257,7 +256,7 @@ class PageTaskItem {
             right = false
           }
         }
-      } catch (e) {
+      } catch {
         right = false
       }
       return right
@@ -408,7 +407,9 @@ class PageTaskItem {
               const dir = dirname(saveFile)
               try {
                 await mkdirp(dir)
-              } catch (e) {}
+              } catch {
+                /* empty */
+              }
               html = this.handlePageHtml(html, page)
               await writeFile(saveFile, html)
               page.state = 'success'

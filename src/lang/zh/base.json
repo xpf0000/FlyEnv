@@ -10,7 +10,6 @@
   "del": "删除",
   "version": "版本",
   "commonTemplates": "常用模板",
-  "customConf": "自定义 *.conf",
   "save": "保存",
   "lang": "语言",
   "changeLang": "更改语言",
@@ -40,8 +39,6 @@
   "cleanSelect": "清除选择",
   "cleanAll": "清除全部",
   "brewSrcSwitch": "Brew源切换",
-  "githubFixTitle": "修复GitHub访问问题",
-  "tryToFix": "尝试修复",
   "useProxy": "使用代理",
   "proxySetting": "代理设置",
   "quickSetup": "快速设置",
@@ -110,7 +107,6 @@
   "staticDelAlert": "为了保证用户数据安全. 不再提供自动删除已安装软件的功能. 如确定要删除. 可点击确定. 在打开的文件夹中手动删除软件.",
   "placeholderSearch": "搜索",
   "projects": "项目",
-
   "areYouSure": "确定执行此操作?",
   "action": "操作"
 }

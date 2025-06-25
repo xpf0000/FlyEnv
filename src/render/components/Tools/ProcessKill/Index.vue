@@ -2,7 +2,7 @@
   <div class="port-kill tools host-edit">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ $t('util.toolProcessKill') }}</span>
+        <span class="text-xl">{{ I18nT('util.toolProcessKill') }}</span>
         <slot name="like"></slot>
       </div>
     </div>
@@ -11,7 +11,7 @@
       <div class="main p-0">
         <el-input
           v-model="searchKey"
-          placeholder="Please input search key"
+          :placeholder="I18nT('util.inputSearchKey')"
           class="input-with-select"
           @change="doSearch"
         >
@@ -23,10 +23,10 @@
         <div class="table-wapper">
           <div class="btn-cell">
             <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect">{{
-              $t('base.cleanSelect')
+              I18nT('base.cleanSelect')
             }}</el-button>
             <el-button type="danger" :disabled="arrs.length === 0" @click="cleanAll">{{
-              $t('base.cleanAll')
+              I18nT('base.cleanAll')
             }}</el-button>
           </div>
           <el-card :header="null" :shadow="false">
@@ -41,7 +41,8 @@
             >
               <el-table-column type="selection" width="55" />
               <el-table-column prop="PID" label="PID" width="240"> </el-table-column>
-              <el-table-column prop="USER" label="User" width="110"> </el-table-column>
+              <el-table-column v-if="!isWindows" prop="USER" label="User" width="110">
+              </el-table-column>
               <el-table-column prop="COMMAND" label="Command"> </el-table-column>
             </el-table>
           </el-card>
@@ -51,107 +52,107 @@
   </div>
 </template>
 
-<script>
-  import { markRaw } from 'vue'
+<script setup lang="ts">
+  import { computed, ref } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { passwordCheck } from '@/util/Brew.ts'
-  import { MessageSuccess, MessageWarning } from '@/util/Element.ts'
-  import IPC from '@/util/IPC.ts'
+  import { MessageSuccess, MessageWarning } from '@/util/Element'
+  import IPC from '@/util/IPC'
   import { I18nT } from '@lang/index'
+  import Base from '@/core/Base'
 
-  export default {
-    components: {},
-    props: {},
-    data() {
-      return {
-        Search: markRaw(Search),
-        searchKey: '',
-        arrs: [],
-        select: []
-      }
-    },
-    computed: {},
-    watch: {},
-    created: function () {},
-    mounted() {
-      passwordCheck().then(() => {})
-    },
-    unmounted() {},
-    methods: {
-      cleanSelect() {
-        this.$baseConfirm(this.$t('base.killProcessConfirm'), null, {
-          customClass: 'confirm-del',
-          type: 'warning'
-        })
-          .then(() => {
-            const pids = this.select.map((s) => {
-              return s.PID
-            })
-            IPC.send(`app-fork:tools`, 'killPids', '-9', pids).then((key) => {
-              IPC.off(key)
-              MessageSuccess(I18nT('base.success'))
-              this.doSearch()
-            })
-          })
-          .catch(() => {})
-      },
-      cleanAll() {
-        this.$baseConfirm(this.$t('base.killAllProcessConfirm'), null, {
-          customClass: 'confirm-del',
-          type: 'warning'
-        })
-          .then(() => {
-            const pids = this.arrs.map((s) => {
-              return s.PID
-            })
-            IPC.send(`app-fork:tools`, 'killPids', '-9', pids).then((key) => {
-              IPC.off(key)
-              MessageSuccess(I18nT('base.success'))
-              this.doSearch()
-            })
-          })
-          .catch(() => {})
-      },
-      handleSelectionChange(select) {
-        console.log(...arguments)
-        this.select.splice(0)
-        this.select.push(...select)
-      },
-      doClose() {
-        this.$emit('doClose')
-      },
-      async doSearch() {
-        this.arrs.splice(0)
-        IPC.send(`app-fork:tools`, 'getPidsByKey', this.searchKey).then((key, res) => {
+  interface ProcessItem {
+    PID: string
+    PPID?: string
+    USER: string
+    COMMAND: string
+    children?: ProcessItem[]
+  }
+
+  const searchKey = ref('')
+  const arrs = ref<ProcessItem[]>([])
+  const select = ref<ProcessItem[]>([])
+
+  const isMacOS = computed(() => {
+    return window.Server.isMacOS
+  })
+  const isWindows = computed(() => {
+    return window.Server.isWindows
+  })
+  const isLinux = computed(() => {
+    return window.Server.isLinux
+  })
+
+  const cleanSelect = () => {
+    Base._Confirm(I18nT('base.killProcessConfirm'), undefined, {
+      customClass: 'confirm-del',
+      type: 'warning'
+    })
+      .then(() => {
+        const pids = select.value.map((s) => s.PID)
+        IPC.send(`app-fork:tools`, 'killPids', '-9', pids).then((key) => {
           IPC.off(key)
-          const arr = res?.data ?? []
-          if (arr.length === 0) {
-            MessageWarning(I18nT('base.processNoFound'))
-            return
-          }
-          const arrs = []
-          const findSub = (item) => {
-            const sub = []
-            for (const s of arr) {
-              if (s.PPID === item.PID) {
-                sub.push(s)
-              }
-            }
-            if (sub.length > 0) {
-              item.children = sub
-            }
-          }
-          for (const item of arr) {
-            findSub(item)
-            const p = arr.find((s) => s.PID === item.PPID)
-            if (!p) {
-              arrs.push(item)
-            }
-          }
-          this.arrs.splice(0)
-          this.arrs.push(...arrs)
+          MessageSuccess(I18nT('base.success'))
+          doSearch()
         })
+      })
+      .catch(() => {})
+  }
+
+  const cleanAll = () => {
+    Base._Confirm(I18nT('base.killAllProcessConfirm'), undefined, {
+      customClass: 'confirm-del',
+      type: 'warning'
+    })
+      .then(() => {
+        const pids = arrs.value.map((s) => s.PID)
+        IPC.send(`app-fork:tools`, 'killPids', '-9', pids).then((key) => {
+          IPC.off(key)
+          MessageSuccess(I18nT('base.success'))
+          doSearch()
+        })
+      })
+      .catch(() => {})
+  }
+
+  const handleSelectionChange = (selection: ProcessItem[]) => {
+    select.value = [...selection]
+  }
+
+  const doSearch = async () => {
+    arrs.value = []
+    IPC.send(`app-fork:tools`, 'getPidsByKey', searchKey.value).then((key, res) => {
+      IPC.off(key)
+      const arr = res?.data ?? []
+      if (arr.length === 0) {
+        MessageWarning(I18nT('base.processNoFound'))
+        return
       }
-    }
+
+      const processMap = new Map<string, ProcessItem>()
+      const rootProcesses: ProcessItem[] = []
+
+      // First pass: create all items and build the map
+      arr.forEach((item: ProcessItem) => {
+        processMap.set(item.PID, { ...item })
+      })
+
+      // Second pass: build the hierarchy
+      arr.forEach((item: ProcessItem) => {
+        const current = processMap.get(item.PID)
+        if (item.PPID && processMap.has(item.PPID)) {
+          const parent = processMap.get(item.PPID)
+          if (parent) {
+            if (!parent.children) {
+              parent.children = []
+            }
+            parent.children.push(current!)
+          }
+        } else {
+          rootProcesses.push(current!)
+        }
+      })
+
+      arrs.value = rootProcesses
+    })
   }
 </script>

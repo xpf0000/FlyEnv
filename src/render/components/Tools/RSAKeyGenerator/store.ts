@@ -1,9 +1,7 @@
 import { reactive } from 'vue'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
-
-const { pki } = require('node-forge')
-const { clipboard } = require('@electron/remote')
+import { clipboard, nodeForge } from '@/util/NodeFn'
 
 function generateRawPairs({ bits = 2048 }) {
   return new Promise<{ privateKey: string; publicKey: string }>((resolve, reject) => {
@@ -11,17 +9,14 @@ function generateRawPairs({ bits = 2048 }) {
       reject(new Error('Bits should be 256 <= bits <= 16384 and be a multiple of 8'))
       return
     }
-    pki.rsa.generateKeyPair(
-      { bits, workers: 2 },
-      (err: any, keyPair: { privateKey: string; publicKey: string }) => {
-        console.log('generateRawPairs: ', bits, err, keyPair)
-        if (err) {
-          reject(err)
-          return
-        }
+    nodeForge
+      .rsaGenerateKeyPair({ bits, workers: 2 })
+      .then((keyPair: { privateKey: string; publicKey: string }) => {
         resolve(keyPair)
-      }
-    )
+      })
+      .catch((err) => {
+        reject(err)
+      })
   })
 }
 
@@ -40,9 +35,11 @@ const store = reactive({
     this.timer = setTimeout(async () => {
       try {
         const { privateKey, publicKey } = await generateRawPairs({ bits: this.bits })
-        this.privateKeyPem = pki.privateKeyToPem(privateKey)
-        this.publicKeyPem = pki.publicKeyToPem(publicKey)
-      } catch (e) {}
+        this.privateKeyPem = await nodeForge.privateKeyToPem(privateKey)
+        this.publicKeyPem = await nodeForge.publicKeyToPem(publicKey)
+      } catch {
+        /* empty */
+      }
       this.timer = undefined
     }, this.debounce) as any
   },

@@ -1,9 +1,7 @@
 import { Base } from './Base'
-import { getMac } from '@lzwme/get-physical-address'
-import { machineId } from 'node-machine-id'
+import { machineId } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { cpus, arch } from 'os'
-import { md5 } from '../Fn'
+import { arch } from 'os'
 import axios from 'axios'
 import { publicDecrypt } from 'crypto'
 
@@ -33,16 +31,10 @@ class App extends Base {
     return arr.join('\n')
   }
 
-  private async getUUID() {
-    const mac = await getMac()
-    const cpu = cpus()?.pop()?.model ?? ''
-    return md5(`${mac}-${cpu}`)
-  }
-
   start(version: string) {
     return new ForkPromise(async (resolve) => {
       const uuid_new = await machineId()
-      const uuid = await this.getUUID()
+      const uuid = '#########'
       const os = `macOS ${arch()}`
 
       const data = {

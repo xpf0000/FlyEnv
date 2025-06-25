@@ -1,7 +1,7 @@
 <template>
   <li @click.stop="toExtension">
-    <yb-icon :svg="import('@/svg/extend.svg?raw')" width="13" height="13" />
-    <span class="ml-15">{{ I18nT('php.extension') }}</span>
+    <yb-icon class="p-[1px]" :svg="import('@/svg/extend.svg?raw')" width="17" height="17" />
+    <span class="ml-3">{{ I18nT('php.extension') }}</span>
   </li>
 </template>
 <script lang="ts" setup>

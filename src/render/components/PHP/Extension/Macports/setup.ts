@@ -7,11 +7,8 @@ import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import Base from '@/core/Base'
 import { ExtensionSetup } from '@/components/PHP/Extension/setup'
-
-const { clipboard } = require('@electron/remote')
-const { join } = require('path')
-const { existsSync, unlinkSync, readFileSync, writeFileSync } = require('fs')
-const { chmod } = require('fs-extra')
+import { join } from '@/util/path-browserify'
+import { clipboard, fs } from '@/util/NodeFn'
 
 export const MacPortsSetup = reactive<{
   installEnd: boolean
@@ -89,24 +86,25 @@ export const Setup = (version: SoftInstalled) => {
     MacPortsSetup.installEnd = false
 
     let fn = row?.status ? 'uninstall' : 'install'
-    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const arch = window.Server.isAppleSilicon ? '-arm64' : '-x86_64'
     const name = row.libName
     const params = []
-    const sh = join(global.Server.Static!, 'sh/port-cmd.sh')
-    const copyfile = join(global.Server.Cache!, 'port-cmd.sh')
-    if (existsSync(copyfile)) {
-      unlinkSync(copyfile)
+    const sh = join(window.Server.Static!, 'sh/port-cmd.sh')
+    const copyfile = join(window.Server.Cache!, 'port-cmd.sh')
+    const exists = await fs.existsSync(copyfile)
+    if (exists) {
+      await fs.remove(copyfile)
     }
     if (fn === 'uninstall') {
       fn = 'uninstall --follow-dependents'
     }
-    let content = readFileSync(sh, 'utf-8')
+    let content = await fs.readFile(sh)
     content = content
       .replace(new RegExp('##ARCH##', 'g'), arch)
       .replace(new RegExp('##ACTION##', 'g'), fn)
       .replace(new RegExp('##NAME##', 'g'), name)
-    writeFileSync(copyfile, content)
-    await chmod(copyfile, '0777')
+    await fs.writeFile(copyfile, content)
+    await fs.chmod(copyfile, '0777')
     params.push(`sudo -S "${copyfile}"`)
 
     if (proxyStr?.value) {
@@ -179,7 +177,7 @@ export const Setup = (version: SoftInstalled) => {
   }
 
   const copyXDebugTmpl = (row: any) => {
-    const output_dir = join(global.Server.PhpDir!, 'xdebug')
+    const output_dir = join(window.Server.PhpDir!, 'xdebug')
     const txt = `zend_extension = "${row.soname}"
 ;[FlyEnv-xdebug-ini-begin]
 [xdebug]
@@ -202,11 +200,12 @@ xdebug.output_dir = "${output_dir}"
       customClass: 'confirm-del',
       type: 'warning'
     })
-      .then(() => {
+      .then(async () => {
         console.log('row: ', row)
         const dir = ExtensionSetup.dir[version.bin]!
         const soPath = join(dir, row.soname)
-        if (soPath && existsSync(soPath)) {
+        const exists = await fs.existsSync(soPath)
+        if (soPath && exists) {
           IPC.send('app-fork:php', 'unInstallExtends', soPath).then((key: string, res: any) => {
             IPC.off(key)
             if (res.code === 0) {
@@ -240,7 +239,7 @@ xdebug.output_dir = "${output_dir}"
   })
 
   onUnmounted(() => {
-    MacPortsSetup.xterm && MacPortsSetup.xterm.unmounted()
+    MacPortsSetup?.xterm?.unmounted()
   })
 
   return {

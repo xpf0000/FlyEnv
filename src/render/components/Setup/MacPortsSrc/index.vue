@@ -2,7 +2,7 @@
   <div class="plant-title">{{ $t('util.macPortsSrcSwitch') }}</div>
   <div class="main brew-src">
     <el-select v-model="currentSrc" :disabled="!checkMacPorts()">
-      <template v-for="(src, index) in srcs" :key="index">
+      <template v-for="(src, _index) in srcs" :key="_index">
         <el-option :label="src.name" :value="src.url"></el-option>
       </template>
     </el-select>
@@ -17,8 +17,7 @@
   import { I18nT } from '@lang/index'
   import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
-
-  const { readFile, existsSync } = require('fs-extra')
+  import { fs } from '@/util/NodeFn'
 
   const srcs = computed(() => {
     return [
@@ -115,16 +114,16 @@
   const running = ref(false)
 
   const checkMacPorts = () => {
-    return !!global.Server.MacPorts
+    return !!window.Server.MacPorts
   }
 
   const getCurrentSrc = async () => {
-    if (!existsSync(sourcesConf)) {
+    if (!(await fs.existsSync(sourcesConf))) {
       return ''
     }
-    const content = await readFile(sourcesConf, 'utf-8')
+    const content = await fs.readFile(sourcesConf)
     const regex = /^(?:\s*rsync:\/\/.*\[default\])$/gm
-    const all: Array<string> = content.match(regex)?.map((s: string) => s.trim())
+    const all: Array<string> = content.match(regex)?.map((s: string) => s.trim()) ?? []
     let find = all?.find((a) => a.includes('[default]'))
     if (!find) {
       find = all.pop()

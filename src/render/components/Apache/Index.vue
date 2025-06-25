@@ -1,16 +1,21 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="tab" class="mt-3">
-      <template v-for="(item, index) in tabs" :key="index">
-        <el-radio-button :label="item" :value="index"></el-radio-button>
+      <template v-for="(item, _index) in tabs" :key="_index">
+        <el-radio-button :label="item" :value="_index"></el-radio-button>
       </template>
     </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="apache" title="Apache"></Service>
-      <Manager v-else-if="tab === 1" type-flag="apache"></Manager>
+      <Manager
+        v-else-if="tab === 1"
+        type-flag="apache"
+        url="https://www.apachelounge.com/download/"
+        title="Apache"
+      ></Manager>
       <Config v-else-if="tab === 2"></Config>
-      <Logs v-else-if="tab === 3" type="error_log"></Logs>
-      <Logs v-else-if="tab === 4" type="access_log"></Logs>
+      <Logs v-else-if="tab === 3" type="error"></Logs>
+      <Logs v-else-if="tab === 4" type="access"></Logs>
     </div>
   </div>
 </template>

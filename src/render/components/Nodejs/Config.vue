@@ -20,15 +20,14 @@
   import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import { uuid } from '@/util/Index'
-
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
 
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const conf = ref()
   const file = computed(() => {
-    return join(global.Server.UserHome!, '.npmrc')
+    return join(window.Server.UserHome!, '.npmrc')
   })
 
   const baseOptions = [

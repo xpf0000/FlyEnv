@@ -32,5 +32,10 @@
   "url-encode-title": "Encode/Decode URL",
   "url-parse-title": "Parser URL",
   "wifi-qr-code-generator-title": "Generator QR Code WiFi",
-  "URLTimingAnalyzer": "Analyzer Waktu URL"
+  "URLTimingAnalyzer": "Analyzer Waktu URL",
+
+  "envValue": "Value",
+  "rawEnvPath": "Actual Path",
+  "envValueErrorTips": "The path does not exist. You can click to copy the command and test it in Command Prompt.",
+  "invalidPath": "Invalid Path"
 }

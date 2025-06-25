@@ -10,5 +10,7 @@
   "ftpServer": "FTP Sunucusu",
   "other": "Diğer",
   "appLog": "Uygulama Günlüğü",
-  "ai": "Yapay Zeka"
+  "ai": "Yapay Zeka",
+
+  "objectStorage": "Object Storage"
 }

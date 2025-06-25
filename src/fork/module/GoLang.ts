@@ -1,4 +1,4 @@
-import { dirname, join } from 'path'
+import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -6,14 +6,22 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
   brewSearch,
+  execPromise,
+  mkdirp,
+  moveChildDirToParent,
   portSearch,
+  readdir,
+  remove,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  waitTime,
+  zipUnPack
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class GoLang extends Base {
   constructor() {
@@ -25,19 +33,25 @@ class GoLang extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('golang')
-        const dict: any = {}
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `static-go-${a.version}`, 'bin/go')
-          const zip = join(global.Server.Cache!, `static-go-${a.version}.tar.gz`)
+          let dir = ''
+          let zip = ''
+          if (isMacOS()) {
+            dir = join(global.Server.AppDir!, `static-go-${a.version}`, 'bin/go')
+            zip = join(global.Server.Cache!, `static-go-${a.version}.tar.gz`)
+          } else if (isWindows()) {
+            dir = join(global.Server.AppDir!, `static-go-${a.version}`, 'bin/go.exe')
+            zip = join(global.Server.Cache!, `static-go-${a.version}.zip`)
+          }
           a.appDir = join(global.Server.AppDir!, `static-go-${a.version}`)
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`Go-${a.version}`] = a
+          a.name = `Go-${a.version}`
         })
-        resolve(dict)
-      } catch (e) {
+        resolve(all)
+      } catch {
         resolve({})
       }
     })
@@ -46,17 +60,21 @@ class GoLang extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.golang?.dirs ?? [], 'gofmt', 'go')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [versionLocalFetch(setup?.golang?.dirs ?? [], 'gofmt', 'go')]
+      } else if (isWindows()) {
+        all = [versionLocalFetch(setup?.golang?.dirs ?? [], 'go.exe')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          const all = versions.map((item) =>
-            TaskQueue.run(
-              versionBinVersion,
-              `${join(dirname(item.bin), 'go')} version`,
-              /( go)(.*?)( )/g
-            )
-          )
+          const all = versions.map((item) => {
+            const command = `"${item.bin}" version`
+            const reg = /( go)(.*?)( )/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
           return Promise.all(all)
         })
         .then((list) => {
@@ -78,6 +96,25 @@ class GoLang extends Base {
           resolve([])
         })
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    if (isWindows()) {
+      await remove(row.appDir)
+      await mkdirp(row.appDir)
+      await zipUnPack(row.zip, row.appDir)
+      await moveChildDirToParent(row.appDir)
+    } else if (isMacOS()) {
+      const dir = row.appDir
+      await super._installSoftHandle(row)
+      const subDirs = await readdir(dir)
+      const subDir = subDirs.pop()
+      if (subDir) {
+        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
+        await waitTime(300)
+        await remove(join(dir, subDir))
+      }
+    }
   }
 
   brewinfo() {

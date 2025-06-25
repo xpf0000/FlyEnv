@@ -54,5 +54,6 @@
   "toolSaveConfirm": "Are you sure you want to save it?",
   "auto": "Auto",
   "noVerionsFoundInLib": "No available version",
-  "showToolBtn": "Display Floating Tool Button"
+  "showToolBtn": "Display Floating Tool Button",
+  "inputSearchKey": "Search keyword"
 }

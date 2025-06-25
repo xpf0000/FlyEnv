@@ -1,4 +1,5 @@
 import { cpus } from 'os'
+import type { CallBackFn } from '@shared/app'
 
 interface TaskItem {
   item: (...args: any) => Promise<any>
@@ -6,7 +7,7 @@ interface TaskItem {
   state: 'wait' | 'running'
 }
 class TaskQueue {
-  private callBack: WeakMap<TaskItem, { resolve: Function; reject: Function }> = new WeakMap()
+  private callBack: WeakMap<TaskItem, { resolve: CallBackFn; reject: CallBackFn }> = new WeakMap()
   #queue: Array<TaskItem> = []
   #runQueue: Array<TaskItem> = []
   #runSize = 4

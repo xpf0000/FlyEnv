@@ -36,13 +36,13 @@ export const urlToDir = (url: string, isPageUrl?: boolean) => {
        */
       const name = basename(pathDir)
       if (url.includes('?')) {
-      const newName = `${md5(name)}.html`
-      pathDir = pathDir.replace(name, newName)
+        const newName = `${md5(name)}.html`
+        pathDir = pathDir.replace(name, newName)
       } else {
-      const ext = extname(pathDir)
-      let newName = ''
-      // Has an extension
-        if (!!ext) {
+        const ext = extname(pathDir)
+        let newName = ''
+        // Has an extension
+        if (ext) {
           if (ext !== '.html') {
             newName = name.replace(ext, '.html')
           }

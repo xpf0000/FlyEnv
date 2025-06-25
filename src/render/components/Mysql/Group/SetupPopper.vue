@@ -8,22 +8,22 @@
   >
     <ul v-poper-fix class="host-list-menu">
       <li @click.stop="action('edit')">
-        <span class="ml-15">{{ I18nT('base.edit') }}</span>
+        <span class="ml-3">{{ I18nT('base.edit') }}</span>
       </li>
       <li @click.stop="action('socket')">
-        <span class="ml-15"> {{ I18nT('util.mysqlPopperSocket') }} </span>
+        <span class="ml-3"> {{ I18nT('util.mysqlPopperSocket') }} </span>
       </li>
       <li @click.stop="action('cnf')">
-        <span class="ml-15">{{ I18nT('base.configFile') }}</span>
+        <span class="ml-3">{{ I18nT('base.configFile') }}</span>
       </li>
       <li @click.stop="action('log')">
-        <span class="ml-15">{{ I18nT('base.log') }}</span>
+        <span class="ml-3">{{ I18nT('base.log') }}</span>
       </li>
       <li @click.stop="action('log-slow')">
-        <span class="ml-15">{{ I18nT('base.slowLog') }}</span>
+        <span class="ml-3">{{ I18nT('base.slowLog') }}</span>
       </li>
       <li @click.stop="action('del')">
-        <span class="ml-15">{{ I18nT('base.del') }}</span>
+        <span class="ml-3">{{ I18nT('base.del') }}</span>
       </li>
     </ul>
     <template #reference>
@@ -41,9 +41,8 @@
   import type { MysqlGroupItem } from '@shared/app'
   import Base from '@/core/Base'
   import { MysqlStore } from '../mysql'
-
-  const { clipboard } = require('@electron/remote')
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
+  import { clipboard } from '@/util/NodeFn'
 
   const props = defineProps<{
     item: MysqlGroupItem
@@ -95,9 +94,11 @@
         }).then()
         break
       case 'socket':
-        const id = props.item.id
-        const sock = join(global.Server.MysqlDir!, `group/my-group-${id}.sock`)
-        copyString(sock)
+        {
+          const id = props.item.id
+          const sock = join(window.Server.MysqlDir!, `group/my-group-${id}.sock`)
+          copyString(sock)
+        }
         break
       case 'cnf':
         AsyncComponentShow(ConfigVM, {

@@ -48,8 +48,7 @@
   import { ElInput, ElButton, ElTooltip } from 'element-plus'
   import type { Column } from 'element-plus'
   import { MessageSuccess } from '@/util/Element'
-
-  const { clipboard } = require('@electron/remote')
+  import { clipboard } from '@/util/NodeFn'
 
   const {
     showInstall,
@@ -77,7 +76,7 @@
       width: 0,
       headerCellRenderer: () => {
         return (
-          <div class="w-p100 name-cell">
+          <div class="w-full name-cell">
             <span style="display: inline-flex; align-items: center; padding: 2px 0">
               {I18nT('base.version')}
             </span>

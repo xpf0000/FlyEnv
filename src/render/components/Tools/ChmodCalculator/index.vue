@@ -8,8 +8,7 @@
   import type { Scope } from './chmod-calculator.types'
   import { CopyDocument } from '@element-plus/icons-vue'
   import { MessageSuccess } from '@/util/Element'
-
-  const { clipboard } = require('@electron/remote')
+  import { clipboard } from '@/util/NodeFn'
 
   const scopes: { scope: Scope; title: string }[] = [
     { scope: 'read', title: 'Read (4)' },

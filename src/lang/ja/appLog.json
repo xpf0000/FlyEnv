@@ -17,5 +17,7 @@
   "initDBPassFail": "データベースパスワードの初期化に失敗しました。理由：{error}",
   "initDBDataDir": "データフォルダが見つかりません。データフォルダの初期化を開始",
   "initDBDataDirSuccess": "データフォルダの初期化が成功しました。データフォルダパス：{dir}",
-  "initDBDataDirFail": "データフォルダの初期化に失敗しました。理由：{error}"
+  "initDBDataDirFail": "データフォルダの初期化に失敗しました。理由：{error}",
+
+  "startInstall": "Start installing {service}"
 }

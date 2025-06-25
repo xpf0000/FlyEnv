@@ -13,7 +13,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
         </div>
         <el-button :loading="running" :disabled="running" class="shrink0" @click="doSave">{{
           I18nT('base.save')
@@ -79,7 +79,7 @@
         <div class="plant-title">{{ I18nT('host.nodeJSVersion') }}</div>
         <div class="main">
           <el-select v-model="item.nodeDir" class="w-full">
-            <template v-for="(item, index) in nodes" :key="index">
+            <template v-for="(item, _index) in nodes" :key="_index">
               <el-option :label="`node${item.version}-${item.bin}`" :value="item.bin"></el-option>
             </template>
           </el-select>
@@ -87,7 +87,7 @@
 
         <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
         <div class="main">
-          <div class="port-set mb-20">
+          <div class="port-set mb-5">
             <input
               v-model.number="item.projectPort"
               type="number"
@@ -167,14 +167,10 @@
   import { AppHost, AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import { BrewStore } from '@/store/brew'
-  import { Service } from '@/components/ServiceManager/service'
-  import installedVersions from '@/util/InstalledVersions'
-
-  const { dialog } = require('@electron/remote')
-  const { existsSync, readFile } = require('fs-extra')
-  const { dirname, join } = require('path')
+  import { dirname, join } from '@/util/path-browserify'
+  import { dialog, fs } from '@/util/NodeFn'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -221,37 +217,27 @@
     return brewStore.module('node')?.installed ?? []
   })
 
-  const service = computed(() => {
-    return Service?.['node']
-  })
-
-  if (nodes.value.length === 0 && !service?.value?.fetching) {
-    if (!service?.value) {
-      Service['node'] = {
-        fetching: true
-      }
-    }
-    service.value.fetching = true
-    installedVersions.allInstalledVersions(['node']).then(() => {
-      service.value.fetching = false
-    })
-  }
+  const module = brewStore.module('node')
+  module.fetchInstalled().catch()
 
   watch(
     () => item.value.bin,
     async (v) => {
-      if (!v || !existsSync(v)) {
+      if (!v) {
         return
       }
       const packageJson = join(dirname(v), 'package.json')
-      if (!existsSync(packageJson)) {
+      const exists = fs.existsSync(packageJson)
+      if (!exists) {
         return
       }
-      let json: any = await readFile(packageJson, 'utf-8')
+      let json: any = await fs.readFile(packageJson)
       try {
         json = JSON.parse(json)
         scripts.value = json?.scripts ?? {}
-      } catch (e) {}
+      } catch {
+        /* empty */
+      }
     }
   )
 
@@ -260,7 +246,7 @@
     (v) => {
       const dict: any = scripts?.value
       if (dict?.[v]) {
-        item.value.startCommand === `node ${dict[v]}`
+        item.value.startCommand = `node ${dict[v]}`
       }
     }
   )
@@ -285,7 +271,7 @@
       if (!name) {
         return
       }
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === name && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break
@@ -338,7 +324,7 @@
     errs.value['nodeDir'] = item.value.nodeDir.length === 0
     errs.value['root'] = item.value.root.length === 0
     if (item.value.projectName) {
-      for (let h of hosts.value) {
+      for (const h of hosts.value) {
         if (h?.projectName === item.value.projectName && h.id !== item.value.id) {
           errs.value['projectName'] = true
           break

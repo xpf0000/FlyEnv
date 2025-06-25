@@ -1,9 +1,9 @@
 import type { StaticHttpServe } from '../type'
-import type { ServerResponse } from 'http'
-
-const ServeHandler = require('serve-handler')
-const Http = require('http')
-const IP = require('ip')
+import type { IncomingMessage, ServerResponse } from 'http'
+import ServeHandler from 'serve-handler'
+import Http from 'http'
+import { address } from 'neoip'
+import type { AddressInfo } from 'node:net'
 
 class HttpServer {
   httpServes: { [k: string]: StaticHttpServe } = {}
@@ -15,7 +15,7 @@ class HttpServer {
         httpServe.server.close()
         delete this.httpServes[path]
       }
-      const server = Http.createServer((request: Request, response: ServerResponse) => {
+      const server = Http.createServer((request: IncomingMessage, response: ServerResponse) => {
         response.setHeader('Access-Control-Allow-Origin', '*')
         response.setHeader('Access-Control-Allow-Headers', '*')
         response.setHeader('Access-Control-Allow-Methods', '*')
@@ -24,10 +24,10 @@ class HttpServer {
         })
       })
       server.listen(0, () => {
-        console.log('server.address(): ', server.address())
-        const port = server.address().port
+        const addressInfo: AddressInfo = server.address() as any
+        const port = addressInfo.port
         const host = [`http://localhost:${port}/`]
-        const ip = IP.address()
+        const ip = address()
         if (ip && typeof ip === 'string' && ip.includes('.')) {
           host.push(`http://${ip}:${port}/`)
         }

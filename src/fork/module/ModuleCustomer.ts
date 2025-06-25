@@ -1,12 +1,24 @@
 import { basename, join } from 'path'
-import { customerServiceStartExec, execPromise, uuid, waitPidFile, waitTime } from '../Fn'
+import {
+  customerServiceStartExec,
+  execPromise,
+  uuid,
+  waitPidFile,
+  waitTime,
+  chmod,
+  mkdirp,
+  remove,
+  writeFile,
+  customerServiceStartExecWin
+} from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import Helper from '../Helper'
 import { existsSync } from 'fs'
-import { chmod, mkdirp, remove, writeFile } from 'fs-extra'
 import { ProcessPidsByPid } from '@shared/Process'
 import { I18nT } from '@lang/index'
 import type { ModuleExecItem } from '@shared/app'
+import { isMacOS, isWindows } from '@shared/utils'
+import { ProcessPidListByPid } from '@shared/Process.win'
 
 class ModuleCustomer {
   constructor() {}
@@ -24,25 +36,40 @@ class ModuleCustomer {
 
   stopService(pid: string) {
     return new ForkPromise(async (resolve) => {
-      const allPid: string[] = []
-      const plist: any = await Helper.send('tools', 'processList')
-      const pids = ProcessPidsByPid(pid.trim(), plist)
-      allPid.push(...pids)
-      const arr: string[] = Array.from(new Set(allPid))
-      if (arr.length > 0) {
-        let sig = '-TERM'
-        try {
-          await Helper.send('tools', 'kill', sig, arr)
-        } catch (e) {}
-        await waitTime(500)
-        sig = '-INT'
-        try {
-          await Helper.send('tools', 'kill', sig, arr)
-        } catch (e) {}
+      if (isMacOS()) {
+        const allPid: string[] = []
+        const plist: any = await Helper.send('tools', 'processList')
+        const pids = ProcessPidsByPid(pid.trim(), plist)
+        allPid.push(...pids)
+        const arr: string[] = Array.from(new Set(allPid))
+        if (arr.length > 0) {
+          let sig = '-TERM'
+          try {
+            await Helper.send('tools', 'kill', sig, arr)
+          } catch {}
+          await waitTime(500)
+          sig = '-INT'
+          try {
+            await Helper.send('tools', 'kill', sig, arr)
+          } catch {}
+        }
+        resolve({
+          'APP-Service-Stop-PID': arr
+        })
+      } else if (isWindows()) {
+        const pids = await ProcessPidListByPid(`${pid}`.trim())
+
+        if (pids.length > 0) {
+          const str = pids.map((s) => `/pid ${s}`).join(' ')
+          try {
+            await execPromise(`taskkill /f /t ${str}`)
+          } catch {}
+        }
+
+        resolve({
+          'APP-Service-Stop-PID': pids
+        })
       }
-      resolve({
-        'APP-Service-Stop-PID': arr
-      })
     })
   }
   startService(version: ModuleExecItem, isService: boolean, openInTerminal?: boolean) {
@@ -52,7 +79,7 @@ class ModuleCustomer {
         return
       }
 
-      if (openInTerminal) {
+      if (isMacOS() && openInTerminal) {
         let command = ''
         if (version.commandType === 'file') {
           command = version.commandFile
@@ -64,7 +91,7 @@ class ModuleCustomer {
           await writeFile(command, version.command)
           try {
             await Helper.send('tools', 'chmod', command, '0777')
-          } catch (e) {}
+          } catch {}
         }
         command = command.replace(/"/g, '\\"')
         const appleScript = `
@@ -115,8 +142,13 @@ class ModuleCustomer {
       }
 
       try {
-        const res = await customerServiceStartExec(version, isService)
-        resolve(res)
+        if (isMacOS()) {
+          const res = await customerServiceStartExec(version, isService)
+          resolve(res)
+        } else if (isWindows()) {
+          const res = await customerServiceStartExecWin(version, isService)
+          resolve(res)
+        }
       } catch (e: any) {
         console.log('-k start err: ', e)
         reject(e)

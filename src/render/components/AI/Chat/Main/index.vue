@@ -1,6 +1,6 @@
 <template>
   <div class="app-ai-chat-main">
-    <template v-for="(item, index) in chatList" :key="index">
+    <template v-for="(item, _index) in chatList" :key="_index">
       <div class="cell" :class="{ [item.user]: true }">
         <div class="icon">
           <template v-if="item.user === 'ai'">
@@ -31,8 +31,8 @@
   import { User } from '@element-plus/icons-vue'
   import ChooseSiteRoot from './Plant/chooseSiteRoot.vue'
   import SiteAccessIssues from './Plant/siteAccessIssues.vue'
+  import { shell } from '@/util/NodeFn'
 
-  const { shell } = require('@electron/remote')
   const openDir = (dir: string) => {
     shell.openPath(dir)
   }

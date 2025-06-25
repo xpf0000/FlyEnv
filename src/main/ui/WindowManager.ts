@@ -1,23 +1,26 @@
 import { EventEmitter } from 'events'
 import { app, BrowserWindow, screen } from 'electron'
 import pageConfig from '../configs/page'
-import { debounce } from 'lodash'
+import { debounce } from 'lodash-es'
 import Event = Electron.Main.Event
 import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions
-
-const { initialize, enable } = require('@electron/remote/main')
-
-initialize()
+import { join } from 'path'
+import { isMacOS, isWindows } from '@shared/utils'
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
+  autoHideMenuBar: isWindows(),
   show: false,
   width: 1200,
   height: 800,
+  movable: true,
+  resizable: true,
+  backgroundColor: 'rgba(255,255,255,0)',
+  transparent: false,
   webPreferences: {
-    nodeIntegration: true,
-    contextIsolation: false,
-    webSecurity: false,
+    nodeIntegration: false,
+    contextIsolation: true,
+    webSecurity: true,
     webviewTag: true
   }
 }
@@ -33,9 +36,9 @@ const trayBrowserOptions: BrowserWindowConstructorOptions = {
   opacity: 0,
   transparent: true,
   webPreferences: {
-    nodeIntegration: true,
-    contextIsolation: false,
-    webSecurity: false
+    nodeIntegration: false,
+    contextIsolation: true,
+    webSecurity: true
   }
 }
 export default class WindowManager extends EventEmitter {
@@ -84,8 +87,8 @@ export default class WindowManager extends EventEmitter {
       return window
     }
     const pageOptions = this.getPageOptions(page)
+    trayBrowserOptions.webPreferences!.preload = join(global.Server.Static!, 'preload/preload.js')
     window = new BrowserWindow(trayBrowserOptions)
-    enable(window.webContents)
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
         event.preventDefault()
@@ -118,12 +121,14 @@ export default class WindowManager extends EventEmitter {
       window.focus()
       return window
     }
-
+    defaultBrowserOptions.webPreferences!.preload = join(
+      global.Server.Static!,
+      'preload/preload.js'
+    )
     window = new BrowserWindow({
       ...defaultBrowserOptions,
       ...pageOptions.attrs
     })
-    enable(window.webContents)
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
         event.preventDefault()
@@ -227,7 +232,9 @@ export default class WindowManager extends EventEmitter {
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
         window.hide()
-        app.dock.hide()
+        if (isMacOS()) {
+          app.dock?.hide?.()
+        }
       }
       const bounds = window.getBounds()
       this.emit('window-closed', { page, bounds })
@@ -240,7 +247,9 @@ export default class WindowManager extends EventEmitter {
       return
     }
     window.show()
-    app.dock.show().then()
+    if (isMacOS()) {
+      app.dock?.show?.()?.catch()
+    }
   }
 
   hideWindow(page: string) {
@@ -282,6 +291,7 @@ export default class WindowManager extends EventEmitter {
   }
 
   handleAllWindowClosed() {
+    // @ts-ignore
     app.on('window-all-closed', (event: Event) => {
       event.preventDefault()
     })

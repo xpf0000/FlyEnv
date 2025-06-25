@@ -23,22 +23,39 @@
               :svg="import('@/svg/http.svg?raw')"
             ></yb-icon>
           </el-button>
-          <el-radio-group v-model="libSrc" size="small" class="ml-6">
-            <el-radio-button
-              class="flex-1"
-              :label="I18nT('versionmanager.Local')"
-              value="local"
-            ></el-radio-button>
-            <template v-if="hasStatic">
-              <el-radio-button value="static">Static</el-radio-button>
-            </template>
-            <template v-if="showBrewLib !== false">
-              <el-radio-button value="brew">Homebrew</el-radio-button>
-            </template>
-            <template v-if="showPortLib !== false">
-              <el-radio-button value="port">MacPorts</el-radio-button>
-            </template>
-          </el-radio-group>
+          <template v-if="isMacOS">
+            <el-radio-group v-model="libSrc" size="small" class="ml-6">
+              <el-radio-button
+                class="flex-1"
+                :label="I18nT('versionmanager.Local')"
+                value="local"
+              ></el-radio-button>
+              <template v-if="hasStatic">
+                <el-radio-button value="static">Static</el-radio-button>
+              </template>
+              <template v-if="showBrewLib !== false">
+                <el-radio-button value="brew">Homebrew</el-radio-button>
+              </template>
+              <template v-if="showPortLib !== false">
+                <el-radio-button value="port">MacPorts</el-radio-button>
+              </template>
+            </el-radio-group>
+          </template>
+          <template v-else-if="isWindows">
+            <el-radio-group v-model="libSrc" size="small" class="ml-6">
+              <el-radio-button
+                class="flex-1"
+                :label="I18nT('versionmanager.Local')"
+                value="local"
+              ></el-radio-button>
+              <el-radio-button
+                class="flex-1"
+                :label="I18nT('versionmanager.Library')"
+                value="static"
+              ></el-radio-button>
+            </el-radio-group>
+          </template>
+          <template v-else-if="isLinux"> </template>
         </div>
         <el-button class="button" link :disabled="loading" @click="reFetch">
           <yb-icon
@@ -49,20 +66,30 @@
         </el-button>
       </div>
     </template>
-    <template v-if="libSrc === 'brew'">
-      <BrewVM :type-flag="typeFlag" />
+    <template v-if="isMacOS">
+      <template v-if="libSrc === 'brew'">
+        <BrewVM :type-flag="typeFlag" />
+      </template>
+      <template v-else-if="libSrc === 'port'">
+        <PortVM :type-flag="typeFlag" />
+      </template>
+      <template v-else-if="libSrc === 'static'">
+        <StaticVM :type-flag="typeFlag" />
+      </template>
+      <template v-else-if="libSrc === 'local'">
+        <LocalVM :type-flag="typeFlag" />
+      </template>
     </template>
-    <template v-else-if="libSrc === 'port'">
-      <PortVM :type-flag="typeFlag" />
-    </template>
-    <template v-else-if="libSrc === 'static'">
-      <StaticVM :type-flag="typeFlag" />
-    </template>
-    <template v-else-if="libSrc === 'local'">
-      <LocalVM :type-flag="typeFlag" />
+    <template v-else-if="isWindows">
+      <template v-if="libSrc === 'local'">
+        <LocalVM :type-flag="typeFlag" />
+      </template>
+      <template v-else-if="libSrc === 'static'">
+        <StaticVM :type-flag="typeFlag" />
+      </template>
     </template>
 
-    <template v-if="showFooter" #footer>
+    <template v-if="isMacOS && showFooter" #footer>
       <template v-if="taskEnd">
         <el-button type="primary" @click.stop="taskConfirm">{{ I18nT('base.confirm') }}</el-button>
       </template>
@@ -83,6 +110,7 @@
   import BrewVM from '@/components/VersionManager/brew/index.vue'
   import StaticVM from '@/components/VersionManager/static/index.vue'
   import LocalVM from '@/components/VersionManager/local/index.vue'
+  import { computed } from 'vue'
 
   const props = defineProps<{
     typeFlag: AllAppModule
@@ -92,6 +120,16 @@
     showBrewLib: boolean
     showPortLib: boolean
   }>()
+
+  const isMacOS = computed(() => {
+    return window.Server.isMacOS
+  })
+  const isWindows = computed(() => {
+    return window.Server.isWindows
+  })
+  const isLinux = computed(() => {
+    return window.Server.isLinux
+  })
 
   const {
     libSrc,

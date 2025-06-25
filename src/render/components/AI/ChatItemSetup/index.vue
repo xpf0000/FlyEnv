@@ -8,7 +8,7 @@
     @closed="closedFn"
   >
     <template #default>
-      <el-form ref="formRef" label-position="top" :rules="rules" :model="form">
+      <el-form ref="formRef" class="pb-7" label-position="top" :rules="rules" :model="form">
         <el-form-item :label="I18nT('base.name')" prop="title" :required="true">
           <el-input v-model="form.title"></el-input>
         </el-form-item>

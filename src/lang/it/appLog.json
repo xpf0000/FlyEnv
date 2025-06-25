@@ -17,5 +17,7 @@
   "initDBPassFail": "Inizializzazione della password del database fallita, motivo: {error}",
   "initDBDataDir": "Cartella dati non trovata, avvio inizializzazione della cartella dati",
   "initDBDataDirSuccess": "Cartella dati inizializzata con successo, percorso: {dir}",
-  "initDBDataDirFail": "Inizializzazione della cartella dati fallita, motivo: {error}"
+  "initDBDataDirFail": "Inizializzazione della cartella dati fallita, motivo: {error}",
+
+  "startInstall": "Start installing {service}"
 }

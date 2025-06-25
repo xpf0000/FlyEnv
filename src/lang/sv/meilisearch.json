@@ -26,5 +26,7 @@
   "ssl_tickets": "Aktiverar SSL-biljetter.",
   "experimental_enable_metrics": "Experimentell mätfunktion. Aktiverar Prometheus-mätvärden på `GET /metrics`-slutpunkten.",
   "experimental_reduce_indexing_memory_usage": "Experimentell minskning av minnesanvändning under indexering, använd inte i produktion.",
-  "experimental_max_number_of_batched_tasks": "Experimentellt minskar det maximala antalet uppgifter som bearbetas samtidigt."
+  "experimental_max_number_of_batched_tasks": "Experimentellt minskar det maximala antalet uppgifter som bearbetas samtidigt.",
+
+  "working_dir": "Working Directory"
 }

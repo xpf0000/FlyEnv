@@ -11,12 +11,10 @@
 
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
-
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import { AppStore } from '@/store/app'
-
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
 
   const appStore = AppStore()
   const currentVersion = computed(() => {
@@ -29,6 +27,6 @@
       return ''
     }
     const v = currentVersion?.value?.split('.')?.slice(0, 2)?.join('.')
-    return join(global.Server.MongoDBDir, `mongodb-${v}.log`)
+    return join(window.Server.MongoDBDir, `mongodb-${v}.log`)
   })
 </script>

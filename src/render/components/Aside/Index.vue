@@ -23,11 +23,11 @@
       </ul>
       <el-scrollbar>
         <ul class="menu top-menu">
-          <template v-for="(item, index) in allModule" :key="index">
+          <template v-for="(item, _index) in allModule" :key="_index">
             <div
               :style="
                 {
-                  marginTop: index === 0 ? '15px' : null
+                  marginTop: _index === 0 ? '15px' : null
                 } as any
               "
               class="module-type pb-3 pl-1 text-sm mb-3 mt-5 text-zinc-600 dark:text-gray-300 border-b border-zinc-200 dark:border-zinc-700"
@@ -35,7 +35,7 @@
             >
             <template v-for="(i, _j) in item.sub" :key="_j">
               <template v-if="i?.isCustomer">
-                <CustomerModule :item="i" />
+                <CustomerModule :item="i as any" />
               </template>
               <template v-else>
                 <component :is="i.aside"></component>
@@ -75,6 +75,7 @@
   import { EventBus } from '@/global'
   import { AppCustomerModule } from '@/core/Module'
   import CustomerModule from '@/components/CustomerModule/aside.vue'
+  import type { CallBackFn } from '@shared/app'
 
   let lastTray = ''
 
@@ -84,14 +85,29 @@
     return appStore.currentPage
   })
 
+  const platformAppModules = computed(() => {
+    let platform: any = ''
+    if (window.Server.isMacOS) {
+      platform = 'macOS'
+    } else if (window.Server.isWindows) {
+      platform = 'Windows'
+    } else if (window.Server.isLinux) {
+      platform = 'Linux'
+    }
+    if (!platform) {
+      return []
+    }
+    return AppModules.filter((a) => !a.platform || a.platform.includes(platform))
+  })
+
   const firstItem = computed(() => {
     const m = 'site'
-    const sub = AppModules.filter((a) => a?.moduleType === m).filter(
-      (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
-    )
+    const sub = platformAppModules.value
+      .filter((a) => a?.moduleType === m)
+      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
     sub.sort((a, b) => {
-      let lowerA = a.typeFlag.toLowerCase()
-      let lowerB = b.typeFlag.toLowerCase()
+      const lowerA = a.typeFlag.toLowerCase()
+      const lowerB = b.typeFlag.toLowerCase()
       if (lowerA < lowerB) return -1
       if (lowerA > lowerB) return 1
       return 0
@@ -112,12 +128,12 @@
   const allList = computed(() => {
     return AppModuleTypeList.filter((f) => f !== 'site')
       .map((m) => {
-        const sub = AppModules.filter(
-          (a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false
-        ).filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
+        const sub = platformAppModules.value
+          .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+          .filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
         sub.sort((a, b) => {
-          let lowerA = a.typeFlag.toLowerCase()
-          let lowerB = b.typeFlag.toLowerCase()
+          const lowerA = a.typeFlag.toLowerCase()
+          const lowerB = b.typeFlag.toLowerCase()
           if (lowerA < lowerB) return -1
           if (lowerA > lowerB) return 1
           return 0
@@ -181,7 +197,7 @@
       if (!v.current && v.module > 0) {
         const item = allModule.value[0]
         if (item) {
-          const sub = item?.sub?.[0]
+          const sub: any = item?.sub?.[0]
           if (!sub) {
             return
           }
@@ -232,6 +248,7 @@
     const modules = Object.values(AppServiceModule)
     const allDisabled = modules.every((m) => !!m?.serviceDisabled)
     const running = modules.some((m) => !!m?.serviceFetching)
+    console.log('groupDisabled', allDisabled, running, appStore.versionInited)
     return (
       allDisabled ||
       running ||
@@ -401,11 +418,11 @@
       AppServiceModule.php?.switchChange()
       return
     }
-    const fns: { [k: string]: Function } = {
+    const fns: { [k: string]: CallBackFn } = {
       groupDo,
       switchChange
     }
-    fns[fn] && fns[fn](arg)
+    fns?.[fn]?.(arg)
   })
 
   let autoStarted = false

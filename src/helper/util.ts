@@ -1,4 +1,7 @@
-import { exec } from 'child-process-promise'
+import { mkdirp, remove, existsSync, readFile, writeFile } from '@shared/fs-extra'
+import { execPromise } from '@shared/child-process'
+
+export { mkdirp, remove, existsSync, readFile, writeFile }
 
 export function waitTime(time: number) {
   return new Promise((resolve) => {
@@ -18,12 +21,7 @@ export function uuid(length = 32) {
 }
 
 export async function dirChownFetch(dir: string) {
-  let res: any
-  try {
-    res = await exec(`ls -al "${dir}"`)
-  } catch (e) {
-    throw e
-  }
+  const res = await execPromise(`ls -al "${dir}"`)
 
   const arr =
     res?.stdout

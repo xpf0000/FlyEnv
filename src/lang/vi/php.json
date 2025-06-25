@@ -9,8 +9,6 @@
   "obfuscatorSrc": "Tệp hoặc thư mục PHP cần được làm rối mã",
   "obfuscatorDesc": "Lưu tệp hoặc thư mục, không trùng lặp tệp hoặc thư mục nguồn",
   "obfuscatorConfig": "Thiết lập nâng cao",
-  "groupStartOff": "Tắt khởi động nhanh nhóm",
-  "groupStartOn": "Bật khởi động nhanh nhóm",
   "quickStart": "Khởi động nhóm",
   "display_errors": "Có xuất thông tin lỗi chi tiết hay không",
   "short_open_tag": "Hỗ trợ thẻ ngắn",

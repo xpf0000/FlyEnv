@@ -32,5 +32,10 @@
   "url-encode-title": "URL kodning/avkodning",
   "url-parse-title": "URL parsare",
   "wifi-qr-code-generator-title": "WiFi QR-kodgenerator",
-  "URLTimingAnalyzer": "URL-förfrågans tidsanalys"
+  "URLTimingAnalyzer": "URL-förfrågans tidsanalys",
+
+  "envValue": "Value",
+  "rawEnvPath": "Actual Path",
+  "envValueErrorTips": "The path does not exist. You can click to copy the command and test it in Command Prompt.",
+  "invalidPath": "Invalid Path"
 }

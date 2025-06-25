@@ -17,5 +17,7 @@
   "initDBPassFail": "Initiering av databaslösenord misslyckades, anledning: {error}",
   "initDBDataDir": "Datafolder hittades inte, börja initiera datafolder",
   "initDBDataDirSuccess": "Initiering av datafolder lyckades, datafolderns sökväg: {dir}",
-  "initDBDataDirFail": "Initiering av datafolder misslyckades, anledning: {error}"
+  "initDBDataDirFail": "Initiering av datafolder misslyckades, anledning: {error}",
+
+  "startInstall": "Start installing {service}"
 }

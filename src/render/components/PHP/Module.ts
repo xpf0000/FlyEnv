@@ -10,6 +10,7 @@ const module: AppModuleItem = {
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 5,
   isService: true,
-  isTray: true
+  isTray: true,
+  isOnlyRunOne: false
 }
 export default module

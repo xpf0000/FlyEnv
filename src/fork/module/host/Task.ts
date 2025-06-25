@@ -2,22 +2,32 @@ import type { AppHost, SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { existsSync, readdirSync } from 'fs'
-import { copy, mkdirp, readdir, remove, writeFile } from 'fs-extra'
 import { setDirRole } from './Host'
 import { I18nT } from '@lang/index'
 import compressing from 'compressing'
-import { downFile, execPromise, waitTime } from '../../Fn'
+import {
+  downFile,
+  execPromise,
+  waitTime,
+  copy,
+  mkdirp,
+  readdir,
+  remove,
+  writeFile,
+  moveDirToDir
+} from '../../Fn'
 import { fetchHostList } from './HostFile'
+import { isWindows } from '@shared/utils'
 
-export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
+export function TaskAddRandaSite(this: any, version?: SoftInstalled, write = true, ipv6 = true) {
   return new ForkPromise(async (resolve, reject) => {
     const baseName = join(global.Server.BaseDir!, 'www')
-    let host = `mydomain.tld`
+    let host = `test.com`
     let i = 0
     let dir = `${baseName}/${host}`
     while (existsSync(dir)) {
       i += 1
-      host = `www.test${i}.com`
+      host = `test${i}.com`
       dir = `${baseName}/${host}`
     }
     await mkdirp(dir)
@@ -32,16 +42,18 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
       },
       port: {
         nginx: 80,
-        apache: 8080,
+        apache: 80,
+        caddy: 80,
         nginx_ssl: 443,
-        apache_ssl: 8443
+        apache_ssl: 443,
+        caddy_ssl: 443
       },
       nginx: {
         rewrite: ''
       },
       url: '',
       root: dir,
-      mark: 'phpwebstudy ai created',
+      mark: 'FlyEnv AI Created',
       phpVersion: undefined
     }
     if (version?.num) {
@@ -49,6 +61,7 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
     }
     try {
       await this.handleHost(hostItem, 'add')
+      await this.writeHosts(write, ipv6)
       if (version?.num) {
         const file = join(dir, 'index.php')
         await writeFile(
@@ -88,14 +101,14 @@ export function TaskAddRandaSite(this: any, version?: SoftInstalled) {
   })
 }
 
-export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
+export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = true, ipv6 = true) {
   return new ForkPromise(async (resolve, reject, on) => {
     const zipFile = join(global.Server.Cache!, 'phpMyAdmin.zip')
     const siteDir = join(global.Server.BaseDir!, 'www/phpMyAdmin')
     let hostList: Array<AppHost> = []
     try {
       hostList = await fetchHostList()
-    } catch (e) {}
+    } catch {}
 
     const find = hostList.find((h) => h.name === 'phpmyadmin.test')
     if (find) {
@@ -119,7 +132,11 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
           const subDirs = await readdir(tmplDir)
           const subDir = subDirs.pop()
           if (subDir) {
-            await execPromise(`cd ${join(tmplDir, subDir)} && mv ./* ${siteDir}/`)
+            if (isWindows()) {
+              await moveDirToDir(join(tmplDir, subDir), siteDir)
+            } else {
+              await execPromise(`cd ${join(tmplDir, subDir)} && mv ./* ${siteDir}/`)
+            }
             await waitTime(300)
             await remove(tmplDir)
           }
@@ -154,9 +171,9 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
         port: {
           nginx: 80,
           apache: 80,
+          caddy: 80,
           nginx_ssl: 443,
           apache_ssl: 443,
-          caddy: 80,
           caddy_ssl: 443
         },
         nginx: {
@@ -164,7 +181,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
         },
         url: '',
         root: siteDir,
-        mark: 'PhpMyAdmin (Auto Created)',
+        mark: 'PhpMyAdmin (FlyEnv Auto Created)',
         phpVersion: undefined
       }
       if (phpVersion) {
@@ -172,6 +189,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number) {
       }
       try {
         await this.handleHost(hostItem, 'add')
+        await this.writeHosts(write, ipv6)
         await setDirRole(siteDir)
         resolve(true)
       } catch (e) {

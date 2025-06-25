@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ title }}</span>
+          <span class="ml-3">{{ title }}</span>
         </div>
       </div>
       <div class="main-wapper">
@@ -28,8 +28,7 @@
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import type { SoftInstalled } from '@/store/brew'
-
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -45,7 +44,7 @@
   })
 
   const filepath = computed(() => {
-    return join(global.Server.PhpDir, `${props.version.num}`, `var/log/${props.type}.log`)
+    return join(window.Server.PhpDir, `${props.version.num}`, `var/log/${props.type}.log`)
   })
 
   const close = () => {

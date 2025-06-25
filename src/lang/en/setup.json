@@ -1,5 +1,4 @@
 {
-  "menuShowHide": "Menu Show/Hide",
   "tsinghua": "Tsinghua University download source",
   "bfsu": "Beijing Foreign Studies University download source",
   "tencent": "Tencent download source",
@@ -11,7 +10,7 @@
   "autoStartService": "Start Services Automatically",
   "autoStartServiceTips": "Whether to start services automatically when the application starts",
   "autoHide": "Start Hidden / Minimized to Tray",
-  "autoHideTips": "Whether to hide the main interface and keep only the system tray icon after automatically starting the service",
+  "autoHideTips": "Whether to hide the main interface and keep only the system tray icon after starting FlyEnv",
   "autoLaunch": "Auto Launch At Boot",
   "autoLaunchTips": "Whether to launch FlyEnv automatically when computer boots",
   "passwordTips": "Not required. Automatically fill in password when executing commands. For example, installing and uninstalling using Macports, etc",
@@ -35,7 +34,6 @@
     "path": "File Path",
     "comment": "Comment",
     "exec": "Run",
-    "command": "Command",
     "commandFile": "File",
     "isSudo": "Run with sudo?",
     "pidPath": "PID File Path",

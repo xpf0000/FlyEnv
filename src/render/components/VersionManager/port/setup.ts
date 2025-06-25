@@ -4,31 +4,24 @@ import { BrewStore } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
 import type { AllAppModule } from '@/core/type'
-import installedVersions from '@/util/InstalledVersions'
-import { portInfo } from '@/util/Brew'
-import { chmod } from '@shared/file'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
-
-const { clipboard } = require('@electron/remote')
-const { join } = require('path')
-const { existsSync, unlinkSync, readFileSync, writeFileSync } = require('fs')
+import { join } from '@/util/path-browserify'
+import { clipboard, fs } from '@/util/NodeFn'
 
 export const MacPortsSetup = reactive<{
   installEnd: boolean
   installing: boolean
-  fetching: Partial<Record<AllAppModule, boolean>>
   xterm: XTerm | undefined
   checkMacPorts: () => void
   reFetch: () => void
 }>({
   installEnd: false,
   installing: false,
-  fetching: {},
   xterm: undefined,
   reFetch: () => 0,
   checkMacPorts() {
-    if (!global.Server.MacPorts) {
+    if (!window.Server.MacPorts) {
       IPC.send('app-check-brewport').then((key: string) => {
         IPC.off(key)
       })
@@ -54,53 +47,35 @@ export const Setup = (typeFlag: AllAppModule) => {
     if (!appStore.envIndex) {
       return false
     }
-    return !!global.Server.MacPorts
+    return !!window.Server.MacPorts
   })
 
   const fetching = computed(() => {
-    return MacPortsSetup.fetching?.[typeFlag] ?? false
+    const module = brewStore.module(typeFlag)
+    return module.portFetching
   })
 
-  const fetchData = (src: 'port') => {
-    if (fetching.value) {
+  const fetchData = () => {
+    const module = brewStore.module(typeFlag)
+    if (module.portFetching) {
       return
     }
-    MacPortsSetup.fetching[typeFlag] = true
-    const currentItem = brewStore.module(typeFlag)
-    const list = currentItem.list?.[src] ?? {}
-    portInfo(typeFlag)
-      .then((res: any) => {
-        for (const k in list) {
-          delete list?.[k]
-        }
-        for (const name in res) {
-          list[name] = reactive(res[name])
-        }
-        MacPortsSetup.fetching[typeFlag] = false
-      })
-      .catch(() => {
-        MacPortsSetup.fetching[typeFlag] = false
-      })
+    module.fetchPort()
   }
   const getData = () => {
     if (!checkMacPorts.value || fetching.value) {
       console.log('getData exit: ', checkMacPorts.value, fetching.value)
       return
     }
-    const currentItem = brewStore.module(typeFlag)
-    const src = 'port'
-    const list = currentItem.list?.[src]
-    if (list && Object.keys(list).length === 0) {
-      fetchData(src)
+    const module = brewStore.module(typeFlag)
+    if (module.port.length === 0) {
+      fetchData()
     }
   }
 
   const reGetData = () => {
     console.log('reGetData !!!')
-    const list = brewStore.module(typeFlag).list?.['port']
-    for (const k in list) {
-      delete list[k]
-    }
+    brewStore.module(typeFlag).port.splice(0)
     getData()
   }
 
@@ -108,8 +83,9 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const regetInstalled = () => {
     reGetData()
-    brewStore.module(typeFlag).installedInited = false
-    installedVersions.allInstalledVersions([typeFlag]).then()
+    const module = brewStore.module(typeFlag)
+    module.installedFetched = false
+    module.fetchInstalled().catch()
   }
 
   const fetchCommand = (row: any) => {
@@ -168,7 +144,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     } else {
       fn = 'install'
     }
-    const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
+    const arch = window.Server.isAppleSilicon ? '-arm64' : '-x86_64'
     const name = row.name
     let params = []
 
@@ -183,10 +159,11 @@ export const Setup = (typeFlag: AllAppModule) => {
       names.push(`${name.replace('python', 'py')}-pip`)
     }
     if (['php52', 'php53', 'php54', 'php55', 'php56'].includes(name) && fn === 'install') {
-      const sh = join(global.Server.Static!, 'sh/port-cmd-user.sh')
-      const copyfile = join(global.Server.Cache!, 'port-cmd-user.sh')
-      if (existsSync(copyfile)) {
-        unlinkSync(copyfile)
+      const sh = join(window.Server.Static!, 'sh/port-cmd-user.sh')
+      const copyfile = join(window.Server.Cache!, 'port-cmd-user.sh')
+      const exists = await fs.existsSync(copyfile)
+      if (exists) {
+        await fs.remove(copyfile)
       }
       const libs = names.join(' ')
       const arrs = [
@@ -202,27 +179,28 @@ export const Setup = (typeFlag: AllAppModule) => {
         )
       })
       arrs.unshift(`arch ${arch} sudo -S port -f deactivate libuuid`)
-      let content = readFileSync(sh, 'utf-8')
+      let content = await fs.readFile(sh)
       content = content.replace('##CONTENT##', arrs.join('\n'))
-      writeFileSync(copyfile, content)
-      chmod(copyfile, '0777')
+      await fs.writeFile(copyfile, content)
+      await fs.chmod(copyfile, '0777')
       params = [`sudo -S "${copyfile}"`]
     } else {
-      const sh = join(global.Server.Static!, 'sh/port-cmd.sh')
-      const copyfile = join(global.Server.Cache!, 'port-cmd.sh')
-      if (existsSync(copyfile)) {
-        unlinkSync(copyfile)
+      const sh = join(window.Server.Static!, 'sh/port-cmd.sh')
+      const copyfile = join(window.Server.Cache!, 'port-cmd.sh')
+      const exists = await fs.existsSync(copyfile)
+      if (exists) {
+        await fs.remove(copyfile)
       }
       if (fn === 'uninstall') {
         fn = 'uninstall --follow-dependents'
       }
-      let content = readFileSync(sh, 'utf-8')
+      let content = await fs.readFile(sh)
       content = content
         .replace(new RegExp('##ARCH##', 'g'), arch)
         .replace(new RegExp('##ACTION##', 'g'), fn)
         .replace(new RegExp('##NAME##', 'g'), names.join(' '))
-      writeFileSync(copyfile, content)
-      chmod(copyfile, '0777')
+      await fs.writeFile(copyfile, content)
+      await fs.chmod(copyfile, '0777')
       params = [`sudo -S "${copyfile}"`]
     }
     if (proxyStr?.value) {
@@ -240,9 +218,8 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const tableData = computed(() => {
     const arr = []
-    const list = brewStore.module(typeFlag).list?.['port']
-    for (const name in list) {
-      const value = list[name]
+    const list = brewStore.module(typeFlag).port
+    for (const value of list) {
       const nums = value.version.split('.').map((n: string, i: number) => {
         if (i > 0) {
           const num = parseInt(n)
@@ -258,15 +235,13 @@ export const Setup = (typeFlag: AllAppModule) => {
       })
       const num = parseInt(nums.join(''))
       Object.assign(value, {
-        name,
         version: value.version,
         installed: value.installed,
-        num,
-        flag: value.flag
+        num
       })
       arr.push(value)
     }
-    arr.sort((a, b) => {
+    arr.sort((a: any, b: any) => {
       return b.num - a.num
     })
     return arr
@@ -294,7 +269,7 @@ export const Setup = (typeFlag: AllAppModule) => {
   })
 
   onUnmounted(() => {
-    MacPortsSetup.xterm && MacPortsSetup.xterm.unmounted()
+    MacPortsSetup?.xterm?.unmounted?.()
   })
 
   return {

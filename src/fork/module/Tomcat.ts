@@ -12,12 +12,25 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  chmod,
+  copyFile,
+  mkdirp,
+  readFile,
+  writeFile,
+  serviceStartExecCMD,
+  waitTime,
+  readdir,
+  execPromise,
+  remove,
+  zipUnPack,
+  moveChildDirToParent
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { makeGlobalTomcatServerXML } from './service/ServiceItemJavaTomcat'
-import { chmod, copyFile, mkdirp } from 'fs-extra'
 import { I18nT } from '@lang/index'
+import { isMacOS, isWindows } from '@shared/utils'
+import { ProcessListSearch } from '@shared/Process.win'
 
 class Tomcat extends Base {
   constructor() {
@@ -34,22 +47,42 @@ class Tomcat extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('tomcat')
-        const dict: any = {}
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `static-tomcat-${a.version}`, 'bin/catalina.sh')
-          const zip = join(global.Server.Cache!, `static-tomcat-${a.version}.tar.gz`)
-          a.appDir = join(global.Server.AppDir!, `static-tomcat-${a.version}`)
+          let dir = ''
+          let zip = ''
+          if (isMacOS()) {
+            dir = join(global.Server.AppDir!, `static-tomcat-${a.version}`, 'bin/catalina.sh')
+            zip = join(global.Server.Cache!, `static-tomcat-${a.version}.tar.gz`)
+            a.appDir = join(global.Server.AppDir!, `static-tomcat-${a.version}`)
+          } else if (isWindows()) {
+            dir = join(global.Server.AppDir!, `tomcat-${a.version}`, 'bin/catalina.bat')
+            zip = join(global.Server.Cache!, `tomcat-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `tomcat-${a.version}`)
+          }
+
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`tomcat-${a.version}`] = a
+          a.name = `Tomcat-${a.version}`
         })
-        resolve(dict)
-      } catch (e) {
+        resolve(all)
+      } catch {
         resolve({})
       }
     })
+  }
+
+  async _fixStartBat(version: SoftInstalled) {
+    const file = join(dirname(version.bin), 'setclasspath.bat')
+    if (existsSync(file)) {
+      let content = await readFile(file, 'utf-8')
+      content = content.replace(
+        `set "_RUNJAVA=%JRE_HOME%\\bin\\java.exe"`,
+        `set "_RUNJAVA=%JRE_HOME%\\bin\\javaw.exe"`
+      )
+      await writeFile(file, content)
+    }
   }
 
   _initDefaultDir(version: SoftInstalled, baseDir?: string) {
@@ -107,35 +140,103 @@ class Tomcat extends Base {
           I18nT('appLog.startServiceBegin', { service: `${this.type}-${version.version}` })
         )
       })
+      const bin = version.bin
+
+      if (isWindows()) {
+        await this._fixStartBat(version)
+      }
+
       const baseDir: any = await this._initDefaultDir(version, CATALINA_BASE).on(on)
       await makeGlobalTomcatServerXML({
         path: baseDir
       } as any)
 
-      const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
-
       await mkdirp(join(baseDir, 'logs'))
 
-      const bin = version.bin
-      const execEnv = `export CATALINA_BASE="${baseDir}"
-export CATALINA_PID="${this.pidPath}"`
+      const tomcatDir = join(global.Server.BaseDir!, 'tomcat')
       const execArgs = ``
 
-      try {
-        const res = await serviceStartExec(
-          version,
-          this.pidPath,
-          tomcatDir,
-          bin,
-          execArgs,
-          execEnv,
-          on
-        )
-        resolve(res)
-      } catch (e: any) {
-        console.log('-k start err: ', e)
-        reject(e)
-        return
+      if (isMacOS()) {
+        const execEnv = `export CATALINA_BASE="${baseDir}"
+export CATALINA_PID="${this.pidPath}"`
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir: tomcatDir,
+            bin,
+            execArgs,
+            execEnv,
+            on
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else if (isWindows()) {
+        const execEnv = `set "CATALINA_BASE=${baseDir}"`
+        try {
+          await serviceStartExecCMD({
+            version,
+            pidPath: this.pidPath,
+            baseDir: tomcatDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+
+        const checkPid = (): Promise<{ pid: string } | undefined> => {
+          return new Promise((resolve) => {
+            const doCheck = async (time: number) => {
+              const pids = await ProcessListSearch(`-Dcatalina.base="${baseDir}"`, false)
+              if (pids.length > 0) {
+                const pid = pids.pop()!
+                resolve({
+                  pid: pid.PID
+                })
+              } else {
+                if (time < 20) {
+                  await waitTime(2000)
+                  await doCheck(time + 1)
+                } else {
+                  resolve(undefined)
+                }
+              }
+            }
+            doCheck(0).then().catch()
+          })
+        }
+        await waitTime(3000)
+        const res = await checkPid()
+        if (res && res?.pid) {
+          await writeFile(this.pidPath, `${res.pid}`)
+          on({
+            'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
+          })
+          resolve({
+            'APP-Service-Start-PID': res.pid
+          })
+          return
+        }
+        on({
+          'APP-On-Log': AppLog(
+            'error',
+            I18nT('appLog.execStartCommandFail', {
+              error: 'Start failed',
+              service: `${this.type}-${version.version}`
+            })
+          )
+        })
+        reject(new Error('Start failed'))
       }
     })
   }
@@ -143,19 +244,36 @@ export CATALINA_PID="${this.pidPath}"`
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.tomcat?.dirs ?? [], 'catalina.sh', 'tomcat')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [versionLocalFetch(setup?.tomcat?.dirs ?? [], 'catalina.sh', 'tomcat')]
+      } else if (isWindows()) {
+        all = [versionLocalFetch(setup?.tomcat?.dirs ?? [], 'catalina.bat')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          const all: any[] = []
-          for (const item of versions) {
-            const bin = join(dirname(item.bin), 'version.sh')
-            await chmod(bin, '0777')
-            const command = `${bin}`
-            const reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
-            all.push(TaskQueue.run(versionBinVersion, command, reg))
+          if (isMacOS()) {
+            const all: any[] = []
+            for (const item of versions) {
+              const bin = join(dirname(item.bin), 'version.sh')
+              await chmod(bin, '0777')
+              const command = `"${bin}"`
+              const reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
+              all.push(TaskQueue.run(versionBinVersion, bin, command, reg))
+            }
+            return Promise.all(all)
+          } else if (isWindows()) {
+            const all = versions.map((item) => {
+              const bin = join(dirname(item.bin), 'version.bat')
+              const command = `call "${bin}"`
+              const reg = /(Server version: Apache Tomcat\/)(.*?)(\n)/g
+              return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+            })
+            return Promise.all(all)
           }
-          return Promise.all(all)
+          return Promise.resolve([])
         })
         .then((list) => {
           list.forEach((v, i) => {
@@ -177,6 +295,25 @@ export CATALINA_PID="${this.pidPath}"`
           resolve([])
         })
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    if (isMacOS()) {
+      const dir = row.appDir
+      await super._installSoftHandle(row)
+      const subDirs = await readdir(dir)
+      const subDir = subDirs.pop()
+      if (subDir) {
+        await execPromise(`cd ${join(dir, subDir)} && mv ./* ../`)
+        await waitTime(300)
+        await remove(join(dir, subDir))
+      }
+    } else if (isWindows()) {
+      await remove(row.appDir)
+      await mkdirp(row.appDir)
+      await zipUnPack(row.zip, row.appDir)
+      await moveChildDirToParent(row.appDir)
+    }
   }
 
   brewinfo() {

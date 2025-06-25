@@ -17,5 +17,7 @@
   "initDBPassFail": "Gagal mengatur password database. Alasan: {error}",
   "initDBDataDir": "Folder data tidak ditemukan, mulai membuat folder data",
   "initDBDataDirSuccess": "Folder data berhasil dibuat. Lokasi folder: {dir}",
-  "initDBDataDirFail": "Gagal membuat folder data. Alasan: {error}"
+  "initDBDataDirFail": "Gagal membuat folder data. Alasan: {error}",
+
+  "startInstall": "Start installing {service}"
 }

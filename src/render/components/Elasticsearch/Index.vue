@@ -1,8 +1,8 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="tab" class="mt-3">
-      <template v-for="(item, index) in tabs" :key="index">
-        <el-radio-button :label="item" :value="index"></el-radio-button>
+      <template v-for="(item, _index) in tabs" :key="_index">
+        <el-radio-button :label="item" :value="_index"></el-radio-button>
       </template>
     </el-radio-group>
     <div class="main-block">
@@ -13,6 +13,8 @@
         :has-static="true"
         :show-port-lib="false"
         :show-brew-lib="false"
+        title="Elasticsearch"
+        url="https://github.com/elastic/elasticsearch"
       ></Manager>
       <Config v-if="tab === 2" name="elasticsearch.yml" ext="yml"></Config>
       <Config v-if="tab === 3" name="jvm.options" ext="options"></Config>

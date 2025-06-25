@@ -12,8 +12,6 @@
   "obfuscatorSrc": "File atau folder PHP yang akan di-obfuscate",
   "obfuscatorDesc": "Simpan file atau folder, jangan duplikat file atau folder sumber",
   "obfuscatorConfig": "Pengaturan Lanjutan",
-  "groupStartOff": "Matikan grup quickstart",
-  "groupStartOn": "Nyalakan grup quickstart",
   "quickStart": "GroupStart",
   "display_errors": "Apakah menampilkan informasi kesalahan secara rinci",
   "short_open_tag": "Dukungan tag pendek",

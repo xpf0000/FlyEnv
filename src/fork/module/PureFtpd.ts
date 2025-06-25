@@ -7,17 +7,21 @@ import {
   brewInfoJson,
   execPromise,
   portSearch,
-  spawnPromiseMore,
   uuid,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  chmod,
+  remove,
+  execPromiseSudo,
+  spawnPromiseWithStdin
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp, chmod, remove } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
-import { execPromiseRoot } from '../util/Exec'
 
 class Manager extends Base {
   constructor() {
@@ -77,7 +81,7 @@ class Manager extends Base {
           return reject(e)
         }
       } else {
-        await execPromiseRoot(command)
+        await execPromiseSudo(command)
       }
       const res = await this.waitPidFile(pidfile, undefined, openInTerminal ? 60 : 20)
       if (res && res?.pid) {
@@ -116,7 +120,7 @@ class Manager extends Base {
           const txt = await readFile(json, 'utf-8')
           const arr = JSON.parse(txt.toString())
           all.push(...arr)
-        } catch (e) {}
+        } catch {}
       }
       resolve(all)
     })
@@ -130,7 +134,7 @@ class Manager extends Base {
     const cammand = `./pure-pw userdel ${user} -f ${passwd} -F ${pdb} -m`
     try {
       await execPromise(cammand, { cwd })
-    } catch (e) {}
+    } catch {}
   }
 
   delFtp(item: FtpItem, version: SoftInstalled) {
@@ -149,7 +153,7 @@ class Manager extends Base {
           const txt = await readFile(json, 'utf-8')
           const arr = JSON.parse(txt.toString())
           all.push(...arr)
-        } catch (e) {}
+        } catch {}
       }
       const findOld = all.findIndex((a) => a.user === item.user)
       if (findOld >= 0) {
@@ -180,15 +184,15 @@ class Manager extends Base {
       const passwd = join(global.Server.FTPDir!, 'pureftpd.passwd')
 
       const stdout: Array<string> = []
-      const { promise, spawn } = await spawnPromiseMore(
+      const promise = spawnPromiseWithStdin(
         './pure-pw',
         [
           'useradd',
           user,
           '-u',
-          dirStat.uid,
+          `${dirStat.uid}`,
           '-g',
-          dirStat.gid,
+          `${dirStat.gid}`,
           '-d',
           dir,
           '-F',
@@ -203,11 +207,11 @@ class Manager extends Base {
       )
 
       promise
-        .on((data) => {
+        .on((data, stdinFn: (txt: string) => void) => {
           stdout.push(data)
           const txt = data.toString().trim()
           if (txt === 'Password:' || txt === 'Enter it again:') {
-            spawn?.stdin?.write(`${pass}\n`)
+            stdinFn(pass)
           }
         })
         .then(async () => {
@@ -218,7 +222,7 @@ class Manager extends Base {
               const txt = await readFile(json, 'utf-8')
               const arr = JSON.parse(txt.toString())
               all.push(...arr)
-            } catch (e) {}
+            } catch {}
           }
           const findOld = all.findIndex((a) => a.user === item.user)
           if (findOld >= 0) {
@@ -252,7 +256,7 @@ class Manager extends Base {
             try {
               version = reg?.exec(str)?.[2]?.trim()
               reg!.lastIndex = 0
-            } catch (e) {}
+            } catch {}
             resolve({
               version
             })

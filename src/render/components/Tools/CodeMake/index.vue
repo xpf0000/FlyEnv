@@ -3,7 +3,7 @@
     <div class="nav">
       <div class="left" @click="doClose">
         <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-        <span class="ml-15">{{ I18nT('tools.codemake') }}</span>
+        <span class="ml-3">{{ I18nT('tools.codemake') }}</span>
       </div>
     </div>
 

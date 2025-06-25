@@ -17,7 +17,7 @@ import 'monaco-editor/esm/vs/basic-languages/mysql/mysql.contribution.js'
 import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
 import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js'
 
-const { nativeTheme } = require('@electron/remote')
+import { nativeTheme } from '@/util/NodeFn'
 
 export const EditorConfigMake = (value: string, readOnly: boolean, wordWrap: 'off' | 'on') => {
   const appStore = AppStore()
@@ -26,7 +26,9 @@ export const EditorConfigMake = (value: string, readOnly: boolean, wordWrap: 'of
   if (theme === 'auto') {
     let appTheme = appStore?.config?.setup?.theme ?? ''
     if (!appTheme || appTheme === 'system') {
-      appTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+      nativeTheme.shouldUseDarkColors().then((e: boolean) => {
+        appTheme = e ? 'dark' : 'light'
+      })
     }
     if (appTheme === 'light') {
       theme = 'vs-light'

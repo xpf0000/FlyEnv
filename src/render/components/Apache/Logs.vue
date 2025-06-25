@@ -10,16 +10,32 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
-
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
+  import { AppStore } from '@/store/app'
 
   const props = defineProps<{
     type: string
   }>()
 
+  const appStore = AppStore()
+  const version = computed(() => {
+    return appStore.config.server?.apache?.current
+  })
+
   const log = ref()
-  const filepath = ref(join(global.Server.ApacheDir, `common/logs/${props.type}`))
+  const filepath = computed(() => {
+    if (!version?.value || !version?.value?.bin) {
+      return ''
+    }
+    if (window.Server.isMacOS) {
+      return join(window.Server.ApacheDir!, `common/logs/${props.type}.log`)
+    }
+    if (window.Server.isWindows) {
+      return join(window.Server.ApacheDir, `${version.value.version}.${props.type}.log`)
+    }
+    return ''
+  })
 </script>

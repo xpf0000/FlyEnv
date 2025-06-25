@@ -26,5 +26,7 @@
   "ssl_tickets": "Kích hoạt vé SSL.",
   "experimental_enable_metrics": "Tính năng metrics thử nghiệm. Bật metrics Prometheus tại endpoint `GET /metrics`.",
   "experimental_reduce_indexing_memory_usage": "Giảm sử dụng bộ nhớ trong khi lập chỉ mục thử nghiệm, không sử dụng trong môi trường production.",
-  "experimental_max_number_of_batched_tasks": "Giảm thử nghiệm số lượng tác vụ tối đa được xử lý cùng một lúc."
+  "experimental_max_number_of_batched_tasks": "Giảm thử nghiệm số lượng tác vụ tối đa được xử lý cùng một lúc.",
+
+  "working_dir": "Working Directory"
 }

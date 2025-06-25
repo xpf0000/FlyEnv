@@ -10,11 +10,15 @@
       >
         <el-table-column :label="I18nT('host.site')">
           <template #header>
-            <div class="w-p100 name-cell">
+            <div class="w-full name-cell">
               <span style="display: inline-flex; align-items: center; padding: 2px 0">{{
                 I18nT('host.site')
               }}</span>
-              <el-input v-model.trim="search" :placeholder="I18nT('base.placeholderSearch')" clearable></el-input>
+              <el-input
+                v-model.trim="search"
+                :placeholder="I18nT('base.placeholderSearch')"
+                clearable
+              ></el-input>
             </div>
           </template>
           <template #default="scope">
@@ -120,33 +124,33 @@
                   <ul v-poper-fix class="host-list-menu">
                     <li @click.stop="action(scope.row, scope.$index, 'open')">
                       <yb-icon :svg="import('@/svg/folder.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.open') }}</span>
+                      <span class="ml-3">{{ I18nT('base.open') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'edit')">
                       <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.edit') }}</span>
+                      <span class="ml-3">{{ I18nT('base.edit') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'link')">
                       <yb-icon :svg="import('@/svg/link.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.links') }}</span>
+                      <span class="ml-3">{{ I18nT('base.links') }}</span>
                     </li>
                     <template v-if="scope.row.subType === 'other'">
                       <li @click.stop="showConfig(scope.row)">
                         <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                        <span class="ml-15">{{ I18nT('base.configFile') }} - server.xml</span>
+                        <span class="ml-3">{{ I18nT('base.configFile') }} - server.xml</span>
                       </li>
                     </template>
                     <li @click.stop="action(scope.row, scope.$index, 'log')">
                       <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.log') }}</span>
+                      <span class="ml-3">{{ I18nT('base.log') }}</span>
                     </li>
                     <li @click.stop="showSort($event, scope.row.id)">
                       <yb-icon :svg="import('@/svg/sort.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('host.sort') }}</span>
+                      <span class="ml-3">{{ I18nT('host.sort') }}</span>
                     </li>
                     <li @click.stop="action(scope.row, scope.$index, 'del')">
                       <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                      <span class="ml-15">{{ I18nT('base.del') }}</span>
+                      <span class="ml-3">{{ I18nT('base.del') }}</span>
                     </li>
                   </ul>
 
@@ -184,14 +188,11 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import type { AppHost } from '@shared/app'
-  import { isEqual } from 'lodash'
+  import { isEqual } from 'lodash-es'
   import { HostStore } from '@/components/Host/store'
   import { MessageError, MessageSuccess } from '@/util/Element'
-
-  const { shell } = require('@electron/remote')
-  const { join } = require('path')
-
-  //nohup {project_cmd}{nohup_log} & echo $! > {pid_file}
+  import { join } from '@/util/path-browserify'
+  import { shell } from '@/util/NodeFn'
 
   const hostList = ref()
   const loading = ref(false)
@@ -236,7 +237,7 @@
         if (!h.name || h?.pid) {
           return false
         }
-        let name: any = h.name.split('.')
+        const name: any = h.name.split('.')
         let has = false
         while (!has && name.length > 0) {
           name.shift()
@@ -359,19 +360,21 @@
         }).then()
         break
       case 'log':
-        let logFile = ''
-        let customTitle = ''
-        if (item.subType === 'springboot') {
-          logFile = join(global.Server.BaseDir!, `java/${item.id}.log`)
-          customTitle = 'SpringBoot'
-        } else {
-          logFile = join(global.Server.BaseDir!, `tomcat/${item.id}/logs/catalina.out`)
-          customTitle = 'Tomcat'
+        {
+          let logFile = ''
+          let customTitle = ''
+          if (item.subType === 'springboot') {
+            logFile = join(window.Server.BaseDir!, `java/${item.id}.log`)
+            customTitle = 'SpringBoot'
+          } else {
+            logFile = join(window.Server.BaseDir!, `tomcat/${item.id}/logs/catalina.out`)
+            customTitle = 'Tomcat'
+          }
+          AsyncComponentShow(LogVM, {
+            logFile,
+            customTitle
+          }).then()
         }
-        AsyncComponentShow(LogVM, {
-          logFile,
-          customTitle
-        }).then()
         break
       case 'del':
         Base._Confirm(I18nT('base.areYouSure'), undefined, {
@@ -413,7 +416,7 @@
   const showConfig = (item: AppHost) => {
     AsyncComponentShow(ConfigVM, {
       item,
-      file: join(global.Server.BaseDir!, `tomcat/${item.id}/conf/server.xml`)
+      file: join(window.Server.BaseDir!, `tomcat/${item.id}/conf/server.xml`)
     }).then()
   }
 

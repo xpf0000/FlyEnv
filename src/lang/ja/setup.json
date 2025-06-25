@@ -1,5 +1,4 @@
 {
-  "menuShowHide": "メニュー表示/非表示",
   "tsinghua": "清華大学ダウンロードソース",
   "bfsu": "北京外国語大学ダウンロードソース",
   "tencent": "テンセントダウンロードソース",
@@ -35,7 +34,6 @@
     "path": "ファイルパス",
     "comment": "備考",
     "exec": "実行",
-    "command": "コマンド",
     "commandFile": "ファイル",
     "isSudo": "sudoで起動するかどうか",
     "pidPath": "pidファイルパス",

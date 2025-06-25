@@ -2,6 +2,7 @@ import { Base } from './Base'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { versionDirCache } from '../Fn'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class Manager extends Base {
   Apache: any
@@ -31,6 +32,10 @@ class Manager extends Base {
   Minio: any
   Rust: any
   MeiliSearch: any
+  ETCD: any
+  Deno: any
+  Bun: any
+  Perl: any
 
   constructor() {
     super()
@@ -57,8 +62,13 @@ class Manager extends Base {
           versions.nginx = this.Nginx.allInstalledVersions(setup)
         } else if (type === 'php') {
           if (!this.Php) {
-            const res = await import('./Php')
-            this.Php = res.default
+            if (isMacOS()) {
+              const res = await import('./Php')
+              this.Php = res.default
+            } else if (isWindows()) {
+              const res = await import('./Php.win')
+              this.Php = res.default
+            }
           }
           versions.php = this.Php.allInstalledVersions(setup)
         } else if (type === 'mysql') {
@@ -171,8 +181,13 @@ class Manager extends Base {
           versions.ruby = this.Ruby.allInstalledVersions(setup)
         } else if (type === 'node') {
           if (!this.Node) {
-            const res = await import('./Node')
-            this.Node = res.default
+            if (isMacOS()) {
+              const res = await import('./Node')
+              this.Node = res.default
+            } else if (isWindows()) {
+              const res = await import('./Node.win')
+              this.Node = res.default
+            }
           }
           versions.node = this.Node.allInstalledVersions(setup)
         } else if (type === 'elasticsearch') {
@@ -205,6 +220,30 @@ class Manager extends Base {
             this.MeiliSearch = res.default
           }
           versions.meilisearch = this.MeiliSearch.allInstalledVersions(setup)
+        } else if (type === 'etcd') {
+          if (!this.ETCD) {
+            const res = await import('./Etcd')
+            this.ETCD = res.default
+          }
+          versions.etcd = this.ETCD.allInstalledVersions(setup)
+        } else if (type === 'deno') {
+          if (!this.Deno) {
+            const res = await import('./Deno')
+            this.Deno = res.default
+          }
+          versions.deno = this.Deno.allInstalledVersions(setup)
+        } else if (type === 'bun') {
+          if (!this.Bun) {
+            const res = await import('./Bun')
+            this.Bun = res.default
+          }
+          versions.bun = this.Bun.allInstalledVersions(setup)
+        } else if (type === 'perl') {
+          if (!this.Perl) {
+            const res = await import('./Perl')
+            this.Perl = res.default
+          }
+          versions.perl = this.Perl.allInstalledVersions(setup)
         }
       }
       const keys: string[] = []

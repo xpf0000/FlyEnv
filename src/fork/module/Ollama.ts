@@ -1,4 +1,4 @@
-import { dirname, join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -11,20 +11,26 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  machineId,
+  serviceStartExecWin
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
 import axios from 'axios'
 import http from 'http'
 import https from 'https'
-import { machineId } from 'node-machine-id'
 import { publicDecrypt } from 'crypto'
 import { EOL } from 'os'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class Ollama extends Base {
+  chats: Record<string, AbortController> = {}
+
   constructor() {
     super()
     this.type = 'ollama'
@@ -66,6 +72,9 @@ class Ollama extends Base {
       })
       const bin = version.bin
       const iniFile = await this.initConfig().on(on)
+      const baseDir = join(global.Server.BaseDir!, 'ollama')
+      await mkdirp(baseDir)
+      const execArgs = `serve`
 
       const getConfEnv = async () => {
         const content = await readFile(iniFile, 'utf-8')
@@ -90,46 +99,76 @@ class Ollama extends Base {
 
       const opt = await getConfEnv()
 
-      const envs: string[] = []
-      for (const k in opt) {
-        const v = opt[k]
-        envs.push(`export ${k}="${v}"`)
-      }
-      envs.push('')
+      if (isMacOS()) {
+        const envs: string[] = []
+        for (const k in opt) {
+          const v = opt[k]
+          envs.push(`export ${k}="${v}"`)
+        }
+        envs.push('')
 
-      const baseDir = join(global.Server.BaseDir!, 'ollama')
-      const execEnv = envs.join(EOL)
-      const execArgs = `serve`
+        const execEnv = envs.join(EOL)
 
-      try {
-        const res = await serviceStartExec(
-          version,
-          this.pidPath,
-          baseDir,
-          bin,
-          execArgs,
-          execEnv,
-          on,
-          20,
-          500,
-          false
-        )
-        resolve(res)
-      } catch (e: any) {
-        console.log('-k start err: ', e)
-        reject(e)
-        return
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else if (isWindows()) {
+        const envs: string[] = []
+        for (const k in opt) {
+          const v = opt[k]
+          envs.push(`$env:${k}="${v}"`)
+        }
+        envs.push('')
+        const execEnv = envs.join(EOL)
+        try {
+          const res = await serviceStartExecWin({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
       }
     })
   }
 
   allModel(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
-      const command = `cd "${dirname(version.bin)}" && ./ollama list`
+      let command = ''
+      if (isMacOS()) {
+        command = `cd "${dirname(version.bin)}" && ./ollama list`
+      } else if (isWindows()) {
+        command = `ollama.exe list`
+      }
       let res: any
       try {
-        res = await execPromise(command)
-      } catch (e) {}
+        res = await execPromise(command, {
+          cwd: dirname(version.bin)
+        })
+      } catch {}
       const arr = res?.stdout?.split('\n')?.filter((s: string) => !!s.trim()) ?? []
       const list: any = []
       arr.shift()
@@ -148,19 +187,27 @@ class Ollama extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('ollama')
-        const dict: any = {}
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `static-ollama-${a.version}`, 'ollama')
-          const zip = join(global.Server.Cache!, `static-ollama-${a.version}.tgz`)
-          a.appDir = join(global.Server.AppDir!, `static-ollama-${a.version}`)
+          let dir = ''
+          let zip = ''
+          if (isMacOS()) {
+            dir = join(global.Server.AppDir!, `static-ollama-${a.version}`, 'ollama')
+            zip = join(global.Server.Cache!, `static-ollama-${a.version}.tgz`)
+            a.appDir = join(global.Server.AppDir!, `static-ollama-${a.version}`)
+          } else if (isWindows()) {
+            dir = join(global.Server.AppDir!, `ollama-${a.version}`, 'ollama.exe')
+            zip = join(global.Server.Cache!, `ollama-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `ollama-${a.version}`)
+          }
+
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`ollama-${a.version}`] = a
+          a.name = `Ollama-${a.version}`
         })
-        resolve(dict)
-      } catch (e) {
+        resolve(all)
+      } catch {
         resolve({})
       }
     })
@@ -169,12 +216,23 @@ class Ollama extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.ollama?.dirs ?? [], 'ollama', 'ollama')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [versionLocalFetch(setup?.ollama?.dirs ?? [], 'ollama', 'ollama')]
+      } else if (isWindows()) {
+        all = [versionLocalFetch(setup?.ollama?.dirs ?? [], 'ollama.exe')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) =>
-            TaskQueue.run(versionBinVersion, `${item.bin} -v`, /( )(\d+(\.\d+){1,4})(.*?)/g)
+            TaskQueue.run(
+              versionBinVersion,
+              item.bin,
+              `${basename(item.bin)} -v`,
+              /( )(\d+(\.\d+){1,4})(.*?)/g
+            )
           )
           return Promise.all(all)
         })
@@ -237,12 +295,12 @@ class Ollama extends Base {
           proxy: this.getAxiosProxy()
         })
         list = res?.data?.data ?? []
-      } catch (e) {}
+      } catch {}
       return resolve(list)
     })
   }
 
-  chat(param: any, t: number) {
+  chat(param: any, t: number, key: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       let isLock = false
       if (!global.Server.Licenses) {
@@ -286,21 +344,62 @@ class Ollama extends Base {
         return reject(new Error(msg))
       }
 
+      const controller = new AbortController()
+      this.chats[key] = controller
+
+      param.signal = controller.signal
+
       axios(param)
         .then((response) => {
           const reader = new TextDecoder()
-          response.data.on('data', (chunk: any) => {
-            const text = reader.decode(chunk)
-            const json = JSON.parse(text)
-            on(json)
-            if (json.done) {
-              resolve(true)
+
+          // 定义数据处理器
+          const onData = (chunk: any) => {
+            try {
+              const text = reader.decode(chunk)
+              const json = JSON.parse(text)
+              on(json)
+              if (json.done) {
+                cleanup() // 正常结束时清理
+                delete this?.chats?.[key]
+                resolve(true)
+              }
+            } catch (e: any) {
+              cleanup()
+              reject(e)
             }
+          }
+
+          const cleanup = () => {
+            response.data.off('data', onData)
+            response.data.destroy()
+            delete this?.chats?.[key]
+          }
+
+          response.data.on('data', onData)
+
+          // 监听取消信号（可选，AbortController 已绑定）
+          controller.signal.addEventListener('abort', () => {
+            cleanup()
+            resolve(true)
           })
         })
         .catch((e) => {
+          if (axios.isCancel(e)) {
+            // 取消请求的错误已由 abort 事件处理，此处可忽略
+            return
+          }
+          delete this?.chats?.[key]
           reject(e)
         })
+    })
+  }
+
+  stopOutput(chatKey: string) {
+    return new ForkPromise((resolve) => {
+      this.chats?.[chatKey]?.abort?.()
+      delete this?.chats?.[chatKey]
+      resolve(true)
     })
   }
 

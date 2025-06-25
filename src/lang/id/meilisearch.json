@@ -26,5 +26,7 @@
   "ssl_tickets": "Mengaktifkan tiket SSL.",
   "experimental_enable_metrics": "Fitur metrik eksperimental. Mengaktifkan metrik Prometheus di endpoint `GET /metrics`.",
   "experimental_reduce_indexing_memory_usage": "Pengurangan penggunaan memori eksperimental selama pengindeksan, jangan gunakan di produksi.",
-  "experimental_max_number_of_batched_tasks": "Secara eksperimental mengurangi jumlah maksimum tugas yang diproses sekaligus."
+  "experimental_max_number_of_batched_tasks": "Secara eksperimental mengurangi jumlah maksimum tugas yang diproses sekaligus.",
+
+  "working_dir": "Working Directory"
 }

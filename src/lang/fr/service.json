@@ -7,5 +7,8 @@
   "useSysPHP": "Utiliser la version PHP par défaut",
   "setByApp": "Variables d'environnement définies par FlyEnv",
   "setByNoApp": "Variables d'environnement non définies par FlyEnv",
-  "ftpdNeedPasswordToStart": "Pure-FTPd nécessite des privilèges sudo pour démarrer. Veuillez entrer votre mot de passe utilisateur. Le mot de passe sera utilisé pour le remplissage automatique plus tard. Ou vous pouvez cliquer sur le bouton ci-dessous pour entrer manuellement dans le terminal, mais cette invite peut réapparaître."
+  "ftpdNeedPasswordToStart": "Pure-FTPd nécessite des privilèges sudo pour démarrer. Veuillez entrer votre mot de passe utilisateur. Le mot de passe sera utilisé pour le remplissage automatique plus tard. Ou vous pouvez cliquer sur le bouton ci-dessous pour entrer manuellement dans le terminal, mais cette invite peut réapparaître.",
+
+  "bundleinVersionDelTips": "This version is a built-in version, confirm not displayed?",
+  "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?"
 }

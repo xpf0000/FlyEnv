@@ -14,22 +14,23 @@
   import { computed, ref } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import IPC from '@/util/IPC'
-
-  const { join } = require('path')
-  const { existsSync } = require('fs-extra')
+  import { join } from '@/util/path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const conf = ref()
   const file = computed(() => {
-    return join(global.Server.BaseDir, 'caddy/Caddyfile')
+    return join(window.Server.BaseDir!, 'caddy/Caddyfile')
   })
   const defaultFile = computed(() => {
-    return join(global.Server.BaseDir, 'caddy/Caddyfile.default')
+    return join(window.Server.BaseDir!, 'caddy/Caddyfile.default')
   })
 
-  if (!existsSync(file.value)) {
-    IPC.send('app-fork:caddy', 'initConfig').then((key: string) => {
-      IPC.off(key)
-      conf?.value?.update()
-    })
-  }
+  fs.existsSync(file.value).then((e) => {
+    if (!e) {
+      IPC.send('app-fork:caddy', 'initConfig').then((key: string) => {
+        IPC.off(key)
+        conf?.value?.update()
+      })
+    }
+  })
 </script>

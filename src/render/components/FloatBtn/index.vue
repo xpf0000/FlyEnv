@@ -1,5 +1,5 @@
 <template>
-  <div class="app-float-btn-wapper">
+  <div class="app-float-btn-wapper" :style="{ bottom: AISetup.aiShow ? '75px' : null } as any">
     <ToolFlowButton v-if="showTool" />
     <AI v-if="showAI" />
   </div>
@@ -10,6 +10,7 @@
   import { AppStore } from '@/store/app'
   import AI from '@/components/AI/index.vue'
   import ToolFlowButton from '@/components/Tools/flowButton.vue'
+  import { AISetup } from '@/components/AI/setup'
 
   const appStore = AppStore()
 

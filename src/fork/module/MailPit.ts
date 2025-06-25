@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { basename, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -10,13 +10,18 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  readFile,
+  writeFile,
+  mkdirp,
+  serviceStartExecWin
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile, writeFile, mkdirp } from 'fs-extra'
 import TaskQueue from '../TaskQueue'
 import { I18nT } from '@lang/index'
 import { EOL } from 'os'
+import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import Helper from '../Helper'
 
 class MailPit extends Base {
   constructor() {
@@ -42,7 +47,7 @@ class MailPit extends Base {
         const tmplFile = join(global.Server.Static!, 'tmpl/mailpit.conf')
         let content = await readFile(tmplFile, 'utf-8')
         const logFile = join(baseDir, 'mailpit.log')
-        content = content.replace('##LOG_FILE##', logFile)
+        content = content.replace('##LOG_FILE##', pathFixedToUnix(logFile))
         await writeFile(iniFile, content)
         const defaultIniFile = join(baseDir, 'mailpit.conf.default')
         await writeFile(defaultIniFile, content)
@@ -107,35 +112,65 @@ class MailPit extends Base {
 
       const opt = await getConfEnv()
 
-      const envs: string[] = []
-      for (const k in opt) {
-        const v = opt[k]
-        envs.push(`export ${k}="${v}"`)
-      }
-      envs.push('')
-
       const baseDir = join(global.Server.BaseDir!, `mailpit`)
-      const execEnv = envs.join(EOL)
-      const execArgs = ``
+      await mkdirp(baseDir)
 
-      try {
-        const res = await serviceStartExec(
-          version,
-          this.pidPath,
-          baseDir,
-          bin,
-          execArgs,
-          execEnv,
-          on,
-          20,
-          500,
-          false
-        )
-        resolve(res)
-      } catch (e: any) {
-        console.log('-k start err: ', e)
-        reject(e)
-        return
+      if (isMacOS()) {
+        const envs: string[] = []
+        for (const k in opt) {
+          const v = opt[k]
+          envs.push(`export ${k}="${v}"`)
+        }
+        envs.push('')
+
+        const execEnv = envs.join(EOL)
+        const execArgs = ``
+
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else if (isWindows()) {
+        const envs: string[] = []
+        for (const k in opt) {
+          const v = opt[k]
+          envs.push(`$env:${k}="${v}"`)
+        }
+        envs.push('')
+
+        const execEnv = envs.join(EOL)
+        const execArgs = ` `
+
+        try {
+          const res = await serviceStartExecWin({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
       }
     })
   }
@@ -144,19 +179,27 @@ class MailPit extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mailpit')
-        const dict: any = {}
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `static-mailpit-${a.version}`, 'mailpit')
-          const zip = join(global.Server.Cache!, `static-mailpit-${a.version}.tar.gz`)
-          a.appDir = join(global.Server.AppDir!, `static-mailpit-${a.version}`)
+          let dir = ''
+          let zip = ''
+          if (isMacOS()) {
+            dir = join(global.Server.AppDir!, `static-mailpit-${a.version}`, 'mailpit')
+            zip = join(global.Server.Cache!, `static-mailpit-${a.version}.tar.gz`)
+            a.appDir = join(global.Server.AppDir!, `static-mailpit-${a.version}`)
+          } else if (isWindows()) {
+            dir = join(global.Server.AppDir!, `mailpit-${a.version}`, 'mailpit.exe')
+            zip = join(global.Server.Cache!, `mailpit-${a.version}.zip`)
+            a.appDir = join(global.Server.AppDir!, `mailpit-${a.version}`)
+          }
+
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`mailpit-${a.version}`] = a
+          a.name = `Mailpit-${a.version}`
         })
-        resolve(dict)
-      } catch (e) {
+        resolve(all)
+      } catch {
         resolve({})
       }
     })
@@ -165,12 +208,23 @@ class MailPit extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.mailpit?.dirs ?? [], 'mailpit', 'mailpit')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [versionLocalFetch(setup?.mailpit?.dirs ?? [], 'mailpit', 'mailpit')]
+      } else if (isWindows()) {
+        all = [versionLocalFetch(setup?.mailpit?.dirs ?? [], 'mailpit.exe')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) =>
-            TaskQueue.run(versionBinVersion, `${item.bin} version`, /(v)(\d+(\.\d+){1,4})( )/g)
+            TaskQueue.run(
+              versionBinVersion,
+              item.bin,
+              `${basename(item.bin)} version`,
+              /(v)(\d+(\.\d+){1,4})( )/g
+            )
           )
           return Promise.all(all)
         })
@@ -193,6 +247,13 @@ class MailPit extends Base {
           resolve([])
         })
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    await super._installSoftHandle(row)
+    if (isMacOS()) {
+      await Helper.send('mailpit', 'binFixed', row.bin)
+    }
   }
 
   brewinfo() {

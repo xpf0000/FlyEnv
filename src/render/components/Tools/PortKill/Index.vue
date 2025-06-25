@@ -2,16 +2,16 @@
   <div class="port-kill tools host-edit">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ $t('util.toolPortKill') }}</span>
+        <span class="text-xl">{{ I18nT('util.toolPortKill') }}</span>
         <slot name="like"></slot>
       </div>
     </div>
 
-    <div class="main-wapper pb-0">
-      <div class="main p-0">
+    <div class="main-wapper">
+      <div class="main">
         <el-input
           v-model.number="port"
-          placeholder="Please input port number"
+          placeholder="Please input port"
           class="input-with-select"
           @change="doSearch"
         >
@@ -22,10 +22,10 @@
         <div class="table-wapper">
           <div class="btn-cell">
             <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect">{{
-              $t('base.cleanSelect')
+              I18nT('base.cleanSelect')
             }}</el-button>
             <el-button type="danger" :disabled="arrs.length === 0" @click="cleanAll">{{
-              $t('base.cleanAll')
+              I18nT('base.cleanAll')
             }}</el-button>
           </div>
           <el-card :header="null" :shadow="false">
@@ -37,9 +37,10 @@
               @selection-change="handleSelectionChange"
             >
               <el-table-column type="selection" width="55" />
-              <el-table-column prop="COMMAND" label="Command"> </el-table-column>
               <el-table-column prop="PID" label="PID"> </el-table-column>
-              <el-table-column prop="USER" label="User"> </el-table-column>
+              <el-table-column v-if="!isWindows" prop="USER" label="User" width="110">
+              </el-table-column>
+              <el-table-column prop="COMMAND" label="COMMAND"> </el-table-column>
             </el-table>
           </el-card>
         </div>
@@ -48,96 +49,76 @@
   </div>
 </template>
 
-<script lang="ts">
-  import { markRaw, defineComponent } from 'vue'
+<script setup lang="ts">
+  import { computed, ref } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { passwordCheck } from '@/util/Brew'
   import { MessageSuccess, MessageWarning } from '@/util/Element'
   import IPC from '@/util/IPC'
+  import Base from '@/core/Base'
   import { I18nT } from '@lang/index'
 
-  const SearchIcon = markRaw(Search)
-  export default defineComponent({
-    name: 'MoPortKill',
-    components: {},
-    props: {},
-    emits: ['doClose'],
-    data(): {
-      Search: any
-      port: string
-      arrs: Array<any>
-      select: Array<any>
-    } {
-      return {
-        Search: SearchIcon,
-        port: '',
-        arrs: [],
-        select: []
-      }
-    },
-    computed: {},
-    watch: {},
-    created: function () {},
-    mounted() {
-      passwordCheck().then(() => {})
-    },
-    unmounted() {},
-    methods: {
-      cleanSelect() {
-        this.$baseConfirm(I18nT('base.killProcessConfirm'), undefined, {
-          customClass: 'confirm-del',
-          type: 'warning'
-        })
-          .then(() => {
-            const pids = this.select.map((s: any) => {
-              return s.PID
-            })
-            IPC.send(`app-fork:tools`, 'killPids', '-9', pids).then((key: string) => {
-              IPC.off(key)
-              MessageSuccess(I18nT('base.success'))
-              this.doSearch()
-            })
-          })
-          .catch(() => {})
-      },
-      cleanAll() {
-        this.$baseConfirm(I18nT('base.killAllProcessConfirm'), undefined, {
-          customClass: 'confirm-del',
-          type: 'warning'
-        })
-          .then(() => {
-            const pids = this.arrs.map((s: any) => {
-              return s.PID
-            })
-            IPC.send(`app-fork:tools`, 'killPids', '-9', pids).then((key: string) => {
-              IPC.off(key)
-              MessageSuccess(I18nT('base.success'))
-              this.doSearch()
-            })
-          })
-          .catch(() => {})
-      },
-      handleSelectionChange(select: Array<any>) {
-        console.log(...arguments)
-        this.select.splice(0)
-        this.select.push(...select)
-      },
-      doClose() {
-        this.$emit('doClose')
-      },
-      doSearch() {
-        this.arrs.splice(0)
-        IPC.send(`app-fork:tools`, 'getPortPids', this.port).then((key: string, res: any) => {
-          IPC.off(key)
-          const arr = res?.data ?? []
-          if (arr.length === 0) {
-            MessageWarning(I18nT('base.portNotUse'))
-            return
-          }
-          this.arrs.splice(0)
-          this.arrs.push(...arr)
-        })
-      }
-    }
+  const port = ref('')
+  const arrs = ref<Array<any>>([])
+  const select = ref<Array<any>>([])
+
+  const isMacOS = computed(() => {
+    return window.Server.isMacOS
   })
+  const isWindows = computed(() => {
+    return window.Server.isWindows
+  })
+  const isLinux = computed(() => {
+    return window.Server.isLinux
+  })
+
+  const cleanSelect = () => {
+    Base._Confirm(I18nT('base.killProcessConfirm'), undefined, {
+      customClass: 'confirm-del',
+      type: 'warning'
+    })
+      .then(() => {
+        const pids = select.value.map((s: any) => s.PID)
+
+        IPC.send('app-fork:tools', 'killPids', '-9', pids).then((key: string) => {
+          IPC.off(key)
+          MessageSuccess(I18nT('base.success'))
+          doSearch()
+        })
+      })
+      .catch(() => {})
+  }
+
+  const cleanAll = () => {
+    Base._Confirm(I18nT('base.killAllProcessConfirm'), undefined, {
+      customClass: 'confirm-del',
+      type: 'warning'
+    })
+      .then(() => {
+        const pids = arrs.value.map((s: any) => s.PID)
+
+        IPC.send('app-fork:tools', 'killPids', '-9', pids).then((key: string) => {
+          IPC.off(key)
+          MessageSuccess(I18nT('base.success'))
+          doSearch()
+        })
+      })
+      .catch(() => {})
+  }
+
+  const handleSelectionChange = (selection: Array<any>) => {
+    select.value = [...selection]
+  }
+
+  const doSearch = () => {
+    arrs.value = []
+    IPC.send('app-fork:tools', 'getPortPids', port.value).then((key: string, res: any) => {
+      IPC.off(key)
+      const data = res?.data ?? []
+      if (data.length === 0) {
+        MessageWarning(I18nT('base.portNotUse'))
+        return
+      }
+      arrs.value = [...data]
+    })
+  }
 </script>

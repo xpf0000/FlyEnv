@@ -4,9 +4,7 @@
   import { useQRCode } from './useQRCode'
   import { I18nT } from '@lang/index'
   import { MessageError } from '@/util/Element'
-
-  const { dialog, shell } = require('@electron/remote')
-  const { writeFile } = require('fs')
+  import { dialog, shell, fs } from '@/util/NodeFn'
 
   const foreground = ref('#000000ff')
   const background = ref('#ffffffff')
@@ -36,8 +34,7 @@
           return
         }
         const base64 = qrcode.value.replace(/^data:image\/\w+;base64,/, '')
-        const dataBuffer = new Buffer(base64, 'base64')
-        writeFile(filePath, dataBuffer, function (err: Error | null) {
+        fs.writeBufferBase64(filePath, base64, function (err: Error | null) {
           if (err) {
             MessageError(err.message)
             return

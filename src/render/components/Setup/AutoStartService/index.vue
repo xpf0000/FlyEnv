@@ -27,19 +27,6 @@
     },
     set(v) {
       store.config.setup.autoStartService = v
-      if (!v) {
-        autoHide.value = false
-      }
-      store.saveConfig()
-    }
-  })
-
-  const autoHide = computed({
-    get() {
-      return store.config.setup?.autoHide ?? false
-    },
-    set(v) {
-      store.config.setup.autoHide = v
       store.saveConfig()
     }
   })

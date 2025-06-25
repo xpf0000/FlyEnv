@@ -1,5 +1,4 @@
 {
-  "menuShowHide": "Menüyü Göster/Gizle",
   "tsinghua": "Tsinghua Üniversitesi indirme kaynağı",
   "bfsu": "Pekin Yabancı Diller Üniversitesi indirme kaynağı",
   "tencent": "Tencent indirme kaynağı",
@@ -35,7 +34,6 @@
     "path": "Dosya Yolu",
     "comment": "Açıklama",
     "exec": "Çalıştır",
-    "command": "Komut",
     "commandFile": "Dosya",
     "isSudo": "sudo ile çalıştırılsın mı?",
     "pidPath": "PID Dosya Yolu",
@@ -43,6 +41,9 @@
     "logPath": "Günlük Dosyası",
     "needPasswordToStart": "Yönetici hakları gerekiyor. Şifrenizi girin (ileride kullanılmak üzere kaydedilecektir). Alternatif olarak terminalde manuel girebilirsiniz, ancak bu uyarı tekrar görünebilir.",
     "hadOpenInTerminal": "Terminalde zaten çalışıyor—sonuçlar görüntülenemiyor.",
-    "licenseTips": "Lisans bulunamadı. Yalnızca 3 modül/çalıştırma öğesi oluşturulabilir."
+    "licenseTips": "Lisans bulunamadı. Yalnızca 3 modül/çalıştırma öğesi oluşturulabilir.",
+
+    "outputLog": "Output Log",
+    "errorLog": "Error Log"
   }
 }

@@ -64,5 +64,9 @@
   "copyCommand": "コマンドをコピー",
   "showFile": "ファイルを表示",
   "sticky": "スティッキー",
-  "dbclickRowToEdit": "この行をダブルクリックして編集"
+  "dbclickRowToEdit": "この行をダブルクリックして編集",
+
+  "projectDeno": "Deno Projects",
+  "projectBun": "Bun Projects",
+  "projectPerl": "Perl Projects"
 }

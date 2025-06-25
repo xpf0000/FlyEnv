@@ -1,21 +1,126 @@
-import { type ChildProcess, spawn } from 'child_process'
-import { merge } from 'lodash'
-import { createWriteStream, existsSync, mkdirSync, readdirSync, realpathSync, statSync } from 'fs'
-import path, { basename, dirname, join } from 'path'
+import { createWriteStream, realpathSync } from 'node:fs'
+import type { FSWatcher } from 'node:fs'
+import { dirname, join, normalize, parse } from 'path'
 import { ForkPromise } from '@shared/ForkPromise'
 import crypto from 'crypto'
 import axios from 'axios'
-import { mkdirp, readdir, readFile, remove, writeFile } from 'fs-extra'
-import type { AppHost, ModuleExecItem, SoftInstalled } from '@shared/app'
-import { compareVersions } from 'compare-versions'
-import { execPromise, execPromiseRoot } from './util/Exec'
+import type { AppHost } from '@shared/app'
 import Helper from './Helper'
-import { I18nT } from '@lang/index'
 import { format } from 'date-fns'
-import EnvSync from './util/EnvSync'
-import { userInfo } from 'os'
+import { hostname, userInfo } from 'os'
+import _node_machine_id from 'node-machine-id'
+import { zipUnPack } from './util/Zip'
+import { moveDirToDir, getSubDirAsync, getAllFileAsync, moveChildDirToParent } from './util/Dir'
+import { serviceStartExec, customerServiceStartExec } from './util/ServiceStart'
+import {
+  serviceStartExec as serviceStartExecWin,
+  serviceStartExecCMD,
+  readFileAsUTF8,
+  customerServiceStartExec as customerServiceStartExecWin
+} from './util/ServiceStart.win'
+import {
+  execPromise,
+  execPromiseSudo,
+  execPromiseWithEnv,
+  spawnPromiseWithEnv,
+  spawnPromise,
+  spawnPromiseWithStdin
+} from '@shared/child-process'
+import {
+  versionBinVersion,
+  versionCheckBin,
+  brewInfoJson,
+  brewSearch,
+  portSearch,
+  versionFixed,
+  versionDirCache,
+  versionFilterSame,
+  versionLocalFetch,
+  versionMacportsFetch,
+  versionSort
+} from './util/Version'
+import {
+  watch,
+  copy,
+  chmod,
+  copyFile,
+  unlink,
+  readdir,
+  writeFile,
+  realpath,
+  remove,
+  mkdirp,
+  readFile,
+  existsSync,
+  appendFile,
+  rename,
+  stat
+} from '@shared/fs-extra'
+import { addPath, fetchRawPATH, handleWinPathArr, writePath } from './util/PATH.win'
+import { isWindows } from '@shared/utils'
 
-export { execPromise, execPromiseRoot }
+export { addPath, fetchRawPATH, handleWinPathArr, writePath }
+
+export {
+  versionBinVersion,
+  versionCheckBin,
+  brewInfoJson,
+  brewSearch,
+  portSearch,
+  versionFixed,
+  versionDirCache,
+  versionFilterSame,
+  versionLocalFetch,
+  versionMacportsFetch,
+  versionSort
+}
+
+const { machineId } = _node_machine_id
+
+export {
+  machineId,
+  zipUnPack,
+  moveDirToDir,
+  getSubDirAsync,
+  getAllFileAsync,
+  moveChildDirToParent,
+  serviceStartExec,
+  customerServiceStartExec,
+  serviceStartExecWin,
+  serviceStartExecCMD,
+  readFileAsUTF8,
+  customerServiceStartExecWin
+}
+
+export {
+  createWriteStream,
+  realpathSync,
+  FSWatcher,
+  watch,
+  copy,
+  chmod,
+  copyFile,
+  unlink,
+  readdir,
+  writeFile,
+  realpath,
+  remove,
+  mkdirp,
+  readFile,
+  existsSync,
+  appendFile,
+  rename,
+  stat
+}
+
+export {
+  execPromise,
+  execPromiseSudo,
+  execPromiseWithEnv,
+  spawnPromiseWithEnv,
+  spawnPromise,
+  spawnPromiseWithStdin
+}
 
 export const ProcessSendSuccess = (key: string, data: any, on?: boolean) => {
   process?.send?.({
@@ -76,157 +181,37 @@ export function waitTime(time: number) {
   })
 }
 
-export function spawnPromise(
-  cammand: string,
-  params: Array<any>,
-  opt?: { [k: string]: any }
-): ForkPromise<any> {
-  return new ForkPromise(async (resolve, reject, on) => {
-    const stdout: Array<Uint8Array> = []
-    const stderr: Array<Uint8Array> = []
-    const env = await EnvSync.sync()
-    let child: ChildProcess
-    try {
-      child = spawn(
-        cammand,
-        params,
-        merge(
-          {
-            env
-          },
-          opt
-        )
-      )
-    } catch (e) {
-      reject(e)
-      return
-    }
-    const stdinFn = (txt: string) => {
-      child?.stdin?.write(`${txt}\n`)
-    }
-    let exit = false
-    const onEnd = (code: number | null) => {
-      if (exit) return
-      exit = true
-      console.log('onEnd code: ', code)
-      if (!code) {
-        resolve(Buffer.concat(stdout).toString().trim())
-      } else {
-        reject(new Error(Buffer.concat(stderr).toString().trim()))
-      }
-    }
-    child?.stdout?.on('data', (data) => {
-      stdout.push(data)
-      on(data.toString(), stdinFn)
-    })
-    child?.stderr?.on('data', (err) => {
-      stderr.push(err)
-      on(err.toString(), stdinFn)
-    })
-    child.on('exit', onEnd)
-    child.on('close', onEnd)
-  })
-}
+export async function setDir777ToCurrentUser(folderPath: string) {
+  if (!existsSync(folderPath)) {
+    return
+  }
+  const username = userInfo().username
+  const domain = hostname()
+  const identity = `"${domain}\\${username}"`
 
-export async function spawnPromiseMore(
-  cammand: string,
-  params: Array<any>,
-  opt?: { [k: string]: any }
-): Promise<{
-  promise: ForkPromise<any>
-  spawn: ChildProcess
-}> {
-  const stdout: Array<Uint8Array> = []
-  const stderr: Array<Uint8Array> = []
-  const env = await EnvSync.sync()
-  const child = spawn(
-    cammand,
-    params,
-    merge(
-      {
-        env
-      },
-      opt
-    )
+  const args = [`"${normalize(folderPath)}"`, '/grant', `${identity}:(F)`, '/t', '/c', '/q']
+
+  console.log(`Executing: icacls ${args.join(' ')}`)
+  await appendFile(
+    join(global.Server.BaseDir!, 'debug.log'),
+    `[setDir777ToCurrentUser][args]: icacls ${args.join(' ')}\n`
   )
-  const stdinFn = (txt: string) => {
-    child?.stdin?.write(`${txt}\n`)
-  }
-  const promise = new ForkPromise((resolve, reject, on) => {
-    let exit = false
-    const onEnd = (code: number | null) => {
-      if (exit) return
-      exit = true
-      if (!code) {
-        resolve(Buffer.concat(stdout).toString().trim())
-      } else {
-        reject(new Error(Buffer.concat(stderr).toString().trim()))
-      }
-    }
-    child.stdout.on('data', (data) => {
-      stdout.push(data)
-      on(data.toString(), stdinFn)
+  try {
+    await spawnPromise('icacls', args, {
+      shell: true,
+      windowsHide: true
     })
-    child.stderr.on('data', (err) => {
-      stderr.push(err)
-      on(err.toString(), stdinFn)
-    })
-    child.on('exit', onEnd)
-    child.on('close', onEnd)
-  })
-  return {
-    promise,
-    spawn: child
+  } catch (e) {
+    await appendFile(
+      join(global.Server.BaseDir!, 'debug.log'),
+      `[setDir777ToCurrentUser][error]: ${e}\n`
+    )
   }
-}
-
-export function createFolder(fp: string) {
-  fp = fp.replace(/\\/g, '/')
-  if (existsSync(fp)) {
-    return true
-  }
-  const arr = fp.split('/')
-  let dir = '/'
-  for (const p of arr) {
-    dir = join(dir, p)
-    if (!existsSync(dir)) {
-      mkdirSync(dir)
-    }
-  }
-  return existsSync(fp)
 }
 
 export function md5(str: string) {
   const md5 = crypto.createHash('md5')
   return md5.update(str).digest('hex')
-}
-
-export function getAllFile(fp: string, fullpath = true, basePath: Array<string> = []) {
-  let arr: Array<string> = []
-  if (!existsSync(fp)) {
-    return arr
-  }
-  const state = statSync(fp)
-  if (state.isFile()) {
-    return [fp]
-  }
-  const files = readdirSync(fp)
-  files.forEach(function (item) {
-    const base = [...basePath]
-    base.push(item)
-    const fPath = join(fp, item)
-    if (existsSync(fPath)) {
-      const stat = statSync(fPath)
-      if (stat.isDirectory()) {
-        const sub = getAllFile(fPath, fullpath, base)
-        arr = arr.concat(sub)
-      }
-      if (stat.isFile()) {
-        arr.push(fullpath ? fPath : base.join('/'))
-      }
-    }
-  })
-  return arr
 }
 
 export function downFile(url: string, savepath: string) {
@@ -240,7 +225,7 @@ export function downFile(url: string, savepath: string) {
         proxy.protocol = u.protocol.replace(':', '')
         proxy.host = u.hostname
         proxy.port = u.port
-      } catch (e) {
+      } catch {
         proxy = undefined
       }
     } else {
@@ -258,9 +243,9 @@ export function downFile(url: string, savepath: string) {
         }
       }
     })
-      .then(function (response) {
+      .then(async (response) => {
         const base = dirname(savepath)
-        createFolder(base)
+        await mkdirp(base)
         const stream = createWriteStream(savepath)
         response.data.pipe(stream)
         stream.on('error', (err) => {
@@ -274,76 +259,6 @@ export function downFile(url: string, savepath: string) {
         reject(err)
       })
   })
-}
-
-export function getSubDir(fp: string, fullpath = true) {
-  const arr: Array<string> = []
-  if (!existsSync(fp)) {
-    return arr
-  }
-  const stat = statSync(fp)
-  if (stat.isDirectory() && !stat.isSymbolicLink()) {
-    try {
-      const files = readdirSync(fp)
-      files.forEach(function (item) {
-        const fPath = join(fp, item)
-        if (existsSync(fPath)) {
-          const stat = statSync(fPath)
-          if (stat.isDirectory() && !stat.isSymbolicLink()) {
-            arr.push(fullpath ? fPath : item)
-          }
-        }
-      })
-    } catch (e) {}
-  }
-  return arr
-}
-
-export const getAllFileAsync = async (
-  dirPath: string,
-  fullpath = true,
-  basePath: Array<string> = []
-): Promise<string[]> => {
-  if (!existsSync(dirPath)) {
-    return []
-  }
-  const list: Array<string> = []
-  const files = await readdir(dirPath, { withFileTypes: true })
-  for (const file of files) {
-    const arr = [...basePath]
-    arr.push(file.name)
-    const childPath = path.join(dirPath, file.name)
-    if (file.isDirectory()) {
-      const sub = await getAllFileAsync(childPath, fullpath, arr)
-      list.push(...sub)
-    } else if (file.isFile()) {
-      const name = fullpath ? childPath : arr.join('/')
-      list.push(name)
-    }
-  }
-  return list
-}
-
-export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<string[]> => {
-  if (!existsSync(dirPath)) {
-    return []
-  }
-  const list: Array<string> = []
-  const files = await readdir(dirPath, { withFileTypes: true })
-  for (const file of files) {
-    const childPath = path.join(dirPath, file.name)
-    if (!existsSync(childPath)) {
-      continue
-    }
-    if (
-      file.isDirectory() ||
-      (file.isSymbolicLink() && statSync(realpathSync(childPath)).isDirectory())
-    ) {
-      const name = fullpath ? childPath : file.name
-      list.push(name)
-    }
-  }
-  return list
 }
 
 export const hostAlias = (item: AppHost) => {
@@ -394,339 +309,20 @@ export const systemProxyGet = async () => {
         }
       }
     }
-  } catch (e) {}
+  } catch {
+    /* empty */
+  }
   console.log('systemProxyGet: ', proxy)
   return proxy
 }
 
-export function versionFixed(version?: string | null) {
-  return (
-    version
-      ?.split('.')
-      ?.map((v) => {
-        const vn = parseInt(v)
-        if (isNaN(vn)) {
-          return '0'
-        }
-        return `${vn}`
-      })
-      ?.join('.') ?? '0'
-  )
-}
-
-export const versionCheckBin = (binPath: string) => {
-  console.log('versionCheckBin: ', binPath)
-  if (existsSync(binPath)) {
-    console.log('binPath: ', binPath)
-    binPath = realpathSync(binPath)
-    if (!existsSync(binPath)) {
-      return false
-    }
-    const stat = statSync(binPath)
-    console.log('stat: ', stat.isFile(), stat.isDirectory(), stat.isSymbolicLink())
-    if (!stat.isFile()) {
-      return false
-    }
-    console.log('binPath realpathSync: ', binPath)
-    return binPath
-  }
-  return false
-}
-
-export const versionSort = (versions: SoftInstalled[]) => {
-  return versions.sort((a, b) => {
-    const bv = versionFixed(b.version)
-    const av = versionFixed(a.version)
-    return compareVersions(bv, av)
-  })
-}
-
-export const versionFilterSame = (versions: SoftInstalled[]) => {
-  const arr: SoftInstalled[] = []
-  let item = versions.pop()
-  while (item) {
-    const has = versions.some((v) => v.bin === item?.bin)
-    if (!has) {
-      arr.push(item)
-    }
-    item = versions.pop()
-  }
-  return arr
-}
-
-export const versionBinVersion = (
-  command: string,
-  reg: RegExp
-): Promise<{ version?: string; error?: string }> => {
-  return new Promise(async (resolve) => {
-    const handleCatch = (err: any) => {
-      resolve({
-        error: command + '<br/>' + err.toString().trim().replace(new RegExp('\n', 'g'), '<br/>'),
-        version: undefined
-      })
-    }
-    const handleThen = (res: any) => {
-      const str = res.stdout + res.stderr
-      let version: string | undefined = ''
-      try {
-        version = reg?.exec(str)?.[2]?.trim()
-        reg!.lastIndex = 0
-      } catch (e) {}
-      resolve({
-        version
-      })
-    }
-    try {
-      const res = await execPromise(command)
-      console.log('versionBinVersion: ', command, {
-        stdout: res.stdout,
-        stderr: res.stderr
-      })
-      handleThen(res)
-    } catch (e) {
-      console.log('versionBinVersion err: ', e)
-      handleCatch(e)
-    }
-  })
-}
-
-export const versionDirCache: Record<string, string[]> = {}
-
-export const versionLocalFetch = async (
-  customDirs: string[],
-  binName: string,
-  searchName: string
-): Promise<Array<SoftInstalled>> => {
-  const installed: Set<string> = new Set()
-  const systemDirs = ['/', '/opt', '/usr', global.Server.AppDir!, ...customDirs]
-
-  const realDirDict: { [k: string]: string } = {}
-  const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
-    if (!existsSync(dir)) {
-      return
-    }
-    dir = realpathSync(dir)
-    console.log('findInstalled dir: ', dir)
-    let binPath = versionCheckBin(join(dir, `${binName}`))
-    console.log('binPath 0: ', binPath)
-    if (binPath) {
-      realDirDict[binPath] = join(dir, `${binName}`)
-      installed.add(binPath)
-      return
-    }
-    binPath = versionCheckBin(join(dir, `bin/${binName}`))
-    console.log('binPath 1: ', binPath)
-    if (binPath) {
-      realDirDict[binPath] = join(dir, `bin/${binName}`)
-      installed.add(binPath)
-      return
-    }
-    binPath = versionCheckBin(join(dir, `sbin/${binName}`))
-    console.log('binPath 2: ', binPath)
-    if (binPath) {
-      realDirDict[binPath] = join(dir, `sbin/${binName}`)
-      installed.add(binPath)
-      return
-    }
-    if (depth >= maxDepth) {
-      return
-    }
-    const sub = versionDirCache?.[dir] ?? (await getSubDirAsync(dir))
-    if (!versionDirCache?.[dir]) {
-      versionDirCache[dir] = sub
-    }
-    console.log('sub: ', sub)
-    for (const s of sub) {
-      await findInstalled(s, depth + 1, maxDepth)
-    }
-  }
-
-  for (const s of systemDirs) {
-    await findInstalled(s, 0, 1)
-  }
-
-  const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
-  for (const b of base) {
-    const subDir = versionDirCache?.[b] ?? (await getSubDirAsync(b))
-    if (!versionDirCache?.[b]) {
-      versionDirCache[b] = subDir
-    }
-    const subDirFilter = subDir.filter((f) => {
-      return f.includes(searchName)
-    })
-    for (const f of subDirFilter) {
-      const subDir1 = versionDirCache?.[f] ?? (await getSubDirAsync(f))
-      if (!versionDirCache?.[f]) {
-        versionDirCache[f] = subDir1
-      }
-      for (const s of subDir1) {
-        await findInstalled(s)
-      }
-    }
-  }
-  const count = installed.size
-  if (count === 0) {
-    return []
-  }
-
-  const list: Array<SoftInstalled> = []
-  const installedList: Array<string> = Array.from(installed)
-  for (const i of installedList) {
-    let path = i
-    if (path.includes('/sbin/') || path.includes('/bin/')) {
-      path = path
-        .replace(`/sbin/`, '/##SPLIT##/')
-        .replace(`/bin/`, '/##SPLIT##/')
-        .split('/##SPLIT##/')
-        .shift()!
-    } else {
-      path = dirname(path)
-    }
-    const item = {
-      bin: i,
-      path: `${path}/`,
-      run: false,
-      running: false
-    }
-    if (!list.find((f) => f.path === item.path && f.bin === item.bin)) {
-      list.push(item as any)
-    }
-  }
-  return list
-}
-
-export const versionMacportsFetch = async (bins: string[]): Promise<Array<SoftInstalled>> => {
-  const list: Array<SoftInstalled> = []
-  const base = '/opt/local/'
-  const find = (fpm: string) => {
-    let bin = join(base, fpm)
-    if (existsSync(bin)) {
-      bin = realpathSync(bin)
-      let path = bin
-      if (bin.includes('/sbin/') || bin.includes('/bin/')) {
-        path = path
-          .replace(`/sbin/`, '/##SPLIT##/')
-          .replace(`/bin/`, '/##SPLIT##/')
-          .split('/##SPLIT##/')
-          .shift()!
-      } else {
-        path = dirname(path)
-      }
-      const item = {
-        bin,
-        path: `${path}/`,
-        run: false,
-        running: false
-      }
-      list.push(item as any)
-    }
-    return true
-  }
-  for (const fpm of bins) {
-    find(fpm)
-  }
-  list.forEach((item) => {
-    item.flag = 'macports'
-  })
-  return list
-}
-
-export const brewInfoJson = async (names: string[]) => {
-  const info: any = {}
-  const cammand = ['brew', 'info', ...names, '--json', '--formula'].join(' ')
-  console.log('brewinfo doRun: ', cammand)
-  try {
-    const res = await execPromise(cammand, {
-      env: {
-        HOMEBREW_NO_INSTALL_FROM_API: 1
-      }
-    })
-    const arr = JSON.parse(res.stdout)
-    arr.forEach((item: any) => {
-      info[item.full_name] = {
-        version: item?.versions?.stable ?? '',
-        installed: item?.installed?.length > 0,
-        name: item.full_name,
-        flag: 'brew'
-      }
-    })
-  } catch (e) {}
-  return info
-}
-
-export const brewSearch = async (
-  all: string[],
-  cammand: string,
-  handleContent?: (content: string) => string
-) => {
-  try {
-    const res = await execPromise(cammand, {
-      env: {
-        HOMEBREW_NO_INSTALL_FROM_API: 1
-      }
-    })
-    let content: any = res.stdout
-    console.log('brewinfo content: ', content)
-    if (handleContent) {
-      content = handleContent(content)
-    }
-    content = content
-      .split('\n')
-      .map((s: string) => s.trim())
-      .filter((s: string) => s && !s.includes(' '))
-    all.push(...content)
-  } catch (e) {
-    console.log('brewSearch err: ', e)
-  }
-  return all
-}
-
-export const portSearch = async (
-  reg: string,
-  filter: (f: string) => boolean,
-  isInstalled: (name: string, version?: string) => boolean
-) => {
-  const Info: { [k: string]: any } = {}
-  try {
-    let arr = []
-    const info = await spawnPromise('port', ['search', '--name', '--line', '--regex', reg])
-    arr = info
-      .split('\n')
-      .filter(filter)
-      .map((m: string) => {
-        const a = m.split('\t').filter((f) => f.trim().length > 0)
-        const name = a.shift() ?? ''
-        const version = a.shift() ?? ''
-        const installed = isInstalled(name, version)
-        return {
-          name,
-          version,
-          installed,
-          flag: 'port'
-        }
-      })
-    arr.forEach((item: any) => {
-      Info[item.name] = item
-    })
-  } catch (e) {}
-  return Info
-}
-
 export const writeFileByRoot = async (file: string, content: string) => {
-  try {
-    await Helper.send('tools', 'writeFileByRoot', file, content)
-  } catch (e) {
-    throw e
-  }
+  await Helper.send('tools', 'writeFileByRoot', file, content)
   return true
 }
 
 export const readFileByRoot = async (file: string): Promise<string> => {
-  try {
-    return (await Helper.send('tools', 'readFileByRoot', file)) as any
-  } catch (e) {
-    throw e
-  }
+  return (await Helper.send('tools', 'readFileByRoot', file)) as any
 }
 
 export async function waitPidFile(
@@ -764,256 +360,42 @@ export async function waitPidFile(
   return res
 }
 
-export async function serviceStartExec(
-  version: SoftInstalled,
-  pidPath: string,
-  baseDir: string,
-  bin: string,
-  execArgs: string,
-  execEnv: string,
-  on: Function,
-  maxTime = 20,
-  timeToWait = 500,
-  checkPidFile = true
-): Promise<{ 'APP-Service-Start-PID': string }> {
-  if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch (e) {}
-  }
-  await mkdirp(baseDir)
-  const outFile = join(baseDir, `start.${version.version}.out.log`)
-  const errFile = join(baseDir, `start.${version.version}.error.log`)
-
-  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.sh'), 'utf8')
-
-  psScript = psScript
-    .replace('#ENV#', execEnv)
-    .replace('#CWD#', dirname(bin))
-    .replace('#BIN#', basename(bin))
-    .replace('#ARGS#', execArgs)
-    .replace('#OUTLOG#', outFile)
-    .replace('#ERRLOG#', errFile)
-
-  const psName = `start-${version.version!.trim()}.sh`.split(' ').join('')
-  const psPath = join(baseDir, psName)
-  await writeFile(psPath, psScript)
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-  })
-
-  process.chdir(baseDir)
-  let res: any
-  let error: any
-  try {
-    res = await spawnPromise('zsh', [psName], {
-      cwd: baseDir
-    })
-  } catch (e) {
-    error = e
-  }
-
-  on({
-    'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-  })
-  on({
-    'APP-Service-Start-Success': true
-  })
-
-  if (!checkPidFile) {
-    let pid = ''
-    const stdout = res.trim()
-    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
-    const match = regex.exec(stdout)
-    if (match) {
-      pid = match[1]
+export function fetchPathByBin(bin: string) {
+  let path = dirname(bin)
+  const spliteKey = isWindows() ? '\\' : '/'
+  const paths = bin.split(spliteKey)
+  let isBin = paths.pop()
+  while (isBin) {
+    if (['bin', 'sbin'].includes(isBin)) {
+      path = paths.join(spliteKey)
+      isBin = undefined
+      break
     }
-    await writeFile(pidPath, pid)
-    on({
-      'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-    })
-    return {
-      'APP-Service-Start-PID': pid
-    }
+    isBin = paths.pop()
   }
-
-  res = await waitPidFile(pidPath, 0, maxTime, timeToWait)
-  if (res) {
-    if (res?.pid) {
-      await writeFile(pidPath, res.pid)
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: res.pid }))
-      })
-      return {
-        'APP-Service-Start-PID': res.pid
-      }
-    }
-    on({
-      'APP-On-Log': AppLog(
-        'error',
-        I18nT('appLog.startServiceFail', {
-          error: res?.error ?? 'Start Fail',
-          service: `${version.typeFlag}-${version.version}`
-        })
-      )
-    })
-    throw new Error(res?.error ?? 'Start Fail')
-  }
-  let msg = 'Start Fail'
-  if (existsSync(errFile)) {
-    msg = await readFile(errFile, 'utf-8')
-  } else if (error) {
-    msg = error && error?.toString ? error?.toString() : ''
-  }
-  on({
-    'APP-On-Log': AppLog(
-      'error',
-      I18nT('appLog.startServiceFail', {
-        error: msg,
-        service: `${version.typeFlag}-${version.version}`
-      })
-    )
-  })
-  throw new Error(msg)
+  return path
 }
 
-export async function customerServiceStartExec(
-  version: ModuleExecItem,
-  isService: boolean
-): Promise<{ 'APP-Service-Start-PID': string }> {
-  console.log('customerServiceStartExec: ', version, isService)
+const NTFS: Record<string, boolean> = {}
 
-  const pidPath = version?.pidPath ?? ''
-  if (pidPath && existsSync(pidPath)) {
-    try {
-      await remove(pidPath)
-    } catch (e) {}
+export async function isNTFS(fileOrDirPath: string) {
+  const driveLetter = parse(fileOrDirPath).root.replace(/[:\\]/g, '')
+  if (NTFS?.[driveLetter] !== undefined) {
+    return NTFS[driveLetter]
   }
-
-  const baseDir = join(global.Server.BaseDir!, 'module-customer')
-  await mkdirp(baseDir)
-
-  const outFile = join(baseDir, `${version.id}.out.log`)
-  const errFile = join(baseDir, `${version.id}.error.log`)
-
   try {
-    await Helper.send('tools', 'rm', errFile)
-  } catch (e) {}
-  try {
-    await Helper.send('tools', 'rm', outFile)
-  } catch (e) {}
-
-  let psScript = await readFile(join(global.Server.Static!, 'sh/flyenv-async-exec.sh'), 'utf8')
-
-  let bin = ''
-  if (version.commandType === 'file') {
-    bin = version.commandFile
-  } else {
-    bin = join(baseDir, `${version.id}.start.sh`)
-    await writeFile(bin, version.command)
+    const jsonResult =
+      (
+        await execPromise(
+          `powershell -command "Get-Volume -DriveLetter ${driveLetter} | ConvertTo-Json"`,
+          { encoding: 'utf-8' }
+        )
+      )?.stdout ?? ''
+    const { FileSystem, FileSystemType } = JSON.parse(jsonResult)
+    const is = FileSystem === 'NTFS' || FileSystemType === 'NTFS'
+    NTFS[driveLetter] = is
+    return is
+  } catch {
+    return false
   }
-  const uinfo = userInfo()
-  const uid = uinfo.uid
-  const gid = uinfo.gid
-
-  try {
-    await Helper.send('tools', 'chmod', bin, '0777')
-  } catch (e) {}
-
-  try {
-    await Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${bin}"`)
-  } catch (e) {}
-
-  psScript = psScript
-    .replace('#ENV#', '')
-    .replace('#CWD#', dirname(bin))
-    .replace('#BIN#', basename(bin))
-    .replace('#ARGS#', '')
-    .replace('#OUTLOG#', outFile)
-    .replace('#ERRLOG#', errFile)
-
-  const psName = `start-${version.id.trim()}.sh`.split(' ').join('')
-  const psPath = join(baseDir, psName)
-  await writeFile(psPath, psScript)
-
-  try {
-    await Helper.send('tools', 'chmod', psPath, '0777')
-  } catch (e) {}
-
-  try {
-    await Helper.send('tools', 'startService', `chown -R ${uid}:${gid} "${psPath}"`)
-  } catch (e) {}
-
-  process.chdir(baseDir)
-  let res: any
-  let error: any
-  try {
-    if (version.isSudo) {
-      const execRes = await execPromiseRoot(['zsh', psName], {
-        cwd: baseDir
-      })
-      res = (execRes.stdout + '\n' + execRes.stderr).trim()
-    } else {
-      res = await spawnPromise('zsh', [psName], {
-        cwd: baseDir,
-        shell: '/bin/zsh'
-      })
-    }
-  } catch (e) {
-    error = e
-    if (!isService || !version.pidPath) {
-      throw e
-    }
-  }
-
-  await waitPidFile(errFile, 0, 6, 500)
-
-  if (!isService) {
-    let msg = ''
-    if (existsSync(errFile)) {
-      msg = await readFile(errFile, 'utf-8')
-    }
-    if (msg) {
-      throw new Error(msg)
-    }
-    return {
-      'APP-Service-Start-PID': '-1'
-    }
-  }
-
-  if (!version.pidPath) {
-    let pid = ''
-    const stdout = res.trim()
-    const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
-    const match = regex.exec(stdout)
-    if (match) {
-      pid = match[1]
-    }
-    if (pid) {
-      return {
-        'APP-Service-Start-PID': pid
-      }
-    } else {
-      throw new Error(stdout)
-    }
-  }
-
-  res = await waitPidFile(pidPath, 0, 20, 500)
-  if (res) {
-    if (res?.pid) {
-      await writeFile(pidPath, res.pid)
-      return {
-        'APP-Service-Start-PID': res.pid
-      }
-    }
-  }
-  let msg = 'Start Fail: '
-  if (error && error?.toString) {
-    msg += '\n' + (error?.toString() ?? '')
-  }
-  if (existsSync(errFile)) {
-    msg += '\n' + (await readFile(errFile, 'utf-8'))
-  }
-  throw new Error(msg)
 }

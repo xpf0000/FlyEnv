@@ -2,20 +2,27 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
-import type { SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   brewInfoJson,
+  copyFile,
+  getAllFileAsync,
+  mkdirp,
   portSearch,
+  remove,
   serviceStartExec,
+  serviceStartExecWin,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  zipUnPack
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../TaskQueue'
+import { isMacOS, isWindows } from '@shared/utils'
 class Memcached extends Base {
   constructor() {
     super()
@@ -37,23 +44,66 @@ class Memcached extends Base {
       const bin = version.bin
       const baseDir = global.Server.MemcachedDir!
       const execEnv = ''
-      const execArgs = `-d -P "${this.pidPath}" -vv`
 
+      if (isMacOS()) {
+        const execArgs = `-d -P "${this.pidPath}" -vv`
+
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else if (isWindows()) {
+        const execArgs = `-d -P \`"${this.pidPath}\`"`
+
+        try {
+          const res = await serviceStartExecWin({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      }
+    })
+  }
+
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
       try {
-        const res = await serviceStartExec(
-          version,
-          this.pidPath,
-          baseDir,
-          bin,
-          execArgs,
-          execEnv,
-          on
-        )
-        resolve(res)
-      } catch (e: any) {
-        console.log('-k start err: ', e)
-        reject(e)
-        return
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('memcached')
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `memcached-${a.version}`, 'memcached.exe')
+          const zip = join(global.Server.Cache!, `memcached-${a.version}.zip`)
+          a.appDir = join(global.Server.AppDir!, `memcached-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+        })
+        resolve(all)
+      } catch {
+        resolve([])
       }
     })
   }
@@ -61,14 +111,20 @@ class Memcached extends Base {
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.memcached?.dirs ?? [], 'memcached', 'memcached')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [versionLocalFetch(setup?.memcached?.dirs ?? [], 'memcached', 'memcached')]
+      } else if (isWindows()) {
+        all = [versionLocalFetch(setup?.memcached?.dirs ?? [], 'memcached.exe')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
-            const command = `${item.bin} -V`
+            const command = `"${item.bin}" -V`
             const reg = /(\s)(\d+(\.\d+){1,4})(.*?)/g
-            return TaskQueue.run(versionBinVersion, command, reg)
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
           return Promise.all(all)
         })
@@ -91,6 +147,32 @@ class Memcached extends Base {
           resolve([])
         })
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    if (isWindows()) {
+      const tmpDir = join(global.Server.Cache!, `memcached-${row.version}-tmp`)
+      if (existsSync(tmpDir)) {
+        await remove(tmpDir)
+      }
+      await zipUnPack(row.zip, tmpDir)
+      let dir = join(tmpDir, `memcached-${row.version}`, 'libevent-2.1', 'x64')
+      if (!existsSync(dir)) {
+        dir = join(tmpDir, `memcached-${row.version}`, 'cygwin', 'x64')
+      }
+      if (existsSync(dir)) {
+        const allFile = await getAllFileAsync(dir, false)
+        if (!existsSync(row.appDir)) {
+          await mkdirp(row.appDir)
+        }
+        for (const f of allFile) {
+          await copyFile(join(dir, f), join(row.appDir, f))
+        }
+      }
+      if (existsSync(tmpDir)) {
+        await remove(tmpDir)
+      }
+    }
   }
 
   brewinfo() {

@@ -1,4 +1,8 @@
 import { uuid } from '@shared/utils'
+import { dirname, join, basename, normalize } from 'path'
+import { tmpdir } from 'os'
+import { mkdir, writeFile, readFile } from 'fs'
+import { exec } from 'child_process'
 
 export interface SudoConfig {
   name?: string
@@ -22,13 +26,7 @@ export interface Sudo {
 }
 
 const NodeSudo = {
-  child: require('child_process'),
-  crypto: require('crypto'),
-  fs: require('fs'),
-  os: require('os'),
-  path: require('path'),
-  process: process,
-  util: require('util')
+  process: process
 }
 
 function EscapeDoubleQuotes(string: string) {
@@ -113,12 +111,12 @@ function Exec(
 
 function Mac(instance: Sudo): Promise<{ stdout?: string; stderr?: string }> {
   return new Promise((resolve, reject) => {
-    const temp = instance?.options?.dir ?? NodeSudo.os.tmpdir()
+    const temp = instance?.options?.dir ?? tmpdir()
     if (!temp) return reject(new Error('os.tmpdir() not defined.'))
     const user = NodeSudo.process.env.USER // Applet shell scripts require $USER.
     if (!user) return reject(new Error(`env[\'USER\'] not defined.`))
     instance.uuid = uuid()
-    instance.path = NodeSudo.path.join(temp, instance.uuid, instance.options.name + '.app')
+    instance.path = join(temp, instance.uuid, instance.options.name + '.app')
     function end(error: any, stdout?: string, stderr?: string) {
       if (instance?.options?.debug === true) {
         if (error) {
@@ -128,7 +126,7 @@ function Mac(instance: Sudo): Promise<{ stdout?: string; stderr?: string }> {
         resolve({ stdout, stderr })
         return
       }
-      Remove(NodeSudo.path.dirname(instance.path), function (errorRemove: any) {
+      Remove(dirname(instance.path!), function (errorRemove: any) {
         if (error) return reject(error)
         if (errorRemove) return reject(errorRemove)
         resolve({ stdout, stderr })
@@ -153,12 +151,12 @@ function Mac(instance: Sudo): Promise<{ stdout?: string; stderr?: string }> {
   })
 }
 
-function MacApplet(instance: Sudo, end: Function) {
-  const parent = NodeSudo.path.dirname(instance.path)
-  NodeSudo.fs.mkdir(parent, function (error: any) {
+function MacApplet(instance: Sudo, end: (...args: any) => void) {
+  const parent = dirname(instance.path!)
+  mkdir(parent, function (error: any) {
     if (error) return end(error)
-    const zip = NodeSudo.path.join(parent, 'sudo-prompt-applet.zip')
-    NodeSudo.fs.writeFile(zip, APPLET, 'base64', function (error: any) {
+    const zip = join(parent, 'sudo-prompt-applet.zip')
+    writeFile(zip, APPLET, 'base64', function (error: any) {
       if (error) return end(error)
       let command: any = []
       command.push('/usr/bin/unzip')
@@ -166,13 +164,13 @@ function MacApplet(instance: Sudo, end: Function) {
       command.push('"' + EscapeDoubleQuotes(zip) + '"')
       command.push('-d "' + EscapeDoubleQuotes(instance.path!) + '"')
       command = command.join(' ')
-      NodeSudo.child.exec(command, { encoding: 'utf-8' }, end)
+      exec(command, { encoding: 'utf-8' }, end)
     })
   })
 }
 
-function MacCommand(instance: Sudo, end: Function) {
-  const path = NodeSudo.path.join(instance.path, 'Contents', 'MacOS', 'sudo-prompt-command')
+function MacCommand(instance: Sudo, end: (...args: any) => void) {
+  const path = join(instance.path!, 'Contents', 'MacOS', 'sudo-prompt-command')
   let script: any = []
   // Preserve current working directory:
   // We do this for commands that rely on relative paths.
@@ -185,38 +183,38 @@ function MacCommand(instance: Sudo, end: Function) {
   }
   script.push(instance.command)
   script = script.join('\n')
-  NodeSudo.fs.writeFile(path, script, 'utf-8', end)
+  writeFile(path, script, 'utf-8', end)
 }
 
-function MacIcon(instance: Sudo, end: Function) {
+function MacIcon(instance: Sudo, end: (...args: any) => void) {
   if (!instance.options.icns) return end()
-  NodeSudo.fs.readFile(instance.options.icns, function (error: any, buffer: any) {
+  readFile(instance.options.icns, function (error: any, buffer: any) {
     if (error) return end(error)
-    const icns = NodeSudo.path.join(instance.path, 'Contents', 'Resources', 'applet.icns')
-    NodeSudo.fs.writeFile(icns, buffer, end)
+    const icns = join(instance.path!, 'Contents', 'Resources', 'applet.icns')
+    writeFile(icns, buffer, end)
   })
 }
 
-function MacOpen(instance: Sudo, end: Function) {
+function MacOpen(instance: Sudo, end: (...args: any) => void) {
   // We must run the binary directly so that the cwd will apply.
-  const binary = NodeSudo.path.join(instance.path, 'Contents', 'MacOS', 'applet')
+  const binary = join(instance.path!, 'Contents', 'MacOS', 'applet')
   // We must set the cwd so that the AppleScript can find the shell scripts.
   const options = {
-    cwd: NodeSudo.path.dirname(binary),
+    cwd: dirname(binary),
     encoding: 'utf-8'
   }
   // We use the relative path rather than the absolute path. The instance.path
   // may contain spaces which the cwd can handle, but which exec() cannot.
-  NodeSudo.child.exec('./' + NodeSudo.path.basename(binary), options, end)
+  exec('./' + basename(binary), options, end)
 }
 
-function MacPropertyList(instance: Sudo, end: Function) {
+function MacPropertyList(instance: Sudo, end: (...args: any) => void) {
   // Value must be in single quotes (not double quotes) according to man entry.
   // e.g. defaults write com.companyname.appname "Default Color" '(255, 0, 0)'
   // The defaults command will be changed in an upcoming major release to only
   // operate on preferences domains. General plist manipulation utilities will
   // be folded into a different command-line program.
-  const plist = NodeSudo.path.join(instance.path, 'Contents', 'Info.plist')
+  const plist = join(instance.path!, 'Contents', 'Info.plist')
   const path = EscapeDoubleQuotes(plist)
   const key = EscapeDoubleQuotes('CFBundleName')
   const value = instance.options.name + ' Password Prompt'
@@ -230,52 +228,44 @@ function MacPropertyList(instance: Sudo, end: Function) {
   command.push('"' + key + '"')
   command.push(`'` + value + `'`) // We must use single quotes for value.
   command = command.join(' ')
-  NodeSudo.child.exec(command, { encoding: 'utf-8' }, end)
+  exec(command, { encoding: 'utf-8' }, end)
 }
 
-function MacResult(instance: Sudo, end: Function) {
-  const cwd = NodeSudo.path.join(instance.path, 'Contents', 'MacOS')
-  NodeSudo.fs.readFile(NodeSudo.path.join(cwd, 'code'), 'utf-8', function (error: any, code: any) {
+function MacResult(instance: Sudo, end: (...args: any) => void) {
+  const cwd = join(instance.path!, 'Contents', 'MacOS')
+  readFile(join(cwd, 'code'), 'utf-8', function (error: any, code: any) {
     if (error) {
       if (error.code === 'ENOENT') return end(new Error(PERMISSION_DENIED))
       end(error)
     } else {
-      NodeSudo.fs.readFile(
-        NodeSudo.path.join(cwd, 'stdout'),
-        'utf-8',
-        function (error: any, stdout: string) {
+      readFile(join(cwd, 'stdout'), 'utf-8', function (error: any, stdout: string) {
+        if (error) return end(error)
+        readFile(join(cwd, 'stderr'), 'utf-8', function (error: any, stderr: string) {
           if (error) return end(error)
-          NodeSudo.fs.readFile(
-            NodeSudo.path.join(cwd, 'stderr'),
-            'utf-8',
-            function (error: any, stderr: string) {
-              if (error) return end(error)
-              code = parseInt(code.trim(), 10) // Includes trailing newline.
-              if (code === 0) {
-                end(undefined, stdout, stderr)
-              } else {
-                error = new Error('Command failed: ' + instance.command + '\n' + stderr)
-                error.code = code
-                end(error, stdout, stderr)
-              }
-            }
-          )
-        }
-      )
+          code = parseInt(code.trim(), 10) // Includes trailing newline.
+          if (code === 0) {
+            end(undefined, stdout, stderr)
+          } else {
+            error = new Error('Command failed: ' + instance.command + '\n' + stderr)
+            error.code = code
+            end(error, stdout, stderr)
+          }
+        })
+      })
     }
   })
 }
 
-function Remove(path: string, end: Function) {
+function Remove(path: string, end: (...args: any) => void) {
   if (typeof path !== 'string' || !path.trim()) {
     return end(new Error('Argument path not defined.'))
   }
   let command: any = []
   command.push('/bin/rm')
   command.push('-rf')
-  command.push('"' + EscapeDoubleQuotes(NodeSudo.path.normalize(path)) + '"')
+  command.push('"' + EscapeDoubleQuotes(normalize(path)) + '"')
   command = command.join(' ')
-  NodeSudo.child.exec(command, { encoding: 'utf-8' }, end)
+  exec(command, { encoding: 'utf-8' }, end)
 }
 
 function ValidName(string: string) {

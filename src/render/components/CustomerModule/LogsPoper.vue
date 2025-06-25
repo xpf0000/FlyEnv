@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ file }}</span>
+          <span class="ml-3">{{ file }}</span>
         </div>
       </div>
       <div class="main-wapper">

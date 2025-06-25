@@ -1,5 +1,4 @@
 {
-  "menuShowHide": "Tampilkan/Sembunyikan Menu",
   "tsinghua": "Sumber unduhan Universitas Tsinghua",
   "bfsu": "Sumber unduhan Universitas Studi Asing Beijing",
   "tencent": "Sumber unduhan Tencent",
@@ -35,7 +34,6 @@
     "path": "Lokasi File",
     "comment": "Komentar",
     "exec": "Jalankan",
-    "command": "Perintah",
     "commandFile": "File",
     "isSudo": "Jalankan dengan sudo?",
     "pidPath": "Lokasi File PID",
@@ -43,6 +41,9 @@
     "logPath": "File Log",
     "needPasswordToStart": "Diperlukan hak admin. Masukkan sandi (akan disimpan untuk penggunaan selanjutnya). Atau masukkan manual di terminal, tetapi pesan ini mungkin muncul lagi.",
     "hadOpenInTerminal": "Sudah berjalan di terminal—hasil tidak tersedia.",
-    "licenseTips": "Lisensi tidak ditemukan. Hanya 3 modul/item eksekusi yang dapat dibuat."
+    "licenseTips": "Lisensi tidak ditemukan. Hanya 3 modul/item eksekusi yang dapat dibuat.",
+
+    "outputLog": "Output Log",
+    "errorLog": "Error Log"
   }
 }

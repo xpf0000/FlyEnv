@@ -44,8 +44,7 @@
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import Popper from './SetupPopper.vue'
-
-  const { shell } = require('@electron/remote')
+  import { shell } from '@/util/NodeFn'
 
   const mysqlStore = MysqlStore()
 

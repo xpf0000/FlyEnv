@@ -13,7 +13,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
+          <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
         </div>
         <el-button class="shrink0" @click="doSave">{{ I18nT('base.save') }}</el-button>
       </div>
@@ -33,10 +33,12 @@
               class="input mt-6"
               :placeholder="I18nT('setup.module.comment')"
             />
-            <div class="ssl-switch mt-6">
-              <span>{{ I18nT('setup.module.isSudo') }}</span>
-              <el-switch v-model="item.isSudo"></el-switch>
-            </div>
+            <template v-if="!isWindows">
+              <div class="ssl-switch mt-6">
+                <span>{{ I18nT('setup.module.isSudo') }}</span>
+                <el-switch v-model="item.isSudo"></el-switch>
+              </div>
+            </template>
           </div>
 
           <div class="main mt-5">
@@ -210,15 +212,24 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+  import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { merge } from 'lodash'
+  import { merge } from 'lodash-es'
   import { uuid } from '@/util/Index'
   import type { CustomerModuleExecItem } from '@/core/Module'
   import { Delete, Plus } from '@element-plus/icons-vue'
+  import { dialog } from '@/util/NodeFn'
 
-  const { dialog } = require('@electron/remote')
+  const isMacOS = computed(() => {
+    return window.Server.isMacOS
+  })
+  const isWindows = computed(() => {
+    return window.Server.isWindows
+  })
+  const isLinux = computed(() => {
+    return window.Server.isLinux
+  })
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 

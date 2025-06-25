@@ -1,6 +1,7 @@
 import type { Configuration } from 'electron-builder'
 import PublishConfig from './publish'
-
+import AfterPack from '../build/afterPack'
+import Notarize from '../build/notarize'
 /**
  * one environment
  * envlab
@@ -15,7 +16,7 @@ const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
   buildVersion: '4.9.12',
-  electronVersion: '31.7.7',
+  electronVersion: '35.5.1',
   appId: 'phpstudy.xpfme.com',
   asar: true,
   directories: {
@@ -56,8 +57,8 @@ const conf: Configuration = {
     target: {
       target: 'default',
       // target: 'pkg',
-      arch: ['x64', 'arm64']
-      // arch: ['arm64']
+      // arch: ['x64', 'arm64']
+      arch: ['arm64']
     },
     asarUnpack: ['**/*.node'],
     extendInfo: {
@@ -73,8 +74,12 @@ const conf: Configuration = {
     hardenedRuntime: true,
     gatekeeperAssess: false
   },
-  afterPack: 'build/afterPack.js',
-  afterSign: 'build/notarize.js',
+  afterPack: (...args) => {
+    return AfterPack(...args) as any
+  },
+  afterSign: (...args) => {
+    return Notarize(...args)
+  },
   publish: [PublishConfig]
 }
 

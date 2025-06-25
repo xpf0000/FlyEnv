@@ -27,14 +27,22 @@
             height="17"
           />
         </template>
-        <span class="ml-15">{{ I18nT('base.addToPath') }}</span>
+        <span class="ml-3">{{ I18nT('base.addToPath') }}</span>
       </li>
       <li @click.stop="doSetAlias">
         <yb-icon class="current" :svg="import('@/svg/aliase.svg?raw')" width="17" height="17" />
-        <span class="ml-15">{{ I18nT('service.setaliase') }}</span>
+        <span class="ml-3">{{ I18nT('service.setaliase') }}</span>
       </li>
-      <template v-if="type === 'postgresql'">
-        <Extension :item="item" />
+      <template v-if="isMacOS">
+        <template v-if="type === 'postgresql'">
+          <Extension :item="item" />
+        </template>
+      </template>
+      <template v-if="isWindows">
+        <li @click.stop="ServiceActionStore.delVersion(item, type)">
+          <yb-icon :svg="import('@/svg/trash.svg?raw')" width="17" height="17" />
+          <span class="ml-3">{{ I18nT('base.del') }}</span>
+        </li>
       </template>
     </ul>
     <template #reference>
@@ -50,13 +58,22 @@
   import { ServiceActionStore } from './store'
   import Extension from '@/components/ServiceManager/Pgsql/extension.vue'
   import { I18nT } from '@lang/index'
-
-  const { dirname, join } = require('path')
+  import { dirname, join } from '@/util/path-browserify'
 
   const props = defineProps<{
     item: SoftInstalled
     type: string
   }>()
+
+  const isMacOS = computed(() => {
+    return window.Server.isMacOS
+  })
+  const isWindows = computed(() => {
+    return window.Server.isWindows
+  })
+  const isLinux = computed(() => {
+    return window.Server.isLinux
+  })
 
   const popper = ref()
 

@@ -8,6 +8,6 @@ const module: AppToolModuleItem = {
   label: () => I18nT('util.toolSystemEnv'),
   icon: import('@/svg/env.svg?raw'),
   index: 1,
-  component: markRaw(defineAsyncComponent(() => import('./Index.vue')))
+  component: markRaw(defineAsyncComponent(() => import('./main.vue')))
 }
 export default module

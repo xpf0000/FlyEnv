@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import type { AllAppModule } from '@/core/type'
-import { reactive } from 'vue'
 import { AppStore } from '@/store/app'
+import type { Module } from '@/core/Module/Module'
+import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 
 export interface SoftInstalled {
   version: string | null
@@ -32,26 +33,14 @@ export interface OnlineVersionItem {
   downing?: boolean
 }
 
-export interface AppSoftInstalledItem {
-  getListing: boolean
-  installedInited: boolean
-  installed: Array<SoftInstalled>
-  list: {
-    brew: { [key: string]: any }
-    port: { [key: string]: any }
-    static?: { [key: string]: OnlineVersionItem }
-  }
-}
-
-type StateBase = Partial<Record<AllAppModule, AppSoftInstalledItem | undefined>>
-
-interface State extends StateBase {
+type State = {
   cardHeadTitle: string
   brewRunning: boolean
   showInstallLog: boolean
   brewSrc: string
   log: Array<string>
   LibUse: { [k: string]: 'brew' | 'port' | 'static' | 'local' }
+  modules: Record<AllAppModule, Module>
 }
 
 const state: State = {
@@ -61,35 +50,32 @@ const state: State = {
   brewSrc: '',
   log: [],
   LibUse: {},
-  node: undefined
+  modules: {} as Record<AllAppModule, Module>
 }
 
 export const BrewStore = defineStore('brew', {
   state: (): State => state,
   getters: {},
   actions: {
-    module(flag: AllAppModule): AppSoftInstalledItem {
-      if (!this?.[flag]) {
-        this[flag] = reactive({
-          getListing: false,
-          installedInited: false,
-          installed: [],
-          list: {
-            brew: {},
-            port: {},
-            static: {}
-          }
-        })
-      }
-      return this[flag]
+    module(flag: AllAppModule): Module {
+      return this.modules[flag] as any
     },
-    currentVersion(flag: AllAppModule): SoftInstalled | undefined {
+    currentVersion(flag: AllAppModule): ModuleInstalledItem | undefined {
       const appStore = AppStore()
       const current = appStore.config.server?.[flag]?.current
-      if (!current) {
-        return undefined
-      }
       const installed = this.module(flag).installed
+      if (!current) {
+        if (!installed.length) {
+          return undefined
+        }
+        const find = installed[0]
+        appStore.UPDATE_SERVER_CURRENT({
+          flag,
+          data: JSON.parse(JSON.stringify(find))
+        })
+        appStore.saveConfig().catch()
+        return find
+      }
       return installed?.find((i) => i.path === current?.path && i.version === current?.version)
     }
   }

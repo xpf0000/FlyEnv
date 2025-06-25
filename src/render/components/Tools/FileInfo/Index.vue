@@ -2,7 +2,7 @@
   <div class="host-edit tools tools-file-info">
     <div class="nav p-0">
       <div class="left">
-        <span class="text-xl">{{ $t('util.toolFileInfo') }}</span>
+        <span class="text-xl">{{ I18nT('util.toolFileInfo') }}</span>
         <slot name="like"></slot>
       </div>
     </div>
@@ -11,7 +11,7 @@
       <div class="select-dir-wapper">
         <div id="selectDir" @click.stop="choosePath">
           <yb-icon :svg="import('@/svg/upload.svg?raw')" class="icon" />
-          <span>{{ $t('base.fileInfoTips') }}</span>
+          <span>{{ I18nT('base.fileInfoTips') }}</span>
         </div>
       </div>
       <ul v-if="path" class="info-wapper">
@@ -57,141 +57,157 @@
   </div>
 </template>
 
-<script>
-  import { formatBytes } from '@shared/utils.ts'
-  import moment from 'moment'
+<script setup lang="ts">
+  import { ref, watch, onMounted, onUnmounted } from 'vue'
+  import { formatBytes } from '@/util/Index'
+  import { formatISO } from 'date-fns'
+  import { dialog, fs, exec } from '@/util/NodeFn'
+  import { I18nT } from '@lang/index'
 
-  const { exec } = require('child-process-promise')
-  const { stat } = require('fs')
-  const { dialog } = require('@electron/remote')
+  interface FileInfo {
+    size_str: string
+    size: number
+    atime_str: string
+    atime: number
+    mtime_str: string
+    mtime: number
+    ctime_str: string
+    ctime: number
+    btime_str: string
+    btime: number
+    md5: string
+    sha1: string
+    sha256: string
+  }
 
-  export default {
-    name: 'MoToolsFileInfo',
-    components: {},
-    props: {},
-    data() {
-      return {
-        path: '',
-        info: {
-          size_str: '',
-          size: 0,
-          atime_str: '',
-          atime: 0,
-          mtime_str: '',
-          mtime: 0,
-          ctime_str: '',
-          ctime: 0,
-          btime_str: '',
-          btime: 0,
-          md5: '',
-          sha1: '',
-          sha256: ''
-        }
+  const path = ref('')
+  const info = ref<FileInfo>({
+    size_str: '',
+    size: 0,
+    atime_str: '',
+    atime: 0,
+    mtime_str: '',
+    mtime: 0,
+    ctime_str: '',
+    ctime: 0,
+    btime_str: '',
+    btime: 0,
+    md5: '',
+    sha1: '',
+    sha256: ''
+  })
+  const timer = ref<number | null>(null)
+
+  const choosePath = async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ['openFile']
+    })
+
+    if (canceled || filePaths.length === 0) return
+    path.value = filePaths[0]
+  }
+
+  const getInfo = async () => {
+    try {
+      const stats = await fs.stat(path.value)
+      info.value = {
+        ...info.value,
+        size: stats.size,
+        size_str: formatBytes(stats.size),
+        atime: stats.atimeMs,
+        atime_str: formatISO(stats.atimeMs),
+        btime: stats.birthtimeMs,
+        btime_str: formatISO(stats.birthtimeMs),
+        ctime: stats.ctimeMs,
+        ctime_str: formatISO(stats.ctimeMs),
+        mtime: stats.mtimeMs,
+        mtime_str: formatISO(stats.mtimeMs)
       }
-    },
-    computed: {},
-    watch: {
-      path(val) {
-        console.log('path: ', val)
-        this.getInfo()
+
+      // Get hash values in parallel
+      await Promise.all([
+        getHashValue(`md5 "${path.value}"`, 'md5'),
+        getHashValue(`shasum -a 1 "${path.value}"`, 'sha1'),
+        getHashValue(`shasum -a 256 "${path.value}"`, 'sha256')
+      ])
+
+      // Scroll to bottom
+      const container = document.querySelector('.main-wapper')
+      if (container) {
+        scrollToBottom(container)
       }
-    },
-    mounted() {
-      let selecter = document.getElementById('FileInfoDroper')
-      selecter.addEventListener('drop', (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        // Get the collection of dragged files
-        let files = e.dataTransfer.files
-        this.path = files[0].path
-      })
-      selecter.addEventListener('dragover', (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-      })
-    },
-    created: function () {},
-    unmounted() {},
-    methods: {
-      doClose() {
-        this.$emit('doClose')
-      },
-      choosePath() {
-        let opt = ['openFile']
-        dialog
-          .showOpenDialog({
-            properties: opt
-          })
-          .then(({ canceled, filePaths }) => {
-            if (canceled || filePaths.length === 0) {
-              return
-            }
-            const [path] = filePaths
-            this.path = path
-          })
-      },
-      getInfo() {
-        stat(this.path, (err, stats) => {
-          console.log(err)
-          console.log(stats)
-          if (!err) {
-            this.info.size = stats.size
-            this.info.size_str = formatBytes(stats.size)
-            this.info.atime = stats.atimeMs
-            this.info.atime_str = moment(stats.atimeMs).format()
-            this.info.btime = stats.birthtimeMs
-            this.info.btime_str = moment(stats.birthtimeMs).format()
-            this.info.ctime = stats.ctimeMs
-            this.info.ctime_str = moment(stats.ctimeMs).format()
-            this.info.mtime = stats.mtimeMs
-            this.info.mtime_str = moment(stats.mtimeMs).format()
-          }
-        })
-        exec(`md5 ${this.path}`)
-          .then((res) => {
-            console.log(res)
-            this.info.md5 = res.stdout.split(' = ')[1]
-            console.log(this.info.md5)
-          })
-          .catch(() => {
-            this.info.md5 = ''
-          })
-        exec(`shasum -a 1 ${this.path}`)
-          .then((res) => {
-            console.log(res)
-            this.info.sha1 = res.stdout.split(' ')[0]
-            console.log(this.info.sha1)
-          })
-          .catch(() => {
-            this.info.sha1 = ''
-          })
-        exec(`shasum -a 256 ${this.path}`)
-          .then((res) => {
-            console.log(res)
-            this.info.sha256 = res.stdout.split(' ')[0]
-            console.log(this.info.sha256)
-          })
-          .catch(() => {
-            this.info.sha256 = ''
-          })
-        this.$nextTick(() => {
-          let container = this.$el.querySelector('.main-wapper')
-          if (container) {
-            this.scroll(container)
-          }
-        })
-      },
-      scroll(container) {
-        this.timer = requestAnimationFrame(() => {
-          if (container.scrollHeight - container.scrollTop === container.clientHeight) {
-            cancelAnimationFrame(this.timer)
-            return
-          }
-          container.scrollTop += 60
-          cancelAnimationFrame(this.timer)
-          this.scroll(container)
-        })
-      }
+    } catch (error) {
+      console.error('Error getting file info:', error)
     }
   }
+
+  const getHashValue = async (command: string, hashType: 'md5' | 'sha1' | 'sha256') => {
+    try {
+      const res = await exec.exec(command)
+      console.log(res)
+      const value = hashType === 'md5' ? res.stdout.split(' = ')[1] : res.stdout.split(' ')[0]
+      info.value = { ...info.value, [hashType]: value }
+    } catch {
+      info.value = { ...info.value, [hashType]: '' }
+    }
+  }
+
+  const scrollToBottom = (container: Element) => {
+    const scroll = () => {
+      if (container.scrollHeight - container.scrollTop === container.clientHeight) {
+        if (timer.value) {
+          cancelAnimationFrame(timer.value)
+          timer.value = null
+        }
+        return
+      }
+      container.scrollTop += 60
+      timer.value = requestAnimationFrame(scroll)
+    }
+    timer.value = requestAnimationFrame(scroll)
+  }
+
+  const setupDragAndDrop = () => {
+    const selector = document.getElementById('FileInfoDroper')
+    if (!selector) return
+
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (e.dataTransfer?.files.length) {
+        path.value = e.dataTransfer.files[0].path
+      }
+    }
+
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+
+    selector.addEventListener('drop', handleDrop)
+    selector.addEventListener('dragover', handleDragOver)
+
+    return () => {
+      selector.removeEventListener('drop', handleDrop)
+      selector.removeEventListener('dragover', handleDragOver)
+    }
+  }
+
+  // Watch for path changes
+  watch(path, (newPath) => {
+    if (newPath) {
+      getInfo()
+    }
+  })
+
+  // Setup drag and drop on mount
+  onMounted(() => {
+    const cleanup = setupDragAndDrop()
+    onUnmounted(() => {
+      cleanup?.()
+      if (timer.value) {
+        cancelAnimationFrame(timer.value)
+      }
+    })
+  })
 </script>

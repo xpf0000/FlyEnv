@@ -15,12 +15,12 @@
         </template>
         <template v-else>
           <div class="main">
-            <div class="path-choose mt-20 mb-20">
+            <div class="path-choose my-5">
               <input
                 type="text"
                 class="input"
                 placeholder="Document Root Directory"
-                :readonly="loading || created ? true : null"
+                :readonly="loading || created ? true : undefined"
                 :value="ProjectSetup.form.NodeJS.dir"
               />
               <div class="icon-block" @click="chooseRoot()">
@@ -43,7 +43,7 @@
                 :disabled="loading || created"
               >
                 <el-option value="" :label="I18nT('host.useSysVersion')"></el-option>
-                <template v-for="(v, k) in nodes" :key="k">
+                <template v-for="(v, _k) in nodes" :key="_k">
                   <el-option :value="v.bin" :label="`${v.version}-${v.bin}`"></el-option>
                 </template>
               </el-select>
@@ -58,7 +58,7 @@
                 filterable
                 :disabled="loading || created"
               >
-                <template v-for="(v, k) in app.list" :key="k">
+                <template v-for="(v, _k) in app.list" :key="_k">
                   <el-option :value="v.version" :label="v.name"></el-option>
                 </template>
               </el-select>
@@ -93,12 +93,10 @@
   import AppVersions from './version_nodejs'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
-  import { Service } from '@/components/ServiceManager/service'
-  import installedVersions from '@/util/InstalledVersions'
   import { BrewStore } from '@/store/brew'
+  import { dirname, join } from '@/util/path-browserify'
+  import { dialog, shell } from '@/util/NodeFn'
 
-  const { dirname, join } = require('path')
-  const { dialog, shell } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -139,25 +137,18 @@
     return brewStore.module('node')?.installed ?? []
   })
 
-  const service = computed(() => {
-    return Service?.['node']
-  })
+  const nodeModule = brewStore.module('node')
 
-  if (nodes.value.length === 0 && !service?.value?.fetching) {
-    if (!service?.value) {
-      Service['node'] = {
-        fetching: true
-      }
-    }
-    service.value.fetching = true
-    installedVersions.allInstalledVersions(['node']).then(() => {
-      service.value.fetching = false
-
+  if (nodes.value.length === 0 && !nodeModule.fetchInstalleding && !nodeModule.installedFetched) {
+    nodeModule.fetchInstalled().then(() => {
       if (!ProjectSetup.form.NodeJS.node && nodes.value.length > 0) {
         const v: any = nodes.value[0]
         ProjectSetup.form.NodeJS.node = v.bin
       }
     })
+  } else if (nodes.value.length > 0 && !ProjectSetup.form.NodeJS.node) {
+    const v: any = nodes.value[0]
+    ProjectSetup.form.NodeJS.node = v.bin
   }
 
   const chooseRoot = () => {
@@ -190,16 +181,16 @@
     const execXTerm = new XTerm()
     const item = app.value.list.find((f) => f.version === form.version)
     const command: string[] = []
-    if (global.Server.Proxy) {
-      for (const k in global.Server.Proxy) {
-        const v = global.Server.Proxy[k]
+    if (window.Server.Proxy) {
+      for (const k in window.Server.Proxy) {
+        const v = window.Server.Proxy[k]
         command.push(`export ${k}="${v}"`)
       }
     }
     if (form.node) {
       command.push(`export PATH="${dirname(form.node)}:$PATH"`)
       command.push(`export npm_config_prefix="${dirname(form.node)}"`)
-      command.push(`export npm_config_cache="${join(global.Server.UserHome!, '.npm')}"`)
+      command.push(`export npm_config_cache="${join(window.Server.UserHome!, '.npm')}"`)
     }
     command.push(`cd "${form.dir}"`)
     const arr = item?.command?.split(';') ?? []

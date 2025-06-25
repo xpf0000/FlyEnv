@@ -1,4 +1,4 @@
-import { join, basename, dirname } from 'path'
+import { join, dirname } from 'path'
 import { createWriteStream, existsSync, statSync, unlinkSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
@@ -6,7 +6,6 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromise,
   getAllFileAsync,
-  downFile,
   versionLocalFetch,
   versionMacportsFetch,
   versionBinVersion,
@@ -17,11 +16,15 @@ import {
   portSearch,
   versionFilterSame,
   AppLog,
-  serviceStartExec
+  serviceStartExec,
+  writeFile,
+  readFile,
+  copyFile,
+  mkdirp,
+  remove
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
-import { unlink, writeFile, readFile, copyFile, mkdirp, chmod, remove } from 'fs-extra'
 import axios from 'axios'
 import TaskQueue from '../TaskQueue'
 import { ProcessPidsByPid } from '@shared/Process'
@@ -44,7 +47,7 @@ class Php extends Base {
         try {
           await mkdirp(dirname(capem))
           await copyFile(join(global.Server.Static!, 'tmpl/cacert.pem'), capem)
-        } catch (e) {}
+        } catch {}
       }
       resolve(true)
     })
@@ -65,7 +68,7 @@ class Php extends Base {
         res = await execPromise(command)
         ini = res?.stdout?.trim()?.split('=>')?.pop()?.trim() ?? ''
         ini = ini?.split('=>')?.pop()?.trim() ?? ''
-      } catch (e) {}
+      } catch {}
 
       if (!ini) {
         if (version?.phpConfig) {
@@ -76,7 +79,7 @@ class Php extends Base {
         try {
           res = await execPromise(command)
           ini = res?.stdout?.trim()
-        } catch (e) {}
+        } catch {}
       }
 
       if (ini) {
@@ -92,7 +95,7 @@ class Php extends Base {
           try {
             await Helper.send('php', 'iniFileFixed', ini, cacheFile)
             await Helper.send('tools', 'chmod', ini, '777')
-          } catch (e) {}
+          } catch {}
           await remove(cacheFile)
         }
         if (existsSync(ini)) {
@@ -104,7 +107,7 @@ class Php extends Base {
                 try {
                   await Helper.send('php', 'iniFileFixed', baseIni, ini)
                   await Helper.send('tools', 'chmod', baseIni, '777')
-                } catch (e) {}
+                } catch {}
               } else {
                 const tmpl = join(global.Server.Static!, 'tmpl/php.ini')
                 const content = await readFile(tmpl, 'utf-8')
@@ -113,7 +116,7 @@ class Php extends Base {
                 try {
                   await Helper.send('php', 'iniFileFixed', baseIni, cacheFile)
                   await Helper.send('tools', 'chmod', baseIni, '777')
-                } catch (e) {}
+                } catch {}
                 await remove(cacheFile)
               }
             }
@@ -124,7 +127,7 @@ class Php extends Base {
             if (!existsSync(iniDefault)) {
               try {
                 await Helper.send('php', 'iniDefaultFileFixed', iniDefault, ini)
-              } catch (e) {}
+              } catch {}
             }
             resolve(ini)
             return
@@ -132,76 +135,6 @@ class Php extends Base {
         }
       }
       reject(new Error(I18nT('php.phpiniNoFound')))
-    })
-  }
-
-  installExtends(args: any) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      const { version, versionNumber, extend, installExtensionDir } = args
-      if (!existsSync(version?.bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
-        return
-      }
-      if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNoFound')))
-        return
-      }
-      console.log('args?.flag: ', args?.flag, args.libName)
-      if (args?.flag === 'homebrew') {
-        const checkSo = async () => {
-          const baseDir = args.libName.split('/').pop()
-          const dir = join(global.Server.BrewCellar!, baseDir)
-          const allFile = await getAllFileAsync(dir)
-          const so = allFile.filter((f) => f.endsWith('.so')).pop()
-          if (so) {
-            const destSo = join(installExtensionDir, basename(so))
-            await mkdirp(installExtensionDir)
-            await copyFile(so, destSo)
-            return existsSync(destSo)
-          }
-          return false
-        }
-        let check = await checkSo()
-        if (check) {
-          resolve(0)
-          return
-        }
-        // try {
-        //   // await this._doInstallOrUnInstallByBrew(args.libName, 'install').on(on)
-        // } catch (e) {}
-
-        check = await checkSo()
-        if (check) {
-          resolve(0)
-        } else {
-          reject(new Error(I18nT('fork.ExtensionInstallFail')))
-        }
-        return
-      }
-      if (args?.flag === 'macports') {
-        // try {
-        //   await this._doInstallOrUnInstallByPort(args.libName, 'install').on(on)
-        //   resolve(0)
-        // } catch (e) {
-        //   reject(e)
-        // }
-        return
-      }
-      try {
-        await this._doInstallExtends(version, versionNumber, extend, installExtensionDir).on(on)
-        let name = `${extend}.so`
-        if (extend === 'sg11') {
-          name = 'ixed.dar'
-        }
-        const installedSo = join(installExtensionDir, name)
-        if (existsSync(installedSo)) {
-          resolve(0)
-        } else {
-          reject(new Error(I18nT('fork.ExtensionInstallFail')))
-        }
-      } catch (e) {
-        reject(e)
-      }
     })
   }
 
@@ -266,7 +199,7 @@ xdebug.output_dir = "${output_dir}"
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
       const arr: Array<string> = []
-      if (!!version?.pid?.trim()) {
+      if (version?.pid?.trim()) {
         const plist: any = await Helper.send('tools', 'processList')
         const pids = ProcessPidsByPid(version.pid.trim(), plist)
         arr.push(...pids)
@@ -286,7 +219,7 @@ xdebug.output_dir = "${output_dir}"
         const sig = '-INT'
         try {
           await Helper.send('tools', 'kill', sig, arr)
-        } catch (e) {}
+        } catch {}
       }
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
@@ -364,300 +297,20 @@ xdebug.output_dir = "${output_dir}"
       const execArgs = `-p "${varPath}" -y "${phpFpmConf}" -g "${pid}"`
 
       try {
-        const res = await serviceStartExec(version, pid, baseDir, bin, execArgs, execEnv, on)
+        const res = await serviceStartExec({
+          version,
+          pidPath: pid,
+          baseDir,
+          bin,
+          execArgs,
+          execEnv,
+          on
+        })
         resolve(res)
       } catch (e: any) {
         console.log('-k start err: ', e)
         reject(e)
         return
-      }
-    })
-  }
-
-  _doInstallExtends(
-    version: SoftInstalled,
-    versionNumber: number,
-    extend: string,
-    extendsDir: string
-  ) {
-    return new ForkPromise(async (resolve, reject, on) => {
-      const arch = global.Server.isAppleSilicon ? '-arm64' : '-x86_64'
-      const doRun = (copyfile: string, extendVersion: string, isPort = false) => {
-        let params: string[] = [copyfile, global.Server.Cache!, version.path, extendVersion, arch]
-        if (isPort) {
-          params = [
-            copyfile,
-            global.Server.Cache!,
-            extendVersion,
-            version.phpize!,
-            version.phpConfig!
-          ]
-        }
-        const command = params.join(' ')
-        on(I18nT('fork.ExtensionInstallFailTips', { command }))
-      }
-
-      const installByMacports = async (type: string) => {
-        if (version?.phpBin) {
-          const baseName = basename(version.phpBin)
-          let name = ''
-          switch (type) {
-            case 'redis':
-            case 'memcache':
-            case 'memcached':
-            case 'swoole':
-            case 'xdebug':
-            case 'ssh2':
-            case 'mongodb':
-            case 'yaf':
-              name = `${baseName}-${type}`
-              break
-            case 'imagick':
-              name = `pkgconfig autoconf automake libtool ImageMagick ${baseName}-imagick`
-              break
-          }
-          sh = join(global.Server.Static!, 'sh/port-install.sh')
-          copyfile = join(global.Server.Cache!, 'port-install.sh')
-          if (existsSync(copyfile)) {
-            await unlink(copyfile)
-          }
-          let content = await readFile(sh, 'utf-8')
-          content = content.replace('##NAME##', name)
-          await writeFile(copyfile, content)
-          await chmod(copyfile, '0777')
-          const params = [copyfile]
-          const command = params.join(' ')
-          on(I18nT('fork.ExtensionInstallFailTips', { command }))
-          return true
-        }
-        return false
-      }
-
-      const installByShell = async (shellFile: string, extendv: string) => {
-        sh = join(global.Server.Static!, `sh/${shellFile}`)
-        copyfile = join(global.Server.Cache!, shellFile)
-        if (existsSync(copyfile)) {
-          await unlink(copyfile)
-        }
-        await copyFile(sh, copyfile)
-        await chmod(copyfile, '0777')
-        doRun(copyfile, extendv, shellFile.endsWith('-port.sh'))
-      }
-
-      let sh = ''
-      let copyfile = ''
-      let soPath = ''
-      let extendv = ''
-      switch (extend) {
-        case 'ionCube':
-          soPath = join(extendsDir, 'ioncube.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          const tmplPath = join(global.Server.Cache!, `ioncube_loader_mac_${versionNumber}.so`)
-          const doCopy = async () => {
-            if (existsSync(tmplPath)) {
-              if (!existsSync(extendsDir)) {
-                // await ([`mkdir`, '-p', extendsDir])
-              }
-              // await ([`cp`, tmplPath, soPath])
-              if (existsSync(soPath)) {
-                resolve(true)
-                return true
-              }
-            }
-            return false
-          }
-          let res = await doCopy()
-          if (res) {
-            return
-          }
-          const url = `http://mbimage.ybvips.com/electron/phpwebstudy/ioncube/ioncube_loader_mac_${versionNumber}.so`
-          try {
-            await downFile(url, tmplPath)
-            res = await doCopy()
-            if (res) {
-              return
-            }
-          } catch (e) {
-            reject(new Error('File download failed'))
-          }
-          break
-        case 'redis':
-          soPath = join(extendsDir, 'redis.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.0 ? '4.3.0' : '5.3.7'
-          await installByShell('php-redis.sh', extendv)
-          break
-        case 'memcache':
-          soPath = join(extendsDir, 'memcache.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.0 ? '3.0.8' : versionNumber >= 8.0 ? '8.2' : '4.0.5.2'
-          await installByShell('php-memcache.sh', extendv)
-          break
-        case 'memcached':
-          soPath = join(extendsDir, 'memcached.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.0 ? '2.2.0' : '3.2.0'
-          await installByShell('php-memcached.sh', extendv)
-          break
-        case 'swoole':
-          soPath = join(extendsDir, 'swoole.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          if (versionNumber < 5.5) {
-            extendv = '1.10.5'
-          } else if (versionNumber < 7.0) {
-            extendv = '2.2.0'
-          } else if (versionNumber < 7.2) {
-            extendv = '4.5.11'
-          } else if (versionNumber < 8.0) {
-            extendv = '4.8.11'
-          } else if (versionNumber < 8.3) {
-            extendv = '5.0.3'
-          } else {
-            extendv = '5.1.1'
-          }
-          await installByShell('php-swoole.sh', extendv)
-          break
-        case 'xdebug':
-          soPath = join(extendsDir, 'xdebug.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          if (versionNumber < 7.2) {
-            extendv = '2.5.5'
-          } else {
-            extendv = '3.1.5'
-          }
-          await installByShell('php-xdebug.sh', extendv)
-          break
-        case 'xlswriter':
-          soPath = join(extendsDir, 'xlswriter.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          extendv = '1.5.5'
-          await installByShell(
-            version?.phpBin ? 'php-xlswriter-port.sh' : 'php-xlswriter.sh',
-            extendv
-          )
-          break
-        case 'ssh2':
-          soPath = join(extendsDir, 'ssh2.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.0 ? '1.1.2' : '1.4'
-          await installByShell('php-ssh2.sh', extendv)
-          break
-        case 'pdo_sqlsrv':
-          soPath = join(extendsDir, 'pdo_sqlsrv.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (versionNumber < 7.0) {
-            extendv = '3.0.1'
-          } else if (versionNumber < 7.3) {
-            extendv = '5.9.0'
-          } else {
-            extendv = '5.11.1'
-          }
-          await installByShell(
-            version?.phpBin ? 'php-pdo_sqlsrv-port.sh' : 'php-pdo_sqlsrv.sh',
-            extendv
-          )
-          break
-        case 'imagick':
-          if (existsSync(join(extendsDir, 'imagick.so'))) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = '3.7.0'
-          await installByShell('php-imagick.sh', extendv)
-          break
-        case 'mongodb':
-          soPath = join(extendsDir, 'mongodb.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.2 ? '1.7.5' : '1.14.1'
-          await installByShell('php-mongodb.sh', extendv)
-          break
-        case 'yaf':
-          soPath = join(extendsDir, 'yaf.so')
-          if (existsSync(soPath)) {
-            resolve(true)
-            return
-          }
-          if (await installByMacports(extend)) {
-            return
-          }
-          extendv = versionNumber < 7.0 ? '2.3.5' : '3.3.5'
-          await installByShell('php-yaf.sh', extendv)
-          break
-        case 'sg11':
-          if (existsSync(join(extendsDir, 'ixed.dar'))) {
-            resolve(true)
-            return
-          }
-          sh = join(global.Server.Static!, 'sh/php-sg11.sh')
-          copyfile = join(global.Server.Cache!, 'php-sg11.sh')
-          if (existsSync(copyfile)) {
-            await unlink(copyfile)
-          }
-          await copyFile(sh, copyfile)
-          await chmod(copyfile, '0777')
-          const versionNums = version?.version?.split('.')?.splice(2)?.join('.') ?? ''
-          let archStr = ''
-          if (versionNumber >= 7.4 && arch === '-arm64') {
-            archStr = arch
-          }
-          const params = [copyfile, global.Server.Cache!, extendsDir, versionNums, archStr]
-          const command = params.join(' ')
-          on(I18nT('fork.ExtensionInstallFailTips', { command }))
-          break
       }
     })
   }
@@ -691,7 +344,6 @@ xdebug.output_dir = "${output_dir}"
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('php')
-        const dict: any = {}
         all.forEach((a: any) => {
           const dir = join(global.Server.AppDir!, `static-php-${a.version}`, 'sbin/php-fpm')
           const zip = join(global.Server.Cache!, `static-php-${a.version}.tar.gz`)
@@ -700,10 +352,10 @@ xdebug.output_dir = "${output_dir}"
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`php-${a.version}`] = a
+          a.name = `PHP-${a.version}`
         })
-        resolve(dict)
-      } catch (e) {
+        resolve(all)
+      } catch {
         resolve({})
       }
     })
@@ -729,7 +381,7 @@ xdebug.output_dir = "${output_dir}"
           await execPromise(`tar -xzf ${row.zip} -C ${bin}`)
 
           success = true
-        } catch (e) {}
+        } catch {}
         if (success) {
           refresh()
           row.downState = 'success'
@@ -766,7 +418,7 @@ xdebug.output_dir = "${output_dir}"
                   if (existsSync(row.zip)) {
                     unlinkSync(row.zip)
                   }
-                } catch (e) {}
+                } catch {}
                 resolve(false)
               })
               stream.on('finish', async () => {
@@ -776,7 +428,7 @@ xdebug.output_dir = "${output_dir}"
                     await mkdirp(sbin)
                     await execPromise(`tar -xzf ${row.zip} -C ${sbin}`)
                   }
-                } catch (e) {}
+                } catch {}
                 resolve(true)
               })
             })
@@ -786,7 +438,7 @@ xdebug.output_dir = "${output_dir}"
                 if (existsSync(row.zip)) {
                   unlinkSync(row.zip)
                 }
-              } catch (e) {}
+              } catch {}
               resolve(false)
             })
         })
@@ -816,7 +468,7 @@ xdebug.output_dir = "${output_dir}"
                   if (existsSync(cliZIP)) {
                     unlinkSync(cliZIP)
                   }
-                } catch (e) {}
+                } catch {}
                 resolve(false)
               })
               stream.on('finish', async () => {
@@ -826,7 +478,7 @@ xdebug.output_dir = "${output_dir}"
                     await mkdirp(bin)
                     await execPromise(`tar -xzf ${cliZIP} -C ${bin}`)
                   }
-                } catch (e) {}
+                } catch {}
                 resolve(true)
               })
             })
@@ -836,7 +488,7 @@ xdebug.output_dir = "${output_dir}"
                 if (existsSync(cliZIP)) {
                   unlinkSync(cliZIP)
                 }
-              } catch (e) {}
+              } catch {}
               resolve(false)
             })
         })
@@ -875,9 +527,9 @@ xdebug.output_dir = "${output_dir}"
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
-            const command = `${item.bin} -n -v`
+            const command = `"${item.bin}" -n -v`
             const reg = /(\s)(\d+(\.\d+){1,4})([-\s])/g
-            return TaskQueue.run(versionBinVersion, command, reg)
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
           return Promise.all(all)
         })

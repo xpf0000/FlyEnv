@@ -54,5 +54,7 @@
   "toolSaveConfirm": "Apakah Anda yakin ingin menyimpannya?",
   "auto": "Otomatis",
   "noVerionsFoundInLib": "Tidak ada versi yang tersedia",
-  "showToolBtn": "Tampilkan Tombol Alat Mengambang"
+  "showToolBtn": "Tampilkan Tombol Alat Mengambang",
+
+  "inputSearchKey": "Search keyword"
 }

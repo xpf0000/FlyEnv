@@ -1,0 +1,3 @@
+#!/bin/zsh
+export PATH="/Users/x/Library/PhpWebStudy/app/nodejs/v24.1.0:/Users/x/Library/PhpWebStudy/app/nodejs/v24.1.0/bin:$PATH" #FlyEnv-ID-nLPkFz7Dte3yNcCW6DPjkVCrBLE7juQY
+export CXXFLAGS="-std=c++11"

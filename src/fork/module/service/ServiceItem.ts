@@ -1,9 +1,9 @@
 import type { AppHost } from '@shared/app'
-import { watch, existsSync, FSWatcher, readFile } from 'fs-extra'
-import { execPromise } from '../../util/Exec'
 import { ForkPromise } from '@shared/ForkPromise'
-import { waitTime } from '../../Fn'
+import { waitTime, watch, existsSync, type FSWatcher, readFile } from '../../Fn'
 import Helper from '../../Helper'
+import { isWindows } from '@shared/utils'
+import { execPromise } from '@shared/child-process'
 
 export const getHostItemEnv = async (item: AppHost) => {
   if (item?.envVarType === 'none') {
@@ -59,38 +59,8 @@ export class ServiceItem {
   timer: any
   pidFile?: string
   constructor() {}
-  async checkState() {
-    const command = `ps aux | grep 'PWSAPPID=${this.id}'`
-    let res: any = null
-    try {
-      res = await execPromise(command)
-    } catch (e) {}
-    console.log('checkState: ', res?.stdout?.trim())
-    const pids =
-      res?.stdout
-        ?.trim()
-        ?.split('\n')
-        ?.filter((v: string) => {
-          return (
-            !v.includes(` ps aux | grep `) &&
-            !v.includes(` grep 'PWSAPPID=`) &&
-            !v.includes(` grep "PWSAPPID=`) &&
-            !v.includes(` grep PWSAPPID=`)
-          )
-        }) ?? []
-    const arr: Array<string> = []
-    for (const p of pids) {
-      const parr = p.split(' ').filter((s: string) => {
-        return s.trim().length > 0
-      })
-      parr.shift()
-      const pid = parr.shift()
-      const runstr = parr.slice(8).join(' ')
-      console.log('pid: ', pid)
-      console.log('runstr: ', runstr)
-      arr.push(pid)
-    }
-    return arr
+  async checkState(): Promise<Array<string | number>> {
+    return []
   }
   start(item: AppHost): ForkPromise<any> {
     return new ForkPromise<boolean>((resolve) => resolve(!!item.id))
@@ -98,21 +68,34 @@ export class ServiceItem {
   stop(exit = false) {
     return new ForkPromise(async (resolve) => {
       this.exit = exit
-      this.timer && clearInterval(this.timer)
+      clearInterval(this.timer)
       this.timer = undefined
       this.watcher?.close()
       this.watcher = undefined
 
       const arr = await this.checkState()
       if (arr.length > 0) {
-        try {
-          await Helper.send('tools', 'kill', '-9', arr)
-        } catch (e) {}
+        if (isWindows()) {
+          const str = arr.map((s) => `/pid ${s}`).join(' ')
+          try {
+            await execPromise(`taskkill /f /t ${str}`)
+          } catch {}
+        } else {
+          try {
+            await Helper.send('tools', 'kill', '-9', arr)
+          } catch {}
+        }
       }
       if (this.pidFile && existsSync(this.pidFile)) {
-        try {
-          await Helper.send('tools', 'rm', this.pidFile)
-        } catch (e) {}
+        if (isWindows()) {
+          try {
+            await execPromise(`del -Force ${this.pidFile}`)
+          } catch {}
+        } else {
+          try {
+            await Helper.send('tools', 'rm', this.pidFile)
+          } catch {}
+        }
       }
       resolve({
         'APP-Service-Stop-PID': arr
@@ -120,7 +103,7 @@ export class ServiceItem {
     })
   }
   daemon() {
-    this.timer && clearInterval(this.timer)
+    clearInterval(this.timer)
     this.timer = setInterval(() => {
       this.checkState()
         .then((res) => {
@@ -146,7 +129,7 @@ export class ServiceItem {
             this.start(this.host!)
               .then(() => {})
               .catch()
-          } catch (e) {}
+          } catch {}
         }
       )
     }

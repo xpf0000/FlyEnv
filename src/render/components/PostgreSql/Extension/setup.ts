@@ -3,9 +3,8 @@ import { AppStore } from '@/store/app'
 import { SoftInstalled } from '@/store/brew'
 import XTerm from '@/util/XTerm'
 import IPC from '@/util/IPC'
-
-const { join, dirname } = require('path')
-const { existsSync } = require('fs')
+import { join, dirname } from '@/util/path-browserify'
+import { fs } from '@/util/NodeFn'
 
 export const PgsqlExtensionSetup = reactive<{
   installEnd: boolean
@@ -42,7 +41,7 @@ export const Setup = (version: SoftInstalled) => {
     return PgsqlExtensionSetup.fetching?.[version.bin] ?? false
   })
 
-  const fetchData = () => {
+  const fetchData = async () => {
     if (fetching.value || PgsqlExtensionSetup?.list?.[version.bin]) {
       return
     }
@@ -55,7 +54,14 @@ export const Setup = (version: SoftInstalled) => {
       join(version.path, `vector.dylib`),
       join(version.path, `vector.so`)
     ]
-    const installed = arr.some((p) => existsSync(p))
+    let installed = false
+    for (const a of arr) {
+      const e = await fs.existsSync(a)
+      if (e) {
+        installed = true
+        break
+      }
+    }
     PgsqlExtensionSetup.list[version.bin] = reactive([
       {
         name: 'pgvector',
@@ -175,7 +181,7 @@ export const Setup = (version: SoftInstalled) => {
   })
 
   onUnmounted(() => {
-    PgsqlExtensionSetup.xterm && PgsqlExtensionSetup.xterm.unmounted()
+    PgsqlExtensionSetup?.xterm?.unmounted()
   })
 
   return {

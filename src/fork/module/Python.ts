@@ -1,20 +1,28 @@
 import { dirname, join } from 'path'
-import { existsSync, realpathSync } from 'fs'
+import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import type { SoftInstalled } from '@shared/app'
+import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   brewInfoJson,
   brewSearch,
-  getSubDirAsync,
+  execPromise,
   portSearch,
+  readFile,
+  remove,
+  uuid,
   versionBinVersion,
-  versionCheckBin,
   versionFilterSame,
   versionFixed,
-  versionSort
+  versionLocalFetch,
+  versionSort,
+  waitTime,
+  writeFile,
+  zipUnPack
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
+import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
+import { ProcessPidList } from '@shared/Process.win'
 
 class Python extends Base {
   constructor() {
@@ -22,114 +30,56 @@ class Python extends Base {
     this.type = 'python'
   }
 
+  fetchAllOnLineVersion() {
+    return new ForkPromise(async (resolve) => {
+      try {
+        const all: OnlineVersionItem[] = await this._fetchOnlineVersion('python')
+        all.forEach((a: any) => {
+          const dir = join(global.Server.AppDir!, `python-${a.version}`, 'python.exe')
+          const zip = join(global.Server.Cache!, `python-${a.version}.exe`)
+          a.appDir = join(global.Server.AppDir!, `python-${a.version}`)
+          a.zip = zip
+          a.bin = dir
+          a.downloaded = existsSync(zip)
+          a.installed = existsSync(dir)
+          a.type = 'maven'
+        })
+        resolve(all)
+      } catch (e) {
+        console.log('fetchAllOnLineVersion error: ', e)
+        resolve([])
+      }
+    })
+  }
+
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
-      const versionLocalFetch = async (
-        customDirs: string[],
-        binName: string,
-        searchName: string
-      ): Promise<Array<SoftInstalled>> => {
-        const installed: Set<string> = new Set()
-        const systemDirs = [
-          '/',
-          '/opt',
-          '/usr',
-          global.Server.AppDir!,
-          ...customDirs,
-          '/opt/local/Library/Frameworks/Python.framework/Versions'
-        ]
-
-        const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
-          if (!existsSync(dir)) {
-            return
-          }
-          dir = realpathSync(dir)
-          console.log('findInstalled dir: ', dir)
-          let binPath = versionCheckBin(join(dir, `bin/${binName}`))
-          if (binPath) {
-            installed.add(binPath)
-            return
-          }
-          binPath = versionCheckBin(join(dir, `sbin/${binName}`))
-          if (binPath) {
-            installed.add(binPath)
-            return
-          }
-          binPath = versionCheckBin(join(dir, `libexec/bin/python`))
-          if (binPath) {
-            installed.add(binPath)
-            return
-          }
-          binPath = versionCheckBin(join(dir, `bin/python3`))
-          if (binPath) {
-            installed.add(binPath)
-            return
-          }
-          if (depth >= maxDepth) {
-            return
-          }
-          const sub = await getSubDirAsync(dir)
-          console.log('sub: ', sub)
-          for (const s of sub) {
-            await findInstalled(s, depth + 1, maxDepth)
-          }
-        }
-
-        for (const s of systemDirs) {
-          await findInstalled(s, 0, 1)
-        }
-
-        const base = ['/usr/local/Cellar', '/opt/homebrew/Cellar']
-        for (const b of base) {
-          const subDir = await getSubDirAsync(b)
-          const subDirFilter = subDir.filter((f) => {
-            return f.includes(searchName)
-          })
-          for (const f of subDirFilter) {
-            const subDir1 = await getSubDirAsync(f)
-            for (const s of subDir1) {
-              await findInstalled(s)
-            }
-          }
-        }
-        const count = installed.size
-        if (count === 0) {
-          return []
-        }
-
-        const list: Array<SoftInstalled> = []
-        const installedList: Array<string> = Array.from(installed)
-        for (const i of installedList) {
-          let path = i
-          if (path.includes('/sbin/') || path.includes('/bin/')) {
-            path = path
-              .replace(`/sbin/`, '/##SPLIT##/')
-              .replace(`/bin/`, '/##SPLIT##/')
-              .split('/##SPLIT##/')
-              .shift()!
-          } else {
-            path = dirname(path)
-          }
-          const item = {
-            bin: i,
-            path: `${path}/`,
-            run: false,
-            running: false
-          }
-          if (!list.find((f) => f.path === item.path && f.bin === item.bin)) {
-            list.push(item as any)
-          }
-        }
-        return list
-      }
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.python?.dirs ?? [], 'python', 'python')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [
+          versionLocalFetch(
+            [
+              ...(setup?.python?.dirs ?? []),
+              '/opt/local/Library/Frameworks/Python.framework/Versions'
+            ],
+            'python',
+            'python',
+            ['libexec/bin/python', 'bin/python3']
+          )
+        ]
+      } else if (isWindows()) {
+        all = [versionLocalFetch(setup?.python?.dirs ?? [], 'python.exe')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          const all = versions.map((item) =>
-            TaskQueue.run(versionBinVersion, `${item.bin} --version`, /(Python )(.*?)(\n)/g)
-          )
+          const all = versions.map((item) => {
+            const command = `"${item.bin}" --version`
+            const reg = /(Python )(.*?)(\n)/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
           return Promise.all(all)
         })
         .then((list) => {
@@ -151,6 +101,92 @@ class Python extends Base {
           resolve([])
         })
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    if (isWindows()) {
+      const tmpDir = join(global.Server.Cache!, `python-${row.version}-tmp`)
+      if (existsSync(tmpDir)) {
+        await execPromise(`rmdir /S /Q ${tmpDir}`)
+      }
+      const dark = join(global.Server.Cache!, 'dark/dark.exe')
+      const darkDir = join(global.Server.Cache!, 'dark')
+      if (!existsSync(dark)) {
+        const darkZip = join(global.Server.Static!, 'zip/dark.zip')
+        await zipUnPack(darkZip, dirname(dark))
+      }
+      const pythonSH = join(global.Server.Static!, 'sh/python.ps1')
+      let content = await readFile(pythonSH, 'utf-8')
+      const TMPL = tmpDir
+      const EXE = row.zip
+      const APPDIR = row.appDir
+
+      content = content
+        .replace(new RegExp(`#DARKDIR#`, 'g'), darkDir)
+        .replace(new RegExp(`#TMPL#`, 'g'), TMPL)
+        .replace(new RegExp(`#EXE#`, 'g'), EXE)
+        .replace(new RegExp(`#APPDIR#`, 'g'), APPDIR)
+
+      let sh = join(global.Server.Cache!, `python-install-${uuid()}.ps1`)
+      await writeFile(sh, content)
+
+      process.chdir(global.Server.Cache!)
+      try {
+        await execPromise(
+          `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${sh}'; & '${sh}'"`
+        )
+      } catch (e: any) {
+        console.log('[python-install][error]: ', e)
+        await appDebugLog('[python][python-install][error]', e.toString())
+      }
+      // await remove(sh)
+
+      const checkState = async (time = 0): Promise<boolean> => {
+        let res = false
+        const allProcess = await ProcessPidList()
+        const find = allProcess.find(
+          (p) => p?.COMMAND?.includes('msiexec.exe') && p?.COMMAND?.includes(APPDIR)
+        )
+        console.log('python checkState find: ', find)
+        const bin = row.bin
+        if (existsSync(bin) && !find) {
+          res = true
+        } else {
+          if (time < 20) {
+            await waitTime(1000)
+            res = res || (await checkState(time + 1))
+          }
+        }
+        return res
+      }
+      const res = await checkState()
+      if (res) {
+        await waitTime(1000)
+        sh = join(global.Server.Cache!, `pip-install-${uuid()}.ps1`)
+        let content = await readFile(join(global.Server.Static!, 'sh/pip.ps1'), 'utf-8')
+        content = content.replace('#APPDIR#', APPDIR)
+        await writeFile(sh, content)
+        process.chdir(global.Server.Cache!)
+        try {
+          await execPromise(
+            `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '${sh}'; & '${sh}'"`
+          )
+        } catch (e: any) {
+          await appDebugLog('[python][pip-install][error]', e.toString())
+        }
+        // await remove(sh)
+        await waitTime(1000)
+        await remove(tmpDir)
+        return
+      } else {
+        try {
+          await waitTime(500)
+          await remove(APPDIR)
+          await remove(tmpDir)
+        } catch {}
+      }
+      throw new Error('Python Install Fail')
+    }
   }
 
   brewinfo() {

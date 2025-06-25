@@ -1,29 +1,30 @@
 import type { AppToolModuleItem } from '@/core/type'
 import { reactive } from 'vue'
 import { uuid } from '@/util/Index'
-
-const { existsSync, readFile, writeFile } = require('fs-extra')
-const { join } = require('path')
-const { shell } = require('@electron/remote')
+import { join } from '@/util/path-browserify'
+import { shell, fs } from '@/util/NodeFn'
 
 const getToolData = async () => {
   let obj = {
     like: [],
     custom: []
   }
-  const file = join(global.Server.BaseDir!, 'app.tools.json')
-  if (existsSync(file)) {
-    const json = await readFile(file, 'utf-8')
+  const file = join(window.Server.BaseDir!, 'app.tools.json')
+  const exists = await fs.existsSync(file)
+  if (exists) {
+    const json = await fs.readFile(file)
     try {
       obj = JSON.parse(json)
-    } catch (e) {}
+    } catch {
+      /* empty */
+    }
   }
   return obj
 }
 
 const setToolData = async (data: any) => {
-  const file = join(global.Server.BaseDir!, 'app.tools.json')
-  await writeFile(file, JSON.stringify(data))
+  const file = join(window.Server.BaseDir!, 'app.tools.json')
+  await fs.writeFile(file, JSON.stringify(data))
 }
 
 export type AppToolStoreType = {

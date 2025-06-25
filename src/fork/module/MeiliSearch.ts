@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { basename, dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -10,12 +10,22 @@ import {
   versionFilterSame,
   versionFixed,
   versionLocalFetch,
-  versionSort
+  versionSort,
+  mkdirp,
+  readFile,
+  remove,
+  writeFile,
+  serviceStartExec,
+  copyFile,
+  chmod,
+  waitTime,
+  execPromise,
+  serviceStartExecWin
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
-import { mkdirp, readFile, remove, writeFile } from 'fs-extra'
 import { I18nT } from '@lang/index'
 import TaskQueue from '../TaskQueue'
+import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
 
 class MeiliSearch extends Base {
   constructor() {
@@ -62,73 +72,54 @@ class MeiliSearch extends Base {
 
       const bin = version.bin
       const baseDir = join(global.Server.BaseDir!, 'meilisearch')
-      const execArgs = `--config-file-path "${iniFile}"`
-      const pidPath = this.pidPath
-
-      if (pidPath && existsSync(pidPath)) {
-        try {
-          await remove(pidPath)
-        } catch (e) {}
-      }
       await mkdirp(baseDir)
-      const outFile = join(baseDir, `start.${version.version}.out.log`)
-      const errFile = join(baseDir, `start.${version.version}.error.log`)
 
       const working_dir = WORKING_DIR ?? baseDir
 
-      const psScript = `#!/bin/zsh
-cd "${working_dir}"
-nohup "${bin}" ${execArgs} > "${outFile}" 2>"${errFile}" &
-echo "##FlyEnv-Process-ID$!FlyEnv-Process-ID##"`
+      if (isMacOS()) {
+        const execArgs = `--config-file-path "${iniFile}"`
+        try {
+          const res = await serviceStartExec({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            bin,
+            execArgs,
+            on,
+            timeToWait: 1000,
+            checkPidFile: false,
+            cwd: working_dir
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
+      } else if (isWindows()) {
+        const execArgs = `--config-file-path \`"${iniFile}\`"`
+        const execEnv = ``
+        const working_dir = WORKING_DIR ?? baseDir
 
-      const psName = `start-${version.version!.trim()}.sh`.split(' ').join('')
-      const psPath = join(baseDir, psName)
-      await writeFile(psPath, psScript)
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommand'))
-      })
-
-      process.chdir(baseDir)
-      let res: any
-      try {
-        res = await spawnPromise('zsh', [psName], {
-          cwd: baseDir
-        })
-      } catch (e: any) {
-        on({
-          'APP-On-Log': AppLog(
-            'error',
-            I18nT('appLog.startServiceFail', {
-              error: `${e.toString()}`,
-              service: `${version.typeFlag}-${version.version}`
-            })
-          )
-        })
-        return reject(e)
+        try {
+          const res = await serviceStartExecWin({
+            version,
+            pidPath: this.pidPath,
+            baseDir,
+            cwd: working_dir,
+            bin,
+            execArgs,
+            execEnv,
+            on,
+            checkPidFile: false
+          })
+          resolve(res)
+        } catch (e: any) {
+          console.log('-k start err: ', e)
+          reject(e)
+          return
+        }
       }
-
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.execStartCommandSuccess'))
-      })
-      on({
-        'APP-Service-Start-Success': true
-      })
-
-      let pid = ''
-      const stdout = res.trim()
-      const regex = /FlyEnv-Process-ID(.*?)FlyEnv-Process-ID/g
-      const match = regex.exec(stdout)
-      if (match) {
-        pid = match[1]
-      }
-      await writeFile(pidPath, pid)
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: pid }))
-      })
-      return resolve({
-        'APP-Service-Start-PID': pid
-      })
     })
   }
 
@@ -136,19 +127,27 @@ echo "##FlyEnv-Process-ID$!FlyEnv-Process-ID##"`
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('meilisearch')
-        const dict: any = {}
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `meilisearch-${a.version}`, 'meilisearch')
-          const zip = join(global.Server.Cache!, `meilisearch-${a.version}`)
-          a.appDir = join(global.Server.AppDir!, `meilisearch-${a.version}`)
+          let dir = ''
+          let zip = ''
+          if (isMacOS()) {
+            dir = join(global.Server.AppDir!, `meilisearch-${a.version}`, 'meilisearch')
+            zip = join(global.Server.Cache!, `meilisearch-${a.version}`)
+            a.appDir = join(global.Server.AppDir!, `meilisearch-${a.version}`)
+          } else if (isWindows()) {
+            dir = join(global.Server.AppDir!, `meilisearch`, a.version, 'meilisearch.exe')
+            zip = join(global.Server.Cache!, `meilisearch-${a.version}.exe`)
+            a.appDir = join(global.Server.AppDir!, `meilisearch`, a.version)
+          }
+
           a.zip = zip
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          dict[`meilisearch-${a.version}`] = a
+          a.name = `MeiliSearch-${a.version}`
         })
-        resolve(dict)
-      } catch (e) {
+        resolve(all)
+      } catch {
         resolve({})
       }
     })
@@ -157,17 +156,21 @@ echo "##FlyEnv-Process-ID$!FlyEnv-Process-ID##"`
   allInstalledVersions(setup: any) {
     return new ForkPromise((resolve) => {
       let versions: SoftInstalled[] = []
-      Promise.all([versionLocalFetch(setup?.meilisearch?.dirs ?? [], 'meilisearch', 'meilisearch')])
+      let all: Promise<SoftInstalled[]>[] = []
+      if (isMacOS()) {
+        all = [versionLocalFetch(setup?.meilisearch?.dirs ?? [], 'meilisearch', 'meilisearch')]
+      } else if (isWindows()) {
+        all = [versionLocalFetch(setup?.meilisearch?.dirs ?? [], 'meilisearch.exe')]
+      }
+      Promise.all(all)
         .then(async (list) => {
           versions = list.flat()
           versions = versionFilterSame(versions)
-          const all = versions.map((item) =>
-            TaskQueue.run(
-              versionBinVersion,
-              `${item.bin} --version`,
-              /(meilisearch )(\d+(\.\d+){1,4})(.*?)/g
-            )
-          )
+          const all = versions.map((item) => {
+            const command = `"${item.bin}" --version`
+            const reg = /(meilisearch )(\d+(\.\d+){1,4})(.*?)/g
+            return TaskQueue.run(versionBinVersion, item.bin, command, reg)
+          })
           return Promise.all(all)
         })
         .then((list) => {
@@ -189,6 +192,35 @@ echo "##FlyEnv-Process-ID$!FlyEnv-Process-ID##"`
           resolve([])
         })
     })
+  }
+
+  async _installSoftHandle(row: any): Promise<void> {
+    if (isMacOS()) {
+      const command = `cd "${dirname(row.bin)}" && ./${basename(row.bin)} --version`
+      console.log('command: ', command)
+      await mkdirp(dirname(row.bin))
+      await copyFile(row.zip, row.bin)
+      await chmod(row.bin, '0777')
+      await waitTime(500)
+      await execPromise(command)
+    } else if (isWindows()) {
+      await waitTime(500)
+      await mkdirp(dirname(row.bin))
+      try {
+        await copyFile(row.zip, row.bin)
+        await waitTime(500)
+        await spawnPromise(basename(row.bin), ['--version'], {
+          shell: false,
+          cwd: dirname(row.bin)
+        })
+      } catch (e: any) {
+        if (existsSync(row.bin)) {
+          await remove(row.bin)
+        }
+        await appDebugLog('[handleMeilisearch][error]', e.toString())
+        throw e
+      }
+    }
   }
 
   brewinfo() {

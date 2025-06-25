@@ -22,12 +22,17 @@
   "noPhpWarning": "未选择PHP版本, 将会创建一个静态站点, PHP文件将无法执行.确定继续?",
   "hostsWriteTips": "开启或关闭全部站点",
   "sort": "排序",
+
   "projectPhp": "PHP项目",
   "projectJava": "Java项目",
   "projectNode": "Node项目",
   "projectGo": "Go项目",
   "projectPython": "Python项目",
   "projectTomcat": "Tomcat项目",
+  "projectDeno": "Deno项目",
+  "projectBun": "Bun项目",
+  "projectPerl": "Perl项目",
+
   "jarPackagePath": "jar包路径",
   "jdkPath": "jdk路径",
   "pythonPath": "Python路径",

@@ -1,9 +1,8 @@
 import { reactive } from 'vue'
 import { MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
-import { escape, unescape } from 'lodash'
-
-const { clipboard } = require('@electron/remote')
+import { escape, unescape } from 'lodash-es'
+import { clipboard } from '@/util/NodeFn'
 
 const store = reactive({
   encodeInput: '<title>PhpWebStudy</title>',

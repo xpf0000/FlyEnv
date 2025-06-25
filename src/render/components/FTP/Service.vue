@@ -23,7 +23,7 @@
               <span @click.stop="copyPass(linkIp)">{{ linkIp }}</span>
             </div>
           </template>
-          <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-30 w-52">
+          <el-select v-model="currentVersion" :disabled="ftpFetching" class="ml-7 w-52">
             <template v-for="(item, _index) in versions" :key="_index">
               <template v-if="!item?.version">
                 <el-popover popper-class="version-error-tips" width="auto" placement="top">
@@ -77,15 +77,13 @@
   import { FtpStore } from './ftp'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
-  import { startService, stopService } from '@/util/Service'
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { Edit, Delete } from '@element-plus/icons-vue'
   import Base from '@/core/Base'
   import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
-
-  const { shell, clipboard } = require('@electron/remote')
+  import { shell, clipboard } from '@/util/NodeFn'
 
   const loading = ref(false)
   const ftpStore = FtpStore()
@@ -158,14 +156,15 @@
     if (ftpDisabled?.value) {
       return
     }
+    const module = brewStore.module('pure-ftpd')
     let action: any
     switch (flag) {
       case 'stop':
-        action = stopService('pure-ftpd', ftpVersion.value!)
+        action = module.stop()
         break
       case 'start':
       case 'restart':
-        action = startService('pure-ftpd', ftpVersion.value!)
+        action = module.start()
         break
     }
     action.then((res: any) => {

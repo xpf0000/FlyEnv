@@ -20,11 +20,10 @@
   import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import { AppStore } from '@/store/app'
-  import { uuid } from '@shared/utils'
-
-  const { join } = require('path')
+  import { uuid } from '@/util/Index'
+  import { join } from '@/util/path-browserify'
 
   const appStore = AppStore()
   const conf = ref()
@@ -42,14 +41,14 @@
     if (!vm.value) {
       return ''
     }
-    return join(global.Server.MariaDBDir, `my-${vm.value}.cnf`)
+    return join(window.Server.MariaDBDir!, `my-${vm.value}.cnf`)
   })
 
   const defaultConf = computed(() => {
     if (!vm.value) {
       return ''
     }
-    const dataDir = join(global.Server.MariaDBDir, `data-${vm.value}`)
+    const dataDir = join(window.Server.MariaDBDir!, `data-${vm.value}`)
     return `[mariadbd]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
@@ -187,7 +186,7 @@ datadir=${dataDir}`
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names]
       .map((item) => {
         const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')

@@ -54,5 +54,7 @@
   "toolSaveConfirm": "Kaydetmek istediğinizden emin misiniz?",
   "auto": "Otomatik",
   "noVerionsFoundInLib": "Mevcut sürüm bulunamadı",
-  "showToolBtn": "Araçlar İçin Yüzen Butonu Göster"
+  "showToolBtn": "Araçlar İçin Yüzen Butonu Göster",
+
+  "inputSearchKey": "Search keyword"
 }

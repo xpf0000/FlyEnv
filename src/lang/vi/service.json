@@ -6,5 +6,9 @@
   "aliasTips": "Bí danh được sử dụng trong terminal",
   "useSysPHP": "Sử dụng phiên bản PHP mặc định",
   "setByApp": "Các biến môi trường được đặt bởi FlyEnv",
-  "setByNoApp": "Các biến môi trường không được đặt bởi FlyEnv"
+  "setByNoApp": "Các biến môi trường không được đặt bởi FlyEnv",
+
+  "ftpdNeedPasswordToStart": "Pure-FTPd requires sudo privileges to start. Please enter your user password. The password will be used for auto-fill later. Or you can click the button below to input manually in the terminal, but this prompt may reappear.",
+  "bundleinVersionDelTips": "This version is a built-in version, confirm not displayed?",
+  "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?"
 }

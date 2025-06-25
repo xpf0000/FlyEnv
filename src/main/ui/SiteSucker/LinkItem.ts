@@ -1,3 +1,5 @@
+import type { CallBackFn } from '@shared/app'
+
 const NoticeDict: { [k: string]: number } = {}
 
 const NoticeOrder = {
@@ -20,7 +22,7 @@ export type PageLink = {
 }
 
 export const CallBack: {
-  fn: Function
+  fn: CallBackFn
 } = {
   fn: () => {}
 }

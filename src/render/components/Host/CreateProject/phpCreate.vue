@@ -15,7 +15,7 @@
         </template>
         <template v-else>
           <div class="main">
-            <div class="path-choose mt-20 mb-20">
+            <div class="path-choose my-5">
               <input
                 type="text"
                 class="input"
@@ -111,13 +111,11 @@
   import { I18nT } from '@lang/index'
   import { BrewStore } from '@/store/brew'
   import AppVersions from './version'
-  import installedVersions from '@/util/InstalledVersions'
   import { ProjectSetup } from '@/components/Host/CreateProject/project'
   import XTerm from '@/util/XTerm'
+  import { join } from '@/util/path-browserify'
+  import { dialog, fs } from '@/util/NodeFn'
 
-  const { writeFile } = require('fs-extra')
-  const { join } = require('path')
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -166,12 +164,8 @@
     return brewStore.module('composer').installed
   })
 
-  if (!brewStore.module('php').installedInited) {
-    installedVersions.allInstalledVersions(['php']).then().catch()
-  }
-  if (!brewStore.module('composer').installedInited) {
-    installedVersions.allInstalledVersions(['composer']).then().catch()
-  }
+  brewStore.module('php').fetchInstalled().catch()
+  brewStore.module('composer').fetchInstalled().catch()
 
   const chooseRoot = () => {
     if (loading.value || created.value) {
@@ -198,9 +192,9 @@
     const form = ProjectSetup.form.PHP
     const execXTerm = new XTerm()
     const command: string[] = []
-    if (global.Server.Proxy) {
-      for (const k in global.Server.Proxy) {
-        const v = global.Server.Proxy[k]
+    if (window.Server.Proxy) {
+      for (const k in window.Server.Proxy) {
+        const v = window.Server.Proxy[k]
         command.push(`export ${k}="${v}"`)
       }
     }
@@ -218,7 +212,7 @@
   }
 }
 `
-      await writeFile(join(form.dir, 'composer.json'), tmpl)
+      await fs.writeFile(join(form.dir, 'composer.json'), tmpl)
 
       if (form.php && form.composer) {
         command.push(`"${form.php}" "${form.composer}" self-update`)

@@ -20,8 +20,7 @@
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import XRadioGroup from '@/components/XRadioGroup/index.vue'
-
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -58,12 +57,12 @@
   ])
 
   const init = () => {
-    let logpath = join(global.Server.BaseDir, 'vhost/logs')
-    let accesslogng = join(logpath, `${props.name}.log`)
-    let errorlogng = join(logpath, `${props.name}.error.log`)
-    let accesslogap = join(logpath, `${props.name}-access_log`)
-    let errorlogap = join(logpath, `${props.name}-error_log`)
-    let caddyLog = join(logpath, `${props.name}.caddy.log`)
+    const logpath = join(window.Server.BaseDir!, 'vhost/logs')
+    const accesslogng = join(logpath, `${props.name}.log`)
+    const errorlogng = join(logpath, `${props.name}.error.log`)
+    const accesslogap = join(logpath, `${props.name}-access_log`)
+    const errorlogap = join(logpath, `${props.name}-error_log`)
+    const caddyLog = join(logpath, `${props.name}.caddy.log`)
     logfile.value = {
       'nginx-access': accesslogng,
       'nginx-error': errorlogng,

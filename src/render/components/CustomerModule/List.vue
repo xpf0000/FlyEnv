@@ -77,29 +77,29 @@
             <ul v-poper-fix class="host-list-menu">
               <li @click.stop="action(scope.row, scope.$index, 'edit')">
                 <yb-icon :svg="import('@/svg/edit.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ I18nT('base.edit') }}</span>
+                <span class="ml-3">{{ I18nT('base.edit') }}</span>
               </li>
               <template v-for="(c, _i) in logs(scope.row)" :key="_i">
                 <li @click.stop="action(c, _i, 'log')">
                   <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                  <span class="ml-15"> {{ c.label }} </span>
+                  <span class="ml-3"> {{ c.label }} </span>
                 </li>
               </template>
               <template v-for="(c, _i) in scope.row.configPath" :key="_i">
                 <li @click.stop="action(c, _i, 'conf')">
                   <yb-icon :svg="import('@/svg/config.svg?raw')" width="13" height="13" />
-                  <span class="ml-15"> {{ c.name }} </span>
+                  <span class="ml-3"> {{ c.name }} </span>
                 </li>
               </template>
               <template v-for="(c, _i) in scope.row.logPath" :key="_i">
                 <li @click.stop="action(c, _i, 'log')">
                   <yb-icon :svg="import('@/svg/log.svg?raw')" width="13" height="13" />
-                  <span class="ml-15"> {{ c.name }} </span>
+                  <span class="ml-3"> {{ c.name }} </span>
                 </li>
               </template>
               <li @click.stop="action(scope.row, scope.$index, 'del')">
                 <yb-icon :svg="import('@/svg/trash.svg?raw')" width="13" height="13" />
-                <span class="ml-15">{{ I18nT('base.del') }}</span>
+                <span class="ml-3">{{ I18nT('base.del') }}</span>
               </li>
             </ul>
             <template #reference>
@@ -122,8 +122,7 @@
   import { ModuleCustomerExecItem } from '@/core/ModuleCustomer'
   import { FolderAdd } from '@element-plus/icons-vue'
   import Base from '@/core/Base'
-
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
 
   const title = computed(() => {
     return AppCustomerModule.currentModule?.label ?? ''
@@ -152,11 +151,11 @@
     return [
       {
         label: I18nT('setup.module.outputLog'),
-        path: join(global.Server.BaseDir!, 'module-customer', `${item.id}.out.log`)
+        path: join(window.Server.BaseDir!, 'module-customer', `${item.id}.out.log`)
       },
       {
         label: I18nT('setup.module.errorLog'),
-        path: join(global.Server.BaseDir!, 'module-customer', `${item.id}.error.log`)
+        path: join(window.Server.BaseDir!, 'module-customer', `${item.id}.error.log`)
       }
     ]
   }

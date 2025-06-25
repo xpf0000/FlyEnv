@@ -3,11 +3,9 @@ import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { NodejsStore } from '@/components/Nodejs/node'
-import installedVersions from '@/util/InstalledVersions'
 import { BrewStore } from '@/store/brew'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
-
-const { join } = require('path')
+import { join } from '@/util/path-browserify'
 
 export const NodeDefaultSetup = reactive<{
   installing: Record<string, number>
@@ -65,8 +63,8 @@ export const Setup = () => {
     NodeDefaultSetup.switching = true
     item.switching = true
     const param: any = {
-      bin: join(global.Server.AppDir!, `nodejs/v${item.version}/bin/node`),
-      path: join(global.Server.AppDir!, `nodejs/v${item.version}`)
+      bin: join(window.Server.AppDir!, `nodejs/v${item.version}/bin/node`),
+      path: join(window.Server.AppDir!, `nodejs/v${item.version}`)
     }
     ServiceActionStore.updatePath(param, 'node')
       .then(() => {
@@ -95,8 +93,9 @@ export const Setup = () => {
           if (res?.data?.setEnv) {
             versionChange(item)
           }
-          brewStore.module('node').installedInited = false
-          installedVersions.allInstalledVersions(['node']).then()
+          const nodeModule = brewStore.module('node')
+          nodeModule.installedFetched = false
+          nodeModule.fetchInstalled().catch()
           MessageSuccess(I18nT('base.success'))
         } else if (res?.code === 1) {
           IPC.off(key)
@@ -127,7 +126,7 @@ export const Setup = () => {
       store.all
         .filter((v) => {
           const a = !NodeDefaultSetup.local.includes(v)
-          if (global.Server.isAppleSilicon) {
+          if (window.Server.isAppleSilicon) {
             const vn = Number(v.split('.')[0])
             const b = !isNaN(vn) && vn > 15
             return a && b

@@ -1,8 +1,8 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="tab" class="mt-3">
-      <template v-for="(item, index) in tabs" :key="index">
-        <el-radio-button :label="item" :value="index"></el-radio-button>
+      <template v-for="(item, _index) in tabs" :key="_index">
+        <el-radio-button :label="item" :value="_index"></el-radio-button>
       </template>
     </el-radio-group>
     <div class="main-block">
@@ -34,6 +34,7 @@
         title="Minio"
         :has-static="true"
         :show-port-lib="false"
+        :show-brew-lib="true"
         url="https://github.com/minio/minio"
       >
       </Manager>
@@ -53,10 +54,8 @@
   import { MinioSetup } from './setup'
   import { Edit } from '@element-plus/icons-vue'
   import Config from './Config.vue'
-
-  const { join } = require('path')
-  const { existsSync, readFile } = require('fs-extra')
-  const { shell } = require('@electron/remote')
+  import { join } from '@/util/path-browserify'
+  import { shell, fs } from '@/util/NodeFn'
 
   const { tab, checkVersion } = AppModuleSetup('minio')
   const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('base.configFile')]
@@ -78,7 +77,7 @@
         if (MinioSetup.dir[currentVersion.value.bin]) {
           return MinioSetup.dir[currentVersion.value.bin]
         }
-        return join(global.Server.BaseDir!, `minio/data`)
+        return join(window.Server.BaseDir!, `minio/data`)
       }
       return I18nT('base.needSelectVersion')
     },
@@ -100,10 +99,11 @@
   }
 
   const openURL = async () => {
-    const iniFile = join(global.Server.BaseDir!, 'minio/minio.conf')
+    const iniFile = join(window.Server.BaseDir!, 'minio/minio.conf')
     let port = '9000'
-    if (existsSync(iniFile)) {
-      const content = await readFile(iniFile, 'utf-8')
+    const exists = await fs.existsSync(iniFile)
+    if (exists) {
+      const content = await fs.readFile(iniFile)
       const logStr = content.split('\n').find((s: string) => s.includes('MINIO_ADDRESS'))
       port =
         logStr?.trim()?.split('=')?.pop()?.split(':')?.pop()?.replace(`"`, '')?.replace(`'`, '') ??

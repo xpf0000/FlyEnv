@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15 title">{{ version.version }} - {{ version.path }} - php.ini</span>
+          <span class="ml-3 title">{{ version.version }} - {{ version.path }} - php.ini</span>
         </div>
       </div>
 
@@ -37,14 +37,13 @@
   import Common from '@/components/Conf/common.vue'
   import { type CommonSetItem, ConfStore } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import { SoftInstalled } from '@/store/brew'
   import IPC from '@/util/IPC'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-  import { uuid } from '@shared/utils'
-
-  const { existsSync } = require('fs')
-  const { join } = require('path')
+  import { uuid } from '@/util/Index'
+  import { join } from '@/util/path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const props = defineProps<{
     version: SoftInstalled
@@ -67,7 +66,7 @@
     }
     return `${file.value}.default`
   })
-  const cacert = join(global.Server.BaseDir!, 'CA/cacert.pem')
+  const cacert = join(window.Server.BaseDir!, 'CA/cacert.pem')
   const names: CommonSetItem[] = [
     {
       name: 'display_errors',
@@ -314,7 +313,20 @@
     }
   }
 
-  if (flag.value && (!file.value || !existsSync(file.value))) {
+  const fileExists = ref(false)
+  watch(
+    file,
+    (val) => {
+      fs.existsSync(val).then((res) => {
+        fileExists.value = res
+      })
+    },
+    {
+      immediate: true
+    }
+  )
+
+  if (flag.value && (!file.value || !fileExists.value)) {
     IPC.send('app-fork:php', 'getIniPath', JSON.parse(JSON.stringify(props.version))).then(
       (key: string, res: any) => {
         console.log(res)
@@ -322,7 +334,7 @@
         if (res.code === 0) {
           ConfStore.phpIniFiles[flag.value] = res.data
           ConfStore.save()
-          conf?.value?.update && conf.value.update()
+          conf?.value?.update()
         }
       }
     )

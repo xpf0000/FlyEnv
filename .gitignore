@@ -3,10 +3,13 @@ node_modules
 dist
 dist-ssr
 *.local
-/build/notarize.js
 /build/*.p8
+/build/notarize.js
 /build/JWT.js
 /build/Legacy.js
+/build/notarize.ts
+/build/JWT.ts
+/build/Legacy.ts
 /build/pkg-scripts
 /build/bin/arm
 /build/bin/x86
@@ -27,3 +30,4 @@ yarn-error.log
 /test
 .vscode/settings.json
 src/main/lang/index.ts
+/data

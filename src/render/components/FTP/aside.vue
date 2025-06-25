@@ -9,7 +9,7 @@
       <div class="icon-block" :class="{ run: serviceRunning }">
         <yb-icon style="padding: 5px" :svg="import('@/svg/ftp.svg?raw')" width="30" height="30" />
       </div>
-      <span class="title">FTP</span>
+      <span class="title">Pure-FTPd</span>
     </div>
 
     <el-switch
@@ -71,11 +71,11 @@
                 IPC.send('app:password-check', pass).then((key: string, res: any) => {
                   IPC.off(key)
                   if (res?.code === 0) {
-                    global.Server.Password = res?.data ?? pass
+                    window.Server.Password = res?.data ?? pass
                     AppStore()
                       .initConfig()
                       .then(() => {
-                        done && done()
+                        done()
                         resolve([])
                       })
                   } else {
@@ -95,7 +95,7 @@
           .then()
           .catch()
       }
-      if (!global.Server.Password && fn === 'startService') {
+      if (!window.Server.Password && fn === 'startService') {
         showPasswordTips()
       } else {
         resolve([])

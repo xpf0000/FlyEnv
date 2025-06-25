@@ -1,8 +1,8 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="tab" class="mt-3">
-      <template v-for="(item, index) in tabs" :key="index">
-        <el-radio-button :label="item" :value="index"></el-radio-button>
+      <template v-for="(item, _index) in tabs" :key="_index">
+        <el-radio-button :label="item" :value="_index"></el-radio-button>
       </template>
     </el-radio-group>
     <div class="main-block">
@@ -12,7 +12,13 @@
         type-flag="java"
         :fetch-data-when-create="true"
       ></Service>
-      <Manager v-else-if="tab === 1" type-flag="java" :has-static="true"></Manager>
+      <Manager
+        v-else-if="tab === 1"
+        title="Java"
+        url="https://learn.microsoft.com/en-us/java/openjdk/download"
+        type-flag="java"
+        :has-static="true"
+      ></Manager>
       <Maven
         v-else-if="tab === 2"
         type-flag="maven"
@@ -26,7 +32,7 @@
         <template #openin="{ row }">
           <li @click.stop="Project.openPath(row.path, 'IntelliJ')">
             <yb-icon :svg="import('@/svg/idea.svg?raw')" width="13" height="13" />
-            <span class="ml-15">{{ I18nT('nodejs.openIN') }} IntelliJ IDEA</span>
+            <span class="ml-3">{{ I18nT('nodejs.openIN') }} IntelliJ IDEA</span>
           </li>
         </template>
       </ProjectIndex>
@@ -40,7 +46,7 @@
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
   import Maven from '../VersionManager/all.vue'
-  import ProjectIndex from '@/components/PHP/projects/index.vue'
+  import ProjectIndex from '@/components/LanguageProjects/index.vue'
   import { Project } from '@/util/Project'
 
   const { tab } = AppModuleSetup('java')

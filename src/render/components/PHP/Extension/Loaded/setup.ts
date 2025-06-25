@@ -1,8 +1,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { type SoftInstalled } from '@/store/brew'
-import { execAsync } from '@shared/utils'
-
-const { join } = require('path')
+import { join } from '@/util/path-browserify'
+import { exec } from '@/util/NodeFn'
 
 export const LoadedSetup = reactive<{
   list: { [k: string]: any }
@@ -28,7 +27,8 @@ export const Setup = (version: SoftInstalled) => {
     LoadedSetup.fetching[version.bin] = true
     const bin = version?.phpBin ?? join(version?.path, 'bin/php')
     console.log('macport bin: ', bin)
-    execAsync(bin, ['-m'])
+    exec
+      .exec(bin, ['-m'])
       .then((res: string) => {
         console.log('execAsync: ', res)
         let phpModules = res.split(`[PHP Modules]\n`).pop()!.trim()!

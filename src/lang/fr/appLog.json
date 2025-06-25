@@ -17,5 +17,7 @@
   "initDBPassFail": "Echéc du changement du mot de passe de la base de donneés, raison: {error}",
   "initDBDataDir": "Répertoire des données non trouvé, création du répertoire en cours",
   "initDBDataDirSuccess": "Création du répertoire des données réussi, chemin du répertoire des données: {dir}",
-  "initDBDataDirFail": "Echec création du répertoire des données, raison: {error}"
+  "initDBDataDirFail": "Echec création du répertoire des données, raison: {error}",
+
+  "startInstall": "Start installing {service}"
 }

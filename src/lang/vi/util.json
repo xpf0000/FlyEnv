@@ -54,5 +54,7 @@
   "toolSaveConfirm": "Bạn có chắc chắn muốn lưu nó?",
   "auto": "Tự động",
   "noVerionsFoundInLib": "Không có phiên bản nào khả dụng",
-  "showToolBtn": "Hiển thị nút công cụ nổi"
+  "showToolBtn": "Hiển thị nút công cụ nổi",
+
+  "inputSearchKey": "Search keyword"
 }

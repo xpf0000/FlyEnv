@@ -19,23 +19,29 @@
         />
       </div>
       <div class="main">
-        <template v-for="(item, index) in dirs" :key="index">
-          <div class="path-choose mb-20">
-            <input type="text" class="input" placeholder="Document Root Directory" readonly="" :value="item" />
+        <template v-for="(item, _index) in dirs" :key="_index">
+          <div class="path-choose mb-5">
+            <input
+              type="text"
+              class="input"
+              placeholder="Document Root Directory"
+              readonly="true"
+              :value="item"
+            />
             <div class="icon-block">
               <yb-icon
                 :svg="import('@/svg/folder.svg?raw')"
                 class="choose"
                 width="18"
                 height="18"
-                @click="chooseDir(index)"
+                @click="chooseDir(_index)"
               />
               <yb-icon
                 :svg="import('@/svg/delete.svg?raw')"
                 class="choose"
                 width="19"
                 height="19"
-                @click="delDir(index)"
+                @click="delDir(_index)"
               />
             </div>
           </div>
@@ -51,8 +57,8 @@
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import type { AllAppModule } from '@/core/type'
+  import { dialog } from '@/util/NodeFn'
 
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -86,7 +92,7 @@
         }
         setupItem[flag].dirs = reactive(v)
         appStore.saveConfig()
-        brewStore.module(flag).installedInited = false
+        brewStore.module(flag).installedFetched = false
       })
     },
     {

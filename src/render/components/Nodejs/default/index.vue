@@ -20,9 +20,8 @@
   import { ElInput, ElButton, ElTooltip, ElProgress } from 'element-plus'
   import type { Column } from 'element-plus'
   import { MessageSuccess } from '@/util/Element'
-
-  const { clipboard } = require('@electron/remote')
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
+  import { clipboard } from '@/util/NodeFn'
 
   const { versionChange, installOrUninstall, tableData } = Setup()
 
@@ -41,7 +40,7 @@
       width: 0,
       headerCellRenderer: () => {
         return (
-          <div class="w-p100 name-cell">
+          <div class="w-full name-cell">
             <span style="display: inline-flex; align-items: center; padding: 2px 0">
               {I18nT('base.version')}
             </span>
@@ -58,7 +57,7 @@
           current: NodeDefaultSetup.current === row.version,
           'hover-yellow-500': !!row.installed
         }
-        const path = join(global.Server.AppDir, `nodejs/${row.version}/bin`)
+        const path = join(window.Server.AppDir!, `nodejs/${row.version}/bin`)
         const tips = `export PATH="${path}:$PATH"`
         const disabled = !row.installed
         return (

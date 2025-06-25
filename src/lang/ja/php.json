@@ -12,8 +12,6 @@
   "obfuscatorSrc": "難読化するPHPファイルまたはフォルダ",
   "obfuscatorDesc": "ファイルまたはフォルダを保存し、ソースファイルまたはフォルダを複製しません",
   "obfuscatorConfig": "詳細設定",
-  "groupStartOff": "グループクイックスタートをオフにする",
-  "groupStartOn": "グループクイックスタートをオンにする",
   "quickStart": "グループスタート",
   "display_errors": "詳細なエラー情報を出力するかどうか",
   "short_open_tag": "ショートタグサポート",

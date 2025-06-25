@@ -26,11 +26,7 @@
   import { MessageError } from '@/util/Element'
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-
-  const { shell } = require('@electron/remote')
-  const { existsSync } = require('fs-extra')
-
-  const emit = defineEmits(['doClose'])
+  import { shell, fs } from '@/util/NodeFn'
 
   const list: Ref<string[]> = ref([])
   IPC.send('app-fork:tools', 'systemEnvFiles').then((key: string, res: any) => {
@@ -43,8 +39,9 @@
   import('./edit.vue').then((res) => {
     EditVM = res.default
   })
-  const toEdit = (file: string) => {
-    if (!existsSync(file)) {
+  const toEdit = async (file: string) => {
+    const exists = await fs.existsSync(file)
+    if (!exists) {
       MessageError(I18nT('util.toolFileNotExist'))
       return
     }
@@ -55,9 +52,5 @@
 
   const openFile = (file: string) => {
     shell.showItemInFolder(file)
-  }
-
-  const doClose = () => {
-    emit('doClose')
   }
 </script>

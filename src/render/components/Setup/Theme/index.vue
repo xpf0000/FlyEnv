@@ -10,11 +10,10 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, ref } from 'vue'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
-
-  const { nativeTheme } = require('@electron/remote')
+  import { nativeTheme } from '@/util/NodeFn'
 
   const store = AppStore()
   const themes = computed(() => {
@@ -25,11 +24,16 @@
     }
   })
 
+  const isDark = ref(false)
+  nativeTheme.shouldUseDarkColors().then((e) => {
+    isDark.value = e
+  })
+
   const theme = computed({
     get() {
       const t = store?.config?.setup?.theme
       if (!t) {
-        return nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+        return isDark.value ? 'dark' : 'light'
       }
       return t
     },

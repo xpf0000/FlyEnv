@@ -23,7 +23,7 @@
               </el-select>
             </div>
           </template>
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               v-model.trim="form.name"
               type="text"
@@ -55,8 +55,8 @@
   import type { AppServiceAliasItem, SoftInstalled } from '@shared/app.d.ts'
   import { AllAppModule } from '@/core/type'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
+  import { join } from '@/util/path-browserify'
 
-  const { join } = require('path')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{

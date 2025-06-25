@@ -1,8 +1,8 @@
 <template>
   <div class="soft-index-panel main-right-panel">
     <el-radio-group v-model="tab" class="mt-3">
-      <template v-for="(item, index) in tabs" :key="index">
-        <el-radio-button :label="item" :value="index"></el-radio-button>
+      <template v-for="(item, _index) in tabs" :key="_index">
+        <el-radio-button :label="item" :value="_index"></el-radio-button>
       </template>
     </el-radio-group>
     <div class="main-block">
@@ -12,7 +12,7 @@
         type-flag="python"
         :fetch-data-when-create="true"
       ></Service>
-      <Manager v-else-if="tab === 1" type-flag="python"></Manager>
+      <Manager v-else-if="tab === 1" type-flag="python" title="Python"></Manager>
       <ProjectIndex
         v-else-if="tab === 2"
         :title="I18nT('host.projectPython')"
@@ -21,7 +21,7 @@
         <template #openin="{ row }">
           <li @click.stop="Project.openPath(row.path, 'PyCharm')">
             <yb-icon :svg="import('@/svg/pycharm.svg?raw')" width="13" height="13" />
-            <span class="ml-15">{{ I18nT('nodejs.openIN') }} PyCharm</span>
+            <span class="ml-3">{{ I18nT('nodejs.openIN') }} PyCharm</span>
           </li>
         </template>
       </ProjectIndex>
@@ -34,7 +34,7 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
-  import ProjectIndex from '@/components/PHP/projects/index.vue'
+  import ProjectIndex from '@/components/LanguageProjects/index.vue'
   import { Project } from '@/util/Project'
 
   const { tab } = AppModuleSetup('python')

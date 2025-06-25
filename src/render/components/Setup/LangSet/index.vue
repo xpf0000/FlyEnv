@@ -42,7 +42,7 @@
   import { AppStore } from '@/store/app'
   import { AppAllLang, AppI18n, I18nT } from '@lang/index'
   import { LangSetup } from '@/components/Setup/LangSet/setup'
-  import { CustomerLangs } from '@lang/loader'
+  import { CustomerLangs } from '@lang/customer'
 
   const appStore = AppStore()
   const running = ref(false)

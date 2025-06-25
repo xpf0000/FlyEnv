@@ -1,9 +1,8 @@
-import { readFile, writeFile } from 'fs-extra'
 import { join } from 'path'
-import { uuid } from '../util'
-import { exec } from 'child-process-promise'
+import { uuid, readFile, writeFile } from '../util'
 import { existsSync } from 'fs'
 import { BaseManager } from './Base'
+import { execPromise } from '@shared/child-process'
 
 class Manager extends BaseManager {
   writeFileByRoot(file: string, content: string): Promise<boolean> {
@@ -20,14 +19,14 @@ class Manager extends BaseManager {
         const cacheFile = join('/tmp', `${uuid()}.txt`)
         await writeFile(cacheFile, content)
         try {
-          await exec(`cp -f "${cacheFile}" "${file}"`)
+          await execPromise(`cp -f "${cacheFile}" "${file}"`)
           hasError = false
         } catch (e) {
           error = e
         }
         try {
-          await exec(`rm -rf "${cacheFile}"`)
-        } catch (e) {}
+          await execPromise(`rm -rf "${cacheFile}"`)
+        } catch {}
       }
       if (hasError) {
         reject(error)
@@ -51,9 +50,9 @@ class Manager extends BaseManager {
       if (hasErr) {
         const cacheFile = join(global.Server.Cache!, `${uuid()}.txt`)
         try {
-          await exec(`cp -f "${file}" "${cacheFile}"`)
+          await execPromise(`cp -f "${file}" "${cacheFile}"`)
           content = await readFile(cacheFile, 'utf-8')
-          await exec(`rm -rf "${cacheFile}"`)
+          await execPromise(`rm -rf "${cacheFile}"`)
           hasErr = false
         } catch (e) {
           error = e
@@ -71,8 +70,8 @@ class Manager extends BaseManager {
     return new Promise(async (resolve) => {
       let res = ''
       try {
-        res = (await exec(`ps axo user,pid,ppid,command`)).stdout
-      } catch (e) {}
+        res = (await execPromise(`ps axo user,pid,ppid,command`)).stdout
+      } catch {}
       if (!res) {
         return resolve([])
       }
@@ -101,8 +100,8 @@ class Manager extends BaseManager {
   rm(dir: string) {
     return new Promise(async (resolve) => {
       try {
-        await exec(`rm -rf "${dir}"`)
-      } catch (e) {}
+        await execPromise(`rm -rf "${dir}"`)
+      } catch {}
       resolve(true)
     })
   }
@@ -111,8 +110,8 @@ class Manager extends BaseManager {
     return new Promise(async (resolve) => {
       if (existsSync(dir)) {
         try {
-          await exec(`chmod ${flag} "${dir}"`)
-        } catch (e) {}
+          await execPromise(`chmod ${flag} "${dir}"`)
+        } catch {}
       }
       resolve(true)
     })
@@ -121,8 +120,8 @@ class Manager extends BaseManager {
   kill(sig: string, pids: string[]) {
     return new Promise(async (resolve) => {
       try {
-        await exec(`kill ${sig} ${pids.join(' ')}`)
-      } catch (e) {}
+        await execPromise(`kill ${sig} ${pids.join(' ')}`)
+      } catch {}
       resolve(true)
     })
   }
@@ -131,8 +130,8 @@ class Manager extends BaseManager {
     return new Promise(async (resolve) => {
       if (existsSync(dir)) {
         try {
-          await exec(`ln -s "${dir}" "${dir1}"`)
-        } catch (e) {}
+          await execPromise(`ln -s "${dir}" "${dir1}"`)
+        } catch {}
       }
       resolve(true)
     })
@@ -142,7 +141,7 @@ class Manager extends BaseManager {
     return new Promise(async (resolve) => {
       const pids: Set<string> = new Set()
       for (const port of ports) {
-        let res: any = await exec(
+        let res: any = await execPromise(
           `lsof -nP -i:${port} | grep '(LISTEN)' | awk '{print $1,$2,$3,$9,$10}'`
         )
         res = res?.stdout ?? ''
@@ -161,8 +160,8 @@ class Manager extends BaseManager {
       }
       if (pids.size > 0) {
         try {
-          await exec(['kill', '-9', ...Array.from(pids)].join(' '))
-        } catch (e) {}
+          await execPromise(['kill', '-9', ...Array.from(pids)].join(' '))
+        } catch {}
       }
       resolve(true)
     })
@@ -170,7 +169,7 @@ class Manager extends BaseManager {
 
   getPortPids(port: string) {
     return new Promise(async (resolve) => {
-      const res = await exec(`lsof -nP -i:${port} | awk '{print $1,$2,$3}'`)
+      const res = await execPromise(`lsof -nP -i:${port} | awk '{print $1,$2,$3}'`)
       const arr = res.stdout
         .toString()
         .trim()

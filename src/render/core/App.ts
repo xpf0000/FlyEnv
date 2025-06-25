@@ -11,4 +11,5 @@ console.log('arr: ', AppModules)
 AppModules.sort((a, b) => {
   return a.asideIndex! - b.asideIndex!
 })
+
 export { AppModules }

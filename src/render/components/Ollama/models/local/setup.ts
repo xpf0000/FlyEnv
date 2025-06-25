@@ -3,7 +3,6 @@ import IPC from '@/util/IPC'
 import type { OllamaModelItem } from '@/components/Ollama/models/all/setup'
 import { BrewStore } from '@/store/brew'
 import { AppStore } from '@/store/app'
-import InstalledVersions from '@/util/InstalledVersions'
 
 export const OllamaLocalModelsSetup = reactive<{
   fetching: boolean
@@ -13,9 +12,7 @@ export const OllamaLocalModelsSetup = reactive<{
   fetching: false,
   async reFetch() {
     const brewStore = BrewStore()
-    if (brewStore.module('ollama').installed.length === 0) {
-      await InstalledVersions.allInstalledVersions(['ollama'])
-    }
+    await brewStore.module('ollama').fetchInstalled()
     const appStore = AppStore()
     const current = appStore.config.server?.ollama?.current
     const service = brewStore

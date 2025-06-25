@@ -14,8 +14,7 @@
   import { computed, ref } from 'vue'
   import Conf from '@/components/Conf/index.vue'
   import { AppStore } from '@/store/app'
-
-  const { join, dirname } = require('path')
+  import { join, dirname } from '@/util/path-browserify'
 
   const appStore = AppStore()
 
@@ -30,7 +29,7 @@
     }
     const version = currentVersion?.value ?? ''
     const versionTop = version.split('.').shift()
-    const dbPath = join(global.Server.PostgreSqlDir, `postgresql${versionTop}`)
+    const dbPath = join(window.Server.PostgreSqlDir!, `postgresql${versionTop}`)
     return join(dbPath, 'postgresql.conf')
   })
 

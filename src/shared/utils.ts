@@ -1,12 +1,22 @@
 import crypto from 'crypto'
-import { merge } from 'lodash'
-import { appDebugLog } from '@shared/file'
+import { merge } from 'lodash-es'
+import { spawn, exec } from 'child_process'
+import { cpus } from 'os'
+import { join } from 'path'
+import { promisify } from 'util'
+import { platform } from 'node:os'
+import { chmod, copyFile, appendFile } from './fs-extra'
 
-const { spawn } = require('child_process')
-const { exec } = require('child-process-promise')
-const os = require('os')
-const { join } = require('path')
-const { chmod, copyFile } = require('fs-extra')
+const execPromise = promisify(exec)
+
+export async function appDebugLog(flag: string, info: string) {
+  try {
+    const debugFile = join(global.Server.BaseDir!, 'debug.log')
+    await appendFile(debugFile, `${flag}: ${info}\n`)
+  } catch {
+    /* empty */
+  }
+}
 
 let AppEnv: any
 
@@ -20,7 +30,7 @@ export async function fixEnv(): Promise<{ [k: string]: any }> {
   let text = ''
   try {
     await chmod(file, '0777')
-    const res = await exec(`./env.sh`, {
+    const res = await execPromise(`./env.sh`, {
       cwd: global.Server.Cache!,
       shell: '/bin/zsh'
     })
@@ -109,11 +119,32 @@ export function formatBytes(bytes: number, decimals = 2) {
 }
 
 export function isAppleSilicon() {
-  const cpuCore = os.cpus()
+  const cpuCore = cpus()
   return cpuCore[0].model.includes('Apple')
 }
 
 export function md5(str: string) {
   const md5 = crypto.createHash('md5')
   return md5.update(str).digest('hex')
+}
+
+export function pathFixedToUnix(path: string) {
+  return path.split('\\').join('/')
+}
+
+export const HostsFileMacOS = '/private/etc/hosts'
+export const HostsFileWindows = 'c:/windows/system32/drivers/etc/hosts'
+
+const os = platform()
+
+export function isWindows() {
+  return os === 'win32'
+}
+
+export function isMacOS() {
+  return os === 'darwin'
+}
+
+export function isLinux() {
+  return os === 'linux'
 }

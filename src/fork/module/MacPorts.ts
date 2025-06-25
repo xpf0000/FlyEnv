@@ -1,6 +1,6 @@
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import { readFile } from 'fs-extra'
+import { readFile } from '../Fn'
 import Helper from '../Helper'
 class MacPorts extends Base {
   constructor() {

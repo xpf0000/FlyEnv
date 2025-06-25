@@ -19,10 +19,10 @@ import {
   tomlToJson,
   xmlToJson,
   yamlToJson
-} from '@shared/transform'
-import { JSONSort } from '@shared/JsonSort'
+} from '@/util/transform'
+import { JSONSort } from '@/util/JsonSort'
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-import { FormatHtml, FormatPHP, FormatTS, FormatYaml } from '@shared/FormatCode'
+import { FormatHtml, FormatPHP, FormatTS, FormatYaml } from '@/util/FormatCode'
 import { I18nT } from '@lang/index'
 
 export class JSONStoreTab {
@@ -141,7 +141,10 @@ export class JSONStoreTab {
     } else if (this.to === 'toml') {
       this.toLang = 'toml'
       editor.setModelLanguage(model, 'toml')
-      value = jsonToTOML(json)
+      jsonToTOML(json).then((res) => {
+        value = res
+        this.editor().setValue(value)
+      })
     } else if (this.to === 'goStruct') {
       this.toLang = 'go'
       editor.setModelLanguage(model, 'go')
@@ -174,7 +177,7 @@ export class JSONStoreTab {
     this.editor().setValue(value)
   }
 
-  checkFrom() {
+  async checkFrom() {
     let type = ''
     if (!this.value.trim()) {
       this.type = I18nT('tools.inputCheckFailTips')
@@ -201,7 +204,7 @@ export class JSONStoreTab {
       }
       console.log('this.json: ', this.json)
       type = 'JSON'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }
@@ -215,7 +218,7 @@ export class JSONStoreTab {
     try {
       this.json = javascriptToJson(this.value)
       type = 'JSON'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }
@@ -229,7 +232,7 @@ export class JSONStoreTab {
     try {
       this.json = phpToJson(this.value)
       type = 'PHP'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }
@@ -243,8 +246,7 @@ export class JSONStoreTab {
     try {
       this.json = plistToJson(this.value)
       type = 'PList'
-    } catch (e) {
-      console.log('e 222: ', e)
+    } catch {
       this.json = null
       type = ''
     }
@@ -258,7 +260,7 @@ export class JSONStoreTab {
     try {
       this.json = xmlToJson(this.value)
       type = 'XML'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }
@@ -272,7 +274,7 @@ export class JSONStoreTab {
     try {
       this.json = yamlToJson(this.value)
       type = 'YAML'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }
@@ -284,9 +286,9 @@ export class JSONStoreTab {
     }
 
     try {
-      this.json = tomlToJson(this.value)
+      this.json = await tomlToJson(this.value)
       type = 'TOML'
-    } catch (e) {
+    } catch {
       this.json = null
       type = ''
     }

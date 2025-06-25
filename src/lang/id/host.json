@@ -64,5 +64,9 @@
   "copyCommand": "Salin Perintah",
   "showFile": "Tampilkan File",
   "sticky": "Tegak (Sticky)",
-  "dbclickRowToEdit": "Klik dua kali baris ini untuk mengedit"
+  "dbclickRowToEdit": "Klik dua kali baris ini untuk mengedit",
+
+  "projectDeno": "Deno Projects",
+  "projectBun": "Bun Projects",
+  "projectPerl": "Perl Projects"
 }

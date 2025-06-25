@@ -1,5 +1,4 @@
 {
-  "menuShowHide": "菜单显示/隐藏",
   "tsinghua": "清华大学下载源",
   "bfsu": "北京外国语大学下载源",
   "tencent": "腾讯下载源",
@@ -11,7 +10,7 @@
   "autoStartService": "自动启动服务",
   "autoStartServiceTips": "是否在App打开时自动启动服务器",
   "autoHide": "自动隐藏界面",
-  "autoHideTips": "是否在自动启动服务后, 隐藏主界面, 只保留托盘图标",
+  "autoHideTips": "是否在启动服务后, 隐藏主界面, 只保留托盘图标",
   "autoLaunch": "开机启动",
   "autoLaunchTips": "是否开机时自动启动App",
   "passwordTips": "非必填. 用于执行命令时, 自动填充密码. 例如使用 Macports 安装卸载等",
@@ -35,7 +34,6 @@
     "path": "文件路径",
     "comment": "备注",
     "exec": "运行",
-    "command": "命令",
     "commandFile": "文件",
     "isSudo": "是否以sudo启动",
     "pidPath": "pid文件路径",

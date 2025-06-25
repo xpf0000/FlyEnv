@@ -11,6 +11,7 @@ export type ProjectPHPForm = {
   framework: string
   running: boolean
   created: boolean
+  createFail?: boolean
 }
 
 export type ProjectNodeJSForm = {

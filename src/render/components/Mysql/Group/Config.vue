@@ -10,7 +10,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ I18nT('base.configFile') }}</span>
+          <span class="ml-3">{{ I18nT('base.configFile') }}</span>
         </div>
       </div>
 
@@ -39,11 +39,10 @@
   import Conf from '@/components/Conf/drawer.vue'
   import Common from '@/components/Conf/common.vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
-  import { debounce } from 'lodash'
-  import { uuid } from '@shared/utils'
-
-  const { existsSync, writeFile } = require('fs-extra')
-  const { join } = require('path')
+  import { debounce } from 'lodash-es'
+  import { uuid } from '@/util/Index'
+  import { join } from '@/util/path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const props = defineProps<{
     item: MysqlGroupItem
@@ -55,7 +54,7 @@
 
   const file = computed(() => {
     const id = props.item.id
-    return join(global.Server.MysqlDir!, `group/my-group-${id}.cnf`)
+    return join(window.Server.MysqlDir!, `group/my-group-${id}.cnf`)
   })
 
   const defaultConf = computed(() => {
@@ -65,15 +64,17 @@ bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION`
   })
 
-  if (!existsSync(file.value)) {
-    const str = `[mysqld]
+  fs.existsSync(file.value).then((e) => {
+    if (!e) {
+      const str = `[mysqld]
 # Only allow connections from localhost
 bind-address = 127.0.0.1
 sql-mode=NO_ENGINE_SUBSTITUTION`
-    writeFile(file.value, str).then(() => {
-      conf?.value?.update()
-    })
-  }
+      fs.writeFile(file.value, str).then(() => {
+        conf?.value?.update()
+      })
+    }
+  })
 
   const vm = computed(() => {
     return props?.item?.version?.version?.split('.')?.slice(0, 2)?.join('.')

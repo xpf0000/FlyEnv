@@ -1,11 +1,11 @@
 import type { AppHost } from '@shared/app'
 import { dirname, join, basename } from 'path'
-import { chmod, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
-import { hostAlias } from '../../Fn'
+import { hostAlias, chmod, copyFile, mkdirp, readFile, remove, writeFile } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import Helper from '../../Helper'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -117,12 +117,12 @@ export const makeNginxConf = async (host: AppHost) => {
   const hostalias = hostAlias(host).join(' ')
   ntmpl = ntmpl
     .replace(/#Server_Alias#/g, hostalias)
-    .replace(/#Server_Root#/g, host.root)
-    .replace(/#Rewrite_Path#/g, rewritepath)
+    .replace(/#Server_Root#/g, pathFixedToUnix(host.root))
+    .replace(/#Rewrite_Path#/g, pathFixedToUnix(rewritepath))
     .replace(/#Server_Name#/g, hostname)
-    .replace(/#Log_Path#/g, logpath)
-    .replace(/#Server_Cert#/g, host.ssl.cert)
-    .replace(/#Server_CertKey#/g, host.ssl.key)
+    .replace(/#Log_Path#/g, pathFixedToUnix(logpath))
+    .replace(/#Server_Cert#/g, pathFixedToUnix(host.ssl.cert))
+    .replace(/#Server_CertKey#/g, pathFixedToUnix(host.ssl.key))
     .replace(/#Port_Nginx#/g, `${host.port.nginx}`)
     .replace(/#Port_Nginx_SSL#/g, `${host.port.nginx_ssl}`)
 
@@ -152,16 +152,16 @@ const handlePhpEnableConf = async (v: number) => {
       const content = tmplContent.replace('##VERSION##', `${v}`)
       await writeFile(confFile, content)
     }
-  } catch (e) {}
+  } catch {}
 }
 
 export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   if (host?.phpVersion) {
     await handlePhpEnableConf(host?.phpVersion)
   }
-  const nginxvpath = join(global.Server.BaseDir!, 'vhost/nginx')
-  const rewritepath = join(global.Server.BaseDir!, 'vhost/rewrite')
-  const logpath = join(global.Server.BaseDir!, 'vhost/logs')
+  const nginxvpath = pathFixedToUnix(join(global.Server.BaseDir!, 'vhost/nginx'))
+  const rewritepath = pathFixedToUnix(join(global.Server.BaseDir!, 'vhost/rewrite'))
+  const logpath = pathFixedToUnix(join(global.Server.BaseDir!, 'vhost/logs'))
 
   await mkdirp(nginxvpath)
   await mkdirp(rewritepath)
@@ -186,33 +186,40 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     }
     const arr = [nvhost, rewritep, accesslogng, errorlogng]
     for (const f of arr) {
-      if (existsSync(f.oldFile)) {
-        let hasErr = false
-        try {
+      if (isWindows()) {
+        if (existsSync(f.oldFile)) {
           await copyFile(f.oldFile, f.newFile)
-        } catch (e) {
-          hasErr = true
-        }
-        if (hasErr) {
-          try {
-            const content = await Helper.send('tools', 'readFileByRoot', f.oldFile)
-            await writeFile(f.newFile, content)
-          } catch (e) {}
-        }
-        hasErr = false
-        try {
           await remove(f.oldFile)
-        } catch (e) {
-          hasErr = true
         }
-        if (hasErr) {
+      } else {
+        if (existsSync(f.oldFile)) {
+          let hasErr = false
           try {
-            await Helper.send('tools', 'rm', f.oldFile)
-          } catch (e) {}
+            await copyFile(f.oldFile, f.newFile)
+          } catch {
+            hasErr = true
+          }
+          if (hasErr) {
+            try {
+              const content = await Helper.send('tools', 'readFileByRoot', f.oldFile)
+              await writeFile(f.newFile, content)
+            } catch {}
+          }
+          hasErr = false
+          try {
+            await remove(f.oldFile)
+          } catch {
+            hasErr = true
+          }
+          if (hasErr) {
+            try {
+              await Helper.send('tools', 'rm', f.oldFile)
+            } catch {}
+          }
         }
-      }
-      if (existsSync(f.newFile)) {
-        await chmod(f.newFile, '0777')
+        if (existsSync(f.newFile)) {
+          await chmod(f.newFile, '0777')
+        }
       }
     }
   }
@@ -263,17 +270,19 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
+    const cert = pathFixedToUnix(host.ssl.cert)
     find.push(`ssl_certificate (.*?)\\r\\n`)
-    replace.push(`ssl_certificate "${host.ssl.cert}";\r\n`)
+    replace.push(`ssl_certificate "${cert}";\r\n`)
     find.push(`ssl_certificate (.*?)\\n`)
-    replace.push(`ssl_certificate "${host.ssl.cert}";\n`)
+    replace.push(`ssl_certificate "${cert}";\n`)
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
+    const key = pathFixedToUnix(host.ssl.key)
     find.push(`ssl_certificate_key (.*?)\\r\\n`)
-    replace.push(`ssl_certificate_key "${host.ssl.key}";\r\n`)
+    replace.push(`ssl_certificate_key "${key}";\r\n`)
     find.push(`ssl_certificate_key (.*?)\\n`)
-    replace.push(`ssl_certificate_key "${host.ssl.key}";\n`)
+    replace.push(`ssl_certificate_key "${key}";\n`)
   }
   if (host.port.nginx !== old.port.nginx) {
     hasChanged = true
@@ -289,10 +298,11 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
   }
   if (host.root !== old.root) {
     hasChanged = true
+    const root = pathFixedToUnix(host.root)
     find.push(`root (.*?)\\r\\n`)
-    replace.push(`root "${host.root}";\r\n`)
+    replace.push(`root "${root}";\r\n`)
     find.push(`root (.*?)\\n`)
-    replace.push(`root "${host.root}";\n`)
+    replace.push(`root "${root}";\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true

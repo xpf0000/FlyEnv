@@ -32,5 +32,10 @@
   "url-encode-title": "URLエンコード/デコード",
   "url-parse-title": "URLパーサー",
   "wifi-qr-code-generator-title": "WiFi QRコードジェネレーター",
-  "URLTimingAnalyzer": "URLタイミングアナライザー"
+  "URLTimingAnalyzer": "URLタイミングアナライザー",
+
+  "envValue": "Value",
+  "rawEnvPath": "Actual Path",
+  "envValueErrorTips": "The path does not exist. You can click to copy the command and test it in Command Prompt.",
+  "invalidPath": "Invalid Path"
 }

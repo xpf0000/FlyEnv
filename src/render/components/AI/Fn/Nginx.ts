@@ -1,16 +1,15 @@
 import type BaseTask from '@/components/AI/Task/BaseTask'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
-import { startService } from '@/util/Service'
 import { AIStore } from '@/components/AI/store'
-import { fetchInstalled, killPort } from './Util'
+import { killPort } from './Util'
 import { I18nT } from '@lang/index'
 
 export function startNginx(this: BaseTask) {
   return new Promise(async (resolve, reject) => {
-    await fetchInstalled(['nginx'])
     const appStore = AppStore()
     const brewStore = BrewStore()
+    await brewStore.module('nginx').fetchInstalled()
     const current = appStore.config.server?.nginx?.current
     const installed = brewStore.module('nginx').installed
     let nginx = installed?.find((i) => i.path === current?.path && i.version === current?.version)
@@ -21,7 +20,7 @@ export function startNginx(this: BaseTask) {
       reject(new Error(I18nT('ai.noAvailableVersion')))
       return
     }
-    const res = await startService('nginx', nginx)
+    const res = await brewStore.module('nginx').start()
     if (res === true) {
       const aiStore = AIStore()
       aiStore.chatList.push({

@@ -5,11 +5,10 @@
   "versionError": "The version is wrong, please select again",
   "hostsFileNoFound": "The hosts file does not exist",
   "startFail": "Failed to start, please check the log file",
-  "command": "Command",
-  "ExtensionInstallFail": "Extension installation failed",
-  "ExtensionInstallFailTips": "Install the extension and execute the command:\n{command}\nIf the installation fails, you can try to copy the command and try to install it yourself\n",
   "versionNoFound": "Failed to get software version, operation failed.",
   "postgresqlInit": "Service started successfully\nData Dir is {dir}\nInitial User is root, Password is root",
   "downFileFail": "Download file failed!",
-  "trialEnd": "The trial has expired. To continue using this feature, please obtain a license"
+  "trialEnd": "The trial has expired. To continue using this feature, please obtain a license",
+  "phpiniNoFound": "php.ini file not found",
+  "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

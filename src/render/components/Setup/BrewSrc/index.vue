@@ -74,7 +74,7 @@
     },
     methods: {
       checkBrew() {
-        return !!global.Server.BrewCellar
+        return !!window.Server.BrewCellar
       },
       changeBrewSrc() {
         const brewStore = BrewStore()

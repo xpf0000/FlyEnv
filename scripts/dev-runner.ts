@@ -1,14 +1,25 @@
 import { createServer } from 'vite'
 import { spawn, ChildProcess } from 'child_process'
 import { build } from 'esbuild'
-import _fs, { copySync } from 'fs-extra'
+import _fs from 'fs-extra'
 import _path from 'path'
-// @ts-ignore
 import _md5 from 'md5'
 
 import viteConfig from '../configs/vite.config'
-import esbuildConfig from '../configs/esbuild.config'
 import { DoFix } from './fix'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+import { createRequire } from 'node:module'
+import { ElectronKill, ElectronKillWin } from './electron-process-kill'
+import { isMacOS, isWindows } from '../src/shared/utils'
+
+const require = createRequire(import.meta.url)
+
+global.require = require
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+const { copySync } = _fs
 
 let restart = false
 let electronProcess: ChildProcess | null
@@ -22,36 +33,60 @@ async function launchViteDevServer(openInBrowser = false) {
   await server.listen()
 }
 
+let building = false
+const buildCallBack: any = []
+
 function buildMainProcess() {
   return new Promise(async (resolve, reject) => {
+    if (building) {
+      buildCallBack.push({
+        resolve,
+        reject
+      })
+      return
+    }
+    building = true
     await DoFix()
-    Promise.all([
-      build(esbuildConfig.dev),
-      build(esbuildConfig.devFork),
-      build(esbuildConfig.devHelper)
-    ])
-      .then(
-        () => {
-          try {
-            if (electronProcess && !electronProcess.killed) {
-              electronProcess.kill('SIGINT')
-              if (electronProcess.pid) {
-                process.kill(electronProcess.pid, 'SIGINT')
-              }
-              electronProcess = null
-            }
-          } catch (e) {
-            console.log('close err: ', e)
-          }
-          resolve(true)
-          console.log('buildMainProcess !!!!!!')
-        },
-        (err) => {
-          console.log(err)
-        }
-      )
+    let promise: Promise<any> | undefined
+    if (isMacOS()) {
+      console.log('isMacOS !!!')
+      const config = (await import('../configs/esbuild.config')).default
+      promise = Promise.all([
+        build(config.dev),
+        build(config.devFork),
+        build(config.devHelper),
+        ElectronKill(electronProcess)
+      ])
+    } else if (isWindows()) {
+      console.log('isWindows !!!')
+      const config = (await import('../configs/esbuild.config.win')).default
+      promise = Promise.all([build(config.dev), build(config.devFork), ElectronKillWin()])
+    }
+    if (!promise) {
+      building = false
+      buildCallBack.forEach((b: any) => {
+        b.reject(new Error('No PLATFORM provided'))
+      })
+      buildCallBack.splice(0)
+      reject(new Error('No PLATFORM provided'))
+      return
+    }
+    promise
+      .then(() => {
+        building = false
+        buildCallBack.forEach((b: any) => {
+          b.resolve(true)
+        })
+        buildCallBack.splice(0)
+        resolve(true)
+      })
       .catch((e) => {
-        console.log(e)
+        console.log('buildMainProcess error', e)
+        building = false
+        buildCallBack.forEach((b: any) => {
+          b.reject(e)
+        })
+        buildCallBack.splice(0)
         reject(e)
       })
   })
@@ -65,20 +100,33 @@ function logPrinter(data: string[]) {
     log += `  ${line}\n`
   })
 
+  if (log.includes('EGL Driver message (Error) eglQueryDeviceAttribEXT: Bad attribute.')) {
+    return
+  }
+
   if (/[0-9A-z]+/.test(log)) {
     console.log(log)
   }
 }
 
 function runElectronApp() {
-  const args = ['--inspect=5858', 'dist/electron/main.js']
-  electronProcess = spawn('electron', args)
+  const args = ['--inspect=5858', 'dist/electron/main.mjs']
+  electronProcess = spawn('electron', args, {
+    stdio: 'pipe',
+    shell: isWindows()
+  })
   electronProcess?.stderr?.on('data', (data) => {
+    // console.log('electronProcess error', data.toString())
     logPrinter(data)
   })
 
   electronProcess?.stdout?.on('data', (data) => {
     logPrinter(data)
+  })
+
+  electronProcess.on('error', (err) => {
+    console.error('electronProcess error: ')
+    console.error(err)
   })
 
   electronProcess.on('close', () => {
@@ -90,21 +138,14 @@ function runElectronApp() {
   })
 }
 
-if (process.env.TEST === 'electron') {
-  Promise.all([launchViteDevServer(), buildMainProcess()])
-    .then(() => {
-      runElectronApp()
-    })
-    .catch((err) => {
-      console.error(err)
-    })
-}
-
-if (process.env.TEST === 'browser') {
-  launchViteDevServer(true).then(() => {
-    console.log('Vite Dev Server Start !!!')
+Promise.all([launchViteDevServer(), buildMainProcess()])
+  .then(() => {
+    runElectronApp()
   })
-}
+  .catch((err) => {
+    console.log('vite or build error: ')
+    console.error(err)
+  })
 
 // Watch for changes in main files
 let preveMd5 = ''

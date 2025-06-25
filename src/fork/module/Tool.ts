@@ -1,4 +1,4 @@
-import { createReadStream, readFileSync, realpathSync, statSync } from 'fs'
+import { realpathSync, statSync } from 'fs'
 import { Base } from './Base'
 import {
   getAllFileAsync,
@@ -6,10 +6,7 @@ import {
   systemProxyGet,
   writeFileByRoot,
   readFileByRoot,
-  execPromise
-} from '../Fn'
-import { ForkPromise } from '@shared/ForkPromise'
-import {
+  execPromise,
   appendFile,
   chmod,
   copyFile,
@@ -19,8 +16,9 @@ import {
   readFile,
   remove,
   writeFile
-} from 'fs-extra'
-import { TaskQueue, TaskItem, TaskQueueProgress } from '@shared/TaskQueue'
+} from '../Fn'
+import { ForkPromise } from '@shared/ForkPromise'
+import { TaskQueue, TaskQueueProgress } from '@shared/TaskQueue'
 import { join, dirname, resolve as PathResolve, basename } from 'path'
 import { I18nT } from '@lang/index'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
@@ -29,63 +27,7 @@ import { ProcessSearch } from '@shared/Process'
 import RequestTimer from '@shared/requestTimer'
 import { spawn } from 'child_process'
 import { userInfo } from 'os'
-
-class BomCleanTask implements TaskItem {
-  path = ''
-  constructor(path: string) {
-    this.path = path
-  }
-  run(): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      const path = this.path
-      try {
-        let handled = false
-        const stream = createReadStream(path, {
-          start: 0,
-          end: 3
-        })
-        stream.on('data', (chunk) => {
-          handled = true
-          stream.close()
-          let buff: any = chunk
-          if (
-            buff &&
-            buff.length >= 3 &&
-            buff[0].toString(16).toLowerCase() === 'ef' &&
-            buff[1].toString(16).toLowerCase() === 'bb' &&
-            buff[2].toString(16).toLowerCase() === 'bf'
-          ) {
-            buff = readFileSync(path)
-            buff = buff.slice(3)
-            writeFile(path, buff, 'binary', (err) => {
-              buff = null
-              if (err) {
-                reject(err)
-              } else {
-                resolve(true)
-              }
-            })
-          } else {
-            resolve(false)
-          }
-        })
-        stream.on('error', (err) => {
-          handled = true
-          stream.close()
-          reject(err)
-        })
-        stream.on('close', () => {
-          if (!handled) {
-            handled = true
-            resolve(false)
-          }
-        })
-      } catch (err) {
-        reject(err)
-      }
-    })
-  }
-}
+import { BomCleanTask } from '../util/BomCleanTask'
 
 class Manager extends Base {
   jiebaLoad = false
@@ -178,7 +120,7 @@ class Manager extends Base {
         const res = await execPromise(`cd ${dirname(cpSh)} && ./${basename(cpSh)}`)
         const list = res?.stdout?.trim()?.split(':') ?? []
         arr.push(...list)
-      } catch (e) {}
+      } catch {}
       await remove(cpSh)
       resolve(Array.from(new Set(arr)))
     })
@@ -216,7 +158,7 @@ class Manager extends Base {
       if (!existsSync(file)) {
         try {
           await writeFile(file, '')
-        } catch (e) {}
+        } catch {}
       }
       if (!existsSync(file)) {
         reject(new Error(`No found ${file} and create file failed`))
@@ -252,7 +194,7 @@ class Manager extends Base {
       if (content !== contentBack) {
         try {
           await writeFileByRoot(file, content)
-        } catch (e) {}
+        } catch {}
       }
       resolve(true)
     })
@@ -273,12 +215,12 @@ class Manager extends Base {
       // Delete the subfolder
       try {
         await Helper.send('tools', 'rm', flagDir)
-      } catch (e) {}
+      } catch {}
       // If the PATH environment variable array does not include the installed software path, create a symlink
       if (!all.includes(binPath)) {
         try {
           await execPromise(['ln', '-s', `"${binPath}"`, `"${flagDir}"`].join(' '))
-        } catch (e) {}
+        } catch {}
       }
       // Get all subfolders under the `env` folder (e.g., 'php', 'nginx', 'mysql', etc.)
       let allFile = await readdir(envDir)
@@ -292,7 +234,7 @@ class Manager extends Base {
           try {
             const rf = realpathSync(f)
             check = existsSync(rf) && statSync(rf).isDirectory()
-          } catch (e) {
+          } catch {
             check = false
           }
           return check
@@ -333,7 +275,7 @@ class Manager extends Base {
           if (existsSync(py3) && !existsSync(py)) {
             try {
               await Helper.send('tools', 'ln_s', py3, py)
-            } catch (e) {}
+            } catch {}
           }
         }
         param.zsh = `\nexport PATH="${aliasDir}:${allFile.join(':')}:$PATH"${java_home_zsh}\n`
@@ -418,7 +360,7 @@ class Manager extends Base {
       if (!existsSync(zshrc)) {
         try {
           await writeFile(zshrc, '')
-        } catch (e) {}
+        } catch {}
       }
       if (!existsSync(zshrc)) {
         reject(new Error(`No found ${zshrc} and create file failed`))
@@ -460,7 +402,7 @@ class Manager extends Base {
       content = content.trim() + `\nexport PATH="${path}"\n`
       try {
         await writeFileByRoot(zshrc, content)
-      } catch (e) {}
+      } catch {}
       const res = await this.cleanAlias(alias)
       resolve(res)
     })
@@ -502,7 +444,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         await Helper.send('tools', 'killPorts', ports)
-      } catch (e) {}
+      } catch {}
       resolve(true)
     })
   }
@@ -511,7 +453,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         await Helper.send('tools', 'kill', sig, pids)
-      } catch (e) {}
+      } catch {}
       resolve(true)
     })
   }
@@ -521,7 +463,7 @@ class Manager extends Base {
       let content = ''
       try {
         content = (await Helper.send('tools', 'readFileByRoot', file)) as any
-      } catch (e) {}
+      } catch {}
       resolve(content)
     })
   }
@@ -530,7 +472,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve) => {
       try {
         await Helper.send('tools', 'writeFileByRoot', file, content)
-      } catch (e) {}
+      } catch {}
       resolve(true)
     })
   }
@@ -540,7 +482,7 @@ class Manager extends Base {
       let arr: any
       try {
         arr = await Helper.send('tools', 'getPortPids', port)
-      } catch (e) {}
+      } catch {}
       resolve(arr)
     })
   }
@@ -551,33 +493,8 @@ class Manager extends Base {
       try {
         const plist: any = await Helper.send('tools', 'processList')
         arr = ProcessSearch(key, false, plist)
-      } catch (e) {}
+      } catch {}
       resolve(arr)
-    })
-  }
-
-  writeFileAndChmod777ByRoot(file: string, content: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      try {
-        await Helper.send('tools', 'writeFileByRoot', file, content)
-        await Helper.send('tools', 'chmod', file, '777')
-      } catch (e) {
-        return reject(e)
-      }
-      resolve(true)
-    })
-  }
-
-  readFileAndChmod777ByRoot(file: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      let content = ''
-      try {
-        content = (await Helper.send('tools', 'readFileByRoot', file)) as any
-        await Helper.send('tools', 'chmod', file, '777')
-      } catch (e) {
-        return reject(e)
-      }
-      resolve(content)
     })
   }
 
@@ -677,7 +594,7 @@ end tell`
       if (!existsSync(file)) {
         try {
           await writeFile(file, '')
-        } catch (e) {}
+        } catch {}
       }
       if (!existsSync(file)) {
         reject(new Error(`No found ${file} and create file failed`))
@@ -697,19 +614,19 @@ end tell`
         const fileContent = await readFile(join(global.Server.Static!, 'sh/fly-env.sh'), 'utf-8')
         try {
           await Helper.send('tools', 'writeFileByRoot', shfile, fileContent)
-        } catch (e) {}
+        } catch {}
         if (existsSync(shfile)) {
           const uinfo = userInfo()
           const user = `${uinfo.uid}:${uinfo.gid}`
           try {
             await Helper.send('tools', 'chmod', shfile, '777')
             await Helper.send('redis', 'logFileFixed', shfile, user)
-          } catch (e) {}
+          } catch {}
         }
       }
 
       const regex = new RegExp(
-        `^(?!\\s*#)\\s*source\\s*"/Applications/FlyEnv\.app/Contents/Resources/helper/flyenv\.sh"`,
+        `^(?!\\s*#)\\s*source\\s*"/Applications/FlyEnv\\.app/Contents/Resources/helper/flyenv\\.sh"`,
         'gmu'
       )
       if (!content.match(regex) && existsSync(file)) {
@@ -718,7 +635,7 @@ end tell`
       if (content !== contentBack) {
         try {
           await writeFileByRoot(file, content)
-        } catch (e) {}
+        } catch {}
       }
       resolve(true)
     })

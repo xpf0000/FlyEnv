@@ -1,11 +1,11 @@
 import type { AppHost } from '@shared/app'
 import { join } from 'path'
-import { chmod, copyFile, mkdirp, readFile, remove, writeFile } from 'fs-extra'
-import { hostAlias } from '../../Fn'
+import { hostAlias, chmod, copyFile, mkdirp, readFile, remove, writeFile } from '../../Fn'
 import { vhostTmpl } from './Host'
 import { existsSync } from 'fs'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import Helper from '../../Helper'
+import { isWindows, pathFixedToUnix } from '@shared/utils'
 
 const handleReverseProxy = (host: AppHost, content: string) => {
   let x: any = content.match(/(#PWS-REVERSE-PROXY-BEGIN#)([\s\S]*?)(#PWS-REVERSE-PROXY-END#)/g)
@@ -60,19 +60,25 @@ export const makeApacheConf = async (host: AppHost) => {
 
   atmpl = atmpl
     .replace(/#Server_Alias#/g, hostalias)
-    .replace(/#Server_Root#/g, host.root)
-    .replace(/#Rewrite_Path#/g, rewritepath)
+    .replace(/#Server_Root#/g, pathFixedToUnix(host.root))
     .replace(/#Server_Name#/g, hostname)
-    .replace(/#Log_Path#/g, logpath)
-    .replace(/#Server_Cert#/g, host.ssl.cert)
-    .replace(/#Server_CertKey#/g, host.ssl.key)
+    .replace(/#Log_Path#/g, pathFixedToUnix(logpath))
+    .replace(/#Server_Cert#/g, pathFixedToUnix(host.ssl.cert))
+    .replace(/#Server_CertKey#/g, pathFixedToUnix(host.ssl.key))
     .replace(/#Port_Apache#/g, `${host.port.apache}`)
     .replace(/#Port_Apache_SSL#/g, `${host.port.apache_ssl}`)
   if (host.phpVersion) {
-    atmpl = atmpl.replace(
-      /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
-      `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
-    )
+    if (isWindows()) {
+      atmpl = atmpl.replace(
+        /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
+        `SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}/"`
+      )
+    } else {
+      atmpl = atmpl.replace(
+        /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
+        `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
+      )
+    }
   } else {
     atmpl = atmpl.replace(
       /SetHandler "proxy:fcgi:\/\/127\.0\.0\.1:9000"/g,
@@ -107,33 +113,40 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
     }
     const arr = [avhost, accesslogap, errorlogap]
     for (const f of arr) {
-      if (existsSync(f.oldFile)) {
-        let hasErr = false
-        try {
+      if (isWindows()) {
+        if (existsSync(f.oldFile)) {
           await copyFile(f.oldFile, f.newFile)
-        } catch (e) {
-          hasErr = true
-        }
-        if (hasErr) {
-          try {
-            const content = await Helper.send('tools', 'readFileByRoot', f.oldFile)
-            await writeFile(f.newFile, content)
-          } catch (e) {}
-        }
-        hasErr = false
-        try {
           await remove(f.oldFile)
-        } catch (e) {
-          hasErr = true
         }
-        if (hasErr) {
+      } else {
+        if (existsSync(f.oldFile)) {
+          let hasErr = false
           try {
-            await Helper.send('tools', 'rm', f.oldFile)
-          } catch (e) {}
+            await copyFile(f.oldFile, f.newFile)
+          } catch {
+            hasErr = true
+          }
+          if (hasErr) {
+            try {
+              const content = await Helper.send('tools', 'readFileByRoot', f.oldFile)
+              await writeFile(f.newFile, content)
+            } catch {}
+          }
+          hasErr = false
+          try {
+            await remove(f.oldFile)
+          } catch {
+            hasErr = true
+          }
+          if (hasErr) {
+            try {
+              await Helper.send('tools', 'rm', f.oldFile)
+            } catch {}
+          }
         }
-      }
-      if (existsSync(f.newFile)) {
-        await chmod(f.newFile, '0777')
+        if (existsSync(f.newFile)) {
+          await chmod(f.newFile, '0777')
+        }
       }
     }
   }
@@ -152,10 +165,10 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
     hasChanged = true
     find.push(
       ...[
-        `ServerName(.*?)SSL\.(.*?)\\r\\n`,
-        `ServerName(.*?)SSL\.(.*?)\\n`,
-        `ServerName(?!\\s+SSL\.).*?\\r\\n`,
-        `ServerName(?!\\s+SSL\.).*?\\n`,
+        `ServerName(.*?)SSL\\.(.*?)\\r\\n`,
+        `ServerName(.*?)SSL\\.(.*?)\\n`,
+        `ServerName(?!\\s+SSL\\.).*?\\r\\n`,
+        `ServerName(?!\\s+SSL\\.).*?\\n`,
         `ErrorLog(.*?)${logpath}/(.*?)\\r\\n`,
         `ErrorLog(.*?)${logpath}/(.*?)\\n`,
         `CustomLog(.*?)${logpath}/(.*?)\\r\\n`,
@@ -188,17 +201,19 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
 
   if (host.ssl.cert !== old.ssl.cert) {
     hasChanged = true
+    const cert = pathFixedToUnix(host.ssl.cert)
     find.push(`SSLCertificateFile (.*?)\\r\\n`)
-    replace.push(`SSLCertificateFile "${host.ssl.cert}"\r\n`)
+    replace.push(`SSLCertificateFile "${cert}"\r\n`)
     find.push(`SSLCertificateFile (.*?)\\n`)
-    replace.push(`SSLCertificateFile "${host.ssl.cert}"\n`)
+    replace.push(`SSLCertificateFile "${cert}"\n`)
   }
   if (host.ssl.key !== old.ssl.key) {
     hasChanged = true
+    const key = pathFixedToUnix(host.ssl.key)
     find.push(`SSLCertificateKeyFile (.*?)\\r\\n`)
-    replace.push(`SSLCertificateKeyFile "${host.ssl.key}"\r\n`)
+    replace.push(`SSLCertificateKeyFile "${key}"\r\n`)
     find.push(`SSLCertificateKeyFile (.*?)\\n`)
-    replace.push(`SSLCertificateKeyFile "${host.ssl.key}"\n`)
+    replace.push(`SSLCertificateKeyFile "${key}"\n`)
   }
 
   if (host.port.apache !== old.port.apache) {
@@ -217,28 +232,37 @@ export const updateApacheConf = async (host: AppHost, old: AppHost) => {
   }
   if (host.root !== old.root) {
     hasChanged = true
+    const root = pathFixedToUnix(host.root)
     find.push(`DocumentRoot (.*?)\\r\\n`)
-    replace.push(`DocumentRoot "${host.root}"\r\n`)
+    replace.push(`DocumentRoot "${root}"\r\n`)
     find.push(`DocumentRoot (.*?)\\n`)
-    replace.push(`DocumentRoot "${host.root}"\n`)
+    replace.push(`DocumentRoot "${root}"\n`)
     find.push(`<Directory (.*?)\\r\\n`)
-    replace.push(`<Directory "${host.root}">\r\n`)
+    replace.push(`<Directory "${root}">\r\n`)
     find.push(`<Directory (.*?)\\n`)
-    replace.push(`<Directory "${host.root}">\n`)
+    replace.push(`<Directory "${root}">\n`)
   }
   if (host.phpVersion !== old.phpVersion) {
     hasChanged = true
     if (old.phpVersion) {
-      find.push(...[`SetHandler(\\s+)"proxy:unix:(.*?)"`])
+      if (isWindows()) {
+        find.push(...[`SetHandler(\\s+)"proxy:fcgi://127\.0\.0\.1:90(.*?)"`])
+      } else {
+        find.push(...[`SetHandler(\\s+)"proxy:unix:(.*?)"`])
+      }
     } else {
       find.push(...['##Static Site Apache##'])
     }
     if (host.phpVersion) {
-      replace.push(
-        ...[
-          `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
-        ]
-      )
+      if (isWindows()) {
+        replace.push(...[`SetHandler "proxy:fcgi://127.0.0.1:90${host.phpVersion}/"`])
+      } else {
+        replace.push(
+          ...[
+            `SetHandler "proxy:unix:/tmp/phpwebstudy-php-cgi-${host.phpVersion}.sock|fcgi://localhost"`
+          ]
+        )
+      }
     } else {
       replace.push(...['##Static Site Apache##'])
     }

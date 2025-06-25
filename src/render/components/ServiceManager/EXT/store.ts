@@ -1,14 +1,17 @@
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
-import type { SoftInstalled } from '@/store/brew'
 import { I18nT } from '@lang/index'
 import { MessageError, MessageSuccess } from '@/util/Element'
-import type { AppServiceAliasItem } from '@shared/app'
+import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { AppStore } from '@/store/app'
-import { isEqual } from 'lodash'
-
-const { dirname, join } = require('path')
+import { isEqual } from 'lodash-es'
+import { dirname, join } from '@/util/path-browserify'
+import type { AllAppModule } from '@/core/type'
+import Base from '@/core/Base'
+import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
+import { BrewStore } from '@/store/brew'
+import { staticVersionDel } from '@/util/Version'
 
 let time = 0
 export const ServiceActionStore: {
@@ -28,6 +31,7 @@ export const ServiceActionStore: {
   updatePath: (item: SoftInstalled, typeFlag: string) => Promise<boolean>
   isInEnv: (item: SoftInstalled) => boolean
   isInAppEnv: (item: SoftInstalled) => boolean
+  delVersion: (item: SoftInstalled, typeFlag: string) => void
 } = reactive({
   versionDeling: {},
   pathSeting: {},
@@ -152,5 +156,65 @@ export const ServiceActionStore: {
         }
       )
     })
+  },
+  delVersion(item: ModuleInstalledItem, type: AllAppModule) {
+    if (ServiceActionStore.versionDeling?.[item.bin]) {
+      return
+    }
+    ServiceActionStore.versionDeling[item.bin] = true
+    const store = AppStore()
+    const brewStore = BrewStore()
+    const module = brewStore.module(type)
+    if (item.isLocal7Z) {
+      Base._Confirm(I18nT('service.bundleinVersionDelTips'), undefined, {
+        customClass: 'confirm-del',
+        type: 'warning'
+      })
+        .then(async () => {
+          if (item.run) {
+            item.stop().catch()
+          }
+          const setup = JSON.parse(JSON.stringify(store.config.setup))
+          if (!setup.excludeLocalVersion) {
+            setup.excludeLocalVersion = []
+          }
+          const arr: Set<string> = new Set(setup.excludeLocalVersion)
+          arr.add(`${type}-${item.version}`)
+          setup.excludeLocalVersion = [...arr]
+          store.config.setup = reactive(setup)
+          await store.saveConfig()
+          module.installedFetched = false
+          module.fetchInstalled().catch()
+        })
+        .catch()
+        .finally(() => {
+          delete ServiceActionStore.versionDeling[item.bin]
+        })
+    } else if (store.config.setup?.[type]?.dirs?.some((d) => item.bin.includes(d))) {
+      Base._Confirm(I18nT('service.customDirVersionDelTips'), undefined, {
+        customClass: 'confirm-del',
+        type: 'warning'
+      })
+        .then(async () => {
+          if (item.run) {
+            item.stop().catch()
+          }
+          const setup = JSON.parse(JSON.stringify(store.config.setup))
+          const index = setup?.[type]?.dirs?.findIndex((d: string) => item.bin.includes(d))
+          if (index >= 0) {
+            setup?.[type]?.dirs?.splice(index, 1)
+          }
+          store.config.setup = reactive(setup)
+          await store.saveConfig()
+          module.installedFetched = false
+          module.fetchInstalled().catch()
+        })
+        .catch()
+        .finally(() => {
+          delete ServiceActionStore.versionDeling[item.bin]
+        })
+    } else {
+      staticVersionDel(item.path)
+    }
   }
 })

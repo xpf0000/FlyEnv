@@ -10,7 +10,7 @@
       <div class="nav">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ title }}</span>
+          <span class="ml-3">{{ title }}</span>
         </div>
       </div>
       <div class="main-wapper">
@@ -28,8 +28,7 @@
   import type { MysqlGroupItem } from '@shared/app'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
-
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -50,9 +49,9 @@
   const filepath = computed(() => {
     const id = props.item.id
     if (props.flag === 'log') {
-      return join(global.Server.MysqlDir!, `group/my-group-${id}-error.log`)
+      return join(window.Server.MysqlDir!, `group/my-group-${id}-error.log`)
     }
-    return join(global.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
+    return join(window.Server.MysqlDir!, `group/my-group-${id}-slow.log`)
   })
 
   const close = () => {

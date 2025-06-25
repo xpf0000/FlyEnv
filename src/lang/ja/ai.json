@@ -65,5 +65,8 @@
   "enterTips": "[Enter]送信、[Shift+Enter]改行、[Ctrl+Enter]生成せずに送信",
   "noLiencesTips": "現在ライセンスがないため、3日間試用できます",
   "alert": "警告",
-  "customer": "マイコパイロット"
+  "customer": "マイコパイロット",
+
+  "siteDirectoryError": "Site Directory Error",
+  "domainError": "Domain Error"
 }

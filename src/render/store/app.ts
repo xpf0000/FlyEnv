@@ -7,9 +7,7 @@ import { MessageError } from '@/util/Element'
 import type { AllAppModule } from '@/core/type'
 import { HostStore } from '@/components/Host/store'
 import type { AppServiceAliasItem } from '@shared/app'
-const { shell } = require('@electron/remote')
-const { getGlobal } = require('@electron/remote')
-const application = getGlobal('application')
+import { shell, app } from '@/util/NodeFn'
 
 export interface AppHost {
   id: number
@@ -177,7 +175,9 @@ export const AppStore = defineStore('app', {
     }
   },
   actions: {
-    serverCurrent(flag: AllAppModule) {
+    serverCurrent(flag: AllAppModule): {
+      current: AppServerCurrent
+    } {
       if (!this.config.server?.[flag]) {
         this.config.server[flag] = reactive({
           current: {}
@@ -259,8 +259,9 @@ export const AppStore = defineStore('app', {
       })
     },
     initConfig() {
-      return new Promise((resolve) => {
-        const config = application.configManager.getConfig()
+      return new Promise(async (resolve) => {
+        const config = await app.getConfig()
+        console.log('initConfig config: ', config)
         if (!config.password) {
           config.password = ''
         }

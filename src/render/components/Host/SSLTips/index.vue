@@ -24,18 +24,17 @@
 <script lang="ts" setup>
   import { I18nT } from '@lang/index'
   import { MessageSuccess } from '@/util/Element'
-
-  const { shell, clipboard } = require('@electron/remote')
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
+  import { shell, clipboard } from '@/util/NodeFn'
 
   const copyCommand = () => {
-    const CARoot = join(global.Server.BaseDir!, 'CA')
+    const CARoot = join(window.Server.BaseDir!, 'CA')
     const command = `cd "${CARoot}" && sudo -S security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" "PhpWebStudy-Root-CA.crt"`
     clipboard.writeText(command)
     MessageSuccess(I18nT('base.copySuccess'))
   }
   const showFile = () => {
-    const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+    const CARoot = join(window.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
     shell.showItemInFolder(CARoot)
   }
 </script>

@@ -10,19 +10,19 @@
     <template #default>
       <div class="main-wapper">
         <div class="main">
-          <div class="path-choose mt-20 mb-10">
+          <div class="path-choose mt-5 mb-10">
             <el-select
               v-model="form.path"
-              class="w-p100"
+              class="w-full"
               :class="{ error: errs?.path }"
               placeholder="MySQL Version"
             >
-              <template v-for="(item, index) in mysqlVersion" :key="index">
+              <template v-for="(item, _index) in mysqlVersion" :key="_index">
                 <el-option :label="`${item.version}-${item.bin}`" :value="item.path"></el-option>
               </template>
             </el-select>
           </div>
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               v-model.trim="form.port"
               type="text"
@@ -31,13 +31,13 @@
               placeholder="TCP Port"
             />
           </div>
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               type="text"
               class="input"
               :class="{ error: errs?.dataDir }"
               placeholder="MySQL Data Directory"
-              readonly=""
+              readonly="true"
               :value="form.dataDir"
             />
             <div class="icon-block" @click="chooseRoot()">
@@ -66,14 +66,14 @@
   import { computed, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { I18nT } from '@lang/index'
-  import { uuid } from '@shared/utils'
+  import { uuid } from '@/util/Index'
   import { BrewStore } from '@/store/brew'
   import { MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
   import { MysqlStore } from '../mysql'
+  import { join } from '@/util/path-browserify'
+  import { dialog } from '@/util/NodeFn'
 
-  const { join } = require('path')
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -93,7 +93,7 @@
   Object.assign(form.value, props.item)
   form.value.path = props?.item?.version?.path ?? ''
   if (!form.value.dataDir) {
-    form.value.dataDir = join(global.Server.MysqlDir, `group/mysql-group-${form.value.id}`)
+    form.value.dataDir = join(window.Server.MysqlDir!, `group/mysql-group-${form.value.id}`)
   }
 
   const errs = ref({

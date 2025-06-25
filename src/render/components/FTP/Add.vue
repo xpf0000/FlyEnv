@@ -10,21 +10,21 @@
     <template #default>
       <div class="main-wapper">
         <div class="main">
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               v-model.trim="form.user"
               type="text"
               class="input"
-              :readonly="item?.user || running || null"
+              :readonly="!!item?.user || running || undefined"
               :class="{ error: errs?.user }"
               placeholder="Username"
             />
           </div>
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               v-model.trim="form.pass"
               type="text"
-              :readonly="running || null"
+              :readonly="running || undefined"
               class="input"
               :class="{ error: errs?.pass }"
               placeholder="Password"
@@ -38,7 +38,7 @@
               />
             </div>
           </div>
-          <div class="path-choose mt-20 mb-20">
+          <div class="path-choose my-5">
             <input
               type="text"
               class="input"
@@ -76,13 +76,12 @@
   import { I18nT } from '@lang/index'
   import type { FtpItem } from './ftp'
   import { FtpStore } from './ftp'
-  import { uuid } from '@shared/utils'
+  import { uuid } from '@/util/Index'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { MessageError, MessageSuccess } from '@/util/Element'
+  import { dialog, fs } from '@/util/NodeFn'
 
-  const { existsSync } = require('fs')
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
   const props = defineProps<{
@@ -196,11 +195,12 @@
       })
   }
 
-  const doSave = () => {
+  const doSave = async () => {
     if (!checkItem() || running?.value) {
       return
     }
-    if (form.value.dir && !existsSync(form.value.dir)) {
+    const exists = fs.existsSync(form.value.dir)
+    if (form.value.dir && !exists) {
       MessageError(I18nT('base.ftpDirNotExists'))
       errs.value.dir = true
       return

@@ -12,7 +12,7 @@
         <div class="nav">
           <div class="left" @click="show = false">
             <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-            <span class="ml-15">{{ $t('base.settings') }}</span>
+            <span class="ml-3">{{ $t('base.settings') }}</span>
           </div>
           <el-button type="primary" class="shrink0" @click="doSubmit">{{
             $t('base.confirm')
@@ -22,12 +22,12 @@
           <div class="main">
             <el-form label-position="top" class="site-sucker-setup" @submit.prevent>
               <el-form-item :label="$t('util.savePath')">
-                <div class="path-choose w-p100">
+                <div class="path-choose w-full">
                   <input
                     type="text"
                     class="input"
                     :placeholder="$t('util.saveAs')"
-                    readonly=""
+                    readonly="true"
                     :value="form.dir"
                   />
                   <div class="icon-block" @click="chooseRoot()">
@@ -41,7 +41,7 @@
                 </div>
               </el-form-item>
               <el-form-item :label="$t('tools.windowCount')">
-                <div class="path-choose w-p100">
+                <div class="path-choose w-full">
                   <el-slider
                     v-model.number="form.windowCount"
                     :min="1"
@@ -51,7 +51,7 @@
                 </div>
               </el-form-item>
               <el-form-item :label="$t('util.proxy')">
-                <div class="path-choose w-p100">
+                <div class="path-choose w-full">
                   <input
                     v-model.trim="form.proxy"
                     type="text"
@@ -61,7 +61,7 @@
                 </div>
               </el-form-item>
               <el-form-item :label="$t('util.timeout')">
-                <div class="path-choose w-p100">
+                <div class="path-choose w-full">
                   <input
                     v-model.number="form.timeout"
                     type="number"
@@ -71,7 +71,7 @@
                 </div>
               </el-form-item>
               <el-form-item :label="$t('util.maxImgSize')">
-                <div class="path-choose w-p100">
+                <div class="path-choose w-full">
                   <input
                     v-model.number="form.maxImgSize"
                     type="number"
@@ -82,7 +82,7 @@
                 </div>
               </el-form-item>
               <el-form-item :label="$t('util.maxVideoSize')">
-                <div class="path-choose w-p100">
+                <div class="path-choose w-full">
                   <input
                     v-model.number="form.maxVideoSize"
                     type="number"
@@ -93,7 +93,7 @@
                 </div>
               </el-form-item>
               <el-form-item :label="$t('util.pageLimit')">
-                <div class="path-choose w-p100">
+                <div class="path-choose w-full">
                   <input
                     v-model.trim="form.pageLimit"
                     type="text"
@@ -106,7 +106,7 @@
                 <textarea
                   v-model.trim="form.excludeLink"
                   type="text"
-                  class="input-textarea w-p100"
+                  class="input-textarea w-full"
                   :placeholder="$t('util.LinkExclusionTips')"
                 ></textarea>
               </el-form-item>
@@ -121,11 +121,10 @@
   import { ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { SiteSuckerStore } from '@/components/Tools/SiteSucker/store'
+  import { dialog } from '@/util/NodeFn'
 
-  const { dialog } = require('@electron/remote')
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
-  const os = require('os')
-  const CPU_Count = os.cpus().length
+  const CPU_Count = 8
 
   const form = ref({
     dir: '',

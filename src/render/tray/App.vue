@@ -46,7 +46,7 @@
       <li @click="doExit"> {{ I18nT('tray.exit') }} </li>
     </ul>
   </div>
-  <span class="popper-arrow" :style="{ left: left }"></span>
+  <span class="popper-arrow" :style="{ left: left } as any"></span>
 </template>
 
 <script lang="ts" setup>
@@ -330,6 +330,7 @@
       }
       > .bottom-tool {
         border-top: 1px solid var(--base-bg-color-1);
+        color: #345;
       }
     }
   }

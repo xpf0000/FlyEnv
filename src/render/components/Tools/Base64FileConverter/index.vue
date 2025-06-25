@@ -2,13 +2,10 @@
   import { watch, ref, Ref } from 'vue'
   import { useBase64 } from '@vueuse/core'
   import { I18nT } from '@lang/index'
-  import { isValidBase64 } from '@shared/base64'
+  import { isValidBase64 } from '@/util/Base64'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { fileSelect } from '@/util/Index'
-
-  const { dialog, shell } = require('@electron/remote')
-  const { writeFile } = require('fs')
-  const { clipboard } = require('@electron/remote')
+  import { dialog, shell, clipboard, fs } from '@/util/NodeFn'
 
   const textError = ref(false)
   const base64Text = ref('')
@@ -29,8 +26,7 @@
           return
         }
         const base64 = base64Text.value.replace(/^data:(.*?)\/\w+;base64,/, '')
-        const dataBuffer = new Buffer(base64, 'base64')
-        writeFile(filePath, dataBuffer, function (err: Error | null) {
+        fs.writeBufferBase64(filePath, base64, function (err: Error | null) {
           if (err) {
             MessageError(err.message)
             return
@@ -46,7 +42,10 @@
   const choosePath = () => {
     fileSelect().then((files: FileList) => {
       console.log('choosePath files: ', files)
-      files.length > 0 && (file.value = files[0])
+      if (!files.length) {
+        return
+      }
+      file.value = files[0]
       useBase64(file.value)
         .execute()
         .then((res) => {
@@ -64,7 +63,10 @@
     e.preventDefault()
     e.stopPropagation()
     let files = e?.dataTransfer?.files ?? []
-    files.length > 0 && (file.value = files[0])
+    if (!files.length) {
+      return
+    }
+    file.value = files[0]
     useBase64(file.value)
       .execute()
       .then((res) => {

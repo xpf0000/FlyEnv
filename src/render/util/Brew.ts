@@ -1,13 +1,11 @@
 import IPC from './IPC'
 import { ElMessageBox } from 'element-plus'
 import { AppStore } from '@/store/app'
-import { BrewStore, type OnlineVersionItem } from '@/store/brew'
+import { type OnlineVersionItem } from '@/store/brew'
 import { I18nT } from '@lang/index'
 import { MessageError } from '@/util/Element'
 import type { AllAppModule } from '@/core/type'
-import { reactive } from 'vue'
-
-const { existsSync } = require('fs')
+import { fs } from '@/util/NodeFn'
 
 let passPromptShow = false
 export const showPassPrompt = () => {
@@ -29,11 +27,11 @@ export const showPassPrompt = () => {
             IPC.send('app:password-check', pass).then((key: string, res: any) => {
               IPC.off(key)
               if (res?.code === 0) {
-                global.Server.Password = res?.data ?? pass
+                window.Server.Password = res?.data ?? pass
                 AppStore()
                   .initConfig()
                   .then(() => {
-                    done && done()
+                    done()
                     passPromptShow = false
                     resolve(true)
                   })
@@ -67,7 +65,7 @@ export const passwordCheck = () => {
   })
 }
 
-export function brewInfo(key: string): Promise<{ [key: string]: OnlineVersionItem }> {
+export function brewInfo(key: string): Promise<OnlineVersionItem[]> {
   return new Promise((resolve, reject) => {
     IPC.send(`app-fork:${key}`, 'brewinfo', key).then((key: string, res: any) => {
       if (res.code === 0) {
@@ -81,7 +79,7 @@ export function brewInfo(key: string): Promise<{ [key: string]: OnlineVersionIte
   })
 }
 
-export function portInfo(flag: string): Promise<{ [key: string]: OnlineVersionItem }> {
+export function portInfo(flag: string): Promise<OnlineVersionItem[]> {
   return new Promise((resolve, reject) => {
     IPC.send(`app-fork:${flag}`, 'portinfo', flag).then((key: string, res: any) => {
       if (res.code === 0) {
@@ -95,23 +93,22 @@ export function portInfo(flag: string): Promise<{ [key: string]: OnlineVersionIt
   })
 }
 
-export const fetchVerion = (
-  typeFlag: AllAppModule
-): Promise<{ [key: string]: OnlineVersionItem }> => {
-  return new Promise((resolve) => {
+export const fetchVerion = (typeFlag: AllAppModule): Promise<OnlineVersionItem[]> => {
+  return new Promise(async (resolve) => {
     let saved: any = localStorage.getItem(`fetchVerion-${typeFlag}`)
     if (saved) {
       saved = JSON.parse(saved)
       const time = Math.round(new Date().getTime() / 1000)
       if (time < saved.expire) {
-        const list: { [key: string]: OnlineVersionItem } = { ...saved.data }
-        for (const k in list) {
-          const item = list[k]
-          item.downloaded = existsSync(item.zip)
-          item.installed = existsSync(item.bin)
+        const list: OnlineVersionItem[] = saved.data
+        if (Array.isArray(list)) {
+          for (const item of list) {
+            item.downloaded = await fs.existsSync(item.zip)
+            item.installed = await fs.existsSync(item.bin)
+          }
+          resolve(list)
+          return
         }
-        resolve(list)
-        return
       }
     }
     IPC.send(`app-fork:${typeFlag}`, 'fetchAllOnLineVersion').then((key: string, res: any) => {
@@ -130,42 +127,8 @@ export const fetchVerion = (
         resolve(list)
       } else if (res.code === 1) {
         MessageError(res.msg)
-        resolve({})
+        resolve([])
       }
     })
-  })
-}
-
-export const fetchAllVersion = (typeFlag: AllAppModule) => {
-  const brewStore = BrewStore()
-  const module = brewStore.module(typeFlag)
-  if (module.getListing) {
-    return
-  }
-  module.getListing = true
-  const all = [fetchVerion(typeFlag), brewInfo(typeFlag), portInfo(typeFlag)]
-  Promise.all(all).then(([online, brew, port]: any) => {
-    let list = module.list.static!
-    for (const k in list) {
-      delete list?.[k]
-    }
-    for (const name in online) {
-      list[name] = reactive(online[name])
-    }
-    list = module.list.brew
-    for (const k in list) {
-      delete list?.[k]
-    }
-    for (const name in brew) {
-      list[name] = reactive(brew[name])
-    }
-    list = module.list.port
-    for (const k in list) {
-      delete list?.[k]
-    }
-    for (const name in port) {
-      list[name] = reactive(port[name])
-    }
-    module.getListing = false
   })
 }

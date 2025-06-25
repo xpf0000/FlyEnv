@@ -44,11 +44,13 @@
   import IPC from '@/util/IPC'
   import { MessageError } from '@/util/Element'
   import { I18nT } from '@lang/index'
+  import { AppStore } from '@/store/app'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
   const phpMyAdminStore = PhpMyAdminTask
 
+  const appStore = AppStore()
   const brewStore = BrewStore()
 
   const phpVersions = computed(() => {
@@ -78,19 +80,23 @@
         return anum - bnum
       })
       ?.pop()?.num
-    IPC.send('app-fork:host', 'addPhpMyAdminSite', php).then((key: string, res: any) => {
-      if (res?.code === 200) {
-        PhpMyAdminTask.percent = res.msg
-      } else if (res?.code === 0) {
-        PhpMyAdminTask.percent = 100
-        state.value = 'success'
-        IPC.off(key)
-      } else if (res?.code === 1) {
-        state.value = 'error'
-        IPC.off(key)
-        MessageError(res?.msg)
+    const write = appStore.config.setup?.hosts?.write ?? true
+    const ipv6 = appStore.config.setup?.hosts?.ipv6 ?? true
+    IPC.send('app-fork:host', 'addPhpMyAdminSite', php, write, ipv6).then(
+      (key: string, res: any) => {
+        if (res?.code === 200) {
+          PhpMyAdminTask.percent = res.msg
+        } else if (res?.code === 0) {
+          PhpMyAdminTask.percent = 100
+          state.value = 'success'
+          IPC.off(key)
+        } else if (res?.code === 1) {
+          state.value = 'error'
+          IPC.off(key)
+          MessageError(res?.msg)
+        }
       }
-    })
+    )
   }
 
   const doSubmit = () => {

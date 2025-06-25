@@ -54,5 +54,7 @@
   "toolSaveConfirm": "Sei sicuro di voler salvare?",
   "auto": "Auto",
   "noVerionsFoundInLib": "Nessuna versione disponibile",
-  "showToolBtn": "Mostra pulsante strumenti flottante"
+  "showToolBtn": "Mostra pulsante strumenti flottante",
+
+  "inputSearchKey": "Search keyword"
 }

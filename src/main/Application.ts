@@ -6,28 +6,28 @@ import ConfigManager from './core/ConfigManager'
 import WindowManager from './ui/WindowManager'
 import MenuManager from './ui/MenuManager'
 import UpdateManager from './core/UpdateManager'
-import { join, resolve } from 'path'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import TrayManager from './ui/TrayManager'
-import { getLanguage } from './utils'
+import { getLanguage, isAppleSilicon, mkdirp, readFile, writeFile } from './utils'
 import { AppI18n, I18nT, AppAllLang } from '@lang/index'
-import DnsServerManager from './core/DNS'
 import type { PtyItem } from './type'
 import SiteSuckerManager from './ui/SiteSucker'
 import { ForkManager } from './core/ForkManager'
-import { execPromiseRoot, spawnAsync } from './core/Exec'
-import { arch } from 'os'
-import { PItem, ProcessListByPid } from '@shared/Process'
+import { execPromiseSudo, spawnPromiseWithEnv } from '@shared/child-process'
+import { arch } from 'node:os'
 import NodePTY from './core/NodePTY'
 import HttpServer from './core/HttpServer'
 import AppHelper from './core/AppHelper'
-import Helper from '../fork/Helper'
 import ScreenManager from './core/ScreenManager'
 import AppLog from './core/AppLog'
+import compressing from 'compressing'
+import { fileURLToPath } from 'node:url'
+import { dirname, join, resolve } from 'node:path'
+import AppNodeFnManager, { type AppNodeFn } from './core/AppNodeFn'
+import { HostsFileMacOS, HostsFileWindows, isLinux, isMacOS, isWindows } from '@shared/utils'
+import ServiceProcessManager from './core/ServiceProcess'
 
-const { createFolder, readFileAsync, writeFileAsync } = require('../shared/file')
-const { isAppleSilicon } = require('../shared/utils')
-const compressing = require('compressing')
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default class Application extends EventEmitter {
   isReady: boolean
@@ -39,21 +39,24 @@ export default class Application extends EventEmitter {
   trayWindow?: BrowserWindow
   updateManager?: UpdateManager
   forkManager?: ForkManager
-  hostServicePID: Set<string> = new Set()
   helpCheckSuccessNoticed: boolean = false
   pty: Partial<Record<string, PtyItem>> = {}
   customerLang: Record<string, any> = {}
 
   constructor() {
     super()
+    AppNodeFnManager.customerLang = this.customerLang
+    AppNodeFnManager.nativeTheme_watch()
     global.Server = {
       Local: `${app.getLocale()}.UTF-8`
-    }
+    } as any
     this.isReady = false
     this.configManager = new ConfigManager()
+    AppNodeFnManager.configManager = this.configManager
     this.initLang()
     this.menuManager = new MenuManager()
     this.menuManager.setup()
+    this.initServerDir()
     this.windowManager = new WindowManager({
       configManager: this.configManager
     })
@@ -62,7 +65,6 @@ export default class Application extends EventEmitter {
     this.trayManager = new TrayManager()
     this.initTrayManager()
     this.initUpdaterManager()
-    this.initServerDir()
     this.handleCommands()
     this.handleIpcMessages()
     this.initForkManager()
@@ -83,9 +85,6 @@ export default class Application extends EventEmitter {
         link
       )
     })
-    DnsServerManager.onLog((msg: any) => {
-      this.windowManager.sendCommandTo(this.mainWindow!, 'App_DNS_Log', 'App_DNS_Log', msg)
-    })
     if (!is.dev()) {
       this.handleCommand('app-fork:app', 'App-Start', 'start', app.getVersion())
     }
@@ -105,16 +104,17 @@ export default class Application extends EventEmitter {
   }
 
   initForkManager() {
-    this.forkManager = new ForkManager(resolve(__dirname, './fork.js'))
+    this.forkManager = new ForkManager(resolve(__dirname, './fork.mjs'))
     this.forkManager.on(({ key, info }: { key: string; info: any }) => {
       this.windowManager.sendCommandTo(this.mainWindow!, key, key, info)
     })
+    ServiceProcessManager.forkManager = this.forkManager
   }
 
   initTrayManager() {
-    this.trayManager.on('click', (x, poperX) => {
+    this.trayManager.on('click', (x, y, poperX) => {
       if (!this?.trayWindow?.isVisible() || this?.trayWindow?.isFullScreen()) {
-        this?.trayWindow?.setPosition(Math.round(x), 0)
+        this?.trayWindow?.setPosition(Math.round(x), Math.round(y))
         this?.trayWindow?.setOpacity(1.0)
         this?.trayWindow?.show()
         this.windowManager.sendCommandTo(
@@ -128,101 +128,115 @@ export default class Application extends EventEmitter {
         this?.trayWindow?.hide()
       }
     })
+
+    this.trayManager.on('double-click', () => {
+      this.show('index')
+    })
   }
 
   checkBrewOrPort() {
-    const handleBrewCheck = (error?: Error) => {
-      const brewBin = isAppleSilicon() ? '/opt/homebrew/bin/brew' : '/usr/local/Homebrew/bin/brew'
-      if (existsSync(brewBin)) {
-        global.Server.BrewBin = brewBin
-      }
-      if (error) {
-        global.Server.BrewError = error.toString()
-      }
-      this.windowManager.sendCommandTo(
-        this.mainWindow!,
-        'APP-Update-Global-Server',
-        'APP-Update-Global-Server',
-        JSON.parse(JSON.stringify(global.Server))
-      )
-    }
-    spawnAsync('which', ['brew'])
-      .then((res) => {
-        console.log('which brew: ', res)
-        spawnAsync('brew', ['--repo'])
-          .then((res) => {
-            console.log('brew --repo: ', res)
-            const dir = res.stdout
-            global.Server.BrewHome = dir
-            handleBrewCheck()
-            spawnAsync('git', [
-              'config',
-              '--global',
-              '--add',
-              'safe.directory',
-              join(dir, 'Library/Taps/homebrew/homebrew-core')
-            ])
-              .then(() => {
-                return spawnAsync('git', [
-                  'config',
-                  '--global',
-                  '--add',
-                  'safe.directory',
-                  join(dir, 'Library/Taps/homebrew/homebrew-cask')
-                ])
-              })
-              .then()
-              .catch()
-          })
-          .catch((e: Error) => {
-            handleBrewCheck(e)
-            AppLog.debug(`[checkBrewOrPort][brew --repo][error]: ${e.toString()}`)
-            console.log('brew --repo err: ', e)
-          })
-        spawnAsync('brew', ['--cellar'])
-          .then((res) => {
-            const dir = res.stdout
-            console.log('brew --cellar: ', res)
-            global.Server.BrewCellar = dir
-            handleBrewCheck()
-          })
-          .catch((e: Error) => {
-            handleBrewCheck(e)
-            AppLog.debug(`[checkBrewOrPort][brew --cellar][error]: ${e.toString()}`)
-            console.log('brew --cellar err: ', e)
-          })
-      })
-      .catch((e: Error) => {
-        handleBrewCheck(e)
-        AppLog.debug(`[checkBrewOrPort][which brew][error]: ${e.toString()}`)
-        console.log('which brew e: ', e)
-      })
-
-    spawnAsync('which', ['port'])
-      .then((res) => {
-        global.Server.MacPorts = res.stdout
+    if (isMacOS()) {
+      const handleBrewCheck = (error?: Error) => {
+        const brewBin = isAppleSilicon() ? '/opt/homebrew/bin/brew' : '/usr/local/Homebrew/bin/brew'
+        if (existsSync(brewBin)) {
+          global.Server.BrewBin = brewBin
+        }
+        if (error) {
+          global.Server.BrewError = error.toString()
+        }
         this.windowManager.sendCommandTo(
           this.mainWindow!,
           'APP-Update-Global-Server',
           'APP-Update-Global-Server',
           JSON.parse(JSON.stringify(global.Server))
         )
-      })
-      .catch((e: Error) => {
-        console.log('which port e: ', e)
-      })
+      }
+      spawnPromiseWithEnv('which', ['brew'])
+        .then((res) => {
+          console.log('which brew: ', res)
+          spawnPromiseWithEnv('brew', ['--repo'])
+            .then((res) => {
+              console.log('brew --repo: ', res)
+              const dir = res.stdout
+              global.Server.BrewHome = dir
+              handleBrewCheck()
+              spawnPromiseWithEnv('git', [
+                'config',
+                '--global',
+                '--add',
+                'safe.directory',
+                join(dir, 'Library/Taps/homebrew/homebrew-core')
+              ])
+                .then(() => {
+                  return spawnPromiseWithEnv('git', [
+                    'config',
+                    '--global',
+                    '--add',
+                    'safe.directory',
+                    join(dir, 'Library/Taps/homebrew/homebrew-cask')
+                  ])
+                })
+                .then()
+                .catch()
+            })
+            .catch((e: Error) => {
+              handleBrewCheck(e)
+              AppLog.debug(`[checkBrewOrPort][brew --repo][error]: ${e.toString()}`)
+              console.log('brew --repo err: ', e)
+            })
+          spawnPromiseWithEnv('brew', ['--cellar'])
+            .then((res) => {
+              const dir = res.stdout
+              console.log('brew --cellar: ', res)
+              global.Server.BrewCellar = dir
+              handleBrewCheck()
+            })
+            .catch((e: Error) => {
+              handleBrewCheck(e)
+              AppLog.debug(`[checkBrewOrPort][brew --cellar][error]: ${e.toString()}`)
+              console.log('brew --cellar err: ', e)
+            })
+        })
+        .catch((e: Error) => {
+          handleBrewCheck(e)
+          AppLog.debug(`[checkBrewOrPort][which brew][error]: ${e.toString()}`)
+          console.log('which brew e: ', e)
+        })
+
+      spawnPromiseWithEnv('which', ['port'])
+        .then((res) => {
+          global.Server.MacPorts = res.stdout
+          this.windowManager.sendCommandTo(
+            this.mainWindow!,
+            'APP-Update-Global-Server',
+            'APP-Update-Global-Server',
+            JSON.parse(JSON.stringify(global.Server))
+          )
+        })
+        .catch((e: Error) => {
+          console.log('which port e: ', e)
+        })
+    }
   }
 
   initServerDir() {
     console.log('userData: ', app.getPath('userData'))
-    const runpath = app.getPath('userData').replace('Application Support/', '')
+    let runpath = ''
+    if (isMacOS()) {
+      runpath = app.getPath('userData').replace('Application Support/', '')
+    } else if (isWindows()) {
+      runpath = resolve(app.getPath('exe'), '../../PhpWebStudy-Data').split('\\').join('/')
+      if (is.dev()) {
+        runpath = resolve(__static, '../../../data')
+      }
+    }
     this.setProxy()
     global.Server.UserHome = app.getPath('home')
     global.Server.isAppleSilicon = isAppleSilicon()
     global.Server.BaseDir = join(runpath, 'server')
     global.Server.AppDir = join(runpath, 'app')
-    createFolder(global.Server.BaseDir)
-    createFolder(global.Server.AppDir)
+    mkdirp(global.Server.BaseDir).then().catch()
+    mkdirp(global.Server.AppDir).then().catch()
     global.Server.NginxDir = join(runpath, 'server/nginx')
     global.Server.PhpDir = join(runpath, 'server/php')
     global.Server.MysqlDir = join(runpath, 'server/mysql')
@@ -233,42 +247,47 @@ export default class Application extends EventEmitter {
     global.Server.MongoDBDir = join(runpath, 'server/mongodb')
     global.Server.FTPDir = join(runpath, 'server/ftp')
     global.Server.PostgreSqlDir = join(runpath, 'server/postgresql')
-    createFolder(global.Server.NginxDir)
-    createFolder(global.Server.PhpDir)
-    createFolder(global.Server.MysqlDir)
-    createFolder(global.Server.MariaDBDir)
-    createFolder(global.Server.ApacheDir)
-    createFolder(global.Server.MemcachedDir)
-    createFolder(global.Server.RedisDir)
-    createFolder(global.Server.MongoDBDir)
+    mkdirp(global.Server.NginxDir).then().catch()
+    mkdirp(global.Server.PhpDir).then().catch()
+    mkdirp(global.Server.MysqlDir).then().catch()
+    mkdirp(global.Server.MariaDBDir).then().catch()
+    mkdirp(global.Server.ApacheDir).then().catch()
+    mkdirp(global.Server.MemcachedDir).then().catch()
+    mkdirp(global.Server.RedisDir).then().catch()
+    mkdirp(global.Server.MongoDBDir).then().catch()
     global.Server.Cache = join(runpath, 'server/cache')
-    createFolder(global.Server.Cache)
+    mkdirp(global.Server.Cache).then().catch()
     global.Server.Static = __static
+    global.Server.Arch = arch() === 'arm64' ? 'arm64' : 'x86_64'
     global.Server.Password = this.configManager.getConfig('password')
+    global.Server.isMacOS = isMacOS()
+    global.Server.isLinux = isLinux()
+    global.Server.isWindows = isWindows()
     console.log('global.Server.Password: ', global.Server.Password)
 
-    const httpdcong = join(global.Server.ApacheDir, 'common/conf/')
-    createFolder(httpdcong)
+    if (isMacOS()) {
+      const httpdcong = join(global.Server.ApacheDir, 'common/conf/')
+      mkdirp(httpdcong).then().catch()
 
-    const ngconf = join(global.Server.NginxDir, 'common/conf/nginx.conf')
-    if (!existsSync(ngconf)) {
-      compressing.zip
-        .uncompress(join(__static, 'zip/nginx-common.zip'), global.Server.NginxDir)
-        .then(() => {
-          readFileAsync(ngconf).then((content: string) => {
-            content = content
-              .replace(/#PREFIX#/g, global.Server.NginxDir!)
-              .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx'))
-            writeFileAsync(ngconf, content).then()
-            writeFileAsync(
-              join(global.Server.NginxDir!, 'common/conf/nginx.conf.default'),
-              content
-            ).then()
+      const ngconf = join(global.Server.NginxDir, 'common/conf/nginx.conf')
+      if (!existsSync(ngconf)) {
+        compressing.zip
+          .uncompress(join(__static, 'zip/nginx-common.zip'), global.Server.NginxDir)
+          .then(() => {
+            readFile(ngconf, 'utf-8').then((content: string) => {
+              content = content
+                .replace(/#PREFIX#/g, global.Server.NginxDir!)
+                .replace('#VHostPath#', join(global.Server.BaseDir!, 'vhost/nginx'))
+              writeFile(ngconf, content).then()
+              writeFile(
+                join(global.Server.NginxDir!, 'common/conf/nginx.conf.default'),
+                content
+              ).then()
+            })
           })
-        })
-        .catch()
+          .catch()
+      }
     }
-    global.Server.Arch = arch() === 'arm64' ? 'arm64' : 'x86_64'
   }
 
   initWindowManager() {
@@ -303,9 +322,20 @@ export default class Application extends EventEmitter {
 
   showPage(page: string) {
     const win = this.windowManager.openWindow(page)
+    if (this.mainWindow) {
+      return
+    }
     this.mainWindow = win
+    AppNodeFnManager.mainWindow = win
+    console.log('showPage checkBrewOrPort !!!')
     this.checkBrewOrPort()
     AppLog.init(this.mainWindow)
+    this.windowManager.sendCommandTo(
+      win,
+      'APP-Update-Global-Server',
+      'APP-Update-Global-Server',
+      JSON.parse(JSON.stringify(global.Server))
+    )
     win.once('ready-to-show', () => {
       this.isReady = true
       this.emit('ready')
@@ -319,6 +349,7 @@ export default class Application extends EventEmitter {
     ScreenManager.initWindow(win)
     ScreenManager.repositionAllWindows()
     this.trayWindow = this.windowManager.openTrayWindow()
+    AppNodeFnManager.trayWindow = this.trayWindow
   }
 
   show(page = 'index') {
@@ -345,127 +376,37 @@ export default class Application extends EventEmitter {
     logger.info('[PhpWebStudy] application stop !!!')
     try {
       ScreenManager.destroy()
-      DnsServerManager.close()
       SiteSuckerManager.destory()
       this.forkManager?.destory()
+      this.trayManager?.destroy()
       await this.stopServer()
     } catch (e) {
       console.log('stop e: ', e)
     }
   }
 
-  async stopServerByPid() {
-    const TERM: Array<string> = []
-    const INT: Array<string> = []
-    const all: any = await Helper.send('tools', 'processList')
-    const find = all.filter((p: any) => {
-      return (
-        (p.COMMAND.includes(global.Server.BaseDir!) ||
-          p.COMMAND.includes(global.Server.AppDir!) ||
-          p.COMMAND.includes('redis-server')) &&
-        !p.COMMAND.includes(' grep ') &&
-        !p.COMMAND.includes(' /bin/sh -c') &&
-        !p.COMMAND.includes('/Contents/MacOS/') &&
-        !p.COMMAND.startsWith('/bin/bash ') &&
-        !p.COMMAND.includes('brew.rb ') &&
-        !p.COMMAND.includes(' install ') &&
-        !p.COMMAND.includes(' uninstall ') &&
-        !p.COMMAND.includes(' link ') &&
-        !p.COMMAND.includes(' unlink ')
-      )
-    })
-    if (find.length === 0) {
-      return
-    }
-    for (const item of find) {
-      if (
-        item.COMMAND.includes('mysqld') ||
-        item.COMMAND.includes('mariadbd') ||
-        item.COMMAND.includes('mongod') ||
-        item.COMMAND.includes('rabbit') ||
-        item.COMMAND.includes('org.apache.catalina') ||
-        item.COMMAND.includes('elasticsearch')
-      ) {
-        TERM.push(item.PID)
-      } else {
-        INT.push(item.PID)
-      }
-    }
-    if (TERM.length > 0) {
-      const sig = '-TERM'
-      try {
-        await Helper.send('tools', 'kill', sig, TERM)
-      } catch (e) {}
-    }
-    if (INT.length > 0) {
-      const sig = '-INT'
-      try {
-        await Helper.send('tools', 'kill', sig, INT)
-      } catch (e) {}
-    }
-  }
-
-  async stopHostService() {
-    if (this.hostServicePID.size === 0) {
-      return
-    }
-    const arr = Array.from(this.hostServicePID).map((pid) => {
-      return new Promise(async (resolve) => {
-        const TERM: Array<string> = []
-        const INT: Array<string> = []
-        let pids: PItem[] = []
-        try {
-          const plist: any = await Helper.send('tools', 'processList')
-          pids = ProcessListByPid(pid, plist)
-        } catch (e) {}
-        if (pids.length > 0) {
-          pids.forEach((item) => {
-            if (
-              item.COMMAND.includes('mysqld') ||
-              item.COMMAND.includes('mariadbd') ||
-              item.COMMAND.includes('mongod') ||
-              item.COMMAND.includes('rabbit') ||
-              item.COMMAND.includes('org.apache.catalina') ||
-              item.COMMAND.includes('elasticsearch')
-            ) {
-              TERM.push(item.PID)
-            } else {
-              INT.push(item.PID)
-            }
-          })
-          if (TERM.length > 0) {
-            const sig = '-TERM'
-            try {
-              await Helper.send('tools', 'kill', sig, TERM)
-            } catch (e) {}
-          }
-          if (INT.length > 0) {
-            const sig = '-INT'
-            try {
-              await Helper.send('tools', 'kill', sig, INT)
-            } catch (e) {}
-          }
-        }
-        resolve(true)
-      })
-    })
-    try {
-      await Promise.all(arr)
-    } catch (e) {}
-  }
-
   async stopServer() {
     NodePTY.exitAllPty()
-    await this.stopServerByPid()
-    await this.stopHostService()
     try {
-      let hosts = readFileSync('/private/etc/hosts', 'utf-8')
+      await ServiceProcessManager.stop()
+    } catch (e) {
+      console.log('stopServerByPid e: ', e)
+    }
+    let file = ''
+    if (isMacOS()) {
+      file = HostsFileMacOS
+    } else if (isWindows()) {
+      file = HostsFileWindows
+    } else if (isLinux()) {
+    }
+    try {
+      let hosts = readFileSync(file, 'utf-8')
       const x = hosts.match(/(#X-HOSTS-BEGIN#)([\s\S]*?)(#X-HOSTS-END#)/g)
       if (x && x.length > 0) {
         hosts = hosts.replace(x[0], '')
-        writeFileSync('/private/etc/hosts', hosts)
+        writeFileSync(file, hosts)
       }
-    } catch (e) {}
+    } catch {}
   }
 
   sendCommand(command: string, ...args: any) {
@@ -502,10 +443,16 @@ export default class Application extends EventEmitter {
   }
 
   relaunch() {
-    this.stop().then(() => {
-      app.relaunch()
-      app.exit()
-    })
+    this.stop()
+      .then(() => {
+        app.relaunch()
+        app.exit()
+      })
+      .catch((e) => {
+        console.log('relaunch e: ', e)
+        app.relaunch()
+        app.exit()
+      })
   }
 
   handleCommands() {
@@ -580,15 +527,17 @@ export default class Application extends EventEmitter {
   handleCommand(command: string, key: string, ...args: any) {
     this.emit(command, ...args)
     let window
+    let module: string = ''
     const callBack = (info: any) => {
       const win = this.mainWindow!
       this.windowManager.sendCommandTo(win, command, key, info)
       console.log('callBack info: ', info)
       if (info?.data?.['APP-Service-Start-PID']) {
-        this.hostServicePID.add(info.data['APP-Service-Start-PID'])
+        const item = args[1]
+        ServiceProcessManager.addPid(module, info.data['APP-Service-Start-PID'], item)
       } else if (info?.data?.['APP-Service-Stop-PID']) {
         const arr: string[] = info.data['APP-Service-Stop-PID'] as any
-        arr.forEach((s) => this.hostServicePID.delete(s))
+        ServiceProcessManager.delPid(module, arr)
       } else if (info?.data?.['APP-Licenses-Code']) {
         const code: string = info.data['APP-Licenses-Code'] as any
         this.configManager?.setConfig('setup.license', code)
@@ -611,26 +560,35 @@ export default class Application extends EventEmitter {
         )
       }
     }
+
     if (command.startsWith('app-fork:')) {
       const exclude = ['app', 'version']
-      const module = command.replace('app-fork:', '')
-      const openApps: Record<string, string> = {
-        VSCode: 'vscode://file/',
-        PhpStorm: 'phpstorm://open?file=',
-        WebStorm: 'webstorm://open?file=',
-        IntelliJ: 'idea://open?file=',
-        HBuilderX: 'hbuilderx://open?file=',
-        Sublime: 'subl://open?url=file://',
-        PyCharm: 'pycharm://open?file=',
-        RubyMine: 'rubymine://open?file=',
-        CLion: 'clion://open?file=',
-        GoLand: 'goland://open?file=',
-        RustRover: 'rustrover://open?file=',
-        Rider: 'rider://open?file=',
-        AppCode: 'appcode://open?file=',
-        DataGrip: 'datagrip://open?file=',
-        AndroidStudio: 'androidstudio://open?file='
+      module = command.replace('app-fork:', '')
+      let openApps: Record<string, string> = {}
+      if (isMacOS()) {
+        openApps = {
+          VSCode: 'vscode://file/',
+          PhpStorm: 'phpstorm://open?file=',
+          WebStorm: 'webstorm://open?file=',
+          IntelliJ: 'idea://open?file=',
+          HBuilderX: 'hbuilderx://open?file=',
+          Sublime: 'subl://open?url=file://',
+          PyCharm: 'pycharm://open?file=',
+          RubyMine: 'rubymine://open?file=',
+          CLion: 'clion://open?file=',
+          GoLand: 'goland://open?file=',
+          RustRover: 'rustrover://open?file=',
+          Rider: 'rider://open?file=',
+          AppCode: 'appcode://open?file=',
+          DataGrip: 'datagrip://open?file=',
+          AndroidStudio: 'androidstudio://open?file='
+        }
+      } else if (isWindows()) {
+        openApps = {
+          VSCode: 'vscode://file/'
+        }
       }
+
       if (module === 'tools' && args?.[0] === 'openPathByApp' && !!openApps?.[args?.[2]]) {
         const url = `${openApps[args[2]]}${encodeURIComponent(args[1])}`
         console.log('openPathByApp ', args?.[2], url)
@@ -650,6 +608,7 @@ export default class Application extends EventEmitter {
           })
         return
       }
+
       const doFork = () => {
         this.setProxy()
         global.Server.Lang = this.configManager?.getConfig('setup.lang') ?? 'en'
@@ -663,6 +622,7 @@ export default class Application extends EventEmitter {
           .on(callBack)
           .then(callBack)
       }
+
       const doNotice = () => {
         if (this.helpCheckSuccessNoticed) {
           return
@@ -675,9 +635,18 @@ export default class Application extends EventEmitter {
           true
         )
       }
+
+      if (isWindows()) {
+        doFork()
+        return
+      }
+
       if (exclude.includes(module)) {
         doFork()
-      } else {
+        return
+      }
+
+      if (isMacOS()) {
         if (AppHelper.state === 'normal') {
           const helperVersion = this.configManager?.getConfig('helper.version') ?? 0
           if (is.production() && helperVersion !== AppHelper.version) {
@@ -725,28 +694,47 @@ export default class Application extends EventEmitter {
             msg: I18nT('menu.needInstallHelper')
           })
         }
+        return
       }
+
       return
     }
+
     switch (command) {
+      case 'App-Node-FN':
+        {
+          const namespace: string = args.shift()
+          const method: string = args.shift()
+          const fn: keyof AppNodeFn = `${namespace}_${method}` as any
+          console.log('App-Node-FN: ', fn)
+          try {
+            if (typeof AppNodeFnManager[fn] === 'function') {
+              const nodeFn = AppNodeFnManager[fn] as any
+              nodeFn.call(AppNodeFnManager, command, key, ...args)
+            }
+          } catch {}
+        }
+        break
       case 'app:password-check':
-        const pass = args?.[0] ?? ''
-        execPromiseRoot([`-k`, 'echo', 'PhpWebStudy'], undefined, pass)
-          .then(() => {
-            this.configManager.setConfig('password', pass)
-            global.Server.Password = pass
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-              code: 0,
-              data: pass
+        {
+          const pass = args?.[0] ?? ''
+          execPromiseSudo([`-k`, 'echo', 'PhpWebStudy'], undefined, pass)
+            .then(() => {
+              this.configManager.setConfig('password', pass)
+              global.Server.Password = pass
+              this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+                code: 0,
+                data: pass
+              })
             })
-          })
-          .catch((err: Error) => {
-            console.log('err: ', err)
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
-              code: 1,
-              msg: err
+            .catch((err: Error) => {
+              console.log('err: ', err)
+              this.windowManager.sendCommandTo(this.mainWindow!, command, key, {
+                code: 1,
+                msg: err
+              })
             })
-          })
+        }
         return
       case 'APP:Auto-Hide':
         this?.mainWindow?.hide()
@@ -784,6 +772,7 @@ export default class Application extends EventEmitter {
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)
         break
       case 'app-check-brewport':
+        console.log('app-check-brewport checkBrewOrPort !!!')
         this.checkBrewOrPort()
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
         break
@@ -822,30 +811,17 @@ export default class Application extends EventEmitter {
         NodePTY.stop(args[0])
         this.windowManager.sendCommandTo(this.mainWindow!, command, key, { code: 0 })
         break
-      case 'DNS:start':
-        if (DnsServerManager.running) {
-          this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-          return
-        }
-        DnsServerManager.start()
-          .then(() => {
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-          })
-          .catch((e) => {
-            this.windowManager.sendCommandTo(this.mainWindow!, command, key, e.toString())
-          })
-        break
-      case 'DNS:stop':
-        DnsServerManager.close()
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
-        break
       case 'app-sitesucker-run':
-        const url = args[0]
-        SiteSuckerManager.show(url)
+        {
+          const url = args[0]
+          SiteSuckerManager.show(url)
+        }
         break
       case 'app-sitesucker-setup':
-        const setup = this.configManager.getConfig('tools.siteSucker')
-        this.windowManager.sendCommandTo(this.mainWindow!, command, key, setup)
+        {
+          const setup = this.configManager.getConfig('tools.siteSucker')
+          this.windowManager.sendCommandTo(this.mainWindow!, command, key, setup)
+        }
         return
       case 'app-sitesucker-setup-save':
         this.configManager.setConfig('tools.siteSucker', args[0])
@@ -853,10 +829,12 @@ export default class Application extends EventEmitter {
         SiteSuckerManager.updateConfig(args[0])
         return
       case 'app-customer-lang-update':
-        const langKey = args[0]
-        const langValue = args[1]
-        this.customerLang[langKey] = langValue
-        AppI18n().global.setLocaleMessage(langKey, langValue)
+        {
+          const langKey = args[0]
+          const langValue = args[1]
+          this.customerLang[langKey] = langValue
+          AppI18n().global.setLocaleMessage(langKey, langValue)
+        }
         return
     }
   }

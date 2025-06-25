@@ -1,5 +1,4 @@
 {
-  "menuShowHide": "Hiển thị/Ẩn Menu",
   "tsinghua": "Nguồn tải xuống của Đại học Thanh Hoa",
   "bfsu": "Nguồn tải xuống của Đại học Ngoại ngữ Bắc Kinh",
   "tencent": "Nguồn tải xuống của Tencent",
@@ -35,7 +34,6 @@
     "path": "Đường dẫn tệp",
     "comment": "Ghi chú",
     "exec": "Chạy",
-    "command": "Lệnh",
     "commandFile": "Tệp",
     "isSudo": "Chạy với sudo?",
     "pidPath": "Đường dẫn tệp PID",
@@ -43,6 +41,9 @@
     "logPath": "Tệp nhật ký",
     "needPasswordToStart": "Yêu cầu quyền admin. Nhập mật khẩu (sẽ được lưu để dùng sau). Hoặc nhập thủ công trong terminal, nhưng thông báo này có thể hiện lại.",
     "hadOpenInTerminal": "Đang chạy trong terminal—không thể xem kết quả.",
-    "licenseTips": "Không có giấy phép. Chỉ được tạo tối đa 3 module/mục thực thi."
+    "licenseTips": "Không có giấy phép. Chỉ được tạo tối đa 3 module/mục thực thi.",
+
+    "outputLog": "Output Log",
+    "errorLog": "Error Log"
   }
 }

@@ -65,5 +65,9 @@
 
   "action": "Åtgärd",
   "frameworkVersion": "Framework-version",
-  "placeholderComment": "Kommentar"
+  "placeholderComment": "Kommentar",
+
+  "projectDeno": "Deno Projects",
+  "projectBun": "Bun Projects",
+  "projectPerl": "Perl Projects"
 }

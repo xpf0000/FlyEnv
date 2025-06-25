@@ -1,7 +1,10 @@
 import type { ChatItem } from '@/components/AI/setup'
 
+type CheckFn = (...args: any) => void
+
 export class AIBase {
   id: string = ''
+  currentChatKey: string = ''
   title: string = ''
   prompt: string = ''
   chatList: ChatItem[] = []
@@ -9,7 +12,7 @@ export class AIBase {
   content: string = ''
   temperature: number = 0.7
 
-  private _checkFns: Function[] = []
+  private _checkFns: CheckFn[] = []
 
   constructor(obj?: any) {
     Object.assign(this, obj)
@@ -35,6 +38,8 @@ export class AIBase {
   request(param: any): Promise<boolean> {
     return param && Promise.resolve(true)
   }
+
+  stopOutput() {}
 
   send() {}
 

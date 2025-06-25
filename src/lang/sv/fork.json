@@ -5,11 +5,11 @@
   "versionError": "Versionen är felaktig, välj igen.",
   "hostsFileNoFound": "hosts-filen finns inte.",
   "startFail": "Starten misslyckades, kontrollera loggfilen.",
-  "command": "Kommando",
-  "ExtensionInstallFail": "Tilläggsinstallation misslyckades.",
-  "ExtensionInstallFailTips": "Installera tillägget och kör kommandot:\n{command}\nOm installationen misslyckas kan du försöka kopiera kommandot och installera det själv.\n",
   "versionNoFound": "Misslyckades med att hämta programvaruversion, åtgärden misslyckades.",
   "postgresqlInit": "Tjänsten startades framgångsrikt\nData Katalog är {dir}\nInitial användare är root, lösenord är root.",
   "downFileFail": "Nedladdning av fil misslyckades!",
-  "trialEnd": "Testperioden har gått ut. För att fortsätta använda denna funktion, vänligen skaffa en licens."
+  "trialEnd": "Testperioden har gått ut. För att fortsätta använda denna funktion, vänligen skaffa en licens.",
+
+  "phpiniNoFound": "php.ini file not found",
+  "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

@@ -17,5 +17,7 @@
   "initDBPassFail": "Veritabanı şifresi başlatılamadı, neden: {error}",
   "initDBDataDir": "Veri klasörü bulunamadı, başlatılıyor...",
   "initDBDataDirSuccess": "Veri klasörü başarıyla başlatıldı, klasör yolu: {dir}",
-  "initDBDataDirFail": "Veri klasörü başlatılamadı, neden: {error}"
+  "initDBDataDirFail": "Veri klasörü başlatılamadı, neden: {error}",
+
+  "startInstall": "Start installing {service}"
 }

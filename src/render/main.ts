@@ -1,7 +1,8 @@
+import { reactive } from 'vue'
 import { VueExtend } from './core/VueExtend'
 import { AppI18n } from '@lang/index'
 import App from './App.vue'
-import '@/components/Theme/Index.scss'
+import './index.scss'
 import IPC from '@/util/IPC'
 import { AppStore } from '@/store/app'
 import { SiteSuckerStore } from '@/components/Tools/SiteSucker/store'
@@ -13,22 +14,23 @@ import { AppToolStore } from '@/components/Tools/store'
 import { SetupStore } from '@/components/Setup/store'
 import { AppLogStore } from '@/components/AppLog/store'
 import { EventBus } from '@/global'
-import { loadCustomerLang } from '@lang/loader'
 import { AppCustomerModule } from '@/core/Module'
+import { lang, nativeTheme } from '@/util/NodeFn'
 
-const { getGlobal } = require('@electron/remote')
-global.Server = getGlobal('Server')
+window.Server = reactive({}) as any
 
 const app = VueExtend(App)
-loadCustomerLang().then().catch()
+lang.loadCustomerLang().then().catch()
 
 let inited = false
 IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
   console.log('APP-Ready-To-Show !!!!!!', key, res)
-  Object.assign(global.Server, res)
+  Object.assign(window.Server, res)
   if (!inited) {
     inited = true
     const store = AppStore()
+    store.envIndex += 1
+    AppCustomerModule.init()
     store
       .initConfig()
       .then(() => {
@@ -38,7 +40,6 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
         app.mount('#app')
       })
       .catch()
-    AppCustomerModule.init()
     SiteSuckerStore().init()
     AppToolStore.init()
     SetupStore().init()
@@ -48,9 +49,14 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
     console.log('has inited !!!!')
   }
 })
+IPC.on('App-Native-Theme-Update').then(() => {
+  nativeTheme.updateFn.forEach((fn: () => void) => {
+    fn()
+  })
+})
 IPC.on('APP-Update-Global-Server').then((key: string, res: any) => {
   console.log('APP-Update-Global-Server: ', key, res)
-  Object.assign(global.Server, res)
+  Object.assign(window.Server, res)
   const store = AppStore()
   store.envIndex += 1
 })

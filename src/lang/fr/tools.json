@@ -32,5 +32,10 @@
   "url-encode-title": "Encodage/Décodage d'URL",
   "url-parse-title": "Analyseur d'URL",
   "wifi-qr-code-generator-title": "Générateur de QR Code WiFi",
-  "URLTimingAnalyzer": "Analyseur de temps d'URL"
+  "URLTimingAnalyzer": "Analyseur de temps d'URL",
+
+  "envValue": "Value",
+  "rawEnvPath": "Actual Path",
+  "envValueErrorTips": "The path does not exist. You can click to copy the command and test it in Command Prompt.",
+  "invalidPath": "Invalid Path"
 }

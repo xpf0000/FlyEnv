@@ -1,4 +1,4 @@
-import { exec } from 'child-process-promise'
+import { execPromise } from '@shared/child-process'
 
 export class BaseManager {
   exec(fnName: keyof typeof this, ...args: any) {
@@ -13,7 +13,7 @@ export class BaseManager {
   startService(command: string, options: any = {}): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
       try {
-        await exec(command, options)
+        await execPromise(command, options)
       } catch (e) {
         reject(e)
         return

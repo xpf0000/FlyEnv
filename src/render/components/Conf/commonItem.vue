@@ -48,8 +48,7 @@
   import { computed } from 'vue'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { Folder } from '@element-plus/icons-vue'
-
-  const { dialog } = require('@electron/remote')
+  import { dialog } from '@/util/NodeFn'
 
   const props = defineProps<{
     item: CommonSetItem
@@ -73,7 +72,7 @@
       const item: CommonSetItem = props.item
       const old = item.value
       item.value = v
-      item?.onChange && item.onChange(v, old)
+      item.onChange?.(v, old)
     }
   })
 

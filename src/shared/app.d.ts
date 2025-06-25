@@ -16,6 +16,7 @@ export interface SoftInstalled {
   phpize?: string
   flag?: string
   pid?: string
+  isLocal7Z?: boolean
 }
 
 export interface AppHostReverseProxyItem {
@@ -117,3 +118,5 @@ export type ModuleExecItem = {
   isSudo?: boolean
   pidPath?: string
 }
+
+export type CallBackFn = (...args: any) => void

@@ -1,38 +1,14 @@
 import { AIBase } from '@/components/AI/AIBase'
-import { merge } from 'lodash'
+import { merge } from 'lodash-es'
 import type { ChatItem, ToolCallItem } from '@/components/AI/setup'
 import { reactive } from 'vue'
 import { MessageError } from '@/util/Element'
-import { fileSelect } from '@/util/Index'
+import { fileSelect, uuid } from '@/util/Index'
 import { useBase64 } from '@vueuse/core'
 import IPC from '@/util/IPC'
 import { AISetup } from '@/components/AI/setup'
-import { getAllFileAsync } from '@shared/file'
-
-const { existsSync } = require('fs-extra')
 
 export class AIOllama extends AIBase {
-  async _HanleToolCalls(tools: ToolCallItem[]) {
-    console.log('_HanleToolCalls: ', tools)
-    for (const tool of tools) {
-      console.log('tool: ', tool, tool.function.name)
-      if (tool.function.name === 'get_folder_all_files') {
-        const dir = tool.function.arguments.dir
-        console.log('get_folder_all_files: ', dir, existsSync(dir))
-        if (!dir || !existsSync(dir)) {
-          continue
-        }
-        getAllFileAsync(dir).then((files) => {
-          this._send({
-            role: 'tool',
-            name: tool.function.name,
-            content: JSON.stringify({ filepaths: files })
-          })
-        })
-      }
-    }
-  }
-
   request(param: any): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.streaming = true
@@ -79,9 +55,10 @@ export class AIOllama extends AIBase {
           param
         )
       }
-      IPC.send('app-fork:ollama', 'chat', data, AISetup.trialStartTime).then(
+      this.currentChatKey = uuid()
+      IPC.send('app-fork:ollama', 'chat', data, AISetup.trialStartTime, this.currentChatKey).then(
         (key: string, res: any) => {
-          console.log('ollama chat res: ', res)
+          // console.log('ollama chat res: ', res)
           if (res?.code === 0) {
             IPC.off(key)
             this.onStreamEnd()
@@ -89,18 +66,11 @@ export class AIOllama extends AIBase {
           } else if (res?.code === 1) {
             IPC.off(key)
             MessageError(res?.msg)
+            this.streaming = false
             reject(new Error(res?.msg))
           } else if (res?.code === 200) {
             const json: any = res.msg
             message += json.message.content
-            if (json.message.tool_calls) {
-              if (!tool_calls) {
-                tool_calls = json.message.tool_calls
-              } else {
-                tool_calls.push(...json.message.tool_calls)
-              }
-              this._HanleToolCalls(json.message.tool_calls).then().catch()
-            }
             if (!messageObj) {
               messageObj = reactive({
                 role: 'assistant',
@@ -117,6 +87,12 @@ export class AIOllama extends AIBase {
           }
         }
       )
+    })
+  }
+
+  stopOutput() {
+    IPC.send('app-fork:ollama', 'stopOutput', this.currentChatKey).then((key: string) => {
+      IPC.off(key)
     })
   }
 

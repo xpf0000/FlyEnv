@@ -65,5 +65,8 @@
   "enterTips": "[Enter] gửi, [Shift+Enter] xuống dòng, [Ctrl+Enter] gửi không tạo",
   "noLiencesTips": "Hiện tại không có giấy phép, bạn có thể dùng thử trong ba ngày",
   "alert": "Cảnh báo",
-  "customer": "Copilots của tôi"
+  "customer": "Copilots của tôi",
+
+  "siteDirectoryError": "Site Directory Error",
+  "domainError": "Domain Error"
 }

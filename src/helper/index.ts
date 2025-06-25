@@ -1,8 +1,9 @@
 import { createServer } from 'net'
-import { remove, existsSync } from 'fs-extra'
-import { exec } from 'child-process-promise'
+import { remove, existsSync } from './util'
 import { dirChownFetch, waitTime } from './util'
 import type { TaskItem } from './type'
+import { execPromise } from '@shared/child-process'
+
 // Path to the socket file
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'
 
@@ -33,7 +34,7 @@ class AppHelper {
         try {
           const content = Buffer.concat(buffer).toString().trim()
           info = JSON.parse(content)
-        } catch (e) {}
+        } catch {}
         if (info) {
           buffer.splice(0)
 
@@ -138,11 +139,11 @@ class AppHelper {
         console.log('Client has disconnected')
         try {
           socket.destroySoon()
-        } catch (e) {}
+        } catch {}
       })
-        })
+    })
 
-        server.listen(SOCKET_PATH, async () => {
+    server.listen(SOCKET_PATH, async () => {
       console.log('Server is listening on', SOCKET_PATH)
       await waitTime(500)
       let appDir = `/Applications/FlyEnv.app`
@@ -155,12 +156,12 @@ class AppHelper {
       let rule = ''
       try {
         rule = await dirChownFetch(appDir)
-      } catch (e) {}
+      } catch {}
       if (!rule) {
         return
       }
       if (existsSync(SOCKET_PATH)) {
-        await exec(`chown ${rule} "${SOCKET_PATH}"`)
+        await execPromise(`chown ${rule} "${SOCKET_PATH}"`)
       }
     })
 

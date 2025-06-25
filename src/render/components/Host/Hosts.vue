@@ -4,13 +4,13 @@
     size="75%"
     :destroy-on-close="true"
     :with-header="false"
-    @closed="onDrawerClosed"
+    @closed="closedFn"
   >
     <div class="host-vhost">
       <div class="nav">
-        <div class="left" @click="close">
+        <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15">{{ $t('base.hostsTitle') }}</span>
+          <span class="ml-3">{{ I18nT('base.hostsTitle') }}</span>
         </div>
       </div>
 
@@ -19,113 +19,90 @@
       </div>
 
       <div class="tool">
-        <el-button @click="openConfig">{{ $t('base.open') }}</el-button>
-        <el-button @click="saveConfig">{{ $t('base.save') }}</el-button>
+        <el-button @click="openConfig">{{ I18nT('base.open') }}</el-button>
+        <el-button @click="saveConfig">{{ I18nT('base.save') }}</el-button>
       </div>
     </div>
   </el-drawer>
 </template>
 
-<script>
-  import { readFileAsync, writeFileAsync } from '@shared/file.ts'
+<script setup lang="ts">
+  import { ref, onMounted, onUnmounted, nextTick } from 'vue'
   import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { nextTick } from 'vue'
-  import { VueExtend } from '@/core/VueExtend.ts'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor.ts'
-  import { MessageError, MessageSuccess } from '@/util/Element.ts'
+  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+  import { MessageError, MessageSuccess } from '@/util/Element'
+  import { shell, fs } from '@/util/NodeFn.js'
+  import { I18nT } from '@lang/index'
+  import { AsyncComponentSetup } from '@/util/AsyncComponent'
 
-  const { shell } = require('@electron/remote')
+  const config = ref('')
+  const configpath = '/private/etc/hosts'
+  const input = ref<HTMLElement | null>(null)
+  const monacoInstance = ref<any>(null)
 
-  export default {
-    show(data) {
-      return new Promise(() => {
-        let dom = document.createElement('div')
-        document.body.appendChild(dom)
-        let vm = VueExtend(this, data)
-        const intance = vm.mount(dom)
-        intance.onClosed = () => {
-          dom && dom.remove()
-          dom = null
-          console.log('intance.onClosed !!!!!!')
-        }
-      })
-    },
-    components: {},
-    props: {},
-    data() {
-      return {
-        show: true,
-        config: '',
-        configpath: '/private/etc/hosts'
-      }
-    },
-    computed: {},
-    created: function () {
-      this.getConfig()
-    },
-    mounted() {
-      nextTick().then(() => {
-        this.initEditor()
-      })
-    },
-    unmounted() {
-      this.monacoInstance && this.monacoInstance.dispose()
-      this.monacoInstance = null
-    },
-    methods: {
-      close() {
-        this.show = false
-        this.$destroy()
-        this.onClosed()
-      },
-      onDrawerClosed() {
-        this.onClosed()
-      },
-      openConfig() {
-        shell.showItemInFolder(this.configpath)
-      },
-      saveConfig() {
-        const content = this.monacoInstance.getValue()
-        writeFileAsync(this.configpath, content)
-          .then(() => {
-            MessageSuccess(this.$t('base.success'))
-          })
-          .catch(() => {
-            MessageError(this.$t('base.hostsSaveFailed'))
-          })
-      },
-      getConfig() {
-        readFileAsync(this.configpath)
-          .then((conf) => {
-            this.config = conf
-            this.initEditor()
-          })
-          .catch(() => {
-            this.config = this.$t('base.hostsReadFailed')
-            this.initEditor()
-          })
-      },
-      initEditor() {
-        if (!this.monacoInstance) {
-          if (!this?.$refs?.input?.style) {
-            return
-          }
-          this.monacoInstance = EditorCreate(
-            this.$refs.input,
-            EditorConfigMake(this.config, false, 'off')
-          )
-          this.monacoInstance.addAction({
-            id: 'save',
-            label: 'save',
-            keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
-            run: () => {
-              this.saveConfig()
-            }
-          })
-        } else {
-          this.monacoInstance.setValue(this.config)
-        }
-      }
+  const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
+
+  const getConfig = async () => {
+    try {
+      const conf = await fs.readFile(configpath)
+      config.value = conf
+      initEditor()
+    } catch {
+      config.value = I18nT('base.hostsReadFailed')
+      initEditor()
     }
   }
+
+  const initEditor = () => {
+    if (!monacoInstance.value) {
+      if (!input.value?.style) {
+        return
+      }
+      monacoInstance.value = EditorCreate(input.value, EditorConfigMake(config.value, false, 'off'))
+      monacoInstance.value.addAction({
+        id: 'save',
+        label: 'save',
+        keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
+        run: () => {
+          saveConfig()
+        }
+      })
+    } else {
+      monacoInstance.value.setValue(config.value)
+    }
+  }
+
+  const openConfig = () => {
+    shell.showItemInFolder(configpath)
+  }
+
+  const saveConfig = async () => {
+    try {
+      const content = monacoInstance.value.getValue()
+      await fs.writeFile(configpath, content)
+      MessageSuccess(I18nT('base.success'))
+    } catch {
+      MessageError(I18nT('base.hostsSaveFailed'))
+    }
+  }
+
+  onMounted(() => {
+    nextTick().then(() => {
+      initEditor()
+    })
+  })
+
+  onUnmounted(() => {
+    monacoInstance.value?.dispose()
+    monacoInstance.value = null
+  })
+
+  // Initialize config
+  getConfig()
+
+  defineExpose({
+    show,
+    onSubmit,
+    onClosed
+  })
 </script>

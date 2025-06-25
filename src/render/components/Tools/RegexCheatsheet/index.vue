@@ -2,8 +2,8 @@
   import { I18nT } from '@lang/index'
   import Memo from './regex-memo.content.md?raw'
   import markdownit from 'markdown-it'
+  import { shell } from '@/util/NodeFn'
 
-  const { shell } = require('@electron/remote')
   const md = markdownit()
   const result = md.render(Memo)
 

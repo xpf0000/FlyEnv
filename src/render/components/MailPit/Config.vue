@@ -21,20 +21,19 @@
   import IPC from '@/util/IPC'
   import type { CommonSetItem } from '@/components/Conf/setup'
   import { I18nT } from '@lang/index'
-  import { debounce } from 'lodash'
+  import { debounce } from 'lodash-es'
   import Common from '@/components/Conf/common.vue'
-  import { uuid } from '@shared/utils'
-
-  const { join } = require('path')
-  const { existsSync } = require('fs-extra')
+  import { uuid } from '@/util/Index'
+  import { join } from '@/util/path-browserify'
+  import { fs } from '@/util/NodeFn'
 
   const commonSetting: Ref<CommonSetItem[]> = ref([])
   const conf = ref()
   const file = computed(() => {
-    return join(global.Server.BaseDir, 'mailpit/mailpit.conf')
+    return join(window.Server.BaseDir!, 'mailpit/mailpit.conf')
   })
   const defaultFile = computed(() => {
-    return join(global.Server.BaseDir, 'mailpit/mailpit.conf.default')
+    return join(window.Server.BaseDir!, 'mailpit/mailpit.conf.default')
   })
 
   const names: CommonSetItem[] = [
@@ -534,7 +533,7 @@
     if (watcher) {
       watcher()
     }
-    let config = editConfig.replace(/\r\n/gm, '\n')
+    const config = editConfig.replace(/\r\n/gm, '\n')
     const arr = [...names].map((item) => {
       const regex = new RegExp(`^[\\s\\n]?((?!#)([\\s]*?))${item.name}(.*?)([^\\n])(\\n|$)`, 'gm')
       const matchs =
@@ -576,10 +575,12 @@
     }
   }
 
-  if (!existsSync(file.value)) {
-    IPC.send('app-fork:mailpit', 'initConfig').then((key: string) => {
-      IPC.off(key)
-      conf?.value?.update()
-    })
-  }
+  fs.existsSync(file.value).then((e) => {
+    if (!e) {
+      IPC.send('app-fork:mailpit', 'initConfig').then((key: string) => {
+        IPC.off(key)
+        conf?.value?.update()
+      })
+    }
+  })
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="main-right-panel p-5 overflow-hidden">
+  <div class="main-right-panel p-5 overflow-hidden h-screen">
     <el-card class="h-full" body-class="h-full" style="--el-card-padding: 0px">
       <div class="flex h-full w-full relative overflow-hidden p-3">
         <div
@@ -81,7 +81,7 @@
                 <div
                   class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
                 >
-                  <template v-for="(item, index) in likeData" :key="index">
+                  <template v-for="(item, _index) in likeData" :key="_index">
                     <div
                       class="overflow-hidden p-2 group relative flex flex-col items-center justify-center py-6 bg-white gap-2 cursor-pointer hover:shadow-lg dark:bg-gray-700 dark:hover:shadow-slate-600"
                       @click.stop="AppToolStore.id = item.id"
@@ -133,7 +133,7 @@
               <div
                 class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
               >
-                <template v-for="(item, index) in homeData" :key="index">
+                <template v-for="(item, _index) in homeData" :key="_index">
                   <div
                     class="overflow-hidden p-2 group flex flex-col items-center justify-center py-6 bg-white gap-2 cursor-pointer hover:shadow-lg relative dark:bg-gray-700 dark:hover:shadow-slate-600"
                     @click.stop="AppToolStore.id = item.id"

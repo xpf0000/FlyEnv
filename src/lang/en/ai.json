@@ -14,6 +14,8 @@
   "siteCreatedSuccessfully": "Successfully created site",
   "siteDomain": "Site Domain",
   "siteDirectory": "Site Directory",
+  "siteDirectoryError": "Site Directory Error",
+  "domainError": "Domain Error",
   "tryingToStartService": "Trying to start the service, please wait...",
   "serviceStartedSuccessfully": "Service started successfully",
   "domain": "Domain",

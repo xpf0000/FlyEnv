@@ -11,7 +11,7 @@
       <div class="nav">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
-          <span class="ml-15 title">{{ file }}</span>
+          <span class="ml-3 title">{{ file }}</span>
         </div>
       </div>
 
@@ -30,8 +30,7 @@
   import { computed } from 'vue'
   import Conf from '@/components/Conf/drawer.vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
-
-  const { extname } = require('path')
+  import { extname } from '@/util/path-browserify'
 
   const props = defineProps<{
     file: string

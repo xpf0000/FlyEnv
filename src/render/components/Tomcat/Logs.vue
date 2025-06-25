@@ -14,8 +14,7 @@
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import { AppStore } from '@/store/app'
-
-  const { join } = require('path')
+  import { join } from '@/util/path-browserify'
 
   const appStore = AppStore()
 
@@ -25,7 +24,7 @@
 
   const currentBaseDir = computed(() => {
     const v = currentVersion?.value?.version?.split('.')?.shift() ?? ''
-    return join(global.Server.BaseDir!, `tomcat/tomcat${v}`)
+    return join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
   })
 
   const log = ref()

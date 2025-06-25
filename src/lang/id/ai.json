@@ -65,5 +65,8 @@
   "enterTips": "[Enter] kirim, [Shift+Enter] untuk baris baru, [Ctrl+Enter] kirim tanpa generate",
   "noLiencesTips": "Lisensi belum diaktifkan. Anda dapat mencoba versi gratis selama 3 hari.",
   "alert": "Peringatan",
-  "customer": "Copilot saya"
+  "customer": "Copilot saya",
+
+  "siteDirectoryError": "Site Directory Error",
+  "domainError": "Domain Error"
 }

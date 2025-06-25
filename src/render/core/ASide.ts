@@ -2,7 +2,6 @@ import { computed } from 'vue'
 import { reactive } from 'vue'
 import Router from '@/router/index'
 import { BrewStore } from '@/store/brew'
-import { startService, stopService } from '@/util/Service'
 import { passwordCheck } from '@/util/Brew'
 import { MessageError } from '@/util/Element'
 import type { AllAppModule } from '@/core/type'
@@ -50,16 +49,16 @@ export const AsideSetup = (flag: AllAppModule) => {
     if (!current) {
       return undefined
     }
-    const installed = brewStore.module(flag).installed
+    const module = brewStore.module(flag)
+    const installed = module.installed
     return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
   const serviceDisabled = computed(() => {
-    return (
-      !currentVersion?.value?.version ||
-      brewStore.module(flag).installed.some((v) => v.running) ||
-      !appStore.versionInited
-    )
+    const a = !currentVersion?.value?.version
+    const b = brewStore.module(flag).installed.some((v) => v.running)
+    const c = !appStore.versionInited
+    return a || b || c
   })
 
   const serviceRunning = computed(() => {
@@ -78,14 +77,16 @@ export const AsideSetup = (flag: AllAppModule) => {
     const all: Array<Promise<string | boolean>> = []
     if (isRunning) {
       if (showItem?.value && serviceRunning?.value && currentVersion?.value?.version) {
-        all.push(stopService(flag, currentVersion?.value))
+        const module = brewStore.module(flag)
+        all.push(module.stop())
       }
     } else {
       if (appStore.phpGroupStart?.[currentVersion?.value?.bin ?? ''] === false) {
         return all
       }
       if (showItem?.value && currentVersion?.value?.version) {
-        all.push(startService(flag, currentVersion?.value))
+        const module = brewStore.module(flag)
+        all.push(module.start())
       }
     }
     return all
@@ -93,11 +94,10 @@ export const AsideSetup = (flag: AllAppModule) => {
 
   const switchChange = () => {
     passwordCheck().then(() => {
-      let fn = null
       let promise: Promise<any> | null = null
       if (!currentVersion?.value?.version) return
-      fn = serviceRunning?.value ? stopService : startService
-      promise = fn(flag, currentVersion?.value)
+      const module = brewStore.module(flag)
+      promise = serviceRunning?.value ? module.stop() : module.start()
       promise?.then((res) => {
         if (typeof res === 'string') {
           MessageError(res)
