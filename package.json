@@ -31,7 +31,6 @@
     "child-process-promise": "^2.2.1",
     "compare-versions": "^6.1.0",
     "dns2": "^2.1.0",
-    "dohdec": "^5.0.3",
     "electron-is": "^3.0.0",
     "electron-log": "^4.4.8",
     "electron-store": "^10.0.0",
@@ -47,11 +46,10 @@
     "node-machine-id": "^1.1.12",
     "node-rsa": "^1.1.1",
     "npm-check-updates": "^17.1.18",
-    "serve": "^14.2.4",
-    "tangerine": "^1.5.4",
-    "undici": "^5.28.4",
-    "vue": "^3.5.16",
-    "vue-i18n": "^9.14.2"
+    "serve": "^14.2.0",
+    "tangerine": "^1.6.0",
+    "vue": "^3.2.47",
+    "vue-i18n": "9"
   },
   "devDependencies": {
     "@babel/core": "^7.15.0",
