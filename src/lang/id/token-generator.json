@@ -1,0 +1,13 @@
+{
+  "title": "Generator Token",
+  "uppercase": "Huruf Kapital (ABC...)",
+  "lowercase": "Huruf Kecil (abc...)",
+  "numbers": "Angka (123...)",
+  "symbols": "Simbol (!-;...)",
+  "length": "Panjang",
+  "tokenPlaceholder": "Token...",
+  "button": {
+    "copy": "Salin",
+    "refresh": "Segarkan"
+  }
+}

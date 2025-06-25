@@ -1,0 +1,9 @@
+{
+  "checkForUpdates": "Periksa Pembaruan",
+  "update-available-message": "Versi baru FlyEnv tersedia, perbarui sekarang?",
+  "update-not-available-message": "Anda sudah menggunakan versi terbaru!",
+  "update-downloaded-message": "Siap untuk dipasang...",
+  "update-error-message": "Terjadi Kesalahan Pembaruan",
+  "yes": "Ya",
+  "no": "Tidak"
+}
