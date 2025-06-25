@@ -135,7 +135,6 @@
     "markdown-it-mathjax3": "^4.3.2",
     "md5": "^2.3.0",
     "mime-types": "^3.0.1",
-    "moment": "^2.29.3",
     "monaco-editor": "^0.47.0",
     "php-parser": "^3.2.3",
     "pinia": "^3.0.3",
