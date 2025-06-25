@@ -1,0 +1,17 @@
+{
+  "dnsLookup": "DNSルックアップ",
+  "tcpConnect": "TCP接続",
+  "tlsHandshake": "TLSハンドシェイク",
+  "requestProcessing": "リクエスト処理",
+  "ttfb": "最初のバイトまでの時間（TTFB）",
+  "contentDownload": "コンテンツダウンロード",
+  "downloadSpeed": "ダウンロード速度",
+  "dataSize": "データサイズ",
+  "httpVersion": "HTTPバージョン",
+  "statusCode": "ステータスコード",
+  "usingProxy": "プロキシを使用",
+  "totalTime": "総時間",
+  "skippedForProxy": "プロキシのためスキップ",
+  "metric": "メトリック",
+  "value": "値"
+}

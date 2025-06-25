@@ -1,0 +1,23 @@
+{
+  "about": "について",
+  "app": "FlyEnv",
+  "checkForUpdates": "更新をチェック...",
+  "hide": "FlyEnvを隠す",
+  "hideOthers": "他を隠す",
+  "unhide": "すべて表示",
+  "quit": "FlyEnvを終了",
+  "edit": "編集",
+  "cut": "切り取り",
+  "copy": "コピー",
+  "paste": "貼り付け",
+  "selectAll": "すべて選択",
+  "window": "ウィンドウ",
+  "close": "閉じる",
+  "minimize": "最小化",
+  "zoom": "ズーム",
+  "fullscreen": "フルスクリーンに入る",
+  "front": "FlyEnvを最前面に",
+  "dev": "デバッグウィンドウを開く",
+  "needInstallHelper": "FlyEnvはヘルパープログラムのインストールが必要です",
+  "waitHelper": "ヘルパープログラムを起動中です。お待ちください"
+}

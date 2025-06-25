@@ -1,0 +1,10 @@
+{
+  "email": "メール",
+  "country": "国",
+  "message": "メッセージ",
+  "messagelengthErr": "メッセージの長さは5〜1024文字です",
+  "sendMessage": "メッセージを送信",
+  "anythingToSay": "何か言いたいことがありますか",
+  "noSelected": "選択されていません",
+  "inputFilter": "フィルター用に入力"
+}

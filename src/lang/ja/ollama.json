@@ -1,0 +1,20 @@
+{
+  "OLLAMA_DEBUG": "追加のデバッグ情報を表示（例：OLLAMA_DEBUG=1）",
+  "OLLAMA_HOST": "ollamaサーバーのIPアドレス（デフォルト 127.0.0.1:11434）",
+  "OLLAMA_KEEP_ALIVE": "モデルがメモリに読み込まれたままの期間（デフォルト \"5m\"）",
+  "OLLAMA_MAX_LOADED_MODELS": "GPUあたりの最大読み込みモデル数",
+  "OLLAMA_MAX_QUEUE": "キューイングされたリクエストの最大数",
+  "OLLAMA_MODELS": "モデルディレクトリへのパス",
+  "OLLAMA_NUM_PARALLEL": "並列リクエストの最大数",
+  "OLLAMA_NOPRUNE": "起動時にモデルブロブをプルーニングしない",
+  "OLLAMA_ORIGINS": "許可されたオリジンのカンマ区切りリスト",
+  "OLLAMA_SCHED_SPREAD": "常にすべてのGPUにモデルをスケジュール",
+  "OLLAMA_FLASH_ATTENTION": "フラッシュアテンションを有効にする",
+  "OLLAMA_KV_CACHE_TYPE": "K/Vキャッシュの量子化タイプ（デフォルト：f16）",
+  "OLLAMA_LLM_LIBRARY": "自動検出をバイパスするLLMライブラリを設定",
+  "OLLAMA_GPU_OVERHEAD": "GPUあたりのVRAMの一部を予約（バイト）",
+  "OLLAMA_LOAD_TIMEOUT": "モデル読み込みが諦める前に許可する時間（デフォルト \"5m\"）",
+  "needServiceRun": "先にOllamaサービスを開始してください",
+  "size": "サイズ",
+  "model": "モデル"
+}
