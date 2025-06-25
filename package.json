@@ -15,6 +15,7 @@
     "clean": "rd /s /q dist",
     "build": "npx esbuild --platform=node --bundle --external:vite --external:esbuild --external:electron-builder --external:consolidate --external:@vue/compiler-sfc scripts/app-builder.ts --outfile=electron/app-builder.js && cross-env NODE_ENV=production node electron/app-builder.js",
     "postinstall": "electron-builder install-app-deps"
+    "test": "npx tsc --noEmit && npx eslint --ext .ts,.tsx,.vue src"
   },
   "main": "./dist/electron/main.js",
   "optionalDependencies": {
