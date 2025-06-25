@@ -662,8 +662,8 @@ export const versionInitedApp = async (type: string, bin: string) => {
 }
 
 export const AppLog = (type: 'info' | 'error', msg: string) => {
-  const time = new Date().getTime()
-  return `[${type}]${time}:${msg}`
+  const time = new Date().toString() // Thu Apr 03 01:36:23
+  return `[${time}] ${type}: ${msg}` // Example: [Thu Apr 03 01:36:23] info: Log message here message here
 }
 
 export const fetchRawPATH = (): ForkPromise<string[]> => {
