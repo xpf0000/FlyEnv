@@ -65,7 +65,9 @@
       <el-button
         :icon="FolderOpened"
         @click.stop="shell.openPath(nginxRewriteTemplateDir)"
-      ></el-button>
+      >
+        {{ I18nT('base.customConf') }}
+      </el-button>
     </div>
     <div ref="input" class="input-textarea nginx-rewrite"></div>
   </div>

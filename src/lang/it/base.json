@@ -10,6 +10,7 @@
   "del": "Elimina",
   "version": "Versione",
   "commonTemplates": "Template comuni",
+  "customConf": "*.conf personalizzato",
   "save": "Salva",
   "lang": "Lingua",
   "changeLang": "Cambia lingua",

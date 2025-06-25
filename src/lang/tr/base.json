@@ -10,6 +10,7 @@
   "del": "Sil",
   "version": "Sürüm",
   "commonTemplates": "Genel Şablonlar",
+  "customConf": "Özel *.conf",
   "save": "Kaydet",
   "lang": "Dil",
   "changeLang": "Dili Değiştir",
