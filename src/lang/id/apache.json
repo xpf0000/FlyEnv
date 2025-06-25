@@ -1,0 +1,7 @@
+{
+  "Timeout": "Berapa detik sistem akan menunggu sebelum koneksi dianggap gagal (timeout).",
+  "KeepAlive": "Mengizinkan koneksi tetap terbuka untuk beberapa permintaan (persistent connection).",
+  "KeepAliveTimeout": "Waktu tunggu (dalam detik) untuk permintaan berikutnya dari klien yang sama di koneksi yang sama.",
+  "MaxKeepAliveRequests": "Jumlah maksimal permintaan yang bisa dilakukan dalam satu koneksi yang tetap terbuka.\nKalau diisi 0, artinya tidak dibatasi.\nDisarankan nilainya tetap besar supaya performa lebih baik.",
+  "LimitRequestBody": "Batas maksimal ukuran file yang bisa diunggah (dalam byte). 0 berarti tidak dibatasi."
+}
