@@ -7,7 +7,7 @@
   "startFail": "Gagal untuk memulai, silakan periksa file log.",
   "versionNotFound": "Gagal mendapatkan versi perangkat lunak, operasi gagal.",
   "postgresqlInit": "Layanan berhasil dimulai\nDirektori Data adalah {dir}\nPengguna Awal adalah root, Kata Sandi adalah root.",
-  "downFileFail": "Gagal mengunduh file!",
+  "downloadFileFail": "Gagal mengunduh file!",
   "trialEnd": "Masa percobaan telah berakhir. Untuk terus menggunakan fitur ini, silakan dapatkan lisensi.",
 
   "phpiniNotFound": "php.ini file not found",

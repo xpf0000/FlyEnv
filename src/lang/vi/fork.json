@@ -7,7 +7,7 @@
   "startFail": "Khởi động không thành công, vui lòng kiểm tra tệp nhật ký",
   "versionNotFound": "Không lấy được phiên bản phần mềm, thao tác không thành công.",
   "postgresqlInit": "Dịch vụ đã khởi động thành công\nData Dir là {dir}\nNgười dùng ban đầu là root, Mật khẩu là root",
-  "downFileFail": "Tải xuống tệp không thành công!",
+  "downloadFileFail": "Tải xuống tệp không thành công!",
   "trialEnd": "Thời gian dùng thử đã hết. Để tiếp tục sử dụng tính năng này, vui lòng mua giấy phép",
 
   "phpiniNotFound": "php.ini file not found",

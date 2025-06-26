@@ -214,7 +214,7 @@ export function md5(str: string) {
   return md5.update(str).digest('hex')
 }
 
-export function downFile(url: string, savepath: string) {
+export function downloadFile(url: string, savepath: string) {
   return new ForkPromise((resolve, reject, on) => {
     const proxyUrl =
       Object.values(global?.Server?.Proxy ?? {})?.find((s: string) => s.includes('://')) ?? ''

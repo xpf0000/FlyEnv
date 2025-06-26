@@ -7,7 +7,7 @@
   "startFail": "Échec du démarrage, veuillez vérifier le fichier journal",
   "versionNotFound": "Échec de l'obtention de la version du logiciel, opération échouée.",
   "postgresqlInit": "Service démarré avec succès\nLe répertoire des données est {dir}\nL'utilisateur initial est root, le mot de passe est root",
-  "downFileFail": "Échec du téléchargement du fichier !",
+  "downloadFileFail": "Échec du téléchargement du fichier !",
   "trialEnd": "La période d'essai est expirée. Pour continuer à utiliser cette fonctionnalité, veuillez acquérir une licence.",
 
   "phpiniNotFound": "php.ini file not found",

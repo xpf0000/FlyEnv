@@ -7,7 +7,7 @@
   "startFail": "Başlatılamadı, lütfen günlük dosyasını kontrol edin",
   "versionNotFound": "Yazılım sürümü alınamadı, işlem başarısız.",
   "postgresqlInit": "Servis başarıyla başlatıldı\nVeri Dizin: {dir}\nİlk Kullanıcı: root, Parola: root",
-  "downFileFail": "Dosya indirilemedi!",
+  "downloadFileFail": "Dosya indirilemedi!",
   "trialEnd": "Deneme süresi sona erdi. Bu özelliği kullanmaya devam etmek için lütfen bir lisans edinin",
 
   "phpiniNotFound": "php.ini file not found",

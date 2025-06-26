@@ -7,7 +7,7 @@
   "startFail": "Avvio fallito, controlla il file di log",
   "versionNotFound": "Recupero della versione del software fallito, operazione non riuscita.",
   "postgresqlInit": "Servizio avviato con successo\nCartella dati: {dir}\nUtente iniziale: root, Password: root",
-  "downFileFail": "Download del file fallito!",
+  "downloadFileFail": "Download del file fallito!",
   "trialEnd": "Il periodo di prova è terminato. Per continuare a usare questa funzionalità, richiedi una licenza",
 
   "phpiniNotFound": "php.ini file not found",
