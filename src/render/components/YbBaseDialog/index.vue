@@ -80,12 +80,12 @@
         const data = this.data
         this.vm = VueExtend(this.component, data)
         this.vmInstance = this.vm.mount(this.$refs.contentWapper)
-        this.vmInstance.callBack = this.callBack
+        this.vmInstance.callback = this.callback
       })
     },
     methods: {
       closed() {
-        this.callBack = null
+        this.callback = null
         this.vmInstance = null
         this.vm && this.vm.unmount()
         this.vm = null

@@ -1,4 +1,4 @@
-import type { CallBackFn } from '@shared/app'
+import type { CallbackFn } from '@shared/app'
 
 export interface TaskItem {
   run: () => Promise<boolean>
@@ -24,8 +24,8 @@ export class TaskQueue {
     success: 0,
     successTask: []
   }
-  #progressFn: CallBackFn | undefined = undefined
-  #endFn: CallBackFn | undefined = undefined
+  #progressFn: CallbackFn | undefined = undefined
+  #endFn: CallbackFn | undefined = undefined
 
   constructor(size = 4) {
     this.#runSize = size
@@ -69,12 +69,12 @@ export class TaskQueue {
     return this
   }
 
-  progress(fn: CallBackFn) {
+  progress(fn: CallbackFn) {
     this.#progressFn = fn
     return this
   }
 
-  end(fn: CallBackFn) {
+  end(fn: CallbackFn) {
     this.#endFn = fn
     return this
   }

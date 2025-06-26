@@ -6,3 +6,14 @@ indent_size = 2
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
+[*.sh]
+end_of_line = lf
+
+[*.conf]
+indent_style = space
+indent_size = 4
+insert_final_newline = true

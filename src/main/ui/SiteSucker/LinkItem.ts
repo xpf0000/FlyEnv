@@ -1,4 +1,4 @@
-import type { CallBackFn } from '@shared/app'
+import type { CallbackFn } from '@shared/app'
 
 const NoticeDict: { [k: string]: number } = {}
 
@@ -21,8 +21,8 @@ export type PageLink = {
   retry?: number
 }
 
-export const CallBack: {
-  fn: CallBackFn
+export const Callback: {
+  fn: CallbackFn
 } = {
   fn: () => {}
 }
@@ -48,7 +48,7 @@ export class LinkItem implements PageLink {
     const noticeOrder = NoticeDict?.[this.url] ?? -1
     if (noticeOrder < order) {
       NoticeDict[this.url] = order
-      CallBack.fn({
+      Callback.fn({
         url: this.url,
         state: this._state,
         type: this.type,

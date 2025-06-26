@@ -49,7 +49,7 @@ class Minio extends Base {
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       if (isMacOS()) {
         const bin = join(global.Server.AppDir!, `minio`, 'minio')

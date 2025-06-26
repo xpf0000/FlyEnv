@@ -92,7 +92,7 @@ export function execPromiseSudo(
 }
 
 export const execPromiseWithEnv = (
-  cammand: string,
+  command: string,
   opt?: { [k: string]: any }
 ): Promise<{
   stdout: string
@@ -107,7 +107,7 @@ export const execPromiseWithEnv = (
       if (isMacOS()) {
         option.shell = '/bin/zsh'
       }
-      const res = await execPromise(cammand, merge(option, opt))
+      const res = await execPromise(command, merge(option, opt))
       resolve({
         stdout: res.stdout.toString(),
         stderr: res.stderr.toString()

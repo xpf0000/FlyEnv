@@ -1,5 +1,5 @@
 {
-  "phpiniNoFound": "Fichier php.ini introuvable",
+  "phpiniNotFound": "Fichier php.ini introuvable",
   "editPhpIni": "Modifier php.ini",
   "phpExtensions": "Extensions PHP",
   "copyConfTemplate": "Copier le modèle de configuration",

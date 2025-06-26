@@ -42,11 +42,11 @@ class Redis extends Base {
   initConf(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
       if (!existsSync(version?.bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNoFound')))
+        reject(new Error(I18nT('fork.versionNotFound')))
         return
       }
       this._initConf(version).then(resolve)
@@ -183,7 +183,7 @@ class Redis extends Base {
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('redis')
@@ -254,8 +254,8 @@ class Redis extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = ['redis']
-        const cammand = 'brew search -q --formula "/^redis@[\\d\\.]+$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^redis@[\\d\\.]+$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

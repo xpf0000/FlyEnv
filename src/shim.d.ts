@@ -1,11 +1,11 @@
 import BaseDialog from '@/components/YbBaseDialog/dialog'
 export {}
-type CallBackFn = (...args: any) => void
+type CallbackFn = (...args: any) => void
 declare module 'vue' {
   interface ComponentCustomProperties {
-    callBack?: CallBackFn | null
+    callback?: CallbackFn | null
     $baseDialog(componant: any): BaseDialog
-    $confirm: CallBackFn
+    $confirm: CallbackFn
     $baseLoading(text: string, index?: number): void
     $baseLoadingClose(): void
     $destroy(): void

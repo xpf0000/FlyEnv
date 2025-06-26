@@ -131,9 +131,9 @@ class Manager extends Base {
     const user = item.user
     const pdb = join(global.Server.FTPDir!, 'pureftpd.pdb')
     const passwd = join(global.Server.FTPDir!, 'pureftpd.passwd')
-    const cammand = `./pure-pw userdel ${user} -f ${passwd} -F ${pdb} -m`
+    const command = `./pure-pw userdel ${user} -f ${passwd} -F ${pdb} -m`
     try {
-      await execPromise(cammand, { cwd })
+      await execPromise(command, { cwd })
     } catch {}
   }
 
@@ -141,7 +141,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       const bin = join(version.path, 'bin/pure-pw')
       if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       await this._initConf()
@@ -168,7 +168,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       const bin = join(version.path, 'bin/pure-pw')
       if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       await this._initConf()

@@ -45,14 +45,14 @@ export const Setup = () => {
     if (currentTool.value === 'fnm') {
       FNMSetup.installing = false
       FNMSetup.installEnd = false
-      FNMSetup.xterm?.destory()
+      FNMSetup.xterm?.destroy()
       delete FNMSetup.xterm
       return
     }
     if (currentTool.value === 'nvm') {
       NVMSetup.installing = false
       NVMSetup.installEnd = false
-      NVMSetup.xterm?.destory()
+      NVMSetup.xterm?.destroy()
       delete NVMSetup.xterm
       return
     }
@@ -64,7 +64,7 @@ export const Setup = () => {
       FNMSetup.installing = false
       FNMSetup.installEnd = false
       FNMSetup.xterm?.stop()?.then(() => {
-        FNMSetup.xterm?.destory()
+        FNMSetup.xterm?.destroy()
         delete FNMSetup.xterm
       })
       return
@@ -73,7 +73,7 @@ export const Setup = () => {
       NVMSetup.installing = false
       NVMSetup.installEnd = false
       NVMSetup.xterm?.stop()?.then(() => {
-        NVMSetup.xterm?.destory()
+        NVMSetup.xterm?.destroy()
         delete NVMSetup.xterm
       })
       return

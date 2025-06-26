@@ -134,7 +134,7 @@ class Php extends Base {
           }
         }
       }
-      reject(new Error(I18nT('php.phpiniNoFound')))
+      reject(new Error(I18nT('php.phpiniNotFound')))
     })
   }
 
@@ -233,11 +233,11 @@ xdebug.output_dir = "${output_dir}"
   startService(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       if (!existsSync(version?.bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNoFound')))
+        reject(new Error(I18nT('fork.versionNotFound')))
         return
       }
       try {
@@ -340,7 +340,7 @@ xdebug.output_dir = "${output_dir}"
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('php')
@@ -568,8 +568,8 @@ xdebug.output_dir = "${output_dir}"
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = ['php']
-        const cammand = 'brew search -q --formula "/^(php|shivammathur/php/php)@[\\d\\.]+$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^(php|shivammathur/php/php)@[\\d\\.]+$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

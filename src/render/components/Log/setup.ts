@@ -68,7 +68,7 @@ export const LogSetup = (file: Ref<string>) => {
 
   const logDo = (action: 'open' | 'refresh' | 'clean') => {
     if (!fileExists?.value) {
-      MessageError(I18nT('base.noFoundLogFile'))
+      MessageError(I18nT('base.logFileNotFound'))
       return
     }
     switch (action) {

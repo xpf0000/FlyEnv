@@ -57,7 +57,7 @@ export const AsideSetup = (flag: AllAppModule) => {
   const serviceDisabled = computed(() => {
     const a = !currentVersion?.value?.version
     const b = brewStore.module(flag).installed.some((v) => v.running)
-    const c = !appStore.versionInited
+    const c = !appStore.versionInitiated
     return a || b || c
   })
 

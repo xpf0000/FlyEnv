@@ -1,5 +1,5 @@
 {
-  "phpiniNoFound": "Không tìm thấy tệp php.ini",
+  "phpiniNotFound": "Không tìm thấy tệp php.ini",
   "copyConfTemplate": "Sao chép mẫu cấu hình",
   "extensionCopySuccess": "Liên kết tiện ích mở rộng đã được sao chép vào khay nhớ tạm",
   "xdebugConfCopySuccess": "Mẫu cấu hình xdebug đã được sao chép vào khay nhớ tạm",

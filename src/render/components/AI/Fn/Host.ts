@@ -12,14 +12,14 @@ import { I18nT } from '@lang/index'
 import { handleWriteHosts } from '@/util/Host'
 import { shell } from '@/util/NodeFn'
 
-export function addRandaSite(this: BaseTask) {
+export function addRandomSite(this: BaseTask) {
   return new Promise(async (resolve, reject) => {
     const appStore = AppStore()
     const brewStore = BrewStore()
     const php = brewStore.module('php').installed.find((p) => p.version) ?? {}
     const write = appStore.config.setup?.hosts?.write ?? true
     const ipv6 = appStore.config.setup?.hosts?.ipv6 ?? true
-    IPC.send(`app-fork:host`, 'addRandaSite', JSON.parse(JSON.stringify(php)), write, ipv6).then(
+    IPC.send(`app-fork:host`, 'addRandomSite', JSON.parse(JSON.stringify(php)), write, ipv6).then(
       (key: string, res: any) => {
         IPC.off(key)
         if (res.code === 0) {

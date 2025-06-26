@@ -4,9 +4,9 @@ import LinkTask from './LinkTask'
 import { join } from 'path'
 import { Store } from './Store'
 import { urlToDir } from './Fn'
-import { CallBack, LinkItem, type PageLink } from './LinkItem'
+import { Callback, LinkItem, type PageLink } from './LinkItem'
 import { cpus } from 'os'
-import type { CallBackFn } from '@shared/app'
+import type { CallbackFn } from '@shared/app'
 
 const CPU_Count = cpus().length
 
@@ -15,11 +15,11 @@ type RunParams = {
   config: RunConfig
 }
 class SiteSucker {
-  setCallBack(fn: CallBackFn) {
-    CallBack.fn = fn
+  setCallback(fn: CallbackFn) {
+    Callback.fn = fn
   }
   show(item: RunParams) {
-    this.destory()
+    this.destroy()
     let url = item.url
     const urlObj = new URL(url)
     urlObj.hash = ''
@@ -49,9 +49,9 @@ class SiteSucker {
     PageTask.updateConfig()
   }
 
-  destory() {
-    PageTask.destory()
-    LinkTask.destory()
+  destroy() {
+    PageTask.destroy()
+    LinkTask.destroy()
     Store.reinit()
   }
 }

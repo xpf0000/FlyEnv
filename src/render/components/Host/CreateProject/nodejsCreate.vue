@@ -221,7 +221,7 @@
     const execXTerm = ProjectSetup.execing.NodeJS
     execXTerm?.unmounted()
     if (created.value) {
-      execXTerm?.destory()
+      execXTerm?.destroy()
       created.value = false
       loading.value = false
       delete ProjectSetup.execing.NodeJS
@@ -235,7 +235,7 @@
     }
     const execXTerm = ProjectSetup.execing.NodeJS
     execXTerm?.stop()?.then(() => {
-      execXTerm?.destory()
+      execXTerm?.destroy()
       created.value = false
       loading.value = false
       delete ProjectSetup.execing.NodeJS
@@ -243,7 +243,7 @@
   }
 
   const doEnd = () => {
-    ProjectSetup.execing.NodeJS?.destory()
+    ProjectSetup.execing.NodeJS?.destroy()
     delete ProjectSetup.execing.NodeJS
     shell.openPath(ProjectSetup.form.NodeJS.dir)
     show.value = false

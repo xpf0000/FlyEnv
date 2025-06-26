@@ -1,5 +1,5 @@
 {
-  "phpiniNoFound": "php.ini-filen hittades inte",
+  "phpiniNotFound": "php.ini-filen hittades inte",
   "copyConfTemplate": "Kopiera konfigurationsmall",
   "extensionCopySuccess": "Tilläggslänk kopierad till urklipp",
   "xdebugConfCopySuccess": "XDebug-konfigurationsmall kopierad till urklipp",

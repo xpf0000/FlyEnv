@@ -28,7 +28,7 @@ export const SetupAll = () => {
     if (OllamaModelsSetup.tab === 'all') {
       OllamaAllModelsSetup.installing = false
       OllamaAllModelsSetup.installEnd = false
-      OllamaAllModelsSetup.xterm?.destory()
+      OllamaAllModelsSetup.xterm?.destroy()
       delete OllamaAllModelsSetup.xterm
       OllamaLocalModelsSetup.reFetch()
       return
@@ -40,7 +40,7 @@ export const SetupAll = () => {
       OllamaAllModelsSetup.installing = false
       OllamaAllModelsSetup.installEnd = false
       OllamaAllModelsSetup.xterm?.stop()?.then(() => {
-        OllamaAllModelsSetup.xterm?.destory()
+        OllamaAllModelsSetup.xterm?.destroy()
         delete OllamaAllModelsSetup.xterm
       })
       return

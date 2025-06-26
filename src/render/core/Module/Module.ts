@@ -1,6 +1,6 @@
 import { computed, reactive, watch } from 'vue'
 import type { AllAppModule, AppModuleEnum } from '@/core/type'
-import type { CallBackFn, SoftInstalled } from '@shared/app'
+import type { CallbackFn, SoftInstalled } from '@shared/app'
 import { AppStore } from '@/store/app'
 import IPC from '@/util/IPC'
 import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
@@ -63,7 +63,7 @@ export class Module {
     })
   }
 
-  private _fetchInstalledResolves: CallBackFn[] = []
+  private _fetchInstalledResolves: CallbackFn[] = []
 
   fetchInstalled(): Promise<boolean> {
     return new Promise((resolve) => {

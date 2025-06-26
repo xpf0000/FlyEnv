@@ -1,9 +1,9 @@
-let hasInited = false
+let hasInitiated = false
 export function useCopyCode() {
-  if (hasInited) {
+  if (hasInitiated) {
     return
   }
-  hasInited = true
+  hasInitiated = true
   const timeoutIdMap: WeakMap<HTMLElement, NodeJS.Timeout> = new WeakMap()
   window.addEventListener('click', (e) => {
     const el = e.target as HTMLElement

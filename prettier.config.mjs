@@ -15,5 +15,5 @@ export default {
   requirePragma: false,
   proseWrap: 'never',
   htmlWhitespaceSensitivity: 'strict',
-  endOfLine: 'lf'
+  endOfLine: 'auto' // Use 'auto' to handle different OS line endings
 }

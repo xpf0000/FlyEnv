@@ -1,5 +1,5 @@
 {
-  "phpiniNoFound": "php.ini文件获取失败",
+  "phpiniNotFound": "php.ini文件获取失败",
   "copyConfTemplate": "复制配置模板",
   "extensionCopySuccess": "扩展链接已复制到剪贴板",
   "xdebugConfCopySuccess": "xdebug配置模板已复制到剪贴板",

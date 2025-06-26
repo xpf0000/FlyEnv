@@ -23,7 +23,7 @@ import {
   chmod,
   remove,
   serviceStartExecCMD,
-  zipUnPack,
+  zipUnpack,
   moveChildDirToParent
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -275,7 +275,7 @@ datadir=${dataDir}`
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mariadb')
@@ -355,7 +355,7 @@ datadir=${dataDir}`
     if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     }
   }
@@ -364,8 +364,8 @@ datadir=${dataDir}`
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = ['mariadb']
-        const cammand = 'brew search -q --formula "/mariadb@[\\d\\.]+$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/mariadb@[\\d\\.]+$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

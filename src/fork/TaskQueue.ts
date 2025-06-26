@@ -1,5 +1,5 @@
 import { cpus } from 'os'
-import type { CallBackFn } from '@shared/app'
+import type { CallbackFn } from '@shared/app'
 
 interface TaskItem {
   item: (...args: any) => Promise<any>
@@ -7,7 +7,7 @@ interface TaskItem {
   state: 'wait' | 'running'
 }
 class TaskQueue {
-  private callBack: WeakMap<TaskItem, { resolve: CallBackFn; reject: CallBackFn }> = new WeakMap()
+  private callback: WeakMap<TaskItem, { resolve: CallbackFn; reject: CallbackFn }> = new WeakMap()
   #queue: Array<TaskItem> = []
   #runQueue: Array<TaskItem> = []
   #runSize = 4
@@ -40,7 +40,7 @@ class TaskQueue {
       if (taskItem.state === 'wait') {
         taskItem.state = 'running'
         const item = taskItem.item
-        const { resolve, reject } = this.callBack.get(taskItem)!
+        const { resolve, reject } = this.callback.get(taskItem)!
         item(...taskItem.param)
           .then((...args) => {
             resolve(...args)
@@ -53,7 +53,7 @@ class TaskQueue {
             if (index >= 0) {
               this.#runQueue.splice(index, 1)
             }
-            this.callBack.delete(taskItem)
+            this.callback.delete(taskItem)
             this.#_handle()
           })
       }
@@ -67,7 +67,7 @@ class TaskQueue {
         param: args ?? [],
         state: 'wait'
       }
-      this.callBack.set(obj, { resolve, reject })
+      this.callback.set(obj, { resolve, reject })
       if (this.#runQueue.length >= this.#runSize) {
         this.#queue.push(obj)
       } else {

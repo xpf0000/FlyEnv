@@ -670,7 +670,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mysql')
@@ -755,8 +755,8 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = ['mysql']
-        const cammand = 'brew search -q --formula "/^mysql@[\\d\\.]+$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^mysql@[\\d\\.]+$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

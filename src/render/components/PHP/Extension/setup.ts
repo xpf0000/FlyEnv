@@ -44,7 +44,7 @@ export const Setup = (version: SoftInstalled) => {
     if (lib.value === 'homebrew') {
       BrewSetup.installing = false
       BrewSetup.installEnd = false
-      BrewSetup.xterm?.destory()
+      BrewSetup.xterm?.destroy()
       delete BrewSetup.xterm
       return
     }
@@ -52,7 +52,7 @@ export const Setup = (version: SoftInstalled) => {
     if (lib.value === 'macports') {
       MacPortsSetup.installing = false
       MacPortsSetup.installEnd = false
-      MacPortsSetup.xterm?.destory()
+      MacPortsSetup.xterm?.destroy()
       delete MacPortsSetup.xterm
       return
     }
@@ -63,7 +63,7 @@ export const Setup = (version: SoftInstalled) => {
       BrewSetup.installing = false
       BrewSetup.installEnd = false
       BrewSetup.xterm?.stop()?.then(() => {
-        BrewSetup.xterm?.destory()
+        BrewSetup.xterm?.destroy()
         delete BrewSetup.xterm
       })
       return
@@ -73,7 +73,7 @@ export const Setup = (version: SoftInstalled) => {
       MacPortsSetup.installing = false
       MacPortsSetup.installEnd = false
       MacPortsSetup.xterm?.stop()?.then(() => {
-        MacPortsSetup.xterm?.destory()
+        MacPortsSetup.xterm?.destroy()
         delete MacPortsSetup.xterm
       })
       return

@@ -31,3 +31,4 @@ yarn-error.log
 .vscode/settings.json
 src/main/lang/index.ts
 /data
+package-lock.json

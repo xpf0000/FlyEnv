@@ -69,14 +69,14 @@ class TourClass {
   rect?: DOMRect
   updateRect?: Function
 
-  private endCallBack?: Function
+  private endCallback?: Function
 
   constructor() {
     this.group = {}
   }
 
   onHide(cb: Function) {
-    this.endCallBack = cb
+    this.endCallback = cb
   }
 
   groupShow(key: string) {
@@ -117,7 +117,7 @@ class TourClass {
     this?.poper?.remove()
     this?.maskVM?.unmount()
     this?.mask?.remove()
-    this.endCallBack && this.endCallBack()
+    this.endCallback && this.endCallback()
   }
 }
 

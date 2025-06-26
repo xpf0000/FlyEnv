@@ -75,7 +75,7 @@
   import { EventBus } from '@/global'
   import { AppCustomerModule } from '@/core/Module'
   import CustomerModule from '@/components/CustomerModule/aside.vue'
-  import type { CallBackFn } from '@shared/app'
+  import type { CallbackFn } from '@shared/app'
 
   let lastTray = ''
 
@@ -248,11 +248,11 @@
     const modules = Object.values(AppServiceModule)
     const allDisabled = modules.every((m) => !!m?.serviceDisabled)
     const running = modules.some((m) => !!m?.serviceFetching)
-    console.log('groupDisabled', allDisabled, running, appStore.versionInited)
+    console.log('groupDisabled', allDisabled, running, appStore.versionInitiated)
     return (
       allDisabled ||
       running ||
-      !appStore.versionInited ||
+      !appStore.versionInitiated ||
       allCustomerServiceModuleExecItem.value.some((s) => s.running)
     )
   })
@@ -418,7 +418,7 @@
       AppServiceModule.php?.switchChange()
       return
     }
-    const fns: { [k: string]: CallBackFn } = {
+    const fns: { [k: string]: CallbackFn } = {
       groupDo,
       switchChange
     }
@@ -426,12 +426,12 @@
   })
 
   let autoStarted = false
-  let helperInited = false
+  let helperInitiated = false
   watch(
     groupDisabled,
     (v) => {
       if (!v) {
-        if (autoStarted || !helperInited) {
+        if (autoStarted || !helperInitiated) {
           return
         }
         if (appStore.config.setup?.autoStartService === true) {
@@ -447,7 +447,7 @@
 
   EventBus.on('APP-Helper-Check-Success', () => {
     console.log('EventBus on APP-Helper-Check-Success !!!')
-    helperInited = true
+    helperInitiated = true
     if (appStore.config.setup?.autoStartService === true && !autoStarted && !groupDisabled.value) {
       autoStarted = true
       groupDo()

@@ -1,15 +1,15 @@
 {
-  "binNoFound": "Tệp khởi động không tồn tại, thao tác không thành công.",
-  "confNoFound": "Tệp cấu hình không tồn tại, máy chủ không khởi động được",
+  "binNotFound": "Tệp khởi động không tồn tại, thao tác không thành công.",
+  "confNotFound": "Tệp cấu hình không tồn tại, máy chủ không khởi động được",
   "apacheLogPathErr": "Đường dẫn nhật ký của tệp cấu hình không đúng, và việc chuyển đổi không thành công",
   "versionError": "Phiên bản không đúng, vui lòng chọn lại",
-  "hostsFileNoFound": "Tệp hosts không tồn tại",
+  "hostsFileNotFound": "Tệp hosts không tồn tại",
   "startFail": "Khởi động không thành công, vui lòng kiểm tra tệp nhật ký",
-  "versionNoFound": "Không lấy được phiên bản phần mềm, thao tác không thành công.",
+  "versionNotFound": "Không lấy được phiên bản phần mềm, thao tác không thành công.",
   "postgresqlInit": "Dịch vụ đã khởi động thành công\nData Dir là {dir}\nNgười dùng ban đầu là root, Mật khẩu là root",
-  "downFileFail": "Tải xuống tệp không thành công!",
+  "downloadFileFail": "Tải xuống tệp không thành công!",
   "trialEnd": "Thời gian dùng thử đã hết. Để tiếp tục sử dụng tính năng này, vui lòng mua giấy phép",
 
-  "phpiniNoFound": "php.ini file not found",
+  "phpiniNotFound": "php.ini file not found",
   "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

@@ -23,7 +23,7 @@ import {
   readdir,
   execPromise,
   remove,
-  zipUnPack,
+  zipUnpack,
   moveChildDirToParent
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
@@ -42,8 +42,8 @@ class Tomcat extends Base {
     this.pidPath = join(global.Server.BaseDir!, 'tomcat/tomcat.pid')
   }
 
-  fetchAllOnLineVersion() {
-    console.log('Tomcat fetchAllOnLineVersion !!!')
+  fetchAllOnlineVersion() {
+    console.log('Tomcat fetchAllOnlineVersion !!!')
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('tomcat')
@@ -311,7 +311,7 @@ export CATALINA_PID="${this.pidPath}"`
     } else if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     }
   }
@@ -320,8 +320,8 @@ export CATALINA_PID="${this.pidPath}"`
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const cammand = 'brew search -q --formula "/^tomcat((@[\\d\\.]+)?)$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^tomcat((@[\\d\\.]+)?)$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

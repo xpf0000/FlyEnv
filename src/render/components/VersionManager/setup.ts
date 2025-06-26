@@ -65,7 +65,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'brew') {
       BrewSetup.installing = false
       BrewSetup.installEnd = false
-      BrewSetup.xterm?.destory()
+      BrewSetup.xterm?.destroy()
       delete BrewSetup.xterm
       BrewSetup.checkBrew()
       return
@@ -74,7 +74,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
     if (libSrc.value === 'port') {
       MacPortsSetup.installing = false
       MacPortsSetup.installEnd = false
-      MacPortsSetup.xterm?.destory()
+      MacPortsSetup.xterm?.destroy()
       delete MacPortsSetup.xterm
       MacPortsSetup.checkMacPorts()
       return
@@ -87,7 +87,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
       BrewSetup.installing = false
       BrewSetup.installEnd = false
       BrewSetup.xterm?.stop()?.then(() => {
-        BrewSetup.xterm?.destory()
+        BrewSetup.xterm?.destroy()
         delete BrewSetup.xterm
       })
       return
@@ -97,7 +97,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
       MacPortsSetup.installing = false
       MacPortsSetup.installEnd = false
       MacPortsSetup.xterm?.stop()?.then(() => {
-        MacPortsSetup.xterm?.destory()
+        MacPortsSetup.xterm?.destroy()
         delete MacPortsSetup.xterm
       })
       return

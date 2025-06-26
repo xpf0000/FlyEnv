@@ -74,7 +74,7 @@
     return (
       phpVersions?.value?.length === 0 ||
       phpVersions?.value?.some((v) => v.running) ||
-      !appStore.versionInited
+      !appStore.versionInitiated
     )
   })
 
