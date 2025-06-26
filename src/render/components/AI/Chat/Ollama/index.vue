@@ -182,12 +182,12 @@
     speaking.value = undefined
   }
 
-  let isInited = false
+  let isInitiated = false
   let renderTimer: any
   const needScroll = ref(false)
   const showToBottomBtn = ref(false)
   const onItemRender = (role: string, order: 'before' | 'after') => {
-    if (isInited) {
+    if (isInitiated) {
       if (role === 'user' && order === 'after') {
         bottom.value?.scrollIntoView({
           behavior: 'auto',
@@ -207,7 +207,7 @@
     if (order === 'after') {
       clearTimeout(renderTimer)
       renderTimer = setTimeout(() => {
-        isInited = true
+        isInitiated = true
       }, 500)
       bottom.value?.scrollIntoView({
         behavior: 'auto',

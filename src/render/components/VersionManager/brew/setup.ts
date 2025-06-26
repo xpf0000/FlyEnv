@@ -85,7 +85,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     const module = brewStore.module(typeFlag)
     if (module.brew.length === 0) {
       if (typeFlag === 'php') {
-        if (!appStore?.config?.setup?.phpBrewInited) {
+        if (!appStore?.config?.setup?.phpBrewInitiated) {
           /**
            * First, fetch the installed PHP versions, and simultaneously install the shivammathur/php repository.
            * After a successful installation, refresh the data.
@@ -94,17 +94,17 @@ export const Setup = (typeFlag: AllAppModule) => {
            */
           IPC.send('app-fork:brew', 'addTap', 'shivammathur/php').then((key: string, res: any) => {
             IPC.off(key)
-            appStore.config.setup.phpBrewInited = true
+            appStore.config.setup.phpBrewInitiated = true
             appStore.saveConfig().catch()
             if (res?.data === 2) {
               fetchData()
             }
           })
         }
-      } else if (typeFlag === 'mongodb' && !appStore?.config?.setup?.mongodbBrewInited) {
+      } else if (typeFlag === 'mongodb' && !appStore?.config?.setup?.mongodbBrewInitiated) {
         IPC.send('app-fork:brew', 'addTap', 'mongodb/brew').then((key: string, res: any) => {
           IPC.off(key)
-          appStore.config.setup.mongodbBrewInited = true
+          appStore.config.setup.mongodbBrewInitiated = true
           appStore.saveConfig().catch()
           if (res?.data === 2) {
             fetchData()
