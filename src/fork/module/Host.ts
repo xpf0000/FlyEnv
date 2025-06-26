@@ -18,7 +18,7 @@ import { makeCaddyConf, updateCaddyConf } from './host/Caddy'
 import { makeApacheConf, updateApacheConf } from './host/Apache'
 import { autoFillNginxRewrite, makeNginxConf, updateNginxConf } from './host/Nginx'
 import { setDirRole, updateAutoSSL, updateRootRule } from './host/Host'
-import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
+import { TaskAddPhpMyAdminSite, TaskAddRandomSite } from './host/Task'
 import { publicDecrypt } from 'crypto'
 import { fetchHostList, saveHostList } from './host/HostFile'
 import Helper from '../Helper'
@@ -449,8 +449,8 @@ export class Host extends Base {
     })
   }
 
-  addRandaSite(version?: SoftInstalled) {
-    return TaskAddRandaSite.call(this, version)
+  addRandomSite(version?: SoftInstalled) {
+    return TaskAddRandomSite.call(this, version)
   }
 
   addPhpMyAdminSite(phpVersion?: number) {

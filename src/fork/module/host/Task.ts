@@ -19,7 +19,7 @@ import {
 import { fetchHostList } from './HostFile'
 import { isWindows } from '@shared/utils'
 
-export function TaskAddRandaSite(this: any, version?: SoftInstalled, write = true, ipv6 = true) {
+export function TaskAddRandomSite(this: any, version?: SoftInstalled, write = true, ipv6 = true) {
   return new ForkPromise(async (resolve, reject) => {
     const baseName = join(global.Server.BaseDir!, 'www')
     let host = `test.com`
