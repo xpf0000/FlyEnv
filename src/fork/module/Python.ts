@@ -42,7 +42,7 @@ class Python extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          a.type = 'maven'
+          a.name = `Python-${a.version}`
         })
         resolve(all)
       } catch (e) {

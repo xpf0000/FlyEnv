@@ -49,7 +49,7 @@ class Perl extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          a.name = `perl-${a.version}`
+          a.name = `Perl-${a.version}`
         })
         resolve(all)
       } catch {

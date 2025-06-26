@@ -235,10 +235,10 @@ subjectAltName=@alt_names
       console.log('pids: ', pids)
       const all = await ProcessPidList()
       for (const pid of pids) {
-        const find = all.find((a) => `${a.PPID}` === `${pid}`)
+        const find = all.find((a) => `${a.PID}` === `${pid}`)
         if (find) {
           arr.push({
-            PID: find.PPID,
+            PID: find.PID,
             COMMAND: find.COMMAND
           })
         }

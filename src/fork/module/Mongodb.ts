@@ -234,6 +234,7 @@ class Manager extends Base {
 
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir) || existsSync(dirOld)
+          a.name = `MongoDB-${a.version}`
         })
         resolve(all)
       } catch {

@@ -6,7 +6,7 @@
       <el-popover popper-class="dns-tips-popper" :show-after="800" width="auto">
         <template #default>
           <div>
-            {{ I18nT('host.dnsInfo', { ip: `@${ip}` }) }}
+            {{ $t('host.dnsInfo', { ip: `@${ip}`, ipWin: ip }) }}
           </div>
         </template>
         <template #reference>
@@ -80,7 +80,7 @@
     return dnsStore.fetching
   })
   const links = computed(() => {
-    return []
+    return dnsStore.log
   })
   const columns: Column[] = [
     {

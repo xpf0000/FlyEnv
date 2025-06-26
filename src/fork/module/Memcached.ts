@@ -100,6 +100,7 @@ class Memcached extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
+          a.name = `Memcached-${a.version}`
         })
         resolve(all)
       } catch {

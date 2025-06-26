@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import { join } from '@/util/path-browserify'
@@ -20,5 +20,12 @@
   }>()
 
   const log = ref()
-  const filepath = ref(join(window.Server.NginxDir!, `common/logs/${props.type}.log`))
+  const filepath = computed(() => {
+    if (window.Server.isMacOS) {
+      return join(window.Server.NginxDir!, `common/logs/${props.type}.log`)
+    } else if (window.Server.isWindows) {
+      return join(window.Server.NginxDir!, `logs/${props.type}.log`)
+    }
+    return ''
+  })
 </script>

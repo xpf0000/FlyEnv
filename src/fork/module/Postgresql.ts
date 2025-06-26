@@ -305,6 +305,7 @@ export LANG="${global.Server.Local!}"
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
+          a.name = `PostgreSQL-${a.version}`
         })
         resolve(all)
       } catch {

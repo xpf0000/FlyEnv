@@ -206,20 +206,6 @@ IncludeOptional "${vhost}*.conf"`
   }
 
   async #handleListenPort(version: SoftInstalled) {
-    let lsal: any = await execPromise(`ls -al`, {
-      cwd: global.Server.BaseDir
-    })
-    lsal = lsal.stdout
-      .split('\n')
-      .filter((s: string) => s.includes('..'))
-      .pop()
-      .split(' ')
-      .filter((s: string) => !!s.trim())
-      .map((s: string) => s.trim())
-    console.log('lsal: ', lsal)
-    const user = lsal[2]
-    const group = lsal[3]
-
     let host: Array<AppHost> = []
     try {
       host = await fetchHostList()
@@ -289,8 +275,24 @@ IncludeOptional "${vhost}*.conf"`
       .trim()
     const txts: Array<string> = Array.from(allNeedPort).map((s) => `Listen ${s}`)
     txts.unshift('#FlyEnv-Apache-Listen-Begin#')
-    txts.push(`User ${user}`)
-    txts.push(`Group ${group}`)
+    if (!isWindows()) {
+      let lsal: any = await execPromise(`ls -al`, {
+        cwd: global.Server.BaseDir
+      })
+      lsal = lsal.stdout
+        .split('\n')
+        .filter((s: string) => s.includes('..'))
+        .pop()
+        .split(' ')
+        .filter((s: string) => !!s.trim())
+        .map((s: string) => s.trim())
+      console.log('lsal: ', lsal)
+      const user = lsal[2]
+      const group = lsal[3]
+
+      txts.push(`User ${user}`)
+      txts.push(`Group ${group}`)
+    }
     txts.push('#FlyEnv-Apache-Listen-End#')
     confContent = txts.join('\n') + '\n' + confContent
 
@@ -388,6 +390,7 @@ IncludeOptional "${vhost}*.conf"`
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
+          a.name = `Apache-${a.version}`
         })
         resolve(all)
       } catch {

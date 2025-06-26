@@ -35,6 +35,7 @@ class Erlang extends Base {
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
           a.type = 'erlang'
+          a.name = `Erlang-${a.version}`
         })
         resolve(all)
       } catch (e) {

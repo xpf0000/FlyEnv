@@ -43,6 +43,7 @@ class BaseManager {
   Deno: any
   Bun: any
   Perl: any
+  DNS: any
 
   constructor() {}
 
@@ -333,6 +334,12 @@ class BaseManager {
         this.Perl = res.default
       }
       doRun(this.Perl)
+    } else if (module === 'dns') {
+      if (!this.DNS) {
+        const res = await import('./module/DNS')
+        this.DNS = res.default
+      }
+      doRun(this.DNS)
     } else {
       ProcessSendError(ipcCommandKey, 'No Found Module')
     }

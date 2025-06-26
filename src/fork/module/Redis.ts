@@ -200,6 +200,7 @@ class Redis extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
+          a.name = `Redis-${a.version}`
         })
         resolve(all)
       } catch {

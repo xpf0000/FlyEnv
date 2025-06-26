@@ -293,6 +293,7 @@ datadir=${dataDir}`
             'bin/mariadbd.exe'
           )
           a.installed = existsSync(dir) || existsSync(oldDir)
+          a.name = `MariaDB-${a.version}`
         })
         resolve(all)
       } catch {
