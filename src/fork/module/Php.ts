@@ -568,8 +568,8 @@ xdebug.output_dir = "${output_dir}"
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = ['php']
-        const cammand = 'brew search -q --formula "/^(php|shivammathur/php/php)@[\\d\\.]+$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^(php|shivammathur/php/php)@[\\d\\.]+$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

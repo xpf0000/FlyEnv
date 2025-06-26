@@ -107,8 +107,8 @@ class Erlang extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = ['erlang']
-        const cammand = 'brew search -q --formula "/^erlang@[\\d\\.]+$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^erlang@[\\d\\.]+$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

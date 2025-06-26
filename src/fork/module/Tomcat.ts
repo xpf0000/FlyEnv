@@ -320,8 +320,8 @@ export CATALINA_PID="${this.pidPath}"`
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const cammand = 'brew search -q --formula "/^tomcat((@[\\d\\.]+)?)$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^tomcat((@[\\d\\.]+)?)$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

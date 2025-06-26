@@ -302,9 +302,9 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const cammand =
+        const command =
           'brew search -q --desc --eval-all --formula "High-performance, schema-free, document-oriented database"'
-        all = await brewSearch(all, cammand, (content) => {
+        all = await brewSearch(all, command, (content) => {
           content = content
             .replace('==> Formulae', '')
             .replace(

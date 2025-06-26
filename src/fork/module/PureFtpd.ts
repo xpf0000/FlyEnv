@@ -131,9 +131,9 @@ class Manager extends Base {
     const user = item.user
     const pdb = join(global.Server.FTPDir!, 'pureftpd.pdb')
     const passwd = join(global.Server.FTPDir!, 'pureftpd.passwd')
-    const cammand = `./pure-pw userdel ${user} -f ${passwd} -F ${pdb} -m`
+    const command = `./pure-pw userdel ${user} -f ${passwd} -F ${pdb} -m`
     try {
-      await execPromise(cammand, { cwd })
+      await execPromise(command, { cwd })
     } catch {}
   }
 

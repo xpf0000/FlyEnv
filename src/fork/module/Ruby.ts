@@ -106,9 +106,9 @@ class Ruby extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = ['ruby']
-        const cammand = 'brew search -q --formula "/^ruby@[\\d\\.]+$/"'
-        console.log('brewinfo cammand: ', cammand)
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^ruby@[\\d\\.]+$/"'
+        console.log('brewinfo command: ', command)
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {

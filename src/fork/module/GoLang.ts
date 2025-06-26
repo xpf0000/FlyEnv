@@ -121,8 +121,8 @@ class GoLang extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         let all: Array<string> = []
-        const cammand = 'brew search -q --formula "/^go$/"'
-        all = await brewSearch(all, cammand)
+        const command = 'brew search -q --formula "/^go$/"'
+        all = await brewSearch(all, command)
         const info = await brewInfoJson(all)
         resolve(info)
       } catch (e) {
