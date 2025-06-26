@@ -165,7 +165,7 @@ class XTerm implements XTermType {
     this.logs.splice(0)
   }
 
-  destory() {
+  destroy() {
     if (this.ptyKey) {
       IPC.off(`NodePty:data:${this.ptyKey}`)
     }

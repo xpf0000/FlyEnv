@@ -19,7 +19,7 @@ class SiteSucker {
     Callback.fn = fn
   }
   show(item: RunParams) {
-    this.destory()
+    this.destroy()
     let url = item.url
     const urlObj = new URL(url)
     urlObj.hash = ''
@@ -49,9 +49,9 @@ class SiteSucker {
     PageTask.updateConfig()
   }
 
-  destory() {
-    PageTask.destory()
-    LinkTask.destory()
+  destroy() {
+    PageTask.destroy()
+    LinkTask.destroy()
     Store.reinit()
   }
 }
