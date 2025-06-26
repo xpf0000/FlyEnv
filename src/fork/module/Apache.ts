@@ -1,4 +1,4 @@
-import { dirname, join, basename } from 'path'
+import { dirname, join, isAbsolute } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
@@ -81,7 +81,7 @@ class Apache extends Base {
       // Get the default configuration file path for httpd
       let str = ''
       try {
-        const res = await execPromise(`${basename(bin)} -V`, {
+        const res = await execPromise(`"${bin}" -V`, {
           cwd: dirname(bin)
         })
         str = res?.stdout?.toString() ?? ''
@@ -100,8 +100,9 @@ class Apache extends Base {
         file = reg?.exec?.(str)?.[2] ?? ''
       } catch {}
       file = file.trim()
-      file = join(version.path, file)
-
+      if (!isAbsolute(file)) {
+        file = join(version.path, file)
+      }
       console.log('file: ', file)
 
       if (!file || !existsSync(file)) {
@@ -153,7 +154,7 @@ class Apache extends Base {
       if (logPath) {
         let logPathReplace = ''
         if (isMacOS()) {
-          logPathReplace = join(window.Server.ApacheDir, `common/logs/access.log`)
+          logPathReplace = join(global.Server.ApacheDir, `common/logs/access_log`)
         } else if (isWindows()) {
           logPathReplace = pathFixedToUnix(
             join(global.Server.ApacheDir!, `${version.version}.access.log`)
@@ -165,7 +166,7 @@ class Apache extends Base {
       if (errLogPath) {
         let errLogPathReplace = ''
         if (isMacOS()) {
-          errLogPathReplace = join(window.Server.ApacheDir, `common/logs/error.log`)
+          errLogPathReplace = join(global.Server.ApacheDir, `common/logs/error_log`)
         } else if (isWindows()) {
           errLogPathReplace = pathFixedToUnix(
             join(global.Server.ApacheDir!, `${version.version}.error.log`)
@@ -186,6 +187,13 @@ class Apache extends Base {
       content = content.replace(find?.[0] ?? '###@@@&&&', '\n#User _www\n')
       find = content.match(/\nGroup _www(.*?)\n/g)
       content = content.replace(find?.[0] ?? '###@@@&&&', '\n#Group _www\n')
+
+      if (isMacOS()) {
+        const regex = /\n\s*Mutex /g
+        if (!regex.test(content)) {
+          content = 'Mutex posixsem default\n' + content
+        }
+      }
 
       const pidFile = pathFixedToUnix(join(global.Server.ApacheDir!, 'httpd.pid'))
       let vhost = join(global.Server.BaseDir!, 'vhost/apache/')
@@ -352,7 +360,7 @@ IncludeOptional "${vhost}*.conf"`
           return
         }
       } else {
-        const logFile = join(window.Server.ApacheDir, `common/logs/access.log`)
+        const logFile = join(global.Server.ApacheDir, `common/logs/access_log`)
         const baseDir = global.Server.ApacheDir!
         const execEnv = ``
         const execArgs = `-f "${conf}" -c "PidFile \"${pidFile}\"" -c "CustomLog \"${logFile}\" common" -k start`

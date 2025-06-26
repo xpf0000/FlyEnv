@@ -10,11 +10,18 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import { join } from '@/util/path-browserify'
+  import { BrewStore } from '@/store/brew'
 
   const log = ref()
-  const filepath = ref(join(window.Server.BaseDir!, `ollama/ollama.log`))
+  const brewStore = BrewStore()
+  const version = computed(() => {
+    return brewStore.currentVersion('ollama')
+  })
+  const filepath = computed(() => {
+    return join(window.Server.BaseDir!, `ollama/ollama-${version?.value?.version}-start-error.log`)
+  })
 </script>

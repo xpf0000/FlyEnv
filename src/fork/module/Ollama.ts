@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { dirname, join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -230,7 +230,7 @@ class Ollama extends Base {
             TaskQueue.run(
               versionBinVersion,
               item.bin,
-              `${basename(item.bin)} -v`,
+              `"${item.bin}" -v`,
               /( )(\d+(\.\d+){1,4})(.*?)/g
             )
           )

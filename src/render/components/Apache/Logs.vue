@@ -31,7 +31,7 @@
       return ''
     }
     if (window.Server.isMacOS) {
-      return join(window.Server.ApacheDir!, `common/logs/${props.type}.log`)
+      return join(window.Server.ApacheDir!, `common/logs/${props.type}_log`)
     }
     if (window.Server.isWindows) {
       return join(window.Server.ApacheDir, `${version.value.version}.${props.type}.log`)
