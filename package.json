@@ -15,9 +15,6 @@
   },
   "type": "module",
   "main": "./dist/electron/main.mjs",
-  "optionalDependencies": {
-    "fsevents": "*"
-  },
   "license": "MIT",
   "dependencies": {
     "7zip-min-electron": "^1.4.4",
@@ -80,8 +77,6 @@
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",
     "@babel/register": "^7.27.1",
-    "@electron/notarize": "^3.0.1",
-    "@electron/osx-sign": "^2.0.0",
     "@element-plus/icons-vue": "^2.3.1",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.29.0",
@@ -192,5 +187,10 @@
     "vue-router": "^4.5.1",
     "vue-tsc": "^2.2.10",
     "yamljs": "^0.3.0"
+  },
+  "optionalDependencies": {
+    "fsevents": "*",
+    "@electron/notarize": "^3.0.1",
+    "@electron/osx-sign": "^2.0.0"
   }
 }
