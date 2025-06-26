@@ -90,11 +90,11 @@ export class Base {
   startService(version: SoftInstalled, ...args: any) {
     return new ForkPromise(async (resolve, reject, on) => {
       if (!isWindows() && !existsSync(version?.bin) && version.typeFlag !== 'ftp-srv') {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNoFound')))
+        reject(new Error(I18nT('fork.versionNotFound')))
         return
       }
       try {

@@ -1,5 +1,5 @@
 {
-  "phpiniNoFound": "php.iniファイルが見つかりません",
+  "phpiniNotFound": "php.iniファイルが見つかりません",
   "editPhpIni": "php.iniを編集",
   "phpExtensions": "PHP拡張機能",
   "copyConfTemplate": "設定テンプレートをコピー",

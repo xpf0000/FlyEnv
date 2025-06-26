@@ -111,7 +111,7 @@ class Apache extends Base {
             I18nT('appLog.confInitFail', { error: I18nT('appLog.confInitFail') })
           )
         })
-        reject(new Error(I18nT('fork.confNoFound')))
+        reject(new Error(I18nT('fork.confNotFound')))
         return
       }
 
@@ -323,9 +323,9 @@ IncludeOptional "${vhost}*.conf"`
 
       if (!existsSync(conf)) {
         on({
-          'APP-On-Log': AppLog('error', I18nT('fork.confNoFound'))
+          'APP-On-Log': AppLog('error', I18nT('fork.confNotFound'))
         })
-        reject(new Error(I18nT('fork.confNoFound')))
+        reject(new Error(I18nT('fork.confNotFound')))
         return
       }
 

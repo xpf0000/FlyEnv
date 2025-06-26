@@ -1,15 +1,15 @@
 {
-  "binNoFound": "起動ファイルが存在しません。操作に失敗しました。",
-  "confNoFound": "設定ファイルが存在しません。サーバーの起動に失敗しました",
+  "binNotFound": "起動ファイルが存在しません。操作に失敗しました。",
+  "confNotFound": "設定ファイルが存在しません。サーバーの起動に失敗しました",
   "apacheLogPathErr": "設定ファイルのログパスが間違っています。切り替えに失敗しました",
   "versionError": "バージョンが間違っています。再選択してください",
-  "hostsFileNoFound": "hostsファイルが存在しません",
+  "hostsFileNotFound": "hostsファイルが存在しません",
   "startFail": "起動に失敗しました。ログファイルを確認してください",
-  "versionNoFound": "ソフトウェアバージョンの取得に失敗しました。操作に失敗しました。",
+  "versionNotFound": "ソフトウェアバージョンの取得に失敗しました。操作に失敗しました。",
   "postgresqlInit": "サービスの起動に成功しました\nデータディレクトリは{dir}です\n初期ユーザーはroot、パスワードはrootです",
   "downFileFail": "ファイルのダウンロードに失敗しました！",
   "trialEnd": "試用期間が終了しました。この機能を継続して使用するには、ライセンスを取得してください",
 
-  "phpiniNoFound": "php.ini file not found",
+  "phpiniNotFound": "php.ini file not found",
   "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

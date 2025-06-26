@@ -141,7 +141,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       const bin = join(version.path, 'bin/pure-pw')
       if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       await this._initConf()
@@ -168,7 +168,7 @@ class Manager extends Base {
     return new ForkPromise(async (resolve, reject) => {
       const bin = join(version.path, 'bin/pure-pw')
       if (!existsSync(bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       await this._initConf()

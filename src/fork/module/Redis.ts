@@ -42,11 +42,11 @@ class Redis extends Base {
   initConf(version: SoftInstalled) {
     return new ForkPromise((resolve, reject) => {
       if (!existsSync(version?.bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNoFound')))
+        reject(new Error(I18nT('fork.versionNotFound')))
         return
       }
       this._initConf(version).then(resolve)

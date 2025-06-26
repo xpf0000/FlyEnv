@@ -139,7 +139,7 @@ class Php extends Base {
         }
       }
 
-      reject(new Error(I18nT('fork.phpiniNoFound')))
+      reject(new Error(I18nT('fork.phpiniNotFound')))
     })
   }
 
@@ -191,11 +191,11 @@ class Php extends Base {
   startService(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       if (!existsSync(version?.bin)) {
-        reject(new Error(I18nT('fork.binNoFound')))
+        reject(new Error(I18nT('fork.binNotFound')))
         return
       }
       if (!version?.version) {
-        reject(new Error(I18nT('fork.versionNoFound')))
+        reject(new Error(I18nT('fork.versionNotFound')))
         return
       }
       try {

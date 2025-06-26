@@ -1,14 +1,14 @@
 {
-  "binNoFound": "启动文件不存在,操作失败",
-  "confNoFound": "配置文件不存在,服务器启动失败",
+  "binNotFound": "启动文件不存在,操作失败",
+  "confNotFound": "配置文件不存在,服务器启动失败",
   "apacheLogPathErr": "配置文件日志路径有误, 切换失败",
   "versionError": "版本有误,请重新选择",
-  "hostsFileNoFound": "hosts文件不存在",
+  "hostsFileNotFound": "hosts文件不存在",
   "startFail": "启动失败,请查看日志文件",
-  "versionNoFound": "未获取到软件版本,操作失败",
+  "versionNotFound": "未获取到软件版本,操作失败",
   "postgresqlInit": "服务启动成功\n数据文件夹位于 {dir}\n初始用户root, 密码root",
   "downFileFail": "文件下载失败",
   "trialEnd": "试用已到期, 如需继续使用此功能, 请获取许可证",
-  "phpiniNoFound": "php.ini文件获取失败",
+  "phpiniNotFound": "php.ini文件获取失败",
   "noEPMD": "未找到epmd进程。请重新设置erlang环境变量"
 }

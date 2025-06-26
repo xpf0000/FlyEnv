@@ -1,15 +1,15 @@
 {
-  "binNoFound": "Le fichier de démarrage n'existe pas, opération échouée.",
-  "confNoFound": "Le fichier de configuration n'existe pas, le serveur n'a pas pu démarrer",
+  "binNotFound": "Le fichier de démarrage n'existe pas, opération échouée.",
+  "confNotFound": "Le fichier de configuration n'existe pas, le serveur n'a pas pu démarrer",
   "apacheLogPathErr": "Le chemin du journal du fichier de configuration est incorrect, et le changement a échoué",
   "versionError": "La version est incorrecte, veuillez sélectionner à nouveau",
-  "hostsFileNoFound": "Le fichier hosts n'existe pas",
+  "hostsFileNotFound": "Le fichier hosts n'existe pas",
   "startFail": "Échec du démarrage, veuillez vérifier le fichier journal",
-  "versionNoFound": "Échec de l'obtention de la version du logiciel, opération échouée.",
+  "versionNotFound": "Échec de l'obtention de la version du logiciel, opération échouée.",
   "postgresqlInit": "Service démarré avec succès\nLe répertoire des données est {dir}\nL'utilisateur initial est root, le mot de passe est root",
   "downFileFail": "Échec du téléchargement du fichier !",
   "trialEnd": "La période d'essai est expirée. Pour continuer à utiliser cette fonctionnalité, veuillez acquérir une licence.",
 
-  "phpiniNoFound": "php.ini file not found",
+  "phpiniNotFound": "php.ini file not found",
   "noEPMD": "The epmd process was not found. Please reset the Erlang environment variables"
 }

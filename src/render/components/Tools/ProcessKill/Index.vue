@@ -124,7 +124,7 @@
       IPC.off(key)
       const arr = res?.data ?? []
       if (arr.length === 0) {
-        MessageWarning(I18nT('base.processNoFound'))
+        MessageWarning(I18nT('base.processNotFound'))
         return
       }
 

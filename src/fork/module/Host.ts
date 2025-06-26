@@ -363,7 +363,7 @@ export class Host extends Base {
         return
       }
       if (!existsSync(this.hostsFile)) {
-        reject(new Error(I18nT('fork.hostsFileNoFound')))
+        reject(new Error(I18nT('fork.hostsFileNotFound')))
         return
       }
       let content: string = ''
