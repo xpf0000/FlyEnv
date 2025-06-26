@@ -23,7 +23,7 @@ import {
   readdir,
   execPromise,
   remove,
-  zipUnPack,
+  zipUnpack,
   moveChildDirToParent
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
@@ -311,7 +311,7 @@ export CATALINA_PID="${this.pidPath}"`
     } else if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     }
   }

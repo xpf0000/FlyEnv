@@ -15,7 +15,7 @@ import {
   versionLocalFetch,
   versionSort,
   waitTime,
-  zipUnPack
+  zipUnpack
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { basename, join } from 'path'
@@ -148,13 +148,13 @@ class Rust extends Base {
       await mkdirp(row.appDir)
       const cacheDir = join(global.Server.Cache!, uuid())
       await mkdirp(cacheDir)
-      await zipUnPack(row.zip, cacheDir)
+      await zipUnpack(row.zip, cacheDir)
       const files = await readdir(cacheDir)
       const find = files.find((f) => f.includes('.tar'))
       if (!find) {
         throw new Error('UnZIP failed')
       }
-      await zipUnPack(join(cacheDir, find), row.appDir)
+      await zipUnpack(join(cacheDir, find), row.appDir)
       await moveChildDirToParent(row.appDir)
       await remove(cacheDir)
     }

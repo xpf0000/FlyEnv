@@ -18,7 +18,7 @@ import {
   versionLocalFetch,
   versionSort,
   waitTime,
-  zipUnPack
+  zipUnpack
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
@@ -102,7 +102,7 @@ class GoLang extends Base {
     if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     } else if (isMacOS()) {
       const dir = row.appDir

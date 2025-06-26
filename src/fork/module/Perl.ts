@@ -19,7 +19,7 @@ import {
   versionMacportsFetch,
   versionSort,
   waitTime,
-  zipUnPack
+  zipUnpack
 } from '../Fn'
 import TaskQueue from '../TaskQueue'
 import { isMacOS, isWindows } from '@shared/utils'
@@ -119,7 +119,7 @@ class Perl extends Base {
     } else if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     }
   }

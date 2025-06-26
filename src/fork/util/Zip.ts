@@ -5,8 +5,8 @@ import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 const compressing = require('7zip-min-electron')
 
-export function zipUnPack(fp: string, dist: string) {
-  console.log('zipUnPack start: ', fp, dist, global.Server.Static!)
+export function zipUnpack(fp: string, dist: string) {
+  console.log('zipUnpack start: ', fp, dist, global.Server.Static!)
   return new Promise(async (resolve, reject) => {
     const info = {
       fp,
@@ -16,7 +16,7 @@ export function zipUnPack(fp: string, dist: string) {
     }
     await appendFile(
       join(global.Server.BaseDir!, 'debug.log'),
-      `[zipUnPack][info]: ${JSON.stringify(info, undefined, 4)}\n`
+      `[zipUnpack][info]: ${JSON.stringify(info, undefined, 4)}\n`
     )
     if (fp.includes(global.Server.Static!)) {
       const cacheFP = join(global.Server.Cache!, basename(fp))
@@ -26,7 +26,7 @@ export function zipUnPack(fp: string, dist: string) {
         } catch (e) {
           await appendFile(
             join(global.Server.BaseDir!, 'debug.log'),
-            `[zipUnPack][copyFile][error]: ${e}\n`
+            `[zipUnpack][copyFile][error]: ${e}\n`
           )
         }
       }
@@ -34,11 +34,11 @@ export function zipUnPack(fp: string, dist: string) {
       console.log('cacheFP: ', fp)
     }
     compressing.unpack(fp, dist, async (err: any, res: any) => {
-      console.log('zipUnPack end: ', err, res)
+      console.log('zipUnpack end: ', err, res)
       if (err) {
         await appendFile(
           join(global.Server.BaseDir!, 'debug.log'),
-          `[zipUnPack][unpack][error]: ${err}\n`
+          `[zipUnpack][unpack][error]: ${err}\n`
         )
         reject(err)
         return

@@ -18,7 +18,7 @@ import {
   versionFixed,
   versionLocalFetch,
   versionSort,
-  zipUnPack
+  zipUnpack
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../TaskQueue'
@@ -155,7 +155,7 @@ class Memcached extends Base {
       if (existsSync(tmpDir)) {
         await remove(tmpDir)
       }
-      await zipUnPack(row.zip, tmpDir)
+      await zipUnpack(row.zip, tmpDir)
       let dir = join(tmpDir, `memcached-${row.version}`, 'libevent-2.1', 'x64')
       if (!existsSync(dir)) {
         dir = join(tmpDir, `memcached-${row.version}`, 'cygwin', 'x64')

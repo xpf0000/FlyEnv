@@ -15,7 +15,7 @@ import {
   copyFile,
   remove,
   realpath,
-  zipUnPack,
+  zipUnpack,
   execPromiseWithEnv,
   fetchRawPATH,
   handleWinPathArr,
@@ -64,7 +64,7 @@ class Manager extends Base {
       }
 
       const local = join(global.Server.AppDir!, 'nvm/nvm.exe')
-      await zipUnPack(join(global.Server.Static!, `zip/nvm.7z`), global.Server.AppDir!)
+      await zipUnpack(join(global.Server.Static!, `zip/nvm.7z`), global.Server.AppDir!)
       const installcmd = join(global.Server.AppDir!, 'nvm/install.cmd')
       await remove(installcmd)
       await copyFile(join(global.Server.Static!, 'sh/install-nvm.cmd'), installcmd)
@@ -120,7 +120,7 @@ class Manager extends Base {
       }
 
       const local = join(global.Server.AppDir!, 'fnm/fnm.exe')
-      await zipUnPack(join(global.Server.Static!, `zip/fnm.7z`), global.Server.AppDir!)
+      await zipUnpack(join(global.Server.Static!, `zip/fnm.7z`), global.Server.AppDir!)
       const installcmd = join(global.Server.AppDir!, 'fnm/install.cmd')
       await remove(installcmd)
       await copyFile(join(global.Server.Static!, 'sh/install-fnm.cmd'), installcmd)
@@ -438,7 +438,7 @@ class Manager extends Base {
 
           const unpack = async () => {
             try {
-              await zipUnPack(zip, destDir)
+              await zipUnpack(zip, destDir)
               await moveChildDirToParent(destDir)
             } catch (e) {
               return e

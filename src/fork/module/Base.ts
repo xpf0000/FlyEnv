@@ -11,7 +11,7 @@ import {
   writeFile,
   remove,
   mkdirp,
-  zipUnPack
+  zipUnpack
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
@@ -345,7 +345,7 @@ export class Base {
 
   async _installSoftHandle(row: any) {
     if (isWindows()) {
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
     } else if (isMacOS()) {
       const dir = row.appDir
       await mkdirp(dir)

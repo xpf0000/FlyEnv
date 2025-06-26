@@ -20,7 +20,7 @@ import {
   mkdirp,
   chmod,
   remove,
-  zipUnPack,
+  zipUnpack,
   moveChildDirToParent,
   createWriteStream,
   serviceStartExecCMD,
@@ -59,7 +59,7 @@ class Manager extends Base {
           try {
             await remove(appDir)
             await mkdirp(appDir)
-            await zipUnPack(zip, appDir)
+            await zipUnpack(zip, appDir)
             await moveChildDirToParent(appDir)
             return existsSync(mongosh)
           } catch {
@@ -291,7 +291,7 @@ class Manager extends Base {
     if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
       await waitTime(1000)
       await this.initMongosh()

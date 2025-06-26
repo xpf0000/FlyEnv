@@ -18,7 +18,7 @@ import {
   execPromise,
   waitTime,
   remove,
-  zipUnPack,
+  zipUnpack,
   moveChildDirToParent
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -221,7 +221,7 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
     } else if (isWindows()) {
       await remove(row.appDir)
       await mkdirp(row.appDir)
-      await zipUnPack(row.zip, row.appDir)
+      await zipUnpack(row.zip, row.appDir)
       await moveChildDirToParent(row.appDir)
     }
   }

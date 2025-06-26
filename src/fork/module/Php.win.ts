@@ -16,7 +16,7 @@ import {
   mkdirp,
   copyFile,
   readdir,
-  zipUnPack,
+  zipUnpack,
   versionLocalFetch,
   serviceStartExecWin
 } from '../Fn'
@@ -179,7 +179,7 @@ class Php extends Base {
     return new Promise((resolve) => {
       const fpm = join(global.Server.PhpDir!, 'php-cgi-spawner.exe')
       if (!existsSync(fpm)) {
-        zipUnPack(join(global.Server.Static!, `zip/php_cgi_spawner.7z`), global.Server.PhpDir!)
+        zipUnpack(join(global.Server.Static!, `zip/php_cgi_spawner.7z`), global.Server.PhpDir!)
           .then(resolve)
           .catch(resolve)
         return
@@ -279,7 +279,7 @@ class Php extends Base {
         const obfuscatorDir = join(cacheDir, 'php-obfuscator')
         await remove(obfuscatorDir)
         const zipFile = join(global.Server.Static!, 'zip/php-obfuscator.zip')
-        await zipUnPack(zipFile, obfuscatorDir)
+        await zipUnpack(zipFile, obfuscatorDir)
         const bin = join(obfuscatorDir, 'yakpro-po.php')
         let command = ''
         if (params.config) {
@@ -552,7 +552,7 @@ xdebug.output_dir = "${output_dir}"
 
               if (existsSync(zipFile)) {
                 try {
-                  await zipUnPack(zipFile, cacheDir)
+                  await zipUnpack(zipFile, cacheDir)
                 } catch {}
                 if (existsSync(dll)) {
                   await copyFile(dll, file)
@@ -603,7 +603,7 @@ xdebug.output_dir = "${output_dir}"
                     })
                     try {
                       if (existsSync(zipFile)) {
-                        await zipUnPack(zipFile, cacheDir)
+                        await zipUnpack(zipFile, cacheDir)
                       }
                     } catch (e) {
                       reject(e)

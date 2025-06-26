@@ -9,7 +9,7 @@ import Helper from './Helper'
 import { format } from 'date-fns'
 import { hostname, userInfo } from 'os'
 import _node_machine_id from 'node-machine-id'
-import { zipUnPack } from './util/Zip'
+import { zipUnpack } from './util/Zip'
 import { moveDirToDir, getSubDirAsync, getAllFileAsync, moveChildDirToParent } from './util/Dir'
 import { serviceStartExec, customerServiceStartExec } from './util/ServiceStart'
 import {
@@ -79,7 +79,7 @@ const { machineId } = _node_machine_id
 
 export {
   machineId,
-  zipUnPack,
+  zipUnpack,
   moveDirToDir,
   getSubDirAsync,
   getAllFileAsync,
