@@ -101,7 +101,7 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('elasticsearch')

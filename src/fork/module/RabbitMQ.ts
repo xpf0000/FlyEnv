@@ -245,7 +245,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('rabbitmq')

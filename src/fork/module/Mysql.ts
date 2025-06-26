@@ -670,7 +670,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
     })
   }
 
-  fetchAllOnLineVersion() {
+  fetchAllOnlineVersion() {
     return new ForkPromise(async (resolve) => {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('mysql')

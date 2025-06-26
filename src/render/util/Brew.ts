@@ -111,7 +111,7 @@ export const fetchVerion = (typeFlag: AllAppModule): Promise<OnlineVersionItem[]
         }
       }
     }
-    IPC.send(`app-fork:${typeFlag}`, 'fetchAllOnLineVersion').then((key: string, res: any) => {
+    IPC.send(`app-fork:${typeFlag}`, 'fetchAllOnlineVersion').then((key: string, res: any) => {
       IPC.off(key)
       if (res.code === 0) {
         const list = res.data
