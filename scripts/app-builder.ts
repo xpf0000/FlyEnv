@@ -1,5 +1,4 @@
 import { build as viteBuild } from 'vite'
-import { build as esbuild } from 'esbuild'
 import { build as electronBuild, Platform } from 'electron-builder'
 
 import viteConfig from '../configs/vite.config'
@@ -10,15 +9,15 @@ async function packMain() {
   try {
     await DoFix()
     if (isMacOS()) {
-      const config = (await import('../configs/esbuild.config')).default
-      await esbuild(config.dist)
-      await esbuild(config.distFork)
-      await esbuild(config.distHelper)
+      const config = viteConfig.vite.mac
+      await viteBuild(config.dist)
+      await viteBuild(config.distFork)
+      await viteBuild(config.distHelper)
     } else if (isWindows()) {
       console.log('isWindows !!!')
-      const config = (await import('../configs/esbuild.config.win')).default
-      await esbuild(config.dist)
-      await esbuild(config.distFork)
+      const config = viteConfig.vite.win
+      await viteBuild(config.dist)
+      await viteBuild(config.distFork)
     }
   } catch (err) {
     console.log('\nfailed to build main process')

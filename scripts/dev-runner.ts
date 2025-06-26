@@ -1,6 +1,5 @@
-import { createServer } from 'vite'
+import { createServer, build as viteBuild } from 'vite'
 import { spawn, ChildProcess } from 'child_process'
-import { build } from 'esbuild'
 import _fs from 'fs-extra'
 import _path from 'path'
 import _md5 from 'md5'
@@ -50,17 +49,17 @@ function buildMainProcess() {
     let promise: Promise<any> | undefined
     if (isMacOS()) {
       console.log('isMacOS !!!')
-      const config = (await import('../configs/esbuild.config')).default
+      const config = viteConfig.vite.mac
       promise = Promise.all([
-        build(config.dev),
-        build(config.devFork),
-        build(config.devHelper),
+        viteBuild(config.dev),
+        viteBuild(config.devFork),
+        viteBuild(config.devHelper),
         ElectronKill(electronProcess)
       ])
     } else if (isWindows()) {
       console.log('isWindows !!!')
-      const config = (await import('../configs/esbuild.config.win')).default
-      promise = Promise.all([build(config.dev), build(config.devFork), ElectronKillWin()])
+      const config = viteConfig.vite.win
+      promise = Promise.all([viteBuild(config.dev), viteBuild(config.devFork), ElectronKillWin()])
     }
     if (!promise) {
       building = false
@@ -140,6 +139,12 @@ function runElectronApp() {
 
 Promise.all([launchViteDevServer(), buildMainProcess()])
   .then(() => {
+    // Copy static files for initial run (the plugin handles this during build)
+    const staticPath = _path.resolve(__dirname, '../static/')
+    const staticDest = _path.resolve(__dirname, '../dist/electron/static/')
+    copySync(staticPath, staticDest)
+    console.log('Initial static files copied')
+
     runElectronApp()
   })
   .catch((err) => {

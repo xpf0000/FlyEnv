@@ -7,6 +7,7 @@ import wasm from 'vite-plugin-wasm'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
 import { createRequire } from 'node:module'
+import { ViteStaticCopyPlugin } from './plugs.vite'
 const require = createRequire(import.meta.url)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -119,8 +120,140 @@ const buildConfig: UserConfig = {
   ...config
 }
 
+// Helper functions for creating Vite configurations for Node.js builds
+const createMainConfig = (isDev: boolean): UserConfig => ({
+  plugins: [ViteStaticCopyPlugin()],
+  build: {
+    lib: {
+      entry: isDev ? 'src/main/index.dev.ts' : 'src/main/index.ts',
+      formats: ['es'],
+      fileName: () => 'main.mjs'
+    },
+    outDir: 'dist/electron',
+    minify: !isDev,
+    rollupOptions: {
+      external: (id) =>
+        id.includes('node_modules') ||
+        id.startsWith('electron') ||
+        id.startsWith('node:') ||
+        id.endsWith('.node'),
+      output: {
+        format: 'es'
+      }
+    },
+    target: 'esnext',
+    ssr: true,
+    emptyOutDir: false
+  },
+  esbuild: {
+    target: 'esnext',
+    ...(isDev ? {} : { drop: ['console', 'debugger'] })
+  },
+  resolve: {
+    alias: {
+      '@': renderPath,
+      '@shared': sharePath,
+      '@lang': langPath
+    }
+  }
+})
+
+const createForkConfig = (isDev: boolean): UserConfig => ({
+  build: {
+    lib: {
+      entry: 'src/fork/index.ts',
+      formats: ['es'],
+      fileName: () => 'fork.mjs'
+    },
+    outDir: 'dist/electron',
+    minify: !isDev,
+    rollupOptions: {
+      external: (id) =>
+        id.includes('node_modules') ||
+        id.startsWith('electron') ||
+        id.startsWith('node:') ||
+        id.endsWith('.node'),
+      output: {
+        format: 'es'
+      }
+    },
+    target: 'esnext',
+    ssr: true,
+    emptyOutDir: false
+  },
+  esbuild: {
+    target: 'esnext',
+    ...(isDev ? {} : { drop: ['console', 'debugger'] })
+  },
+  resolve: {
+    alias: {
+      '@': renderPath,
+      '@shared': sharePath,
+      '@lang': langPath
+    }
+  }
+})
+
+const createHelperConfig = (isDev: boolean): UserConfig => ({
+  build: {
+    lib: {
+      entry: 'src/helper/index.ts',
+      formats: ['es'],
+      fileName: () => 'helper.mjs'
+    },
+    outDir: 'dist/helper',
+    minify: !isDev,
+    rollupOptions: {
+      external: (id) =>
+        id.includes('node_modules') ||
+        id.startsWith('electron') ||
+        id.startsWith('node:') ||
+        id.endsWith('.node'),
+      output: {
+        format: 'es'
+      }
+    },
+    target: 'esnext',
+    ssr: true,
+    emptyOutDir: false
+  },
+  esbuild: {
+    target: 'esnext',
+    ...(isDev ? {} : { drop: ['console', 'debugger'] })
+  },
+  resolve: {
+    alias: {
+      '@': renderPath,
+      '@shared': sharePath,
+      '@lang': langPath
+    }
+  }
+})
+
 export default {
   serveConfig,
   serverConfig,
-  buildConfig
+  buildConfig,
+  // Vite configurations for electron main process and related modules
+  // This replaces esbuild entirely - Vite now handles all builds
+  // Platform-specific configurations are handled through the mac/win properties
+  vite: {
+    // macOS and cross-platform configurations (includes helper module)
+    mac: {
+      dev: createMainConfig(true),
+      dist: createMainConfig(false),
+      devFork: createForkConfig(true),
+      distFork: createForkConfig(false),
+      devHelper: createHelperConfig(true),
+      distHelper: createHelperConfig(false)
+    },
+
+    // Windows configurations (no helper module)
+    win: {
+      dev: createMainConfig(true),
+      dist: createMainConfig(false),
+      devFork: createForkConfig(true),
+      distFork: createForkConfig(false)
+    }
+  }
 }
