@@ -1,4 +1,4 @@
-import { CallBack, LinkItem, type PageLink } from './LinkItem'
+import { Callback, LinkItem, type PageLink } from './LinkItem'
 import { BrowserWindow } from 'electron'
 import request from '@shared/request'
 import { HttpProxyAgent, HttpsProxyAgent } from 'hpagent'
@@ -449,7 +449,7 @@ class PageTask {
         this.task.splice(index, 1)
       }
       if (this.task.length === 0) {
-        CallBack.fn('window-close')
+        Callback.fn('window-close')
       }
     }
     for (let i = 0; i < num; i += 1) {

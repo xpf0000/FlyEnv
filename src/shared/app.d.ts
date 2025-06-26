@@ -119,4 +119,4 @@ export type ModuleExecItem = {
   pidPath?: string
 }
 
-export type CallBackFn = (...args: any) => void
+export type CallbackFn = (...args: any) => void

@@ -4,7 +4,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { join } from 'path'
 import { cpus } from 'os'
 
-type CallBack = (...args: any) => void
+type Callback = (...args: any) => void
 
 class ForkItem {
   forkFile: string
@@ -12,11 +12,11 @@ class ForkItem {
   autoDestory: boolean
   destoryTimer?: NodeJS.Timeout
   taskFlag: Array<number> = []
-  _on: CallBack = () => {}
+  _on: Callback = () => {}
   callback: {
     [k: string]: {
-      resolve: CallBack
-      on: CallBack
+      resolve: Callback
+      on: Callback
     }
   }
   waitDestory() {
@@ -120,12 +120,12 @@ export class ForkManager {
   serviceFork?: ForkItem
   ollamaChatFork?: ForkItem
 
-  _on: CallBack = () => {}
+  _on: Callback = () => {}
   constructor(file: string) {
     this.file = file
   }
 
-  on(fn: CallBack) {
+  on(fn: Callback) {
     this._on = fn
   }
 

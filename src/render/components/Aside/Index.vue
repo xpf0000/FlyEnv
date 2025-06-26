@@ -75,7 +75,7 @@
   import { EventBus } from '@/global'
   import { AppCustomerModule } from '@/core/Module'
   import CustomerModule from '@/components/CustomerModule/aside.vue'
-  import type { CallBackFn } from '@shared/app'
+  import type { CallbackFn } from '@shared/app'
 
   let lastTray = ''
 
@@ -418,7 +418,7 @@
       AppServiceModule.php?.switchChange()
       return
     }
-    const fns: { [k: string]: CallBackFn } = {
+    const fns: { [k: string]: CallbackFn } = {
       groupDo,
       switchChange
     }

@@ -7,13 +7,13 @@ import { basename, join } from 'path'
 import { chmod, remove, writeFile } from '../utils'
 import { existsSync } from 'fs'
 import EnvSync from '@shared/EnvSync'
-import type { CallBackFn } from '@shared/app'
+import type { CallbackFn } from '@shared/app'
 import { isMacOS, isWindows } from '@shared/utils'
 
 class NodePTY {
   pty: Partial<Record<string, PtyItem>> = {}
-  private _callback: CallBackFn | undefined
-  onSendCommand(callback: CallBackFn) {
+  private _callback: CallbackFn | undefined
+  onSendCommand(callback: CallbackFn) {
     this._callback = callback
   }
 

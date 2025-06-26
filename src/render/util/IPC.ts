@@ -1,9 +1,9 @@
 import { uuid } from './Index'
 
-type IPCCallBack = (...args: any) => void
+type IPCCallback = (...args: any) => void
 
 class IPC {
-  listens: { [key: string]: IPCCallBack }
+  listens: { [key: string]: IPCCallback }
 
   constructor() {
     this.listens = {}
@@ -23,14 +23,14 @@ class IPC {
     console.log('ipcSendToMain: ', command, key, args)
     window.FlyEnvNodeAPI.ipcSendToMain(command, key, ...args)
     return {
-      then: (callback: IPCCallBack) => {
+      then: (callback: IPCCallback) => {
         this.listens[key] = callback
       }
     }
   }
   on(command: string) {
     return {
-      then: (callback: IPCCallBack) => {
+      then: (callback: IPCCallback) => {
         this.listens[command] = callback
       }
     }
