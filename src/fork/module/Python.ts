@@ -112,7 +112,7 @@ class Python extends Base {
       const dark = join(global.Server.Cache!, 'dark/dark.exe')
       const darkDir = join(global.Server.Cache!, 'dark')
       if (!existsSync(dark)) {
-        const darkZip = join(global.Server.Static!, 'zip/dark.zip')
+        const darkZip = join(global.Server.Static!, 'zip/dark.7z')
         await zipUnPack(darkZip, dirname(dark))
       }
       const pythonSH = join(global.Server.Static!, 'sh/python.ps1')

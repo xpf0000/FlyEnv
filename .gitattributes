@@ -3,3 +3,6 @@
 *.sh text eol=lf
 *.cmd text eol=crlf
 *.bat text eol=crlf
+
+*.zip binary
+*.7z binary

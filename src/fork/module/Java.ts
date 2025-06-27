@@ -53,7 +53,8 @@ class Java extends Base {
           a.bin = dir
           a.downloaded = existsSync(zip)
           a.installed = existsSync(dir)
-          a.name = `${a.type}-${a.version}`
+          const type = a?.type ?? 'Java'
+          a.name = `${type}-${a.version}`
         })
         resolve(all)
       } catch {

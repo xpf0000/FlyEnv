@@ -29,13 +29,20 @@ class Composer extends Base {
       try {
         const all: OnlineVersionItem[] = await this._fetchOnlineVersion('composer')
         all.forEach((a: any) => {
-          const dir = join(global.Server.AppDir!, `composer-${a.version}`, 'composer')
-          const zip = join(global.Server.Cache!, `composer-${a.version}.phar`)
+          let bin = ''
+          let zip = ''
+          if (isMacOS()) {
+            bin = join(global.Server.AppDir!, `composer-${a.version}`, 'composer')
+            zip = join(global.Server.Cache!, `composer-${a.version}.phar`)
+          } else if (isWindows()) {
+            bin = join(global.Server.AppDir!, `composer-${a.version}`, 'composer.phar')
+            zip = join(global.Server.Cache!, `composer-${a.version}.phar`)
+          }
           a.appDir = join(global.Server.AppDir!, `composer-${a.version}`)
           a.zip = zip
-          a.bin = dir
+          a.bin = bin
           a.downloaded = existsSync(zip)
-          a.installed = existsSync(dir)
+          a.installed = existsSync(bin)
           a.type = 'composer'
           a.name = `Composer-${a.version}`
         })

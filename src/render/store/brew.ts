@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import type { AllAppModule } from '@/core/type'
 import { AppStore } from '@/store/app'
-import type { Module } from '@/core/Module/Module'
+import { Module } from '@/core/Module/Module'
 import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
+import { reactive } from 'vue'
+import { AppModules } from '@/core/App'
 
 export interface SoftInstalled {
   version: string | null
@@ -58,6 +60,22 @@ export const BrewStore = defineStore('brew', {
   getters: {},
   actions: {
     module(flag: AllAppModule): Module {
+      if (!this?.modules?.[flag]) {
+        const find = AppModules?.find((f) => f.typeFlag === flag)
+        const module = reactive(new Module())
+        module.typeFlag = flag
+        module.isService = find?.isService ?? false
+        module.isOnlyRunOne = find?.isOnlyRunOne !== false
+        module.fetchInstalled = module.fetchInstalled.bind(module)
+        module.onItemStart = module.onItemStart.bind(module)
+        module.fetchBrew = module.fetchBrew.bind(module)
+        module.fetchPort = module.fetchPort.bind(module)
+        module.fetchStatic = module.fetchStatic.bind(module)
+        module.start = module.start.bind(module)
+        module.stop = module.stop.bind(module)
+        module.watchShowHide = module.watchShowHide.bind(module)
+        this.modules[module.typeFlag] = module
+      }
       return this.modules[flag] as any
     },
     currentVersion(flag: AllAppModule): ModuleInstalledItem | undefined {

@@ -281,8 +281,11 @@ export CATALINA_PID="${this.pidPath}"`
             const num = version
               ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
               : null
+            const bin = isWindows()
+              ? join(dirname(versions[i].bin), 'startup.bat')
+              : join(dirname(versions[i].bin), 'startup.sh')
             Object.assign(versions[i], {
-              bin: join(dirname(versions[i].bin), 'startup.sh'),
+              bin,
               version: version,
               num,
               enable: version !== null,

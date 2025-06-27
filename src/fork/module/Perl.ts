@@ -41,7 +41,7 @@ class Perl extends Base {
             dir = join(global.Server.AppDir!, `perl`, a.version, 'perl')
             zip = join(global.Server.Cache!, `perl-${a.version}.zip`)
           } else if (isWindows()) {
-            dir = join(global.Server.AppDir!, `perl`, a.version, 'perl/bin/perl.exe')
+            dir = join(global.Server.AppDir!, `perl`, a.version, 'bin/perl.exe')
             zip = join(global.Server.Cache!, `perl-${a.version}.zip`)
           }
           a.appDir = join(global.Server.AppDir!, 'perl', a.version)

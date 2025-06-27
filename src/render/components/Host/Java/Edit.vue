@@ -20,170 +20,55 @@
         }}</el-button>
       </div>
 
-      <div class="main-wapper">
-        <div class="p-5 pt-2 flex items-center justify-center">
-          <el-radio-group v-model="item.subType" :disabled="isEdit">
-            <el-radio-button value="springboot" label="SpringBoot">
-              <div class="min-w-20">SpringBoot</div>
-            </el-radio-button>
-            <el-radio-button value="other" label="Other">
-              <div class="min-w-20">Tomcat</div>
-            </el-radio-button>
-          </el-radio-group>
-        </div>
-        <templatev v-if="item.subType === 'springboot'">
-          <div class="main">
-            <input
-              v-model.trim="item.projectName"
-              type="text"
-              :class="'input mb-3' + (errs['projectName'] ? ' error' : '')"
-              :placeholder="I18nT('host.projectName')"
-            />
-            <input
-              v-model.trim="item.mark"
-              style="margin: 15px 0 10px"
-              class="input"
-              :placeholder="I18nT('host.placeholderComment')"
-            />
+      <el-scrollbar class="flex-1">
+        <div class="main-wapper">
+          <div class="p-5 pt-2 flex items-center justify-center">
+            <el-radio-group v-model="item.subType" :disabled="isEdit">
+              <el-radio-button value="springboot" label="SpringBoot">
+                <div class="min-w-20">SpringBoot</div>
+              </el-radio-button>
+              <el-radio-button value="other" label="Other">
+                <div class="min-w-20">Tomcat</div>
+              </el-radio-button>
+            </el-radio-group>
           </div>
-          <div class="plant-title">{{ I18nT('host.jarPackagePath') }}</div>
-          <div class="main">
-            <div class="path-choose pb-4">
+          <templatev v-if="item.subType === 'springboot'">
+            <div class="main">
               <input
-                v-model.trim="item.jarDir"
+                v-model.trim="item.projectName"
                 type="text"
-                :class="'input' + (errs['jarDir'] ? ' error' : '')"
-                :placeholder="I18nT('host.jarPackagePath')"
+                :class="'input mb-3' + (errs['projectName'] ? ' error' : '')"
+                :placeholder="I18nT('host.projectName')"
               />
-              <div class="icon-block" @click="chooseRoot('jarDir')">
-                <yb-icon
-                  :svg="import('@/svg/folder.svg?raw')"
-                  class="choose"
-                  width="18"
-                  height="18"
+              <input
+                v-model.trim="item.mark"
+                style="margin: 15px 0 10px"
+                class="input"
+                :placeholder="I18nT('host.placeholderComment')"
+              />
+            </div>
+            <div class="plant-title">{{ I18nT('host.jarPackagePath') }}</div>
+            <div class="main">
+              <div class="path-choose pb-4">
+                <input
+                  v-model.trim="item.jarDir"
+                  type="text"
+                  :class="'input' + (errs['jarDir'] ? ' error' : '')"
+                  :placeholder="I18nT('host.jarPackagePath')"
                 />
+                <div class="icon-block" @click="chooseRoot('jarDir')">
+                  <yb-icon
+                    :svg="import('@/svg/folder.svg?raw')"
+                    class="choose"
+                    width="18"
+                    height="18"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="plant-title">{{ I18nT('host.jdkPath') }}</div>
-          <div class="main">
-            <el-select v-model="item.jdkDir" class="w-full">
-              <template v-for="(item, _index) in jdks" :key="_index">
-                <el-option :label="`java${item.version}-${item.bin}`" :value="item.bin"></el-option>
-              </template>
-            </el-select>
-          </div>
-
-          <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
-          <div class="main">
-            <div class="port-set mb-5">
-              <input
-                v-model.number="item.projectPort"
-                type="number"
-                :class="'input' + (errs['projectPort'] ? ' error' : '')"
-                :placeholder="I18nT('host.tcpPort')"
-              />
-            </div>
-          </div>
-
-          <div class="plant-title">{{ I18nT('host.startCommand') }}</div>
-          <div class="main">
-            <textarea
-              v-model.trim="item.startCommand"
-              type="text"
-              class="input-textarea"
-              :class="{ error: !!errs['startCommand'] }"
-              style="margin-top: 0"
-              :placeholder="I18nT('host.startCommand')"
-            ></textarea>
-          </div>
-
-          <div class="main mt-5">
-            <div class="ssl-switch">
-              <span>{{ I18nT('host.envVar') }}</span>
-              <el-radio-group v-model="item.envVarType">
-                <el-radio-button value="none" :label="I18nT('base.none')"> </el-radio-button>
-                <el-radio-button value="specify" :label="I18nT('host.specifyVar')">
-                </el-radio-button>
-                <el-radio-button value="file" :label="I18nT('host.fileVar')"> </el-radio-button>
-              </el-radio-group>
-            </div>
-
-            <div v-if="item.envVarType === 'specify'" style="margin-top: 12px">
-              <textarea
-                v-model.trim="item.envVar"
-                type="text"
-                class="input-textarea w-full"
-                style="margin-top: 12px"
-                :placeholder="I18nT('host.envVarTips')"
-              ></textarea>
-            </div>
-            <div v-else-if="item.envVarType === 'file'" class="path-choose pb-4">
-              <input
-                v-model.trim="item.envFile"
-                type="text"
-                class="mt-4 input"
-                :placeholder="I18nT('host.fileVarTips')"
-              />
-              <div class="icon-block" @click="chooseRoot('envFile')">
-                <yb-icon
-                  :svg="import('@/svg/folder.svg?raw')"
-                  class="choose"
-                  width="18"
-                  height="18"
-                />
-              </div>
-            </div>
-          </div>
-        </templatev>
-        <template v-else>
-          <div class="main">
-            <input
-              v-model.trim="item.name"
-              type="text"
-              :class="'input mb-3' + (errs['name'] ? ' error' : '')"
-              :placeholder="I18nT('host.placeholderName')"
-            />
-            <input
-              v-model.trim="item.mark"
-              style="margin: 15px 0 10px"
-              class="input"
-              :placeholder="I18nT('host.placeholderComment')"
-            />
-            <div class="path-choose my-5">
-              <input
-                v-model="item.root"
-                type="text"
-                :class="'input' + (errs['root'] ? ' error' : '')"
-                :placeholder="I18nT('host.placeholderRootPath')"
-              />
-              <div class="icon-block" @click="chooseRoot('root')">
-                <yb-icon
-                  :svg="import('@/svg/folder.svg?raw')"
-                  class="choose"
-                  width="18"
-                  height="18"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div class="plant-title">{{ I18nT('host.customJDKAndTomcat') }}</div>
-          <div class="main">
-            <div class="port-set port-ssl mb-5">
-              <div class="port-type"> Tomcat </div>
-              <el-select v-model="item.tomcatDir" class="w-full">
-                <template v-for="(item, _index) in tomcats" :key="_index">
-                  <el-option
-                    :label="`tomcat${item.version}-${item.bin}`"
-                    :value="item.bin"
-                  ></el-option>
-                </template>
-              </el-select>
-            </div>
-            <div class="port-set port-ssl">
-              <div class="port-type"> JDK </div>
+            <div class="plant-title">{{ I18nT('host.jdkPath') }}</div>
+            <div class="main">
               <el-select v-model="item.jdkDir" class="w-full">
                 <template v-for="(item, _index) in jdks" :key="_index">
                   <el-option
@@ -193,42 +78,59 @@
                 </template>
               </el-select>
             </div>
-          </div>
 
-          <div class="plant-title">{{ I18nT('host.port') }}</div>
-          <div class="main">
-            <div class="port-set mb-4">
-              <div class="port-type"> Tomcat </div>
-              <input
-                v-model.number="item.port.tomcat"
-                type="number"
-                :class="'input' + (errs['port_tomcat'] ? ' error' : '')"
-                placeholder="Default: 80"
-              />
-            </div>
-          </div>
-
-          <div class="plant-title">{{ I18nT('host.useSSL') }}</div>
-          <div class="main">
-            <div class="ssl-switch">
-              <span>{{ I18nT('host.useSSL') }}</span>
-              <el-switch v-model="item.useSSL"></el-switch>
-            </div>
-
-            <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
-              <span>{{ I18nT('host.autoSSL') }}</span>
-              <el-switch v-model="item.autoSSL"></el-switch>
-            </div>
-
-            <template v-if="item.useSSL && !item.autoSSL">
-              <div class="path-choose mt-5">
+            <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
+            <div class="main">
+              <div class="port-set mb-5">
                 <input
-                  v-model="item.ssl.cert"
-                  type="text"
-                  :class="'input' + (errs['cert'] ? ' error' : '')"
-                  placeholder="cert"
+                  v-model.number="item.projectPort"
+                  type="number"
+                  :class="'input' + (errs['projectPort'] ? ' error' : '')"
+                  :placeholder="I18nT('host.tcpPort')"
                 />
-                <div class="icon-block" @click="chooseRoot('cert')">
+              </div>
+            </div>
+
+            <div class="plant-title">{{ I18nT('host.startCommand') }}</div>
+            <div class="main">
+              <textarea
+                v-model.trim="item.startCommand"
+                type="text"
+                class="input-textarea"
+                :class="{ error: !!errs['startCommand'] }"
+                style="margin-top: 0"
+                :placeholder="I18nT('host.startCommand')"
+              ></textarea>
+            </div>
+
+            <div class="main mt-5">
+              <div class="ssl-switch">
+                <span>{{ I18nT('host.envVar') }}</span>
+                <el-radio-group v-model="item.envVarType">
+                  <el-radio-button value="none" :label="I18nT('base.none')"> </el-radio-button>
+                  <el-radio-button value="specify" :label="I18nT('host.specifyVar')">
+                  </el-radio-button>
+                  <el-radio-button value="file" :label="I18nT('host.fileVar')"> </el-radio-button>
+                </el-radio-group>
+              </div>
+
+              <div v-if="item.envVarType === 'specify'" style="margin-top: 12px">
+                <textarea
+                  v-model.trim="item.envVar"
+                  type="text"
+                  class="input-textarea w-full"
+                  style="margin-top: 12px"
+                  :placeholder="I18nT('host.envVarTips')"
+                ></textarea>
+              </div>
+              <div v-else-if="item.envVarType === 'file'" class="path-choose pb-4">
+                <input
+                  v-model.trim="item.envFile"
+                  type="text"
+                  class="mt-4 input"
+                  :placeholder="I18nT('host.fileVarTips')"
+                />
+                <div class="icon-block" @click="chooseRoot('envFile')">
                   <yb-icon
                     :svg="import('@/svg/folder.svg?raw')"
                     class="choose"
@@ -237,15 +139,30 @@
                   />
                 </div>
               </div>
-
+            </div>
+          </templatev>
+          <template v-else>
+            <div class="main">
+              <input
+                v-model.trim="item.name"
+                type="text"
+                :class="'input mb-3' + (errs['name'] ? ' error' : '')"
+                :placeholder="I18nT('host.placeholderName')"
+              />
+              <input
+                v-model.trim="item.mark"
+                style="margin: 15px 0 10px"
+                class="input"
+                :placeholder="I18nT('host.placeholderComment')"
+              />
               <div class="path-choose my-5">
                 <input
-                  v-model="item.ssl.key"
+                  v-model="item.root"
                   type="text"
-                  :class="'input' + (errs['certkey'] ? ' error' : '')"
-                  placeholder="cert key"
+                  :class="'input' + (errs['root'] ? ' error' : '')"
+                  :placeholder="I18nT('host.placeholderRootPath')"
                 />
-                <div class="icon-block" @click="chooseRoot('certkey')">
+                <div class="icon-block" @click="chooseRoot('root')">
                   <yb-icon
                     :svg="import('@/svg/folder.svg?raw')"
                     class="choose"
@@ -254,26 +171,114 @@
                   />
                 </div>
               </div>
-            </template>
+            </div>
 
-            <template v-if="item.useSSL">
-              <div class="ssl-switch my-5">
-                <span>{{ I18nT('host.port') }}</span>
-              </div>
+            <div class="plant-title">{{ I18nT('host.customJDKAndTomcat') }}</div>
+            <div class="main">
               <div class="port-set port-ssl mb-5">
                 <div class="port-type"> Tomcat </div>
+                <el-select v-model="item.tomcatDir" class="w-full">
+                  <template v-for="(item, _index) in tomcats" :key="_index">
+                    <el-option
+                      :label="`tomcat${item.version}-${item.bin}`"
+                      :value="item.bin"
+                    ></el-option>
+                  </template>
+                </el-select>
+              </div>
+              <div class="port-set port-ssl">
+                <div class="port-type"> JDK </div>
+                <el-select v-model="item.jdkDir" class="w-full">
+                  <template v-for="(item, _index) in jdks" :key="_index">
+                    <el-option
+                      :label="`java${item.version}-${item.bin}`"
+                      :value="item.bin"
+                    ></el-option>
+                  </template>
+                </el-select>
+              </div>
+            </div>
+
+            <div class="plant-title">{{ I18nT('host.port') }}</div>
+            <div class="main">
+              <div class="port-set mb-4">
+                <div class="port-type"> Tomcat </div>
                 <input
-                  v-model.number="item.port.tomcat_ssl"
+                  v-model.number="item.port.tomcat"
                   type="number"
-                  :class="'input' + (errs['port_tomcat_ssl'] ? ' error' : '')"
-                  placeholder="Default: 443"
+                  :class="'input' + (errs['port_tomcat'] ? ' error' : '')"
+                  placeholder="Default: 80"
                 />
               </div>
-            </template>
-          </div>
-        </template>
-        <div class="mt-7"></div>
-      </div>
+            </div>
+
+            <div class="plant-title">{{ I18nT('host.useSSL') }}</div>
+            <div class="main">
+              <div class="ssl-switch">
+                <span>{{ I18nT('host.useSSL') }}</span>
+                <el-switch v-model="item.useSSL"></el-switch>
+              </div>
+
+              <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
+                <span>{{ I18nT('host.autoSSL') }}</span>
+                <el-switch v-model="item.autoSSL"></el-switch>
+              </div>
+
+              <template v-if="item.useSSL && !item.autoSSL">
+                <div class="path-choose mt-5">
+                  <input
+                    v-model="item.ssl.cert"
+                    type="text"
+                    :class="'input' + (errs['cert'] ? ' error' : '')"
+                    placeholder="cert"
+                  />
+                  <div class="icon-block" @click="chooseRoot('cert')">
+                    <yb-icon
+                      :svg="import('@/svg/folder.svg?raw')"
+                      class="choose"
+                      width="18"
+                      height="18"
+                    />
+                  </div>
+                </div>
+
+                <div class="path-choose my-5">
+                  <input
+                    v-model="item.ssl.key"
+                    type="text"
+                    :class="'input' + (errs['certkey'] ? ' error' : '')"
+                    placeholder="cert key"
+                  />
+                  <div class="icon-block" @click="chooseRoot('certkey')">
+                    <yb-icon
+                      :svg="import('@/svg/folder.svg?raw')"
+                      class="choose"
+                      width="18"
+                      height="18"
+                    />
+                  </div>
+                </div>
+              </template>
+
+              <template v-if="item.useSSL">
+                <div class="ssl-switch my-5">
+                  <span>{{ I18nT('host.port') }}</span>
+                </div>
+                <div class="port-set port-ssl mb-5">
+                  <div class="port-type"> Tomcat </div>
+                  <input
+                    v-model.number="item.port.tomcat_ssl"
+                    type="number"
+                    :class="'input' + (errs['port_tomcat_ssl'] ? ' error' : '')"
+                    placeholder="Default: 443"
+                  />
+                </div>
+              </template>
+            </div>
+          </template>
+          <div class="mt-7"></div>
+        </div>
+      </el-scrollbar>
     </div>
   </el-drawer>
 </template>

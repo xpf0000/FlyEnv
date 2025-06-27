@@ -481,15 +481,8 @@ body {
     }
   }
   .main-wapper {
-    flex: 1;
     width: 100%;
-    overflow: auto;
     padding: 12px;
-    &::-webkit-scrollbar {
-      width: 0;
-      height: 0;
-      display: none;
-    }
     .input {
       background: transparent;
       border-top: none;

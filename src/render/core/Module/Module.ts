@@ -213,6 +213,7 @@ export class Module {
     this.staticFetching = true
     fetchVerion(this.typeFlag)
       .then((res: any) => {
+        console.log('fetchVerion res: ', res)
         for (const item of res) {
           const find = this.static.find(
             (d) => d.url === item.url && d.version === item.version && d.bin === item.bin
@@ -224,6 +225,9 @@ export class Module {
             obj.copyCommand = obj.copyCommand.bind(obj)
             obj.runCommand = obj.runCommand.bind(obj)
             this.static.push(obj)
+          } else {
+            console.log('find: ', find, item)
+            Object.assign(find, item)
           }
         }
         this.staticFetching = false

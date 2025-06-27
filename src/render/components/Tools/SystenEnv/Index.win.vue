@@ -7,7 +7,7 @@
       </div>
     </div>
 
-    <div class="main-wapper">
+    <div class="main-wapper flex-1 overflow-hidden">
       <el-form label-position="top" class="w-full h-full overflow-hidden">
         <el-form-item label="PATH" class="h-full overflow-hidden system-env-form-item">
           <template #label>
@@ -88,8 +88,10 @@
                     >
                       <template #reference>
                         <el-button
-                          :class="{ 'opacity-0': scope.row.path.includes('%SystemRoot%') }"
-                          :disabled="scope.row.path.includes('%SystemRoot%')"
+                          :class="{
+                            'opacity-0': isSystem(scope.row.path)
+                          }"
+                          :disabled="isSystem(scope.row.path)"
                           link
                           type="danger"
                           :icon="Delete"
@@ -119,6 +121,11 @@
   import { ArrayMoveItem } from '@/util/Index'
 
   Setup.fetchList()
+
+  const isSystem = (path: string) => {
+    const p = path.toLowerCase()
+    return p === '%systemroot%' || p === '%systemroot%\\system32'
+  }
 
   const pathClick = async (p: string) => {
     if (isAbsolute(p) && (await fs.existsSync(p))) {

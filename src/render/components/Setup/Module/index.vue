@@ -22,9 +22,24 @@
   import { AppCustomerModule } from '@/core/Module'
   import ModuleItemCustomer from './moduleItemCustomer.vue'
 
+  const platformAppModules = computed(() => {
+    let platform: any = ''
+    if (window.Server.isMacOS) {
+      platform = 'macOS'
+    } else if (window.Server.isWindows) {
+      platform = 'Windows'
+    } else if (window.Server.isLinux) {
+      platform = 'Linux'
+    }
+    if (!platform) {
+      return []
+    }
+    return AppModules.filter((a) => !a.platform || a.platform.includes(platform))
+  })
+
   const firstItem = computed(() => {
     const m = 'site'
-    const sub = AppModules.filter((a) => a?.moduleType === m)
+    const sub = platformAppModules.value.filter((a) => a?.moduleType === m)
     sub.sort((a, b) => {
       const lowerA = a.typeFlag.toLowerCase()
       const lowerB = b.typeFlag.toLowerCase()
@@ -41,7 +56,9 @@
 
   const allList = computed(() => {
     return AppModuleTypeList.filter((f) => f !== 'site').map((m) => {
-      const sub = AppModules.filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
+      const sub = platformAppModules.value.filter(
+        (a) => a?.moduleType === m || (!a?.moduleType && m === 'other')
+      )
       sub.sort((a, b) => {
         const lowerA = a.typeFlag.toLowerCase()
         const lowerB = b.typeFlag.toLowerCase()

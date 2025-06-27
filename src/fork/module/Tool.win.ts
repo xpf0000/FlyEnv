@@ -415,7 +415,7 @@ subjectAltName=@alt_names
         reject(new Error('Fail'))
         return
       }
-      console.log('oldPath: ', oldPath)
+      console.log('oldPath 001: ', oldPath)
       console.log('rawOldPath: ', rawOldPath)
 
       const binDir = dirname(item.bin)
@@ -443,8 +443,11 @@ subjectAltName=@alt_names
         }
       }
 
+      /**
+       * 过滤掉此item
+       */
       oldPath = oldPath.filter((o) => {
-        const a = existsSync(o) && realpathSync(o) === binDir
+        const a = existsSync(o) && realpathSync(o).startsWith(item.path)
         return !a
       })
 
@@ -466,7 +469,7 @@ subjectAltName=@alt_names
           return check
         })
 
-      console.log('oldPath: ', oldPath)
+      console.log('oldPath 002: ', oldPath)
       console.log('allFile: ', allFile)
 
       /**
@@ -474,12 +477,21 @@ subjectAltName=@alt_names
        */
       oldPath = oldPath.filter((o) => !o.includes(envDir))
 
+      /**
+       * 非NTFS的 无法创建软链接。allFile应该时空的。直接push item
+       */
       if (!(await isNTFS(envDir)) || !(await isNTFS(item.path))) {
         allFile.push(item.path)
       }
 
       for (const envPath of allFile) {
         const rawEnvPath = realpathSync(envPath)
+        /**
+         * 从原有的oldPath过滤掉
+         * 1. 文本地址包含软链接的
+         * 2. 文本地址包含真实路径的
+         * 3. 真实地址包含软链接或者真实路径的
+         */
         oldPath = oldPath.filter((p) => {
           const a = p.includes(envPath)
           const b = p.includes(rawEnvPath)
@@ -498,6 +510,9 @@ subjectAltName=@alt_names
           return res
         })
 
+        /**
+         * 添加路径
+         */
         oldPath.unshift(envPath)
         if (existsSync(join(envPath, 'bin'))) {
           oldPath.unshift(join(envPath, 'bin'))
@@ -557,7 +572,7 @@ php "%~dp0composer.phar" %*`
 
       oldPath = handleWinPathArr(oldPath)
 
-      console.log('oldPath: ', oldPath)
+      console.log('oldPath 003: ', oldPath)
 
       const pathString = oldPath
       let otherString = ''
@@ -586,7 +601,7 @@ php "%~dp0composer.phar" %*`
       }
 
       if (typeFlag === 'php') {
-        const phpModule = (await import('./Php')).default
+        const phpModule = (await import('./Php.win')).default
         try {
           await phpModule.getIniPath(item)
         } catch {}

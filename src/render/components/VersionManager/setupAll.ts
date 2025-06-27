@@ -99,6 +99,7 @@ export const SetupAll = (typeFlag: AllAppModule) => {
       return module.staticFetching
     }
     if (libSrc.value === 'local') {
+      console.log('module.fetchInstalleding: ', typeFlag, module, module?.fetchInstalleding)
       return module.fetchInstalleding
     }
     return false

@@ -20,124 +20,127 @@
         }}</el-button>
       </div>
 
-      <div class="main-wapper">
-        <div class="main">
-          <input
-            v-model.trim="item.projectName"
-            type="text"
-            :class="'input mb-3' + (errs['projectName'] ? ' error' : '')"
-            :placeholder="I18nT('host.projectName')"
-          />
-          <input
-            v-model.trim="item.mark"
-            style="margin: 15px 0 10px"
-            class="input"
-            :placeholder="I18nT('host.placeholderComment')"
-          />
-        </div>
-
-        <div class="plant-title">{{ I18nT('host.startFile') }}</div>
-        <div class="main">
-          <div class="path-choose pb-4">
+      <el-scrollbar class="flex-1">
+        <div class="main-wapper">
+          <div class="main">
             <input
-              v-model.trim="item.bin"
+              v-model.trim="item.projectName"
               type="text"
-              :class="'input' + (errs['bin'] ? ' error' : '')"
-              :placeholder="I18nT('host.startFile')"
+              :class="'input mb-3' + (errs['projectName'] ? ' error' : '')"
+              :placeholder="I18nT('host.projectName')"
             />
-            <div class="icon-block" @click="chooseRoot('bin')">
-              <yb-icon
-                :svg="import('@/svg/folder.svg?raw')"
-                class="choose"
-                width="18"
-                height="18"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="plant-title">{{ I18nT('host.runDirectory') }}</div>
-        <div class="main">
-          <div class="path-choose pb-4">
             <input
-              v-model.trim="item.root"
-              type="text"
-              :class="'input' + (errs['root'] ? ' error' : '')"
-              :placeholder="I18nT('host.runDirectory')"
-            />
-            <div class="icon-block" @click="chooseRoot('root')">
-              <yb-icon
-                :svg="import('@/svg/folder.svg?raw')"
-                class="choose"
-                width="18"
-                height="18"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
-        <div class="main">
-          <div class="port-set mb-5">
-            <input
-              v-model.number="item.projectPort"
-              type="number"
+              v-model.trim="item.mark"
+              style="margin: 15px 0 10px"
               class="input"
-              :placeholder="I18nT('host.tcpPort')"
+              :placeholder="I18nT('host.placeholderComment')"
             />
           </div>
-        </div>
 
-        <div class="plant-title">{{ I18nT('host.startCommand') }}</div>
-        <div class="main">
-          <textarea
-            v-model.trim="item.startCommand"
-            type="text"
-            class="input-textarea"
-            :class="{ error: !!errs['startCommand'] }"
-            style="margin-top: 0"
-            :placeholder="I18nT('host.startCommand')"
-          ></textarea>
-        </div>
-
-        <div class="main mt-5">
-          <div class="ssl-switch">
-            <span>{{ I18nT('host.envVar') }}</span>
-            <el-radio-group v-model="item.envVarType">
-              <el-radio-button value="none" :label="I18nT('base.none')"> </el-radio-button>
-              <el-radio-button value="specify" :label="I18nT('host.specifyVar')"> </el-radio-button>
-              <el-radio-button value="file" :label="I18nT('host.fileVar')"> </el-radio-button>
-            </el-radio-group>
+          <div class="plant-title">{{ I18nT('host.startFile') }}</div>
+          <div class="main">
+            <div class="path-choose pb-4">
+              <input
+                v-model.trim="item.bin"
+                type="text"
+                :class="'input' + (errs['bin'] ? ' error' : '')"
+                :placeholder="I18nT('host.startFile')"
+              />
+              <div class="icon-block" @click="chooseRoot('bin')">
+                <yb-icon
+                  :svg="import('@/svg/folder.svg?raw')"
+                  class="choose"
+                  width="18"
+                  height="18"
+                />
+              </div>
+            </div>
           </div>
 
-          <div v-if="item.envVarType === 'specify'" style="margin-top: 12px">
+          <div class="plant-title">{{ I18nT('host.runDirectory') }}</div>
+          <div class="main">
+            <div class="path-choose pb-4">
+              <input
+                v-model.trim="item.root"
+                type="text"
+                :class="'input' + (errs['root'] ? ' error' : '')"
+                :placeholder="I18nT('host.runDirectory')"
+              />
+              <div class="icon-block" @click="chooseRoot('root')">
+                <yb-icon
+                  :svg="import('@/svg/folder.svg?raw')"
+                  class="choose"
+                  width="18"
+                  height="18"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
+          <div class="main">
+            <div class="port-set mb-5">
+              <input
+                v-model.number="item.projectPort"
+                type="number"
+                class="input"
+                :placeholder="I18nT('host.tcpPort')"
+              />
+            </div>
+          </div>
+
+          <div class="plant-title">{{ I18nT('host.startCommand') }}</div>
+          <div class="main">
             <textarea
-              v-model.trim="item.envVar"
+              v-model.trim="item.startCommand"
               type="text"
-              class="input-textarea w-full"
-              style="margin-top: 12px"
-              :placeholder="I18nT('host.envVarTips')"
+              class="input-textarea"
+              :class="{ error: !!errs['startCommand'] }"
+              style="margin-top: 0"
+              :placeholder="I18nT('host.startCommand')"
             ></textarea>
           </div>
-          <div v-else-if="item.envVarType === 'file'" class="path-choose pb-4">
-            <input
-              v-model.trim="item.envFile"
-              type="text"
-              class="mt-4 input"
-              :placeholder="I18nT('host.fileVarTips')"
-            />
-            <div class="icon-block" @click="chooseRoot('envFile')">
-              <yb-icon
-                :svg="import('@/svg/folder.svg?raw')"
-                class="choose"
-                width="18"
-                height="18"
+
+          <div class="main mt-5">
+            <div class="ssl-switch">
+              <span>{{ I18nT('host.envVar') }}</span>
+              <el-radio-group v-model="item.envVarType">
+                <el-radio-button value="none" :label="I18nT('base.none')"> </el-radio-button>
+                <el-radio-button value="specify" :label="I18nT('host.specifyVar')">
+                </el-radio-button>
+                <el-radio-button value="file" :label="I18nT('host.fileVar')"> </el-radio-button>
+              </el-radio-group>
+            </div>
+
+            <div v-if="item.envVarType === 'specify'" style="margin-top: 12px">
+              <textarea
+                v-model.trim="item.envVar"
+                type="text"
+                class="input-textarea w-full"
+                style="margin-top: 12px"
+                :placeholder="I18nT('host.envVarTips')"
+              ></textarea>
+            </div>
+            <div v-else-if="item.envVarType === 'file'" class="path-choose pb-4">
+              <input
+                v-model.trim="item.envFile"
+                type="text"
+                class="mt-4 input"
+                :placeholder="I18nT('host.fileVarTips')"
               />
+              <div class="icon-block" @click="chooseRoot('envFile')">
+                <yb-icon
+                  :svg="import('@/svg/folder.svg?raw')"
+                  class="choose"
+                  width="18"
+                  height="18"
+                />
+              </div>
             </div>
           </div>
+          <div class="mt-7"></div>
         </div>
-        <div class="mt-7"></div>
-      </div>
+      </el-scrollbar>
     </div>
   </el-drawer>
 </template>

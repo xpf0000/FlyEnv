@@ -20,88 +20,29 @@
         }}</el-button>
       </div>
 
-      <div class="main-wapper">
-        <div class="main">
-          <input
-            v-model.trim="item.name"
-            type="text"
-            :class="'input' + (errs['name'] ? ' error' : '')"
-            :placeholder="I18nT('host.placeholderName')"
-          />
-          <input
-            v-model.trim="item.mark"
-            style="margin: 15px 0 10px"
-            class="input"
-            :placeholder="I18nT('host.placeholderComment')"
-          />
-          <div class="path-choose my-5">
+      <el-scrollbar class="flex-1">
+        <div class="main-wapper">
+          <div class="main">
             <input
-              v-model.trim="item.root"
+              v-model.trim="item.name"
               type="text"
-              :class="'input' + (errs['root'] ? ' error' : '')"
-              :placeholder="I18nT('host.placeholderRootPath')"
+              :class="'input' + (errs['name'] ? ' error' : '')"
+              :placeholder="I18nT('host.placeholderName')"
             />
-            <div class="icon-block" @click="chooseRoot('root')">
-              <yb-icon
-                :svg="import('@/svg/folder.svg?raw')"
-                class="choose"
-                width="18"
-                height="18"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="plant-title">{{ I18nT('host.port') }}</div>
-        <div class="main">
-          <div class="port-set mb-5">
-            <div class="port-type"> Tomcat </div>
             <input
-              v-model.number="item.port.tomcat"
-              type="number"
-              :class="'input' + (errs['port_tomcat'] ? ' error' : '')"
-              placeholder="default: 80"
+              v-model.trim="item.mark"
+              style="margin: 15px 0 10px"
+              class="input"
+              :placeholder="I18nT('host.placeholderComment')"
             />
-          </div>
-        </div>
-        <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
-        <div class="main">
-          <div class="ssl-switch">
-            <span>SSL</span>
-            <el-switch v-model="item.useSSL"></el-switch>
-          </div>
-
-          <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
-            <span>{{ I18nT('host.autoSSL') }}</span>
-            <el-switch v-model="item.autoSSL"></el-switch>
-          </div>
-
-          <template v-if="item.useSSL && !item.autoSSL">
-            <div class="path-choose mt-5">
-              <input
-                v-model.trim="item.ssl.cert"
-                type="text"
-                :class="'input' + (errs['cert'] ? ' error' : '')"
-                placeholder="cert"
-              />
-              <div class="icon-block" @click="chooseRoot('cert', true)">
-                <yb-icon
-                  :svg="import('@/svg/folder.svg?raw')"
-                  class="choose"
-                  width="18"
-                  height="18"
-                />
-              </div>
-            </div>
-
             <div class="path-choose my-5">
               <input
-                v-model.trim="item.ssl.key"
+                v-model.trim="item.root"
                 type="text"
-                :class="'input' + (errs['certkey'] ? ' error' : '')"
-                placeholder="cert key"
+                :class="'input' + (errs['root'] ? ' error' : '')"
+                :placeholder="I18nT('host.placeholderRootPath')"
               />
-              <div class="icon-block" @click="chooseRoot('certkey', true)">
+              <div class="icon-block" @click="chooseRoot('root')">
                 <yb-icon
                   :svg="import('@/svg/folder.svg?raw')"
                   class="choose"
@@ -110,25 +51,86 @@
                 />
               </div>
             </div>
-          </template>
+          </div>
 
-          <template v-if="item.useSSL">
-            <div class="ssl-switch my-5">
-              <span>Port</span>
-            </div>
-            <div class="port-set port-ssl mb-5">
+          <div class="plant-title">{{ I18nT('host.port') }}</div>
+          <div class="main">
+            <div class="port-set mb-5">
               <div class="port-type"> Tomcat </div>
               <input
-                v-model.number="item.port.tomcat_ssl"
+                v-model.number="item.port.tomcat"
                 type="number"
-                :class="'input' + (errs['port_tomcat_ssl'] ? ' error' : '')"
-                placeholder="Default: 443"
+                :class="'input' + (errs['port_tomcat'] ? ' error' : '')"
+                placeholder="default: 80"
               />
             </div>
-          </template>
+          </div>
+          <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
+          <div class="main">
+            <div class="ssl-switch">
+              <span>SSL</span>
+              <el-switch v-model="item.useSSL"></el-switch>
+            </div>
+
+            <div v-if="item.useSSL" class="ssl-switch" style="margin-top: 12px">
+              <span>{{ I18nT('host.autoSSL') }}</span>
+              <el-switch v-model="item.autoSSL"></el-switch>
+            </div>
+
+            <template v-if="item.useSSL && !item.autoSSL">
+              <div class="path-choose mt-5">
+                <input
+                  v-model.trim="item.ssl.cert"
+                  type="text"
+                  :class="'input' + (errs['cert'] ? ' error' : '')"
+                  placeholder="cert"
+                />
+                <div class="icon-block" @click="chooseRoot('cert', true)">
+                  <yb-icon
+                    :svg="import('@/svg/folder.svg?raw')"
+                    class="choose"
+                    width="18"
+                    height="18"
+                  />
+                </div>
+              </div>
+
+              <div class="path-choose my-5">
+                <input
+                  v-model.trim="item.ssl.key"
+                  type="text"
+                  :class="'input' + (errs['certkey'] ? ' error' : '')"
+                  placeholder="cert key"
+                />
+                <div class="icon-block" @click="chooseRoot('certkey', true)">
+                  <yb-icon
+                    :svg="import('@/svg/folder.svg?raw')"
+                    class="choose"
+                    width="18"
+                    height="18"
+                  />
+                </div>
+              </div>
+            </template>
+
+            <template v-if="item.useSSL">
+              <div class="ssl-switch my-5">
+                <span>Port</span>
+              </div>
+              <div class="port-set port-ssl mb-5">
+                <div class="port-type"> Tomcat </div>
+                <input
+                  v-model.number="item.port.tomcat_ssl"
+                  type="number"
+                  :class="'input' + (errs['port_tomcat_ssl'] ? ' error' : '')"
+                  placeholder="Default: 443"
+                />
+              </div>
+            </template>
+          </div>
+          <div class="py-5"></div>
         </div>
-        <div class="py-5"></div>
-      </div>
+      </el-scrollbar>
     </div>
   </el-drawer>
 </template>
