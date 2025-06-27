@@ -154,7 +154,17 @@ export const versionLocalFetch = async (
       return
     }
     dir = realpathSync(dir)
-    let binPath = versionCheckBin(join(dir, `${binName}`))
+    let binPath: string | boolean = false
+    if (binPaths) {
+      for (const p of binPaths) {
+        binPath = versionCheckBin(join(dir, p))
+        if (binPath) {
+          installed.add(binPath)
+          return
+        }
+      }
+    }
+    binPath = versionCheckBin(join(dir, `${binName}`))
     if (binPath) {
       installed.add(binPath)
       return
@@ -168,15 +178,6 @@ export const versionLocalFetch = async (
     if (binPath) {
       installed.add(binPath)
       return
-    }
-    if (binPaths) {
-      for (const p of binPaths) {
-        binPath = versionCheckBin(join(dir, p))
-        if (binPath) {
-          installed.add(binPath)
-          return
-        }
-      }
     }
     if (depth >= maxDepth) {
       return

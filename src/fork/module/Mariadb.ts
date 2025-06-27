@@ -324,7 +324,11 @@ datadir=${dataDir}`
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
-            const command = `"${item.bin}" -V`
+            let bin = item.bin
+            if (!isWindows()) {
+              bin = join(dirname(item.bin), 'mariadbd')
+            }
+            const command = `"${bin}" -V`
             const reg = /(Ver )(\d+(\.\d+){1,4})([-\s])/g
             return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
@@ -378,7 +382,7 @@ datadir=${dataDir}`
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        '^mariadb-([\\d\\.]*)\\d$',
+        '"^mariadb-([\\d\\.]*)\\d$"',
         (f) => {
           return f.includes('Multithreaded SQL database server')
         },

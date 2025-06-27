@@ -582,7 +582,7 @@ xdebug.output_dir = "${output_dir}"
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^php\\d*$`,
+        `"^php\\d*$"`,
         (f) => {
           return f.includes('lang www') && f.includes('PHP: Hypertext Preprocessor')
         },

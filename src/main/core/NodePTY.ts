@@ -21,6 +21,10 @@ class NodePTY {
       const key = uuid()
       if (isMacOS()) {
         const env = await EnvSync.sync()
+        Object.assign(env!, {
+          TERM: 'xterm-256color',
+          COLORTERM: 'truecolor'
+        })
         const pty: IPty = spawn('zsh', [], {
           name: 'xterm-color',
           cols: 80,

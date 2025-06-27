@@ -20,7 +20,7 @@
               <div class="p-2 grid grid-cols-2 gap-4">
                 <template v-for="(p, _i) in item.list" :key="_i">
                   <div
-                    class="p-3 flex flex-col bg-slate-100 rounded-md hover:shadow-lg relative dark:bg-gray-700 dark:hover:shadow-slate-600 group"
+                    class="p-3 flex flex-col bg-[#33445526] rounded-md hover:shadow-lg relative dark:bg-[#32364A] dark:hover:shadow-slate-600 group"
                     @click.stop="toCreate(p)"
                   >
                     <div

@@ -148,7 +148,7 @@ class Java extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^((open)?)jdk([\\d\\.]*)$`,
+        `"^((open)?)jdk([\\d\\.]*)$"`,
         (f) => {
           return f.includes('Oracle Java SE Development Kit ') || f.includes('OpenJDK ')
         },

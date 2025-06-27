@@ -769,7 +769,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^mysql([\\d]+)?$`,
+        `"^mysql([\\d]+)?$"`,
         (f) => {
           return f.includes('Multithreaded SQL database server')
         },

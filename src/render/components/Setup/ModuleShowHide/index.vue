@@ -14,6 +14,9 @@
   import { AppStore } from '@/store/app'
   import { computed } from 'vue'
   import type { AllAppModule } from '@/core/type'
+  import { AppModules } from '@/core/App'
+  import { BrewStore } from '@/store/brew'
+  import { AppCustomerModule } from '@/core/Module'
 
   type StringFn = () => string
 
@@ -27,7 +30,7 @@
   })
 
   const appStore = AppStore()
-
+  const brewStore = BrewStore()
   const showItem = computed({
     get() {
       return appStore.config.setup.common.showItem?.[props.typeFlag] !== false
@@ -35,6 +38,20 @@
     set(v) {
       appStore.config.setup.common.showItem[props.typeFlag] = v
       appStore.saveConfig()
+      // Stop Service when hide module
+      if (!v) {
+        const find = AppModules.find((v) => v.typeFlag === v.typeFlag && v.isService)
+        if (find) {
+          brewStore.module(props.typeFlag).stop().catch()
+          return
+        }
+        const customer = AppCustomerModule.module.find(
+          (v) => v.typeFlag === v.typeFlag && v.isService
+        )
+        if (customer) {
+          customer.stop().catch()
+        }
+      }
     }
   })
 </script>

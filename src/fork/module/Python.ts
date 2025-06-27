@@ -207,7 +207,7 @@ class Python extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^python\\d*$`,
+        `"^python\\d*$"`,
         (f) => {
           return f.includes('An interpreted, object-oriented programming language')
         },

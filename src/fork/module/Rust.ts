@@ -75,7 +75,7 @@ class Rust extends Base {
             TaskQueue.run(
               versionBinVersion,
               item.bin,
-              `${basename(item.bin)} --version`,
+              `"${item.bin}" --version`,
               /(cargo )(\d+(\.\d+){1,4})(.*?)/g
             )
           )

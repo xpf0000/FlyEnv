@@ -6,12 +6,15 @@
     :destroy-on-close="true"
     :close-on-click-modal="false"
     class="host-edit new-project"
+    :class="{
+      installing: loading
+    }"
     @closed="closedFn"
   >
     <template #default>
-      <div class="main-wapper">
+      <div class="main-wapper h-full">
         <template v-if="loading">
-          <div ref="xterm" class="h-[263px] overflow-hidden"> </div>
+          <div ref="xterm" class="h-full overflow-hidden"> </div>
         </template>
         <template v-else>
           <div class="main">

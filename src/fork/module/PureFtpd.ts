@@ -319,7 +319,7 @@ class Manager extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^pure-ftpd\\d*$`,
+        `"^pure-ftpd\\d*$"`,
         (f) => {
           return f.includes(
             'Pure-FTPd is a fast, production-quality, standard-conformant FTP (SSL/TLS) server, based upon Troll-FTPd.'

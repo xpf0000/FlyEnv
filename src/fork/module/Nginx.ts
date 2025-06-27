@@ -312,7 +312,7 @@ class Nginx extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^nginx\\d*$`,
+        `"^nginx\\d*$"`,
         (f) => {
           return f.includes('High-performance HTTP(S) server')
         },

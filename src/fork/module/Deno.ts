@@ -117,7 +117,7 @@ class Deno extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^deno$`,
+        `"^deno$"`,
         (f) => {
           return f.includes(
             'Deno is a simple, modern and secure runtime for JavaScript and TypeScript that uses V8 and is built in Rust.'

@@ -282,7 +282,7 @@ class Caddy extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^caddy\\d*$`,
+        `"^caddy\\d*$"`,
         (f) => {
           return (
             f.includes('www') && f.includes('Fast, multi-platform web server with automatic HTTPS')

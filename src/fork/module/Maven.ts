@@ -138,7 +138,7 @@ class Maven extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^maven\\d*$`,
+        `"^maven\\d*$"`,
         (f) => {
           return f.toLowerCase().includes('a java-based build and project management environment.')
         },

@@ -76,10 +76,12 @@
   import { AppCustomerModule } from '@/core/Module'
   import CustomerModule from '@/components/CustomerModule/aside.vue'
   import type { CallBackFn } from '@shared/app'
+  import { BrewStore } from '@/store/brew'
 
   let lastTray = ''
 
   const appStore = AppStore()
+  const brewStore = BrewStore()
 
   const currentPage = computed(() => {
     return appStore.currentPage
@@ -100,11 +102,15 @@
     return AppModules.filter((a) => !a.platform || a.platform.includes(platform))
   })
 
+  const showItem = computed(() => {
+    return appStore.config.setup.common.showItem
+  })
+
   const firstItem = computed(() => {
     const m = 'site'
     const sub = platformAppModules.value
       .filter((a) => a?.moduleType === m)
-      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+      .filter((a) => showItem.value?.[a.typeFlag] !== false)
     sub.sort((a, b) => {
       const lowerA = a.typeFlag.toLowerCase()
       const lowerB = b.typeFlag.toLowerCase()
@@ -114,7 +120,7 @@
     })
     const customer: any = AppCustomerModule.module
       .filter((f) => f.moduleType === m)
-      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+      .filter((a) => showItem.value?.[a.typeFlag] !== false)
     console.log('customer: ', customer, m)
     sub.unshift(...customer)
     return sub.length
@@ -129,7 +135,7 @@
     return AppModuleTypeList.filter((f) => f !== 'site')
       .map((m) => {
         const sub = platformAppModules.value
-          .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+          .filter((a) => showItem.value?.[a.typeFlag] !== false)
           .filter((a) => a?.moduleType === m || (!a?.moduleType && m === 'other'))
         sub.sort((a, b) => {
           const lowerA = a.typeFlag.toLowerCase()
@@ -140,7 +146,7 @@
         })
         const customer: any = AppCustomerModule.module
           .filter((f) => f.moduleType === m)
-          .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+          .filter((a) => showItem.value?.[a.typeFlag] !== false)
         sub.unshift(...customer)
         return {
           label: I18nT(`aside.${m}`),
@@ -157,7 +163,7 @@
           .filter((s) => {
             return s.moduleType === m.moduleType
           })
-          .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+          .filter((a) => showItem.value?.[a.typeFlag] !== false)
         return {
           ...m,
           sub
@@ -230,22 +236,38 @@
     }
   )
 
-  const allCustomerServiceModuleExecItem = computed(() => {
+  /**
+   * Aside service vue component
+   */
+  const appServiceShowModule = computed(() => {
+    const allType = platformAppModules.value
+      .filter((f) => f.isService && showItem.value?.[f.typeFlag] !== false)
+      .map((f) => f.typeFlag)
+    return allType.map((f) => AppServiceModule?.[f]).filter((f) => !!f)
+  })
+
+  const serviceShowSystem = computed(() => {
+    return platformAppModules.value
+      .filter((f) => f.isService && showItem.value?.[f.typeFlag] !== false)
+      .map((f) => brewStore.module(f.typeFlag).installed)
+      .flat()
+  })
+
+  const serviceShowCustomer = computed(() => {
     return AppCustomerModule.module
-      .filter((f) => f.isService)
-      .map((m) => m.item)
+      .filter((f) => f.isService && showItem.value?.[f.typeFlag] !== false)
+      .map((f) => f.item)
       .flat()
   })
 
   const groupIsRunning = computed(() => {
     return (
-      Object.values(AppServiceModule).some((m) => !!m?.serviceRunning) ||
-      allCustomerServiceModuleExecItem.value.some((s) => s.run)
+      serviceShowSystem.value.some((m) => m.run) || serviceShowCustomer.value.some((s) => s.run)
     )
   })
 
   const groupDisabled = computed(() => {
-    const modules = Object.values(AppServiceModule)
+    const modules = appServiceShowModule.value
     const allDisabled = modules.every((m) => !!m?.serviceDisabled)
     const running = modules.some((m) => !!m?.serviceFetching)
     console.log('groupDisabled', allDisabled, running, appStore.versionInited)
@@ -253,7 +275,7 @@
       allDisabled ||
       running ||
       !appStore.versionInited ||
-      allCustomerServiceModuleExecItem.value.some((s) => s.running)
+      serviceShowCustomer.value.some((s) => s.running)
     )
   })
 
@@ -269,7 +291,7 @@
   const customerModule = computed(() => {
     return AppCustomerModule.module
       .filter((f) => f.isService)
-      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+      .filter((a) => showItem.value?.[a.typeFlag] !== false)
       .map((m) => {
         return {
           id: m.id,
@@ -342,16 +364,16 @@
     if (groupDisabled.value) {
       return
     }
-    const modules = Object.values(AppServiceModule)
+    const isRun = groupIsRunning.value
+    const modules = appServiceShowModule.value
     const all: Array<Promise<string | boolean>> = []
     modules.forEach((m) => {
-      const arr = m?.groupDo(groupIsRunning?.value) ?? []
+      const arr = m?.groupDo(isRun) ?? []
       all.push(...arr)
     })
-    const isRun = groupIsRunning.value
     const customerModule = AppCustomerModule.module
       .filter((f) => f.isService)
-      .filter((a) => appStore.config.setup.common.showItem?.[a.typeFlag] !== false)
+      .filter((a) => showItem.value?.[a.typeFlag] !== false)
       .map((m) => {
         return isRun ? m.stop() : m.start()
       })

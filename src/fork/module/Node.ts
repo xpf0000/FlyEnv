@@ -15,7 +15,8 @@ import {
   writeFile,
   realpath,
   remove,
-  mkdirp
+  mkdirp,
+  fetchPathByBin
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import { basename, dirname, join } from 'path'
@@ -489,16 +490,7 @@ class Manager extends Base {
           try {
             const fnmvnmVersions = await this.allInstalled()
             fnmvnmVersions.forEach((item) => {
-              let path = item.bin
-              if (path.includes('/sbin/') || path.includes('/bin/')) {
-                path = path
-                  .replace(`/sbin/`, '/##SPLIT##/')
-                  .replace(`/bin/`, '/##SPLIT##/')
-                  .split('/##SPLIT##/')
-                  .shift()!
-              } else {
-                path = dirname(path)
-              }
+              const path = fetchPathByBin(item.bin)
               const num = item.version
                 ? Number(versionFixed(item.version).split('.').slice(0, 2).join(''))
                 : null
@@ -514,32 +506,7 @@ class Manager extends Base {
               })
             })
           } catch {}
-
-          const dir = join(global.Server.AppDir!, 'nodejs')
-          if (existsSync(dir)) {
-            const dirs = await readdir(dir)
-            const appVersions: SoftInstalled[] = dirs
-              .filter((s) => s.startsWith('v') && existsSync(join(dir, s, 'bin/node')))
-              .map((s) => {
-                const version = s.replace('v', '').trim()
-                const path = join(dir, s)
-                const bin = join(dir, s, 'bin/node')
-                const num = version
-                  ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
-                  : null
-                return {
-                  run: false,
-                  running: false,
-                  typeFlag: 'node',
-                  path,
-                  bin,
-                  version,
-                  num,
-                  enable: true
-                }
-              })
-            versions.push(...appVersions)
-          }
+          versions = versionFilterSame(versions)
           resolve(versionSort(versions))
         })
         .catch(() => {

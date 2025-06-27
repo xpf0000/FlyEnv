@@ -268,7 +268,7 @@ class Redis extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^redis\\d*$`,
+        `"^redis\\d*$"`,
         (f) => {
           return f.includes('Redis is an open source, advanced key-value store.')
         },

@@ -333,7 +333,7 @@ class Manager extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^mongodb\\d*$`,
+        `"^mongodb\\d*$"`,
         (f) => {
           return f.includes('high-performance, schema-free, document-oriented')
         },

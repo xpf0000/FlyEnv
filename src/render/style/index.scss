@@ -610,6 +610,12 @@ body {
     width: 600px;
     height: auto;
 
+    &.installing {
+      width: 75%;
+      min-width: 600px;
+      height: 75%;
+    }
+
     .el-dialog__body {
       padding: 5px 10px;
     }

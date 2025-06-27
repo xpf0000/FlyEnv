@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -71,7 +71,11 @@ class GoLang extends Base {
           versions = list.flat()
           versions = versionFilterSame(versions)
           const all = versions.map((item) => {
-            const command = `"${item.bin}" version`
+            let bin = item.bin
+            if (!isWindows()) {
+              bin = join(dirname(item.bin), 'go')
+            }
+            const command = `"${bin}" version`
             const reg = /( go)(.*?)( )/g
             return TaskQueue.run(versionBinVersion, item.bin, command, reg)
           })
@@ -135,7 +139,7 @@ class GoLang extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^go$`,
+        `"^go$"`,
         (f) => {
           return f.includes(
             'compiled, garbage-collected, concurrent programming language developed by Google Inc.'

@@ -122,7 +122,7 @@ class Ruby extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^ruby([\\d]+)?$`,
+        `"^ruby([\\d]+)?$"`,
         (f) => {
           return (
             f.includes('lang ruby') &&

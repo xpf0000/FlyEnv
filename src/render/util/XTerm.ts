@@ -42,15 +42,25 @@ class XTerm implements XTermType {
           theme.background = '#ffffff'
           theme.foreground = '#334455'
           theme.selectionBackground = '#a0cfff'
+          theme.cursor = '#666666'
         } else {
           theme.background = '#282b3d'
           theme.foreground = '#cfd3dc'
           theme.selectionBackground = '#606266'
+          theme.cursor = '#dddddd'
         }
         this.xterm = new Terminal({
+          fontSize: 14,
+          fontFamily: `monospace`, // 跨平台可用字体
+          letterSpacing: 0, // 消除字体渲染差异
+          lineHeight: 1.2, // 统一行高
+
+          // 其他
+          allowTransparency: false, // 禁用透明避免差异
+
           cursorBlink: true,
           allowProposedApi: true,
-          cursorWidth: 5,
+          cursorWidth: 8,
           cursorStyle: 'bar',
           logLevel: 'off',
           theme: theme
@@ -66,6 +76,7 @@ class XTerm implements XTermType {
         this.initEvent()
         this.xterm.focus()
         this.initLog()
+        this.xterm?.write('\x1b[?25h')
         resolve(true)
       }
 

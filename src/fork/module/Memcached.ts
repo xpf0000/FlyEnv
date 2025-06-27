@@ -192,7 +192,7 @@ class Memcached extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^memcached\\d*$`,
+        `"^memcached\\d*$"`,
         (f) => {
           return f.includes('A high performance, distributed memory object caching system.')
         },

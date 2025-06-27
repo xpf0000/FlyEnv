@@ -122,7 +122,7 @@ class Erlang extends Base {
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^erlang([\\d]+)?$`,
+        `"^erlang([\\d]+)?$"`,
         (f) => {
           return f.includes('The Erlang Programming Language')
         },

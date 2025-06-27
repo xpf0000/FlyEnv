@@ -242,7 +242,7 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^elasticsearch\\d*$`,
+        `"^elasticsearch\\d*$"`,
         (f) => {
           return (
             f.includes('www') && f.includes('Fast, multi-platform web server with automatic HTTPS')

@@ -25,7 +25,8 @@ import {
   writeFile,
   remove,
   serviceStartExecCMD,
-  mkdirp
+  mkdirp,
+  execPromiseWithEnv
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
@@ -178,9 +179,15 @@ export LANG="${global.Server.Local!}"
         const binDir = dirname(bin)
         if (isMacOS()) {
           const initDB = join(binDir, 'initdb')
-          const command = `${initDB} -D ${dbPath} -U root && wait`
+          const command = `"${initDB}" -D "${dbPath}" -U root --locale=${global.Server.Local} --encoding=UTF8 && wait`
+          console.log('global.Server.Local: ', global.Server.Local)
           try {
-            await execPromise(command)
+            await execPromiseWithEnv(command, {
+              env: {
+                LC_ALL: global.Server.Local!,
+                LANG: global.Server.Local!
+              }
+            })
           } catch (e) {
             on({
               'APP-On-Log': AppLog('error', I18nT('appLog.initDBDataDirFail', { error: e }))
@@ -382,7 +389,7 @@ export LANG="${global.Server.Local!}"
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^postgresql\\d*$`,
+        `"^postgresql\\d*$"`,
         (f) => {
           return f.includes('The most advanced open-source database available anywhere.')
         },

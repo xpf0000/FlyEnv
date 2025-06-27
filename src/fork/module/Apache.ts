@@ -464,7 +464,7 @@ IncludeOptional "${vhost}*.conf"`
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^apache\\d*$`,
+        `"^apache\\d*$"`,
         (f) => {
           return f.includes('The extremely popular second version of the Apache http server')
         },

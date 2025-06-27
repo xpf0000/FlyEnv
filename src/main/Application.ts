@@ -48,7 +48,7 @@ export default class Application extends EventEmitter {
     AppNodeFnManager.customerLang = this.customerLang
     AppNodeFnManager.nativeTheme_watch()
     global.Server = {
-      Local: `${app.getLocale()}.UTF-8`
+      Local: `${app.getLocale().split('-').join('_')}.UTF-8`
     } as any
     this.isReady = false
     this.configManager = new ConfigManager()

@@ -51,6 +51,7 @@
 </template>
 
 <script lang="ts" setup>
+  import { ref } from 'vue'
   import Service from '../ServiceManager/index.vue'
   import Config from './Config.vue'
   import Logs from './Logs.vue'

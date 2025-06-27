@@ -381,7 +381,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
   portinfo() {
     return new ForkPromise(async (resolve) => {
       const Info: { [k: string]: any } = await portSearch(
-        `^rabbitmq-server\\d*$`,
+        `"^rabbitmq-server\\d*$"`,
         (f) => {
           return f.includes('The RabbitMQ AMQP Server')
         },
