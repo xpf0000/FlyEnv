@@ -18,7 +18,6 @@
 
 <script lang="ts" setup>
   import { computed } from 'vue'
-  import { passwordCheck } from '@/util/Brew'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
   import { I18nT } from '@lang/index'
@@ -39,33 +38,31 @@
       return phpVersions?.value?.length > 0 && phpVersions?.value?.some((v) => v.run)
     },
     set(v: boolean) {
-      passwordCheck().then(() => {
-        const all: Array<Promise<any>> = []
-        if (v) {
-          const runNum: Set<number> = new Set<number>()
-          phpVersions?.value?.forEach((v) => {
-            if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
-              if (!runNum.has(v.num!)) {
-                runNum.add(v.num!)
-                all.push(v.start())
-              }
+      const all: Array<Promise<any>> = []
+      if (v) {
+        const runNum: Set<number> = new Set<number>()
+        phpVersions?.value?.forEach((v) => {
+          if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
+            if (!runNum.has(v.num!)) {
+              runNum.add(v.num!)
+              all.push(v.start())
             }
-          })
-        } else {
-          phpVersions?.value?.forEach((v) => {
-            if (v?.version && v?.run) {
-              all.push(v.stop())
-            }
-          })
-        }
-        Promise.all(all).then((res) => {
-          const find = res.find((s) => typeof s === 'string')
-          if (find) {
-            MessageError(find)
-          } else {
-            MessageSuccess(I18nT('base.success'))
           }
         })
+      } else {
+        phpVersions?.value?.forEach((v) => {
+          if (v?.version && v?.run) {
+            all.push(v.stop())
+          }
+        })
+      }
+      Promise.all(all).then((res) => {
+        const find = res.find((s) => typeof s === 'string')
+        if (find) {
+          MessageError(find)
+        } else {
+          MessageSuccess(I18nT('base.success'))
+        }
       })
     }
   })
@@ -100,8 +97,7 @@
           if (v?.version && appStore.phpGroupStart?.[v.bin] !== false && !v?.run) {
             if (!runNum.has(v.num!)) {
               runNum.add(v.num!)
-              const module = brewStore.module('php')
-              all.push(module.start())
+              all.push(v.start())
             }
           }
         })

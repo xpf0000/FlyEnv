@@ -172,33 +172,6 @@ set "ES_PATH_CONF=${join(version.path, 'config')}"
               error
             })
           })
-          if (isMacOS()) {
-            const dir = join(global.Server.AppDir!, 'elasticsearch')
-            if (existsSync(dir)) {
-              const dirs = await readdir(dir)
-              const appVersions: SoftInstalled[] = dirs
-                .filter((s) => s.startsWith('v') && existsSync(join(dir, s, 'bin/elasticsearch')))
-                .map((s) => {
-                  const version = s.replace('v', '').trim()
-                  const path = join(dir, s)
-                  const bin = join(dir, s, 'bin/elasticsearch')
-                  const num = version
-                    ? Number(versionFixed(version).split('.').slice(0, 2).join(''))
-                    : null
-                  return {
-                    run: false,
-                    running: false,
-                    typeFlag: 'node',
-                    path,
-                    bin,
-                    version,
-                    num,
-                    enable: true
-                  }
-                })
-              versions.push(...appVersions)
-            }
-          }
           resolve(versionSort(versions))
         })
         .catch(() => {

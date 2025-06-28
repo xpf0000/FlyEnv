@@ -1,4 +1,4 @@
-import { basename, join } from 'path'
+import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from './Base'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
@@ -222,7 +222,7 @@ class MailPit extends Base {
             TaskQueue.run(
               versionBinVersion,
               item.bin,
-              `${basename(item.bin)} version`,
+              `"${item.bin}" version`,
               /(v)(\d+(\.\d+){1,4})( )/g
             )
           )

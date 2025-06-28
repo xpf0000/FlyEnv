@@ -16,13 +16,15 @@ interface State {
   ip: string
   fetching: boolean
   log: Array<DNSLogItem>
+  inited: boolean
 }
 
 const state: State = {
   running: false,
   ip: '',
   fetching: false,
-  log: []
+  log: [],
+  inited: false
 }
 
 export const DnsStore = defineStore('dns', {
@@ -35,6 +37,13 @@ export const DnsStore = defineStore('dns', {
       })
     },
     init() {
+      if (this.inited) {
+        return
+      }
+      this.inited = true
+      IPC.send('app-fork:dns', 'initConfig').then((key: string) => {
+        IPC.off(key)
+      })
       IPC.on('App_DNS_Log').then((key: string, res: DNSLogItem) => {
         console.log('App_DNS_Log: ', res)
         this.log.unshift(reactive(res))
@@ -45,26 +54,18 @@ export const DnsStore = defineStore('dns', {
       IPC.off('App_DNS_Log')
     },
     dnsStop(): Promise<boolean> {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         if (!this.running) {
           resolve(true)
           return
         }
         this.fetching = true
-        IPC.send('app-fork:dns', 'stopService').then((key: string, res: boolean | string) => {
+        IPC.send('app-fork:dns', 'stopService').then((key: string) => {
           IPC.off(key)
           this.fetching = false
-          if (typeof res === 'string') {
-            MessageError(res)
-          } else if (res) {
-            this.running = false
-            MessageSuccess(I18nT('base.success'))
-            resolve(true)
-            return
-          } else if (!res) {
-            MessageError(I18nT('base.fail'))
-          }
-          reject(new Error('fail'))
+          this.running = false
+          MessageSuccess(I18nT('base.success'))
+          resolve(true)
         })
       })
     },
@@ -75,20 +76,17 @@ export const DnsStore = defineStore('dns', {
           return
         }
         this.fetching = true
-        IPC.send('app-fork:dns', 'startService').then((key: string, res: boolean | string) => {
+        IPC.send('app-fork:dns', 'startService').then((key: string, res: any) => {
           IPC.off(key)
           this.fetching = false
           console.log('dns res: ', res)
-          if (typeof res === 'string') {
-            MessageError(res)
-          } else if (res) {
+          if (res?.code === 0) {
             this.running = true
             MessageSuccess(I18nT('base.success'))
             resolve(true)
             return
-          } else if (!res) {
-            MessageError(I18nT('base.fail'))
           }
+          MessageError(res?.msg ?? I18nT('base.fail'))
           reject(new Error('fail'))
         })
       })

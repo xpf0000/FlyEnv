@@ -13,44 +13,43 @@
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
   import Conf from '@/components/Conf/index.vue'
-  import { AppStore } from '@/store/app'
   import IPC from '@/util/IPC'
   import { BrewStore } from '@/store/brew'
   import { join } from '@/util/path-browserify'
 
-  const appStore = AppStore()
   const brewStore = BrewStore()
-  const file = ref('')
 
   const currentVersion = computed(() => {
-    const current = appStore.config.server?.rabbitmq?.current
-    const installed = brewStore.module('rabbitmq').installed
-    return installed?.find((i) => i.path === current?.path && i.version === current?.version)
+    return brewStore.currentVersion('rabbitmq')
   })
 
   const conf = ref()
 
-  const defaultFile = computed(() => {
-    if (!currentVersion.value) {
+  const file = computed(() => {
+    const v = currentVersion?.value?.version?.split('.')?.[0] ?? ''
+    if (!v) {
       return ''
     }
+    return join(window.Server.BaseDir!, 'rabbitmq', `rabbitmq-${v}.conf`)
+  })
+
+  const defaultFile = computed(() => {
     const v = currentVersion?.value?.version?.split('.')?.[0] ?? ''
+    if (!v) {
+      return ''
+    }
     return join(window.Server.BaseDir!, 'rabbitmq', `rabbitmq-${v}-default.conf`)
   })
 
   watch(
-    currentVersion,
+    () => currentVersion?.value?.bin,
     (v) => {
-      if (v && !file.value) {
-        IPC.send('app-fork:rabbitmq', 'initConfig', JSON.parse(JSON.stringify(v))).then(
-          (key: string, res: any) => {
-            IPC.off(key)
-            if (res?.data) {
-              file.value = res.data
-            }
-          }
-        )
-      }
+      IPC.send('app-fork:rabbitmq', 'initConfig', JSON.parse(JSON.stringify(v))).then(
+        (key: string) => {
+          IPC.off(key)
+          conf.value.update()
+        }
+      )
     },
     {
       immediate: true

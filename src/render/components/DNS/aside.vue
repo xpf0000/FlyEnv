@@ -28,10 +28,17 @@
   import { DnsStore } from './dns'
   import { computed } from 'vue'
   import { passwordCheck } from '@/util/Brew'
+  import { BrewStore } from '@/store/brew'
 
   const { showItem, serviceDisabled, currentPage, nav, stopNav } = AsideSetup('dns')
 
+  const brewStore = BrewStore()
   const dnsStore = DnsStore()
+
+  const module = brewStore.module('dns')
+  module.installed.push({} as any)
+  module.stop = dnsStore.dnsStop
+  module.start = dnsStore.dnsStart
 
   const serviceFetching = computed(() => {
     return dnsStore.fetching
@@ -65,11 +72,7 @@
   }
 
   const doNav = () => {
-    nav()
-      .then(() => {
-        dnsStore.getIP()
-      })
-      .catch()
+    nav().then().catch()
   }
 
   AppServiceModule.dns = {

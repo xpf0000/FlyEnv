@@ -38,7 +38,8 @@
         url="https://github.com/minio/minio"
       >
       </Manager>
-      <Config v-if="tab === 2"></Config>
+      <Config v-else-if="tab === 2"></Config>
+      <LogVM v-else-if="tab === 3" />
     </div>
   </div>
 </template>
@@ -56,9 +57,15 @@
   import Config from './Config.vue'
   import { join } from '@/util/path-browserify'
   import { shell, fs } from '@/util/NodeFn'
+  import LogVM from './Logs.vue'
 
   const { tab, checkVersion } = AppModuleSetup('minio')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('base.configFile')]
+  const tabs = [
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    I18nT('base.configFile'),
+    I18nT('base.log')
+  ]
   checkVersion()
 
   const brewStore = BrewStore()

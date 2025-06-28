@@ -265,24 +265,6 @@ export const AppStore = defineStore('app', {
         if (!config.password) {
           config.password = ''
         }
-        const showItem = config.setup.common.showItem
-        console.log('initConfig showItem: ', JSON.parse(JSON.stringify(showItem)))
-        const fixed: { [key: string]: boolean } = {}
-        const dict: any = {
-          ftp: 'pure-ftpd'
-        }
-        for (const k in showItem) {
-          if (showItem[k] === false) {
-            let nk = k.toLowerCase()
-            if (nk !== k) {
-              if (dict[nk]) {
-                nk = dict[nk]
-              }
-            }
-            fixed[nk] = false
-          }
-        }
-        config.setup.common.showItem = fixed
         this.INIT_CONFIG({
           server: config.server,
           password: config.password,

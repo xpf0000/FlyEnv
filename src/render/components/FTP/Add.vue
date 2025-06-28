@@ -10,7 +10,7 @@
     <template #default>
       <div class="main-wapper">
         <div class="main">
-          <div class="path-choose my-5">
+          <div class="path-choose mt-3 mb-5">
             <input
               v-model.trim="form.user"
               type="text"
@@ -141,7 +141,7 @@
     (name) => {
       errs.value.user = false
       if (!props?.item?.user) {
-        for (let h of ftpStore.allFtp) {
+        for (const h of ftpStore.allFtp) {
           if (h.user === name.trim()) {
             errs.value.user = true
             break
@@ -156,7 +156,7 @@
 
   const checkItem = () => {
     if (!props?.item?.user) {
-      for (let h of ftpStore.allFtp) {
+      for (const h of ftpStore.allFtp) {
         if (h.user === form.value.user.trim()) {
           errs.value.user = true
           break

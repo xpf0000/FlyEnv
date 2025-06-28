@@ -40,11 +40,6 @@
       appStore.saveConfig()
       // Stop Service when hide module
       if (!v) {
-        const find = AppModules.find((v) => v.typeFlag === v.typeFlag && v.isService)
-        if (find) {
-          brewStore.module(props.typeFlag).stop().catch()
-          return
-        }
         const customer = AppCustomerModule.module.find(
           (v) => v.typeFlag === v.typeFlag && v.isService
         )

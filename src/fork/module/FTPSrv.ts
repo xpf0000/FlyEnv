@@ -28,8 +28,8 @@ class Manager extends Base {
   init() {}
 
   async fixJson() {
+    await mkdirp(this.baseDir)
     if (isWindows()) {
-      await mkdirp(this.baseDir)
       const json = join(global.Server.FTPDir!, 'pureftpd.json')
       if (existsSync(json)) {
         await copy(json, join(this.baseDir, 'ftp-srv.json'))

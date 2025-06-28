@@ -310,13 +310,21 @@ export class Module {
       return appStore.config.setup.common.showItem?.[this.typeFlag] !== false
     })
 
-    watch(show, (v) => {
-      console.log('watchShowHide show: ', v, this.typeFlag)
-      if (v) {
-        this.fetchInstalled()
-      } else {
-        this.stop()
+    watch(
+      show,
+      (v) => {
+        console.log('watchShowHide show: ', v, this.typeFlag)
+        if (v) {
+          this.fetchInstalled()
+        } else {
+          if (this.installed.length > 0) {
+            this.stop()
+          }
+        }
+      },
+      {
+        immediate: true
       }
-    })
+    )
   }
 }

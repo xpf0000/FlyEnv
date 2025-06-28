@@ -26,10 +26,17 @@
   import { computed } from 'vue'
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { FtpStore } from './ftp'
+  import { BrewStore } from '@/store/brew'
 
   const { showItem, currentPage, nav, stopNav } = AsideSetup('ftp-srv')
 
+  const brewStore = BrewStore()
   const ftpStore = FtpStore()
+
+  const module = brewStore.module('ftp-srv')
+  module.installed.push({} as any)
+  module.stop = ftpStore.stop
+  module.start = ftpStore.start
 
   const serviceDisabled = computed(() => {
     return ftpStore.fetching
@@ -65,13 +72,7 @@
   }
 
   const doNav = () => {
-    nav()
-      .then(() => {
-        ftpStore.getIP()
-        ftpStore.getPort()
-        ftpStore.getAllFtp()
-      })
-      .catch()
+    nav().then().catch()
   }
 
   AppServiceModule['ftp-srv'] = {

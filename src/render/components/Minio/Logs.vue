@@ -13,21 +13,23 @@
   import { computed, ref } from 'vue'
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
-  import { AppStore } from '@/store/app'
   import { join } from '@/util/path-browserify'
+  import { BrewStore } from '@/store/brew'
 
-  const appStore = AppStore()
+  const brewStore = BrewStore()
 
   const currentVersion = computed(() => {
-    return appStore.config.server?.redis?.current
+    return brewStore.currentVersion('minio')
   })
 
   const log = ref()
   const filepath = computed(() => {
-    if (!currentVersion?.value) {
+    if (!currentVersion?.value?.version) {
       return ''
     }
-    const vNum = currentVersion?.value?.version?.split('.')?.[0]
-    return join(window.Server.RedisDir!, `redis-${vNum}.log`)
+    return join(
+      window.Server.BaseDir!,
+      `minio/minio-${currentVersion.value.version}-start-error.log`
+    )
   })
 </script>

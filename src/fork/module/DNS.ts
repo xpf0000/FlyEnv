@@ -6,6 +6,8 @@ import { address } from 'neoip'
 import { createRequire } from 'node:module'
 import Helper from '../Helper'
 import { HostsFileMacOS, HostsFileWindows, isLinux, isMacOS, isWindows } from '@shared/utils'
+import { mkdirp, existsSync, writeFile, readFile } from '../Fn'
+import { dirname, join } from 'node:path'
 
 const require = createRequire(import.meta.url)
 const Tangerine = require('tangerine')
@@ -27,6 +29,37 @@ class Manager extends Base {
     this.hosts = {}
     this.ipcCommand = 'App_DNS_Log'
     this.ipcCommandKey = 'App_DNS_Log'
+  }
+
+  initConfig() {
+    return new ForkPromise(async (resolve) => {
+      const file = join(global.Server.BaseDir!, 'dns/dns.json')
+      await mkdirp(dirname(file))
+      if (existsSync(file)) {
+        resolve(file)
+        return
+      }
+      let json: any = {}
+      if (global.Server.Lang === 'zh') {
+        json = {
+          resolveServer: ['223.5.5.5', '119.29.29.29', '180.76.76.76', '114.114.114.119'],
+          resolveIP: {
+            'phpmyadmin.test': '127.0.0.1'
+          }
+        }
+      } else {
+        json = {
+          resolveServer: ['1.1.1.1', '1.0.0.1', '8.8.8.8', '8.8.4.4'],
+          resolveIP: {
+            'phpmyadmin.test': '127.0.0.1'
+          }
+        }
+      }
+      const defaultFile = join(global.Server.BaseDir!, 'dns/dns.default.json')
+      await writeFile(file, JSON.stringify(json, null, 2))
+      await writeFile(defaultFile, JSON.stringify(json, null, 2))
+      resolve(file)
+    })
   }
 
   async initHosts(LOCAL_IP: string) {
@@ -65,7 +98,21 @@ class Manager extends Base {
     }
   }
   start() {
-    return new ForkPromise((resolve) => {
+    return new ForkPromise(async (resolve, reject) => {
+      const lang = global.Server.Lang
+      console.log('lang: ', lang)
+      const file = join(global.Server.BaseDir!, 'dns/dns.json')
+      let resolveIP: Record<string, string> = {}
+      if (existsSync(file)) {
+        const content = await readFile(file, 'utf-8')
+        const json = JSON.parse(content)
+        resolveIP = json?.resolveIP ?? {}
+        const resolveServer = json?.resolveServer ?? []
+        if (resolveServer.length > 0) {
+          tangerine.setServers(resolveServer)
+        }
+      }
+      this.hosts = { ...resolveIP }
       const LOCAL_IP = address()
       const server = createServer({
         udp: true,
@@ -142,7 +189,7 @@ class Manager extends Base {
       })
 
       server.on('error', (error) => {
-        resolve(error.toString())
+        reject(error)
       })
 
       server
@@ -161,7 +208,7 @@ class Manager extends Base {
         })
         .then()
         .catch((error) => {
-          resolve(error.toString())
+          reject(error)
         })
       this.server = server
     })

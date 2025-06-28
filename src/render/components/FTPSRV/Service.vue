@@ -3,20 +3,25 @@
     <template #header>
       <div class="table-header">
         <div class="left">
-          <template v-if="ftpRunning">
-            <div class="status running" :class="{ disabled: ftpFetching }">
-              <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="serviceDo('stop')" />
-            </div>
-            <div class="status refresh" :class="{ disabled: ftpFetching }">
-              <yb-icon
-                :svg="import('@/svg/icon_refresh.svg?raw')"
-                @click.stop="serviceDo('restart')"
-              />
+          <template v-if="ftpFetching">
+            <el-button :loading="true" link></el-button>
+          </template>
+          <template v-else>
+            <template v-if="ftpRunning">
+              <div class="status running" :class="{ disabled: ftpFetching }">
+                <yb-icon :svg="import('@/svg/stop2.svg?raw')" @click.stop="serviceDo('stop')" />
+              </div>
+              <div class="status refresh" :class="{ disabled: ftpFetching }">
+                <yb-icon
+                  :svg="import('@/svg/icon_refresh.svg?raw')"
+                  @click.stop="serviceDo('restart')"
+                />
+              </div>
+            </template>
+            <div v-else class="status" :class="{ disabled: ftpDisabled }">
+              <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="serviceDo('start')" />
             </div>
           </template>
-          <div v-else class="status" :class="{ disabled: ftpDisabled }">
-            <yb-icon :svg="import('@/svg/play.svg?raw')" @click.stop="serviceDo('start')" />
-          </div>
           <template v-if="ftpRunning">
             <div class="link">
               <span @click.stop="copyPass(linkLocal)">{{ linkLocal }}</span>
@@ -59,6 +64,9 @@
 
   const loading = ref(false)
   const ftpStore = FtpStore()
+  ftpStore.getIP()
+  ftpStore.getPort()
+  ftpStore.getAllFtp()
 
   const linkLocal = computed(() => {
     return `ftp://127.0.0.1:${ftpStore.port}`

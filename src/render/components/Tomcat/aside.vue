@@ -28,11 +28,10 @@
 
 <script lang="ts" setup>
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
-  import { ServiceActionExtParam } from '@/util/Service'
-  import type { AllAppModule } from '@/core/type'
   import { TomcatSetup } from '@/components/Tomcat/setup'
-  import type { SoftInstalled } from '@/store/brew'
+  import { BrewStore } from '@/store/brew'
   import { join } from '@/util/path-browserify'
+  import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 
   const {
     showItem,
@@ -48,21 +47,17 @@
 
   TomcatSetup.init()
 
-  ServiceActionExtParam['tomcat'] = (
-    typeFlag: AllAppModule,
-    fn: string,
-    version: SoftInstalled
-  ) => {
-    return new Promise<any[]>((resolve) => {
-      if (fn === 'startService') {
+  const brewStore = BrewStore()
+  const module = brewStore.module('tomcat')
+  if (!module?.startExtParam) {
+    module.startExtParam = (version: ModuleInstalledItem) => {
+      return new Promise<any[]>((resolve) => {
         const v = version.version?.split('.')?.shift() ?? ''
         const dir = join(window.Server.BaseDir!, `tomcat/tomcat${v}`)
         const p = TomcatSetup.CATALINA_BASE?.[version.bin] ?? dir
         resolve([p])
-        return
-      }
-      return resolve([])
-    })
+      })
+    }
   }
 
   AppServiceModule.tomcat = {

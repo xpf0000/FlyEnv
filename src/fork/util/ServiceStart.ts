@@ -1,5 +1,5 @@
 import type { ModuleExecItem, SoftInstalled } from '@shared/app'
-import { basename, dirname, join } from 'path'
+import { dirname, join } from 'path'
 import { I18nT } from '@lang/index'
 import Helper from '../Helper'
 import { userInfo } from 'os'
@@ -36,7 +36,7 @@ export async function serviceStartExec(
   const version = param.version
   const execEnv = param?.execEnv ?? ''
   const cwd = param?.cwd ?? dirname(param.bin)
-  const bin = basename(param.bin)
+  const bin = param.bin
   const execArgs = param?.execArgs ?? ''
   const on = param.on
   const checkPidFile = param?.checkPidFile ?? true
@@ -63,10 +63,10 @@ export async function serviceStartExec(
   psScript = psScript
     .replace('#ENV#', execEnv)
     .replace('#CWD#', cwd)
-    .replace('#BIN#', bin)
     .replace('#ARGS#', execArgs)
     .replace('#OUTLOG#', outFile)
     .replace('#ERRLOG#', errFile)
+    .replace('#BIN#', bin)
 
   const psName = `start-${version.version!.trim()}.sh`.split(' ').join('')
   const psPath = join(baseDir, psName)
@@ -201,7 +201,7 @@ export async function customerServiceStartExec(
   psScript = psScript
     .replace('#ENV#', '')
     .replace('#CWD#', dirname(bin))
-    .replace('#BIN#', basename(bin))
+    .replace('#BIN#', bin)
     .replace('#ARGS#', '')
     .replace('#OUTLOG#', outFile)
     .replace('#ERRLOG#', errFile)

@@ -236,14 +236,17 @@
     }
   )
 
+  const allShowTypeFlag = computed(() => {
+    return platformAppModules.value
+      .filter((f) => f.isService && showItem.value?.[f.typeFlag] !== false)
+      .map((f) => f.typeFlag)
+  })
+
   /**
    * Aside service vue component
    */
-  const appServiceShowModule = computed(() => {
-    const allType = platformAppModules.value
-      .filter((f) => f.isService && showItem.value?.[f.typeFlag] !== false)
-      .map((f) => f.typeFlag)
-    return allType.map((f) => AppServiceModule?.[f]).filter((f) => !!f)
+  const asideServiceShowModule = computed(() => {
+    return allShowTypeFlag.value.map((f) => AppServiceModule?.[f]).filter((f) => !!f)
   })
 
   const serviceShowSystem = computed(() => {
@@ -260,21 +263,39 @@
       .flat()
   })
 
+  /**
+   * All Aside service is set not group start. And no customer service exists
+   */
+  const noGroupStart = computed(() => {
+    const a = allShowTypeFlag.value.every((typeFlag) => {
+      const v = brewStore.currentVersion(typeFlag)
+      if (!v) {
+        return true
+      }
+      return appStore.phpGroupStart?.[v.bin] === false
+    })
+    const b = serviceShowCustomer.value.length === 0
+    return a && b
+  })
+
   const groupIsRunning = computed(() => {
     return (
-      serviceShowSystem.value.some((m) => m.run) || serviceShowCustomer.value.some((s) => s.run)
+      asideServiceShowModule.value.some((m) => !!m?.serviceRunning) ||
+      serviceShowSystem.value.some((m) => m.run) ||
+      serviceShowCustomer.value.some((s) => s.run)
     )
   })
 
   const groupDisabled = computed(() => {
-    const modules = appServiceShowModule.value
-    const allDisabled = modules.every((m) => !!m?.serviceDisabled)
-    const running = modules.some((m) => !!m?.serviceFetching)
+    const asideModules = asideServiceShowModule.value
+    const allDisabled = asideModules.every((m) => !!m?.serviceDisabled)
+    const running = asideModules.some((m) => !!m?.serviceFetching)
     console.log('groupDisabled', allDisabled, running, appStore.versionInited)
     return (
       allDisabled ||
       running ||
       !appStore.versionInited ||
+      noGroupStart.value ||
       serviceShowCustomer.value.some((s) => s.running)
     )
   })
@@ -365,15 +386,14 @@
       return
     }
     const isRun = groupIsRunning.value
-    const modules = appServiceShowModule.value
+    const asideModules = asideServiceShowModule.value
     const all: Array<Promise<string | boolean>> = []
-    modules.forEach((m) => {
+    asideModules.forEach((m) => {
       const arr = m?.groupDo(isRun) ?? []
       all.push(...arr)
     })
     const customerModule = AppCustomerModule.module
-      .filter((f) => f.isService)
-      .filter((a) => showItem.value?.[a.typeFlag] !== false)
+      .filter((a) => a.isService && showItem.value?.[a.typeFlag] !== false)
       .map((m) => {
         return isRun ? m.stop() : m.start()
       })

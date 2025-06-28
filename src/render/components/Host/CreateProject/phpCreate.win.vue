@@ -18,7 +18,7 @@
         </template>
         <template v-else>
           <div class="main">
-            <div class="path-choose mt-20 mb-20">
+            <div class="path-choose my-5">
               <input
                 type="text"
                 class="input"

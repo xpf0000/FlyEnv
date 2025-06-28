@@ -114,7 +114,17 @@ export const AppCustomerModule: {
       .getItem(APPCustomerModuleKey)
       .then((res: CustomerModuleItem[]) => {
         if (res) {
-          const list = reactive(res.map((r) => reactive(new ModuleCustomer(r))))
+          const list = reactive(
+            res.map((r) => {
+              const module = reactive(new ModuleCustomer(r))
+              module.onExecStart = module.onExecStart.bind(module)
+              module.start = module.start.bind(module)
+              module.stop = module.stop.bind(module)
+              module.watchShowHide = module.watchShowHide.bind(module)
+              module.watchShowHide()
+              return module
+            })
+          )
           AppCustomerModule.module = reactive(list)
         }
       })

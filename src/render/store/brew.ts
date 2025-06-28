@@ -75,10 +75,18 @@ export const BrewStore = defineStore('brew', {
         module.stop = module.stop.bind(module)
         module.watchShowHide = module.watchShowHide.bind(module)
         this.modules[module.typeFlag] = module
+        module.watchShowHide()
       }
       return this.modules[flag] as any
     },
     currentVersion(flag: AllAppModule): ModuleInstalledItem | undefined {
+      const exclude = ['dns', 'ftp-srv', 'pure-ftpd']
+      if (exclude.includes(flag)) {
+        return {
+          version: '1.0',
+          bin: flag
+        } as any
+      }
       const appStore = AppStore()
       const current = appStore.config.server?.[flag]?.current
       const installed = this.module(flag).installed

@@ -27,12 +27,12 @@
 </template>
 
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { MeiliSearchSetup } from './setup'
-  import { ServiceActionExtParam } from '@/util/Service'
-  import type { AllAppModule } from '@/core/type'
-  import type { SoftInstalled } from '@/store/brew'
+  import { BrewStore } from '@/store/brew'
   import { join } from '@/util/path-browserify'
+  import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 
   const {
     showItem,
@@ -48,20 +48,21 @@
 
   MeiliSearchSetup.init()
 
-  ServiceActionExtParam['meilisearch'] = (
-    typeFlag: AllAppModule,
-    fn: string,
-    version: SoftInstalled
-  ) => {
-    return new Promise<any[]>((resolve) => {
-      if (fn === 'startService') {
-        const dir = join(window.Server.BaseDir!, `meilisearch`)
+  const brewStore = BrewStore()
+  const currentVersion = computed(() => {
+    return brewStore.currentVersion('meilisearch')
+  })
+
+  const module = brewStore.module('meilisearch')
+  if (!module?.startExtParam) {
+    module.startExtParam = (version: ModuleInstalledItem) => {
+      return new Promise<any[]>((resolve) => {
+        const v = currentVersion?.value?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+        const dir = join(window.Server.BaseDir!, `meilisearch`, v)
         const p = MeiliSearchSetup.dir?.[version.bin] ?? dir
         resolve([p])
-        return
-      }
-      return resolve([])
-    })
+      })
+    }
   }
 
   AppServiceModule.meilisearch = {

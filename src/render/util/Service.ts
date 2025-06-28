@@ -1,14 +1,5 @@
-import { BrewStore, type SoftInstalled } from '@/store/brew'
+import { BrewStore } from '@/store/brew'
 import { type AppHost, AppStore } from '@/store/app'
-import type { AllAppModule } from '@/core/type'
-
-type ServiceActionExtParamFN = (
-  typeFlag: AllAppModule,
-  fn: string,
-  version: SoftInstalled
-) => Promise<any[]>
-
-export const ServiceActionExtParam: Partial<Record<AllAppModule, ServiceActionExtParamFN>> = {}
 
 export const reloadWebServer = (hosts?: Array<AppHost>) => {
   const brewStore = BrewStore()

@@ -144,6 +144,12 @@
       console.log('res: ', res)
       const save = reactive(new ModuleCustomer(res))
       save.moduleType = props.item.moduleType
+      save.onExecStart = save.onExecStart.bind(module)
+      save.start = save.start.bind(module)
+      save.stop = save.stop.bind(module)
+      save.watchShowHide = save.watchShowHide.bind(module)
+      save.watchShowHide()
+
       console.log('save: ', save, props.item, props.item.moduleType)
       if (!edit) {
         AppCustomerModule.module.unshift(save)
@@ -151,7 +157,7 @@
         const index = AppCustomerModule.module.findIndex((f) => f.id === edit.id)
         if (index >= 0) {
           const find = AppCustomerModule.module[index]
-          find.stop().then().catch()
+          find.destroy()
           AppCustomerModule.module.splice(index, 1, save)
         }
       }
@@ -159,7 +165,7 @@
     })
   }
 
-  const doDelModule = (item: ModuleCustomer, i: number) => {
+  const doDelModule = (item: ModuleCustomer) => {
     Base._Confirm(I18nT('base.areYouSure'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
@@ -168,7 +174,7 @@
         const findIndex = AppCustomerModule.module.findIndex((f) => f.id === item.id)
         if (findIndex >= 0) {
           const find = AppCustomerModule.module[findIndex]
-          find.stop()
+          find.destroy()
           AppCustomerModule.module.splice(findIndex, 1)
           AppCustomerModule.saveModule()
         }

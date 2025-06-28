@@ -70,11 +70,14 @@ class MeiliSearch extends Base {
       })
       const iniFile = await this.initConfig().on(on)
 
+      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
       const bin = version.bin
-      const baseDir = join(global.Server.BaseDir!, 'meilisearch')
-      await mkdirp(baseDir)
+      const working_dir_default = join(global.Server.BaseDir!, 'meilisearch', v)
+      await mkdirp(working_dir_default)
 
-      const working_dir = WORKING_DIR ?? baseDir
+      const working_dir = WORKING_DIR ?? working_dir_default
+
+      const baseDir = join(global.Server.BaseDir!, 'meilisearch')
 
       if (isMacOS()) {
         const execArgs = `--config-file-path "${iniFile}"`
@@ -99,7 +102,6 @@ class MeiliSearch extends Base {
       } else if (isWindows()) {
         const execArgs = `--config-file-path \`"${iniFile}\`"`
         const execEnv = ``
-        const working_dir = WORKING_DIR ?? baseDir
 
         try {
           const res = await serviceStartExecWin({

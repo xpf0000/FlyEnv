@@ -1,5 +1,5 @@
 import type { CustomerModuleExecItem, CustomerModuleItem } from '@/core/Module'
-import { reactive } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { AppCustomerModule } from '@/core/Module'
@@ -177,6 +177,8 @@ class ModuleCustomer implements CustomerModuleItem {
   configPath = []
   logPath = []
 
+  showHideWatcher: any
+
   constructor(item: any) {
     Object.assign(this, item)
     this.typeFlag = this.id
@@ -264,6 +266,28 @@ class ModuleCustomer implements CustomerModuleItem {
           resolve(true)
         })
     })
+  }
+
+  watchShowHide() {
+    const appStore = AppStore()
+    const show = computed(() => {
+      return appStore.config.setup.common.showItem?.[this.typeFlag] !== false
+    })
+    this.showHideWatcher = watch(show, (v) => {
+      console.log('watchShowHide show: ', v, this.typeFlag)
+      if (!v && this.isService) {
+        try {
+          this.stop()
+        } catch {}
+      }
+    })
+  }
+
+  destroy() {
+    this?.showHideWatcher?.()
+    try {
+      this.stop()
+    } catch {}
   }
 }
 
