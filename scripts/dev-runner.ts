@@ -1,6 +1,5 @@
-import { createServer } from 'vite'
+import { createServer, build as viteBuild } from 'vite'
 import { spawn, ChildProcess } from 'child_process'
-import { build } from 'esbuild'
 import _fs from 'fs-extra'
 import _path from 'path'
 import _md5 from 'md5'
@@ -50,17 +49,17 @@ function buildMainProcess() {
     let promise: Promise<any> | undefined
     if (isMacOS()) {
       console.log('isMacOS !!!')
-      const config = (await import('../configs/esbuild.config')).default
+      const config = viteConfig.vite.mac
       promise = Promise.all([
-        build(config.dev),
-        build(config.devFork),
-        build(config.devHelper),
+        viteBuild(config.dev),
+        viteBuild(config.devFork),
+        viteBuild(config.devHelper),
         ElectronKill(electronProcess)
       ])
     } else if (isWindows()) {
       console.log('isWindows !!!')
-      const config = (await import('../configs/esbuild.config.win')).default
-      promise = Promise.all([build(config.dev), build(config.devFork), ElectronKillWin()])
+      const config = viteConfig.vite.win
+      promise = Promise.all([viteBuild(config.dev), viteBuild(config.devFork), ElectronKillWin()])
     }
     if (!promise) {
       building = false
@@ -110,27 +109,30 @@ function logPrinter(data: string[]) {
 }
 
 function runElectronApp() {
-  const args = ['--inspect=5858', 'dist/electron/main.mjs']
-  electronProcess = spawn('electron', args, {
+  // Use the correct file path for development
+  const electronEntryPoint = 'dist/electron/main.dev.mjs'
+  console.log(`Starting Electron with entry point: ${electronEntryPoint}`)
+
+  electronProcess = spawn(`electron --inspect=5858 ${electronEntryPoint}`, {
     stdio: 'pipe',
     shell: isWindows()
   })
   electronProcess?.stderr?.on('data', (data) => {
-    // console.log('electronProcess error', data.toString())
+    console.error('electronProcess stderr:', data.toString())
     logPrinter(data)
   })
 
   electronProcess?.stdout?.on('data', (data) => {
+    console.log('electronProcess stdout:', data.toString())
     logPrinter(data)
   })
 
   electronProcess.on('error', (err) => {
-    console.error('electronProcess error: ')
-    console.error(err)
+    console.error(`electronProcess spawn error: ${err.message}`)
   })
 
-  electronProcess.on('close', () => {
-    console.log('electronProcess close !!!')
+  electronProcess.on('close', (code) => {
+    console.log(`electronProcess closed with code: ${code}`)
     if (restart) {
       restart = false
       runElectronApp()
@@ -140,6 +142,12 @@ function runElectronApp() {
 
 Promise.all([launchViteDevServer(), buildMainProcess()])
   .then(() => {
+    // Copy static files for initial run (the plugin handles this during build)
+    const staticPath = _path.resolve(__dirname, '../static/')
+    const staticDest = _path.resolve(__dirname, '../dist/electron/static/')
+    copySync(staticPath, staticDest)
+    console.log('Initial static files copied')
+
     runElectronApp()
   })
   .catch((err) => {
