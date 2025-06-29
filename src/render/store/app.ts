@@ -127,6 +127,7 @@ interface State {
     }
   }
   currentPage: string
+  floatBtnShow: boolean
 }
 
 const state: State = {
@@ -161,7 +162,8 @@ const state: State = {
   httpServe: [],
   versionInited: false,
   httpServeService: {},
-  currentPage: '/hosts'
+  currentPage: '/hosts',
+  floatBtnShow: true
 }
 
 export const AppStore = defineStore('app', {

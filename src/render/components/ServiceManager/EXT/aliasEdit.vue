@@ -9,7 +9,7 @@
   >
     <template #default>
       <div class="main-wapper">
-        <div class="main">
+        <div class="main p-5">
           <template v-if="typeFlag === 'composer'">
             <div class="park">
               <div class="title">

@@ -9,7 +9,7 @@
   >
     <template #default>
       <div class="main-wapper">
-        <div class="main">
+        <div class="main p-5">
           <div class="path-choose mt-5 mb-10">
             <el-select
               v-model="form.path"

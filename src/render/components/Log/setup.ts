@@ -1,8 +1,8 @@
 import { nextTick, onMounted, onUnmounted, ref, watch, Ref, markRaw } from 'vue'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
-import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
-import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+import { EditorConfigMake, EditorCreate, EditorDestroy } from '@/util/Editor'
 import IPC from '@/util/IPC'
 import { shell, fs, FileWatcher } from '@/util/NodeFn'
 import { asyncComputed } from '@vueuse/core'
@@ -11,7 +11,7 @@ export const LogSetup = (file: Ref<string>) => {
   const logRef = ref()
   const log = ref('')
   let watcher: FileWatcher | null
-  let monacoInstance: editor.IStandaloneCodeEditor | null
+  let monacoInstance: editor.IStandaloneCodeEditor | undefined
 
   const fileExists = asyncComputed(async () => {
     if (!file.value) {
@@ -94,13 +94,13 @@ export const LogSetup = (file: Ref<string>) => {
     }
   }
 
-  const initEditor = () => {
+  const initEditor = async () => {
     if (!monacoInstance) {
       const inputDom: HTMLElement = logRef.value as HTMLElement
       if (!inputDom || !inputDom?.style) {
         return
       }
-      monacoInstance = EditorCreate(inputDom, EditorConfigMake(log.value, true, 'on'))
+      monacoInstance = EditorCreate(inputDom, await EditorConfigMake(log.value, true, 'on'))
     } else {
       monacoInstance.setValue(log.value)
     }
@@ -119,8 +119,7 @@ export const LogSetup = (file: Ref<string>) => {
   })
 
   onUnmounted(() => {
-    monacoInstance?.dispose()
-    monacoInstance = null
+    EditorDestroy(monacoInstance)
     if (watcher) {
       watcher.close()
       watcher = null

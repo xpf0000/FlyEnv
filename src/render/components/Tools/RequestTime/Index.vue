@@ -24,7 +24,7 @@
         </template>
       </el-input>
       <div class="table-wapper w-full">
-        <el-card :header="null" :shadow="false">
+        <el-card :header="null" shadow="never">
           <el-table height="100%" :data="Setup.list" size="default" style="width: 100%">
             <el-table-column prop="Metric" :label="I18nT('requestTimer.metric')"> </el-table-column>
             <el-table-column prop="Value" :label="I18nT('requestTimer.value')"> </el-table-column>

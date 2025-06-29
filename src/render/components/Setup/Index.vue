@@ -7,10 +7,10 @@
     </el-radio-group>
     <div class="main-block">
       <Common v-if="store.tab === 'base'"></Common>
-      <ModuleVM v-if="store.tab === 'module'" />
-      <EditorConfig v-if="store.tab === 'editor'"></EditorConfig>
-      <Licenses v-if="store.tab === 'licenses'" />
-      <About v-if="store.tab === 'about'" />
+      <ModuleVM v-else-if="store.tab === 'module'" />
+      <EditorConfig v-else-if="store.tab === 'editor'"></EditorConfig>
+      <Licenses v-else-if="store.tab === 'licenses'" />
+      <About v-else-if="store.tab === 'about'" />
     </div>
   </div>
 </template>

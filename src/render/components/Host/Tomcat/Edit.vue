@@ -10,7 +10,7 @@
     @closed="closedFn"
   >
     <div class="host-edit">
-      <div class="nav">
+      <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
           <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
@@ -21,8 +21,8 @@
       </div>
 
       <el-scrollbar class="flex-1">
-        <div class="main-wapper">
-          <div class="main">
+        <div class="main-wapper p-3">
+          <div class="main p-5">
             <input
               v-model.trim="item.name"
               type="text"
@@ -54,7 +54,7 @@
           </div>
 
           <div class="plant-title">{{ I18nT('host.port') }}</div>
-          <div class="main">
+          <div class="main p-5">
             <div class="port-set mb-5">
               <div class="port-type"> Tomcat </div>
               <input
@@ -66,7 +66,7 @@
             </div>
           </div>
           <div class="plant-title">{{ I18nT('host.hostSSL') }}</div>
-          <div class="main">
+          <div class="main p-5">
             <div class="ssl-switch">
               <span>SSL</span>
               <el-switch v-model="item.useSSL"></el-switch>
@@ -136,7 +136,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch } from 'vue'
+  import { computed, onUnmounted, ref, watch } from 'vue'
   import { passwordCheck } from '@/util/Brew'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
@@ -294,6 +294,12 @@
     }
     saveFn()
   }
+
+  appStore.floatBtnShow = false
+
+  onUnmounted(() => {
+    appStore.floatBtnShow = true
+  })
 
   defineExpose({
     show,

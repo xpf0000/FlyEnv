@@ -75,7 +75,7 @@
   import { MessageSuccess } from '@/util/Element'
   import { I18nT } from '@lang/index'
   import { Document } from '@element-plus/icons-vue'
-  import { EditorCreate } from '@/util/Editor'
+  import { EditorCreate, EditorDestroy } from '@/util/Editor'
   import { dialog, shell, nativeTheme, fs } from '@/util/NodeFn'
 
   // Register custom language
@@ -158,21 +158,20 @@
 
   let tabChanging = false
 
-  let fromEditor: editor.IStandaloneCodeEditor | null
-  let toEditor: editor.IStandaloneCodeEditor | null
+  let fromEditor: editor.IStandaloneCodeEditor | undefined
+  let toEditor: editor.IStandaloneCodeEditor | undefined
 
-  const isDark = ref(false)
-  nativeTheme.shouldUseDarkColors().then((e) => {
-    isDark.value = e
-  })
-  const EditorConfigMake = (value: string): editor.IStandaloneEditorConstructionOptions => {
+  const EditorConfigMake = async (
+    value: string
+  ): Promise<editor.IStandaloneEditorConstructionOptions> => {
     const appStore = AppStore()
     const editorConfig = appStore.editorConfig
     let theme = editorConfig.theme
     if (theme === 'auto') {
       let appTheme = appStore?.config?.setup?.theme ?? ''
       if (!appTheme || appTheme === 'system') {
-        appTheme = isDark.value ? 'dark' : 'light'
+        const t = await nativeTheme.shouldUseDarkColors()
+        appTheme = t ? 'dark' : 'light'
       }
       if (appTheme === 'light') {
         theme = 'vs-light'
@@ -200,12 +199,12 @@
     }
   }
 
-  const initFromEditor = () => {
+  const initFromEditor = async () => {
     if (!fromEditor) {
       if (!fromRef?.value?.style) {
         return
       }
-      fromEditor = EditorCreate(fromRef.value, EditorConfigMake(currentValue.value))
+      fromEditor = EditorCreate(fromRef.value, await EditorConfigMake(currentValue.value))
       fromEditor.onDidChangeModelContent(() => {
         if (!tabChanging) {
           currentValue.value = fromEditor?.getValue() ?? ''
@@ -215,12 +214,12 @@
     }
   }
 
-  const initToEditor = () => {
+  const initToEditor = async () => {
     if (!toEditor) {
       if (!toRef?.value?.style) {
         return
       }
-      toEditor = EditorCreate(toRef.value, EditorConfigMake(currentToValue.value))
+      toEditor = EditorCreate(toRef.value, await EditorConfigMake(currentToValue.value))
       toEditor.onDidChangeModelContent(() => {
         if (!tabChanging) {
           currentToValue.value = toEditor?.getValue() ?? ''
@@ -332,10 +331,8 @@
   })
 
   onUnmounted(() => {
-    fromEditor?.dispose()
-    fromEditor = null
-    toEditor?.dispose()
-    toEditor = null
+    EditorDestroy(fromEditor)
+    EditorDestroy(toEditor)
   })
 
   const onToChange = (v: any) => {

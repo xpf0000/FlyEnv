@@ -10,7 +10,7 @@
     @closed="closedFn"
   >
     <div class="host-edit">
-      <div class="nav">
+      <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
           <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
@@ -21,8 +21,8 @@
       </div>
 
       <el-scrollbar class="flex-1">
-        <div class="main-wapper">
-          <div class="main">
+        <div class="main-wapper p-3">
+          <div class="main p-5">
             <input
               v-model.trim="item.projectName"
               type="text"
@@ -38,7 +38,7 @@
           </div>
 
           <div class="plant-title">{{ I18nT('host.startFile') }}</div>
-          <div class="main">
+          <div class="main p-5">
             <div class="path-choose pb-4">
               <input
                 v-model.trim="item.bin"
@@ -58,7 +58,7 @@
           </div>
 
           <div class="plant-title">{{ I18nT('host.runDirectory') }}</div>
-          <div class="main">
+          <div class="main p-5">
             <div class="path-choose pb-4">
               <input
                 v-model.trim="item.root"
@@ -78,7 +78,7 @@
           </div>
 
           <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
-          <div class="main">
+          <div class="main p-5">
             <div class="port-set mb-5">
               <input
                 v-model.number="item.projectPort"
@@ -90,7 +90,7 @@
           </div>
 
           <div class="plant-title">{{ I18nT('host.startCommand') }}</div>
-          <div class="main">
+          <div class="main p-5">
             <textarea
               v-model.trim="item.startCommand"
               type="text"
@@ -101,7 +101,7 @@
             ></textarea>
           </div>
 
-          <div class="main mt-5">
+          <div class="main p-5 mt-5">
             <div class="ssl-switch">
               <span>{{ I18nT('host.envVar') }}</span>
               <el-radio-group v-model="item.envVarType">
@@ -146,7 +146,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch } from 'vue'
+  import { computed, onUnmounted, ref, watch } from 'vue'
   import { passwordCheck } from '@/util/Brew'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
@@ -298,6 +298,12 @@
     }
     saveFn()
   }
+
+  appStore.floatBtnShow = false
+
+  onUnmounted(() => {
+    appStore.floatBtnShow = true
+  })
 
   defineExpose({
     show,

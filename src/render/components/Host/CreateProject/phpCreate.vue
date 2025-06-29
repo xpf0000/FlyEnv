@@ -17,7 +17,7 @@
           <div ref="xterm" class="h-full overflow-hidden"> </div>
         </template>
         <template v-else>
-          <div class="main">
+          <div class="main p-5">
             <div class="path-choose my-5">
               <input
                 type="text"

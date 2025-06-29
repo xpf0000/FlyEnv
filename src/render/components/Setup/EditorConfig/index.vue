@@ -4,11 +4,11 @@
       <el-form label-width="130px" label-position="left" @submit.prevent>
         <el-form-item :label="$t('base.theme')">
           <el-radio-group v-model="editorConfig.theme">
-            <el-radio-button label="vs-dark" />
-            <el-radio-button label="vs-light" />
-            <el-radio-button label="hc-black" />
-            <el-radio-button label="hc-light" />
-            <el-radio-button label="auto">{{ $t('util.auto') }}</el-radio-button>
+            <el-radio-button label="vs-dark" value="vs-dark" />
+            <el-radio-button label="vs-light" value="vs-light" />
+            <el-radio-button label="hc-black" value="hc-black" />
+            <el-radio-button label="hc-light" value="hc-light" />
+            <el-radio-button label="auto" value="auto">{{ $t('util.auto') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="$t('util.fontSize')">
@@ -26,9 +26,9 @@
 <script lang="ts" setup>
   import { AppStore } from '@/store/app'
   import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { EditorConfigMap } from '@/components/Setup/EditorConfig/store'
-  import { EditorCreate } from '@/util/Editor'
+  import { EditorCreate, EditorDestroy } from '@/util/Editor'
   import { join } from '@/util/path-browserify'
   import { fs, nativeTheme } from '@/util/NodeFn'
   import { asyncComputed } from '@vueuse/core'
@@ -41,7 +41,7 @@
     },
     set() {}
   })
-  let monacoInstance: editor.IStandaloneCodeEditor | null = null
+  let monacoInstance: editor.IStandaloneCodeEditor | undefined
 
   const index = ref(1)
 
@@ -89,19 +89,23 @@
   })
 
   onUnmounted(() => {
-    monacoInstance?.dispose()
-    monacoInstance = null
+    EditorDestroy(monacoInstance)
+    console.log('EditorConfig onUnmounted !!!')
+    nativeTheme.removeListener('updated', onNativeThemeUpdate)
   })
 
   watch(
     editorConfig,
     () => {
-      monacoInstance?.updateOptions({
-        theme: currentTheme.value,
-        fontSize: editorConfig.value.fontSize,
-        lineHeight: editorConfig.value.lineHeight
+      nextTick().then(() => {
+        console.log('watching editor config: ', currentTheme.value)
+        monacoInstance?.updateOptions({
+          theme: currentTheme.value,
+          fontSize: editorConfig.value.fontSize,
+          lineHeight: editorConfig.value.lineHeight
+        })
+        appStore.saveConfig()
       })
-      appStore.saveConfig()
     },
     {
       deep: true
@@ -120,9 +124,4 @@
   }
 
   nativeTheme.on('updated', onNativeThemeUpdate)
-
-  onUnmounted(() => {
-    console.log('EditorConfig onUnmounted !!!')
-    nativeTheme.removeListener('updated', onNativeThemeUpdate)
-  })
 </script>

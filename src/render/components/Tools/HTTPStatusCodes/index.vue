@@ -50,7 +50,7 @@
           <el-card
             v-for="{ code, description, name, type } of codes"
             :key="code"
-            :shadow="false"
+            shadow="never"
             class="mb-2"
           >
             <div class="text-lg font-bold"> {{ code }} {{ name }} </div>

@@ -9,7 +9,7 @@
   >
     <template #default>
       <div class="host-edit">
-        <div class="nav">
+        <div class="nav pl-3 pr-5">
           <div class="left" @click="show = false">
             <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
             <span class="ml-3">{{ file }}</span>
@@ -34,10 +34,11 @@
   import { nextTick, onMounted, onUnmounted, ref } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { I18nT } from '@lang/index'
-  import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import 'monaco-editor/esm/vs/editor/contrib/find/browser/findController.js'
   import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate, EditorDestroy } from '@/util/Editor'
   import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import Base from '@/core/Base'
@@ -53,14 +54,17 @@
   const content = ref('')
   const input = ref()
   const saving = ref(false)
-  let monacoInstance: editor.IStandaloneCodeEditor | null
+  let monacoInstance: editor.IStandaloneCodeEditor | undefined
 
-  const initEditor = () => {
+  const initEditor = async () => {
     if (!monacoInstance) {
       if (!input?.value?.style) {
         return
       }
-      monacoInstance = EditorCreate(input.value, EditorConfigMake(content.value, false, 'off'))
+      monacoInstance = EditorCreate(
+        input.value,
+        await EditorConfigMake(content.value, false, 'off')
+      )
       monacoInstance.addAction({
         id: 'save',
         label: 'save',
@@ -117,8 +121,7 @@
   })
 
   onUnmounted(() => {
-    monacoInstance?.dispose?.()
-    monacoInstance = null
+    EditorDestroy(monacoInstance)
   })
 
   defineExpose({

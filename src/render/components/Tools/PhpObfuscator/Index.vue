@@ -59,27 +59,16 @@
           </div>
         </div>
         <div class="path-choose my-5">
-          <el-button @click="showConfig = true">{{ I18nT('php.obfuscatorConfig') }}</el-button>
+          <el-button @click="showConfig()">{{ I18nT('php.obfuscatorConfig') }}</el-button>
         </div>
       </div>
     </div>
   </div>
-  <el-drawer
-    ref="host-edit-drawer"
-    v-model="showConfig"
-    size="75%"
-    :destroy-on-close="true"
-    class="host-edit-drawer"
-    :with-header="false"
-  >
-    <Config :custom-config="item.config" @do-close="configCallBack"></Config>
-  </el-drawer>
 </template>
 
 <script setup lang="ts">
   import { ref, computed, watch, nextTick } from 'vue'
   import { BrewStore } from '@/store/brew'
-  import Config from './Config.vue'
   import IPC from '@/util/IPC'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { join } from '@/util/path-browserify'
@@ -88,7 +77,6 @@
   import { I18nT } from '@lang/index'
 
   const running = ref(false)
-  const showConfig = ref(false)
   const descType = ref('')
 
   const item = ref({
@@ -120,11 +108,16 @@
     { deep: true, immediate: true }
   )
 
-  const configCallBack = (config?: string) => {
-    if (typeof config === 'string') {
-      item.value.config = config
-    }
-    showConfig.value = false
+  const showConfig = () => {
+    import('./Config.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        customConfig: item.value.config
+      }).then((config) => {
+        if (typeof config === 'string') {
+          item.value.config = config
+        }
+      })
+    })
   }
 
   const doSave = async () => {

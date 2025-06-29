@@ -41,7 +41,7 @@
           </el-tooltip>
         </template>
       </el-table-column>
-      <el-table-column prop="version" :label="I18nT('base.version')" width="150"> </el-table-column>
+      <el-table-column prop="version" :label="I18nT('base.version')" width="200"> </el-table-column>
       <el-table-column align="center" :label="I18nT('base.isInstalled')" width="120">
         <template #default="scope">
           <div class="cell-status">

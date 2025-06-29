@@ -10,7 +10,7 @@
     @closed="closedFn"
   >
     <div class="host-edit">
-      <div class="nav">
+      <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
           <span class="ml-3">{{ isEdit ? I18nT('base.edit') : I18nT('base.add') }}</span>
@@ -21,7 +21,7 @@
       </div>
 
       <el-scrollbar class="flex-1">
-        <div class="main-wapper">
+        <div class="main-wapper p-3">
           <div class="p-5 pt-2 flex items-center justify-center">
             <el-radio-group v-model="item.subType" :disabled="isEdit">
               <el-radio-button value="springboot" label="SpringBoot">
@@ -33,7 +33,7 @@
             </el-radio-group>
           </div>
           <templatev v-if="item.subType === 'springboot'">
-            <div class="main">
+            <div class="main p-5">
               <input
                 v-model.trim="item.projectName"
                 type="text"
@@ -48,7 +48,7 @@
               />
             </div>
             <div class="plant-title">{{ I18nT('host.jarPackagePath') }}</div>
-            <div class="main">
+            <div class="main p-5">
               <div class="path-choose pb-4">
                 <input
                   v-model.trim="item.jarDir"
@@ -68,7 +68,7 @@
             </div>
 
             <div class="plant-title">{{ I18nT('host.jdkPath') }}</div>
-            <div class="main">
+            <div class="main p-5">
               <el-select v-model="item.jdkDir" class="w-full">
                 <template v-for="(item, _index) in jdks" :key="_index">
                   <el-option
@@ -80,7 +80,7 @@
             </div>
 
             <div class="plant-title">{{ I18nT('host.tcpPort') }}</div>
-            <div class="main">
+            <div class="main p-5">
               <div class="port-set mb-5">
                 <input
                   v-model.number="item.projectPort"
@@ -92,7 +92,7 @@
             </div>
 
             <div class="plant-title">{{ I18nT('host.startCommand') }}</div>
-            <div class="main">
+            <div class="main p-5">
               <textarea
                 v-model.trim="item.startCommand"
                 type="text"
@@ -103,7 +103,7 @@
               ></textarea>
             </div>
 
-            <div class="main mt-5">
+            <div class="main mt-5 p-5">
               <div class="ssl-switch">
                 <span>{{ I18nT('host.envVar') }}</span>
                 <el-radio-group v-model="item.envVarType">
@@ -142,7 +142,7 @@
             </div>
           </templatev>
           <template v-else>
-            <div class="main">
+            <div class="main p-5">
               <input
                 v-model.trim="item.name"
                 type="text"
@@ -174,7 +174,7 @@
             </div>
 
             <div class="plant-title">{{ I18nT('host.customJDKAndTomcat') }}</div>
-            <div class="main">
+            <div class="main p-5">
               <div class="port-set port-ssl mb-5">
                 <div class="port-type"> Tomcat </div>
                 <el-select v-model="item.tomcatDir" class="w-full">
@@ -200,7 +200,7 @@
             </div>
 
             <div class="plant-title">{{ I18nT('host.port') }}</div>
-            <div class="main">
+            <div class="main p-5">
               <div class="port-set mb-4">
                 <div class="port-type"> Tomcat </div>
                 <input
@@ -213,7 +213,7 @@
             </div>
 
             <div class="plant-title">{{ I18nT('host.useSSL') }}</div>
-            <div class="main">
+            <div class="main p-5">
               <div class="ssl-switch">
                 <span>{{ I18nT('host.useSSL') }}</span>
                 <el-switch v-model="item.useSSL"></el-switch>
@@ -284,7 +284,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch } from 'vue'
+  import { computed, onUnmounted, ref, watch } from 'vue'
   import { passwordCheck } from '@/util/Brew'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
@@ -550,6 +550,12 @@
     const tomcat = tomcats.value[0]
     item.value.tomcatDir = tomcat.bin
   }
+
+  appStore.floatBtnShow = false
+
+  onUnmounted(() => {
+    appStore.floatBtnShow = true
+  })
 
   defineExpose({
     show,

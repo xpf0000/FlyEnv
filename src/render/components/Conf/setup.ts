@@ -1,6 +1,7 @@
 import { computed, ComputedRef, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { editor, KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
+import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+import { EditorConfigMake, EditorCreate, EditorDestroy } from '@/util/Editor'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import type { AllAppModule } from '@/core/type'
@@ -67,7 +68,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   const index = ref(1)
   const configIndex = ref(0)
   const changed = ref(false)
-  let monacoInstance: editor.IStandaloneCodeEditor | null
+  let monacoInstance: editor.IStandaloneCodeEditor | undefined
 
   const type = computed({
     get(): 'default' | 'common' {
@@ -160,7 +161,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       })
   }
 
-  const initEditor = () => {
+  const initEditor = async () => {
     if (!monacoInstance) {
       const inputDom: HTMLElement = input?.value as any
       if (!inputDom || !inputDom?.style) {
@@ -168,7 +169,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
       }
       monacoInstance = EditorCreate(
         inputDom,
-        EditorConfigMake(config.value, disabled?.value ?? true, 'off')
+        await EditorConfigMake(config.value, disabled?.value ?? true, 'off')
       )
       monacoInstance.addAction({
         id: 'save',
@@ -279,8 +280,7 @@ export const ConfSetup = (props: ComputedRef<ConfSetupProps>) => {
   })
 
   onUnmounted(() => {
-    monacoInstance?.dispose()
-    monacoInstance = null
+    EditorDestroy(monacoInstance)
   })
 
   const update = () => {

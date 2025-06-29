@@ -1,6 +1,6 @@
 <template>
   <div
-    :style="{ display: AISetup.aiShow ? 'none' : null }"
+    :style="{ display: AISetup.aiShow ? 'none' : null } as any"
     class="app-ai-btn"
     @click.stop="showChat"
   >

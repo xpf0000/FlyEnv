@@ -83,16 +83,21 @@ export class AppNodeFn {
     this?.mainWindow?.webContents.send('command', command, key, true)
   }
 
-  node_forge_rsaGenerateKeyPair(command: string, key: string, bits: number) {
+  node_forge_rsaGenerateKeyPair(command: string, key: string, opt: any) {
+    console.log('node_forge_rsaGenerateKeyPair: ', opt)
     pki.rsa.generateKeyPair(
-      { bits, workers: 2 },
+      { ...opt, workers: 4 },
       (err: any, keyPair: { privateKey: string; publicKey: string }) => {
-        console.log('generateRawPairs: ', bits, err, keyPair)
+        console.log('generateRawPairs: ', opt, err, keyPair)
         if (err) {
           this?.mainWindow?.webContents.send('command', command, key, undefined)
           return
         }
-        this?.mainWindow?.webContents.send('command', command, key, keyPair)
+        const keys = {
+          privateKey: pki.privateKeyToPem(keyPair.privateKey),
+          publicKey: pki.publicKeyToPem(keyPair.publicKey)
+        }
+        this?.mainWindow?.webContents.send('command', command, key, keys)
       }
     )
   }

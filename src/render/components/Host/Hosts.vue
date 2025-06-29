@@ -7,7 +7,7 @@
     @closed="closedFn"
   >
     <div class="host-vhost">
-      <div class="nav">
+      <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
           <span class="ml-3">{{ I18nT('base.hostsTitle') }}</span>
@@ -29,16 +29,17 @@
 <script setup lang="ts">
   import { ref, onMounted, onUnmounted, nextTick } from 'vue'
   import { KeyCode, KeyMod } from 'monaco-editor/esm/vs/editor/editor.api.js'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate, EditorDestroy } from '@/util/Editor'
   import { MessageError, MessageSuccess } from '@/util/Element'
   import { shell, fs } from '@/util/NodeFn.js'
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
+  import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
 
   const config = ref('')
   const configpath = '/private/etc/hosts'
   const input = ref<HTMLElement | null>(null)
-  const monacoInstance = ref<any>(null)
+  let monacoInstance: editor.IStandaloneCodeEditor | undefined
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -53,13 +54,13 @@
     }
   }
 
-  const initEditor = () => {
-    if (!monacoInstance.value) {
+  const initEditor = async () => {
+    if (!monacoInstance) {
       if (!input.value?.style) {
         return
       }
-      monacoInstance.value = EditorCreate(input.value, EditorConfigMake(config.value, false, 'off'))
-      monacoInstance.value.addAction({
+      monacoInstance = EditorCreate(input.value, await EditorConfigMake(config.value, false, 'off'))
+      monacoInstance.addAction({
         id: 'save',
         label: 'save',
         keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
@@ -68,7 +69,7 @@
         }
       })
     } else {
-      monacoInstance.value.setValue(config.value)
+      monacoInstance.setValue(config.value)
     }
   }
 
@@ -78,7 +79,7 @@
 
   const saveConfig = async () => {
     try {
-      const content = monacoInstance.value.getValue()
+      const content = monacoInstance?.getValue() ?? ''
       await fs.writeFile(configpath, content)
       MessageSuccess(I18nT('base.success'))
     } catch {
@@ -93,8 +94,7 @@
   })
 
   onUnmounted(() => {
-    monacoInstance.value?.dispose()
-    monacoInstance.value = null
+    EditorDestroy(monacoInstance)
   })
 
   // Initialize config

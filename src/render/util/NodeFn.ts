@@ -98,11 +98,11 @@ export const md = {
 
 export const nodeForge = {
   rsaGenerateKeyPair: createIPCCall<{ privateKey: string; publicKey: string }>(
-    'node-forge',
+    'node_forge',
     'rsaGenerateKeyPair'
   ),
-  privateKeyToPem: createIPCCall<string>('node-forge', 'privateKeyToPem'),
-  publicKeyToPem: createIPCCall<string>('node-forge', 'publicKeyToPem')
+  privateKeyToPem: createIPCCall<string>('node_forge', 'privateKeyToPem'),
+  publicKeyToPem: createIPCCall<string>('node_forge', 'publicKeyToPem')
 }
 
 export const nativeTheme = {

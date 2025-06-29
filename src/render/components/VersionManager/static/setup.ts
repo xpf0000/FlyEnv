@@ -83,13 +83,22 @@ export const Setup = (typeFlag: AllAppModule) => {
             }
           } else if (res?.code === 0) {
             IPC.off(key)
+            row.downing = false
+            row.progress = 0
+            if (find) {
+              find.downing = false
+              find.progress = 0
+            }
             if (res?.data) {
               regetInstalled()
             }
+          } else {
+            row.downing = false
+            row.progress = 0
             if (find) {
               find.downing = false
+              find.progress = 0
             }
-          } else {
             IPC.off(key)
           }
         }

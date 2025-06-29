@@ -9,7 +9,7 @@
   >
     <template #default>
       <div class="main-wapper">
-        <div class="main">
+        <div class="main p-5">
           <div class="path-choose mt-3 mb-5">
             <input
               v-model.trim="form.user"

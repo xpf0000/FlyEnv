@@ -19,16 +19,19 @@ import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js'
 
 import { nativeTheme } from '@/util/NodeFn'
 
-export const EditorConfigMake = (value: string, readOnly: boolean, wordWrap: 'off' | 'on') => {
+export const EditorConfigMake = async (
+  value: string,
+  readOnly: boolean,
+  wordWrap: 'off' | 'on'
+) => {
   const appStore = AppStore()
   const editorConfig = appStore.editorConfig
   let theme = editorConfig.theme
   if (theme === 'auto') {
     let appTheme = appStore?.config?.setup?.theme ?? ''
     if (!appTheme || appTheme === 'system') {
-      nativeTheme.shouldUseDarkColors().then((e: boolean) => {
-        appTheme = e ? 'dark' : 'light'
-      })
+      const t = await nativeTheme.shouldUseDarkColors()
+      appTheme = t ? 'dark' : 'light'
     }
     if (appTheme === 'light') {
       theme = 'vs-light'
@@ -51,5 +54,14 @@ export const EditorConfigMake = (value: string, readOnly: boolean, wordWrap: 'of
 }
 
 export const EditorCreate = (input: HTMLElement, config: any) => {
+  console.log('EditorCreate config: ', config)
   return editor.create(input, config)
+}
+
+export const EditorDestroy = (instance?: editor.IStandaloneCodeEditor) => {
+  instance?.dispose()
+  instance?.getModel()?.dispose()
+  editor.getModels().forEach((model) => {
+    model.dispose()
+  })
 }

@@ -6,3 +6,9 @@
 
 *.zip binary
 *.7z binary
+*.exe binary
+*.png binary                # PNG images
+*.jpg binary                # JPEG images
+*.jpeg binary               # JPEG images
+*.gif binary                # GIF images
+*.ico binary                # Icons

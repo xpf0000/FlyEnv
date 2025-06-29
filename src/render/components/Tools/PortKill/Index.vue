@@ -28,7 +28,7 @@
               I18nT('base.cleanAll')
             }}</el-button>
           </div>
-          <el-card :header="null" :shadow="false">
+          <el-card :header="null" shadow="never">
             <el-table
               height="100%"
               :data="arrs"

@@ -37,11 +37,6 @@ body {
     --el-select-width: 100%;
   }
 
-  .el-dialog {
-    .el-dialog__header {
-    }
-  }
-
   .app-html-block {
     a {
       color: #4096ff;
@@ -402,7 +397,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px 0 15px;
     .left {
       cursor: pointer;
       display: flex;
@@ -433,7 +427,6 @@ body {
     flex: 1;
     width: 100%;
     overflow: hidden;
-    padding: 12px;
     display: flex;
     flex-direction: column;
 
@@ -463,7 +456,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px 0 15px;
     .left {
       display: flex;
       align-items: center;
@@ -481,8 +473,13 @@ body {
     }
   }
   .main-wapper {
+    flex: 1;
     width: 100%;
-    padding: 12px;
+
+    &#FileInfoDroper {
+      overflow: auto;
+    }
+
     .input {
       background: transparent;
       border-top: none;
@@ -514,9 +511,13 @@ body {
     }
     .main {
       border-radius: 8px;
-      padding: 20px;
       display: flex;
       flex-direction: column;
+
+      &.pb-0 {
+        padding-bottom: 0;
+      }
+
       .path-choose {
         display: flex;
         align-items: flex-end;
@@ -959,7 +960,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px 0 15px;
     .left {
       cursor: pointer;
       display: flex;
@@ -981,7 +981,6 @@ body {
     flex: 1;
     width: 100%;
     overflow: hidden;
-    padding: 12px;
     display: flex;
     flex-direction: column;
 
@@ -1686,6 +1685,8 @@ body {
 }
 .port-kill {
   .main-wapper {
+    padding-bottom: 0;
+
     .el-input-group__append {
       overflow: hidden;
       > button {
@@ -1695,7 +1696,6 @@ body {
     }
 
     .main {
-      padding: 20px 20px 10px 20px;
       height: 100%;
       overflow: hidden;
 
@@ -1705,7 +1705,7 @@ body {
 
       .table-wapper {
         flex: 1;
-        padding: 30px 0 10px 0;
+        padding: 30px 0 0 0;
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -2029,7 +2029,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px 0 15px;
     background: #282b3d;
     .left {
       display: flex;
@@ -2805,13 +2804,6 @@ body {
 
   a {
     text-decoration: none;
-  }
-}
-.el-dialog {
-  &.host-edit {
-    .main-wapper {
-      padding: 0;
-    }
   }
 }
 .app-float-btn-wapper {

@@ -8,7 +8,7 @@
     @closed="closedFn"
   >
     <div class="host-vhost">
-      <div class="nav">
+      <div class="nav pl-3 pr-5">
         <div class="left" @click="close">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
           <span class="ml-3">{{ I18nT('aside.appLog') }}</span>
@@ -38,8 +38,8 @@
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { FolderOpened, Notebook } from '@element-plus/icons-vue'
   import { AppLogStore } from '@/components/AppLog/store'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import { EditorConfigMake, EditorCreate, EditorDestroy } from '@/util/Editor'
+  import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { join } from '@/util/path-browserify'
   import { fs } from '@/util/NodeFn'
 
@@ -70,14 +70,14 @@
   )
 
   let isBottom = false
-  let monacoInstance: editor.IStandaloneCodeEditor | null
-  const initEditor = () => {
+  let monacoInstance: editor.IStandaloneCodeEditor | undefined
+  const initEditor = async () => {
     if (!monacoInstance) {
       const inputDom: HTMLElement = log.value as any
       if (!inputDom || !inputDom?.style) {
         return
       }
-      monacoInstance = EditorCreate(inputDom, EditorConfigMake(logs.value, true, 'on'))
+      monacoInstance = EditorCreate(inputDom, await EditorConfigMake(logs.value, true, 'on'))
       monacoInstance.setScrollTop(99999999)
       monacoInstance.onDidScrollChange(() => {
         const scrollTop = monacoInstance!.getScrollTop()
@@ -122,8 +122,7 @@
   })
 
   onUnmounted(() => {
-    monacoInstance?.dispose()
-    monacoInstance = null
+    EditorDestroy(monacoInstance)
   })
 
   defineExpose({

@@ -7,7 +7,7 @@
     :with-header="false"
   >
     <div ref="chat" class="app-chat">
-      <div class="nav">
+      <div class="nav pl-3 pr-5">
         <div class="flex items-center">
           <div class="left" @click="hide">
             <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />

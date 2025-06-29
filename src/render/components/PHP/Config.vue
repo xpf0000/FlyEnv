@@ -8,7 +8,7 @@
     @closed="closedFn"
   >
     <div class="host-vhost">
-      <div class="nav">
+      <div class="nav pl-3 pr-5">
         <div class="left" @click="show = false">
           <yb-icon :svg="import('@/svg/delete.svg?raw')" class="top-back-icon" />
           <span class="ml-3 title">{{ version.version }} - {{ version.path }} - php.ini</span>

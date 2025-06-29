@@ -38,7 +38,7 @@
       </template>
     </div>
   </div>
-  <div class="main">
+  <div class="main p-5">
     <div class="flex items-center gap-3">
       <el-select
         v-model="rewriteKey"
@@ -73,9 +73,9 @@
 
 <script lang="ts" setup>
   import { computed, nextTick, ref, watch, onMounted, onUnmounted } from 'vue'
-  import { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
   import { I18nT } from '@lang/index'
-  import { EditorConfigMake, EditorCreate } from '@/util/Editor'
+  import { EditorConfigMake, EditorCreate, EditorDestroy } from '@/util/Editor'
   import { FolderOpened } from '@element-plus/icons-vue'
   import { Project } from '@/util/Project'
   import { HostNginxRewriteSetup } from '@/components/Host/Edit/rewrite'
@@ -161,14 +161,14 @@
     }
   )
 
-  let monacoInstance: editor.IStandaloneCodeEditor | null
+  let monacoInstance: editor.IStandaloneCodeEditor | undefined
 
-  const initEditor = () => {
+  const initEditor = async () => {
     if (!monacoInstance) {
       if (!input?.value?.style) {
         return
       }
-      const config = EditorConfigMake(props.modelValue, false, 'off')
+      const config = await EditorConfigMake(props.modelValue, false, 'off')
       Object.assign(config, {
         minimap: {
           enabled: false
@@ -233,8 +233,7 @@
     })
   })
   onUnmounted(() => {
-    monacoInstance?.dispose()
-    monacoInstance = null
+    EditorDestroy(monacoInstance)
     HostNginxRewriteSetup.deinitFileWatch()
     HostNginxRewriteSetup.deinitNginxRewriteCustomWatch()
     console.log('onUnmounted !!!!')

@@ -37,13 +37,12 @@ export interface ServerType {
 }
 
 declare global {
+  /* eslint-disable no-var */
   var Server: ServerType
-
   var application: any
-
   var __static: string
-
   var launcher: Launcher
+  /* eslint-enable no-var */
 
   interface Window {
     FlyEnvNodeAPI: {
