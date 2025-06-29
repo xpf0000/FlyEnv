@@ -109,27 +109,30 @@ function logPrinter(data: string[]) {
 }
 
 function runElectronApp() {
-  const args = ['--inspect=5858', 'dist/electron/main.mjs']
-  electronProcess = spawn('electron', args, {
+  // Use the correct file path for development
+  const electronEntryPoint = 'dist/electron/main.dev.mjs'
+  console.log(`Starting Electron with entry point: ${electronEntryPoint}`)
+
+  electronProcess = spawn(`electron --inspect=5858 ${electronEntryPoint}`, {
     stdio: 'pipe',
     shell: isWindows()
   })
   electronProcess?.stderr?.on('data', (data) => {
-    // console.log('electronProcess error', data.toString())
+    console.error('electronProcess stderr:', data.toString())
     logPrinter(data)
   })
 
   electronProcess?.stdout?.on('data', (data) => {
+    console.log('electronProcess stdout:', data.toString())
     logPrinter(data)
   })
 
   electronProcess.on('error', (err) => {
-    console.error('electronProcess error: ')
-    console.error(err)
+    console.error(`electronProcess spawn error: ${err.message}`)
   })
 
-  electronProcess.on('close', () => {
-    console.log('electronProcess close !!!')
+  electronProcess.on('close', (code) => {
+    console.log(`electronProcess closed with code: ${code}`)
     if (restart) {
       restart = false
       runElectronApp()

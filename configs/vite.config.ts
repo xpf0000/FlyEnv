@@ -127,7 +127,7 @@ const createMainConfig = (isDev: boolean): UserConfig => ({
     lib: {
       entry: isDev ? 'src/main/index.dev.ts' : 'src/main/index.ts',
       formats: ['es'],
-      fileName: () => 'main.mjs'
+      fileName: () => (isDev ? 'index.dev' : 'main')
     },
     outDir: 'dist/electron',
     minify: !isDev,
@@ -138,7 +138,8 @@ const createMainConfig = (isDev: boolean): UserConfig => ({
         id.startsWith('node:') ||
         id.endsWith('.node'),
       output: {
-        format: 'es'
+        format: 'es',
+        entryFileNames: isDev ? 'main.dev.mjs' : 'main.mjs'
       }
     },
     target: 'esnext',
@@ -163,7 +164,7 @@ const createForkConfig = (isDev: boolean): UserConfig => ({
     lib: {
       entry: 'src/fork/index.ts',
       formats: ['es'],
-      fileName: () => 'fork.mjs'
+      fileName: () => 'fork'
     },
     outDir: 'dist/electron',
     minify: !isDev,
@@ -174,7 +175,10 @@ const createForkConfig = (isDev: boolean): UserConfig => ({
         id.startsWith('node:') ||
         id.endsWith('.node'),
       output: {
-        format: 'es'
+        format: 'es',
+        inlineDynamicImports: true,
+        manualChunks: undefined, // Force single chunk
+        entryFileNames: 'fork.mjs'
       }
     },
     target: 'esnext',
