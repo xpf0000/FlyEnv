@@ -285,7 +285,6 @@
 
 <script lang="ts" setup>
   import { computed, onUnmounted, ref, watch } from 'vue'
-  import { passwordCheck } from '@/util/Brew'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
@@ -349,7 +348,7 @@
   const appStore = AppStore()
   const brewStore = BrewStore()
   const hosts = computed(() => {
-    return appStore.hosts
+    return appStore.hosts.filter((h) => h?.type === 'java')
   })
 
   const jdks = computed(() => {
@@ -470,9 +469,19 @@
     } else if (item.value.subType === 'other') {
       errs.value['root'] = item.value.root.length === 0
       errs.value['name'] = item.value.name.length === 0
-      if (item.value.name) {
+
+      let u: URL | undefined
+      try {
+        u = new URL(
+          item.value.name.includes('http') ? item.value.name : `https://${item.value.name}`
+        )
+      } catch {}
+      if (!u) {
+        errs.value['name'] = true
+      } else {
+        const name = u.hostname
         for (const h of hosts.value) {
-          if (h.name === item.value.name && h.id !== item.value.id) {
+          if (h.name === name && h.id !== item.value.id) {
             errs.value['name'] = true
             break
           }
@@ -511,13 +520,16 @@
     }
     const saveFn = () => {
       running.value = true
-      passwordCheck().then(() => {
-        const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-        const data = JSON.parse(JSON.stringify(item.value))
-        handleHost(data, flag, props.edit as AppHost, park.value).then(() => {
-          running.value = false
-          show.value = false
-        })
+      const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
+      const data = JSON.parse(JSON.stringify(item.value))
+      if (data.subType === 'other') {
+        data.name = new URL(
+          data.name.includes('http') ? data.name : `https://${data.name}`
+        ).hostname
+      }
+      handleHost(data, flag, props.edit as AppHost, park.value).then(() => {
+        running.value = false
+        show.value = false
       })
     }
     saveFn()

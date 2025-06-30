@@ -212,7 +212,7 @@
   const scripts = ref({})
   const appStore = AppStore()
   const hosts = computed(() => {
-    return appStore.hosts
+    return appStore.hosts.filter((h) => h?.type === 'node')
   })
 
   const brewStore = BrewStore()

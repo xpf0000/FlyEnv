@@ -163,5 +163,6 @@ export const fs = {
   existsSync: createIPCCall<boolean>('fs', 'existsSync'),
   readFile: createIPCCall<string>('fs', 'readFile'),
   writeFile: createIPCCall<void>('fs', 'writeFile'),
-  realpath: createIPCCall<string>('fs', 'realpath')
+  realpath: createIPCCall<string>('fs', 'realpath'),
+  getFileHash: createIPCCall<string>('fs', 'getFileHash')
 }

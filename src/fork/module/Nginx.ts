@@ -43,6 +43,7 @@ class Nginx extends Base {
     try {
       host = await fetchHostList()
     } catch {}
+    host = host.filter((h) => !h.type || h.type === 'php')
     const all = new Set(host.map((h: any) => h.phpVersion).filter((h: number | undefined) => !!h))
     const tmplFile = join(global.Server.Static!, 'tmpl/enable-php.conf')
     let tmplContent = ''

@@ -9,7 +9,7 @@
             <el-radio-button value="nvm">nvm</el-radio-button>
           </el-radio-group>
         </div>
-        <el-button class="button" link @click="reFetch">
+        <el-button :disabled="loading" class="button" link @click="reFetch">
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="refresh-icon"

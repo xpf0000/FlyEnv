@@ -14,15 +14,15 @@
   import LogVM from '@/components/Log/index.vue'
   import ToolVM from '@/components/Log/tool.vue'
   import { join } from '@/util/path-browserify'
-  import { AppStore } from '@/store/app'
+  import { BrewStore } from '@/store/brew'
 
   const props = defineProps<{
     type: string
   }>()
 
-  const appStore = AppStore()
+  const brewStore = BrewStore()
   const version = computed(() => {
-    return appStore.config.server?.apache?.current
+    return brewStore.currentVersion('apache')
   })
 
   const log = ref()

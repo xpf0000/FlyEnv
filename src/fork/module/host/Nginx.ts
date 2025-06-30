@@ -238,12 +238,12 @@ export const updateNginxConf = async (host: AppHost, old: AppHost) => {
     hasChanged = true
     find.push(
       ...[
-        `include(.*?)${rewritepath}/(.*?)\\r\\n`,
-        `include(.*?)${rewritepath}/(.*?)\\n`,
-        `access_log(.*?)${logpath}/(.*?)\\r\\n`,
-        `access_log(.*?)${logpath}/(.*?)\\n`,
-        `error_log(.*?)${logpath}/(.*?)\\r\\n`,
-        `error_log(.*?)${logpath}/(.*?)\\n`
+        `include(.*?)${rewritepath}(.*?)\\r\\n`,
+        `include(.*?)${rewritepath}(.*?)\\n`,
+        `access_log(.*?)${logpath}(.*?)\\r\\n`,
+        `access_log(.*?)${logpath}(.*?)\\n`,
+        `error_log(.*?)${logpath}(.*?)\\r\\n`,
+        `error_log(.*?)${logpath}(.*?)\\n`
       ]
     )
     replace.push(

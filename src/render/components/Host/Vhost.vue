@@ -22,8 +22,18 @@
       </div>
 
       <div class="tool">
-        <el-button @click="openConfig">{{ $t('base.open') }}</el-button>
-        <el-button @click="saveConfig">{{ $t('base.save') }}</el-button>
+        <el-button-group>
+          <el-tooltip :show-after="600" :content="I18nT('conf.open')" placement="top">
+            <el-button @click="openConfig">
+              <FolderOpened class="w-5 h-5 p-0.5" />
+            </el-button>
+          </el-tooltip>
+          <el-tooltip :show-after="600" :content="I18nT('conf.save')" placement="top">
+            <el-button @click="saveConfig">
+              <yb-icon :svg="import('@/svg/save.svg?raw')" class="w-5 h-5 p-0.5" />
+            </el-button>
+          </el-tooltip>
+        </el-button-group>
       </div>
     </div>
   </el-drawer>
@@ -41,6 +51,7 @@
   import IPC from '@/util/IPC'
   import { join } from '@/util/path-browserify'
   import { shell, fs } from '@/util/NodeFn'
+  import { FolderOpened } from '@element-plus/icons-vue'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
   const props = defineProps<{

@@ -71,6 +71,7 @@ class Caddy extends Base {
     try {
       hostAll = await fetchHostList()
     } catch {}
+    hostAll = hostAll.filter((h) => !h.type || h.type === 'php')
     await mkdirp(vhostDir)
     let tmplContent = ''
     let tmplSSLContent = ''

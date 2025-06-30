@@ -1,6 +1,6 @@
 import { I18nT } from '@lang/index'
 import { createWriteStream, existsSync } from 'fs'
-import { basename, dirname, join } from 'path'
+import { dirname, join } from 'path'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
@@ -355,9 +355,8 @@ export class Base {
 
   installSoft(row: any) {
     return new ForkPromise(async (resolve, reject, on) => {
-      const service = basename(row.appDir)
       on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.startInstall', { service }))
+        'APP-On-Log': AppLog('info', I18nT('appLog.startInstall', { service: row?.name ?? '' }))
       })
       const refresh = () => {
         row.downloaded = existsSync(row.zip)

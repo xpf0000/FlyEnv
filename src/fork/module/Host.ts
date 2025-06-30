@@ -22,7 +22,8 @@ import { TaskAddPhpMyAdminSite, TaskAddRandaSite } from './host/Task'
 import { publicDecrypt } from 'crypto'
 import { fetchHostList, saveHostList } from './host/HostFile'
 import Helper from '../Helper'
-import { appDebugLog, HostsFileMacOS, HostsFileWindows, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
+import { HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 
 export class Host extends Base {
   hostsFile = ''

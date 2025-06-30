@@ -61,7 +61,7 @@
   import { ref, watch, onMounted, onUnmounted } from 'vue'
   import { formatBytes } from '@/util/Index'
   import { formatISO } from 'date-fns'
-  import { dialog, fs, exec } from '@/util/NodeFn'
+  import { dialog, fs } from '@/util/NodeFn'
   import { I18nT } from '@lang/index'
 
   interface FileInfo {
@@ -125,11 +125,7 @@
       }
 
       // Get hash values in parallel
-      await Promise.all([
-        getHashValue(`md5 "${path.value}"`, 'md5'),
-        getHashValue(`shasum -a 1 "${path.value}"`, 'sha1'),
-        getHashValue(`shasum -a 256 "${path.value}"`, 'sha256')
-      ])
+      await Promise.all([getHashValue('md5'), getHashValue('sha1'), getHashValue('sha256')])
 
       // Scroll to bottom
       const container = document.querySelector('.main-wapper')
@@ -141,11 +137,9 @@
     }
   }
 
-  const getHashValue = async (command: string, hashType: 'md5' | 'sha1' | 'sha256') => {
+  const getHashValue = async (hashType: 'md5' | 'sha1' | 'sha256') => {
     try {
-      const res = await exec.exec(command)
-      console.log(res)
-      const value = hashType === 'md5' ? res.stdout.split(' = ')[1] : res.stdout.split(' ')[0]
+      const value = await fs.getFileHash(path.value, hashType)
       info.value = { ...info.value, [hashType]: value }
     } catch {
       info.value = { ...info.value, [hashType]: '' }
@@ -154,7 +148,7 @@
 
   const scrollToBottom = (container: Element) => {
     const scroll = () => {
-      if (container.scrollHeight - container.scrollTop === container.clientHeight) {
+      if (Math.floor(container.scrollHeight - container.scrollTop - container.clientHeight) === 0) {
         if (timer.value) {
           cancelAnimationFrame(timer.value)
           timer.value = null
@@ -175,7 +169,7 @@
       e.preventDefault()
       e.stopPropagation()
       if (e.dataTransfer?.files.length) {
-        path.value = e.dataTransfer.files[0].path
+        path.value = window.FlyEnvNodeAPI.showFilePath(e.dataTransfer.files[0])
       }
     }
 

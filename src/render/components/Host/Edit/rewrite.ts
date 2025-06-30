@@ -49,6 +49,7 @@ export const HostNginxRewriteSetup: {
     if (Object.keys(HostNginxRewriteSetup.nginxRewriteDefault).length === 0) {
       const dir = join(window.Server.Static!, 'rewrite')
       fs.readdir(dir, false).then((files) => {
+        console.log('initNginxRewrites dir files: ', files)
         files = files.sort()
         for (const file of files) {
           const name = file.replace('.conf', '')

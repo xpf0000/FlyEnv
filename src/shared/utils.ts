@@ -129,11 +129,11 @@ export function md5(str: string) {
 }
 
 export function pathFixedToUnix(path: string) {
-  return path.split('\\').join('/')
+  return path
+    .split('\\')
+    .filter((s) => !!s.trim())
+    .join('/')
 }
-
-export const HostsFileMacOS = '/private/etc/hosts'
-export const HostsFileWindows = 'c:/windows/system32/drivers/etc/hosts'
 
 const os = platform()
 

@@ -137,7 +137,6 @@
 
 <script lang="ts" setup>
   import { computed, onUnmounted, ref, watch } from 'vue'
-  import { passwordCheck } from '@/util/Brew'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
@@ -182,7 +181,7 @@
   merge(item.value, props.edit)
   const appStore = AppStore()
   const hosts = computed(() => {
-    return appStore.hosts
+    return appStore.hosts.filter((h) => h?.type === 'tomcat')
   })
 
   watch(
@@ -262,12 +261,23 @@
       errs.value['cert'] = item.value.ssl.cert.length === 0
       errs.value['certkey'] = item.value.ssl.key.length === 0
     }
-    for (const h of hosts.value) {
-      if (h.name === item.value.name && h.id !== item.value.id) {
-        errs.value['name'] = true
-        break
+
+    let u: URL | undefined
+    try {
+      u = new URL(item.value.name.includes('http') ? item.value.name : `https://${item.value.name}`)
+    } catch {}
+    if (!u) {
+      errs.value['name'] = true
+    } else {
+      const name = u.hostname
+      for (const h of hosts.value) {
+        if (h.name === name && h.id !== item.value.id) {
+          errs.value['name'] = true
+          break
+        }
       }
     }
+
     let k: keyof typeof errs.value
     for (k in errs.value) {
       if (errs.value[k]) {
@@ -283,13 +293,14 @@
     }
     const saveFn = () => {
       running.value = true
-      passwordCheck().then(() => {
-        const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-        const data = JSON.parse(JSON.stringify(item.value))
-        handleHost(data, flag, props.edit as AppHost, false).then(() => {
-          running.value = false
-          show.value = false
-        })
+      const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
+      const data = JSON.parse(JSON.stringify(item.value))
+
+      data.name = new URL(data.name.includes('http') ? data.name : `https://${data.name}`).hostname
+
+      handleHost(data, flag, props.edit as AppHost, false).then(() => {
+        running.value = false
+        show.value = false
       })
     }
     saveFn()

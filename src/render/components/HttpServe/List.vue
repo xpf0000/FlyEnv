@@ -122,15 +122,33 @@
       },
       initDroper() {
         const selecter: HTMLElement = this.$refs.fileDroper as HTMLElement
-        selecter.addEventListener('drop', (e: any) => {
+        selecter.addEventListener('drop', async (e: DragEvent) => {
           e.preventDefault()
           e.stopPropagation()
           // Get the collection of dragged files
-          const files = e.dataTransfer.files
-          const path = [...files].map((file) => {
-            return file.path
-          })[0]
-          this.addPath(path)
+          const files = Array.from(e.dataTransfer?.files ?? [])
+          const dirs: File[] = []
+          if (e.dataTransfer?.items?.length) {
+            const items = Array.from(e.dataTransfer!.items)
+            items.forEach((item: DataTransferItem, index) => {
+              const entry = item.webkitGetAsEntry()
+              if (entry?.isDirectory) {
+                dirs.push(files[index])
+              }
+            })
+          }
+
+          const paths = dirs.map((f) => window.FlyEnvNodeAPI.showFilePath(f))
+          console.log('paths: ', paths)
+
+          if (paths.length === 0) {
+            this.ondrop = false
+            return
+          }
+
+          for (const path of paths) {
+            this.addPath(path)
+          }
           this.ondrop = false
         })
         selecter.addEventListener('dragover', (e) => {

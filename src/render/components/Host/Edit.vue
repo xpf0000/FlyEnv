@@ -241,7 +241,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch, onMounted, onUnmounted, reactive } from 'vue'
+  import { computed, ref, watch, onUnmounted, reactive } from 'vue'
   import { handleHost } from '@/util/Host'
   import { AppHost, AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
@@ -312,7 +312,7 @@
   const appStore = AppStore()
   const brewStore = BrewStore()
   const hosts = computed(() => {
-    return appStore.hosts
+    return appStore.hosts.filter((h) => !h.type || h.type === 'php')
   })
   const php = computed(() => {
     return brewStore.module('php')
@@ -470,10 +470,19 @@
       errs.value['cert'] = item.value.ssl.cert.length === 0
       errs.value['certkey'] = item.value.ssl.key.length === 0
     }
-    for (const h of hosts.value) {
-      if (h.name === item.value.name && h.id !== item.value.id) {
-        errs.value['name'] = true
-        break
+    let u: URL | undefined
+    try {
+      u = new URL(item.value.name.includes('http') ? item.value.name : `https://${item.value.name}`)
+    } catch {}
+    if (!u) {
+      errs.value['name'] = true
+    } else {
+      const name = u.hostname
+      for (const h of hosts.value) {
+        if (h.name === name && h.id !== item.value.id) {
+          errs.value['name'] = true
+          break
+        }
       }
     }
     let k: keyof typeof errs.value
@@ -492,7 +501,9 @@
     const saveFn = () => {
       running.value = true
       const flag: 'edit' | 'add' = props.isEdit ? 'edit' : 'add'
-      handleHost(item.value, flag, props.edit as AppHost, park.value).then(() => {
+      const data = JSON.parse(JSON.stringify(item.value))
+      data.name = new URL(data.name.includes('http') ? data.name : `https://${data.name}`).hostname
+      handleHost(data, flag, props.edit as AppHost, park.value).then(() => {
         running.value = false
         show.value = false
       })

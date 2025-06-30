@@ -37,17 +37,20 @@ export interface ServerType {
 }
 
 declare global {
-  /* eslint-disable no-var */
+  // @ts-ignore
   var Server: ServerType
+  // @ts-ignore
   var application: any
+  // @ts-ignore
   var __static: string
+  // @ts-ignore
   var launcher: Launcher
-  /* eslint-enable no-var */
 
   interface Window {
     FlyEnvNodeAPI: {
       ipcSendToMain: (...args: any[]) => void
       ipcReceiveFromMain: (callback: (event: any, ...args: any[]) => void) => void
+      showFilePath: (file: File) => string
     }
   }
 }

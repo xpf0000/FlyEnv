@@ -184,7 +184,7 @@
         if (!h.name || h?.pid) {
           return false
         }
-        let name: any = h.name.split('.')
+        const name: any = h.name.split('.')
         let has = false
         while (!has && name.length > 0) {
           name.shift()

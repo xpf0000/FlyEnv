@@ -19,8 +19,18 @@
       </div>
 
       <div class="tool">
-        <el-button @click="openConfig">{{ I18nT('base.open') }}</el-button>
-        <el-button @click="saveConfig">{{ I18nT('base.save') }}</el-button>
+        <el-button-group>
+          <el-tooltip :show-after="600" :content="I18nT('conf.open')" placement="top">
+            <el-button @click="openConfig">
+              <FolderOpened class="w-5 h-5 p-0.5" />
+            </el-button>
+          </el-tooltip>
+          <el-tooltip :show-after="600" :content="I18nT('conf.save')" placement="top">
+            <el-button @click="saveConfig">
+              <yb-icon :svg="import('@/svg/save.svg?raw')" class="w-5 h-5 p-0.5" />
+            </el-button>
+          </el-tooltip>
+        </el-button-group>
       </div>
     </div>
   </el-drawer>
@@ -35,9 +45,16 @@
   import { I18nT } from '@lang/index'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import type { editor } from 'monaco-editor/esm/vs/editor/editor.api.js'
+  import { HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
+  import { FolderOpened } from '@element-plus/icons-vue'
 
   const config = ref('')
-  const configpath = '/private/etc/hosts'
+  let configpath = ''
+  if (window.Server.isMacOS) {
+    configpath = HostsFileMacOS
+  } else if (window.Server.isWindows) {
+    configpath = HostsFileWindows
+  }
   const input = ref<HTMLElement | null>(null)
   let monacoInstance: editor.IStandaloneCodeEditor | undefined
 

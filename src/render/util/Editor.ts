@@ -53,9 +53,19 @@ export const EditorConfigMake = async (
   }
 }
 
+const Editors: WeakMap<HTMLElement, editor.IStandaloneCodeEditor> = new WeakMap()
+
 export const EditorCreate = (input: HTMLElement, config: any) => {
+  if (Editors.has(input)) {
+    console.log('Editors.has DOM: ', input)
+    const instance = Editors.get(input)
+    instance?.setValue(config.value)
+    return instance
+  }
   console.log('EditorCreate config: ', config)
-  return editor.create(input, config)
+  const instance = editor.create(input, config)
+  Editors.set(input, instance)
+  return instance
 }
 
 export const EditorDestroy = (instance?: editor.IStandaloneCodeEditor) => {

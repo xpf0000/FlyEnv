@@ -109,7 +109,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
     try {
       hostList = await fetchHostList()
     } catch {}
-
+    hostList = hostList.filter((h) => !h.type || h.type === 'php')
     const find = hostList.find((h) => h.name === 'phpmyadmin.test')
     if (find) {
       resolve(true)

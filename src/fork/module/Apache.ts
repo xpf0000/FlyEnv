@@ -221,6 +221,7 @@ IncludeOptional "${vhost}*.conf"`
     if (host.length === 0) {
       return
     }
+    host = host.filter((h) => !h.type || h.type === 'php')
     const allNeedPort: Set<number> = new Set()
     host.forEach((h) => {
       const apache = Number(h?.port?.apache)

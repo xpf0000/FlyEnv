@@ -19,7 +19,7 @@ server
     #PHP-INFO-END
 
     #REWRITE-START URL rewrite rule reference, modifying this will invalidate the pseudo-static rules set in the panel
-    include #Rewrite_Path#/#Server_Name#.conf;
+    include "#Rewrite_Path#/#Server_Name#.conf";
     #REWRITE-END
 
     #Files or directories forbidden from access

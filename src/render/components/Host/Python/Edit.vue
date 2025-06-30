@@ -202,7 +202,7 @@
   const brewStore = BrewStore()
   const appStore = AppStore()
   const hosts = computed(() => {
-    return appStore.hosts
+    return appStore.hosts.filter((h) => h?.type === 'python')
   })
 
   const pythons = computed(() => {

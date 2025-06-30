@@ -5,9 +5,10 @@ import DNS2 from 'dns2'
 import { address } from 'neoip'
 import { createRequire } from 'node:module'
 import Helper from '../Helper'
-import { HostsFileMacOS, HostsFileWindows, isLinux, isMacOS, isWindows } from '@shared/utils'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { mkdirp, existsSync, writeFile, readFile } from '../Fn'
 import { dirname, join } from 'node:path'
+import { HostsFileMacOS, HostsFileWindows } from '@shared/PlatFormConst'
 
 const require = createRequire(import.meta.url)
 const Tangerine = require('tangerine')

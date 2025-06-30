@@ -1,11 +1,7 @@
 import { computed, onMounted, onUnmounted, reactive } from 'vue'
 import { BrewStore } from '@/store/brew'
 import type { AllAppModule } from '@/core/type'
-import { MessageSuccess } from '@/util/Element'
-import { I18nT } from '@lang/index'
-import IPC from '@/util/IPC'
-import { staticVersionDel } from '@/util/Version'
-import { clipboard } from '@/util/NodeFn'
+import type { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
 
 export const StaticSetup = reactive<{
   reFetch: () => void
@@ -53,59 +49,21 @@ export const Setup = (typeFlag: AllAppModule) => {
     module.fetchInstalled().catch()
   }
 
-  const fetchCommand = (row: any) => {
-    return row.url
+  const fetchCommand = (row: ModuleStaticItem) => {
+    return row.fetchCommand()
   }
 
-  const copyCommand = (row: any) => {
-    const command = fetchCommand(row)
-    clipboard.writeText(command)
-    MessageSuccess(I18nT('base.copySuccess'))
+  const copyCommand = (row: ModuleStaticItem) => {
+    row.copyCommand()
   }
 
-  const handleVersion = async (row: any) => {
-    if (!row.installed) {
-      if (row.downing) {
-        return
-      }
-      const all = brewStore.module(typeFlag).static
-      const find: any = all.find((r: any) => r.bin === row.bin && r.zip === row.zip)!
-      row.downing = true
-      row.type = typeFlag
-      find.downing = true
-      find.type = typeFlag
-      IPC.send(`app-fork:${typeFlag}`, 'installSoft', JSON.parse(JSON.stringify(row))).then(
-        (key: string, res: any) => {
-          console.log('res: ', res)
-          if (res?.code === 200) {
-            if (find) {
-              Object.assign(find, res.msg)
-            }
-          } else if (res?.code === 0) {
-            IPC.off(key)
-            row.downing = false
-            row.progress = 0
-            if (find) {
-              find.downing = false
-              find.progress = 0
-            }
-            if (res?.data) {
-              regetInstalled()
-            }
-          } else {
-            row.downing = false
-            row.progress = 0
-            if (find) {
-              find.downing = false
-              find.progress = 0
-            }
-            IPC.off(key)
-          }
-        }
-      )
-    } else {
-      staticVersionDel(row.appDir)
-    }
+  const handleVersion = (row: ModuleStaticItem) => {
+    row
+      .runCommand()
+      .then(() => {
+        regetInstalled()
+      })
+      .catch()
   }
 
   const tableData = computed(() => {
