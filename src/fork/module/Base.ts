@@ -53,6 +53,7 @@ export class Base {
     return new ForkPromise(async (resolve) => {
       if (isWindows()) {
         resolve(true)
+        return
       }
       if (version && version?.bin) {
         try {
