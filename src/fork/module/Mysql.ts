@@ -102,6 +102,46 @@ class Mysql extends Base {
     })
   }
 
+  _stopServer(version: SoftInstalled): ForkPromise<any> {
+    if (!isWindows()) {
+      return super._stopServer(version)
+    }
+
+    return new ForkPromise(async (resolve, reject, on) => {
+      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+      const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
+      const bin = join(dirname(version.bin), 'mysqladmin.exe')
+      const command = `"${bin}" --defaults-file="${m}" shutdown`
+      console.log('mysql _stopServer command: ', command)
+      try {
+        await execPromise(command)
+      } catch (e) {
+        console.log('mysql _stopServer command error: ', e)
+        reject(e)
+      }
+
+      const pids = new Set<string>()
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      if (existsSync(appPidFile)) {
+        const pid = (await readFile(appPidFile, 'utf-8')).trim()
+        pids.add(pid)
+        TaskQueue.run(remove, appPidFile).then().catch()
+      }
+      if (version?.pid) {
+        pids.add(`${version.pid}`)
+      }
+      on({
+        'APP-Service-Stop-Success': true
+      })
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+      })
+      return resolve({
+        'APP-Service-Stop-PID': [...pids].map((p) => Number(p))
+      })
+    })
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
