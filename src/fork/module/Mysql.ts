@@ -108,18 +108,6 @@ class Mysql extends Base {
     }
 
     return new ForkPromise(async (resolve, reject, on) => {
-      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
-      const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
-      const bin = join(dirname(version.bin), 'mysqladmin.exe')
-      const command = `"${bin}" --defaults-file="${m}" shutdown`
-      console.log('mysql _stopServer command: ', command)
-      try {
-        await execPromise(command)
-      } catch (e) {
-        console.log('mysql _stopServer command error: ', e)
-        reject(e)
-      }
-
       const pids = new Set<string>()
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       if (existsSync(appPidFile)) {
@@ -130,6 +118,21 @@ class Mysql extends Base {
       if (version?.pid) {
         pids.add(`${version.pid}`)
       }
+      if (pids.size > 0) {
+        const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+        const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
+        const bin = join(dirname(version.bin), 'mysqladmin.exe')
+        const command = `"${bin}" --defaults-file="${m}" shutdown`
+        console.log('mysql _stopServer command: ', command)
+        try {
+          await execPromise(command)
+        } catch (e) {
+          console.log('mysql _stopServer command error: ', e)
+          reject(e)
+          return
+        }
+      }
+
       on({
         'APP-Service-Stop-Success': true
       })
