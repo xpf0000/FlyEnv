@@ -122,6 +122,9 @@ class Mysql extends Base {
         const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
         const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
         const bin = join(dirname(version.bin), 'mysqladmin.exe')
+        /**
+         * ./mysqladmin.exe --defaults-file="C:\Program Files\PhpWebStudy-Data\server\mysql\my-5.7.cnf" -v --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -proot001 shutdown
+         */
         const command = `"${bin}" --defaults-file="${m}" shutdown`
         console.log('mysql _stopServer command: ', command)
         try {
