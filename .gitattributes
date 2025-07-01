@@ -1,14 +1,12 @@
 * text eol=lf
-
 *.sh text eol=lf
 *.cmd text eol=crlf
 *.bat text eol=crlf
-
 *.zip binary
 *.7z binary
 *.exe binary
-*.png binary                # PNG images
-*.jpg binary                # JPEG images
-*.jpeg binary               # JPEG images
-*.gif binary                # GIF images
-*.ico binary                # Icons
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
