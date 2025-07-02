@@ -81,5 +81,5 @@ export const getSubDirAsync = async (dirPath: string, fullpath = true): Promise<
       list.push(name)
     }
   }
-  return list
+  return Array.from(new Set(list))
 }

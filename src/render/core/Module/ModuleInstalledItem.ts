@@ -21,6 +21,7 @@ export class ModuleInstalledItem implements SoftInstalled {
   running: boolean = false
   version: string = ''
   isLocal7Z?: boolean
+  rootPassword?: string
 
   get isInEnv() {
     return computed(() => ServiceActionStore.isInEnv(this))

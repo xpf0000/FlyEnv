@@ -43,6 +43,7 @@
                 currentVersion?.version === scope.row.version &&
                 currentVersion?.path === scope.row.path
             }"
+            @click.stop="onVersionClick(scope.row)"
             >{{ scope.row.version }}</span
           >
         </template>
@@ -212,7 +213,11 @@
       </el-table-column>
       <el-table-column :label="I18nT('base.action')" :prop="null" width="100px" align="center">
         <template #default="scope">
-          <EXT :item="scope.row" :type="typeFlag" />
+          <EXT :item="scope.row" :type="typeFlag">
+            <template #default>
+              <slot name="action" :row="scope.row as ModuleInstalledItem"></slot>
+            </template>
+          </EXT>
         </template>
       </el-table-column>
     </el-table>
@@ -226,11 +231,18 @@
   import type { AllAppModule } from '@/core/type'
   import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
   import { Setup } from './setup'
+  import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 
   const props = defineProps<{
     typeFlag: AllAppModule
     title: string
   }>()
+
+  const emit = defineEmits(['onVersionClick'])
+
+  const onVersionClick = (version: ModuleInstalledItem) => {
+    emit('onVersionClick', version)
+  }
 
   const {
     fetching,

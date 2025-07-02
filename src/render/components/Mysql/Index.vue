@@ -43,6 +43,12 @@
             </template>
           </el-popover>
         </template>
+        <template #action="{ row }">
+          <li @click.stop="toManage(row)">
+            <SetUp width="17" height="17" />
+            <span class="ml-3">数据库管理</span>
+          </li>
+        </template>
       </Service>
       <Manager
         v-else-if="tab === 1"
@@ -68,6 +74,10 @@
   import { MysqlStore } from './mysql'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
+  import { SetUp } from '@element-plus/icons-vue'
+  import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
+
   const mysqlStore = MysqlStore()
   const { tab, checkVersion } = AppModuleSetup('mysql')
   const tabs = [
@@ -82,6 +92,15 @@
     return mysqlStore.all.some((a) => a.version.running)
   })
   checkVersion()
+
+  const toManage = (item: ModuleInstalledItem) => {
+    console.log('toManage item: ', item)
+    import('./Manage/index.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        item
+      }).then()
+    })
+  }
 
   const service = ref()
 </script>

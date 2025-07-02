@@ -10,5 +10,14 @@
   "read_rnd_buffer_size": "随机读取缓冲区大小",
   "thread_cache_size": "线程池大小",
   "table_open_cache": "表缓存",
-  "max_connections": "最大连接数"
+  "max_connections": "最大连接数",
+
+  "rootPassword": "root密码",
+  "rootPasswordChange": "修改root密码",
+  "passwordNoEmpty": "root密码不能为空",
+  "passwordFormatError": "数据库密码不能包含中文和特殊字符",
+  "resetPassword": "重置密码",
+  "savePassword": "保存密码",
+  "resetPasswordTips": "此操作会变更数据库root用户的密码",
+  "savePasswordTips": "只保存密码, 不会变更数据库root用户的密码。此密码主要用于安全停止MySQL实例。"
 }

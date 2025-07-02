@@ -149,17 +149,23 @@ export const versionLocalFetch = async (
     searchDepth2Dir = [global.Server.AppDir!]
   }
 
+  const checkedDir: Set<string> = new Set()
+
   const findInstalled = async (dir: string, depth = 0, maxDepth = 2) => {
     if (!existsSync(dir)) {
       return
     }
     dir = realpathSync(dir)
+    if (checkedDir.has(dir)) {
+      return
+    }
     let binPath: string | boolean = false
     if (binPaths) {
       for (const p of binPaths) {
         binPath = versionCheckBin(join(dir, p))
         if (binPath) {
           installed.add(binPath)
+          checkedDir.add(dir)
           return
         }
       }
@@ -167,21 +173,26 @@ export const versionLocalFetch = async (
     binPath = versionCheckBin(join(dir, `${binName}`))
     if (binPath) {
       installed.add(binPath)
+      checkedDir.add(dir)
       return
     }
     binPath = versionCheckBin(join(dir, `bin/${binName}`))
     if (binPath) {
       installed.add(binPath)
+      checkedDir.add(dir)
       return
     }
     binPath = versionCheckBin(join(dir, `sbin/${binName}`))
     if (binPath) {
       installed.add(binPath)
+      checkedDir.add(dir)
       return
     }
     if (depth >= maxDepth) {
+      checkedDir.add(dir)
       return
     }
+    checkedDir.add(dir)
     const sub = versionDirCache?.[dir] ?? (await getSubDirAsync(dir))
     if (!versionDirCache?.[dir]) {
       versionDirCache[dir] = sub
