@@ -77,7 +77,10 @@
   import { SetUp } from '@element-plus/icons-vue'
   import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { BrewStore } from '@/store/brew'
+  import { MySQLManage } from '@/components/Mysql/Manage/manage'
 
+  const brewStore = BrewStore()
   const mysqlStore = MysqlStore()
   const { tab, checkVersion } = AppModuleSetup('mysql')
   const tabs = [
@@ -101,6 +104,13 @@
       }).then()
     })
   }
+
+  brewStore
+    .module('mysql')
+    .fetchInstalled()
+    .then(() => {
+      MySQLManage.init()
+    })
 
   const service = ref()
 </script>

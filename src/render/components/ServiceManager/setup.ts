@@ -77,8 +77,10 @@ export const Setup = (typeFlag: AllAppModule) => {
         action = item.stop()
         break
       case 'start':
-      case 'restart':
         action = item.start()
+        break
+      case 'restart':
+        action = item.restart()
         break
     }
     action.then((res: any) => {

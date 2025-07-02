@@ -6,6 +6,13 @@ import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 import IPC from '@/util/IPC'
 import { BrewStore } from '@/store/brew'
 
+type MySQLDatabaseItem = {
+  // database name
+  name: string
+  // database full role user
+  user: string[]
+}
+
 type MySQLManageType = {
   rootPassword: Record<string, string>
   backupDir: Record<string, string>
@@ -13,6 +20,7 @@ type MySQLManageType = {
   init: () => void
   save: () => void
   rootPasswordChange: (item: ModuleInstalledItem, password: string) => Promise<boolean>
+  fetchDatabase: (item: ModuleInstalledItem) => Promise<MySQLDatabaseItem[]>
 }
 
 const MySQLManageKey = 'flyenv-mysql-manage-key'
@@ -77,6 +85,22 @@ const MySQLManage = reactive<MySQLManageType>({
         MessageError(res?.msg ?? I18nT('base.fail'))
         resolve(false)
       })
+    })
+  },
+  fetchDatabase(item: ModuleInstalledItem): Promise<MySQLDatabaseItem[]> {
+    return new Promise<MySQLDatabaseItem[]>((resolve) => {
+      IPC.send('app-fork:mysql', 'getDatabasesWithUsers', JSON.parse(JSON.stringify(item))).then(
+        (key: string, res: any) => {
+          IPC.off(key)
+          if (res?.code === 0) {
+            console.log('fetchDatabase: ', res?.data)
+            resolve(res?.data)
+            return
+          }
+          MessageError(res?.msg ?? I18nT('base.fail'))
+          resolve({} as any)
+        }
+      )
     })
   }
 })

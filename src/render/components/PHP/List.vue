@@ -156,7 +156,7 @@
               <el-button link class="status refresh">
                 <yb-icon
                   :svg="import('@/svg/icon_refresh.svg?raw')"
-                  @click.stop="serviceDo('start', scope.row)"
+                  @click.stop="serviceDo('restart', scope.row)"
                 />
               </el-button>
             </template>

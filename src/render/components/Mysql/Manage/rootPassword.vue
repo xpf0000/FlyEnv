@@ -41,6 +41,7 @@
   import { MySQLManage } from './manage'
   import { uuid } from '@/util/Index'
   import { Refresh } from '@element-plus/icons-vue'
+  import { ElMessageBox } from 'element-plus'
 
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
 
@@ -64,7 +65,15 @@
   }
 
   const doRest = () => {
-    MySQLManage.rootPasswordChange(props.item, password.value).catch()
+    ElMessageBox.confirm(I18nT('mysql.resetPasswordConfirm'), I18nT('host.warning'), {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      type: 'warning'
+    })
+      .then(() => {
+        MySQLManage.rootPasswordChange(props.item, password.value).catch()
+      })
+      .catch()
   }
 
   const doSave = () => {

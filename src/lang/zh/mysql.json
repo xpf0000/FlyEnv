@@ -19,5 +19,7 @@
   "resetPassword": "重置密码",
   "savePassword": "保存密码",
   "resetPasswordTips": "此操作会变更数据库root用户的密码",
-  "savePasswordTips": "只保存密码, 不会变更数据库root用户的密码。此密码主要用于安全停止MySQL实例。"
+  "savePasswordTips": "只保存密码, 不会变更数据库root用户的密码。此密码主要用于安全停止MySQL实例。",
+  "resetPasswordConfirm": "此操作会变更数据库root用户的密码, 确定执行此操作?",
+  "mysqlNeedRunTips": "请先运行MySQL"
 }

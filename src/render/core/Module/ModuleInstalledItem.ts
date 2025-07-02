@@ -4,6 +4,9 @@ import type { SoftInstalled } from '@shared/app'
 import IPC from '@/util/IPC'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import { Module } from '@/core/Module/Module'
+import { MessageError } from '@/util/Element'
+import { AppStore } from '@/store/app'
+import { BrewStore } from '@/store/brew'
 
 export class ModuleInstalledItem implements SoftInstalled {
   typeFlag: AllAppModule = 'dns'
@@ -106,6 +109,57 @@ export class ModuleInstalledItem implements SoftInstalled {
           resolve(true)
         }
       )
+    })
+  }
+
+  restart() {
+    return new Promise(async (resolve) => {
+      await this.stop()
+      this.start().then(resolve)
+    })
+  }
+
+  serviceDo(flag: 'stop' | 'start' | 'restart') {
+    return new Promise(async (resolve) => {
+      if (!this?.version || !this?.path) {
+        return
+      }
+      let action: any
+      switch (flag) {
+        case 'stop':
+          action = this.stop()
+          break
+        case 'start':
+          action = this.start()
+          break
+        case 'restart':
+          action = this.restart()
+          break
+      }
+      action.then((res: any) => {
+        if (typeof res === 'string') {
+          MessageError(res)
+        } else {
+          if (flag === 'stop') {
+            this.run = false
+            this.running = false
+          } else {
+            this.run = true
+            this.running = false
+            const appStore = AppStore()
+            const brewStore = BrewStore()
+            const currentVersion = brewStore.currentVersion(this.typeFlag)
+            if (this.version !== currentVersion?.version || this.path !== currentVersion?.path) {
+              appStore.UPDATE_SERVER_CURRENT({
+                flag: this.typeFlag,
+                data: JSON.parse(JSON.stringify(this))
+              })
+              appStore.saveConfig()
+            }
+          }
+        }
+        resolve(true)
+      })
     })
   }
 
