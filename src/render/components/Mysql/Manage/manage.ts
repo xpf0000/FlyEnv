@@ -24,11 +24,12 @@ type MySQLManageType = {
   backupDir: Record<string, string>
   updating: Record<string, boolean>
   databaseRaw: MySQLDatabaseItem[]
-  databaseSaved: MySQLDatabaseSavedItem[]
+  databaseSaved: Record<string, MySQLDatabaseSavedItem[]>
   init: () => void
   save: () => void
   rootPasswordChange: (item: ModuleInstalledItem, password: string) => Promise<boolean>
   fetchDatabase: (item: ModuleInstalledItem) => Promise<MySQLDatabaseItem[]>
+  addDatabase: (item: ModuleInstalledItem, data: any) => Promise<boolean>
 }
 
 const MySQLManageKey = 'flyenv-mysql-manage-key'
@@ -38,7 +39,7 @@ const MySQLManage = reactive<MySQLManageType>({
   backupDir: {},
   updating: {},
   databaseRaw: [],
-  databaseSaved: [],
+  databaseSaved: {},
   init() {
     localForage
       .getItem(MySQLManageKey)
@@ -109,6 +110,13 @@ const MySQLManage = reactive<MySQLManageType>({
           if (res?.code === 0) {
             console.log('fetchDatabase: ', res?.data)
             this.databaseRaw = reactive(res?.data?.list ?? [])
+            const saved = this.databaseSaved?.[item.bin]
+            if (saved) {
+              this.databaseSaved[item.bin] = saved.filter((d) => {
+                return this.databaseRaw.some((r) => d.database === r.name)
+              })
+              this.save()
+            }
             resolve(res?.data)
             return
           }
@@ -117,6 +125,41 @@ const MySQLManage = reactive<MySQLManageType>({
         }
       )
     })
+  },
+  addDatabase(item: ModuleInstalledItem, data: any) {
+    return new Promise(async (resolve, reject) => {
+      if (!item.run) {
+        const res = await item.start()
+        if (typeof res === 'string') {
+          MessageError(res)
+          return reject(new Error(res))
+        }
+      }
+      await waitTime(1000)
+      IPC.send(
+        'app-fork:mysql',
+        'addDatabase',
+        JSON.parse(JSON.stringify(item)),
+        JSON.parse(JSON.stringify(data))
+      ).then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          let saved = this.databaseSaved?.[item.bin]
+          if (!saved) {
+            this.databaseSaved[item.bin] = reactive([])
+            saved = this.databaseSaved[item.bin]
+          }
+          saved.push(reactive(data))
+          this.save()
+          this.fetchDatabase(item).catch()
+          MessageSuccess(I18nT('base.success'))
+          resolve(true)
+          return
+        }
+        MessageError(res?.msg ?? I18nT('base.fail'))
+        reject(new Error(I18nT('base.fail')))
+      })
+    })
   }
 })
 
@@ -124,5 +167,6 @@ MySQLManage.init = MySQLManage.init.bind(MySQLManage)
 MySQLManage.save = MySQLManage.save.bind(MySQLManage)
 MySQLManage.rootPasswordChange = MySQLManage.rootPasswordChange.bind(MySQLManage)
 MySQLManage.fetchDatabase = MySQLManage.fetchDatabase.bind(MySQLManage)
+MySQLManage.addDatabase = MySQLManage.addDatabase.bind(MySQLManage)
 
 export { MySQLManage }

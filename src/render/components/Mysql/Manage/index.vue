@@ -53,7 +53,7 @@
                     </el-button>
                   </template>
                 </template>
-                <el-button>添加数据库</el-button>
+                <el-button @click.stop="showAddDatabase">添加数据库</el-button>
                 <el-button @click.stop="showRootPassword">{{
                   I18nT('mysql.rootPassword')
                 }}</el-button>
@@ -68,7 +68,7 @@
               <el-empty :description="I18nT('mysql.mysqlNeedRunTips')"></el-empty>
             </template>
             <template v-else>
-              <Database />
+              <Database :item="item" />
             </template>
           </template>
         </el-card>
@@ -101,6 +101,14 @@
   const showRootPassword = () => {
     console.log('showRootPassword item: ', props.item)
     import('./rootPassword.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        item: props.item
+      }).then()
+    })
+  }
+
+  const showAddDatabase = () => {
+    import('./addDatabase.vue').then((res) => {
       AsyncComponentShow(res.default, {
         item: props.item
       }).then()

@@ -17,10 +17,10 @@ import { ForkPromise } from '@shared/ForkPromise'
 import axios from 'axios'
 import * as http from 'http'
 import * as https from 'https'
-import { ProcessPidsByPid, ProcessSearch } from '@shared/Process'
+import { type PItem, ProcessSearch } from '@shared/Process'
 import Helper from '../Helper'
 import { isMacOS, isWindows } from '@shared/utils'
-import { ProcessListSearch, ProcessPidListByPid } from '@shared/Process.win'
+import { ProcessPidList } from '@shared/Process.win'
 
 export class Base {
   type: string
@@ -123,86 +123,74 @@ export class Base {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
+      let plist: PItem[] = []
       const allPid: string[] = []
+
+      if (isWindows()) {
+        plist = await ProcessPidList()
+      } else {
+        plist = (await Helper.send('tools', 'processList')) as any
+      }
+      on({
+        'APP-Service-Stop-Success': true
+      })
       const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
       if (existsSync(appPidFile)) {
         const pid = (await readFile(appPidFile, 'utf-8')).trim()
         allPid.push(pid)
-        let pids: string[] = []
-        if (isMacOS()) {
-          const plist: any = await Helper.send('tools', 'processList')
-          pids = ProcessPidsByPid(pid, plist)
-        } else if (isWindows()) {
-          pids = (await ProcessPidListByPid(pid)).map((n) => `${n}`)
-        }
-        console.log('_stopServer appPidFile pids: ', pids)
-        allPid.push(...pids)
-        on({
-          'APP-Service-Stop-Success': true
-        })
-      } else if (version?.pid) {
-        allPid.push(version.pid)
-        let pids: string[] = []
-        if (isMacOS()) {
-          const plist: any = await Helper.send('tools', 'processList')
-          pids = ProcessPidsByPid(version.pid.trim(), plist)
-        } else if (isWindows()) {
-          pids = (await ProcessPidListByPid(`${version.pid}`.trim())).map((n) => `${n}`)
-        }
-        console.log('_stopServer version?.pid pids: ', pids)
-        allPid.push(...pids)
-        on({
-          'APP-Service-Stop-Success': true
-        })
-      } else {
-        const dis: { [k: string]: string } = {
-          caddy: 'caddy',
-          nginx: 'nginx',
-          apache: 'httpd',
-          mysql: 'mysqld',
-          mariadb: 'mariadbd',
-          memcached: 'memcached',
-          mongodb: 'mongod',
-          postgresql: 'postgres',
-          'pure-ftpd': 'pure-ftpd',
-          tomcat: 'org.apache.catalina.startup.Bootstrap',
-          rabbitmq: 'rabbit',
-          elasticsearch: 'org.elasticsearch.server/org.elasticsearch.bootstrap.Elasticsearch',
-          ollama: 'ollama'
-        }
-        const serverName = dis?.[this.type]
-        if (serverName) {
-          if (isMacOS()) {
-            const plist: any = await Helper.send('tools', 'processList')
-            const pids = ProcessSearch(serverName, false, plist)
-              .filter((p) => {
-                return (
-                  (p.COMMAND.includes(global.Server.BaseDir!) ||
-                    p.COMMAND.includes(global.Server.AppDir!)) &&
-                  !p.COMMAND.includes(' grep ') &&
-                  !p.COMMAND.includes(' /bin/sh -c') &&
-                  !p.COMMAND.includes('/Contents/MacOS/') &&
-                  !p.COMMAND.startsWith('/bin/bash ') &&
-                  !p.COMMAND.includes('brew.rb ') &&
-                  !p.COMMAND.includes(' install ') &&
-                  !p.COMMAND.includes(' uninstall ') &&
-                  !p.COMMAND.includes(' link ') &&
-                  !p.COMMAND.includes(' unlink ')
-                )
-              })
-              .map((p) => p.PID)
-            allPid.push(...pids)
-          } else if (isWindows()) {
-            const pids = await ProcessListSearch(serverName, false)
-            const all = pids
-              .filter((item) => item.COMMAND.includes('PhpWebStudy-Data'))
-              .map((m) => `${m.PID}`)
-            allPid.push(...all)
-          }
-        }
-
-        console.log('_stopServer searchName pids: ', serverName, [...allPid])
+        const list = ProcessSearch(pid, false, plist).map((p) => p.PID)
+        allPid.push(...list)
       }
+      if (version?.pid) {
+        allPid.push(version.pid)
+        const list = ProcessSearch(version.pid, false, plist).map((p) => p.PID)
+        allPid.push(...list)
+      }
+      const dis: { [k: string]: string } = {
+        caddy: 'caddy',
+        nginx: 'nginx',
+        apache: 'httpd',
+        mysql: 'mysqld',
+        mariadb: 'mariadbd',
+        memcached: 'memcached',
+        mongodb: 'mongod',
+        postgresql: 'postgres',
+        'pure-ftpd': 'pure-ftpd',
+        tomcat: 'org.apache.catalina.startup.Bootstrap',
+        rabbitmq: 'rabbit',
+        elasticsearch: 'org.elasticsearch.server/org.elasticsearch.bootstrap.Elasticsearch',
+        ollama: 'ollama'
+      }
+      const serverName = dis?.[this.type]
+      if (serverName) {
+        if (isMacOS()) {
+          const pids = ProcessSearch(serverName, false, plist)
+            .filter((p) => {
+              return (
+                (p.COMMAND.includes(global.Server.BaseDir!) ||
+                  p.COMMAND.includes(global.Server.AppDir!)) &&
+                !p.COMMAND.includes(' grep ') &&
+                !p.COMMAND.includes(' /bin/sh -c') &&
+                !p.COMMAND.includes('/Contents/MacOS/') &&
+                !p.COMMAND.startsWith('/bin/bash ') &&
+                !p.COMMAND.includes('brew.rb ') &&
+                !p.COMMAND.includes(' install ') &&
+                !p.COMMAND.includes(' uninstall ') &&
+                !p.COMMAND.includes(' link ') &&
+                !p.COMMAND.includes(' unlink ')
+              )
+            })
+            .map((p) => p.PID)
+          allPid.push(...pids)
+        } else if (isWindows()) {
+          const all = ProcessSearch(serverName, false, plist)
+            .filter((item) => item.COMMAND.includes('PhpWebStudy-Data'))
+            .map((m) => `${m.PID}`)
+          allPid.push(...all)
+        }
+      }
+      console.log('_stopServer searchName pids: ', serverName, [...allPid])
+
       const arr: string[] = Array.from(new Set(allPid))
       if (isMacOS()) {
         if (arr.length > 0) {

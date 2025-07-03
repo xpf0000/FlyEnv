@@ -24,5 +24,14 @@
   "mysqlNeedRunTips": "请先运行MySQL",
   "databaseName": "数据库名",
   "databaseUser": "用户名",
-  "databasePassword": "密码"
+  "databasePassword": "密码",
+  "addDatabase": "添加数据库",
+  "inputDatabaseName": "请输入数据库名称",
+  "databaseNameFormatError": "数据库名必须以字母开头，3-64个字符，只能包含字母、数字和下划线",
+  "charset": "字符集",
+  "inputCharset": "请选择字符集",
+  "inputUser": "请输入用户名",
+  "userFormatError": "用户名必须以字母开头，3-32个字符，只能包含字母、数字和下划线",
+  "inputPassword": "请输入密码",
+  "passwordSizeError": "密码长度不能少于3个字符"
 }
