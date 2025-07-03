@@ -142,9 +142,9 @@ export class Base {
         })
       } else if (version?.pid) {
         allPid.push(version.pid)
-        const plist: any = await Helper.send('tools', 'processList')
         let pids: string[] = []
         if (isMacOS()) {
+          const plist: any = await Helper.send('tools', 'processList')
           pids = ProcessPidsByPid(version.pid.trim(), plist)
         } else if (isWindows()) {
           pids = (await ProcessPidListByPid(`${version.pid}`.trim())).map((n) => `${n}`)

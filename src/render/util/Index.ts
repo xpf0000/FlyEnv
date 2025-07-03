@@ -198,3 +198,11 @@ export function ArrayMoveItem(arr: any[], fromIndex: number, toIndex: number) {
   newArr.splice(toIndex, 0, item)
   return newArr
 }
+
+export function waitTime(time: number) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(true)
+    }, time)
+  })
+}

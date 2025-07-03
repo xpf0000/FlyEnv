@@ -149,6 +149,8 @@ class Mysql extends Base {
           try {
             await execPromise(`taskkill /f /t ${str}`)
           } catch {}
+        } else {
+          await waitTime(1500)
         }
       }
 
@@ -389,7 +391,9 @@ datadir=${pathFixedToUnix(dataDir)}`
         try {
           const res = await doStart()
           await waitTime(500)
-          await this._initPassword(version, password).on(on)
+          if (!skipGrantTables) {
+            await this._initPassword(version, password).on(on)
+          }
           on(I18nT('fork.postgresqlInit', { dir: dataDir }))
           resolve(res)
         } catch (e) {
@@ -870,7 +874,10 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
   rootPasswordChange(version: SoftInstalled, password: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        await this._startServer(version, true, password)
+        const res: any = await this._startServer(version, true, password)
+        console.log('rootPasswordChange _startServer res: ', res)
+        const pid = res?.['APP-Service-Start-PID']
+        version.pid = pid
       } catch (e) {
         console.log('rootPasswordChange _startServer e: ', e)
         return reject(e)
@@ -1004,7 +1011,7 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
 
       version.rootPassword = password
       try {
-        await this._stopServer(version)
+        await super._stopServer(version)
       } catch {}
 
       resolve(true)
@@ -1105,10 +1112,10 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
           const dbName = db?.SCHEMA_NAME ?? db.schema_name
 
           const directUsers = dbPrivileges
-            .filter((priv: any) => priv.Db === dbName)
-            .map((priv: any) => `${priv.User}@${priv.Host}`)
+            .filter((priv: any) => priv.Db.replace(/[\\]+/g, '') === dbName)
+            .map((priv: any) => `${priv.User}`)
 
-          const globalUserList = globalUsers.map((u: any) => `${u.User}@${u.Host}`)
+          const globalUserList = globalUsers.map((u: any) => `${u.User}`)
 
           return {
             name: dbName,

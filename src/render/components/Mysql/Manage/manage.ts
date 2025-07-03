@@ -5,18 +5,26 @@ import { I18nT } from '@lang/index'
 import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 import IPC from '@/util/IPC'
 import { BrewStore } from '@/store/brew'
+import { waitTime } from '@/util/Index'
 
-type MySQLDatabaseItem = {
-  // database name
+export type MySQLDatabaseItem = {
   name: string
-  // database full role user
-  user: string[]
+  users: string[]
+}
+
+export type MySQLDatabaseSavedItem = {
+  database: string
+  user: string
+  password: string
+  mark: string
 }
 
 type MySQLManageType = {
   rootPassword: Record<string, string>
   backupDir: Record<string, string>
   updating: Record<string, boolean>
+  databaseRaw: MySQLDatabaseItem[]
+  databaseSaved: MySQLDatabaseSavedItem[]
   init: () => void
   save: () => void
   rootPasswordChange: (item: ModuleInstalledItem, password: string) => Promise<boolean>
@@ -29,6 +37,8 @@ const MySQLManage = reactive<MySQLManageType>({
   rootPassword: {},
   backupDir: {},
   updating: {},
+  databaseRaw: [],
+  databaseSaved: [],
   init() {
     localForage
       .getItem(MySQLManageKey)
@@ -36,6 +46,7 @@ const MySQLManage = reactive<MySQLManageType>({
         if (res) {
           this.rootPassword = reactive(res?.rootPassword ?? {})
           this.backupDir = reactive(res?.backupDir ?? {})
+          this.databaseSaved = reactive(res?.databaseSaved ?? [])
           const brewStore = BrewStore()
           const items = brewStore.module('mysql').installed
           for (const item of items) {
@@ -46,7 +57,9 @@ const MySQLManage = reactive<MySQLManageType>({
       .catch()
   },
   save() {
-    localForage.setItem(MySQLManageKey, JSON.parse(JSON.stringify(this))).catch()
+    const data = JSON.parse(JSON.stringify(this))
+    delete data.databaseRaw
+    localForage.setItem(MySQLManageKey, data).catch()
   },
   rootPasswordChange(item: ModuleInstalledItem, password: string): Promise<boolean> {
     return new Promise<boolean>(async (resolve) => {
@@ -66,6 +79,7 @@ const MySQLManage = reactive<MySQLManageType>({
       try {
         await item.stop()
       } catch {}
+      await waitTime(1500)
       IPC.send(
         'app-fork:mysql',
         'rootPasswordChange',
@@ -94,6 +108,7 @@ const MySQLManage = reactive<MySQLManageType>({
           IPC.off(key)
           if (res?.code === 0) {
             console.log('fetchDatabase: ', res?.data)
+            this.databaseRaw = reactive(res?.data?.list ?? [])
             resolve(res?.data)
             return
           }
@@ -108,5 +123,6 @@ const MySQLManage = reactive<MySQLManageType>({
 MySQLManage.init = MySQLManage.init.bind(MySQLManage)
 MySQLManage.save = MySQLManage.save.bind(MySQLManage)
 MySQLManage.rootPasswordChange = MySQLManage.rootPasswordChange.bind(MySQLManage)
+MySQLManage.fetchDatabase = MySQLManage.fetchDatabase.bind(MySQLManage)
 
 export { MySQLManage }
