@@ -1,10 +1,15 @@
 <template>
-  <el-table border :data="list">
-    <el-table-column
-      :label="I18nT('mysql.databaseName')"
-      prop="database"
-      width="200px"
-    ></el-table-column>
+  <el-table border :data="list" @selection-change="handleSelectionChange">
+    <el-table-column type="selection" width="55" />
+    <el-table-column :label="I18nT('mysql.databaseName')" prop="database" width="200px">
+      <template #default="scope">
+        <span
+          class="truncate hover:text-yellow-500 cursor-pointer"
+          @click.stop="copyPass(scope.row.database)"
+          >{{ scope.row.database }}</span
+        >
+      </template>
+    </el-table-column>
     <el-table-column :label="I18nT('mysql.databaseUser')" prop="user" width="200px">
       <template #default="scope">
         <span
@@ -57,17 +62,53 @@
         </div>
       </template>
     </el-table-column>
-    <el-table-column :label="I18nT('host.action')" width="100px" align="center"></el-table-column>
+    <el-table-column :label="I18nT('host.action')" width="100px" align="center">
+      <template #default="scope">
+        <el-dropdown>
+          <el-button link>
+            <yb-icon :svg="import('@/svg/more1.svg?raw')" width="22" height="22" />
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>{{ I18nT('mysql.manage') }}</el-dropdown-item>
+              <el-dropdown-item @click.stop="showSetPassword('update', scope.row)">
+                <el-tooltip
+                  placement="left"
+                  :show-after="600"
+                  :content="I18nT('mysql.savePasswordTips')"
+                >
+                  <div class="flex items-center w-full h-full">
+                    {{ I18nT('mysql.savePassword') }}
+                  </div>
+                </el-tooltip>
+              </el-dropdown-item>
+              <el-dropdown-item @click.stop="showSetPassword('reset', scope.row)">
+                <el-tooltip
+                  placement="left"
+                  :show-after="600"
+                  :content="I18nT('mysql.resetPasswordTips')"
+                >
+                  <div class="flex items-center w-full h-full">
+                    {{ I18nT('mysql.resetPassword') }}
+                  </div>
+                </el-tooltip>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </template>
+    </el-table-column>
   </el-table>
 </template>
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, reactive, ref } from 'vue'
   import { MySQLManage } from '@/components/Mysql/Manage/manage'
   import { I18nT } from '@lang/index'
   import { View, Hide, CopyDocument } from '@element-plus/icons-vue'
   import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
   import { clipboard } from '@/util/NodeFn'
   import { MessageSuccess } from '@/util/Element'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
 
   const props = defineProps<{
     item: ModuleInstalledItem
@@ -79,7 +120,9 @@
       const saved = MySQLManage.databaseSaved?.[props.item.bin] ?? []
       const findSave = saved.find((s) => s.database === d.name && d.users.includes(s.user))
       const user = findSave?.user ?? d?.users?.[0] ?? 'root'
-      const password = findSave?.password ?? (user === 'root' ? props.item.rootPassword : '')
+      const password =
+        MySQLManage.userPassword?.[props.item.bin]?.[user] ?? (user === 'root' ? 'root' : '')
+      console.log('user: ', user, password)
       return {
         database: d.name,
         user,
@@ -88,6 +131,18 @@
         showPassword: false
       }
     })
+  })
+
+  type SelectItem = {
+    database: string
+  }
+  const multipleSelection = ref<SelectItem[]>([])
+  const handleSelectionChange = (val: SelectItem[]) => {
+    multipleSelection.value = val
+  }
+
+  const selectDatabase = computed(() => {
+    return multipleSelection.value.map((d) => d.database)
   })
 
   const copyPass = (str: string): void => {
@@ -102,9 +157,35 @@
     )
     if (find) {
       find.mark = row.mark
+    } else {
+      if (!MySQLManage.databaseSaved?.[props.item.bin]) {
+        MySQLManage.databaseSaved[props.item.bin] = reactive([])
+      }
+      MySQLManage.databaseSaved[props.item.bin].unshift(
+        reactive({
+          database: row.database,
+          user: row.user,
+          mark: row.mark
+        })
+      )
     }
     MySQLManage.save()
   }
+
+  const showSetPassword = (flag: 'update' | 'reset', item: any) => {
+    import('./setPassword.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        item: props.item,
+        user: item.user,
+        showUpdateBtn: flag === 'update',
+        showResetBtn: flag === 'reset'
+      }).then()
+    })
+  }
+
+  defineExpose({
+    selectDatabase
+  })
 </script>
 <style lang="scss">
   .mysql-database-mark-cell {

@@ -13,13 +13,13 @@
   "max_connections": "最大连接数",
 
   "rootPassword": "root密码",
-  "rootPasswordChange": "修改root密码",
+  "rootPasswordChange": "修改{user}密码",
   "passwordNoEmpty": "root密码不能为空",
   "passwordFormatError": "数据库密码不能包含中文和特殊字符",
   "resetPassword": "重置密码",
-  "savePassword": "保存密码",
+  "savePassword": "更新密码",
   "resetPasswordTips": "此操作会变更数据库root用户的密码",
-  "savePasswordTips": "只保存密码, 不会变更数据库root用户的密码。此密码主要用于安全停止MySQL实例。",
+  "savePasswordTips": "只更新FlyEnv存储的密码, 不会变更数据库root用户的密码。此密码主要用于安全停止MySQL实例。",
   "resetPasswordConfirm": "此操作会变更数据库root用户的密码, 确定执行此操作?",
   "mysqlNeedRunTips": "请先运行MySQL",
   "databaseName": "数据库名",
@@ -33,5 +33,10 @@
   "inputUser": "请输入用户名",
   "userFormatError": "用户名必须以字母开头，3-32个字符，只能包含字母、数字和下划线",
   "inputPassword": "请输入密码",
-  "passwordSizeError": "密码长度不能少于3个字符"
+  "passwordSizeError": "密码长度不能少于3个字符",
+  "manage": "管理",
+  "databaseBackup": "数据库备份",
+  "backupSaveDirSet": "保存地址设置",
+  "saveDirError": "保存地址无效",
+  "backupFail": "{database}备份失败, 错误: {error}"
 }
