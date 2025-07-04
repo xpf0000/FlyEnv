@@ -130,11 +130,16 @@ class Mysql extends Base {
         const m = join(global.Server.MysqlDir!, `my-${v}.cnf`)
         const bin = join(dirname(version.bin), 'mysqladmin.exe')
         const password = version?.rootPassword ?? 'root'
+
+        const content = await readFile(m, 'utf8')
+        const config = iniParse(content)
+        const port = config?.mysqld?.port ?? 3306
+
         let success = false
         /**
          * ./mysqladmin.exe --defaults-file="C:\Program Files\PhpWebStudy-Data\server\mysql\my-5.7.cnf" -v --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -proot001 shutdown
          */
-        const command = `"${bin}" --defaults-file="${m}" --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -p${password} shutdown`
+        const command = `"${bin}" --defaults-file="${m}" --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" --port=${port} -uroot -p${password} shutdown`
         console.log('mysql _stopServer command: ', command)
         try {
           await execPromise(command)
@@ -265,8 +270,8 @@ datadir=${pathFixedToUnix(dataDir)}`
               '--user=mysql',
               '--slow-query-log=ON',
               `--slow-query-log-file="${s}"`,
-              `--log-error="${e}"`
-              // '--standalone'
+              `--log-error="${e}"`,
+              '--standalone'
             ]
 
             if (skipGrantTables) {

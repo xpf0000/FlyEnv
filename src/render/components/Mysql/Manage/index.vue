@@ -80,7 +80,13 @@
           </template>
           <template #default>
             <template v-if="!item.run">
-              <el-empty :description="I18nT('mysql.mysqlNeedRunTips')"></el-empty>
+              <el-empty
+                :description="
+                  I18nT('mysql.mysqlNeedRunTips', {
+                    app: item.typeFlag === 'mysql' ? 'MySQL' : 'MariaDB'
+                  })
+                "
+              ></el-empty>
             </template>
             <template v-else>
               <Database ref="databasevm" :item="item" />
@@ -113,7 +119,7 @@
   const brewStore = BrewStore()
 
   const versionRunning = computed(() => {
-    return brewStore.module('mysql')?.installed?.some((f) => f.running)
+    return brewStore.module(props.item.typeFlag)?.installed?.some((f) => f.running)
   })
 
   const selectDatabase = computed(() => {

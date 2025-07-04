@@ -53,6 +53,10 @@ export class JSONStoreTab {
       this.toLang = 'json'
       editor.setModelLanguage(model, 'json')
       value = JSON.stringify(json, null, 4)
+    } else if (this.to === 'json-minify') {
+      this.toLang = 'json'
+      editor.setModelLanguage(model, 'json')
+      value = JSON.stringify(json)
     } else if (this.to === 'js') {
       this.toLang = 'javascript'
       editor.setModelLanguage(model, 'javascript')

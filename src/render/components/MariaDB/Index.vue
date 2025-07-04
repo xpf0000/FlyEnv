@@ -36,6 +36,12 @@
             </template>
           </el-popover>
         </template>
+        <template #action="{ row }">
+          <li @click.stop="toManage(row)">
+            <SetUp width="17" height="17" />
+            <span class="ml-3">{{ I18nT('mysql.manage') }}</span>
+          </li>
+        </template>
       </Service>
       <Manager
         v-else-if="tab === 1"
@@ -58,6 +64,11 @@
   import Manager from '../VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
   import { I18nT } from '@lang/index'
+  import { SetUp } from '@element-plus/icons-vue'
+  import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
+  import { AsyncComponentShow } from '@/util/AsyncComponent'
+  import { MySQLManage } from '@/components/Mysql/Manage/manage'
+  import { BrewStore } from '@/store/brew'
 
   const { tab, checkVersion } = AppModuleSetup('mariadb')
   const tabs = [
@@ -68,6 +79,22 @@
     I18nT('base.slowLog')
   ]
   checkVersion()
+
+  const toManage = (item: ModuleInstalledItem) => {
+    console.log('toManage item: ', item)
+    import('@/components/Mysql/Manage/index.vue').then((res) => {
+      AsyncComponentShow(res.default, {
+        item
+      }).then()
+    })
+  }
+  const brewStore = BrewStore()
+  brewStore
+    .module('mariadb')
+    .fetchInstalled()
+    .then(() => {
+      MySQLManage.init('mariadb')
+    })
 
   const service = ref()
 </script>

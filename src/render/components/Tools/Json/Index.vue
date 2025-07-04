@@ -27,6 +27,7 @@
           <div class="top">
             <el-select v-model="to" filterable @change="onToChange">
               <el-option label="JSON" value="json"></el-option>
+              <el-option label="JSON Minify" value="json-minify"></el-option>
               <el-option label="PHP Array" value="php"></el-option>
               <el-option label="JavaScript" value="js"></el-option>
               <el-option label="TypeScript" value="ts"></el-option>

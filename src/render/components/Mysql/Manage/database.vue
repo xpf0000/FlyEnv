@@ -75,7 +75,11 @@
                 <el-tooltip
                   placement="left"
                   :show-after="600"
-                  :content="I18nT('mysql.savePasswordTips')"
+                  :content="
+                    I18nT('mysql.savePasswordTips', {
+                      app: item.typeFlag === 'mysql' ? 'MySQL' : 'MariaDB'
+                    })
+                  "
                 >
                   <div class="flex items-center w-full h-full">
                     {{ I18nT('mysql.savePassword') }}

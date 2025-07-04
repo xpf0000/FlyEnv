@@ -1,4 +1,4 @@
-import { join, basename, dirname } from 'path'
+import { join, basename, dirname, isAbsolute } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { Base } from './Base'
 import { I18nT } from '@lang/index'
@@ -24,12 +24,17 @@ import {
   remove,
   serviceStartExecCMD,
   zipUnPack,
-  moveChildDirToParent
+  moveChildDirToParent,
+  readFile
 } from '../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../TaskQueue'
 import Helper from '../Helper'
 import { isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { compareVersions } from 'compare-versions'
+import { parse as iniParse } from 'ini'
+import { Connection, createConnection } from 'mysql2/promise'
+import { format } from 'date-fns'
 
 class Manager extends Base {
   constructor() {
@@ -85,7 +90,70 @@ class Manager extends Base {
     })
   }
 
-  _startServer(version: SoftInstalled) {
+  _stopServer(version: SoftInstalled): ForkPromise<any> {
+    if (!isWindows()) {
+      return super._stopServer(version)
+    }
+
+    return new ForkPromise(async (resolve, reject, on) => {
+      const pids = new Set<string>()
+      const appPidFile = join(global.Server.BaseDir!, `pid/${this.type}.pid`)
+      if (existsSync(appPidFile)) {
+        const pid = (await readFile(appPidFile, 'utf-8')).trim()
+        pids.add(pid)
+        TaskQueue.run(remove, appPidFile).then().catch()
+      }
+      if (version?.pid) {
+        pids.add(`${version.pid}`)
+      }
+      if (pids.size > 0) {
+        const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+        const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
+        const bin = join(dirname(version.bin), 'mariadb-admin.exe')
+        const password = version?.rootPassword ?? 'root'
+
+        const content = await readFile(m, 'utf8')
+        const config = iniParse(content)
+        const port = config?.mysqld?.port ?? 3306
+
+        let success = false
+        /**
+         * ./mysqladmin.exe --defaults-file="C:\Program Files\PhpWebStudy-Data\server\mysql\my-5.7.cnf" -v --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" -uroot -proot001 shutdown
+         */
+        const command = `"${bin}" --defaults-file="${m}" --connect-timeout=1 --shutdown-timeout=1 --protocol=tcp --host="127.0.0.1" --port=${port} -uroot -p${password} shutdown`
+        console.log('mysql _stopServer command: ', command)
+        try {
+          await execPromise(command)
+          success = true
+        } catch (e) {
+          success = false
+          console.log('mysql _stopServer command error: ', e)
+        }
+
+        if (!success) {
+          const arr: string[] = Array.from(pids)
+          const str = arr.map((s) => `/pid ${s}`).join(' ')
+          try {
+            await execPromise(`taskkill /f /t ${str}`)
+          } catch {}
+        } else {
+          await waitTime(1500)
+        }
+      }
+
+      on({
+        'APP-Service-Stop-Success': true
+      })
+      on({
+        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+      })
+      return resolve({
+        'APP-Service-Stop-PID': [...pids].map((p) => Number(p))
+      })
+    })
+  }
+
+  _startServer(version: SoftInstalled, skipGrantTables?: boolean) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
         'APP-On-Log': AppLog(
@@ -131,17 +199,31 @@ datadir=${dataDir}`
           const e = join(global.Server.MariaDBDir!, 'error.log')
           const bin = version.bin
 
+          const content = await readFile(m, 'utf8')
+          const config = iniParse(content)
+          const port = config?.mysqld?.port ?? 3306
+          const ddir = config?.mysqld?.datadir ?? dataDir
+
           if (isMacOS()) {
             const params = [
               `--defaults-file="${m}"`,
               `--pid-file="${p}"`,
               '--slow-query-log=ON',
               `--slow-query-log-file="${s}"`,
-              `--log-error="${e}"`,
-              `--socket=/tmp/mysql.sock`
+              `--log-error="${e}"`
             ]
             if (version?.flag === 'macports') {
               params.push(`--lc-messages-dir="/opt/local/share/${basename(version.path)}/english"`)
+            }
+
+            if (skipGrantTables) {
+              params.push(`--socket=/tmp/mysql.${version.version}.sock`)
+              params.push(`--datadir="${ddir}"`)
+              params.push('--bind-address="127.0.0.1"')
+              params.push(`--port=${port}`)
+              params.push('--skip-grant-tables')
+            } else {
+              params.push(`--socket=/tmp/mysql.sock`)
             }
 
             const bin = version.bin
@@ -173,6 +255,14 @@ datadir=${dataDir}`
               `--log-error="${e}"`,
               '--standalone'
             ]
+
+            if (skipGrantTables) {
+              params.push(`--datadir="${ddir}"`)
+              params.push('--bind-address="127.0.0.1"')
+              params.push(`--port=${port}`)
+              params.push(`--enable-named-pipe`)
+              params.push('--skip-grant-tables')
+            }
 
             const execEnv = ``
             const execArgs = params.join(' ')
@@ -262,7 +352,9 @@ datadir=${dataDir}`
         try {
           const res = await doStart()
           await waitTime(500)
-          await this._initPassword(version).on(on)
+          if (!skipGrantTables) {
+            await this._initPassword(version).on(on)
+          }
           on(I18nT('fork.postgresqlInit', { dir: dataDir }))
           resolve(res)
         } catch (e) {
@@ -394,6 +486,334 @@ datadir=${dataDir}`
         }
       )
       resolve(Info)
+    })
+  }
+
+  passwordChange(version: SoftInstalled, user: string, password: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const res: any = await this._startServer(version, true)
+        console.log('rootPasswordChange _startServer res: ', res)
+        const pid = res?.['APP-Service-Start-PID']
+        version.pid = pid
+      } catch (e) {
+        console.log('rootPasswordChange _startServer e: ', e)
+        return reject(e)
+      }
+      await waitTime(1000)
+
+      if (isWindows()) {
+        const bin = join(dirname(version.bin), 'mariadb.exe')
+        if (compareVersions(version.version!, '10.2.0') === 1) {
+          try {
+            await execPromise(
+              `"${bin}" -u root --protocol=pipe -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'localhost' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
+            )
+          } catch (e) {
+            console.log('mysql.exe error2: ', e)
+          }
+          try {
+            await execPromise(
+              `"${bin}" -u root --protocol=pipe -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'127.0.0.1' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
+            )
+          } catch (e) {
+            console.log('mysql.exe error3: ', e)
+          }
+        } else {
+          try {
+            await execPromise(
+              `"${bin}" -u root --protocol=pipe -e "FLUSH PRIVILEGES;UPDATE mysql.user SET Password=PASSWORD('${password}') WHERE User='${user}';FLUSH PRIVILEGES;"`
+            )
+          } catch (e) {
+            console.log('mysql.exe error2: ', e)
+          }
+        }
+      } else {
+        const bin = join(dirname(version.bin), 'mariadb')
+        const socket = `/tmp/mysql.${version.version}.sock`
+
+        if (compareVersions(version.version!, '10.2.0') === 1) {
+          try {
+            await execPromise(
+              `"${bin}" -u root --protocol=socket --socket="${socket}" -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'localhost' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
+            )
+          } catch (e) {
+            console.log('mysql.exe error2: ', e)
+          }
+          try {
+            await execPromise(
+              `"${bin}" -u root --protocol=socket --socket="${socket}" -e "FLUSH PRIVILEGES;ALTER USER '${user}'@'127.0.0.1' IDENTIFIED BY '${password}';FLUSH PRIVILEGES;"`
+            )
+          } catch (e) {
+            console.log('mysql.exe error3: ', e)
+          }
+        } else {
+          try {
+            await execPromise(
+              `"${bin}" -u root --protocol=socket --socket="${socket}" -e "FLUSH PRIVILEGES;UPDATE mysql.user SET Password=PASSWORD('${password}') WHERE User='${user}';FLUSH PRIVILEGES;"`
+            )
+          } catch (e) {
+            console.log('mysql.exe error2: ', e)
+          }
+        }
+      }
+
+      version.rootPassword = password
+      try {
+        await super._stopServer(version)
+      } catch {}
+
+      resolve(true)
+    })
+  }
+
+  getDatabasesWithUsers(version: SoftInstalled) {
+    return new ForkPromise(async (resolve, reject) => {
+      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+      const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
+
+      const content = await readFile(m, 'utf8')
+      const config = iniParse(content)
+      const port = config?.mysqld?.port ?? 3306
+      console.log('rootPasswordChange port: ', port)
+      let connection: Connection | undefined
+      try {
+        connection = await createConnection({
+          host: '127.0.0.1',
+          user: 'root',
+          password: version?.rootPassword ?? 'root',
+          port
+        })
+      } catch (e) {
+        console.log('rootPasswordChange Connection err 0: ', e)
+      }
+
+      if (!connection) {
+        try {
+          connection = await createConnection({
+            host: 'localhost',
+            user: 'root',
+            port
+          })
+        } catch (e) {
+          console.log('rootPasswordChange Connection err 1: ', e)
+          return reject(e)
+        }
+      }
+
+      try {
+        const [databases]: any = await connection.query(`
+      SELECT schema_name
+      FROM information_schema.schemata
+      WHERE schema_name NOT IN (
+        'mysql', 'information_schema', 'performance_schema', 'sys'
+      )
+    `)
+
+        const [dbPrivileges]: any = await connection.query(`
+      SELECT * FROM mysql.db
+      WHERE Db NOT IN ('mysql', 'sys') and
+        Select_priv = 'Y' and
+        Insert_priv = 'Y' and
+        Update_priv = 'Y' and
+        Delete_priv = 'Y' and
+        Create_priv = 'Y' and
+        Drop_priv = 'Y' and
+        References_priv = 'Y' and
+        Index_priv = 'Y' and
+        Alter_priv = 'Y' and
+        Create_tmp_table_priv = 'Y' and
+        Lock_tables_priv = 'Y' and
+        Create_view_priv = 'Y' and
+        Show_view_priv = 'Y' and
+        Create_routine_priv = 'Y' and
+        Alter_routine_priv = 'Y' and
+        Execute_priv = 'Y' and
+        Event_priv = 'Y' and
+        Trigger_priv = 'Y'
+    `)
+
+        const [globalUsers]: any = await connection.query(`
+      SELECT DISTINCT User, Host
+      FROM mysql.user
+      WHERE
+        Select_priv = 'Y' and
+        Insert_priv = 'Y' and
+        Update_priv = 'Y' and
+        Delete_priv = 'Y' and
+        Create_priv = 'Y' and
+        Drop_priv = 'Y' and
+        References_priv = 'Y' and
+        Index_priv = 'Y' and
+        Alter_priv = 'Y' and
+        Create_tmp_table_priv = 'Y' and
+        Lock_tables_priv = 'Y' and
+        Create_view_priv = 'Y' and
+        Show_view_priv = 'Y' and
+        Create_routine_priv = 'Y' and
+        Alter_routine_priv = 'Y' and
+        Execute_priv = 'Y' and
+        Event_priv = 'Y' and
+        Trigger_priv = 'Y'
+    `)
+
+        const [allUsers]: any = await connection.query(`
+      SELECT DISTINCT User, Host
+      FROM mysql.user
+    `)
+
+        const list = databases.map((db: any) => {
+          const dbName = db?.SCHEMA_NAME ?? db.schema_name
+
+          const directUsers = dbPrivileges
+            .filter((priv: any) => priv.Db.replace(/[\\]+/g, '') === dbName)
+            .map((priv: any) => `${priv.User}`)
+
+          const globalUserList = globalUsers.map((u: any) => `${u.User}`)
+
+          return {
+            name: dbName,
+            users: [...new Set([...directUsers, ...globalUserList])]
+          }
+        })
+        resolve({
+          list,
+          databases,
+          dbPrivileges,
+          globalUsers,
+          allUsers
+        })
+      } finally {
+        await connection.end()
+      }
+    })
+  }
+
+  addDatabase(version: SoftInstalled, data: any) {
+    return new ForkPromise(async (resolve, reject) => {
+      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+      const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
+
+      const content = await readFile(m, 'utf8')
+      const config = iniParse(content)
+      const port = config?.mysqld?.port ?? 3306
+      console.log('rootPasswordChange port: ', port)
+      let connection: Connection | undefined
+      try {
+        connection = await createConnection({
+          host: '127.0.0.1',
+          user: 'root',
+          password: version?.rootPassword ?? 'root',
+          port
+        })
+      } catch (e) {
+        console.log('rootPasswordChange Connection err 0: ', e)
+      }
+
+      if (!connection) {
+        try {
+          connection = await createConnection({
+            host: 'localhost',
+            user: 'root',
+            port
+          })
+        } catch (e) {
+          console.log('rootPasswordChange Connection err 1: ', e)
+          return reject(e)
+        }
+      }
+
+      let userExists = false
+
+      try {
+        await connection.query('FLUSH PRIVILEGES')
+        // 1. 创建数据库
+        await connection.query(
+          `CREATE DATABASE IF NOT EXISTS \`${data.database}\` CHARACTER SET ${data.charset}`
+        )
+
+        const [users]: any = await connection.query(
+          `SELECT User FROM mysql.user WHERE User = ? AND Host = 'localhost'`,
+          [data.user]
+        )
+        if (!users || users.length === 0) {
+          await connection.query(`CREATE USER ?@'localhost' IDENTIFIED BY ?`, [
+            data.user,
+            data.password
+          ])
+        } else {
+          if (compareVersions(version.version!, '10.2.0') === 1) {
+            await connection.query(
+              `ALTER USER '${data.user}'@'localhost' IDENTIFIED BY '${data.password}';`
+            )
+          } else {
+            await connection.query(
+              `UPDATE mysql.user SET Password=PASSWORD('${data.password}') WHERE User='${data.user}';`
+            )
+          }
+          userExists = true
+        }
+
+        // 3. 授予用户对数据库的所有权限
+        await connection.query(
+          `GRANT ALL PRIVILEGES ON \`${data.database}\`.* TO '${data.user}'@'localhost'`
+        )
+
+        // 4. 刷新权限
+        await connection.query('FLUSH PRIVILEGES')
+        await connection?.end()
+      } catch (e) {
+        console.log('addDatabase Error: ', e)
+        await connection?.end()
+        return reject(e)
+      }
+
+      resolve({
+        userExists
+      })
+    })
+  }
+
+  backupDatabase(version: SoftInstalled, databases: string[], saveDir: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      if (!isAbsolute(saveDir)) {
+        return reject(new Error(I18nT('mysql.saveDirError')))
+      }
+
+      try {
+        await mkdirp(saveDir)
+      } catch {
+        return reject(new Error(I18nT('mysql.saveDirError')))
+      }
+
+      let bin = ''
+      if (isWindows()) {
+        bin = join(dirname(version.bin), 'mariadb-dump.exe')
+      } else {
+        bin = join(dirname(version.bin), 'mariadb-dump')
+      }
+
+      const v = version?.version?.split('.')?.slice(0, 2)?.join('.') ?? ''
+      const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
+
+      const content = await readFile(m, 'utf8')
+      const config = iniParse(content)
+      const port = config?.mysqld?.port ?? 3306
+      const password = version?.rootPassword ?? 'root'
+      const error: any = []
+
+      const time = format(new Date(), 'yyyy-MM-dd-HH-mm-ss')
+      for (const database of databases) {
+        const file = join(saveDir, `${database}-backup-${time}.sql`)
+        const cammand = `"${bin}" -uroot -p${password} --port=${port} --single-transaction --skip-add-locks --no-tablespaces ${database} > "${file}"`
+        try {
+          await execPromise(cammand)
+        } catch (e) {
+          error.push(I18nT('mysql.backupFail', { database, error: `${e}` }))
+        }
+      }
+
+      resolve(error)
     })
   }
 }

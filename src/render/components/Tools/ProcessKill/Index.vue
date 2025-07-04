@@ -9,17 +9,20 @@
 
     <div class="main-wapper pb-0">
       <div class="main p-0">
-        <el-input
-          v-model="searchKey"
-          :placeholder="I18nT('util.inputSearchKey')"
+        <el-autocomplete
+          v-model.number="searchKey"
+          :fetch-suggestions="querySearch"
+          clearable
           class="input-with-select"
-          @change="doSearch"
+          :placeholder="I18nT('util.inputSearchKey')"
+          @change="onChange"
+          @select="handleSelect"
+          @clear="onClear"
         >
           <template #append>
             <el-button :icon="Search" :disabled="!searchKey" @click="doSearch" />
           </template>
-        </el-input>
-
+        </el-autocomplete>
         <div class="table-wapper">
           <div class="btn-cell">
             <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect">{{
@@ -59,6 +62,7 @@
   import IPC from '@/util/IPC'
   import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
+  import { SearchHistory } from '@/store/searchHistory'
 
   interface ProcessItem {
     PID: string
@@ -81,6 +85,24 @@
   const isLinux = computed(() => {
     return window.Server.isLinux
   })
+
+  SearchHistory.init()
+
+  const searchHistory = computed(() => {
+    const list = SearchHistory.search?.['process'] ?? []
+    return list.map((l) => ({ value: l }))
+  })
+
+  const querySearch = (queryString: string, cb: any) => {
+    const search = queryString.toLowerCase()
+    const results = queryString
+      ? searchHistory.value.filter((f) => {
+          const value = f.value.toLowerCase()
+          return value.includes(search) || search.includes(value)
+        })
+      : searchHistory.value
+    cb(results)
+  }
 
   const cleanSelect = () => {
     Base._Confirm(I18nT('base.killProcessConfirm'), undefined, {
@@ -118,8 +140,29 @@
     select.value = [...selection]
   }
 
+  const handleSelect = (item: Record<string, any>) => {
+    console.log(item)
+    searchKey.value = item.value
+    doSearch()
+  }
+
+  const onClear = () => {
+    searchKey.value = ''
+    doSearch()
+  }
+
+  const onChange = (value: string) => {
+    console.log('onChange: ', value)
+    searchKey.value = value
+    doSearch()
+  }
+
   const doSearch = async () => {
     arrs.value = []
+    if (!searchKey.value) {
+      return
+    }
+    SearchHistory.add('process', `${searchKey.value.trim()}`)
     IPC.send(`app-fork:tools`, 'getPidsByKey', searchKey.value).then((key, res) => {
       IPC.off(key)
       const arr = res?.data ?? []

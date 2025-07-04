@@ -27,7 +27,13 @@
           </el-tooltip>
         </template>
         <template v-if="showUpdateBtn">
-          <el-tooltip :content="I18nT('mysql.savePasswordTips')">
+          <el-tooltip
+            :content="
+              I18nT('mysql.savePasswordTips', {
+                app: item.typeFlag === 'mysql' ? 'MySQL' : 'MariaDB'
+              })
+            "
+          >
             <el-button :loading="updating" :disabled="updating" type="primary" @click="doSave">{{
               I18nT('mysql.savePassword')
             }}</el-button>
@@ -95,7 +101,7 @@
   const doSave = () => {
     if (props.user === 'root') {
       const find = brewStore
-        .module('mysql')
+        .module(props.item.typeFlag)
         .installed.find((v) => v.bin === props.item.bin && v.version === props.item.version)
       if (find) {
         find!.rootPassword = password.value

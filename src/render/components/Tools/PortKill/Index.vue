@@ -9,16 +9,20 @@
 
     <div class="main-wapper">
       <div class="main">
-        <el-input
+        <el-autocomplete
           v-model.number="port"
-          placeholder="Please input port"
+          :fetch-suggestions="querySearch"
+          clearable
           class="input-with-select"
-          @change="doSearch"
+          placeholder="Please Input Port"
+          @change="onChange"
+          @select="handleSelect"
+          @clear="onClear"
         >
           <template #append>
             <el-button :icon="Search" :disabled="!port" @click="doSearch" />
           </template>
-        </el-input>
+        </el-autocomplete>
         <div class="table-wapper">
           <div class="btn-cell">
             <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect">{{
@@ -56,6 +60,7 @@
   import IPC from '@/util/IPC'
   import Base from '@/core/Base'
   import { I18nT } from '@lang/index'
+  import { SearchHistory } from '@/store/searchHistory'
 
   const port = ref('')
   const arrs = ref<Array<any>>([])
@@ -70,6 +75,24 @@
   const isLinux = computed(() => {
     return window.Server.isLinux
   })
+
+  SearchHistory.init()
+
+  const searchHistory = computed(() => {
+    const list = SearchHistory.search?.['port'] ?? []
+    return list.map((l) => ({ value: l }))
+  })
+
+  const querySearch = (queryString: string, cb: any) => {
+    const search = queryString.toLowerCase()
+    const results = queryString
+      ? searchHistory.value.filter((f) => {
+          const value = f.value.toLowerCase()
+          return value.includes(search) || search.includes(value)
+        })
+      : searchHistory.value
+    cb(results)
+  }
 
   const cleanSelect = () => {
     Base._Confirm(I18nT('base.killProcessConfirm'), undefined, {
@@ -109,8 +132,29 @@
     select.value = [...selection]
   }
 
+  const handleSelect = (item: Record<string, any>) => {
+    console.log(item)
+    port.value = item.value
+    doSearch()
+  }
+
+  const onClear = () => {
+    port.value = ''
+    doSearch()
+  }
+
+  const onChange = (value: string) => {
+    console.log('onChange: ', value)
+    port.value = value
+    doSearch()
+  }
+
   const doSearch = () => {
     arrs.value = []
+    if (!port.value) {
+      return
+    }
+    SearchHistory.add('port', `${port.value}`)
     IPC.send('app-fork:tools', 'getPortPids', port.value).then((key: string, res: any) => {
       IPC.off(key)
       const data = res?.data ?? []

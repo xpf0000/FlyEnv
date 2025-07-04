@@ -22,13 +22,14 @@ export type MySQLDatabaseSavedItem = {
 export type MySQLUserItem = Record<string, string>
 
 type MySQLManageType = {
+  inited: boolean
   userPassword: Record<string, MySQLUserItem>
   backupDir: Record<string, string>
   updating: Record<string, boolean>
   backuping: Record<string, boolean>
   databaseRaw: MySQLDatabaseItem[]
   databaseSaved: Record<string, MySQLDatabaseSavedItem[]>
-  init: () => void
+  init: (flag: 'mysql' | 'mariadb') => void
   save: () => void
   passwordChange: (item: ModuleInstalledItem, user: string, password: string) => Promise<boolean>
   fetchDatabase: (item: ModuleInstalledItem) => Promise<MySQLDatabaseItem[]>
@@ -45,7 +46,20 @@ const MySQLManage = reactive<MySQLManageType>({
   backuping: {},
   databaseRaw: [],
   databaseSaved: {},
-  init() {
+  inited: false,
+  init(flag: 'mysql' | 'mariadb') {
+    const initInstalledRootPassword = () => {
+      const brewStore = BrewStore()
+      const items = brewStore.module(flag).installed
+      for (const item of items) {
+        item.rootPassword = this.userPassword?.[item.bin]?.root ?? 'root'
+      }
+    }
+    if (this.inited) {
+      initInstalledRootPassword()
+      return
+    }
+    this.inited = true
     localForage
       .getItem(MySQLManageKey)
       .then((res: any) => {
@@ -53,11 +67,7 @@ const MySQLManage = reactive<MySQLManageType>({
           this.userPassword = reactive(res?.userPassword ?? {})
           this.backupDir = reactive(res?.backupDir ?? {})
           this.databaseSaved = reactive(res?.databaseSaved ?? [])
-          const brewStore = BrewStore()
-          const items = brewStore.module('mysql').installed
-          for (const item of items) {
-            item.rootPassword = this.userPassword?.[item.bin]?.root ?? 'root'
-          }
+          initInstalledRootPassword()
         }
       })
       .catch()
@@ -67,6 +77,7 @@ const MySQLManage = reactive<MySQLManageType>({
     delete data.databaseRaw
     delete data.updating
     delete data.backuping
+    delete data.inited
     localForage.setItem(MySQLManageKey, data).catch()
   },
   backupDatabase(item: ModuleInstalledItem, databases: string[]) {
@@ -97,7 +108,7 @@ const MySQLManage = reactive<MySQLManageType>({
       await waitTime(1000)
 
       IPC.send(
-        'app-fork:mysql',
+        `app-fork:${item.typeFlag}`,
         'backupDatabase',
         JSON.parse(JSON.stringify(item)),
         JSON.parse(JSON.stringify(databases)),
@@ -139,7 +150,7 @@ const MySQLManage = reactive<MySQLManageType>({
       } catch {}
       await waitTime(1500)
       IPC.send(
-        'app-fork:mysql',
+        `app-fork:${item.typeFlag}`,
         'passwordChange',
         JSON.parse(JSON.stringify(item)),
         user,
@@ -175,44 +186,46 @@ const MySQLManage = reactive<MySQLManageType>({
   },
   fetchDatabase(item: ModuleInstalledItem): Promise<MySQLDatabaseItem[]> {
     return new Promise<MySQLDatabaseItem[]>((resolve) => {
-      IPC.send('app-fork:mysql', 'getDatabasesWithUsers', JSON.parse(JSON.stringify(item))).then(
-        (key: string, res: any) => {
-          IPC.off(key)
-          if (res?.code === 0) {
-            console.log('fetchDatabase: ', res?.data)
-            this.databaseRaw = reactive(res?.data?.list ?? [])
-            const allUser: any = res?.data?.allUsers ?? []
-            const users = allUser.map((u: any) => u.User)
-            const userPassword = this.userPassword?.[item.bin]
-            let changed = false
-            if (userPassword && users.length) {
-              for (const u in userPassword) {
-                if (!users.includes(u)) {
-                  changed = true
-                  delete userPassword[u]
-                }
+      IPC.send(
+        `app-fork:${item.typeFlag}`,
+        'getDatabasesWithUsers',
+        JSON.parse(JSON.stringify(item))
+      ).then((key: string, res: any) => {
+        IPC.off(key)
+        if (res?.code === 0) {
+          console.log('fetchDatabase: ', res?.data)
+          this.databaseRaw = reactive(res?.data?.list ?? [])
+          const allUser: any = res?.data?.allUsers ?? []
+          const users = allUser.map((u: any) => u.User)
+          const userPassword = this.userPassword?.[item.bin]
+          let changed = false
+          if (userPassword && users.length) {
+            for (const u in userPassword) {
+              if (!users.includes(u)) {
+                changed = true
+                delete userPassword[u]
               }
             }
-            const saved = this.databaseSaved?.[item.bin]
-            if (saved && users.length) {
-              this.databaseSaved[item.bin] = saved.filter((d) => {
-                const find = this.databaseRaw.some((r) => d.database === r.name)
-                if (!find) {
-                  changed = true
-                }
-                return find
-              })
-            }
-            if (changed) {
-              this.save()
-            }
-            resolve(res?.data)
-            return
           }
-          MessageError(res?.msg ?? I18nT('base.fail'))
-          resolve({} as any)
+          const saved = this.databaseSaved?.[item.bin]
+          if (saved && users.length) {
+            this.databaseSaved[item.bin] = saved.filter((d) => {
+              const find = this.databaseRaw.some((r) => d.database === r.name)
+              if (!find) {
+                changed = true
+              }
+              return find
+            })
+          }
+          if (changed) {
+            this.save()
+          }
+          resolve(res?.data)
+          return
         }
-      )
+        MessageError(res?.msg ?? I18nT('base.fail'))
+        resolve({} as any)
+      })
     })
   },
   addDatabase(item: ModuleInstalledItem, data: any) {
@@ -226,7 +239,7 @@ const MySQLManage = reactive<MySQLManageType>({
       }
       await waitTime(1000)
       IPC.send(
-        'app-fork:mysql',
+        `app-fork:${item.typeFlag}`,
         'addDatabase',
         JSON.parse(JSON.stringify(item)),
         JSON.parse(JSON.stringify(data))

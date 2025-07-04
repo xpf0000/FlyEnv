@@ -46,7 +46,7 @@
         <template #action="{ row }">
           <li @click.stop="toManage(row)">
             <SetUp width="17" height="17" />
-            <span class="ml-3">数据库管理</span>
+            <span class="ml-3">{{ I18nT('mysql.manage') }}</span>
           </li>
         </template>
       </Service>
@@ -109,7 +109,7 @@
     .module('mysql')
     .fetchInstalled()
     .then(() => {
-      MySQLManage.init()
+      MySQLManage.init('mysql')
     })
 
   const service = ref()
