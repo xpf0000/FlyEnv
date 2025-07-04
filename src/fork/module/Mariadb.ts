@@ -62,7 +62,7 @@ class Manager extends Base {
         const m = join(global.Server.MariaDBDir!, `my-${v}.cnf`)
 
         promise = execPromise(
-          `${basename(bin)} --defaults-file="${m}" --port=3306 -uroot password "root"`,
+          `${basename(bin)} --defaults-file="${m}" --port=3306 --host="127.0.0.1" -uroot password "root"`,
           {
             cwd: dirname(bin)
           }
@@ -805,7 +805,7 @@ datadir=${dataDir}`
       const time = format(new Date(), 'yyyy-MM-dd-HH-mm-ss')
       for (const database of databases) {
         const file = join(saveDir, `${database}-backup-${time}.sql`)
-        const cammand = `"${bin}" -uroot -p${password} --port=${port} --single-transaction --skip-add-locks --no-tablespaces ${database} > "${file}"`
+        const cammand = `"${bin}" -uroot -p${password} --port=${port} --host="127.0.0.1" --single-transaction --skip-add-locks --no-tablespaces ${database} > "${file}"`
         try {
           await execPromise(cammand)
         } catch (e) {

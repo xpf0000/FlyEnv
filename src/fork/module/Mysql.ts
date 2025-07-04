@@ -81,7 +81,7 @@ class Mysql extends Base {
         if (existsSync(bin)) {
           process.chdir(dirname(bin))
           try {
-            await execPromise(`mysqladmin.exe -uroot password "${password}"`)
+            await execPromise(`mysqladmin.exe --host="127.0.0.1" -uroot password "${password}"`)
           } catch (e) {
             on({
               'APP-On-Log': AppLog('error', I18nT('appLog.initDBPassFail', { error: e }))
@@ -1246,9 +1246,9 @@ sql-mode=NO_ENGINE_SUBSTITUTION`
         const file = join(saveDir, `${database}-backup-${time}.sql`)
         let cammand = ``
         if (compareVersions(version.version!, '8.0.0') === 1) {
-          cammand = `"${bin}" -uroot -p${password} --port=${port} --single-transaction --column-statistics=0 --no-tablespaces ${database} > "${file}"`
+          cammand = `"${bin}" -uroot -p${password} --port=${port} --host="127.0.0.1" --single-transaction --column-statistics=0 --no-tablespaces ${database} > "${file}"`
         } else {
-          cammand = `"${bin}" -uroot -p${password} --port=${port} --single-transaction --no-tablespaces ${database} > "${file}"`
+          cammand = `"${bin}" -uroot -p${password} --port=${port} --host="127.0.0.1" --single-transaction --no-tablespaces ${database} > "${file}"`
         }
         try {
           await execPromise(cammand)
