@@ -227,7 +227,9 @@ export class Module {
             this.static.push(obj)
           } else {
             console.log('find: ', find, item)
+            const downing = find?.downing ?? false
             Object.assign(find, item)
+            find.downing = downing
           }
         }
         this.staticFetching = false

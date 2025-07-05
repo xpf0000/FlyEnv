@@ -120,6 +120,8 @@ body {
       transition: width 0.3s;
       width: 280px;
 
+      .top-tool {}
+
       .swith-power{
         &.on{
           color: #01cc74;
@@ -2899,27 +2901,6 @@ body {
           }
           >.el-radio-group {
             padding-left: 20px;
-          }
-        }
-      }
-    }
-  }
-}
-
-@media (max-width: 825px) {
-  html {
-    #app {
-      #container {
-      }
-    }
-    .el-drawer {
-      .el-drawer__body {
-        .host-logs {
-          > .top-tab {
-            >li {
-              margin-right: 15px;
-              font-size: 13px;
-            }
           }
         }
       }

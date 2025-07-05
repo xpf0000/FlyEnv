@@ -11,5 +11,7 @@
   "other": "Altro",
   "appLog": "Log dell'Applicazione",
   "ai": "Intelligenza Artificiale",
-  "objectStorage": "Archiviazione Oggetti"
+  "objectStorage": "Archiviazione Oggetti",
+  "appExit": "Interrompi tutti i servizi in esecuzione ed esci da FlyEnv",
+  "groupStart": "Avvia tutti i servizi disponibili visualizzati sul pannello con un clic"
 }

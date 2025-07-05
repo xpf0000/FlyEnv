@@ -60,7 +60,12 @@ class RabbitMQ extends Base {
   _initConf(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, on) => {
       const v = version?.version?.split('.')?.[0] ?? ''
-      const confFile = join(this.baseDir, `rabbitmq-${v}.conf`)
+      let confFile = ''
+      if (isWindows()) {
+        confFile = join(this.baseDir, `rabbitmq-${v}.bat`)
+      } else {
+        confFile = join(this.baseDir, `rabbitmq-${v}.conf`)
+      }
       const logDir = join(this.baseDir, `log-${v}`)
       await mkdirp(logDir)
       if (!existsSync(confFile)) {
@@ -70,11 +75,20 @@ class RabbitMQ extends Base {
         await this._initPlugin(version)
         const pluginsDir = join(version.path, 'plugins')
         const mnesiaBaseDir = join(this.baseDir, `mnesia-${v}`)
-        const content = `NODE_IP_ADDRESS=127.0.0.1
+        let content = ''
+        if (isWindows()) {
+          content = `set "NODE_IP_ADDRESS=127.0.0.1"
+set "NODENAME=rabbit@localhost"
+set "RABBITMQ_LOG_BASE=${logDir}"
+set "MNESIA_BASE=${mnesiaBaseDir}"
+set "PLUGINS_DIR=${pluginsDir}"`
+        } else {
+          content = `NODE_IP_ADDRESS=127.0.0.1
 NODENAME=rabbit@localhost
 RABBITMQ_LOG_BASE=${pathFixedToUnix(logDir)}
 MNESIA_BASE=${pathFixedToUnix(mnesiaBaseDir)}
 PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
+        }
         await writeFile(confFile, content)
         const defaultFile = join(this.baseDir, `rabbitmq-${v}-default.conf`)
         await writeFile(defaultFile, content)

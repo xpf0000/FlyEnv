@@ -11,5 +11,7 @@
   "other": "其他",
   "appLog": "App日志",
   "ai": "AI",
-  "objectStorage": "对象存储"
+  "objectStorage": "对象存储",
+  "appExit": "停止所有已启动的服务并退出FlyEnv",
+  "groupStart": "一键启动所有显示在面板上的可用服务"
 }

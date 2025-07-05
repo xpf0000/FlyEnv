@@ -11,5 +11,7 @@
   "other": "その他",
   "appLog": "Appログ",
   "ai": "AI",
-  "objectStorage": "オブジェクトストレージ"
+  "objectStorage": "オブジェクトストレージ",
+  "appExit": "実行中のすべてのサービスを停止し、FlyEnvを終了します",
+  "groupStart": "パネルに表示されている利用可能なすべてのサービスをワンクリックで起動"
 }

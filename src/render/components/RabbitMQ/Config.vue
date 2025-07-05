@@ -30,6 +30,9 @@
     if (!v) {
       return ''
     }
+    if (window.Server.isWindows) {
+      return join(window.Server.BaseDir!, 'rabbitmq', `rabbitmq-${v}.bat`)
+    }
     return join(window.Server.BaseDir!, 'rabbitmq', `rabbitmq-${v}.conf`)
   })
 

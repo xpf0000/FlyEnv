@@ -1,7 +1,27 @@
 <template>
   <el-aside width="280px" class="aside">
     <div class="aside-inner">
-      <ul class="top-tool mt-3 pt-2">
+      <ul class="top-tool mt-3 pt-2" :style="topToolStyle as any">
+        <el-popover
+          width="auto"
+          :show-after="800"
+          placement="right"
+          popper-class="app-popover-min-w-auto"
+        >
+          <template #default>
+            <span>{{ I18nT('aside.appExit') }}</span>
+          </template>
+          <template #reference>
+            <li class="cursor-pointer" @click.stop="appExit()">
+              <yb-icon
+                class="fa-flip-h"
+                :svg="import('@/svg/exit.svg?raw')"
+                width="16"
+                height="16"
+              />
+            </li>
+          </template>
+        </el-popover>
         <el-popover
           width="auto"
           :show-after="800"
@@ -12,14 +32,26 @@
             <span>{{ I18nT('aside.appLog') }}</span>
           </template>
           <template #reference>
-            <li @click.stop="showLog()">
+            <li class="cursor-pointer" @click.stop="showLog()">
               <yb-icon :svg="import('@/svg/log.svg?raw')" width="16" height="16" />
             </li>
           </template>
         </el-popover>
-        <li :class="groupClass" @click="groupDo">
-          <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
-        </li>
+        <el-popover
+          width="auto"
+          :show-after="800"
+          placement="right"
+          popper-class="app-popover-min-w-auto"
+        >
+          <template #default>
+            <span>{{ I18nT('aside.groupStart') }}</span>
+          </template>
+          <template #reference>
+            <li :class="groupClass" @click="groupDo">
+              <yb-icon :svg="import('@/svg/switch.svg?raw')" width="24" height="24" />
+            </li>
+          </template>
+        </el-popover>
       </ul>
       <el-scrollbar>
         <ul class="menu top-menu">
@@ -77,6 +109,7 @@
   import CustomerModule from '@/components/CustomerModule/aside.vue'
   import type { CallBackFn } from '@shared/app'
   import { BrewStore } from '@/store/brew'
+  import { ElMessageBox } from 'element-plus'
 
   let lastTray = ''
 
@@ -85,6 +118,15 @@
 
   const currentPage = computed(() => {
     return appStore.currentPage
+  })
+
+  const topToolStyle = computed(() => {
+    if (!window.Server.isWindows) {
+      return null
+    }
+    return {
+      paddingTop: '11px'
+    }
   })
 
   const platformAppModules = computed(() => {
@@ -379,6 +421,20 @@
   })
   const showLog = () => {
     AsyncComponentShow(LogVM).then()
+  }
+
+  const appExit = () => {
+    ElMessageBox.confirm(I18nT('aside.appExit') + '?', I18nT('host.warning'), {
+      confirmButtonText: I18nT('base.confirm'),
+      cancelButtonText: I18nT('base.cancel'),
+      type: 'warning'
+    })
+      .then(() => {
+        IPC.send('application:exit').then((key: string) => {
+          IPC.off(key)
+        })
+      })
+      .catch()
   }
 
   const groupDo = () => {

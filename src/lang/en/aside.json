@@ -11,5 +11,7 @@
   "other": "Other",
   "appLog": "App Log",
   "ai": "AI",
-  "objectStorage": "Object Storage"
+  "objectStorage": "Object Storage",
+  "appExit": "Stop all running services and exit FlyEnv",
+  "groupStart": "One-click start all available services displayed on the panel"
 }

@@ -11,5 +11,7 @@
   "other": "Lainnya",
   "appLog": "Log Aplikasi",
   "ai": "Kecerdasan Buatan (AI)",
-  "objectStorage": "Penyimpanan Objek"
+  "objectStorage": "Penyimpanan Objek",
+  "appExit": "Hentikan semua layanan yang berjalan dan keluar dari FlyEnv",
+  "groupStart": "Mulai semua layanan yang tersedia yang ditampilkan di panel dengan satu klik"
 }

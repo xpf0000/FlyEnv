@@ -702,6 +702,9 @@ export default class Application extends EventEmitter {
     }
 
     switch (command) {
+      case 'application:exit':
+        this?.mainWindow?.hide()
+        break
       case 'App-Node-FN':
         {
           const namespace: string = args.shift()

@@ -11,6 +11,7 @@
   "other": "Diğer",
   "appLog": "Uygulama Günlüğü",
   "ai": "Yapay Zeka",
-
-  "objectStorage": "Object Storage"
+  "objectStorage": "Object Storage",
+  "appExit": "Tüm çalışan hizmetleri durdur ve FlyEnv'den çık",
+  "groupStart": "Panelde görüntülenen tüm kullanılabilir hizmetleri tek tıkla başlat"
 }

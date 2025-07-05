@@ -80,9 +80,9 @@ log-outputs: ["stdout"]`
       await mkdirp(baseDir)
 
       const execEnv = ``
-      const execArgs = `--config-file "${iniFile}"`
 
       if (isWindows()) {
+        const execArgs = `--config-file \`"${iniFile}\`"`
         try {
           const res = await serviceStartExecWin({
             version,
@@ -101,6 +101,7 @@ log-outputs: ["stdout"]`
           return
         }
       } else if (isMacOS()) {
+        const execArgs = `--config-file "${iniFile}"`
         try {
           const res = await serviceStartExec({
             version,

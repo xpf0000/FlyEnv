@@ -11,5 +11,7 @@
   "other": "Autre",
   "appLog": "Journal de l'application",
   "ai": "IA",
-  "objectStorage": "Stockage des données"
+  "objectStorage": "Stockage des données",
+  "appExit": "Arrêter tous les services en cours d'exécution et quitter FlyEnv",
+  "groupStart": "Démarrer d'un seul clic tous les services disponibles affichés sur le panneau"
 }

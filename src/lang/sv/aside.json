@@ -11,5 +11,7 @@
   "other": "Övrigt",
   "appLog": "App-logg",
   "ai": "AI",
-  "objectStorage": "Object Storage"
+  "objectStorage": "Object Storage",
+  "appExit": "Stoppa alla tjänster som körs och avsluta FlyEnv",
+  "groupStart": "Starta alla tillgängliga tjänster som visas på panelen med ett klick"
 }
