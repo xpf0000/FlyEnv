@@ -9,7 +9,7 @@ import { isWindows } from '@shared/utils'
 
 const initCARoot = () => {
   return new Promise(async (resolve) => {
-    const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+    const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
     const command = `certutil -addstore root "${CARoot}"`
     try {
       const res = await execPromise(command)
@@ -23,19 +23,40 @@ export const makeAutoSSL = (host: AppHost): ForkPromise<{ crt: string; key: stri
   return new ForkPromise(async (resolve) => {
     try {
       const alias = hostAlias(host)
-      const CARoot = join(global.Server.BaseDir!, 'CA/PhpWebStudy-Root-CA.crt')
+      const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
       const CADir = dirname(CARoot)
 
       if (isWindows()) {
-        if (!existsSync(CARoot)) {
-          await mkdirp(CADir)
-          await zipUnPack(join(global.Server.Static!, `zip/CA.7z`), CADir)
-          await initCARoot()
-        }
-
         const openssl = join(global.Server.AppDir!, 'openssl/bin/openssl.exe')
         if (!existsSync(openssl)) {
           await zipUnPack(join(global.Server.Static!, `zip/openssl.7z`), global.Server.AppDir!)
+        }
+        const opensslCnf = join(global.Server.AppDir!, 'openssl/openssl.cnf')
+        if (!existsSync(opensslCnf)) {
+          await copyFile(join(global.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
+        }
+
+        if (!existsSync(CARoot)) {
+          await mkdirp(CADir)
+          const caFileName = 'FlyEnv-Root-CA'
+          let command = `"${openssl}" genrsa -out ${caFileName}.key 2048`
+          await execPromise(command, {
+            cwd: CADir
+          })
+          command = `"${openssl}" req -new -key ${caFileName}.key -out ${caFileName}.csr -sha256 -subj "/CN=${caFileName}" -config "${opensslCnf}"`
+          await execPromise(command, {
+            cwd: CADir
+          })
+          await writeFile(join(CADir, `${caFileName}.cnf`), `basicConstraints=CA:true`)
+          command = `"${openssl}" x509 -req -in ${caFileName}.csr -signkey ${caFileName}.key -out ${caFileName}.crt -extfile ${caFileName}.cnf -sha256 -days 3650`
+          await execPromise(command, {
+            cwd: CADir
+          })
+          if (!existsSync(CARoot)) {
+            resolve(false)
+            return
+          }
+          await initCARoot()
         }
 
         const hostCAName = `CA-${host.id}`
@@ -56,12 +77,7 @@ subjectAltName=@alt_names
         ext += `IP.1 = 127.0.0.1${EOL}`
         await writeFile(join(hostCADir, `${hostCAName}.ext`), ext)
 
-        const rootCA = join(CADir, 'PhpWebStudy-Root-CA')
-
-        const opensslCnf = join(global.Server.AppDir!, 'openssl/openssl.cnf')
-        if (!existsSync(opensslCnf)) {
-          await copyFile(join(global.Server.Static!, 'tmpl/openssl.cnf'), opensslCnf)
-        }
+        const rootCA = join(CADir, 'FlyEnv-Root-CA')
 
         process.chdir(dirname(openssl))
         const caKey = join(hostCADir, `${hostCAName}.key`)
@@ -87,7 +103,7 @@ subjectAltName=@alt_names
           key: join(hostCADir, `${hostCAName}.key`)
         })
       } else {
-        const caFileName = 'PhpWebStudy-Root-CA'
+        const caFileName = 'FlyEnv-Root-CA'
         if (!existsSync(CARoot)) {
           await mkdirp(CADir)
           let command = `openssl genrsa -out ${caFileName}.key 2048;`
@@ -103,10 +119,7 @@ subjectAltName=@alt_names
           }
           await Helper.send('host', 'sslAddTrustedCert', CADir)
           const res: any = await Helper.send('host', 'sslFindCertificate', CADir)
-          if (
-            !res.stdout.includes('PhpWebStudy-Root-CA') &&
-            !res.stderr.includes('PhpWebStudy-Root-CA')
-          ) {
+          if (!res.stdout.includes('FlyEnv-Root-CA') && !res.stderr.includes('FlyEnv-Root-CA')) {
             resolve(false)
             return
           }
@@ -129,7 +142,7 @@ subjectAltName=@alt_names
         ext += `IP.1 = 127.0.0.1${EOL}`
         await writeFile(join(hostCADir, `${hostCAName}.ext`), ext)
 
-        const rootCA = join(CADir, 'PhpWebStudy-Root-CA')
+        const rootCA = join(CADir, 'FlyEnv-Root-CA')
 
         let command = `openssl req -new -newkey rsa:2048 -nodes -keyout ${hostCAName}.key -out ${hostCAName}.csr -sha256 -subj "/CN=${hostCAName}";`
         command += `openssl x509 -req -in ${hostCAName}.csr -out ${hostCAName}.crt -extfile ${hostCAName}.ext -CA "${rootCA}.crt" -CAkey "${rootCA}.key" -CAcreateserial -sha256 -days 3650;`
@@ -146,7 +159,8 @@ subjectAltName=@alt_names
           key: join(hostCADir, `${hostCAName}.key`)
         })
       }
-    } catch {
+    } catch (e) {
+      console.log('makeAutoSSL error: ', e)
       resolve(false)
     }
   })
