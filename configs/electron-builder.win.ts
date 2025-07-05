@@ -4,7 +4,7 @@ const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'PhpWebStudy',
   buildVersion: '4.9.12',
-  electronVersion: '33.4.11',
+  electronVersion: '37.2.0',
   appId: 'phpstudy.xpfme.com',
   asar: true,
   directories: {
