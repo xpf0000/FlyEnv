@@ -300,9 +300,6 @@ export default class Application extends EventEmitter {
     })
     this.windowManager.on('window-closed', (data) => {
       this.storeWindowState(data)
-      if (is.windows()) {
-        this.emit('application:exit')
-      }
     })
   }
 
@@ -469,6 +466,8 @@ export default class Application extends EventEmitter {
 
     this.on('application:exit', () => {
       console.log('application:exit !!!!!!')
+      this?.mainWindow?.hide()
+      this?.trayWindow?.hide()
       this.stop().then(() => {
         app.exit()
         process.exit(0)
@@ -702,13 +701,6 @@ export default class Application extends EventEmitter {
     }
 
     switch (command) {
-      case 'APP:Exit':
-        this?.mainWindow?.hide()
-        this.stop().then(() => {
-          app.exit()
-          process.exit(0)
-        })
-        break
       case 'App-Node-FN':
         {
           const namespace: string = args.shift()

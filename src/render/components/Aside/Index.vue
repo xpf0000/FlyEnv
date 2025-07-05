@@ -430,7 +430,7 @@
       type: 'warning'
     })
       .then(() => {
-        IPC.send('APP:Exit').then((key: string) => {
+        IPC.send('application:exit').then((key: string) => {
           IPC.off(key)
         })
       })

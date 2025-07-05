@@ -1,6 +1,7 @@
 import { appendFile, existsSync, copyFile } from '../Fn'
 import { join, basename } from 'node:path'
 import { createRequire } from 'node:module'
+import { pathFixedToUnix } from '@shared/utils'
 
 const require = createRequire(import.meta.url)
 const compressing = require('7zip-min-electron')
@@ -18,7 +19,8 @@ export function zipUnPack(fp: string, dist: string) {
       join(global.Server.BaseDir!, 'debug.log'),
       `[zipUnPack][info]: ${JSON.stringify(info, undefined, 4)}\n`
     )
-    if (fp.includes(global.Server.Static!)) {
+    let file = fp
+    if (pathFixedToUnix(fp).includes(pathFixedToUnix(global.Server.Static!))) {
       const cacheFP = join(global.Server.Cache!, basename(fp))
       if (!existsSync(cacheFP)) {
         try {
@@ -30,10 +32,10 @@ export function zipUnPack(fp: string, dist: string) {
           )
         }
       }
-      fp = cacheFP
+      file = cacheFP
       console.log('cacheFP: ', fp)
     }
-    compressing.unpack(fp, dist, async (err: any, res: any) => {
+    compressing.unpack(file, dist, async (err: any, res: any) => {
       console.log('zipUnPack end: ', err, res)
       if (err) {
         await appendFile(
