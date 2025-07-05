@@ -702,8 +702,12 @@ export default class Application extends EventEmitter {
     }
 
     switch (command) {
-      case 'application:exit':
+      case 'APP:Exit':
         this?.mainWindow?.hide()
+        this.stop().then(() => {
+          app.exit()
+          process.exit(0)
+        })
         break
       case 'App-Node-FN':
         {

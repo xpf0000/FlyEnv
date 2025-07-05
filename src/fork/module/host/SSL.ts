@@ -5,7 +5,7 @@ import { existsSync } from 'fs'
 import { EOL } from 'os'
 import type { AppHost } from '@shared/app'
 import Helper from '../../Helper'
-import { isWindows } from '@shared/utils'
+import { appDebugLog, isWindows } from '@shared/utils'
 
 const initCARoot = () => {
   return new Promise(async (resolve) => {
@@ -160,6 +160,7 @@ subjectAltName=@alt_names
         })
       }
     } catch (e) {
+      await appDebugLog('[makeAutoSSL][error]', `${e}`)
       console.log('makeAutoSSL error: ', e)
       resolve(false)
     }
