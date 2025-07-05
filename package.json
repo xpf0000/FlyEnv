@@ -12,7 +12,7 @@
     "clean": "npx rimraf node_modules/node-pty/build",
     "build-dev-runner": "npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/dev-runner.ts --outfile=electron/dev-runner.mjs",
     "dev": "yarn run clean:dev && yarn run build-dev-runner && cross-env NODE_ENV=development node electron/dev-runner.mjs",
-    "build": "yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production PLATFORM=macOS npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder.ts --outfile=electron/app-builder.mjs && cross-env NODE_ENV=production PLATFORM=macOS node electron/app-builder.mjs",
+    "build": "yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder.ts --outfile=electron/app-builder.mjs && cross-env NODE_ENV=production node electron/app-builder.mjs",
     "postinstall": "electron-builder install-app-deps"
   },
   "type": "module",

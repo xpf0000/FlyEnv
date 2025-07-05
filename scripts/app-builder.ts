@@ -10,12 +10,13 @@ async function packMain() {
   try {
     await DoFix()
     if (isMacOS()) {
+      console.log('packMain isMacOS !!!')
       const config = (await import('../configs/esbuild.config')).default
       await esbuild(config.dist)
       await esbuild(config.distFork)
       await esbuild(config.distHelper)
     } else if (isWindows()) {
-      console.log('isWindows !!!')
+      console.log('packMain isWindows !!!')
       const config = (await import('../configs/esbuild.config.win')).default
       await esbuild(config.dist)
       await esbuild(config.distFork)
