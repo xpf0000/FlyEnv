@@ -11,37 +11,41 @@
     </div>
 
     <div class="main-wapper">
-      <div class="main">
-        <textarea
+      <div class="main flex flex-col gap-7 pt-7">
+        <el-input
           v-model.trim="item.domains"
-          type="text"
-          :class="'input-textarea' + (errs['domains'] ? ' error' : '')"
+          type="textarea"
+          :rows="6"
+          resize="none"
           placeholder="Domains (Example: *.mydomain.tld), separated by line."
-        ></textarea>
-        <div class="path-choose my-5">
-          <input
-            type="text"
-            :class="'input' + (errs['root'] ? ' error' : '')"
-            readonly="true"
-            placeholder="Root CA certificate path, if not choose, will create new in SSL certificate save path"
-            :value="item.root"
-          />
-          <div class="icon-block" @click="chooseRoot('root', true)">
-            <yb-icon :svg="import('@/svg/folder.svg?raw')" class="choose" width="18" height="18" />
-          </div>
-        </div>
-        <div class="path-choose my-5">
-          <input
-            type="text"
-            :class="'input' + (errs['savePath'] ? ' error' : '')"
-            readonly="true"
-            placeholder="SSL certificate save path"
-            :value="item.savePath"
-          />
-          <div class="icon-block" @click="chooseRoot('save')">
-            <yb-icon :svg="import('@/svg/folder.svg?raw')" class="choose" width="18" height="18" />
-          </div>
-        </div>
+          :style="{
+            '--el-input-border-color': errs['domains'] ? '#cc5441' : null
+          }"
+        ></el-input>
+
+        <el-input
+          v-model="item.root"
+          :style="{
+            '--el-input-border-color': errs['root'] ? '#cc5441' : null
+          }"
+          placeholder="Root CA certificate path, if not choose, will create new in SSL certificate save path"
+        >
+          <template #append>
+            <el-button :icon="FolderOpened" @click.stop="chooseRoot('root', true)"></el-button>
+          </template>
+        </el-input>
+
+        <el-input
+          v-model="item.savePath"
+          :style="{
+            '--el-input-border-color': errs['savePath'] ? '#cc5441' : null
+          }"
+          placeholder="SSL certificate save path"
+        >
+          <template #append>
+            <el-button :icon="FolderOpened" @click.stop="chooseRoot('save')"></el-button>
+          </template>
+        </el-input>
       </div>
     </div>
   </div>
@@ -56,6 +60,7 @@
   import { I18nT } from '@lang/index'
   import Base from '@/core/Base'
   import IPC from '@/util/IPC'
+  import { FolderOpened } from '@element-plus/icons-vue'
 
   interface SSLItem {
     domains: string

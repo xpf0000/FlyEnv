@@ -11,53 +11,41 @@
     </div>
 
     <div class="main-wapper">
-      <div class="main">
-        <div class="path-choose my-5">
-          <el-select
-            v-model="item.phpversion"
-            class="w-full"
-            :class="errs['phpversion'] ? ' error' : ''"
-            :placeholder="I18nT('php.obfuscatorPhpVersion')"
-          >
-            <template v-for="(item, _index) in phpVersions" :key="_index">
-              <el-option :value="item.path + '-' + item.version" :label="item.version"></el-option>
-            </template>
-          </el-select>
-        </div>
-        <div class="path-choose my-5">
-          <input
-            type="text"
-            :class="'input' + (errs['src'] ? ' error' : '')"
-            readonly="true"
-            :placeholder="I18nT('php.obfuscatorSrc')"
-            :value="item.src"
-          />
-          <div class="icon-block" @click="chooseSrc">
-            <yb-icon :svg="import('@/svg/folder.svg?raw')" class="choose" width="18" height="18" />
-          </div>
-        </div>
-        <div class="path-choose my-5">
-          <input
-            type="text"
-            :class="{
-              input: true,
-              error: errs['desc'],
-              enable: descType !== ''
-            }"
-            readonly="true"
-            :placeholder="I18nT('php.obfuscatorDesc')"
-            :value="item.desc"
-          />
-          <div
-            :class="{
-              enable: descType !== ''
-            }"
-            class="icon-block"
-            @click="chooseDesc"
-          >
-            <yb-icon :svg="import('@/svg/folder.svg?raw')" class="choose" width="18" height="18" />
-          </div>
-        </div>
+      <div class="main flex flex-col gap-7 pt-7">
+        <el-select
+          v-model="item.phpversion"
+          class="w-full"
+          :class="errs['phpversion'] ? ' error' : ''"
+          :placeholder="I18nT('php.obfuscatorPhpVersion')"
+        >
+          <template v-for="(item, _index) in phpVersions" :key="_index">
+            <el-option :value="item.path + '-' + item.version" :label="item.version"></el-option>
+          </template>
+        </el-select>
+        <el-input
+          v-model="item.src"
+          :style="{
+            '--el-input-border-color': errs['src'] ? '#cc5441' : null
+          }"
+          :placeholder="I18nT('php.obfuscatorSrc')"
+        >
+          <template #append>
+            <el-button :icon="FolderOpened" @click.stop="chooseSrc()"></el-button>
+          </template>
+        </el-input>
+
+        <el-input
+          v-model="item.desc"
+          :disabled="!descType"
+          :style="{
+            '--el-input-border-color': errs['desc'] ? '#cc5441' : null
+          }"
+          :placeholder="I18nT('php.obfuscatorDesc')"
+        >
+          <template #append>
+            <el-button :icon="FolderOpened" @click.stop="chooseDesc()"></el-button>
+          </template>
+        </el-input>
         <div class="path-choose my-5">
           <el-button @click="showConfig()">{{ I18nT('php.obfuscatorConfig') }}</el-button>
         </div>
@@ -75,6 +63,7 @@
   import { dialog, shell, fs } from '@/util/NodeFn'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { I18nT } from '@lang/index'
+  import { FolderOpened } from '@element-plus/icons-vue'
 
   const running = ref(false)
   const descType = ref('')
@@ -180,11 +169,11 @@
     if (canceled || filePaths.length === 0) return
 
     const [path] = filePaths
-    const state = await fs.stat(path)
+    const state: any = await fs.stat(path)
 
-    if (state.isDirectory()) {
+    if (state.isDirectory) {
       descType.value = 'dir'
-    } else if (state.isFile()) {
+    } else if (state.isFile) {
       descType.value = 'file'
     } else {
       descType.value = ''

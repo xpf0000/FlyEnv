@@ -27,12 +27,12 @@ const options: PageOptions = {
       minHeight: 600
     },
     bindCloseToHide: true,
-    url: is.dev() ? `http://localhost:${ViteDevPort}` : `file://${index}`
+    url: is.dev() ? `http://localhost:${ViteDevPort}` : index
   },
   tray: {
     attrs: {},
     bindCloseToHide: true,
-    url: is.dev() ? `http://localhost:${ViteDevPort}/tray.html` : `file://${tray}`
+    url: is.dev() ? `http://localhost:${ViteDevPort}/tray.html` : tray
   }
 }
 

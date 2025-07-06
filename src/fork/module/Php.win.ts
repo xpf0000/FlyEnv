@@ -391,7 +391,10 @@ class Php extends Base {
 
       if (item.installed) {
         const type = item.iniStr.includes('zend_') ? 'zend_extension' : 'extension'
-        const regex: RegExp = new RegExp(`^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${item.name})"?`, 'gm')
+        const regex: RegExp = new RegExp(
+          `^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${item.name})(\\.dll)?"?`,
+          'gm'
+        )
         content = content.replace(regex, ``).trim()
         if (item.name === 'php_xdebug') {
           content = content
@@ -399,7 +402,12 @@ class Php extends Base {
             .trim()
         }
       } else {
-        content += `\n${item.iniStr}`
+        let dll = item.iniStr
+        if (!dll.includes(`.dll`)) {
+          dll = dll.replace(/"/g, '').trim()
+          dll += '.dll'
+        }
+        content += `\n${dll}`
         if (item.name === 'php_xdebug') {
           const output_dir = join(global.Server.PhpDir!, 'xdebug')
           await mkdirp(output_dir)
@@ -523,7 +531,10 @@ xdebug.output_dir = "${output_dir}"
       const zend = ['php_opcache', 'php_xdebug']
       const type = zend.includes(name) ? 'zend_extension' : 'extension'
       if (item.installed) {
-        const regex: RegExp = new RegExp(`^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${name})"?`, 'gm')
+        const regex: RegExp = new RegExp(
+          `^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${name})(\\.dll)?"?`,
+          'gm'
+        )
         content = content.replace(regex, ``).trim()
         if (name === 'php_xdebug') {
           content = content
@@ -631,7 +642,7 @@ xdebug.output_dir = "${output_dir}"
             return
           }
         }
-        content += `\n${type}=${name}`
+        content += `\n${type}=${name}.dll`
         if (name === 'php_xdebug') {
           const output_dir = join(global.Server.PhpDir!, 'xdebug')
           await mkdirp(output_dir)

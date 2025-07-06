@@ -767,6 +767,7 @@ export default class Application extends EventEmitter {
         break
       case 'application:open-dev-window':
         this.mainWindow?.webContents?.openDevTools()
+        this.windowManager.sendCommandTo(this.mainWindow!, command, key, true)
         break
       case 'application:about':
         this.windowManager.sendCommandTo(this.mainWindow!, command, key)

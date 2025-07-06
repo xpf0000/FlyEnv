@@ -17,106 +17,102 @@
           :disabled="files.length === 0 || data.running"
           :loading="data.running"
           @click="doClean"
-          >{{ $t('base.clean') }}</el-button
+          >{{ $t('base.cleanup') }}</el-button
         >
       </template>
     </div>
 
-    <div v-loading="data.loading" class="main-wapper">
-      <div class="main">
-        <div class="path-choose my-5">
-          <input
-            type="text"
-            class="input"
-            readonly="readonly"
-            placeholder="Directory or file"
-            :value="data.path"
-          />
-          <div class="icon-block" @click.stop="chooseDir">
-            <yb-icon :svg="import('@/svg/folder.svg?raw')" class="choose" width="18" height="18" />
-          </div>
+    <div v-loading="data.loading" class="main-wapper overflow-hidden">
+      <el-scrollbar>
+        <div class="main flex flex-col gap-7 pt-7">
+          <el-input v-model="data.path" placeholder="Directory or file">
+            <template #append>
+              <el-button :icon="FolderOpened" @click.stop="chooseDir"></el-button>
+            </template>
+          </el-input>
+
+          <el-input
+            v-model.trim="data.exclude"
+            :disabled="data.running ? 'disabled' : null"
+            :readonly="data.running ? 'readonly' : null"
+            type="textarea"
+            :rows="6"
+            resize="none"
+            placeholder="Excludes (Example: node_modules), separated by line."
+          ></el-input>
+
+          <el-card shadow="never" header="File Type ">
+            <div>
+              <el-checkbox-group v-model="data.allowExt" :disabled="data.running">
+                <template v-for="(item, _i) in data.allExt" :key="_i">
+                  <el-checkbox :label="item.ext">{{ item.ext }}({{ item.count }})</el-checkbox>
+                </template>
+              </el-checkbox-group>
+            </div>
+          </el-card>
+
+          <template v-if="!data.running">
+            <el-progress :text-inside="true" :stroke-width="20" :percentage="0">
+              <span>0 / {{ files.length }}</span>
+            </el-progress>
+          </template>
+          <template v-else>
+            <el-progress :text-inside="true" :stroke-width="20" :percentage="currentProgress">
+              <span>{{ data.progress.finish }} / {{ data.progress.count }}</span>
+            </el-progress>
+          </template>
+          <template v-if="data.end">
+            <el-card shadow="never" header="Result">
+              <div class="flex flex-col gap-6">
+                <div>
+                  <span>total file: </span><span>{{ data.progress.count }}</span>
+                </div>
+                <div>
+                  <span>checked file: </span><span>{{ data.progress.finish }}</span>
+                </div>
+                <div style="color: #67c23a">
+                  <template v-if="data.progress.successTask.length > 0">
+                    <el-popover placement="left" popper-class="bom-clean-popper">
+                      <template #reference>
+                        <span>clean success: {{ data.progress.success }}</span>
+                      </template>
+                      <template #default>
+                        <ul>
+                          <template v-for="(item, _i) in data.progress.successTask" :key="_i">
+                            <li>{{ item.path }}</li>
+                          </template>
+                        </ul>
+                      </template>
+                    </el-popover>
+                  </template>
+                  <template v-else>
+                    <span>clean success: {{ data.progress.success }}</span>
+                  </template>
+                </div>
+                <div style="color: #f56c6c">
+                  <template v-if="data.progress.failTask.length > 0">
+                    <el-popover placement="left" popper-class="bom-clean-popper">
+                      <template #reference>
+                        <span>clean fail: {{ data.progress.fail }}</span>
+                      </template>
+                      <template #default>
+                        <ul>
+                          <template v-for="(item, _i) in data.progress.failTask" :key="_i">
+                            <li>{{ item.path }}: {{ item.msg }}</li>
+                          </template>
+                        </ul>
+                      </template>
+                    </el-popover>
+                  </template>
+                  <template v-else>
+                    <span>clean fail: {{ data.progress.fail }}</span>
+                  </template>
+                </div>
+              </div>
+            </el-card>
+          </template>
         </div>
-        <textarea
-          v-model.trim="data.exclude"
-          :disabled="data.running ? 'disabled' : null"
-          :readonly="data.running ? 'readonly' : null"
-          type="text"
-          class="input-textarea"
-          placeholder="Excludes (Example: node_modules), separated by line."
-        ></textarea>
-        <div class="block">
-          <div class="mt-5"> File Type </div>
-          <div class="mt-5">
-            <el-checkbox-group v-model="data.allowExt" :disabled="data.running">
-              <template v-for="(item, i) in data.allExt" :key="i">
-                <el-checkbox :label="item.ext">{{ item.ext }}({{ item.count }})</el-checkbox>
-              </template>
-            </el-checkbox-group>
-          </div>
-        </div>
-        <template v-if="!data.running">
-          <el-progress class="mt-5" :text-inside="true" :stroke-width="20" :percentage="0">
-            <span>0 / {{ files.length }}</span>
-          </el-progress>
-        </template>
-        <template v-else>
-          <el-progress
-            class="mt-5"
-            :text-inside="true"
-            :stroke-width="20"
-            :percentage="currentProgress"
-          >
-            <span>{{ data.progress.finish }} / {{ data.progress.count }}</span>
-          </el-progress>
-        </template>
-        <template v-if="data.end">
-          <div class="mt-30">Result</div>
-          <div style="margin-top: 15px">
-            <span>total file: </span><span>{{ data.progress.count }}</span>
-          </div>
-          <div style="margin-top: 15px">
-            <span>checked file: </span><span>{{ data.progress.finish }}</span>
-          </div>
-          <div style="margin-top: 15px; color: #67c23a">
-            <template v-if="data.progress.successTask.length > 0">
-              <el-popover placement="left" popper-class="bom-clean-popper">
-                <template #reference>
-                  <span>clean success: {{ data.progress.success }}</span>
-                </template>
-                <template #default>
-                  <ul>
-                    <template v-for="(item, i) in data.progress.successTask" :key="i">
-                      <li>{{ item.path }}</li>
-                    </template>
-                  </ul>
-                </template>
-              </el-popover>
-            </template>
-            <template v-else>
-              <span>clean success: {{ data.progress.success }}</span>
-            </template>
-          </div>
-          <div style="margin-top: 15px; color: #f56c6c">
-            <template v-if="data.progress.failTask.length > 0">
-              <el-popover placement="left" popper-class="bom-clean-popper">
-                <template #reference>
-                  <span>clean fail: {{ data.progress.fail }}</span>
-                </template>
-                <template #default>
-                  <ul>
-                    <template v-for="(item, i) in data.progress.failTask" :key="i">
-                      <li>{{ item.path }}: {{ item.msg }}</li>
-                    </template>
-                  </ul>
-                </template>
-              </el-popover>
-            </template>
-            <template v-else>
-              <span>clean fail: {{ data.progress.fail }}</span>
-            </template>
-          </div>
-        </template>
-      </div>
+      </el-scrollbar>
     </div>
   </div>
 </template>
@@ -129,6 +125,7 @@
   import { I18nT } from '@lang/index'
   import { extname } from '@/util/path-browserify'
   import { dialog } from '@/util/NodeFn'
+  import { FolderOpened } from '@element-plus/icons-vue'
 
   const data = computed(() => {
     return store.value

@@ -105,6 +105,7 @@ export const Setup = (version: SoftInstalled) => {
 
   const fetchLocal = () => {
     const fetchFile = async (dir: string) => {
+      console.log('fetchFile dir: ', dir)
       let all = await fs.readdir(dir, false)
       all = all.filter((s) => {
         return s.indexOf('.so') >= 0 || s.indexOf('.dar') >= 0
@@ -116,8 +117,9 @@ export const Setup = (version: SoftInstalled) => {
     } else {
       if (version?.version) {
         const pkconfig = version?.phpConfig ?? join(version?.path, 'bin/php-config')
-        exec.exec(pkconfig, ['--extension-dir']).then((res: string) => {
-          const dir = res
+        exec.exec(`"${pkconfig}" --extension-dir`).then((res: any) => {
+          console.log('--extension-dir res: ', res)
+          const dir = res.stdout
           ExtensionSetup.dir[version.bin] = dir
           fetchFile(dir)
         })

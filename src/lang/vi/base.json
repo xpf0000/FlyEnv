@@ -109,5 +109,7 @@
   "action": "Hành động",
   "settings": "Cài đặt",
   "placeholderSearch": "Tìm kiếm",
-  "projects": "Dự án"
+  "projects": "Dự án",
+
+  "cleanup": "Cleanup"
 }

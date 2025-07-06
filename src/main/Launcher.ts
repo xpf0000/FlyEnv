@@ -5,6 +5,7 @@ import logger from './core/Logger'
 import Application from './Application'
 import type { CallBackFn } from '@shared/app.d'
 import { isMacOS, isWindows } from '@shared/utils'
+import { AppStartFlagChech } from './app'
 
 export default class Launcher extends EventEmitter {
   exceptionHandler?: ExceptionHandler
@@ -34,6 +35,10 @@ export default class Launcher extends EventEmitter {
 
   init() {
     this.exceptionHandler = new ExceptionHandler()
+    if (AppStartFlagChech()) {
+      app.commandLine.appendSwitch('disable-gpu-sandbox')
+      app.commandLine.appendSwitch('--no-sandbox')
+    }
     this.handleAppEvents()
   }
 
@@ -43,7 +48,7 @@ export default class Launcher extends EventEmitter {
   }
 
   handelAppReady() {
-    app.on('ready', () => {
+    app.on('ready', async () => {
       console.log('app on ready !!!!!!')
       global.application = new Application()
       global.application.start('index')

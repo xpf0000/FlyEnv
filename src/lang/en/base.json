@@ -108,5 +108,7 @@
   "Official": "Official",
   "staticDelAlert": "In order to ensure the safe of user data, No longer provides the function of automatically deleting installed software. If you are sure you want to delete it, click OK. Manually delete the software in the open folder.",
   "placeholderSearch": "Search",
-  "projects": "Project"
+  "projects": "Project",
+
+  "cleanup": "Cleanup"
 }

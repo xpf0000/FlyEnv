@@ -22,7 +22,7 @@
           </el-tooltip>
         </el-button-group>
       </div>
-      <div class="main-wapper">
+      <div class="main-wapper p-3">
         <el-card>
           <template #header>
             <div class="card-header">

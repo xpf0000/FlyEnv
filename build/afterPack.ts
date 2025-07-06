@@ -53,7 +53,7 @@ export default async function after(pack) {
   })
 
   const shFile = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/flyenv.sh')
-  const tmplFile = resolve(pack.appOutDir, '../../static/sh/fly-env.sh')
+  const tmplFile = resolve(pack.appOutDir, '../../static/sh/macOS/fly-env.sh')
   const content = await readFile(tmplFile, 'utf-8')
   await writeFile(shFile, content)
 

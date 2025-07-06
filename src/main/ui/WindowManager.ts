@@ -6,6 +6,8 @@ import Event = Electron.Main.Event
 import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions
 import { join } from 'path'
 import { isMacOS, isWindows } from '@shared/utils'
+import is from 'electron-is'
+import { AppStartErrorCallback } from '../app'
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
@@ -38,7 +40,8 @@ const trayBrowserOptions: BrowserWindowConstructorOptions = {
   webPreferences: {
     nodeIntegration: false,
     contextIsolation: true,
-    webSecurity: true
+    webSecurity: true,
+    allowRunningInsecureContent: true
   }
 }
 export default class WindowManager extends EventEmitter {
@@ -96,7 +99,11 @@ export default class WindowManager extends EventEmitter {
     })
     window.webContents.on('will-navigate', (e) => e.preventDefault())
     window.setMenu(null)
-    window.loadURL(pageOptions.url).then()
+    if (is.dev()) {
+      window.loadURL(pageOptions.url).catch()
+    } else {
+      window.loadFile(pageOptions.url).catch()
+    }
     window.on('close', (event: Event) => {
       if (pageOptions.bindCloseToHide && !this.willQuit) {
         event.preventDefault()
@@ -141,8 +148,12 @@ export default class WindowManager extends EventEmitter {
       window.setBounds(bounds)
     }
 
-    if (pageOptions.url) {
-      window.loadURL(pageOptions.url).then()
+    if (is.dev()) {
+      window.loadURL(pageOptions.url).catch()
+    } else {
+      window.loadFile(pageOptions.url).catch((e) => {
+        AppStartErrorCallback(e).catch()
+      })
     }
 
     window.once('ready-to-show', () => {

@@ -244,6 +244,10 @@ export class AppNodeFn {
   }
 
   fs_readdir(command: string, key: string, dir: string, full: boolean) {
+    if (!existsSync(dir)) {
+      this?.mainWindow?.webContents.send('command', command, key, [])
+      return
+    }
     readdirRecursive(dir).then((arr) => {
       if (full) {
         this?.mainWindow?.webContents.send('command', command, key, arr)

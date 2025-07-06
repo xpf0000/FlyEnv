@@ -9,7 +9,7 @@
     <div class="about-panel">
       <div class="app-info">
         <div class="flex justify-center">
-          <div class="app-icon"></div>
+          <div class="app-icon" @click.stop="onIconClick"></div>
         </div>
         <div class="mt-5">
           <a target="_blank" href="javascript:" rel="noopener noreferrer" @click="toHome($event)">
@@ -97,6 +97,7 @@
   import { AppStore } from '@/store/app'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { app, shell } from '@/util/NodeFn'
+  import IPC from '@/util/IPC'
 
   const version = ref('')
   const appStore = AppStore()
@@ -117,6 +118,21 @@
     import('@/components/Feedback/index.vue').then((res) => {
       AsyncComponentShow(res.default).then()
     })
+  }
+  let times = 0
+  let timer: any
+  const onIconClick = () => {
+    clearTimeout(timer)
+    times += 1
+    if (times === 5) {
+      times = 0
+      IPC.send('application:open-dev-window').then((key) => {
+        IPC.off(key)
+      })
+    }
+    timer = setTimeout(() => {
+      times = 0
+    }, 800)
   }
 
   onMounted(() => {

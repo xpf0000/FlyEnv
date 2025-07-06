@@ -28,21 +28,21 @@ export const Setup = (version: SoftInstalled) => {
     const bin = version?.phpBin ?? join(version?.path, 'bin/php')
     console.log('macport bin: ', bin)
     exec
-      .exec(bin, ['-m'])
-      .then((res: string) => {
+      .exec(`"${bin}" -m`)
+      .then((res: any) => {
         console.log('execAsync: ', res)
-        let phpModules = res.split(`[PHP Modules]\n`).pop()!.trim()!
+        let phpModules = res.stdout.split(`[PHP Modules]\n`).pop()!.trim()!
         const arr = phpModules.split(`[Zend Modules]`)
         phpModules = arr.shift()!.trim()
         const zendModules = arr.pop()?.trim() ?? ''
         const phpModuleArr = phpModules
           .split(`\n`)
-          .filter((s) => !!s.trim())
-          .map((s) => s.trim().toLowerCase())
+          .filter((s: string) => !!s.trim())
+          .map((s: string) => s.trim().toLowerCase())
         const zendModuleArr = zendModules
           .split(`\n`)
-          .filter((s) => !!s.trim())
-          .map((s) => s.trim().toLowerCase())
+          .filter((s: string) => !!s.trim())
+          .map((s: string) => s.trim().toLowerCase())
         LoadedSetup.list[version.bin] = reactive(
           Array.from(new Set([...phpModuleArr, ...zendModuleArr])).map((s) => ({ name: s }))
         )

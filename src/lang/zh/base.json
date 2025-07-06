@@ -18,6 +18,7 @@
   "nginxRewriteTips": "此处设置Nginx的Url Rewrite, Apache请在项目文件中自行设置",
   "refresh": "刷新",
   "clean": "清空",
+  "cleanup": "清理",
   "prompt": "提示",
   "delAlertTitle": "温馨提示",
   "delAlertContent": "确认删除?",

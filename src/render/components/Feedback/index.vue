@@ -9,7 +9,7 @@
   >
     <el-form v-model="FeedbackStore" label-position="left" label-width="90px" @submit.prevent>
       <el-form-item :label="I18nT('feedback.email')">
-        <el-input v-model.trim="FeedbackStore.email" type="text" clearable></el-input>
+        <el-input v-model="FeedbackStore.email" type="text" clearable></el-input>
       </el-form-item>
       <el-form-item :label="I18nT('feedback.country')">
         <el-select
@@ -27,7 +27,7 @@
       </el-form-item>
       <el-form-item :label="I18nT('feedback.message')">
         <el-input
-          v-model.trim="FeedbackStore.message"
+          v-model="FeedbackStore.message"
           type="textarea"
           :minlength="5"
           :maxlength="1024"
