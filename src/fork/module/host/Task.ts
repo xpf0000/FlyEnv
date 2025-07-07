@@ -9,7 +9,7 @@ import {
   downFile,
   execPromise,
   waitTime,
-  copy,
+  copyFile,
   mkdirp,
   readdir,
   remove,
@@ -209,7 +209,7 @@ export function TaskAddPhpMyAdminSite(this: any, phpVersion?: number, write = tr
     downFile(url, zipTmpFile)
       .on(on)
       .then(async () => {
-        return copy(zipTmpFile, zipFile)
+        return copyFile(zipTmpFile, zipFile)
       })
       .then(() => {
         if (existsSync(zipFile)) {

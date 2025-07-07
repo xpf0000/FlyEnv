@@ -1,7 +1,6 @@
 import { BaseManager } from './Base'
-import { mkdirp } from '../util'
-import { dirname } from 'path'
-import { execPromise } from '@shared/child-process'
+import { dirname } from 'node:path'
+import { execPromise, mkdirp } from '../util'
 
 class Manager extends BaseManager {
   iniFileFixed(baseIni: string, ini: string): Promise<boolean> {

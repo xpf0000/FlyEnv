@@ -2,7 +2,7 @@ import request from '@shared/request'
 import Config from './Config'
 import { checkIsExcludeUrl } from './Fn'
 import { Store } from './Store'
-import { wait, existsSync, mkdirp, createWriteStream, removeSync, stat } from '../../utils'
+import { wait, existsSync, mkdirp, createWriteStream, unlinkSync, stat } from '../../utils'
 import { dirname } from 'path'
 import type { LinkItem } from './LinkItem'
 
@@ -76,7 +76,7 @@ class LinkTaskItem {
           try {
             stream.close(() => {
               if (existsSync(saveFile)) {
-                removeSync(saveFile)
+                unlinkSync(saveFile)
               }
               this.run().then()
             })

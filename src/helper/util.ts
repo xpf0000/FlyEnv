@@ -1,5 +1,10 @@
 import { mkdirp, remove, existsSync, readFile, writeFile } from '@shared/fs-extra'
-import { execPromise } from '@shared/child-process'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execPromise = promisify(exec)
+
+export { execPromise }
 
 export { mkdirp, remove, existsSync, readFile, writeFile }
 

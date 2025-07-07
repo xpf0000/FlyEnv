@@ -5,7 +5,7 @@ import type { FtpItem } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import FtpServer from 'ftp-srv'
 import { address } from 'neoip'
-import { readFile, writeFile, mkdirp, copy, remove } from '../Fn'
+import { readFile, writeFile, mkdirp, copyFile, remove } from '../Fn'
 import { isWindows } from '@shared/utils'
 
 class Manager extends Base {
@@ -32,7 +32,7 @@ class Manager extends Base {
     if (isWindows()) {
       const json = join(global.Server.FTPDir!, 'pureftpd.json')
       if (existsSync(json)) {
-        await copy(json, join(this.baseDir, 'ftp-srv.json'))
+        await copyFile(json, join(this.baseDir, 'ftp-srv.json'))
         await remove(json)
       }
     }

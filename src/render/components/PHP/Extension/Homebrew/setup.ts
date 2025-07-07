@@ -94,7 +94,7 @@ export const Setup = (version: SoftInstalled) => {
     if (exists) {
       await fs.remove(copyfile)
     }
-    await fs.copy(sh, copyfile)
+    await fs.copyFile(sh, copyfile)
     await fs.chmod(copyfile, '0777')
     params = [`${copyfile} ${arch} ${fn} ${name};`]
     if (proxyStr?.value) {
@@ -114,7 +114,7 @@ export const Setup = (version: SoftInstalled) => {
     if (so) {
       const destSo = join(extensionDir, basename(so))
       await fs.mkdirp(extensionDir)
-      await fs.copy(so, destSo)
+      await fs.copyFile(so, destSo)
     }
     ExtensionSetup.reFetch()
     reGetData()

@@ -1,8 +1,7 @@
-import { join } from 'path'
-import { uuid, readFile, writeFile } from '../util'
-import { existsSync } from 'fs'
+import { join } from 'node:path'
+import { uuid, readFile, writeFile, execPromise } from '../util'
+import { existsSync } from 'node:fs'
 import { BaseManager } from './Base'
-import { execPromise } from '@shared/child-process'
 
 class Manager extends BaseManager {
   writeFileByRoot(file: string, content: string): Promise<boolean> {

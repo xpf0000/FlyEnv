@@ -167,7 +167,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     if (exists) {
       await fs.remove(copyfile)
     }
-    await fs.copy(sh, copyfile)
+    await fs.copyFile(sh, copyfile)
     await fs.chmod(copyfile, '0777')
     params = [`${copyfile} ${arch} ${fn} ${name};`]
     if (proxyStr?.value) {
@@ -227,7 +227,7 @@ export const Setup = (typeFlag: AllAppModule) => {
         ? join(window.Server.Static!, 'sh/brew-install.sh')
         : join(window.Server.Static!, 'sh/brew-install-en.sh')
     const copyFile = join(window.Server.Cache!, basename(file))
-    await fs.copy(file, copyFile)
+    await fs.copyFile(file, copyFile)
     const execXTerm = new XTerm()
     BrewSetup.xterm = execXTerm
     console.log('xtermDom.value: ', xtermDom.value)

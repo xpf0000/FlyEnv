@@ -1,4 +1,4 @@
-import { execPromise } from '@shared/child-process'
+import { execPromise } from '../util'
 
 export class BaseManager {
   exec(fnName: keyof typeof this, ...args: any) {

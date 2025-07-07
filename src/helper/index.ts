@@ -1,8 +1,7 @@
-import { createServer } from 'net'
-import { remove, existsSync } from './util'
-import { dirChownFetch, waitTime } from './util'
+import { createServer } from 'node:net'
+import { dirChownFetch, waitTime, remove, existsSync } from './util'
 import type { TaskItem } from './type'
-import { execPromise } from '@shared/child-process'
+import { execPromise } from './util'
 
 // Path to the socket file
 const SOCKET_PATH = '/tmp/flyenv-helper.sock'

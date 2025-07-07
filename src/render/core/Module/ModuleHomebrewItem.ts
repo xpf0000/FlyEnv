@@ -55,7 +55,7 @@ export class ModuleHomebrewItem {
     if (exists) {
       await fs.remove(copyfile)
     }
-    await fs.copy(sh, copyfile)
+    await fs.copyFile(sh, copyfile)
     await fs.chmod(copyfile, '0777')
     params = [`${copyfile} ${arch} ${fn} ${name};`]
     const appStore = AppStore()

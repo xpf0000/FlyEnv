@@ -15,7 +15,7 @@ import { createMarkdownRenderer } from '@/util/markdown/markdown'
 import { isLinux, isMacOS, pathFixedToUnix } from '@shared/utils'
 import { realpath } from '@shared/fs-extra'
 import { parse as TOMLParse, stringify as TOMLStringify } from '@iarna/toml'
-import { copy, mkdirp, writeFile, readFile } from '@shared/fs-extra'
+import { copy, mkdirp, writeFile, readFile, copyFile } from '@shared/fs-extra'
 import crypto from 'node:crypto'
 
 const require = createRequire(import.meta.url)
@@ -283,6 +283,16 @@ export class AppNodeFn {
 
   fs_copy(command: string, key: string, src: string, dest: string) {
     copy(src, dest)
+      .then(() => {
+        this?.mainWindow?.webContents.send('command', command, key, true)
+      })
+      .catch(() => {
+        this?.mainWindow?.webContents.send('command', command, key, false)
+      })
+  }
+
+  fs_copyFile(command: string, key: string, src: string, dest: string) {
+    copyFile(src, dest)
       .then(() => {
         this?.mainWindow?.webContents.send('command', command, key, true)
       })

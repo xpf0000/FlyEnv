@@ -279,7 +279,7 @@
             for (const old in dict) {
               fs.existsSync(old).then((e) => {
                 if (e) {
-                  fs.copy(old, dict[old]).then()
+                  fs.copyFile(old, dict[old]).then()
                 }
               })
             }
@@ -343,7 +343,7 @@
             for (const old in dict) {
               fs.existsSync(old).then((e) => {
                 if (e) {
-                  fs.copy(old, dict[old]).then()
+                  fs.copyFile(old, dict[old]).then()
                 }
               })
             }

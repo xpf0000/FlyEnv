@@ -92,7 +92,7 @@ class AppHelper {
         const binDir = PathResolve(global.Server.Static!, '../../../../')
         const plist = join(binDir, 'plist/com.flyenv.helper.plist')
         const bin = join(binDir, 'helper/flyenv-helper')
-        const script = join(binDir, 'helper/helper.mjs')
+        const script = join(binDir, 'helper/helper.js')
         command = `cd "${join(binDir, 'helper')}" && sudo ./postinstall.sh "${plist}" "${bin}" "${script}"`
         icns = join(binDir, 'icon.icns')
       } else {
@@ -104,7 +104,7 @@ class AppHelper {
           global.Server.isAppleSilicon ? 'arm' : 'x86',
           'flyenv-helper'
         )
-        const script = PathResolve(global.Server.Static!, '../../helper/helper.mjs')
+        const script = PathResolve(global.Server.Static!, '../../helper/helper.js')
         command = `cd "${dirname(bin)}" && sudo ./postinstall.sh "${plist}" "${bin}" "${script}"`
         icns = join(binDir, 'icon.icns')
       }

@@ -63,31 +63,27 @@ const distFork: BuildOptions = {
 const devHelper: BuildOptions = {
   platform: 'node',
   entryPoints: ['src/helper/index.ts'],
-  outfile: 'dist/helper/helper.mjs',
+  outfile: 'dist/helper/helper.js',
   minify: false,
   bundle: true,
-  packages: 'external',
   loader: {
     '.node': 'file'
   },
-  format: 'esm',
-  target: 'esnext',
-  plugins: []
+  plugins: [],
+  external: []
 }
 
 const distHelper: BuildOptions = {
   platform: 'node',
   entryPoints: ['src/helper/index.ts'],
-  outfile: 'dist/helper/helper.mjs',
+  outfile: 'dist/helper/helper.js',
   minify: true,
   bundle: true,
-  packages: 'external',
   loader: {
     '.node': 'file'
   },
   plugins: [],
-  format: 'esm',
-  target: 'esnext',
+  external: [],
   drop: ['debugger', 'console']
 }
 

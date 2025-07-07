@@ -71,7 +71,7 @@
   fs.existsSync(file.value).then((e) => {
     if (!e) {
       fs.mkdirp(dirname(file.value))
-        .then(() => fs.copy(defaultFile.value, file.value))
+        .then(() => fs.copyFile(defaultFile.value, file.value))
         .then(() => {
           conf?.value?.update()
         })

@@ -2,7 +2,7 @@ import { app } from 'electron'
 import { cpus } from 'os'
 import {
   createWriteStream,
-  removeSync,
+  unlinkSync,
   stat,
   existsSync,
   copyFile,
@@ -16,7 +16,7 @@ import {
 
 export {
   createWriteStream,
-  removeSync,
+  unlinkSync,
   stat,
   existsSync,
   copyFile,

@@ -1,5 +1,5 @@
 import { BaseManager } from './Base'
-import { execPromise } from '@shared/child-process'
+import { execPromise } from '../util'
 
 class Manager extends BaseManager {
   macportsDirFixed(enDir: string, shareDir: string): Promise<boolean> {

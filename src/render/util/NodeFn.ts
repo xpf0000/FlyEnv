@@ -160,6 +160,7 @@ export const fs = {
   mkdirp: createIPCCall<void>('fs', 'mkdirp'),
   stat: createIPCCall<import('fs').Stats>('fs', 'stat'),
   copy: createIPCCall<void>('fs', 'copy'),
+  copyFile: createIPCCall<void>('fs', 'copyFile'),
   existsSync: createIPCCall<boolean>('fs', 'existsSync'),
   readFile: createIPCCall<string>('fs', 'readFile'),
   writeFile: createIPCCall<void>('fs', 'writeFile'),
