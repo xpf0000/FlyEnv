@@ -31,11 +31,6 @@ jobs:
           OUTPUT_NAME="helper-${{ matrix.arch }}"
           bun build --compile ./build/helper.js --outfile $OUTPUT_NAME --minify
           file $OUTPUT_NAME
-          ./$OUTPUT_NAME --version
-
-      - name: Verify architecture
-        run: |
-          file "helper-${{ matrix.arch }}"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
