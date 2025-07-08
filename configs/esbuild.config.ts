@@ -64,13 +64,14 @@ const devHelper: BuildOptions = {
   platform: 'node',
   entryPoints: ['src/helper/index.ts'],
   outfile: 'dist/helper/helper.js',
-  minify: false,
+  minify: true,
   bundle: true,
   loader: {
     '.node': 'file'
   },
   plugins: [],
-  external: []
+  external: [],
+  drop: ['debugger', 'console']
 }
 
 const distHelper: BuildOptions = {
