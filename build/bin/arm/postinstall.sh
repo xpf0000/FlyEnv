@@ -1,11 +1,9 @@
 #!/bin/zsh
 PLIST_SRC="$1"
 BIN="$2"
-SCRIPT="$3"
 
 PLIST_PATH="/Library/LaunchDaemons/com.flyenv.helper.plist"
 BIN_DEST="/Library/Application Support/FlyEnv/Helper/flyenv-helper"
-SCRIPT_DEST="/Library/Application Support/FlyEnv/Helper/helper.js"
 
 OS_VERSION=$(sw_vers -productVersion | cut -d. -f1)
 
@@ -24,15 +22,15 @@ fi
 
 # Copy the new plist file
 echo "Copying new plist file..."
+sudo rm -rf "$PLIST_PATH" 2>/dev/null
 sudo cp "$PLIST_SRC" "$PLIST_PATH"
 sudo mkdir -p "/Library/Application Support/FlyEnv/Helper"
+sudo rm -rf "$BIN_DEST" 2>/dev/null
 sudo cp "$BIN" "$BIN_DEST"
-sudo cp "$SCRIPT" "$SCRIPT_DEST"
 
 # Set the correct permissions
 sudo chmod 644 "$PLIST_PATH"
 sudo chmod 755 "$BIN_DEST"
-sudo chmod 755 "$SCRIPT_DEST"
 
 # Load the new Launch Daemon
 echo "Loading new Launch Daemon..."

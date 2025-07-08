@@ -43,15 +43,6 @@ export default async function after(pack) {
     cwd: fromBinDir
   })
 
-  fromBinDir = resolve(pack.appOutDir, '../../dist/helper')
-  toBinDir = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/')
-  await mkdirp(toBinDir)
-  command = `cp ./* "${toBinDir}"`
-  console.log('command: ', command)
-  await execPromise(command, {
-    cwd: fromBinDir
-  })
-
   const shFile = join(pack.appOutDir, 'FlyEnv.app/Contents/Resources/helper/flyenv.sh')
   const tmplFile = resolve(pack.appOutDir, '../../static/sh/macOS/fly-env.sh')
   const content = await readFile(tmplFile, 'utf-8')

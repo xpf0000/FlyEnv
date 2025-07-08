@@ -13,7 +13,6 @@
     <key>ProgramArguments</key>
     <array>
         <string>/Library/Application Support/FlyEnv/Helper/flyenv-helper</string>
-        <string>/Library/Application Support/FlyEnv/Helper/helper.js</string>
     </array>
 
     <key>RunAtLoad</key>
