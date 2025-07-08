@@ -8,6 +8,7 @@ jobs:
   build:
     name: Build Helper on ${{ matrix.arch }} (macOS ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
       matrix:
         include:
