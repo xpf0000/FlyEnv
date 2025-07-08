@@ -35,8 +35,8 @@ FlyEnv is packed with features to make your development workflow smoother and mo
 - **Web Servers**: Apache, Nginx, Caddy, Tomcat.
 - **Databases**: MySQL, MariaDB, PostgreSQL, MongoDB.
 - **Email Server**: Mailpit.
-- **Programming Languages**: PHP (Composer), Java (Maven), NodeJS, Python, Go, Erlang, Ruby, Rust
-- **Data Queue & Cache**: Redis, Memcached, RabbitMQ.
+- **Programming Languages**: PHP (Composer), Java (Maven), NodeJS, Python, Go, Erlang, Ruby, Rust, Bun, Deno.
+- **Data Queue & Cache**: Redis, Memcached, RabbitMQ, etcd.
 - **Search Engine**: Elasticsearch, Meilisearch
 - **Object Storage**: Minio.
 - **Utilities**: DNS Server, FTP Server, Static HTTP Server.
