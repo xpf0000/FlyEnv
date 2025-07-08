@@ -6,11 +6,17 @@ on:
 
 jobs:
   build:
-    name: Build Binaries
-    runs-on: macos-14
+    name: Build Helper on ${{ matrix.arch }} (macOS ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        arch: [x64, arm64]
+        include:
+          - arch: x64
+            os: macos-12
+            target: x64
+          - arch: arm64
+            os: macos-14
+            target: arm64
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,17 +26,16 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Verify file changes
-        run: |
-          echo "Detected changes in build/helper.js:"
-          git diff --name-only ${{ github.event.before }} ${{ github.event.after }}
-
       - name: Build executable
         run: |
           OUTPUT_NAME="helper-${{ matrix.arch }}"
           bun build --compile ./build/helper.js --outfile $OUTPUT_NAME --minify
           file $OUTPUT_NAME
           ./$OUTPUT_NAME --version
+
+      - name: Verify architecture
+        run: |
+          file "helper-${{ matrix.arch }}"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
