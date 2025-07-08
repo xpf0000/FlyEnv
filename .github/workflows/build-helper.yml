@@ -1,0 +1,26 @@
+name: Build Helper
+on:
+  push:
+    paths:
+      - 'build/helper.js'
+
+jobs:
+  build:
+    runs-on: macos-14
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install -g boxednode
+      - run: |
+          boxednode -s build/helper.js -t dist/helper-${{ matrix.arch }} \
+            -n "^22.0.0"
+      - run: file dist/helper-*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: dist/helper-*
