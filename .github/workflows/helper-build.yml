@@ -1,0 +1,39 @@
+name: Build Helper with Bun
+on:
+  push:
+    paths:
+      - 'build/helper.js'
+
+jobs:
+  build:
+    name: Build Binaries
+    runs-on: macos-14
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Verify file changes
+        run: |
+          echo "Detected changes in build/helper.js:"
+          git diff --name-only ${{ github.event.before }} ${{ github.event.after }}
+
+      - name: Build executable
+        run: |
+          OUTPUT_NAME="helper-${{ matrix.arch }}"
+          bun build --compile ./build/helper.js --outfile $OUTPUT_NAME --minify
+          file $OUTPUT_NAME
+          ./$OUTPUT_NAME --version
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: helper-${{ matrix.arch }}
+          path: helper-${{ matrix.arch }}
