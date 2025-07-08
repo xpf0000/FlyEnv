@@ -13,7 +13,7 @@ jobs:
       matrix:
         include:
           - arch: x64
-            os: macos-12
+            os: macos-13
             target: x64
           - arch: arm64
             os: macos-14
