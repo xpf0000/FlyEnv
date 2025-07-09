@@ -216,8 +216,13 @@ class XTerm implements XTermType {
     return new Promise((resolve) => {
       this.resolve = resolve
       const param = [...cammand]
-      param.push(`wait;`)
-      param.push(`echo "Task-${this.ptyKey}-END" && exit 0;`)
+      if (window.Server.isWindows) {
+        param.push(`echo "Task-${this.ptyKey}-End"`)
+        param.push(`exit 0`)
+      } else {
+        param.push(`wait;`)
+        param.push(`echo "Task-${this.ptyKey}-END" && exit 0;`)
+      }
       IPC.send('NodePty:exec', this.ptyKey, param).then((key: string) => {
         console.log('static cammand finished: ', cammand)
         IPC.off(key)
