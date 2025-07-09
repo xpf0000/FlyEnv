@@ -152,10 +152,10 @@
       console.log('res: ', res)
       const save = reactive(new ModuleCustomer(res))
       save.moduleType = props.item.moduleType
-      save.onExecStart = save.onExecStart.bind(module)
-      save.start = save.start.bind(module)
-      save.stop = save.stop.bind(module)
-      save.watchShowHide = save.watchShowHide.bind(module)
+      save.onExecStart = save.onExecStart.bind(save)
+      save.start = save.start.bind(save)
+      save.stop = save.stop.bind(save)
+      save.watchShowHide = save.watchShowHide.bind(save)
       save.watchShowHide()
 
       if (!edit) {

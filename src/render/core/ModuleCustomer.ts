@@ -187,6 +187,9 @@ class ModuleCustomer implements CustomerModuleItem {
     const onStart = this.onExecStart.bind(this)
     for (const i of arr) {
       const execItem = reactive(new ModuleCustomerExecItem(i))
+      execItem.onStart = execItem.onStart.bind(execItem)
+      execItem.stop = execItem.stop.bind(execItem)
+      execItem.start = execItem.start.bind(execItem)
       execItem.onStart(onStart)
       list.push(execItem)
     }

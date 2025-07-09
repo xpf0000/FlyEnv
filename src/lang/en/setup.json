@@ -34,6 +34,7 @@
     "path": "File Path",
     "comment": "Comment",
     "exec": "Run",
+    "command": "Command",
     "commandFile": "File",
     "isSudo": "Run with sudo?",
     "pidPath": "PID File Path",

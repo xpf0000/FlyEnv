@@ -1,5 +1,10 @@
 <template>
-  <el-table border :data="list" @selection-change="handleSelectionChange">
+  <el-table
+    class="service-table"
+    show-overflow-tooltip
+    :data="list"
+    @selection-change="handleSelectionChange"
+  >
     <el-table-column type="selection" width="55" />
     <el-table-column :label="I18nT('mysql.databaseName')" prop="database" width="200px">
       <template #default="scope">

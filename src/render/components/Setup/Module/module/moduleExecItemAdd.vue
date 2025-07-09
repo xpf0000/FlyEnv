@@ -18,9 +18,9 @@
         <el-button class="shrink0" @click="doSave">{{ I18nT('base.save') }}</el-button>
       </div>
 
-      <div class="main-wapper" style="overflow: hidden">
-        <el-scrollbar>
-          <div class="main">
+      <el-scrollbar class="flex-1">
+        <div class="main-wapper p-3">
+          <div class="main p-5">
             <input
               v-model.trim="item.name"
               type="text"
@@ -41,7 +41,7 @@
             </template>
           </div>
 
-          <div class="main mt-5">
+          <div class="main mt-5 p-5">
             <div class="ssl-switch">
               <span>{{ I18nT('setup.module.exec') }}</span>
               <el-radio-group v-model="item.commandType" size="small">
@@ -88,7 +88,7 @@
           <div class="plant-title flex items-center justify-between">
             <span>{{ I18nT('setup.module.pidPath') }}</span>
           </div>
-          <div class="main">
+          <div class="main p-5">
             <div class="path-choose pb-1">
               <input
                 v-model.trim="item.pidPath"
@@ -112,7 +112,7 @@
             <span>{{ I18nT('setup.module.configPath') }}</span>
             <el-button link :icon="Plus" @click.stop="addConfigPath"></el-button>
           </div>
-          <div class="main">
+          <div class="main p-5">
             <template v-if="!item?.configPath?.length">
               <div class="flex justify-center">{{ I18nT('base.none') }}</div>
             </template>
@@ -160,7 +160,7 @@
             <span>{{ I18nT('setup.module.logPath') }}</span>
             <el-button link :icon="Plus" @click.stop="addLogPath"></el-button>
           </div>
-          <div class="main">
+          <div class="main p-5">
             <template v-if="!item?.logPath?.length">
               <div class="flex justify-center">{{ I18nT('base.none') }}</div>
             </template>
@@ -203,10 +203,9 @@
               </div>
             </template>
           </div>
-          <div class="py-6"></div>
-          <div class="py-6"></div>
-        </el-scrollbar>
-      </div>
+          <div class="py-5"></div>
+        </div>
+      </el-scrollbar>
     </div>
   </el-drawer>
 </template>

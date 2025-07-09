@@ -14,7 +14,7 @@
         </div>
       </div>
       <div v-loading="backuping" class="main-wapper p-3">
-        <el-card class="h-full">
+        <el-card class="h-full version-manager">
           <template #header>
             <div class="card-header">
               <div class="left">

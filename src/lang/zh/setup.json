@@ -34,6 +34,7 @@
     "path": "文件路径",
     "comment": "备注",
     "exec": "运行",
+    "command": "命令",
     "commandFile": "文件",
     "isSudo": "是否以sudo启动",
     "pidPath": "pid文件路径",
