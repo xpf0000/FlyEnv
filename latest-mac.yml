@@ -1,17 +1,17 @@
-version: 4.10.0
+version: 4.10.1
 files:
-  - url: FlyEnv-4.10.0-mac.zip
-    sha512: VrkzeFSVe9jomBEggVAVGC8HwRK/awOo0d9ZbPFMpOidnUK3RNo5Ht1A/PImTWPcXm3uIYO2ffmC3qCIIuyRTA==
-    size: 171776976
-  - url: FlyEnv-4.10.0-arm64-mac.zip
-    sha512: YAxitZGRVpwo8YOiixIiMRtZyDI52RxM3+If/S5PCmbJobqftAA01Gd6KOK4JO9bwEAWiQH320socOotnlxySw==
-    size: 163415266
-  - url: FlyEnv-4.10.0.dmg
-    sha512: tnkssTnOXoQA8dSx+AlB04v918hAYVN81FSTKtDfCjsgnd21bvniA+yHwanbFyucWR8mk1yVSikqEswP0VWtRw==
-    size: 179741275
-  - url: FlyEnv-4.10.0-arm64.dmg
-    sha512: El78zg59muYkLyLHkAlvoQcDPKNlfsi5DgvUWyZP1YNoMf5fAksGw8nuZpGc2Th2udwZrjtB0v4764d4Nt0txA==
-    size: 171302707
-path: FlyEnv-4.10.0-mac.zip
-sha512: VrkzeFSVe9jomBEggVAVGC8HwRK/awOo0d9ZbPFMpOidnUK3RNo5Ht1A/PImTWPcXm3uIYO2ffmC3qCIIuyRTA==
-releaseDate: '2025-07-08T14:34:41.949Z'
+  - url: FlyEnv-4.10.1-mac.zip
+    sha512: cECLyEJVw7L0j498AAO6AEuy5+ftOkD70FmLx7Ryxyb2ZEkl5ZZn5J9jXCkOzdJ261jwblp2kqo9nnK1er4e5Q==
+    size: 171778185
+  - url: FlyEnv-4.10.1-arm64-mac.zip
+    sha512: MgW/aTLfekal+GAYTv2EJsma4dyUlSLxf9/EnTRXrB61Ugn4kQsCKPaaQsqnkawtT5GT31zI6Ws+BQ8BviXk+w==
+    size: 163416469
+  - url: FlyEnv-4.10.1.dmg
+    sha512: BQkPSml5O1cw+deq3r58A0rw7FBA8dnRZAJ6QBj1knddVMcwfAgrwD141mrf8ZSnQ1mF5jWG2r9xTz+x/toYlA==
+    size: 179728936
+  - url: FlyEnv-4.10.1-arm64.dmg
+    sha512: vQk8FcKSPO+5SVdCdTVS+KIgVgJGK8j5FaZYDLeE26L/jF/p8VFHHRWOC6X5A66SjCkgtDnvYETnSC/jee/0aA==
+    size: 171303938
+path: FlyEnv-4.10.1-mac.zip
+sha512: cECLyEJVw7L0j498AAO6AEuy5+ftOkD70FmLx7Ryxyb2ZEkl5ZZn5J9jXCkOzdJ261jwblp2kqo9nnK1er4e5Q==
+releaseDate: '2025-07-09T16:17:07.769Z'
