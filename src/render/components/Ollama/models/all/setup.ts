@@ -128,6 +128,7 @@ export const Setup = () => {
       fn = 'pull'
     }
     if (window.Server.isWindows) {
+      console.log('runningService.value.bin: ', runningService.value.bin)
       return `cd "${dirname(runningService.value.bin)}"; ./ollama.exe ${fn} ${row.name}`
     }
     return `cd "${dirname(runningService.value.bin)}" && ./ollama ${fn} ${row.name}`
