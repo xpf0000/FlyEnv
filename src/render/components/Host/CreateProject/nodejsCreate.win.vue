@@ -186,17 +186,17 @@
     if (window.Server.Proxy) {
       for (const k in window.Server.Proxy) {
         const v = window.Server.Proxy[k]
-        command.push(`$Env:${k}="${v}"`)
+        command.push(`$env:${k}="${v}"`)
       }
     }
     if (form.node) {
-      command.push(`$Env:PATH = "${dirname(form.node)};" + $Env:PATH`)
-      command.push(`$Env:npm_config_prefix="${dirname(form.node)}"`)
+      command.push(`$env:PATH = "${dirname(form.node)};" + $env:PATH`)
+      command.push(`$env:npm_config_prefix="${dirname(form.node)}"`)
       command.push(
-        `$Env:npm_config_cache="${join(window.Server.UserHome!, 'AppData/Local/npm-cache')}"`
+        `$env:npm_config_cache="${join(window.Server.UserHome!, 'AppData/Local/npm-cache')}"`
       )
       command.push(
-        `$Env:npm_config_cache="${join(window.Server.UserHome!, 'AppData/Local/npm-cache')}"`
+        `$env:npm_config_cache="${join(window.Server.UserHome!, 'AppData/Local/npm-cache')}"`
       )
     }
     command.push(`cd "${form.dir}"`)

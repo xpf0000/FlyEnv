@@ -127,6 +127,9 @@ export const Setup = () => {
     } else {
       fn = 'pull'
     }
+    if (window.Server.isWindows) {
+      return `cd "${dirname(runningService.value.bin)}"; ./ollama.exe ${fn} ${row.name}`
+    }
     return `cd "${dirname(runningService.value.bin)}" && ./ollama ${fn} ${row.name}`
   }
 
@@ -145,10 +148,22 @@ export const Setup = () => {
     }
     OllamaAllModelsSetup.installing = true
     OllamaAllModelsSetup.installEnd = false
-    const params = [fetchCommand(row)]
-    if (proxyStr?.value) {
-      params.unshift(proxyStr?.value)
+    const params: string[] = []
+
+    if (window.Server.isWindows) {
+      if (window.Server.Proxy) {
+        for (const k in window.Server.Proxy) {
+          const v = window.Server.Proxy[k]
+          params.push(`$env:${k}="${v}"`)
+        }
+      }
+    } else {
+      if (proxyStr?.value) {
+        params.push(proxyStr?.value)
+      }
     }
+    params.push(fetchCommand(row))
+
     await nextTick()
     const execXTerm = new XTerm()
     OllamaAllModelsSetup.xterm = execXTerm
